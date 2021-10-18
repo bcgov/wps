@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 
 import { Container, GeneralHeader, PageTitle } from 'components'
 
-import DailyViewTable from 'features/hfiCalculator/components/DailyViewTable'
 import DatePicker from 'components/DatePicker'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import { fetchHFIDailies } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -14,16 +13,17 @@ import {
   selectHFIStationsLoading
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
-import { StationDaily } from 'api/hfiCalculatorAPI'
+import { buildDailyMap, buildWeekliesByCode } from 'features/hfiCalculator/util'
+import { getDateRange } from 'utils/date'
+import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
+import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
+import { formControlStyles } from 'app/theme'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
+  ...formControlStyles,
   container: {
     display: 'flex',
     justifyContent: 'center'
-  },
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 210
   }
 }))
 
@@ -34,41 +34,37 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
+  const [isWeeklyView, toggleTableView] = useState(false)
+
   // the DatePicker component requires dateOfInterest to be in string format
-  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
+  const [dateOfInterest, setDateOfInterest] = useState(
+    DateTime.now().setZone('UTC-7').toISO()
+  )
   const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
-    useState(DateTime.now().toISODate())
+    useState(DateTime.now().setZone('UTC-7').toISO())
+
+  const refreshView = () => {
+    const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
+    dispatch(fetchHFIStations())
+    dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
+  }
 
   const updateDate = () => {
     if (previouslySelectedDateOfInterest !== dateOfInterest) {
-      dispatch(
-        // need to convert dateOfInterest from string to a timestamp to be able to send query to API
-        fetchHFIDailies(
-          DateTime.fromISO(dateOfInterest).startOf('day').toUTC().valueOf(),
-          DateTime.fromISO(dateOfInterest).endOf('day').toUTC().valueOf()
-        )
-      )
-      dispatch(fetchHFIStations())
+      refreshView()
       setPreviouslySelectedDateOfInterest(dateOfInterest)
     }
   }
 
-  const dailiesMap = new Map<number, StationDaily>()
-  if (dailies !== undefined) {
-    dailies.forEach(daily => {
-      dailiesMap.set(daily.code, daily)
-    })
-  }
+  useEffect(() => {
+    refreshView()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
-    dispatch(fetchHFIStations())
-    dispatch(
-      fetchHFIDailies(
-        DateTime.fromISO(dateOfInterest).startOf('day').toUTC().valueOf(),
-        DateTime.fromISO(dateOfInterest).endOf('day').toUTC().valueOf()
-      )
-    )
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    refreshView()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWeeklyView])
 
   return (
     <main data-testid="hfi-calculator-page">
@@ -92,10 +88,20 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               updateDate={updateDate}
             />
           </FormControl>
-          <DailyViewTable
-            testId="hfi-calc-daily-table"
+
+          <FormControl className={classes.formControl}>
+            <ViewSwitcherToggles
+              isWeeklyView={isWeeklyView}
+              toggleTableView={toggleTableView}
+            />
+          </FormControl>
+
+          <ViewSwitcher
+            isWeeklyView={isWeeklyView}
             fireCentres={fireCentres}
-            dailiesMap={dailiesMap}
+            dailiesMap={buildDailyMap(dailies)}
+            weekliesMap={buildWeekliesByCode(dailies)}
+            dateOfInterest={dateOfInterest}
           />
         </Container>
       )}
