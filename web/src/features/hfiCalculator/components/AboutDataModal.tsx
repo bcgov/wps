@@ -63,7 +63,7 @@ export const AboutDataModal = (props: ModalProps): JSX.Element => {
             </p>
             <br />
             <p>
-              Values are calculated used the{' '}
+              Values are calculated using the{' '}
               <a
                 target="_blank"
                 rel="noopener noreferrer"
@@ -76,7 +76,7 @@ export const AboutDataModal = (props: ModalProps): JSX.Element => {
             <br />
             <p>
               If you have any questions about how values are calculated, please{' '}
-              <a href="mailto: bcws.predictiveservices@gov.bc.ca? subject= Predictive Services Unit - Fire Behaviour Advisory Calculator">
+              <a href="mailto: bcws.predictiveservices@gov.bc.ca? subject= Predictive Services Unit - HFI Calculator">
                 contact us.
               </a>
             </p>
