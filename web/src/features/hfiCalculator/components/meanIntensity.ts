@@ -1,6 +1,4 @@
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { StationWithDaily } from 'features/hfiCalculator/util'
-import { isUndefined } from 'lodash'
 
 export const intensityGroupColours: { [description: string]: string } = {
   lightGreen: '#D6FCA4',
@@ -20,19 +18,6 @@ export const calculateMeanIntensity = (
           stationDailies.map(daily => daily.intensity_group).reduce((a, b) => a + b, 0)) /
           stationDailies.length
       ) / 10
-
-export const calculateMeanIntensityGroup = (
-  stationsWithDaily: StationWithDaily[],
-  selected: number[]
-): number | undefined => {
-  const stationIntensityGroups: StationDaily[] = stationsWithDaily
-    .filter(stationWithDaily => selected.includes(stationWithDaily.station.code))
-    .flatMap(selectedStation =>
-      isUndefined(selectedStation.daily) ? [] : [selectedStation.daily]
-    )
-
-  return calculateMeanIntensity(stationIntensityGroups)
-}
 
 export const calculateHighestMeanIntensityGroup = (
   dailiesByDayUTC: Map<number, StationDaily[]>

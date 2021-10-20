@@ -1,6 +1,5 @@
 import { WeatherStation, WeatherStationProperties } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { StationWithDaily } from 'features/hfiCalculator/util'
 import { DateTime } from 'luxon'
 
 const defaultProps: WeatherStationProperties = {
@@ -12,13 +11,6 @@ const defaultProps: WeatherStationProperties = {
 
 export const buildStation = (code: number): WeatherStation => {
   return { code: code, station_props: defaultProps }
-}
-
-export const buildStationWithDaily = (
-  station: WeatherStation,
-  stationDaily: StationDaily
-): StationWithDaily => {
-  return { station: station, daily: stationDaily }
 }
 
 export const buildStationDaily = (code: number, intensity_group = 1): StationDaily => {
