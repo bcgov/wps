@@ -6,9 +6,6 @@
 # AWS_HOSTNAME=[your aws hostname] AWS_ACCESS_KEY=[your access key] AWS_SECRET_KEY=[your secret key] AWS_BUCKET=[your aws bucket] PG_HOSTNAME=localhost PG_DATABASE=wps ./cleanup_bucket.sh
 
 # variable checks
-
-
-
 if [ -z ${PG_HOSTNAME+0} ]
 then
     echo "PG_HOSTNAME not specified"
@@ -51,9 +48,8 @@ then
     exit 1
 fi
 
-_datestamp=`date +\%Y/\%m`
-_target_folder="${PG_HOSTNAME}_${PG_DATABASE}/${_datestamp}"
+_target_path="s3://${AWS_BUCKET}/backup/${PG_HOSTNAME}_${PG_DATABASE}/"
 
-echo "Cleaning up s3://${AWS_BUCKET}/backup/${_target_folder}/"
-AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}" AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}" aws --endpoint="https://${AWS_HOSTNAME}" s3 rm --recursive "s3://${AWS_BUCKET}/backup/${_target_folder}/"
+echo "Cleaning up ${_target_path}"
+AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}" AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}" aws --endpoint="https://${AWS_HOSTNAME}" s3 rm --recursive "${_target_path}"
 echo 'Complete'
