@@ -17,5 +17,6 @@ RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
 USER 26
 
 COPY backup_to_s3.sh .
+COPY cleanup_bucket.sh .
 
 CMD sh backup_to_s3.sh
