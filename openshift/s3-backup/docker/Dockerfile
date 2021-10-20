@@ -8,6 +8,17 @@ USER root
 RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
     /tmp/aws/install
 
+RUN yum install -y python3
+# RUN yum install -y python-is-python3
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | POETRY_HOME=/opt/poetry python3 && \
+    cd /usr/local/bin && \
+    ln -s /opt/poetry/bin/poetry && \
+    poetry config virtualenvs.create false
+
+COPY pyproject.toml .
+COPY poetry.lock .
+RUN poetry install
+
 # we're trying out the official aws s3 tool right now, but should there be any issues, we could
 # try s3cmd:
 # RUN yum -y --enablerepo=extras install epel-release &&\
