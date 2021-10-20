@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
-
 import { Container, GeneralHeader, PageTitle } from 'components'
-
 import DatePicker from 'components/DatePicker'
+import useClipboard from 'react-use-clipboard'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import { fetchHFIDailies } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -13,10 +12,9 @@ import {
   selectHFIStationsLoading
 } from 'app/rootReducer'
 import { Button, CircularProgress, FormControl, makeStyles } from '@material-ui/core'
-import { FileCopyOutlined } from '@material-ui/icons'
+import { FileCopyOutlined, CheckOutlined } from '@material-ui/icons'
 import { buildDailyMap, buildWeekliesByCode } from 'features/hfiCalculator/util'
 import { getDateRange } from 'utils/date'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles } from 'app/theme'
@@ -37,7 +35,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const [isWeeklyView, toggleTableView] = useState(false)
-  const [isCopied, setIsCopied] = useState(false)
+  const [isCopied, setCopied] = useClipboard('test copy text', {
+    successDuration: 2000 // milliseconds
+  })
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(
@@ -100,18 +100,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           </FormControl>
 
           <FormControl className={classes.formControl}>
-            <Button>
-              <FileCopyOutlined />
-              Copy to Clipboard
-            </Button>
+            {isCopied ? (
+              <Button>
+                <CheckOutlined />
+                Copied!
+              </Button>
+            ) : (
+              <Button onClick={setCopied}>
+                <FileCopyOutlined />
+                Copy to Clipboard
+              </Button>
+            )}
           </FormControl>
-
-          <CopyToClipboard
-            text={buildWeekliesByCode(dailies)}
-            onCopy={() => setIsCopied(true)}
-          >
-            <Button>Copy with CopyToClipboard</Button>
-          </CopyToClipboard>
 
           <ViewSwitcher
             isWeeklyView={isWeeklyView}
