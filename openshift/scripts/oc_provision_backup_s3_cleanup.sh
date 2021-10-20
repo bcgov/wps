@@ -28,11 +28,12 @@ CLUSTER_NAME="patroni-${NAME_APP}-${SUFFIX}"
 oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-cleanup-job.yaml \
     -p SUFFIX=${SUFFIX} \
     -p PROJ_TOOLS=${PROJ_TOOLS} \
-    -p CLUSTER_NAME=${CLUSTER_NAME}
+    -p CLUSTER_NAME=${CLUSTER_NAME} | jq '.items[0]' | oc -n ${PROJ_TARGET} create -f -
+# | oc -n ${PROJ_TARGET} create -f -
 # wait for the job to finish
-# oc wait --for=condition=complete jobs/cleanup-s3 --timeout=30s
+oc wait --for=condition=complete jobs/cleanup-s3-wps-${SUFFIX} --timeout=30s
 # output the log for debugging
-# oc logs -f job/cleanup-s3
+oc logs -f cleanup-s3-wps-${SUFFIX}
 # we're done, so get rid of the job
-# oc delete job/cleanup-s3
+oc delete job/cleanup-s3
 

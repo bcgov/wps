@@ -87,6 +87,8 @@ objects:
     metadata:
       name: cleanup-s3-${NAME}-${SUFFIX}
     spec:
+      # cleanup after run
+      ttlSecondsAfterFinished: 100
       parallelism: 1
       completions: 1
       activeDeadlineSeconds: 1800
