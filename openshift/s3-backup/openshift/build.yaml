@@ -1,5 +1,5 @@
-kind: "Template"
-apiVersion: "template.openshift.io/v1"
+apiVersion: v1
+kind: Template
 metadata:
   creationTimestamp: null
   name: s3-backup
