@@ -10,16 +10,11 @@ source "$(dirname ${0})/common/common"
 #%
 #% Usage:
 #%
-#%    ${THIS_FILE} [SUFFIX] [apply]
+#%    ${THIS_FILE} [SUFFIX]
 #%
 #% Examples:
 #%
-#%   Provide a PR number. Defaults to a dry-run.
 #%   ${THIS_FILE} pr-0
-#%
-#%   Apply when satisfied.
-#%   ${THIS_FILE} pr-0 apply
-#%
 
 CLUSTER_NAME="patroni-${NAME_APP}-${SUFFIX}"
 JOB="job/cleanup-s3-wps-${SUFFIX}"
