@@ -61,3 +61,9 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
           PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
+
+      - name: Clean up s3 backups in object store
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_provision_backup_s3_cleanup.sh ${SUFFIX}
