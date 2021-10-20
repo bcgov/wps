@@ -1,0 +1,68 @@
+kind: "Template"
+apiVersion: "template.openshift.io/v1"
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps
+  - name: PROJ_TOOLS
+    required: true
+  - name: CLUSTER_NAME
+    required: true
+  - name: "TAG_NAME"
+    displayName: "Environment TAG name"
+    description: "The TAG name for this environment, e.g., dev, test, prod"
+    required: true
+    value: "prod"
+objects:
+  - apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: cleanup-s3-${NAME}-${SUFFIX}
+    spec:
+      # cleanup after run
+      ttlSecondsAfterFinished: 100
+      parallelism: 1
+      completions: 1
+      activeDeadlineSeconds: 1800
+      backoffLimit: 6
+      template:
+        metadata:
+          name: cleanup-s3-${NAME}-${SUFFIX}
+        spec:
+          containers:
+            - name: cleanup-s3-${NAME}-${SUFFIX}
+              image: "image-registry.openshift-image-registry.svc:5000/${PROJ_TOOLS}/s3-backup:${TAG_NAME}"
+              imagePullPolicy: Always
+              env:
+                - name: AWS_HOSTNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}-global
+                      key: object-store-server
+                - name: AWS_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}-global
+                      key: object-store-user-id
+                - name: AWS_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}-global
+                      key: object-store-secret
+                - name: AWS_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}-global
+                      key: object-store-bucket
+                - name: PG_DATABASE
+                  value: wps
+                - name: PG_HOSTNAME
+                  value: ${CLUSTER_NAME}-leader
+              command: ["bash", "cleanup_bucket.sh"]
+          restartPolicy: OnFailure
