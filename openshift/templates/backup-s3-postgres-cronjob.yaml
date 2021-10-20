@@ -170,6 +170,15 @@ objects:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}-global
                           key: object-store-bucket
+                    - name: POSTGRESQL_USER
+                      value: ${DATABASE_USER}
+                    - name: POSTGRESQL_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          name: "${DATABASE_DEPLOYMENT_NAME}"
+                          key: "${DATABASE_PASSWORD_KEY_NAME}"
+                    - name: POSTGRESQL_DATABASE
+                      value: ${PG_DATABASE}
               restartPolicy: "Never"
               terminationGracePeriodSeconds: 30
               activeDeadlineSeconds: 1600
