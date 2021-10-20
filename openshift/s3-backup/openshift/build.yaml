@@ -1,5 +1,5 @@
-apiVersion: v1
-kind: Template
+kind: "Template"
+apiVersion: "template.openshift.io/v1"
 metadata:
   creationTimestamp: null
   name: s3-backup
@@ -43,7 +43,7 @@ objects:
         app: s3-backup
       name: s3-backup
     spec:
-      completionDeadlineSeconds: 300 # 5 minutes seems reasonable.
+      completionDeadlineSeconds: 600 # 10 minutes seems reasonable.
       output:
         to:
           kind: ImageStreamTag
