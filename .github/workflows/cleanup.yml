@@ -65,5 +65,5 @@ jobs:
       - name: Clean up s3 backups in object store
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_provision_backup_s3_cleanup.sh ${SUFFIX}
