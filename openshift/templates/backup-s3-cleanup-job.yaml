@@ -125,5 +125,5 @@ objects:
                   value: wps
                 - name: PG_HOSTNAME
                   value: ${CLUSTER_NAME}-leader
-              command: ["cleanup_bucket.sh"]
+              command: ["bash", "cleanup_bucket.sh"]
           restartPolicy: OnFailure

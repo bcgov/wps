@@ -43,7 +43,15 @@ objects:
         app: s3-backup
       name: s3-backup
     spec:
-      completionDeadlineSeconds: 600 # 10 minutes seems reasonable.
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "512Mi"
+        requests:
+          # we might as well start high!
+          cpu: "500m"
+          memory: "256Mi"
+      completionDeadlineSeconds: 300 # 5 minutes seems reasonable.
       output:
         to:
           kind: ImageStreamTag
