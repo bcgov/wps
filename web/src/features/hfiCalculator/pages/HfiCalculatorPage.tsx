@@ -13,7 +13,6 @@ import {
   selectHFIStationsLoading
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
-import { buildDailyMap, buildWeekliesByCode } from 'features/hfiCalculator/util'
 import { getDateRange } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
@@ -99,8 +98,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           <ViewSwitcher
             isWeeklyView={isWeeklyView}
             fireCentres={fireCentres}
-            dailiesMap={buildDailyMap(dailies)}
-            weekliesMap={buildWeekliesByCode(dailies)}
+            dailies={dailies}
             dateOfInterest={dateOfInterest}
           />
         </Container>

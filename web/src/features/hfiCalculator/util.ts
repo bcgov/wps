@@ -27,7 +27,7 @@ export const buildWeekliesByCode = (
   return weekliesMap
 }
 
-export const buildWeekliesByUTC = (
+export const buildDailiesByDayUTC = (
   dailies: StationDaily[]
 ): Map<number, StationDaily[]> => {
   const weekliesByUTC = new Map<number, StationDaily[]>()
@@ -58,7 +58,7 @@ export const getDailiesByDay = (
     .filter(record => selectedStations.includes(record.station.code))
 }
 
-export const getDailiesByWeekDay = (
+export const getStationsWithDailyByDayUTC = (
   area: PlanningArea,
   dayTimestamp: number,
   weekliesByUTC: Map<number, StationDaily[]>,

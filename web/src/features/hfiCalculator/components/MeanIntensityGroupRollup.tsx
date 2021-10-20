@@ -2,20 +2,20 @@ import { TableCell, Tooltip } from '@material-ui/core'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
 import React from 'react'
-import { isUndefined } from 'lodash'
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import {
-  calculateMeanIntensityGroup,
+  calculateMeanIntensity,
   intensityGroupColours
 } from 'features/hfiCalculator/components/meanIntensity'
 import { fireTableStyles } from 'app/theme'
-import { StationWithDaily } from 'features/hfiCalculator/util'
+import { StationDaily } from 'api/hfiCalculatorAPI'
 
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
-  stationsWithDaily: StationWithDaily[]
+  dailies: StationDaily[]
   selectedStations: number[]
+  meanIntensityGroupOverride?: number
 }
 
 const useStyles = makeStyles({
@@ -80,45 +80,24 @@ const genericErrorToolTipElement = (
 
 const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   const classes = useStyles()
-
-  const noDailyData = props.stationsWithDaily.every(stationDaily =>
-    isUndefined(stationDaily.daily)
+  const stationMap = new Map(
+    Object.entries(props.area.stations).map(([, station]) => [station.code, station])
   )
-  const grassCureError = props.stationsWithDaily.reduce((prev, stationDaily) => {
+
+  const grassCureError = props.dailies.reduce((prev, stationDaily) => {
     return (
-      prev || !isValidGrassCure(stationDaily.daily, stationDaily.station.station_props)
+      prev ||
+      !isValidGrassCure(stationDaily, stationMap.get(stationDaily.code)?.station_props)
     )
   }, false)
 
-  const genericError = props.stationsWithDaily.reduce((prev, stationDaily) => {
-    return prev || stationDaily.daily?.observation_valid === false
+  const genericError = props.dailies.reduce((prev, stationDaily) => {
+    return prev || stationDaily.observation_valid === false
   }, false)
 
-  const meanIntensityGroup = calculateMeanIntensityGroup(
-    props.stationsWithDaily,
-    props.selectedStations
-  )
-  const formatAreaMeanIntensityGroupByValue = () => {
-    if (meanIntensityGroup === undefined) {
-      return classes.defaultBackground
-    }
-    if (meanIntensityGroup < 2) {
-      return classes.intensityGroupSolid1
-    }
-    if (meanIntensityGroup < 3) {
-      return classes.intensityGroupSolid2
-    }
-    if (meanIntensityGroup < 4) {
-      return classes.intensityGroupSolid3
-    }
-    if (meanIntensityGroup < 5) {
-      return classes.intensityGroupSolid4
-    } else {
-      return classes.intensityGroupSolid5
-    }
-  }
+  const meanIntensityGroup = calculateMeanIntensity(props.dailies)
 
-  if (grassCureError && !noDailyData) {
+  if (grassCureError) {
     return (
       <ThemeProvider theme={errorIconTheme}>
         <Tooltip
@@ -134,7 +113,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
       </ThemeProvider>
     )
   }
-  if (genericError && !noDailyData) {
+  if (genericError) {
     return (
       <ThemeProvider theme={errorIconTheme}>
         <Tooltip
@@ -150,6 +129,25 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
       </ThemeProvider>
     )
   } else {
+    const formatAreaMeanIntensityGroupByValue = () => {
+      if (meanIntensityGroup === undefined) {
+        return classes.defaultBackground
+      }
+      if (meanIntensityGroup < 2) {
+        return classes.intensityGroupSolid1
+      }
+      if (meanIntensityGroup < 3) {
+        return classes.intensityGroupSolid2
+      }
+      if (meanIntensityGroup < 4) {
+        return classes.intensityGroupSolid3
+      }
+      if (meanIntensityGroup < 5) {
+        return classes.intensityGroupSolid4
+      } else {
+        return classes.intensityGroupSolid5
+      }
+    }
     return (
       <TableCell
         className={formatAreaMeanIntensityGroupByValue()}

@@ -3,7 +3,6 @@ import React, { useState } from 'react'
 import { TableBody, TableCell, TableHead, TableRow } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { FireCentre } from 'api/hfiCalcAPI'
-import { StationDaily } from 'api/hfiCalculatorAPI'
 import FireTable from 'components/FireTable'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
@@ -13,13 +12,13 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
-import HighestDailyIntensityGroupCell from 'features/hfiCalculator/components/HighestDailyIntensityGroupCell'
-import StationWeeklyPrepLevelCell from 'features/hfiCalculator/components/StationWeeklyPrepLevelCell'
+import { isEmpty, union } from 'lodash'
+import { StationDaily } from 'api/hfiCalculatorAPI'
+import { DailyManager } from 'features/hfiCalculator/DailyManager'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
-  stationCodes: number[]
-  weekliesByStationCode: Map<number, StationDaily[]>
+  dailies: StationDaily[]
   currentDay: string
   testId?: string
 }
@@ -31,7 +30,11 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const [selected, setSelected] = useState<number[]>(props.stationCodes)
+  const stationCodes = union(props.dailies.map(daily => daily.code))
+  const [selected, setSelected] = useState<number[]>(stationCodes)
+  const [dailyManager, setDailyManager] = useState<DailyManager>(
+    new DailyManager(props.dailies, stationCodes)
+  )
 
   const stationCodeInSelected = (code: number) => {
     return selected.includes(code)
@@ -45,7 +48,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
       // add station to selected
       selectedSet.add(code)
     }
-    setSelected(Array.from(selectedSet))
+    const newSelected = Array.from(selectedSet)
+    setSelected(newSelected)
+    setDailyManager(new DailyManager(props.dailies, newSelected))
   }
 
   return (
@@ -125,15 +130,14 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           areaName={areaName}
                           selected={selected}
                           planningAreaClass={classes.planningArea}
+                          dailyManager={dailyManager}
                         />
-                        <TableCell className={classes.planningArea} colSpan={2} />
                       </TableRow>
                       {Object.entries(area.stations)
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
-                          const dailiesForStation = props.weekliesByStationCode.get(
-                            station.code
-                          )
+                          const dailiesForStation =
+                            dailyManager.lookupDailiesByStationCode(station.code)
                           const isRowSelected = stationCodeInSelected(station.code)
                           const classNameForRow = !isRowSelected
                             ? classes.unselectedStation
@@ -152,7 +156,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                               />
                               <GrassCureCell
                                 value={
-                                  dailiesForStation
+                                  !isEmpty(dailiesForStation)
                                     ? dailiesForStation[0].grass_cure_percentage
                                     : undefined
                                 }
@@ -168,13 +172,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 station={station}
                                 classNameForRow={classNameForRow}
                                 isRowSelected={isRowSelected}
-                              />
-                              <HighestDailyIntensityGroupCell
-                                dailies={dailiesForStation}
-                              />
-                              <StationWeeklyPrepLevelCell
-                                station={station}
-                                dailies={dailiesForStation}
                               />
                             </TableRow>
                           )

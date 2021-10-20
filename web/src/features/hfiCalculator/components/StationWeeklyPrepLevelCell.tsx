@@ -1,27 +1,17 @@
 import { TableCell } from '@material-ui/core'
 import { WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { calculateMeanIntensityGroup } from 'features/hfiCalculator/components/meanIntensity'
+import { calculateMeanIntensity } from 'features/hfiCalculator/components/meanIntensity'
 import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
-import { StationWithDaily } from 'features/hfiCalculator/util'
 import React from 'react'
 
 export interface StationWeeklyPrepLevelCellProps {
   station: WeatherStation
-  dailies: StationDaily[] | undefined
+  dailies: StationDaily[]
 }
 
 const StationWeeklyPrepLevelCell = (props: StationWeeklyPrepLevelCellProps) => {
-  const stationWithDailies: StationWithDaily[] = props.dailies
-    ? props.dailies?.map(daily => ({
-        station: props.station,
-        daily
-      }))
-    : []
-
-  const meanIntensityGroup = calculateMeanIntensityGroup(stationWithDailies, [
-    props.station.code
-  ])
+  const meanIntensityGroup = calculateMeanIntensity(props.dailies)
   return (
     <TableCell data-testid={'daily-prep-level'}>
       {calculatePrepLevel(meanIntensityGroup)}

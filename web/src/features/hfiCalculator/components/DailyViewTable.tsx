@@ -7,7 +7,7 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
-import { calculateMeanIntensityGroup } from 'features/hfiCalculator/components/meanIntensity'
+import { calculateMeanIntensity } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
@@ -18,11 +18,12 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
-import { getDailiesByDay } from 'features/hfiCalculator/util'
+import { DailyManager } from 'features/hfiCalculator/DailyManager'
+import { union } from 'lodash'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
-  dailiesMap: Map<number, StationDaily>
+  dailies: StationDaily[]
   testId?: string
 }
 
@@ -33,8 +34,12 @@ const useStyles = makeStyles({
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
+  const stationCodes = union(props.dailies.map(daily => daily.code))
   const [selected, setSelected] = useState<number[]>(
-    Array.from(props.dailiesMap.values()).map(daily => daily.code)
+    props.dailies.map(daily => daily.code)
+  )
+  const [dailyManager, setDailyManager] = useState<DailyManager>(
+    new DailyManager(props.dailies, stationCodes)
   )
 
   const stationCodeInSelected = (code: number) => {
@@ -49,7 +54,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       // add station to selected
       selectedSet.add(code)
     }
-    setSelected(Array.from(selectedSet))
+    const newSelected = Array.from(selectedSet)
+    setSelected(newSelected)
+    setDailyManager(new DailyManager(props.dailies, newSelected))
   }
 
   const errorIconTheme = createTheme({
@@ -188,16 +195,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               {Object.entries(centre.planning_areas)
                 .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
                 .map(([areaName, area]) => {
-                  const stationsWithDaily = getDailiesByDay(
-                    area,
-                    props.dailiesMap,
-                    selected
-                  )
-
-                  const meanIntensityGroup = calculateMeanIntensityGroup(
-                    stationsWithDaily,
-                    selected
-                  )
+                  const areaDailies = dailyManager
+                    .getDailiesForArea(area)
+                    .filter(daily => selected.includes(daily.code))
+                  const meanIntensityGroup = calculateMeanIntensity(areaDailies)
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
                       <TableRow
@@ -210,7 +211,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         </TableCell>
                         <MeanIntensityGroupRollup
                           area={area}
-                          stationsWithDaily={stationsWithDaily}
+                          dailies={areaDailies}
                           selectedStations={selected}
                         ></MeanIntensityGroupRollup>
                         <FireStartsCell areaName={areaName} />
@@ -223,7 +224,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       {Object.entries(area.stations)
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
-                          const daily = props.dailiesMap.get(station.code)
+                          const daily = dailyManager.lookupDailiesByStationCode(
+                            station.code
+                          )[0]
                           const grassCureError = !isValidGrassCure(
                             daily,
                             station.station_props

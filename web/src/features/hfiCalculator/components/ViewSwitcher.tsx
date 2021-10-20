@@ -8,8 +8,7 @@ export interface ViewSwitcherProps {
   testId?: string
   isWeeklyView: boolean
   fireCentres: Record<string, FireCentre>
-  dailiesMap: Map<number, StationDaily>
-  weekliesMap: Map<number, StationDaily[]>
+  dailies: StationDaily[]
   dateOfInterest: string
 }
 
@@ -20,15 +19,14 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
         <WeeklyViewTable
           testId="hfi-calc-weekly-table"
           fireCentres={props.fireCentres}
-          stationCodes={Array.from(props.dailiesMap.values()).map(daily => daily.code)}
-          weekliesByStationCode={props.weekliesMap}
+          dailies={props.dailies}
           currentDay={props.dateOfInterest}
         />
       ) : (
         <DailyViewTable
           testId="hfi-calc-daily-table"
           fireCentres={props.fireCentres}
-          dailiesMap={props.dailiesMap}
+          dailies={props.dailies}
         ></DailyViewTable>
       )}
     </React.Fragment>
