@@ -3,9 +3,7 @@ import { HFI_CALC_ROUTE } from '../../src/utils/constants'
 describe('HFI Calculator Page', () => {
   describe('all data exists', () => {
     beforeEach(() => {
-      cy.intercept('GET', 'api/hfi-calc/daily*', { fixture: 'hfi-calc/dailies.json' }).as(
-        'getDaily'
-      )
+      cy.intercept('GET', 'api/hfi-calc/daily*', { fixture: 'hfi-calc/dailies.json' }).as('getDaily')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
@@ -29,7 +27,7 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('239-hfi').contains(2655.5)
       cy.getByTestId('280-ros').contains(1.7)
       cy.getByTestId('239-1-hr-size').contains(0.5)
-      cy.getByTestId('239-fire-type').contains('S')
+      cy.getByTestId('239-fire-type').contains('SUR')
       cy.getByTestId('280-fire-type').contains('IC')
       cy.getByTestId('280-intensity-group').contains(3)
       cy.getByTestId('zone-1-mean-intensity').contains(2.4)
@@ -52,7 +50,7 @@ describe('HFI Calculator Page', () => {
       cy.visit(HFI_CALC_ROUTE)
       cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('date-of-interest-picker').type('2021-07-22')
-      cy.getByTestId('hfi-calc-daily-table').click({force: true})
+      cy.getByTestId('hfi-calc-daily-table').click({ force: true })
       cy.wait(['@getFireCentres', '@getDaily'])
     })
   })

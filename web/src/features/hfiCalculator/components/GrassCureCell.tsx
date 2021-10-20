@@ -3,6 +3,7 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
 import React from 'react'
 import { isNull } from 'lodash'
+import { fireTableStyles } from 'app/theme'
 
 export interface GrassCureCellProps {
   value: number | null | undefined
@@ -22,9 +23,7 @@ const errorIconTheme = createTheme({
 })
 
 const useStyles = makeStyles({
-  unselectedStation: {
-    color: 'rgba(0,0,0,0.54)'
-  }
+  unselectedStation: { ...fireTableStyles.unselectedStation }
 })
 
 const toolTipFirstLine = 'Grass Cure % not defined in WFWX.'

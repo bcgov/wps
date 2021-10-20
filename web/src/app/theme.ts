@@ -1,4 +1,4 @@
-import { createTheme } from '@material-ui/core/styles'
+import { createStyles, createTheme } from '@material-ui/core/styles'
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
@@ -6,7 +6,7 @@ export const theme = createTheme({
   palette: {
     primary: {
       light: '#3E5C93',
-      main: '#003365',
+      main: '#003366',
       dark: '#000C3A'
     },
     secondary: {
@@ -33,5 +33,75 @@ export const theme = createTheme({
       lg: 1280,
       xl: 1920
     }
+  }
+})
+
+export const fireTableTheme = createTheme({
+  ...theme,
+  overrides: {
+    MuiTableCell: {
+      root: {
+        padding: 2
+      },
+      head: {
+        fontWeight: 'bold',
+        minWidth: 30,
+        padding: 1,
+        paddingLeft: 7
+      },
+      stickyHeader: {
+        padding: 8
+      }
+    },
+    MuiInputBase: {
+      root: {
+        fontSize: '1em'
+      }
+    },
+    MuiOutlinedInput: {
+      root: {
+        padding: 0
+      }
+    }
+  }
+})
+
+export const BACKGROUND_COLOR = { backgroundColor: 'rgba(40, 53, 147, 0.05)' }
+export const PLANNING_AREA = {
+  minWidth: 45,
+  minHeight: 45,
+  height: 45
+}
+export const UNSELECTED_STATION_COLOR = 'rgba(0,0,0,0.54)'
+export const fireTableStyles = createStyles({
+  defaultBackground: BACKGROUND_COLOR,
+  planningArea: { ...BACKGROUND_COLOR, ...PLANNING_AREA },
+  unselectedStation: { color: UNSELECTED_STATION_COLOR },
+  controls: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'baseline'
+  },
+  fireCentre: {
+    width: 45,
+    height: 45,
+    fontSize: 16,
+    fontWeight: 'bold',
+    backgroundColor: '#dbd9d9'
+  },
+  sectionSeparatorBorder: {
+    borderLeft: '1px solid #C4C4C4'
+  },
+  calculatedPlanningCell: {
+    ...PLANNING_AREA,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  }
+})
+
+export const formControlStyles = createStyles({
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 210
   }
 })

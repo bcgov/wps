@@ -8,6 +8,7 @@ import {
   TableRow
 } from '@material-ui/core'
 import GetAppIcon from '@material-ui/icons/GetApp'
+import ViewColumnOutlinedIcon from '@material-ui/icons/ViewColumnOutlined'
 import { CsvBuilder } from 'filefy'
 import { Button, ErrorBoundary } from 'components'
 import { FBAStation } from 'api/fbaCalcAPI'
@@ -45,8 +46,9 @@ import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
 import StickyCell from 'features/fbaCalculator/components/StickyCell'
 import FBATableHead from 'features/fbaCalculator/components/FBATableHead'
 import FireTable from 'components/FireTable'
-import FireDisplayContainer from 'components/FireDisplayContainer'
 import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
+import FilterColumnsModal from 'components/FilterColumnsModal'
+import { formControlStyles } from 'app/theme'
 export interface FBATableProps {
   testId?: string
 }
@@ -63,11 +65,8 @@ export interface FBAInputRow {
   windSpeed: number | undefined
 }
 
-const useStyles = makeStyles(theme => ({
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 210
-  },
+const useStyles = makeStyles(() => ({
+  ...formControlStyles,
   weatherStation: {
     minWidth: 220
   },
@@ -88,6 +87,35 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
+const tableColumnLabels: string[] = [
+  'Zone',
+  'Weather Station',
+  'Elevation',
+  'FBP Fuel Type',
+  'Grass Cure',
+  'Status',
+  'Temp',
+  'RH',
+  'Wind Dir',
+  'Wind Speed (km/h)',
+  'Precip (mm)',
+  'FFMC',
+  'DMC',
+  'DC',
+  'ISI',
+  'BUI',
+  'FWI',
+  'HFI',
+  'Critical Hours (4000 kW/m)',
+  'Critical Hours (10000 kW/m)',
+  'ROS (m/min)',
+  'Fire Type',
+  'CFB (%)',
+  'Flame Length (m)',
+  '30 min fire size (ha)',
+  '60 min fire size (ha)'
+]
+
 const FBATable = (props: FBATableProps) => {
   const classes = useStyles()
   const history = useHistory()
@@ -102,6 +130,7 @@ const FBATable = (props: FBATableProps) => {
   const [selected, setSelected] = useState<number[]>([])
   const [order, setOrder] = useState<Order>('desc')
   const [rows, setRows] = useState<FBATableRow[]>([])
+  const [modalOpen, setModalOpen] = useState<boolean>(false)
   const { stations, error: stationsError } = useSelector(selectFireWeatherStations)
   const {
     fireBehaviourResultStations,
@@ -111,6 +140,7 @@ const FBATable = (props: FBATableProps) => {
   const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(
     fireBehaviourResultStations
   )
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(tableColumnLabels)
 
   const rowsFromQuery = getRowsFromUrlParams(location.search)
 
@@ -249,34 +279,7 @@ const FBATable = (props: FBATableProps) => {
     const selectedRows = rows.filter(row => selectedSet.has(row.id))
     const selectedRowsAsStrings = RowManager.exportRowsAsStrings(selectedRows)
     const csvBuilder = new CsvBuilder(`FireBAT_${dateOfInterest}.csv`)
-      .setColumns([
-        'Zone',
-        'Weather Station',
-        'Elevation',
-        'FBP Fuel Type',
-        'Grass Cure',
-        'Status',
-        'Temp',
-        'RH',
-        'Wind Dir',
-        'Wind Speed (km/h)',
-        'Precip (mm)',
-        'FFMC',
-        'DMC',
-        'DC',
-        'ISI',
-        'BUI',
-        'FWI',
-        'HFI',
-        'Critical Hours (4000 kW/m)',
-        'Critical Hours (10000 kW/m)',
-        'ROS (m/min)',
-        'Fire Type',
-        'CFB (%)',
-        'Flame Length (m)',
-        '30 min fire size (ha)',
-        '60 min fire size (ha)'
-      ])
+      .setColumns(tableColumnLabels)
       .addRows(selectedRowsAsStrings)
     csvBuilder.exportFile()
   }
@@ -313,6 +316,276 @@ const FBATable = (props: FBATableProps) => {
       setSortByColumn(selectedColumn)
     } else {
       setOrder(order === 'asc' ? 'desc' : 'asc')
+    }
+  }
+
+  const openColumnsModal = () => {
+    setModalOpen(true)
+  }
+
+  const filterColumnsCallback = (filterByColumns: string[]) => {
+    setVisibleColumns(filterByColumns)
+  }
+
+  type TextDisplayCellType = keyof Pick<
+    FBATableRow,
+    | 'zone_code'
+    | 'elevation'
+    | 'temp'
+    | 'rh'
+    | 'wind_direction'
+    | 'precipitation'
+    | 'fire_type'
+  >
+  type FixedDecimalNumberCellType = keyof Pick<
+    FBATableRow,
+    | 'fine_fuel_moisture_code'
+    | 'duff_moisture_code'
+    | 'drought_code'
+    | 'initial_spread_index'
+    | 'build_up_index'
+    | 'fire_weather_index'
+    | 'rate_of_spread'
+    | 'flame_length'
+    | 'thirty_minute_fire_size'
+    | 'sixty_minute_fire_size'
+  >
+
+  const getTextDisplayCell = (row: FBATableRow, rowProperty: TextDisplayCellType) => {
+    return (
+      <LoadingIndicatorCell
+        loading={loading}
+        rowUpdating={rowIdsToUpdate.has(row.id)}
+        initialLoad={initialLoad}
+      >
+        <TextDisplayCell value={row[rowProperty]}></TextDisplayCell>
+      </LoadingIndicatorCell>
+    )
+  }
+
+  const getFixedDecimalNumberCell = (
+    row: FBATableRow,
+    rowProperty: FixedDecimalNumberCellType
+  ) => {
+    return (
+      <LoadingIndicatorCell
+        loading={loading}
+        rowUpdating={rowIdsToUpdate.has(row.id)}
+        initialLoad={initialLoad}
+      >
+        <FixedDecimalNumberCell value={row[rowProperty]}></FixedDecimalNumberCell>
+      </LoadingIndicatorCell>
+    )
+  }
+
+  const getWeatherStationCell = (row: FBATableRow) => {
+    return (
+      <StickyCell left={50} zIndexOffset={1} backgroundColor="#FFFFFF">
+        <WeatherStationCell
+          stationOptions={stationMenuOptions}
+          inputRows={rows}
+          updateRow={updateRow}
+          classNameMap={classes}
+          value={row.weatherStation}
+          disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
+          rowId={row.id}
+        />
+      </StickyCell>
+    )
+  }
+
+  const getFuelTypeCell = (row: FBATableRow) => {
+    return (
+      <StickyCell left={280} zIndexOffset={1} backgroundColor="#FFFFFF">
+        <FuelTypeCell
+          fuelTypeOptions={fuelTypeMenuOptions}
+          inputRows={rows}
+          updateRow={updateRow}
+          classNameMap={classes}
+          value={row.fuelType}
+          disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
+          rowId={row.id}
+        />
+      </StickyCell>
+    )
+  }
+
+  const getGrassCureCell = (row: FBATableRow) => {
+    return (
+      <TableCell className={classes.dataRow}>
+        <GrassCureCell
+          inputRows={rows}
+          updateRow={updateRow}
+          classNameMap={classes}
+          value={row.grassCure}
+          disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
+          rowId={row.id}
+        />
+      </TableCell>
+    )
+  }
+
+  const getStatusCell = (row: FBATableRow) => {
+    return (
+      <LoadingIndicatorCell
+        loading={loading}
+        rowUpdating={rowIdsToUpdate.has(row.id)}
+        initialLoad={initialLoad}
+      >
+        <StatusCell value={row.status}></StatusCell>
+      </LoadingIndicatorCell>
+    )
+  }
+
+  const getWindSpeedCell = (row: FBATableRow) => {
+    return (
+      <TableCell className={classes.dataRow}>
+        <WindSpeedCell
+          inputRows={rows}
+          updateRow={updateRow}
+          inputValue={row.windSpeed}
+          calculatedValue={row.wind_speed}
+          disabled={
+            rowIdsToUpdate.has(row.id) &&
+            !rowShouldUpdate(row) &&
+            !isWindSpeedInvalid(row.windSpeed)
+          }
+          rowId={row.id}
+        />
+      </TableCell>
+    )
+  }
+
+  const getHFICell = (row: FBATableRow) => {
+    return (
+      <LoadingIndicatorCell
+        loading={loading}
+        rowUpdating={rowIdsToUpdate.has(row.id)}
+        initialLoad={initialLoad}
+      >
+        <HFICell value={row.head_fire_intensity}></HFICell>
+      </LoadingIndicatorCell>
+    )
+  }
+
+  const getCriticalHours4000Cell = (row: FBATableRow) => {
+    return (
+      <LoadingIndicatorCell
+        loading={loading}
+        rowUpdating={rowIdsToUpdate.has(row.id)}
+        initialLoad={initialLoad}
+      >
+        <CriticalHoursCell value={row.critical_hours_hfi_4000}></CriticalHoursCell>
+      </LoadingIndicatorCell>
+    )
+  }
+
+  const getCriticalHours10000Cell = (row: FBATableRow) => {
+    return (
+      <LoadingIndicatorCell
+        loading={loading}
+        rowUpdating={rowIdsToUpdate.has(row.id)}
+        initialLoad={initialLoad}
+      >
+        <CriticalHoursCell value={row.critical_hours_hfi_10000}></CriticalHoursCell>
+      </LoadingIndicatorCell>
+    )
+  }
+
+  const getCFBCell = (row: FBATableRow) => {
+    return (
+      <LoadingIndicatorCell
+        loading={loading}
+        rowUpdating={rowIdsToUpdate.has(row.id)}
+        initialLoad={initialLoad}
+      >
+        <CrownFractionBurnedCell
+          value={row.percentage_crown_fraction_burned}
+        ></CrownFractionBurnedCell>
+      </LoadingIndicatorCell>
+    )
+  }
+
+  const columnCellComponents = (row: FBATableRow, colName: string) => {
+    switch (colName) {
+      case 'Zone': {
+        return getTextDisplayCell(row, 'zone_code')
+      }
+      case 'Elevation': {
+        return getTextDisplayCell(row, 'elevation')
+      }
+      case 'Temp': {
+        return getTextDisplayCell(row, 'temp')
+      }
+      case 'RH': {
+        return getTextDisplayCell(row, 'rh')
+      }
+      case 'Wind Dir': {
+        return getTextDisplayCell(row, 'wind_direction')
+      }
+      case 'Precip (mm)': {
+        return getTextDisplayCell(row, 'precipitation')
+      }
+      case 'Weather Station': {
+        return getWeatherStationCell(row)
+      }
+      case 'FBP Fuel Type': {
+        return getFuelTypeCell(row)
+      }
+      case 'Grass Cure': {
+        return getGrassCureCell(row)
+      }
+      case 'Status': {
+        return getStatusCell(row)
+      }
+      case 'Wind Speed (km/h)': {
+        return getWindSpeedCell(row)
+      }
+      case 'FFMC': {
+        return getFixedDecimalNumberCell(row, 'fine_fuel_moisture_code')
+      }
+      case 'DMC': {
+        return getFixedDecimalNumberCell(row, 'duff_moisture_code')
+      }
+      case 'DC': {
+        return getFixedDecimalNumberCell(row, 'drought_code')
+      }
+      case 'ISI': {
+        return getFixedDecimalNumberCell(row, 'initial_spread_index')
+      }
+      case 'BUI': {
+        return getFixedDecimalNumberCell(row, 'build_up_index')
+      }
+      case 'FWI': {
+        return getFixedDecimalNumberCell(row, 'fire_weather_index')
+      }
+      case 'HFI': {
+        return getHFICell(row)
+      }
+      case 'Critical Hours (4000 kW/m)': {
+        return getCriticalHours4000Cell(row)
+      }
+      case 'Critical Hours (10000 kW/m)': {
+        return getCriticalHours10000Cell(row)
+      }
+      case 'ROS (m/min)': {
+        return getFixedDecimalNumberCell(row, 'rate_of_spread')
+      }
+      case 'Fire Type': {
+        return getTextDisplayCell(row, 'fire_type')
+      }
+      case 'CFB (%)': {
+        return getCFBCell(row)
+      }
+      case 'Flame Length (m)': {
+        return getFixedDecimalNumberCell(row, 'flame_length')
+      }
+      case '30 min fire size (ha)': {
+        return getFixedDecimalNumberCell(row, 'thirty_minute_fire_size')
+      }
+      case '60 min fire size (ha)': {
+        return getFixedDecimalNumberCell(row, 'sixty_minute_fire_size')
+      }
     }
   }
 
@@ -364,276 +637,72 @@ const FBATable = (props: FBATableProps) => {
             Export Selection
           </Button>
         </FormControl>
+        <FormControl className={classes.formControl}>
+          <Button
+            data-testid="filter-columns-btn"
+            color="default"
+            disabled={fireBehaviourResultStations.length === 0}
+            onClick={openColumnsModal}
+          >
+            <ViewColumnOutlinedIcon />
+            Columns
+          </Button>
+        </FormControl>
 
-        <FireDisplayContainer testId={props.testId}>
-          <FireTable ariaLabel="Fire Behaviour Analysis table" maxHeight={600}>
-            <FBATableHead
-              toggleSorting={toggleSorting}
-              order={order}
-              rows={rows}
-              headerSelected={headerSelected}
-              setHeaderSelect={setHeaderSelect}
-              setSelected={setSelected}
-              loading={loading}
-            />
-            <TableBody data-testid="fba-table-body">
-              {rows.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={30}>
-                    <FBATableInstructions />
-                  </TableCell>
-                </TableRow>
-              ) : (
-                rows.map(row => {
-                  return (
-                    !isUndefined(row) && (
-                      <TableRow key={row.id}>
-                        <StickyCell left={0} zIndexOffset={1} backgroundColor="#FFFFFF">
-                          <SelectionCell
-                            selected={selected}
-                            updateSelected={(newSelected: number[]) =>
-                              setSelected(newSelected)
-                            }
-                            disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
-                            rowId={row.id}
-                          />
-                        </StickyCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <TableCell className={classes.dataRow}>
-                            {row.zone_code}
-                          </TableCell>
-                        </LoadingIndicatorCell>
-                        <StickyCell left={50} zIndexOffset={1} backgroundColor="#FFFFFF">
-                          <WeatherStationCell
-                            stationOptions={stationMenuOptions}
-                            inputRows={rows}
-                            updateRow={updateRow}
-                            classNameMap={classes}
-                            value={row.weatherStation}
-                            disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
-                            rowId={row.id}
-                          />
-                        </StickyCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <TextDisplayCell value={row.elevation}></TextDisplayCell>
-                        </LoadingIndicatorCell>
-                        <StickyCell left={280} zIndexOffset={1} backgroundColor="#FFFFFF">
-                          <FuelTypeCell
-                            fuelTypeOptions={fuelTypeMenuOptions}
-                            inputRows={rows}
-                            updateRow={updateRow}
-                            classNameMap={classes}
-                            value={row.fuelType}
-                            disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
-                            rowId={row.id}
-                          />
-                        </StickyCell>
-                        <TableCell className={classes.dataRow}>
-                          <GrassCureCell
-                            inputRows={rows}
-                            updateRow={updateRow}
-                            classNameMap={classes}
-                            value={row.grassCure}
-                            disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
-                            rowId={row.id}
-                          />
-                        </TableCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <StatusCell value={row.status}></StatusCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <TextDisplayCell value={row.temp}></TextDisplayCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <TextDisplayCell value={row.rh}></TextDisplayCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <TextDisplayCell value={row.wind_direction}></TextDisplayCell>
-                        </LoadingIndicatorCell>
-                        <TableCell className={classes.dataRow}>
-                          <WindSpeedCell
-                            inputRows={rows}
-                            updateRow={updateRow}
-                            inputValue={row.windSpeed}
-                            calculatedValue={row.wind_speed}
-                            disabled={
-                              rowIdsToUpdate.has(row.id) &&
-                              !rowShouldUpdate(row) &&
-                              !isWindSpeedInvalid(row.windSpeed)
-                            }
-                            rowId={row.id}
-                          />
-                        </TableCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <TextDisplayCell value={row.precipitation}></TextDisplayCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <FixedDecimalNumberCell
-                            value={row.fine_fuel_moisture_code}
-                          ></FixedDecimalNumberCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <FixedDecimalNumberCell
-                            value={row.duff_moisture_code}
-                          ></FixedDecimalNumberCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <FixedDecimalNumberCell
-                            value={row.drought_code}
-                          ></FixedDecimalNumberCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <FixedDecimalNumberCell
-                            value={row.initial_spread_index}
-                          ></FixedDecimalNumberCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <FixedDecimalNumberCell
-                            value={row.build_up_index}
-                          ></FixedDecimalNumberCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <FixedDecimalNumberCell
-                            value={row.fire_weather_index}
-                          ></FixedDecimalNumberCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <HFICell value={row.head_fire_intensity}></HFICell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <CriticalHoursCell
-                            value={row.critical_hours_hfi_4000}
-                          ></CriticalHoursCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <CriticalHoursCell
-                            value={row.critical_hours_hfi_10000}
-                          ></CriticalHoursCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <FixedDecimalNumberCell
-                            value={row.rate_of_spread}
-                          ></FixedDecimalNumberCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <TextDisplayCell value={row?.fire_type}></TextDisplayCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <CrownFractionBurnedCell
-                            value={row.percentage_crown_fraction_burned}
-                          ></CrownFractionBurnedCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <FixedDecimalNumberCell
-                            value={row.flame_length}
-                          ></FixedDecimalNumberCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <FixedDecimalNumberCell
-                            value={row.thirty_minute_fire_size}
-                          ></FixedDecimalNumberCell>
-                        </LoadingIndicatorCell>
-                        <LoadingIndicatorCell
-                          loading={loading}
-                          rowUpdating={rowIdsToUpdate.has(row.id)}
-                          initialLoad={initialLoad}
-                        >
-                          <FixedDecimalNumberCell
-                            value={row.sixty_minute_fire_size}
-                          ></FixedDecimalNumberCell>
-                        </LoadingIndicatorCell>
-                      </TableRow>
-                    )
+        <FilterColumnsModal
+          modalOpen={modalOpen}
+          columns={tableColumnLabels}
+          setModalOpen={setModalOpen}
+          parentCallback={filterColumnsCallback}
+        />
+
+        <FireTable
+          ariaLabel="Fire Behaviour Analysis table"
+          maxHeight={600}
+          data-testId={props.testId}
+        >
+          <FBATableHead
+            toggleSorting={toggleSorting}
+            order={order}
+            rows={rows}
+            headerSelected={headerSelected}
+            setHeaderSelect={setHeaderSelect}
+            setSelected={setSelected}
+            loading={loading}
+            visibleColumns={visibleColumns}
+          />
+          <TableBody data-testid="fba-table-body">
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={30}>
+                  <FBATableInstructions />
+                </TableCell>
+              </TableRow>
+            ) : (
+              rows.map(row => {
+                return (
+                  !isUndefined(row) && (
+                    <TableRow key={row.id}>
+                      <StickyCell left={0} zIndexOffset={1} backgroundColor="#FFFFFF">
+                        <SelectionCell
+                          selected={selected}
+                          updateSelected={(newSelected: number[]) =>
+                            setSelected(newSelected)
+                          }
+                          disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
+                          rowId={row.id}
+                        />
+                      </StickyCell>
+                      {visibleColumns.map(colName => {
+                        return columnCellComponents(row, colName)
+                      })}
+                    </TableRow>
                   )
-                })
-              )}
-            </TableBody>
-          </FireTable>
-        </FireDisplayContainer>
+                )
+              })
+            )}
+          </TableBody>
+        </FireTable>
       </ErrorBoundary>
     </React.Fragment>
   )
