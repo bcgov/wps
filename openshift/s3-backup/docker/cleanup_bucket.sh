@@ -54,11 +54,6 @@ fi
 _datestamp=`date +\%Y/\%m`
 _target_folder="${PG_HOSTNAME}_${PG_DATABASE}/${_datestamp}"
 
-echo "run the thing!"
-
-cmd=`AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}" AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}" aws --endpoint="https://${AWS_HOSTNAME}" s3 rm --recursive "s3://${AWS_BUCKET}/backup/${_target_folder}/"`
-echo cmd
-
+echo 'Cleaning up s3://${AWS_BUCKET}/backup/${_target_folder}/'
 AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}" AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}" aws --endpoint="https://${AWS_HOSTNAME}" s3 rm --recursive "s3://${AWS_BUCKET}/backup/${_target_folder}/"
-
-echo "thing done run"
+echo 'Complete'

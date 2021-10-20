@@ -100,6 +100,7 @@ objects:
           containers:
             - name: cleanup-s3-${NAME}-${SUFFIX}
               image: "image-registry.openshift-image-registry.svc:5000/${PROJ_TOOLS}/s3-backup:dev"
+              imagePullPolicy: Always
               env:
                 - name: AWS_HOSTNAME
                   valueFrom:
