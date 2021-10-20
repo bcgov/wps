@@ -18,8 +18,8 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
-import { DailyManager } from 'features/hfiCalculator/DailyManager'
 import { union } from 'lodash'
+import { getDailiesByStationCode, getDailiesForArea } from 'features/hfiCalculator/util'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -34,12 +34,8 @@ const useStyles = makeStyles({
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const stationCodes = union(props.dailies.map(daily => daily.code))
   const [selected, setSelected] = useState<number[]>(
-    props.dailies.map(daily => daily.code)
-  )
-  const [dailyManager, setDailyManager] = useState<DailyManager>(
-    new DailyManager(props.dailies, stationCodes)
+    union(props.dailies.map(daily => daily.code))
   )
 
   const stationCodeInSelected = (code: number) => {
@@ -54,9 +50,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       // add station to selected
       selectedSet.add(code)
     }
-    const newSelected = Array.from(selectedSet)
-    setSelected(newSelected)
-    setDailyManager(new DailyManager(props.dailies, newSelected))
+    setSelected(Array.from(selectedSet))
   }
 
   const errorIconTheme = createTheme({
@@ -195,9 +189,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               {Object.entries(centre.planning_areas)
                 .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
                 .map(([areaName, area]) => {
-                  const areaDailies = dailyManager
-                    .getDailiesForArea(area)
-                    .filter(daily => selected.includes(daily.code))
+                  const areaDailies = getDailiesForArea(area, props.dailies, selected)
                   const meanIntensityGroup = calculateMeanIntensity(areaDailies)
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
@@ -224,7 +216,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       {Object.entries(area.stations)
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
-                          const daily = dailyManager.lookupDailiesByStationCode(
+                          const daily = getDailiesByStationCode(
+                            props.dailies,
                             station.code
                           )[0]
                           const grassCureError = !isValidGrassCure(

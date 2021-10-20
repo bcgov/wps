@@ -14,7 +14,7 @@ import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
 import { isEmpty, union } from 'lodash'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { DailyManager } from 'features/hfiCalculator/DailyManager'
+import { getDailiesByStationCode } from 'features/hfiCalculator/util'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -30,10 +30,8 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const stationCodes = union(props.dailies.map(daily => daily.code))
-  const [selected, setSelected] = useState<number[]>(stationCodes)
-  const [dailyManager, setDailyManager] = useState<DailyManager>(
-    new DailyManager(props.dailies, stationCodes)
+  const [selected, setSelected] = useState<number[]>(
+    union(props.dailies.map(daily => daily.code))
   )
 
   const stationCodeInSelected = (code: number) => {
@@ -48,9 +46,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
       // add station to selected
       selectedSet.add(code)
     }
-    const newSelected = Array.from(selectedSet)
-    setSelected(newSelected)
-    setDailyManager(new DailyManager(props.dailies, newSelected))
+    setSelected(Array.from(selectedSet))
   }
 
   return (
@@ -128,16 +124,18 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         <CalculatedPlanningAreaCells
                           area={area}
                           areaName={areaName}
+                          dailies={props.dailies}
                           selected={selected}
                           planningAreaClass={classes.planningArea}
-                          dailyManager={dailyManager}
                         />
                       </TableRow>
                       {Object.entries(area.stations)
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
-                          const dailiesForStation =
-                            dailyManager.lookupDailiesByStationCode(station.code)
+                          const dailiesForStation = getDailiesByStationCode(
+                            props.dailies,
+                            station.code
+                          )
                           const isRowSelected = stationCodeInSelected(station.code)
                           const classNameForRow = !isRowSelected
                             ? classes.unselectedStation

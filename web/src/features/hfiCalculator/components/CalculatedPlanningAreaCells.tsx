@@ -6,31 +6,28 @@ import { calculateMeanIntensity } from 'features/hfiCalculator/components/meanIn
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
-import { DailyManager } from 'features/hfiCalculator/DailyManager'
+import { getDailiesForArea } from 'features/hfiCalculator/util'
 import { groupBy, range } from 'lodash'
 import React from 'react'
 
 export interface CalculatedCellsProps {
   testId?: string
   area: PlanningArea
+  dailies: StationDaily[]
   areaName: string
   selected: number[]
   planningAreaClass: string
-  dailyManager: DailyManager
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
-  const areaDailies = props.dailyManager
-    .getDailiesForArea(props.area)
-    .filter(daily => props.selected.includes(daily.code))
-  const dailiesByDayUTC = new Map<number, StationDaily[]>()
+  const areaDailies = getDailiesForArea(props.area, props.dailies, props.selected)
   const utcDict = groupBy(areaDailies, (daily: StationDaily) =>
     daily.date.toUTC().toMillis()
   )
 
-  Object.keys(utcDict).forEach(key => {
-    dailiesByDayUTC.set(Number(key), utcDict[key])
-  })
+  const dailiesByDayUTC = new Map(
+    Object.entries(utcDict).map(entry => [Number(entry[0]), entry[1]])
+  )
 
   const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
 
