@@ -8,10 +8,6 @@ from aiobotocore.client import AioBaseClient
 from aiobotocore.session import get_session
 from decouple import config
 
-# keep n monthly backups
-# keep n weekly backups
-# keep n daily backups
-
 
 @asynccontextmanager
 async def get_client() -> Generator[Tuple[AioBaseClient, str], None, None]:
@@ -34,7 +30,7 @@ async def get_client() -> Generator[Tuple[AioBaseClient, str], None, None]:
 
 
 async def fetch_file_list(client, bucket):
-    """ Fetch the list of files (it comes back sorted)"""
+    """ Fetch the list of files from Object Store. (it comes back sorted)"""
     PG_HOSTNAME = config('PG_HOSTNAME')
     PG_DATABASE = config('PG_DATABASE')
     folder = f'backup/{PG_HOSTNAME}_{PG_DATABASE}'
@@ -46,6 +42,7 @@ async def fetch_file_list(client, bucket):
 
 
 async def delete_files(client, bucket, files: Set):
+    """ Delete files in Object Store. """
     result = await client.delete_objects(Bucket=bucket, Delete={
         'Objects': [{'Key': file} for file in files]
     })
@@ -53,6 +50,7 @@ async def delete_files(client, bucket, files: Set):
 
 
 def extract_datetime(filename) -> datetime:
+    """ Extract date object from filename """
     date_part = filename[-26:-7]
     return datetime.strptime(date_part, '%Y-%m-%d_%H-%M-%S')
 
@@ -115,6 +113,7 @@ def decide_files_to_delete(files: list) -> Set:
 
 
 async def main():
+    """ Entry point. """
 
     # Open connection to object store.
     async with get_client() as (client, bucket):
