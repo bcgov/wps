@@ -31,20 +31,34 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
 
   const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
 
+  const dailyMeanIntensityGroup = range(NUM_WEEK_DAYS).map(i => {
+    const dailies: StationDaily[] | undefined = dailiesByDayUTC.get(
+      orderedDayTimestamps[i]
+    )
+    return dailies ? calculateMeanIntensity(dailies) : undefined
+  })
+
+  const isDefined = (item: number | undefined): item is number => {
+    return !!item
+  }
+
+  const highestMeanIntensityGroup = Math.max(...dailyMeanIntensityGroup.filter(isDefined))
+
   return (
     <React.Fragment>
-      {range(NUM_WEEK_DAYS).map(i => {
+      {range(NUM_WEEK_DAYS).map(day => {
         const dailies: StationDaily[] | undefined = dailiesByDayUTC.get(
-          orderedDayTimestamps[i]
+          orderedDayTimestamps[day]
         )
-        const meanIntensityGroup = dailies ? calculateMeanIntensity(dailies) : undefined
+        const meanIntensityGroup = dailyMeanIntensityGroup[day]
         return (
-          <React.Fragment key={`calc-cells-${i}`}>
+          <React.Fragment key={`calc-cells-${day}`}>
             <TableCell colSpan={2} className={props.planningAreaClass}></TableCell>
             <MeanIntensityGroupRollup
               area={props.area}
               dailies={dailies ? dailies : []}
               selectedStations={props.selected}
+              meanIntensityGroup={meanIntensityGroup}
             ></MeanIntensityGroupRollup>
             <FireStartsCell areaName={props.areaName} />
             <PrepLevelCell
@@ -54,10 +68,12 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
           </React.Fragment>
         )
       })}
+
       <MeanIntensityGroupRollup
         area={props.area}
         dailies={areaDailies}
         selectedStations={props.selected}
+        meanIntensityGroup={highestMeanIntensityGroup}
       ></MeanIntensityGroupRollup>
       <TableCell>Test</TableCell>
     </React.Fragment>

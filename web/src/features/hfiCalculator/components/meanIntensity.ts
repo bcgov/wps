@@ -18,15 +18,3 @@ export const calculateMeanIntensity = (
           stationDailies.map(daily => daily.intensity_group).reduce((a, b) => a + b, 0)) /
           stationDailies.length
       ) / 10
-
-export const calculateHighestMeanIntensityGroup = (
-  dailiesByDayUTC: Map<number, StationDaily[]>
-): number | undefined => {
-  const dailyMeanIntensities = Array.from(dailiesByDayUTC.entries()).flatMap(
-    ([, dailiesForDay]) => {
-      const result = calculateMeanIntensity(dailiesForDay)
-      return result ? result : []
-    }
-  )
-  return Math.max(...dailyMeanIntensities)
-}

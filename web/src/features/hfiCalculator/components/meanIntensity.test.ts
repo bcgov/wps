@@ -11,10 +11,6 @@ describe('calculateMeanIntensityGroup', () => {
     expect(calculateMeanIntensity(stationDailies)).toEqual(3)
   })
   it('should return undefined if there are no intensity groups to calculate in the selected dailies', () => {
-    const stationDailies: StationDaily[] = [
-      buildStationDaily(1, 2),
-      buildStationDaily(2, 4)
-    ]
-    expect(calculateMeanIntensity(stationDailies)).toEqual(undefined)
+    expect(calculateMeanIntensity([])).toEqual(undefined)
   })
 })

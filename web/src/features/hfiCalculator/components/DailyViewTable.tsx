@@ -223,6 +223,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           area={area}
                           dailies={areaDailies}
                           selectedStations={selected}
+                          meanIntensityGroup={meanIntensityGroup}
                         ></MeanIntensityGroupRollup>
                         <FireStartsCell areaName={areaName} />
                         <PrepLevelCell

@@ -4,10 +4,7 @@ import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles
 import React from 'react'
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
-import {
-  calculateMeanIntensity,
-  intensityGroupColours
-} from 'features/hfiCalculator/components/meanIntensity'
+import { intensityGroupColours } from 'features/hfiCalculator/components/meanIntensity'
 import { fireTableStyles } from 'app/theme'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 
@@ -15,7 +12,7 @@ export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
   dailies: StationDaily[]
   selectedStations: number[]
-  meanIntensityGroupOverride?: number
+  meanIntensityGroup: number | undefined
 }
 
 const useStyles = makeStyles({
@@ -95,8 +92,6 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
     return prev || stationDaily.observation_valid === false
   }, false)
 
-  const meanIntensityGroup = calculateMeanIntensity(props.dailies)
-
   if (grassCureError) {
     return (
       <ThemeProvider theme={errorIconTheme}>
@@ -130,19 +125,19 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
     )
   } else {
     const formatAreaMeanIntensityGroupByValue = () => {
-      if (meanIntensityGroup === undefined) {
+      if (props.meanIntensityGroup === undefined) {
         return classes.defaultBackground
       }
-      if (meanIntensityGroup < 2) {
+      if (props.meanIntensityGroup < 2) {
         return classes.intensityGroupSolid1
       }
-      if (meanIntensityGroup < 3) {
+      if (props.meanIntensityGroup < 3) {
         return classes.intensityGroupSolid2
       }
-      if (meanIntensityGroup < 4) {
+      if (props.meanIntensityGroup < 4) {
         return classes.intensityGroupSolid3
       }
-      if (meanIntensityGroup < 5) {
+      if (props.meanIntensityGroup < 5) {
         return classes.intensityGroupSolid4
       } else {
         return classes.intensityGroupSolid5
@@ -153,7 +148,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
         className={formatAreaMeanIntensityGroupByValue()}
         data-testid={`zone-${props.area.id}-mean-intensity`}
       >
-        {meanIntensityGroup}
+        {props.meanIntensityGroup}
       </TableCell>
     )
   }
