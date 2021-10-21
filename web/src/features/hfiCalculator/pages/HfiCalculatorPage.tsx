@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Container, GeneralHeader, PageTitle } from 'components'
+import { Container, ErrorBoundary, GeneralHeader, PageTitle } from 'components'
 import DatePicker from 'components/DatePicker'
 import useClipboard from 'react-use-clipboard'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
@@ -15,9 +15,12 @@ import { Button, CircularProgress, FormControl, makeStyles } from '@material-ui/
 import { FileCopyOutlined, CheckOutlined } from '@material-ui/icons'
 import { buildDailyMap, buildWeekliesByCode } from 'features/hfiCalculator/util'
 import { getDateRange } from 'utils/date'
-import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
+import ViewSwitcher, {
+  ViewSwitcherProps
+} from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles } from 'app/theme'
+import { RowManager } from '../RowManager'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -35,9 +38,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const [isWeeklyView, toggleTableView] = useState(false)
-  const [isCopied, setCopied] = useClipboard('test copy text', {
-    successDuration: 2000 // milliseconds
-  })
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(
@@ -45,6 +45,24 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   )
   const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
     useState(DateTime.now().setZone('UTC-7').toISO())
+
+  const viewSwitcherProps: ViewSwitcherProps = {
+    isWeeklyView: isWeeklyView,
+    fireCentres: fireCentres,
+    dailiesMap: buildDailyMap(dailies),
+    weekliesMap: buildWeekliesByCode(dailies),
+    dateOfInterest: dateOfInterest
+  }
+
+  // const weeklyViewAsString = RowManager.exportWeeklyRowsAsStrings()
+  const dailyViewAsString = RowManager.exportDailyRowsAsStrings(
+    fireCentres,
+    buildDailyMap(dailies)
+  )
+
+  const [isCopied, setCopied] = useClipboard(dailyViewAsString, {
+    successDuration: 2000 // milliseconds
+  })
 
   const refreshView = () => {
     const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
@@ -113,13 +131,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             )}
           </FormControl>
 
-          <ViewSwitcher
-            isWeeklyView={isWeeklyView}
-            fireCentres={fireCentres}
-            dailiesMap={buildDailyMap(dailies)}
-            weekliesMap={buildWeekliesByCode(dailies)}
-            dateOfInterest={dateOfInterest}
-          />
+          <ErrorBoundary>
+            <ViewSwitcher
+              isWeeklyView={isWeeklyView}
+              fireCentres={fireCentres}
+              dailiesMap={buildDailyMap(dailies)}
+              weekliesMap={buildWeekliesByCode(dailies)}
+              dateOfInterest={dateOfInterest}
+            />
+          </ErrorBoundary>
         </Container>
       )}
     </main>
