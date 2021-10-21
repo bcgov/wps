@@ -167,7 +167,7 @@ jobs:
         working-directory: ./web
         run: yarn run finalizeCoverage
 
-      - name: Archive coverage report
+      - name: Archive coverage report (web)
         uses: actions/upload-artifact@v2
         with:
           name: web-coverage-report
