@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { Container, GeneralHeader, PageTitle } from 'components'
+import { Button, Container, GeneralHeader, PageTitle } from 'components'
 
 import DatePicker from 'components/DatePicker'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
@@ -17,13 +17,27 @@ import { buildDailyMap, buildWeekliesByCode } from 'features/hfiCalculator/util'
 import { getDateRange } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
-import { formControlStyles } from 'app/theme'
+import { formControlStyles, theme } from 'app/theme'
+import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
+import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
   container: {
     display: 'flex',
     justifyContent: 'center'
+  },
+  infoIcon: {
+    fill: theme.palette.primary.main
+  },
+  aboutButtonText: {
+    color: theme.palette.primary.main,
+    textDecoration: 'underline',
+    fontWeight: 'bold'
+  },
+  positionStyler: {
+    position: 'absolute',
+    right: '20px'
   }
 }))
 
@@ -35,6 +49,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const [isWeeklyView, toggleTableView] = useState(false)
+  const [modalOpen, setModalOpen] = useState<boolean>(false)
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(
@@ -54,6 +69,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       refreshView()
       setPreviouslySelectedDateOfInterest(dateOfInterest)
     }
+  }
+
+  const openAboutModal = () => {
+    setModalOpen(true)
   }
 
   useEffect(() => {
@@ -95,7 +114,16 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               toggleTableView={toggleTableView}
             />
           </FormControl>
-
+          <FormControl className={classes.positionStyler}>
+            <Button onClick={openAboutModal}>
+              <InfoOutlinedIcon className={classes.infoIcon}></InfoOutlinedIcon>
+              <p className={classes.aboutButtonText}>About this data</p>
+            </Button>
+          </FormControl>
+          <AboutDataModal
+            modalOpen={modalOpen}
+            setModalOpen={setModalOpen}
+          ></AboutDataModal>
           <ViewSwitcher
             isWeeklyView={isWeeklyView}
             fireCentres={fireCentres}
