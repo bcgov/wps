@@ -8,10 +8,7 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
-import {
-  calculateMeanIntensityGroup,
-  getDailiesByDay
-} from 'features/hfiCalculator/components/meanIntensity'
+import { calculateMeanIntensity } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
@@ -22,10 +19,12 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
+import { union } from 'lodash'
+import { getDailiesByStationCode, getDailiesForArea } from 'features/hfiCalculator/util'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
-  dailiesMap: Map<number, StationDaily>
+  dailies: StationDaily[]
   testId?: string
 }
 
@@ -37,7 +36,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
   const [selected, setSelected] = useState<number[]>(
-    Array.from(props.dailiesMap.values()).map(daily => daily.code)
+    union(props.dailies.map(daily => daily.code))
   )
 
   const stationCodeInSelected = (code: number) => {
@@ -208,16 +207,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               {Object.entries(centre.planning_areas)
                 .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
                 .map(([areaName, area]) => {
-                  const stationsWithDaily = getDailiesByDay(
-                    area,
-                    props.dailiesMap,
-                    selected
-                  )
-
-                  const meanIntensityGroup = calculateMeanIntensityGroup(
-                    stationsWithDaily,
-                    selected
-                  )
+                  const areaDailies = getDailiesForArea(area, props.dailies, selected)
+                  const meanIntensityGroup = calculateMeanIntensity(areaDailies)
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
                       <TableRow
@@ -230,8 +221,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         </TableCell>
                         <MeanIntensityGroupRollup
                           area={area}
-                          stationsWithDaily={stationsWithDaily}
+                          dailies={areaDailies}
                           selectedStations={selected}
+                          meanIntensityGroup={meanIntensityGroup}
                         ></MeanIntensityGroupRollup>
                         <FireStartsCell areaName={areaName} />
                         <PrepLevelCell
@@ -243,7 +235,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       {Object.entries(area.stations)
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
-                          const daily = props.dailiesMap.get(station.code)
+                          const daily = getDailiesByStationCode(
+                            props.dailies,
+                            station.code
+                          )[0]
                           const grassCureError = !isValidGrassCure(
                             daily,
                             station.station_props
