@@ -1,5 +1,6 @@
 import { TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
+import { fireTableStyles } from 'app/theme'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { range } from 'lodash'
 import React from 'react'
@@ -11,6 +12,7 @@ export interface DayHeadersProps {
 }
 
 const useStyles = makeStyles({
+  ...fireTableStyles,
   dayHeader: {
     position: 'sticky',
     zIndex: 3,
@@ -18,9 +20,6 @@ const useStyles = makeStyles({
     borderLeft: '1px solid #C4C4C4',
     borderBottom: 'none',
     textAlign: 'center'
-  },
-  spaceHeader: {
-    border: 'none'
   }
 })
 const DayHeaders = (props: DayHeadersProps) => {

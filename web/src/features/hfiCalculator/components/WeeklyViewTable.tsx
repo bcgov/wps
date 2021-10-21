@@ -3,7 +3,6 @@ import React, { useState } from 'react'
 import { TableBody, TableCell, TableHead, TableRow } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { FireCentre } from 'api/hfiCalcAPI'
-import { StationDaily } from 'api/hfiCalculatorAPI'
 import FireTable from 'components/FireTable'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
@@ -13,11 +12,13 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
+import { isEmpty, union } from 'lodash'
+import { StationDaily } from 'api/hfiCalculatorAPI'
+import { getDailiesByStationCode } from 'features/hfiCalculator/util'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
-  stationCodes: number[]
-  weekliesByStationCode: Map<number, StationDaily[]>
+  dailies: StationDaily[]
   currentDay: string
   testId?: string
 }
@@ -29,7 +30,9 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const [selected, setSelected] = useState<number[]>(props.stationCodes)
+  const [selected, setSelected] = useState<number[]>(
+    union(props.dailies.map(daily => daily.code))
+  )
 
   const stationCodeInSelected = (code: number) => {
     return selected.includes(code)
@@ -55,6 +58,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
       <TableHead>
         <TableRow>
           <DayHeaders isoDate={props.currentDay} />
+          <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>
           <TableCell>
@@ -81,6 +85,18 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
             (%)
           </TableCell>
           <DayIndexHeaders />
+          <TableCell className={classes.sectionSeparatorBorder}>
+            Highest
+            <br />
+            Daily
+            <br />
+            FIG
+          </TableCell>
+          <TableCell>
+            Calc.
+            <br />
+            Prep
+          </TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -88,7 +104,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           return (
             <React.Fragment key={`fire-centre-${centreName}`}>
               <TableRow key={`fire-centre-${centreName}`}>
-                <TableCell className={classes.fireCentre} colSpan={30}>
+                <TableCell className={classes.fireCentre} colSpan={32}>
                   {centre.name}
                 </TableCell>
               </TableRow>
@@ -108,6 +124,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         <CalculatedPlanningAreaCells
                           area={area}
                           areaName={areaName}
+                          dailies={props.dailies}
                           selected={selected}
                           planningAreaClass={classes.planningArea}
                         />
@@ -115,7 +132,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                       {Object.entries(area.stations)
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
-                          const dailies = props.weekliesByStationCode.get(station.code)
+                          const dailiesForStation = getDailiesByStationCode(
+                            props.dailies,
+                            station.code
+                          )
                           const isRowSelected = stationCodeInSelected(station.code)
                           const classNameForRow = !isRowSelected
                             ? classes.unselectedStation
@@ -134,7 +154,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                               />
                               <GrassCureCell
                                 value={
-                                  dailies ? dailies[0].grass_cure_percentage : undefined
+                                  !isEmpty(dailiesForStation)
+                                    ? dailiesForStation[0].grass_cure_percentage
+                                    : undefined
                                 }
                                 isGrassFuelType={isGrassFuelType(station.station_props)}
                                 className={
@@ -144,7 +166,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                               />
 
                               <StaticCells
-                                dailies={dailies}
+                                dailies={dailiesForStation}
                                 station={station}
                                 classNameForRow={classNameForRow}
                                 isRowSelected={isRowSelected}
