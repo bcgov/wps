@@ -3,8 +3,6 @@
 coverage:
   # https://docs.codecov.com/docs/commit-status
   status:
-    # Turn back on when configured correctly
-    patch: off
     project:
       # https://docs.codecov.com/docs/commit-status#project-status
       default:
