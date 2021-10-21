@@ -118,7 +118,7 @@ jobs:
           source ~/.poetry/env
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
-      - name: Archive coverage report
+      - name: Archive coverage report (api)
         uses: actions/upload-artifact@v2
         with:
           name: api-coverage-report
