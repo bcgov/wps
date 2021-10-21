@@ -2,7 +2,11 @@ import { TableCell } from '@material-ui/core'
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
-import { calculateMeanIntensity } from 'features/hfiCalculator/components/meanIntensity'
+import {
+  calculateDailyMeanIntensities,
+  calculateMaxMeanIntensityGroup,
+  calculateMeanPrepLevel
+} from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
@@ -31,18 +35,12 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
 
   const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
 
-  const dailyMeanIntensityGroup = range(NUM_WEEK_DAYS).map(i => {
-    const dailies: StationDaily[] | undefined = dailiesByDayUTC.get(
-      orderedDayTimestamps[i]
-    )
-    return dailies ? calculateMeanIntensity(dailies) : undefined
-  })
+  const dailyMeanIntensityGroups = calculateDailyMeanIntensities(dailiesByDayUTC)
 
-  const isDefined = (item: number | undefined): item is number => {
-    return !!item
-  }
-
-  const highestMeanIntensityGroup = Math.max(...dailyMeanIntensityGroup.filter(isDefined))
+  const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
+    dailyMeanIntensityGroups
+  )
+  const meanPrepLevel = calculateMeanPrepLevel(dailyMeanIntensityGroups)
 
   return (
     <React.Fragment>
@@ -50,7 +48,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
         const dailies: StationDaily[] | undefined = dailiesByDayUTC.get(
           orderedDayTimestamps[day]
         )
-        const meanIntensityGroup = dailyMeanIntensityGroup[day]
+        const meanIntensityGroup = dailyMeanIntensityGroups[day]
         return (
           <React.Fragment key={`calc-cells-${day}`}>
             <TableCell colSpan={2} className={props.planningAreaClass}></TableCell>
@@ -75,7 +73,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
         selectedStations={props.selected}
         meanIntensityGroup={highestMeanIntensityGroup}
       ></MeanIntensityGroupRollup>
-      <TableCell>Test</TableCell>
+      <PrepLevelCell meanIntensityGroup={meanPrepLevel} areaName={props.areaName} />
     </React.Fragment>
   )
 }
