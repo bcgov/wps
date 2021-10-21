@@ -59,7 +59,7 @@ export const AboutDataModal = (props: ModalProps): JSX.Element => {
             <p>These fire behaviour calculations assume flat terrain.</p>
             <br />
             <p>
-              Weather and fire behaviour indicies are sourced from the Wildfire One API.
+              Weather and fire behaviour indices are sourced from the Wildfire One API.
             </p>
             <br />
             <p>
@@ -76,7 +76,7 @@ export const AboutDataModal = (props: ModalProps): JSX.Element => {
             <br />
             <p>
               If you have any questions about how values are calculated, please{' '}
-              <a href="mailto: bcws.predictiveservices@gov.bc.ca? subject= Predictive Services Unit - HFI Calculator">
+              <a href="mailto: bcws.predictiveservices@gov.bc.ca?subject= Predictive Services Unit - HFI Calculator">
                 contact us.
               </a>
             </p>

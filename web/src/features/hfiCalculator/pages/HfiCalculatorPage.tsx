@@ -18,7 +18,7 @@ import { getDateRange } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles, theme } from 'app/theme'
-import { AboutDataModal } from '../components/AboutDataModal'
+import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 
 const useStyles = makeStyles(() => ({
