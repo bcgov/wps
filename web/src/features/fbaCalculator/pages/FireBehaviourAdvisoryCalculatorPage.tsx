@@ -9,6 +9,10 @@ export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
       borderLeft: '6px solid #FCBA19',
       padding: '10px',
       marginBottom: theme.spacing(8)
+    },
+    content: {
+      display: 'flex',
+      flexDirection: 'row'
     }
   }))
 
@@ -25,9 +29,7 @@ export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
           {/* (🔥🦇) */}
           Fire Behaviour Advisory Tool
         </h1>
-
         <FBATable />
-
         <Paper className={classes.disclaimer}>
           <div>
             <h4>Disclaimers:</h4>
