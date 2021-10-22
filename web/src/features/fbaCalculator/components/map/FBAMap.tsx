@@ -13,6 +13,14 @@ import VectorSource from 'ol/source/Vector'
 import { VERNON_FIRECENTER } from 'features/fbaCalculator/data/data'
 import { source } from 'features/fireWeather/components/maps/constants'
 import Polygon from 'ol/geom/Polygon'
+import { selectFireWeatherStations } from 'app/rootReducer'
+import * as olSource from 'ol/source'
+import GeoJSON from 'ol/format/GeoJSON'
+import { get } from 'ol/proj'
+import OLVectorLayer from 'ol/layer/Vector'
+import CircleStyle from 'ol/style/Circle'
+
+import { useSelector } from 'react-redux'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -64,9 +72,30 @@ const FBAMap = (props: FBAMapProps) => {
     }
   })
   const classes = useStyles()
+  const { stations } = useSelector(selectFireWeatherStations)
   const mapRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
     if (!mapRef.current) return
+
+    const stationsSource = new olSource.Vector({
+      features: new GeoJSON().readFeatures(
+        { type: 'FeatureCollection', features: stations },
+        {
+          featureProjection: get('EPSG:3857')
+        }
+      )
+    })
+    const stationsLayer = new OLVectorLayer({
+      source: stationsSource,
+      style: new Style({
+        image: new CircleStyle({
+          radius: 5,
+          fill: new Fill({
+            color: 'black'
+          })
+        })
+      })
+    })
 
     const options: MapOptions = {
       view: new ol.View({ zoom, center: fromLonLat(props.center) }),
@@ -74,7 +103,8 @@ const FBAMap = (props: FBAMapProps) => {
         new OLTileLayer({
           source
         }),
-        buildHFILayers()
+        buildHFILayers(),
+        stationsLayer
       ],
       overlays: [],
       controls: defaultControls()
