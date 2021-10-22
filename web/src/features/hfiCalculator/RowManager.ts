@@ -1,7 +1,7 @@
 import { FireCentre, PlanningArea, WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import assert from 'assert'
-import _, { isNull, isUndefined, merge, uniqBy } from 'lodash'
+import _, { isNull, isUndefined } from 'lodash'
+import { getDailiesByStationCode } from 'features/hfiCalculator/util'
 
 // the number of decimal places to round to
 const DECIMAL_PLACES = 1
@@ -29,45 +29,73 @@ interface HFITablePlanningAreaRow {
 export class RowManager {
   public static exportDailyRowsAsStrings = (
     fireCentres: Record<string, FireCentre>,
-    dailiesMap: Map<number, StationDaily>
+    dailies: StationDaily[]
   ): string => {
     const rowsAsStrings: string[] = []
-    tableRows.forEach(row => {
-      const rowArray: string[] = []
-      rowArray.push(
-        row.weatherStation.station_props.name + ' (' + row.weatherStation.code + ')'
-      )
-      rowArray.push(
-        isUndefined(row.weatherStation.station_props.elevation) ||
-          isNull(row.weatherStation.station_props.elevation)
-          ? ''
-          : row.weatherStation.station_props.elevation.toString()
-      )
-      rowArray.push(row.weatherStation.station_props.fuel_type.abbrev)
-      rowArray.push(row.dailyData.status)
-      rowArray.push(row.dailyData.temperature.toFixed(DECIMAL_PLACES))
-      rowArray.push(row.dailyData.relative_humidity.toFixed(DECIMAL_PLACES))
-      rowArray.push(row.dailyData.wind_direction.toString())
-      rowArray.push(row.dailyData.wind_speed.toFixed(DECIMAL_PLACES))
-      rowArray.push(row.dailyData.precipitation.toFixed(DECIMAL_PLACES))
-      rowArray.push(row.dailyData.grass_cure_percentage.toString())
-      rowArray.push(row.dailyData.ffmc.toString())
-      rowArray.push(row.dailyData.dmc.toString())
-      rowArray.push(row.dailyData.dc.toString())
-      rowArray.push(row.dailyData.isi.toString())
-      rowArray.push(row.dailyData.bui.toString())
-      rowArray.push(row.dailyData.fwi.toString())
-      rowArray.push(row.dailyData.danger_class.toString())
-      rowArray.push(row.dailyData.rate_of_spread.toFixed(DECIMAL_PLACES))
-      rowArray.push(row.dailyData.hfi.toFixed(DECIMAL_PLACES))
-      rowArray.push(row.dailyData.sixty_minute_fire_size.toFixed(DECIMAL_PLACES))
-      rowArray.push(row.dailyData.fire_type)
-      rowArray.push(row.dailyData.intensity_group.toString())
 
-      rowsAsStrings.push(rowArray.toString())
+    Object.entries(fireCentres).forEach(([centreName, centre]) => {
+      rowsAsStrings.push(centreName)
+      Object.entries(centre.planning_areas).forEach(([areaName, area]) => {
+        rowsAsStrings.push(areaName)
+        Object.entries(area.stations).forEach(([_, station]) => {
+          const rowArray: string[] = []
+          const daily = getDailiesByStationCode(dailies, station.code)[0]
+
+          rowArray.push(station.station_props.name + ' (' + station.code + ')')
+          rowArray.push(
+            isUndefined(station.station_props.elevation) ||
+              isNull(station.station_props.elevation)
+              ? ''
+              : station.station_props.elevation?.toString()
+          )
+          rowArray.push(station.station_props.fuel_type.abbrev)
+          rowArray.push(!isUndefined(daily) ? daily.status : '')
+          rowArray.push(
+            !isUndefined(daily) ? daily.temperature.toFixed(DECIMAL_PLACES) : ''
+          )
+          rowArray.push(
+            !isUndefined(daily) ? daily.relative_humidity.toFixed(DECIMAL_PLACES) : ''
+          )
+          rowArray.push(!isUndefined(daily) ? daily.wind_direction.toString() : '')
+          rowArray.push(
+            !isUndefined(daily) ? daily.wind_speed.toFixed(DECIMAL_PLACES) : ''
+          )
+          rowArray.push(
+            !isUndefined(daily) ? daily.precipitation.toFixed(DECIMAL_PLACES) : ''
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.grass_cure_percentage)
+              ? daily.grass_cure_percentage.toString()
+              : ''
+          )
+          rowArray.push(!isUndefined(daily) ? daily.ffmc.toString() : '')
+          rowArray.push(!isUndefined(daily) ? daily.dmc.toString() : '')
+          rowArray.push(!isUndefined(daily) ? daily.dc.toString() : '')
+          rowArray.push(!isUndefined(daily) ? daily.isi.toString() : '')
+          rowArray.push(!isUndefined(daily) ? daily.bui.toString() : '')
+          rowArray.push(!isUndefined(daily) ? daily.fwi.toString() : '')
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.danger_class)
+              ? daily.danger_class.toString()
+              : ''
+          )
+          rowArray.push(
+            !isUndefined(daily) ? daily.rate_of_spread.toFixed(DECIMAL_PLACES) : ''
+          )
+          rowArray.push(!isUndefined(daily) ? daily.hfi.toFixed(DECIMAL_PLACES) : '')
+          rowArray.push(
+            !isUndefined(daily)
+              ? daily.sixty_minute_fire_size.toFixed(DECIMAL_PLACES)
+              : ''
+          )
+          rowArray.push(!isUndefined(daily) ? daily.fire_type : '')
+          rowArray.push(!isUndefined(daily) ? daily.intensity_group.toString() : '')
+
+          rowsAsStrings.push(rowArray.toString())
+        })
+      })
     })
-
-    return rowsAsStrings.join('\n')
+    return rowsAsStrings.join('\u2028\u2029')
   }
 
   public static exportWeeklyRowsAsStrings = (

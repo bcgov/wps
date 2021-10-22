@@ -13,11 +13,8 @@ import {
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { FileCopyOutlined, CheckOutlined } from '@material-ui/icons'
-import { buildDailyMap, buildWeekliesByCode } from 'features/hfiCalculator/util'
 import { getDateRange } from 'utils/date'
-import ViewSwitcher, {
-  ViewSwitcherProps
-} from 'features/hfiCalculator/components/ViewSwitcher'
+import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
@@ -62,10 +59,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     useState(DateTime.now().setZone('UTC-7').toISO())
 
   // const weeklyViewAsString = RowManager.exportWeeklyRowsAsStrings()
-  const dailyViewAsString = RowManager.exportDailyRowsAsStrings(
-    fireCentres,
-    buildDailyMap(dailies)
-  )
+  const dailyViewAsString = RowManager.exportDailyRowsAsStrings(fireCentres, dailies)
 
   const [isCopied, setCopied] = useClipboard(dailyViewAsString, {
     successDuration: 2000 // milliseconds
@@ -157,8 +151,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             <ViewSwitcher
               isWeeklyView={isWeeklyView}
               fireCentres={fireCentres}
-              dailiesMap={buildDailyMap(dailies)}
-              weekliesMap={buildWeekliesByCode(dailies)}
+              dailies={dailies}
               dateOfInterest={dateOfInterest}
             />
           </ErrorBoundary>

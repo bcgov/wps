@@ -96,6 +96,9 @@ export const fireTableStyles = createStyles({
     ...PLANNING_AREA,
     fontWeight: 'bold',
     textAlign: 'center'
+  },
+  spaceHeader: {
+    border: 'none'
   }
 })
 
