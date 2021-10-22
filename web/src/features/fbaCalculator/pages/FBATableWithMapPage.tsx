@@ -2,7 +2,7 @@ import { Grid } from '@material-ui/core'
 import { GeneralHeader } from 'components'
 import React from 'react'
 import FBATable from 'features/fbaCalculator/components/FBATable'
-import FBAMap from 'features/fbaCalculator/components/FBAMap'
+import FBAMap from 'features/fbaCalculator/components/map/FBAMap'
 import { CENTER_OF_BC } from 'utils/constants'
 
 export const FBATableWithMapPage: React.FunctionComponent = () => {
