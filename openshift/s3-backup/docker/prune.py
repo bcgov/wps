@@ -94,10 +94,10 @@ async def main():
     """ Entry point. """
 
     # Open connection to object store.
-    server = config('OBJECT_STORE_SERVER')
-    user_id = config('OBJECT_STORE_USER_ID')
-    secret_key = config('OBJECT_STORE_SECRET')
-    bucket = config('OBJECT_STORE_BUCKET')
+    server = config('AWS_HOSTNAME')
+    user_id = config('AWS_ACCESS_KEY')
+    secret_key = config('AWS_SECRET_KEY')
+    bucket = config('AWS_BUCKET')
 
     session = get_session()
     async with session.create_client('s3',

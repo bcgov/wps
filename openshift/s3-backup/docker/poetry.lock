@@ -199,8 +199,8 @@ typing-extensions = {version = ">=3.7.4", markers = "python_version < \"3.8\""}
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.6.8"
-content-hash = "ecff52f5fb38e230ce5fdcf4d6e064e2f9b338e627ddb8c48df84209dd2fc392"
+python-versions = "3.6.8"
+content-hash = "d1740b247404f3dec17dff9ca622a956834863ac4f64cd43a56d97b5e8ac6e80"
 
 [metadata.files]
 aiobotocore = [
@@ -356,6 +356,7 @@ python-dateutil = [
 ]
 python-decouple = [
     {file = "python-decouple-3.5.tar.gz", hash = "sha256:68e4b3fcc97e24bc90eecc514852d0bf970f4ff031f5f7a6728ddafa9afefcaf"},
+    {file = "python_decouple-3.5-py3-none-any.whl", hash = "sha256:011d3f785367c54a72cf8a07d3a7a48bb8cc1a0f8e6c70353ca5767ebf7c8c9d"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
