@@ -6,6 +6,8 @@ on:
 jobs:
   renovate:
     runs-on: ubuntu-latest
+    env:
+      LOG_LEVEL: debug
     steps:
       - name: Checkout
         uses: actions/checkout@v2.0.0
