@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Container, ErrorBoundary, GeneralHeader, PageTitle } from 'components'
 import DatePicker from 'components/DatePicker'
-import useClipboard from 'react-use-clipboard'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import { fetchHFIDailies } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -41,6 +40,8 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
+const clipboardCopySuccessDuration = 2000 // milliseconds
+
 const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
@@ -61,9 +62,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   // const weeklyViewAsString = RowManager.exportWeeklyRowsAsStrings()
   const dailyViewAsString = RowManager.exportDailyRowsAsStrings(fireCentres, dailies)
 
-  const [isCopied, setCopied] = useClipboard(dailyViewAsString, {
-    successDuration: 2000 // milliseconds
-  })
+  const [isCopied, setIsCopied] = useState(false)
 
   const refreshView = () => {
     const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
@@ -81,6 +80,28 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const openAboutModal = () => {
     setModalOpen(true)
   }
+
+  const copyTable = () => {
+    navigator.clipboard.writeText(dailyViewAsString)
+    setIsCopied(true)
+  }
+
+  useEffect(() => {
+    /**  this logic is copied from
+     https://github.com/danoc/react-use-clipboard/blob/master/src/index.tsx 
+     (the react-use-clipboard package was too restrictive for our needs, but the logic for
+      having a timeout on the copy success message is helpful for us)
+    */
+    if (isCopied) {
+      const id = setTimeout(() => {
+        setIsCopied(false)
+      }, clipboardCopySuccessDuration)
+
+      return () => {
+        clearTimeout(id)
+      }
+    }
+  }, [isCopied])
 
   useEffect(() => {
     refreshView()
@@ -129,7 +150,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                 Copied!
               </Button>
             ) : (
-              <Button onClick={setCopied}>
+              <Button onClick={copyTable}>
                 <FileCopyOutlined />
                 Copy to Clipboard
               </Button>

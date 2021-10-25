@@ -28,6 +28,33 @@ export interface Props {
   testId?: string
 }
 
+export const dailyTableColumnLabels = [
+  'Location',
+  'Elev. (m)',
+  'FBP Fuel Type',
+  'Status',
+  'Temp (°C)',
+  'RH (%)',
+  'Wind Dir (°)',
+  'Wind Speed (km/h)',
+  'Precip (mm)',
+  'Grass Cure (%)',
+  'FFMC',
+  'DMC',
+  'DC',
+  'ISI',
+  'BUI',
+  'FWI',
+  'DGR CL',
+  'ROS (m/min)',
+  'HFI',
+  '60 min fire size (ha)',
+  'Fire Type',
+  'M/FIG',
+  'Fire Starts',
+  'Prep Level'
+]
+
 const useStyles = makeStyles({
   ...fireTableStyles
 })

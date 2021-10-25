@@ -2,6 +2,8 @@ import { FireCentre, PlanningArea, WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import _, { isNull, isUndefined } from 'lodash'
 import { getDailiesByStationCode } from 'features/hfiCalculator/util'
+import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
+import { toUnicode } from 'punycode'
 
 // the number of decimal places to round to
 const DECIMAL_PLACES = 1
@@ -33,10 +35,12 @@ export class RowManager {
   ): string => {
     const rowsAsStrings: string[] = []
 
-    Object.entries(fireCentres).forEach(([centreName, centre]) => {
-      rowsAsStrings.push(centreName)
-      Object.entries(centre.planning_areas).forEach(([areaName, area]) => {
-        rowsAsStrings.push(areaName)
+    rowsAsStrings.push(dailyTableColumnLabels.toString())
+
+    Object.entries(fireCentres).forEach(([_, centre]) => {
+      rowsAsStrings.push(centre.name)
+      Object.entries(centre.planning_areas).forEach(([_, area]) => {
+        rowsAsStrings.push(area.name)
         Object.entries(area.stations).forEach(([_, station]) => {
           const rowArray: string[] = []
           const daily = getDailiesByStationCode(dailies, station.code)[0]
@@ -95,7 +99,7 @@ export class RowManager {
         })
       })
     })
-    return rowsAsStrings.join('\u2028\u2029')
+    return rowsAsStrings.join('\r\n')
   }
 
   public static exportWeeklyRowsAsStrings = (
