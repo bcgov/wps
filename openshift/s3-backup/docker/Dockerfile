@@ -1,5 +1,9 @@
 FROM centos/postgresql-12-centos7
 
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US.UTF-8
+
 # Download the installer
 ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" /tmp/awscliv2.zip
 
@@ -15,12 +19,12 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/inst
 RUN cd /usr/local/bin && \
     ln -s /opt/poetry/bin/poetry
 
-# Switch back to default user
-USER 26
-
 # cd /usr/local/bin && \
 # ln -s /opt/poetry/bin/poetry && \
 # RUN poetry config virtualenvs.create false
+
+# Switch back to default user
+USER 26
 
 COPY pyproject.toml .
 COPY poetry.lock .
