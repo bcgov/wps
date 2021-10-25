@@ -1,6 +1,6 @@
 import { makeStyles, TableCell } from '@material-ui/core'
 import { fireTableStyles } from 'app/theme'
-import { isUndefined } from 'lodash'
+import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import React from 'react'
 
 export interface PrepLevelCellProps {
@@ -48,24 +48,6 @@ const useStyles = makeStyles({
   }
 })
 
-export type PrepLevel = 1 | 2 | 3 | 4 | 5 | 6 | undefined
-
-export const calculatePrepLevel = (meanIntensityGroup: number | undefined): PrepLevel => {
-  // for now, prep level calculation assumed a fixed Fire Starts value of 0-1
-  if (isUndefined(meanIntensityGroup)) {
-    return undefined
-  }
-  if (meanIntensityGroup < 3) {
-    return 1
-  }
-  if (meanIntensityGroup < 4) {
-    return 2
-  }
-  if (meanIntensityGroup < 5) {
-    return 3
-  }
-  return 4
-}
 const PrepLevelCell = (props: PrepLevelCellProps) => {
   const classes = useStyles()
 
