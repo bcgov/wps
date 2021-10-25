@@ -47,7 +47,7 @@ pytest-xdist = "^2"
 pytest-mock = "^3"
 rope = "^0"
 docker-compose = "^1"
-pgadmin4 = "^4"
+pgadmin4 = "^5"
 jsonpickle = "^2.0.0"
 
 [build-system]
