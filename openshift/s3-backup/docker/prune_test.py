@@ -40,7 +40,7 @@ class TestPrune(unittest.TestCase):
         files = self.small_set
         files_to_keep = decide_files_to_keep(files)
         self.assertEqual(len(files_to_keep), 1)
-        self.assertEqual(files[0], files_to_keep[0])
+        self.assertIn(files[0], files_to_keep)
 
     def test_delete_small_set(self):
         """ Check that delete works for smaller set """
@@ -58,8 +58,17 @@ class TestPrune(unittest.TestCase):
         files = self.large_set
         files_to_keep = decide_files_to_keep(files)
         self.assertEqual(len(files_to_keep), 11)
-        self.assertEqual([files[0], files[4], files[5], files[6], files[7], files[10],
-                         files[11], files[12], files[13], files[14], files[15]], files_to_keep)
+        self.assertIn(files[0], files_to_keep)
+        self.assertIn(files[4], files_to_keep)
+        self.assertIn(files[5], files_to_keep)
+        self.assertIn(files[6], files_to_keep)
+        self.assertIn(files[7], files_to_keep)
+        self.assertIn(files[10], files_to_keep)
+        self.assertIn(files[11], files_to_keep)
+        self.assertIn(files[12], files_to_keep)
+        self.assertIn(files[13], files_to_keep)
+        self.assertIn(files[14], files_to_keep)
+        self.assertIn(files[15], files_to_keep)
 
     def test_delete_large_set(self):
         """ Check that delete works for larger set """

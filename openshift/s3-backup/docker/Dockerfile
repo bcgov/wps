@@ -16,11 +16,11 @@ RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
 RUN yum install -y python3 python3-setuptools
 
 # Install poetry.
-# This is not the reccomended way to install poetry, but it works.
+# This is not the recommended way to install poetry, but it works.
 RUN pip3 install --upgrade pip setuptools wheel
 RUN pip3 install --upgrade poetry
 
-# Getting poetry to place nice with centos in openshift is a nightmare, so we just
+# Getting poetry to play nice with centos in openshift is a nightmare, so we just
 # take the easy route and create a requirements.txt file.
 COPY pyproject.toml poetry.lock /tmp/
 RUN cd /tmp && \

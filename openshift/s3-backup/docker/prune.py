@@ -2,7 +2,7 @@
 """
 import asyncio
 from datetime import datetime, timedelta
-from typing import List, Set
+from typing import Set
 from aiobotocore.session import get_session
 from decouple import config
 
@@ -46,7 +46,8 @@ class Desire:
         self.prev_timestamp = None
         self.interval = interval
 
-    def _evaluate_conditions(self, timestamp: datetime) -> bool:
+    def _is_keeper(self, timestamp: datetime) -> bool:
+        """ Run through all the conditions to decide if we keep this timestamp or not. """
         if self.backups_found < self.desired_backups:
             if self.prev_timestamp is None:
                 return True
@@ -54,15 +55,16 @@ class Desire:
                 return True
         return False
 
-    def evaluate(self, timestamp: datetime) -> bool:
-        if self._evaluate_conditions(timestamp):
+    def is_keeper(self, timestamp: datetime) -> bool:
+        """ Decide if we should keep this timestamp or not. """
+        if self._is_keeper(timestamp):
             self.prev_timestamp = timestamp
             self.backups_found += 1
             return True
         return False
 
 
-def decide_files_to_keep(files: list) -> List:
+def decide_files_to_keep(files: list) -> Set:
     """ Decide what files to keep
     Expects a list of filenames sorted from most recent to least recent """
     desires = [
@@ -70,14 +72,14 @@ def decide_files_to_keep(files: list) -> List:
         Desire(desired_backups=5, interval=timedelta(weeks=1)),  # retain 5 weekly backups
         Desire(desired_backups=5, interval=timedelta(weeks=4))]  # retain 5 monthly
 
-    files_to_keep = []
+    files_to_keep = set()
 
     for filename in files:
         timestamp = extract_datetime(filename)
         for desire in desires:
-            if desire.evaluate(timestamp):
+            if desire.is_keeper(timestamp):
                 if filename not in files_to_keep:
-                    files_to_keep.append(filename)
+                    files_to_keep.add(filename)
 
     return files_to_keep
 
@@ -118,7 +120,5 @@ async def main():
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    # loop.call_soon(main)
     loop.run_until_complete(main())
     loop.close()
-    # asyncio.run(main())
