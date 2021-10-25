@@ -80,8 +80,7 @@ def decide_files_to_keep(files: list) -> Set:
         timestamp = extract_datetime(filename)
         for desire in desires:
             if desire.is_keeper(timestamp):
-                if filename not in files_to_keep:
-                    files_to_keep.add(filename)
+                files_to_keep.add(filename)
 
     return files_to_keep
 
