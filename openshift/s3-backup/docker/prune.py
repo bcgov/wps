@@ -111,7 +111,7 @@ async def main():
         try:
             # Get list of backup files
             files = fetch_file_list(client, bucket)
-            files = list([file async for file in files])
+            files = list(file async for file in files)
             files.reverse()
             files_to_delete = decide_files_to_delete(files)
             if len(files_to_delete) > 0:

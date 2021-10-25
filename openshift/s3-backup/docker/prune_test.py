@@ -1,8 +1,11 @@
+""" Tests for prune.py
+"""
 import unittest
 from prune import decide_files_to_keep, decide_files_to_delete
 
 
 class TestPrune(unittest.TestCase):
+    """ Unit tests for prune.py """
 
     def __init__(self, methodName: str = ...) -> None:
         super().__init__(methodName=methodName)
