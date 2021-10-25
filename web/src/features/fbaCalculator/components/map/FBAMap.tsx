@@ -2,7 +2,7 @@ import { ErrorBoundary } from 'components'
 import * as ol from 'ol'
 import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls } from 'ol/control'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { fromLonLat } from 'ol/proj'
 import { Fill, Stroke, Style } from 'ol/style'
@@ -31,6 +31,7 @@ export interface FBAMapProps {
   center: number[]
 }
 
+// Will be parameterized based on fire center in the future
 const buildHFILayers = () => {
   const polygonFeature = new ol.Feature(
     new Polygon(VERNON_FIRECENTER.features[0].geometry.coordinates).transform(
@@ -66,17 +67,35 @@ const FBAMap = (props: FBAMapProps) => {
       width: '100%'
     },
     map: {
-      position: 'relative',
       width: 'inherit',
       height: 'inherit'
     }
   })
   const classes = useStyles()
   const { stations } = useSelector(selectFireWeatherStations)
+  const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
     if (!mapRef.current) return
 
+    const options: MapOptions = {
+      view: new ol.View({ zoom, center: fromLonLat(props.center) }),
+      layers: [
+        new OLTileLayer({
+          source
+        }),
+        buildHFILayers()
+      ],
+      overlays: [],
+      controls: defaultControls()
+    }
+
+    const mapObject = new ol.Map(options)
+    mapObject.setTarget(mapRef.current)
+    setMap(mapObject)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     const stationsSource = new olSource.Vector({
       features: new GeoJSON().readFeatures(
         { type: 'FeatureCollection', features: stations },
@@ -97,23 +116,8 @@ const FBAMap = (props: FBAMapProps) => {
       })
     })
 
-    const options: MapOptions = {
-      view: new ol.View({ zoom, center: fromLonLat(props.center) }),
-      layers: [
-        new OLTileLayer({
-          source
-        }),
-        buildHFILayers(),
-        stationsLayer
-      ],
-      overlays: [],
-      controls: defaultControls()
-    }
-
-    const mapObject = new ol.Map(options)
-
-    mapObject.setTarget(mapRef.current)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    map?.addLayer(stationsLayer)
+  }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <ErrorBoundary>
       <div className={classes.main}>

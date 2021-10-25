@@ -3,7 +3,7 @@ import { Container, GeneralHeader } from 'components'
 import React from 'react'
 import FBATable from 'features/fbaCalculator/components/FBATable'
 
-export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
+export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const useStyles = makeStyles(theme => ({
     disclaimer: {
       borderLeft: '6px solid #FCBA19',

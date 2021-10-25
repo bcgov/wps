@@ -5,7 +5,7 @@ import FBATable from 'features/fbaCalculator/components/FBATable'
 import FBAMap from 'features/fbaCalculator/components/map/FBAMap'
 import { CENTER_OF_BC } from 'utils/constants'
 
-export const FBATableWithMapPage: React.FunctionComponent = () => {
+export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   return (
     <main>
       <GeneralHeader
@@ -18,9 +18,9 @@ export const FBATableWithMapPage: React.FunctionComponent = () => {
         Fire Behaviour Advisory Tool
       </h1>
 
-      <Grid container spacing={2} sm>
+      <Grid container>
         <Grid item xs>
-          <FBATable maxWidth={800} maxHeight={1000} minHeight={600} />
+          <FBATable maxWidth={1000} maxHeight={1000} minHeight={500} />
         </Grid>
         <Grid item xs>
           <FBAMap center={CENTER_OF_BC} />
@@ -30,4 +30,4 @@ export const FBATableWithMapPage: React.FunctionComponent = () => {
   )
 }
 
-export default React.memo(FBATableWithMapPage)
+export default React.memo(FireBehaviourAdvisoryPage)
