@@ -17,7 +17,8 @@ RUN yum install -y python3
 # Install poetry
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | POETRY_HOME=/opt/poetry python3
 RUN cd /usr/local/bin && \
-    ln -s /opt/poetry/bin/poetry
+    ln -s /opt/poetry/bin/poetry && \
+    poetry config virtualenvs.create false
 
 # Switch back to default user
 USER 26
@@ -25,7 +26,7 @@ USER 26
 # Install python dependencies.
 COPY pyproject.toml .
 COPY poetry.lock .
-RUN poetry install
+RUN poetry install --no-root --no-dev
 
 # Copy scripts
 COPY backup_to_s3.sh .
