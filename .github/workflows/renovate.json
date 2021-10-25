@@ -22,7 +22,7 @@
     },
     {
       "matchManagers": ["dockerfile", "docker-compose"],
-      "enabled": "false"
+      "enabled": false
     }
   ],
   "lockFileMaintenance": { "enabled": true },
