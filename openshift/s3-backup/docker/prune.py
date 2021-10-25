@@ -2,8 +2,7 @@
 """
 import asyncio
 from datetime import datetime, timedelta
-from typing import Generator, Tuple, List, Set
-from aiobotocore.client import AioBaseClient
+from typing import List, Set
 from aiobotocore.session import get_session
 from decouple import config
 
@@ -118,4 +117,8 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    loop = asyncio.get_event_loop()
+    # loop.call_soon(main)
+    loop.run_until_complete(main())
+    loop.close()
+    # asyncio.run(main())

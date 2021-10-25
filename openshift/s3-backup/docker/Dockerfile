@@ -20,15 +20,20 @@ RUN yum install -y python3 python3-setuptools
 RUN pip3 install --upgrade pip setuptools wheel
 RUN pip3 install --upgrade poetry
 
+COPY pyproject.toml poetry.lock /tmp/
+RUN cd /tmp && \
+    python3 -m poetry export -f requirements.txt --output requirements.txt && \
+    pip3 install -r requirements.txt
+
 # Switch back to default user - 26 is the postgres user.
 USER 26
 
-RUN python3 -m poetry config virtualenvs.create false
+# RUN python3 -m poetry config virtualenvs.create false
 
 # Install python dependencies, using poetry.
-COPY pyproject.toml .
-COPY poetry.lock .
-RUN python3 -m poetry install --no-root --no-dev --verbose
+# COPY pyproject.toml .
+# COPY poetry.lock .
+# RUN python3 -m poetry install --no-dev --verbose
 
 # Copy scripts.
 COPY backup_to_s3.sh .
