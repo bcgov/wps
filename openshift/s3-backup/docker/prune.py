@@ -2,31 +2,10 @@
 """
 import asyncio
 from datetime import datetime, timedelta
-from contextlib import asynccontextmanager
 from typing import Generator, Tuple, List, Set
 from aiobotocore.client import AioBaseClient
 from aiobotocore.session import get_session
 from decouple import config
-
-
-@asynccontextmanager
-async def get_client() -> Generator[Tuple[AioBaseClient, str], None, None]:
-    """ Return AioBaseClient client and bucket
-    """
-    server = config('OBJECT_STORE_SERVER')
-    user_id = config('OBJECT_STORE_USER_ID')
-    secret_key = config('OBJECT_STORE_SECRET')
-    bucket = config('OBJECT_STORE_BUCKET')
-
-    session = get_session()
-    async with session.create_client('s3',
-                                     endpoint_url=f'https://{server}',
-                                     aws_secret_access_key=secret_key,
-                                     aws_access_key_id=user_id) as client:
-        try:
-            yield client, bucket
-        finally:
-            del client
 
 
 async def fetch_file_list(client, bucket):
@@ -116,14 +95,26 @@ async def main():
     """ Entry point. """
 
     # Open connection to object store.
-    async with get_client() as (client, bucket):
-        # Get list of backup files
-        files = fetch_file_list(client, bucket)
-        files = list([file async for file in files])
-        files.reverse()
-        files_to_delete = decide_files_to_delete(files)
-        if len(files_to_delete) > 0:
-            await delete_files(client, bucket, files_to_delete)
+    server = config('OBJECT_STORE_SERVER')
+    user_id = config('OBJECT_STORE_USER_ID')
+    secret_key = config('OBJECT_STORE_SECRET')
+    bucket = config('OBJECT_STORE_BUCKET')
+
+    session = get_session()
+    async with session.create_client('s3',
+                                     endpoint_url=f'https://{server}',
+                                     aws_secret_access_key=secret_key,
+                                     aws_access_key_id=user_id) as client:
+        try:
+            # Get list of backup files
+            files = fetch_file_list(client, bucket)
+            files = list([file async for file in files])
+            files.reverse()
+            files_to_delete = decide_files_to_delete(files)
+            if len(files_to_delete) > 0:
+                await delete_files(client, bucket, files_to_delete)
+        finally:
+            del client
 
 
 if __name__ == '__main__':
