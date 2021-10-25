@@ -6593,10 +6593,10 @@ esrecurse@^4.1.0, esrecurse@^4.3.0:
   dependencies:
     estraverse "^5.2.0"
 
-esri-leaflet@3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/esri-leaflet/-/esri-leaflet-3.0.2.tgz#368ff662aeb8de21d70d59b362a821b0dcabf6b5"
-  integrity sha512-Dr5Ie52yH+gojfnGXdzHGkrgn9U3kp9QKB7xqXZX/mPIE9gKyqC5Er8jRifJx+DTgeM67F+P7F09ZJsIvWbheQ==
+esri-leaflet@3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/esri-leaflet/-/esri-leaflet-3.0.3.tgz#5fa42c47df1e266653ed9cb7d9919eb012b48829"
+  integrity sha512-TTfUQ00r9dMVhb8ipTEIN/cF3SDvCQj2kQcmnwNyuFO5wcOM3y59ou3xwTMp5mMjpyYfelPl9s5LjosaqgxGaQ==
   dependencies:
     "@terraformer/arcgis" "^2.0.7"
     tiny-binary-search "^1.0.3"
@@ -11733,7 +11733,7 @@ plotly.js@^2.5.1:
     "@turf/bbox" "^6.4.0"
     "@turf/centroid" "^6.0.2"
     alpha-shape "^1.0.0"
-    box-intersect "github:plotly/box-intersect#v1.1.0"
+    box-intersect plotly/box-intersect#v1.1.0
     canvas-fit "^1.5.0"
     color-alpha "1.0.4"
     color-normalize "1.5.0"
@@ -11770,7 +11770,7 @@ plotly.js@^2.5.1:
     glslify "^7.1.1"
     has-hover "^1.0.1"
     has-passive-events "^1.0.0"
-    incremental-convex-hull "github:plotly/incremental-convex-hull#v1.1.0"
+    incremental-convex-hull plotly/incremental-convex-hull#v1.1.0
     is-mobile "^2.2.2"
     mapbox-gl "1.10.1"
     matrix-camera-controller "^2.1.4"
@@ -11778,13 +11778,13 @@ plotly.js@^2.5.1:
     mouse-event-offset "^3.0.2"
     mouse-wheel "^1.2.0"
     native-promise-only "^0.8.1"
-    ndarray "github:plotly/ndarray#v1.1.0"
-    ndarray-extract-contour "github:plotly/ndarray-extract-contour#v1.1.0"
-    ndarray-gradient "github:plotly/ndarray-gradient#v1.1.0"
+    ndarray plotly/ndarray#v1.1.0
+    ndarray-extract-contour plotly/ndarray-extract-contour#v1.1.0
+    ndarray-gradient plotly/ndarray-gradient#v1.1.0
     ndarray-linear-interpolate "^1.0.0"
-    ndarray-ops "github:plotly/ndarray-ops#v1.3.0"
-    ndarray-pack "github:plotly/ndarray-pack#v1.3.0"
-    ndarray-sort "github:plotly/ndarray-sort#v1.1.0"
+    ndarray-ops plotly/ndarray-ops#v1.3.0
+    ndarray-pack plotly/ndarray-pack#v1.3.0
+    ndarray-sort plotly/ndarray-sort#v1.1.0
     parse-svg-path "^0.1.2"
     polybooljs "^1.2.0"
     probe-image-size "^7.2.1"
@@ -11794,14 +11794,14 @@ plotly.js@^2.5.1:
     regl-scatter2d "^3.2.8"
     regl-splom "^1.0.14"
     right-now "^1.0.0"
-    robust-determinant "github:plotly/robust-determinant#v1.2.1"
+    robust-determinant plotly/robust-determinant#v1.2.1
     robust-in-sphere "1.2.1"
-    robust-linear-solve "github:plotly/robust-linear-solve#v1.1.1"
+    robust-linear-solve plotly/robust-linear-solve#v1.1.1
     robust-orientation "1.2.1"
-    simplicial-complex-contour "github:plotly/simplicial-complex-contour#v1.1.0"
+    simplicial-complex-contour plotly/simplicial-complex-contour#v1.1.0
     strongly-connected-components "^1.0.1"
     superscript-text "^1.0.0"
-    surface-nets "github:plotly/surface-nets#v1.1.1"
+    surface-nets plotly/surface-nets#v1.1.1
     svg-path-sdf "^1.1.3"
     tinycolor2 "^1.4.2"
     to-px "1.0.1"
@@ -11809,7 +11809,7 @@ plotly.js@^2.5.1:
     vectorize-text "3.2.2"
     webgl-context "^2.2.0"
     world-calendars "^1.0.3"
-    zero-crossings "github:plotly/zero-crossings#v1.1.0"
+    zero-crossings plotly/zero-crossings#v1.1.0
 
 pnp-webpack-plugin@1.6.4:
   version "1.6.4"
@@ -13602,7 +13602,6 @@ robust-compress@^1.0.0:
 
 robust-determinant@^1.1.0, "robust-determinant@github:plotly/robust-determinant#v1.2.1":
   version "1.2.1"
-  uid "7cb499bb02411de80ae1a90e54893e46af82ca5e"
   resolved "https://codeload.github.com/plotly/robust-determinant/tar.gz/7cb499bb02411de80ae1a90e54893e46af82ca5e"
   dependencies:
     robust-compress "^1.0.0"
@@ -13630,7 +13629,6 @@ robust-in-sphere@1.2.1, robust-in-sphere@^1.1.3:
 
 robust-linear-solve@^1.0.0, "robust-linear-solve@github:plotly/robust-linear-solve#v1.1.1":
   version "1.1.1"
-  uid "90ad6de2ce011a1e0b53d9e9f6bf8d117053c492"
   resolved "https://codeload.github.com/plotly/robust-linear-solve/tar.gz/90ad6de2ce011a1e0b53d9e9f6bf8d117053c492"
   dependencies:
     robust-determinant "^1.1.0"
@@ -14786,7 +14784,6 @@ supports-hyperlinks@^2.0.0:
 
 surface-nets@^1.0.0, surface-nets@^1.0.2, "surface-nets@github:plotly/surface-nets#v1.1.1":
   version "1.1.1"
-  uid d80900ed4c39a1b07f9d8577180960945236d996
   resolved "https://codeload.github.com/plotly/surface-nets/tar.gz/d80900ed4c39a1b07f9d8577180960945236d996"
   dependencies:
     ndarray-extract-contour "^1.0.0"
