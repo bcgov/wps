@@ -103,7 +103,7 @@ export const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
   // Use axios interceptors to intercept any requests and add authorization headers.
   axios.interceptors.request.use(config => {
     const token = selectToken(getState())
-    if (token) {
+    if (token && config) {
       config.headers.Authorization = `Bearer ${token}`
     }
 
