@@ -1,26 +1,24 @@
-import { ErrorBoundary } from 'components'
 import * as ol from 'ol'
+import * as olSource from 'ol/source'
 import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls } from 'ol/control'
-import React, { useEffect, useRef, useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { fromLonLat } from 'ol/proj'
+import { fromLonLat, get } from 'ol/proj'
 import { Fill, Stroke, Style } from 'ol/style'
 import OLTileLayer from 'ol/layer/Tile'
-import VectorLayer from 'ol/layer/Vector'
+import OLVectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 
-import { VERNON_FIRECENTER } from 'features/fbaCalculator/data/data'
-import { source } from 'features/fireWeather/components/maps/constants'
 import Polygon from 'ol/geom/Polygon'
-import { selectFireWeatherStations } from 'app/rootReducer'
-import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
-import { get } from 'ol/proj'
-import OLVectorLayer from 'ol/layer/Vector'
 import CircleStyle from 'ol/style/Circle'
 
+import { VERNON_FIRECENTER } from 'features/fbaCalculator/data/data'
 import { useSelector } from 'react-redux'
+import React, { useEffect, useRef, useState } from 'react'
+import { makeStyles } from '@material-ui/core/styles'
+import { ErrorBoundary } from 'components'
+import { selectFireWeatherStations } from 'app/rootReducer'
+import { source } from 'features/fireWeather/components/maps/constants'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -44,7 +42,7 @@ const buildHFILayers = () => {
     features: [polygonFeature]
   })
 
-  return new VectorLayer({
+  return new OLVectorLayer({
     source: vernonSource,
     style: [
       new Style({
