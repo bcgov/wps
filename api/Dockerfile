@@ -1,7 +1,7 @@
 # NOTE:
 # This Dockerfile is for local development only!
 
-FROM python:3.8.12-buster
+FROM python:3.10.0-buster
 
 # wildfire one may have an old certificate, so we have to make debian more forgiving.
 # RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
