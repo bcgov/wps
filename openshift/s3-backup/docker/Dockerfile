@@ -13,20 +13,20 @@ RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
     /tmp/aws/install
 
 RUN yum install -y python3
+RUN yum install -y python3-setuptools
+
+# Switch back to default user - 26 is the postgres user
+
+USER 26
 
 # Install poetry
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | POETRY_HOME=/opt/poetry python3
-RUN cd /usr/local/bin && \
-    ln -s /opt/poetry/bin/poetry && \
-    poetry config virtualenvs.create false
-
-# Switch back to default user
-USER 26
+RUN pip3 install --user --upgrade pip setuptools wheel
+RUN pip3 install --user --upgrade poetry
 
 # Install python dependencies.
 COPY pyproject.toml .
 COPY poetry.lock .
-RUN poetry install --no-root --no-dev
+RUN python3 -m poetry install
 
 # Copy scripts
 COPY backup_to_s3.sh .
