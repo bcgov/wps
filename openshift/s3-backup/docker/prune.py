@@ -49,8 +49,10 @@ class Desire:
     def _is_keeper(self, timestamp: datetime) -> bool:
         """ Run through all the conditions to decide if we keep this timestamp or not. """
         if self.backups_found < self.desired_backups:
+            # If we don't have any backups yet, keep it!
             if self.prev_timestamp is None:
                 return True
+            # If this backup is older than the previous interval, keep it!
             if self.prev_timestamp - timestamp >= self.interval:
                 return True
         return False
