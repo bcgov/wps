@@ -1,3 +1,7 @@
+# When building in openshift, you can reference the image in openshift:
+# FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu:20.04
+
+# When building local, you can reference the docker image:
 FROM ubuntu:20.04
 
 # Install GDAL
@@ -31,8 +35,8 @@ RUN python3 -m pip install gdal==$(gdal-config --version)
 # Install poetry https://python-poetry.org/docs/#installation
 RUN apt-get -y install curl
 RUN cd /tmp && \
-    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > get-poetry.py && \
-    POETRY_HOME=/opt/poetry python3 get-poetry.py --version 1.1.8 && \
+    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py > install-poetry.py && \
+    POETRY_HOME=/opt/poetry python3 install-poetry.py --version 1.1.11 && \
     cd /usr/local/bin && \
     ln -s /opt/poetry/bin/poetry && \
     poetry config virtualenvs.create false
