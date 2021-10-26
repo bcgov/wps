@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [3.8, 3.9]
         R: ["3.5.2"]
     env:
       RENV_PATHS_ROOT: ~/.local/share/renv
@@ -37,12 +37,11 @@ jobs:
         run: |
           echo
           mkdir ~/poetry_installer
-          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py > ~/poetry_installer/install-poetry.py
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python get-poetry.py --version 1.1.11
-          source ~/.poetry/env
+          python install-poetry.py --version 1.1.11
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
       # poetry cache folder: /home/runner/.cache/pypoetry
