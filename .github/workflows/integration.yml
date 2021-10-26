@@ -210,7 +210,7 @@ jobs:
           cache-name: cache-poetry-installer-prune
         with:
           path: "~/poetry_installer"
-          key: "1.1.11"
+          key: "poetry-installer-1.1.11"
       - name: Download poetry installer
         if: steps.cache-poetry-installer-prune.outputs.cache-hit != 'true'
         run: |
