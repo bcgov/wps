@@ -58,12 +58,6 @@ jobs:
         working-directory: ./api
         run: |
           poetry install
-      - name: Lint (api)
-        # We run lint before unit tests, and before installing some of the
-        # longer running dependency installs because it runs faster, so we'll reach a fail condition sooner.
-        working-directory: ./api
-        run: |
-          poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
       - name: Install libgdal-dev (api)
         # The python gdal and R component relies on libgdal-dev being installed.
         run: |
@@ -98,6 +92,11 @@ jobs:
         run: |
           poetry run pip install numpy
           CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal poetry run pip install gdal==$(gdal-config --version)
+      - name: Lint (api)
+        # We used to be able to do linting before installing gdal, but it's not possible anymore.
+        working-directory: ./api
+        run: |
+          poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
       - name: Unit Test with coverage (api)
         working-directory: ./api
         run: |
