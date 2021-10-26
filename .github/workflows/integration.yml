@@ -230,13 +230,12 @@ jobs:
           cache-name: cache-poetry
         with:
           path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-poetry-prune-cache-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-poetry-cache-
+            ${{ runner.os }}-poetry-prune-cache-
       - name: Install python dependencies using poetry (s3-backup)
         working-directory: ./openshift/s3-backup/docker
         run: |
-          source ~/.local/pypoetry
           poetry install
       - name: Lint (s3-backup)
         working-directory: ./openshift/s3-backup/docker
@@ -244,5 +243,4 @@ jobs:
       - name: Unit tests (s3-backup)
         working-directory: ./openshift/s3-backup/docker
         run: |
-          source ~/.poetry/env
           poetry run pytest -v
