@@ -32,7 +32,7 @@ RUN python3 -m pip install gdal==$(gdal-config --version)
 RUN apt-get -y install curl
 RUN cd /tmp && \
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > get-poetry.py && \
-    POETRY_HOME=/opt/poetry python3 get-poetry.py --version 1.1.8 && \
+    POETRY_HOME=/opt/poetry python3 get-poetry.py --version 1.1.11 && \
     cd /usr/local/bin && \
     ln -s /opt/poetry/bin/poetry && \
     poetry config virtualenvs.create false
