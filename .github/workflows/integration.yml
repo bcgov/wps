@@ -192,7 +192,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.6.8]
+        python-version: [3.6.15]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
