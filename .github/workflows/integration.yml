@@ -188,7 +188,7 @@ jobs:
           # we want to ensure code coverage is good, so we fail on error. (default is false)
           fail_ci_if_error: true
   lint-and-test-prune:
-    name: Python - Lint, Test with coverage
+    name: Backup Prune - Lint and Test
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -221,7 +221,7 @@ jobs:
         run: |
           cd ~/poetry_installer
           python install-poetry.py --version 1.1.11
-          source ~/.poetry/env
+          source ~/.local/pypoetry
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
       # poetry cache folder: /home/runner/.cache/pypoetry
