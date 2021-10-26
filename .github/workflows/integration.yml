@@ -221,7 +221,7 @@ jobs:
         run: |
           cd ~/poetry_installer
           python install-poetry.py --version 1.1.11
-          source ~/.local/pypoetry
+          # source ~/.local/pypoetry
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
       # poetry cache folder: /home/runner/.cache/pypoetry
