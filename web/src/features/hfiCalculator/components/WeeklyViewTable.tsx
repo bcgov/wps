@@ -23,6 +23,16 @@ export interface Props {
   testId?: string
 }
 
+export const weeklyTableColumnLabels = [
+  'Location',
+  'Elev. (m)',
+  'FBP Fuel Type',
+  'Grass Cure (%)',
+  Array(5).fill(['ROS (m/min)', 'HFI', 'M / FIG', 'Fire Starts', 'Prep Level']),
+  'Highest Daily FIG',
+  'Calc. Prep'
+]
+
 const useStyles = makeStyles({
   ...fireTableStyles
 })

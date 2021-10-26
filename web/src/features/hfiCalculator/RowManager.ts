@@ -1,32 +1,12 @@
-import { FireCentre, PlanningArea, WeatherStation } from 'api/hfiCalcAPI'
+import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import _, { isNull, isUndefined } from 'lodash'
+import { isNull, isUndefined } from 'lodash'
 import { getDailiesByStationCode } from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
-import { toUnicode } from 'punycode'
+import { weeklyTableColumnLabels } from 'features/hfiCalculator/components/WeeklyViewTable'
 
 // the number of decimal places to round to
 const DECIMAL_PLACES = 1
-
-interface DailyHFITableStationRow {
-  weatherStation: WeatherStation
-  dailyData: StationDaily
-}
-
-interface WeeklyHFITableStationRow {
-  weatherStation: WeatherStation
-  dataByDay: StationDaily[]
-}
-
-interface WeeklyHFITableStationRow {
-  weatherStation: WeatherStation
-}
-
-interface HFITablePlanningAreaRow {
-  planningArea: PlanningArea
-  fireStarts: string
-  prepLevel: number
-}
 
 export class RowManager {
   public static exportDailyRowsAsStrings = (
@@ -37,11 +17,11 @@ export class RowManager {
 
     rowsAsStrings.push(dailyTableColumnLabels.toString())
 
-    Object.entries(fireCentres).forEach(([_, centre]) => {
+    Object.entries(fireCentres).forEach(([, centre]) => {
       rowsAsStrings.push(centre.name)
-      Object.entries(centre.planning_areas).forEach(([_, area]) => {
+      Object.entries(centre.planning_areas).forEach(([, area]) => {
         rowsAsStrings.push(area.name)
-        Object.entries(area.stations).forEach(([_, station]) => {
+        Object.entries(area.stations).forEach(([, station]) => {
           const rowArray: string[] = []
           const daily = getDailiesByStationCode(dailies, station.code)[0]
 
@@ -103,10 +83,62 @@ export class RowManager {
   }
 
   public static exportWeeklyRowsAsStrings = (
-    tableRows: WeeklyHFITableStationRow[]
-  ): string[][] => {
-    const rowsAsStrings: string[][] = []
+    fireCentres: Record<string, FireCentre>,
+    dailies: StationDaily[]
+  ): string => {
+    const rowsAsStrings: string[] = []
+    const dateSet = new Set()
 
-    return rowsAsStrings
+    dailies.flatMap(dailyRecord => {
+      dateSet.add(
+        `${dailyRecord.date.weekdayShort} ${dailyRecord.date.monthShort} ${dailyRecord.date.day}`
+      )
+    })
+    // build header row of dates
+    rowsAsStrings.push(Array(5).join(',').concat(Array.from(dateSet).join(',,,,,'))) // padding for date-less column labels
+    rowsAsStrings.push(weeklyTableColumnLabels.toString())
+
+    Object.entries(fireCentres).forEach(([, centre]) => {
+      rowsAsStrings.push(centre.name)
+      Object.entries(centre.planning_areas).forEach(([, area]) => {
+        rowsAsStrings.push(area.name)
+        Object.entries(area.stations).forEach(([, station]) => {
+          const dailiesForStation = getDailiesByStationCode(dailies, station.code)
+
+          const rowArray: string[] = []
+
+          rowArray.push(station.station_props.name + ' (' + station.code + ')')
+          rowArray.push(
+            isUndefined(station.station_props.elevation) ||
+              isNull(station.station_props.elevation)
+              ? ''
+              : station.station_props.elevation.toString()
+          )
+          rowArray.push(station.station_props.fuel_type.abbrev)
+          // TODO: grass cure
+          rowArray.push(
+            !isUndefined(dailiesForStation[0]) &&
+              !isNull(dailiesForStation[0].grass_cure_percentage)
+              ? dailiesForStation[0].grass_cure_percentage.toString()
+              : ''
+          )
+
+          dailiesForStation.forEach(day => {
+            rowArray.push(
+              !isUndefined(day) ? day.rate_of_spread.toFixed(DECIMAL_PLACES) : ''
+            )
+            rowArray.push(!isUndefined(day) ? day.hfi.toFixed(DECIMAL_PLACES) : '')
+            rowArray.push(!isUndefined(day) ? day.intensity_group.toString() : '')
+            rowArray.push(Array(2).join(','))
+          })
+
+          rowArray.push(Array(2).join(','))
+
+          rowsAsStrings.push(rowArray.toString())
+        })
+      })
+    })
+
+    return rowsAsStrings.join('\r\n')
   }
 }

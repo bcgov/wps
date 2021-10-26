@@ -59,7 +59,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
     useState(DateTime.now().setZone('UTC-7').toISO())
 
-  // const weeklyViewAsString = RowManager.exportWeeklyRowsAsStrings()
+  const weeklyViewAsString = RowManager.exportWeeklyRowsAsStrings(fireCentres, dailies)
   const dailyViewAsString = RowManager.exportDailyRowsAsStrings(fireCentres, dailies)
 
   const [isCopied, setIsCopied] = useState(false)
@@ -82,7 +82,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   const copyTable = () => {
-    navigator.clipboard.writeText(dailyViewAsString)
+    if (isWeeklyView) {
+      navigator.clipboard.writeText(weeklyViewAsString)
+    } else {
+      navigator.clipboard.writeText(dailyViewAsString)
+    }
     setIsCopied(true)
   }
 
