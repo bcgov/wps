@@ -64,8 +64,7 @@ brew install gdal
 
 ##### Poetry
 
-Try to match the latest version of python in out production environment (as of writing, API is on 3.9
-and C-Haines is on 3.8.10)
+Try to match the latest version of python in out production environment (as of writing, API is on 3.9.7 and C-Haines is on 3.8.10)
 
 ```bash
 brew update
