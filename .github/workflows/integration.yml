@@ -57,14 +57,12 @@ jobs:
       - name: Install python dependencies using poetry (api)
         working-directory: ./api
         run: |
-          source ~/.poetry/env
           poetry install
       - name: Lint (api)
         # We run lint before unit tests, and before installing some of the
         # longer running dependency installs because it runs faster, so we'll reach a fail condition sooner.
         working-directory: ./api
         run: |
-          source ~/.poetry/env
           poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
       - name: Install libgdal-dev (api)
         # The python gdal and R component relies on libgdal-dev being installed.
@@ -98,13 +96,11 @@ jobs:
         # correctly, and you'll run into ndarray errors.)
         working-directory: ./api
         run: |
-          source ~/.poetry/env
           poetry run pip install numpy
           CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal poetry run pip install gdal==$(gdal-config --version)
       - name: Unit Test with coverage (api)
         working-directory: ./api
         run: |
-          source ~/.poetry/env
           export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
           export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATHpoetry
           export ORIGINS=testorigin
@@ -113,7 +109,6 @@ jobs:
         working-directory: ./api
         shell: bash
         run: |
-          source ~/.poetry/env
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
       - name: Archive coverage report
