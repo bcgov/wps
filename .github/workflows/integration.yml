@@ -81,7 +81,7 @@ jobs:
         working-directory: ./api
         run: |
           poetry run pip install numpy
-          poetry run pip install pygdal==$(gdal-config --version)
+          poetry run pip install pygdal==3.0.4.10
       - uses: r-lib/actions/setup-r@v1
         with:
           r-version: ${{ matrix.R }}
