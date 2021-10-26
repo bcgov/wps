@@ -8,13 +8,13 @@ FROM ${DOCKER_IMAGE}
 # Copy poetry files.
 COPY ./api/pyproject.toml ./api/poetry.lock /tmp/
 
-# Poetry fails to install cryptography correctly on ubuntu 20.04. If we make
-# sure it's installed globally first, then it works.
-RUN python3 -m pip install cryptography
-
 # Make sure we have an up to date pip
 RUN cd /tmp && \
     poetry run python3 -m pip install --upgrade pip
+
+# Poetry fails to install cryptography correctly on ubuntu 20.04. If we make
+# sure it's installed globally first, then it works.
+RUN python3 -m pip install cryptography
 
 # Install dependancies.
 RUN cd /tmp && \
