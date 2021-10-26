@@ -1,5 +1,4 @@
 import * as ol from 'ol'
-import * as olSource from 'ol/source'
 import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls } from 'ol/control'
 import { fromLonLat, get } from 'ol/proj'
@@ -94,7 +93,7 @@ const FBAMap = (props: FBAMapProps) => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const stationsSource = new olSource.Vector({
+    const stationsSource = new VectorSource({
       features: new GeoJSON().readFeatures(
         { type: 'FeatureCollection', features: stations },
         {
