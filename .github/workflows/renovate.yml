@@ -2,15 +2,17 @@ name: Renovate
 on:
   schedule:
     # Scheduled workflows run on the latest commit on the default or base branch.
-    - cron: "0 2 * * *"
+    - cron: "*/2 * * * *"
 jobs:
   renovate:
     runs-on: ubuntu-latest
+    env:
+      LOG_LEVEL: debug
     steps:
       - name: Checkout
         uses: actions/checkout@v2.0.0
       - name: Self-hosted Renovate
-        uses: renovatebot/github-action@v27.18.0
+        uses: renovatebot/github-action@v27.31.10
         with:
           configurationFile: .github/workflows/renovate.json
           token: ${{ secrets.RENOVATE_TOKEN }}
