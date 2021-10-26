@@ -237,7 +237,7 @@ jobs:
       - name: Install python dependencies using poetry (s3-backup)
         working-directory: ./openshift/s3-backup/docker
         run: |
-          source ~/.poetry/env
+          source ~/.local/pypoetry
           poetry install
       - name: Lint (s3-backup)
         working-directory: ./openshift/s3-backup/docker
