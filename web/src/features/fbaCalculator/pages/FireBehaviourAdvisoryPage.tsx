@@ -1,6 +1,6 @@
 import { Grid, makeStyles } from '@material-ui/core'
 import { GeneralHeader } from 'components'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Container } from 'components'
 import FBAMap from 'features/fbaCalculator/components/map/FBAMap'
 import { CENTER_OF_BC } from 'utils/constants'
@@ -8,6 +8,9 @@ import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDrop
 import FormalFBATable from 'features/fbaCalculator/components/FormalFBATable'
 import DatePicker from 'components/DatePicker'
 import { DateTime } from 'luxon'
+import { selectFireCenters } from 'app/rootReducer'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 
 const useStyles = makeStyles(() => ({
   mapContainer: {
@@ -21,6 +24,8 @@ const useStyles = makeStyles(() => ({
 
 export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
+  const dispatch = useDispatch()
+  const { fireCenters } = useSelector(selectFireCenters)
 
   const emptyInstructions = (
     <div data-testid={'fba-instructions'} className={classes.instructions}>
@@ -29,7 +34,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     </div>
   )
 
-  const fireCenters = ['One', 'Two', 'Three']
   const [fireCenter, setFireCenter] = useState<string | undefined>(undefined)
 
   const [dateOfInterest, setDateOfInterest] = useState(
@@ -44,6 +48,10 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       setPreviouslySelectedDateOfInterest(dateOfInterest)
     }
   }
+
+  useEffect(() => {
+    dispatch(fetchFireCenters())
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <React.Fragment>
@@ -68,7 +76,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             </Grid>
             <Grid item xs={2}>
               <FireCenterDropdown
-                fireCenterOptions={fireCenters}
+                fireCenterOptions={fireCenters.map(fireCenter => fireCenter.name)}
                 selectedFireCenter={fireCenter}
                 setSelectedFireCenter={setFireCenter}
               />
