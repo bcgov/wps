@@ -1,16 +1,11 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow
-} from '@material-ui/core'
+import { Table, TableBody, TableCell, TableContainer, TableRow } from '@material-ui/core'
+import { GeoJsonStation, DetailedGeoJsonStation } from 'api/stationAPI'
 import React from 'react'
 
 interface FormalFBATableProps {
   testId?: string
   fireCenter: string
+  stations: GeoJsonStation[] | DetailedGeoJsonStation[]
 }
 
 const buildAdvisoryHeader = (fireCenter: string) => (
@@ -22,15 +17,14 @@ const FormalFBATable = (props: FormalFBATableProps) => {
     <TableContainer data-testid={props.testId}>
       {buildAdvisoryHeader(props.fireCenter)}
       <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>TODO Header</TableCell>
-          </TableRow>
-        </TableHead>
         <TableBody>
-          <TableRow>
-            <TableCell>TODO Value</TableCell>
-          </TableRow>
+          {props.stations.map((station, i) => (
+            <TableRow key={i}>
+              <TableCell>
+                {station.properties.name} ({station.properties.code})
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </TableContainer>

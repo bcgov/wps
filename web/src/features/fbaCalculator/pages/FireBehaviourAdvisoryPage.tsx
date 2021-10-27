@@ -8,10 +8,13 @@ import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDrop
 import FormalFBATable from 'features/fbaCalculator/components/FormalFBATable'
 import DatePicker from 'components/DatePicker'
 import { DateTime } from 'luxon'
-import { selectFireCenters } from 'app/rootReducer'
+import { selectFireCenters, selectFireWeatherStations } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { getStations, StationSource } from 'api/stationAPI'
+import { filterStations } from 'features/fbaCalculator/fireCenters'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -32,6 +35,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
+  const { stations } = useSelector(selectFireWeatherStations)
 
   const emptyInstructions = (
     <div data-testid={'fba-instructions'} className={classes.instructions}>
@@ -57,6 +61,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchFireCenters())
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -95,7 +100,10 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid container spacing={2}>
             <Grid item xs>
               {fireCenter ? (
-                <FormalFBATable fireCenter={fireCenter} />
+                <FormalFBATable
+                  fireCenter={fireCenter}
+                  stations={filterStations(stations)}
+                />
               ) : (
                 emptyInstructions
               )}
