@@ -2,8 +2,8 @@ ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/w
 
 # PHASE 1 - build static html.
 # Pull from local registry - we can't pull from docker due to limits.
-# see https://catalog.redhat.com/software/containers/ubi8/nodejs-14/5ed7887dd70cc50e69c2fabb for details
-FROM registry.access.redhat.com/ubi8/nodejs-14 as static
+# see https://catalog.redhat.com/software/containers/rhel8-beta/nodejs-16/61308886ec463d6c18ed17a0 for details
+FROM registry.access.redhat.com/rhel8-beta/nodejs-16 as static
 
 # Switch to root user for package installs
 USER 0
