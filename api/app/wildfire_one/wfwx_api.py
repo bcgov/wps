@@ -10,7 +10,7 @@ import app
 from app import config
 from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
-from app.schemas.hfi_calc import HFIWeatherStationsResponse, StationDaily
+from app.schemas.hfi_calc import FireCentre, HFIWeatherStationsResponse, StationDaily
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.stations import (WeatherStation,
                                   WeatherVariables)
@@ -299,3 +299,13 @@ async def get_dailies(
         cache_expiry_seconds=cache_expiry_seconds)
 
     return dailies_iterator
+
+
+async def get_fire_centers() -> List[FireCentre]:
+    """ Get the fire centers. Replace hard coded centers once WFWX API supports them """
+    return [FireCentre(name="Cariboo Fire Centre", planning_areas=[]),
+            FireCentre(name="Coastal Fire Centre", planning_areas=[]),
+            FireCentre(name="Kamloops Fire Centre", planning_areas=[]),
+            FireCentre(name="Northwest Fire Centre", planning_areas=[]),
+            FireCentre(name="​Prince George Fire Centre", planning_areas=[]),
+            FireCentre(name="​Southeast Fire Centre", planning_areas=[])]
