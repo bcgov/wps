@@ -13,11 +13,25 @@ const useStyles = makeStyles(() => ({
   mapContainer: {
     width: 700,
     height: 700
+  },
+  instructions: {
+    textAlign: 'left'
   }
 }))
 
 export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
+
+  const emptyInstructions = (
+    <div data-testid={'fba-instructions'} className={classes.instructions}>
+      <p>Select a fire center to get started.</p>
+      <p>A selected fire center will populate this pane with its station details.</p>
+    </div>
+  )
+
+  const fireCenters = ['One', 'Two', 'Three']
+  const [fireCenter, setFireCenter] = useState<string | undefined>(undefined)
+
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone('UTC-7').toISO()
   )
@@ -53,12 +67,16 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               />
             </Grid>
             <Grid item xs={2}>
-              <FireCenterDropdown fireCenterOptions={[]} disabled={false} />
+              <FireCenterDropdown
+                fireCenterOptions={fireCenters}
+                selectedFireCenter={fireCenter}
+                setSelectedFireCenter={setFireCenter}
+              />
             </Grid>
           </Grid>
           <Grid container spacing={2}>
             <Grid item xs>
-              <FormalFBATable />
+              {fireCenter ? <FormalFBATable /> : emptyInstructions}
             </Grid>
             <Grid item xs className={classes.mapContainer}>
               <FBAMap center={CENTER_OF_BC} />
