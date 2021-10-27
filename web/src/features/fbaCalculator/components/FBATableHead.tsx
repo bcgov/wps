@@ -12,7 +12,7 @@ import FBAProgressRow from 'features/fbaCalculator/components/FBAProgressRow'
 import StickyCell from 'features/fbaCalculator/components/StickyCell'
 import { FBATableRow, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { isUndefined } from 'lodash'
-import React, { Component } from 'react'
+import React from 'react'
 import { Order } from 'utils/table'
 
 interface FBATableHeadProps {
