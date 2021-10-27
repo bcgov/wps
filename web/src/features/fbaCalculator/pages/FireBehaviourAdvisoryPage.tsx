@@ -1,4 +1,4 @@
-import { Grid, makeStyles } from '@material-ui/core'
+import { FormControl, Grid, makeStyles } from '@material-ui/core'
 import { GeneralHeader } from 'components'
 import React, { useEffect, useState } from 'react'
 import { Container } from 'components'
@@ -11,11 +11,17 @@ import { DateTime } from 'luxon'
 import { selectFireCenters } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
+import { formControlStyles, theme } from 'app/theme'
 
 const useStyles = makeStyles(() => ({
+  ...formControlStyles,
   mapContainer: {
     width: 700,
     height: 700
+  },
+  fireCenter: {
+    minWidth: 280,
+    margin: theme.spacing(1)
   },
   instructions: {
     textAlign: 'left'
@@ -65,21 +71,39 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           {/* (🔥🦇) */}
           Fire Behaviour Advisory Tool
         </h1>
+        {/* <FormControl className={classes.formControl}>
+          <DatePicker
+            date={dateOfInterest}
+            onChange={setDateOfInterest}
+            updateDate={updateDate}
+          />
+        </FormControl>
+        <FormControl className={classes.formControl}>
+          <FireCenterDropdown
+            fireCenterOptions={fireCenters.map(fireCenter => fireCenter.name)}
+            selectedFireCenter={fireCenter}
+            setSelectedFireCenter={setFireCenter}
+          />
+        </FormControl> */}
         <Grid container direction={'row'}>
           <Grid container spacing={2}>
             <Grid item>
-              <DatePicker
-                date={dateOfInterest}
-                onChange={setDateOfInterest}
-                updateDate={updateDate}
-              />
+              <FormControl className={classes.formControl}>
+                <DatePicker
+                  date={dateOfInterest}
+                  onChange={setDateOfInterest}
+                  updateDate={updateDate}
+                />
+              </FormControl>
             </Grid>
             <Grid item xs={2}>
-              <FireCenterDropdown
-                fireCenterOptions={fireCenters.map(fireCenter => fireCenter.name)}
-                selectedFireCenter={fireCenter}
-                setSelectedFireCenter={setFireCenter}
-              />
+              <FormControl className={classes.fireCenter}>
+                <FireCenterDropdown
+                  fireCenterOptions={fireCenters.map(fireCenter => fireCenter.name)}
+                  selectedFireCenter={fireCenter}
+                  setSelectedFireCenter={setFireCenter}
+                />
+              </FormControl>
             </Grid>
           </Grid>
           <Grid container spacing={2}>
