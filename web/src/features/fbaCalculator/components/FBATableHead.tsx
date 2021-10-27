@@ -49,7 +49,8 @@ const useStyles = makeStyles({
     },
     '&:hover span': {
       display: 'block',
-      backgroundColor: '#FF0000',
+      backgroundColor: '#4f4f4f',
+      opacity: '0.7',
       minWidth: '120px',
       maxWidth: '200px',
       color: '#fff',
@@ -59,7 +60,8 @@ const useStyles = makeStyles({
       /* Position the tooltip */
       position: 'absolute',
       left: '0px',
-      top: '40px'
+      top: '40px',
+      zIndex: '10'
     }
   }
 })
