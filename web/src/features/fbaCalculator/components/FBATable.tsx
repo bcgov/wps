@@ -50,6 +50,9 @@ import FBATableInstructions from 'features/fbaCalculator/components/FBATableInst
 import FilterColumnsModal from 'components/FilterColumnsModal'
 import { formControlStyles } from 'app/theme'
 export interface FBATableProps {
+  maxWidth?: number
+  maxHeight?: number
+  minHeight?: number
   testId?: string
 }
 export interface GridMenuOption {
@@ -658,7 +661,9 @@ const FBATable = (props: FBATableProps) => {
 
         <FireTable
           ariaLabel="Fire Behaviour Analysis table"
-          maxHeight={600}
+          maxHeight={props.maxHeight ? props.maxHeight : 600}
+          minHeight={props.minHeight ? props.minHeight : 300}
+          maxWidth={props.maxWidth}
           data-testId={props.testId}
         >
           <FBATableHead
