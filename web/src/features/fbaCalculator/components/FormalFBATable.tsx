@@ -10,11 +10,17 @@ import React from 'react'
 
 interface FormalFBATableProps {
   testId?: string
+  fireCenter: string
 }
+
+const buildAdvisoryHeader = (fireCenter: string) => (
+  <h2>{fireCenter}: Fire Behaviour Advisory Summary</h2>
+)
 
 const FormalFBATable = (props: FormalFBATableProps) => {
   return (
     <TableContainer data-testid={props.testId}>
+      {buildAdvisoryHeader(props.fireCenter)}
       <Table>
         <TableHead>
           <TableRow>
