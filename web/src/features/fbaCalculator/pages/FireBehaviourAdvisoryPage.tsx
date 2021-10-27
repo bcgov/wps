@@ -71,20 +71,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           {/* (🔥🦇) */}
           Fire Behaviour Advisory Tool
         </h1>
-        {/* <FormControl className={classes.formControl}>
-          <DatePicker
-            date={dateOfInterest}
-            onChange={setDateOfInterest}
-            updateDate={updateDate}
-          />
-        </FormControl>
-        <FormControl className={classes.formControl}>
-          <FireCenterDropdown
-            fireCenterOptions={fireCenters.map(fireCenter => fireCenter.name)}
-            selectedFireCenter={fireCenter}
-            setSelectedFireCenter={setFireCenter}
-          />
-        </FormControl> */}
         <Grid container direction={'row'}>
           <Grid container spacing={2}>
             <Grid item>
