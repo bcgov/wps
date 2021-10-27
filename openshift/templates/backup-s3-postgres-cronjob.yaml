@@ -127,6 +127,7 @@ objects:
             spec:
               containers:
                 - name: "${JOB_NAME}-cronjob"
+                  imagePullPolicy: Always
                   resources:
                     limits:
                       cpu: ${CPU_LIMIT}

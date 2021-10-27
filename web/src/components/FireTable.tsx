@@ -11,6 +11,8 @@ import React from 'react'
 interface FireTableProps {
   ariaLabel: string
   maxHeight: number
+  maxWidth?: number
+  minHeight?: number
   children?: React.ReactNode
   testId?: string
 }
@@ -19,13 +21,14 @@ const FireTable = (props: FireTableProps) => {
   const useStyles = makeStyles(() => ({
     tableContainer: {
       maxHeight: props.maxHeight,
-      maxWidth: 1900
+      maxWidth: props.maxWidth ? props.maxWidth : 1900,
+      minHeight: props.minHeight ? props.minHeight : undefined
     }
   }))
   return (
     <Paper elevation={1}>
       <ThemeProvider theme={fireTableTheme}>
-        <TableContainer className={useStyles().tableContainer}>
+        <TableContainer data-testid={'fire-table'} className={useStyles().tableContainer}>
           <Table data-testid={props.testId} stickyHeader>
             {props.children}
           </Table>
