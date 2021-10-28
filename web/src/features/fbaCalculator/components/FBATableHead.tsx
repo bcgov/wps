@@ -39,6 +39,9 @@ const useStyles = makeStyles({
       textAlign: 'center'
     }
   },
+  headerCell: {
+    zIndex: 1103
+  },
   header: {
     maxWidth: '80px',
     overflow: 'hidden',
@@ -50,7 +53,7 @@ const useStyles = makeStyles({
     '&:hover span': {
       display: 'block',
       backgroundColor: '#4f4f4f',
-      opacity: '0.7',
+      opacity: '0.8',
       minWidth: '120px',
       maxWidth: '200px',
       color: '#fff',
@@ -60,8 +63,7 @@ const useStyles = makeStyles({
       /* Position the tooltip */
       position: 'absolute',
       left: '0px',
-      top: '40px',
-      zIndex: '10'
+      top: '40px'
     }
   }
 })
@@ -93,7 +95,7 @@ const FBATableHead = ({
 
   const columnHeaderComponentsDict: { [key: string]: React.ReactFragment } = {
     Zone: (
-      <TableCell key="header-zone" sortDirection={order}>
+      <TableCell className={classes.headerCell} key="header-zone" sortDirection={order}>
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -108,7 +110,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'Weather Station': (
-      <StickyCell left={57} zIndexOffset={Z_INDEX_OFFSET}>
+      <StickyCell left={57} zIndexOffset={Z_INDEX_OFFSET + 3}>
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -123,7 +125,11 @@ const FBATableHead = ({
       </StickyCell>
     ),
     Elevation: (
-      <TableCell key="header-elevation" sortDirection={order}>
+      <TableCell
+        className={classes.headerCell}
+        key="header-elevation"
+        sortDirection={order}
+      >
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -427,7 +433,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'CFB (%)': (
-      <TableCell sortDirection={order}>
+      <TableCell className={classes.headerCell} sortDirection={order}>
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -442,7 +448,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'Flame Length (m)': (
-      <TableCell sortDirection={order}>
+      <TableCell className={classes.headerCell} sortDirection={order}>
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -457,7 +463,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     '30 min fire size (ha)': (
-      <TableCell sortDirection={order}>
+      <TableCell className={classes.headerCell} sortDirection={order}>
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -472,7 +478,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     '60 min fire size (ha)': (
-      <TableCell sortDirection={order}>
+      <TableCell className={classes.headerCell} sortDirection={order}>
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -491,7 +497,7 @@ const FBATableHead = ({
   return (
     <TableHead>
       <TableRow>
-        <StickyCell left={0} zIndexOffset={Z_INDEX_OFFSET}>
+        <StickyCell left={0} zIndexOffset={Z_INDEX_OFFSET + 100}>
           <Checkbox
             data-testid="select-all"
             color="primary"
