@@ -15,7 +15,7 @@ async def fetch_file_list(client, bucket):
     folder = f'backup/{PG_HOSTNAME}_{PG_DATABASE}'
     result = await client.list_objects_v2(Bucket=bucket, Prefix=folder)
     contents = result.get('Contents', None)
-    file_list = list()
+    file_list = list([])
     if contents:
         for content in contents:
             file_list.append(content.get('Key'))
