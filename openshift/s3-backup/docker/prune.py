@@ -15,9 +15,12 @@ async def fetch_file_list(client, bucket):
     folder = f'backup/{PG_HOSTNAME}_{PG_DATABASE}'
     result = await client.list_objects_v2(Bucket=bucket, Prefix=folder)
     contents = result.get('Contents', None)
+    file_list = list()
     if contents:
         for content in contents:
-            yield content.get('Key')
+            file_list.append(content.get('Key'))
+    file_list.reverse()
+    return file_list
 
 
 async def delete_files(client, bucket, files: Set):
@@ -110,9 +113,7 @@ async def main():
                                      aws_access_key_id=user_id) as client:
         try:
             # Get list of backup files
-            files = fetch_file_list(client, bucket)
-            files = list(file async for file in files)
-            files.reverse()
+            files = await fetch_file_list(client, bucket)
             files_to_delete = decide_files_to_delete(files)
             if len(files_to_delete) > 0:
                 await delete_files(client, bucket, files_to_delete)
