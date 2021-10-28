@@ -1,23 +1,23 @@
 # As per https://fastapi.tiangolo.com/deployment/, we use the provided docker image from docker
-# tianglo/uvicorn-gunicorn-fastapi:python3.8
+# tianglo/uvicorn-gunicorn-fastapi:python3.9
 # see: https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker for available images.
 #
 # When building in openshift, you'll need the latest image in openshift:
 # 1) get the latest:
-# docker pull tiangolo/uvicorn-gunicorn-fastapi:python3.8
+# docker pull tiangolo/uvicorn-gunicorn-fastapi:python3.9
 # 2) tag it for upload:
-# docker tag tiangolo/uvicorn-gunicorn-fastapi:python3.8 image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8
+# docker tag tiangolo/uvicorn-gunicorn-fastapi:python3.9 image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.9
 # 3) log into openshift:
 # docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
 # 4) push to openshift:
-# docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8
+# docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.9
 
 
 # When building in openshift, you can reference the image in openshift:
-# FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8
+# FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.9
 #
 # When building local, you can reference the docker image:
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9
 
 # Install old (2.4.*; current debian) version of gdal and R
 RUN apt-get -y update
@@ -48,8 +48,8 @@ RUN python -m pip install gdal==$(gdal-config --version)
 
 # Install poetry https://python-poetry.org/docs/#installation
 RUN cd /tmp && \
-    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > get-poetry.py && \
-    POETRY_HOME=/opt/poetry python get-poetry.py --version 1.1.11 && \
+    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py > install-poetry.py && \
+    POETRY_HOME=/opt/poetry python install-poetry.py --version 1.1.11 && \
     cd /usr/local/bin && \
     ln -s /opt/poetry/bin/poetry && \
     poetry config virtualenvs.create false
