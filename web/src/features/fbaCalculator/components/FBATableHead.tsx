@@ -2,13 +2,14 @@ import {
   Checkbox,
   makeStyles,
   TableCell,
-  TableHead,
   TableRow,
   TableSortLabel,
-  Tooltip
+  Tooltip,
+  TableHead
 } from '@material-ui/core'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import FBAProgressRow from 'features/fbaCalculator/components/FBAProgressRow'
+import TableHeader from 'features/fbaCalculator/components/TableHeader'
 import StickyCell from 'features/fbaCalculator/components/StickyCell'
 import { FBATableRow, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { isUndefined } from 'lodash'
@@ -41,30 +42,6 @@ const useStyles = makeStyles({
   },
   headerCell: {
     zIndex: 1103
-  },
-  header: {
-    maxWidth: '80px',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis',
-    '& span': {
-      display: 'none'
-    },
-    '&:hover span': {
-      display: 'block',
-      backgroundColor: '#4f4f4f',
-      opacity: '0.8',
-      minWidth: '120px',
-      maxWidth: '200px',
-      color: '#fff',
-      textAlign: 'center',
-      borderRadius: '6px',
-      padding: '5px 0',
-      /* Position the tooltip */
-      position: 'absolute',
-      left: '0px',
-      top: '40px'
-    }
   }
 })
 
@@ -102,10 +79,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.Zone)
           }}
         >
-          <div className={classes.header}>
-            Zone
-            <span>Zone</span>
-          </div>
+          <TableHeader text={'Zone'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -117,10 +91,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.Station)
           }}
         >
-          <div className={classes.header}>
-            Weather Station
-            <span>Weather Station</span>
-          </div>
+          <TableHeader text={'Weather Station'}></TableHeader>
         </TableSortLabel>
       </StickyCell>
     ),
@@ -136,10 +107,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.Elevation)
           }}
         >
-          <div className={classes.header}>
-            Elev. (m)
-            <span>Elev. (m)</span>
-          </div>
+          <TableHeader text={'Elev. (m)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -149,10 +117,7 @@ const FBATableHead = ({
           direction={order}
           onClick={() => toggleSorting(SortByColumn.FuelType)}
         >
-          <div className={classes.header}>
-            FBP Fuel Type
-            <span>FBP Fuel Type</span>
-          </div>
+          <TableHeader text={'FBP Fuel Type'}></TableHeader>
         </TableSortLabel>
       </StickyCell>
     ),
@@ -162,10 +127,7 @@ const FBATableHead = ({
           direction={order}
           onClick={() => toggleSorting(SortByColumn.GrassCure)}
         >
-          <div className={classes.header}>
-            Grass Cure (%)
-            <span>Grass Cure (%)</span>
-          </div>
+          <TableHeader text={'Grass Cure (%)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -177,10 +139,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.Status)
           }}
         >
-          <div className={classes.header}>
-            Status
-            <span>Status</span>
-          </div>
+          <TableHeader text={'Status'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -192,10 +151,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.Temperature)
           }}
         >
-          <div className={classes.header}>
-            Temp (&deg;C)
-            <span>Temp (&deg;C)</span>
-          </div>
+          <TableHeader text={'Temp (°C)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -207,10 +163,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.RelativeHumidity)
           }}
         >
-          <div className={classes.header}>
-            RH (%)
-            <span>RH (%)</span>
-          </div>
+          <TableHeader text={'RH (%)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -222,10 +175,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.WindDirection)
           }}
         >
-          <div className={classes.header}>
-            Wind Dir (&deg;C)
-            <span>Wind Dir (&deg;C)</span>
-          </div>
+          <TableHeader text={'Wind Dir (°C)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -238,10 +188,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.WindSpeed)
           }}
         >
-          <div className={classes.header}>
-            Wind Speed (km/h)
-            <span>Wind Speed (km/h)</span>
-          </div>
+          <TableHeader text={'Wind Speek (km/h)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -253,10 +200,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.Precipitation)
           }}
         >
-          <div className={classes.header}>
-            Precip (mm)
-            <span>Precip (mm)</span>
-          </div>
+          <TableHeader text={'Precip (mm)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -268,10 +212,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.FFMC)
           }}
         >
-          <div className={classes.header}>
-            FFMC
-            <span>FFMC</span>
-          </div>
+          <TableHeader text={'FFMC'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -283,10 +224,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.DMC)
           }}
         >
-          <div className={classes.header}>
-            DMC
-            <span>DMC</span>
-          </div>
+          <TableHeader text={'DMC'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -298,10 +236,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.DMC)
           }}
         >
-          <div className={classes.header}>
-            DC
-            <span>DC</span>
-          </div>
+          <TableHeader text={'DC'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -313,10 +248,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.ISI)
           }}
         >
-          <div className={classes.header}>
-            ISI
-            <span>ISI</span>
-          </div>
+          <TableHeader text={'ISI'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -328,10 +260,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.BUI)
           }}
         >
-          <div className={classes.header}>
-            BUI
-            <span>BUI</span>
-          </div>
+          <TableHeader text={'BUI'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -343,10 +272,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.BUI)
           }}
         >
-          <div className={classes.header}>
-            FWI
-            <span>FWI</span>
-          </div>
+          <TableHeader text={'FWI'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -358,10 +284,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.HFI)
           }}
         >
-          <div className={classes.header}>
-            HFI
-            <span>HFI</span>
-          </div>
+          <TableHeader text={'HFI'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -373,10 +296,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.CriticalHours4000)
           }}
         >
-          <div className={classes.header}>
-            Critical Hours (4000 kW/m)
-            <span>Critical Hours (4000 kW/m)</span>
-          </div>
+          <TableHeader text={'Critical Hours (4000 kW/m)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -388,10 +308,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.CriticalHours10000)
           }}
         >
-          <div className={classes.header}>
-            Critical Hours (10000 kW/m)
-            <span>Critical Hours (10000 kW/m)</span>
-          </div>
+          <TableHeader text={'Critical Hours (10000 kW/m)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -403,10 +320,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.ROS)
           }}
         >
-          <div className={classes.header}>
-            ROS (m/min)
-            <span>ROS (m/min)</span>
-          </div>
+          <TableHeader text={'ROS m/min'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -425,10 +339,7 @@ const FBATableHead = ({
             <InfoOutlinedIcon className={classes.infoIcon}></InfoOutlinedIcon>
           </Tooltip>
 
-          <div className={classes.header}>
-            Fire Type
-            <span>Fire Type</span>
-          </div>
+          <TableHeader text={'Fire Type'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -440,10 +351,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.CFB)
           }}
         >
-          <div className={classes.header}>
-            CFB (%)
-            <span>CFB (%)</span>
-          </div>
+          <TableHeader text={'CFB (%)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -455,10 +363,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.FlameLength)
           }}
         >
-          <div className={classes.header}>
-            Flame Length (m)
-            <span>Flame Length (m)</span>
-          </div>
+          <TableHeader text={'Flame Length (m)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -470,10 +375,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.ThirtyMinFireSize)
           }}
         >
-          <div className={classes.header}>
-            30 min fire size (ha)
-            <span>30 min fire size (ha)</span>
-          </div>
+          <TableHeader text={'30 min fire size (ha)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -485,10 +387,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.SixtyMinFireSize)
           }}
         >
-          <div className={classes.header}>
-            60 min fire size (ha)
-            <span>60 min fire size (ha)</span>
-          </div>
+          <TableHeader text={'60 min fire size (ha)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     )
