@@ -232,7 +232,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                 </TableCell>
               </TableRow>
               {Object.entries(centre.planning_areas)
-                .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
+                .sort((a, b) => (a[1].name.slice(-3) < b[1].name.slice(-3) ? -1 : 1)) // sort by zone code
                 .map(([areaName, area]) => {
                   const areaDailies = getDailiesForArea(area, props.dailies, selected)
                   const meanIntensityGroup = calculateMeanIntensity(areaDailies)

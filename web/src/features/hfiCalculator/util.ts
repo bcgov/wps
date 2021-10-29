@@ -1,7 +1,6 @@
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { groupBy } from 'lodash'
-import { DateTime } from 'luxon'
 
 export const getDailiesForArea = (
   area: PlanningArea,
@@ -13,15 +12,6 @@ export const getDailiesForArea = (
   )
   return dailies.filter(
     daily => selected.includes(daily.code) && areaStationCodes.has(daily.code)
-  )
-}
-
-export const getDailiesForDate = (
-  dailies: StationDaily[],
-  dateOfInterest: DateTime
-): StationDaily[] => {
-  return dailies.filter(
-    daily => daily.date.toFormat('MM-dd-yyyy') == dateOfInterest.toFormat('MM-dd-yyyy')
   )
 }
 

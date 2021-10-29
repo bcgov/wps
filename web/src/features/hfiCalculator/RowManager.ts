@@ -1,16 +1,16 @@
-import { FireCentre } from 'api/hfiCalcAPI'
+import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { isNull, isUndefined } from 'lodash'
-import {
-  getDailiesByStationCode,
-  getDailiesForArea,
-  getDailiesForDate
-} from 'features/hfiCalculator/util'
+import { groupBy, isNull, isUndefined } from 'lodash'
+import { getDailiesByStationCode, getDailiesForArea } from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
 import { weeklyTableColumnLabels } from 'features/hfiCalculator/components/WeeklyViewTable'
-import { calculateMeanIntensity } from 'features/hfiCalculator/components/meanIntensity'
-import { calculatePrepLevel } from './components/prepLevel'
-import { DateTime } from 'luxon'
+import {
+  calculateDailyMeanIntensities,
+  calculateMaxMeanIntensityGroup,
+  calculateMeanIntensity,
+  calculateMeanPrepLevel
+} from 'features/hfiCalculator/components/meanIntensity'
+import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 
 // the number of decimal places to round to
 const DECIMAL_PLACES = 1
@@ -28,7 +28,7 @@ export class RowManager {
       rowsAsStrings.push(centre.name)
       Object.entries(centre.planning_areas)
         .sort((a, b) => (a[1].name.slice(-3) < b[1].name.slice(-3) ? -1 : 1)) // sort by zone code
-        .map(([, area]) => {
+        .forEach(([, area]) => {
           const stationCodesInArea: number[] = []
           Object.entries(area.stations).forEach(([, station]) => {
             stationCodesInArea.push(station.code)
@@ -106,6 +106,53 @@ export class RowManager {
     return rowsAsStrings.join('\r\n')
   }
 
+  static buildAreaWeeklySummaryString = (
+    area: PlanningArea,
+    dailies: StationDaily[]
+  ): string => {
+    let areaWeeklySummaryString = `${area.name},,,,`
+
+    const stationCodesInArea: number[] = []
+    Object.entries(area.stations).forEach(([, station]) => {
+      stationCodesInArea.push(station.code)
+    })
+    const areaDailies = getDailiesForArea(area, dailies, stationCodesInArea)
+    const datesInPrepCycle = new Set<string>()
+    Object.entries(areaDailies).forEach(([, daily]) => {
+      datesInPrepCycle.add(daily.date.toFormat('MM-dd-yyyy'))
+    })
+
+    const utcDict = groupBy(areaDailies, (daily: StationDaily) =>
+      daily.date.toUTC().toMillis()
+    )
+
+    const dailiesByDayUTC = new Map(
+      Object.entries(utcDict).map(entry => [Number(entry[0]), entry[1]])
+    )
+    const dailyMeanIntensityGroups = calculateDailyMeanIntensities(dailiesByDayUTC)
+    const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
+      dailyMeanIntensityGroups
+    )
+    const meanPrepLevel = calculateMeanPrepLevel(dailyMeanIntensityGroups)
+
+    Array.from(datesInPrepCycle)
+      .sort()
+      .forEach((day, index) => {
+        const dailyMeanIntensityGroup = dailyMeanIntensityGroups[index]
+        const areaDailyPrepLevel = calculatePrepLevel(dailyMeanIntensityGroup)
+        const fireStarts = '0-1' // hard-coded for now
+
+        areaWeeklySummaryString = areaWeeklySummaryString.concat(
+          `,, ${dailyMeanIntensityGroup}, ${fireStarts}, ${areaDailyPrepLevel},`
+        )
+      })
+    areaWeeklySummaryString = areaWeeklySummaryString.concat(
+      `${highestMeanIntensityGroup}, ${meanPrepLevel}`
+    )
+
+    return areaWeeklySummaryString
+  }
+
   public static exportWeeklyRowsAsStrings = (
     fireCentres: Record<string, FireCentre>,
     dailies: StationDaily[]
@@ -126,31 +173,8 @@ export class RowManager {
       rowsAsStrings.push(centre.name)
       Object.entries(centre.planning_areas)
         .sort((a, b) => (a[1].name.slice(-3) < b[1].name.slice(-3) ? -1 : 1)) // sort by zone code
-        .map(([, area]) => {
-          const stationCodesInArea: number[] = []
-          Object.entries(area.stations).forEach(([, station]) => {
-            stationCodesInArea.push(station.code)
-          })
-          const areaDailies = getDailiesForArea(area, dailies, stationCodesInArea)
-          const datesInPrepCycle = new Set<string>()
-          const dailyValuesForArea: string[] = []
-          Object.entries(areaDailies).forEach(([, daily]) => {
-            datesInPrepCycle.add(daily.date.toFormat('MM-dd-yyyy'))
-          })
-          Array.from(datesInPrepCycle)
-            .sort()
-            .forEach(day => {
-              const areaDailiesForDay = getDailiesForDate(
-                areaDailies,
-                DateTime.fromFormat(day, 'MM-dd-yyyy')
-              )
-              const dailyMeanIntensityGroup = calculateMeanIntensity(areaDailiesForDay)
-              const areaDailyPrepLevel = calculatePrepLevel(dailyMeanIntensityGroup)
-              dailyValuesForArea.push(
-                `,,${dailyMeanIntensityGroup}, 0-1, ${areaDailyPrepLevel}`
-              )
-            })
-          rowsAsStrings.push(`${area.name},,,, ${dailyValuesForArea.toString()}`)
+        .forEach(([, area]) => {
+          rowsAsStrings.push(this.buildAreaWeeklySummaryString(area, dailies))
           Object.entries(area.stations).forEach(([, station]) => {
             const dailiesForStation = getDailiesByStationCode(dailies, station.code)
 
