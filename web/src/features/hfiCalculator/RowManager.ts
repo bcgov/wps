@@ -17,6 +17,14 @@ import { NUM_WEEK_DAYS } from './constants'
 // the number of decimal places to round to
 const DECIMAL_PLACES = 1
 
+const printGrassCurePercentage = (daily: StationDaily): string => {
+  if (!isUndefined(daily) && !isNull(daily.grass_cure_percentage)) {
+    return daily.grass_cure_percentage.toString()
+  } else {
+    return 'ND'
+  }
+}
+
 export class RowManager {
   public static exportDailyRowsAsStrings = (
     fireCentres: Record<string, FireCentre>,
@@ -83,13 +91,7 @@ export class RowManager {
                 ? daily.precipitation.toFixed(DECIMAL_PLACES)
                 : 'ND'
             )
-            rowArray.push(
-              grassCureError
-                ? 'ERROR'
-                : !isUndefined(daily) && !isNull(daily.grass_cure_percentage)
-                ? daily.grass_cure_percentage.toString()
-                : 'ND'
-            )
+            rowArray.push(grassCureError ? 'ERROR' : printGrassCurePercentage(daily))
             rowArray.push(!isUndefined(daily) ? daily.ffmc.toString() : 'ND')
             rowArray.push(!isUndefined(daily) ? daily.dmc.toString() : 'ND')
             rowArray.push(!isUndefined(daily) ? daily.dc.toString() : 'ND')
@@ -211,12 +213,7 @@ export class RowManager {
             )
             rowArray.push(station.station_props.fuel_type.abbrev)
             rowArray.push(
-              grassCureError
-                ? 'ERROR'
-                : !isUndefined(dailiesForStation[0]) &&
-                  !isNull(dailiesForStation[0].grass_cure_percentage)
-                ? dailiesForStation[0].grass_cure_percentage.toString()
-                : 'ND'
+              grassCureError ? 'ERROR' : printGrassCurePercentage(dailiesForStation[0])
             )
 
             dailiesForStation.forEach(day => {
