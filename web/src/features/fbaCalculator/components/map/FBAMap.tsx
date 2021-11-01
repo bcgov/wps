@@ -26,6 +26,7 @@ const zoom = 6
 export interface FBAMapProps {
   testId?: string
   center: number[]
+  className: string
 }
 
 // Will be parameterized based on fire center in the future
@@ -62,10 +63,6 @@ const FBAMap = (props: FBAMapProps) => {
     main: {
       height: '100%',
       width: '100%'
-    },
-    map: {
-      width: 'inherit',
-      height: 'inherit'
     }
   })
   const classes = useStyles()
@@ -118,7 +115,7 @@ const FBAMap = (props: FBAMapProps) => {
   return (
     <ErrorBoundary>
       <div className={classes.main}>
-        <div ref={mapRef} data-testid="fba-map" className={classes.map}></div>
+        <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
       </div>
     </ErrorBoundary>
   )

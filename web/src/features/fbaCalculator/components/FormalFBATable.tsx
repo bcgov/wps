@@ -5,6 +5,7 @@ import React from 'react'
 
 interface FormalFBATableProps {
   testId?: string
+  className: string
   fireCenter: FireCenter
 }
 
@@ -14,7 +15,7 @@ const buildAdvisoryHeader = (fireCenter: FireCenter) => (
 
 const FormalFBATable = (props: FormalFBATableProps) => {
   return (
-    <TableContainer data-testid={props.testId}>
+    <TableContainer data-testid={props.testId} className={props.className}>
       {buildAdvisoryHeader(props.fireCenter)}
       <Table size="small">
         <TableBody>
