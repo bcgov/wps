@@ -11,8 +11,8 @@ import {
   calculateMeanIntensityGroupLevel
 } from 'features/hfiCalculator/components/meanIntensity'
 import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
-import { isValidGrassCure } from './validation'
-import { NUM_WEEK_DAYS } from './constants'
+import { isValidGrassCure } from 'features/hfiCalculator/validation'
+import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 
 // the number of decimal places to round to
 const DECIMAL_PLACES = 1
@@ -205,12 +205,14 @@ export class RowManager {
             const rowArray: string[] = []
 
             rowArray.push(station.station_props.name + ' (' + station.code + ')')
-            rowArray.push(
+            if (
               isUndefined(station.station_props.elevation) ||
-                isNull(station.station_props.elevation)
-                ? 'ND'
-                : station.station_props.elevation.toString()
-            )
+              isNull(station.station_props.elevation)
+            ) {
+              rowArray.push('ND')
+            } else {
+              rowArray.push(station.station_props.elevation.toString())
+            }
             rowArray.push(station.station_props.fuel_type.abbrev)
             rowArray.push(
               grassCureError ? 'ERROR' : printGrassCurePercentage(dailiesForStation[0])
