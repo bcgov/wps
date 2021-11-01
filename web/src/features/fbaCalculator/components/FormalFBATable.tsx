@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableContainer, TableRow } from '@material-ui/core'
 import { FireCenter } from 'api/fbaAPI'
+import { sortBy } from 'lodash'
 import React from 'react'
 
 interface FormalFBATableProps {
@@ -17,7 +18,7 @@ const FormalFBATable = (props: FormalFBATableProps) => {
       {buildAdvisoryHeader(props.fireCenter)}
       <Table>
         <TableBody>
-          {props.fireCenter.stations.map((station, i) => (
+          {sortBy(props.fireCenter.stations, 'zone').map((station, i) => (
             <TableRow key={i}>
               <TableCell>
                 {station.zone ? `${station.zone},` : ''} {station.name} ({station.code})
