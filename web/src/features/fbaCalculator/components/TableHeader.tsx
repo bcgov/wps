@@ -22,7 +22,7 @@ const TableHeader = (props: TableHeaderProps) => {
         opacity: '0.8',
         paddingLeft: '5px',
         paddingRight: '5px',
-        maxWidth: '200px',
+        maxWidth: '225px',
         color: '#fff',
         textAlign: 'center',
         borderRadius: '6px',
