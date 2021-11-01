@@ -16,7 +16,7 @@ const FormalFBATable = (props: FormalFBATableProps) => {
   return (
     <TableContainer data-testid={props.testId}>
       {buildAdvisoryHeader(props.fireCenter)}
-      <Table>
+      <Table size="small">
         <TableBody>
           {sortBy(props.fireCenter.stations, 'zone').map((station, i) => (
             <TableRow key={i}>
