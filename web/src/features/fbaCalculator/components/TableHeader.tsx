@@ -7,12 +7,16 @@ interface TableHeaderProps {
 }
 
 const TableHeader = (props: TableHeaderProps) => {
+  let maxWidth = '200px'
+  if (!props.maxWidth) {
+    maxWidth = '80px'
+  }
   const useStyles = makeStyles({
     header: {
-      maxWidth: '80px',
       overflow: 'hidden',
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
+      maxWidth: maxWidth,
       '& span': {
         display: 'none'
       },
@@ -36,7 +40,7 @@ const TableHeader = (props: TableHeaderProps) => {
 
   const classes = useStyles()
   return (
-    <div style={{ maxWidth: props.maxWidth }} className={classes.header}>
+    <div className={classes.header}>
       {props.text}
       <span>{props.text}</span>
     </div>
