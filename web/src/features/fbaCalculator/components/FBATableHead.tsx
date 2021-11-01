@@ -188,7 +188,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.WindSpeed)
           }}
         >
-          <TableHeader text={'Wind Speek (km/h)'}></TableHeader>
+          <TableHeader text={'Wind Speed (km/h)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
