@@ -11,6 +11,7 @@ import {
   calculateMeanPrepLevel
 } from 'features/hfiCalculator/components/meanIntensity'
 import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
+import { isValidGrassCure } from './validation'
 
 // the number of decimal places to round to
 const DECIMAL_PLACES = 1
@@ -45,6 +46,8 @@ export class RowManager {
             const rowArray: string[] = []
             const daily = getDailiesByStationCode(dailies, station.code)[0]
 
+            const grassCureError = !isValidGrassCure(daily, station.station_props)
+
             rowArray.push(station.station_props.name + ' (' + station.code + ')')
             rowArray.push(
               isUndefined(station.station_props.elevation) ||
@@ -72,7 +75,9 @@ export class RowManager {
               !isUndefined(daily) ? daily.precipitation.toFixed(DECIMAL_PLACES) : 'ND'
             )
             rowArray.push(
-              !isUndefined(daily) && !isNull(daily.grass_cure_percentage)
+              grassCureError
+                ? 'ERROR'
+                : !isUndefined(daily) && !isNull(daily.grass_cure_percentage)
                 ? daily.grass_cure_percentage.toString()
                 : 'ND'
             )
@@ -88,16 +93,26 @@ export class RowManager {
                 : 'ND'
             )
             rowArray.push(
-              !isUndefined(daily) ? daily.rate_of_spread.toFixed(DECIMAL_PLACES) : 'ND'
+              !isUndefined(daily) && !grassCureError
+                ? daily.rate_of_spread.toFixed(DECIMAL_PLACES)
+                : 'ND'
             )
-            rowArray.push(!isUndefined(daily) ? daily.hfi.toFixed(DECIMAL_PLACES) : 'ND')
             rowArray.push(
-              !isUndefined(daily)
+              !isUndefined(daily) && !grassCureError
+                ? daily.hfi.toFixed(DECIMAL_PLACES)
+                : 'ND'
+            )
+            rowArray.push(
+              !isUndefined(daily) && !grassCureError
                 ? daily.sixty_minute_fire_size.toFixed(DECIMAL_PLACES)
                 : 'ND'
             )
-            rowArray.push(!isUndefined(daily) ? daily.fire_type : 'ND')
-            rowArray.push(!isUndefined(daily) ? daily.intensity_group.toString() : 'ND')
+            rowArray.push(!isUndefined(daily) && !grassCureError ? daily.fire_type : 'ND')
+            rowArray.push(
+              !isUndefined(daily) && !grassCureError
+                ? daily.intensity_group.toString()
+                : 'ND'
+            )
 
             rowsAsStrings.push(rowArray.toString())
           })
