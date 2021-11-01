@@ -2,13 +2,14 @@ import {
   Checkbox,
   makeStyles,
   TableCell,
-  TableHead,
   TableRow,
   TableSortLabel,
-  Tooltip
+  Tooltip,
+  TableHead
 } from '@material-ui/core'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import FBAProgressRow from 'features/fbaCalculator/components/FBAProgressRow'
+import TableHeader from 'features/fbaCalculator/components/TableHeader'
 import StickyCell from 'features/fbaCalculator/components/StickyCell'
 import { FBATableRow, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { isUndefined } from 'lodash'
@@ -35,8 +36,12 @@ const useStyles = makeStyles({
   },
   infoIcon: {
     style: {
-      fill: '#1A5A96'
+      fill: '#1A5A96',
+      textAlign: 'center'
     }
+  },
+  headerCell: {
+    zIndex: 1103
   }
 })
 
@@ -67,40 +72,42 @@ const FBATableHead = ({
 
   const columnHeaderComponentsDict: { [key: string]: React.ReactFragment } = {
     Zone: (
-      <TableCell key="header-zone" sortDirection={order}>
+      <TableCell className={classes.headerCell} key="header-zone" sortDirection={order}>
         <TableSortLabel
           direction={order}
           onClick={() => {
             toggleSorting(SortByColumn.Zone)
           }}
         >
-          Zone
+          <TableHeader text={'Zone'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
     'Weather Station': (
-      <StickyCell left={57} zIndexOffset={Z_INDEX_OFFSET}>
+      <StickyCell left={57} zIndexOffset={Z_INDEX_OFFSET + 3}>
         <TableSortLabel
           direction={order}
           onClick={() => {
             toggleSorting(SortByColumn.Station)
           }}
         >
-          Weather Station
+          <TableHeader largerMaxWidth={true} text={'Weather Station'}></TableHeader>
         </TableSortLabel>
       </StickyCell>
     ),
     Elevation: (
-      <TableCell key="header-elevation" sortDirection={order}>
+      <TableCell
+        className={classes.headerCell}
+        key="header-elevation"
+        sortDirection={order}
+      >
         <TableSortLabel
           direction={order}
           onClick={() => {
             toggleSorting(SortByColumn.Elevation)
           }}
         >
-          Elev.
-          <br />
-          (m)
+          <TableHeader text={'Elev. (m)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -110,7 +117,7 @@ const FBATableHead = ({
           direction={order}
           onClick={() => toggleSorting(SortByColumn.FuelType)}
         >
-          FBP Fuel Type
+          <TableHeader largerMaxWidth={true} text={'FBP Fuel Type'}></TableHeader>
         </TableSortLabel>
       </StickyCell>
     ),
@@ -120,11 +127,7 @@ const FBATableHead = ({
           direction={order}
           onClick={() => toggleSorting(SortByColumn.GrassCure)}
         >
-          Grass
-          <br />
-          Cure
-          <br />
-          (%)
+          <TableHeader text={'Grass Cure (%)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -136,7 +139,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.Status)
           }}
         >
-          Status
+          <TableHeader text={'Status'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -148,9 +151,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.Temperature)
           }}
         >
-          Temp
-          <br />
-          (&deg;C)
+          <TableHeader text={'Temp (°C)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -162,9 +163,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.RelativeHumidity)
           }}
         >
-          RH
-          <br />
-          (%)
+          <TableHeader text={'RH (%)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -176,23 +175,20 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.WindDirection)
           }}
         >
-          Wind
-          <br />
-          Dir
-          <br />
-          (&deg;)
+          <TableHeader text={'Wind Dir (°C)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
     'Wind Speed (km/h)': (
       <TableCell className={classes.windSpeed} sortDirection={order}>
         <TableSortLabel
+          className={classes.windSpeed}
           direction={order}
           onClick={() => {
             toggleSorting(SortByColumn.WindSpeed)
           }}
         >
-          Wind Speed (km/h)
+          <TableHeader text={'Wind Speed (km/h)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -204,9 +200,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.Precipitation)
           }}
         >
-          Precip
-          <br />
-          (mm)
+          <TableHeader text={'Precip (mm)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -218,7 +212,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.FFMC)
           }}
         >
-          FFMC
+          <TableHeader text={'FFMC'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -230,7 +224,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.DMC)
           }}
         >
-          DMC
+          <TableHeader text={'DMC'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -242,7 +236,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.DMC)
           }}
         >
-          DC
+          <TableHeader text={'DC'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -254,7 +248,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.ISI)
           }}
         >
-          ISI
+          <TableHeader text={'ISI'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -266,7 +260,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.BUI)
           }}
         >
-          BUI
+          <TableHeader text={'BUI'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -278,7 +272,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.BUI)
           }}
         >
-          FWI
+          <TableHeader text={'FWI'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -290,7 +284,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.HFI)
           }}
         >
-          HFI
+          <TableHeader text={'HFI'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -302,11 +296,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.CriticalHours4000)
           }}
         >
-          Critical
-          <br />
-          Hours
-          <br />
-          (4000 kW/m)
+          <TableHeader text={'Critical Hours (4000 kW/m)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -318,11 +308,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.CriticalHours10000)
           }}
         >
-          Critical
-          <br />
-          Hours
-          <br />
-          (10000 kW/m)
+          <TableHeader text={'Critical Hours (10000 kW/m)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -334,9 +320,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.ROS)
           }}
         >
-          ROS
-          <br />
-          (m/min)
+          <TableHeader text={'ROS m/min'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
@@ -348,66 +332,62 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.FireType)
           }}
         >
-          Fire Type
+          <Tooltip
+            title={typeToolTipElement}
+            aria-label={`${typeToolTipFirstLine} \n ${typeToolTipSecondLine} \n ${typeToolTipThirdLine}`}
+          >
+            <InfoOutlinedIcon className={classes.infoIcon}></InfoOutlinedIcon>
+          </Tooltip>
+
+          <TableHeader text={'Fire Type'}></TableHeader>
         </TableSortLabel>
-        <Tooltip
-          title={typeToolTipElement}
-          aria-label={`${typeToolTipFirstLine} \n ${typeToolTipSecondLine} \n ${typeToolTipThirdLine}`}
-        >
-          <InfoOutlinedIcon className={classes.infoIcon}></InfoOutlinedIcon>
-        </Tooltip>
       </TableCell>
     ),
     'CFB (%)': (
-      <TableCell sortDirection={order}>
+      <TableCell className={classes.headerCell} sortDirection={order}>
         <TableSortLabel
           direction={order}
           onClick={() => {
             toggleSorting(SortByColumn.CFB)
           }}
         >
-          CFB (%)
+          <TableHeader text={'CFB (%)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
     'Flame Length (m)': (
-      <TableCell sortDirection={order}>
+      <TableCell className={classes.headerCell} sortDirection={order}>
         <TableSortLabel
           direction={order}
           onClick={() => {
             toggleSorting(SortByColumn.FlameLength)
           }}
         >
-          Flame <br />
-          Length <br /> (m)
+          <TableHeader text={'Flame Length (m)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
     '30 min fire size (ha)': (
-      <TableCell sortDirection={order}>
+      <TableCell className={classes.headerCell} sortDirection={order}>
         <TableSortLabel
           direction={order}
           onClick={() => {
             toggleSorting(SortByColumn.ThirtyMinFireSize)
           }}
         >
-          30 min <br />
-          fire size <br />
-          (ha)
+          <TableHeader text={'30 min fire size (ha)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     ),
     '60 min fire size (ha)': (
-      <TableCell sortDirection={order}>
+      <TableCell className={classes.headerCell} sortDirection={order}>
         <TableSortLabel
           direction={order}
           onClick={() => {
             toggleSorting(SortByColumn.SixtyMinFireSize)
           }}
         >
-          60 min <br />
-          fire size <br />
-          (ha)
+          <TableHeader text={'60 min fire size (ha)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
     )
@@ -416,7 +396,7 @@ const FBATableHead = ({
   return (
     <TableHead>
       <TableRow>
-        <StickyCell left={0} zIndexOffset={Z_INDEX_OFFSET}>
+        <StickyCell left={0} zIndexOffset={Z_INDEX_OFFSET + 100}>
           <Checkbox
             data-testid="select-all"
             color="primary"
