@@ -39,4 +39,5 @@ RUN cd /tmp && \
     POETRY_HOME=/opt/poetry python3 install-poetry.py --version 1.1.11 && \
     cd /usr/local/bin && \
     ln -s /opt/poetry/bin/poetry && \
-    poetry config virtualenvs.create false
+    poetry config virtualenvs.create false && \
+    poetry config experimental.new-installer false
