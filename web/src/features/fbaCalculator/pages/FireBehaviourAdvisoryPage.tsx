@@ -7,13 +7,13 @@ import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDrop
 import FormalFBATable from 'features/fbaCalculator/components/FormalFBATable'
 import DatePicker from 'components/DatePicker'
 import { DateTime } from 'luxon'
-import { selectFireCenters, selectFireWeatherStations } from 'app/rootReducer'
+import { selectFireCenters } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
-import { filterStations } from 'features/fbaCalculator/fireCenters'
+import { FireCenter } from 'api/fbaAPI'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -34,7 +34,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-  const { stations } = useSelector(selectFireWeatherStations)
 
   const emptyInstructions = (
     <div data-testid={'fba-instructions'} className={classes.instructions}>
@@ -43,7 +42,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     </div>
   )
 
-  const [fireCenter, setFireCenter] = useState<string | undefined>(undefined)
+  const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone('UTC-7').toISO()
@@ -89,7 +88,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             <Grid item xs={2}>
               <FormControl className={classes.fireCenter}>
                 <FireCenterDropdown
-                  fireCenterOptions={fireCenters.map(center => center.name)}
+                  fireCenterOptions={fireCenters}
                   selectedFireCenter={fireCenter}
                   setSelectedFireCenter={setFireCenter}
                 />
@@ -99,10 +98,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid container spacing={2}>
             <Grid item xs>
               {fireCenter ? (
-                <FormalFBATable
-                  fireCenter={fireCenter}
-                  stations={filterStations(stations)}
-                />
+                <FormalFBATable fireCenter={fireCenter} />
               ) : (
                 emptyInstructions
               )}
