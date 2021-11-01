@@ -1,6 +1,6 @@
 import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { groupBy, isNull, isUndefined } from 'lodash'
+import { groupBy, isNull, isUndefined, range } from 'lodash'
 import { getDailiesByStationCode, getDailiesForArea } from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
 import { weeklyTableColumnLabels } from 'features/hfiCalculator/components/WeeklyViewTable'
@@ -12,6 +12,7 @@ import {
 } from 'features/hfiCalculator/components/meanIntensity'
 import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import { isValidGrassCure } from './validation'
+import { NUM_WEEK_DAYS } from './constants'
 
 // the number of decimal places to round to
 const DECIMAL_PLACES = 1
@@ -142,10 +143,6 @@ export class RowManager {
       stationCodesInArea.push(station.code)
     })
     const areaDailies = getDailiesForArea(area, dailies, stationCodesInArea)
-    const datesInPrepCycle = new Set<string>()
-    Object.entries(areaDailies).forEach(([, daily]) => {
-      datesInPrepCycle.add(daily.date.toFormat('MM-dd-yyyy'))
-    })
 
     const utcDict = groupBy(areaDailies, (daily: StationDaily) =>
       daily.date.toUTC().toMillis()
@@ -154,23 +151,25 @@ export class RowManager {
     const dailiesByDayUTC = new Map(
       Object.entries(utcDict).map(entry => [Number(entry[0]), entry[1]])
     )
+    const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
     const dailyMeanIntensityGroups = calculateDailyMeanIntensities(dailiesByDayUTC)
     const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
       dailyMeanIntensityGroups
     )
     const meanPrepLevel = calculateMeanPrepLevel(dailyMeanIntensityGroups)
 
-    Array.from(datesInPrepCycle)
-      .sort()
-      .forEach((day, index) => {
-        const dailyMeanIntensityGroup = dailyMeanIntensityGroups[index]
-        const areaDailyPrepLevel = calculatePrepLevel(dailyMeanIntensityGroup)
-        const fireStarts = '0-1' // hard-coded for now
+    Array.from(range(NUM_WEEK_DAYS)).forEach(day => {
+      const orderedDailies: StationDaily[] | undefined = dailiesByDayUTC.get(
+        orderedDayTimestamps[day]
+      )
+      const dailyMeanIntensityGroup = dailyMeanIntensityGroups[day]
+      const areaDailyPrepLevel = calculatePrepLevel(dailyMeanIntensityGroup)
+      const fireStarts = '0-1' // hard-coded for now
 
-        areaWeeklySummaryString = areaWeeklySummaryString.concat(
-          `,, ${dailyMeanIntensityGroup}, ${fireStarts}, ${areaDailyPrepLevel},`
-        )
-      })
+      areaWeeklySummaryString = areaWeeklySummaryString.concat(
+        `,, ${dailyMeanIntensityGroup}, ${fireStarts}, ${areaDailyPrepLevel},`
+      )
+    })
     areaWeeklySummaryString = areaWeeklySummaryString.concat(
       `${highestMeanIntensityGroup}, ${meanPrepLevel}`
     )
@@ -202,6 +201,7 @@ export class RowManager {
           rowsAsStrings.push(this.buildAreaWeeklySummaryString(area, dailies))
           Object.entries(area.stations).forEach(([, station]) => {
             const dailiesForStation = getDailiesByStationCode(dailies, station.code)
+            const grassCureError = !isValidGrassCure(dailies[0], station.station_props)
 
             const rowArray: string[] = []
 
@@ -213,20 +213,31 @@ export class RowManager {
                 : station.station_props.elevation.toString()
             )
             rowArray.push(station.station_props.fuel_type.abbrev)
-            // TODO: grass cure
             rowArray.push(
-              !isUndefined(dailiesForStation[0]) &&
-                !isNull(dailiesForStation[0].grass_cure_percentage)
+              grassCureError
+                ? 'ERROR'
+                : !isUndefined(dailiesForStation[0]) &&
+                  !isNull(dailiesForStation[0].grass_cure_percentage)
                 ? dailiesForStation[0].grass_cure_percentage.toString()
                 : 'ND'
             )
 
             dailiesForStation.forEach(day => {
               rowArray.push(
-                !isUndefined(day) ? day.rate_of_spread.toFixed(DECIMAL_PLACES) : 'ND'
+                !isUndefined(day) && !grassCureError
+                  ? day.rate_of_spread.toFixed(DECIMAL_PLACES)
+                  : 'ND'
               )
-              rowArray.push(!isUndefined(day) ? day.hfi.toFixed(DECIMAL_PLACES) : 'ND')
-              rowArray.push(!isUndefined(day) ? day.intensity_group.toString() : 'ND')
+              rowArray.push(
+                !isUndefined(day) && !grassCureError
+                  ? day.hfi.toFixed(DECIMAL_PLACES)
+                  : 'ND'
+              )
+              rowArray.push(
+                !isUndefined(day) && !grassCureError
+                  ? day.intensity_group.toString()
+                  : 'ND'
+              )
               rowArray.push(Array(2).join(','))
             })
 
