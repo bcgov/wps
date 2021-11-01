@@ -3,6 +3,7 @@ import React from 'react'
 
 interface TableHeaderProps {
   text: string
+  maxWidth?: string
 }
 
 const TableHeader = (props: TableHeaderProps) => {
@@ -32,9 +33,10 @@ const TableHeader = (props: TableHeaderProps) => {
       }
     }
   })
+
   const classes = useStyles()
   return (
-    <div className={classes.header}>
+    <div style={{ maxWidth: props.maxWidth }} className={classes.header}>
       {props.text}
       <span>{props.text}</span>
     </div>
