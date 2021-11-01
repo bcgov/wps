@@ -14,7 +14,7 @@ from app.schemas.hfi_calc import FireCentre, HFIWeatherStationsResponse, Station
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.stations import (WeatherStation,
                                   WeatherVariables)
-from app.wildfire_one.schema_parsers import (WFWXWeatherStation,
+from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_mapper,
                                              parse_station,
                                              generate_station_daily,
                                              parse_hourly,
@@ -74,7 +74,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
         return stations
 
 
-async def get_stations(session: ClientSession,
+async def get_station_data(session: ClientSession,
                        header: dict,
                        mapper=station_list_mapper):
     """ Get list of stations from WFWX Fireweather API.
@@ -194,7 +194,7 @@ async def get_hourly_actuals_all_stations(
     async for hourly in hourlies_iterator:
         hourlies.append(hourly)
 
-    stations: List[HFIWeatherStationsResponse] = await get_stations(
+    stations: List[HFIWeatherStationsResponse] = await get_station_data(
         session,
         header,
         mapper=wfwx_station_list_mapper)
@@ -221,7 +221,7 @@ async def get_wfwx_stations_from_station_codes(session, header, station_codes: O
     # many station codes are added as query parameters.
     # IMPORTANT - the two calls below, cannot be made from within the lambda, as they will be
     # be called multiple times!
-    wfwx_stations = await get_stations(session, header, mapper=wfwx_station_list_mapper)
+    wfwx_stations = await get_station_data(session, header, mapper=wfwx_station_list_mapper)
     fire_centre_station_codes = get_fire_centre_station_codes()
 
     # Default to all known WFWX station ids if no station codes are specified
@@ -301,11 +301,9 @@ async def get_dailies(
     return dailies_iterator
 
 
-async def get_fire_centers() -> List[FireCentre]:
+async def get_fire_centers(        
+        session: ClientSession,
+        header: dict,) -> List[FireCentre]:
     """ Get the fire centers. Replace hard coded centers once WFWX API supports them """
-    return [FireCentre(name="Cariboo Fire Centre", planning_areas=[]),
-            FireCentre(name="Coastal Fire Centre", planning_areas=[]),
-            FireCentre(name="Kamloops Fire Centre", planning_areas=[]),
-            FireCentre(name="Northwest Fire Centre", planning_areas=[]),
-            FireCentre(name="​Prince George Fire Centre", planning_areas=[]),
-            FireCentre(name="​Southeast Fire Centre", planning_areas=[])]
+    wfwx_fire_centers = await get_station_data(session, header, mapper=fire_center_mapper)
+    return list(wfwx_fire_centers.values())

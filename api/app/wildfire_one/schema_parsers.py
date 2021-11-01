@@ -15,23 +15,10 @@ from app.schemas.hfi_calc import StationDaily
 from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
 from app.fba_calculator import calculate_cfb, get_fire_size, get_fire_type
 from app.utils.time import get_julian_date_now
-from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
+from app.wildfire_one.util import is_station_valid, is_station_fire_zone_valid, get_zone_code_prefix
+from app.schemas.fba import FireCentre
 
 logger = logging.getLogger(__name__)
-
-
-async def station_list_mapper(raw_stations: Generator[dict, None, None]):
-    """ Maps raw stations to WeatherStation list"""
-    stations = []
-    # Iterate through "raw" station data.
-    async for raw_station in raw_stations:
-        # If the station is valid, add it to our list of stations.
-        if is_station_valid(raw_station):
-            stations.append(WeatherStation(code=raw_station['stationCode'],
-                                           name=raw_station['displayLabel'],
-                                           lat=raw_station['latitude'],
-                                           long=raw_station['longitude']))
-    return stations
 
 
 class WFWXWeatherStation():
@@ -47,6 +34,19 @@ class WFWXWeatherStation():
         self.long = longitude
         self.elevation = elevation
         self.zone_code = zone_code
+
+async def station_list_mapper(raw_stations: Generator[dict, None, None]):
+    """ Maps raw stations to WeatherStation list"""
+    stations = []
+    # Iterate through "raw" station data.
+    async for raw_station in raw_stations:
+        # If the station is valid, add it to our list of stations.
+        if is_station_valid(raw_station):
+            stations.append(WeatherStation(code=raw_station['stationCode'],
+                                           name=raw_station['displayLabel'],
+                                           lat=raw_station['latitude'],
+                                           long=raw_station['longitude']))
+    return stations
 
 
 async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) -> List[WFWXWeatherStation]:
@@ -66,6 +66,29 @@ async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) ->
                                                    raw_station)
                                                ))
     return stations
+
+
+async def fire_center_mapper(raw_stations: Generator[dict, None, None]):
+    """ Maps raw stations to FireCenter dict"""
+    fire_centers = {}
+    # Iterate through "raw" station data.
+    async for raw_station in raw_stations:
+        # If the station is valid, add it to our list of stations.
+        if is_station_valid(raw_station) and is_station_fire_zone_valid(raw_station):
+            raw_fire_center = raw_station['fireCentre']
+            fire_center_id = raw_fire_center['id']
+            station = WeatherStation(code=raw_station['stationCode'],
+                                         name=raw_station['displayLabel'],
+                                         lat=raw_station['latitude'],
+                                         long=raw_station['longitude'])
+
+            fire_center = fire_centers.get(fire_center_id, None)
+            if fire_center is None:
+                fire_centers[fire_center_id] = FireCentre(
+                    id=raw_fire_center['id'], name=raw_fire_center['displayLabel'], stations=[station])
+            else:
+                fire_center.stations.append(station)
+    return fire_centers
 
 
 def construct_zone_code(station: any):

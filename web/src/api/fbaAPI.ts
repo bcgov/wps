@@ -1,9 +1,9 @@
 import axios from 'api/axios'
-import { PlanningArea } from 'api/hfiCalcAPI'
+import { Station } from 'api/stationAPI'
 export interface FireCenter {
   id: number
   name: string
-  planning_areas: PlanningArea[]
+  stations: Station[]
 }
 
 export interface FBAResponse {
