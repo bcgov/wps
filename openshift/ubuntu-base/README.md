@@ -19,7 +19,7 @@ oc -n e1e498-tools -p GIT_BRANCH=my-branch process -f build.yaml | oc -n e1e498-
 
 ```bash
 # build your docker image
-docker build --tag=ubuntu-base:my-tag .
+docker build . --tag=ubuntu-base:my-tag .
 # tag it for upload
 docker tag ubuntu-base:my-tag image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/ubuntu-base:my-tag
 # log in to openshift docker
