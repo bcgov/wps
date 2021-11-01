@@ -10,8 +10,9 @@ import app
 from app import config
 from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
-from app.schemas.hfi_calc import FireCentre, HFIWeatherStationsResponse, StationDaily
+from app.schemas.hfi_calc import HFIWeatherStationsResponse, StationDaily
 from app.schemas.observations import WeatherStationHourlyReadings
+from app.schemas.fba import FireCentre
 from app.schemas.stations import (WeatherStation,
                                   WeatherVariables)
 from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_mapper,

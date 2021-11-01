@@ -20,7 +20,7 @@ const FormalFBATable = (props: FormalFBATableProps) => {
           {props.fireCenter.stations.map((station, i) => (
             <TableRow key={i}>
               <TableCell>
-                {station.name} ({station.code})
+                {station.zone ? `${station.zone},` : ''} {station.name} ({station.code})
               </TableCell>
             </TableRow>
           ))}

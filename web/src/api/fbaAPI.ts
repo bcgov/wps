@@ -1,9 +1,15 @@
 import axios from 'api/axios'
-import { Station } from 'api/stationAPI'
+
+export interface FireCenterStation {
+  code: number
+  name: string
+  zone?: string
+}
+
 export interface FireCenter {
   id: number
   name: string
-  stations: Station[]
+  stations: FireCenterStation[]
 }
 
 export interface FBAResponse {
