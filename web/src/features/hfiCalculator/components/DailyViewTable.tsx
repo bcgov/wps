@@ -342,7 +342,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 {daily?.bui?.toFixed(DECIMAL_PLACES)}
                               </TableCell>
                               <TableCell className={classNameForRow}>
-                                {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
+                                {daily?.fwi?.toFixed(DECIMAL_PLACES)}
                               </TableCell>
                               <TableCell className={classNameForRow}>
                                 {daily?.danger_class}
