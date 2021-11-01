@@ -3,12 +3,12 @@ import React from 'react'
 
 interface TableHeaderProps {
   text: string
-  maxWidth?: string
+  largerMaxWidth?: boolean
 }
 
 const TableHeader = (props: TableHeaderProps) => {
   let maxWidth = '200px'
-  if (!props.maxWidth) {
+  if (!props.largerMaxWidth) {
     maxWidth = '80px'
   }
   const useStyles = makeStyles({

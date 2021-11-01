@@ -91,7 +91,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.Station)
           }}
         >
-          <TableHeader maxWidth={'200px'} text={'Weather Station'}></TableHeader>
+          <TableHeader largerMaxWidth={true} text={'Weather Station'}></TableHeader>
         </TableSortLabel>
       </StickyCell>
     ),
@@ -117,7 +117,7 @@ const FBATableHead = ({
           direction={order}
           onClick={() => toggleSorting(SortByColumn.FuelType)}
         >
-          <TableHeader maxWidth={'200px'} text={'FBP Fuel Type'}></TableHeader>
+          <TableHeader largerMaxWidth={true} text={'FBP Fuel Type'}></TableHeader>
         </TableSortLabel>
       </StickyCell>
     ),
