@@ -8,7 +8,7 @@ import {
   calculateDailyMeanIntensities,
   calculateMaxMeanIntensityGroup,
   calculateMeanIntensity,
-  calculateMeanPrepLevel
+  calculateMeanIntensityGroupLevel
 } from 'features/hfiCalculator/components/meanIntensity'
 import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import { isValidGrassCure } from './validation'
@@ -151,27 +151,24 @@ export class RowManager {
     const dailiesByDayUTC = new Map(
       Object.entries(utcDict).map(entry => [Number(entry[0]), entry[1]])
     )
-    const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
     const dailyMeanIntensityGroups = calculateDailyMeanIntensities(dailiesByDayUTC)
     const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
       dailyMeanIntensityGroups
     )
-    const meanPrepLevel = calculateMeanPrepLevel(dailyMeanIntensityGroups)
+    const meanIntensityGroup = calculateMeanIntensityGroupLevel(dailyMeanIntensityGroups)
+    const calcPrepLevel = calculatePrepLevel(meanIntensityGroup)
 
     Array.from(range(NUM_WEEK_DAYS)).forEach(day => {
-      const orderedDailies: StationDaily[] | undefined = dailiesByDayUTC.get(
-        orderedDayTimestamps[day]
-      )
-      const dailyMeanIntensityGroup = dailyMeanIntensityGroups[day]
-      const areaDailyPrepLevel = calculatePrepLevel(dailyMeanIntensityGroup)
+      const dailyIntensityGroup = dailyMeanIntensityGroups[day]
+      const areaDailyPrepLevel = calculatePrepLevel(dailyIntensityGroup)
       const fireStarts = '0-1' // hard-coded for now
 
       areaWeeklySummaryString = areaWeeklySummaryString.concat(
-        `,, ${dailyMeanIntensityGroup}, ${fireStarts}, ${areaDailyPrepLevel},`
+        `,, ${dailyIntensityGroup}, ${fireStarts}, ${areaDailyPrepLevel},`
       )
     })
     areaWeeklySummaryString = areaWeeklySummaryString.concat(
-      `${highestMeanIntensityGroup}, ${meanPrepLevel}`
+      `${highestMeanIntensityGroup}, ${calcPrepLevel}`
     )
 
     return areaWeeklySummaryString

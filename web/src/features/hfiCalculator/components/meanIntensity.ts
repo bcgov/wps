@@ -40,7 +40,7 @@ export const calculateMaxMeanIntensityGroup = (
   dailyMeanIntensities: (number | undefined)[]
 ): number => Math.max(...dailyMeanIntensities.filter(isDefined))
 
-export const calculateMeanPrepLevel = (
+export const calculateMeanIntensityGroupLevel = (
   dailyMeanIntensities: (number | undefined)[]
 ): number | undefined =>
   dailyMeanIntensities.filter(isDefined).length > 0
