@@ -58,10 +58,14 @@ export class RowManager {
             rowArray.push(station.station_props.fuel_type.abbrev)
             rowArray.push(!isUndefined(daily) ? daily.status : 'ND')
             rowArray.push(
-              !isUndefined(daily) ? daily.temperature.toFixed(DECIMAL_PLACES) : 'ND'
+              !isUndefined(daily) && !isUndefined(daily.temperature)
+                ? daily.temperature.toFixed(DECIMAL_PLACES)
+                : 'ND'
             )
             rowArray.push(
-              !isUndefined(daily) ? daily.relative_humidity.toFixed(DECIMAL_PLACES) : 'ND'
+              !isUndefined(daily) && !isUndefined(daily.relative_humidity)
+                ? daily.relative_humidity.toFixed(DECIMAL_PLACES)
+                : 'ND'
             )
             rowArray.push(
               !isUndefined(daily) && !isNull(daily.wind_direction)
@@ -69,10 +73,14 @@ export class RowManager {
                 : 'ND'
             )
             rowArray.push(
-              !isUndefined(daily) ? daily.wind_speed.toFixed(DECIMAL_PLACES) : 'ND'
+              !isUndefined(daily) && !isUndefined(daily.wind_speed)
+                ? daily.wind_speed.toFixed(DECIMAL_PLACES)
+                : 'ND'
             )
             rowArray.push(
-              !isUndefined(daily) ? daily.precipitation.toFixed(DECIMAL_PLACES) : 'ND'
+              !isUndefined(daily) && !isUndefined(daily.precipitation)
+                ? daily.precipitation.toFixed(DECIMAL_PLACES)
+                : 'ND'
             )
             rowArray.push(
               grassCureError
@@ -93,17 +101,19 @@ export class RowManager {
                 : 'ND'
             )
             rowArray.push(
-              !isUndefined(daily) && !grassCureError
+              !isUndefined(daily) && !isUndefined(daily.rate_of_spread) && !grassCureError
                 ? daily.rate_of_spread.toFixed(DECIMAL_PLACES)
                 : 'ND'
             )
             rowArray.push(
-              !isUndefined(daily) && !grassCureError
+              !isUndefined(daily) && !isUndefined(daily.hfi) && !grassCureError
                 ? daily.hfi.toFixed(DECIMAL_PLACES)
                 : 'ND'
             )
             rowArray.push(
-              !isUndefined(daily) && !grassCureError
+              !isUndefined(daily) &&
+                !isUndefined(daily.sixty_minute_fire_size) &&
+                !grassCureError
                 ? daily.sixty_minute_fire_size.toFixed(DECIMAL_PLACES)
                 : 'ND'
             )
