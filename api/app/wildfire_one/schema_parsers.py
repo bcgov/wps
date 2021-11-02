@@ -43,9 +43,10 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
     async for raw_station in raw_stations:
         # If the station is valid, add it to our list of stations.
         if is_station_valid(raw_station):
-            stations.append(FireCenterStation(code=raw_station['stationCode'],
-                                              name=raw_station['displayLabel'],
-                                              zone=construct_zone_code(raw_station)))
+            stations.append(WeatherStation(code=raw_station['stationCode'],
+                                           name=raw_station['displayLabel'],
+                                           lat=raw_station['latitude'],
+                                           long=raw_station['longitude']))
     return stations
 
 
