@@ -10,7 +10,7 @@ import {
   selectHFIStations,
   selectHFIStationsLoading
 } from 'app/rootReducer'
-import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
+import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui/core'
 import { FileCopyOutlined, CheckOutlined } from '@material-ui/icons'
 import { getDateRange } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
@@ -19,6 +19,7 @@ import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import { RowManager } from '../RowManager'
+import InfoOutlined from '@material-ui/icons/InfoOutlined'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -28,6 +29,12 @@ const useStyles = makeStyles(() => ({
   },
   infoIcon: {
     fill: theme.palette.primary.main
+  },
+  copyToClipboardInfoIcon: {
+    marginLeft: '3px'
+  },
+  clipboardIcon: {
+    marginRight: '3px'
   },
   aboutButtonText: {
     color: theme.palette.primary.main,
@@ -155,8 +162,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               </Button>
             ) : (
               <Button onClick={copyTable}>
-                <FileCopyOutlined />
+                <FileCopyOutlined className={classes.clipboardIcon} />
                 Copy to Clipboard
+                <Tooltip
+                  title={
+                    'You can paste all table data in Excel. To format: go to the Data tab, use Text to Columns > Delimited > Comma.'
+                  }
+                >
+                  <InfoOutlined className={classes.copyToClipboardInfoIcon} />
+                </Tooltip>
               </Button>
             )}
           </FormControl>
