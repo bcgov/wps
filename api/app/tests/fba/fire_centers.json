@@ -1,0 +1,14 @@
+{
+    "fire_centers": [
+        {
+            "id": "1",
+            "name": "Fire Center 1",
+            "stations": []
+        },
+        {
+            "id": "1",
+            "name": "Fire Center 2",
+            "stations": []
+        }
+    ]
+}
