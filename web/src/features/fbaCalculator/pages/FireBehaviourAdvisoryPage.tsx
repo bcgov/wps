@@ -42,7 +42,19 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     </div>
   )
 
-  const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
+  const centerLoop = (id: string | null): FireCenter | undefined => {
+    fireCenters.forEach(center => {
+      if (center.id.toString() === id) {
+        console.log('passed', center)
+        return center
+      }
+    })
+    return undefined
+  }
+
+  const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(
+    centerLoop(localStorage.getItem('preferredFireCenter'))
+  )
 
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone('UTC-7').toISO()
@@ -93,6 +105,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                   setSelectedFireCenter={setFireCenter}
                 />
               </FormControl>
+              {console.log(fireCenter)}
             </Grid>
           </Grid>
           <Grid container spacing={2}>
