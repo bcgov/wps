@@ -16,7 +16,7 @@ router = APIRouter(
 
 
 @router.get('/fire-centers/', response_model=FireCenterListResponse)
-async def get_daily_view(response: Response,
+async def get_all_fire_centers(response: Response,
                          _=Depends(authentication_required)):
     """ Returns daily metrics for each station code. """
     try:
