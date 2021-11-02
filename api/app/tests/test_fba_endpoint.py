@@ -6,7 +6,6 @@ from aiohttp import ClientSession
 from sqlalchemy.orm import Session
 from app.tests.common import default_mock_client_get
 import app.main
-from app.db.models.hfi_calc import PlanningWeatherStation, FireCentre, FuelType, PlanningArea
 import app.routers.hfi_calc
 
 
@@ -28,7 +27,7 @@ def given_fba_fire_centers_request(monkeypatch):
         return []
 
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
-    monkeypatch.setattr(app.routers.fba, 'get_all_fire_centers', mock_get_fire_weather_stations)
+    monkeypatch.setattr(app.wildfire_one.wfwx_api, 'get_fire_centers', mock_get_fire_weather_stations)
 
     # Create API client and get the response.
     client = TestClient(app.main.app)
