@@ -18,7 +18,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { source } from 'features/fireWeather/components/maps/constants'
-import { TileWMS } from 'ol/source'
+import TileWMS from 'ol/source/TileWMS'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
