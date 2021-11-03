@@ -172,7 +172,6 @@ export class RowManager {
     areaWeeklySummaryString = areaWeeklySummaryString.concat(
       `${highestMeanIntensityGroup}, ${calcPrepLevel}`
     )
-
     return areaWeeklySummaryString
   }
 
