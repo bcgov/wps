@@ -2,7 +2,7 @@ import { TextField } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 import { FireCenter } from 'api/fbaAPI'
 import { isEqual } from 'lodash'
-import React, { useEffect } from 'react'
+import React from 'react'
 
 interface FireCenterDropdownProps {
   selectedFireCenter?: FireCenter
@@ -11,16 +11,6 @@ interface FireCenterDropdownProps {
 }
 
 const FireCenterDropdown = (props: FireCenterDropdownProps) => {
-  useEffect(() => {
-    if (
-      props.selectedFireCenter?.id.toString() !==
-        localStorage.getItem('preferredFireCenter') &&
-      props.selectedFireCenter?.id !== undefined
-    ) {
-      localStorage.setItem('preferredFireCenter', props.selectedFireCenter?.id.toString())
-    }
-  }, [props.selectedFireCenter])
-
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
     if (!isEqual(props.selectedFireCenter, value)) {
@@ -37,7 +27,7 @@ const FireCenterDropdown = (props: FireCenterDropdownProps) => {
         <TextField {...params} label="Select Fire Center" variant="outlined" />
       )}
       onChange={changeHandler}
-      value={props.selectedFireCenter}
+      value={props.selectedFireCenter || null}
     />
   )
 }
