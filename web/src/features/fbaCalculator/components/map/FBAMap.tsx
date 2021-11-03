@@ -65,7 +65,7 @@ const buildBCTileLayer = (extent: number[]) => {
     opacity: 0.5,
     preload: Infinity,
     source: new TileWMS({
-      url: 'http://openmaps.gov.bc.ca/geo/pub/wms',
+      url: 'https://openmaps.gov.bc.ca/geo/pub/wms',
       params: {
         LAYERS: 'WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_CENTRES_SP',
         TILED: true
