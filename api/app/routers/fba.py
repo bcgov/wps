@@ -21,8 +21,6 @@ async def get_all_fire_centers(response: Response,
     """ Returns fire centers for all active stations. """
     try:
         logger.info('/fba/fire-centers/')
-        response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
-
         async with ClientSession() as session:
             header = await get_auth_header(session)
             fire_centers = await get_fire_centers(session, header)
