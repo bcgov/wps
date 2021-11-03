@@ -22,7 +22,8 @@ import { TileWMS } from 'ol/source'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
-const zoom = 6
+const zoom = 5.45
+const BC_CENTER_FIRE_CENTERS = [-124.16748046874999, 54.584796743678744]
 
 export interface FBAMapProps {
   testId?: string
@@ -73,7 +74,7 @@ const buildBCTileLayer = (extent: number[]) => {
   })
 }
 
-const FBAMap = (props: FBAMapProps) => {
+const FBAMap = () => {
   const useStyles = makeStyles({
     main: {
       height: '100%',
@@ -92,7 +93,10 @@ const FBAMap = (props: FBAMapProps) => {
     if (!mapRef.current) return
 
     const options: MapOptions = {
-      view: new ol.View({ zoom, center: fromLonLat(props.center) }),
+      view: new ol.View({
+        zoom,
+        center: fromLonLat(BC_CENTER_FIRE_CENTERS)
+      }),
       layers: [
         new OLTileLayer({
           source
