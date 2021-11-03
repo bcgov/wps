@@ -12,10 +12,7 @@ import {
 } from 'features/hfiCalculator/components/meanIntensity'
 import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
-import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
-
-// the number of decimal places to round to
-const DECIMAL_PLACES = 1
+import { NUM_WEEK_DAYS, DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 
 const printGrassCurePercentage = (daily: StationDaily): string => {
   if (!isUndefined(daily) && !isNull(daily.grass_cure_percentage)) {
@@ -25,7 +22,7 @@ const printGrassCurePercentage = (daily: StationDaily): string => {
   }
 }
 
-export class RowManager {
+export class FormatTableAsCSV {
   public static exportDailyRowsAsStrings = (
     fireCentres: Record<string, FireCentre>,
     dailies: StationDaily[]

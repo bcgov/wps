@@ -17,7 +17,7 @@ import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
-import { RowManager } from 'features/hfiCalculator/RowManager'
+import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -64,9 +64,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
     useState(DateTime.now().setZone('UTC-7').toISO())
 
-  const weeklyViewAsString = RowManager.exportWeeklyRowsAsStrings(fireCentres, dailies)
-  const dailyViewAsString = RowManager.exportDailyRowsAsStrings(fireCentres, dailies)
-
   const [isCopied, setIsCopied] = useState(false)
 
   const refreshView = () => {
@@ -88,8 +85,16 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const copyTable = () => {
     if (isWeeklyView) {
+      const weeklyViewAsString = FormatTableAsCSV.exportWeeklyRowsAsStrings(
+        fireCentres,
+        dailies
+      )
       navigator.clipboard.writeText(weeklyViewAsString)
     } else {
+      const dailyViewAsString = FormatTableAsCSV.exportDailyRowsAsStrings(
+        fireCentres,
+        dailies
+      )
       navigator.clipboard.writeText(dailyViewAsString)
     }
     setIsCopied(true)

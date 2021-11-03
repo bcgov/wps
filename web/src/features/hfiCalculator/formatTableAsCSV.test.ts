@@ -1,4 +1,4 @@
-import { RowManager } from 'features/hfiCalculator/RowManager'
+import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 import { DateTime } from 'luxon'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
@@ -361,7 +361,10 @@ describe('RowManager', () => {
   ]
 
   it('should export Daily Table to a CSV string correctly', () => {
-    const dailyTableCSVString = RowManager.exportDailyRowsAsStrings(fireCentres, dailies)
+    const dailyTableCSVString = FormatTableAsCSV.exportDailyRowsAsStrings(
+      fireCentres,
+      dailies
+    )
     const expectedDailyString = `Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level
 Kamloops Fire Centre
 Kamloops (K2), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1
@@ -648,7 +651,7 @@ SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.15
         date: DateTime.fromISO('2021-08-06T13:00:00.000-07:00')
       }
     ]
-    const weeklyTableString = RowManager.exportWeeklyRowsAsStrings(
+    const weeklyTableString = FormatTableAsCSV.exportWeeklyRowsAsStrings(
       fireCentres,
       stationDailiesForWeek
     )
