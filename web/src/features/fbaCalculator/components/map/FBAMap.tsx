@@ -28,6 +28,7 @@ const BC_CENTER_FIRE_CENTERS = [-124.16748046874999, 54.584796743678744]
 export interface FBAMapProps {
   testId?: string
   center: number[]
+  className: string
 }
 
 // Will be parameterized based on fire center in the future
@@ -79,10 +80,6 @@ const FBAMap = () => {
     main: {
       height: '100%',
       width: '100%'
-    },
-    map: {
-      width: 'inherit',
-      height: 'inherit'
     }
   })
   const classes = useStyles()
@@ -141,7 +138,7 @@ const FBAMap = () => {
   return (
     <ErrorBoundary>
       <div className={classes.main}>
-        <div ref={mapRef} data-testid="fba-map" className={classes.map}></div>
+        <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
       </div>
     </ErrorBoundary>
   )
