@@ -22,7 +22,7 @@ from app.db.crud.stations import get_noon_forecast_observation_union
 from app.wildfire_one import wfwx_api
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_detailed_stations,
-                                       get_stations,
+                                       get_station_data,
                                        use_wfwx)
 
 logger = logging.getLogger(__name__)
@@ -172,7 +172,7 @@ async def get_stations_asynchronously():
     """ Get list of stations asynchronously """
     async with ClientSession() as session:
         header = await get_auth_header(session)
-        return await get_stations(session, header)
+        return await get_station_data(session, header)
 
 
 def get_stations_synchronously() -> List[WeatherStation]:
