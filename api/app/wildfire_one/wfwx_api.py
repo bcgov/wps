@@ -76,8 +76,8 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
 
 
 async def get_station_data(session: ClientSession,
-                       header: dict,
-                       mapper=station_list_mapper):
+                           header: dict,
+                           mapper=station_list_mapper):
     """ Get list of stations from WFWX Fireweather API.
     """
     logger.info('Using WFWX to retrieve station list')
@@ -303,6 +303,6 @@ async def get_dailies(
 
 
 async def get_fire_centers(session: ClientSession, header: dict,) -> List[FireCentre]:
-    """ Get the fire centers. Replace hard coded centers once WFWX API supports them """
+    """ Get the fire centers from WFWX. """
     wfwx_fire_centers = await get_station_data(session, header, mapper=fire_center_mapper)
     return list(wfwx_fire_centers.values())

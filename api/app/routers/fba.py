@@ -1,7 +1,7 @@
 """ Routers for new/formal/non-tinker fba.
 """
 import logging
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.auth import authentication_required, audit
 from app.schemas.fba import FireCenterListResponse
@@ -16,13 +16,10 @@ router = APIRouter(
 
 
 @router.get('/fire-centers/', response_model=FireCenterListResponse)
-async def get_all_fire_centers(response: Response,
-                         _=Depends(authentication_required)):
-    """ Returns daily metrics for each station code. """
+async def get_all_fire_centers(_=Depends(authentication_required)):
+    """ Returns fire centers for all active stations. """
     try:
         logger.info('/fba/fire-centers/')
-        response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
-
         async with ClientSession() as session:
             header = await get_auth_header(session)
             fire_centers = await get_fire_centers(session, header)

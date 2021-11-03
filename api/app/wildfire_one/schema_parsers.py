@@ -70,7 +70,7 @@ async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) ->
 
 
 async def fire_center_mapper(raw_stations: Generator[dict, None, None]):
-    """ Maps raw stations to FireCenter dict"""
+    """ Maps raw stations to their respective fire centers. """
     fire_centers = {}
     # Iterate through "raw" station data.
     async for raw_station in raw_stations:
