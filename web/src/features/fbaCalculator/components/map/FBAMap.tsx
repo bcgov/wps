@@ -18,6 +18,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { source } from 'features/fireWeather/components/maps/constants'
+import { TileWMS } from 'ol/source'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -57,6 +58,22 @@ const buildHFILayers = () => {
   })
 }
 
+const buildBCTileLayer = (extent: number[]) => {
+  return new OLTileLayer({
+    extent,
+    source: new TileWMS({
+      url: 'http://openmaps.gov.bc.ca/geo/pub/wms',
+      params: {
+        LAYERS: 'WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_CENTRES_SP',
+        TILED: true
+      },
+      serverType: 'geoserver',
+      // Countries have transparency, so do not fade tiles:
+      transition: 0
+    })
+  })
+}
+
 const FBAMap = (props: FBAMapProps) => {
   const useStyles = makeStyles({
     main: {
@@ -89,6 +106,9 @@ const FBAMap = (props: FBAMapProps) => {
 
     const mapObject = new ol.Map(options)
     mapObject.setTarget(mapRef.current)
+
+    const extent = mapObject.getView().calculateExtent(mapObject.getSize())
+    mapObject.addLayer(buildBCTileLayer(extent))
     setMap(mapObject)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
