@@ -3,7 +3,6 @@ import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls } from 'ol/control'
 import { fromLonLat, get } from 'ol/proj'
 import { Fill, Stroke, Style } from 'ol/style'
-import OLTileLayer from 'ol/layer/Tile'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 
@@ -18,6 +17,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { source } from 'features/fireWeather/components/maps/constants'
+import Tile from 'ol/layer/Tile'
 import TileWMS from 'ol/source/TileWMS'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
@@ -60,8 +60,9 @@ const buildHFILayers = () => {
 }
 
 const buildBCTileLayer = (extent: number[]) => {
-  return new OLTileLayer({
+  return new Tile({
     extent,
+    opacity: 0.5,
     source: new TileWMS({
       url: 'http://openmaps.gov.bc.ca/geo/pub/wms',
       params: {
@@ -69,7 +70,7 @@ const buildBCTileLayer = (extent: number[]) => {
         TILED: true
       },
       serverType: 'geoserver',
-      transition: 100
+      transition: 0
     })
   })
 }
@@ -94,7 +95,7 @@ const FBAMap = (props: FBAMapProps) => {
         center: fromLonLat(BC_CENTER_FIRE_CENTERS)
       }),
       layers: [
-        new OLTileLayer({
+        new Tile({
           source
         }),
         buildHFILayers()
