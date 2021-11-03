@@ -3,26 +3,10 @@ from pytest_bdd import scenario, given, then
 import pytest
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
-from app.schemas.fba import FireCenterStation, FireCentre
 from app.tests.common import default_mock_client_get
 import app.main
 from app.tests import load_json_file
 import app.routers.hfi_calc
-from app.tests.test_hfi_dailies import AsyncIter
-
-fire_centers = AsyncIter([
-    FireCentre(
-        id="1",
-        name="Fire Center 1",
-        stations=[FireCenterStation(code=1, name="s1", zone="k1"),
-                  FireCenterStation(code=2, name="s2", zone="k1")]),
-    FireCentre(
-        id="2",
-        name="Fire Center 2",
-        stations=[FireCenterStation(code=3, name="s3", zone="k1"),
-                  FireCenterStation(code=4, name="s4", zone="k1")])
-])
-
 
 @pytest.mark.usefixtures("mock_jwt_decode")
 @scenario('test_fba_endpoint.feature', 'Get fire centres with their stations',

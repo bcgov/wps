@@ -18,7 +18,7 @@ router = APIRouter(
 @router.get('/fire-centers/', response_model=FireCenterListResponse)
 async def get_all_fire_centers(response: Response,
                          _=Depends(authentication_required)):
-    """ Returns daily metrics for each station code. """
+    """ Returns fire centers for all active stations. """
     try:
         logger.info('/fba/fire-centers/')
         response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
