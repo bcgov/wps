@@ -1,0 +1,37 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "api",
+            "type": "python",
+            "request": "launch",
+            "program": "api/app/main.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "api - module",
+            "type": "python",
+            "request": "launch",
+            "module": "app.main",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "app.weather_models.env_canada RDPS",
+            "type": "python",
+            "request": "launch",
+            "module": "app.weather_models.env_canada",
+            "args": [
+                "RDPS"
+            ]
+        },
+        {
+            "name": "app.weather_models.env_canada HRDPS",
+            "type": "python",
+            "request": "launch",
+            "module": "app.weather_models.env_canada",
+            "args": [
+                "HRDPS"
+            ]
+        }
+    ]
+}

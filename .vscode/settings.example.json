@@ -1,0 +1,51 @@
+{
+    "python.pythonPath": "/home/joe/.cache/pypoetry/virtualenvs/wps-api-vak942yD-py3.8/bin/python",
+    "python.defaultInterpreterPath": "/home/joe/.cache/pypoetry/virtualenvs/wps-api-vak942yD-py3.8/bin/python",
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.promptToConfigure": true,
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.formatting.autopep8Args": [
+        "--max-line-length=110",
+        "--ignore=E402"
+    ],
+    "files.exclude": {
+        ".github": false,
+        "**/.pytest_cache": true,
+        "**/__pycache__**": true,
+        "web/node_modules": true,
+        "api/python_cache": true
+    },
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true,
+        "source.fixAll.prettier": true
+    },
+    "editor.formatOnSave": true,
+    "eslint.format.enable": true,
+    "eslint.validate": [
+        "javascript",
+        "typescript"
+    ],
+    "eslint.run": "onSave",
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.tabSize": 2
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.tabSize": 2
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.tabSize": 2
+    },
+    "[yaml]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.formatOnSave": true
+    },
+    "python.testing.pytestArgs": [
+        "api"
+    ]
+}

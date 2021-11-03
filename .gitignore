@@ -74,9 +74,9 @@ web/typings/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
-.env.test
-.env.docker
+api/app/.env
+api/env/.env.test
+api/app/.env.docker
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -113,7 +113,8 @@ dist
 .ipynb_checkpoints/
 
 # VSCode
-.vscode/
+.vscode/settings.json
+.vscode/launch.json
 
 # Python
 __pycache__/
