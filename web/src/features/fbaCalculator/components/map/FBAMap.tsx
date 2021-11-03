@@ -68,8 +68,7 @@ const buildBCTileLayer = (extent: number[]) => {
         TILED: true
       },
       serverType: 'geoserver',
-      // Countries have transparency, so do not fade tiles:
-      transition: 0
+      transition: 100
     })
   })
 }
