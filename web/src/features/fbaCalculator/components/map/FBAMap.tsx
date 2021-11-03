@@ -27,7 +27,6 @@ const BC_CENTER_FIRE_CENTERS = [-124.16748046874999, 54.584796743678744]
 
 export interface FBAMapProps {
   testId?: string
-  center: number[]
   className: string
 }
 
@@ -75,7 +74,7 @@ const buildBCTileLayer = (extent: number[]) => {
   })
 }
 
-const FBAMap = () => {
+const FBAMap = (props: FBAMapProps) => {
   const useStyles = makeStyles({
     main: {
       height: '100%',
