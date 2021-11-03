@@ -63,6 +63,7 @@ const buildBCTileLayer = (extent: number[]) => {
   return new Tile({
     extent,
     opacity: 0.5,
+    preload: Infinity,
     source: new TileWMS({
       url: 'http://openmaps.gov.bc.ca/geo/pub/wms',
       params: {
