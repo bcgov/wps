@@ -18,6 +18,10 @@ def is_station_valid(station) -> bool:
         return False
     return True
 
+def is_station_fire_zone_valid(station) -> bool:
+    """ Checks that a station has a fireCenter """
+    return station['fireCentre'] is not None
+
 
 def get_zone_code_prefix(fire_centre_id: int):
     """ Returns the single-letter code corresponding to fire centre.

@@ -17,6 +17,7 @@ import regionalModelSummariesReducer from 'features/fireWeather/slices/regionalM
 import hfiCalculatorDailiesReducer from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import hfiStationsReducer from 'features/hfiCalculator/slices/stationsSlice'
 import fbaCalculatorSlice from 'features/fbaCalculator/slices/fbaCalculatorSlice'
+import fireCentersSlice from 'features/fbaCalculator/slices/fireCentersSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -36,7 +37,8 @@ const rootReducer = combineReducers({
   regionalModelSummaries: regionalModelSummariesReducer,
   hfiCalculatorDailies: hfiCalculatorDailiesReducer,
   hfiStations: hfiStationsReducer,
-  fbaCalculatorResults: fbaCalculatorSlice
+  fbaCalculatorResults: fbaCalculatorSlice,
+  fireCenters: fireCentersSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -67,6 +69,7 @@ export const selectRegionalModels = (state: RootState) => state.regionalModels
 export const selectRegionalModelSummaries = (state: RootState) =>
   state.regionalModelSummaries
 export const selectHFIStations = (state: RootState) => state.hfiStations
+export const selectFireCenters = (state: RootState) => state.fireCenters
 export const selectWxDataLoading = (state: RootState): boolean =>
   state.observations.loading ||
   state.models.loading ||
@@ -85,3 +88,5 @@ export const selectHFIStationsLoading = (state: RootState): boolean =>
   state.hfiStations.loading
 export const selectFireBehaviourStationsLoading = (state: RootState): boolean =>
   state.fbaCalculatorResults.loading
+export const selectFireCentersLoading = (state: RootState): boolean =>
+  state.fireCenters.loading
