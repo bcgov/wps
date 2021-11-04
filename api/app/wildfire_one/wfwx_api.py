@@ -76,8 +76,8 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
 
 
 async def get_station_data(session: ClientSession,
-                       header: dict,
-                       mapper=station_list_mapper):
+                           header: dict,
+                           mapper=station_list_mapper):
     """ Get list of stations from WFWX Fireweather API.
     """
     logger.info('Using WFWX to retrieve station list')
