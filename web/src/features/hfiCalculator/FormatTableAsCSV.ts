@@ -14,6 +14,11 @@ import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { NUM_WEEK_DAYS, DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 
+// padding for station-data cells (e.g., station name, fuel type) before dates begin
+const NUM_STATION_DATA_COLS = 5
+// padding for end-of-week cells (e.g., Highest Daily FIG, Calc. Prep)
+const NUM_WEEKLY_SUMMARY_CELLS = 2
+
 const printGrassCurePercentage = (daily: StationDaily): string => {
   if (!isUndefined(daily) && !isNull(daily.grass_cure_percentage)) {
     return daily.grass_cure_percentage.toString()
@@ -185,7 +190,9 @@ export class FormatTableAsCSV {
       )
     })
     // build header row of dates
-    rowsAsStrings.push(Array(5).join(',').concat(Array.from(dateSet).join(',,,,,')))
+    rowsAsStrings.push(
+      Array(NUM_STATION_DATA_COLS).join(',').concat(Array.from(dateSet).join(',,,,,'))
+    )
     rowsAsStrings.push(weeklyTableColumnLabels.toString())
 
     Object.entries(fireCentres).forEach(([, centre]) => {
@@ -230,10 +237,10 @@ export class FormatTableAsCSV {
                   ? day.intensity_group.toString()
                   : 'ND'
               )
-              rowArray.push(Array(2).join(','))
+              rowArray.push(Array(NUM_WEEKLY_SUMMARY_CELLS).join(','))
             })
 
-            rowArray.push(Array(2).join(','))
+            rowArray.push(Array(NUM_WEEKLY_SUMMARY_CELLS).join(','))
 
             rowsAsStrings.push(rowArray.toString())
           })

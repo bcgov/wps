@@ -37,6 +37,10 @@ const useStyles = makeStyles({
   ...fireTableStyles
 })
 
+const getZoneFromAreaName = (areaName: string): string => {
+  return areaName.slice(-3)
+}
+
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
@@ -119,7 +123,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                 </TableCell>
               </TableRow>
               {Object.entries(centre.planning_areas)
-                .sort((a, b) => (a[1].name.slice(-3) < b[1].name.slice(-3) ? -1 : 1)) // sort by zone code
+                .sort((a, b) =>
+                  getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
+                ) // sort by zone code
                 .map(([areaName, area]) => {
                   return (
                     <React.Fragment key={`zone-${areaName}`}>

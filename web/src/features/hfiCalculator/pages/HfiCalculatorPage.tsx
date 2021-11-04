@@ -11,7 +11,12 @@ import {
   selectHFIStationsLoading
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui/core'
-import { FileCopyOutlined, CheckOutlined, InfoOutlined } from '@material-ui/icons'
+import {
+  FileCopyOutlined,
+  CheckOutlined,
+  InfoOutlined,
+  HelpOutlineOutlined
+} from '@material-ui/icons'
 import { getDateRange } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
@@ -25,7 +30,7 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     justifyContent: 'center'
   },
-  infoIcon: {
+  helpIcon: {
     fill: theme.palette.primary.main
   },
   copyToClipboardInfoIcon: {
@@ -180,7 +185,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
           <FormControl className={classes.positionStyler}>
             <Button onClick={openAboutModal}>
-              <InfoOutlined className={classes.infoIcon}></InfoOutlined>
+              <HelpOutlineOutlined className={classes.helpIcon}></HelpOutlineOutlined>
               <p className={classes.aboutButtonText}>About this data</p>
             </Button>
           </FormControl>
