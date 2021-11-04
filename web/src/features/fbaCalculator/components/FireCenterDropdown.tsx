@@ -27,7 +27,7 @@ const FireCenterDropdown = (props: FireCenterDropdownProps) => {
         <TextField {...params} label="Select Fire Center" variant="outlined" />
       )}
       onChange={changeHandler}
-      value={props.selectedFireCenter}
+      value={props.selectedFireCenter || null}
     />
   )
 }
