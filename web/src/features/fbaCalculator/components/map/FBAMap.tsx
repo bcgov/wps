@@ -119,12 +119,13 @@ const FBAMap = (props: FBAMapProps) => {
     const mapObject = new ol.Map(options)
     mapObject.setTarget(mapRef.current)
 
-    // Calculate extent based on size in pixel of the map.
+    // Calculate extent based on maps' size in pixels.
     //
     // The extent is the minimum bounding rectangle (xmin, ymin and xmax, ymax)
-    // defined by coordinate pairs of a data source.
+    // defined by coordinate pairs of the data source.
     //
-    // We use the extent to limit the tiles requested from the BC tile layer added below.
+    // We use the extent when creating the Tile layer, presumably so
+    // OpenLayers can limit the requested number of tiles.
 
     // See:
     // - https://en.wikipedia.org/wiki/Map_extent
