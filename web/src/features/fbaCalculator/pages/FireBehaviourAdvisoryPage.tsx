@@ -2,7 +2,6 @@ import { FormControl, Grid, makeStyles } from '@material-ui/core'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fbaCalculator/components/map/FBAMap'
-import { CENTER_OF_BC } from 'utils/constants'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import FormalFBATable from 'features/fbaCalculator/components/FormalFBATable'
 import DatePicker from 'components/DatePicker'
@@ -120,7 +119,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               )}
             </Grid>
             <Grid item xs>
-              <FBAMap center={CENTER_OF_BC} className={classes.itemContainer} />
+              <FBAMap className={classes.itemContainer} />
             </Grid>
           </Grid>
         </Grid>
