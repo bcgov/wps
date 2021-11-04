@@ -24,4 +24,12 @@ describe('Fire Behaviour Advisory Page', () => {
         expect(localStorage.getItem('preferredFireCenter')).to.equal('50')
       })
   })
+
+  it('Has the preferredFireCenter in local storage not set if a center has not been selected before', () => {
+    cy.getByTestId('fire-center-dropdown')
+      .contains('Select Fire Center')
+      .should(() => {
+        expect(localStorage.getItem('preferredFireCenter')).to.be.null
+      })
+  })
 })
