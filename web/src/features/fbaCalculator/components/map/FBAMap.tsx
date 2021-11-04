@@ -68,7 +68,8 @@ const buildBCTileLayer = (extent: number[]) => {
       url: 'https://openmaps.gov.bc.ca/geo/pub/wms',
       params: {
         LAYERS: 'WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_CENTRES_SP',
-        TILED: true
+        TILED: true,
+        STYLES: '3458'
       },
       serverType: 'geoserver',
       transition: 0
