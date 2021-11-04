@@ -43,6 +43,19 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
+  useEffect(() => {
+    const findCenter = (id: string | null): FireCenter | undefined => {
+      return fireCenters.find(center => center.id.toString() == id)
+    }
+    setFireCenter(findCenter(localStorage.getItem('preferredFireCenter')))
+  }, [fireCenters])
+
+  useEffect(() => {
+    if (fireCenter?.id) {
+      localStorage.setItem('preferredFireCenter', fireCenter?.id.toString())
+    }
+  }, [fireCenter])
+
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone('UTC-7').toISO()
   )

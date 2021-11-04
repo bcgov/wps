@@ -8,11 +8,12 @@ import app.main
 from app.tests import load_json_file
 import app.routers.hfi_calc
 
+
 @pytest.mark.usefixtures("mock_jwt_decode")
 @scenario('test_fba_endpoint.feature', 'Get fire centres with their stations',
           example_converters=dict(
-            status=int,
-            expected_fire_centers=load_json_file(__file__)))
+              status=int,
+              expected_fire_centers=load_json_file(__file__)))
 def test_fba_fire_centers():
     """ BDD Scenario. """
 
