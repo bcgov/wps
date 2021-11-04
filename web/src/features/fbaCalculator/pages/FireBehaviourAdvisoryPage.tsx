@@ -46,7 +46,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
-      return fireCenters.find(fireCenter => fireCenter.id.toString() == id)
+      return fireCenters.find(center => center.id.toString() == id)
     }
     setFireCenter(findCenter(localStorage.getItem('preferredFireCenter')))
   }, [fireCenters])

@@ -2,12 +2,8 @@ import { FIRE_BEHAVIOUR_ADVISORY_ROUTE } from '../../src/utils/constants'
 
 describe('Fire Behaviour Advisory Page', () => {
   beforeEach(() => {
-    cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as(
-      'getStations'
-    )
-    cy.intercept('GET', 'api/fba/fire-centers', { fixture: 'fba/fire-centers.json' }).as(
-      'fireCenters'
-    )
+    cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
+    cy.intercept('GET', 'api/fba/fire-centers', { fixture: 'fba/fire-centers.json' }).as('fireCenters')
 
     cy.visit(FIRE_BEHAVIOUR_ADVISORY_ROUTE)
   })
@@ -16,5 +12,16 @@ describe('Fire Behaviour Advisory Page', () => {
     cy.contains('Fire Behaviour Advisory Tool')
     cy.getByTestId('fire-center-dropdown').should('be.visible')
     cy.getByTestId('fba-map').should('be.visible')
+  })
+
+  it('Sets the fireCenter in local storage when it is changed in dropdown', () => {
+    cy.wait('@getStations')
+    cy.getByTestId('fire-center-dropdown')
+      .click()
+      .type('{downArrow}')
+      .type('{enter}')
+      .should(() => {
+        expect(localStorage.getItem('preferredFireCenter')).to.equal('50')
+      })
   })
 })
