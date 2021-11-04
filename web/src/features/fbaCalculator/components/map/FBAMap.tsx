@@ -68,7 +68,7 @@ const buildBCTileLayer = (extent: number[]) => {
     source: new TileWMS({
       url: 'https://openmaps.gov.bc.ca/geo/pub/wms',
       params: {
-        // This is the WMS layer published by DataCB in the Data Catologue:
+        // This is the WMS layer published by DataBC in the Data Catologue:
         // https://catalogue.data.gov.bc.ca/dataset/bc-wildfire-fire-centres/resource/c33fd014-910f-44f6-b72e-9d7eed5100a9
         LAYERS: 'WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_CENTRES_SP',
         TILED: true,
