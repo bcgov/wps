@@ -5,3 +5,5 @@ services:
       context: .
     env_file:
       - .env.docker
+    volumes:
+      - ./:/opt/app-root/src:delegated

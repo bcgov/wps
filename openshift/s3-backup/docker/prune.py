@@ -19,7 +19,6 @@ async def fetch_file_list(client, bucket):
     if contents:
         for content in contents:
             file_list.append(content.get('Key'))
-    file_list.reverse()
     return file_list
 
 
@@ -77,6 +76,9 @@ def decide_files_to_keep(files: list) -> Set:
         Desire(desired_backups=5, interval=timedelta(days=1)),  # retain 5 daily backups
         Desire(desired_backups=5, interval=timedelta(weeks=1)),  # retain 5 weekly backups
         Desire(desired_backups=5, interval=timedelta(weeks=4))]  # retain 5 monthly
+
+    # make super sure that files are sorted in reverse order
+    files.sort(reverse=True)
 
     files_to_keep = set()
 

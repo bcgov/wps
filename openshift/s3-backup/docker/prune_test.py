@@ -9,6 +9,30 @@ class TestPrune(unittest.TestCase):
 
     def __init__(self, methodName: str = ...) -> None:
         super().__init__(methodName=methodName)
+        self.ascending_list = ['backup/blah_wps/2021/10/blah_wps_2021-10-10_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-10-11_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-10-12_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-10-13_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-10-14_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-10-15_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-10-20_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-10-21_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-10-22_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-10-29_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-10-30_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-10-31_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-11-01_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-11-02_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-11-13_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-11-14_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-11-15_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-11-16_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-11-17_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-11-18_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-11-19_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-11-20_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-11-21_14-00-10.sql.gz',
+                            'backup/blah_wps/2021/10/blah_wps_2021-11-22_14-00-10.sql.gz']
         self.small_set = ['backup/blah_wps/2021/10/blah_wps_2021-10-21_14-00-10.sql.gz',
                           'backup/blah_wps/2021/10/blah_wps_2021-10-21_09-00-28.sql.gz',
                           'backup/blah_wps/2021/10/blah_wps_2021-10-21_03-00-25.sql.gz',
@@ -37,6 +61,25 @@ class TestPrune(unittest.TestCase):
                           'backup/blah_wps/2021/10/blah_wps_2020-11-20_20-00-16.sql.gz',  # 21
                           'backup/blah_wps/2021/10/blah_wps_2019-10-20_20-00-16.sql.gz'  # 22
                           ]
+
+    def test_delete_sample_set(self):
+        """ """
+        files_to_delete = list(decide_files_to_delete(self.ascending_list.copy()))
+        files_to_delete.sort()
+        self.assertNotIn(self.ascending_list[-1], files_to_delete)
+        self.assertNotIn(self.ascending_list[-2], files_to_delete)
+        self.assertNotIn(self.ascending_list[-3], files_to_delete)
+        self.assertNotIn(self.ascending_list[-4], files_to_delete)
+        self.assertNotIn(self.ascending_list[-5], files_to_delete)
+
+    def test_keep_sample_set(self):
+        files_to_keep = list(decide_files_to_keep(self.ascending_list.copy()))
+        files_to_keep.sort()
+        self.assertIn(self.ascending_list[-1], files_to_keep)
+        self.assertIn(self.ascending_list[-2], files_to_keep)
+        self.assertIn(self.ascending_list[-3], files_to_keep)
+        self.assertIn(self.ascending_list[-4], files_to_keep)
+        self.assertIn(self.ascending_list[-5], files_to_keep)
 
     def test_keep_small_set(self):
         """ We only care about the most recent backup if there's nothing older than a day """
