@@ -16,7 +16,7 @@ from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
 from app.fba_calculator import calculate_cfb, get_fire_size, get_fire_type
 from app.utils.time import get_julian_date_now
 from app.wildfire_one.util import is_station_valid, is_station_fire_zone_valid, get_zone_code_prefix
-from app.schemas.fba import FireCentre, FireCenterStation
+from app.schemas.fba import FireCentre, FireCenterStation, FireZone
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +77,7 @@ async def fire_center_mapper(raw_stations: Generator[dict, None, None]):
         # If the station is valid, add it to our list of stations.
         if is_station_valid(raw_station) and is_station_fire_zone_valid(raw_station):
             raw_fire_center = raw_station['fireCentre']
+            zone = raw_station['zone']
             fire_center_id = raw_fire_center['id']
             station = FireCenterStation(code=raw_station['stationCode'],
                                         name=raw_station['displayLabel'],
@@ -85,9 +86,15 @@ async def fire_center_mapper(raw_stations: Generator[dict, None, None]):
             fire_center = fire_centers.get(fire_center_id, None)
             if fire_center is None:
                 fire_centers[fire_center_id] = FireCentre(
-                    id=raw_fire_center['id'], name=raw_fire_center['displayLabel'], stations=[station])
+                    id=raw_fire_center['id'], name=raw_fire_center['displayLabel'], alias=raw_fire_center['alias'], stations=[station], zones=[FireZone(id=zone['id'], displayLabel=zone['displayLabel'], fireCentreAlias=zone['fireCentreAlias'])])
+
             else:
+                zones = fire_center.zones
                 fire_center.stations.append(station)
+                zone_ids = [zone.id for zone in zones]
+                if zone is not None and zone['id'] and str(zone['fireCentreAlias']) == fire_center.alias and zone['id'] not in zone_ids:
+                    fire_center.zones.append(
+                        FireZone(id=zone['id'], displayLabel=zone['displayLabel'], fireCentreAlias=zone['fireCentreAlias']))
     return fire_centers
 
 
