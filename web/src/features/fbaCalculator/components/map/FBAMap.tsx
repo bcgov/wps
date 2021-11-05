@@ -113,7 +113,7 @@ const vectorSource = new VectorSource({
     $.ajax({
       url: url,
       dataType: 'jsonp',
-      success: function (response) {
+      success: response => {
         if (response.error) {
           alert(response.error.message + '\n' + response.error.details.join('\n'))
           if (failure) {
