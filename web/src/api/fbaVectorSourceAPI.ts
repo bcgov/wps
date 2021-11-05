@@ -2,6 +2,8 @@ import EsriJSON from 'ol/format/EsriJSON'
 import VectorSource from 'ol/source/Vector'
 import * as $ from 'jquery'
 import * as ol from 'ol'
+import Projection from 'ol/proj/Projection'
+import Geometry from 'ol/geom/Geometry'
 
 const serviceUrl =
   'https://sampleserver3.arcgisonline.com/ArcGIS/rest/services/' +
@@ -9,10 +11,10 @@ const serviceUrl =
 const layer = '0'
 export async function getFireCenterVectorSource(
   extent: number[],
-  projection: any,
-  vectorSource: VectorSource<any>,
-  success: ((arg0: ol.Feature<any>[]) => void) | undefined
-): Promise<ol.Feature<any>[] | undefined> {
+  projection: Projection,
+  vectorSource: VectorSource<Geometry>,
+  success: ((arg0: ol.Feature<Geometry>[]) => void) | undefined
+): Promise<ol.Feature<Geometry>[] | undefined> {
   const esriJsonFormat = new EsriJSON()
 
   const url =

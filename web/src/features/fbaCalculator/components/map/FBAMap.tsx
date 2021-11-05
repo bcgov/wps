@@ -22,8 +22,9 @@ import TileWMS from 'ol/source/TileWMS'
 import XYZ from 'ol/source/XYZ'
 import { tile as tileStrategy } from 'ol/loadingstrategy'
 import { createXYZ } from 'ol/tilegrid'
-import EsriJSON from 'ol/format/EsriJSON'
 import { getFireCenterVectorSource } from 'api/fbaVectorSourceAPI'
+import Geometry from 'ol/geom/Geometry'
+import RenderFeature from 'ol/render/Feature'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -138,7 +139,7 @@ const styleCache = {
 
 const vector = new OLVectorLayer({
   source: vectorSource,
-  style: function (feature: { get: (arg0: string) => any }) {
+  style: function (feature: ol.Feature<Geometry> | RenderFeature) {
     const classify = feature.get('activeprod') as StyleIndex
     return styleCache[classify]
   }
