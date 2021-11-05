@@ -27,6 +27,9 @@
         "typescript"
     ],
     "eslint.run": "onSave",
+    "[python]": {
+        "editor.rulers": [110]
+    },
     "[javascript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.tabSize": 2
