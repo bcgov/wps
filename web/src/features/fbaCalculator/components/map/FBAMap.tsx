@@ -19,6 +19,11 @@ import { selectFireWeatherStations } from 'app/rootReducer'
 import { source } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import TileWMS from 'ol/source/TileWMS'
+import XYZ from 'ol/source/XYZ'
+import { tile as tileStrategy } from 'ol/loadingstrategy'
+import { createXYZ } from 'ol/tilegrid'
+import EsriJSON from 'ol/format/EsriJSON'
+import * as $ from 'jquery'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -80,6 +85,122 @@ const buildBCTileLayer = (extent: number[]) => {
   })
 }
 
+const esrijsonFormat = new EsriJSON()
+const serviceUrl =
+  'https://sampleserver3.arcgisonline.com/ArcGIS/rest/services/' +
+  'Petroleum/KSFields/FeatureServer/'
+const layer = '0'
+const vectorSource = new VectorSource({
+  loader: (extent, _resolution, projection, success, failure) => {
+    const url =
+      serviceUrl +
+      layer +
+      '/query/?f=json&' +
+      'returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=' +
+      encodeURIComponent(
+        '{"xmin":' +
+          extent[0] +
+          ',"ymin":' +
+          extent[1] +
+          ',"xmax":' +
+          extent[2] +
+          ',"ymax":' +
+          extent[3] +
+          ',"spatialReference":{"wkid":102100}}'
+      ) +
+      '&geometryType=esriGeometryEnvelope&inSR=102100&outFields=*' +
+      '&outSR=102100'
+    $.ajax({
+      url: url,
+      dataType: 'jsonp',
+      success: function (response) {
+        if (response.error) {
+          alert(response.error.message + '\n' + response.error.details.join('\n'))
+          if (failure) {
+            failure()
+          }
+        } else {
+          // dataProjection will be read from document
+          const features = esrijsonFormat.readFeatures(response, {
+            featureProjection: projection
+          })
+          if (features.length > 0) {
+            vectorSource.addFeatures(features)
+          }
+          if (success) {
+            success(features)
+          }
+        }
+      },
+      error: failure
+    })
+  },
+  strategy: tileStrategy(
+    createXYZ({
+      tileSize: 512
+    })
+  )
+})
+
+type StyleIndex = 'ABANDONED' | 'GAS' | 'OIL' | 'OILGAS'
+const styleCache = {
+  ABANDONED: new Style({
+    fill: new Fill({
+      color: 'rgba(225, 225, 225, 255)'
+    }),
+    stroke: new Stroke({
+      color: 'rgba(0, 0, 0, 255)',
+      width: 0.4
+    })
+  }),
+  GAS: new Style({
+    fill: new Fill({
+      color: 'rgba(255, 0, 0, 255)'
+    }),
+    stroke: new Stroke({
+      color: 'rgba(110, 110, 110, 255)',
+      width: 0.4
+    })
+  }),
+  OIL: new Style({
+    fill: new Fill({
+      color: 'rgba(56, 168, 0, 255)'
+    }),
+    stroke: new Stroke({
+      color: 'rgba(110, 110, 110, 255)',
+      width: 0
+    })
+  }),
+  OILGAS: new Style({
+    fill: new Fill({
+      color: 'rgba(168, 112, 0, 255)'
+    }),
+    stroke: new Stroke({
+      color: 'rgba(110, 110, 110, 255)',
+      width: 0.4
+    })
+  })
+}
+
+const vector = new OLVectorLayer({
+  source: vectorSource,
+  style: function (feature: { get: (arg0: string) => any }) {
+    const classify = feature.get('activeprod') as StyleIndex
+    return styleCache[classify]
+  }
+})
+
+const raster = new Tile({
+  source: new XYZ({
+    attributions:
+      'Tiles © <a href="https://services.arcgisonline.com/ArcGIS/' +
+      'rest/services/World_Topo_Map/MapServer">ArcGIS</a>',
+    url:
+      'https://server.arcgisonline.com/ArcGIS/rest/services/' +
+      'World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
+  })
+})
+
 const FBAMap = (props: FBAMapProps) => {
   const useStyles = makeStyles({
     main: {
@@ -101,15 +222,10 @@ const FBAMap = (props: FBAMapProps) => {
 
     const options: MapOptions = {
       view: new ol.View({
-        zoom,
-        center: fromLonLat(BC_CENTER_FIRE_CENTERS)
+        center: fromLonLat([-97.6114, 38.8403]),
+        zoom: 7
       }),
-      layers: [
-        new Tile({
-          source
-        }),
-        buildHFILayers()
-      ],
+      layers: [raster, vector],
       overlays: [],
       controls: defaultControls()
     }
