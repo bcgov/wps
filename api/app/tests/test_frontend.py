@@ -1,3 +1,4 @@
+""" Unit tests for front end """
 import unittest
 
 from unittest.mock import patch
