@@ -23,7 +23,7 @@ import XYZ from 'ol/source/XYZ'
 import { tile as tileStrategy } from 'ol/loadingstrategy'
 import { createXYZ } from 'ol/tilegrid'
 import EsriJSON from 'ol/format/EsriJSON'
-import * as $ from 'jquery'
+import { getFireCenterVectorSource } from 'api/fbaVectorSourceAPI'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -85,55 +85,9 @@ const buildBCTileLayer = (extent: number[]) => {
   })
 }
 
-const esrijsonFormat = new EsriJSON()
-const serviceUrl =
-  'https://sampleserver3.arcgisonline.com/ArcGIS/rest/services/' +
-  'Petroleum/KSFields/FeatureServer/'
-const layer = '0'
 const vectorSource = new VectorSource({
-  loader: (extent, _resolution, projection, success, failure) => {
-    const url =
-      serviceUrl +
-      layer +
-      '/query/?f=json&' +
-      'returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=' +
-      encodeURIComponent(
-        '{"xmin":' +
-          extent[0] +
-          ',"ymin":' +
-          extent[1] +
-          ',"xmax":' +
-          extent[2] +
-          ',"ymax":' +
-          extent[3] +
-          ',"spatialReference":{"wkid":102100}}'
-      ) +
-      '&geometryType=esriGeometryEnvelope&inSR=102100&outFields=*' +
-      '&outSR=102100'
-    $.ajax({
-      url: url,
-      dataType: 'jsonp',
-      success: response => {
-        if (response.error) {
-          alert(response.error.message + '\n' + response.error.details.join('\n'))
-          if (failure) {
-            failure()
-          }
-        } else {
-          // dataProjection will be read from document
-          const features = esrijsonFormat.readFeatures(response, {
-            featureProjection: projection
-          })
-          if (features.length > 0) {
-            vectorSource.addFeatures(features)
-          }
-          if (success) {
-            success(features)
-          }
-        }
-      },
-      error: failure
-    })
+  loader: async (extent, _resolution, projection, success) => {
+    getFireCenterVectorSource(extent, projection, vectorSource, success)
   },
   strategy: tileStrategy(
     createXYZ({

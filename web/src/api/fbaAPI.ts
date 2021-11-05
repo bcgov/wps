@@ -1,5 +1,4 @@
 import axios from 'api/axios'
-import EsriJSON from 'ol/format/EsriJSON'
 
 export interface FireCenterStation {
   code: number
@@ -22,13 +21,4 @@ export async function getFBAFireCenters(): Promise<FBAResponse> {
 
   const { data } = await axios.get(url, {})
   return data
-}
-
-export async function getFireCenterVectorSource(url: string, projection: any) {
-  const esriJsonFormat = new EsriJSON()
-  const { data } = await axios.get(url, { params: { dataType: 'jsonp' } })
-  const features = esriJsonFormat.readFeatures(data, {
-    featureProjection: projection
-  })
-  return features
 }
