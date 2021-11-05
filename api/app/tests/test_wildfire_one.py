@@ -58,7 +58,7 @@ def mock_get_fire_centre_station_codes(__):
 def test_get_ids_from_station_codes_no_stations(mocker: MockFixture):
     """ Verifies the query builder returns the correct url and parameters for dailies by station code """
     mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
-    mocker.patch('app.wildfire_one.wfwx_api.get_stations', mock_get_stations)
+    mocker.patch('app.wildfire_one.wfwx_api.get_station_data', mock_get_stations)
 
     async def run_test():
         """ Async function to run test and assert result """
@@ -73,7 +73,7 @@ def test_get_ids_from_station_codes_no_stations(mocker: MockFixture):
 def test_get_ids_from_station_codes(mocker: MockFixture):
     """ Verifies the query builder returns the correct url and parameters for dailies by station code """
     mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
-    mocker.patch('app.wildfire_one.wfwx_api.get_stations', mock_get_stations)
+    mocker.patch('app.wildfire_one.wfwx_api.get_station_data', mock_get_stations)
 
     async def run_test():
         """ Async function to run test and assert result """
