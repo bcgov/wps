@@ -65,27 +65,6 @@ const buildHFILayers = () => {
   })
 }
 
-const buildBCTileLayer = (extent: number[]) => {
-  return new Tile({
-    extent,
-    opacity: 0.5,
-    // Preload tiles. Load low-resolution tiles up to preload levels. Infinity means as much as possible.
-    preload: Infinity,
-    source: new TileWMS({
-      url: 'https://openmaps.gov.bc.ca/geo/pub/wms',
-      params: {
-        // This is the WMS layer published by DataBC in the Data Catologue:
-        // https://catalogue.data.gov.bc.ca/dataset/bc-wildfire-fire-centres/resource/c33fd014-910f-44f6-b72e-9d7eed5100a9
-        LAYERS: 'WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_CENTRES_SP',
-        TILED: true,
-        STYLES: '3458'
-      },
-      serverType: 'geoserver',
-      transition: 0
-    })
-  })
-}
-
 const vectorSource = new VectorSource({
   loader: async (extent, _resolution, projection, success) => {
     getFireCenterVectorSource(extent, projection, vectorSource, success)
@@ -97,51 +76,18 @@ const vectorSource = new VectorSource({
   )
 })
 
-type StyleIndex = 'ABANDONED' | 'GAS' | 'OIL' | 'OILGAS'
-const styleCache = {
-  ABANDONED: new Style({
-    fill: new Fill({
-      color: 'rgba(225, 225, 225, 255)'
-    }),
-    stroke: new Stroke({
-      color: 'rgba(0, 0, 0, 255)',
-      width: 0.4
-    })
-  }),
-  GAS: new Style({
-    fill: new Fill({
-      color: 'rgba(255, 0, 0, 255)'
-    }),
-    stroke: new Stroke({
-      color: 'rgba(110, 110, 110, 255)',
-      width: 0.4
-    })
-  }),
-  OIL: new Style({
-    fill: new Fill({
-      color: 'rgba(56, 168, 0, 255)'
-    }),
-    stroke: new Stroke({
-      color: 'rgba(110, 110, 110, 255)',
-      width: 0
-    })
-  }),
-  OILGAS: new Style({
-    fill: new Fill({
-      color: 'rgba(168, 112, 0, 255)'
-    }),
-    stroke: new Stroke({
-      color: 'rgba(110, 110, 110, 255)',
-      width: 0.4
-    })
-  })
-}
-
 const vector = new OLVectorLayer({
   source: vectorSource,
   style: function (feature: ol.Feature<Geometry> | RenderFeature) {
-    const classify = feature.get('activeprod') as StyleIndex
-    return styleCache[classify]
+    return new Style({
+      // fill: new Fill({
+      //   color: 'blue'
+      // }),
+      stroke: new Stroke({
+        color: 'blue',
+        width: 4
+      })
+    })
   }
 })
 
@@ -177,10 +123,10 @@ const FBAMap = (props: FBAMapProps) => {
 
     const options: MapOptions = {
       view: new ol.View({
-        center: fromLonLat([-97.6114, 38.8403]),
-        zoom: 7
+        center: fromLonLat(BC_CENTER_FIRE_CENTERS),
+        zoom
       }),
-      layers: [raster, vector],
+      layers: [vector],
       overlays: [],
       controls: defaultControls()
     }
@@ -203,8 +149,6 @@ const FBAMap = (props: FBAMapProps) => {
     // - https://openlayers.org/en/latest/apidoc/module-ol_extent.html
     // - https://gis.stackexchange.com/questions/240979/difference-between-bounding-box-envelope-extent-bounds
 
-    const extent = mapObject.getView().calculateExtent(mapObject.getSize())
-    mapObject.addLayer(buildBCTileLayer(extent))
     setMap(mapObject)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -229,7 +173,7 @@ const FBAMap = (props: FBAMapProps) => {
       })
     })
 
-    map?.addLayer(stationsLayer)
+    // map?.addLayer(stationsLayer)
   }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <ErrorBoundary>

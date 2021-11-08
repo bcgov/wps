@@ -9,6 +9,10 @@ const serviceUrl =
   'https://sampleserver3.arcgisonline.com/ArcGIS/rest/services/' +
   'Petroleum/KSFields/FeatureServer/'
 const layer = '0'
+
+const fireCenterUrl =
+  'https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/'
+const outlineLayer = '2'
 export async function getFireCenterVectorSource(
   extent: number[],
   projection: Projection,
@@ -18,8 +22,8 @@ export async function getFireCenterVectorSource(
   const esriJsonFormat = new EsriJSON()
 
   const url =
-    serviceUrl +
-    layer +
+    fireCenterUrl +
+    outlineLayer +
     '/query/?f=json&' +
     'returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=' +
     encodeURIComponent(
@@ -46,6 +50,7 @@ export async function getFireCenterVectorSource(
         featureProjection: projection
       })
       if (features.length > 0) {
+        console.log(features)
         vectorSource.addFeatures(features)
       }
       if (success) {
