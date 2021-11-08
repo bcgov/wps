@@ -663,7 +663,7 @@ SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.15
   })
 
   it("should not break CSV export when there's a escape character in the station name", () => {
-    const escapeCharFireCentres = fireCentres
+    const escapeCharFireCentres = JSON.parse(JSON.stringify(fireCentres)) // hack to deep copy
     escapeCharFireCentres[0].planning_areas[1].stations[0].station_props.name = 'AF`TON'
     escapeCharFireCentres[0].planning_areas[1].stations[2].station_props.name =
       '`CLEARWATER HUB'
@@ -725,6 +725,69 @@ SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.15
 
     expect(dailyTableCSVString.replace(/\s+/g, '')).toEqual(
       expectedDailyEscapeString.replace(/\s+/g, '')
+    )
+  })
+
+  it('should insert ND for station that has no elevation data available', () => {
+    const missingElevationFireCentres = JSON.parse(JSON.stringify(fireCentres)) // a hack to deep copy
+    missingElevationFireCentres[0].planning_areas[1].stations[0].station_props.elevation =
+      undefined
+    missingElevationFireCentres[0].planning_areas[1].stations[2].station_props.elevation =
+      undefined
+
+    const dailyTableCSVString = FormatTableAsCSV.exportDailyRowsAsStrings(
+      missingElevationFireCentres,
+      dailies
+    )
+    const expectedDailyNDString = `Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level
+    Kamloops Fire Centre
+    Kamloops (K2), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1
+    AFTON (322),ND,O1B,ND,ND,ND,ND,ND,ND,ERROR,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    BLUE RIVER 2 (1108),695,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    CLEARWATER HUB (239),ND,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    MAYSON (1082),1315,C3,ACTUAL,3.0,37.0,101,7.4,2.2,NaN,54.328,0.391,376.251,0.381,0.781,0.096,NaN,0.0,0.0,0.0,SUR,1
+    
+    SPARKS LAKE (305),972,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    WELLS GRAY (266),959,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    Vernon (K4), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined
+    FINTRY (298),670,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    KETTLE 2 (388),1389,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    SALMON ARM (346),527,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    SEYMOUR ARM (344),511,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    TURTLE (286),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    Penticton (K5), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined
+    MCCUDDY (334),1067,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    PENTICTON RS (328),427,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    Merritt (K6), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined
+    AUGUST LAKE (836),855,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    MERRITT 2 HUB (1399),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    Lillooet (K7), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1
+    FIVE MILE (1029),865,C7,ACTUAL,1.4,57.0,205,7.0,0.0,NaN,69.486,0.735,252.982,0.876,1.459,0.25,NaN,0.0,0.0,0.0,SUR,1
+    
+    FRENCH BAR (306),1320,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    GWYNETH LAKE (309),1205,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    LILLOOET (280),408,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.154,10.908,0.098,NaN,0.0,0.0,0.0,SUR,1`
+
+    expect(dailyTableCSVString.replace(/\s+/g, '')).toEqual(
+      expectedDailyNDString.replace(/\s+/g, '')
     )
   })
 })
