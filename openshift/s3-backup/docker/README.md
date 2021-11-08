@@ -42,3 +42,15 @@ brew reinstall zlib bzip2
 poetry env use /Users/[user]/.pyenv/versions/3.6.8/bin/python
 poetry install
 ```
+
+### Ubunut specific instructions
+
+If you have trouble getting poetry to use python 3.6.*
+
+Install [pyenv](https://github.com/pyenv/pyenv) then
+
+```bash
+pyenv install 3.6.15
+poetry env use /home/[user]/.pyenv/versions/3.6.15
+poetry install
+```
