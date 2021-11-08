@@ -21,6 +21,8 @@ export async function getFireCenterVectorSource(
     outlineLayer +
     '/query/?f=json&' +
     'returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=' +
+    // Extent, see description here:
+    // https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm
     encodeURIComponent(
       '{"xmin":' +
         extent[0] +
@@ -31,6 +33,22 @@ export async function getFireCenterVectorSource(
         ',"ymax":' +
         extent[3] +
         ',"spatialReference":{"wkid":102100}}'
+    ) +
+    // Quantization Parameter, see description here:
+    // https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm
+    encodeURIComponent(
+      `
+      {
+        "mode": "view", "originPosition": "upperLeft", "tolerance": ${1222.992452562501},
+        "extent":
+          { "type":"extent",
+            "xmin":${extent[0]},
+            "ymin":${extent[1]},
+            "xmax":${extent[2]},
+            "ymax":${extent[3]},
+            "spatialReference":{"wkid":102100}}
+      }
+      `
     ) +
     '&geometryType=esriGeometryEnvelope&inSR=102100&outFields=*' +
     '&outSR=102100'
@@ -45,7 +63,6 @@ export async function getFireCenterVectorSource(
         featureProjection: projection
       })
       if (features.length > 0) {
-        console.log(features)
         vectorSource.addFeatures(features)
       }
       if (success) {
