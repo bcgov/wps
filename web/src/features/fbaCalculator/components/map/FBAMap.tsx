@@ -19,6 +19,7 @@ import Tile from 'ol/layer/Tile'
 import { tile as tileStrategy } from 'ol/loadingstrategy'
 import { createXYZ } from 'ol/tilegrid'
 import { getFireCenterVectorSource } from 'api/fbaVectorSourceAPI'
+import { TileWMS } from 'ol/source'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -52,6 +53,24 @@ const vector = new OLVectorLayer({
     })
   }
 })
+
+const buildFireZoneTileLayer = (extent: number[]) => {
+  return new Tile({
+    extent,
+    opacity: 1,
+    preload: Infinity,
+    source: new TileWMS({
+      url: 'https://openmaps.gov.bc.ca/geo/pub/wms',
+      params: {
+        LAYERS: 'WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_ZONES_SP',
+        TILED: true,
+        STYLES: '3460'
+      },
+      serverType: 'geoserver',
+      transition: 0
+    })
+  })
+}
 
 const FBAMap = (props: FBAMapProps) => {
   const useStyles = makeStyles({
