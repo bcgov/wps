@@ -98,9 +98,12 @@ async def fire_center_mapper(raw_stations: Generator[dict, None, None]):
                 zones = fire_center.zones
                 fire_center.stations.append(station)
                 zone_ids = [zone.id for zone in zones]
-                if zone['id'] and str(zone['fireCentreAlias']) == fire_center.alias and zone['id'] not in zone_ids:
-                    fire_center.zones.append(
-                        FireZone(id=zone['id'], displayLabel=zone['displayLabel'], fireCentreAlias=zone['fireCentreAlias']))
+                if zone['id'] and str(zone['fireCentreAlias']) == fire_center.alias:
+                    if zone['id'] not in zone_ids:
+                        fire_center.zones.append(
+                            FireZone(id=zone['id'],
+                                     displayLabel=zone['displayLabel'],
+                                     fireCentreAlias=zone['fireCentreAlias']))
     return fire_centers
 
 
@@ -142,7 +145,7 @@ def parse_hourly(hourly) -> WeatherReading:
     """ Transform from the raw hourly json object returned by wf1, to our hourly object.
     """
     timestamp = datetime.fromtimestamp(
-        int(hourly['weatherTimestamp'])/1000, tz=timezone.utc).isoformat()
+        int(hourly['weatherTimestamp']) / 1000, tz=timezone.utc).isoformat()
     return WeatherReading(
         datetime=timestamp,
         temperature=hourly.get('temperature', None),
