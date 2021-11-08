@@ -86,13 +86,19 @@ async def fire_center_mapper(raw_stations: Generator[dict, None, None]):
             fire_center = fire_centers.get(fire_center_id, None)
             if fire_center is None:
                 fire_centers[fire_center_id] = FireCentre(
-                    id=raw_fire_center['id'], name=raw_fire_center['displayLabel'], alias=raw_fire_center['alias'], stations=[station], zones=[FireZone(id=zone['id'], displayLabel=zone['displayLabel'], fireCentreAlias=zone['fireCentreAlias'])])
+                    id=raw_fire_center['id'],
+                    name=raw_fire_center['displayLabel'],
+                    alias=raw_fire_center['alias'],
+                    stations=[station],
+                    zones=[FireZone(id=zone['id'],
+                                    displayLabel=zone['displayLabel'],
+                                    fireCentreAlias=zone['fireCentreAlias'])])
 
             else:
                 zones = fire_center.zones
                 fire_center.stations.append(station)
                 zone_ids = [zone.id for zone in zones]
-                if zone is not None and zone['id'] and str(zone['fireCentreAlias']) == fire_center.alias and zone['id'] not in zone_ids:
+                if zone['id'] and str(zone['fireCentreAlias']) == fire_center.alias and zone['id'] not in zone_ids:
                     fire_center.zones.append(
                         FireZone(id=zone['id'], displayLabel=zone['displayLabel'], fireCentreAlias=zone['fireCentreAlias']))
     return fire_centers
