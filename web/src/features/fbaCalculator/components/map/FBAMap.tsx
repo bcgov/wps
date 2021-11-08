@@ -43,7 +43,7 @@ const vectorSource = new VectorSource({
 
 const vector = new OLVectorLayer({
   source: vectorSource,
-  style: function () {
+  style: () => {
     return new Style({
       stroke: new Stroke({
         color: 'blue',

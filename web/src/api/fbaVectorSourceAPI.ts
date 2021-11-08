@@ -8,12 +8,22 @@ import Geometry from 'ol/geom/Geometry'
 const fireCenterUrl =
   'https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/'
 const outlineLayer = '2'
-export async function getFireCenterVectorSource(
+/**
+ * Retrieves fire center polygons from maps.gov.bc.ca arcserver
+ * Requests are made dynamically as an openlayers vector source.
+ *
+ * @param extent Current extent of the view
+ * @param projection Current projection
+ * @param vectorSource the source to add the requested features to
+ * @param success success callback
+ * @returns
+ */
+export const getFireCenterVectorSource = async (
   extent: number[],
   projection: Projection,
   vectorSource: VectorSource<Geometry>,
   success: ((arg0: ol.Feature<Geometry>[]) => void) | undefined
-): Promise<ol.Feature<Geometry>[] | undefined> {
+): Promise<ol.Feature<Geometry>[] | undefined> => {
   const esriJsonFormat = new EsriJSON()
 
   const url =
