@@ -50,7 +50,7 @@ If you have trouble getting poetry to use python 3.6.*
 Install [pyenv](https://github.com/pyenv/pyenv) then
 
 ```bash
-pyenv install 3.6.15
-poetry env use /home/[user]/.pyenv/versions/3.6.15
+pyenv install 3.6.8
+poetry env use /home/[user]/.pyenv/versions/3.6.8/bin/python
 poetry install
 ```
