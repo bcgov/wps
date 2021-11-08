@@ -21,6 +21,7 @@ import { fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { union } from 'lodash'
 import { getDailiesByStationCode, getDailiesForArea } from 'features/hfiCalculator/util'
+import { getZoneFromAreaName } from 'features/hfiCalculator/components/WeeklyViewTable'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -232,7 +233,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                 </TableCell>
               </TableRow>
               {Object.entries(centre.planning_areas)
-                .sort((a, b) => (a[1].name.slice(-3) < b[1].name.slice(-3) ? -1 : 1)) // sort by zone code
+                .sort((a, b) =>
+                  getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
+                ) // sort by zone code
                 .map(([areaName, area]) => {
                   const areaDailies = getDailiesForArea(area, props.dailies, selected)
                   const meanIntensityGroup = calculateMeanIntensity(areaDailies)

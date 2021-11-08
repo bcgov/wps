@@ -37,7 +37,7 @@ const useStyles = makeStyles({
   ...fireTableStyles
 })
 
-const getZoneFromAreaName = (areaName: string): string => {
+export const getZoneFromAreaName = (areaName: string): string => {
   return areaName.slice(-3)
 }
 
