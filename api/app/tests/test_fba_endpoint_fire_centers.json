@@ -1,0 +1,1851 @@
+{
+    "fire_centers":[
+       {
+          "id":"50",
+          "name":"Coastal Fire Centre",
+          "stations":[
+             {
+                "code":995,
+                "name":"TS ARTLISH",
+                "zone":"V8"
+             },
+             {
+                "code":1013,
+                "name":"NORTH COWICHAN (EC)",
+                "zone":"V6"
+             },
+             {
+                "code":1015,
+                "name":"QUALICUM AP (EC)",
+                "zone":"V7"
+             },
+             {
+                "code":1016,
+                "name":"SECHELT (EC)",
+                "zone":"V5"
+             },
+             {
+                "code":1095,
+                "name":"QUINSAM BASE DL",
+                "zone":"V8"
+             },
+             {
+                "code":1099,
+                "name":"PAT BAY F6 TEST",
+                "zone":"V6"
+             },
+             {
+                "code":1025,
+                "name":"TS THEODOSIA",
+                "zone":"V5"
+             },
+             {
+                "code":1040,
+                "name":"BIG SILVER 2",
+                "zone":"V1"
+             },
+             {
+                "code":1056,
+                "name":"TS MAURELLE",
+                "zone":"V5"
+             },
+             {
+                "code":1066,
+                "name":"TS MCNABB",
+                "zone":"V5"
+             },
+             {
+                "code":1083,
+                "name":"MEAGER CREEK",
+                "zone":"V3"
+             },
+             {
+                "code":944,
+                "name":"TS SAN JUAN",
+                "zone":"V6"
+             },
+             {
+                "code":945,
+                "name":"TS NAKA CREEK",
+                "zone":"V8"
+             },
+             {
+                "code":956,
+                "name":"TS EFFINGHAM",
+                "zone":"V7"
+             },
+             {
+                "code":977,
+                "name":"ANDERSON CREEK",
+                "zone":"V1"
+             },
+             {
+                "code":1398,
+                "name":"TS NAHMINT",
+                "zone":"V7"
+             },
+             {
+                "code":1141,
+                "name":"MARTINS GULCH (CRD)",
+                "zone":"V6"
+             },
+             {
+                "code":1142,
+                "name":"14G (CRD)",
+                "zone":"V6"
+             },
+             {
+                "code":1143,
+                "name":"4RW6 (CRD)",
+                "zone":"V6"
+             },
+             {
+                "code":1144,
+                "name":"FORD MOUNTAIN",
+                "zone":"V1"
+             },
+             {
+                "code":1166,
+                "name":"NORTH BASIN (CRD)",
+                "zone":"V6"
+             },
+             {
+                "code":1184,
+                "name":"ZZ CLENDINNING QD",
+                "zone":"V3"
+             },
+             {
+                "code":1199,
+                "name":"CLAYTON FALLS",
+                "zone":"V10"
+             },
+             {
+                "code":1218,
+                "name":"POWELL RIVER WEST LAKE",
+                "zone":"V5"
+             },
+             {
+                "code":1221,
+                "name":"MOUNT CAYLEY",
+                "zone":"V3"
+             },
+             {
+                "code":1247,
+                "name":"ZZ COBBLE HILL TEST",
+                "zone":"V6"
+             },
+             {
+                "code":1251,
+                "name":"NARROWS INLET",
+                "zone":"V5"
+             },
+             {
+                "code":1275,
+                "name":"APE LAKE",
+                "zone":"V10"
+             },
+             {
+                "code":1276,
+                "name":"MACHMELL KLINIKLINI",
+                "zone":"V10"
+             },
+             {
+                "code":1283,
+                "name":"CHEAKAMUS",
+                "zone":"V3"
+             },
+             {
+                "code":1313,
+                "name":"TETRAHEDRON",
+                "zone":"V5"
+             },
+             {
+                "code":1362,
+                "name":"TS BURMAN",
+                "zone":"V8"
+             },
+             {
+                "code":1375,
+                "name":"FRANK CREEK",
+                "zone":"V3"
+             },
+             {
+                "code":1378,
+                "name":"TS ATLUCK",
+                "zone":"V8"
+             },
+             {
+                "code":1383,
+                "name":"CHEF CREEK TEST",
+                "zone":"V7"
+             },
+             {
+                "code":896,
+                "name":"CALLAGHAN VALLEY (EC)",
+                "zone":"V3"
+             },
+             {
+                "code":904,
+                "name":"HAGENSBORG 2",
+                "zone":"V10"
+             },
+             {
+                "code":233,
+                "name":"TALCHAKO",
+                "zone":"V10"
+             },
+             {
+                "code":915,
+                "name":"SATURNA (EC)",
+                "zone":"V6"
+             },
+             {
+                "code":292,
+                "name":"DARCY",
+                "zone":"V3"
+             },
+             {
+                "code":316,
+                "name":"NAHATLATCH",
+                "zone":"V1"
+             },
+             {
+                "code":317,
+                "name":"ALLISON PASS",
+                "zone":"V1"
+             },
+             {
+                "code":458,
+                "name":"STANLEY SF",
+                "zone":"V6"
+             },
+             {
+                "code":543,
+                "name":"31N (CRD)",
+                "zone":"V6"
+             },
+             {
+                "code":554,
+                "name":"CAPILANO GVRD",
+                "zone":"V1"
+             },
+             {
+                "code":555,
+                "name":"SEYMOUR GVRD",
+                "zone":"V1"
+             },
+             {
+                "code":1,
+                "name":"TOFINO AP (EC)",
+                "zone":"V7"
+             },
+             {
+                "code":2,
+                "name":"PORT HARDY AP (EC)",
+                "zone":"V9"
+             },
+             {
+                "code":21,
+                "name":"WOSS CAMP",
+                "zone":"V9"
+             },
+             {
+                "code":26,
+                "name":"CAMPBELL RIVER AP (EC)",
+                "zone":"V8"
+             },
+             {
+                "code":33,
+                "name":"MESACHIE DL",
+                "zone":"V6"
+             },
+             {
+                "code":45,
+                "name":"SALTSPRING 2",
+                "zone":"V6"
+             },
+             {
+                "code":49,
+                "name":"VICTORIA AP (EC)",
+                "zone":"V6"
+             },
+             {
+                "code":56,
+                "name":"BOWSER",
+                "zone":"V7"
+             },
+             {
+                "code":59,
+                "name":"CEDAR",
+                "zone":"V7"
+             },
+             {
+                "code":72,
+                "name":"UBC RESEARCH",
+                "zone":"V1"
+             },
+             {
+                "code":75,
+                "name":"TOBA CAMP",
+                "zone":"V5"
+             },
+             {
+                "code":82,
+                "name":"SCAR CREEK",
+                "zone":"V5"
+             },
+             {
+                "code":83,
+                "name":"SQUAMISH AP (EC)",
+                "zone":"V3"
+             },
+             {
+                "code":93,
+                "name":"HONNA",
+                "zone":"V11"
+             },
+             {
+                "code":101,
+                "name":"MACHMELL",
+                "zone":"V10"
+             },
+             {
+                "code":69,
+                "name":"VANCOUVER AP (EC)",
+                "zone":"V1"
+             },
+             {
+                "code":1630,
+                "name":"ELEVEN MILE CREEK QD",
+                "zone":"V1"
+             },
+             {
+                "code":37,
+                "name":"BEAVER CREEK",
+                "zone":"V7"
+             },
+             {
+                "code":934,
+                "name":"MESACHIE 2",
+                "zone":"V6"
+             },
+             {
+                "code":1002,
+                "name":"TS ELPHINSTONE",
+                "zone":"V5"
+             },
+             {
+                "code":67,
+                "name":"HAIG CAMP",
+                "zone":"V1"
+             },
+             {
+                "code":1408,
+                "name":"TS BLACKWATER",
+                "zone":"V8"
+             },
+             {
+                "code":1093,
+                "name":"QUINSAM BASE FWX",
+                "zone":"V8"
+             },
+             {
+                "code":301,
+                "name":"PEMBERTON BASE",
+                "zone":"V3"
+             },
+             {
+                "code":19,
+                "name":"MENZIES CAMP",
+                "zone":"V8"
+             },
+             {
+                "code":1339,
+                "name":"BOOTHROYD",
+                "zone":"V1"
+             },
+             {
+                "code":1410,
+                "name":"CHITTENDEN MEADOWS QD",
+                "zone":"V1"
+             },
+             {
+                "code":11,
+                "name":"SUMMIT",
+                "zone":"V7"
+             },
+             {
+                "code":556,
+                "name":"COQUITLAM GVRD",
+                "zone":"V1"
+             }
+          ]
+       },
+       {
+          "id":"60",
+          "name":"BCWS HQ",
+          "stations":[
+             {
+                "code":1003,
+                "name":"ZZ BAY ST TESTQD",
+                "zone":null
+             },
+             {
+                "code":1348,
+                "name":"KLINAKLINI",
+                "zone":null
+             },
+             {
+                "code":1350,
+                "name":"LOWER CAIN",
+                "zone":null
+             },
+             {
+                "code":1349,
+                "name":"HOMATHKO",
+                "zone":null
+             }
+          ]
+       },
+       {
+          "id":"25",
+          "name":"Kamloops Fire Centre",
+          "stations":[
+             {
+                "code":1024,
+                "name":"SKOONKA",
+                "zone":"K7"
+             },
+             {
+                "code":1029,
+                "name":"FIVE MILE",
+                "zone":"K7"
+             },
+             {
+                "code":1055,
+                "name":"SPLINTLUM",
+                "zone":"K7"
+             },
+             {
+                "code":1082,
+                "name":"MAYSON",
+                "zone":"K2"
+             },
+             {
+                "code":1392,
+                "name":"MCNULTY EXT",
+                "zone":"K6"
+             },
+             {
+                "code":1396,
+                "name":"APEX EXT",
+                "zone":"K5"
+             },
+             {
+                "code":1399,
+                "name":"MERRITT 2 HUB",
+                "zone":"K6"
+             },
+             {
+                "code":1406,
+                "name":"TEST STATION",
+                "zone":"K1"
+             },
+             {
+                "code":1173,
+                "name":"ASHCROFT (EC)",
+                "zone":"K2"
+             },
+             {
+                "code":1176,
+                "name":"MUDPIT",
+                "zone":"K1"
+             },
+             {
+                "code":1277,
+                "name":"WEST KELOWNA",
+                "zone":"K5"
+             },
+             {
+                "code":1323,
+                "name":"LARCH HILLS WEST",
+                "zone":"K3"
+             },
+             {
+                "code":1330,
+                "name":"LODESTONE EXT",
+                "zone":"K6"
+             },
+             {
+                "code":1332,
+                "name":"GRIZZLY EXT",
+                "zone":"K6"
+             },
+             {
+                "code":1359,
+                "name":"STATION BAY 2",
+                "zone":"K4"
+             },
+             {
+                "code":239,
+                "name":"CLEARWATER HUB",
+                "zone":"K1"
+             },
+             {
+                "code":243,
+                "name":"EAST BARRIERE",
+                "zone":"K2"
+             },
+             {
+                "code":253,
+                "name":"CAHILTY",
+                "zone":"K2"
+             },
+             {
+                "code":257,
+                "name":"BLUE RIVER DL",
+                "zone":"K3"
+             },
+             {
+                "code":266,
+                "name":"WELLS GRAY",
+                "zone":"K1"
+             },
+             {
+                "code":267,
+                "name":"BERRY",
+                "zone":"K1"
+             },
+             {
+                "code":279,
+                "name":"THYNNE",
+                "zone":"K6"
+             },
+             {
+                "code":876,
+                "name":"IDABEL LAKE 3",
+                "zone":"K5"
+             },
+             {
+                "code":882,
+                "name":"SICAMOUS",
+                "zone":"K3"
+             },
+             {
+                "code":836,
+                "name":"AUGUST LAKE",
+                "zone":"K6"
+             },
+             {
+                "code":232,
+                "name":"COLDSCAUR LAKE",
+                "zone":"K1"
+             },
+             {
+                "code":334,
+                "name":"MCCUDDY",
+                "zone":"K5"
+             },
+             {
+                "code":344,
+                "name":"SEYMOUR ARM",
+                "zone":"K3"
+             },
+             {
+                "code":346,
+                "name":"SALMON ARM",
+                "zone":"K3"
+             },
+             {
+                "code":352,
+                "name":"CURWEN CREEK",
+                "zone":"K4"
+             },
+             {
+                "code":283,
+                "name":"BRENDA MINES",
+                "zone":"K5"
+             },
+             {
+                "code":286,
+                "name":"TURTLE",
+                "zone":"K3"
+             },
+             {
+                "code":291,
+                "name":"GLIMPSE",
+                "zone":"K6"
+             },
+             {
+                "code":298,
+                "name":"FINTRY",
+                "zone":"K4"
+             },
+             {
+                "code":305,
+                "name":"SPARKS LAKE",
+                "zone":"K2"
+             },
+             {
+                "code":306,
+                "name":"FRENCH BAR",
+                "zone":"K7"
+             },
+             {
+                "code":307,
+                "name":"LEIGHTON LAKE",
+                "zone":"K2"
+             },
+             {
+                "code":309,
+                "name":"GWYNETH LAKE",
+                "zone":"K7"
+             },
+             {
+                "code":311,
+                "name":"MCLEAN LAKE",
+                "zone":"K2"
+             },
+             {
+                "code":322,
+                "name":"AFTON",
+                "zone":"K2"
+             },
+             {
+                "code":326,
+                "name":"PASKA LAKE",
+                "zone":"K2"
+             },
+             {
+                "code":362,
+                "name":"MABEL LAKE 2",
+                "zone":"K4"
+             },
+             {
+                "code":473,
+                "name":"FOGHORN  SF",
+                "zone":"K1"
+             },
+             {
+                "code":474,
+                "name":"FROTH-WIND",
+                "zone":"K1"
+             },
+             {
+                "code":476,
+                "name":"MOUNT MOORE  SF",
+                "zone":"K5"
+             },
+             {
+                "code":478,
+                "name":"PROMONTORY  SF",
+                "zone":"K6"
+             },
+             {
+                "code":480,
+                "name":"SILVERSTAR SF",
+                "zone":"K4"
+             },
+             {
+                "code":481,
+                "name":"THYNNE  SF",
+                "zone":"K6"
+             },
+             {
+                "code":388,
+                "name":"KETTLE 2",
+                "zone":"K4"
+             },
+             {
+                "code":250,
+                "name":"HARBOUR LAKE",
+                "zone":"K1"
+             },
+             {
+                "code":1670,
+                "name":"QD EMBLETON",
+                "zone":"K2"
+             },
+             {
+                "code":302,
+                "name":"ASPEN GROVE",
+                "zone":"K6"
+             },
+             {
+                "code":331,
+                "name":"ASHNOLA",
+                "zone":"K5"
+             },
+             {
+                "code":1403,
+                "name":"BIG BAR PROJECT",
+                "zone":"K7"
+             },
+             {
+                "code":321,
+                "name":"GREENSTONE HUB",
+                "zone":"K2"
+             },
+             {
+                "code":280,
+                "name":"LILLOOET",
+                "zone":"K7"
+             },
+             {
+                "code":328,
+                "name":"PENTICTON RS",
+                "zone":"K5"
+             }
+          ]
+       },
+       {
+          "id":"8",
+          "name":"Prince George Fire Centre",
+          "stations":[
+             {
+                "code":1106,
+                "name":"TSUS SF",
+                "zone":"G1"
+             },
+             {
+                "code":1045,
+                "name":"OSBORN",
+                "zone":"G8"
+             },
+             {
+                "code":175,
+                "name":"BEDNESTI",
+                "zone":"G1"
+             },
+             {
+                "code":1165,
+                "name":"SEVEREID",
+                "zone":"G1"
+             },
+             {
+                "code":1198,
+                "name":"THUNDER SF",
+                "zone":"G7"
+             },
+             {
+                "code":1223,
+                "name":"PG TEST",
+                "zone":"G1"
+             },
+             {
+                "code":1233,
+                "name":"SCOVIL SF",
+                "zone":"G6"
+             },
+             {
+                "code":1243,
+                "name":"ATTACHIE PLATEAU",
+                "zone":"G8"
+             },
+             {
+                "code":1244,
+                "name":"BEAR FLAT",
+                "zone":"G8"
+             },
+             {
+                "code":1248,
+                "name":"PG CENTRAL",
+                "zone":"G1"
+             },
+             {
+                "code":1345,
+                "name":"SAWTOOTH",
+                "zone":"G5"
+             },
+             {
+                "code":186,
+                "name":"PRINCE GEORGE (EC)",
+                "zone":"G1"
+             },
+             {
+                "code":189,
+                "name":"CHILAKO",
+                "zone":"G1"
+             },
+             {
+                "code":190,
+                "name":"JERRY",
+                "zone":"G1"
+             },
+             {
+                "code":192,
+                "name":"MCGREGOR 2",
+                "zone":"G1"
+             },
+             {
+                "code":194,
+                "name":"VALEMOUNT HUB",
+                "zone":"G3"
+             },
+             {
+                "code":195,
+                "name":"MCBRIDE",
+                "zone":"G3"
+             },
+             {
+                "code":199,
+                "name":"CATFISH",
+                "zone":"G1"
+             },
+             {
+                "code":200,
+                "name":"VALEMOUNT 2",
+                "zone":"G3"
+             },
+             {
+                "code":201,
+                "name":"HOLMES",
+                "zone":"G3"
+             },
+             {
+                "code":270,
+                "name":"GOSNEL",
+                "zone":"G3"
+             },
+             {
+                "code":903,
+                "name":"CARROTT LAKE",
+                "zone":"G4"
+             },
+             {
+                "code":343,
+                "name":"HOWARD",
+                "zone":"G3"
+             },
+             {
+                "code":654,
+                "name":"HOLY CROSS 2",
+                "zone":"G4"
+             },
+             {
+                "code":435,
+                "name":"DAWSON CREEK (EC)",
+                "zone":"G7"
+             },
+             {
+                "code":437,
+                "name":"NOEL",
+                "zone":"G7"
+             },
+             {
+                "code":440,
+                "name":"FIRESIDE",
+                "zone":"G9"
+             },
+             {
+                "code":444,
+                "name":"KETCHIKA",
+                "zone":"G9"
+             },
+             {
+                "code":464,
+                "name":"NEL-X DL",
+                "zone":"G9"
+             },
+             {
+                "code":465,
+                "name":"TACHEEDA  SF",
+                "zone":"G1"
+             },
+             {
+                "code":468,
+                "name":"SINKUT  SF",
+                "zone":"G4"
+             },
+             {
+                "code":117,
+                "name":"SIERRA",
+                "zone":"G9"
+             },
+             {
+                "code":119,
+                "name":"NELSON FORKS",
+                "zone":"G9"
+             },
+             {
+                "code":120,
+                "name":"SILVER",
+                "zone":"G8"
+             },
+             {
+                "code":121,
+                "name":"PADDY",
+                "zone":"G8"
+             },
+             {
+                "code":122,
+                "name":"CHETWYND (EC)",
+                "zone":"G7"
+             },
+             {
+                "code":124,
+                "name":"GRAHAM",
+                "zone":"G8"
+             },
+             {
+                "code":126,
+                "name":"TOAD RIVER",
+                "zone":"G9"
+             },
+             {
+                "code":129,
+                "name":"PINK MOUNTAIN",
+                "zone":"G8"
+             },
+             {
+                "code":131,
+                "name":"MUSKWA",
+                "zone":"G9"
+             },
+             {
+                "code":132,
+                "name":"HUDSON HOPE",
+                "zone":"G7"
+             },
+             {
+                "code":138,
+                "name":"RED DEER",
+                "zone":"G7"
+             },
+             {
+                "code":140,
+                "name":"LEMORAY",
+                "zone":"G7"
+             },
+             {
+                "code":599,
+                "name":"FORT NELSON FS",
+                "zone":"G9"
+             },
+             {
+                "code":141,
+                "name":"MANSON",
+                "zone":"G6"
+             },
+             {
+                "code":144,
+                "name":"TABLE RIVER",
+                "zone":"G1"
+             },
+             {
+                "code":145,
+                "name":"INGENIKA POINT",
+                "zone":"G6"
+             },
+             {
+                "code":146,
+                "name":"FORT ST JAMES",
+                "zone":"G5"
+             },
+             {
+                "code":148,
+                "name":"BLACKPINE",
+                "zone":"G6"
+             },
+             {
+                "code":149,
+                "name":"BEAR LAKE",
+                "zone":"G1"
+             },
+             {
+                "code":152,
+                "name":"SIFTON",
+                "zone":"G6"
+             },
+             {
+                "code":153,
+                "name":"MCLEOD LAKE",
+                "zone":"G1"
+             },
+             {
+                "code":154,
+                "name":"WITCH",
+                "zone":"G5"
+             },
+             {
+                "code":158,
+                "name":"VANDERHOOF HUB",
+                "zone":"G4"
+             },
+             {
+                "code":163,
+                "name":"LOVELL COVE",
+                "zone":"G5"
+             },
+             {
+                "code":165,
+                "name":"MOOSE LAKE",
+                "zone":"G4"
+             },
+             {
+                "code":1108,
+                "name":"BLUE RIVER 2",
+                "zone":"G3"
+             },
+             {
+                "code":1268,
+                "name":"VALEMOUNT AIRPORT",
+                "zone":"G3"
+             },
+             {
+                "code":155,
+                "name":"MACKENZIE FS",
+                "zone":"G6"
+             },
+             {
+                "code":118,
+                "name":"HELMUT",
+                "zone":"G9"
+             },
+             {
+                "code":434,
+                "name":"FORT ST JOHN (EC)",
+                "zone":"G8"
+             },
+             {
+                "code":156,
+                "name":"SUSTUT",
+                "zone":"G5"
+             },
+             {
+                "code":438,
+                "name":"ELK MOUNTAIN",
+                "zone":"G9"
+             },
+             {
+                "code":136,
+                "name":"WONOWON",
+                "zone":"G8"
+             },
+             {
+                "code":127,
+                "name":"TUMBLER(DENISON) HUB",
+                "zone":"G7"
+             },
+             {
+                "code":193,
+                "name":"BOWRON HAGGEN",
+                "zone":"G1"
+             },
+             {
+                "code":159,
+                "name":"NORTH CHILCO",
+                "zone":"G4"
+             },
+             {
+                "code":187,
+                "name":"HIXON",
+                "zone":"G1"
+             },
+             {
+                "code":166,
+                "name":"KLUSKUS",
+                "zone":"G4"
+             },
+             {
+                "code":171,
+                "name":"LEO CREEK",
+                "zone":"G5"
+             },
+             {
+                "code":151,
+                "name":"NABESHE",
+                "zone":"G6"
+             }
+          ]
+       },
+       {
+          "id":"2",
+          "name":"Cariboo Fire Centre",
+          "stations":[
+             {
+                "code":1109,
+                "name":"TATLAYOKO LAKE (EC)",
+                "zone":"C5"
+             },
+             {
+                "code":1170,
+                "name":"PUNTZI SF",
+                "zone":"C5"
+             },
+             {
+                "code":1303,
+                "name":"ZZ FISHPOT QD",
+                "zone":"C1"
+             },
+             {
+                "code":1347,
+                "name":"PERSEVERANCE",
+                "zone":"C8"
+             },
+             {
+                "code":205,
+                "name":"WILLIAMS LAKE (NC)",
+                "zone":"C2"
+             },
+             {
+                "code":206,
+                "name":"TAUTRI",
+                "zone":"C2"
+             },
+             {
+                "code":208,
+                "name":"TATLA LAKE",
+                "zone":"C5"
+             },
+             {
+                "code":235,
+                "name":"YOUNG LAKE",
+                "zone":"C4"
+             },
+             {
+                "code":236,
+                "name":"MEADOW LAKE",
+                "zone":"C4"
+             },
+             {
+                "code":244,
+                "name":"WINDY MOUNTAIN",
+                "zone":"C4"
+             },
+             {
+                "code":251,
+                "name":"DECEPTION",
+                "zone":"C4"
+             },
+             {
+                "code":255,
+                "name":"LIKELY RS",
+                "zone":"C3"
+             },
+             {
+                "code":262,
+                "name":"BIG VALLEY",
+                "zone":"C1"
+             },
+             {
+                "code":263,
+                "name":"MATHEW",
+                "zone":"C1"
+             },
+             {
+                "code":264,
+                "name":"PRAIRIE CREEK",
+                "zone":"C3"
+             },
+             {
+                "code":832,
+                "name":"CHURN CREEK",
+                "zone":"C2"
+             },
+             {
+                "code":209,
+                "name":"ALEXIS CREEK",
+                "zone":"C5"
+             },
+             {
+                "code":210,
+                "name":"RISKE CREEK",
+                "zone":"C2"
+             },
+             {
+                "code":211,
+                "name":"NAZKO",
+                "zone":"C1"
+             },
+             {
+                "code":212,
+                "name":"PLACE LAKE",
+                "zone":"C2"
+             },
+             {
+                "code":213,
+                "name":"ANAHIM LAKE",
+                "zone":"C5"
+             },
+             {
+                "code":216,
+                "name":"NEMIAH",
+                "zone":"C5"
+             },
+             {
+                "code":218,
+                "name":"LONE BUTTE",
+                "zone":"C4"
+             },
+             {
+                "code":222,
+                "name":"GASPARD",
+                "zone":"C2"
+             },
+             {
+                "code":225,
+                "name":"KNIFE",
+                "zone":"C2"
+             },
+             {
+                "code":227,
+                "name":"GAVIN",
+                "zone":"C3"
+             },
+             {
+                "code":228,
+                "name":"BENSON",
+                "zone":"C1"
+             },
+             {
+                "code":229,
+                "name":"QUESNEL (EC)",
+                "zone":"C1"
+             },
+             {
+                "code":230,
+                "name":"HORSEFLY",
+                "zone":"C3"
+             },
+             {
+                "code":234,
+                "name":"TIMOTHY",
+                "zone":"C4"
+             },
+             {
+                "code":917,
+                "name":"SMOKEY S DL",
+                "zone":"C2"
+             },
+             {
+                "code":918,
+                "name":"SMOKEY C DL",
+                "zone":"C2"
+             },
+             {
+                "code":520,
+                "name":"PEAVINE  SF",
+                "zone":"C2"
+             },
+             {
+                "code":507,
+                "name":"SMOKEY N DL",
+                "zone":"C2"
+             },
+             {
+                "code":508,
+                "name":"WELLS DL",
+                "zone":"C1"
+             },
+             {
+                "code":515,
+                "name":"DOWNTON SF",
+                "zone":"C1"
+             },
+             {
+                "code":517,
+                "name":"TIMOTHY SF",
+                "zone":"C4"
+             },
+             {
+                "code":518,
+                "name":"TWO SISTERS  SF",
+                "zone":"C1"
+             },
+             {
+                "code":226,
+                "name":"MIDDLE LAKE",
+                "zone":"C5"
+             },
+             {
+                "code":221,
+                "name":"BALDFACE",
+                "zone":"C5"
+             },
+             {
+                "code":203,
+                "name":"PUNTZI MOUNTAIN (EC)",
+                "zone":"C5"
+             }
+          ]
+       },
+       {
+          "id":"34",
+          "name":"Southeast Fire Centre",
+          "stations":[
+             {
+                "code":1110,
+                "name":"WARFIELD RCS (EC)",
+                "zone":"N5"
+             },
+             {
+                "code":1054,
+                "name":"TOBY NORTH DL",
+                "zone":"N2"
+             },
+             {
+                "code":1075,
+                "name":"KOOCANUSA",
+                "zone":"N1"
+             },
+             {
+                "code":1076,
+                "name":"CASEY SF",
+                "zone":"N1"
+             },
+             {
+                "code":1092,
+                "name":"RORY CREEK",
+                "zone":"N7"
+             },
+             {
+                "code":1390,
+                "name":"SPARWOOD QD2",
+                "zone":"N1"
+             },
+             {
+                "code":1404,
+                "name":"GOAT MT QD4",
+                "zone":"N7"
+             },
+             {
+                "code":1163,
+                "name":"KIMPTON SF",
+                "zone":"N2"
+             },
+             {
+                "code":1203,
+                "name":"DARKWOODS",
+                "zone":"N7"
+             },
+             {
+                "code":1239,
+                "name":"SASKATCHEWAN CROSSING",
+                "zone":null
+             },
+             {
+                "code":1240,
+                "name":"BOULDER CREEK",
+                "zone":"N4"
+             },
+             {
+                "code":1241,
+                "name":"VERMILLION CROSSING",
+                "zone":"N4"
+             },
+             {
+                "code":1242,
+                "name":"MCLEOD MEADOWS",
+                "zone":"N2"
+             },
+             {
+                "code":1260,
+                "name":"REDSTREAK",
+                "zone":"N2"
+             },
+             {
+                "code":1262,
+                "name":"CARIBOU CORNER",
+                "zone":"N4"
+             },
+             {
+                "code":1263,
+                "name":"FIDELITY",
+                "zone":"N4"
+             },
+             {
+                "code":1265,
+                "name":"UPPER BEAVER",
+                "zone":"N4"
+             },
+             {
+                "code":789,
+                "name":"NEGRO CREEK",
+                "zone":"N1"
+             },
+             {
+                "code":790,
+                "name":"WHITE RIVER",
+                "zone":"N2"
+             },
+             {
+                "code":866,
+                "name":"BLAEBERRY",
+                "zone":"N4"
+             },
+             {
+                "code":868,
+                "name":"BIG MOUTH 2",
+                "zone":"N4"
+             },
+             {
+                "code":886,
+                "name":"GOATHAVEN",
+                "zone":"N1"
+             },
+             {
+                "code":905,
+                "name":"DOWNIE",
+                "zone":"N4"
+             },
+             {
+                "code":791,
+                "name":"CHERRY LAKE",
+                "zone":"N1"
+             },
+             {
+                "code":793,
+                "name":"CARIBOO CREEK",
+                "zone":"N2"
+             },
+             {
+                "code":838,
+                "name":"AKOKLI CREEK",
+                "zone":"N7"
+             },
+             {
+                "code":844,
+                "name":"GOLDEN 2 DL",
+                "zone":"N4"
+             },
+             {
+                "code":919,
+                "name":"GOLDSTREAM 2",
+                "zone":"N4"
+             },
+             {
+                "code":361,
+                "name":"TSAR CREEK",
+                "zone":"N4"
+             },
+             {
+                "code":363,
+                "name":"REVELSTOKE",
+                "zone":"N4"
+             },
+             {
+                "code":366,
+                "name":"WHISKEY",
+                "zone":"N2"
+             },
+             {
+                "code":367,
+                "name":"MARION",
+                "zone":"N4"
+             },
+             {
+                "code":379,
+                "name":"GOLD HILL",
+                "zone":"N7"
+             },
+             {
+                "code":380,
+                "name":"POWDER CREEK",
+                "zone":"N7"
+             },
+             {
+                "code":383,
+                "name":"FALLS CREEK",
+                "zone":"N5"
+             },
+             {
+                "code":411,
+                "name":"PALLISER",
+                "zone":"N2"
+             },
+             {
+                "code":412,
+                "name":"ELKO",
+                "zone":"N1"
+             },
+             {
+                "code":415,
+                "name":"SPARWOOD (EC)",
+                "zone":"N1"
+             },
+             {
+                "code":417,
+                "name":"TOBY HUB",
+                "zone":"N2"
+             },
+             {
+                "code":418,
+                "name":"FLATHEAD 2",
+                "zone":"N1"
+             },
+             {
+                "code":419,
+                "name":"JOHNSON LAKE",
+                "zone":"N2"
+             },
+             {
+                "code":421,
+                "name":"DEWAR CREEK",
+                "zone":"N1"
+             },
+             {
+                "code":425,
+                "name":"EMILY CREEK",
+                "zone":"N2"
+             },
+             {
+                "code":486,
+                "name":"LARDEAU DL",
+                "zone":"N7"
+             },
+             {
+                "code":493,
+                "name":"CASTLE   SF",
+                "zone":"N2"
+             },
+             {
+                "code":499,
+                "name":"PURCELL   SF",
+                "zone":"N2"
+             },
+             {
+                "code":502,
+                "name":"LAVINA SF",
+                "zone":"N7"
+             },
+             {
+                "code":503,
+                "name":"BAKER",
+                "zone":"N1"
+             },
+             {
+                "code":504,
+                "name":"YAHK SF",
+                "zone":"N1"
+             },
+             {
+                "code":505,
+                "name":"NATAL SF",
+                "zone":"N1"
+             },
+             {
+                "code":385,
+                "name":"DUNCAN",
+                "zone":"N7"
+             },
+             {
+                "code":387,
+                "name":"TROUT LAKE",
+                "zone":"N5"
+             },
+             {
+                "code":390,
+                "name":"BEAVERDELL",
+                "zone":"N6"
+             },
+             {
+                "code":391,
+                "name":"EIGHT MILE",
+                "zone":"N6"
+             },
+             {
+                "code":392,
+                "name":"GRAND FORKS",
+                "zone":"N6"
+             },
+             {
+                "code":393,
+                "name":"NICOLL",
+                "zone":"N6"
+             },
+             {
+                "code":394,
+                "name":"ROCK CREEK",
+                "zone":"N6"
+             },
+             {
+                "code":395,
+                "name":"CASTLEGAR (EC)",
+                "zone":"N5"
+             },
+             {
+                "code":396,
+                "name":"OCTOPUS CREEK",
+                "zone":"N5"
+             },
+             {
+                "code":401,
+                "name":"GOATFELL",
+                "zone":"N7"
+             },
+             {
+                "code":404,
+                "name":"SMALLWOOD",
+                "zone":"N7"
+             },
+             {
+                "code":406,
+                "name":"SLOCAN",
+                "zone":"N5"
+             },
+             {
+                "code":1264,
+                "name":"LOWER BEAVER",
+                "zone":"N4"
+             },
+             {
+                "code":402,
+                "name":"PENDOREILLE",
+                "zone":"N5"
+             },
+             {
+                "code":873,
+                "name":"CRAWFORD",
+                "zone":"N4"
+             },
+             {
+                "code":865,
+                "name":"BRISCO",
+                "zone":"N2"
+             },
+             {
+                "code":408,
+                "name":"NORNS",
+                "zone":"N5"
+             },
+             {
+                "code":788,
+                "name":"ROUND PRAIRIE",
+                "zone":"N1"
+             },
+             {
+                "code":374,
+                "name":"SUCCOUR CREEK",
+                "zone":"N4"
+             },
+             {
+                "code":1261,
+                "name":"ONE MILE",
+                "zone":"N4"
+             },
+             {
+                "code":376,
+                "name":"TABERNACLE WIND",
+                "zone":"N4"
+             },
+             {
+                "code":407,
+                "name":"NANCY GREEN",
+                "zone":"N5"
+             },
+             {
+                "code":426,
+                "name":"CRANBROOK",
+                "zone":"N1"
+             }
+          ]
+       },
+       {
+          "id":"42",
+          "name":"Northwest Fire Centre",
+          "stations":[
+             {
+                "code":964,
+                "name":"HAINES JUNCTION FIRE (YFS)",
+                "zone":null
+             },
+             {
+                "code":965,
+                "name":"IRON CREEK (YFS)",
+                "zone":"R9"
+             },
+             {
+                "code":967,
+                "name":"SWIFT RIVER (YFS)",
+                "zone":"R9"
+             },
+             {
+                "code":173,
+                "name":"NORTH BABINE",
+                "zone":"R2"
+             },
+             {
+                "code":178,
+                "name":"PEDEN",
+                "zone":"R2"
+             },
+             {
+                "code":179,
+                "name":"NADINA",
+                "zone":"R2"
+             },
+             {
+                "code":180,
+                "name":"MCBRIDE LAKE",
+                "zone":"R2"
+             },
+             {
+                "code":181,
+                "name":"BURNS LAKE 850M",
+                "zone":"R1"
+             },
+             {
+                "code":1270,
+                "name":"OLD FADDY",
+                "zone":"R9"
+             },
+             {
+                "code":1377,
+                "name":"FORRESTKERR",
+                "zone":"R9"
+             },
+             {
+                "code":182,
+                "name":"GANOKWA",
+                "zone":"R3"
+             },
+             {
+                "code":183,
+                "name":"PARROTT",
+                "zone":"R2"
+             },
+             {
+                "code":938,
+                "name":"PINE CREEK",
+                "zone":"R3"
+             },
+             {
+                "code":427,
+                "name":"NASS CAMP",
+                "zone":"R5"
+             },
+             {
+                "code":428,
+                "name":"KISPIOX HUB",
+                "zone":"R4"
+             },
+             {
+                "code":430,
+                "name":"VAN DYKE",
+                "zone":"R5"
+             },
+             {
+                "code":432,
+                "name":"BELL-IRVING",
+                "zone":"R5"
+             },
+             {
+                "code":433,
+                "name":"CRANBERRY",
+                "zone":"R4"
+             },
+             {
+                "code":445,
+                "name":"BOYA LAKE",
+                "zone":"R9"
+             },
+             {
+                "code":447,
+                "name":"WATSON LAKE FS",
+                "zone":null
+             },
+             {
+                "code":459,
+                "name":"STOREY DL",
+                "zone":"R2"
+             },
+             {
+                "code":88,
+                "name":"PRINCE RUPERT (EC)",
+                "zone":"R8"
+             },
+             {
+                "code":103,
+                "name":"TERRACE (EC)",
+                "zone":"R5"
+             },
+             {
+                "code":106,
+                "name":"KITPARK",
+                "zone":"R5"
+             },
+             {
+                "code":108,
+                "name":"DEASE LAKE FS",
+                "zone":"R9"
+             },
+             {
+                "code":111,
+                "name":"ATLIN",
+                "zone":"R9"
+             },
+             {
+                "code":113,
+                "name":"BOB QUINN LAKE",
+                "zone":"R9"
+             },
+             {
+                "code":157,
+                "name":"SMITHERS AP (EC)",
+                "zone":"R3"
+             },
+             {
+                "code":161,
+                "name":"GRASSY PLAINS HUB",
+                "zone":"R1"
+             },
+             {
+                "code":162,
+                "name":"HOUSTON",
+                "zone":"R2"
+             },
+             {
+                "code":110,
+                "name":"TELEGRAPH CREEK",
+                "zone":"R9"
+             },
+             {
+                "code":461,
+                "name":"OLD FORT  SF",
+                "zone":"R2"
+             },
+             {
+                "code":431,
+                "name":"UPPER KISPIOX",
+                "zone":"R4"
+             },
+             {
+                "code":105,
+                "name":"ROSSWOOD",
+                "zone":"R5"
+             },
+             {
+                "code":429,
+                "name":"CEDARVALE",
+                "zone":"R4"
+             },
+             {
+                "code":167,
+                "name":"AUGIER LAKE",
+                "zone":"R1"
+             },
+             {
+                "code":169,
+                "name":"UPPER FULTON",
+                "zone":"R3"
+             },
+             {
+                "code":170,
+                "name":"EAST OOTSA",
+                "zone":"R1"
+             },
+             {
+                "code":172,
+                "name":"NILKITKWA",
+                "zone":"R3"
+             },
+             {
+                "code":112,
+                "name":"ISKUT",
+                "zone":"R9"
+             }
+          ]
+       }
+    ]
+ }
