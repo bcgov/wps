@@ -8,9 +8,15 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 ### Dependencies
 
-- [Node.js](https://nodejs.org/en/) - You’ll need to have Node >= 10.x and npm >= 5.6 on your machine. You can use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between different projects.
+#### [Node.js](https://nodejs.org/en/)
 
-Note: We are using Node 10 as a base image on our pipeline.
+- You’ll need to have Node >= 10.x and yarn on your machine. You can use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between different projects.
+- Note: We are using Node 14 as a base image on our pipeline.
+- On ubuntu: `sudo apt install nodejs`
+
+#### [yarn](https://yarnpkg.com/)
+
+- `npm install -g yarn`
 
 ### Installing
 
@@ -61,7 +67,9 @@ In `openshift/templates/global.config.yaml` there is a template for a global Con
 This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps/blob/main/LICENSE).
 
 ## Contributing
+
 Frontend changes should follow [MaterialUI](https://material.io) design as closely as possible, leveraging the [Material-UI React implementation library](https://mui.com), unless [decided otherwise](https://github.com/bcgov/wps/wiki/Frontend-Design-Decisions).
+
 ## Acknowledgments
 
 Inspiration, code snippets, etc.

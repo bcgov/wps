@@ -19,8 +19,16 @@ def get_static_foldername():
     """ Get the static foldername - it defaults to 'static', but can be changed by setting
     an environment variable.
     """
+    default_static_folder = 'static'
     dirname = os.path.dirname(os.path.abspath(__file__))
-    static_foldername = config.get('STATIC_FOLDER', os.path.join(dirname, '../', 'static'))
+    static_foldername = config.get('STATIC_FOLDER', os.path.join(dirname, '../', default_static_folder))
+    if not os.path.exists(static_foldername):
+        # If the specified static folder doesn't exist, an exception is thrown, which breaks unit tests and
+        # test discovery in visual studio code. It's a pain figuring out why it's failing - so rather just
+        # switch to a default folder that is know to exist, and log a warning.
+        logger.warning('static folder "%s" doesn\'t exists, using "%s" instead',
+                       static_foldername, default_static_folder)
+        static_foldername = os.path.join(dirname, '../', default_static_folder)
     return static_foldername
 
 
