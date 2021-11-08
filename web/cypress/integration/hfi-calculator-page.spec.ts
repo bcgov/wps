@@ -46,7 +46,9 @@ describe('HFI Calculator Page', () => {
       })
     })
 
-    it('should allow date of interest to be changed with DatePicker component', () => {
+    // Re-enable fix for
+    // https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5bbe203b8/issues/bcgov/wps/1488
+    xit('should allow date of interest to be changed with DatePicker component', () => {
       cy.visit(HFI_CALC_ROUTE)
       cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('date-of-interest-picker').type('2021-07-22')
