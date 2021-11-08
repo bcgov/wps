@@ -15,5 +15,8 @@ shell:
 prune:
 	docker compose run backup poetry run python prune.py
 
+test:
+	${POETRY_RUN} pytest
+
 lint:
 	${POETRY_RUN} pylint *.py

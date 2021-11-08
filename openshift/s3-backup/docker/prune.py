@@ -2,12 +2,12 @@
 """
 import asyncio
 from datetime import datetime, timedelta
-from typing import Set
+from typing import Set, List
 from aiobotocore.session import get_session
 from decouple import config
 
 
-async def fetch_file_list(client, bucket):
+async def fetch_file_list(client, bucket) -> List:
     """ Fetch the list of files from Object Store. (it comes back sorted)"""
     # pylint: disable=invalid-name
     PG_HOSTNAME = config('PG_HOSTNAME')
@@ -116,7 +116,19 @@ async def main():
         try:
             # Get list of backup files
             files = await fetch_file_list(client, bucket)
+
+            # for debugging, list the files
+            print('file list:')
+            for file in files:
+                print(file)
+
             files_to_delete = decide_files_to_delete(files)
+
+            # for debugging, list the files to delete
+            print('files to delete:')
+            for file in files_to_delete:
+                print('file')
+
             if len(files_to_delete) > 0:
                 await delete_files(client, bucket, files_to_delete)
         finally:
