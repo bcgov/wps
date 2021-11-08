@@ -74,9 +74,10 @@ web/typings/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
-.env.test
-.env.docker
+api/app/.env
+api/env/.env.test
+api/app/.env.docker
+web/.env
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -111,9 +112,6 @@ dist
 
 # Yupyter notebooks
 .ipynb_checkpoints/
-
-# VSCode
-.vscode/
 
 # Python
 __pycache__/
@@ -153,3 +151,6 @@ api/static/*
 .RData
 .Rprofile
 renv
+
+# Node Version Management
+web/.nvmrc
