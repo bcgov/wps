@@ -688,4 +688,339 @@ SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.15
       expectedWeeklyString.replace(/\s+/g, '')
     )
   })
+
+  it("should not break CSV export when there's a escape character in the station name", () => {
+    const escapeCharFireCentres: Record<string, FireCentre> = {
+      0: {
+        id: 12,
+        name: 'Kamloops Fire Centre',
+        planning_areas: {
+          1: {
+            name: 'Kamloops (K2)',
+            id: 1,
+            stations: [
+              {
+                code: 322,
+                station_props: {
+                  name: 'AF`TON',
+                  elevation: 780,
+                  fuel_type: {
+                    abbrev: 'O1B',
+                    description: 'Standing grass'
+                  },
+                  uuid: 'bfe0a6e2-e3d0-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 1108,
+                station_props: {
+                  name: 'BLUE RIVER 2',
+                  elevation: 695,
+                  fuel_type: {
+                    abbrev: 'C5',
+                    description: 'Red and white pine'
+                  },
+                  uuid: 'bfe0a6e2-e16f-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 239,
+                station_props: {
+                  name: '`CLEARWATER HUB',
+                  elevation: 453,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e286-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 1082,
+                station_props: {
+                  name: 'MAYSON',
+                  elevation: 1315,
+                  fuel_type: {
+                    abbrev: 'C3',
+                    description: 'Mature jack or lodgepole pine'
+                  },
+                  uuid: 'bfe0a6e2-e15b-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 305,
+                station_props: {
+                  name: 'SPARKS LAKE`',
+                  elevation: 972,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e3bf-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 266,
+                station_props: {
+                  name: 'WELLS" GRAY',
+                  elevation: 959,
+                  fuel_type: {
+                    abbrev: 'C5',
+                    description: 'Red and white pine'
+                  },
+                  uuid: 'bfe0a6e2-e2a0-0210-e053-259e228e58c7'
+                }
+              }
+            ]
+          },
+          2: {
+            name: 'Vernon (K4)',
+            id: 2,
+            stations: [
+              {
+                code: 298,
+                station_props: {
+                  name: 'FINTRY',
+                  elevation: 670,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e3b8-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 388,
+                station_props: {
+                  name: 'KETTLE 2',
+                  elevation: 1389,
+                  fuel_type: {
+                    abbrev: 'C5',
+                    description: 'Red and white pine'
+                  },
+                  uuid: 'bfe0a6e2-e412-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 346,
+                station_props: {
+                  name: 'SALMON ARM',
+                  elevation: 527,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e3e8-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 344,
+                station_props: {
+                  name: 'SEYMOUR ARM',
+                  elevation: 511,
+                  fuel_type: {
+                    abbrev: 'C5',
+                    description: 'Red and white pine'
+                  },
+                  uuid: 'bfe0a6e2-e3e6-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 286,
+                station_props: {
+                  name: 'TURTLE',
+                  elevation: 640,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e3ac-0210-e053-259e228e58c7'
+                }
+              }
+            ]
+          },
+          3: {
+            name: 'Penticton (K5)',
+            id: 3,
+            stations: [
+              {
+                code: 334,
+                station_props: {
+                  name: 'MCCUDDY',
+                  elevation: 1067,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e3dc-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 328,
+                station_props: {
+                  name: 'PENTICTON RS',
+                  elevation: 427,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e3d6-0210-e053-259e228e58c7'
+                }
+              }
+            ]
+          },
+          4: {
+            name: 'Lillooet (K7)',
+            id: 4,
+            stations: [
+              {
+                code: 1029,
+                station_props: {
+                  name: 'FIVE MILE',
+                  elevation: 865,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e137-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 306,
+                station_props: {
+                  name: 'FRENCH BAR',
+                  elevation: 1320,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e3c0-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 309,
+                station_props: {
+                  name: 'GWYNETH LAKE',
+                  elevation: 1205,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e3c3-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 280,
+                station_props: {
+                  name: 'LILLOOET',
+                  elevation: 408,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e2ae-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 1055,
+                station_props: {
+                  name: 'SPLINTLUM',
+                  elevation: 424,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e14c-0210-e053-259e228e58c7'
+                }
+              }
+            ]
+          },
+          5: {
+            name: 'Merritt (K6)',
+            id: 5,
+            stations: [
+              {
+                code: 836,
+                station_props: {
+                  name: 'AUGUST LAKE',
+                  elevation: 855,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e2df-0210-e053-259e228e58c7'
+                }
+              },
+              {
+                code: 1399,
+                station_props: {
+                  name: 'MERRITT 2 HUB',
+                  elevation: 640,
+                  fuel_type: {
+                    abbrev: 'C7',
+                    description: 'Ponderosa pine/Douglas fir'
+                  },
+                  uuid: 'bfe0a6e2-e2df-0210-e053-259e228e58c7'
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+    const dailyTableCSVString = FormatTableAsCSV.exportDailyRowsAsStrings(
+      escapeCharFireCentres,
+      dailies
+    )
+    const expectedDailyEscapeString = `Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level
+    Kamloops Fire Centre
+    Kamloops (K2), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1
+    AF\`TON (322),780,O1B,ND,ND,ND,ND,ND,ND,ERROR,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    BLUE RIVER 2 (1108),695,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    \`CLEARWATER HUB (239),453,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    MAYSON (1082),1315,C3,ACTUAL,3.0,37.0,101,7.4,2.2,NaN,54.328,0.391,376.251,0.381,0.781,0.096,NaN,0.0,0.0,0.0,SUR,1
+    
+    SPARKS LAKE\` (305),972,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    "WELLS"" GRAY (266)",959,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    Vernon (K4), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined
+    FINTRY (298),670,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    KETTLE 2 (388),1389,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    SALMON ARM (346),527,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    SEYMOUR ARM (344),511,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    TURTLE (286),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    Penticton (K5), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined
+    MCCUDDY (334),1067,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    PENTICTON RS (328),427,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    Merritt (K6), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined
+    AUGUST LAKE (836),855,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    MERRITT 2 HUB (1399),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    Lillooet (K7), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1
+    FIVE MILE (1029),865,C7,ACTUAL,1.4,57.0,205,7.0,0.0,NaN,69.486,0.735,252.982,0.876,1.459,0.25,NaN,0.0,0.0,0.0,SUR,1
+    
+    FRENCH BAR (306),1320,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    GWYNETH LAKE (309),1205,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    LILLOOET (280),408,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    
+    SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.154,10.908,0.098,NaN,0.0,0.0,0.0,SUR,1`
+
+    expect(dailyTableCSVString.replace(/\s+/g, '')).toEqual(
+      expectedDailyEscapeString.replace(/\s+/g, '')
+    )
+  })
 })

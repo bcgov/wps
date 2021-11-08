@@ -1,6 +1,7 @@
 import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { groupBy, isNull, isUndefined, range } from 'lodash'
+import * as CSV from 'csv-string'
 import { getDailiesByStationCode, getDailiesForArea } from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
 import { weeklyTableColumnLabels } from 'features/hfiCalculator/components/WeeklyViewTable'
@@ -129,7 +130,7 @@ export class FormatTableAsCSV {
                 : 'ND'
             )
 
-            rowsAsStrings.push(rowArray.toString())
+            rowsAsStrings.push(CSV.stringify(rowArray))
           })
         })
     })
@@ -242,7 +243,7 @@ export class FormatTableAsCSV {
 
             rowArray.push(Array(NUM_WEEKLY_SUMMARY_CELLS).join(','))
 
-            rowsAsStrings.push(rowArray.toString())
+            rowsAsStrings.push(CSV.stringify(rowArray))
           })
         })
     })
