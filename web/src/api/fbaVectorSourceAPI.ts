@@ -5,11 +5,6 @@ import * as ol from 'ol'
 import Projection from 'ol/proj/Projection'
 import Geometry from 'ol/geom/Geometry'
 
-const serviceUrl =
-  'https://sampleserver3.arcgisonline.com/ArcGIS/rest/services/' +
-  'Petroleum/KSFields/FeatureServer/'
-const layer = '0'
-
 const fireCenterUrl =
   'https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/'
 const outlineLayer = '2'
