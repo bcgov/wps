@@ -6,11 +6,9 @@ import { Fill, Stroke, Style } from 'ol/style'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 
-import Polygon from 'ol/geom/Polygon'
 import GeoJSON from 'ol/format/GeoJSON'
 import CircleStyle from 'ol/style/Circle'
 
-import { VERNON_FIRECENTER } from 'features/fbaCalculator/data/data'
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
@@ -18,13 +16,9 @@ import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { source } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
-import TileWMS from 'ol/source/TileWMS'
-import XYZ from 'ol/source/XYZ'
 import { tile as tileStrategy } from 'ol/loadingstrategy'
 import { createXYZ } from 'ol/tilegrid'
 import { getFireCenterVectorSource } from 'api/fbaVectorSourceAPI'
-import Geometry from 'ol/geom/Geometry'
-import RenderFeature from 'ol/render/Feature'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -34,35 +28,6 @@ const BC_CENTER_FIRE_CENTERS = [-124.16748046874999, 54.584796743678744]
 export interface FBAMapProps {
   testId?: string
   className: string
-}
-
-// Will be parameterized based on fire center in the future
-const buildHFILayers = () => {
-  const polygonFeature = new ol.Feature(
-    new Polygon(VERNON_FIRECENTER.features[0].geometry.coordinates).transform(
-      'EPSG:4326',
-      'EPSG:3857'
-    )
-  )
-
-  const vernonSource = new VectorSource({
-    features: [polygonFeature]
-  })
-
-  return new OLVectorLayer({
-    source: vernonSource,
-    style: [
-      new Style({
-        stroke: new Stroke({
-          color: 'red',
-          width: 3
-        }),
-        fill: new Fill({
-          color: 'rgba(255, 0, 0, 0.5)'
-        })
-      })
-    ]
-  })
 }
 
 const vectorSource = new VectorSource({
@@ -78,28 +43,14 @@ const vectorSource = new VectorSource({
 
 const vector = new OLVectorLayer({
   source: vectorSource,
-  style: function (feature: ol.Feature<Geometry> | RenderFeature) {
+  style: function () {
     return new Style({
-      // fill: new Fill({
-      //   color: 'blue'
-      // }),
       stroke: new Stroke({
         color: 'blue',
         width: 4
       })
     })
   }
-})
-
-const raster = new Tile({
-  source: new XYZ({
-    attributions:
-      'Tiles © <a href="https://services.arcgisonline.com/ArcGIS/' +
-      'rest/services/World_Topo_Map/MapServer">ArcGIS</a>',
-    url:
-      'https://server.arcgisonline.com/ArcGIS/rest/services/' +
-      'World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
-  })
 })
 
 const FBAMap = (props: FBAMapProps) => {
@@ -126,7 +77,12 @@ const FBAMap = (props: FBAMapProps) => {
         center: fromLonLat(BC_CENTER_FIRE_CENTERS),
         zoom
       }),
-      layers: [vector],
+      layers: [
+        new Tile({
+          source
+        }),
+        vector
+      ],
       overlays: [],
       controls: defaultControls()
     }
@@ -135,19 +91,6 @@ const FBAMap = (props: FBAMapProps) => {
     // To the ref above so that it is rendered in that div
     const mapObject = new ol.Map(options)
     mapObject.setTarget(mapRef.current)
-
-    // Calculate extent based on maps' size in pixels.
-    //
-    // The extent is the minimum bounding rectangle (xmin, ymin and xmax, ymax)
-    // defined by coordinate pairs of the data source.
-    //
-    // We use the extent when creating the Tile layer, presumably so
-    // OpenLayers can limit the requested number of tiles.
-
-    // See:
-    // - https://en.wikipedia.org/wiki/Map_extent
-    // - https://openlayers.org/en/latest/apidoc/module-ol_extent.html
-    // - https://gis.stackexchange.com/questions/240979/difference-between-bounding-box-envelope-extent-bounds
 
     setMap(mapObject)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -173,7 +116,7 @@ const FBAMap = (props: FBAMapProps) => {
       })
     })
 
-    // map?.addLayer(stationsLayer)
+    map?.addLayer(stationsLayer)
   }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <ErrorBoundary>
