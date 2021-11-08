@@ -248,6 +248,6 @@ export class FormatTableAsCSV {
         })
     })
 
-    return rowsAsStrings.join('\r\n')
+    return rowsAsStrings.join('\r')
   }
 }
