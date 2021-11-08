@@ -80,6 +80,24 @@ const buildBCTileLayer = (extent: number[]) => {
   })
 }
 
+const buildFireZoneTileLayer = (extent: number[]) => {
+  return new Tile({
+    extent,
+    opacity: 1,
+    preload: Infinity,
+    source: new TileWMS({
+      url: 'https://openmaps.gov.bc.ca/geo/pub/wms',
+      params: {
+        LAYERS: 'WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_ZONES_SP',
+        TILED: true,
+        STYLES: '3460'
+      },
+      serverType: 'geoserver',
+      transition: 0
+    })
+  })
+}
+
 const FBAMap = (props: FBAMapProps) => {
   const useStyles = makeStyles({
     main: {
@@ -134,6 +152,7 @@ const FBAMap = (props: FBAMapProps) => {
 
     const extent = mapObject.getView().calculateExtent(mapObject.getSize())
     mapObject.addLayer(buildBCTileLayer(extent))
+    mapObject.addLayer(buildFireZoneTileLayer(extent))
     setMap(mapObject)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
