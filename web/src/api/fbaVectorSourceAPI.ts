@@ -1,13 +1,17 @@
 import EsriJSON from 'ol/format/EsriJSON'
 import VectorSource from 'ol/source/Vector'
-import * as $ from 'jquery'
-import * as ol from 'ol'
 import Projection from 'ol/proj/Projection'
 import Geometry from 'ol/geom/Geometry'
+import axios from 'axios'
 
 const fireCenterUrl =
   'https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/'
 const outlineLayer = '2'
+
+const axiosInstance = axios.create({
+  baseURL: fireCenterUrl + outlineLayer
+})
+
 /**
  * Retrieves fire center polygons from maps.gov.bc.ca arcserver
  * Requests are made dynamically as an openlayers vector source.
@@ -15,20 +19,15 @@ const outlineLayer = '2'
  * @param extent Current extent of the view
  * @param projection Current projection
  * @param vectorSource the source to add the requested features to
- * @param success success callback
- * @returns
  */
 export const getFireCenterVectorSource = async (
   extent: number[],
   projection: Projection,
-  vectorSource: VectorSource<Geometry>,
-  success: ((arg0: ol.Feature<Geometry>[]) => void) | undefined
-): Promise<ol.Feature<Geometry>[] | undefined> => {
+  vectorSource: VectorSource<Geometry>
+): Promise<void> => {
   const esriJsonFormat = new EsriJSON()
 
   const url =
-    fireCenterUrl +
-    outlineLayer +
     '/query/?f=json&' +
     'returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=' +
     // Extent, see description here:
@@ -63,21 +62,11 @@ export const getFireCenterVectorSource = async (
     '&geometryType=esriGeometryEnvelope&inSR=102100&outFields=*' +
     '&outSR=102100'
 
-  // TODO: Get working with axios (CORS errors)
-  return $.ajax({
-    url: url,
-    dataType: 'jsonp',
-    success: response => {
-      // dataProjection will be read from document
-      const features = esriJsonFormat.readFeatures(response, {
-        featureProjection: projection
-      })
-      if (features.length > 0) {
-        vectorSource.addFeatures(features)
-      }
-      if (success) {
-        success(features)
-      }
-    }
+  const { data } = await axiosInstance.get(url)
+  const features = esriJsonFormat.readFeatures(data, {
+    featureProjection: projection
   })
+  if (features.length > 0) {
+    vectorSource.addFeatures(features)
+  }
 }

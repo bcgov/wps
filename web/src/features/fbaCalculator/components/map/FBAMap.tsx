@@ -31,8 +31,8 @@ export interface FBAMapProps {
 }
 
 const vectorSource = new VectorSource({
-  loader: async (extent, _resolution, projection, success) => {
-    getFireCenterVectorSource(extent, projection, vectorSource, success)
+  loader: async (extent, _resolution, projection) => {
+    getFireCenterVectorSource(extent, projection, vectorSource)
   },
   strategy: tileStrategy(
     createXYZ({
