@@ -54,9 +54,8 @@ const vector = new OLVectorLayer({
   }
 })
 
-const buildFireZoneTileLayer = (extent: number[]) => {
+const buildFireZoneTileLayer = () => {
   return new Tile({
-    extent,
     opacity: 1,
     preload: Infinity,
     source: new TileWMS({
@@ -100,7 +99,8 @@ const FBAMap = (props: FBAMapProps) => {
         new Tile({
           source
         }),
-        vector
+        vector,
+        buildFireZoneTileLayer()
       ],
       overlays: [],
       controls: defaultControls()
