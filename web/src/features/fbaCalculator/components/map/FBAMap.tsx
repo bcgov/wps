@@ -19,7 +19,7 @@ import Tile from 'ol/layer/Tile'
 import { tile as tileStrategy } from 'ol/loadingstrategy'
 import { createXYZ } from 'ol/tilegrid'
 import { getFireCenterVectorSource } from 'api/fbaVectorSourceAPI'
-import { TileWMS } from 'ol/source'
+import TileWMS from 'ol/source/TileWMS'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
