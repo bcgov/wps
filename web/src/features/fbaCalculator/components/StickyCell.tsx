@@ -6,6 +6,7 @@ interface StickyCellProps {
   zIndexOffset: number
   children?: React.ReactNode
   backgroundColor?: string
+  testId?: string
 }
 
 const StickyCell = (props: StickyCellProps) => {
@@ -20,7 +21,10 @@ const StickyCell = (props: StickyCellProps) => {
   const classes = useStyles()
 
   return (
-    <TableCell data-testid={`stickyCell-fba`} className={classes.sticky}>
+    <TableCell
+      data-testid={props.testId ? props.testId : `stickyCell`}
+      className={classes.sticky}
+    >
       {props.children}
     </TableCell>
   )

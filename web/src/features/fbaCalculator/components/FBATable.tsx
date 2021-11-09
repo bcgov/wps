@@ -383,7 +383,12 @@ const FBATable = (props: FBATableProps) => {
 
   const getWeatherStationCell = (row: FBATableRow) => {
     return (
-      <StickyCell left={50} zIndexOffset={1} backgroundColor="#FFFFFF">
+      <StickyCell
+        left={50}
+        zIndexOffset={1}
+        backgroundColor="#FFFFFF"
+        testId={'stickyCell-fba'}
+      >
         <WeatherStationCell
           stationOptions={stationMenuOptions}
           inputRows={rows}
