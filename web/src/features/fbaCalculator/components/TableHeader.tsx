@@ -40,22 +40,22 @@ const TableHeader = (props: TableHeaderProps) => {
 
   const [left, setLeft] = useState(0)
 
-  const findParentTableContainer = (element: HTMLElement | null): HTMLElement | null => {
-    // find the parent table container - if it exists.
+  const findParentTable = (element: HTMLElement | null): HTMLElement | null => {
+    // find the parent table - if it exists.
     if (!element) {
-      // failed to find the table container.
+      // failed to find the table.
       return null
     }
     if (element.parentElement instanceof HTMLTableElement) {
-      // return the container of the parent element.
-      return element.parentElement.parentElement
+      // return the table.
+      return element.parentElement
     }
     // keep looking for the parent table container.
-    return findParentTableContainer(element.parentElement)
+    return findParentTable(element.parentElement)
   }
 
   const hover = (e: MouseEvent<HTMLDivElement>) => {
-    const fireTable = findParentTableContainer(e.currentTarget)
+    const fireTable = findParentTable(e.currentTarget)
     if (fireTable) {
       const child = e.currentTarget.children[0] as HTMLSpanElement
       // clone the span, throw it into the dom, and measure the length of the text - then get rid of it.
