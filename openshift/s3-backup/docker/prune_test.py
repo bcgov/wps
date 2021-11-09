@@ -83,7 +83,7 @@ class TestPrune(unittest.TestCase):
         self.assertIn(self.ascending_list[-5], files_to_keep)
 
     def test_keep_small_set(self):
-        """ If there's nothing old than a day, we expect to retain up to 5 "hourly" values """
+        """ If there's nothing older than a day, we expect to retain up to 5 "hourly" values """
         files = self.small_set
         files_to_keep = decide_files_to_keep(files)
         self.assertEqual(len(files_to_keep), 4)
