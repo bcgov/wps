@@ -84,7 +84,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'Weather Station': (
-      <StickyCell left={57} zIndexOffset={Z_INDEX_OFFSET + 3}>
+      <StickyCell left={57} zIndexOffset={Z_INDEX_OFFSET + 3} key="weather-station">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -112,7 +112,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'FBP Fuel Type': (
-      <StickyCell left={280} zIndexOffset={Z_INDEX_OFFSET}>
+      <StickyCell left={280} zIndexOffset={Z_INDEX_OFFSET} key="fbp-fuel-type">
         <TableSortLabel
           direction={order}
           onClick={() => toggleSorting(SortByColumn.FuelType)}
@@ -122,7 +122,7 @@ const FBATableHead = ({
       </StickyCell>
     ),
     'Grass Cure': (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="grass-cure">
         <TableSortLabel
           direction={order}
           onClick={() => toggleSorting(SortByColumn.GrassCure)}
@@ -132,7 +132,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     Status: (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="status">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -144,7 +144,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     Temp: (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="temp">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -156,7 +156,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     RH: (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="rh">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -168,7 +168,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'Wind Dir': (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="wind-dir">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -180,7 +180,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'Wind Speed (km/h)': (
-      <TableCell className={classes.windSpeed} sortDirection={order}>
+      <TableCell className={classes.windSpeed} sortDirection={order} key="wind-speed">
         <TableSortLabel
           className={classes.windSpeed}
           direction={order}
@@ -193,7 +193,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'Precip (mm)': (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="precip">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -205,7 +205,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     FFMC: (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="ffmc">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -217,7 +217,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     DMC: (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="dmc">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -229,7 +229,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     DC: (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="dc">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -241,7 +241,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     ISI: (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="isi">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -253,7 +253,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     BUI: (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="bui">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -265,7 +265,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     FWI: (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="fwi">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -277,7 +277,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     HFI: (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="hfi">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -289,7 +289,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'Critical Hours (4000 kW/m)': (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="critical-hours-4000">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -301,7 +301,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'Critical Hours (10000 kW/m)': (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="critical-hours-10000">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -313,7 +313,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'ROS (m/min)': (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="ros">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -325,7 +325,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'Fire Type': (
-      <TableCell sortDirection={order}>
+      <TableCell sortDirection={order} key="fire-type">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -344,7 +344,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'CFB (%)': (
-      <TableCell className={classes.headerCell} sortDirection={order}>
+      <TableCell className={classes.headerCell} sortDirection={order} key="cfb">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -356,7 +356,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     'Flame Length (m)': (
-      <TableCell className={classes.headerCell} sortDirection={order}>
+      <TableCell className={classes.headerCell} sortDirection={order} key="flame-length">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -368,7 +368,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     '30 min fire size (ha)': (
-      <TableCell className={classes.headerCell} sortDirection={order}>
+      <TableCell className={classes.headerCell} sortDirection={order} key="30-min-fire">
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -380,7 +380,7 @@ const FBATableHead = ({
       </TableCell>
     ),
     '60 min fire size (ha)': (
-      <TableCell className={classes.headerCell} sortDirection={order}>
+      <TableCell className={classes.headerCell} sortDirection={order} key="60-min-fire">
         <TableSortLabel
           direction={order}
           onClick={() => {

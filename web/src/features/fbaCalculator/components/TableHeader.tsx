@@ -1,5 +1,5 @@
 import { makeStyles } from '@material-ui/core'
-import React from 'react'
+import React, { useState, MouseEvent } from 'react'
 
 interface TableHeaderProps {
   text: string
@@ -38,11 +38,53 @@ const TableHeader = (props: TableHeaderProps) => {
     }
   })
 
+  const [left, setLeft] = useState(0)
+
+  const findParentTableContainer = (element: HTMLElement | null): HTMLElement | null => {
+    // find the parent table container - if it exists.
+    if (!element) {
+      // failed to find the table container.
+      return null
+    }
+    if (element.parentElement instanceof HTMLTableElement) {
+      // return the container of the parent element.
+      return element.parentElement.parentElement
+    }
+    // keep looking for the parent table container.
+    return findParentTableContainer(element.parentElement)
+  }
+
+  const hover = (e: MouseEvent<HTMLDivElement>) => {
+    const fireTable = findParentTableContainer(e.currentTarget)
+    if (fireTable) {
+      const child = e.currentTarget.children[0] as HTMLSpanElement
+      // clone the span, throw it into the dom, and measure the length of the text - then get rid of it.
+      const clone = child.cloneNode(true) as HTMLSpanElement
+      clone.style.visibility = 'hidden'
+      clone.style.position = 'absolute'
+      e.currentTarget.appendChild(clone)
+      const textWidth = clone.getBoundingClientRect().width
+      clone.remove()
+      // now we now how wide the text is, we can move it left if it exceeds the container.
+      if (
+        e.currentTarget.getBoundingClientRect().left + textWidth >=
+        fireTable.getBoundingClientRect().right
+      ) {
+        const delta =
+          fireTable.getBoundingClientRect().right -
+          (e.currentTarget.getBoundingClientRect().left + textWidth)
+        setLeft(delta)
+      } else {
+        setLeft(0)
+      }
+    }
+  }
+
   const classes = useStyles()
   return (
-    <div className={classes.header}>
+    <div className={classes.header} onMouseOver={hover}>
       {props.text}
-      <span>{props.text}</span>
+      <span style={{ left: left }}>{props.text}</span>
     </div>
   )
 }
