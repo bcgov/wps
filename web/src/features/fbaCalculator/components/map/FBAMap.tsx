@@ -36,9 +36,9 @@ export interface FBAMapProps {
 }
 
 const fireVectorSource = (layer: FireLayer) => {
-  const source = new VectorSource({
+  const fireVectorSource = new VectorSource({
     loader: async (extent, _resolution, projection) => {
-      getFireCenterVectorSource(layer, extent, projection, source)
+      getFireCenterVectorSource(layer, extent, projection, fireVectorSource)
     },
     strategy: tileStrategy(
       createXYZ({
@@ -47,7 +47,7 @@ const fireVectorSource = (layer: FireLayer) => {
     )
   })
 
-  return source
+  return fireVectorSource
 }
 
 const fireCenterVector = new OLVectorLayer({
@@ -110,7 +110,6 @@ const FBAMap = (props: FBAMapProps) => {
       overlays: [],
       controls: defaultControls()
     }
-
     // Create the map with the options above and set the target
     // To the ref above so that it is rendered in that div
     const mapObject = new ol.Map(options)
