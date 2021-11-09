@@ -16,8 +16,12 @@ import { FireCenter } from 'api/fbaAPI'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
-  itemContainer: {
+  listContainer: {
     width: 700,
+    height: 700
+  },
+  mapContainer: {
+    width: 900,
     height: 700
   },
   fireCenter: {
@@ -112,14 +116,14 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               {fireCenter ? (
                 <FormalFBATable
                   fireCenter={fireCenter}
-                  className={classes.itemContainer}
+                  className={classes.listContainer}
                 />
               ) : (
                 emptyInstructions
               )}
             </Grid>
             <Grid item xs>
-              <FBAMap className={classes.itemContainer} />
+              <FBAMap className={classes.mapContainer} />
             </Grid>
           </Grid>
         </Grid>
