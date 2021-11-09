@@ -127,7 +127,7 @@ async def main():
             # for debugging, list the files to delete
             print('files to delete:')
             for file in files_to_delete:
-                print('file')
+                print(file)
 
             if len(files_to_delete) > 0:
                 await delete_files(client, bucket, files_to_delete)
