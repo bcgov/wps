@@ -20,8 +20,11 @@ import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { union } from 'lodash'
-import { getDailiesByStationCode, getDailiesForArea } from 'features/hfiCalculator/util'
-import { getZoneFromAreaName } from 'features/hfiCalculator/util'
+import {
+  getDailiesByStationCode,
+  getDailiesForArea,
+  getZoneFromAreaName
+} from 'features/hfiCalculator/util'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
