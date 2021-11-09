@@ -43,7 +43,7 @@ poetry env use /Users/[user]/.pyenv/versions/3.6.8/bin/python
 poetry install
 ```
 
-### Ubunut specific instructions
+### Ubuntu specific instructions
 
 If you have trouble getting poetry to use python 3.6.*
 
