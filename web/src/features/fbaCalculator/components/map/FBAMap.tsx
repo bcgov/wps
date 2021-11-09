@@ -23,7 +23,7 @@ import {
   FireLayer,
   fireZoneLayer,
   getFireCenterVectorSource
-} from 'api/fbaVectorSourceAPI'
+} from 'api/external/fbaVectorSourceAPI'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
