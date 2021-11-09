@@ -14,7 +14,7 @@ import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
 import { isEmpty, union } from 'lodash'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { getDailiesByStationCode } from 'features/hfiCalculator/util'
+import { getDailiesByStationCode, getZoneFromAreaName } from 'features/hfiCalculator/util'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -36,10 +36,6 @@ export const weeklyTableColumnLabels = [
 const useStyles = makeStyles({
   ...fireTableStyles
 })
-
-export const getZoneFromAreaName = (areaName: string): string => {
-  return areaName.slice(-3)
-}
 
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()

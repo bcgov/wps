@@ -2,7 +2,11 @@ import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { groupBy, isNull, isUndefined, range } from 'lodash'
 import * as CSV from 'csv-string'
-import { getDailiesByStationCode, getDailiesForArea } from 'features/hfiCalculator/util'
+import {
+  getDailiesByStationCode,
+  getDailiesForArea,
+  getZoneFromAreaName
+} from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
 import { weeklyTableColumnLabels } from 'features/hfiCalculator/components/WeeklyViewTable'
 import {
@@ -40,7 +44,9 @@ export class FormatTableAsCSV {
     Object.entries(fireCentres).forEach(([, centre]) => {
       rowsAsStrings.push(centre.name)
       Object.entries(centre.planning_areas)
-        .sort((a, b) => (a[1].name.slice(-3) < b[1].name.slice(-3) ? -1 : 1)) // sort by zone code
+        .sort((a, b) =>
+          getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
+        )
         .forEach(([, area]) => {
           const stationCodesInArea: number[] = []
           Object.entries(area.stations).forEach(([, station]) => {
@@ -134,7 +140,7 @@ export class FormatTableAsCSV {
           })
         })
     })
-    return rowsAsStrings.join('\r\n')
+    return rowsAsStrings.join('')
   }
 
   static buildAreaWeeklySummaryString = (
@@ -199,7 +205,9 @@ export class FormatTableAsCSV {
     Object.entries(fireCentres).forEach(([, centre]) => {
       rowsAsStrings.push(centre.name)
       Object.entries(centre.planning_areas)
-        .sort((a, b) => (a[1].name.slice(-3) < b[1].name.slice(-3) ? -1 : 1)) // sort by zone code
+        .sort((a, b) =>
+          getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
+        )
         .forEach(([, area]) => {
           rowsAsStrings.push(this.buildAreaWeeklySummaryString(area, dailies))
           Object.entries(area.stations).forEach(([, station]) => {
@@ -248,6 +256,6 @@ export class FormatTableAsCSV {
         })
     })
 
-    return rowsAsStrings.join('\r')
+    return rowsAsStrings.join('')
   }
 }
