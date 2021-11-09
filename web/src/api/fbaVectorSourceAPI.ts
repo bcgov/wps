@@ -4,13 +4,12 @@ import Projection from 'ol/proj/Projection'
 import Geometry from 'ol/geom/Geometry'
 import axios from 'axios'
 
+export type FireLayer = '2' | '8'
+export const fireCenterLayer: FireLayer = '2'
+export const fireZoneLayer: FireLayer = '8'
+
 const fireCenterUrl =
   'https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/'
-const outlineLayer = '2'
-
-const axiosInstance = axios.create({
-  baseURL: fireCenterUrl + outlineLayer
-})
 
 /**
  * Retrieves fire center polygons from maps.gov.bc.ca arcserver
@@ -21,6 +20,7 @@ const axiosInstance = axios.create({
  * @param vectorSource the source to add the requested features to
  */
 export const getFireCenterVectorSource = async (
+  layer: FireLayer,
   extent: number[],
   projection: Projection,
   vectorSource: VectorSource<Geometry>
@@ -62,6 +62,9 @@ export const getFireCenterVectorSource = async (
     '&geometryType=esriGeometryEnvelope&inSR=102100&outFields=*' +
     '&outSR=102100'
 
+  const axiosInstance = axios.create({
+    baseURL: fireCenterUrl + layer
+  })
   const { data } = await axiosInstance.get(url)
   const features = esriJsonFormat.readFeatures(data, {
     featureProjection: projection

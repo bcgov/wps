@@ -18,8 +18,12 @@ import { source } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { tile as tileStrategy } from 'ol/loadingstrategy'
 import { createXYZ } from 'ol/tilegrid'
-import { getFireCenterVectorSource } from 'api/fbaVectorSourceAPI'
-import TileWMS from 'ol/source/TileWMS'
+import {
+  fireCenterLayer,
+  FireLayer,
+  fireZoneLayer,
+  getFireCenterVectorSource
+} from 'api/fbaVectorSourceAPI'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -31,22 +35,27 @@ export interface FBAMapProps {
   className: string
 }
 
-const vectorSource = new VectorSource({
-  loader: async (extent, _resolution, projection) => {
-    getFireCenterVectorSource(extent, projection, vectorSource)
-  },
-  strategy: tileStrategy(
-    createXYZ({
-      tileSize: 512
-    })
-  )
-})
+const fireVectorSource = (layer: FireLayer) => {
+  const source = new VectorSource({
+    loader: async (extent, _resolution, projection) => {
+      getFireCenterVectorSource(layer, extent, projection, source)
+    },
+    strategy: tileStrategy(
+      createXYZ({
+        tileSize: 512
+      })
+    )
+  })
 
-const vector = new OLVectorLayer({
-  source: vectorSource,
+  return source
+}
+
+const fireCenterVector = new OLVectorLayer({
+  source: fireVectorSource(fireCenterLayer),
   style: () => {
     return new Style({
       stroke: new Stroke({
+        lineDash: [1, 10],
         color: 'blue',
         width: 4
       })
@@ -54,22 +63,18 @@ const vector = new OLVectorLayer({
   }
 })
 
-const buildFireZoneTileLayer = () => {
-  return new Tile({
-    opacity: 1,
-    preload: Infinity,
-    source: new TileWMS({
-      url: 'https://openmaps.gov.bc.ca/geo/pub/wms',
-      params: {
-        LAYERS: 'WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_ZONES_SP',
-        TILED: true,
-        STYLES: '3460'
-      },
-      serverType: 'geoserver',
-      transition: 0
+const fireZoneVector = new OLVectorLayer({
+  opacity: 0.5,
+  source: fireVectorSource(fireZoneLayer),
+  style: () => {
+    return new Style({
+      stroke: new Stroke({
+        color: 'purple',
+        width: 4
+      })
     })
-  })
-}
+  }
+})
 
 const FBAMap = (props: FBAMapProps) => {
   const useStyles = makeStyles({
@@ -99,8 +104,8 @@ const FBAMap = (props: FBAMapProps) => {
         new Tile({
           source
         }),
-        vector,
-        buildFireZoneTileLayer()
+        fireCenterVector,
+        fireZoneVector
       ],
       overlays: [],
       controls: defaultControls()
