@@ -10,29 +10,29 @@ class TestPrune(unittest.TestCase):
     def __init__(self, methodName: str = ...) -> None:
         super().__init__(methodName=methodName)
         self.ascending_list = ['backup/blah_wps/2021/10/blah_wps_2021-10-10_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-10-11_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-10-12_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-10-13_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-10-14_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-10-15_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-10-20_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-10-21_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-10-22_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-10-29_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-10-30_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-10-31_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-11-01_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-11-02_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-11-13_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-11-14_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-11-15_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-11-16_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-11-17_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-11-18_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-11-19_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-11-20_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-11-21_14-00-10.sql.gz',
-                            'backup/blah_wps/2021/10/blah_wps_2021-11-22_14-00-10.sql.gz']
+                               'backup/blah_wps/2021/10/blah_wps_2021-10-11_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-10-12_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-10-13_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-10-14_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-10-15_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-10-20_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-10-21_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-10-22_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-10-29_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-10-30_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-10-31_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-11-01_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-11-02_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-11-13_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-11-14_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-11-15_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-11-16_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-11-17_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-11-18_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-11-19_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-11-20_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-11-21_14-00-10.sql.gz',
+                               'backup/blah_wps/2021/10/blah_wps_2021-11-22_14-00-10.sql.gz']
         self.small_set = ['backup/blah_wps/2021/10/blah_wps_2021-10-21_14-00-10.sql.gz',
                           'backup/blah_wps/2021/10/blah_wps_2021-10-21_09-00-28.sql.gz',
                           'backup/blah_wps/2021/10/blah_wps_2021-10-21_03-00-25.sql.gz',
@@ -83,20 +83,20 @@ class TestPrune(unittest.TestCase):
         self.assertIn(self.ascending_list[-5], files_to_keep)
 
     def test_keep_small_set(self):
-        """ We only care about the most recent backup if there's nothing older than a day """
+        """ If there's nothing old than a day, we expect to retain up to 5 "hourly" values """
         files = self.small_set
         files_to_keep = decide_files_to_keep(files)
-        self.assertEqual(len(files_to_keep), 1)
+        self.assertEqual(len(files_to_keep), 4)
         self.assertIn(files[0], files_to_keep)
 
     def test_delete_small_set(self):
         """ Check that delete works for smaller set """
         files = self.small_set
         files_to_delete = decide_files_to_delete(files)
-        self.assertEqual(len(files_to_delete), 3)
+        self.assertEqual(len(files_to_delete), 0)
         files_set = set(files)
         delete_set = set(files_to_delete)
-        keep_set = set([files[0]])
+        keep_set = set([files[0], files[1], files[2], files[3]])
         self.assertEqual(files_set.difference(keep_set), delete_set)
 
     def test_keep_large_set(self):
@@ -104,8 +104,11 @@ class TestPrune(unittest.TestCase):
         """
         files = self.large_set
         files_to_keep = decide_files_to_keep(files)
-        self.assertEqual(len(files_to_keep), 11)
+        self.assertEqual(len(files_to_keep), 14)
         self.assertIn(files[0], files_to_keep)
+        self.assertIn(files[1], files_to_keep)
+        self.assertIn(files[2], files_to_keep)
+        self.assertIn(files[3], files_to_keep)
         self.assertIn(files[4], files_to_keep)
         self.assertIn(files[5], files_to_keep)
         self.assertIn(files[6], files_to_keep)
@@ -121,10 +124,10 @@ class TestPrune(unittest.TestCase):
         """ Check that delete works for larger set """
         files = self.large_set
         files_to_delete = decide_files_to_delete(files)
-        self.assertEqual(len(files_to_delete), 12)
+        self.assertEqual(len(files_to_delete), 9)
         files_set = set(files)
         delete_set = set(files_to_delete)
-        keep_set = set([files[0], files[4], files[5], files[6], files[7], files[10],
+        keep_set = set([files[0], files[1], files[2], files[3], files[4], files[5], files[6], files[7], files[10],
                         files[11], files[12], files[13], files[14], files[15]])
         self.assertEqual(files_set.difference(keep_set), delete_set)
 

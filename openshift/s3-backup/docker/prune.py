@@ -72,7 +72,10 @@ class Desire:  # pylint: disable=too-few-public-methods
 def decide_files_to_keep(files: list) -> Set:
     """ Decide what files to keep
     Expects a list of filenames sorted from most recent to least recent """
+    # We need to keep hourlies, otherwise, the hourlies get deleted
+    # as we go, and we end up not retaining any!
     desires = [
+        Desire(desired_backups=5, interval=timedelta(hours=1)),  # retain 5 hourly backups
         Desire(desired_backups=5, interval=timedelta(days=1)),  # retain 5 daily backups
         Desire(desired_backups=5, interval=timedelta(weeks=1)),  # retain 5 weekly backups
         Desire(desired_backups=5, interval=timedelta(weeks=4))]  # retain 5 monthly
