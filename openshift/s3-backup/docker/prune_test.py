@@ -127,7 +127,8 @@ class TestPrune(unittest.TestCase):
         self.assertEqual(len(files_to_delete), 9)
         files_set = set(files)
         delete_set = set(files_to_delete)
-        keep_set = set([files[0], files[1], files[2], files[3], files[4], files[5], files[6], files[7], files[10],
+        keep_set = set([files[0], files[1], files[2], files[3], files[4], files[5],
+                        files[6], files[7], files[10],
                         files[11], files[12], files[13], files[14], files[15]])
         self.assertEqual(files_set.difference(keep_set), delete_set)
 
