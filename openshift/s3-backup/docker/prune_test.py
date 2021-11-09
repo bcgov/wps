@@ -73,7 +73,7 @@ class TestPrune(unittest.TestCase):
         self.assertNotIn(self.ascending_list[-5], files_to_delete)
 
     def test_keep_sample_set(self):
-        """ Test what shold be kept using an ascending list of files """
+        """ Test what should be kept using an ascending list of files """
         files_to_keep = list(decide_files_to_keep(self.ascending_list.copy()))
         files_to_keep.sort()
         self.assertIn(self.ascending_list[-1], files_to_keep)
