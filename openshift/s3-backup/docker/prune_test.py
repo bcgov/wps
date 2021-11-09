@@ -63,7 +63,7 @@ class TestPrune(unittest.TestCase):
                           ]
 
     def test_delete_sample_set(self):
-        """ Test what should be deleted using an asecending list of files """
+        """ Test what should be deleted using an ascending list of files """
         files_to_delete = list(decide_files_to_delete(self.ascending_list.copy()))
         files_to_delete.sort()
         self.assertNotIn(self.ascending_list[-1], files_to_delete)
