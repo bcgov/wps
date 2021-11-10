@@ -5,7 +5,7 @@ import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
 import {
   calculateDailyMeanIntensities,
   calculateMaxMeanIntensityGroup,
-  calculateMeanPrepLevel
+  calculateMeanIntensityGroupLevel
 } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
@@ -40,7 +40,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
   const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
     dailyMeanIntensityGroups
   )
-  const meanPrepLevel = calculateMeanPrepLevel(dailyMeanIntensityGroups)
+  const meanPrepLevel = calculateMeanIntensityGroupLevel(dailyMeanIntensityGroups)
 
   return (
     <React.Fragment>
