@@ -17,20 +17,28 @@ export class VectorDataManager {
     })
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public async getOrSet(layer: FireLayer, extent: number[]): Promise<AxiosResponse<any>> {
+  public async getOrSet(
+    layer: FireLayer,
+    extent: number[]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<AxiosResponse<any> | undefined> {
     const cachedValue = await get(this.buildKey(layer, extent))
     if (!isUndefined(cachedValue)) {
       return cachedValue
     }
 
-    const { data } = await this.axiosInstance.get(this.buildUrl(layer, extent))
-    set(this.buildKey(layer, extent), data)
-    return data
+    try {
+      const { data } = await this.axiosInstance.get(this.buildUrl(layer, extent))
+      set(this.buildKey(layer, extent), data)
+      return data
+    } catch (error) {
+      console.log(error)
+      return undefined
+    }
   }
 
   public buildKey(layer: FireLayer, extent: number[]): string {
-    return `${layer}-${extent.join(',')}`
+    return `${layer}${extent.join(',')}`
   }
 
   public buildUrl(layer: FireLayer, extent: number[]): string {
