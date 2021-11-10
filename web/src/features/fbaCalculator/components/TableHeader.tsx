@@ -40,23 +40,23 @@ const TableHeader = (props: TableHeaderProps) => {
 
   const [left, setLeft] = useState(0)
 
-  const findParentTable = (element: HTMLElement | null): HTMLElement | null => {
-    // find the parent table - if it exists.
+  const findParentTableContainer = (element: HTMLElement | null): HTMLElement | null => {
+    // find the parent table container - if it exists.
     if (!element) {
       // failed to find the table.
       return null
     }
-    if (element.parentElement instanceof HTMLTableElement) {
-      // return the table.
+    if (element instanceof HTMLTableElement) {
+      // return the table container.
       return element.parentElement
     }
     // keep looking for the parent table container.
-    return findParentTable(element.parentElement)
+    return findParentTableContainer(element.parentElement)
   }
 
   const hover = (e: MouseEvent<HTMLDivElement>) => {
-    const fireTable = findParentTable(e.currentTarget)
-    if (fireTable) {
+    const fireTableContainer = findParentTableContainer(e.currentTarget)
+    if (fireTableContainer) {
       const child = e.currentTarget.children[0] as HTMLSpanElement
       // clone the span, throw it into the dom, and measure the length of the text - then get rid of it.
       const clone = child.cloneNode(true) as HTMLSpanElement
@@ -65,15 +65,15 @@ const TableHeader = (props: TableHeaderProps) => {
       e.currentTarget.appendChild(clone)
       const textWidth = clone.getBoundingClientRect().width
       clone.remove()
-      // now we now how wide the text is, we can move it left if it exceeds the container.
-      if (
-        e.currentTarget.getBoundingClientRect().left + textWidth >=
-        fireTable.getBoundingClientRect().right
-      ) {
-        const delta =
-          fireTable.getBoundingClientRect().right -
-          (e.currentTarget.getBoundingClientRect().left + textWidth)
-        setLeft(delta)
+      // now we know how wide the text is, we can move it left if it exceeds the container.
+      const clientWidth = fireTableContainer.getBoundingClientRect().right
+      const scrollBarWidth =
+        fireTableContainer.offsetWidth - fireTableContainer.clientWidth
+      const availabeWidth = clientWidth - scrollBarWidth
+      if (e.currentTarget.getBoundingClientRect().left + textWidth >= availabeWidth) {
+        setLeft(
+          availabeWidth - (e.currentTarget.getBoundingClientRect().left + textWidth)
+        )
       } else {
         setLeft(0)
       }
