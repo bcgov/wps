@@ -1,5 +1,8 @@
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { calculateMeanIntensity } from 'features/hfiCalculator/components/meanIntensity'
+import {
+  calculateMeanIntensity,
+  calculateMeanIntensityGroupLevel
+} from 'features/hfiCalculator/components/meanIntensity'
 import { buildStationDaily } from 'features/hfiCalculator/components/testHelpers'
 
 describe('calculateMeanIntensityGroup', () => {
@@ -12,5 +15,8 @@ describe('calculateMeanIntensityGroup', () => {
   })
   it('should return undefined if there are no intensity groups to calculate in the selected dailies', () => {
     expect(calculateMeanIntensity([])).toEqual(undefined)
+  })
+  it('should return undefined if there is no mean intensity group to calculate', () => {
+    expect(calculateMeanIntensityGroupLevel([])).toEqual(undefined)
   })
 })
