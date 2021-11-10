@@ -29,7 +29,9 @@ export class VectorDataManager {
 
     try {
       const { data } = await this.axiosInstance.get(this.buildUrl(layer, extent))
-      set(this.buildKey(layer, extent), data)
+      if (data.features.length > 0) {
+        set(this.buildKey(layer, extent), data)
+      }
       return data
     } catch (error) {
       console.log(error)
