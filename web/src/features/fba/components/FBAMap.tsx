@@ -24,6 +24,7 @@ import {
   fireZoneLayer,
   getFireCenterVectorSource
 } from 'api/external/fbaVectorSourceAPI'
+import { FireCenter } from 'api/fbaAPI'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -33,6 +34,7 @@ const BC_CENTER_FIRE_CENTERS = [-124.16748046874999, 54.584796743678744]
 export interface FBAMapProps {
   testId?: string
   className: string
+  selectedFireCenter: FireCenter | undefined
 }
 
 const fireVectorSource = (layer: FireLayer) => {
@@ -50,32 +52,6 @@ const fireVectorSource = (layer: FireLayer) => {
   return fireVectorSource
 }
 
-const fireCenterVector = new OLVectorLayer({
-  source: fireVectorSource(fireCenterLayer),
-  style: () => {
-    return new Style({
-      stroke: new Stroke({
-        lineDash: [1, 10],
-        color: 'blue',
-        width: 4
-      })
-    })
-  }
-})
-
-const fireZoneVector = new OLVectorLayer({
-  opacity: 0.5,
-  source: fireVectorSource(fireZoneLayer),
-  style: () => {
-    return new Style({
-      stroke: new Stroke({
-        color: 'purple',
-        width: 4
-      })
-    })
-  }
-})
-
 const FBAMap = (props: FBAMapProps) => {
   const useStyles = makeStyles({
     main: {
@@ -87,6 +63,37 @@ const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
+
+  console.log(props.selectedFireCenter?.id)
+
+  const fireCenterSource = fireVectorSource(fireCenterLayer)
+
+  const fireCenterVector = new OLVectorLayer({
+    source: fireCenterSource,
+    style: () => {
+      return new Style({
+        stroke: new Stroke({
+          lineDash: [1, 10],
+          color: 'blue',
+          width: 4
+        })
+      })
+    }
+  })
+
+  const fireZoneVector = new OLVectorLayer({
+    opacity: 0.5,
+    source: fireVectorSource(fireZoneLayer),
+    style: () => {
+      return new Style({
+        stroke: new Stroke({
+          color: 'purple',
+          width: 4
+        })
+      })
+    }
+  })
+
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
     // return statement of which this map's target is set to.
@@ -114,6 +121,15 @@ const FBAMap = (props: FBAMapProps) => {
     // To the ref above so that it is rendered in that div
     const mapObject = new ol.Map(options)
     mapObject.setTarget(mapRef.current)
+
+    fireCenterSource.on('change', () => {
+      const firstFeature = fireCenterSource.getFeatures()[0]
+      const extent = firstFeature.getGeometry()?.getExtent()
+      if (extent) {
+        console.log(`About to fit map to extent: ${extent}`)
+        mapObject.getView().fit(extent)
+      }
+    })
 
     setMap(mapObject)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps

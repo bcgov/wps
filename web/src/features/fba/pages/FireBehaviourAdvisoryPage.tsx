@@ -123,7 +123,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               )}
             </Grid>
             <Grid item xs>
-              <FBAMap className={classes.mapContainer} />
+              <FBAMap selectedFireCenter={fireCenter} className={classes.mapContainer} />
             </Grid>
           </Grid>
         </Grid>
