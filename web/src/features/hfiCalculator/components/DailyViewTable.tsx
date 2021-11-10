@@ -20,13 +20,44 @@ import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { union } from 'lodash'
-import { getDailiesByStationCode, getDailiesForArea } from 'features/hfiCalculator/util'
+import {
+  getDailiesByStationCode,
+  getDailiesForArea,
+  getZoneFromAreaName
+} from 'features/hfiCalculator/util'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
   dailies: StationDaily[]
   testId?: string
 }
+
+export const dailyTableColumnLabels = [
+  'Location',
+  'Elev. (m)',
+  'FBP Fuel Type',
+  'Status',
+  'Temp (°C)',
+  'RH (%)',
+  'Wind Dir (°)',
+  'Wind Speed (km/h)',
+  'Precip (mm)',
+  'Grass Cure (%)',
+  'FFMC',
+  'DMC',
+  'DC',
+  'ISI',
+  'BUI',
+  'FWI',
+  'DGR CL',
+  'ROS (m/min)',
+  'HFI',
+  '60 min fire size (ha)',
+  'Fire Type',
+  'M/FIG',
+  'Fire Starts',
+  'Prep Level'
+]
 
 const useStyles = makeStyles({
   ...fireTableStyles
@@ -205,7 +236,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                 </TableCell>
               </TableRow>
               {Object.entries(centre.planning_areas)
-                .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
+                .sort((a, b) =>
+                  getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
+                ) // sort by zone code
                 .map(([areaName, area]) => {
                   const areaDailies = getDailiesForArea(area, props.dailies, selected)
                   const meanIntensityGroup = calculateMeanIntensity(areaDailies)
@@ -315,7 +348,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 {daily?.bui?.toFixed(DECIMAL_PLACES)}
                               </TableCell>
                               <TableCell className={classNameForRow}>
-                                {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
+                                {daily?.fwi?.toFixed(DECIMAL_PLACES)}
                               </TableCell>
                               <TableCell className={classNameForRow}>
                                 {daily?.danger_class}
