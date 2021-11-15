@@ -114,8 +114,8 @@ const FBAMap = (props: FBAMapProps) => {
 
     const options: MapOptions = {
       view: new ol.View({
-        center: fromLonLat(BC_CENTER_FIRE_CENTERS),
-        zoom
+        zoom,
+        center: fromLonLat(BC_CENTER_FIRE_CENTERS)
       }),
       layers: [
         new Tile({
