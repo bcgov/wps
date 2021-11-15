@@ -38,7 +38,7 @@ export interface FBAMapProps {
   selectedFireCenter: FireCenter | undefined
 }
 
-const fireVectorSource = (layer: FireLayer) => {
+const buildFireVectorSource = (layer: FireLayer) => {
   const fireVectorSource = new VectorSource({
     loader: async (extent, _resolution, projection, success) => {
       getFireCenterVectorSource(layer, extent, projection, fireVectorSource, success)
@@ -65,7 +65,7 @@ const FBAMap = (props: FBAMapProps) => {
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
 
-  const fireCenterSource = fireVectorSource(fireCenterLayer)
+  const fireCenterSource = buildFireVectorSource(fireCenterLayer)
 
   const fireCenterVector = new OLVectorLayer({
     source: fireCenterSource,
@@ -82,7 +82,7 @@ const FBAMap = (props: FBAMapProps) => {
 
   const fireZoneVector = new OLVectorLayer({
     opacity: 0.5,
-    source: fireVectorSource(fireZoneLayer),
+    source: buildFireVectorSource(fireZoneLayer),
     style: () => {
       return new Style({
         stroke: new Stroke({
