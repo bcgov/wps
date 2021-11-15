@@ -23,12 +23,20 @@ export interface Props {
   testId?: string
 }
 
-export const weeklyTableColumnLabels = [
+export const columnLabelsForEachDayInWeek: string[] = [
+  'ROS (m/min)',
+  'HFI',
+  'M / FIG',
+  'Fire Starts',
+  'Prep Level'
+]
+
+export const weeklyTableColumnLabels: string[] = [
   'Location',
   'Elev. (m)',
   'FBP Fuel Type',
   'Grass Cure (%)',
-  Array(5).fill(['ROS (m/min)', 'HFI', 'M / FIG', 'Fire Starts', 'Prep Level']),
+  ...Array(5).fill(columnLabelsForEachDayInWeek).flat(),
   'Highest Daily FIG',
   'Calc. Prep'
 ]
