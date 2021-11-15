@@ -22,6 +22,7 @@ export const getFireCenterVectorSource = async (
   extent: number[],
   projection: Projection,
   vectorSource: VectorSource<Geometry>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   success: ((arg0: Feature<any>[]) => void) | undefined
 ): Promise<void> => {
   const vectorDataManager = new VectorDataManager()

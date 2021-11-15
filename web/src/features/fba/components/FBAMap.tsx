@@ -24,9 +24,8 @@ import {
   fireZoneLayer,
   getFireCenterVectorSource
 } from 'api/external/fbaVectorSourceAPI'
-import { VectorDataManager } from 'api/external/VectorDataManager'
-import { isEqual, isNull } from 'lodash'
 import { FireCenter } from 'api/fbaAPI'
+import { extentsMap } from 'features/fba/fireCenterExtents'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -65,7 +64,6 @@ const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
-  const [dataManager, setDataManager] = useState<VectorDataManager | null>(null)
 
   const fireCenterSource = fireVectorSource(fireCenterLayer)
 
@@ -95,15 +93,16 @@ const FBAMap = (props: FBAMapProps) => {
     }
   })
 
-  const getDataManagerInstance = async () => {
-    if (isNull(dataManager)) {
-      const createdDataManager = new VectorDataManager()
-      await createdDataManager.initInflatedFeatureStore()
-      setDataManager(createdDataManager)
-      return createdDataManager
+  useEffect(() => {
+    if (!map) return
+
+    if (props.selectedFireCenter) {
+      const fireCenterExtent = extentsMap.get(props.selectedFireCenter.name)
+      if (fireCenterExtent) {
+        map.getView().fit(fireCenterExtent.extent)
+      }
     }
-    return dataManager
-  }
+  }, [props.selectedFireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -133,20 +132,12 @@ const FBAMap = (props: FBAMapProps) => {
     const mapObject = new ol.Map(options)
     mapObject.setTarget(mapRef.current)
 
-    const uniqueFireCenters = new Set()
-
-    fireCenterSource.on('change', async () => {
-      const currDataManager = await getDataManagerInstance()
-
-      const firstFeature = fireCenterSource.getFeatures()[0]
-      const extent = firstFeature.getGeometry()?.getExtent()
-      // const fireCenterName = firstFeature.attributes.values_.
-      if (extent) {
-        console.log(`About to fit map to extent: ${extent}`)
-        mapObject.getView().fit(extent)
+    if (props.selectedFireCenter) {
+      const fireCenterExtent = extentsMap.get(props.selectedFireCenter.name)
+      if (fireCenterExtent) {
+        mapObject.getView().fit(fireCenterExtent.extent)
       }
-    })
-
+    }
     setMap(mapObject)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 

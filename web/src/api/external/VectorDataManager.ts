@@ -13,7 +13,6 @@ const fireCenterUrl =
 export class VectorDataManager {
   private axiosInstance: AxiosInstance
   private static dataStoreName = 'fireVectors'
-  private static inflatedDataStoreName = 'inflatedFireFeatures'
   private static fireCenterNameIdx = 'fireCenterNameIdx'
   private db!: IDBPDatabase
 
@@ -35,33 +34,6 @@ export class VectorDataManager {
       }
     })
   }
-
-  public async initInflatedFeatureStore(): Promise<void> {
-    this.db = await openDB('InflatedFireData', 1, {
-      upgrade(db) {
-        db.createObjectStore(VectorDataManager.inflatedDataStoreName, {
-          keyPath: 'fireCenterName'
-        })
-      }
-    })
-  }
-
-  public async setExtent(fireCenterName: string, extent: number[]) {
-    const record = {
-      fireCenterName: fireCenterName,
-      extent
-    }
-    const res = await this.db.put(VectorDataManager.inflatedDataStoreName, record)
-    console.log(`Put record with result: ${res}`)
-  }
-
-  public async getExtent(fireCenterName: string | undefined) {
-    return this.db.get(
-      VectorDataManager.inflatedDataStoreName,
-      fireCenterName ? fireCenterName : ''
-    )
-  }
-
   public async getOrSet(
     layer: FireLayer,
     extent: number[]
