@@ -8,7 +8,10 @@ import {
   getZoneFromAreaName
 } from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
-import { weeklyTableColumnLabels } from 'features/hfiCalculator/components/WeeklyViewTable'
+import {
+  columnLabelsForEachDayInWeek,
+  weeklyTableColumnLabels
+} from 'features/hfiCalculator/components/WeeklyViewTable'
 import {
   calculateDailyMeanIntensities,
   calculateMaxMeanIntensityGroup,
@@ -21,6 +24,9 @@ import { NUM_WEEK_DAYS, DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 
 // padding for station-data cells (e.g., station name, fuel type) before dates begin
 const NUM_STATION_DATA_COLS = 5
+// padding for station-specific cells (repeated daily) that will be left empty in planning area row
+// (e.g., ROS, HFI)
+const NUM_DAILY_DATA_COLS_THAT_DONT_APPLY_TO_AREA = 2
 // padding for end-of-week cells (e.g., Highest Daily FIG, Calc. Prep)
 const NUM_WEEKLY_SUMMARY_CELLS = 2
 
@@ -39,10 +45,10 @@ export class FormatTableAsCSV {
   ): string => {
     const rowsAsStrings: string[] = []
 
-    rowsAsStrings.push(dailyTableColumnLabels.toString())
+    rowsAsStrings.push(CSV.stringify(dailyTableColumnLabels.toString()))
 
     Object.entries(fireCentres).forEach(([, centre]) => {
-      rowsAsStrings.push(centre.name)
+      rowsAsStrings.push(CSV.stringify(centre.name))
       Object.entries(centre.planning_areas)
         .sort((a, b) =>
           getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
@@ -56,9 +62,11 @@ export class FormatTableAsCSV {
           const meanIntensityGroup = calculateMeanIntensity(areaDailies)
           const areaPrepLevel = calculatePrepLevel(meanIntensityGroup)
           rowsAsStrings.push(
-            `${area.name}, ${Array(21).join(
-              ','
-            )} ${meanIntensityGroup}, 0-1, ${areaPrepLevel}` // fire starts of 0-1 is hard-coded for now
+            CSV.stringify(
+              `${area.name}, ${Array(21).join(
+                ','
+              )} ${meanIntensityGroup}, 0-1, ${areaPrepLevel}` // fire starts of 0-1 is hard-coded for now
+            )
           )
           Object.entries(area.stations).forEach(([, station]) => {
             const rowArray: string[] = []
@@ -146,8 +154,13 @@ export class FormatTableAsCSV {
   static buildAreaWeeklySummaryString = (
     area: PlanningArea,
     dailies: StationDaily[]
-  ): string => {
-    let areaWeeklySummaryString = `${area.name},,,,`
+  ): string[] => {
+    const areaWeeklySummary: string[] = [
+      area.name,
+      ...Array(NUM_STATION_DATA_COLS - NUM_DAILY_DATA_COLS_THAT_DONT_APPLY_TO_AREA).fill(
+        ' '
+      )
+    ]
 
     const stationCodesInArea: number[] = []
     Object.entries(area.stations).forEach(([, station]) => {
@@ -174,22 +187,30 @@ export class FormatTableAsCSV {
       const areaDailyPrepLevel = calculatePrepLevel(dailyIntensityGroup)
       const fireStarts = '0-1' // hard-coded for now
 
-      areaWeeklySummaryString = areaWeeklySummaryString.concat(
-        `,, ${dailyIntensityGroup}, ${fireStarts}, ${areaDailyPrepLevel},`
+      areaWeeklySummary.push(
+        ...Array(NUM_DAILY_DATA_COLS_THAT_DONT_APPLY_TO_AREA).fill('')
+      )
+      areaWeeklySummary.push(
+        isUndefined(dailyIntensityGroup) ? 'ND' : dailyIntensityGroup.toString()
+      )
+      areaWeeklySummary.push(fireStarts.toString())
+      areaWeeklySummary.push(
+        isUndefined(areaDailyPrepLevel) ? 'ND' : areaDailyPrepLevel.toString()
       )
     })
-    areaWeeklySummaryString = areaWeeklySummaryString.concat(
-      `${highestMeanIntensityGroup}, ${calcPrepLevel}`
-    )
-    return areaWeeklySummaryString
+    areaWeeklySummary.push(highestMeanIntensityGroup.toString())
+    areaWeeklySummary.push(isUndefined(calcPrepLevel) ? 'ND' : calcPrepLevel.toString())
+    return areaWeeklySummary
   }
 
   public static exportWeeklyRowsAsStrings = (
     fireCentres: Record<string, FireCentre>,
     dailies: StationDaily[]
   ): string => {
-    const rowsAsStrings: string[] = []
-    const dateSet = new Set()
+    // build up array of string arrays, which will be converted to CSV string at end
+    // each string array represents one row of table
+    const rowsAsStringArrays: string[][] = []
+    const dateSet = new Set<string>()
 
     dailies.flatMap(dailyRecord => {
       dateSet.add(
@@ -197,19 +218,28 @@ export class FormatTableAsCSV {
       )
     })
     // build header row of dates
-    rowsAsStrings.push(
-      Array(NUM_STATION_DATA_COLS).join(',').concat(Array.from(dateSet).join(',,,,,'))
-    )
-    rowsAsStrings.push(weeklyTableColumnLabels.toString())
+    const dateRow: string[] = Array(NUM_STATION_DATA_COLS - 1).fill(' ')
+    Array.from(dateSet).forEach(date => {
+      dateRow.push(date)
+      dateRow.push(...Array(columnLabelsForEachDayInWeek.length - 1).fill(' '))
+    })
+    rowsAsStringArrays.push(dateRow)
+
+    // according to docs for csv-string library (https://www.npmjs.com/package/csv-string#api-documentation),
+    // \n char should be used as newline indicator regardless of OS. Later on in code, these strings will be
+    // "CSV stringified", so using /n here as line separator
+    rowsAsStringArrays.push(weeklyTableColumnLabels)
 
     Object.entries(fireCentres).forEach(([, centre]) => {
-      rowsAsStrings.push(centre.name)
+      rowsAsStringArrays.push([centre.name])
+
       Object.entries(centre.planning_areas)
         .sort((a, b) =>
           getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
         )
         .forEach(([, area]) => {
-          rowsAsStrings.push(this.buildAreaWeeklySummaryString(area, dailies))
+          rowsAsStringArrays.push(this.buildAreaWeeklySummaryString(area, dailies))
+
           Object.entries(area.stations).forEach(([, station]) => {
             const dailiesForStation = getDailiesByStationCode(dailies, station.code)
             const grassCureError = !isValidGrassCure(dailies[0], station.station_props)
@@ -246,16 +276,16 @@ export class FormatTableAsCSV {
                   ? day.intensity_group.toString()
                   : 'ND'
               )
-              rowArray.push(Array(NUM_WEEKLY_SUMMARY_CELLS).join(','))
+              rowArray.push(...Array(NUM_WEEKLY_SUMMARY_CELLS).fill(''))
             })
 
-            rowArray.push(Array(NUM_WEEKLY_SUMMARY_CELLS).join(','))
+            rowArray.push(...Array(NUM_WEEKLY_SUMMARY_CELLS).fill(''))
 
-            rowsAsStrings.push(CSV.stringify(rowArray))
+            const rowString = rowArray
+            rowsAsStringArrays.push(rowString)
           })
         })
     })
-
-    return rowsAsStrings.join('')
+    return CSV.stringify(rowsAsStringArrays)
   }
 }
