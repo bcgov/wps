@@ -24,6 +24,8 @@ import {
   fireZoneLayer,
   getFireCenterVectorSource
 } from 'api/external/fbaVectorSourceAPI'
+import { VectorDataManager } from 'api/external/VectorDataManager'
+import { isEqual, isNull } from 'lodash'
 import { FireCenter } from 'api/fbaAPI'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
@@ -39,8 +41,8 @@ export interface FBAMapProps {
 
 const fireVectorSource = (layer: FireLayer) => {
   const fireVectorSource = new VectorSource({
-    loader: async (extent, _resolution, projection) => {
-      getFireCenterVectorSource(layer, extent, projection, fireVectorSource)
+    loader: async (extent, _resolution, projection, success) => {
+      getFireCenterVectorSource(layer, extent, projection, fireVectorSource, success)
     },
     strategy: tileStrategy(
       createXYZ({
@@ -63,8 +65,7 @@ const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
-
-  console.log(props.selectedFireCenter?.id)
+  const [dataManager, setDataManager] = useState<VectorDataManager | null>(null)
 
   const fireCenterSource = fireVectorSource(fireCenterLayer)
 
@@ -94,6 +95,16 @@ const FBAMap = (props: FBAMapProps) => {
     }
   })
 
+  const getDataManagerInstance = async () => {
+    if (isNull(dataManager)) {
+      const createdDataManager = new VectorDataManager()
+      await createdDataManager.initInflatedFeatureStore()
+      setDataManager(createdDataManager)
+      return createdDataManager
+    }
+    return dataManager
+  }
+
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
     // return statement of which this map's target is set to.
@@ -122,9 +133,14 @@ const FBAMap = (props: FBAMapProps) => {
     const mapObject = new ol.Map(options)
     mapObject.setTarget(mapRef.current)
 
-    fireCenterSource.on('change', () => {
+    const uniqueFireCenters = new Set()
+
+    fireCenterSource.on('change', async () => {
+      const currDataManager = await getDataManagerInstance()
+
       const firstFeature = fireCenterSource.getFeatures()[0]
       const extent = firstFeature.getGeometry()?.getExtent()
+      // const fireCenterName = firstFeature.attributes.values_.
       if (extent) {
         console.log(`About to fit map to extent: ${extent}`)
         mapObject.getView().fit(extent)

@@ -1,7 +1,8 @@
 import { FireLayer } from 'api/external/fbaVectorSourceAPI'
+import { FireCenter } from 'api/fbaAPI'
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
-import { get, set } from 'idb-keyval'
-import { isUndefined } from 'lodash'
+import { IDBPDatabase, openDB } from 'idb'
+import { isEqual, isUndefined, uniq } from 'lodash'
 
 const fireCenterUrl =
   'https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/'
@@ -11,10 +12,54 @@ const fireCenterUrl =
  */
 export class VectorDataManager {
   private axiosInstance: AxiosInstance
+  private static dataStoreName = 'fireVectors'
+  private static inflatedDataStoreName = 'inflatedFireFeatures'
+  private static fireCenterNameIdx = 'fireCenterNameIdx'
+  private db!: IDBPDatabase
+
   constructor() {
     this.axiosInstance = axios.create({
       baseURL: fireCenterUrl
     })
+  }
+
+  public async init(): Promise<void> {
+    this.db = await openDB('FireData', 1, {
+      upgrade(db) {
+        const fireCenterStore = db.createObjectStore(VectorDataManager.dataStoreName, {
+          // Primary key, unique by layer and extent
+          keyPath: 'cacheKey'
+        })
+        // For looking up fire centers by name
+        fireCenterStore.createIndex(VectorDataManager.fireCenterNameIdx, 'name')
+      }
+    })
+  }
+
+  public async initInflatedFeatureStore(): Promise<void> {
+    this.db = await openDB('InflatedFireData', 1, {
+      upgrade(db) {
+        db.createObjectStore(VectorDataManager.inflatedDataStoreName, {
+          keyPath: 'fireCenterName'
+        })
+      }
+    })
+  }
+
+  public async setExtent(fireCenterName: string, extent: number[]) {
+    const record = {
+      fireCenterName: fireCenterName,
+      extent
+    }
+    const res = await this.db.put(VectorDataManager.inflatedDataStoreName, record)
+    console.log(`Put record with result: ${res}`)
+  }
+
+  public async getExtent(fireCenterName: string | undefined) {
+    return this.db.get(
+      VectorDataManager.inflatedDataStoreName,
+      fireCenterName ? fireCenterName : ''
+    )
   }
 
   public async getOrSet(
@@ -22,20 +67,71 @@ export class VectorDataManager {
     extent: number[]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<AxiosResponse<any> | undefined> {
-    const cachedValue = await get(this.buildKey(layer, extent))
+    const cachedValue = await this.db.get(
+      VectorDataManager.dataStoreName,
+      this.buildKey(layer, extent)
+    )
     if (!isUndefined(cachedValue)) {
-      return cachedValue
+      return cachedValue.data
     }
 
     try {
       const { data } = await this.axiosInstance.get(this.buildUrl(layer, extent))
       if (data.features.length > 0) {
-        set(this.buildKey(layer, extent), data)
+        const records = this.buildRecord(
+          layer,
+          extent,
+          this.buildKey(layer, extent),
+          data
+        )
+        const tx = this.db.transaction(VectorDataManager.dataStoreName, 'readwrite')
+        await Promise.all(records.map(record => tx.store.put(record)))
       }
       return data
     } catch (error) {
       console.log(error)
       return undefined
+    }
+  }
+
+  public async getFireCenter(fireCenter: FireCenter): Promise<void> {
+    const data = await this.db.getFromIndex(
+      VectorDataManager.dataStoreName,
+      VectorDataManager.fireCenterNameIdx,
+      fireCenter.name
+    )
+
+    return data
+  }
+
+  public buildRecord(
+    layer: FireLayer,
+    extent: number[],
+    cacheKey: string,
+    data: { features: { attributes: { MOF_FIRE_CENTRE_NAME: string } }[] }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): { name?: string; cacheKey: string; data: any }[] {
+    if (isEqual(layer, '2')) {
+      const fireCenterNames = uniq(
+        data.features.map(feature => feature.attributes.MOF_FIRE_CENTRE_NAME)
+      )
+
+      // Fire Center record
+      const records = fireCenterNames.map(fireCenterName => ({
+        name: fireCenterName,
+        cacheKey,
+        extent,
+        data
+      }))
+      return records
+    } else {
+      // Fire Zones, unstructured
+      return [
+        {
+          cacheKey,
+          data
+        }
+      ]
     }
   }
 
