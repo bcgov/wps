@@ -365,33 +365,33 @@ describe('RowManager', () => {
       fireCentres,
       dailies
     )
-    const expectedDailyString = `Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level
-Kamloops Fire Centre
-Kamloops (K2), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1
-AFTON (322),780,O1B,ND,ND,ND,ND,ND,ND,ERROR,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-BLUE RIVER 2 (1108),695,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-CLEARWATER HUB (239),453,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-MAYSON (1082),1315,C3,ACTUAL,3.0,37.0,101,7.4,2.2,NaN,54.328,0.391,376.251,0.381,0.781,0.096,NaN,0.0,0.0,0.0,SUR,1
-SPARKS LAKE (305),972,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-WELLS GRAY (266),959,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-Vernon (K4), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined
-FINTRY (298),670,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-KETTLE 2 (388),1389,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-SALMON ARM (346),527,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-SEYMOUR ARM (344),511,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-TURTLE (286),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-Penticton (K5), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined
-MCCUDDY (334),1067,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-PENTICTON RS (328),427,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-Merritt (K6), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined
-AUGUST LAKE (836),855,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-MERRITT 2 HUB (1399),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-Lillooet (K7), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1
-FIVE MILE (1029),865,C7,ACTUAL,1.4,57.0,205,7.0,0.0,NaN,69.486,0.735,252.982,0.876,1.459,0.25,NaN,0.0,0.0,0.0,SUR,1
-FRENCH BAR (306),1320,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-GWYNETH LAKE (309),1205,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-LILLOOET (280),408,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.154,10.908,0.098,NaN,0.0,0.0,0.0,SUR,1`
+    const expectedDailyString = `"Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level"
+    Kamloops Fire Centre
+    "Kamloops (K2), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1"
+    AFTON (322),780,O1B,ND,ND,ND,ND,ND,ND,ERROR,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    BLUE RIVER 2 (1108),695,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    CLEARWATER HUB (239),453,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    MAYSON (1082),1315,C3,ACTUAL,3.0,37.0,101,7.4,2.2,NaN,54.328,0.391,376.251,0.381,0.781,0.096,NaN,0.0,0.0,0.0,SUR,1
+    SPARKS LAKE (305),972,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    WELLS GRAY (266),959,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    "Vernon (K4), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined"
+    FINTRY (298),670,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    KETTLE 2 (388),1389,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    SALMON ARM (346),527,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    SEYMOUR ARM (344),511,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    TURTLE (286),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    "Penticton (K5), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined"
+    MCCUDDY (334),1067,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    PENTICTON RS (328),427,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    "Merritt (K6), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined"
+    AUGUST LAKE (836),855,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    MERRITT 2 HUB (1399),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    "Lillooet (K7), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1"
+    FIVE MILE (1029),865,C7,ACTUAL,1.4,57.0,205,7.0,0.0,NaN,69.486,0.735,252.982,0.876,1.459,0.25,NaN,0.0,0.0,0.0,SUR,1
+    FRENCH BAR (306),1320,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    GWYNETH LAKE (309),1205,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    LILLOOET (280),408,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.154,10.908,0.098,NaN,0.0,0.0,0.0,SUR,1`
 
     expect(dailyTableCSVString.replace(/\s+/g, '')).toEqual(
       expectedDailyString.replace(/\s+/g, '')
@@ -655,7 +655,34 @@ SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.15
       fireCentres,
       stationDailiesForWeek
     )
-    const expectedWeeklyString = `,,,,MonAug2,,,,,TueAug3,,,,,WedAug4,,,,,ThuAug5,,,,,FriAug6Location,Elev.(m),FBPFuelType,GrassCure(%),ROS(m/min),HFI,M/FIG,FireStarts,PrepLevel,ROS(m/min),HFI,M/FIG,FireStarts,PrepLevel,ROS(m/min),HFI,M/FIG,FireStarts,PrepLevel,ROS(m/min),HFI,M/FIG,FireStarts,PrepLevel,ROS(m/min),HFI,M/FIG,FireStarts,PrepLevel,HighestDailyFIG,Calc.PrepKamloopsFireCentreKamloops(K2),,,,,,undefined,0-1,undefined,,,undefined,0-1,undefined,,,undefined,0-1,undefined,,,undefined,0-1,undefined,,,undefined,0-1,undefined,-Infinity,undefinedAFTON(322),780,O1B,ERROR,","BLUE RIVER 2(1108),695,C5,ND,","CLEARWATER HUB(239),453,C7,ND,","MAYSON(1082),1315,C3,ND,","SPARKS LAKE(305),972,C7,ND,","WELLS GRAY(266),959,C5,ND,","Vernon(K4),,,,,,undefined,0-1,undefined,,,undefined,0-1,undefined,,,undefined,0-1,undefined,,,undefined,0-1,undefined,,,undefined,0-1,undefined,-Infinity,undefinedFINTRY(298),670,C7,ND,","KETTLE2(388),1389,C5,ND,","SALMON ARM(346),527,C7,ND,","SEYMOUR ARM(344),511,C5,ND,","TURTLE(286),640,C7,ND,","Penticton(K5),,,,,,undefined,0-1,undefined,,,undefined,0-1,undefined,,,undefined,0-1,undefined,,,undefined,0-1,undefined,,,undefined,0-1,undefined,-Infinity,undefinedMCCUDDY(334),1067,C7,ND,","PENTICTON RS(328),427,C7,ND,","Merritt(K6),,,,,,undefined,0-1,undefined,,,undefined,0-1,undefined,,,undefined,0-1,undefined,,,undefined,0-1,undefined,,,undefined,0-1,undefined,-Infinity,undefinedAUGUST LAKE(836),855,C7,ND,","MERRITT 2 HUB(1399),640,C7,ND,","Lillooet(K7),,,,,,2,0-1,1,,,4.5,0-1,3,,,5,0-1,4,,,5,0-1,4,,,5,0-1,4,5,3FIVE MILE(1029),865,C7,NaN,1.4,1365.3,3,",",5.5,5545.4,5,",",6.4,6468.9,5,",",4.6,4630.0,5,",",5.7,5619.7,5,",",","FRENCH BAR(306),1320,C7,ND,","GWYNETH LAKE(309),1205,C7,ND,","LILLOOET(280),408,C7,ND,","SPLINTLUM(1055),424,C7,NaN,0.0,14.7,1,",",4.0,3818.0,4,",",6.9,6770.4,5,",",8.2,8413.7,5,",",12.4,13489.8,5,",",","`
+    const expectedWeeklyString = ` , , , ,Mon Aug 2, , , , ,Tue Aug 3, , , , ,Wed Aug 4, , , , ,Thu Aug 5, , , , ,Fri Aug 6, , , , 
+    Location,Elev. (m),FBP Fuel Type,Grass Cure (%),ROS (m/min),HFI,M / FIG,Fire Starts,Prep Level,ROS (m/min),HFI,M / FIG,Fire Starts,Prep Level,ROS (m/min),HFI,M / FIG,Fire Starts,Prep Level,ROS (m/min),HFI,M / FIG,Fire Starts,Prep Level,ROS (m/min),HFI,M / FIG,Fire Starts,Prep Level,Highest Daily FIG,Calc. Prep
+    Kamloops Fire Centre
+    Kamloops (K2), , , ,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,-Infinity,ND
+    AFTON (322),780,O1B,ERROR,,
+    BLUE RIVER 2 (1108),695,C5,ND,,
+    CLEARWATER HUB (239),453,C7,ND,,
+    MAYSON (1082),1315,C3,ND,,
+    SPARKS LAKE (305),972,C7,ND,,
+    WELLS GRAY (266),959,C5,ND,,
+    Vernon (K4), , , ,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,-Infinity,ND
+    FINTRY (298),670,C7,ND,,
+    KETTLE 2 (388),1389,C5,ND,,
+    SALMON ARM (346),527,C7,ND,,
+    SEYMOUR ARM (344),511,C5,ND,,
+    TURTLE (286),640,C7,ND,,
+    Penticton (K5), , , ,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,-Infinity,ND
+    MCCUDDY (334),1067,C7,ND,,
+    PENTICTON RS (328),427,C7,ND,,
+    Merritt (K6), , , ,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,-Infinity,ND
+    AUGUST LAKE (836),855,C7,ND,,
+    MERRITT 2 HUB (1399),640,C7,ND,,
+    Lillooet (K7), , , ,,,2,0-1,1,,,4.5,0-1,3,,,5,0-1,4,,,5,0-1,4,,,5,0-1,4,5,3
+    FIVE MILE (1029),865,C7,NaN,1.4,1365.3,3,,,5.5,5545.4,5,,,6.4,6468.9,5,,,4.6,4630.0,5,,,5.7,5619.7,5,,,,
+    FRENCH BAR (306),1320,C7,ND,,
+    GWYNETH LAKE (309),1205,C7,ND,,
+    LILLOOET (280),408,C7,ND,,
+    SPLINTLUM (1055),424,C7,NaN,0.0,14.7,1,,,4.0,3818.0,4,,,6.9,6770.4,5,,,8.2,8413.7,5,,,12.4,13489.8,5,,,,`
 
     expect(weeklyTableString.replace(/\s+/g, '')).toEqual(
       expectedWeeklyString.replace(/\s+/g, '')
@@ -677,26 +704,33 @@ SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.15
       dailies
     )
 
-    const expectedDailyEscapeString = `Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep LevelKamloops Fire CentreKamloops (K2), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1AF\`TON (322),780,O1B,ND,ND,ND,ND,ND,ND,ERROR,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      BLUE RIVER 2 (1108),695,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      \`CLEARWATER HUB (239),453,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      MAYSON (1082),1315,C3,ACTUAL,3.0,37.0,101,7.4,2.2,NaN,54.328,0.391,376.251,0.381,0.781,0.096,NaN,0.0,0.0,0.0,SUR,1
-      SPARKS LAKE\` (305),972,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      "WELLS"" GRAY (266)",959,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      Vernon (K4), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined"FINTRY, (298)",670,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      KETTLE 2 (388),1389,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      SALMON ARM (346),527,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      SEYMOUR ARM (344),511,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      TURTLE (286),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      Penticton (K5), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefinedMCCUDDY (334),1067,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      PENTICTON RS (328),427,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      Merritt (K6), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefinedAUGUST LAKE (836),855,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      MERRITT 2 HUB (1399),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      Lillooet (K7), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1FIVE MILE (1029),865,C7,ACTUAL,1.4,57.0,205,7.0,0.0,NaN,69.486,0.735,252.982,0.876,1.459,0.25,NaN,0.0,0.0,0.0,SUR,1
-      FRENCH BAR (306),1320,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      GWYNETH LAKE (309),1205,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      LILLOOET (280),408,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-      SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.154,10.908,0.098,NaN,0.0,0.0,0.0,SUR,1`
+    const expectedDailyEscapeString = `"Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level"
+    Kamloops Fire Centre
+    "Kamloops (K2), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1"
+    AF\`TON (322),780,O1B,ND,ND,ND,ND,ND,ND,ERROR,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    BLUE RIVER 2 (1108),695,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    \`CLEARWATER HUB (239),453,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    MAYSON (1082),1315,C3,ACTUAL,3.0,37.0,101,7.4,2.2,NaN,54.328,0.391,376.251,0.381,0.781,0.096,NaN,0.0,0.0,0.0,SUR,1
+    SPARKS LAKE\` (305),972,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    "WELLS"" GRAY (266)",959,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    "Vernon (K4), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined"
+    "FINTRY, (298)",670,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    KETTLE 2 (388),1389,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    SALMON ARM (346),527,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    SEYMOUR ARM (344),511,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    TURTLE (286),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    "Penticton (K5), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined"
+    MCCUDDY (334),1067,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    PENTICTON RS (328),427,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    "Merritt (K6), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined"
+    AUGUST LAKE (836),855,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    MERRITT 2 HUB (1399),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    "Lillooet (K7), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1"
+    FIVE MILE (1029),865,C7,ACTUAL,1.4,57.0,205,7.0,0.0,NaN,69.486,0.735,252.982,0.876,1.459,0.25,NaN,0.0,0.0,0.0,SUR,1
+    FRENCH BAR (306),1320,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    GWYNETH LAKE (309),1205,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    LILLOOET (280),408,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
+    SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.154,10.908,0.098,NaN,0.0,0.0,0.0,SUR,1`
 
     expect(dailyTableCSVString.replace(/\s+/g, '')).toEqual(
       expectedDailyEscapeString.replace(/\s+/g, '')
@@ -714,28 +748,28 @@ SPLINTLUM (1055),424,C7,ACTUAL,4.8,57.0,223,4.8,0.0,NaN,47.664,5.62,460.989,0.15
       missingElevationFireCentres,
       dailies
     )
-    const expectedDailyNDString = `Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level
+    const expectedDailyNDString = `"Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level"
     Kamloops Fire Centre
-    Kamloops (K2), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1
+    "Kamloops (K2), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1"
     AFTON (322),ND,O1B,ND,ND,ND,ND,ND,ND,ERROR,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
     BLUE RIVER 2 (1108),695,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
     CLEARWATER HUB (239),ND,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
     MAYSON (1082),1315,C3,ACTUAL,3.0,37.0,101,7.4,2.2,NaN,54.328,0.391,376.251,0.381,0.781,0.096,NaN,0.0,0.0,0.0,SUR,1
     SPARKS LAKE (305),972,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
     WELLS GRAY (266),959,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-    Vernon (K4), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined
+    "Vernon (K4), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined"
     FINTRY (298),670,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
     KETTLE 2 (388),1389,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
     SALMON ARM (346),527,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
     SEYMOUR ARM (344),511,C5,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
     TURTLE (286),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-    Penticton (K5), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined
+    "Penticton (K5), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined"
     MCCUDDY (334),1067,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
     PENTICTON RS (328),427,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-    Merritt (K6), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined
+    "Merritt (K6), ,,,,,,,,,,,,,,,,,,,, undefined, 0-1, undefined"
     AUGUST LAKE (836),855,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
     MERRITT 2 HUB (1399),640,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
-    Lillooet (K7), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1
+    "Lillooet (K7), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1"
     FIVE MILE (1029),865,C7,ACTUAL,1.4,57.0,205,7.0,0.0,NaN,69.486,0.735,252.982,0.876,1.459,0.25,NaN,0.0,0.0,0.0,SUR,1
     FRENCH BAR (306),1320,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
     GWYNETH LAKE (309),1205,C7,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
