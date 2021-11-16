@@ -1,7 +1,6 @@
 import React from 'react'
 import LuxonUtils from '@date-io/luxon'
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers'
-import { updateTaggedTemplate } from 'typescript'
 
 interface DatePickerProps {
   testId?: string
@@ -15,16 +14,13 @@ const DatePicker = (props: DatePickerProps) => {
     <MuiPickersUtilsProvider utils={LuxonUtils}>
       <KeyboardDatePicker
         label="Date of Interest (PST-08:00)"
-        format="MM/dd/yyyy"
         value={props.date}
+        format="dd/MM/yyyy"
         InputAdornmentProps={{ position: 'start' }}
         onChange={e => {
-          console.log(e)
-          const value = e.toISODate().toString()
-          console.log(value)
+          const value = e.setZone('UTC-7').toISO()
 
           if (value) {
-            //
             props.onChange(value)
             props.updateDate()
           }
