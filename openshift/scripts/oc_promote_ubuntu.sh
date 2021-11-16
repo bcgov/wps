@@ -29,8 +29,10 @@ IMG_DEST="${NAME_APP}-ubuntu-${TAG_PROD}"
 
 # Import to new image and retag, leaving the original tag in
 #
+# TODO: importing the image in this way, results in previous tags persisting - we need to get rid of them!
 OC_IMG_IMPORT="oc -n ${PROJ_TOOLS} import-image ${IMG_DEST}:${SUFFIX} --from=${IMG_SOURCE} --confirm"
 OC_IMG_RETAG="oc -n ${PROJ_TOOLS} tag ${IMG_DEST}:${SUFFIX} ${IMG_DEST}:${TAG_PROD}"
+# TODO: now get rid of the source image!
 
 # Execute commands
 #
