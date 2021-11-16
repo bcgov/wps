@@ -69,11 +69,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
   }
 
-  const callFunction = (input: string) => {
-    console.log(input)
-    setDateOfInterest(input)
-  }
-
   useEffect(() => {
     dispatch(fetchFireCenters())
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
@@ -97,7 +92,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               <FormControl className={classes.formControl}>
                 <DatePicker
                   date={dateOfInterest}
-                  onChange={callFunction}
+                  onChange={setDateOfInterest}
                   updateDate={updateDate}
                 />
               </FormControl>
