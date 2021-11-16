@@ -101,6 +101,10 @@ const FBAMap = (props: FBAMapProps) => {
       if (fireCenterExtent) {
         map.getView().fit(fireCenterExtent.extent)
       }
+    } else {
+      // reset map view to full province
+      map.getView().setCenter(fromLonLat(BC_CENTER_FIRE_CENTERS))
+      map.getView().setZoom(zoom)
     }
   }, [props.selectedFireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
 
