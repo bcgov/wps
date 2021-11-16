@@ -26,6 +26,10 @@ In the project directory, run:
 
 Installs all dependencies in the node_modules folder.
 
+#### Cypress on WSL2
+
+It's possible to configure cypress to run with an X-server with WSL2 and Windows [see this blog entry](https://nickymeuleman.netlify.app/blog/gui-on-wsl2-cypress)
+
 ### Executing program
 
 In the project directory, create `.env` file at root using `.env.example` as a sample, then you can run:

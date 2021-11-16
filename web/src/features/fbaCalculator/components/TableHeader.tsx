@@ -3,6 +3,7 @@ import React, { useState, MouseEvent } from 'react'
 
 interface TableHeaderProps {
   text: string
+  testId?: string
   largerMaxWidth?: boolean
 }
 
@@ -63,6 +64,8 @@ const TableHeader = (props: TableHeaderProps) => {
       clone.style.visibility = 'hidden'
       clone.style.position = 'absolute'
       e.currentTarget.appendChild(clone)
+      // NOTE: The text width is not calculated correctly from within cypress, because the hover style doesn't
+      // get applied to the span from within cypress.
       const textWidth = clone.getBoundingClientRect().width
       clone.remove()
       // now we know how wide the text is, we can move it left if it exceeds the container.
@@ -82,9 +85,18 @@ const TableHeader = (props: TableHeaderProps) => {
 
   const classes = useStyles()
   return (
-    <div className={classes.header} onMouseOver={hover}>
+    <div
+      className={classes.header}
+      onMouseOver={hover}
+      {...(props.testId ? { 'data-testid': `header-${props.testId}` } : {})}
+    >
       {props.text}
-      <span style={{ left: left }}>{props.text}</span>
+      <span
+        style={{ left: left }}
+        {...(props.testId ? { 'data-testid': `tooltip-${props.testId}` } : {})}
+      >
+        {props.text}
+      </span>
     </div>
   )
 }

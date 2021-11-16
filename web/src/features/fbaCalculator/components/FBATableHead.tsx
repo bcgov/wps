@@ -387,7 +387,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.SixtyMinFireSize)
           }}
         >
-          <TableHeader text={'60 min fire size (ha)'}></TableHeader>
+          <TableHeader text={'60 min fire size (ha)'} testId="fire-size"></TableHeader>
         </TableSortLabel>
       </TableCell>
     )
