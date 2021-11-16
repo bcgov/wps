@@ -7,8 +7,6 @@ describe('Fire Behaviour Advisory Page', () => {
 
     cy.intercept(
       {
-        method: 'GET',
-        url: '*/arcserver/rest/*',
         hostname: 'maps.gov.bc.ca'
       },
       { fixture: 'fba/vectors.json' }
