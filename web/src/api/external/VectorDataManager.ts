@@ -24,12 +24,10 @@ export class VectorDataManager {
   public async init(): Promise<void> {
     this.db = await openDB('FireData', 1, {
       upgrade(db) {
-        const fireCenterStore = db.createObjectStore(VectorDataManager.dataStoreName, {
+        db.createObjectStore(VectorDataManager.dataStoreName, {
           // Primary key, unique by layer and extent
           keyPath: 'cacheKey'
         })
-        // For looking up fire centers by name
-        fireCenterStore.createIndex(VectorDataManager.fireCenterNameIdx, 'name')
       }
     })
   }
