@@ -1,5 +1,4 @@
 import { FireLayer } from 'api/external/fbaVectorSourceAPI'
-import { FireCenter } from 'api/fbaAPI'
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import { IDBPDatabase, openDB } from 'idb'
 import { isEqual, isUndefined, uniq } from 'lodash'
@@ -62,20 +61,8 @@ export class VectorDataManager {
       return data
     } catch (error) {
       console.log(error)
-      return undefined
     }
   }
-
-  public async getFireCenter(fireCenter: FireCenter): Promise<void> {
-    const data = await this.db.getFromIndex(
-      VectorDataManager.dataStoreName,
-      VectorDataManager.fireCenterNameIdx,
-      fireCenter.name
-    )
-
-    return data
-  }
-
   public buildRecord(
     layer: FireLayer,
     extent: number[],
