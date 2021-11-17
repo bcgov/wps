@@ -48,6 +48,53 @@ class Desire:  # pylint: disable=too-few-public-methods
         self.backups_found = 0
         self.prev_timestamp = None
         self.interval = interval
+        self.files_to_keep = []
+
+    def manage(self) -> None:
+        """ Remove old backups """
+        self.files_to_keep.sort()
+        if len(self.files_to_keep) > self.desired_backups:
+            pass
+
+    def evaluate(self, new_filename) -> None:
+        """ Consider the file, and add it to the list if we want to keep it """
+        self.files_to_keep.append(new_filename)
+        self.manage()
+        # self.maintain()
+        # if len(self.files_to_keep) < self.desired_backups:
+        #     # be greedy
+        #     self.files_to_keep.append(new_filename)
+        # else:
+        #     # now get
+        #     new_timestamp = extract_datetime(new_filename)
+        #     for file in reversed(self.files_to_keep):
+        #         timestamp = extract_datetime(file)
+        #         if new_timestamp - timestamp >= self.interval:
+        #             print(f'{self.interval} append {new_filename}')
+        #             self.files_to_keep.append(new_filename)
+        #             self.files_to_keep.sort()
+        #             self.pop_one_bad_one()
+        #             break
+
+    def maintain(self) -> None:
+        if len(self.files_to_keep) > self.desired_backups:
+            self.pop_one_bad_one()
+        if len(self.files_to_keep) > self.desired_backups:
+            self.files_to_keep.pop()
+
+    def remove_one_bad_one(self) -> None:
+        prev_timestamp = None
+        for file in self.files_to_keep:
+            if prev_timestamp is None:
+                prev_timestamp = extract_datetime(file)
+                continue
+            else:
+                new_timestamp = extract_datetime(file)
+                if new_timestamp - prev_timestamp < self.interval:
+                    print(f'{self.interval} remove {file}')
+                    self.files_to_keep.remove(file)
+                    break
+                prev_timestamp = new_timestamp
 
     def _is_keeper(self, timestamp: datetime) -> bool:
         """ Run through all the conditions to decide if we keep this timestamp or not. """
@@ -74,22 +121,40 @@ def decide_files_to_keep(files: list) -> Set:
     Expects a list of filenames sorted from most recent to least recent """
     # We need to keep hourlies, otherwise, the hourlies get deleted
     # as we go, and we end up not retaining any!
+    # Currently
     desires = [
-        Desire(desired_backups=5, interval=timedelta(hours=1)),  # retain 5 hourly backups
-        Desire(desired_backups=5, interval=timedelta(days=1)),  # retain 5 daily backups
-        Desire(desired_backups=5, interval=timedelta(weeks=1)),  # retain 5 weekly backups
+        # Desire(desired_backups=5, interval=timedelta(hours=1)),  # retain 5 hourly backups
+        # Desire(desired_backups=5, interval=timedelta(days=1)),  # retain 5 daily backups
+        # Desire(desired_backups=5, interval=timedelta(weeks=1)),  # retain 5 weekly backups
         Desire(desired_backups=5, interval=timedelta(weeks=4))]  # retain 5 monthly
 
-    # make super sure that files are sorted in reverse order
-    files.sort(reverse=True)
-
-    files_to_keep = set()
+    files.sort()
 
     for filename in files:
-        timestamp = extract_datetime(filename)
         for desire in desires:
-            if desire.is_keeper(timestamp):
-                files_to_keep.add(filename)
+            desire.evaluate(filename)
+
+    files_to_keep = set()
+    for desire in desires:
+        for file in desire.files_to_keep:
+            files_to_keep.add(file)
+
+    # files_to_keep = set()
+
+    # for filename in files:
+    #     timestamp = extract_datetime(filename)
+    #     for desire in desires:
+    #         if desire.is_keeper(timestamp):
+    #             desire.files_to_keep.append(filename)
+    #             # files_to_keep.add(filename)
+
+    # for desire in desires:
+    #     if len(desire.files_to_keep) < desire.desired_backups:
+    #         # print(f'Not enough backups found for desire {desire.interval}')
+    #         # print(files[:desire.desired_backups - len(desire.files_to_keep)])
+    #         desire.files_to_keep.extend(files[-desire.desired_backups - len(desire.files_to_keep):])
+    #     for file in desire.files_to_keep:
+    #         files_to_keep.add(file)
 
     return files_to_keep
 
