@@ -5,7 +5,7 @@ coverage:
   status:
     patch:
       default:
-        threshold: 2%
+        threshold: 100%
     project:
       # https://docs.codecov.com/docs/commit-status#project-status
       default:

@@ -6,11 +6,9 @@ import { Fill, Stroke, Style } from 'ol/style'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 
-import Polygon from 'ol/geom/Polygon'
 import GeoJSON from 'ol/format/GeoJSON'
 import CircleStyle from 'ol/style/Circle'
 
-import { VERNON_FIRECENTER } from 'features/fbaCalculator/data/data'
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
@@ -18,7 +16,16 @@ import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { source } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
-import TileWMS from 'ol/source/TileWMS'
+import { tile as tileStrategy } from 'ol/loadingstrategy'
+import { createXYZ } from 'ol/tilegrid'
+import {
+  fireCenterLayer,
+  FireLayer,
+  fireZoneLayer,
+  getFireCenterVectorSource
+} from 'api/external/fbaVectorSourceAPI'
+import { FireCenter } from 'api/fbaAPI'
+import { extentsMap } from 'features/fba/fireCenterExtents'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -28,74 +35,22 @@ const BC_CENTER_FIRE_CENTERS = [-124.16748046874999, 54.584796743678744]
 export interface FBAMapProps {
   testId?: string
   className: string
+  selectedFireCenter: FireCenter | undefined
 }
 
-// Will be parameterized based on fire center in the future
-const buildHFILayers = () => {
-  const polygonFeature = new ol.Feature(
-    new Polygon(VERNON_FIRECENTER.features[0].geometry.coordinates).transform(
-      'EPSG:4326',
-      'EPSG:3857'
-    )
-  )
-
-  const vernonSource = new VectorSource({
-    features: [polygonFeature]
-  })
-
-  return new OLVectorLayer({
-    source: vernonSource,
-    style: [
-      new Style({
-        stroke: new Stroke({
-          color: 'red',
-          width: 3
-        }),
-        fill: new Fill({
-          color: 'rgba(255, 0, 0, 0.5)'
-        })
+const buildFireVectorSource = (layer: FireLayer) => {
+  const fireVectorSource = new VectorSource({
+    loader: async (extent, _resolution, projection, success) => {
+      getFireCenterVectorSource(layer, extent, projection, fireVectorSource, success)
+    },
+    strategy: tileStrategy(
+      createXYZ({
+        tileSize: 512
       })
-    ]
+    )
   })
-}
 
-const buildBCTileLayer = (extent: number[]) => {
-  return new Tile({
-    extent,
-    opacity: 0.5,
-    // Preload tiles. Load low-resolution tiles up to preload levels. Infinity means as much as possible.
-    preload: Infinity,
-    source: new TileWMS({
-      url: 'https://openmaps.gov.bc.ca/geo/pub/wms',
-      params: {
-        // This is the WMS layer published by DataBC in the Data Catologue:
-        // https://catalogue.data.gov.bc.ca/dataset/bc-wildfire-fire-centres/resource/c33fd014-910f-44f6-b72e-9d7eed5100a9
-        LAYERS: 'WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_CENTRES_SP',
-        TILED: true,
-        STYLES: '3458'
-      },
-      serverType: 'geoserver',
-      transition: 0
-    })
-  })
-}
-
-const buildFireZoneTileLayer = (extent: number[]) => {
-  return new Tile({
-    extent,
-    opacity: 1,
-    preload: Infinity,
-    source: new TileWMS({
-      url: 'https://openmaps.gov.bc.ca/geo/pub/wms',
-      params: {
-        LAYERS: 'WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_ZONES_SP',
-        TILED: true,
-        STYLES: '3460'
-      },
-      serverType: 'geoserver',
-      transition: 0
-    })
-  })
+  return fireVectorSource
 }
 
 const FBAMap = (props: FBAMapProps) => {
@@ -109,6 +64,50 @@ const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
+
+  const fireCenterSource = buildFireVectorSource(fireCenterLayer)
+
+  const fireCenterVector = new OLVectorLayer({
+    source: fireCenterSource,
+    style: () => {
+      return new Style({
+        stroke: new Stroke({
+          lineDash: [1, 10],
+          color: 'blue',
+          width: 4
+        })
+      })
+    }
+  })
+
+  const fireZoneVector = new OLVectorLayer({
+    opacity: 0.5,
+    source: buildFireVectorSource(fireZoneLayer),
+    style: () => {
+      return new Style({
+        stroke: new Stroke({
+          color: 'purple',
+          width: 4
+        })
+      })
+    }
+  })
+
+  useEffect(() => {
+    if (!map) return
+
+    if (props.selectedFireCenter) {
+      const fireCenterExtent = extentsMap.get(props.selectedFireCenter.name)
+      if (fireCenterExtent) {
+        map.getView().fit(fireCenterExtent.extent)
+      }
+    } else {
+      // reset map view to full province
+      map.getView().setCenter(fromLonLat(BC_CENTER_FIRE_CENTERS))
+      map.getView().setZoom(zoom)
+    }
+  }, [props.selectedFireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
     // return statement of which this map's target is set to.
@@ -126,33 +125,23 @@ const FBAMap = (props: FBAMapProps) => {
         new Tile({
           source
         }),
-        buildHFILayers()
+        fireCenterVector,
+        fireZoneVector
       ],
       overlays: [],
       controls: defaultControls()
     }
-
     // Create the map with the options above and set the target
     // To the ref above so that it is rendered in that div
     const mapObject = new ol.Map(options)
     mapObject.setTarget(mapRef.current)
 
-    // Calculate extent based on maps' size in pixels.
-    //
-    // The extent is the minimum bounding rectangle (xmin, ymin and xmax, ymax)
-    // defined by coordinate pairs of the data source.
-    //
-    // We use the extent when creating the Tile layer, presumably so
-    // OpenLayers can limit the requested number of tiles.
-
-    // See:
-    // - https://en.wikipedia.org/wiki/Map_extent
-    // - https://openlayers.org/en/latest/apidoc/module-ol_extent.html
-    // - https://gis.stackexchange.com/questions/240979/difference-between-bounding-box-envelope-extent-bounds
-
-    const extent = mapObject.getView().calculateExtent(mapObject.getSize())
-    mapObject.addLayer(buildBCTileLayer(extent))
-    mapObject.addLayer(buildFireZoneTileLayer(extent))
+    if (props.selectedFireCenter) {
+      const fireCenterExtent = extentsMap.get(props.selectedFireCenter.name)
+      if (fireCenterExtent) {
+        mapObject.getView().fit(fireCenterExtent.extent)
+      }
+    }
     setMap(mapObject)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
