@@ -49,23 +49,26 @@ class Desire:  # pylint: disable=too-few-public-methods
         self.files_to_keep = []
 
     def evaluate(self, new_filename) -> None:
-        """ Consider the file, and add it to the list if we want to keep it """
+        """ Consider the file, and manage the list of files we're deciding to keep. """
         self.files_to_keep.append(new_filename)
         self.files_to_keep.sort()
+        # If we have more files than we desire:
         if len(self.files_to_keep) > self.desired_backups:
-            # We have more backups than we can handle!
             prev_timestamp = None
             for file in self.files_to_keep:
                 timestamp = extract_datetime(file)
                 if prev_timestamp is None:
                     prev_timestamp = timestamp
                     continue
+                # If the time difference between two files is less than the desired interval:
                 if timestamp - prev_timestamp < self.interval:
                     self.files_to_keep.remove(file)
                     break
-                elif timestamp - prev_timestamp >= self.interval:
+                # If the time difference between two files is greater than or equal to the interval:
+                if timestamp - prev_timestamp >= self.interval:
                     prev_timestamp = timestamp
                     continue
+            # If we have too many files, get rid of the oldest one:
             if len(self.files_to_keep) > self.desired_backups:
                 self.files_to_keep.pop(0)
 
@@ -118,16 +121,9 @@ async def main():
         try:
             # Get list of backup files
             files = await fetch_file_list(client, bucket)
-
-            # for debugging, list the files
-            print('file list:')
-            for file in files:
-                print(file)
-
             files_to_delete = decide_files_to_delete(files)
 
             # for debugging, list the files to delete
-            print('files to delete:')
             for file in files_to_delete:
                 print(file)
 
