@@ -21,6 +21,7 @@ import { fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { union } from 'lodash'
 import { getDailiesByStationCode, getDailiesForArea } from 'features/hfiCalculator/util'
+import StickyCell from 'features/fbaCalculator/components/StickyCell'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -92,22 +93,28 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     >
       <TableHead>
         <TableRow>
-          <TableCell>
-            {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
-          </TableCell>
-          <TableCell key="header-location">Location</TableCell>
+          <StickyCell left={0} zIndexOffset={11}>
+            <TableCell>
+              {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
+            </TableCell>
+          </StickyCell>
+          <StickyCell left={50} zIndexOffset={11}>
+            <TableCell key="header-location">Location</TableCell>
+          </StickyCell>
           <TableCell key="header-elevation">
             Elev.
             <br />
             (m)
           </TableCell>
-          <TableCell key="header-fuel-type">
-            FBP
-            <br />
-            Fuel
-            <br />
-            Type
-          </TableCell>
+          <StickyCell left={146} zIndexOffset={11}>
+            <TableCell key="header-fuel-type">
+              FBP
+              <br />
+              Fuel
+              <br />
+              Type
+            </TableCell>
+          </StickyCell>
           <TableCell>Status</TableCell>
           <TableCell>
             Temp

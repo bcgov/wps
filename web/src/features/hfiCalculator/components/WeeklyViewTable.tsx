@@ -15,6 +15,7 @@ import { fireTableStyles } from 'app/theme'
 import { isEmpty, union } from 'lodash'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { getDailiesByStationCode } from 'features/hfiCalculator/util'
+import StickyCell from 'features/fbaCalculator/components/StickyCell'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -61,29 +62,37 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>
-          <TableCell>
-            {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
-          </TableCell>
-          <TableCell key="header-location">Location</TableCell>
+          <StickyCell left={0} zIndexOffset={11}>
+            <TableCell>
+              {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
+            </TableCell>
+          </StickyCell>
+          <StickyCell left={50} zIndexOffset={11}>
+            <TableCell key="header-location">Location</TableCell>
+          </StickyCell>
           <TableCell key="header-elevation">
             Elev.
             <br />
             (m)
           </TableCell>
-          <TableCell key="header-fuel-type">
-            FBP
-            <br />
-            Fuel
-            <br />
-            Type
-          </TableCell>
-          <TableCell>
-            Grass
-            <br />
-            Cure
-            <br />
-            (%)
-          </TableCell>
+          <StickyCell left={146} zIndexOffset={11}>
+            <TableCell key="header-fuel-type">
+              FBP
+              <br />
+              Fuel
+              <br />
+              Type
+            </TableCell>
+          </StickyCell>
+          <StickyCell left={212} zIndexOffset={11}>
+            <TableCell>
+              Grass
+              <br />
+              Cure
+              <br />
+              (%)
+            </TableCell>
+          </StickyCell>
           <DayIndexHeaders />
           <TableCell className={classes.sectionSeparatorBorder}>
             Highest
@@ -104,9 +113,15 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           return (
             <React.Fragment key={`fire-centre-${centreName}`}>
               <TableRow key={`fire-centre-${centreName}`}>
-                <TableCell className={classes.fireCentre} colSpan={32}>
-                  {centre.name}
-                </TableCell>
+                <StickyCell
+                  left={0}
+                  zIndexOffset={9}
+                  colSpan={5}
+                  backgroundColor={'#dbd9d9'}
+                >
+                  <TableCell className={classes.fireCentre}>{centre.name}</TableCell>
+                </StickyCell>
+                <TableCell className={classes.fireCentre} colSpan={27}></TableCell>
               </TableRow>
               {Object.entries(centre.planning_areas)
                 .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
@@ -118,9 +133,11 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         key={`zone-${areaName}`}
                         data-testid={`zone-${areaName}`}
                       >
-                        <TableCell className={classes.planningArea} colSpan={5}>
-                          {area.name}
-                        </TableCell>
+                        <StickyCell left={0} zIndexOffset={10}>
+                          <TableCell className={classes.planningArea} colSpan={5}>
+                            {area.name}
+                          </TableCell>
+                        </StickyCell>
                         <CalculatedPlanningAreaCells
                           area={area}
                           areaName={areaName}
@@ -152,18 +169,20 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 stationCodeInSelected={stationCodeInSelected}
                                 toggleSelectedStation={toggleSelectedStation}
                               />
-                              <GrassCureCell
-                                value={
-                                  !isEmpty(dailiesForStation)
-                                    ? dailiesForStation[0].grass_cure_percentage
-                                    : undefined
-                                }
-                                isGrassFuelType={isGrassFuelType(station.station_props)}
-                                className={
-                                  isRowSelected ? undefined : classes.unselectedStation
-                                }
-                                selected={isRowSelected}
-                              />
+                              <StickyCell left={212} zIndexOffset={10}>
+                                <GrassCureCell
+                                  value={
+                                    !isEmpty(dailiesForStation)
+                                      ? dailiesForStation[0].grass_cure_percentage
+                                      : undefined
+                                  }
+                                  isGrassFuelType={isGrassFuelType(station.station_props)}
+                                  className={
+                                    isRowSelected ? undefined : classes.unselectedStation
+                                  }
+                                  selected={isRowSelected}
+                                />
+                              </StickyCell>
 
                               <StaticCells
                                 dailies={dailiesForStation}
