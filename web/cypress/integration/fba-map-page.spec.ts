@@ -28,7 +28,9 @@ describe('Fire Behaviour Advisory Page', () => {
       .type('{downArrow}')
       .type('{enter}')
       .should(() => {
-        expect(localStorage.getItem('preferredFireCenter')).to.equal('50')
+        setTimeout((): void => {
+          expect(localStorage.getItem('preferredFireCenter')).to.equal('50')
+        }, 200)
       })
   })
 
