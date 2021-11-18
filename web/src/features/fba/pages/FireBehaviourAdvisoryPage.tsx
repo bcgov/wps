@@ -1,9 +1,9 @@
 import { FormControl, Grid, makeStyles } from '@material-ui/core'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
-import FBAMap from 'features/fbaCalculator/components/map/FBAMap'
+import FBAMap from 'features/fba/components/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
-import FormalFBATable from 'features/fbaCalculator/components/FormalFBATable'
+import FormalFBATable from 'features/fba/components/FormalFBATable'
 import DatePicker from 'components/DatePicker'
 import { DateTime } from 'luxon'
 import { selectFireCenters } from 'app/rootReducer'
@@ -16,8 +16,12 @@ import { FireCenter } from 'api/fbaAPI'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
-  itemContainer: {
+  listContainer: {
     width: 700,
+    height: 700
+  },
+  mapContainer: {
+    width: 900,
     height: 700
   },
   fireCenter: {
@@ -112,14 +116,14 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               {fireCenter ? (
                 <FormalFBATable
                   fireCenter={fireCenter}
-                  className={classes.itemContainer}
+                  className={classes.listContainer}
                 />
               ) : (
                 emptyInstructions
               )}
             </Grid>
             <Grid item xs>
-              <FBAMap className={classes.itemContainer} />
+              <FBAMap selectedFireCenter={fireCenter} className={classes.mapContainer} />
             </Grid>
           </Grid>
         </Grid>

@@ -15,6 +15,10 @@ export const getDailiesForArea = (
   )
 }
 
+export const getZoneFromAreaName = (areaName: string): string => {
+  return areaName.slice(-3)
+}
+
 export const getDailiesByStationCode = (
   dailies: StationDaily[],
   stationCode: number

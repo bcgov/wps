@@ -5,6 +5,13 @@ describe('Fire Behaviour Advisory Page', () => {
     cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
     cy.intercept('GET', 'api/fba/fire-centers', { fixture: 'fba/fire-centers.json' }).as('fireCenters')
 
+    cy.intercept(
+      {
+        hostname: 'maps.gov.bc.ca'
+      },
+      { fixture: 'fba/vectors.json' }
+    ).as('getVectors')
+
     cy.visit(FIRE_BEHAVIOUR_ADVISORY_ROUTE)
   })
 
