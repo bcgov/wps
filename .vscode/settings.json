@@ -17,8 +17,7 @@
         "api/python_cache": true
     },
     "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true,
-        "source.fixAll.prettier": true
+        "source.fixAll.eslint": true
     },
     "editor.formatOnSave": true,
     "eslint.format.enable": true,
