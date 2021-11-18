@@ -15,7 +15,7 @@ const DatePicker = (props: DatePickerProps) => {
       <KeyboardDatePicker
         label="Date of Interest (PST-08:00)"
         value={props.date}
-        format="dd/MM/yyyy"
+        format="yyyy/MM/dd"
         InputAdornmentProps={{ position: 'start' }}
         onChange={e => {
           const value = e.setZone('UTC-7').toISO()
