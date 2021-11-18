@@ -22,16 +22,17 @@ describe('Fire Behaviour Advisory Page', () => {
   })
 
   it('Sets the fireCenter in local storage when it is changed in dropdown', () => {
-    cy.wait('@getStations')
-    cy.getByTestId('fire-center-dropdown')
-      .click()
-      .type('{downArrow}')
-      .type('{enter}')
-      .should(() => {
-        setTimeout((): void => {
-          expect(localStorage.getItem('preferredFireCenter')).to.equal('50')
-        }, 200)
-      })
+    // clear localstorage, to ensure that other tests aren't affecting us here.
+    cy.clearLocalStorage().should((ls: Storage) => {
+      cy.wait('@getStations')
+      cy.getByTestId('fire-center-dropdown')
+        .click()
+        .type('{downArrow}')
+        .type('{enter}')
+        .should(() => {
+          expect(ls.getItem('preferredFireCenter')).to.equal('50')
+        })
+    })
   })
 
   it('Has the preferredFireCenter in local storage not set if a center has not been selected before', () => {
