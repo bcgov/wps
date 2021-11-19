@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "@date-io/date-fns": "1.x",
-    "@date-io/luxon": "1.x",
-    "luxon": "^2.1.1"
-  }
-}
