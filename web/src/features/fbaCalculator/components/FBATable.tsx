@@ -310,9 +310,10 @@ const FBATable = (props: FBATableProps) => {
     })
   }
 
-  const updateDate = () => {
-    dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
+  const updateDate = (date: string) => {
+    dispatch(fetchFireBehaviourStations(date, rows))
   }
+  console.log(dateOfInterest)
 
   const toggleSorting = (selectedColumn: SortByColumn) => {
     if (sortByColumn !== selectedColumn) {

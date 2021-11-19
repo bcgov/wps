@@ -6,7 +6,7 @@ interface DatePickerProps {
   testId?: string
   date: string
   onChange: (d: string) => void
-  updateDate: () => void
+  updateDate: (d: string) => void
 }
 
 const DatePicker = (props: DatePickerProps) => {
@@ -16,14 +16,30 @@ const DatePicker = (props: DatePickerProps) => {
         label="Date of Interest (PST-08:00)"
         value={props.date}
         format="yyyy/MM/dd"
+        allowKeyboardControl={true}
         InputAdornmentProps={{ position: 'start' }}
-        onChange={e => {
-          const value = e.setZone('UTC-7').toISO()
-
-          if (value) {
-            props.onChange(value)
-            props.updateDate()
+        onAccept={d => {
+          const newDate = d.setZone('UTC-7').toISO().slice(0, 10)
+          console.log(newDate)
+          props.onChange(newDate)
+          props.updateDate(newDate)
+        }}
+        onKeyDown={event => {
+          if (event.key === 'Enter') {
+            const newDate = event.currentTarget
+              //Gets the input component that holds the date value
+              .getElementsByTagName('input')[0]
+              .value.toString()
+              //Replaces the '/' in the date with '-' otherwise the formatting is incompatible
+              .replaceAll('/', '-')
+            event.preventDefault()
+            props.onChange(newDate)
+            props.updateDate(newDate)
           }
+        }}
+        onChange={e => {
+          /*This is a required attribute we don't use because 
+          it makes editting the date with a keyboard impossible*/
         }}
       ></KeyboardDatePicker>
     </MuiPickersUtilsProvider>
