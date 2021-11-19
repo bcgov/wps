@@ -4,6 +4,9 @@ import { defaults as defaultControls } from 'ol/control'
 import { fromLonLat, get } from 'ol/proj'
 import { Fill, Stroke, Style } from 'ol/style'
 import OLVectorLayer from 'ol/layer/Vector'
+import VectorTileLayer from 'ol/layer/VectorTile'
+import VectorTileSource from 'ol/source/VectorTile'
+import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
 
 import GeoJSON from 'ol/format/GeoJSON'
@@ -67,6 +70,16 @@ const FBAMap = (props: FBAMapProps) => {
 
   const fireCenterSource = buildFireVectorSource(fireCenterLayer)
 
+  const pglayer = new VectorTileLayer({
+    // declutter: true,
+    source: new VectorTileSource({
+      attributions: 'BC stuff',
+      format: new MVT(),
+      url: 'http://localhost:7800/public.fire_zones/{z}/{x}/{y}.pbf'
+    })
+    // style: createMapboxStreetsV6Style(Style, Fill, Stroke, Icon, Text)
+  })
+
   const fireCenterVector = new OLVectorLayer({
     source: fireCenterSource,
     style: () => {
@@ -125,8 +138,9 @@ const FBAMap = (props: FBAMapProps) => {
         new Tile({
           source
         }),
-        fireCenterVector,
-        fireZoneVector
+        // fireCenterVector,
+        // fireZoneVector
+        pglayer
       ],
       overlays: [],
       controls: defaultControls()
