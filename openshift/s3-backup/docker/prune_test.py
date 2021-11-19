@@ -5,6 +5,69 @@ import unittest
 from prune import decide_files_to_keep, decide_files_to_delete
 
 
+def file_generator():
+    """ yield up file names similar to what we expect that backup process to create """
+    stamp = datetime(2020, 10, 15, 3, 0, 10)
+    end = stamp + timedelta(weeks=54)
+    # cronjob time increments, 3am, 9am, 2pm, 8pm.
+    increment = [6, 5, 6, 7]
+    i = 0
+    while stamp < end:
+        i = i + 1
+        new_file = stamp.strftime('backup/blah_wps/%Y/%m/blah_wps_%Y-%m-%d_%H-%M-%S.sql.gz')
+        stamp += timedelta(hours=increment[i % 4])
+        yield new_file
+
+
+class TestRollingPrune(unittest.TestCase):
+    """ Tests that check an ever increasing number of files results in the correct final makeup """
+
+    def __init__(self, methodName: str = ...) -> None:
+        """ Initialize the test case """
+        super().__init__(methodName=methodName)
+        self.expected = ['backup/blah_wps/2021/06/blah_wps_2021-06-24_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/07/blah_wps_2021-07-22_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/08/blah_wps_2021-08-19_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/09/blah_wps_2021-09-16_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/09/blah_wps_2021-09-23_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/09/blah_wps_2021-09-30_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/10/blah_wps_2021-10-07_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/10/blah_wps_2021-10-14_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/10/blah_wps_2021-10-21_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/10/blah_wps_2021-10-23_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/10/blah_wps_2021-10-24_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/10/blah_wps_2021-10-25_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/10/blah_wps_2021-10-26_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/10/blah_wps_2021-10-26_21-00-10.sql.gz',
+                         'backup/blah_wps/2021/10/blah_wps_2021-10-27_03-00-10.sql.gz',
+                         'backup/blah_wps/2021/10/blah_wps_2021-10-27_08-00-10.sql.gz',
+                         'backup/blah_wps/2021/10/blah_wps_2021-10-27_14-00-10.sql.gz',
+                         'backup/blah_wps/2021/10/blah_wps_2021-10-27_21-00-10.sql.gz']
+
+    def test_a_number_of_days_after_failing_to_run(self):
+        """ Check that if pruning hasn't been running for a while, it prunes correctly """
+        files = []
+        for file in file_generator():
+            files.append(file)
+
+        files = list(set(files).difference(decide_files_to_delete(files.copy())))
+
+        files.sort()
+        self.assertEqual(files, self.expected)
+
+    def test_a_number_of_days(self):
+        """
+        Iterate through a years worth of days, checking that we get the expected list of files.
+        """
+        files = []
+        for new_file in file_generator():
+            files.append(new_file)
+            files = list(set(files).difference(decide_files_to_delete(files.copy())))
+
+        files.sort()
+        self.assertEqual(files, self.expected)
+
+
 class TestPrune(unittest.TestCase):
     """ Unit tests for prune.py """
 
@@ -63,44 +126,6 @@ class TestPrune(unittest.TestCase):
                           'backup/blah_wps/2021/10/blah_wps_2020-11-20_20-00-16.sql.gz',  # 21
                           'backup/blah_wps/2021/10/blah_wps_2019-10-20_20-00-16.sql.gz'  # 22
                           ]
-
-    def test_a_number_of_days(self):
-        """
-        Iterate through a years worth of days, checking that we get the expected list of files.
-        """
-        stamp = datetime(2020, 10, 15, 3, 0, 10)
-        end = stamp + timedelta(weeks=54)
-        # cronjob time increments, 3am, 9am, 2pm, 8pm.
-        increment = [6, 5, 6, 7]
-        files = []
-        i = 0
-        while stamp < end:
-            i = i + 1
-            new_file = stamp.strftime('backup/blah_wps/%Y/%m/blah_wps_%Y-%m-%d_%H-%M-%S.sql.gz')
-            files.append(new_file)
-            stamp += timedelta(hours=increment[i % 4])
-            files = list(set(files).difference(decide_files_to_delete(files.copy())))
-
-        expected = ['backup/blah_wps/2021/06/blah_wps_2021-06-24_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/07/blah_wps_2021-07-22_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/08/blah_wps_2021-08-19_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/09/blah_wps_2021-09-16_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/09/blah_wps_2021-09-23_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/09/blah_wps_2021-09-30_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/10/blah_wps_2021-10-07_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/10/blah_wps_2021-10-14_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/10/blah_wps_2021-10-21_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/10/blah_wps_2021-10-23_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/10/blah_wps_2021-10-24_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/10/blah_wps_2021-10-25_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/10/blah_wps_2021-10-26_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/10/blah_wps_2021-10-26_21-00-10.sql.gz',
-                    'backup/blah_wps/2021/10/blah_wps_2021-10-27_03-00-10.sql.gz',
-                    'backup/blah_wps/2021/10/blah_wps_2021-10-27_08-00-10.sql.gz',
-                    'backup/blah_wps/2021/10/blah_wps_2021-10-27_14-00-10.sql.gz',
-                    'backup/blah_wps/2021/10/blah_wps_2021-10-27_21-00-10.sql.gz']
-        files.sort()
-        self.assertEqual(files, expected)
 
     def test_delete_sample_set(self):
         """ Test what should be deleted using an ascending list of files """
