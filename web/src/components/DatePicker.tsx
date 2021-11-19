@@ -19,10 +19,11 @@ const DatePicker = (props: DatePickerProps) => {
         allowKeyboardControl={true}
         InputAdornmentProps={{ position: 'start' }}
         onAccept={d => {
-          const newDate = d.setZone('UTC-7').toISO().slice(0, 10)
-          console.log(newDate)
-          props.onChange(newDate)
-          props.updateDate(newDate)
+          if (d) {
+            const newDate = d.setZone('UTC-7').toISO().slice(0, 10)
+            props.onChange(newDate)
+            props.updateDate(newDate)
+          }
         }}
         onKeyDown={event => {
           if (event.key === 'Enter') {
