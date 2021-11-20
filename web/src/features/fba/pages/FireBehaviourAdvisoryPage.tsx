@@ -64,13 +64,11 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     DateTime.now().setZone('UTC-7').toISO()
   )
 
-  const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
-    useState(DateTime.now().setZone('UTC-7').toISO())
-
-  const updateDate = () => {
-    if (previouslySelectedDateOfInterest !== dateOfInterest) {
-      setPreviouslySelectedDateOfInterest(dateOfInterest)
-    }
+  const updateDate = (date: string) => {
+    /*This needs to be done in order for timezone to function correctly and not have the 
+    date picker display the incorrect date*/
+    date = `${date}T00:00:00-08:00`
+    setDateOfInterest(date)
   }
 
   useEffect(() => {
@@ -94,11 +92,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid container spacing={2}>
             <Grid item>
               <FormControl className={classes.formControl}>
-                <DatePicker
-                  date={dateOfInterest}
-                  onChange={setDateOfInterest}
-                  updateDate={updateDate}
-                />
+                <DatePicker date={dateOfInterest} updateDate={updateDate} />
               </FormControl>
             </Grid>
             <Grid item xs={2}>

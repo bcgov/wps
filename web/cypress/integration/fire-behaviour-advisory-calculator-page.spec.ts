@@ -133,7 +133,7 @@ describe('FireBAT Calculator Page', () => {
   })
 
   describe('Date picker', () => {
-    it('Sets the date correctly', () => {
+    it('Sets the date correctly when typing and pressing enter', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       const yesterday = DateTime.now().minus({ days: 1 }).toISODate().slice(0, 10) // 'YYYY-MM-DD'
@@ -148,7 +148,30 @@ describe('FireBAT Calculator Page', () => {
 
       cy.wait('@getStations')
 
-      cy.setDate(yesterday)
+      cy.setDateTypeMethod(yesterday)
+
+      cy.selectFBAStationInDropdown(322, 1)
+
+      cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['c1'].friendlyName, 1)
+
+      cy.wait('@calculateResults')
+    })
+    it('Sets the date correctly when typing and then clicking away from the input field', () => {
+      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
+
+      const yesterday = DateTime.now().minus({ days: 1 }).toISODate().slice(0, 10) // 'YYYY-MM-DD'
+
+      cy.intercept('POST', 'api/fba-calc/stations', req => {
+        expect(req.body).to.deep.include({
+          date: yesterday
+        })
+      }).as('calculateResults')
+
+      visitAndAddRow()
+
+      cy.wait('@getStations')
+
+      cy.setDateBlurMethod(yesterday)
 
       cy.selectFBAStationInDropdown(322, 1)
 
