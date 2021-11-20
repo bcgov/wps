@@ -23,6 +23,7 @@ import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherT
 import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
+import { PST_UTC_OFFSET } from 'utils/constants'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -64,24 +65,26 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now().setZone('UTC-7').toISO()
+    DateTime.now()
+      .setZone('UTC' + PST_UTC_OFFSET)
+      .toISO()
   )
-  const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
-    useState(DateTime.now().setZone('UTC-7').toISO())
 
   const [isCopied, setIsCopied] = useState(false)
 
   const refreshView = () => {
-    const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
+    //Slice being used to format the time zone/hours out of the date so the api call can be made
+    const { start, end } = getDateRange(isWeeklyView, dateOfInterest.slice(0, 10))
     dispatch(fetchHFIStations())
     dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
   }
 
-  const updateDate = () => {
-    if (previouslySelectedDateOfInterest !== dateOfInterest) {
-      refreshView()
-      setPreviouslySelectedDateOfInterest(dateOfInterest)
-    }
+  const updateDate = (date: string) => {
+    /*This needs to be done in order for timezone to function correctly and not have the 
+    date picker display the incorrect date*/
+    date = `${date}T00:00:00-08:00`
+    setDateOfInterest(date)
+    refreshView()
   }
 
   const openAboutModal = () => {
@@ -148,11 +151,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       ) : (
         <Container maxWidth={'xl'}>
           <FormControl className={classes.formControl}>
-            <DatePicker
-              date={dateOfInterest}
-              onChange={setDateOfInterest}
-              updateDate={updateDate}
-            />
+            <DatePicker date={dateOfInterest} updateDate={updateDate} />
           </FormControl>
 
           <FormControl className={classes.formControl}>

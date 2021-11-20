@@ -5,7 +5,6 @@ import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/picker
 interface DatePickerProps {
   testId?: string
   date: string
-  onChange: (d: string) => void
   updateDate: (d: string) => void
 }
 
@@ -21,8 +20,8 @@ const DatePicker = (props: DatePickerProps) => {
         onAccept={d => {
           if (d) {
             const newDate = d.setZone('UTC-7').toISO().slice(0, 10)
-            props.onChange(newDate)
             props.updateDate(newDate)
+            console.log('accept', newDate)
           }
         }}
         onKeyDown={event => {
@@ -34,9 +33,16 @@ const DatePicker = (props: DatePickerProps) => {
               //Replaces the '/' in the date with '-' otherwise the formatting is incompatible
               .replaceAll('/', '-')
             event.preventDefault()
-            props.onChange(newDate)
             props.updateDate(newDate)
           }
+        }}
+        onBlur={event => {
+          const newDate = event.currentTarget.value
+            .toString()
+            //Replaces the '/' in the date with '-' otherwise the formatting is incompatible
+            .replaceAll('/', '-')
+          event.preventDefault()
+          props.updateDate(newDate)
         }}
         onChange={e => {
           /*This is a required attribute we don't use because 
