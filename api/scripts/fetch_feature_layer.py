@@ -20,8 +20,8 @@ url = "https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_a
 def fetch_object_list():
 
     params = {
-        #     'where': '1=1',
-        'where': 'objectid<800',
+        'where': '1=1',
+        # 'where': 'objectid<800',
         'geometryType': 'esriGeometryEnvelope',
         'spatialRel': 'esriSpatialRelIntersects',
         'outSR': '102100',
