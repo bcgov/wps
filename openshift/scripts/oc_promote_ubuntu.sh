@@ -53,7 +53,4 @@ fi
 
 # Provide oc command instruction
 #
-display_helper "${OC_IMG_IMPORT}" "${OC_IMG_RETAG}" 
-for PRUNE in "${OC_IMG_PRUNE[@]}"; do
-	echo "${PRUNE}"
-done
+display_helper "${OC_IMG_IMPORT}" "${OC_IMG_RETAG}" "${OC_IMG_PRUNE[@]}"
