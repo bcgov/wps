@@ -2,12 +2,7 @@ import { FIRE_BEHAVIOR_CALC_ROUTE } from '../../src/utils/constants'
 import { FuelTypes } from '../../src/features/fbaCalculator/fuelTypes'
 import { DateTime } from 'luxon'
 
-const datePickerTest = (commandToUse: Function) => {
-  const visitAndAddRow = () => {
-    cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
-
-    cy.getByTestId('add-row').click()
-  }
+const datePickerTest = (commandToUse: Function, visitAndAddRow: Function) => {
   cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
   const yesterday = DateTime.now().minus({ days: 1 }).toISODate().slice(0, 10) // 'YYYY-MM-DD'
@@ -163,10 +158,10 @@ describe('FireBAT Calculator Page', () => {
 
   describe('Date picker', () => {
     it.only('Sets the date correctly when typing and pressing enter', () => {
-      datePickerTest(cy.setDateTypeMethod)
+      datePickerTest(cy.setDateTypeMethod, visitAndAddRow)
     })
     it('Sets the date correctly when typing and then clicking away from the input field', () => {
-      datePickerTest(cy.setDateBlurMethod)
+      datePickerTest(cy.setDateBlurMethod, visitAndAddRow)
     })
   })
   describe('Row management', () => {
