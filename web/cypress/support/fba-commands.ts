@@ -96,12 +96,18 @@ Cypress.Commands.add('setDateTypeMethod', (date: string) => {
   return cy
     .getByTestId('date-of-interest-picker')
     .find('input')
+    .clear()
     .type(date)
     .type('{enter}')
 })
 
 Cypress.Commands.add('setDateBlurMethod', (date: string) => {
-  return cy.getByTestId('date-of-interest-picker').find('input').type(date).click()
+  return cy
+    .getByTestId('date-of-interest-picker')
+    .find('input')
+    .clear()
+    .type(date)
+    .click()
 })
 
 Cypress.Commands.add('setSelectedRow', () => {
