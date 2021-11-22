@@ -21,7 +21,7 @@ describe('Fire Behaviour Advisory Page', () => {
     cy.getByTestId('fba-map').should('be.visible')
   })
 
-  it('Sets the fireCenter in local storage when it is changed in dropdown', () => {
+  it.skip('Sets the fireCenter in local storage when it is changed in dropdown', () => {
     cy.wait('@getStations')
     cy.getByTestId('fire-center-dropdown')
       .click()
