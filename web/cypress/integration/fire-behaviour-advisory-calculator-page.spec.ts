@@ -2,6 +2,35 @@ import { FIRE_BEHAVIOR_CALC_ROUTE } from '../../src/utils/constants'
 import { FuelTypes } from '../../src/features/fbaCalculator/fuelTypes'
 import { DateTime } from 'luxon'
 
+const datePickerTest = (commandToUse: Function) => {
+  const visitAndAddRow = () => {
+    cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
+
+    cy.getByTestId('add-row').click()
+  }
+  cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
+
+  const yesterday = DateTime.now().minus({ days: 1 }).toISODate().slice(0, 10) // 'YYYY-MM-DD'
+
+  cy.intercept('POST', 'api/fba-calc/stations', req => {
+    expect(req.body).to.deep.include({
+      date: yesterday
+    })
+  }).as('calculateResults')
+
+  visitAndAddRow()
+
+  cy.wait('@getStations')
+
+  commandToUse(yesterday)
+
+  cy.selectFBAStationInDropdown(322, 1)
+
+  cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['c1'].friendlyName, 1)
+
+  cy.wait('@calculateResults')
+}
+
 describe('FireBAT Calculator Page', () => {
   const visitAndAddRow = () => {
     cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
@@ -133,51 +162,11 @@ describe('FireBAT Calculator Page', () => {
   })
 
   describe('Date picker', () => {
-    it('Sets the date correctly when typing and pressing enter', () => {
-      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-
-      const yesterday = DateTime.now().minus({ days: 1 }).toISODate().slice(0, 10) // 'YYYY-MM-DD'
-
-      cy.intercept('POST', 'api/fba-calc/stations', req => {
-        expect(req.body).to.deep.include({
-          date: yesterday
-        })
-      }).as('calculateResults')
-
-      visitAndAddRow()
-
-      cy.wait('@getStations')
-
-      cy.setDateTypeMethod(yesterday)
-
-      cy.selectFBAStationInDropdown(322, 1)
-
-      cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['c1'].friendlyName, 1)
-
-      cy.wait('@calculateResults')
+    it.only('Sets the date correctly when typing and pressing enter', () => {
+      datePickerTest(cy.setDateTypeMethod)
     })
     it('Sets the date correctly when typing and then clicking away from the input field', () => {
-      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-
-      const yesterday = DateTime.now().minus({ days: 1 }).toISODate().slice(0, 10) // 'YYYY-MM-DD'
-
-      cy.intercept('POST', 'api/fba-calc/stations', req => {
-        expect(req.body).to.deep.include({
-          date: yesterday
-        })
-      }).as('calculateResults')
-
-      visitAndAddRow()
-
-      cy.wait('@getStations')
-
-      cy.setDateBlurMethod(yesterday)
-
-      cy.selectFBAStationInDropdown(322, 1)
-
-      cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['c1'].friendlyName, 1)
-
-      cy.wait('@calculateResults')
+      datePickerTest(cy.setDateBlurMethod)
     })
   })
   describe('Row management', () => {
