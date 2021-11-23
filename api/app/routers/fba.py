@@ -32,7 +32,7 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
         raise
 
 
-@router.get('/fire-zone-areas/', response_format='JSON')
+@router.get('/fire-zone-areas/')
 async def get_fire_zone_areas(_=Depends(authentication_required)):
     """ Returns fire centers for all active stations. """
     logger.info('/fba/fire-zone-areas/')
