@@ -93,4 +93,6 @@ if __name__ == "__main__":
         os.system(
             f'ogr2ogr -f "PostgreSQL" PG:"dbname=wps host=localhost user=wps password=wps" "{filename}" -nln fire_zones')
 
+        os.remove(filename)
+
         # ogr2ogr -f "PostgreSQL" PG:"dbname=wps host=localhost user=wps password=wps" "obj_453.json" -nln fire_zones
