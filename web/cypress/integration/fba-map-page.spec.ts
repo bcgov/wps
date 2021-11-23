@@ -21,19 +21,15 @@ describe('Fire Behaviour Advisory Page', () => {
     cy.getByTestId('fba-map').should('be.visible')
   })
 
-  // #TODO: this test is failing
   it.skip('Sets the fireCenter in local storage when it is changed in dropdown', () => {
-    // clear localstorage, to ensure that other tests aren't affecting us here.
-    cy.clearLocalStorage().should((ls: Storage) => {
-      cy.wait('@getStations')
-      cy.getByTestId('fire-center-dropdown')
-        .click()
-        .type('{downArrow}')
-        .type('{enter}')
-        .should(() => {
-          expect(ls.getItem('preferredFireCenter')).to.equal('50')
-        })
-    })
+    cy.wait('@getStations')
+    cy.getByTestId('fire-center-dropdown')
+      .click()
+      .type('{downArrow}')
+      .type('{enter}')
+      .should(() => {
+        expect(localStorage.getItem('preferredFireCenter')).to.equal('50')
+      })
   })
 
   it('Has the preferredFireCenter in local storage not set if a center has not been selected before', () => {
