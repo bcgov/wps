@@ -12,9 +12,10 @@ class ThessianPolygonArea(Base):
     """ Thessian polygon for a given area """
     __tablename__ = 'thessian_polygon_area'
 
-    id = Column(Integer, Sequence('thessian_polygon_areaid_seq'),
+    id = Column(Integer, Sequence('thessian_polygon_area_id_seq'),
                 primary_key=True, nullable=False, index=True)
-    geom = Column(Geometry(geometry_type='POLYGON', spatial_index=False))
+    geom = Column(Geometry(geometry_type='POLYGON', spatial_index=False), nullable=False)
+    station_code = Column(Integer, nullable=False, index=True, unique=True)
 
     create_date = Column(TZTimeStamp, nullable=False,
                          default=time_utils.get_utc_now())
