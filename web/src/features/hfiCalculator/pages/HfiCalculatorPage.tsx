@@ -23,6 +23,7 @@ import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherT
 import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
+
 import { PST_UTC_OFFSET } from 'utils/constants'
 
 const useStyles = makeStyles(() => ({
@@ -72,19 +73,27 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const [isCopied, setIsCopied] = useState(false)
 
-  const refreshView = () => {
-    //Slice being used to format the time zone/hours out of the date so the api call can be made
-    const { start, end } = getDateRange(isWeeklyView, dateOfInterest.slice(0, 10))
+  const callDispatch = (start: DateTime, end: DateTime) => {
     dispatch(fetchHFIStations())
     dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
   }
 
-  const updateDate = (date: string) => {
+  const refreshView = () => {
+    //Slice being used to format the time zone/hours out of the date so the api call can be made
+    const { start, end } = getDateRange(isWeeklyView, dateOfInterest.slice(0, 10))
+    callDispatch(start, end)
+  }
+
+  const updateDate = async (date: string) => {
     /*This needs to be done in order for timezone to function correctly and not have the 
     date picker display the incorrect date*/
-    date = `${date}T00:00:00-08:00`
-    setDateOfInterest(date)
-    refreshView()
+    const newDate = DateTime.fromJSDate(new Date(date)).setZone('UTC' + PST_UTC_OFFSET)
+    if (newDate.toString().slice(0, 10) !== dateOfInterest.slice(0, 10)) {
+      setDateOfInterest(newDate.toString())
+      //Slice being used to format the time zone/hours out of the date so the api call can be made
+      const { start, end } = getDateRange(isWeeklyView, newDate.toString().slice(0, 10))
+      callDispatch(start, end)
+    }
   }
 
   const openAboutModal = () => {

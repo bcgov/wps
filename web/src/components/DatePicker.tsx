@@ -1,6 +1,7 @@
 import React from 'react'
 import LuxonUtils from '@date-io/luxon'
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers'
+import { PST_UTC_OFFSET } from 'utils/constants'
 
 interface DatePickerProps {
   testId?: string
@@ -19,7 +20,10 @@ const DatePicker = (props: DatePickerProps) => {
         InputAdornmentProps={{ position: 'start' }}
         onAccept={d => {
           if (d) {
-            const newDate = d.setZone('UTC-7').toISO().slice(0, 10)
+            const newDate = d
+              .setZone('UTC' + PST_UTC_OFFSET)
+              .toISO()
+              .slice(0, 10)
             props.updateDate(newDate)
             console.log('accept', newDate)
           }
