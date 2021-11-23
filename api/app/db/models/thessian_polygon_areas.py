@@ -6,6 +6,7 @@ from sqlalchemy import (Column, Integer,
 from app.db.models.common import TZTimeStamp
 import app.utils.time as time_utils
 from app.db.database import Base
+from app.geospatial import NAD83_BC_ALBERS_SRID
 
 
 class ThessianPolygonArea(Base):
@@ -14,7 +15,7 @@ class ThessianPolygonArea(Base):
 
     id = Column(Integer, Sequence('thessian_polygon_area_id_seq'),
                 primary_key=True, nullable=False, index=True)
-    geom = Column(Geometry(geometry_type='POLYGON', spatial_index=False), nullable=False)
+    geom = Column(Geometry(geometry_type='POLYGON', spatial_index=False, srid=NAD83_BC_ALBERS_SRID), nullable=False)
     station_code = Column(Integer, nullable=False, index=True, unique=True)
 
     create_date = Column(TZTimeStamp, nullable=False,
