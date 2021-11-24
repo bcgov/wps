@@ -60,7 +60,7 @@ export async function postFBAStations(
   const url = '/fba-calc/stations'
 
   const { data } = await axios.post(url, {
-    date: date,
+    date: date.slice(0, 10),
     stations: fireBehaviorStations.map(fireBehaviorStation => ({
       id: fireBehaviorStation.id,
       station_code: fireBehaviorStation.stationCode,
