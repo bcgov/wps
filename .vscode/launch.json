@@ -35,6 +35,13 @@
             "args": [
                 "HRDPS"
             ]
-        }
+        },
+        {
+            "name": "backup unit tests",
+            "type": "python",
+            "request": "launch",
+            "program": "openshift/s3-backup/docker/prune_test.py",
+            "console": "integratedTerminal"
+        },
     ]
 }
