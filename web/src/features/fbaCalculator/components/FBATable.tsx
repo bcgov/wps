@@ -605,11 +605,7 @@ const FBATable = (props: FBATableProps) => {
         ))}
       <ErrorBoundary>
         <FormControl className={classes.formControl}>
-          <DatePicker
-            date={dateOfInterest}
-            onChange={setDateOfInterest}
-            updateDate={updateDate}
-          />
+          <DatePicker date={dateOfInterest} updateDate={updateDate} />
         </FormControl>
         <FormControl className={classes.formControl}>
           <Button
