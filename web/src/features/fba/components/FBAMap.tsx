@@ -46,18 +46,18 @@ const FBAMap = (props: FBAMapProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null)
 
   const fireZoneVector = new VectorTileLayer({
-    // declutter: true,
+    declutter: true,
     opacity: 0.5,
     source: new VectorTileSource({
-      attributions: 'BC stuff',
+      attributions: 'BC Fire Zones',
       format: new MVT(),
       url: 'https://tileserv-dev.apps.silver.devops.gov.bc.ca/public.fire_zones/{z}/{x}/{y}.pbf'
     }),
     style: () => {
       return new Style({
         stroke: new Stroke({
-          color: 'purple',
-          width: 4
+          color: 'grey',
+          width: 3
         })
       })
     }
@@ -65,16 +65,15 @@ const FBAMap = (props: FBAMapProps) => {
 
   const fireCenterVector = new VectorTileLayer({
     source: new VectorTileSource({
-      attributions: 'BC stuff',
+      attributions: 'BC Fire Centers',
       format: new MVT(),
       url: 'https://tileserv-dev.apps.silver.devops.gov.bc.ca/public.fire_centres/{z}/{x}/{y}.pbf'
     }),
     style: () => {
       return new Style({
         stroke: new Stroke({
-          lineDash: [1, 10],
-          color: 'blue',
-          width: 4
+          color: 'black',
+          width: 3
         })
       })
     }
