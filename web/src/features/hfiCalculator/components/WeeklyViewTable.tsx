@@ -134,12 +134,11 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                 <StickyCell
                   left={0}
                   zIndexOffset={9}
-                  colSpan={5}
+                  colSpan={32}
                   backgroundColor={'#dbd9d9'}
                 >
                   <TableCell className={classes.fireCentre}>{centre.name}</TableCell>
                 </StickyCell>
-                <TableCell className={classes.fireCentre} colSpan={27}></TableCell>
               </TableRow>
               {Object.entries(centre.planning_areas)
                 .sort((a, b) =>
@@ -153,10 +152,13 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         key={`zone-${areaName}`}
                         data-testid={`zone-${areaName}`}
                       >
-                        <StickyCell left={0} zIndexOffset={10}>
-                          <TableCell className={classes.planningArea} colSpan={5}>
-                            {area.name}
-                          </TableCell>
+                        <StickyCell
+                          left={0}
+                          zIndexOffset={10}
+                          colSpan={5}
+                          className={classes.planningArea}
+                        >
+                          <TableCell>{area.name}</TableCell>
                         </StickyCell>
                         <CalculatedPlanningAreaCells
                           area={area}
@@ -176,7 +178,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           const isRowSelected = stationCodeInSelected(station.code)
                           const classNameForRow = !isRowSelected
                             ? classes.unselectedStation
-                            : undefined
+                            : classes.stationCellPlainStyling
 
                           return (
                             <TableRow
@@ -198,7 +200,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                   }
                                   isGrassFuelType={isGrassFuelType(station.station_props)}
                                   className={
-                                    isRowSelected ? undefined : classes.unselectedStation
+                                    isRowSelected
+                                      ? classes.stationCellPlainStyling
+                                      : classes.unselectedStation
                                   }
                                   selected={isRowSelected}
                                 />

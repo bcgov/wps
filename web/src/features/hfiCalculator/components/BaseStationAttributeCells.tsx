@@ -19,8 +19,8 @@ const BaseStationAttributeCells = ({
 }: BaseStationAttributeCellsProps) => {
   return (
     <React.Fragment>
-      <StickyCell left={0} zIndexOffset={11}>
-        <TableCell>
+      <StickyCell left={0} zIndexOffset={11} backgroundColor={'#ffffff'}>
+        <TableCell className={className}>
           <Checkbox
             checked={stationCodeInSelected(station.code)}
             onClick={() => toggleSelectedStation(station.code)}
@@ -29,7 +29,7 @@ const BaseStationAttributeCells = ({
           ></Checkbox>
         </TableCell>
       </StickyCell>
-      <StickyCell left={50} zIndexOffset={11}>
+      <StickyCell left={50} zIndexOffset={11} backgroundColor={'#ffffff'}>
         <TableCell key={`station-${station.code}-name`} className={className}>
           {station.station_props.name} ({station.code})
         </TableCell>
@@ -37,7 +37,7 @@ const BaseStationAttributeCells = ({
       <TableCell key={`station-${station.code}-elevation`} className={className}>
         {station.station_props.elevation}
       </TableCell>
-      <StickyCell left={146} zIndexOffset={11}>
+      <StickyCell left={146} zIndexOffset={11} backgroundColor={'#ffffff'}>
         <TableCell key={`station-${station.code}-fuel-type`} className={className}>
           {station.station_props.fuel_type.abbrev}
         </TableCell>
