@@ -66,7 +66,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   const updateDate = (newDate: string) => {
     if (newDate !== dateOfInterest) {
-      setDateOfInterest(dateOfInterest)
+      setDateOfInterest(newDate)
     }
   }
 
