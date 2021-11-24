@@ -67,7 +67,6 @@ class Desire:  # pylint: disable=too-few-public-methods
                 # If the time difference between two files is greater than or equal to the interval:
                 if timestamp - prev_timestamp >= self.interval:
                     prev_timestamp = timestamp
-                    continue
             # If we have too many files, get rid of the oldest one:
             if len(self.files_to_keep) > self.desired_backups:
                 self.files_to_keep.pop(0)
