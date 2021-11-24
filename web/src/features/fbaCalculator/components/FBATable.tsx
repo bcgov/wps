@@ -49,7 +49,6 @@ import FireTable from 'components/FireTable'
 import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
 import FilterColumnsModal from 'components/FilterColumnsModal'
 import { formControlStyles } from 'app/theme'
-import { PST_UTC_OFFSET } from 'utils/constants'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -128,9 +127,7 @@ const FBATable = (props: FBATableProps) => {
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now()
-      .setZone('UTC' + PST_UTC_OFFSET)
-      .toISO()
+    DateTime.now().startOf('day').setZone('UTC-8').toISO()
   )
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
@@ -184,8 +181,7 @@ const FBATable = (props: FBATableProps) => {
         }))
       )
       setRows(sortedRows)
-      //Slice being used to format the time zone/hours out of the date so the api call can be made
-      dispatch(fetchFireBehaviourStations(dateOfInterest.slice(0, 10), sortedRows))
+      dispatch(fetchFireBehaviourStations(dateOfInterest, sortedRows))
     }
   }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -193,8 +189,7 @@ const FBATable = (props: FBATableProps) => {
     if (stations.length > 0) {
       const rowsToUpdate = rows.filter(row => rowIdsToUpdate.has(row.id))
       if (!isEmpty(rowsToUpdate)) {
-        //Slice being used to format the time zone/hours out of the date so the api call can be made
-        dispatch(fetchFireBehaviourStations(dateOfInterest.slice(0, 10), rowsToUpdate))
+        dispatch(fetchFireBehaviourStations(dateOfInterest, rowsToUpdate))
       }
     }
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -317,14 +312,13 @@ const FBATable = (props: FBATableProps) => {
     })
   }
 
-  const updateDate = (date: string) => {
-    /*This needs to be done in order for timezone to function correctly and not have the 
-    date picker display the incorrect date*/
-    date = `${date}T00:00:00-08:00`
-    setDateOfInterest(date)
-    //Slice being used to format the time zone/hours out of the date so the api call can be made
-    dispatch(fetchFireBehaviourStations(date.slice(0, 10), rows))
+  const updateDate = (newDate: string) => {
+    if (newDate !== dateOfInterest) {
+      dispatch(fetchFireBehaviourStations(newDate, rows))
+      setDateOfInterest(newDate)
+    }
   }
+
   const toggleSorting = (selectedColumn: SortByColumn) => {
     if (sortByColumn !== selectedColumn) {
       setSortByColumn(selectedColumn)
@@ -610,11 +604,12 @@ const FBATable = (props: FBATableProps) => {
           <ErrorAlert stationsError={stationsError} fbaResultsError={fbaResultsError} />
         ))}
       <ErrorBoundary>
-        <FormControl
-          data-testid="date-of-interest-picker"
-          className={classes.formControl}
-        >
-          <DatePicker date={dateOfInterest} updateDate={updateDate} />
+        <FormControl className={classes.formControl}>
+          <DatePicker
+            date={dateOfInterest}
+            onChange={setDateOfInterest}
+            updateDate={updateDate}
+          />
         </FormControl>
         <FormControl className={classes.formControl}>
           <Button
