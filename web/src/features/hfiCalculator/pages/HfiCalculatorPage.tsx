@@ -84,14 +84,16 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     callDispatch(start, end)
   }
 
-  const updateDate = async (date: string) => {
+  const updateDate = (date: string) => {
     /*This needs to be done in order for timezone to function correctly and not have the 
     date picker display the incorrect date*/
-    const newDate = DateTime.fromJSDate(new Date(date)).setZone('UTC' + PST_UTC_OFFSET)
-    if (newDate.toString().slice(0, 10) !== dateOfInterest.slice(0, 10)) {
-      setDateOfInterest(newDate.toString())
+    const thisDate = date + 'T16:00:00.000-08:00'
+    const newDate = DateTime.fromJSDate(new Date(date))
+    console.log(date + ': ' + newDate.toISO() + ': ' + new Date(date))
+    if (thisDate.slice(0, 10) !== dateOfInterest.slice(0, 10)) {
+      setDateOfInterest(thisDate)
       //Slice being used to format the time zone/hours out of the date so the api call can be made
-      const { start, end } = getDateRange(isWeeklyView, newDate.toString().slice(0, 10))
+      const { start, end } = getDateRange(isWeeklyView, thisDate.slice(0, 10))
       callDispatch(start, end)
     }
   }
