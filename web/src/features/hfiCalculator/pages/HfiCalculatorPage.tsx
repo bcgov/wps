@@ -24,8 +24,6 @@ import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 
-import { PST_UTC_OFFSET } from 'utils/constants'
-
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
   container: {
@@ -66,33 +64,23 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now()
-      .setZone('UTC' + PST_UTC_OFFSET)
-      .toISO()
+    DateTime.now().startOf('day').setZone('UTC-8').toISO()
   )
+  const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
+    useState(DateTime.now().startOf('day').setZone('UTC-8').toISO())
 
   const [isCopied, setIsCopied] = useState(false)
 
-  const callDispatch = (start: DateTime, end: DateTime) => {
+  const refreshView = () => {
+    const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
     dispatch(fetchHFIStations())
     dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
   }
 
-  const refreshView = () => {
-    //Slice being used to format the time zone/hours out of the date so the api call can be made
-    const { start, end } = getDateRange(isWeeklyView, dateOfInterest.slice(0, 10))
-    callDispatch(start, end)
-  }
-
-  const updateDate = async (date: string) => {
-    /*This needs to be done in order for timezone to function correctly and not have the 
-    date picker display the incorrect date*/
-    const newDate = DateTime.fromJSDate(new Date(date)).setZone('UTC' + PST_UTC_OFFSET)
-    if (newDate.toString().slice(0, 10) !== dateOfInterest.slice(0, 10)) {
-      setDateOfInterest(newDate.toString())
-      //Slice being used to format the time zone/hours out of the date so the api call can be made
-      const { start, end } = getDateRange(isWeeklyView, newDate.toString().slice(0, 10))
-      callDispatch(start, end)
+  const updateDate = () => {
+    if (previouslySelectedDateOfInterest !== dateOfInterest) {
+      refreshView()
+      setPreviouslySelectedDateOfInterest(dateOfInterest)
     }
   }
 
@@ -160,7 +148,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       ) : (
         <Container maxWidth={'xl'}>
           <FormControl className={classes.formControl}>
-            <DatePicker date={dateOfInterest} updateDate={updateDate} />
+            <DatePicker
+              date={dateOfInterest}
+              onChange={setDateOfInterest}
+              updateDate={updateDate}
+            />
           </FormControl>
 
           <FormControl className={classes.formControl}>
