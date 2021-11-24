@@ -14,7 +14,7 @@ import json
 # arcpy.env.overwriteOutput = True
 
 # Specify REST URL for service JSON to be returned
-url = "https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/8/query?"
+url = "https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/2/query?"
 
 
 def fetch_object_list():
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         print(f'dump to database {filename}')
         # TODO: there's some issue with 453 (that's the Fraser Fire Zone)
         os.system(
-            f'ogr2ogr -f "PostgreSQL" PG:"dbname=wps host=localhost user=wps password=wps" "{filename}" -nln fire_zones')
+            f'ogr2ogr -f "PostgreSQL" PG:"dbname=tileserv host=localhost user=tileserv password=tileserv" "{filename}" -nln fire_centres')
 
         os.remove(filename)
 
