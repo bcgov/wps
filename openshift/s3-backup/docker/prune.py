@@ -45,51 +45,52 @@ class Desire:  # pylint: disable=too-few-public-methods
         interval: Desired interval (in days) between backups
         """
         self.desired_backups = desired_backups
-        self.backups_found = 0
-        self.prev_timestamp = None
         self.interval = interval
+        self.files_to_keep = []
 
-    def _is_keeper(self, timestamp: datetime) -> bool:
-        """ Run through all the conditions to decide if we keep this timestamp or not. """
-        if self.backups_found < self.desired_backups:
-            # If we don't have any backups yet, keep it!
-            if self.prev_timestamp is None:
-                return True
-            # If this backup is older than the previous interval, keep it!
-            if self.prev_timestamp - timestamp >= self.interval:
-                return True
-        return False
-
-    def is_keeper(self, timestamp: datetime) -> bool:
-        """ Decide if we should keep this timestamp or not. """
-        if self._is_keeper(timestamp):
-            self.prev_timestamp = timestamp
-            self.backups_found += 1
-            return True
-        return False
+    def evaluate(self, new_filename) -> None:
+        """ Consider the file, and manage the list of files we're deciding to keep. """
+        self.files_to_keep.append(new_filename)
+        self.files_to_keep.sort()
+        # If we have more files than we desire:
+        if len(self.files_to_keep) > self.desired_backups:
+            prev_timestamp = None
+            for file in self.files_to_keep:
+                timestamp = extract_datetime(file)
+                if prev_timestamp is None:
+                    prev_timestamp = timestamp
+                    continue
+                # If the time difference between two files is less than the desired interval:
+                if timestamp - prev_timestamp < self.interval:
+                    self.files_to_keep.remove(file)
+                    break
+                # If the time difference between two files is greater than or equal to the interval:
+                if timestamp - prev_timestamp >= self.interval:
+                    prev_timestamp = timestamp
+            # If we have too many files, get rid of the oldest one:
+            if len(self.files_to_keep) > self.desired_backups:
+                self.files_to_keep.pop(0)
 
 
 def decide_files_to_keep(files: list) -> Set:
     """ Decide what files to keep
     Expects a list of filenames sorted from most recent to least recent """
-    # We need to keep hourlies, otherwise, the hourlies get deleted
-    # as we go, and we end up not retaining any!
     desires = [
         Desire(desired_backups=5, interval=timedelta(hours=1)),  # retain 5 hourly backups
         Desire(desired_backups=5, interval=timedelta(days=1)),  # retain 5 daily backups
         Desire(desired_backups=5, interval=timedelta(weeks=1)),  # retain 5 weekly backups
         Desire(desired_backups=5, interval=timedelta(weeks=4))]  # retain 5 monthly
 
-    # make super sure that files are sorted in reverse order
-    files.sort(reverse=True)
-
-    files_to_keep = set()
+    files.sort()
 
     for filename in files:
-        timestamp = extract_datetime(filename)
         for desire in desires:
-            if desire.is_keeper(timestamp):
-                files_to_keep.add(filename)
+            desire.evaluate(filename)
+
+    files_to_keep = set()
+    for desire in desires:
+        for file in desire.files_to_keep:
+            files_to_keep.add(file)
 
     return files_to_keep
 
@@ -119,16 +120,9 @@ async def main():
         try:
             # Get list of backup files
             files = await fetch_file_list(client, bucket)
-
-            # for debugging, list the files
-            print('file list:')
-            for file in files:
-                print(file)
-
             files_to_delete = decide_files_to_delete(files)
 
             # for debugging, list the files to delete
-            print('files to delete:')
             for file in files_to_delete:
                 print(file)
 
