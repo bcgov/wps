@@ -7,7 +7,7 @@ interface DatePickerProps {
   testId?: string
   date: string
   onChange: (d: string) => void
-  updateDate: () => void
+  updateDate: (d: string) => void
 }
 
 const DatePicker = (props: DatePickerProps) => {
@@ -22,8 +22,7 @@ const DatePicker = (props: DatePickerProps) => {
         onAccept={d => {
           if (d) {
             const newDate = d.startOf('day').setZone('UTC-8').toISO()
-            props.onChange(newDate)
-            props.updateDate()
+            props.updateDate(newDate)
           }
         }}
         onKeyDown={event => {
@@ -38,8 +37,7 @@ const DatePicker = (props: DatePickerProps) => {
               .setZone('UTC-8')
               .toISO()
             event.preventDefault()
-            props.onChange(newDate)
-            props.updateDate()
+            props.updateDate(newDate)
           }
         }}
         onBlur={event => {
@@ -51,8 +49,7 @@ const DatePicker = (props: DatePickerProps) => {
             .setZone('UTC-8')
             .toISO()
           event.preventDefault()
-          props.onChange(newDate)
-          props.updateDate()
+          props.updateDate(newDate)
         }}
         onChange={e => {
           /*This is a required attribute we don't use because 

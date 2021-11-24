@@ -127,7 +127,7 @@ const FBATable = (props: FBATableProps) => {
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now().startOf('day').setZone('UTC-8').toISODate()
+    DateTime.now().startOf('day').setZone('UTC-8').toISO()
   )
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
@@ -312,8 +312,11 @@ const FBATable = (props: FBATableProps) => {
     })
   }
 
-  const updateDate = () => {
-    dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
+  const updateDate = (newDate: string) => {
+    if (newDate !== dateOfInterest) {
+      dispatch(fetchFireBehaviourStations(newDate, rows))
+      setDateOfInterest(newDate)
+    }
   }
 
   const toggleSorting = (selectedColumn: SortByColumn) => {
