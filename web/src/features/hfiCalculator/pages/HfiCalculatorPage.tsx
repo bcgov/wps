@@ -66,9 +66,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().startOf('day').setZone('UTC-8').toISO()
   )
-  const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
-    useState(DateTime.now().startOf('day').setZone('UTC-8').toISO())
-
   const [isCopied, setIsCopied] = useState(false)
 
   const refreshView = () => {
@@ -77,10 +74,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
   }
 
-  const updateDate = () => {
-    if (previouslySelectedDateOfInterest !== dateOfInterest) {
+  const updateDate = (newDate: string) => {
+    if (newDate !== dateOfInterest) {
+      setDateOfInterest(newDate)
       refreshView()
-      setPreviouslySelectedDateOfInterest(dateOfInterest)
     }
   }
 

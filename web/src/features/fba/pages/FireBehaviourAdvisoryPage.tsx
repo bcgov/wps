@@ -61,15 +61,12 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [fireCenter])
 
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now().startOf('day').setZone('UTC-9').toISO()
+    DateTime.now().startOf('day').setZone('UTC-8').toISO()
   )
 
-  const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
-    useState(DateTime.now().startOf('day').setZone('UTC-0').toISO())
-
-  const updateDate = () => {
-    if (previouslySelectedDateOfInterest !== dateOfInterest) {
-      setPreviouslySelectedDateOfInterest(dateOfInterest)
+  const updateDate = (newDate: string) => {
+    if (newDate !== dateOfInterest) {
+      setDateOfInterest(dateOfInterest)
     }
   }
 
