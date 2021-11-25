@@ -52,12 +52,12 @@ const thessianPolygonStyle = new Style({
 /**
  * Throwaway code, just for demo purposes.
  *
- * 10 times more likely not to have a HFI critical threshold color. 4000 and 10000 equally likely.
+ * 20 times more likely not to have a HFI critical threshold color. 4000 and 10000 equally likely.
  */
 const hfiColors = [
   new Fill({ color: 'rgba(255, 0, 0, 0.4)' }),
   new Fill({ color: 'rgba(255, 128, 0, 0.4)' })
-].concat(range(10).flatMap(() => new Fill({ color: 'rgba(0, 0, 0, 0)' })))
+].concat(range(20).flatMap(() => new Fill({ color: 'rgba(0, 0, 0, 0)' })))
 
 export const thessianPolygonStyler = (): Style => {
   const colorIdx = Math.floor(Math.random() * hfiColors.length - 1)
