@@ -238,9 +238,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           return (
             <React.Fragment key={`fire-centre-${centreName}`}>
               <TableRow key={`fire-centre-${centreName}`}>
-                <TableCell className={classes.fireCentre} colSpan={26}>
-                  {centre.name}
-                </TableCell>
+                <StickyCell left={0} zIndexOffset={11}>
+                  <TableCell className={classes.fireCentre}>{centre.name}</TableCell>
+                </StickyCell>
+                <TableCell className={classes.fireCentre} colSpan={25}></TableCell>
               </TableRow>
               {Object.entries(centre.planning_areas)
                 .sort((a, b) =>

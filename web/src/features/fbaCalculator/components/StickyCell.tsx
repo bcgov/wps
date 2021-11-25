@@ -8,7 +8,6 @@ interface StickyCellProps {
   backgroundColor?: string
   testId?: string
   colSpan?: number
-  className?: string
 }
 
 const StickyCell = (props: StickyCellProps) => {
@@ -25,7 +24,7 @@ const StickyCell = (props: StickyCellProps) => {
   return (
     <TableCell
       data-testid={`stickyCell-fba`}
-      className={props.className ? props.className : classes.sticky}
+      className={classes.sticky}
       colSpan={props.colSpan}
     >
       {props.children}

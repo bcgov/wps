@@ -80,20 +80,20 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>
-          <StickyCell left={0} zIndexOffset={11}>
+          <StickyCell left={0} zIndexOffset={12}>
             <TableCell>
               {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
             </TableCell>
           </StickyCell>
-          <StickyCell left={50} zIndexOffset={11}>
+          <StickyCell left={50} zIndexOffset={12}>
             <TableCell key="header-location">Location</TableCell>
           </StickyCell>
-          <TableCell key="header-elevation">
+          <TableCell key="header-elevation" className={classes.unstickyHeaderCell}>
             Elev.
             <br />
             (m)
           </TableCell>
-          <StickyCell left={146} zIndexOffset={11}>
+          <StickyCell left={146} zIndexOffset={12}>
             <TableCell key="header-fuel-type">
               FBP
               <br />
@@ -102,7 +102,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               Type
             </TableCell>
           </StickyCell>
-          <StickyCell left={212} zIndexOffset={11}>
+          <StickyCell left={212} zIndexOffset={12}>
             <TableCell>
               Grass
               <br />
@@ -133,12 +133,13 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               <TableRow key={`fire-centre-${centreName}`}>
                 <StickyCell
                   left={0}
-                  zIndexOffset={9}
-                  colSpan={32}
+                  zIndexOffset={11}
                   backgroundColor={'#dbd9d9'}
+                  colSpan={4}
                 >
                   <TableCell className={classes.fireCentre}>{centre.name}</TableCell>
                 </StickyCell>
+                <TableCell className={classes.fireCentre} colSpan={28}></TableCell>
               </TableRow>
               {Object.entries(centre.planning_areas)
                 .sort((a, b) =>
@@ -154,12 +155,13 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                       >
                         <StickyCell
                           left={0}
-                          zIndexOffset={10}
-                          colSpan={5}
-                          className={classes.planningArea}
+                          zIndexOffset={11}
+                          backgroundColor={'#e9ecf5'}
+                          colSpan={4}
                         >
                           <TableCell>{area.name}</TableCell>
                         </StickyCell>
+                        <TableCell className={classes.planningArea}></TableCell>
                         <CalculatedPlanningAreaCells
                           area={area}
                           areaName={areaName}
@@ -191,7 +193,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 stationCodeInSelected={stationCodeInSelected}
                                 toggleSelectedStation={toggleSelectedStation}
                               />
-                              <StickyCell left={212} zIndexOffset={10}>
+                              <StickyCell left={212} zIndexOffset={11}>
                                 <GrassCureCell
                                   value={
                                     !isEmpty(dailiesForStation)
