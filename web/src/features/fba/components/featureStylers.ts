@@ -8,6 +8,7 @@ const fireCenterLabelStyler = (label: string) => {
   return new Text({
     text: label,
     fill: new Fill({ color: 'black' }),
+    stroke: new Stroke({ color: 'black' }),
     font: '16px sans-serif'
   })
 }
@@ -15,7 +16,7 @@ const fireCenterLabelStyler = (label: string) => {
 export const fireCenterStyler = (
   feature: RenderFeature | ol.Feature<Geometry>
 ): Style => {
-  const label = feature.getProperties().mof_fire_centre_name
+  const label = feature.get('mof_fire_centre_name')
 
   return new Style({
     stroke: new Stroke({
