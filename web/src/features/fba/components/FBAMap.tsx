@@ -70,7 +70,8 @@ const FBAMap = (props: FBAMapProps) => {
       format: new MVT(),
       url: 'https://tileserv-dev.apps.silver.devops.gov.bc.ca/public.fire_centres/{z}/{x}/{y}.pbf'
     }),
-    style: fireCenterStyler
+    style: fireCenterStyler,
+    declutter: true
   })
 
   const thesianVector = new VectorTileLayer({

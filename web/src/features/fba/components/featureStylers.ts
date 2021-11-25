@@ -10,6 +10,7 @@ const fireCenterLabelStyle = new Style({
     width: 3
   }),
   text: new Text({
+    overflow: true,
     fill: new Fill({ color: 'black' }),
     stroke: new Stroke({ color: 'black' }),
     font: '16px sans-serif'
