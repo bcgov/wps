@@ -88,9 +88,8 @@ const FBAMap = (props: FBAMapProps) => {
     style: () => {
       return new Style({
         stroke: new Stroke({
-          // lineDash: [1, 10],
           color: 'green',
-          width: 4
+          width: 1
         })
       })
     }
