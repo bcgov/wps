@@ -2,7 +2,7 @@ import * as ol from 'ol'
 import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls } from 'ol/control'
 import { fromLonLat, get } from 'ol/proj'
-import { Fill, Stroke, Style } from 'ol/style'
+import { Fill, Style } from 'ol/style'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import VectorTileSource from 'ol/source/VectorTile'
@@ -21,7 +21,11 @@ import { source } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCenterExtents'
-import { fireCenterStyler, fireZoneStyler } from 'features/fba/components/featureStylers'
+import {
+  fireCenterStyler,
+  fireZoneStyler,
+  thessianPolygonStyler
+} from 'features/fba/components/featureStylers'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -73,14 +77,7 @@ const FBAMap = (props: FBAMapProps) => {
       format: new MVT(),
       url: 'https://tileserv-dev.apps.silver.devops.gov.bc.ca/public.fire_area_thessian_polygons/{z}/{x}/{y}.pbf'
     }),
-    style: () => {
-      return new Style({
-        stroke: new Stroke({
-          color: 'green',
-          width: 1
-        })
-      })
-    }
+    style: thessianPolygonStyler
   })
 
   useEffect(() => {
