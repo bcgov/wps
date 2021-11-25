@@ -42,12 +42,7 @@ export const fireZoneStyler = (feature: RenderFeature | ol.Feature<Geometry>): S
   return fireZoneLabelStyle
 }
 
-const thessianPolygonStyle = new Style({
-  stroke: new Stroke({
-    color: 'green',
-    width: 1
-  })
-})
+const thessianPolygonStyle = new Style({})
 
 /**
  * Throwaway code, just for demo purposes.
