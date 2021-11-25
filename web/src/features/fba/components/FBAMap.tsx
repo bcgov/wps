@@ -21,6 +21,7 @@ import { source } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCenterExtents'
+import { fireCenterStyler } from 'features/fba/components/featureStylers'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -69,14 +70,7 @@ const FBAMap = (props: FBAMapProps) => {
       format: new MVT(),
       url: 'https://tileserv-dev.apps.silver.devops.gov.bc.ca/public.fire_centres/{z}/{x}/{y}.pbf'
     }),
-    style: () => {
-      return new Style({
-        stroke: new Stroke({
-          color: 'black',
-          width: 3
-        })
-      })
-    }
+    style: fireCenterStyler
   })
 
   const thesianVector = new VectorTileLayer({
