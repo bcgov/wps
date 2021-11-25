@@ -59,8 +59,10 @@ const hfiColors = [
   new Fill({ color: 'rgba(255, 128, 0, 0.4)' })
 ].concat(range(20).flatMap(() => new Fill({ color: 'rgba(0, 0, 0, 0)' })))
 
-export const thessianPolygonStyler = (): Style => {
-  const colorIdx = Math.floor(Math.random() * hfiColors.length - 1)
+export const thessianPolygonStyler = (
+  feature: RenderFeature | ol.Feature<Geometry>
+): Style => {
+  const colorIdx = Math.floor(feature.get('station_co') % (hfiColors.length - 1))
   thessianPolygonStyle.setFill(hfiColors[colorIdx])
   return thessianPolygonStyle
 }
