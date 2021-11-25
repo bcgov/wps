@@ -157,7 +157,7 @@ describe('FireBAT Calculator Page', () => {
   })
 
   describe('Date picker', () => {
-    it('Sets the date correctly when typing and pressing enter', () => {
+    it.only('Sets the date correctly when typing and pressing enter', () => {
       datePickerTest(cy.setDateTypeMethod, visitAndAddRow)
     })
     it('Sets the date correctly when typing and then clicking away from the input field', () => {

@@ -54,7 +54,6 @@ const DatePicker = (props: DatePickerProps) => {
         onChange={e => {
           /*This is a required attribute we don't use because 
           it makes editting the date with a keyboard impossible*/
-          console.log(e)
         }}
       ></KeyboardDatePicker>
     </MuiPickersUtilsProvider>
