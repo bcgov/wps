@@ -94,11 +94,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 data-testid="date-of-interest-picker"
                 className={classes.formControl}
               >
-                <DatePicker
-                  date={dateOfInterest}
-                  onChange={setDateOfInterest}
-                  updateDate={updateDate}
-                />
+                <DatePicker date={dateOfInterest} updateDate={updateDate} />
               </FormControl>
             </Grid>
             <Grid item xs={2}>

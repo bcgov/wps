@@ -150,11 +150,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       ) : (
         <Container maxWidth={'xl'}>
           <FormControl className={classes.formControl}>
-            <DatePicker
-              date={dateOfInterest}
-              onChange={setDateOfInterest}
-              updateDate={updateDate}
-            />
+            <DatePicker date={dateOfInterest} updateDate={updateDate} />
           </FormControl>
 
           <FormControl className={classes.formControl}>

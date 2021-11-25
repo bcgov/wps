@@ -6,7 +6,6 @@ import { DateTime } from 'luxon'
 interface DatePickerProps {
   testId?: string
   date: string
-  onChange: (d: string) => void
   updateDate: (d: string) => void
 }
 
