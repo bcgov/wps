@@ -17,9 +17,27 @@ const fireCenterLabelStyle = new Style({
   })
 })
 
+const fireZoneLabelStyle = new Style({
+  stroke: new Stroke({
+    color: 'black',
+    width: 2
+  }),
+  text: new Text({
+    overflow: true,
+    fill: new Fill({ color: 'black' }),
+    stroke: new Stroke({ color: 'black' }),
+    font: '12px sans-serif'
+  })
+})
+
 export const fireCenterStyler = (
   feature: RenderFeature | ol.Feature<Geometry>
 ): Style => {
   fireCenterLabelStyle.getText().setText(feature.get('mof_fire_centre_name'))
   return fireCenterLabelStyle
+}
+
+export const fireZoneStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
+  fireZoneLabelStyle.getText().setText(feature.get('mof_fire_zone_name'))
+  return fireZoneLabelStyle
 }
