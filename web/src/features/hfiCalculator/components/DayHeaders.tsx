@@ -1,6 +1,7 @@
 import { TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { fireTableStyles } from 'app/theme'
+import StickyCell from 'features/fbaCalculator/components/StickyCell'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { range } from 'lodash'
 import React from 'react'
@@ -29,7 +30,18 @@ const DayHeaders = (props: DayHeadersProps) => {
   return (
     <React.Fragment>
       {/* Non-day specific headers */}
-      <TableCell colSpan={5} className={classes.spaceHeader}></TableCell>
+      <StickyCell left={0} zIndexOffset={11} colSpan={2}>
+        <TableCell className={classes.spaceHeader}></TableCell>
+      </StickyCell>
+      <TableCell className={classes.spaceHeader}></TableCell>
+      <StickyCell
+        left={146}
+        colSpan={2}
+        zIndexOffset={11}
+        className={classes.rightBorder}
+      >
+        <TableCell></TableCell>
+      </StickyCell>
       {range(NUM_WEEK_DAYS).map(i => (
         <TableCell
           data-testid={`day-${i}`}

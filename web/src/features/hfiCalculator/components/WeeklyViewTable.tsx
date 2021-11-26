@@ -102,7 +102,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               Type
             </TableCell>
           </StickyCell>
-          <StickyCell left={212} zIndexOffset={12}>
+          <StickyCell left={212} zIndexOffset={12} className={classes.rightBorder}>
             <TableCell>
               Grass
               <br />
@@ -133,7 +133,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               <TableRow key={`fire-centre-${centreName}`}>
                 <StickyCell
                   left={0}
-                  zIndexOffset={11}
+                  zIndexOffset={10}
                   backgroundColor={'#dbd9d9'}
                   colSpan={4}
                 >
@@ -155,7 +155,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                       >
                         <StickyCell
                           left={0}
-                          zIndexOffset={11}
+                          zIndexOffset={10}
                           backgroundColor={'#e9ecf5'}
                           colSpan={4}
                         >
@@ -193,7 +193,12 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 stationCodeInSelected={stationCodeInSelected}
                                 toggleSelectedStation={toggleSelectedStation}
                               />
-                              <StickyCell left={212} zIndexOffset={11}>
+                              <StickyCell
+                                left={212}
+                                zIndexOffset={11}
+                                backgroundColor={'#ffffff'}
+                                className={classes.rightBorder}
+                              >
                                 <GrassCureCell
                                   value={
                                     !isEmpty(dailiesForStation)
