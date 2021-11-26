@@ -124,20 +124,20 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     >
       <TableHead>
         <TableRow>
-          <StickyCell left={0} zIndexOffset={11}>
+          <StickyCell left={0} zIndexOffset={12}>
             <TableCell>
               {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
             </TableCell>
           </StickyCell>
-          <StickyCell left={50} zIndexOffset={11}>
+          <StickyCell left={50} zIndexOffset={12}>
             <TableCell key="header-location">Location</TableCell>
           </StickyCell>
-          <TableCell key="header-elevation">
+          <TableCell key="header-elevation" className={classes.unstickyHeaderCell}>
             Elev.
             <br />
             (m)
           </TableCell>
-          <StickyCell left={146} zIndexOffset={11}>
+          <StickyCell left={146} zIndexOffset={12}>
             <TableCell key="header-fuel-type">
               FBP
               <br />
@@ -238,7 +238,12 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           return (
             <React.Fragment key={`fire-centre-${centreName}`}>
               <TableRow key={`fire-centre-${centreName}`}>
-                <StickyCell left={0} zIndexOffset={11}>
+                <StickyCell
+                  left={0}
+                  zIndexOffset={10}
+                  backgroundColor={'#dbd9d9'}
+                  colSpan={4}
+                >
                   <TableCell className={classes.fireCentre}>{centre.name}</TableCell>
                 </StickyCell>
                 <TableCell className={classes.fireCentre} colSpan={25}></TableCell>
@@ -257,9 +262,18 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         key={`zone-${areaName}`}
                         data-testid={`zone-${areaName}`}
                       >
-                        <TableCell className={classes.planningArea} colSpan={22}>
-                          {area.name}
-                        </TableCell>
+                        <StickyCell
+                          left={0}
+                          zIndexOffset={10}
+                          colSpan={2}
+                          backgroundColor={'#e9ecf5'}
+                        >
+                          <TableCell>{area.name}</TableCell>
+                        </StickyCell>
+                        <TableCell
+                          colSpan={20}
+                          className={classes.planningArea}
+                        ></TableCell>
                         <MeanIntensityGroupRollup
                           area={area}
                           dailies={areaDailies}
