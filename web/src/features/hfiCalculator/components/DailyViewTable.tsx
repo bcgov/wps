@@ -129,7 +129,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
             </TableCell>
           </StickyCell>
-          <StickyCell left={50} zIndexOffset={12}>
+          <StickyCell left={50} zIndexOffset={12} className={classes.stationLocation}>
             <TableCell key="header-location">Location</TableCell>
           </StickyCell>
           <TableCell key="header-elevation" className={classes.unstickyHeaderCell}>
@@ -137,7 +137,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             <br />
             (m)
           </TableCell>
-          <StickyCell left={146} zIndexOffset={12}>
+          <StickyCell left={230} zIndexOffset={12}>
             <TableCell key="header-fuel-type">
               FBP
               <br />

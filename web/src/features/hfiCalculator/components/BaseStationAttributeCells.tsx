@@ -1,6 +1,8 @@
 import { Checkbox, TableCell } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import { WeatherStation } from 'api/hfiCalcAPI'
 import StickyCell from 'features/fbaCalculator/components/StickyCell'
+import { fireTableStyles } from 'app/theme'
 import React from 'react'
 
 export interface BaseStationAttributeCellsProps {
@@ -11,12 +13,18 @@ export interface BaseStationAttributeCellsProps {
   toggleSelectedStation: (code: number) => void
 }
 
+const useStyles = makeStyles({
+  ...fireTableStyles
+})
+
 const BaseStationAttributeCells = ({
   station,
   className,
   stationCodeInSelected,
   toggleSelectedStation
 }: BaseStationAttributeCellsProps) => {
+  const classes = useStyles()
+
   return (
     <React.Fragment>
       <StickyCell left={0} zIndexOffset={11} backgroundColor={'#ffffff'}>
@@ -30,14 +38,17 @@ const BaseStationAttributeCells = ({
         </TableCell>
       </StickyCell>
       <StickyCell left={50} zIndexOffset={11} backgroundColor={'#ffffff'}>
-        <TableCell key={`station-${station.code}-name`} className={className}>
+        <TableCell
+          key={`station-${station.code}-name`}
+          className={`${className} ${classes.stationLocation}`}
+        >
           {station.station_props.name} ({station.code})
         </TableCell>
       </StickyCell>
       <TableCell key={`station-${station.code}-elevation`} className={className}>
         {station.station_props.elevation}
       </TableCell>
-      <StickyCell left={146} zIndexOffset={11} backgroundColor={'#ffffff'}>
+      <StickyCell left={230} zIndexOffset={11} backgroundColor={'#ffffff'}>
         <TableCell key={`station-${station.code}-fuel-type`} className={className}>
           {station.station_props.fuel_type.abbrev}
         </TableCell>

@@ -88,6 +88,9 @@ export const fireTableStyles = createStyles({
     fontWeight: 'bold',
     backgroundColor: '#dbd9d9'
   },
+  stationLocation: {
+    minWidth: 180
+  },
   stationCellPlainStyling: {
     backgroundColor: '#ffffff'
   },

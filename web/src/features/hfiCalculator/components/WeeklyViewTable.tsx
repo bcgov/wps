@@ -93,7 +93,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
             <br />
             (m)
           </TableCell>
-          <StickyCell left={146} zIndexOffset={12}>
+          <StickyCell left={234} zIndexOffset={12}>
             <TableCell key="header-fuel-type">
               FBP
               <br />
@@ -102,7 +102,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               Type
             </TableCell>
           </StickyCell>
-          <StickyCell left={212} zIndexOffset={12} className={classes.rightBorder}>
+          <StickyCell left={284} zIndexOffset={12} className={classes.rightBorder}>
             <TableCell>
               Grass
               <br />
@@ -194,7 +194,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 toggleSelectedStation={toggleSelectedStation}
                               />
                               <StickyCell
-                                left={212}
+                                left={284}
                                 zIndexOffset={11}
                                 backgroundColor={'#ffffff'}
                                 className={classes.rightBorder}
