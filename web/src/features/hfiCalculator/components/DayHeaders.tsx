@@ -30,17 +30,24 @@ const DayHeaders = (props: DayHeadersProps) => {
   return (
     <React.Fragment>
       {/* Non-day specific headers */}
-      <StickyCell left={0} zIndexOffset={11} colSpan={2}>
-        <TableCell className={classes.spaceHeader}></TableCell>
+      <StickyCell
+        left={0}
+        zIndexOffset={11}
+        colSpan={2}
+        className={classes.noBottomBorder}
+      >
+        <TableCell
+          className={`${classes.spaceHeader} ${classes.noBottomBorder}`}
+        ></TableCell>
       </StickyCell>
       <TableCell className={classes.spaceHeader}></TableCell>
       <StickyCell
-        left={146}
+        left={231}
         colSpan={2}
         zIndexOffset={11}
-        className={classes.rightBorder}
+        className={`${classes.rightBorder} ${classes.noBottomBorder}`}
       >
-        <TableCell></TableCell>
+        <TableCell className={classes.noBottomBorder}></TableCell>
       </StickyCell>
       {range(NUM_WEEK_DAYS).map(i => (
         <TableCell

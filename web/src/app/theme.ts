@@ -50,7 +50,7 @@ export const fireTableTheme = createTheme({
         paddingLeft: 7
       },
       stickyHeader: {
-        padding: 8
+        padding: 5
       }
     },
     MuiInputBase: {
@@ -110,6 +110,9 @@ export const fireTableStyles = createStyles({
   },
   rightBorder: {
     borderRight: '1px solid #c4c4c4'
+  },
+  noBottomBorder: {
+    borderBottom: 'none'
   }
 })
 

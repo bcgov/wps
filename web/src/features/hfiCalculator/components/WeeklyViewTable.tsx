@@ -80,13 +80,15 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>
-          <StickyCell left={0} zIndexOffset={12}>
-            <TableCell>
+          <StickyCell left={0} zIndexOffset={12} className={classes.noBottomBorder}>
+            <TableCell className={classes.noBottomBorder}>
               {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
             </TableCell>
           </StickyCell>
           <StickyCell left={50} zIndexOffset={12}>
-            <TableCell key="header-location">Location</TableCell>
+            <TableCell key="header-location" className={classes.noBottomBorder}>
+              Location
+            </TableCell>
           </StickyCell>
           <TableCell key="header-elevation" className={classes.unstickyHeaderCell}>
             Elev.
@@ -94,7 +96,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
             (m)
           </TableCell>
           <StickyCell left={234} zIndexOffset={12}>
-            <TableCell key="header-fuel-type">
+            <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
               FBP
               <br />
               Fuel
@@ -103,7 +105,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
             </TableCell>
           </StickyCell>
           <StickyCell left={284} zIndexOffset={12} className={classes.rightBorder}>
-            <TableCell>
+            <TableCell className={classes.noBottomBorder}>
               Grass
               <br />
               Cure
@@ -137,7 +139,11 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                   backgroundColor={'#dbd9d9'}
                   colSpan={4}
                 >
-                  <TableCell className={classes.fireCentre}>{centre.name}</TableCell>
+                  <TableCell
+                    className={`${classes.fireCentre} ${classes.noBottomBorder}`}
+                  >
+                    {centre.name}
+                  </TableCell>
                 </StickyCell>
                 <TableCell className={classes.fireCentre} colSpan={28}></TableCell>
               </TableRow>
@@ -159,7 +165,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           backgroundColor={'#e9ecf5'}
                           colSpan={4}
                         >
-                          <TableCell>{area.name}</TableCell>
+                          <TableCell className={classes.noBottomBorder}>
+                            {area.name}
+                          </TableCell>
                         </StickyCell>
                         <TableCell className={classes.planningArea}></TableCell>
                         <CalculatedPlanningAreaCells
@@ -206,11 +214,13 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                       : undefined
                                   }
                                   isGrassFuelType={isGrassFuelType(station.station_props)}
-                                  className={
-                                    isRowSelected
-                                      ? classes.stationCellPlainStyling
-                                      : classes.unselectedStation
-                                  }
+                                  className={`${classes.noBottomBorder}
+                                    ${
+                                      isRowSelected
+                                        ? classes.stationCellPlainStyling
+                                        : classes.unselectedStation
+                                    }
+                                  `}
                                   selected={isRowSelected}
                                 />
                               </StickyCell>
