@@ -50,6 +50,7 @@ import FBATableInstructions from 'features/fbaCalculator/components/FBATableInst
 import FilterColumnsModal from 'components/FilterColumnsModal'
 import { formControlStyles } from 'app/theme'
 import { PST_UTC_OFFSET } from 'utils/constants'
+import { pstFormatter } from 'utils/date'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -128,7 +129,7 @@ const FBATable = (props: FBATableProps) => {
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toISO()
+    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
   )
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)

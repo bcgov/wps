@@ -2,7 +2,7 @@ import React from 'react'
 import LuxonUtils from '@date-io/luxon'
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers'
 import { DateTime } from 'luxon'
-import { PST_UTC_OFFSET } from 'utils/constants'
+import { pstFormatter } from 'utils/date'
 
 interface DatePickerProps {
   testId?: string
@@ -10,12 +10,6 @@ interface DatePickerProps {
   updateDate: (d: string) => void
 }
 
-export const pstFormatter = (fromDate: DateTime): string => {
-  return DateTime.fromObject(
-    { year: fromDate.year, month: fromDate.month, day: fromDate.day },
-    { zone: `UTC${PST_UTC_OFFSET}` }
-  ).toISO()
-}
 const DatePicker = (props: DatePickerProps) => {
   return (
     <MuiPickersUtilsProvider utils={LuxonUtils}>

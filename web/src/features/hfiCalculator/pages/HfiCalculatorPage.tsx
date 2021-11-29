@@ -17,7 +17,7 @@ import {
   InfoOutlined,
   HelpOutlineOutlined
 } from '@material-ui/icons'
-import { getDateRange } from 'utils/date'
+import { getDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles, theme } from 'app/theme'
@@ -65,7 +65,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toISO()
+    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
   )
   const [isCopied, setIsCopied] = useState(false)
 
