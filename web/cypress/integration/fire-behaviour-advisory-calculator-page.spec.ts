@@ -156,7 +156,7 @@ describe('FireBAT Calculator Page', () => {
     })
   })
 
-  describe.only('Date picker', () => {
+  describe('Date picker', () => {
     it('Sets the date correctly when typing and pressing enter', () => {
       datePickerTest(cy.setDateTypeMethod, visitAndAddRow)
     })
