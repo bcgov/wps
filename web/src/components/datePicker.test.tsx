@@ -26,7 +26,7 @@ describe('DatePicker', () => {
     fireEvent.change(datePicker, { target: { value: hotDayInAugust } })
     expect(datePicker).toHaveValue(hotDayInAugust)
   })
-  it.only('should set the default date in UTC-8 when enter pressed', () => {
+  it('should set the default date in UTC-8 when enter pressed', () => {
     const updateDateStub = jest.fn((): void => {
       /** no op */
     })
