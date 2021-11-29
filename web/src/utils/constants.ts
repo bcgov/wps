@@ -12,7 +12,6 @@ export const RH_VALUES_DECIMAL = 0
 export const FFMC_VALUES_DECIMAL = 1
 export const ISI_VALUES_DECIMAL = 1
 
-export const PDT_UTC_OFFSET = -7 // The Pacific Daylight Time offset is -7 hours from UTC.
 export const PST_UTC_OFFSET = -8
 
 export const PERCENTILE_CALC_ROUTE = '/percentile-calculator'
