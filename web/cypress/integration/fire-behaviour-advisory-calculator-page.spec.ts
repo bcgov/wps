@@ -5,7 +5,11 @@ import { DateTime } from 'luxon'
 const datePickerTest = (setDate: Function, visitAndAddRow: Function) => {
   cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
-  const yesterday = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).minus({ days: 1 }).toISODate().slice(0, 10) // 'YYYY-MM-DD'
+  const yesterday = DateTime.fromFormat('2021/11/29', 'yyyy/MM/dd')
+    .setZone(`UTC${PST_UTC_OFFSET}`)
+    .minus({ days: 1 })
+    .toISODate()
+    .slice(0, 10) // '2021/11/28'
 
   cy.intercept('POST', 'api/fba-calc/stations', req => {
     expect(req.body).to.deep.include({
