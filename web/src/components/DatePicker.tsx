@@ -14,6 +14,7 @@ const DatePicker = (props: DatePickerProps) => {
   return (
     <MuiPickersUtilsProvider utils={LuxonUtils}>
       <KeyboardDatePicker
+        data-testid="date-of-interest-picker"
         label="Date of Interest (PST-08:00)"
         value={props.date}
         format="yyyy/MM/dd"
