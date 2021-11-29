@@ -10,6 +10,12 @@ interface DatePickerProps {
   updateDate: (d: string) => void
 }
 
+export const pstFormatter = (fromDate: DateTime) => {
+  return DateTime.fromObject(
+    { year: fromDate.year, month: fromDate.month, day: fromDate.day },
+    { zone: `UTC${PST_UTC_OFFSET}` }
+  ).toISO()
+}
 const DatePicker = (props: DatePickerProps) => {
   return (
     <MuiPickersUtilsProvider utils={LuxonUtils}>
@@ -22,7 +28,7 @@ const DatePicker = (props: DatePickerProps) => {
         InputAdornmentProps={{ position: 'start' }}
         onAccept={d => {
           if (d) {
-            const newDate = d.setZone(`UTC${PST_UTC_OFFSET}`).toISO()
+            const newDate = pstFormatter(d)
             props.updateDate(newDate)
           }
         }}
@@ -33,20 +39,15 @@ const DatePicker = (props: DatePickerProps) => {
               .getElementsByTagName('input')[0]
               .value.toString()
 
-            const newDate = DateTime.fromFormat(newDateString, 'yyyy/MM/dd')
-              .setZone(`UTC${PST_UTC_OFFSET}`)
-              .toISO()
+            const newDate = pstFormatter(DateTime.fromFormat(newDateString, 'yyyy/MM/dd'))
             event.preventDefault()
             props.updateDate(newDate)
           }
         }}
         onBlur={event => {
-          const newDate = DateTime.fromFormat(
-            event.currentTarget.value.toString(),
-            'yyyy/MM/dd'
+          const newDate = pstFormatter(
+            DateTime.fromFormat(event.currentTarget.value.toString(), 'yyyy/MM/dd')
           )
-            .setZone(`UTC${PST_UTC_OFFSET}`)
-            .toISO()
           event.preventDefault()
           props.updateDate(newDate)
         }}
