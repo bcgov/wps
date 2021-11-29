@@ -23,6 +23,7 @@ import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherT
 import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
+import { PST_UTC_OFFSET } from 'utils/constants'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -64,7 +65,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now().startOf('day').setZone('UTC-8').toISO()
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toISO()
   )
   const [isCopied, setIsCopied] = useState(false)
 

@@ -49,6 +49,7 @@ import FireTable from 'components/FireTable'
 import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
 import FilterColumnsModal from 'components/FilterColumnsModal'
 import { formControlStyles } from 'app/theme'
+import { PST_UTC_OFFSET } from 'utils/constants'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -127,7 +128,7 @@ const FBATable = (props: FBATableProps) => {
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now().startOf('day').setZone('UTC-8').toISO()
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toISO()
   )
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)

@@ -13,6 +13,7 @@ import { formControlStyles, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { FireCenter } from 'api/fbaAPI'
+import { PST_UTC_OFFSET } from 'utils/constants'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -61,7 +62,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [fireCenter])
 
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now().startOf('day').setZone('UTC-8').toISO()
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toISO()
   )
 
   const updateDate = (newDate: string) => {
