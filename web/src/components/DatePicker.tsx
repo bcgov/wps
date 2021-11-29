@@ -22,6 +22,7 @@ const DatePicker = (props: DatePickerProps) => {
       <KeyboardDatePicker
         data-testid="date-of-interest-picker"
         label="Date of Interest (PST-08:00)"
+        inputVariant="outlined"
         value={props.date}
         format="yyyy/MM/dd"
         allowKeyboardControl={true}
