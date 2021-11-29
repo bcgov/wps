@@ -23,7 +23,6 @@ import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherT
 import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
-import { PST_UTC_OFFSET } from 'utils/constants'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -65,10 +64,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now()
-      .startOf('day')
-      .setZone('UTC' + PST_UTC_OFFSET)
-      .toISO()
+    DateTime.now().startOf('day').setZone('UTC-8').toISO()
   )
   const [isCopied, setIsCopied] = useState(false)
 
@@ -82,15 +78,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     callDispatch(start, end)
   }
 
-  const updateDate = (newDate: DateTime) => {
-    const dateString = newDate
-      .setZone('UTC' + PST_UTC_OFFSET)
-      .startOf('day')
-      .toISO()
-    console.log(dateString)
-    if (dateString.slice(0, 10) !== dateOfInterest.slice(0, 10)) {
-      setDateOfInterest(dateString)
-      const { start, end } = getDateRange(isWeeklyView, dateString)
+  const updateDate = (newDate: string) => {
+    if (newDate !== dateOfInterest) {
+      setDateOfInterest(newDate)
+      const { start, end } = getDateRange(isWeeklyView, newDate)
       callDispatch(start, end)
     }
   }

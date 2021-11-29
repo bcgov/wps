@@ -2,12 +2,11 @@ import React from 'react'
 import LuxonUtils from '@date-io/luxon'
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers'
 import { DateTime } from 'luxon'
-import { PST_UTC_OFFSET } from 'utils/constants'
 
 interface DatePickerProps {
   testId?: string
   date: string
-  updateDate: (d: DateTime) => void
+  updateDate: (d: string) => void
 }
 
 const DatePicker = (props: DatePickerProps) => {
@@ -21,7 +20,7 @@ const DatePicker = (props: DatePickerProps) => {
         InputAdornmentProps={{ position: 'start' }}
         onAccept={d => {
           if (d) {
-            const newDate = d.setZone('UTC' + PST_UTC_OFFSET).startOf('day')
+            const newDate = d.startOf('day').setZone('UTC-8').toISO()
             props.updateDate(newDate)
           }
         }}
@@ -33,7 +32,9 @@ const DatePicker = (props: DatePickerProps) => {
               .value.toString()
 
             const newDate = DateTime.fromFormat(newDateString, 'yyyy/MM/dd')
-
+              .startOf('day')
+              .setZone('UTC-8')
+              .toISO()
             event.preventDefault()
             props.updateDate(newDate)
           }
@@ -44,9 +45,8 @@ const DatePicker = (props: DatePickerProps) => {
             'yyyy/MM/dd'
           )
             .startOf('day')
-            .setZone('UTC' + PST_UTC_OFFSET)
-          console.log(newDate.toISO())
-
+            .setZone('UTC-8')
+            .toISO()
           event.preventDefault()
           props.updateDate(newDate)
         }}

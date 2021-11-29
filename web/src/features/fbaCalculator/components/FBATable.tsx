@@ -49,7 +49,6 @@ import FireTable from 'components/FireTable'
 import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
 import FilterColumnsModal from 'components/FilterColumnsModal'
 import { formControlStyles } from 'app/theme'
-import { PST_UTC_OFFSET } from 'utils/constants'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -128,10 +127,7 @@ const FBATable = (props: FBATableProps) => {
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now()
-      .startOf('day')
-      .setZone('UTC' + PST_UTC_OFFSET)
-      .toISO()
+    DateTime.now().startOf('day').setZone('UTC-8').toISO()
   )
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
@@ -316,12 +312,10 @@ const FBATable = (props: FBATableProps) => {
     })
   }
 
-  const updateDate = (newDate: DateTime) => {
-    console.log(newDate.setZone('UTC' + PST_UTC_OFFSET).toISO())
-    const dateString = newDate.setZone('UTC' + PST_UTC_OFFSET).toISO()
-    if (dateString.slice(0, 10) !== dateOfInterest.slice(0, 10)) {
-      setDateOfInterest(dateString)
-      dispatch(fetchFireBehaviourStations(dateString, rows))
+  const updateDate = (newDate: string) => {
+    if (newDate !== dateOfInterest) {
+      dispatch(fetchFireBehaviourStations(newDate, rows))
+      setDateOfInterest(newDate)
     }
   }
 
