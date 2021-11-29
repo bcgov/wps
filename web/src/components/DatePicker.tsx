@@ -10,7 +10,7 @@ interface DatePickerProps {
   updateDate: (d: string) => void
 }
 
-export const pstFormatter = (fromDate: DateTime) => {
+export const pstFormatter = (fromDate: DateTime): string => {
   return DateTime.fromObject(
     { year: fromDate.year, month: fromDate.month, day: fromDate.day },
     { zone: `UTC${PST_UTC_OFFSET}` }

@@ -9,8 +9,7 @@ describe('DatePicker', () => {
 
   const setup = (updateDateFn: jest.Mock<void, []>) => {
     const utils = render(<DatePicker date={defaultDate} updateDate={updateDateFn} />)
-    const datePicker = utils.getByRole('textbox') as HTMLInputElement
-    return datePicker
+    return utils.getByRole('textbox') as HTMLInputElement
   }
   it('should set the default date in UTC-8', () => {
     const updateDateStub = jest.fn((): void => {
