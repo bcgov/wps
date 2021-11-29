@@ -25,18 +25,6 @@ declare namespace Cypress {
     setFBAWindSpeed(windSpeed: string, rowId: number): void
 
     /**
-     * Custom command to set the date.
-     * @example setDate('2021-08-05')
-     */
-    setDateTypeMethod(date: string): void
-
-    /**
-     * Custom command to set the date and click off the input
-     * @example setDateBlurMethod('2021-11-19')
-     */
-    setDateBlurMethod(date: string): void
-
-    /**
      * Custom command to select a row. Only works for single row.
      * @example setSelectedRow()
      */
@@ -90,24 +78,6 @@ Cypress.Commands.add('setFBAGrassCurePercentage', (grassCure: string, rowId: num
 
 Cypress.Commands.add('setFBAWindSpeed', (windSpeed: string, rowId: number) => {
   return cy.getByTestId(`windSpeedInput-fba-${rowId}`).find('input').type(windSpeed)
-})
-
-Cypress.Commands.add('setDateTypeMethod', (date: string) => {
-  return cy
-    .getByTestId('date-of-interest-picker')
-    .find('input')
-    .clear()
-    .type(date)
-    .type('{enter}')
-})
-
-Cypress.Commands.add('setDateBlurMethod', (date: string) => {
-  return cy
-    .getByTestId('date-of-interest-picker')
-    .find('input')
-    .clear()
-    .type(date)
-    .click()
 })
 
 Cypress.Commands.add('setSelectedRow', () => {
