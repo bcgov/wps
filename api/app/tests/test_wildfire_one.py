@@ -3,7 +3,7 @@ import asyncio
 from pytest_mock import MockFixture
 from app.wildfire_one.query_builders import (BuildQueryAllDailiesByRange, BuildQueryAllHourliesByRange,
                                              BuildQueryDailiesByStationCode)
-from app.wildfire_one.wfwx_api import (WFWXWeatherStation, get_noon_forecasts_all_stations,
+from app.wildfire_one.wfwx_api import (WFWXWeatherStation,
                                        get_wfwx_stations_from_station_codes)
 
 
