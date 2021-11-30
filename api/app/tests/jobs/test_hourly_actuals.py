@@ -75,7 +75,7 @@ def mock_hourly_actuals(mocker: MockerFixture):
                  return_value=iter([wfwx_hourly_1, wfwx_hourly_2]))
 
 
-def test_hourly_actuals_bot(monkeypatch, mocker: MockerFixture, mock_requests_session, mock_hourly_actuals):  # pylint: disable=unused-argument
+def test_hourly_actuals_job(monkeypatch, mocker: MockerFixture, mock_requests_session, mock_hourly_actuals):  # pylint: disable=unused-argument
     """ Very simple test that checks that:
     - the bot exits with a success code
     - the expected number of records are saved.
@@ -95,7 +95,7 @@ def test_hourly_actuals_bot(monkeypatch, mocker: MockerFixture, mock_requests_se
     assert save_hourly_actuals_spy.call_count == 2
 
 
-def test_hourly_actuals_bot_fail(mocker: MockerFixture,
+def test_hourly_actuals_job_fail(mocker: MockerFixture,
                                  monkeypatch,
                                  mock_requests_session):  # pylint: disable=unused-argument
     """

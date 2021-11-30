@@ -34,13 +34,13 @@ def test_noon_forecasts_bot_fail_in_season(mocker: MockerFixture,
     rocket-chat, and our exit code is 1.
     """
 
-    def mock_process_csv(self, filename: str):
+    def mock_run_wfwx(self, filename: str):
         raise Exception()
 
     def mock_get_utc_now():
         return datetime.datetime(2020, 7, 1)
 
-    monkeypatch.setattr(noon_forecasts.NoonForecastBot, 'process_csv', mock_process_csv)
+    monkeypatch.setattr(noon_forecasts.NoonForecastJob, 'run_wfwx', mock_run_wfwx)
     monkeypatch.setattr(app.utils.time, 'get_utc_now', mock_get_utc_now)
     rocket_chat_spy = mocker.spy(noon_forecasts, 'send_rocketchat_notification')
 
@@ -60,13 +60,13 @@ def test_noon_forecasts_bot_fail_outside_season(mocker: MockerFixture,
     Assert exit code 1.
     """
 
-    def mock_process_csv(self, filename: str):
+    def mock_run_wfwx(self, filename: str):
         raise Exception()
 
     def mock_get_utc_now():
         return datetime.datetime(2020, 12, 31)
 
-    monkeypatch.setattr(noon_forecasts.NoonForecastBot, 'process_csv', mock_process_csv)
+    monkeypatch.setattr(noon_forecasts.NoonForecastJob, 'run_wfwx', mock_run_wfwx)
     monkeypatch.setattr(app.utils.time, 'get_utc_now', mock_get_utc_now)
     rocket_chat_spy = mocker.spy(noon_forecasts, 'send_rocketchat_notification')
 
