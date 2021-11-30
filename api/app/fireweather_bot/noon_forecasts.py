@@ -1,5 +1,5 @@
-""" This is a bot to pull hourly weather actuals from the BC FireWeather Phase 1 API
-for each weather station and store the results (from a CSV file) in our database.
+""" This is a job to pull noon forecasts from the Wildfire 1 API
+for each weather station and store the results in our database.
 """
 import asyncio
 import os
@@ -39,7 +39,6 @@ class NoonForecastBot():
             # this is either the morning run, or the evening run during
             # Pacific Standard Time.
             date = now
-        # Strip out time, we just want yyyymmdd
         return date
 
     def _get_end_date(self):
@@ -69,9 +68,8 @@ class NoonForecastBot():
 
 
 def main():
-    """ Makes the appropriate method calls in order to submit a query to the BC FireWeather Phase 1 API
-    to get (up to) 5-day forecasts for all weather stations, downloads the resulting CSV file, writes
-    the CSV file to the database, then deletes the local copy of the CSV file.
+    """ Makes the appropriate method calls in order to submit
+    asynchronous queries to the Wildfire 1 API to get noon forecasts for all weather stations.
     """
     try:
         logger.debug('Retrieving noon forecasts...')
@@ -85,8 +83,8 @@ def main():
         sys.exit(os.EX_OK)
     except Exception as exception:  # pylint: disable=broad-except
         # Exit non 0 - failure.
-        logger.error('Failed to retrieve hourly actuals.', exc_info=exception)
-        rc_message = ':scream: Encountered error retrieving hourly actuals'
+        logger.error('Failed to retrieve noon forecasts.', exc_info=exception)
+        rc_message = ':scream: Encountered error retrieving noon forecasts'
         send_rocketchat_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
