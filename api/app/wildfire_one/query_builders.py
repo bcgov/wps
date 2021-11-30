@@ -66,7 +66,23 @@ class BuildQueryAllHourliesByRange(BuildQuery):
         return url, params
 
 
-class BuildQueryDailesByStationCode(BuildQuery):
+class BuildQueryAllDailiesByRange(BuildQuery):
+    """ Builds query for requesting all hourlies in a time range"""
+
+    def __init__(self, start_timestamp: int, end_timestamp: int):
+        """ Initialize object """
+        super().__init__()
+        self.querystring: str = "weatherTimestamp >=" + \
+            str(start_timestamp) + ";" + "weatherTimestamp <" + str(end_timestamp)
+
+    def query(self, page) -> Tuple[str, dict]:
+        """ Return query url for hourlies between start_timestamp, end_timestamp"""
+        params = {'size': self.max_page_size, 'page': page, 'query': self.querystring}
+        url = f'{self.base_url}/v1/dailies/rsql'
+        return url, params
+
+
+class BuildQueryDailiesByStationCode(BuildQuery):
     """ Builds query for requesting all hourlies in a time range"""
 
     def __init__(self, start_timestamp: int, end_timestamp: int, station_ids: List[str]):

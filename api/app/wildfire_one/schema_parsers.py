@@ -11,6 +11,7 @@ from app.utils import cffdrs
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
+from app.db.models.forecasts import NoonForecast
 from app.schemas.hfi_calc import StationDaily
 from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
 from app.fba_calculator import calculate_cfb, get_fire_size, get_fire_type
@@ -129,7 +130,7 @@ def parse_hourly(hourly) -> WeatherReading:
     """ Transform from the raw hourly json object returned by wf1, to our hourly object.
     """
     timestamp = datetime.fromtimestamp(
-        int(hourly['weatherTimestamp'])/1000, tz=timezone.utc).isoformat()
+        int(hourly['weatherTimestamp']) / 1000, tz=timezone.utc).isoformat()
     return WeatherReading(
         datetime=timestamp,
         temperature=hourly.get('temperature', None),
@@ -145,6 +146,44 @@ def parse_hourly(hourly) -> WeatherReading:
         fwi=hourly.get('fireWeatherIndex', None),
         observation_valid=hourly.get('observationValidInd'),
         observation_valid_comment=hourly.get('observationValidComment')
+    )
+
+
+def parse_noon_forecast(station_code, forecast) -> NoonForecast:
+    """ Transform from the raw hourly json object returned by wf1, to our noon forecast object.
+    """
+    timestamp = datetime.fromtimestamp(
+        int(forecast['weatherTimestamp']) / 1000, tz=timezone.utc).isoformat()
+    temp_valid = forecast.get('temperature', None) is not None
+    rh_valid = forecast.get('relativeHumidity', None) is not None and validate_metric(
+        forecast.get('relativeHumidity', None), 0, 100)
+    wdir_valid = forecast.get('windDirection', None) is not None and validate_metric(
+        forecast.get('windDirection', None), 0, 360)
+    wspeed_valid = forecast.get('windSpeed', None) is not None and validate_metric(
+        forecast.get('windSpeed', None), 0, math.inf)
+    precip_valid = forecast.get('precipitation', None) is not None and validate_metric(
+        forecast.get('precipitation', None), 0, math.inf)
+    return NoonForecast(
+        weather_date=timestamp,
+        station_code=station_code,
+        temp_valid=temp_valid,
+        temperature=forecast.get('temperature', math.nan),
+        rh_valid=rh_valid,
+        relative_humidity=forecast.get('relativeHumidity', math.nan),
+        wspeed_valid=wspeed_valid,
+        wind_speed=forecast.get('windSpeed', math.nan),
+        wdir_valid=wdir_valid,
+        wind_direction=forecast.get('windDirection', math.nan),
+        precip_valid=precip_valid,
+        precipitation=forecast.get('precipitation', math.nan),
+        gc=forecast.get('grasslandCuring', math.nan),
+        ffmc=forecast.get('fineFuelMoistureCode', math.nan),
+        dmc=forecast.get('duffMoistureCode', math.nan),
+        dc=forecast.get('droughtCode', math.nan),
+        isi=forecast.get('initialSpreadIndex', math.nan),
+        bui=forecast.get('buildUpIndex', math.nan),
+        fwi=forecast.get('fireWeatherIndex', math.nan),
+        danger_rating=forecast.get('dailySeverityRating', math.nan),
     )
 
 
