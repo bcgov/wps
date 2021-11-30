@@ -1,9 +1,9 @@
 """ Unit testing for WFWX API code """
 import asyncio
 from pytest_mock import MockFixture
-from app.wildfire_one.query_builders import (BuildQueryAllHourliesByRange,
+from app.wildfire_one.query_builders import (BuildQueryAllDailiesByRange, BuildQueryAllHourliesByRange,
                                              BuildQueryDailiesByStationCode)
-from app.wildfire_one.wfwx_api import (WFWXWeatherStation,
+from app.wildfire_one.wfwx_api import (WFWXWeatherStation, get_noon_forecasts_all_stations,
                                        get_wfwx_stations_from_station_codes)
 
 
@@ -12,6 +12,18 @@ def test_build_all_hourlies_query():
     query_builder = BuildQueryAllHourliesByRange(0, 1)
     result = query_builder.query(0)
     assert result == ("https://wf1/wfwx/v1/hourlies/rsql",
+                      {
+                          'size': '1000',
+                          'page': 0,
+                          'query': 'weatherTimestamp >=0;weatherTimestamp <1'
+                      })
+
+
+def test_build_all_dailies_query():
+    """ Verifies the query builder returns the correct url and parameters """
+    query_builder = BuildQueryAllDailiesByRange(0, 1)
+    result = query_builder.query(0)
+    assert result == ("https://wf1/wfwx/v1/dailies/rsql",
                       {
                           'size': '1000',
                           'page': 0,
@@ -78,6 +90,21 @@ def test_get_ids_from_station_codes(mocker: MockFixture):
     async def run_test():
         """ Async function to run test and assert result """
         result = await get_wfwx_stations_from_station_codes(None, {}, [code1])
+        assert result == [station_1]
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(run_test())
+
+
+def test_get_noon_forecasts_all_stations(mocker: MockFixture):
+    """ Verifies the query builder returns the correct url and parameters for all dailies """
+    mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
+    mocker.patch('app.wildfire_one.wfwx_api.get_station_data', mock_get_stations)
+
+    async def run_test():
+        """ Async function to run test and assert result """
+        result = await get_noon_forecasts_all_stations(None, {}, [code1])
         assert result == [station_1]
 
     loop = asyncio.new_event_loop()
