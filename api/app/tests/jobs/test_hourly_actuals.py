@@ -1,15 +1,14 @@
 """ Unit testing for hourly actuals bot (Marvin) """
-import asyncio
 import math
 import os
 import logging
 import pytest
 from pytest_mock import MockerFixture
 from app.db.models.observations import HourlyActual
+from app.tests.jobs.job_fixtures import mock_wfwx_stations, mock_wfwx_response
 from app.utils.time import get_utc_now
 from app.jobs import hourly_actuals
 from app.schemas.observations import WeatherReading
-from app.wildfire_one.wfwx_api import WFWXWeatherStation
 from app.wildfire_one import wfwx_api
 
 
@@ -19,63 +18,16 @@ logger = logging.getLogger(__name__)
 @pytest.fixture()
 def mock_hourly_actuals(mocker: MockerFixture):
     """ Mocks out hourly actuals as async result """
-    station_1 = WFWXWeatherStation(latitude=1, longitude=1, elevation=1,
-                                   wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c64', code=1,
-                                   name='blah', zone_code='T1')
-    station_2 = WFWXWeatherStation(latitude=1, longitude=1, elevation=1,
-                                   wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c65', code=2,
-                                   name='blah', zone_code='T1')
-
-    class MockWFWXHourlyResponse(object):
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
-
-    def build_mock_wfwx_response(station_id: str) -> MockWFWXHourlyResponse:
-        return MockWFWXHourlyResponse(
-            stationId=station_id,
-            id="ba289776-ef86-04ea-e053-1d09228e8c64",
-            station="https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/ba28973a-0a79-04ea-e053-1d09228e8c64",
-            createdBy="LEGACY_DATA_LOAD",
-            lastModifiedBy="LEGACY_DATA_LOAD",
-            lastEntityUpdateTimestamp=1455788589000,
-            updateDate="2021-01-31T01:10:34.000+0000",
-            archive=False,
-            weatherTimestamp=1455771600000,
-            temperature=6.7,
-            relativeHumidity=100.0,
-            windSpeed=1.5,
-            hourlyMeasurementTypeCode=MockWFWXHourlyResponse(
-                id="ACTUAL",
-                displayLabel="Actual",
-                displayOrder=1,
-                createdBy="DATA_LOAD",
-                lastModifiedBy="DATA_LOAD"
-            ),
-            windDirection=165.0,
-            barometricPressure=None,
-            precipitation=0.26,
-            observationValidInd=True,
-            observationValidComment=None,
-            calculate=True,
-            businessKey="1455771600000-ba28973a-0a79-04ea-e053-1d09228e8c64",
-            fineFuelMoistureCode=5.603,
-            initialSpreadIndex=0.0,
-            fireWeatherIndex=0.0)
-
-    wfwx_hourly_1 = build_mock_wfwx_response('1')
-    wfwx_hourly_2 = build_mock_wfwx_response('2')
-
-    future_station_codes = asyncio.Future()
-    future_station_codes.set_result([station_1, station_2])
-
-    mocker.patch('app.wildfire_one.wfwx_api.wfwx_station_list_mapper', return_value=future_station_codes)
+    wfwx_hourlies = mock_wfwx_response()
+    future_wfwx_stations = mock_wfwx_stations()
+    mocker.patch('app.wildfire_one.wfwx_api.wfwx_station_list_mapper', return_value=future_wfwx_stations)
     mocker.patch('app.wildfire_one.wfwx_api.get_hourly_actuals_all_stations',
-                 return_value=[wfwx_hourly_1, wfwx_hourly_2])
+                 return_value=wfwx_hourlies)
     mocker.patch('app.wildfire_one.wildfire_fetchers.fetch_paged_response_generator',
-                 return_value=iter([wfwx_hourly_1, wfwx_hourly_2]))
+                 return_value=iter(wfwx_hourlies))
 
 
-def test_hourly_actuals_job(monkeypatch, mocker: MockerFixture, mock_requests_session, mock_hourly_actuals):  # pylint: disable=unused-argument
+def test_hourly_actuals_job(monkeypatch, mocker: MockerFixture, mock_hourly_actuals):  # pylint: disable=unused-argument
     """ Very simple test that checks that:
     - the bot exits with a success code
     - the expected number of records are saved.
