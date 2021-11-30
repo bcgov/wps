@@ -27,11 +27,14 @@ logger = logging.getLogger(__name__)
 class NoonForecastJob():
     """ Implementation of class to process noon forecasts. """
 
+    def __init__(self):
+        self.now = app.utils.time.get_utc_now()
+
     def _get_start_date(self):
         """ Helper function to get the start date for query (if morning run, use current day; if evening run,
         use tomorrow's date, since we only want forecasts, not actuals) """
         date = ''
-        now = app.utils.time.get_utc_now() + timedelta(days=-50)   # returns time in UTC
+        now = self.now + timedelta(days=-50)   # returns time in UTC
         if now.hour == 23:
             # this is the evening run during Pacific Daylight Savings
             date = now + timedelta(days=1)
@@ -43,7 +46,7 @@ class NoonForecastJob():
 
     def _get_end_date(self):
         """ Helper function to get the end date for query (5 days in future)."""
-        five_days_ahead = app.utils.time.get_utc_now() + timedelta(days=5)
+        five_days_ahead = self.now + timedelta(days=5)
         return five_days_ahead
 
     async def run_wfwx(self):

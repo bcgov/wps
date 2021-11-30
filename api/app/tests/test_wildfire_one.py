@@ -2,7 +2,7 @@
 import asyncio
 from pytest_mock import MockFixture
 from app.wildfire_one.query_builders import (BuildQueryAllHourliesByRange,
-                                             BuildQueryDailesByStationCode)
+                                             BuildQueryDailiesByStationCode)
 from app.wildfire_one.wfwx_api import (WFWXWeatherStation,
                                        get_wfwx_stations_from_station_codes)
 
@@ -21,7 +21,7 @@ def test_build_all_hourlies_query():
 
 def test_build_dailies_by_station_code():
     """ Verifies the query builder returns the correct url and parameters for dailies by station code """
-    query_builder = BuildQueryDailesByStationCode(0, 1, ['1', '2'])
+    query_builder = BuildQueryDailiesByStationCode(0, 1, ['1', '2'])
     result = query_builder.query(0)
     assert result == ('https://wf1/wfwx/v1/dailies/search/' +
                       'findDailiesByStationIdIsInAndWeather' +
