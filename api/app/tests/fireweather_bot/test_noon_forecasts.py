@@ -4,7 +4,7 @@ import logging
 import datetime
 import pytest
 from pytest_mock import MockerFixture
-from app.fireweather_bot import noon_forecasts
+from app.jobs import noon_forecasts
 import app.utils.time
 
 logger = logging.getLogger(__name__)

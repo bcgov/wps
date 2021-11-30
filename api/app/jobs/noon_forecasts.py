@@ -24,7 +24,7 @@ if __name__ == "__main__":
 logger = logging.getLogger(__name__)
 
 
-class NoonForecastBot():
+class NoonForecastJob():
     """ Implementation of class to process noon forecasts. """
 
     def _get_start_date(self):
@@ -73,7 +73,7 @@ def main():
     """
     try:
         logger.debug('Retrieving noon forecasts...')
-        bot = NoonForecastBot()
+        bot = NoonForecastJob()
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)

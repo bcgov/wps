@@ -89,26 +89,16 @@ run-env-canada-hrdps:
 run-env-canada-rdps:
 	${call run-env-canada-model,RDPS}
 
-run-donald:
-	# Synonymn for run-env-canada-raw
-	${call run-env-canada}
-
-run-bender:
-	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
-
 run-noon-forecasts:
-	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
+	$(POETRY_RUN) python -m app.jobs.noon_forecasts
 
-run-marvin:
-	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
+run-hourly-actuals:
+	$(POETRY_RUN) python -m app.jobs.hourly_actuals
 
-run-hourly-observed:
-	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
-
-run-all-bots:
+run-all-jobs:
 	# Run hourlies and actuals 1'st - very quick.
-	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
-	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
+	$(POETRY_RUN) python -m app.jobs.hourly_actuals
+	$(POETRY_RUN) python -m app.jobs.noon_forecasts
 	${call run-env-canada}
 	$(POETRY_RUN) python -m app.c_haines.worker
 
@@ -191,21 +181,15 @@ docker-run-env-canada:
 	docker-compose exec api python -m app.weather_models.env_canada HRDPS
 	docker-compose exec api python -m app.weather_models.env_canada RDPS
 
-docker-run-donald:
-	# Synonymn for docker-run-env-canada
-	docker-compose exec api python -m app.weather_models.env_canada GDPS
-	docker-compose exec api python -m app.weather_models.env_canada HRDPS
-	docker-compose exec api python -m app.weather_models.env_canada RDPS
-
-docker-run-bender:
+docker-run-noon-forecasts:
 	# Run a python script to download forecast data from BC Wild Fire on docker
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.fireweather_bot.noon_forecasts
+	docker-compose exec api python -m app.jobs.noon_forecasts
 
-docker-run-marvin:
+docker-run-hourly-actuals:
 	# Run a python script to download hourly actuals from BC Wild Fire on docker.
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.fireweather_bot.hourly_actuals
+	docker-compose exec api python -m app.jobs.hourly_actuals
 
 database-upgrade:
 	PYTHONPATH=. $(POETRY_RUN) alembic upgrade head

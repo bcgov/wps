@@ -7,7 +7,7 @@ import pytest
 from pytest_mock import MockerFixture
 from app.db.models.observations import HourlyActual
 from app.utils.time import get_utc_now
-from app.fireweather_bot import hourly_actuals
+from app.jobs import hourly_actuals
 from app.schemas.observations import WeatherReading
 from app.wildfire_one.wfwx_api import WFWXWeatherStation
 from app.wildfire_one import wfwx_api

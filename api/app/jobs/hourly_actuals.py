@@ -21,8 +21,8 @@ if __name__ == "__main__":
 logger = logging.getLogger(__name__)
 
 
-class HourlyActualsBot():
-    """ Bot that downloads the hourly actuals from the wildfire website and stores it in a database. """
+class HourlyActualsJob():
+    """ Job that downloads the hourly actuals from the wildfire website and stores it in a database. """
 
     def __init__(self):
         self.now = app.utils.time.get_pst_now()
@@ -67,7 +67,7 @@ def main():
     """
     try:
         logger.debug('Retrieving hourly actuals...')
-        bot = HourlyActualsBot()
+        bot = HourlyActualsJob()
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
