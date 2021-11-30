@@ -49,6 +49,13 @@ export const formatDateInUTC00Suffix = (dtISO: string): string => {
   return isoNoon.substring(0, isoNoon.length - 1) + '+00:00'
 }
 
+export const pstFormatter = (fromDate: DateTime): string => {
+  return DateTime.fromObject(
+    { year: fromDate.year, month: fromDate.month, day: fromDate.day },
+    { zone: `UTC${PST_UTC_OFFSET}` }
+  ).toISO()
+}
+
 export const getPrepWeeklyDateRange = (
   dateOfInterest: string
 ): { start: DateTime; end: DateTime } => {

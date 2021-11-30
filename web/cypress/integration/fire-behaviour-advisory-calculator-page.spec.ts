@@ -1,6 +1,5 @@
 import { FIRE_BEHAVIOR_CALC_ROUTE } from '../../src/utils/constants'
 import { FuelTypes } from '../../src/features/fbaCalculator/fuelTypes'
-import { DateTime } from 'luxon'
 
 describe('FireBAT Calculator Page', () => {
   const visitAndAddRow = () => {
@@ -129,32 +128,6 @@ describe('FireBAT Calculator Page', () => {
       cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['o1a'].friendlyName, 1)
       cy.getByTestId(`fuel-type-dropdown-fba-1`).find('input').clear()
       cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['o1b'].friendlyName, 1)
-    })
-  })
-
-  describe('Date picker', () => {
-    it('Sets the date correctly', () => {
-      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-
-      const yesterday = DateTime.now().minus({ days: 1 }).toISODate().slice(0, 10) // 'YYYY-MM-DD'
-
-      cy.intercept('POST', 'api/fba-calc/stations', req => {
-        expect(req.body).to.deep.include({
-          date: yesterday
-        })
-      }).as('calculateResults')
-
-      visitAndAddRow()
-
-      cy.wait('@getStations')
-
-      cy.setDate(yesterday)
-
-      cy.selectFBAStationInDropdown(322, 1)
-
-      cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['c1'].friendlyName, 1)
-
-      cy.wait('@calculateResults')
     })
   })
   describe('Row management', () => {

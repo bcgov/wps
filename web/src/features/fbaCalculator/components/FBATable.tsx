@@ -49,6 +49,8 @@ import FireTable from 'components/FireTable'
 import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
 import FilterColumnsModal from 'components/FilterColumnsModal'
 import { formControlStyles } from 'app/theme'
+import { PST_UTC_OFFSET } from 'utils/constants'
+import { pstFormatter } from 'utils/date'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -126,7 +128,9 @@ const FBATable = (props: FBATableProps) => {
   const dispatch = useDispatch()
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
-  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
+  const [dateOfInterest, setDateOfInterest] = useState(
+    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+  )
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
   const [initialLoad, setInitialLoad] = useState<boolean>(true)
@@ -310,8 +314,11 @@ const FBATable = (props: FBATableProps) => {
     })
   }
 
-  const updateDate = () => {
-    dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
+  const updateDate = (newDate: string) => {
+    if (newDate !== dateOfInterest) {
+      dispatch(fetchFireBehaviourStations(newDate, rows))
+      setDateOfInterest(newDate)
+    }
   }
 
   const toggleSorting = (selectedColumn: SortByColumn) => {
@@ -605,11 +612,7 @@ const FBATable = (props: FBATableProps) => {
         ))}
       <ErrorBoundary>
         <FormControl className={classes.formControl}>
-          <DatePicker
-            date={dateOfInterest}
-            onChange={setDateOfInterest}
-            updateDate={updateDate}
-          />
+          <DatePicker date={dateOfInterest} updateDate={updateDate} />
         </FormControl>
         <FormControl className={classes.formControl}>
           <Button
