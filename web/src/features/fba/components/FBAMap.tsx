@@ -2,8 +2,11 @@ import * as ol from 'ol'
 import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls } from 'ol/control'
 import { fromLonLat, get } from 'ol/proj'
-import { Fill, Stroke, Style } from 'ol/style'
+import { Fill, Style } from 'ol/style'
 import OLVectorLayer from 'ol/layer/Vector'
+import VectorTileLayer from 'ol/layer/VectorTile'
+import VectorTileSource from 'ol/source/VectorTile'
+import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
 
 import GeoJSON from 'ol/format/GeoJSON'
@@ -16,16 +19,13 @@ import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { source } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
-import { tile as tileStrategy } from 'ol/loadingstrategy'
-import { createXYZ } from 'ol/tilegrid'
-import {
-  fireCenterLayer,
-  FireLayer,
-  fireZoneLayer,
-  getFireCenterVectorSource
-} from 'api/external/fbaVectorSourceAPI'
 import { FireCenter } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCenterExtents'
+import {
+  fireCenterStyler,
+  fireZoneStyler,
+  thessianPolygonStyler
+} from 'features/fba/components/featureStylers'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -36,21 +36,6 @@ export interface FBAMapProps {
   testId?: string
   className: string
   selectedFireCenter: FireCenter | undefined
-}
-
-const buildFireVectorSource = (layer: FireLayer) => {
-  const fireVectorSource = new VectorSource({
-    loader: async (extent, _resolution, projection, success) => {
-      getFireCenterVectorSource(layer, extent, projection, fireVectorSource, success)
-    },
-    strategy: tileStrategy(
-      createXYZ({
-        tileSize: 512
-      })
-    )
-  })
-
-  return fireVectorSource
 }
 
 const FBAMap = (props: FBAMapProps) => {
@@ -65,32 +50,34 @@ const FBAMap = (props: FBAMapProps) => {
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
 
-  const fireCenterSource = buildFireVectorSource(fireCenterLayer)
-
-  const fireCenterVector = new OLVectorLayer({
-    source: fireCenterSource,
-    style: () => {
-      return new Style({
-        stroke: new Stroke({
-          lineDash: [1, 10],
-          color: 'blue',
-          width: 4
-        })
-      })
-    }
+  const fireZoneVector = new VectorTileLayer({
+    opacity: 0.5,
+    source: new VectorTileSource({
+      attributions: 'BC Fire Zones',
+      format: new MVT(),
+      url: 'https://tileserv-dev.apps.silver.devops.gov.bc.ca/public.fire_zones/{z}/{x}/{y}.pbf'
+    }),
+    style: fireZoneStyler,
+    declutter: true
   })
 
-  const fireZoneVector = new OLVectorLayer({
-    opacity: 0.5,
-    source: buildFireVectorSource(fireZoneLayer),
-    style: () => {
-      return new Style({
-        stroke: new Stroke({
-          color: 'purple',
-          width: 4
-        })
-      })
-    }
+  const fireCenterVector = new VectorTileLayer({
+    source: new VectorTileSource({
+      attributions: 'BC Fire Centers',
+      format: new MVT(),
+      url: 'https://tileserv-dev.apps.silver.devops.gov.bc.ca/public.fire_centres/{z}/{x}/{y}.pbf'
+    }),
+    style: fireCenterStyler,
+    declutter: true
+  })
+
+  const thesianVector = new VectorTileLayer({
+    source: new VectorTileSource({
+      attributions: 'BC stuff',
+      format: new MVT(),
+      url: 'https://tileserv-dev.apps.silver.devops.gov.bc.ca/public.fire_area_thessian_polygons/{z}/{x}/{y}.pbf'
+    }),
+    style: thessianPolygonStyler
   })
 
   useEffect(() => {
@@ -126,7 +113,8 @@ const FBAMap = (props: FBAMapProps) => {
           source
         }),
         fireCenterVector,
-        fireZoneVector
+        fireZoneVector,
+        thesianVector
       ],
       overlays: [],
       controls: defaultControls()
