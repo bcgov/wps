@@ -13,6 +13,8 @@ import { formControlStyles, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { FireCenter } from 'api/fbaAPI'
+import { PST_UTC_OFFSET } from 'utils/constants'
+import { pstFormatter } from 'utils/date'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -61,15 +63,12 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [fireCenter])
 
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now().setZone('UTC-7').toISO()
+    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
   )
 
-  const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
-    useState(DateTime.now().setZone('UTC-7').toISO())
-
-  const updateDate = () => {
-    if (previouslySelectedDateOfInterest !== dateOfInterest) {
-      setPreviouslySelectedDateOfInterest(dateOfInterest)
+  const updateDate = (newDate: string) => {
+    if (newDate !== dateOfInterest) {
+      setDateOfInterest(newDate)
     }
   }
 
@@ -94,11 +93,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid container spacing={2}>
             <Grid item>
               <FormControl className={classes.formControl}>
-                <DatePicker
-                  date={dateOfInterest}
-                  onChange={setDateOfInterest}
-                  updateDate={updateDate}
-                />
+                <DatePicker date={dateOfInterest} updateDate={updateDate} />
               </FormControl>
             </Grid>
             <Grid item xs={2}>

@@ -6,6 +6,8 @@ import { logError } from 'utils/error'
 import { FuelTypes } from '../fuelTypes'
 import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
+import { DateTime } from 'luxon'
+import { PST_UTC_OFFSET } from 'utils/constants'
 
 interface State {
   loading: boolean
@@ -41,7 +43,10 @@ const fireBehaviourStationsSlice = createSlice({
     ) {
       state.error = null
       state.fireBehaviourResultStations = action.payload.stations
-      state.date = action.payload.date
+      state.date = DateTime.fromFormat(action.payload.date, 'yyyy/MM/dd')
+        .startOf('day')
+        .setZone(`UTC${PST_UTC_OFFSET}`)
+        .toISO()
       state.loading = false
     }
   }
