@@ -11,6 +11,7 @@ export interface BaseStationAttributeCellsProps {
   className: string | undefined
   stationCodeInSelected: (code: number) => boolean
   toggleSelectedStation: (code: number) => void
+  isDailyTable?: boolean
 }
 
 const useStyles = makeStyles({
@@ -21,7 +22,8 @@ const BaseStationAttributeCells = ({
   station,
   className,
   stationCodeInSelected,
-  toggleSelectedStation
+  toggleSelectedStation,
+  isDailyTable
 }: BaseStationAttributeCellsProps) => {
   const classes = useStyles()
 
@@ -48,7 +50,12 @@ const BaseStationAttributeCells = ({
       <TableCell key={`station-${station.code}-elevation`} className={className}>
         {station.station_props.elevation}
       </TableCell>
-      <StickyCell left={230} zIndexOffset={11} backgroundColor={'#ffffff'}>
+      <StickyCell
+        left={230}
+        zIndexOffset={11}
+        backgroundColor={'#ffffff'}
+        className={`${isDailyTable ? classes.rightBorder : undefined}`}
+      >
         <TableCell
           key={`station-${station.code}-fuel-type`}
           className={`${className} ${classes.noBottomBorder}`}

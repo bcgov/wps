@@ -163,13 +163,26 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           left={0}
                           zIndexOffset={10}
                           backgroundColor={'#e9ecf5'}
-                          colSpan={4}
+                          colSpan={2}
                         >
                           <TableCell className={classes.noBottomBorder}>
                             {area.name}
                           </TableCell>
                         </StickyCell>
-                        <TableCell className={classes.planningArea}></TableCell>
+                        <TableCell
+                          className={`${classes.planningArea} ${classes.unstickyHeaderCell}`}
+                        ></TableCell>
+                        <StickyCell
+                          left={279}
+                          zIndexOffset={10}
+                          backgroundColor={'#e9ecf5'}
+                          className={classes.rightBorder}
+                          colSpan={2}
+                        >
+                          <TableCell
+                            className={`${classes.planningArea} ${classes.noBottomBorder}`}
+                          ></TableCell>
+                        </StickyCell>
                         <CalculatedPlanningAreaCells
                           area={area}
                           areaName={areaName}

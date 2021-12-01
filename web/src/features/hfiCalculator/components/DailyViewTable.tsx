@@ -140,7 +140,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             (m)
           </TableCell>
           <StickyCell left={230} zIndexOffset={12}>
-            <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
+            <TableCell
+              key="header-fuel-type"
+              className={`${classes.noBottomBorder} ${classes.rightBorder}`}
+            >
               FBP
               <br />
               Fuel
@@ -320,6 +323,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 className={classNameForRow}
                                 stationCodeInSelected={stationCodeInSelected}
                                 toggleSelectedStation={toggleSelectedStation}
+                                isDailyTable={true}
                               />
                               {daily?.observation_valid === false ? (
                                 <TableCell className={classNameForRow}>
