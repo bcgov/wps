@@ -1,7 +1,7 @@
 import { TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { fireTableStyles } from 'app/theme'
-import StickyCell from 'features/fbaCalculator/components/StickyCell'
+import StickyCell from 'components/StickyCell'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { range } from 'lodash'
 import React from 'react'

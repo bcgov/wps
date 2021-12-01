@@ -25,7 +25,8 @@ import {
   getDailiesForArea,
   getZoneFromAreaName
 } from 'features/hfiCalculator/util'
-import StickyCell from 'features/fbaCalculator/components/StickyCell'
+import StickyCell from 'components/StickyCell'
+import FireCentreCells from 'features/hfiCalculator/components/FireCentreCells'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -240,18 +241,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           return (
             <React.Fragment key={`fire-centre-${centreName}`}>
               <TableRow key={`fire-centre-${centreName}`}>
-                <StickyCell
-                  left={0}
-                  zIndexOffset={10}
-                  backgroundColor={'#dbd9d9'}
-                  colSpan={4}
-                >
-                  <TableCell
-                    className={`${classes.fireCentre} ${classes.noBottomBorder}`}
-                  >
-                    {centre.name}
-                  </TableCell>
-                </StickyCell>
+                <FireCentreCells centre={centre}></FireCentreCells>
                 <TableCell className={classes.fireCentre} colSpan={25}></TableCell>
               </TableRow>
               {Object.entries(centre.planning_areas)

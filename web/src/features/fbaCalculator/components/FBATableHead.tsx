@@ -10,7 +10,7 @@ import {
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import FBAProgressRow from 'features/fbaCalculator/components/FBAProgressRow'
 import TableHeader from 'features/fbaCalculator/components/TableHeader'
-import StickyCell from 'features/fbaCalculator/components/StickyCell'
+import StickyCell from 'components/StickyCell'
 import { FBATableRow, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { isUndefined } from 'lodash'
 import React from 'react'
