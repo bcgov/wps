@@ -11,12 +11,12 @@ import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
-import { fireTableStyles } from 'app/theme'
+import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { isEmpty, union } from 'lodash'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { getDailiesByStationCode, getZoneFromAreaName } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
-import FireCentreCells from 'features/hfiCalculator/components/FireCentreCells'
+import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -91,7 +91,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               Location
             </TableCell>
           </StickyCell>
-          <TableCell key="header-elevation" className={classes.unstickyHeaderCell}>
+          <TableCell key="header-elevation" className={classes.nonstickyHeaderCell}>
             Elev.
             <br />
             (m)
@@ -134,7 +134,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           return (
             <React.Fragment key={`fire-centre-${centreName}`}>
               <TableRow key={`fire-centre-${centreName}`}>
-                <FireCentreCells centre={centre}></FireCentreCells>
+                <FireCentreCell centre={centre}></FireCentreCell>
 
                 <TableCell className={classes.fireCentre} colSpan={28}></TableCell>
               </TableRow>
@@ -153,7 +153,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         <StickyCell
                           left={0}
                           zIndexOffset={10}
-                          backgroundColor={'#e9ecf5'}
+                          backgroundColor={BACKGROUND_COLOR.backgroundColor}
                           colSpan={2}
                         >
                           <TableCell className={classes.noBottomBorder}>
@@ -161,13 +161,12 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           </TableCell>
                         </StickyCell>
                         <TableCell
-                          className={`${classes.planningArea} ${classes.unstickyHeaderCell}`}
+                          className={`${classes.planningArea} ${classes.nonstickyHeaderCell}`}
                         ></TableCell>
                         <StickyCell
                           left={230}
                           zIndexOffset={10}
-                          backgroundColor={'#e9ecf5'}
-                          className={classes.rightBorder}
+                          className={`${classes.rightBorder} ${classes.defaultBackground}`}
                           colSpan={2}
                         >
                           <TableCell

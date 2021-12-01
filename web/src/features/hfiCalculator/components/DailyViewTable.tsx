@@ -17,7 +17,7 @@ import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
-import { fireTableStyles } from 'app/theme'
+import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { union } from 'lodash'
 import {
@@ -26,7 +26,7 @@ import {
   getZoneFromAreaName
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
-import FireCentreCells from 'features/hfiCalculator/components/FireCentreCells'
+import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -135,7 +135,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               Location
             </TableCell>
           </StickyCell>
-          <TableCell key="header-elevation" className={classes.unstickyHeaderCell}>
+          <TableCell key="header-elevation" className={classes.nonstickyHeaderCell}>
             Elev.
             <br />
             (m)
@@ -241,7 +241,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           return (
             <React.Fragment key={`fire-centre-${centreName}`}>
               <TableRow key={`fire-centre-${centreName}`}>
-                <FireCentreCells centre={centre}></FireCentreCells>
+                <FireCentreCell centre={centre}></FireCentreCell>
                 <TableCell className={classes.fireCentre} colSpan={25}></TableCell>
               </TableRow>
               {Object.entries(centre.planning_areas)
@@ -262,7 +262,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           left={0}
                           zIndexOffset={10}
                           colSpan={3}
-                          backgroundColor={'#e9ecf5'}
+                          backgroundColor={BACKGROUND_COLOR.backgroundColor}
                         >
                           <TableCell className={classes.noBottomBorder}>
                             {area.name}

@@ -106,7 +106,7 @@ export const fireTableStyles = createStyles({
   spaceHeader: {
     border: 'none'
   },
-  unstickyHeaderCell: {
+  nonstickyHeaderCell: {
     zIndex: 11 + theme.zIndex.appBar
   },
   rightBorder: {
@@ -114,6 +114,9 @@ export const fireTableStyles = createStyles({
   },
   noBottomBorder: {
     borderBottom: 'none'
+  },
+  leftBorder: {
+    borderLeft: '1px solid #C4C4C4'
   }
 })
 

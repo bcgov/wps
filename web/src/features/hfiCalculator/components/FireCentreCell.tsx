@@ -4,14 +4,14 @@ import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
 import React from 'react'
 
-interface FireCentreCellsProps {
+interface FireCentreCellProps {
   centre: FireCentre
   testId?: string
 }
 
 const useStyles = makeStyles({ ...fireTableStyles })
 
-const FireCentreCells = (props: FireCentreCellsProps) => {
+const FireCentreCell = (props: FireCentreCellProps) => {
   const classes = useStyles()
 
   return (
@@ -29,4 +29,4 @@ const FireCentreCells = (props: FireCentreCellsProps) => {
   )
 }
 
-export default React.memo(FireCentreCells)
+export default React.memo(FireCentreCell)

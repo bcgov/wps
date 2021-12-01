@@ -18,7 +18,6 @@ const useStyles = makeStyles({
     position: 'sticky',
     zIndex: 3,
     padding: 0,
-    borderLeft: '1px solid #C4C4C4',
     borderBottom: 'none',
     textAlign: 'center'
   }
@@ -42,7 +41,7 @@ const DayHeaders = (props: DayHeadersProps) => {
       </StickyCell>
       <TableCell className={classes.spaceHeader}></TableCell>
       <StickyCell
-        left={231}
+        left={230}
         colSpan={2}
         zIndexOffset={11}
         className={`${classes.rightBorder} ${classes.noBottomBorder}`}
@@ -53,7 +52,7 @@ const DayHeaders = (props: DayHeadersProps) => {
         <TableCell
           data-testid={`day-${i}`}
           colSpan={5}
-          className={classes.dayHeader}
+          className={`${classes.dayHeader} ${i > 0 ? classes.leftBorder : undefined}`}
           key={i}
         >
           {start
@@ -61,6 +60,9 @@ const DayHeaders = (props: DayHeadersProps) => {
             .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })}
         </TableCell>
       ))}
+      <TableCell
+        className={`${classes.leftBorder} ${classes.noBottomBorder}`}
+      ></TableCell>
     </React.Fragment>
   )
 }
