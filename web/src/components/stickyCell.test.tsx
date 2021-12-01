@@ -1,6 +1,6 @@
 import { TableContainer, Table, TableBody, TableRow } from '@material-ui/core'
 import { render, screen } from '@testing-library/react'
-import StickyCell from 'features/fbaCalculator/components/StickyCell'
+import StickyCell from 'components/StickyCell'
 import { theme } from 'app/theme'
 import React from 'react'
 
