@@ -17,13 +17,14 @@ import React, { useEffect, useRef, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations } from 'app/rootReducer'
-import { source } from 'features/fireWeather/components/maps/constants'
+import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCenterExtents'
 import {
   fireCenterStyler,
   fireZoneStyler,
+  stationStyler,
   thessianPolygonStyler
 } from 'features/fba/components/featureStylers'
 
@@ -51,7 +52,6 @@ const FBAMap = (props: FBAMapProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null)
 
   const fireZoneVector = new VectorTileLayer({
-    opacity: 0.5,
     source: new VectorTileSource({
       attributions: 'BC Fire Zones',
       format: new MVT(),
@@ -110,7 +110,7 @@ const FBAMap = (props: FBAMapProps) => {
       }),
       layers: [
         new Tile({
-          source
+          source: baseMapSource
         }),
         fireCenterVector,
         fireZoneVector,
@@ -144,14 +144,7 @@ const FBAMap = (props: FBAMapProps) => {
     })
     const stationsLayer = new OLVectorLayer({
       source: stationsSource,
-      style: new Style({
-        image: new CircleStyle({
-          radius: 5,
-          fill: new Fill({
-            color: 'black'
-          })
-        })
-      })
+      style: stationStyler
     })
 
     map?.addLayer(stationsLayer)
