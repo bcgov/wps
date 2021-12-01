@@ -1,6 +1,7 @@
 import { TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { fireTableStyles } from 'app/theme'
+import StickyCell from 'components/StickyCell'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { range } from 'lodash'
 import React from 'react'
@@ -17,7 +18,6 @@ const useStyles = makeStyles({
     position: 'sticky',
     zIndex: 3,
     padding: 0,
-    borderLeft: '1px solid #C4C4C4',
     borderBottom: 'none',
     textAlign: 'center'
   }
@@ -29,12 +29,30 @@ const DayHeaders = (props: DayHeadersProps) => {
   return (
     <React.Fragment>
       {/* Non-day specific headers */}
-      <TableCell colSpan={5} className={classes.spaceHeader}></TableCell>
+      <StickyCell
+        left={0}
+        zIndexOffset={11}
+        colSpan={2}
+        className={classes.noBottomBorder}
+      >
+        <TableCell
+          className={`${classes.spaceHeader} ${classes.noBottomBorder}`}
+        ></TableCell>
+      </StickyCell>
+      <TableCell className={classes.spaceHeader}></TableCell>
+      <StickyCell
+        left={230}
+        colSpan={2}
+        zIndexOffset={11}
+        className={`${classes.rightBorder} ${classes.noBottomBorder}`}
+      >
+        <TableCell className={classes.noBottomBorder}></TableCell>
+      </StickyCell>
       {range(NUM_WEEK_DAYS).map(i => (
         <TableCell
           data-testid={`day-${i}`}
           colSpan={5}
-          className={classes.dayHeader}
+          className={`${classes.dayHeader} ${i > 0 ? classes.leftBorder : undefined}`}
           key={i}
         >
           {start
@@ -42,6 +60,9 @@ const DayHeaders = (props: DayHeadersProps) => {
             .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })}
         </TableCell>
       ))}
+      <TableCell
+        className={`${classes.leftBorder} ${classes.noBottomBorder}`}
+      ></TableCell>
     </React.Fragment>
   )
 }

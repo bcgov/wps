@@ -17,7 +17,7 @@ import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
-import { fireTableStyles } from 'app/theme'
+import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { union } from 'lodash'
 import {
@@ -25,6 +25,8 @@ import {
   getDailiesForArea,
   getZoneFromAreaName
 } from 'features/hfiCalculator/util'
+import StickyCell from 'components/StickyCell'
+import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -123,22 +125,30 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     >
       <TableHead>
         <TableRow>
-          <TableCell>
-            {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
-          </TableCell>
-          <TableCell key="header-location">Location</TableCell>
-          <TableCell key="header-elevation">
+          <StickyCell left={0} zIndexOffset={12}>
+            <TableCell className={classes.noBottomBorder}>
+              {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
+            </TableCell>
+          </StickyCell>
+          <StickyCell left={50} zIndexOffset={12} className={classes.stationLocation}>
+            <TableCell key="header-location" className={classes.noBottomBorder}>
+              Location
+            </TableCell>
+          </StickyCell>
+          <TableCell key="header-elevation" className={classes.nonstickyHeaderCell}>
             Elev.
             <br />
             (m)
           </TableCell>
-          <TableCell key="header-fuel-type">
-            FBP
-            <br />
-            Fuel
-            <br />
-            Type
-          </TableCell>
+          <StickyCell left={230} zIndexOffset={12} className={classes.rightBorder}>
+            <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
+              FBP
+              <br />
+              Fuel
+              <br />
+              Type
+            </TableCell>
+          </StickyCell>
           <TableCell>Status</TableCell>
           <TableCell>
             Temp
@@ -231,9 +241,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           return (
             <React.Fragment key={`fire-centre-${centreName}`}>
               <TableRow key={`fire-centre-${centreName}`}>
-                <TableCell className={classes.fireCentre} colSpan={26}>
-                  {centre.name}
-                </TableCell>
+                <FireCentreCell centre={centre}></FireCentreCell>
+                <TableCell className={classes.fireCentre} colSpan={25}></TableCell>
               </TableRow>
               {Object.entries(centre.planning_areas)
                 .sort((a, b) =>
@@ -249,9 +258,20 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         key={`zone-${areaName}`}
                         data-testid={`zone-${areaName}`}
                       >
-                        <TableCell className={classes.planningArea} colSpan={22}>
-                          {area.name}
-                        </TableCell>
+                        <StickyCell
+                          left={0}
+                          zIndexOffset={10}
+                          colSpan={3}
+                          backgroundColor={BACKGROUND_COLOR.backgroundColor}
+                        >
+                          <TableCell className={classes.noBottomBorder}>
+                            {area.name}
+                          </TableCell>
+                        </StickyCell>
+                        <TableCell
+                          colSpan={19}
+                          className={classes.planningArea}
+                        ></TableCell>
                         <MeanIntensityGroupRollup
                           area={area}
                           dailies={areaDailies}
@@ -290,6 +310,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 className={classNameForRow}
                                 stationCodeInSelected={stationCodeInSelected}
                                 toggleSelectedStation={toggleSelectedStation}
+                                isDailyTable={true}
                               />
                               {daily?.observation_valid === false ? (
                                 <TableCell className={classNameForRow}>
