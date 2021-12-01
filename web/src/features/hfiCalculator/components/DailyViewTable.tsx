@@ -139,11 +139,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             <br />
             (m)
           </TableCell>
-          <StickyCell left={230} zIndexOffset={12}>
-            <TableCell
-              key="header-fuel-type"
-              className={`${classes.noBottomBorder} ${classes.rightBorder}`}
-            >
+          <StickyCell left={230} zIndexOffset={12} className={classes.rightBorder}>
+            <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
               FBP
               <br />
               Fuel
@@ -274,7 +271,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         <StickyCell
                           left={0}
                           zIndexOffset={10}
-                          colSpan={2}
+                          colSpan={3}
                           backgroundColor={'#e9ecf5'}
                         >
                           <TableCell className={classes.noBottomBorder}>
@@ -282,7 +279,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           </TableCell>
                         </StickyCell>
                         <TableCell
-                          colSpan={20}
+                          colSpan={19}
                           className={classes.planningArea}
                         ></TableCell>
                         <MeanIntensityGroupRollup

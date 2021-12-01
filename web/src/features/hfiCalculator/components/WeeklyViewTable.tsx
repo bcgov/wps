@@ -173,7 +173,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           className={`${classes.planningArea} ${classes.unstickyHeaderCell}`}
                         ></TableCell>
                         <StickyCell
-                          left={279}
+                          left={230}
                           zIndexOffset={10}
                           backgroundColor={'#e9ecf5'}
                           className={classes.rightBorder}
