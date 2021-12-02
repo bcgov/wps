@@ -76,9 +76,9 @@ class NoonForecastJob():
             for noon_forecast in noon_forecasts:
                 try:
                     save_noon_forecast(session, noon_forecast)
-                except IntegrityError as e:
+                except IntegrityError as exception:
                     logger.info('Skipping duplicate record for %s @ %s',
-                                noon_forecast.station_code, noon_forecast.weather_date, exc_info=e)
+                                noon_forecast.station_code, noon_forecast.weather_date, exc_info=exception)
                     session.rollback()
 
 
