@@ -20,6 +20,15 @@ const fireCenterTextStyler = (
   })
 }
 
+export const fireCenterLableStyler = (
+  feature: RenderFeature | ol.Feature<Geometry>,
+  resolution: number
+): Style => {
+  return new Style({
+    text: fireCenterTextStyler(feature, resolution)
+  })
+}
+
 export const fireCenterStyler = (
   feature: RenderFeature | ol.Feature<Geometry>,
   resolution: number
@@ -28,8 +37,8 @@ export const fireCenterStyler = (
     stroke: new Stroke({
       color: 'black',
       width: 3
-    }),
-    text: fireCenterTextStyler(feature, resolution)
+    })
+    // text: fireCenterTextStyler(feature, resolution)
   })
 }
 
@@ -53,9 +62,17 @@ export const fireZoneStyler = (
 ): Style => {
   return new Style({
     stroke: new Stroke({
-      color: 'black',
+      color: 'grey',
       width: 2
-    }),
+    })
+  })
+}
+
+export const fireZoneLableStyler = (
+  feature: RenderFeature | ol.Feature<Geometry>,
+  resolution: number
+): Style => {
+  return new Style({
     text: fireZoneTextStyler(feature, resolution)
   })
 }
