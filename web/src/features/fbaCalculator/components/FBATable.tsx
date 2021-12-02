@@ -43,7 +43,7 @@ import StatusCell from 'features/fbaCalculator/components/StatusCell'
 import ErrorAlert from 'features/fbaCalculator/components/ErrorAlert'
 import LoadingIndicatorCell from 'features/fbaCalculator/components/LoadingIndicatorCell'
 import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
-import StickyCell from 'features/fbaCalculator/components/StickyCell'
+import StickyCell from 'components/StickyCell'
 import FBATableHead from 'features/fbaCalculator/components/FBATableHead'
 import FireTable from 'components/FireTable'
 import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
@@ -390,7 +390,12 @@ const FBATable = (props: FBATableProps) => {
 
   const getWeatherStationCell = (row: FBATableRow) => {
     return (
-      <StickyCell left={50} zIndexOffset={1} backgroundColor="#FFFFFF">
+      <StickyCell
+        left={50}
+        zIndexOffset={1}
+        backgroundColor="#FFFFFF"
+        testId={'stickyCell-fba'}
+      >
         <WeatherStationCell
           stationOptions={stationMenuOptions}
           inputRows={rows}

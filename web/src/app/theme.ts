@@ -50,7 +50,7 @@ export const fireTableTheme = createTheme({
         paddingLeft: 7
       },
       stickyHeader: {
-        padding: 8
+        padding: 5
       }
     },
     MuiInputBase: {
@@ -66,7 +66,8 @@ export const fireTableTheme = createTheme({
   }
 })
 
-export const BACKGROUND_COLOR = { backgroundColor: 'rgba(40, 53, 147, 0.05)' }
+export const BACKGROUND_COLOR = { backgroundColor: '#e9ecf5' }
+
 export const PLANNING_AREA = {
   minWidth: 45,
   minHeight: 45,
@@ -83,11 +84,16 @@ export const fireTableStyles = createStyles({
     alignItems: 'baseline'
   },
   fireCentre: {
-    width: 45,
     height: 45,
     fontSize: 16,
     fontWeight: 'bold',
     backgroundColor: '#dbd9d9'
+  },
+  stationLocation: {
+    minWidth: 180
+  },
+  stationCellPlainStyling: {
+    backgroundColor: '#ffffff'
   },
   sectionSeparatorBorder: {
     borderLeft: '1px solid #C4C4C4'
@@ -99,6 +105,18 @@ export const fireTableStyles = createStyles({
   },
   spaceHeader: {
     border: 'none'
+  },
+  nonstickyHeaderCell: {
+    zIndex: 11 + theme.zIndex.appBar
+  },
+  rightBorder: {
+    borderRight: '1px solid #c4c4c4'
+  },
+  noBottomBorder: {
+    borderBottom: 'none'
+  },
+  leftBorder: {
+    borderLeft: '1px solid #C4C4C4'
   }
 })
 
