@@ -167,6 +167,7 @@ def parse_noon_forecast(station_code, forecast) -> NoonForecast:
     return NoonForecast(
         weather_date=timestamp,
         created_at=get_utc_now(),
+        update_date=forecast.get('updateDate', None),
         station_code=station_code,
         temp_valid=temp_valid,
         temperature=forecast.get('temperature', math.nan),

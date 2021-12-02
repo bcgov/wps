@@ -19,24 +19,7 @@ class NoonForecast(Base):
     __table_args__ = (
         UniqueConstraint('weather_date',
                          'station_code',
-                         'temp_valid',
-                         'temperature',
-                         'rh_valid',
-                         'relative_humidity',
-                         'wdir_valid',
-                         'wind_direction',
-                         'wspeed_valid',
-                         'wind_speed',
-                         'precip_valid',
-                         'precipitation',
-                         'gc',
-                         'ffmc',
-                         'dmc',
-                         'dc',
-                         'isi',
-                         'bui',
-                         'fwi',
-                         'danger_rating'),
+                         'update_date'),
         {'comment': 'The noon_forecast for a weather station and weather date.'}
     )
     id = Column(Integer, primary_key=True)
@@ -63,6 +46,7 @@ class NoonForecast(Base):
     danger_rating = Column(Integer, nullable=True, default=0)
     created_at = Column(TZTimeStamp, nullable=False,
                         default=time_utils.get_utc_now(), index=True)
+    update_date = Column(TZTimeStamp, nullable=True, index=True)
 
     def __str__(self):
         return (
