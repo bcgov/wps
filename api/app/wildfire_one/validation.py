@@ -1,21 +1,23 @@
 """ Validation functions that indicate sound response or clean them to our specific standards"""
 import math
+from typing import Union
 from app.schemas.observations import WeatherReading
+from app.schemas.forecasts import NoonForecast
 
 
-def replace_nones_in_hourly_actual_with_nan(hourly_reading: WeatherReading):
-    """ Returns WeatherReading where any and all None values are replaced with math.nan
-    in preparation for entry into database. Have to do this because Postgres doesn't
-    handle None gracefully (it thinks None != None), but it can handle math.nan ok.
-    (See HourlyActual db model) """
-    if hourly_reading.temperature is None:
-        hourly_reading.temperature = math.nan
-    if hourly_reading.relative_humidity is None:
-        hourly_reading.relative_humidity = math.nan
-    if hourly_reading.precipitation is None:
-        hourly_reading.precipitation = math.nan
-    if hourly_reading.wind_direction is None:
-        hourly_reading.wind_direction = math.nan
-    if hourly_reading.wind_speed is None:
-        hourly_reading.wind_speed = math.nan
-    return hourly_reading
+def get_valid_flags(record: Union[WeatherReading, NoonForecast]):
+    temp_valid = record.temperature is not None
+    rh_valid = record.relative_humidity is not None and validate_metric(
+        record.relative_humidity, 0, 100)
+    wdir_valid = record.wind_direction is not None and validate_metric(
+        record.wind_direction, 0, 360)
+    wspeed_valid = record.wind_speed is not None and validate_metric(
+        record.wind_speed, 0, math.inf)
+    precip_valid = record.precipitation is not None and validate_metric(
+        record.precipitation, 0, math.inf)
+    return temp_valid, rh_valid, wdir_valid, wspeed_valid, precip_valid
+
+
+def validate_metric(value, low, high):
+    """ Validate metric with it's range of accepted values """
+    return low <= value <= high

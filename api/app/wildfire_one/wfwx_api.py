@@ -244,10 +244,9 @@ async def get_hourly_actuals_all_stations(
 
     for hourly in hourlies:
         if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
-            parsed_hourly = parse_hourly(hourly)
             try:
                 station_code = station_code_dict[(hourly['stationId'])]
-                hourly_actual = parse_hourly_actual(station_code, parsed_hourly)
+                hourly_actual = parse_hourly_actual(station_code, hourly)
                 if hourly_actual is not None:
                     hourly_actuals.append(hourly_actual)
             except KeyError as exception:

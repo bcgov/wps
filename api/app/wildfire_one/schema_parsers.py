@@ -17,7 +17,7 @@ from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
 from app.fba_calculator import calculate_cfb, get_fire_size, get_fire_type
 from app.utils.time import get_julian_date_now, get_utc_now
 from app.wildfire_one.util import is_station_valid, is_station_fire_zone_valid, get_zone_code_prefix
-from app.wildfire_one.validation import replace_nones_in_hourly_actual_with_nan
+from app.wildfire_one.validation import get_valid_flags
 from app.schemas.fba import FireCentre, FireCenterStation
 
 logger = logging.getLogger(__name__)
@@ -150,46 +150,6 @@ def parse_hourly(hourly) -> WeatherReading:
     )
 
 
-def parse_noon_forecast(station_code, forecast) -> NoonForecast:
-    """ Transform from the raw hourly json object returned by wf1, to our noon forecast object.
-    """
-    timestamp = datetime.fromtimestamp(
-        int(forecast['weatherTimestamp']) / 1000, tz=timezone.utc).isoformat()
-    temp_valid = forecast.get('temperature', None) is not None
-    rh_valid = forecast.get('relativeHumidity', None) is not None and validate_metric(
-        forecast.get('relativeHumidity', None), 0, 100)
-    wdir_valid = forecast.get('windDirection', None) is not None and validate_metric(
-        forecast.get('windDirection', None), 0, 360)
-    wspeed_valid = forecast.get('windSpeed', None) is not None and validate_metric(
-        forecast.get('windSpeed', None), 0, math.inf)
-    precip_valid = forecast.get('precipitation', None) is not None and validate_metric(
-        forecast.get('precipitation', None), 0, math.inf)
-    return NoonForecast(
-        weather_date=timestamp,
-        created_at=get_utc_now(),
-        update_date=forecast.get('updateDate', None),
-        station_code=station_code,
-        temp_valid=temp_valid,
-        temperature=forecast.get('temperature', math.nan),
-        rh_valid=rh_valid,
-        relative_humidity=forecast.get('relativeHumidity', math.nan),
-        wspeed_valid=wspeed_valid,
-        wind_speed=forecast.get('windSpeed', math.nan),
-        wdir_valid=wdir_valid,
-        wind_direction=forecast.get('windDirection', math.nan),
-        precip_valid=precip_valid,
-        precipitation=forecast.get('precipitation', math.nan),
-        gc=forecast.get('grasslandCuring', math.nan),
-        ffmc=forecast.get('fineFuelMoistureCode', math.nan),
-        dmc=forecast.get('duffMoistureCode', math.nan),
-        dc=forecast.get('droughtCode', math.nan),
-        isi=forecast.get('initialSpreadIndex', math.nan),
-        bui=forecast.get('buildUpIndex', math.nan),
-        fwi=forecast.get('fireWeatherIndex', math.nan),
-        danger_rating=forecast.get('dailySeverityRating', None),
-    )
-
-
 def calculate_intensity_group(hfi: float) -> int:
     """ Returns a 1-5 integer value indicating Intensity Group based on HFI.
     Intensity groupings are:
@@ -316,57 +276,83 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
     )
 
 
-def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
-    """ Maps WeatherReading to HourlyActual """
-    temp_valid = hourly_reading.temperature is not None
-    rh_valid = hourly_reading.relative_humidity is not None and validate_metric(
-        hourly_reading.relative_humidity, 0, 100)
-    wdir_valid = hourly_reading.wind_direction is not None and validate_metric(
-        hourly_reading.wind_direction, 0, 360)
-    wspeed_valid = hourly_reading.wind_speed is not None and validate_metric(
-        hourly_reading.wind_speed, 0, math.inf)
-    precip_valid = hourly_reading.precipitation is not None and validate_metric(
-        hourly_reading.precipitation, 0, math.inf)
-    hourly_reading = replace_nones_in_hourly_actual_with_nan(hourly_reading)
+def parse_noon_forecast(station_code, forecast) -> NoonForecast:
+    """ Transform from the raw forecast json object returned by wf1, to our noon forecast object.
+    """
+    timestamp = datetime.fromtimestamp(
+        int(forecast['weatherTimestamp']) / 1000, tz=timezone.utc).isoformat()
+    noon_forecast = NoonForecast(
+        weather_date=timestamp,
+        created_at=get_utc_now(),
+        update_date=forecast.get('updateDate', None),
+        station_code=station_code,
+        temperature=forecast.get('temperature', math.nan),
+        relative_humidity=forecast.get('relativeHumidity', math.nan),
+        wind_speed=forecast.get('windSpeed', math.nan),
+        wind_direction=forecast.get('windDirection', math.nan),
+        precipitation=forecast.get('precipitation', math.nan),
+        gc=forecast.get('grasslandCuring', math.nan),
+        ffmc=forecast.get('fineFuelMoistureCode', math.nan),
+        dmc=forecast.get('duffMoistureCode', math.nan),
+        dc=forecast.get('droughtCode', math.nan),
+        isi=forecast.get('initialSpreadIndex', math.nan),
+        bui=forecast.get('buildUpIndex', math.nan),
+        fwi=forecast.get('fireWeatherIndex', math.nan),
+        danger_rating=forecast.get('dailySeverityRating', None),
+    )
+    temp_valid, rh_valid, wdir_valid, wspeed_valid, precip_valid = get_valid_flags(noon_forecast)
+    noon_forecast.temp_valid = temp_valid
+    noon_forecast.rh_valid = rh_valid
+    noon_forecast.wdir_valid = wdir_valid
+    noon_forecast.wspeed_valid = wspeed_valid
+    noon_forecast.precip_valid = precip_valid
+    return noon_forecast
 
-    is_valid_wfwx = hourly_reading.observation_valid
+
+def parse_hourly_actual(station_code: int, hourly):
+    """ Transform from the raw hourly json object returned by wf1, to our hour actual object.
+    """
+    timestamp = datetime.fromtimestamp(
+        int(hourly['weatherTimestamp']) / 1000, tz=timezone.utc).isoformat()
+    hourly_actual = HourlyActual(
+        weather_date=timestamp,
+        station_code=station_code,
+        temperature=hourly.get('temperature', math.nan),
+        relative_humidity=hourly.get('relativeHumidity', math.nan),
+        dewpoint=compute_dewpoint(hourly.get(
+            'temperature'), hourly.get('relativeHumidity')),
+        wind_speed=hourly.get('windSpeed', math.nan),
+        wind_direction=hourly.get('windDirection', math.nan),
+        precipitation=hourly.get('precipitation', math.nan),
+        ffmc=hourly.get('fineFuelMoistureCode', None),
+        isi=hourly.get('initialSpreadIndex', None),
+        fwi=hourly.get('fireWeatherIndex', None),
+    )
+    temp_valid, rh_valid, wdir_valid, wspeed_valid, precip_valid = get_valid_flags(hourly_actual)
+    hourly_actual.temp_valid = temp_valid
+    hourly_actual.rh_valid = rh_valid
+    hourly_actual.wdir_valid = wdir_valid
+    hourly_actual.wspeed_valid = wspeed_valid
+    hourly_actual.precip_valid = precip_valid
+
+    observation_valid = hourly.get('observationValidInd'),
+    observation_valid_comment = hourly.get('observationValidComment')
+    is_valid_wfwx = observation_valid
     if is_valid_wfwx is False:
         logger.warning("Invalid hourly received from WF1 API for station code %s at time %s: %s",
                        station_code,
-                       hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
-                       hourly_reading.observation_valid_comment)
+                       hourly_actual.weather_date.strftime("%b %d %Y %H:%M:%S"),
+                       observation_valid_comment)
 
     is_obs_invalid = not temp_valid and not rh_valid and not wdir_valid\
         and not wspeed_valid and not precip_valid
 
     if is_obs_invalid:
         logger.error("Hourly actual not written to DB for station code %s at time %s: %s",
-                     station_code, hourly_reading.datetime.strftime(
+                     station_code, hourly_actual.weather_date.strftime(
                          "%b %d %Y %H:%M:%S"),
-                     hourly_reading.observation_valid_comment)
+                     observation_valid_comment)
 
     # don't write the HourlyActual to our database if every value is invalid. If even one
     # weather variable observed is valid, write the HourlyActual to DB.
-    return None if is_obs_invalid else HourlyActual(
-        station_code=station_code,
-        weather_date=hourly_reading.datetime,
-        temp_valid=temp_valid,
-        temperature=hourly_reading.temperature,
-        rh_valid=rh_valid,
-        relative_humidity=hourly_reading.relative_humidity,
-        wspeed_valid=wspeed_valid,
-        wind_speed=hourly_reading.wind_speed,
-        wdir_valid=wdir_valid,
-        wind_direction=hourly_reading.wind_direction,
-        precip_valid=precip_valid,
-        precipitation=hourly_reading.precipitation,
-        dewpoint=hourly_reading.dewpoint,
-        ffmc=hourly_reading.ffmc,
-        isi=hourly_reading.isi,
-        fwi=hourly_reading.fwi,
-    )
-
-
-def validate_metric(value, low, high):
-    """ Validate metric with it's range of accepted values """
-    return low <= value <= high
+    return None if is_obs_invalid else hourly_actual
