@@ -156,6 +156,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
           <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
+              data-testid="viewSwitcherToggles"
               isWeeklyView={isWeeklyView}
               toggleTableView={toggleTableView}
             />
