@@ -9,13 +9,13 @@ def get_valid_flags(record: Union[WeatherReading, NoonForecast]):
     temp_valid = record.temperature is not None
     rh_valid = record.relative_humidity is not None and validate_metric(
         record.relative_humidity, 0, 100)
-    wdir_valid = record.wind_direction is not None and validate_metric(
-        record.wind_direction, 0, 360)
     wspeed_valid = record.wind_speed is not None and validate_metric(
         record.wind_speed, 0, math.inf)
+    wdir_valid = record.wind_direction is not None and validate_metric(
+        record.wind_direction, 0, 360)
     precip_valid = record.precipitation is not None and validate_metric(
         record.precipitation, 0, math.inf)
-    return temp_valid, rh_valid, wdir_valid, wspeed_valid, precip_valid
+    return temp_valid, rh_valid, wspeed_valid, wdir_valid, precip_valid
 
 
 def validate_metric(value, low, high):
