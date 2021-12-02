@@ -56,8 +56,8 @@ pipeline {
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_c_haines_cronjob.sh prod apply"
                     // BC FireWeather cronjobs
                     // Run forecast at 8h30 PDT and 16h30 PDT (so before and after noon)
-                    sh "PROJ_TARGET=${projProd} SCHEDULE=\"30 15,23 * * *\" ./openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply"
-                    sh "PROJ_TARGET=${projProd} SCHEDULE=\"15 * * * *\" ./openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} SCHEDULE=\"30 15,23 * * *\" ./openshift/scripts/oc_provision_wfwx_noon_forecasts_cronjob.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} SCHEDULE=\"15 * * * *\" ./openshift/scripts/oc_provision_wfwx_hourly_actuals_cronjob.sh prod apply"
                     // Configure backups
                     sh "PROJ_TARGET=${projProd} BACKUP_VOLUME_SIZE=50Gi CPU_REQUEST=1000m CPU_LIMIT=2000m ./openshift/scripts/oc_provision_backup_postgres.sh prod apply"
                     sh "PROJ_TARGET=${projProd} CPU_REQUEST=1000m CPU_LIMIT=2000m ./openshift/scripts/oc_provision_backup_postgres_cronjob.sh prod apply"
