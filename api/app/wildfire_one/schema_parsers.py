@@ -15,8 +15,9 @@ from app.db.models.forecasts import NoonForecast
 from app.schemas.hfi_calc import StationDaily
 from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
 from app.fba_calculator import calculate_cfb, get_fire_size, get_fire_type
-from app.utils.time import get_julian_date_now
+from app.utils.time import get_julian_date_now, get_utc_now
 from app.wildfire_one.util import is_station_valid, is_station_fire_zone_valid, get_zone_code_prefix
+from app.wildfire_one.validation import replace_nones_in_hourly_actual_with_nan
 from app.schemas.fba import FireCentre, FireCenterStation
 
 logger = logging.getLogger(__name__)
@@ -165,6 +166,7 @@ def parse_noon_forecast(station_code, forecast) -> NoonForecast:
         forecast.get('precipitation', None), 0, math.inf)
     return NoonForecast(
         weather_date=timestamp,
+        created_at=get_utc_now(),
         station_code=station_code,
         temp_valid=temp_valid,
         temperature=forecast.get('temperature', math.nan),
@@ -183,7 +185,7 @@ def parse_noon_forecast(station_code, forecast) -> NoonForecast:
         isi=forecast.get('initialSpreadIndex', math.nan),
         bui=forecast.get('buildUpIndex', math.nan),
         fwi=forecast.get('fireWeatherIndex', math.nan),
-        danger_rating=forecast.get('dailySeverityRating', math.nan),
+        danger_rating=forecast.get('dailySeverityRating', None),
     )
 
 
@@ -311,24 +313,6 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         error=raw_daily.get('observationValidInd', None),
         error_message=raw_daily.get('observationValidComment', None)
     )
-
-
-def replace_nones_in_hourly_actual_with_nan(hourly_reading: WeatherReading):
-    """ Returns WeatherReading where any and all None values are replaced with math.nan
-    in preparation for entry into database. Have to do this because Postgres doesn't
-    handle None gracefully (it thinks None != None), but it can handle math.nan ok.
-    (See HourlyActual db model) """
-    if hourly_reading.temperature is None:
-        hourly_reading.temperature = math.nan
-    if hourly_reading.relative_humidity is None:
-        hourly_reading.relative_humidity = math.nan
-    if hourly_reading.precipitation is None:
-        hourly_reading.precipitation = math.nan
-    if hourly_reading.wind_direction is None:
-        hourly_reading.wind_direction = math.nan
-    if hourly_reading.wind_speed is None:
-        hourly_reading.wind_speed = math.nan
-    return hourly_reading
 
 
 def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
