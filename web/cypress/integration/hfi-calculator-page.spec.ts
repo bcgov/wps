@@ -11,6 +11,7 @@ describe('HFI Calculator Page', () => {
 
     it('should display Daily View Table after landing on page', () => {
       cy.visit(HFI_CALC_ROUTE)
+      cy.getByTestId('daily-toggle').click()
       cy.wait('@getFireCentres')
       cy.wait('@getDaily')
       cy.getByTestId('hfi-calc-daily-table')
@@ -18,11 +19,13 @@ describe('HFI Calculator Page', () => {
 
     it('should have at least 15 rows in Daily Table View', () => {
       cy.visit(HFI_CALC_ROUTE)
+      cy.getByTestId('daily-toggle').click()
       cy.getByTestId('hfi-calc-daily-table').find('tr').should('have.length.at.least', 15)
     })
 
     it('should display weather results, intensity groups, & prep levels in Daily View Table', () => {
       cy.visit(HFI_CALC_ROUTE)
+      cy.getByTestId('daily-toggle').click()
       cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('239-hfi').contains(2655.5)
       cy.getByTestId('280-ros').contains(1.7)
@@ -48,6 +51,7 @@ describe('HFI Calculator Page', () => {
 
     it('should allow date of interest to be changed with DatePicker component', () => {
       cy.visit(HFI_CALC_ROUTE)
+      cy.getByTestId('daily-toggle').click()
       cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('date-of-interest-picker').type('2021-07-22')
       cy.getByTestId('hfi-calc-daily-table').click({ force: true })
@@ -65,6 +69,7 @@ describe('HFI Calculator Page', () => {
     })
     it('should display error icon for mean intensity group in Daily View Table', () => {
       cy.visit(HFI_CALC_ROUTE)
+      cy.getByTestId('daily-toggle').click()
       cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('306-ros').should('have.value', '')
       cy.getByTestId('306-hfi').should('have.value', '')
@@ -84,6 +89,7 @@ describe('HFI Calculator Page', () => {
     })
     it('should show highest intensity values for mean intensity group in Daily View Table', () => {
       cy.visit(HFI_CALC_ROUTE)
+      cy.get(`[aria-label="daily toggle"]`).click()
       cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('306-intensity-group').contains(5)
       cy.getByTestId('zone-1-mean-intensity').contains(5)
