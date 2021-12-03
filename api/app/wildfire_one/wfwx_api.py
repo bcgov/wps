@@ -19,7 +19,6 @@ from app.schemas.stations import (WeatherStation,
 from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_mapper, parse_noon_forecast,
                                              parse_station,
                                              generate_station_daily,
-                                             parse_hourly,
                                              parse_hourly_actual,
                                              station_list_mapper,
                                              wfwx_station_list_mapper)

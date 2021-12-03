@@ -6,6 +6,7 @@ from app.schemas.forecasts import NoonForecast
 
 
 def get_valid_flags(record: Union[WeatherReading, NoonForecast]):
+    """ Validate fields and return flags indiciating their validity """
     temp_valid = record.temperature is not None
     rh_valid = record.relative_humidity is not None and validate_metric(
         record.relative_humidity, 0, 100)

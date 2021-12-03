@@ -7,31 +7,31 @@ from app.wildfire_one.validation import validate_metric, get_valid_flags
 def test_validate_metric_below():
     """ Below range returns false """
     result = validate_metric(1, 2, 3)
-    assert result == False
+    assert result is False
 
 
 def test_validate_metric_above():
     """ Above range returns false """
     result = validate_metric(3, 1, 2)
-    assert result == False
+    assert result is False
 
 
 def test_validate_metric_within():
     """ Within range returns true """
     result = validate_metric(2, 1, 3)
-    assert result == True
+    assert result is True
 
 
 def test_validate_metric_at_low():
     """ At lower bound returns true """
     result = validate_metric(1, 1, 2)
-    assert result == True
+    assert result is True
 
 
 def test_validate_metric_at_high():
     """ At lower bound returns true """
     result = validate_metric(2, 1, 2)
-    assert result == True
+    assert result is True
 
 
 def test_temp_valid():
@@ -42,7 +42,7 @@ def test_temp_valid():
                                  wind_direction=None,
                                  precipitation=None)
     temp_valid, _, _, _, _ = get_valid_flags(test_record)
-    assert temp_valid == True
+    assert temp_valid is True
 
 
 def test_temp_invalid():
@@ -53,7 +53,7 @@ def test_temp_invalid():
                                  wind_direction=None,
                                  precipitation=None)
     temp_valid, _, _, _, _ = get_valid_flags(test_record)
-    assert temp_valid == False
+    assert temp_valid is False
 
 
 def test_wind_speed_valid():
@@ -64,7 +64,7 @@ def test_wind_speed_valid():
                                wind_direction=None,
                                precipitation=None)
     _, low_rh_valid, _, _, _ = get_valid_flags(low_valid)
-    assert low_rh_valid == True
+    assert low_rh_valid is True
 
     high_valid = WeatherReading(temperature=None,
                                 relative_humidity=100,
@@ -72,7 +72,7 @@ def test_wind_speed_valid():
                                 wind_direction=None,
                                 precipitation=None)
     _, high_rh_valid, _, _, _ = get_valid_flags(high_valid)
-    assert high_rh_valid == True
+    assert high_rh_valid is True
 
 
 def test_rh_invalid():
@@ -83,7 +83,7 @@ def test_rh_invalid():
                                wind_direction=None,
                                precipitation=None)
     _, low_rh_invalid, _, _, _ = get_valid_flags(low_valid)
-    assert low_rh_invalid == False
+    assert low_rh_invalid is False
 
     high_valid = WeatherReading(temperature=None,
                                 relative_humidity=101,
@@ -91,7 +91,7 @@ def test_rh_invalid():
                                 wind_direction=None,
                                 precipitation=None)
     _, high_rh_invalid, _, _, _ = get_valid_flags(high_valid)
-    assert high_rh_invalid == False
+    assert high_rh_invalid is False
 
 
 def test_wind_speed_valid():
@@ -102,7 +102,7 @@ def test_wind_speed_valid():
                                wind_direction=None,
                                precipitation=None)
     _, _, low_wind_speed_valid, _, _ = get_valid_flags(low_valid)
-    assert low_wind_speed_valid == True
+    assert low_wind_speed_valid is True
 
     high_valid = WeatherReading(temperature=None,
                                 relative_humidity=None,
@@ -110,7 +110,7 @@ def test_wind_speed_valid():
                                 wind_direction=None,
                                 precipitation=None)
     _, _, high_wind_speed_valid, _, _ = get_valid_flags(high_valid)
-    assert high_wind_speed_valid == True
+    assert high_wind_speed_valid is True
 
 
 def test_wind_speed_invalid():
@@ -121,7 +121,7 @@ def test_wind_speed_invalid():
                                wind_direction=None,
                                precipitation=None)
     _, _, low_wind_speed_invalid, _, _ = get_valid_flags(low_valid)
-    assert low_wind_speed_invalid == False
+    assert low_wind_speed_invalid is False
 
 
 def test_wdir_valid():
@@ -132,7 +132,7 @@ def test_wdir_valid():
                                wind_direction=0,
                                precipitation=None)
     _, _, _, low_wdir_valid, _ = get_valid_flags(low_valid)
-    assert low_wdir_valid == True
+    assert low_wdir_valid is True
 
     high_valid = WeatherReading(temperature=None,
                                 relative_humidity=None,
@@ -140,7 +140,7 @@ def test_wdir_valid():
                                 wind_direction=360,
                                 precipitation=None)
     _, _, _, high_wdir_valid, _ = get_valid_flags(high_valid)
-    assert high_wdir_valid == True
+    assert high_wdir_valid is True
 
 
 def test_wdir_invalid():
@@ -151,7 +151,7 @@ def test_wdir_invalid():
                                wind_direction=-1,
                                precipitation=None)
     _, _, _, low_wdir_invalid, _ = get_valid_flags(low_valid)
-    assert low_wdir_invalid == False
+    assert low_wdir_invalid is False
 
     high_valid = WeatherReading(temperature=None,
                                 relative_humidity=None,
@@ -159,7 +159,7 @@ def test_wdir_invalid():
                                 wind_direction=361,
                                 precipitation=None)
     _, _, _, high_wdir_invalid, _ = get_valid_flags(high_valid)
-    assert high_wdir_invalid == False
+    assert high_wdir_invalid is False
 
 
 def test_precip_valid():
@@ -170,7 +170,7 @@ def test_precip_valid():
                                wind_direction=None,
                                precipitation=0)
     _, _, _, _, low_precip_valid = get_valid_flags(low_valid)
-    assert low_precip_valid == True
+    assert low_precip_valid is True
 
     high_valid = WeatherReading(temperature=None,
                                 relative_humidity=None,
@@ -178,7 +178,7 @@ def test_precip_valid():
                                 wind_direction=None,
                                 precipitation=math.inf)
     _, _, _, _, high_precip_valid = get_valid_flags(high_valid)
-    assert high_precip_valid == True
+    assert high_precip_valid is True
 
 
 def test_precip_invalid():
@@ -189,4 +189,4 @@ def test_precip_invalid():
                                wind_direction=None,
                                precipitation=-1)
     _, _, _, _, low_precip_invalid = get_valid_flags(low_valid)
-    assert low_precip_invalid == False
+    assert low_precip_invalid is False
