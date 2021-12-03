@@ -19,14 +19,14 @@ const prepLevelColours: { [description: string]: string } = {
   bloodRed: '#B02318'
 }
 
-const DAILY_BACKGROUND_COLOR = 'FFFFFF'
+const DAILY_BACKGROUND_COLOR = 'white'
 
 const useStyles = makeStyles({
   ...fireTableStyles,
   prepLevel1: {
     ...fireTableStyles.calculatedPlanningCell,
     border: '2px solid ' + prepLevelColours.green,
-    background: 'white'
+    background: DAILY_BACKGROUND_COLOR
   },
   prepLevel2: {
     ...fireTableStyles.calculatedPlanningCell,
