@@ -43,11 +43,15 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
         value={props.isWeeklyView}
         className={classes.toggleGroup}
       >
-        <ToggleButton value={false} aria-label="daily toggle">
-          Daily Table
+        <ToggleButton
+          data-testid="prep-period-toggle"
+          value={true}
+          aria-label="prep toggle"
+        >
+          Prep Period
         </ToggleButton>
-        <ToggleButton value={true} aria-label="weekly toggle">
-          Weekly Table
+        <ToggleButton data-testid="daily-toggle" value={false} aria-label="daily toggle">
+          Daily Table
         </ToggleButton>
       </ToggleButtonGroup>
     </React.Fragment>
