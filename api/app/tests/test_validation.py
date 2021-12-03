@@ -56,7 +56,7 @@ def test_temp_invalid():
     assert temp_valid is False
 
 
-def test_wind_speed_valid():
+def test_rh_valid():
     """ 0 to 100 is valid for rh"""
     low_valid = WeatherReading(temperature=None,
                                relative_humidity=0,
