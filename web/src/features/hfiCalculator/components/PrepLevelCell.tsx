@@ -7,6 +7,7 @@ export interface PrepLevelCellProps {
   testid?: string
   meanIntensityGroup: number | undefined
   areaName: string
+  meanPrepLevel: boolean
 }
 
 const prepLevelColours: { [description: string]: string } = {
@@ -22,26 +23,50 @@ const useStyles = makeStyles({
   ...fireTableStyles,
   prepLevel1: {
     ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.green
+    border: '2px solid ' + prepLevelColours.green
   },
   prepLevel2: {
     ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.blue
+    border: '2px solid ' + prepLevelColours.blue
   },
   prepLevel3: {
     ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.yellow
+    border: '2px solid ' + prepLevelColours.yellow
   },
   prepLevel4: {
     ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.orange
+    border: '2px solid ' + prepLevelColours.orange
   },
   prepLevel5: {
+    ...fireTableStyles.calculatedPlanningCell,
+    border: '2px solid ' + prepLevelColours.brightRed
+  },
+  prepLevel6: {
+    ...fireTableStyles.calculatedPlanningCell,
+    border: '2px solid ' + prepLevelColours.bloodRed
+  },
+  meanPrepLevel1: {
+    ...fireTableStyles.calculatedPlanningCell,
+    background: prepLevelColours.green
+  },
+  meanPrepLevel2: {
+    ...fireTableStyles.calculatedPlanningCell,
+    background: prepLevelColours.blue
+  },
+  meanPrepLevel3: {
+    ...fireTableStyles.calculatedPlanningCell,
+    background: prepLevelColours.yellow
+  },
+  meanPrepLevel4: {
+    ...fireTableStyles.calculatedPlanningCell,
+    background: prepLevelColours.orange
+  },
+  meanPrepLevel5: {
     ...fireTableStyles.calculatedPlanningCell,
     background: prepLevelColours.brightRed,
     color: 'white'
   },
-  prepLevel6: {
+  meanPrepLevel6: {
     ...fireTableStyles.calculatedPlanningCell,
     background: prepLevelColours.bloodRed,
     color: 'white'
@@ -54,21 +79,40 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
   const prepLevel = calculatePrepLevel(props.meanIntensityGroup)
 
   const formatPrepLevelByValue = () => {
-    switch (prepLevel) {
-      case 1:
-        return classes.prepLevel1
-      case 2:
-        return classes.prepLevel2
-      case 3:
-        return classes.prepLevel3
-      case 4:
-        return classes.prepLevel4
-      case 5:
-        return classes.prepLevel5
-      case 6:
-        return classes.prepLevel6
-      default:
-        return classes.defaultBackground
+    if (props.meanPrepLevel == false || undefined) {
+      switch (prepLevel) {
+        case 1:
+          return classes.prepLevel1
+        case 2:
+          return classes.prepLevel2
+        case 3:
+          return classes.prepLevel3
+        case 4:
+          return classes.prepLevel4
+        case 5:
+          return classes.prepLevel5
+        case 6:
+          return classes.prepLevel6
+        default:
+          return classes.defaultBackground
+      }
+    } else {
+      switch (prepLevel) {
+        case 1:
+          return classes.meanPrepLevel1
+        case 2:
+          return classes.meanPrepLevel2
+        case 3:
+          return classes.meanPrepLevel3
+        case 4:
+          return classes.meanPrepLevel4
+        case 5:
+          return classes.meanPrepLevel5
+        case 6:
+          return classes.meanPrepLevel6
+        default:
+          return classes.defaultBackground
+      }
     }
   }
 
