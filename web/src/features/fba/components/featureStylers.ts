@@ -42,16 +42,47 @@ export const fireCenterStyler = (
   })
 }
 
+const construct_zone_code = (fire_centre_id: number, fire_zone_id: number): string => {
+  // zone_code = get_zone_code_prefix(fire_centre_id) + str(zone_alias)
+  // return null
+  const zone_code_prefix = get_zone_code_prefix(fire_centre_id)
+  return zone_code_prefix ? `${zone_code_prefix}${fire_zone_id}` : ''
+}
+
+const get_zone_code_prefix = (fire_centre_id: number): string | null => {
+  /* Returns the single-letter code corresponding to fire centre.
+    Used in constructing zone codes.
+    Fire centre-to-letter mappings provided by Eric Kopetski.
+    */
+  const fire_centre_to_zone_code_prefix: { [id: number]: string } = {
+    2: 'K', // Kamloops Fire Centre
+    5: 'G', // Prince George Fire Centre
+    6: 'R', // Northwest Fire Centre
+    3: 'C', // Cariboo Fire Centre
+    1: 'N', // Southeast Fire Centre
+    4: 'V' // Coastal Fire Centre
+  }
+  return fire_centre_id in fire_centre_to_zone_code_prefix
+    ? fire_centre_to_zone_code_prefix[fire_centre_id]
+    : null
+}
+
 const fireZoneTextStyler = (
   feature: RenderFeature | ol.Feature<Geometry>,
   resolution: number
 ): Text => {
-  const text = resolution > 3000 ? '' : feature.get('mof_fire_zone_name')
+  const text =
+    resolution > 3000
+      ? ''
+      : construct_zone_code(
+          feature.get('fire_centre_feature_id'),
+          feature.get('fire_zone_feature_id')
+        )
   return new Text({
     overflow: true,
-    fill: new Fill({ color: 'black' }),
+    fill: new Fill({ color: 'grey' }),
     stroke: new Stroke({ color: 'white', width: 1 }),
-    font: '14px sans-serif',
+    font: '15px sans-serif',
     text: text
   })
 }
@@ -74,6 +105,12 @@ export const fireZoneLableStyler = (
 ): Style => {
   return new Style({
     text: fireZoneTextStyler(feature, resolution)
+    // image: new CircleStyle({
+    //   radius: 5,
+    //   fill: new Fill({
+    //     color: 'black'
+    //   })
+    // })
   })
 }
 
@@ -100,16 +137,20 @@ export const stationStyler = (
   feature: RenderFeature | ol.Feature<Geometry>,
   resolution: number
 ): Style => {
-  console.log(feature)
-  return new Style({
-    image: new CircleStyle({
-      radius: 5,
-      fill: new Fill({
-        color: 'black'
-      })
-    }),
-    text: stationTextStyler(feature, resolution)
-  })
+  // NOTE: quick hack to make station styler correspond with theisian polygons
+  const colorIdx = Math.floor(feature.get('code') % (hfiColors.length - 1))
+  if (colorIdx < 2) {
+    return new Style({
+      image: new CircleStyle({
+        radius: 5,
+        fill: new Fill({
+          color: 'black'
+        })
+      }),
+      text: stationTextStyler(feature, resolution)
+    })
+  }
+  return new Style({})
 }
 
 const thessianPolygonStyle = new Style({})

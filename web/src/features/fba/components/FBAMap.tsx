@@ -67,7 +67,7 @@ const FBAMap = (props: FBAMapProps) => {
     source: new VectorTileSource({
       attributions: 'Government of British Columbia',
       format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.fire_zones_labels/{z}/{x}/{y}.pbf`
+      url: `${TILE_SERVER_URL}/public.fire_zones_labels_ext/{z}/{x}/{y}.pbf`
     }),
     style: fireZoneLableStyler,
     zIndex: 99
