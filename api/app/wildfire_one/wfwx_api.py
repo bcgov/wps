@@ -203,13 +203,14 @@ async def get_noon_forecasts_all_stations(
     station_code_dict = {station.wfwx_id: station.code for station in stations}
 
     for noon_forecast in forecasts:
-        try:
-            station_code = station_code_dict[(noon_forecast['stationId'])]
-            parsed_noon_forecast = parse_noon_forecast(station_code, noon_forecast)
-            if parsed_noon_forecast is not None:
-                noon_forecasts.append(parsed_noon_forecast)
-        except KeyError as exception:
-            logger.warning("Missing noon forecast for station code", exc_info=exception)
+        if noon_forecast.get('recordType', '').get('id') == 'FORECAST':
+            try:
+                station_code = station_code_dict[(noon_forecast['stationId'])]
+                parsed_noon_forecast = parse_noon_forecast(station_code, noon_forecast)
+                if parsed_noon_forecast is not None:
+                    noon_forecasts.append(parsed_noon_forecast)
+            except KeyError as exception:
+                logger.warning("Missing noon forecast for station code", exc_info=exception)
 
     return noon_forecasts
 

@@ -95,3 +95,9 @@ def test_get_ids_from_station_codes(mocker: MockFixture):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(run_test())
+
+
+def test_get_noon_forecasts(mocker: MockFixture):
+    """ Verifies the query builder returns the correct url and parameters for dailies by station code """
+    mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
+    mocker.patch('app.wildfire_one.wfwx_api.get_station_data', mock_get_stations)
