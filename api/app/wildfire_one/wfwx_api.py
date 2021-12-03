@@ -11,7 +11,7 @@ from app import config
 from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
 from app.db.models.forecasts import NoonForecast
-from app.schemas.hfi_calc import HFIWeatherStationsResponse, StationDaily
+from app.schemas.hfi_calc import StationDaily
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.fba import FireCentre
 from app.schemas.stations import (WeatherStation,
@@ -195,7 +195,7 @@ async def get_noon_forecasts_all_stations(
     async for noon_forecast in forecasts_iterator:
         forecasts.append(noon_forecast)
 
-    stations: List[HFIWeatherStationsResponse] = await get_station_data(
+    stations: List[WFWXWeatherStation] = await get_station_data(
         session,
         header,
         mapper=wfwx_station_list_mapper)
@@ -234,7 +234,7 @@ async def get_hourly_actuals_all_stations(
     async for hourly in hourlies_iterator:
         hourlies.append(hourly)
 
-    stations: List[HFIWeatherStationsResponse] = await get_station_data(
+    stations: List[WFWXWeatherStation] = await get_station_data(
         session,
         header,
         mapper=wfwx_station_list_mapper)
