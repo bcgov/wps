@@ -60,6 +60,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
             ></MeanIntensityGroupRollup>
             <FireStartsCell areaName={props.areaName} />
             <PrepLevelCell
+              meanPrepLevel={false}
               meanIntensityGroup={meanIntensityGroup}
               areaName={props.areaName}
             />
@@ -73,7 +74,11 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
         selectedStations={props.selected}
         meanIntensityGroup={highestMeanIntensityGroup}
       ></MeanIntensityGroupRollup>
-      <PrepLevelCell meanIntensityGroup={meanPrepLevel} areaName={props.areaName} />
+      <PrepLevelCell
+        meanPrepLevel={true}
+        meanIntensityGroup={meanPrepLevel}
+        areaName={props.areaName}
+      />
     </React.Fragment>
   )
 }
