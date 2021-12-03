@@ -27,13 +27,12 @@ import {
   stationStyler,
   thessianPolygonStyler
 } from 'features/fba/components/featureStylers'
-import zIndex from '@material-ui/core/styles/zIndex'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 5.45
 const BC_CENTER_FIRE_CENTERS = [-124.16748046874999, 54.584796743678744]
-const TILE_SERVER_URL = 'https://tileserv-dev.apps.silver.devops.gov.bc.ca'
+const TILE_SERVER_URL = 'https://wps-prod-tileserv.apps.silver.devops.gov.bc.ca'
 
 export interface FBAMapProps {
   testId?: string

@@ -80,21 +80,18 @@ const fireZoneTextStyler = (
         )
   return new Text({
     overflow: true,
-    fill: new Fill({ color: 'grey' }),
+    fill: new Fill({ color: 'black' }),
     stroke: new Stroke({ color: 'white', width: 1 }),
     font: '15px sans-serif',
     text: text
   })
 }
 
-export const fireZoneStyler = (
-  feature: RenderFeature | ol.Feature<Geometry>,
-  resolution: number
-): Style => {
+export const fireZoneStyler = (): Style => {
   return new Style({
     stroke: new Stroke({
-      color: 'grey',
-      width: 2
+      color: 'black',
+      width: 1
     })
   })
 }
