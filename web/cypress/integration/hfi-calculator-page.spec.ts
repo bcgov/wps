@@ -34,18 +34,14 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('280-fire-type').contains('IC')
       cy.getByTestId('280-intensity-group').contains(3)
       cy.getByTestId('zone-1-mean-intensity').contains(2.4)
-      cy.getByTestId('zone-1-mean-intensity').should($td => {
-        const className = $td[0].className
-        expect(className).to.match(/makeStyles-intensityGroupSolid2-/)
-      })
       cy.getByTestId('daily-prep-level-0').contains(1)
       cy.getByTestId('daily-prep-level-0').should($td => {
         const className = $td[0].className
-        expect(className).to.match(/makeStyles-prepLevel1-/)
+        expect(className).to.match(/makeStyles-meanPrepLevel1-/)
       })
       cy.getByTestId('daily-prep-level-2').contains(3)
       cy.getByTestId('daily-prep-level-2').should($td => {
-        expect($td[0].className).to.match(/makeStyles-prepLevel3-/)
+        expect($td[0].className).to.match(/makeStyles-meanPrepLevel3-/)
       })
     })
 
@@ -93,10 +89,6 @@ describe('HFI Calculator Page', () => {
       cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('306-intensity-group').contains(5)
       cy.getByTestId('zone-1-mean-intensity').contains(5)
-      cy.getByTestId('zone-1-mean-intensity').should($td => {
-        const className = $td[0].className
-        expect(className).to.match(/makeStyles-intensityGroupSolid5-/)
-      })
     })
   })
 })

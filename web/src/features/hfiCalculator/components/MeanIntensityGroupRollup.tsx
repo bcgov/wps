@@ -4,7 +4,6 @@ import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles
 import React from 'react'
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
-import { intensityGroupColours } from 'features/hfiCalculator/components/meanIntensity'
 import { fireTableStyles } from 'app/theme'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 

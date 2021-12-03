@@ -19,31 +19,39 @@ const prepLevelColours: { [description: string]: string } = {
   bloodRed: '#B02318'
 }
 
+const DAILY_BACKGROUND_COLOR = 'FFFFFF'
+
 const useStyles = makeStyles({
   ...fireTableStyles,
   prepLevel1: {
     ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.green
+    border: '2px solid ' + prepLevelColours.green,
+    background: 'white'
   },
   prepLevel2: {
     ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.blue
+    border: '2px solid ' + prepLevelColours.blue,
+    background: DAILY_BACKGROUND_COLOR
   },
   prepLevel3: {
     ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.yellow
+    border: '2px solid ' + prepLevelColours.yellow,
+    background: DAILY_BACKGROUND_COLOR
   },
   prepLevel4: {
     ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.orange
+    border: '2px solid ' + prepLevelColours.orange,
+    background: DAILY_BACKGROUND_COLOR
   },
   prepLevel5: {
     ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.brightRed
+    border: '2px solid ' + prepLevelColours.brightRed,
+    background: DAILY_BACKGROUND_COLOR
   },
   prepLevel6: {
     ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.bloodRed
+    border: '2px solid ' + prepLevelColours.bloodRed,
+    background: DAILY_BACKGROUND_COLOR
   },
   meanPrepLevel1: {
     ...fireTableStyles.calculatedPlanningCell,
@@ -79,7 +87,7 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
   const prepLevel = calculatePrepLevel(props.meanIntensityGroup)
 
   const formatPrepLevelByValue = () => {
-    if (props.meanPrepLevel == false || undefined) {
+    if (props.meanPrepLevel == false) {
       switch (prepLevel) {
         case 1:
           return classes.prepLevel1
