@@ -340,7 +340,7 @@ def parse_hourly_actual(station_code: int, hourly):
     if observation_valid is None or bool(observation_valid) is False:
         logger.warning("Invalid hourly received from WF1 API for station code %s at time %s: %s",
                        station_code,
-                       hourly_actual.weather_date.strftime("%b %d %Y %H:%M:%S"),
+                       hourly_actual.weather_date,
                        observation_valid_comment)
 
     is_obs_invalid = not temp_valid and not rh_valid and not wdir_valid\
@@ -348,8 +348,7 @@ def parse_hourly_actual(station_code: int, hourly):
 
     if is_obs_invalid:
         logger.error("Hourly actual not written to DB for station code %s at time %s: %s",
-                     station_code, hourly_actual.weather_date.strftime(
-                         "%b %d %Y %H:%M:%S"),
+                     station_code, hourly_actual.weather_date,
                      observation_valid_comment)
 
     # don't write the HourlyActual to our database if every value is invalid. If even one
