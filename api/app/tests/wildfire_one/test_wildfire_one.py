@@ -1,5 +1,6 @@
 """ Unit testing for WFWX API code """
 import asyncio
+import pytest
 from pytest_mock import MockFixture
 from app.wildfire_one.query_builders import (BuildQueryAllDailiesByRange, BuildQueryAllHourliesByRange,
                                              BuildQueryDailiesByStationCode)
@@ -57,21 +58,23 @@ station_2 = WFWXWeatherStation(code=code2, name="name", wfwx_id="two",
 all_stations = [station_1, station_2]
 
 
-async def mock_get_stations(_, __, **___):
-    """ Returns mocked WFWXWeatherStations. """
-    return all_stations
+@pytest.fixture()
+def mock_responses(mocker: MockFixture):
+    """ Mocks out hourly actuals as async result """
+    async def mock_get_stations(_, __, **___):
+        """ Returns mocked WFWXWeatherStations. """
+        return all_stations
 
+    def mock_get_fire_centre_station_codes(__):
+        """ Returns mocked WFWXWeatherStations codes. """
+        return all_station_codes
 
-def mock_get_fire_centre_station_codes(__):
-    """ Returns mocked WFWXWeatherStations codes. """
-    return all_station_codes
-
-
-def test_get_ids_from_station_codes_no_stations(mocker: MockFixture):
-    """ Verifies the query builder returns the correct url and parameters for dailies by station code """
     mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
     mocker.patch('app.wildfire_one.wfwx_api.get_station_data', mock_get_stations)
 
+
+def test_get_ids_from_station_codes_no_stations(mock_responses):
+    """ Verifies the query builder returns the correct url and parameters for dailies by station code """
     async def run_test():
         """ Async function to run test and assert result """
         result = await get_wfwx_stations_from_station_codes(None, {}, None)
@@ -82,10 +85,8 @@ def test_get_ids_from_station_codes_no_stations(mocker: MockFixture):
     loop.run_until_complete(run_test())
 
 
-def test_get_ids_from_station_codes(mocker: MockFixture):
+def test_get_ids_from_station_codes(mock_responses):
     """ Verifies the query builder returns the correct url and parameters for dailies by station code """
-    mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
-    mocker.patch('app.wildfire_one.wfwx_api.get_station_data', mock_get_stations)
 
     async def run_test():
         """ Async function to run test and assert result """
@@ -95,9 +96,3 @@ def test_get_ids_from_station_codes(mocker: MockFixture):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(run_test())
-
-
-def test_get_noon_forecasts(mocker: MockFixture):
-    """ Verifies the query builder returns the correct url and parameters for dailies by station code """
-    mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
-    mocker.patch('app.wildfire_one.wfwx_api.get_station_data', mock_get_stations)
