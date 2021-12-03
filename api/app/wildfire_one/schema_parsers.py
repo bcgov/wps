@@ -337,7 +337,7 @@ def parse_hourly_actual(station_code: int, hourly):
 
     observation_valid = hourly.get('observationValidInd'),
     observation_valid_comment = hourly.get('observationValidComment')
-    if observation_valid is None or observation_valid == False:
+    if observation_valid is None or bool(observation_valid) == False:
         logger.warning("Invalid hourly received from WF1 API for station code %s at time %s: %s",
                        station_code,
                        hourly_actual.weather_date.strftime("%b %d %Y %H:%M:%S"),
