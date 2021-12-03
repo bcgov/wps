@@ -4,7 +4,6 @@ import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles
 import React from 'react'
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
-import { intensityGroupColours } from 'features/hfiCalculator/components/meanIntensity'
 import { fireTableStyles } from 'app/theme'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 
@@ -16,27 +15,8 @@ export interface MeanIntensityGroupRollupProps {
 }
 
 const useStyles = makeStyles({
-  ...fireTableStyles,
-  intensityGroupSolid1: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: intensityGroupColours.lightGreen
-  },
-  intensityGroupSolid2: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: intensityGroupColours.cyan
-  },
-  intensityGroupSolid3: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: intensityGroupColours.yellow
-  },
-  intensityGroupSolid4: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: intensityGroupColours.orange
-  },
-  intensityGroupSolid5: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: intensityGroupColours.red,
-    color: 'white'
+  intensityGroup: {
+    ...fireTableStyles.calculatedPlanningCell
   },
   alignErrorIcon: {
     ...fireTableStyles.planningArea,
@@ -125,35 +105,15 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
         </Tooltip>
       </ThemeProvider>
     )
-  } else {
-    const formatAreaMeanIntensityGroupByValue = () => {
-      if (props.meanIntensityGroup === undefined) {
-        return classes.defaultBackground
-      }
-      if (props.meanIntensityGroup < 2) {
-        return classes.intensityGroupSolid1
-      }
-      if (props.meanIntensityGroup < 3) {
-        return classes.intensityGroupSolid2
-      }
-      if (props.meanIntensityGroup < 4) {
-        return classes.intensityGroupSolid3
-      }
-      if (props.meanIntensityGroup < 5) {
-        return classes.intensityGroupSolid4
-      } else {
-        return classes.intensityGroupSolid5
-      }
-    }
-    return (
-      <TableCell
-        className={formatAreaMeanIntensityGroupByValue()}
-        data-testid={`zone-${props.area.id}-mean-intensity`}
-      >
-        {props.meanIntensityGroup}
-      </TableCell>
-    )
   }
+  return (
+    <TableCell
+      className={classes.intensityGroup}
+      data-testid={`zone-${props.area.id}-mean-intensity`}
+    >
+      {props.meanIntensityGroup}
+    </TableCell>
+  )
 }
 
 export default React.memo(MeanIntensityGroupRollup)
