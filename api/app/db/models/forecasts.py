@@ -18,8 +18,26 @@ class NoonForecast(Base):
     __tablename__ = 'noon_forecasts'
     __table_args__ = (
         UniqueConstraint('weather_date',
+                         'update_date',
                          'station_code',
-                         'update_date'),
+                         'temp_valid',
+                         'temperature',
+                         'rh_valid',
+                         'relative_humidity',
+                         'wdir_valid',
+                         'wind_direction',
+                         'wspeed_valid',
+                         'wind_speed',
+                         'precip_valid',
+                         'precipitation',
+                         'gc',
+                         'ffmc',
+                         'dmc',
+                         'dc',
+                         'isi',
+                         'bui',
+                         'fwi',
+                         'danger_rating'),
         {'comment': 'The noon_forecast for a weather station and weather date.'}
     )
     id = Column(Integer, primary_key=True)
