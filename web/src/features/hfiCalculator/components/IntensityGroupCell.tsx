@@ -1,6 +1,5 @@
 import { makeStyles, TableCell } from '@material-ui/core'
 import { fireTableStyles } from 'app/theme'
-import { intensityGroupColours } from 'features/hfiCalculator/components/meanIntensity'
 import React from 'react'
 
 export interface IntensityGroupCellProps {
