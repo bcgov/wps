@@ -66,6 +66,8 @@ export const fireTableTheme = createTheme({
   }
 })
 
+export const TABLE_DEFAULT_COLOR = 'white'
+
 export const BACKGROUND_COLOR = { backgroundColor: '#e9ecf5' }
 
 export const PLANNING_AREA = {

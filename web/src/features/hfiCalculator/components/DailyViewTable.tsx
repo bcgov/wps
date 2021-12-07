@@ -62,7 +62,10 @@ export const dailyTableColumnLabels = [
 ]
 
 const useStyles = makeStyles({
-  ...fireTableStyles
+  ...fireTableStyles,
+  planningAreaBorder: {
+    borderTop: '2px solid #003366'
+  }
 })
 
 export const DailyViewTable = (props: Props): JSX.Element => {
@@ -254,7 +257,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
                       <TableRow
-                        className={classes.planningArea}
+                        className={
+                          classes.planningArea + ' ' + classes.planningAreaBorder
+                        }
                         key={`zone-${areaName}`}
                         data-testid={`zone-${areaName}`}
                       >

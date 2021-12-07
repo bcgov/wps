@@ -11,7 +11,7 @@ import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
-import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
+import { BACKGROUND_COLOR, fireTableStyles, TABLE_DEFAULT_COLOR } from 'app/theme'
 import { isEmpty, union } from 'lodash'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { getDailiesByStationCode, getZoneFromAreaName } from 'features/hfiCalculator/util'
@@ -44,7 +44,10 @@ export const weeklyTableColumnLabels: string[] = [
 ]
 
 const useStyles = makeStyles({
-  ...fireTableStyles
+  ...fireTableStyles,
+  planningAreaBorder: {
+    borderTop: '2px solid #003366'
+  }
 })
 
 export const WeeklyViewTable = (props: Props): JSX.Element => {
@@ -81,12 +84,17 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>
-          <StickyCell left={0} zIndexOffset={12} className={classes.noBottomBorder}>
+          <StickyCell
+            backgroundColor={TABLE_DEFAULT_COLOR}
+            left={0}
+            zIndexOffset={12}
+            className={classes.noBottomBorder}
+          >
             <TableCell className={classes.noBottomBorder}>
               {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
             </TableCell>
           </StickyCell>
-          <StickyCell left={50} zIndexOffset={12}>
+          <StickyCell backgroundColor={TABLE_DEFAULT_COLOR} left={50} zIndexOffset={12}>
             <TableCell key="header-location" className={classes.noBottomBorder}>
               Location
             </TableCell>
@@ -96,7 +104,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
             <br />
             (m)
           </TableCell>
-          <StickyCell left={234} zIndexOffset={12}>
+          <StickyCell backgroundColor={TABLE_DEFAULT_COLOR} left={234} zIndexOffset={12}>
             <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
               FBP
               <br />
@@ -105,7 +113,12 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               Type
             </TableCell>
           </StickyCell>
-          <StickyCell left={284} zIndexOffset={12} className={classes.rightBorder}>
+          <StickyCell
+            backgroundColor={TABLE_DEFAULT_COLOR}
+            left={284}
+            zIndexOffset={15}
+            className={classes.rightBorder}
+          >
             <TableCell className={classes.noBottomBorder}>
               Grass
               <br />
@@ -146,7 +159,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
                       <TableRow
-                        className={classes.planningArea}
+                        className={
+                          classes.planningArea + ' ' + classes.planningAreaBorder
+                        }
                         key={`zone-${areaName}`}
                         data-testid={`zone-${areaName}`}
                       >
