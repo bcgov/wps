@@ -170,6 +170,7 @@ def process_request_without_observation(requested_station: StationRequest,
     """ Process a request for which no observation/forecast is available """
     station_response = StationResponse(
         id=None if requested_station.id is None else requested_station.id,
+        zone_code=wfwx_station.zone_code,
         station_code=requested_station.station_code,
         station_name=wfwx_station.name,
         date=date_of_interest,
