@@ -1,6 +1,7 @@
-import { TableCell } from '@material-ui/core'
+import { makeStyles, TableCell } from '@material-ui/core'
 import { WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import { fireTableStyles } from 'app/theme'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
@@ -14,12 +15,18 @@ export interface StaticCellsProps {
   isRowSelected: boolean
 }
 
+const useStyles = makeStyles({
+  ...fireTableStyles
+})
+
 export const StaticCells = ({
   dailies,
   station,
   classNameForRow,
   isRowSelected
 }: StaticCellsProps): ReactElement => {
+  const classes = useStyles()
+
   const staticCells = dailies?.map(daily => {
     const error = !isValidGrassCure(daily, station.station_props)
     return (
@@ -47,7 +54,7 @@ export const StaticCells = ({
         {/* Prep Level */}
         <TableCell
           data-testid={`${daily.code}-prep-level`}
-          className={classNameForRow}
+          className={`${classNameForRow} ${classes.sectionSeparatorBorder}`}
         ></TableCell>
       </React.Fragment>
     )
