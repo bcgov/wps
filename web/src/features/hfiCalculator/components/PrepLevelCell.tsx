@@ -1,5 +1,5 @@
 import { makeStyles, TableCell } from '@material-ui/core'
-import { fireTableStyles } from 'app/theme'
+import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import React from 'react'
 
@@ -25,32 +25,38 @@ const useStyles = makeStyles({
   ...fireTableStyles,
   prepLevel1: {
     ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.green,
+    outline: '2px solid ' + prepLevelColours.green,
+    outlineOffset: '-2px',
     background: DAILY_BACKGROUND_COLOR
   },
   prepLevel2: {
     ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.blue,
+    outline: '2px solid ' + prepLevelColours.blue,
+    outlineOffset: '-2px',
     background: DAILY_BACKGROUND_COLOR
   },
   prepLevel3: {
     ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.yellow,
+    outline: '2px solid ' + prepLevelColours.yellow,
+    outlineOffset: '-2px',
     background: DAILY_BACKGROUND_COLOR
   },
   prepLevel4: {
     ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.orange,
+    outline: '2px solid ' + prepLevelColours.orange,
+    outlineOffset: '-2px',
     background: DAILY_BACKGROUND_COLOR
   },
   prepLevel5: {
     ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.brightRed,
+    outline: '2px solid ' + prepLevelColours.brightRed,
+    outlineOffset: '-2px',
     background: DAILY_BACKGROUND_COLOR
   },
   prepLevel6: {
     ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.bloodRed,
+    outline: '2px solid ' + prepLevelColours.bloodRed,
+    outlineOffset: '-2px',
     background: DAILY_BACKGROUND_COLOR
   },
   meanPrepLevel1: {
@@ -78,6 +84,11 @@ const useStyles = makeStyles({
     ...fireTableStyles.calculatedPlanningCell,
     background: prepLevelColours.bloodRed,
     color: 'white'
+  },
+  cellContainer: {
+    ...BACKGROUND_COLOR,
+    margin: 0,
+    padding: 0
   }
 })
 
@@ -125,8 +136,10 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
   }
 
   return (
-    <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
-      {prepLevel}
+    <TableCell className={classes.cellContainer}>
+      <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
+        {prepLevel}
+      </TableCell>
     </TableCell>
   )
 }
