@@ -25,9 +25,7 @@ const WeeklyROSCell = ({ daily, station, isRowSelected, error }: WeeklyROSCellPr
   return (
     <TableCell
       data-testid={`${station.code}-ros`}
-      className={
-        isRowSelected ? classes.sectionSeparatorBorder : classes.unselectedStation
-      }
+      className={isRowSelected ? undefined : classes.unselectedStation}
     >
       {error ? '' : daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
     </TableCell>

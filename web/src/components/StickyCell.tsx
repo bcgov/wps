@@ -1,4 +1,5 @@
 import { makeStyles, TableCell } from '@material-ui/core'
+import { TABLE_DEFAULT_COLOR } from 'app/theme'
 import React from 'react'
 
 interface StickyCellProps {
@@ -17,7 +18,7 @@ const StickyCell = (props: StickyCellProps) => {
       left: props.left,
       position: 'sticky',
       zIndex: theme.zIndex.appBar + props.zIndexOffset,
-      backgroundColor: props.backgroundColor ? props.backgroundColor : undefined
+      backgroundColor: props.backgroundColor ? props.backgroundColor : TABLE_DEFAULT_COLOR
     }
   }))
   const classes = useStyles()

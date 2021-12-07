@@ -14,10 +14,7 @@ const DayIndexHeaders = () => {
     <React.Fragment>
       {range(NUM_WEEK_DAYS).map(i => (
         <React.Fragment key={i}>
-          <TableCell
-            data-testid={`ros-header-${i}`}
-            className={`${i > 0 ? classes.sectionSeparatorBorder : undefined}`}
-          >
+          <TableCell data-testid={`ros-header-${i}`}>
             ROS
             <br />
             (m/min)
@@ -33,7 +30,10 @@ const DayIndexHeaders = () => {
             <br />
             Starts
           </TableCell>
-          <TableCell data-testid={`prep-level-header-${i}`}>
+          <TableCell
+            data-testid={`prep-level-header-${i}`}
+            className={classes.rightBorder}
+          >
             Prep
             <br />
             Level

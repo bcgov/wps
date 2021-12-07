@@ -98,7 +98,7 @@ export const fireTableStyles = createStyles({
     backgroundColor: '#ffffff'
   },
   sectionSeparatorBorder: {
-    borderLeft: '1px solid #C4C4C4'
+    borderRight: '1px solid #C4C4C4'
   },
   calculatedPlanningCell: {
     ...PLANNING_AREA,
