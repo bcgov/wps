@@ -42,35 +42,13 @@ class NoonForecastJob():
     def __init__(self):
         self.now = app.utils.time.get_utc_now()
 
-    def _get_start_date(self):
-        """ Helper function to get the start date for query (if morning run, use current day; if evening run,
-        use tomorrow's date, since we only want forecasts, not actuals) """
-        date = ''
-        now = self.now + timedelta(days=-50)   # returns time in UTC
-        if now.hour == 23:
-            # this is the evening run during Pacific Daylight Savings
-            date = now + timedelta(days=1)
-        else:
-            # this is either the morning run, or the evening run during
-            # Pacific Standard Time.
-            date = now
-        return date
-
-    def _get_end_date(self):
-        """ Helper function to get the end date for query (5 days in future)."""
-        five_days_ahead = self.now + timedelta(days=5)
-        return five_days_ahead
-
     async def run_wfwx(self):
         """ Entry point for running the bot """
         async with ClientSession() as session:
             header = await wfwx_api.get_auth_header(session)
 
-            start_date = self._get_start_date()
-            end_date = self._get_end_date()
-
             noon_forecasts = await wfwx_api.get_noon_forecasts_all_stations(
-                session, header, start_date, end_date)
+                session, header, self.now + timedelta(days=5))
 
         with app.db.database.get_write_session_scope() as session:
             for noon_forecast in noon_forecasts:

@@ -22,7 +22,7 @@ from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_map
                                              parse_hourly_actual,
                                              station_list_mapper,
                                              wfwx_station_list_mapper)
-from app.wildfire_one.query_builders import (BuildQueryAllActiveStations, BuildQueryAllDailiesByRange,
+from app.wildfire_one.query_builders import (BuildQueryAllActiveStations, BuildQueryAllForecastsByAfterStart,
                                              BuildQueryAllHourliesByRange,
                                              BuildQueryByStationCode,
                                              BuildQueryDailiesByStationCode)
@@ -178,8 +178,7 @@ async def get_hourly_readings(
 async def get_noon_forecasts_all_stations(
         session: ClientSession,
         header: dict,
-        start_timestamp: datetime,
-        end_timestamp: datetime) -> List[NoonForecast]:
+        start_timestamp: datetime) -> List[NoonForecast]:
     """ Get the noon forecasts for all stations.
     """
 
@@ -187,9 +186,8 @@ async def get_noon_forecasts_all_stations(
 
     # Iterate through "raw" forecast data.
     forecasts_iterator = fetch_paged_response_generator(
-        session, header, BuildQueryAllDailiesByRange(
-            math.floor(start_timestamp.timestamp() * 1000),
-            math.floor(end_timestamp.timestamp() * 1000)), 'dailies')
+        session, header, BuildQueryAllForecastsByAfterStart(
+            math.floor(start_timestamp.timestamp() * 1000)), 'dailies')
 
     forecasts = []
     async for noon_forecast in forecasts_iterator:
@@ -203,14 +201,13 @@ async def get_noon_forecasts_all_stations(
     station_code_dict = {station.wfwx_id: station.code for station in stations}
 
     for noon_forecast in forecasts:
-        if noon_forecast.get('recordType', '').get('id') == 'FORECAST':
-            try:
-                station_code = station_code_dict[(noon_forecast['stationId'])]
-                parsed_noon_forecast = parse_noon_forecast(station_code, noon_forecast)
-                if parsed_noon_forecast is not None:
-                    noon_forecasts.append(parsed_noon_forecast)
-            except KeyError as exception:
-                logger.warning("Missing noon forecast for station code", exc_info=exception)
+        try:
+            station_code = station_code_dict[(noon_forecast['stationId'])]
+            parsed_noon_forecast = parse_noon_forecast(station_code, noon_forecast)
+            if parsed_noon_forecast is not None:
+                noon_forecasts.append(parsed_noon_forecast)
+        except KeyError as exception:
+            logger.warning("Missing noon forecast for station code", exc_info=exception)
 
     return noon_forecasts
 

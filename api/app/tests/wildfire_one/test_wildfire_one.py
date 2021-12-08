@@ -2,7 +2,7 @@
 import asyncio
 import pytest
 from pytest_mock import MockFixture
-from app.wildfire_one.query_builders import (BuildQueryAllDailiesByRange, BuildQueryAllHourliesByRange,
+from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart, BuildQueryAllHourliesByRange,
                                              BuildQueryDailiesByStationCode)
 from app.wildfire_one.wfwx_api import (WFWXWeatherStation,
                                        get_wfwx_stations_from_station_codes)
@@ -20,15 +20,15 @@ def test_build_all_hourlies_query():
                       })
 
 
-def test_build_all_dailies_query():
+def test_build_forecasts_query():
     """ Verifies the query builder returns the correct url and parameters """
-    query_builder = BuildQueryAllDailiesByRange(0, 1)
+    query_builder = BuildQueryAllForecastsByAfterStart(0)
     result = query_builder.query(0)
     assert result == ("https://wf1/wfwx/v1/dailies/rsql",
                       {
                           'size': '1000',
                           'page': 0,
-                          'query': 'weatherTimestamp >=0;weatherTimestamp <1'
+                          'query': "weatherTimestamp >=0;recordType.id == 'FORECAST'"
                       })
 
 

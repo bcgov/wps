@@ -61,7 +61,7 @@ class NoonForecast(Base):
     isi = Column(Float, nullable=False, default=math.nan)
     bui = Column(Float, nullable=False, default=math.nan)
     fwi = Column(Float, nullable=False, default=math.nan)
-    danger_rating = Column(Integer, nullable=True, default=0)
+    danger_rating = Column(Integer, nullable=True, default=None)
     created_at = Column(TZTimeStamp, nullable=False,
                         default=time_utils.get_utc_now(), index=True)
     update_date = Column(TZTimeStamp, nullable=True, index=True)

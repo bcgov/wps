@@ -66,14 +66,15 @@ class BuildQueryAllHourliesByRange(BuildQuery):
         return url, params
 
 
-class BuildQueryAllDailiesByRange(BuildQuery):
+class BuildQueryAllForecastsByAfterStart(BuildQuery):
     """ Builds query for requesting all dailies in a time range"""
 
-    def __init__(self, start_timestamp: int, end_timestamp: int):
+    def __init__(self, start_timestamp: int):
         """ Initialize object """
         super().__init__()
         self.querystring: str = "weatherTimestamp >=" + \
-            str(start_timestamp) + ";" + "weatherTimestamp <" + str(end_timestamp)
+            str(start_timestamp) + ";" \
+            + "recordType.id == 'FORECAST'"
 
     def query(self, page) -> Tuple[str, dict]:
         """ Return query url for dailies between start_timestamp, end_timestamp"""
