@@ -253,6 +253,12 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   const meanIntensityGroup = calculateMeanIntensity(areaDailies)
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
+                      <TableRow>
+                        <TableCell
+                          colSpan={42}
+                          className={classes.planningAreaBorder}
+                        ></TableCell>
+                      </TableRow>
                       <TableRow
                         className={classes.planningArea}
                         key={`zone-${areaName}`}
