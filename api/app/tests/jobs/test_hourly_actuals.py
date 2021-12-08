@@ -1,4 +1,4 @@
-""" Unit testing for hourly actuals bot (Marvin) """
+""" Unit testing for hourly actuals job """
 import math
 import os
 import logging
