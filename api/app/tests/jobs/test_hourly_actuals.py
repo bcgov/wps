@@ -109,6 +109,7 @@ def test_invalid_metrics():
     hourly_actual = wfwx_api.parse_hourly_actual(1, raw_actual)
     assert isinstance(hourly_actual, HourlyActual)
     assert hourly_actual.temp_valid is True
+    assert hourly_actual.rh_valid is False
     assert hourly_actual.precip_valid is False
     assert hourly_actual.wspeed_valid is False
     assert hourly_actual.wdir_valid is False
@@ -133,5 +134,8 @@ def test_invalid_metrics_from_wfwx():
     hourly_actual = wfwx_api.parse_hourly_actual(1, raw_actual)
     assert isinstance(hourly_actual, HourlyActual)
     assert hourly_actual.temp_valid is True
+    assert hourly_actual.rh_valid is False
     assert hourly_actual.precip_valid is False
+    assert hourly_actual.wspeed_valid is False
+    assert hourly_actual.wdir_valid is False
     assert hourly_actual.precipitation is math.nan
