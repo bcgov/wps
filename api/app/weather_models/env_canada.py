@@ -1,6 +1,6 @@
 """ A script that downloads weather models from Environment Canada HTTP data server
-TODO: Move this file to app/models/ (not part of this PR as it makes comparing prev. version difficult -
-      there are so many changes, it's picked up as a delete instead of a move.)
+TODO: Move this file to app/jobs/ to live with the rest of the jobs: 
+https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5bbe203b8/issues/bcgov/wps/1601
 """
 
 import os
