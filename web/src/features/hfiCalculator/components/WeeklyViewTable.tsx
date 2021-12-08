@@ -105,7 +105,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               Type
             </TableCell>
           </StickyCell>
-          <StickyCell left={284} zIndexOffset={15}>
+          <StickyCell left={284} zIndexOffset={12} className={classes.rightBorder}>
             <TableCell className={`${classes.noBottomBorder}`}>
               Grass
               <br />
