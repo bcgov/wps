@@ -215,6 +215,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 left={284}
                                 zIndexOffset={11}
                                 backgroundColor={'#ffffff'}
+                                className={classes.rightBorder}
                               >
                                 <GrassCureCell
                                   value={
