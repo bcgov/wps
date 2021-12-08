@@ -14,7 +14,8 @@
           "end_day": 15
         },
         "elevation": 780,
-        "wfwx_station_uuid": ""
+        "wfwx_station_uuid": "",
+        "zone_code": "None"
       },
       "model": {
         "name": "Global Deterministic Prediction System",
