@@ -48,7 +48,7 @@ class NoonForecastJob():
             header = await wfwx_api.get_auth_header(session)
 
             noon_forecasts = await wfwx_api.get_noon_forecasts_all_stations(
-                session, header, self.now + timedelta(days=5))
+                session, header, self.now)
 
         with app.db.database.get_write_session_scope() as session:
             for noon_forecast in noon_forecasts:
