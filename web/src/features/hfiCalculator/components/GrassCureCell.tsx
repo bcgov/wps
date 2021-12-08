@@ -35,7 +35,7 @@ const toolTipElement = (
   </div>
 )
 
-const GrassCureProps = (props: GrassCureCellProps) => {
+const GrassCureCell = (props: GrassCureCellProps) => {
   const classes = useStyles()
   return isNull(props.value) && props.isGrassFuelType ? (
     <TableCell className={props.className}>
@@ -60,4 +60,4 @@ const GrassCureProps = (props: GrassCureCellProps) => {
   )
 }
 
-export default React.memo(GrassCureProps)
+export default React.memo(GrassCureCell)

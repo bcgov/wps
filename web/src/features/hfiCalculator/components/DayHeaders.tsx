@@ -1,6 +1,6 @@
 import { TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import { fireTableStyles, TABLE_DEFAULT_COLOR } from 'app/theme'
+import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { range } from 'lodash'
@@ -34,7 +34,6 @@ const DayHeaders = (props: DayHeadersProps) => {
         zIndexOffset={11}
         colSpan={2}
         className={classes.noBottomBorder}
-        backgroundColor={TABLE_DEFAULT_COLOR}
       >
         <TableCell
           className={`${classes.spaceHeader} ${classes.noBottomBorder}`}
@@ -46,7 +45,6 @@ const DayHeaders = (props: DayHeadersProps) => {
         colSpan={2}
         zIndexOffset={11}
         className={`${classes.rightBorder} ${classes.noBottomBorder}`}
-        backgroundColor={TABLE_DEFAULT_COLOR}
       >
         <TableCell className={classes.noBottomBorder}></TableCell>
       </StickyCell>
