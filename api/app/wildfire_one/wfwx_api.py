@@ -325,7 +325,7 @@ async def get_dailies(
     # build a list of wfwx station id's
     wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
 
-    timestamp_of_intereset = math.floor(time_of_interest.timestamp() * 1000)
+    timestamp_of_interset = math.floor(time_of_interest.timestamp() * 1000)
 
     # for local dev, we can use redis to reduce load in prod, and generally just makes development faster.
     # for production, it's more tricky - we don't want to put too much load on the wf1 api, but we don't
@@ -334,7 +334,7 @@ async def get_dailies(
     use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
 
     dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailiesByStationCode(
-        timestamp_of_intereset, timestamp_of_intereset, wfwx_station_ids), 'dailies',
+        timestamp_of_interset, timestamp_of_interset, wfwx_station_ids), 'dailies',
         use_cache=use_cache,
         cache_expiry_seconds=cache_expiry_seconds)
 
