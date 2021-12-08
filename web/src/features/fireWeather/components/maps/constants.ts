@@ -12,3 +12,8 @@ export const source = new XYZ({
   // however this endpoint only allows the origin of http://localhost:3000, so the text has been just copied from that link
   attributions: 'Government of British Columbia, DataBC, GeoBC'
 })
+
+export const monochrome_source = new XYZ({
+  url: `https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}`,
+  attributions: 'ARCGIS'
+})
