@@ -44,16 +44,7 @@ export const weeklyTableColumnLabels: string[] = [
 ]
 
 const useStyles = makeStyles({
-  ...fireTableStyles,
-  planningAreaBorder: {
-    borderTop: '2px solid #003366'
-  },
-  borderCollapse: {
-    borderCollapse: 'collapse'
-  },
-  borderCollapseSeparate: {
-    borderCollapse: 'separate'
-  }
+  ...fireTableStyles
 })
 
 export const WeeklyViewTable = (props: Props): JSX.Element => {
@@ -114,8 +105,8 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               Type
             </TableCell>
           </StickyCell>
-          <StickyCell left={284} zIndexOffset={12} className={classes.rightBorder}>
-            <TableCell className={`${classes.noBottomBorder} ${classes.borderCollapseSeparate}`}>
+          <StickyCell left={284} zIndexOffset={15}>
+            <TableCell className={`${classes.noBottomBorder}`}>
               Grass
               <br />
               Cure
@@ -154,10 +145,14 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                 .map(([areaName, area]) => {
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
+                      <TableRow>
+                        <TableCell
+                          colSpan={42}
+                          className={classes.planningAreaBorder}
+                        ></TableCell>
+                      </TableRow>
                       <TableRow
-                        className={
-                          classes.planningArea + ' ' + classes.planningAreaBorder
-                        }
+                        className={`${classes.planningArea}`}
                         key={`zone-${areaName}`}
                         data-testid={`zone-${areaName}`}
                       >
@@ -177,7 +172,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         <StickyCell
                           left={230}
                           zIndexOffset={10}
-                          className={`${classes.rightBorder}`}
+                          className={`${classes.defaultBackground}`}
                           colSpan={2}
                           backgroundColor={BACKGROUND_COLOR.backgroundColor}
                         >
@@ -220,7 +215,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 left={284}
                                 zIndexOffset={11}
                                 backgroundColor={'#ffffff'}
-                                className={classes.rightBorder}
                               >
                                 <GrassCureCell
                                   value={

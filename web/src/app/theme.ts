@@ -79,6 +79,10 @@ export const UNSELECTED_STATION_COLOR = 'rgba(0,0,0,0.54)'
 export const fireTableStyles = createStyles({
   defaultBackground: BACKGROUND_COLOR,
   planningArea: { ...BACKGROUND_COLOR, ...PLANNING_AREA },
+  planningAreaBorder: {
+    borderTop: '2px solid #003366',
+    padding: 0
+  },
   unselectedStation: { color: UNSELECTED_STATION_COLOR },
   controls: {
     display: 'flex',
@@ -112,7 +116,7 @@ export const fireTableStyles = createStyles({
     zIndex: 11 + theme.zIndex.appBar
   },
   rightBorder: {
-    borderRight: '1px solid #c4c4c4'
+    borderRight: '1px solid #C4C4C4'
   },
   noBottomBorder: {
     borderBottom: 'none'

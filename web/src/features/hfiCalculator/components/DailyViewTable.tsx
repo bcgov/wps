@@ -62,10 +62,7 @@ export const dailyTableColumnLabels = [
 ]
 
 const useStyles = makeStyles({
-  ...fireTableStyles,
-  planningAreaBorder: {
-    borderTop: '2px solid #003366'
-  }
+  ...fireTableStyles
 })
 
 export const DailyViewTable = (props: Props): JSX.Element => {
@@ -256,10 +253,14 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   const meanIntensityGroup = calculateMeanIntensity(areaDailies)
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
+                      <TableRow>
+                        <TableCell
+                          colSpan={42}
+                          className={classes.planningAreaBorder}
+                        ></TableCell>
+                      </TableRow>
                       <TableRow
-                        className={
-                          classes.planningArea + ' ' + classes.planningAreaBorder
-                        }
+                        className={classes.planningArea}
                         key={`zone-${areaName}`}
                         data-testid={`zone-${areaName}`}
                       >
