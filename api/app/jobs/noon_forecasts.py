@@ -6,7 +6,6 @@ import os
 import sys
 import logging
 import logging.config
-from datetime import timedelta
 from sqlalchemy.exc import IntegrityError
 from aiohttp.client import ClientSession
 from app import configure_logging

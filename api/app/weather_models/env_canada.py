@@ -1,8 +1,7 @@
 """ A script that downloads weather models from Environment Canada HTTP data server
-TODO: Move this file to app/jobs/ to live with the rest of the jobs: 
+TODO: Move this file to app/jobs/ to live with the rest of the jobs:
 https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5bbe203b8/issues/bcgov/wps/1601
 """
-
 import os
 import sys
 import datetime
