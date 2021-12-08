@@ -15,7 +15,7 @@
                 },
                 "elevation": 632,
                 "wfwx_station_uuid": "",
-                "zone_code": "None"
+                "zone_code": null
             },
             "model_runs": [
                 {
