@@ -5,7 +5,7 @@
             "id": 0,
             "station_code": 836,
             "station_name": "AUGUST LAKE",
-            "zone_code": null,
+            "zone_code": "K6",
             "elevation": 855,
             "fuel_type": "C1",
             "status": "N/A",

@@ -21,7 +21,7 @@ describe('IntensityGroupCell', () => {
       </TableContainer>
     )
     const cell = getByTestId('value1-color1')
-    expect(cell.className).toMatch(/makeStyles-intensityGroupOutline1-/)
+    expect(cell.className).toMatch(/makeStyles-intensityGroupCell-/)
     expect(getByText('1')).toBeDefined
   })
   it('should return cell with value 2 and color code 2', () => {
@@ -42,7 +42,7 @@ describe('IntensityGroupCell', () => {
       </TableContainer>
     )
     const cell = getByTestId('value2-color2')
-    expect(cell.className).toMatch(/makeStyles-intensityGroupOutline2-/)
+    expect(cell.className).toMatch(/makeStyles-intensityGroupCell-/)
     expect(getByText('2')).toBeDefined
   })
   it('should return cell with value 3 and color code 3', () => {
@@ -63,7 +63,7 @@ describe('IntensityGroupCell', () => {
       </TableContainer>
     )
     const cell = getByTestId('value3-color3')
-    expect(cell.className).toMatch(/makeStyles-intensityGroupOutline3-/)
+    expect(cell.className).toMatch(/makeStyles-intensityGroupCell-/)
     expect(getByText('3')).toBeDefined
   })
   it('should return cell with value 4 and color code 4', () => {
@@ -84,7 +84,7 @@ describe('IntensityGroupCell', () => {
       </TableContainer>
     )
     const cell = getByTestId('value4-color4')
-    expect(cell.className).toMatch(/makeStyles-intensityGroupOutline4-/)
+    expect(cell.className).toMatch(/makeStyles-intensityGroupCell-/)
     expect(getByText('4')).toBeDefined
   })
   it('should return cell with no value and no color coding', () => {
