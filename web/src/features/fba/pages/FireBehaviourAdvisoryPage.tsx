@@ -15,6 +15,7 @@ import { getStations, StationSource } from 'api/stationAPI'
 import { FireCenter } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { pstFormatter } from 'utils/date'
+import { fetchFBAsForStations } from 'features/fba/slices/fireBehaviourAdvisoriesSlice'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -75,7 +76,12 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   useEffect(() => {
     dispatch(fetchFireCenters())
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+    dispatch(fetchFBAsForStations(dateOfInterest))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    dispatch(fetchFBAsForStations(dateOfInterest))
+  }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <React.Fragment>

@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FBAResponse, FireCenter, getFBAFireCenters } from 'api/fbaAPI'
+import { FireCentersResponse, FireCenter, getFBAFireCenters } from 'api/fbaAPI'
 
 interface State {
   loading: boolean
@@ -29,7 +29,7 @@ const fireCentersSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getFireCentersSuccess(state: State, action: PayloadAction<FBAResponse>) {
+    getFireCentersSuccess(state: State, action: PayloadAction<FireCentersResponse>) {
       state.error = null
       state.fireCenters = action.payload.fire_centers
       state.loading = false
