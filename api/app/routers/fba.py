@@ -4,6 +4,7 @@ import logging
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.auth import authentication_required, audit
+from app.routers.fba_calc import get_stations_data
 from app.schemas.fba import FireCenterListResponse
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 

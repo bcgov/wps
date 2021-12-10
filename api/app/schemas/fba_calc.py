@@ -53,7 +53,7 @@ class CriticalHoursHFI(BaseModel):
     end: float
 
 
-class StationResponse(BaseModel):
+class FireBehaviourAdvisoryStationResponse(BaseModel):
     """ Response for one individual weather station.
     NOTE: Most of the values are optional, since if an observation/forecast isn't available,
     there's not much we can do.
@@ -91,4 +91,4 @@ class StationResponse(BaseModel):
 class StationsListResponse(BaseModel):
     """ Response for all weather stations, in a list """
     date: date
-    stations: List[StationResponse]
+    stations: List[FireBehaviourAdvisoryStationResponse]

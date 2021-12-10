@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
 from app.hourlies import get_hourly_readings_in_time_interval
 from app.schemas.fba_calc import (StationListRequest, StationRequest,
-                                  StationsListResponse, StationResponse)
+                                  StationsListResponse, FireBehaviourAdvisoryStationResponse)
 from app.utils import cffdrs
 from app.utils.time import get_hour_20_from_date
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
@@ -33,7 +33,7 @@ def prepare_response(  # pylint: disable=too-many-locals
         fba_station: FBACalculatorWeatherStation,
         raw_daily: dict,
         fire_behavour_advisory: FireBehaviourAdvisory
-) -> StationResponse:
+) -> FireBehaviourAdvisoryStationResponse:
     """ Construct a response object combining information from the request, the station from wf1,
     the daily response from wf1 and the fire behaviour advisory. """
     # TODO: Refactor this to simplify the flow of data & sources
@@ -52,7 +52,7 @@ def prepare_response(  # pylint: disable=too-many-locals
     duff_moisture_code = raw_daily.get('duffMoistureCode', None)
     fire_weather_index = raw_daily.get('fireWeatherIndex', None)
 
-    station_response = StationResponse(
+    station_response = FireBehaviourAdvisoryStationResponse(
         id=None if requested_station.id is None else requested_station.id,
         station_code=requested_station.station_code,
         station_name=wfwx_station.name,
@@ -93,7 +93,7 @@ async def process_request(
         wfwx_station: WFWXWeatherStation,
         requested_station: StationRequest,
         time_of_interest: datetime
-) -> StationResponse:
+) -> FireBehaviourAdvisoryStationResponse:
     """ Process a valid request """
 
     # pylint: disable=too-many-locals
@@ -157,6 +157,7 @@ async def process_request(
 
     # Calculate the fire behaviour advisory.
     fire_behaviour_advisory = calculate_fire_behaviour_advisory(fba_station)
+    logger.info(fire_behaviour_advisory)
 
     # Prepare the response
     return prepare_response(
@@ -166,9 +167,9 @@ async def process_request(
 def process_request_without_observation(requested_station: StationRequest,
                                         wfwx_station: WFWXWeatherStation,
                                         date_of_interest: date,
-                                        status) -> StationResponse:
+                                        status) -> FireBehaviourAdvisoryStationResponse:
     """ Process a request for which no observation/forecast is available """
-    station_response = StationResponse(
+    station_response = FireBehaviourAdvisoryStationResponse(
         id=None if requested_station.id is None else requested_station.id,
         zone_code=wfwx_station.zone_code,
         station_code=requested_station.station_code,
