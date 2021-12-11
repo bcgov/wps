@@ -50,11 +50,11 @@ export async function getFBAs(date: string): Promise<FBAResponse> {
 
   const allStations = await getStations(StationSource.wildfire_one, date)
 
-  // const fireBehaviourStations = allStations.map(station => ({
-  //   stationCode: station.properties.code,
-  //   fuelType: 'C3' // TODO: remove. Temporarily using arbitrarily chosen fuel type for all stations
-  // }))
-
+  // TODO later - fireBehaviourStations should be a long list of stations, not just 1
+  // needs:
+  //         - list of representative wx stations for all fire centres
+  //         - selected fuel type for each of the wx stations
+  //         - refactor our API to accept list of stations simultaneously, instead of just 1
   const fireBehaviourStations = [
     { station_code: allStations[3].properties.code, fuel_type: 'D1' }
   ]

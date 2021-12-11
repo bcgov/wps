@@ -6,13 +6,13 @@ import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDrop
 import FormalFBATable from 'features/fba/components/FormalFBATable'
 import DatePicker from 'components/DatePicker'
 import { DateTime } from 'luxon'
-import { selectFireCenters } from 'app/rootReducer'
+import { selectFireBehaviourAdvisories, selectFireCenters } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
-import { FireCenter } from 'api/fbaAPI'
+import { FBAResponse, FireCenter } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { pstFormatter } from 'utils/date'
 import { fetchFBAsForStations } from 'features/fba/slices/fireBehaviourAdvisoriesSlice'
@@ -24,7 +24,7 @@ const useStyles = makeStyles(() => ({
     height: 700
   },
   mapContainer: {
-    width: 900,
+    width: 800,
     height: 700
   },
   fireCenter: {
@@ -40,6 +40,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
+  const { fireBehaviourAdvisories } = useSelector(selectFireBehaviourAdvisories)
 
   const emptyInstructions = (
     <div data-testid={'fba-instructions'} className={classes.instructions}>
@@ -73,6 +74,11 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
   }
 
+  const [fbaResponse, setFbaResponse] = useState<FBAResponse>({
+    date: dateOfInterest,
+    fireBehaviourAdvisories: fireBehaviourAdvisories
+  })
+
   useEffect(() => {
     dispatch(fetchFireCenters())
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
@@ -81,6 +87,10 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchFBAsForStations(dateOfInterest))
+    setFbaResponse({
+      date: dateOfInterest,
+      fireBehaviourAdvisories: fireBehaviourAdvisories
+    })
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -117,6 +127,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               {fireCenter ? (
                 <FormalFBATable
                   fireCenter={fireCenter}
+                  fbaResponse={fbaResponse}
                   className={classes.listContainer}
                 />
               ) : (
