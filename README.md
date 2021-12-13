@@ -8,6 +8,8 @@
 
 ## Description
 
+Adding a dummy change to test CI
+
 Wildfire Predictive Services to support decision making in prevention, preparedness, response and recovery.
 
 ## Getting Started
