@@ -323,15 +323,15 @@ def rate_of_spread_t(fuel_type: FuelTypeEnum,
     return result[0]
 
 
-def rate_of_spread(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-arguments, disable=invalid-name
-                   isi: float,
-                   bui: float,
-                   fmc: float,
-                   sfc: float,
-                   pc: float,
-                   cc: float,
-                   pdf: float,
-                   cbh: float):
+def rate_of_spread(fuel_type: List[FuelTypeEnum],  # pylint: disable=too-many-arguments, disable=invalid-name
+                   isi: ndarray,
+                   bui: ndarray,
+                   fmc: ndarray,
+                   sfc: ndarray,
+                   pc: ndarray,
+                   cc: ndarray,
+                   pdf: ndarray,
+                   cbh: ndarray):
     """ Computes ROS by delegating to cffdrs R package.
     pdf: Percent Dead Balsam Fir (%)
 
@@ -352,34 +352,40 @@ def rate_of_spread(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-argument
 
     NOTE: For C1, only ISI and BUI is used to calculate ROS. All other inputs are ignored.
     """
-    if fuel_type is None or isi is None or bui is None or sfc is None:
+    if any(elem is None for elem in fuel_type) or \
+            any(elem is None for elem in isi) or \
+            any(elem is None for elem in bui) or \
+            any(elem is None for elem in sfc):
         message = PARAMS_ERROR_MESSAGE + \
-            f"_ROScalc ; fuel_type: {fuel_type.value}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
+            f"_ROScalc ; fuel_type: {fuel_type}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
         raise CFFDRSException(message)
 
     # For some reason, the registered converter can't turn a None to a NULL, but we need to
     # set these to NULL, despite setting a converter for None to NULL, because it it can only
     # convert a NULL to NULL. Doesn't make sense? Exactly.
     # https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.deviantart.com%2Ffirefox2014%2Fart%2FJackie-Chan-Meme-525778492&psig=AOvVaw3WsEdtu_OswdactmBuGmtH&ust=1625962534127000&source=images&cd=vfe&ved=0CAoQjRxqFwoTCNCc0dac1_ECFQAAAAAdAAAAABAD
-    if pc is None:
-        pc = NULL
-    if cc is None:
-        cc = NULL
-    if pdf is None:
-        pdf = NULL
-    if cbh is None:
-        cbh = NULL
-    # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=fuel_type.value,
-                                               ISI=isi,
-                                               BUI=bui,
-                                               FMC=fmc,
-                                               SFC=sfc,
-                                               PC=pc,
-                                               PDF=pdf,
-                                               CC=cc,
-                                               CBH=cbh)
-    return result[0]
+    pc = np.where(pc is None, NULL, pc)
+    cc = np.where(cc is None, NULL, cc)
+    pdf = np.where(pdf is None, NULL, pdf)
+    cbh = np.where(cbh is None, NULL, cbh)
+
+    # ROScalc does not accept arrays of fuel type, unlike other functions in the library,
+    # so we zip everything together and make multiple calls. Careful, order matters
+    params = zip(fuel_type, isi, bui, fmc, sfc, pc, pdf, cc, cbh)
+    results = []
+
+    for param in params:
+        result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=param[0],
+                                                   ISI=param[1],
+                                                   BUI=param[2],
+                                                   FMC=param[3],
+                                                   SFC=param[4],
+                                                   PC=param[5],
+                                                   PDF=param[6],
+                                                   CC=param[7],
+                                                   CBH=param[8])
+        results.append(result[0])
+    return results
 
 
 def surface_fuel_consumption(  # pylint: disable=invalid-name
