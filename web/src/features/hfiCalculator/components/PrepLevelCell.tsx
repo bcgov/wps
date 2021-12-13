@@ -84,7 +84,7 @@ const useStyles = makeStyles({
 const PrepLevelCell = (props: PrepLevelCellProps) => {
   const classes = useStyles()
 
-  const prepLevel = calculatePrepLevel(props.meanIntensityGroup)
+  const prepLevel = calculatePrepLevel(props.meanIntensityGroup, props.meanPrepLevel)
 
   const formatPrepLevelByValue = () => {
     if (!props.meanPrepLevel) {
