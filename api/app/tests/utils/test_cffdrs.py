@@ -26,13 +26,6 @@ def test_ros_no_bui():
                               cc=None, cbh=10)
 
 
-def test_ros_no_params():
-    """ ROS fails """
-    with pytest.raises(cffdrs.CFFDRSException):
-        cffdrs.rate_of_spread(FuelTypeEnum.C7, None, None, None, None, pc=100, pdf=None,
-                              cc=None, cbh=10)
-
-
 def test_foliar_moisture_content_list():
     expected = [85, 85]
     result = cffdrs.foliar_moisture_content(np.array([0, 1]), np.array(
@@ -67,3 +60,47 @@ def test_lb_ratio_none_failures():
 
     with pytest.raises(cffdrs.CFFDRSException):
         cffdrs.length_to_breadth_ratio([FuelTypeEnum.C1, FuelTypeEnum.C1], np.array([None, 1]))
+
+
+def test_rate_of_spread_failures():
+    """ ROS fails for required parameters """
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.rate_of_spread([None, FuelTypeEnum.C1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1])
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.rate_of_spread([FuelTypeEnum.C1, FuelTypeEnum.C1],
+                              [None, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1])
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.rate_of_spread([FuelTypeEnum.C1, FuelTypeEnum.C1],
+                              [0, 1],
+                              [None, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1])
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.rate_of_spread([FuelTypeEnum.C1, FuelTypeEnum.C1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [None, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1],
+                              [0, 1])
