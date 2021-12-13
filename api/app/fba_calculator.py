@@ -168,6 +168,7 @@ def calculate_cfb(fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: float, c
 
 def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> FireBehaviourAdvisory:
     """ Transform from the raw daily json object returned by wf1, to our fba_calc.StationResponse object.
+    Change to accept list of stations
     """
     # pylint: disable=too-many-locals
     # time of interest will be the same for all stations.
@@ -262,7 +263,7 @@ def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, ellapsed_min
     if fuel_type is None or ros is None or bros is None or lb_ratio is None:
         raise cffdrs.CFFDRSException()
     # Using acceleration:
-    fire_spread_distance = cffdrs.fire_distance(fuel_type, ros+bros, ellapsed_minutes, cfb)
+    fire_spread_distance = cffdrs.fire_distance(fuel_type, ros + bros, ellapsed_minutes, cfb)
     length_to_breadth_at_time = cffdrs.length_to_breadth_ratio_t(fuel_type, lb_ratio, ellapsed_minutes, cfb)
     # Not using acceleration:
     # fros = cffdrs.flank_rate_of_spread(ros, bros, lb_ratio)
@@ -337,7 +338,8 @@ def get_morning_diurnal_ffmc(hour_of_interest: int, prev_day_daily_ffmc: float, 
     morning_df = DiurnalFFMCLookupTable.instance().morning_df
 
     # find index (previous day's daily FFMC) of morning_df that is nearest to prev_day_daily_ffmc
-    row = morning_df.iloc[abs((morning_df.index - prev_day_daily_ffmc)).argsort()[:1]]
+    row = morning_df.iloc[abs(
+        (morning_df.index - prev_day_daily_ffmc)).argsort()[:1]]
 
     # the RH column labels are strings expressing ranges. Must extract lower and upper bounds
     for range_rh_value in row[hour_of_interest].columns:
@@ -356,17 +358,24 @@ def get_critical_hours_start(critical_ffmc: float, daily_ffmc: float,
     """ Returns the hour of day (on 24H clock) at which the hourly FFMC crosses the
     threshold of critical_ffmc.
     Returns None if the hourly FFMC never reaches critical_ffmc.
+
+    At what time does the critical threshold get exceeded
+
+    Instead of brute forcing, use binary search for searching for this
     """
     if last_observed_morning_rh_values is None:
         return None
     if daily_ffmc < critical_ffmc:
-        logger.debug('Daily FFMC %s < critical FFMC %s', daily_ffmc, critical_ffmc)
+        logger.debug('Daily FFMC %s < critical FFMC %s',
+                     daily_ffmc, critical_ffmc)
         # Daily FFMC represents peak burning, so diurnal hourly FFMC will never be higher than daily FFMC
         # if daily FFMC < critical FFMC, station will never reach critical FFMC at any hour of the day
         return None
     # else daily_ffmc >= critical_ffmc
-    logger.debug('Daily FFMC %s >= critical FFMC %s', daily_ffmc, critical_ffmc)
-    solar_noon_diurnal_ffmc = get_afternoon_overnight_diurnal_ffmc(13, daily_ffmc)
+    logger.debug('Daily FFMC %s >= critical FFMC %s',
+                 daily_ffmc, critical_ffmc)
+    solar_noon_diurnal_ffmc = get_afternoon_overnight_diurnal_ffmc(
+        13, daily_ffmc)
     if solar_noon_diurnal_ffmc >= critical_ffmc:
         clock_time = 12.0
         hourly_rh = last_observed_morning_rh_values[clock_time]
@@ -399,7 +408,8 @@ def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critica
         # the critical hour is going to extend into the afternoon, so set clock_time to then
         clock_time = 14.0
     else:
-        clock_time = critical_hour_start + 1.0    # increase time in increments of 1 hours
+        # increase time in increments of 1 hours
+        clock_time = critical_hour_start + 1.0
 
     while get_afternoon_overnight_diurnal_ffmc(clock_time, solar_noon_ffmc) >= critical_ffmc:
         clock_time += 1.0

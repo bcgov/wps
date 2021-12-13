@@ -1,7 +1,9 @@
 """ Unit testing for CFFDRS functions """
 import pytest
+from rpy2.rinterface import NULL
 from app.schemas.fba_calc import FuelTypeEnum
 from app.utils import cffdrs
+import numpy as np
 
 
 def test_ros():
@@ -29,3 +31,39 @@ def test_ros_no_params():
     with pytest.raises(cffdrs.CFFDRSException):
         cffdrs.rate_of_spread(FuelTypeEnum.C7, None, None, None, None, pc=100, pdf=None,
                               cc=None, cbh=10)
+
+
+def test_foliar_moisture_content_list():
+    expected = [85, 85]
+    result = cffdrs.foliar_moisture_content(np.array([0, 1]), np.array(
+        [0, 1]), np.array([0, 1]), np.array([0, 1]), np.array([0, 1]))
+    assert len(result) == 2
+    assert all([a == b for a, b in zip(result, expected)])
+
+
+def test_surface_fuel_consumption_none_failures():
+    """ SFC fails for required parameters """
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.surface_fuel_consumption([None, FuelTypeEnum.C1], [0, 1], [0, 1], [0, 1])
+
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.surface_fuel_consumption([FuelTypeEnum.C1, FuelTypeEnum.C1], [None, 1], [0, 1], [0, 1])
+
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.surface_fuel_consumption([FuelTypeEnum.C1, FuelTypeEnum.C1], [0, 1], [None, 1], [0, 1])
+
+
+def test_lb_ratio_list():
+    expected = [1.0, 1.0044173043651534]
+    result = cffdrs.length_to_breadth_ratio([FuelTypeEnum.C1, FuelTypeEnum.C1], np.array([0, 1]))
+    assert len(result) == 2
+    assert all([a == b for a, b in zip(result, expected)])
+
+
+def test_lb_ratio_none_failures():
+    """ SFC fails for required parameters """
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.length_to_breadth_ratio([None, FuelTypeEnum.C1], [0, 1])
+
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.length_to_breadth_ratio([FuelTypeEnum.C1, FuelTypeEnum.C1], np.array([None, 1]))

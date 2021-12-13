@@ -2,7 +2,9 @@
 """
 import logging
 import math
-from typing import Optional
+import numpy as np
+from numpy import ndarray
+from typing import List, Optional
 import rpy2.robjects as robjs
 from rpy2.robjects import DataFrame
 import rpy2.robjects.conversion as cv
@@ -10,6 +12,9 @@ from rpy2.rinterface import NULL
 import app.utils.r_importer
 from app.utils.singleton import Singleton
 from app.schemas.fba_calc import FuelTypeEnum
+
+import rpy2.robjects.numpy2ri
+rpy2.robjects.numpy2ri.activate()
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +48,7 @@ PARAMS_ERROR_MESSAGE = "One or more params passed to R call is None."
 
 def correct_wind_azimuth(wind_direction: float):
     """
-    #Corrections to reorient Wind Azimuth(WAZ)
+    # Corrections to reorient Wind Azimuth(WAZ)
     WAZ <- WD + pi
     WAZ <- ifelse(WAZ > 2 * pi, WAZ - 2 * pi, WAZ)
     """
@@ -104,7 +109,7 @@ def calculate_net_effective_windspeed(fuel_type: FuelTypeEnum,  # pylint: disabl
                                       cbh: float,
                                       isi: float):
     """
-    #Calculate the net effective windspeed (WSV)
+    # Calculate the net effective windspeed (WSV)
     WSV0 <- .Slopecalc(FUELTYPE, FFMC, BUI, WS, WAZ, GS, SAZ,
                         FMC, SFC, PC, PDF, CC, CBH, ISI, output = "WSV")
     WSV <- ifelse(GS > 0 & FFMC > 0, WSV0, WS)
@@ -378,10 +383,10 @@ def rate_of_spread(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-argument
 
 
 def surface_fuel_consumption(  # pylint: disable=invalid-name
-        fuel_type: FuelTypeEnum,
-        bui: float,
-        ffmc: float,
-        pc: float):
+        fuel_type: List[FuelTypeEnum],
+        bui: ndarray,
+        ffmc: ndarray,
+        pc: ndarray):
     """ Computes SFC by delegating to cffdrs R package
         Assumes a standard GFL of 0.35 kg/m ^ 2.
 
@@ -394,14 +399,15 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
     # Returns:
     #        SFC: Surface Fuel Consumption (kg/m^2)
     """
-    if fuel_type is None or bui is None or ffmc is None:
+    if any(elem is None for elem in fuel_type) or \
+            any(elem is None for elem in bui) or \
+            any(elem is None for elem in ffmc):
         message = PARAMS_ERROR_MESSAGE + \
-            f"_SFCcalc; fuel_type: {fuel_type.value}, bui: {bui}, ffmc: {ffmc}"
+            f"_SFCcalc; fuel_type: {fuel_type}, bui: {bui}, ffmc: {ffmc}"
         raise CFFDRSException(message)
-    if pc is None:
-        pc = NULL
+    pc = np.where(pc is None, NULL, pc)
     # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._SFCcalc(FUELTYPE=fuel_type.value,
+    result = CFFDRS.instance().cffdrs._SFCcalc(FUELTYPE=list(map(lambda x: x.value, fuel_type)),
                                                BUI=bui,
                                                FFMC=ffmc,
                                                PC=pc,
@@ -434,13 +440,16 @@ def fire_distance(fuel_type: FuelTypeEnum, ros_eq: float, hr: int, cfb: float): 
     return result[0]
 
 
-def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int,
-                            date_of_minimum_foliar_moisture_content: int = 0):
+""" Make these numpy array / regular array to compute multiple inputs """
+
+
+def foliar_moisture_content(lat: ndarray, long: ndarray, elv: ndarray, day_of_year: ndarray,
+                            date_of_minimum_foliar_moisture_content: ndarray = [0]):
     """ Computes FMC by delegating to cffdrs R package
         TODO: Find out the minimum fmc date that is passed as D0, for now it's 0. Passing 0 makes FFMCcalc
         calculate it.
 
-    # Args:
+    # Args, list of:
     #   LAT:    Latitude (decimal degrees)
     #   LONG:   Longitude (decimal degrees)
     #   ELV:    Elevation (metres)
@@ -448,21 +457,20 @@ def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int,
     #   D0:     Date of minimum foliar moisture content
     #           (constant date, set by geography across province, 5 different dates)
     #
-    # Returns:
+    # Returns, list of:
     #   FMC:    Foliar Moisture Content
      """
     # pylint: disable=protected-access, no-member
     logger.debug('calling _FMCcalc(LAT=%s, LONG=%s, ELV=%s, DJ=%s, D0=%s)', lat,
                  long, elv, day_of_year, date_of_minimum_foliar_moisture_content)
     # FMCcalc expects longitude to always be a positive number.
-    if long < 0:
-        long = -long
+    long = np.where(long < 0, -long, long)
     result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv,
                                                DJ=day_of_year, D0=date_of_minimum_foliar_moisture_content)
-    return result[0]
+    return result
 
 
-def length_to_breadth_ratio(fuel_type: FuelTypeEnum, wind_speed: float):
+def length_to_breadth_ratio(fuel_type: List[FuelTypeEnum], wind_speed: ndarray):
     """ Computes L/B ratio by delegating to cffdrs R package
 
     # Args:
@@ -471,11 +479,14 @@ def length_to_breadth_ratio(fuel_type: FuelTypeEnum, wind_speed: float):
     # Returns:
     #   LB: Length to Breadth ratio
     """
-    if wind_speed is None or fuel_type is None:
-        return CFFDRSException()
+    if any(elem is None for elem in fuel_type) or \
+            any(elem is None for elem in wind_speed):
+        raise CFFDRSException()
+
     # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._LBcalc(FUELTYPE=fuel_type.value, WSV=wind_speed)
-    return result[0]
+    result = CFFDRS.instance().cffdrs._LBcalc(
+        FUELTYPE=list(map(lambda x: x.value, fuel_type)), WSV=wind_speed)
+    return result
 
 
 def length_to_breadth_ratio_t(fuel_type: FuelTypeEnum,  # pylint: disable=invalid-name
@@ -550,7 +561,8 @@ def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False): 
     #   ISI:    Intial Spread Index
     """
     # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed, fbpMod=fbpMod)
+    result = CFFDRS.instance().cffdrs._ISIcalc(
+        ffmc=ffmc, ws=wind_speed, fbpMod=fbpMod)
     return result[0]
 
 
@@ -690,7 +702,8 @@ def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
         'temp': temperature,
         'rh': relative_humidity,
         'ws': wind_speed,
-        'prec': precip / 24     # the precip received will be based on the previous 24 hours, but the
+        # the precip received will be based on the previous 24 hours, but the
+        'prec': precip / 24
         # R function requires 1-hour rainfall. We don't have hourly data, so the best we can do is
         # take the mean amount of precip for the past 24 hours. This is a liberal approximation
         # with a lot of hand-waving.
@@ -716,7 +729,8 @@ def get_ffmc_for_target_hfi(    # pylint: disable=too-many-arguments
         """
     # start off using the actual FFMC value
     experimental_ffmc = ffmc
-    experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
+    experimental_sfc = surface_fuel_consumption(
+        fuel_type, bui, experimental_ffmc, percentage_conifer)
     experimental_isi = initial_spread_index(experimental_ffmc, wind_speed)
     experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc, experimental_sfc,
                                       percentage_conifer,
@@ -739,11 +753,14 @@ def get_ffmc_for_target_hfi(    # pylint: disable=too-many-arguments
         if experimental_ffmc <= 0.1:
             break
         if error_hfi > 0:  # if the error value is a positive number, make experimental FFMC value bigger
-            experimental_ffmc = min(101, experimental_ffmc + ((101 - experimental_ffmc)/2))
+            experimental_ffmc = min(
+                101, experimental_ffmc + ((101 - experimental_ffmc) / 2))
         else:  # if the error value is a negative number, need to make experimental FFMC value smaller
-            experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc)/2))
+            experimental_ffmc = max(
+                0, experimental_ffmc - ((101 - experimental_ffmc) / 2))
         experimental_isi = initial_spread_index(experimental_ffmc, wind_speed)
-        experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
+        experimental_sfc = surface_fuel_consumption(
+            fuel_type, bui, experimental_ffmc, percentage_conifer)
         experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc,
                                           experimental_sfc, percentage_conifer,
                                           grass_cure, percentage_dead_balsam_fir, crown_base_height)
