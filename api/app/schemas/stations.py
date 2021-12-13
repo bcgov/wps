@@ -54,6 +54,7 @@ class GeoJsonDetailedWeatherStation(BaseModel):
 
 class WeatherStation(BaseModel):
     """ A fire weather station has a code, name and geographical coordinate. """
+    zone_code: Optional[str] = None
     code: int
     name: str
     lat: float
