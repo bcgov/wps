@@ -117,6 +117,7 @@ def parse_station(station) -> WeatherStation:
     ecodiv_name = EcodivisionSeasons.instance().get_ecodivision_name(
         station['stationCode'], station['latitude'], station['longitude'])
     return WeatherStation(
+        zone_code=construct_zone_code(station),
         code=station['stationCode'],
         name=station['displayLabel'],
         lat=station['latitude'],
