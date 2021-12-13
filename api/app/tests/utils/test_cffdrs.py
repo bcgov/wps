@@ -47,8 +47,19 @@ def test_surface_fuel_consumption_none_failures():
 
 
 def test_lb_ratio_list():
+    """ Computes lb ratio based on list of values"""
     expected = [1.0, 1.0044173043651534]
     result = cffdrs.length_to_breadth_ratio([FuelTypeEnum.C1, FuelTypeEnum.C1], np.array([0, 1]))
+    assert len(result) == 2
+    assert all([a == b for a, b in zip(result, expected)])
+
+
+def test_rate_of_spread_list():
+    """ Computes ros based on list of values """
+    expected = [1e-06, 1.950609222540345e-06]
+
+    result = cffdrs.rate_of_spread([FuelTypeEnum.C1, FuelTypeEnum.C1], np.array([0, 1]), np.array([0, 1]), np.array(
+        [0, 1]), np.array([0, 1]), np.array([0, 1]), np.array([0, 1]), np.array([0, 1]), np.array([0, 1]))
     assert len(result) == 2
     assert all([a == b for a, b in zip(result, expected)])
 

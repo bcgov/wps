@@ -375,7 +375,7 @@ def rate_of_spread(fuel_type: List[FuelTypeEnum],  # pylint: disable=too-many-ar
     results = []
 
     for param in params:
-        result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=param[0],
+        result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=param[0].value,
                                                    ISI=param[1],
                                                    BUI=param[2],
                                                    FMC=param[3],
