@@ -15,7 +15,7 @@ export const source = new XYZ({
 
 // This "monochrome" source doesn't have the level of detail that the roads layers does,
 // but it's much cleaner.
-export const monochrome_source = new XYZ({
+export const monochromeSource = new XYZ({
   url: `https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}`,
   attributions: [
     'Esri',
