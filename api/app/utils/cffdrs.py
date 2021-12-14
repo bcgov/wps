@@ -55,7 +55,8 @@ def correct_wind_azimuth(wind_direction: float):
     return waz
 
 
-def calculate_wind_speed(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-arguments, disable=invalid-name
+# pylint: disable=too-many-arguments, disable=invalid-name
+def calculate_wind_speed(fuel_type: FuelTypeEnum,
                          ffmc: float,
                          bui: float,
                          ws: float,
@@ -739,9 +740,9 @@ def get_ffmc_for_target_hfi(    # pylint: disable=too-many-arguments
         if experimental_ffmc <= 0.1:
             break
         if error_hfi > 0:  # if the error value is a positive number, make experimental FFMC value bigger
-            experimental_ffmc = min(101, experimental_ffmc + ((101 - experimental_ffmc)/2))
+            experimental_ffmc = min(101, experimental_ffmc + ((101 - experimental_ffmc) / 2))
         else:  # if the error value is a negative number, need to make experimental FFMC value smaller
-            experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc)/2))
+            experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc) / 2))
         experimental_isi = initial_spread_index(experimental_ffmc, wind_speed)
         experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
         experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc,
