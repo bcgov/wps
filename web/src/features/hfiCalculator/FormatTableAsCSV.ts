@@ -60,7 +60,8 @@ export class FormatTableAsCSV {
           })
           const areaDailies = getDailiesForArea(area, dailies, stationCodesInArea)
           const meanIntensityGroup = calculateMeanIntensity(areaDailies)
-          const areaPrepLevel = calculatePrepLevel(meanIntensityGroup)
+          const isMeanPrepLevel = false
+          const areaPrepLevel = calculatePrepLevel(meanIntensityGroup, isMeanPrepLevel)
           rowsAsStrings.push(
             CSV.stringify(
               `${area.name}, ${Array(21).join(
@@ -180,11 +181,13 @@ export class FormatTableAsCSV {
       dailyMeanIntensityGroups
     )
     const meanIntensityGroup = calculateMeanIntensityGroupLevel(dailyMeanIntensityGroups)
-    const calcPrepLevel = calculatePrepLevel(meanIntensityGroup)
+    const isMeanPrepLevel = true
+    const calcPrepLevel = calculatePrepLevel(meanIntensityGroup, isMeanPrepLevel)
 
     Array.from(range(NUM_WEEK_DAYS)).forEach(day => {
       const dailyIntensityGroup = dailyMeanIntensityGroups[day]
-      const areaDailyPrepLevel = calculatePrepLevel(dailyIntensityGroup)
+      const isMeanPrepLevel = false
+      const areaDailyPrepLevel = calculatePrepLevel(dailyIntensityGroup, isMeanPrepLevel)
       const fireStarts = '0-1' // hard-coded for now
 
       areaWeeklySummary.push(
