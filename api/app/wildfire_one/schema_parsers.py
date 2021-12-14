@@ -115,6 +115,7 @@ def parse_station(station) -> WeatherStation:
     ecodiv_name = EcodivisionSeasons.instance().get_ecodivision_name(
         station['stationCode'], station['latitude'], station['longitude'])
     return WeatherStation(
+        zone_code=construct_zone_code(station),
         code=station['stationCode'],
         name=station['displayLabel'],
         lat=station['latitude'],
@@ -129,7 +130,7 @@ def parse_hourly(hourly) -> WeatherReading:
     """ Transform from the raw hourly json object returned by wf1, to our hourly object.
     """
     timestamp = datetime.fromtimestamp(
-        int(hourly['weatherTimestamp'])/1000, tz=timezone.utc).isoformat()
+        int(hourly['weatherTimestamp']) / 1000, tz=timezone.utc).isoformat()
     return WeatherReading(
         datetime=timestamp,
         temperature=hourly.get('temperature', None),
