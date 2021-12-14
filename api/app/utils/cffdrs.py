@@ -324,14 +324,14 @@ def rate_of_spread_t(fuel_type: FuelTypeEnum,
 
 
 def rate_of_spread(fuel_type: List[FuelTypeEnum],  # pylint: disable=too-many-arguments, disable=invalid-name
-                   isi: ndarray,
-                   bui: ndarray,
-                   fmc: ndarray,
-                   sfc: ndarray,
-                   pc: ndarray,
-                   cc: ndarray,
-                   pdf: ndarray,
-                   cbh: ndarray):
+                   isi: np.array,
+                   bui: np.array,
+                   fmc: np.array,
+                   sfc: np.array,
+                   pc: np.array,
+                   cc: np.array,
+                   pdf: np.array,
+                   cbh: np.array):
     """ Computes ROS by delegating to cffdrs R package.
     pdf: Percent Dead Balsam Fir (%)
 
@@ -385,9 +385,9 @@ def rate_of_spread(fuel_type: List[FuelTypeEnum],  # pylint: disable=too-many-ar
 
 def surface_fuel_consumption(  # pylint: disable=invalid-name
         fuel_type: List[FuelTypeEnum],
-        bui: ndarray,
-        ffmc: ndarray,
-        pc: ndarray):
+        bui: np.array,
+        ffmc: np.array,
+        pc: np.array):
     """ Computes SFC by delegating to cffdrs R package
         Assumes a standard GFL of 0.35 kg/m ^ 2.
 
@@ -471,7 +471,7 @@ def foliar_moisture_content(lat: ndarray, long: ndarray, elv: ndarray, day_of_ye
     return result
 
 
-def length_to_breadth_ratio(fuel_type: List[FuelTypeEnum], wind_speed: ndarray):
+def length_to_breadth_ratio(fuel_type: List[FuelTypeEnum], wind_speed: np.array):
     """ Computes L/B ratio by delegating to cffdrs R package
 
     # Args:
@@ -567,8 +567,11 @@ def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False): 
     return result[0]
 
 
-def crown_fraction_burned(fuel_type: List[FuelTypeEnum], fmc: ndarray, sfc: ndarray,
-                          ros: ndarray, cbh: ndarray) -> float:
+def crown_fraction_burned(fuel_type: List[FuelTypeEnum],
+                          fmc: np.array,
+                          sfc: np.array,
+                          ros: np.array,
+                          cbh: np.array) -> float:
     """ Computes Crown Fraction Burned (CFB) by delegating to cffdrs R package.
     Value returned will be between 0-1.
 
@@ -591,11 +594,11 @@ def crown_fraction_burned(fuel_type: List[FuelTypeEnum], fmc: ndarray, sfc: ndar
 
     cbh = np.where(cbh is None, NULL, cbh)
     # TODO figure out way to set no height fuel types
-    result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=["C1", "C1"],
-                                               FMC=ndarray([1, 1]),
-                                               SFC=ndarray([1, 1]),
-                                               ROS=ndarray([1, 1]),
-                                               CBH=ndarray([1, 1]))
+    result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=np.array(fuel_type),
+                                               FMC=np.array(fmc),
+                                               SFC=np.array(sfc),
+                                               ROS=np.array(ros),
+                                               CBH=np.array(cbh))
     return result
 
 
