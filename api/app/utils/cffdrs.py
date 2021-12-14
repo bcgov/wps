@@ -371,21 +371,16 @@ def rate_of_spread(fuel_type: List[FuelTypeEnum],  # pylint: disable=too-many-ar
 
     # ROScalc does not accept arrays of fuel type, unlike other functions in the library,
     # so we zip everything together and make multiple calls. Careful, order matters
-    params = zip(fuel_type, isi, bui, fmc, sfc, pc, pdf, cc, cbh)
-    results = []
-
-    for param in params:
-        result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=param[0].value,
-                                                   ISI=param[1],
-                                                   BUI=param[2],
-                                                   FMC=param[3],
-                                                   SFC=param[4],
-                                                   PC=param[5],
-                                                   PDF=param[6],
-                                                   CC=param[7],
-                                                   CBH=param[8])
-        results.append(result[0])
-    return results
+    result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=np.array(fuel_type),
+                                               ISI=np.array(isi),
+                                               BUI=np.array(bui),
+                                               FMC=np.array(fmc),
+                                               SFC=np.array(sfc),
+                                               PC=np.array(pc),
+                                               PDF=np.array(pdf),
+                                               CC=np.array(cc),
+                                               CBH=np.array(cbh))
+    return result
 
 
 def surface_fuel_consumption(  # pylint: disable=invalid-name
@@ -572,8 +567,8 @@ def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False): 
     return result[0]
 
 
-def crown_fraction_burned(fuel_type: FuelTypeEnum, fmc: float, sfc: float,
-                          ros: float, cbh: float) -> float:
+def crown_fraction_burned(fuel_type: List[FuelTypeEnum], fmc: ndarray, sfc: ndarray,
+                          ros: ndarray, cbh: ndarray) -> float:
     """ Computes Crown Fraction Burned (CFB) by delegating to cffdrs R package.
     Value returned will be between 0-1.
 
@@ -589,15 +584,19 @@ def crown_fraction_burned(fuel_type: FuelTypeEnum, fmc: float, sfc: float,
     #   CFB, CSI, RSO depending on which option was selected.
     """
     # pylint: disable=protected-access, no-member
-    if cbh is None:
-        cbh = NULL
-    if cbh is None or fmc is None:
+    if any(elem is None for elem in cbh) or any(elem is None for elem in fmc):
         message = PARAMS_ERROR_MESSAGE + \
-            f"_CFBcalc; fuel_type: {fuel_type.value}, cbh: {cbh}, fmc: {fmc}"
+            f"_CFBcalc; fuel_type: {fuel_type}, cbh: {cbh}, fmc: {fmc}"
         raise CFFDRSException(message)
-    result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=fuel_type.value, FMC=fmc, SFC=sfc,
-                                               ROS=ros, CBH=cbh)
-    return result[0]
+
+    cbh = np.where(cbh is None, NULL, cbh)
+    # TODO figure out way to set no height fuel types
+    result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=["C1", "C1"],
+                                               FMC=ndarray([1, 1]),
+                                               SFC=ndarray([1, 1]),
+                                               ROS=ndarray([1, 1]),
+                                               CBH=ndarray([1, 1]))
+    return result
 
 
 def total_fuel_consumption(  # pylint: disable=invalid-name
