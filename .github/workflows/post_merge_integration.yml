@@ -108,6 +108,7 @@ jobs:
         run: |
           source ~/.poetry/env
           export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
+          export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6:/$LD_PRELOAD
           export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATHpoetry
           export ORIGINS=testorigin
           poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings -vvv
