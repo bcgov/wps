@@ -14,13 +14,13 @@ export interface FireBehaviourAdvisory {
   fuel_type: FuelTypes
   grass_cure?: number
   wind_speed: number
-  hfi: number
-  ros: number
-  thirty_min_fire_size: number
-  sixty_min_fire_size: number
+  head_fire_intensity: number
+  rate_of_spread: number
+  thirty_minute_fire_size: number
+  sixty_minute_fire_size: number
   fire_type: string
-  critical_hours_4000?: string
-  critical_hours_10000?: string
+  critical_hours_hfi_4000?: string
+  critical_hours_hfi_10000?: string
 }
 
 export interface FireCenter {
@@ -63,5 +63,5 @@ export async function getFBAs(date: string): Promise<FBAResponse> {
     date: date,
     stations: fireBehaviourStations
   })
-  return data
+  return { date: data.date, fireBehaviourAdvisories: data.stations }
 }

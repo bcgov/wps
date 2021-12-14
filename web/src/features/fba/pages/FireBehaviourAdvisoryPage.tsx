@@ -50,6 +50,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   )
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
+  const [fbaResponse, setFbaResponse] = useState<FBAResponse | undefined>(undefined)
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -74,11 +75,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
   }
 
-  const [fbaResponse, setFbaResponse] = useState<FBAResponse>({
-    date: dateOfInterest,
-    fireBehaviourAdvisories: fireBehaviourAdvisories
-  })
-
   useEffect(() => {
     dispatch(fetchFireCenters())
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
@@ -87,11 +83,14 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchFBAsForStations(dateOfInterest))
+  }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     setFbaResponse({
       date: dateOfInterest,
       fireBehaviourAdvisories: fireBehaviourAdvisories
     })
-  }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fireBehaviourAdvisories]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <React.Fragment>

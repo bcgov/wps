@@ -8,14 +8,14 @@ import {
 import { FBAResponse, FireBehaviourAdvisory, FireCenter } from 'api/fbaAPI'
 import { ErrorBoundary } from 'components'
 import FireTable from 'components/FireTable'
-import { sortBy } from 'lodash'
+import { isUndefined, sortBy } from 'lodash'
 import React from 'react'
 
 interface FormalFBATableProps {
   testId?: string
   className: string
   fireCenter: FireCenter
-  fbaResponse: FBAResponse
+  fbaResponse: FBAResponse | undefined
 }
 
 const buildAdvisoryHeader = (fireCenter: FireCenter) => (
@@ -24,10 +24,15 @@ const buildAdvisoryHeader = (fireCenter: FireCenter) => (
 
 const FormalFBATable = (props: FormalFBATableProps) => {
   const getAdvisoryForStationCode = (code: number): FireBehaviourAdvisory | undefined => {
-    const stationAdvisory = props.fbaResponse.fireBehaviourAdvisories.find(advisory => {
-      advisory.station_code === code
-    })
-    return stationAdvisory
+    if (
+      !isUndefined(props.fbaResponse) &&
+      !isUndefined(props.fbaResponse.fireBehaviourAdvisories)
+    ) {
+      return props.fbaResponse.fireBehaviourAdvisories.find(
+        advisory => advisory.station_code == code
+      )
+    }
+    return undefined
   }
 
   return (
@@ -65,13 +70,13 @@ const FormalFBATable = (props: FormalFBATableProps) => {
                   <TableCell>{`${station.name} (${station.code})`}</TableCell>
                   <TableCell>{advisory?.fuel_type}</TableCell>
                   <TableCell>{advisory?.grass_cure}</TableCell>
-                  <TableCell>{advisory?.wind_speed}</TableCell>
-                  <TableCell>{advisory?.hfi}</TableCell>
-                  <TableCell>{advisory?.critical_hours_4000}</TableCell>
-                  <TableCell>{advisory?.critical_hours_10000}</TableCell>
-                  <TableCell>{advisory?.ros}</TableCell>
-                  <TableCell>{advisory?.thirty_min_fire_size}</TableCell>
-                  <TableCell>{advisory?.sixty_min_fire_size}</TableCell>
+                  <TableCell>{advisory?.wind_speed?.toFixed(0)}</TableCell>
+                  <TableCell>{advisory?.head_fire_intensity?.toFixed(0)}</TableCell>
+                  <TableCell>{advisory?.critical_hours_hfi_4000}</TableCell>
+                  <TableCell>{advisory?.critical_hours_hfi_10000}</TableCell>
+                  <TableCell>{advisory?.rate_of_spread?.toFixed(1)}</TableCell>
+                  <TableCell>{advisory?.thirty_minute_fire_size?.toFixed(1)}</TableCell>
+                  <TableCell>{advisory?.sixty_minute_fire_size?.toFixed(1)}</TableCell>
                   <TableCell>{advisory?.fire_type}</TableCell>
                 </TableRow>
               )

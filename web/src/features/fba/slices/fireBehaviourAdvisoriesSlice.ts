@@ -8,14 +8,14 @@ import { getFireBehaviourStationsFailed } from 'features/fbaCalculator/slices/fb
 interface State {
   loading: boolean
   error: string | null
-  date: string
+  date: string | null
   fireBehaviourAdvisories: FireBehaviourAdvisory[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  date: '',
+  date: null,
   fireBehaviourAdvisories: []
 }
 
@@ -27,7 +27,7 @@ const fireBehaviourAdvisoriesSlice = createSlice({
       state.error = null
       state.loading = true
       state.fireBehaviourAdvisories = []
-      state.date = ''
+      state.date = null
     },
     getFireBehaviourAdvisoriesFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
