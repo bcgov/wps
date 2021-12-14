@@ -185,7 +185,6 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
                                 pdf=station.percentage_dead_balsam_fir,
                                 cbh=station.crown_base_height)
     cfb = cffdrs.crown_fraction_burned(station.fuel_type, fmc, sfc, ros, station.crown_base_height)
-    cfb = calculate_cfb(station.fuel_type, fmc, sfc, ros, station.crown_base_height)
 
     # Calculate rate of spread assuming 60 minutes since ignition.
     ros_t = cffdrs.rate_of_spread_t(

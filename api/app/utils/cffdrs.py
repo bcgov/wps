@@ -289,10 +289,10 @@ def bui_calc(dmc: float, dc: float):  # pylint: disable=invalid-name
     return result[0]
 
 
-def rate_of_spread_t(fuel_type: FuelTypeEnum,
-                     ros_eq: float,
+def rate_of_spread_t(fuel_type: List[FuelTypeEnum],
+                     ros_eq: np.array,
                      minutes_since_ignition: float,
-                     cfb: float):
+                     cfb: np.array):
     """
     # Description:
     #   Computes the Rate of Spread prediction based on fuel type and FWI
@@ -315,12 +315,14 @@ def rate_of_spread_t(fuel_type: FuelTypeEnum,
     """
     # NOTE: CFFDRS documentation incorrectly states that HR is hours since ignition, it's actually
     # minutes.
+    minutes_since_ignition = [minutes_since_ignition] * len(fuel_type)
+
     # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._ROStcalc(FUELTYPE=fuel_type.value,
-                                                ROSeq=ros_eq,
-                                                HR=minutes_since_ignition,
-                                                CFB=cfb)
-    return result[0]
+    result = CFFDRS.instance().cffdrs._ROStcalc(FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
+                                                ROSeq=np.array(ros_eq),
+                                                HR=np.array(minutes_since_ignition),
+                                                CFB=np.array(cfb))
+    return result
 
 
 def rate_of_spread(fuel_type: List[FuelTypeEnum],  # pylint: disable=too-many-arguments, disable=invalid-name
@@ -371,7 +373,7 @@ def rate_of_spread(fuel_type: List[FuelTypeEnum],  # pylint: disable=too-many-ar
 
     # ROScalc does not accept arrays of fuel type, unlike other functions in the library,
     # so we zip everything together and make multiple calls. Careful, order matters
-    result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=np.array(fuel_type),
+    result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
                                                ISI=np.array(isi),
                                                BUI=np.array(bui),
                                                FMC=np.array(fmc),
@@ -408,12 +410,12 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
         raise CFFDRSException(message)
     pc = np.where(pc is None, NULL, pc)
     # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._SFCcalc(FUELTYPE=list(map(lambda x: x.value, fuel_type)),
-                                               BUI=bui,
-                                               FFMC=ffmc,
-                                               PC=pc,
-                                               GFL=0.35)
-    return result[0]
+    result = CFFDRS.instance().cffdrs._SFCcalc(FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
+                                               BUI=np.array(bui),
+                                               FFMC=np.array(ffmc),
+                                               PC=np.array(pc),
+                                               GFL=[0.35] * len(fuel_type))
+    return result
 
 
 def fire_distance(fuel_type: FuelTypeEnum, ros_eq: float, hr: int, cfb: float):  # pylint: disable=invalid-name
@@ -486,7 +488,8 @@ def length_to_breadth_ratio(fuel_type: List[FuelTypeEnum], wind_speed: np.array)
 
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._LBcalc(
-        FUELTYPE=list(map(lambda x: x.value, fuel_type)), WSV=wind_speed)
+        FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
+        WSV=np.array(wind_speed))
     return result
 
 
@@ -603,7 +606,7 @@ def crown_fraction_burned(fuel_type: List[FuelTypeEnum],
 
 
 def total_fuel_consumption(  # pylint: disable=invalid-name
-        fuel_type: FuelTypeEnum, cfb: float, sfc: float, pc: float, pdf: float, cfl: float):
+        fuel_type: List[FuelTypeEnum], cfb: np.array, sfc: np.array, pc: np.array, pdf: np.array, cfl: np.array):
     """ Computes Total Fuel Consumption (TFC), which is a required input to calculate Head Fire Intensity.
     TFC is calculated by delegating to cffdrs R package.
 
@@ -620,21 +623,22 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
     #       OR
     #        CFC: Crown Fuel Consumption (kg/m^2)
     """
-    if cfb is None or cfl is None:
+    if any(elem is None for elem in cfb) or any(elem is None for elem in cfl):
         message = PARAMS_ERROR_MESSAGE + \
-            f"_TFCcalc; fuel_type: {fuel_type.value}, cfb: {cfb}, cfl: {cfl}"
+            f"_TFCcalc; fuel_type: {fuel_type}, cfb: {cfb}, cfl: {cfl}"
         raise CFFDRSException(message)
     # According to fbp.Rd in cffdrs R package, Crown Fuel Load (CFL) can use default value of 1.0
     # without causing major impacts on final output.
-    if pc is None:
-        pc = NULL
-    if pdf is None:
-        pdf = NULL
+    pc = np.where(pc is None, NULL, pc)
+    pdf = np.where(pdf is None, NULL, pdf)
     # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._TFCcalc(FUELTYPE=fuel_type.value, CFL=cfl, CFB=cfb, SFC=sfc,
-                                               PC=pc,
-                                               PDF=pdf)
-    return result[0]
+    result = CFFDRS.instance().cffdrs._TFCcalc(FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
+                                               CFL=np.array(cfl),
+                                               CFB=np.array(cfb),
+                                               SFC=np.array(sfc),
+                                               PC=np.array(pc),
+                                               PDF=np.array(pdf))
+    return result
 
 
 def head_fire_intensity(fuel_type: FuelTypeEnum,
