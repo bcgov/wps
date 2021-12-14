@@ -95,8 +95,6 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
     }
   }
 
-  console.log(props.meanIntensityGroup, prepLevel(), props.meanPrepLevel)
-
   const formatPrepLevelByValue = () => {
     if (!props.meanPrepLevel) {
       switch (prepLevel()) {
