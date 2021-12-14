@@ -1,6 +1,9 @@
 import { makeStyles, TableCell } from '@material-ui/core'
 import { fireTableStyles } from 'app/theme'
-import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
+import {
+  calculateMeanPrepLevel,
+  calculatePrepLevel
+} from 'features/hfiCalculator/components/prepLevel'
 import React from 'react'
 
 export interface PrepLevelCellProps {
@@ -84,11 +87,19 @@ const useStyles = makeStyles({
 const PrepLevelCell = (props: PrepLevelCellProps) => {
   const classes = useStyles()
 
-  const prepLevel = calculatePrepLevel(props.meanIntensityGroup, props.meanPrepLevel)
+  const prepLevel = () => {
+    if (props.meanPrepLevel) {
+      return calculateMeanPrepLevel(props.meanIntensityGroup)
+    } else {
+      return calculatePrepLevel(props.meanIntensityGroup)
+    }
+  }
+
+  console.log(props.meanIntensityGroup, prepLevel(), props.meanPrepLevel)
 
   const formatPrepLevelByValue = () => {
     if (!props.meanPrepLevel) {
-      switch (prepLevel) {
+      switch (prepLevel()) {
         case 1:
           return classes.prepLevel1
         case 2:
@@ -105,7 +116,7 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
           return classes.defaultBackground
       }
     } else {
-      switch (prepLevel) {
+      switch (prepLevel()) {
         case 1:
           return classes.meanPrepLevel1
         case 2:
@@ -126,7 +137,7 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
 
   return (
     <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
-      {prepLevel}
+      {prepLevel()}
     </TableCell>
   )
 }
