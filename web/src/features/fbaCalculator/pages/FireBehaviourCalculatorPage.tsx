@@ -8,7 +8,8 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     disclaimer: {
       borderLeft: '6px solid #FCBA19',
       padding: '10px',
-      marginBottom: theme.spacing(8)
+      marginBottom: theme.spacing(8),
+      marginTop: '24px'
     },
     content: {
       display: 'flex',
