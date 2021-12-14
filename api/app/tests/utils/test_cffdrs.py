@@ -46,10 +46,18 @@ def test_surface_fuel_consumption_none_failures():
         cffdrs.surface_fuel_consumption([FuelTypeEnum.C1, FuelTypeEnum.C1], [0, 1], [None, 1], [0, 1])
 
 
+def test_surface_fuel_consumption_none_list():
+    """ Computes lb ratio based on list of values"""
+    expected = [1.525674475644223e-09, 1.9202138767937527e-09]
+    result = cffdrs.surface_fuel_consumption([FuelTypeEnum.C1, FuelTypeEnum.C1], [0, 1], [0, 1], [0, 1])
+    assert len(result) == 2
+    assert all([a == b for a, b in zip(result, expected)])
+
+
 def test_lb_ratio_list():
     """ Computes lb ratio based on list of values"""
     expected = [1.0, 1.0044173043651534]
-    result = cffdrs.length_to_breadth_ratio([FuelTypeEnum.C1, FuelTypeEnum.C1], np.array([0, 1]))
+    result = cffdrs.length_to_breadth_ratio([FuelTypeEnum.C1, FuelTypeEnum.C1], [0, 1])
     assert len(result) == 2
     assert all([a == b for a, b in zip(result, expected)])
 
@@ -129,3 +137,28 @@ def test_cfb_list():
     result = cffdrs.crown_fraction_burned([FuelTypeEnum.D1, FuelTypeEnum.D1],
                                           [0, 1], [0, 1], [0, 1], [100, 100])
     assert len(result) == 2
+
+
+def test_rate_of_spread_t_list():
+    expected = [0.0, 0.9989922145709514]
+    result = cffdrs.rate_of_spread_t([FuelTypeEnum.D1, FuelTypeEnum.D1], [0, 1], 60, [0, 1])
+    assert len(result) == 2
+    assert all([a == b for a, b in zip(result, expected)])
+
+
+def test_total_fuel_consumption_list():
+    expected = [0, 2]
+    result = cffdrs.total_fuel_consumption([FuelTypeEnum.C1, FuelTypeEnum.C1], [
+                                           0, 1], [0, 1], [0, 1], [0, 1], [0, 1])
+    assert len(result) == 2
+    assert all([a == b for a, b in zip(result, expected)])
+
+
+def test_total_fuel_consumption_failures():
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.total_fuel_consumption([FuelTypeEnum.C1, FuelTypeEnum.C1], [
+                                      None, 1], [0, 1], [0, 1], [0, 1], [0, 1])
+
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.total_fuel_consumption([FuelTypeEnum.C1, FuelTypeEnum.C1], [
+                                      0, 1], [0, 1], [0, 1], [0, 1], [None, 1])
