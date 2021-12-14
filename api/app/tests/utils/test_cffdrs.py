@@ -56,10 +56,10 @@ def test_lb_ratio_list():
 
 def test_rate_of_spread_list():
     """ Computes ros based on list of values """
-    expected = [1e-06, 1.950609222540345e-06]
+    expected = [1.e-06, 1.e-06]
 
-    result = cffdrs.rate_of_spread([FuelTypeEnum.C1, FuelTypeEnum.C1], np.array([0, 1]), np.array([0, 1]), np.array(
-        [0, 1]), np.array([0, 1]), np.array([0, 1]), np.array([0, 1]), np.array([0, 1]), np.array([0, 1]))
+    result = cffdrs.rate_of_spread([FuelTypeEnum.C1, FuelTypeEnum.C1], [0, 0], [0, 0], [
+                                   0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0])
     assert len(result) == 2
     assert all([a == b for a, b in zip(result, expected)])
 
@@ -115,3 +115,17 @@ def test_rate_of_spread_failures():
                               [0, 1],
                               [0, 1],
                               [0, 1])
+
+
+def test_cfb_failures():
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.crown_fraction_burned([FuelTypeEnum.C1, FuelTypeEnum.C1], [None, 1], [0, 1], [0, 1], [0, 1])
+
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.crown_fraction_burned([FuelTypeEnum.C1, FuelTypeEnum.C1], [0, 1], [0, 1], [0, 1], [None, 1])
+
+
+def test_cfb_list():
+    result = cffdrs.crown_fraction_burned([FuelTypeEnum.D1, FuelTypeEnum.D1],
+                                          [0, 1], [0, 1], [0, 1], [100, 100])
+    assert len(result) == 2
