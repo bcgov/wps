@@ -145,6 +145,12 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                 .map(([areaName, area]) => {
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
+                      <TableRow>
+                        <TableCell
+                          colSpan={42}
+                          className={classes.planningAreaBorder}
+                        ></TableCell>
+                      </TableRow>
                       <TableRow
                         className={classes.planningArea}
                         key={`zone-${areaName}`}
