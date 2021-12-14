@@ -7,7 +7,7 @@ export const calculatePrepLevel = (
 ): PrepLevel => {
   // for now, prep level calculation assumed a fixed Fire Starts value of 0-1
   if (meanPrepLevel && !isUndefined(rawMeanIntensityGroup)) {
-    let meanPrepLevelNumber = Math.round(rawMeanIntensityGroup)
+    const meanPrepLevelNumber = Math.round(rawMeanIntensityGroup)
     switch (meanPrepLevelNumber) {
       case 1:
         return 1
