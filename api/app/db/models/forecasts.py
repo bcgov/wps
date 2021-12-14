@@ -18,6 +18,7 @@ class NoonForecast(Base):
     __tablename__ = 'noon_forecasts'
     __table_args__ = (
         UniqueConstraint('weather_date',
+                         'wfwx_update_date',
                          'station_code',
                          'temp_valid',
                          'temperature',
@@ -42,17 +43,17 @@ class NoonForecast(Base):
     id = Column(Integer, primary_key=True)
     weather_date = Column(TZTimeStamp, nullable=False, index=True)
     station_code = Column(Integer, nullable=False, index=True)
-    temp_valid = Column(Boolean, default=False, nullable=False)
-    temperature = Column(Float, nullable=False)
-    rh_valid = Column(Boolean, default=False, nullable=False)
-    relative_humidity = Column(Float, nullable=False)
-    wdir_valid = Column(Boolean, default=False, nullable=False)
+    temp_valid = Column(Boolean, nullable=False, default=False)
+    temperature = Column(Float, nullable=False, default=math.nan)
+    rh_valid = Column(Boolean, nullable=False, default=False)
+    relative_humidity = Column(Float, nullable=False, default=math.nan)
+    wdir_valid = Column(Boolean, nullable=False, default=False)
     # Set default wind_direction to NaN because some stations don't report it
     wind_direction = Column(Float, nullable=False, default=math.nan)
-    wspeed_valid = Column(Boolean, default=False, nullable=False)
-    wind_speed = Column(Float, nullable=False)
-    precip_valid = Column(Boolean, default=False, nullable=False)
-    precipitation = Column(Float, nullable=False)
+    wspeed_valid = Column(Boolean, nullable=False, default=False)
+    wind_speed = Column(Float, nullable=False, default=math.nan)
+    precip_valid = Column(Boolean, nullable=False, default=False)
+    precipitation = Column(Float, nullable=False, default=math.nan)
     gc = Column(Float, nullable=False, default=math.nan)
     ffmc = Column(Float, nullable=False, default=math.nan)
     dmc = Column(Float, nullable=False, default=math.nan)
@@ -60,7 +61,7 @@ class NoonForecast(Base):
     isi = Column(Float, nullable=False, default=math.nan)
     bui = Column(Float, nullable=False, default=math.nan)
     fwi = Column(Float, nullable=False, default=math.nan)
-    danger_rating = Column(Integer, nullable=False)
+    danger_rating = Column(Integer, nullable=True, default=None)
     created_at = Column(TZTimeStamp, nullable=False,
                         default=time_utils.get_utc_now(), index=True)
     wfwx_update_date = Column(TZTimeStamp, nullable=False, index=True)
@@ -70,6 +71,7 @@ class NoonForecast(Base):
             'station_code:{self.station_code}, '
             'weather_date:{self.weather_date}, '
             'created_at:{self.created_at}, '
+            'wfwx_update_date:{self.wfwx_update_date}, '
             'temp={self.temperature}, '
             'ffmc={self.ffmc}'
         ).format(self=self)

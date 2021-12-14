@@ -285,7 +285,7 @@ def parse_noon_forecast(station_code, forecast) -> NoonForecast:
     noon_forecast = NoonForecast(
         weather_date=timestamp,
         created_at=get_utc_now(),
-        update_date=forecast.get('updateDate', None),
+        wfwx_update_date=forecast.get('updateDate', None),
         station_code=station_code,
         temperature=forecast.get('temperature', math.nan),
         relative_humidity=forecast.get('relativeHumidity', math.nan),
