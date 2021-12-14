@@ -54,7 +54,7 @@ const FBAMap = (props: FBAMapProps) => {
 
   const fireZoneVector = new VectorTileLayer({
     source: new VectorTileSource({
-      attributions: 'BC Wildfire Service',
+      attributions: ['BC Wildfire Service'],
       format: new MVT(),
       url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
     }),
@@ -62,29 +62,21 @@ const FBAMap = (props: FBAMapProps) => {
     zIndex: 49
   })
 
+  // Seperate layer for polygons and for labels, to avoid duplicate labels.
   const fireZoneLabel = new VectorTileLayer({
     source: new VectorTileSource({
-      attributions: 'BC Wildfire Service',
+      attributions: ['BC Wildfire Service'],
       format: new MVT(),
       url: `${TILE_SERVER_URL}/public.fire_zones_labels_ext/{z}/{x}/{y}.pbf`
     }),
     style: fireZoneLabelStyler,
-    zIndex: 99
-  })
-
-  const fireCentreLabel = new VectorTileLayer({
-    source: new VectorTileSource({
-      attributions: 'BC Wildfire Service',
-      format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.fire_centres_labels/{z}/{x}/{y}.pbf`
-    }),
-    style: fireCentreLabelStyler,
-    zIndex: 100
+    zIndex: 99,
+    minZoom: 6
   })
 
   const fireCentreVector = new VectorTileLayer({
     source: new VectorTileSource({
-      attributions: 'BC Wildfire Service',
+      attributions: ['BC Wildfire Service'],
       format: new MVT(),
       url: `${TILE_SERVER_URL}/public.fire_centres/{z}/{x}/{y}.pbf`
     }),
@@ -92,9 +84,21 @@ const FBAMap = (props: FBAMapProps) => {
     zIndex: 50
   })
 
+  // Seperate layer for polygons and for labels, to avoid duplicate labels.
+  const fireCentreLabel = new VectorTileLayer({
+    source: new VectorTileSource({
+      attributions: ['BC Wildfire Service'],
+      format: new MVT(),
+      url: `${TILE_SERVER_URL}/public.fire_centres_labels/{z}/{x}/{y}.pbf`
+    }),
+    style: fireCentreLabelStyler,
+    zIndex: 100,
+    maxZoom: 6
+  })
+
   const thessianVector = new VectorTileLayer({
     source: new VectorTileSource({
-      attributions: 'BC Wildfire Service',
+      attributions: ['BC Wildfire Service'],
       format: new MVT(),
       url: `${TILE_SERVER_URL}/public.fire_area_thessian_polygons/{z}/{x}/{y}.pbf`
     }),

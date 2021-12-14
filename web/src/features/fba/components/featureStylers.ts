@@ -6,14 +6,10 @@ import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
 import { range, startCase, lowerCase } from 'lodash'
 
-const fireCentreTextStyler = (
-  feature: RenderFeature | ol.Feature<Geometry>,
-  resolution: number
-): Text => {
-  const text =
-    resolution < 2300
-      ? ''
-      : feature.get('mof_fire_centre_name').replace(' Fire Centre', '\nFire Centre')
+const fireCentreTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
+  const text = feature
+    .get('mof_fire_centre_name')
+    .replace(' Fire Centre', '\nFire Centre')
   return new Text({
     overflow: true,
     fill: new Fill({ color: 'black' }),
@@ -24,11 +20,10 @@ const fireCentreTextStyler = (
 }
 
 export const fireCentreLabelStyler = (
-  feature: RenderFeature | ol.Feature<Geometry>,
-  resolution: number
+  feature: RenderFeature | ol.Feature<Geometry>
 ): Style => {
   return new Style({
-    text: fireCentreTextStyler(feature, resolution)
+    text: fireCentreTextStyler(feature)
   })
 }
 
@@ -41,14 +36,10 @@ export const fireCentreStyler = (): Style => {
   })
 }
 
-const fireZoneTextStyler = (
-  feature: RenderFeature | ol.Feature<Geometry>,
-  resolution: number
-): Text => {
-  const text =
-    resolution > 3000
-      ? ''
-      : feature.get('fire_zone_mof_fire_zone_name').replace(' Fire Zone', '\nFire Zone')
+const fireZoneTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
+  const text = feature
+    .get('fire_zone_mof_fire_zone_name')
+    .replace(' Fire Zone', '\nFire Zone')
   return new Text({
     overflow: true,
     fill: new Fill({ color: 'black' }),
@@ -68,20 +59,15 @@ export const fireZoneStyler = (): Style => {
 }
 
 export const fireZoneLabelStyler = (
-  feature: RenderFeature | ol.Feature<Geometry>,
-  resolution: number
+  feature: RenderFeature | ol.Feature<Geometry>
 ): Style => {
   return new Style({
-    text: fireZoneTextStyler(feature, resolution)
+    text: fireZoneTextStyler(feature)
   })
 }
 
-const stationTextStyler = (
-  feature: RenderFeature | ol.Feature<Geometry>,
-  resolution: number
-): Text => {
-  // NOTE: playing with start case on fire weather stations?
-  const text = resolution < 2300 ? startCase(lowerCase(feature.get('name'))) : ''
+const stationTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
+  const text = startCase(lowerCase(feature.get('name')))
   return new Text({
     overflow: true,
     fill: new Fill({ color: 'black' }),
@@ -95,10 +81,7 @@ const stationTextStyler = (
   })
 }
 
-export const stationStyler = (
-  feature: RenderFeature | ol.Feature<Geometry>,
-  resolution: number
-): Style => {
+export const stationStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
   // NOTE: quick hack to make station styler correspond with theisian polygons - this code needs to be fixed
   // once we have the polygon implementation in place.
   const colorIdx = Math.floor(feature.get('code') % (hfiColors.length - 1))
@@ -110,7 +93,7 @@ export const stationStyler = (
           color: 'black'
         })
       }),
-      text: stationTextStyler(feature, resolution)
+      text: stationTextStyler(feature)
     })
   }
   return new Style({})
