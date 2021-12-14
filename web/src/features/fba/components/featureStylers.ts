@@ -6,7 +6,7 @@ import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
 import { range, startCase, lowerCase } from 'lodash'
 
-const fireCenterTextStyler = (
+const fireCentreTextStyler = (
   feature: RenderFeature | ol.Feature<Geometry>,
   resolution: number
 ): Text => {
@@ -23,16 +23,16 @@ const fireCenterTextStyler = (
   })
 }
 
-export const fireCenterLableStyler = (
+export const fireCentreLabelStyler = (
   feature: RenderFeature | ol.Feature<Geometry>,
   resolution: number
 ): Style => {
   return new Style({
-    text: fireCenterTextStyler(feature, resolution)
+    text: fireCentreTextStyler(feature, resolution)
   })
 }
 
-export const fireCenterStyler = (): Style => {
+export const fireCentreStyler = (): Style => {
   return new Style({
     stroke: new Stroke({
       color: 'black',
@@ -67,7 +67,7 @@ export const fireZoneStyler = (): Style => {
   })
 }
 
-export const fireZoneLableStyler = (
+export const fireZoneLabelStyler = (
   feature: RenderFeature | ol.Feature<Geometry>,
   resolution: number
 ): Style => {

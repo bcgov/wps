@@ -15,16 +15,15 @@ import React, { useEffect, useRef, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations } from 'app/rootReducer'
-// import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import { monochrome_source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter } from 'api/fbaAPI'
-import { extentsMap } from 'features/fba/fireCenterExtents'
+import { extentsMap } from 'features/fba/fireCentreExtents'
 import {
-  fireCenterStyler,
-  fireCenterLableStyler,
+  fireCentreStyler,
+  fireCentreLabelStyler,
   fireZoneStyler,
-  fireZoneLableStyler,
+  fireZoneLabelStyler,
   stationStyler,
   thessianPolygonStyler
 } from 'features/fba/components/featureStylers'
@@ -32,7 +31,7 @@ import {
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 5.45
-const BC_CENTER_FIRE_CENTERS = [-124.16748046874999, 54.584796743678744]
+const BC_CENTER_FIRE_CENTRES = [-124.16748046874999, 54.584796743678744]
 const TILE_SERVER_URL = 'https://wps-prod-tileserv.apps.silver.devops.gov.bc.ca'
 
 export interface FBAMapProps {
@@ -55,7 +54,7 @@ const FBAMap = (props: FBAMapProps) => {
 
   const fireZoneVector = new VectorTileLayer({
     source: new VectorTileSource({
-      attributions: 'Government of British Columbia',
+      attributions: 'BC Wildfire Service',
       format: new MVT(),
       url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
     }),
@@ -65,37 +64,37 @@ const FBAMap = (props: FBAMapProps) => {
 
   const fireZoneLabel = new VectorTileLayer({
     source: new VectorTileSource({
-      attributions: 'Government of British Columbia',
+      attributions: 'BC Wildfire Service',
       format: new MVT(),
       url: `${TILE_SERVER_URL}/public.fire_zones_labels_ext/{z}/{x}/{y}.pbf`
     }),
-    style: fireZoneLableStyler,
+    style: fireZoneLabelStyler,
     zIndex: 99
   })
 
-  const fireCenterLabel = new VectorTileLayer({
+  const fireCentreLabel = new VectorTileLayer({
     source: new VectorTileSource({
-      attributions: 'Government of British Columbia',
+      attributions: 'BC Wildfire Service',
       format: new MVT(),
       url: `${TILE_SERVER_URL}/public.fire_centres_labels/{z}/{x}/{y}.pbf`
     }),
-    style: fireCenterLableStyler,
+    style: fireCentreLabelStyler,
     zIndex: 100
   })
 
-  const fireCenterVector = new VectorTileLayer({
+  const fireCentreVector = new VectorTileLayer({
     source: new VectorTileSource({
-      attributions: 'Government of British Columbia',
+      attributions: 'BC Wildfire Service',
       format: new MVT(),
       url: `${TILE_SERVER_URL}/public.fire_centres/{z}/{x}/{y}.pbf`
     }),
-    style: fireCenterStyler,
+    style: fireCentreStyler,
     zIndex: 50
   })
 
-  const thesianVector = new VectorTileLayer({
+  const thessianVector = new VectorTileLayer({
     source: new VectorTileSource({
-      attributions: 'Government of British Columbia',
+      attributions: 'BC Wildfire Service',
       format: new MVT(),
       url: `${TILE_SERVER_URL}/public.fire_area_thessian_polygons/{z}/{x}/{y}.pbf`
     }),
@@ -107,13 +106,13 @@ const FBAMap = (props: FBAMapProps) => {
     if (!map) return
 
     if (props.selectedFireCenter) {
-      const fireCenterExtent = extentsMap.get(props.selectedFireCenter.name)
-      if (fireCenterExtent) {
-        map.getView().fit(fireCenterExtent.extent)
+      const fireCentreExtent = extentsMap.get(props.selectedFireCenter.name)
+      if (fireCentreExtent) {
+        map.getView().fit(fireCentreExtent.extent)
       }
     } else {
       // reset map view to full province
-      map.getView().setCenter(fromLonLat(BC_CENTER_FIRE_CENTERS))
+      map.getView().setCenter(fromLonLat(BC_CENTER_FIRE_CENTRES))
       map.getView().setZoom(zoom)
     }
   }, [props.selectedFireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -129,17 +128,17 @@ const FBAMap = (props: FBAMapProps) => {
     const options: MapOptions = {
       view: new ol.View({
         zoom,
-        center: fromLonLat(BC_CENTER_FIRE_CENTERS)
+        center: fromLonLat(BC_CENTER_FIRE_CENTRES)
       }),
       layers: [
         new Tile({
           source: baseMapSource
         }),
         fireZoneVector,
-        fireCenterVector,
-        thesianVector,
+        fireCentreVector,
+        thessianVector,
         fireZoneLabel,
-        fireCenterLabel
+        fireCentreLabel
       ],
       overlays: [],
       controls: defaultControls()
@@ -150,9 +149,9 @@ const FBAMap = (props: FBAMapProps) => {
     mapObject.setTarget(mapRef.current)
 
     if (props.selectedFireCenter) {
-      const fireCenterExtent = extentsMap.get(props.selectedFireCenter.name)
-      if (fireCenterExtent) {
-        mapObject.getView().fit(fireCenterExtent.extent)
+      const fireCentreExtent = extentsMap.get(props.selectedFireCenter.name)
+      if (fireCentreExtent) {
+        mapObject.getView().fit(fireCentreExtent.extent)
       }
     }
     setMap(mapObject)
