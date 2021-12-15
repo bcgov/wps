@@ -358,10 +358,6 @@ def get_critical_hours_start(critical_ffmc: float, daily_ffmc: float,
     """ Returns the hour of day (on 24H clock) at which the hourly FFMC crosses the
     threshold of critical_ffmc.
     Returns None if the hourly FFMC never reaches critical_ffmc.
-
-    At what time does the critical threshold get exceeded
-
-    Instead of brute forcing, use binary search for searching for this
     """
     if last_observed_morning_rh_values is None:
         return None
