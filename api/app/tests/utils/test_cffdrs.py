@@ -148,3 +148,12 @@ def test_total_fuel_consumption_failures():
     with pytest.raises(cffdrs.CFFDRSException):
         cffdrs.total_fuel_consumption([FuelTypeEnum.C1, FuelTypeEnum.C1], [
                                       0, 1], [0, 1], [0, 1], [0, 1], [None, 1])
+
+
+def test_hfi():
+    """ HFI is calculated"""
+    expected = [0, 600]
+    result = cffdrs.head_fire_intensity([FuelTypeEnum.C1, FuelTypeEnum.C1], [0, 1], [
+                                        0, 1], [0, 1], [0, 1], [0, 1], [0, 1])
+    assert len(result) == 2
+    assert all([a == b for a, b in zip(result, expected)])
