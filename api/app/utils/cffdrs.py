@@ -471,8 +471,11 @@ def foliar_moisture_content(lat: ndarray, long: ndarray, elv: ndarray, day_of_ye
                  long, elv, day_of_year, date_of_minimum_foliar_moisture_content)
     # FMCcalc expects longitude to always be a positive number.
     long = np.where(long < 0, -long, long)
-    result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv,
-                                               DJ=day_of_year, D0=date_of_minimum_foliar_moisture_content)
+    result = CFFDRS.instance().cffdrs._FMCcalc(LAT=np.array(lat),
+                                               LONG=np.array(long),
+                                               ELV=np.array(elv),
+                                               DJ=np.array(day_of_year),
+                                               D0=np.array(date_of_minimum_foliar_moisture_content))
     return result
 
 
@@ -600,7 +603,7 @@ def crown_fraction_burned(fuel_type: List[FuelTypeEnum],
 
     cbh = np.where(cbh is None, NULL, cbh)
     # TODO figure out way to set no height fuel types
-    result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=np.array(fuel_type),
+    result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
                                                FMC=np.array(fmc),
                                                SFC=np.array(sfc),
                                                ROS=np.array(ros),
