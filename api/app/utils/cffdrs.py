@@ -641,13 +641,13 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
     return result
 
 
-def head_fire_intensity(fuel_type: FuelTypeEnum,
-                        percentage_conifer: float,
-                        percentage_dead_balsam_fir: float,
-                        ros: float,
-                        cfb: float,
-                        cfl: float,
-                        sfc: float):
+def head_fire_intensity(fuel_type: List[FuelTypeEnum],
+                        percentage_conifer: np.array,
+                        percentage_dead_balsam_fir: np.array,
+                        ros: np.array,
+                        cfb: np.array,
+                        cfl: np.array,
+                        sfc: np.array):
     """ Computes Head Fire Intensity (HFI) by delegating to cffdrs R package.
     Calculating HFI requires a number of inputs that must be calculated first. This function
     first makes method calls to calculate the necessary intermediary values.
@@ -663,8 +663,8 @@ def head_fire_intensity(fuel_type: FuelTypeEnum,
     #   FI:   Fire Intensity (kW/m)
 
     # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
-    return result[0]
+    result = CFFDRS.instance().cffdrs._FIcalc(FC=np.array(tfc), ROS=np.array(ros))
+    return result
 
 
 def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
