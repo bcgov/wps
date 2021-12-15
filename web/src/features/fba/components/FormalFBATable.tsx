@@ -5,9 +5,12 @@ import {
   TableHead,
   TableRow
 } from '@material-ui/core'
+import { makeStyles } from '@material-ui/styles'
 import { FBAResponse, FireBehaviourAdvisory, FireCenter } from 'api/fbaAPI'
 import { ErrorBoundary } from 'components'
 import FireTable from 'components/FireTable'
+import FireTypeTooltip from 'features/fbaCalculator/components/FireTypeTooltip'
+import TableHeader from 'features/fbaCalculator/components/TableHeader'
 import { isUndefined, sortBy } from 'lodash'
 import React from 'react'
 
@@ -18,11 +21,21 @@ interface FormalFBATableProps {
   fbaResponse: FBAResponse | undefined
 }
 
+const useStyles = makeStyles({
+  headerCell: {
+    zIndex: 1103,
+    paddingRight: '30px',
+    width: '110px'
+  }
+})
+
 const buildAdvisoryHeader = (fireCenter: FireCenter) => (
   <h2>{fireCenter.name}: Fire Behaviour Advisory Summary</h2>
 )
 
 const FormalFBATable = (props: FormalFBATableProps) => {
+  const classes = useStyles()
+
   const getAdvisoryForStationCode = (code: number): FireBehaviourAdvisory | undefined => {
     if (
       !isUndefined(props.fbaResponse) &&
@@ -47,18 +60,43 @@ const FormalFBATable = (props: FormalFBATableProps) => {
         >
           <TableHead>
             <TableRow>
-              <TableCell>Zone</TableCell>
-              <TableCell>Weather Station</TableCell>
-              <TableCell>Fuel Type</TableCell>
-              <TableCell>Grass Cure</TableCell>
-              <TableCell>Wind Speed (km/h)</TableCell>
-              <TableCell>HFI</TableCell>
-              <TableCell>Critical Hours 4,000 kW/m</TableCell>
-              <TableCell>Critical Hours 10,000 kW/m</TableCell>
-              <TableCell>ROS (m/min)</TableCell>
-              <TableCell>30 min Fire Size (ha)</TableCell>
-              <TableCell>60 min Fire Size (ha)</TableCell>
-              <TableCell>Fire Type</TableCell>
+              <TableCell className={classes.headerCell}>
+                <TableHeader text={'Zone'} />
+              </TableCell>
+              <TableCell className={classes.headerCell}>
+                <TableHeader text={'Weather Station'} />
+              </TableCell>
+              <TableCell className={classes.headerCell}>
+                <TableHeader text={'Fuel Type'} />
+              </TableCell>
+              <TableCell className={classes.headerCell}>
+                <TableHeader text={'Grass Cure'} />
+              </TableCell>
+              <TableCell className={classes.headerCell}>
+                <TableHeader text={'Wind Speed (km/h)'} />
+              </TableCell>
+              <TableCell className={classes.headerCell}>
+                <TableHeader text={'HFI'} />
+              </TableCell>
+              <TableCell className={classes.headerCell}>
+                <TableHeader text={'Critical Hours 4,000 kW/m'} />
+              </TableCell>
+              <TableCell className={classes.headerCell}>
+                <TableHeader text={'Critical Hours 10,000 kW/m'} />
+              </TableCell>
+              <TableCell className={classes.headerCell}>
+                <TableHeader text={'ROS (m/min)'} />
+              </TableCell>
+              <TableCell className={classes.headerCell}>
+                <TableHeader text={'30 min Fire Size (ha)'} />
+              </TableCell>
+              <TableCell className={classes.headerCell}>
+                <TableHeader text={'60 min Fire Size (ha)'} />
+              </TableCell>
+              <TableCell className={classes.headerCell}>
+                <FireTypeTooltip />
+                <TableHeader text={'Fire Type'} />
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

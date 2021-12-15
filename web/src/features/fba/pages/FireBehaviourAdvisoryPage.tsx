@@ -33,6 +33,9 @@ const useStyles = makeStyles(() => ({
   },
   instructions: {
     textAlign: 'left'
+  },
+  pageContainer: {
+    marginBottom: theme.spacing(8)
   }
 }))
 
@@ -99,7 +102,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         title="Predictive Services Unit"
         productName="Predictive Services Unit"
       />
-      <Container maxWidth={'xl'}>
+      <Container className={classes.pageContainer} maxWidth={'xl'}>
         <h1>
           {/* (🔥🦇) */}
           Fire Behaviour Advisory Tool
