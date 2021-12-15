@@ -15,7 +15,7 @@ def _python_date_to_java_calendar(value: datetime, Calendar, TimeZone):  # pylin
     """ Take a python datetime object and return a java Calendar object """
     java_data = Calendar.getInstance(TimeZone.getTimeZone(value.tzinfo.tzname(value)))
     # java has 0 based months, python 1 based
-    java_data.set(value.year, value.month-1, value.day, value.hour, value.minute, value.second)
+    java_data.set(value.year, value.month - 1, value.day, value.hour, value.minute, value.second)
     return java_data
 
 
@@ -23,7 +23,7 @@ def _java_calendar_to_python_date(calendar, Calendar):  # pylint: disable=invali
     """ Take a java Calendar object and return a python datetime object"""
     tz_offset = timedelta(seconds=calendar.getTimeZone().getRawOffset())
     return datetime(calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH)+1,
+                    calendar.get(Calendar.MONTH) + 1,
                     calendar.get(Calendar.DAY_OF_MONTH),
                     calendar.get(Calendar.HOUR),
                     calendar.get(Calendar.MINUTE),
@@ -384,7 +384,8 @@ def _fbp_fuel_type_map(fuel_type: str):
     raise UnmappedFuelType(fuel_type)
 
 
-def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name, too-many-arguments
+# pylint: disable=invalid-name, too-many-arguments
+def FBPCalculateStatisticsCOM(elevation: float,
                               latitude: float,
                               longitude: float,
                               time_of_interest: datetime,
