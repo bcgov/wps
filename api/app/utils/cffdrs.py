@@ -447,7 +447,8 @@ def fire_distance(fuel_type: FuelTypeEnum, ros_eq: float, hr: int, cfb: float): 
 
 
 def foliar_moisture_content(lat: ndarray, long: ndarray, elv: ndarray, day_of_year: ndarray,
-                            date_of_minimum_foliar_moisture_content: ndarray = [0]):  # pylint: disable=:dangerous-default-value
+                            # pylint: disable=dangerous-default-value
+                            date_of_minimum_foliar_moisture_content: ndarray = [0]):
     """ Computes FMC by delegating to cffdrs R package
         TODO: Find out the minimum fmc date that is passed as D0, for now it's 0. Passing 0 makes FFMCcalc
         calculate it.
