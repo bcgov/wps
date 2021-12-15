@@ -377,14 +377,14 @@ def rate_of_spread(fuel_type: List[FuelTypeEnum],  # pylint: disable=too-many-ar
 
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
-                                               ISI=np.array(isi),
-                                               BUI=np.array(bui),
-                                               FMC=np.array(fmc),
-                                               SFC=np.array(sfc),
-                                               PC=np.array(pc),
-                                               PDF=np.array(pdf),
-                                               CC=np.array(cc),
-                                               CBH=np.array(cbh))
+                                               ISI=isi,
+                                               BUI=bui,
+                                               FMC=fmc,
+                                               SFC=sfc,
+                                               PC=pc,
+                                               PDF=pdf,
+                                               CC=cc,
+                                               CBH=cbh)
     return result
 
 
@@ -414,9 +414,9 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
     pc = np.where(pc is None, NULL, pc)
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._SFCcalc(FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
-                                               BUI=np.array(bui),
-                                               FFMC=np.array(ffmc),
-                                               PC=np.array(pc),
+                                               BUI=bui,
+                                               FFMC=ffmc,
+                                               PC=pc,
                                                GFL=[0.35] * len(fuel_type))
     return result
 
@@ -469,11 +469,11 @@ def foliar_moisture_content(lat: ndarray, long: ndarray, elv: ndarray, day_of_ye
                  long, elv, day_of_year, date_of_minimum_foliar_moisture_content)
     # FMCcalc expects longitude to always be a positive number.
     long = np.where(long < 0, -long, long)
-    result = CFFDRS.instance().cffdrs._FMCcalc(LAT=np.array(lat),
-                                               LONG=np.array(long),
-                                               ELV=np.array(elv),
-                                               DJ=np.array(day_of_year),
-                                               D0=np.array(date_of_minimum_foliar_moisture_content))
+    result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat,
+                                               LONG=long,
+                                               ELV=elv,
+                                               DJ=day_of_year,
+                                               D0=date_of_minimum_foliar_moisture_content)
     return result
 
 
@@ -493,7 +493,7 @@ def length_to_breadth_ratio(fuel_type: List[FuelTypeEnum], wind_speed: np.array)
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._LBcalc(
         FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
-        WSV=np.array(wind_speed))
+        WSV=wind_speed)
     return result
 
 
@@ -599,13 +599,12 @@ def crown_fraction_burned(fuel_type: List[FuelTypeEnum],
             f"_CFBcalc; fuel_type: {fuel_type}, cbh: {cbh}, fmc: {fmc}"
         raise CFFDRSException(message)
 
-    cbh = np.where(cbh is None, NULL, cbh)
     # TODO figure out way to set no height fuel types
     result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
-                                               FMC=np.array(fmc),
-                                               SFC=np.array(sfc),
-                                               ROS=np.array(ros),
-                                               CBH=np.array(cbh))
+                                               FMC=fmc,
+                                               SFC=sfc,
+                                               ROS=ros,
+                                               CBH=cbh)
     return result
 
 
@@ -642,11 +641,11 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
     pdf = np.where(pdf is None, NULL, pdf)
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._TFCcalc(FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
-                                               CFL=np.array(cfl),
-                                               CFB=np.array(cfb),
-                                               SFC=np.array(sfc),
-                                               PC=np.array(pc),
-                                               PDF=np.array(pdf))
+                                               CFL=cfl,
+                                               CFB=cfb,
+                                               SFC=sfc,
+                                               PC=pc,
+                                               PDF=pdf)
     return result
 
 
@@ -672,7 +671,7 @@ def head_fire_intensity(fuel_type: List[FuelTypeEnum],
     #   FI:   Fire Intensity (kW/m)
 
     # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._FIcalc(FC=np.array(tfc), ROS=np.array(ros))
+    result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
     return result
 
 
