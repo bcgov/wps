@@ -24,8 +24,11 @@ interface FormalFBATableProps {
 const useStyles = makeStyles({
   headerCell: {
     zIndex: 1103,
-    paddingRight: '30px',
-    width: '110px'
+    paddingRight: '20px',
+    minWidth: '110px'
+  },
+  extraWidthCell: {
+    minWidth: '150px'
   }
 })
 
@@ -63,8 +66,8 @@ const FormalFBATable = (props: FormalFBATableProps) => {
               <TableCell className={classes.headerCell}>
                 <TableHeader text={'Zone'} />
               </TableCell>
-              <TableCell className={classes.headerCell}>
-                <TableHeader text={'Weather Station'} />
+              <TableCell className={`${classes.headerCell}`}>
+                <TableHeader largerMaxWidth={true} text={'Weather Station'} />
               </TableCell>
               <TableCell className={classes.headerCell}>
                 <TableHeader text={'Fuel Type'} />
@@ -78,11 +81,11 @@ const FormalFBATable = (props: FormalFBATableProps) => {
               <TableCell className={classes.headerCell}>
                 <TableHeader text={'HFI'} />
               </TableCell>
-              <TableCell className={classes.headerCell}>
-                <TableHeader text={'Critical Hours 4,000 kW/m'} />
+              <TableCell className={`${classes.headerCell} ${classes.extraWidthCell}`}>
+                <TableHeader largerMaxWidth={true} text={'Critical Hours 4,000 kW/m'} />
               </TableCell>
-              <TableCell className={classes.headerCell}>
-                <TableHeader text={'Critical Hours 10,000 kW/m'} />
+              <TableCell className={`${classes.headerCell} ${classes.extraWidthCell}`}>
+                <TableHeader largerMaxWidth={true} text={'Critical Hours 10,000 kW/m'} />
               </TableCell>
               <TableCell className={classes.headerCell}>
                 <TableHeader text={'ROS (m/min)'} />
@@ -93,7 +96,7 @@ const FormalFBATable = (props: FormalFBATableProps) => {
               <TableCell className={classes.headerCell}>
                 <TableHeader text={'60 min Fire Size (ha)'} />
               </TableCell>
-              <TableCell className={classes.headerCell}>
+              <TableCell className={`${classes.headerCell} ${classes.extraWidthCell}`}>
                 <FireTypeTooltip />
                 <TableHeader text={'Fire Type'} />
               </TableCell>
