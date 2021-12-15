@@ -446,9 +446,6 @@ def fire_distance(fuel_type: FuelTypeEnum, ros_eq: float, hr: int, cfb: float): 
     return result[0]
 
 
-""" Make these numpy array / regular array to compute multiple inputs """
-
-
 def foliar_moisture_content(lat: ndarray, long: ndarray, elv: ndarray, day_of_year: ndarray,
                             date_of_minimum_foliar_moisture_content: ndarray = [0]):  # pylint: disable=:dangerous-default-value
     """ Computes FMC by delegating to cffdrs R package
