@@ -84,12 +84,12 @@
     ]
   },
   "devDependencies": {
-    "@cypress/code-coverage": "^3.9.11",
+    "@cypress/code-coverage": "^3.9.12",
     "@cypress/instrument-cra": "^1.4.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.0",
     "@types/jest": "^27.0.2",
-    "cypress": "^9.0.0",
+    "cypress": "^9.1.1",
     "eslint": "^7.32.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "react-scripts": "^4.0.3",
