@@ -4,10 +4,8 @@ import {
   TableCell,
   TableRow,
   TableSortLabel,
-  Tooltip,
   TableHead
 } from '@material-ui/core'
-import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import FBAProgressRow from 'features/fbaCalculator/components/FBAProgressRow'
 import TableHeader from 'features/fbaCalculator/components/TableHeader'
 import StickyCell from 'components/StickyCell'
@@ -15,6 +13,7 @@ import { FBATableRow, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { isUndefined } from 'lodash'
 import React from 'react'
 import { Order } from 'utils/table'
+import FireTypeTooltip from 'features/fbaCalculator/components/FireTypeTooltip'
 
 interface FBATableHeadProps {
   toggleSorting: (selectedColumn: SortByColumn) => void
@@ -58,17 +57,6 @@ const FBATableHead = ({
   visibleColumns
 }: FBATableHeadProps) => {
   const classes = useStyles()
-
-  const typeToolTipFirstLine = 'SUR = Surface Type'
-  const typeToolTipSecondLine = 'IC = Intermittent Crown Type'
-  const typeToolTipThirdLine = 'CC = Continuous Crown Type'
-  const typeToolTipElement = (
-    <div>
-      {typeToolTipFirstLine} <br />
-      {typeToolTipSecondLine} <br />
-      {typeToolTipThirdLine}
-    </div>
-  )
 
   const columnHeaderComponentsDict: { [key: string]: React.ReactFragment } = {
     Zone: (
@@ -332,13 +320,7 @@ const FBATableHead = ({
             toggleSorting(SortByColumn.FireType)
           }}
         >
-          <Tooltip
-            title={typeToolTipElement}
-            aria-label={`${typeToolTipFirstLine} \n ${typeToolTipSecondLine} \n ${typeToolTipThirdLine}`}
-          >
-            <InfoOutlinedIcon className={classes.infoIcon}></InfoOutlinedIcon>
-          </Tooltip>
-
+          <FireTypeTooltip />
           <TableHeader text={'Fire Type'}></TableHeader>
         </TableSortLabel>
       </TableCell>
