@@ -372,9 +372,6 @@ def rate_of_spread(fuel_type: List[FuelTypeEnum],  # pylint: disable=too-many-ar
     pdf = np.where(pdf is None, NULL, pdf)
     cbh = np.where(cbh is None, NULL, cbh)
 
-    # ROScalc does not accept arrays of fuel type, unlike other functions in the library,
-    # so we zip everything together and make multiple calls. Careful, order matters
-
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
                                                ISI=isi,
