@@ -55,7 +55,8 @@ def correct_wind_azimuth(wind_direction: float):
     return waz
 
 
-def calculate_wind_speed(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-arguments, disable=invalid-name
+# pylint: disable=too-many-arguments, disable=invalid-name
+def calculate_wind_speed(fuel_type: FuelTypeEnum,
                          ffmc: float,
                          bui: float,
                          ws: float,
