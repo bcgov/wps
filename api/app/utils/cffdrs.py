@@ -2,18 +2,18 @@
 """
 import logging
 import math
+from typing import List, Optional
 import numpy as np
 from numpy import ndarray
-from typing import List, Optional
 import rpy2.robjects as robjs
 from rpy2.robjects import DataFrame
 import rpy2.robjects.conversion as cv
 from rpy2.rinterface import NULL
+import rpy2.robjects.numpy2ri
 import app.utils.r_importer
 from app.utils.singleton import Singleton
 from app.schemas.fba_calc import FuelTypeEnum
 
-import rpy2.robjects.numpy2ri
 rpy2.robjects.numpy2ri.activate()
 
 logger = logging.getLogger(__name__)
@@ -374,6 +374,8 @@ def rate_of_spread(fuel_type: List[FuelTypeEnum],  # pylint: disable=too-many-ar
 
     # ROScalc does not accept arrays of fuel type, unlike other functions in the library,
     # so we zip everything together and make multiple calls. Careful, order matters
+
+    # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=np.array(list(map(lambda x: x.value, fuel_type))),
                                                ISI=np.array(isi),
                                                BUI=np.array(bui),
@@ -448,7 +450,7 @@ def fire_distance(fuel_type: FuelTypeEnum, ros_eq: float, hr: int, cfb: float): 
 
 
 def foliar_moisture_content(lat: ndarray, long: ndarray, elv: ndarray, day_of_year: ndarray,
-                            date_of_minimum_foliar_moisture_content: ndarray = [0]):
+                            date_of_minimum_foliar_moisture_content: ndarray = [0]):  # pylint: disable=:dangerous-default-value
     """ Computes FMC by delegating to cffdrs R package
         TODO: Find out the minimum fmc date that is passed as D0, for now it's 0. Passing 0 makes FFMCcalc
         calculate it.
@@ -607,7 +609,12 @@ def crown_fraction_burned(fuel_type: List[FuelTypeEnum],
 
 
 def total_fuel_consumption(  # pylint: disable=invalid-name
-        fuel_type: List[FuelTypeEnum], cfb: np.array, sfc: np.array, pc: np.array, pdf: np.array, cfl: np.array):
+    fuel_type: List[FuelTypeEnum],
+        cfb: np.array,
+        sfc: np.array,
+        pc: np.array,
+        pdf: np.array,
+        cfl: np.array):
     """ Computes Total Fuel Consumption (TFC), which is a required input to calculate Head Fire Intensity.
     TFC is calculated by delegating to cffdrs R package.
 
