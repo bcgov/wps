@@ -1,5 +1,4 @@
 import { FBAStation } from 'api/fbaCalcAPI'
-import assert from 'assert'
 import { GridMenuOption, FBAInputRow } from 'features/fbaCalculator/components/FBATable'
 import { formatCrownFractionBurned } from 'features/fbaCalculator/components/CrownFractionBurnedCell'
 import { formatCriticalHoursAsString } from 'features/fbaCalculator/components/CriticalHoursCell'
@@ -170,7 +169,6 @@ export class RowManager {
       return row
     })
 
-    assert(mergedRows.length === uniqBy(mergedRows, 'id').length)
     return mergedRows
   }
 
