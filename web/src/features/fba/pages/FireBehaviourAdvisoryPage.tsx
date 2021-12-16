@@ -124,8 +124,8 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               </FormControl>
             </Grid>
           </Grid>
-          <Grid container spacing={2}>
-            <Grid item xs>
+          <Grid container spacing={1}>
+            <Grid item xs={12} sm={6}>
               {fireCenter ? (
                 <FormalFBATable
                   fireCenter={fireCenter}
@@ -136,7 +136,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 emptyInstructions
               )}
             </Grid>
-            <Grid item xs>
+            <Grid item xs={12} sm={6}>
               <FBAMap selectedFireCenter={fireCenter} className={classes.mapContainer} />
             </Grid>
           </Grid>
