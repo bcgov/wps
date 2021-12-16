@@ -13,6 +13,7 @@ const renderPrepLevel = (MIG: number | undefined) => {
               testid={'weekly-prep-level-afton'}
               areaName={'afton'}
               meanIntensityGroup={MIG}
+              meanPrepLevel={false}
             ></PrepLevelCell>
           </TableRow>
         </TableBody>

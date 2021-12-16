@@ -137,7 +137,7 @@ export class FormatTableAsCSV {
                 : 'ND'
             )
 
-            rowsAsStrings.push(rowArray)
+            rowsAsStrings.push('')
           })
         })
     })

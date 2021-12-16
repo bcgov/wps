@@ -159,7 +159,7 @@ describe('RowManager', () => {
   describe('Sorting columns', () => {
     let mergedRows: FBATableRow[]
     beforeEach(() => {
-      mergedRows = RowManager.updateRows(inputRows, calculatedRows)
+      // mergedRows = RowManager.updateRows(inputRows, calculatedRows)
     })
     it('sorts by zone code', () => {
       const sortedRowsAsc = RowManager.sortRows(SortByColumn.Zone, 'asc', mergedRows)
