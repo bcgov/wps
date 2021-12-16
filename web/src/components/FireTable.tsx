@@ -25,10 +25,11 @@ const FireTable = (props: FireTableProps) => {
       minHeight: props.minHeight ? props.minHeight : undefined
     }
   }))
+  const classes = useStyles()
   return (
     <Paper elevation={1}>
       <ThemeProvider theme={fireTableTheme}>
-        <TableContainer data-testid={'fire-table'} className={useStyles().tableContainer}>
+        <TableContainer data-testid={'fire-table'} className={classes.tableContainer}>
           <Table data-testid={props.testId} stickyHeader>
             {props.children}
           </Table>
