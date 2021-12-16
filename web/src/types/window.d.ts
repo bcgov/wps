@@ -1,9 +1,9 @@
 // use TypeScript's interface declaration merging
 interface Window {
   env: {
-    REACT_APP_KEYCLOAK_AUTH_URL: string
-    REACT_APP_KEYCLOAK_REALM: string
-    REACT_APP_KEYCLOAK_CLIENT: string
+    VITE_KEYCLOAK_AUTH_URL: string
+    VITE_KEYCLOAK_REALM: string
+    VITE_KEYCLOAK_CLIENT: string
   }
   Cypress: {} | undefined
   // TODO: Re-evaluate this way of implementing Matomo once we know more about it.
