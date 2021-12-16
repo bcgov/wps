@@ -85,12 +85,12 @@ async def get_index(request: Request):
             "index.html",
             {
                 'request': request,
-                'REACT_APP_KEYCLOAK_AUTH_URL': config.get('REACT_APP_KEYCLOAK_AUTH_URL'),
-                'REACT_APP_KEYCLOAK_REALM': config.get('REACT_APP_KEYCLOAK_REALM'),
-                'REACT_APP_KEYCLOAK_CLIENT': config.get('REACT_APP_KEYCLOAK_CLIENT'),
-                'REACT_APP_MATOMO_URL': config.get('REACT_APP_MATOMO_URL'),
-                'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
-                'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER')
+                'VITE_KEYCLOAK_AUTH_URL': config.get('VITE_KEYCLOAK_AUTH_URL'),
+                'VITE_KEYCLOAK_REALM': config.get('VITE_KEYCLOAK_REALM'),
+                'VITE_KEYCLOAK_CLIENT': config.get('VITE_KEYCLOAK_CLIENT'),
+                'VITE_MATOMO_URL': config.get('VITE_MATOMO_URL'),
+                'VITE_MATOMO_SITE_ID': config.get('VITE_MATOMO_SITE_ID'),
+                'VITE_MATOMO_CONTAINER': config.get('VITE_MATOMO_CONTAINER')
             })
         if config.get('HOSTNAME') != 'localhost':
             # For anything else - force https.
