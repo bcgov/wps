@@ -19,25 +19,7 @@ class NoonForecast(Base):
     __table_args__ = (
         UniqueConstraint('weather_date',
                          'wfwx_update_date',
-                         'station_code',
-                         'temp_valid',
-                         'temperature',
-                         'rh_valid',
-                         'relative_humidity',
-                         'wdir_valid',
-                         'wind_direction',
-                         'wspeed_valid',
-                         'wind_speed',
-                         'precip_valid',
-                         'precipitation',
-                         'gc',
-                         'ffmc',
-                         'dmc',
-                         'dc',
-                         'isi',
-                         'bui',
-                         'fwi',
-                         'danger_rating'),
+                         'station_code'),
         {'comment': 'The noon_forecast for a weather station and weather date.'}
     )
     id = Column(Integer, primary_key=True)
@@ -61,7 +43,6 @@ class NoonForecast(Base):
     isi = Column(Float, nullable=False, default=math.nan)
     bui = Column(Float, nullable=False, default=math.nan)
     fwi = Column(Float, nullable=False, default=math.nan)
-    danger_rating = Column(Integer, nullable=True, default=None)
     created_at = Column(TZTimeStamp, nullable=False,
                         default=time_utils.get_utc_now(), index=True)
     wfwx_update_date = Column(TZTimeStamp, nullable=False, index=True)

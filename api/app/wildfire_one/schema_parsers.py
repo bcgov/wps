@@ -299,7 +299,6 @@ def parse_noon_forecast(station_code, forecast) -> NoonForecast:
         isi=forecast.get('initialSpreadIndex', math.nan),
         bui=forecast.get('buildUpIndex', math.nan),
         fwi=forecast.get('fireWeatherIndex', math.nan),
-        danger_rating=forecast.get('dailySeverityRating', None),
     )
     temp_valid, rh_valid, wdir_valid, wspeed_valid, precip_valid = get_valid_flags(noon_forecast)
     noon_forecast.temp_valid = temp_valid
