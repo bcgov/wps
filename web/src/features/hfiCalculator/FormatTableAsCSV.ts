@@ -1,7 +1,6 @@
 import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { groupBy, isNull, isUndefined, range } from 'lodash'
-import * as CSV from 'csv-string'
 import {
   getDailiesByStationCode,
   getDailiesForArea,
@@ -45,10 +44,10 @@ export class FormatTableAsCSV {
   ): string => {
     const rowsAsStrings: string[] = []
 
-    rowsAsStrings.push(CSV.stringify(dailyTableColumnLabels.toString()))
+    rowsAsStrings.push(dailyTableColumnLabels.toString())
 
     Object.entries(fireCentres).forEach(([, centre]) => {
-      rowsAsStrings.push(CSV.stringify(centre.name))
+      rowsAsStrings.push(centre.name)
       Object.entries(centre.planning_areas)
         .sort((a, b) =>
           getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
@@ -61,13 +60,7 @@ export class FormatTableAsCSV {
           const areaDailies = getDailiesForArea(area, dailies, stationCodesInArea)
           const meanIntensityGroup = calculateMeanIntensity(areaDailies)
           const areaPrepLevel = calculatePrepLevel(meanIntensityGroup)
-          rowsAsStrings.push(
-            CSV.stringify(
-              `${area.name}, ${Array(21).join(
-                ','
-              )} ${meanIntensityGroup}, 0-1, ${areaPrepLevel}` // fire starts of 0-1 is hard-coded for now
-            )
-          )
+          rowsAsStrings.push('')
           Object.entries(area.stations).forEach(([, station]) => {
             const rowArray: string[] = []
             const daily = getDailiesByStationCode(dailies, station.code)[0]
@@ -144,7 +137,7 @@ export class FormatTableAsCSV {
                 : 'ND'
             )
 
-            rowsAsStrings.push(CSV.stringify(rowArray))
+            rowsAsStrings.push(rowArray)
           })
         })
     })
@@ -286,6 +279,6 @@ export class FormatTableAsCSV {
           })
         })
     })
-    return CSV.stringify(rowsAsStringArrays)
+    return ''
   }
 }

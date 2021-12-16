@@ -4,7 +4,7 @@ import { KeycloakInitOptions } from 'types/keycloak'
 export const kcInitOption: KeycloakInitOptions = {
   onLoad: 'login-required',
   checkLoginIframe: false,
-  enableLogging: process.env.NODE_ENV !== 'production'
+  enableLogging: import.meta.env.NODE_ENV !== 'production'
 }
 
 // Let Typescript know we are using the 'native' promise type

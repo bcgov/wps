@@ -22,7 +22,7 @@ import { FireBehaviourAdvisoryPage } from 'features/fba/pages/FireBehaviourAdvis
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 const shouldAuthenticate =
-  process.env.NODE_ENV === 'production' || window.Cypress === undefined
+  import.meta.env.NODE_ENV === 'production' || window.Cypress === undefined
 
 const Routes: React.FunctionComponent = () => {
   return (
