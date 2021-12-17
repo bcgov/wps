@@ -9,13 +9,34 @@ import {
   TextField,
   InputAdornment
 } from '@material-ui/core'
+import { getStations, StationSource, GeoJsonStation } from 'api/stationAPI'
+import { selectFireWeatherStations } from 'app/rootReducer'
+import { ErrorMessage } from 'components'
 import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGrid'
 import FWIStationCell from 'features/fwiCalculator/components/FWIStationCell'
-import React from 'react'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+export interface Option {
+  name: string
+  code: number
+}
 export interface BasicFWIInputProps {
   input: FWIInputParameters
+  setInput: React.Dispatch<React.SetStateAction<FWIInputParameters>>
 }
-const BasicFWIInput = (props: BasicFWIInputProps) => {
+const BasicFWIInput = ({ input, setInput }: BasicFWIInputProps) => {
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const { stations, error } = useSelector(selectFireWeatherStations)
+  const allStationOptions: Option[] = (stations as GeoJsonStation[]).map(station => ({
+    name: station.properties.name,
+    code: station.properties.code
+  }))
+
   return (
     <TableContainer component={Paper}>
       <Table aria-label="Basic FWI Calculation Inputs" size="small">
@@ -23,7 +44,11 @@ const BasicFWIInput = (props: BasicFWIInputProps) => {
           <TableRow>
             <TableCell>Station Name</TableCell>
             <TableCell>
-              <FWIStationCell />
+              <FWIStationCell
+                stationOptions={allStationOptions}
+                input={input}
+                setInput={setInput}
+              />
             </TableCell>
           </TableRow>
         </TableHead>
@@ -38,7 +63,7 @@ const BasicFWIInput = (props: BasicFWIInputProps) => {
                 variant="outlined"
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={props.input.yesterdayFFMC}
+                defaultValue={input.yesterdayFFMC}
               />
             </TableCell>
           </TableRow>
@@ -52,7 +77,7 @@ const BasicFWIInput = (props: BasicFWIInputProps) => {
                 variant="outlined"
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={props.input.yesterdayDMC}
+                defaultValue={input.yesterdayDMC}
               />
             </TableCell>
           </TableRow>
@@ -66,7 +91,7 @@ const BasicFWIInput = (props: BasicFWIInputProps) => {
                 variant="outlined"
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={props.input.yesterdayDC}
+                defaultValue={input.yesterdayDC}
               />
             </TableCell>
           </TableRow>
@@ -83,7 +108,7 @@ const BasicFWIInput = (props: BasicFWIInputProps) => {
                 }}
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={props.input.todayTemp}
+                defaultValue={input.todayTemp}
               />
             </TableCell>
           </TableRow>
@@ -100,7 +125,7 @@ const BasicFWIInput = (props: BasicFWIInputProps) => {
                 }}
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={props.input.todayRH}
+                defaultValue={input.todayRH}
               />
             </TableCell>
           </TableRow>
@@ -117,7 +142,7 @@ const BasicFWIInput = (props: BasicFWIInputProps) => {
                 }}
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={props.input.todayWindspeed}
+                defaultValue={input.todayWindspeed}
               />
             </TableCell>
           </TableRow>
@@ -134,12 +159,13 @@ const BasicFWIInput = (props: BasicFWIInputProps) => {
                 }}
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={props.input.todayPrecip}
+                defaultValue={input.todayPrecip}
               />
             </TableCell>
           </TableRow>
         </TableBody>
       </Table>
+      {error && <ErrorMessage error={error} context="while fetching weather stations" />}
     </TableContainer>
   )
 }

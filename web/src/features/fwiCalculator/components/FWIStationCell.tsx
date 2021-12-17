@@ -1,42 +1,29 @@
 import { TextField } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
-import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
-import { selectFireWeatherStations } from 'app/rootReducer'
-import { ErrorMessage } from 'components'
-import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGrid'
+import { Option } from 'features/fwiCalculator/components/BasicFWIInput'
 import { isEqual } from 'lodash'
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { ChangeEvent } from 'react'
 
-export interface Option {
-  name: string
-  code: number
-}
 export interface FWIStationCellProps {
-  stationOptions: GridMenuOption[]
+  stationOptions: Option[]
+  input: FWIInputParameters
+  setInput: React.Dispatch<React.SetStateAction<FWIInputParameters>>
 }
 const emptyLabel = 'Select a station'
 
-const FWIStationCell = () => {
-  const dispatch = useDispatch()
-
-  useEffect(() => {
-    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  const { error, stations } = useSelector(selectFireWeatherStations)
-  const allStationOptions: Option[] = (stations as GeoJsonStation[]).map(station => ({
-    name: station.properties.name,
-    code: station.properties.code
-  }))
-
-  const [selectedStation, setSelectedStation] = useState<Option | null>(null)
-
+const FWIStationCell = ({ stationOptions, input, setInput }: FWIStationCellProps) => {
   // eslint-disable-next-line
-  const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    if (!isEqual(selectedStation, value)) {
-      setSelectedStation(value)
-    }
+
+  const handleChange = (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    _: ChangeEvent<any>,
+    value: Option | null
+  ) => {
+    setInput(prevState => ({
+      ...prevState,
+      stationOption: value
+    }))
   }
 
   return (
@@ -44,20 +31,20 @@ const FWIStationCell = () => {
       <Autocomplete
         autoHighlight={true}
         autoSelect={true}
-        options={allStationOptions}
+        options={stationOptions}
         getOptionLabel={option => `${option.name} (${option.code})`}
+        getOptionSelected={(option, value) => isEqual(option, value)}
         renderInput={params => (
           <TextField
             {...params}
-            label={selectedStation ? '' : emptyLabel}
+            label={input.stationOption ? '' : emptyLabel}
             variant="outlined"
             size="small"
           />
         )}
-        onChange={changeHandler}
-        value={selectedStation}
+        onChange={handleChange}
+        value={input.stationOption}
       />
-      {error && <ErrorMessage error={error} context="while fetching weather stations" />}
     </React.Fragment>
   )
 }

@@ -7,7 +7,7 @@ export interface Option {
   code: number
 }
 export interface FWIInputParameters {
-  stationCode: number
+  stationOption: Option | null
   yesterdayFFMC: number
   yesterdayDMC: number
   yesterdayDC: number
@@ -18,7 +18,7 @@ export interface FWIInputParameters {
 }
 
 const defaultInput: FWIInputParameters = {
-  stationCode: 322,
+  stationOption: null,
   yesterdayFFMC: 0,
   yesterdayDMC: 0,
   yesterdayDC: 0,
@@ -31,10 +31,9 @@ const defaultInput: FWIInputParameters = {
 const BasicFWIGrid: React.FunctionComponent = () => {
   const [input, setInput] = useState<FWIInputParameters>(defaultInput)
   return (
-    /** Input table */
     <Grid container direction={'row'} spacing={2}>
       <Grid item xs={4}>
-        <BasicFWIInput input={input} />
+        <BasicFWIInput input={input} setInput={setInput} />
       </Grid>
       <Grid item xs={3}>
         <BasicFWIOutput />
