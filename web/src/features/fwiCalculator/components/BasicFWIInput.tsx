@@ -9,10 +9,13 @@ import {
   TextField,
   InputAdornment
 } from '@material-ui/core'
+import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGrid'
 import FWIStationCell from 'features/fwiCalculator/components/FWIStationCell'
 import React from 'react'
-
-const BasicFWIInput = () => {
+export interface BasicFWIInputProps {
+  input: FWIInputParameters
+}
+const BasicFWIInput = (props: BasicFWIInputProps) => {
   return (
     <TableContainer component={Paper}>
       <Table aria-label="Basic FWI Calculation Inputs" size="small">
@@ -35,7 +38,7 @@ const BasicFWIInput = () => {
                 variant="outlined"
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={20}
+                defaultValue={props.input.yesterdayFFMC}
               />
             </TableCell>
           </TableRow>
@@ -49,7 +52,7 @@ const BasicFWIInput = () => {
                 variant="outlined"
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={11}
+                defaultValue={props.input.yesterdayDMC}
               />
             </TableCell>
           </TableRow>
@@ -63,7 +66,7 @@ const BasicFWIInput = () => {
                 variant="outlined"
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={5}
+                defaultValue={props.input.yesterdayDC}
               />
             </TableCell>
           </TableRow>
@@ -80,7 +83,7 @@ const BasicFWIInput = () => {
                 }}
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={15}
+                defaultValue={props.input.todayTemp}
               />
             </TableCell>
           </TableRow>
@@ -97,7 +100,7 @@ const BasicFWIInput = () => {
                 }}
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={80}
+                defaultValue={props.input.todayRH}
               />
             </TableCell>
           </TableRow>
@@ -114,7 +117,7 @@ const BasicFWIInput = () => {
                 }}
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={8}
+                defaultValue={props.input.todayWindspeed}
               />
             </TableCell>
           </TableRow>
@@ -131,7 +134,7 @@ const BasicFWIInput = () => {
                 }}
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
-                defaultValue={75}
+                defaultValue={props.input.todayPrecip}
               />
             </TableCell>
           </TableRow>
