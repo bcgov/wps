@@ -16,7 +16,7 @@ export const BasicFWIGrid: React.FunctionComponent = () => {
   return (
     /** Input table */
     <Grid container direction={'row'} spacing={2}>
-      <Grid item>
+      <Grid item xs={4}>
         <TableContainer component={Paper}>
           <Table aria-label="Basic FWI Calculation Inputs">
             <TableHead>
@@ -123,7 +123,7 @@ export const BasicFWIGrid: React.FunctionComponent = () => {
           </Table>
         </TableContainer>
       </Grid>
-      <Grid item>
+      <Grid item xs={3}>
         <TableContainer component={Paper}>
           {/** Output table */}
           <Table aria-label="Basic FWI Calculation Inputs">

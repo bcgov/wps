@@ -77,9 +77,7 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
           </Grid>
           <Grid container spacing={2}>
             <Grid item xs>
-              <FormControl>
-                <BasicFWI />
-              </FormControl>
+              <BasicFWI />
             </Grid>
           </Grid>
         </Grid>
