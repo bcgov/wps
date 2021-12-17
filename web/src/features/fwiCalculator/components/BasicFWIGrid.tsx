@@ -7,7 +7,7 @@ const BasicFWIGrid: React.FunctionComponent = () => {
   return (
     /** Input table */
     <Grid container direction={'row'} spacing={2}>
-      <Grid item xs={6}>
+      <Grid item xs={4}>
         <BasicFWIInput />
       </Grid>
       <Grid item xs={3}>
