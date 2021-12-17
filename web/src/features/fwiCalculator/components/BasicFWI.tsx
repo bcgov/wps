@@ -1,5 +1,5 @@
 import React from 'react'
-import { BasicFWIGrid } from 'features/fwiCalculator/components/BasicFWIGrid'
+import BasicFWIGrid from 'features/fwiCalculator/components/BasicFWIGrid'
 
 /**
  * TODO

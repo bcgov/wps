@@ -2,7 +2,7 @@ import { TextField } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 import React from 'react'
 
-export const FWIStationCell = () => {
+const FWIStationCell = () => {
   return (
     <Autocomplete
       autoHighlight={true}
@@ -15,3 +15,4 @@ export const FWIStationCell = () => {
     />
   )
 }
+export default React.memo(FWIStationCell)

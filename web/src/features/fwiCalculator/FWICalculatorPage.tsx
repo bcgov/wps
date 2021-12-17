@@ -6,7 +6,7 @@ import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { pstFormatter } from 'utils/date'
 import { getStationCodesFromUrl } from 'utils/url'
-import { useHistory, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { BasicFWI } from 'features/fwiCalculator/components/BasicFWI'
 
 const useStyles = makeStyles(() => ({
@@ -19,10 +19,9 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
   const location = useLocation()
-  const history = useHistory()
 
   const codesFromQuery = getStationCodesFromUrl(location.search)
-  const [stationCodes, setStationCodes] = useState<number[]>(codesFromQuery)
+  console.log(codesFromQuery)
 
   const [dateOfInterest, setDateOfInterest] = useState(
     pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
