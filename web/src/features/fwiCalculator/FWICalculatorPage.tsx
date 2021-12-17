@@ -8,8 +8,7 @@ import { PST_UTC_OFFSET } from 'utils/constants'
 import { pstFormatter } from 'utils/date'
 import { getStationCodesFromUrl } from 'utils/url'
 import { useHistory, useLocation } from 'react-router-dom'
-import WxStationDropdown from 'features/fireWeather/components/WxStationDropdown'
-import { BasicFWIGrid } from 'features/fwiCalculator/components/BasicFWIGrid'
+import { BasicFWI } from 'features/fwiCalculator/components/BasicFWI'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -79,7 +78,7 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
           <Grid container spacing={2}>
             <Grid item xs>
               <FormControl>
-                <BasicFWIGrid />
+                <BasicFWI />
               </FormControl>
             </Grid>
           </Grid>
