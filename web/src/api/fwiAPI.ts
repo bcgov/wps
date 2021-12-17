@@ -12,7 +12,7 @@ export interface FWIOutput {
 }
 
 export interface FWIOutputResponse {
-  output: FWIOutput[]
+  fwi_outputs: FWIOutput[]
 }
 
 export async function getFWIOutput(
@@ -25,5 +25,5 @@ export async function getFWIOutput(
     date
   })
 
-  return data.output
+  return data.fwi_outputs
 }

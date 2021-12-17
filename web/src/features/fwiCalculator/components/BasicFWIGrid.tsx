@@ -4,11 +4,7 @@ import BasicFWIInput from 'features/fwiCalculator/components/BasicFWIInput'
 import BasicFWIOutput from 'features/fwiCalculator/components/BasicFWIOutput'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFWICalculation } from 'features/fwiCalculator/slices/fwiSlice'
-import {
-  selectFWIOutputs,
-  selectFireWeatherStationsLoading,
-  selectFWIOutputsLoading
-} from 'app/rootReducer'
+import { selectFWIOutputs, selectFWIOutputsLoading } from 'app/rootReducer'
 export interface Option {
   name: string
   code: number
@@ -43,7 +39,7 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
   const dispatch = useDispatch()
 
   const [input, setInput] = useState<FWIInputParameters>(defaultInput)
-  const fwiOutputs = useSelector(selectFWIOutputs)
+  const { fwiOutputs } = useSelector(selectFWIOutputs)
   const isLoading = useSelector(selectFWIOutputsLoading)
 
   useEffect(() => {
@@ -59,7 +55,7 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
         <BasicFWIInput isLoading={isLoading} input={input} setInput={setInput} />
       </Grid>
       <Grid item xs={3}>
-        <BasicFWIOutput />
+        <BasicFWIOutput output={fwiOutputs.length > 0 ? fwiOutputs[0] : null} />
       </Grid>
     </Grid>
   )

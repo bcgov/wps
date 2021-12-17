@@ -6,37 +6,41 @@ import {
   TableCell,
   TableBody
 } from '@material-ui/core'
+import { FWIOutput } from 'api/fwiAPI'
 import React from 'react'
 
-const BasicFWIOutput = () => {
+export interface BasicFWIOutputProps {
+  output: FWIOutput | null | undefined
+}
+
+const BasicFWIOutput = ({ output }: BasicFWIOutputProps) => {
   return (
     <TableContainer component={Paper}>
-      {/** Output table */}
       <Table aria-label="Basic FWI Calculation Inputs">
         <TableBody>
           <TableRow>
             <TableCell>Today&apos;s Standard FFMC</TableCell>
-            <TableCell>100</TableCell>
+            <TableCell>{output ? output.ffmc : ''}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s Standard DMC</TableCell>
-            <TableCell>5</TableCell>
+            <TableCell>{output ? output.dmc : ''}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s Standard DC</TableCell>
-            <TableCell>5</TableCell>
+            <TableCell>{output ? output.dc : ''}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s Standard ISI</TableCell>
-            <TableCell>5</TableCell>
+            <TableCell>{output ? output.isi : ''}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s Standard BUI</TableCell>
-            <TableCell>5</TableCell>
+            <TableCell>{output ? output.bui : ''}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s Standard FWI</TableCell>
-            <TableCell>5</TableCell>
+            <TableCell>{output ? output.fwi : ''}</TableCell>
           </TableRow>
         </TableBody>
       </Table>

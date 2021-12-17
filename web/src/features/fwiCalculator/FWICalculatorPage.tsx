@@ -5,8 +5,6 @@ import DatePicker from 'components/DatePicker'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { pstFormatter } from 'utils/date'
-import { getStationCodesFromUrl } from 'utils/url'
-import { useLocation } from 'react-router-dom'
 import BasicFWIGrid from 'features/fwiCalculator/components/BasicFWIGrid'
 
 const useStyles = makeStyles(() => ({
@@ -17,11 +15,6 @@ const useStyles = makeStyles(() => ({
 
 export const FWICalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
-
-  const location = useLocation()
-
-  const codesFromQuery = getStationCodesFromUrl(location.search)
-  console.log(codesFromQuery)
 
   const [dateOfInterest, setDateOfInterest] = useState(
     pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
