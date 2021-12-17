@@ -6,13 +6,19 @@ import { isEqual } from 'lodash'
 import React, { ChangeEvent } from 'react'
 
 export interface FWIStationCellProps {
+  isLoading: boolean
   stationOptions: Option[]
   input: FWIInputParameters
   setInput: React.Dispatch<React.SetStateAction<FWIInputParameters>>
 }
 const emptyLabel = 'Select a station'
 
-const FWIStationCell = ({ stationOptions, input, setInput }: FWIStationCellProps) => {
+const FWIStationCell = ({
+  isLoading,
+  stationOptions,
+  input,
+  setInput
+}: FWIStationCellProps) => {
   // eslint-disable-next-line
 
   const handleChange = (
@@ -27,25 +33,24 @@ const FWIStationCell = ({ stationOptions, input, setInput }: FWIStationCellProps
   }
 
   return (
-    <React.Fragment>
-      <Autocomplete
-        autoHighlight={true}
-        autoSelect={true}
-        options={stationOptions}
-        getOptionLabel={option => `${option.name} (${option.code})`}
-        getOptionSelected={(option, value) => isEqual(option, value)}
-        renderInput={params => (
-          <TextField
-            {...params}
-            label={input.stationOption ? '' : emptyLabel}
-            variant="outlined"
-            size="small"
-          />
-        )}
-        onChange={handleChange}
-        value={input.stationOption}
-      />
-    </React.Fragment>
+    <Autocomplete
+      autoHighlight={true}
+      autoSelect={true}
+      disabled={isLoading}
+      options={stationOptions}
+      getOptionLabel={option => `${option.name} (${option.code})`}
+      getOptionSelected={(option, value) => isEqual(option, value)}
+      renderInput={params => (
+        <TextField
+          {...params}
+          label={input.stationOption ? '' : emptyLabel}
+          variant="outlined"
+          size="small"
+        />
+      )}
+      onChange={handleChange}
+      value={input.stationOption}
+    />
   )
 }
 export default React.memo(FWIStationCell)

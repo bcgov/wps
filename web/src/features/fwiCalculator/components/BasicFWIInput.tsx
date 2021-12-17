@@ -22,10 +22,11 @@ export interface Option {
   code: number
 }
 export interface BasicFWIInputProps {
+  isLoading: boolean
   input: FWIInputParameters
   setInput: React.Dispatch<React.SetStateAction<FWIInputParameters>>
 }
-const BasicFWIInput = ({ input, setInput }: BasicFWIInputProps) => {
+const BasicFWIInput = ({ isLoading, input, setInput }: BasicFWIInputProps) => {
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -48,6 +49,7 @@ const BasicFWIInput = ({ input, setInput }: BasicFWIInputProps) => {
                 stationOptions={allStationOptions}
                 input={input}
                 setInput={setInput}
+                isLoading={isLoading}
               />
             </TableCell>
           </TableRow>
@@ -59,6 +61,7 @@ const BasicFWIInput = ({ input, setInput }: BasicFWIInputProps) => {
               inputField={'yesterdayFFMC'}
               input={input}
               setInput={setInput}
+              isLoading={isLoading}
             />
           </TableRow>
           <TableRow>
@@ -67,6 +70,7 @@ const BasicFWIInput = ({ input, setInput }: BasicFWIInputProps) => {
               inputField={'yesterdayDMC'}
               input={input}
               setInput={setInput}
+              isLoading={isLoading}
             />
           </TableRow>
           <TableRow>
@@ -78,6 +82,7 @@ const BasicFWIInput = ({ input, setInput }: BasicFWIInputProps) => {
                 endAdornment: <InputAdornment position="end">%</InputAdornment>
               }}
               setInput={setInput}
+              isLoading={isLoading}
             />
           </TableRow>
           <TableRow>
@@ -89,6 +94,7 @@ const BasicFWIInput = ({ input, setInput }: BasicFWIInputProps) => {
                 endAdornment: <InputAdornment position="end">C°</InputAdornment>
               }}
               setInput={setInput}
+              isLoading={isLoading}
             />
           </TableRow>
           <TableRow>
@@ -100,6 +106,7 @@ const BasicFWIInput = ({ input, setInput }: BasicFWIInputProps) => {
                 endAdornment: <InputAdornment position="end">%</InputAdornment>
               }}
               setInput={setInput}
+              isLoading={isLoading}
             />
           </TableRow>
           <TableRow>
@@ -111,6 +118,7 @@ const BasicFWIInput = ({ input, setInput }: BasicFWIInputProps) => {
                 endAdornment: <InputAdornment position="end">km/h</InputAdornment>
               }}
               setInput={setInput}
+              isLoading={isLoading}
             />
           </TableRow>
           <TableRow>
@@ -122,6 +130,7 @@ const BasicFWIInput = ({ input, setInput }: BasicFWIInputProps) => {
                 endAdornment: <InputAdornment position="end">mm</InputAdornment>
               }}
               setInput={setInput}
+              isLoading={isLoading}
             />
           </TableRow>
         </TableBody>

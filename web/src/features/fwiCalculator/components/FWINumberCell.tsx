@@ -3,12 +3,14 @@ import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGr
 import React, { ChangeEvent } from 'react'
 
 export interface FWIStationCellProps {
+  isLoading: boolean
   inputField: keyof FWIInputParameters
   input: FWIInputParameters
   setInput: React.Dispatch<React.SetStateAction<FWIInputParameters>>
   inputProps?: OutlinedTextFieldProps['InputProps']
 }
 const FWINumberCell = ({
+  isLoading,
   inputField,
   input,
   inputProps,
@@ -35,6 +37,7 @@ const FWINumberCell = ({
           inputMode="numeric"
           size="small"
           variant="outlined"
+          disabled={isLoading}
           InputProps={inputProps}
           inputProps={{ min: 0, max: 100 }}
           fullWidth

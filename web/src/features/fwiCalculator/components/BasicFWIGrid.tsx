@@ -2,8 +2,13 @@ import React, { useEffect, useState } from 'react'
 import { Grid } from '@material-ui/core'
 import BasicFWIInput from 'features/fwiCalculator/components/BasicFWIInput'
 import BasicFWIOutput from 'features/fwiCalculator/components/BasicFWIOutput'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { fetchFWICalculation } from 'features/fwiCalculator/slices/fwiSlice'
+import {
+  selectFWIOutputs,
+  selectFireWeatherStationsLoading,
+  selectFWIOutputsLoading
+} from 'app/rootReducer'
 export interface Option {
   name: string
   code: number
@@ -38,6 +43,8 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
   const dispatch = useDispatch()
 
   const [input, setInput] = useState<FWIInputParameters>(defaultInput)
+  const fwiOutputs = useSelector(selectFWIOutputs)
+  const isLoading = useSelector(selectFWIOutputsLoading)
 
   useEffect(() => {
     console.log(`Computing new input: ${JSON.stringify(input)}`)
@@ -49,7 +56,7 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
   return (
     <Grid container direction={'row'} spacing={2}>
       <Grid item xs={4}>
-        <BasicFWIInput input={input} setInput={setInput} />
+        <BasicFWIInput isLoading={isLoading} input={input} setInput={setInput} />
       </Grid>
       <Grid item xs={3}>
         <BasicFWIOutput />
