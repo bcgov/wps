@@ -6,13 +6,13 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  TextField,
   InputAdornment
 } from '@material-ui/core'
 import { getStations, StationSource, GeoJsonStation } from 'api/stationAPI'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { ErrorMessage } from 'components'
 import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGrid'
+import FWINumberCell from 'features/fwiCalculator/components/FWINumberCell'
 import FWIStationCell from 'features/fwiCalculator/components/FWIStationCell'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import React, { useEffect } from 'react'
@@ -55,113 +55,74 @@ const BasicFWIInput = ({ input, setInput }: BasicFWIInputProps) => {
         <TableBody>
           <TableRow>
             <TableCell>Yesterday&apos;s FFMC</TableCell>
-            <TableCell>
-              <TextField
-                type="number"
-                inputMode="numeric"
-                size="small"
-                variant="outlined"
-                inputProps={{ min: 0, max: 100 }}
-                fullWidth
-                defaultValue={input.yesterdayFFMC}
-              />
-            </TableCell>
+            <FWINumberCell
+              inputField={'yesterdayFFMC'}
+              input={input}
+              setInput={setInput}
+            />
           </TableRow>
           <TableRow>
             <TableCell>Yesterday&apos;s DMC</TableCell>
-            <TableCell>
-              <TextField
-                type="number"
-                inputMode="numeric"
-                size="small"
-                variant="outlined"
-                inputProps={{ min: 0, max: 100 }}
-                fullWidth
-                defaultValue={input.yesterdayDMC}
-              />
-            </TableCell>
+            <FWINumberCell
+              inputField={'yesterdayDMC'}
+              input={input}
+              setInput={setInput}
+            />
           </TableRow>
           <TableRow>
             <TableCell>Yesterday&apos;s DC</TableCell>
-            <TableCell>
-              <TextField
-                type="number"
-                inputMode="numeric"
-                size="small"
-                variant="outlined"
-                inputProps={{ min: 0, max: 100 }}
-                fullWidth
-                defaultValue={input.yesterdayDC}
-              />
-            </TableCell>
+            <FWINumberCell
+              inputField={'yesterdayDC'}
+              input={input}
+              inputProps={{
+                endAdornment: <InputAdornment position="end">%</InputAdornment>
+              }}
+              setInput={setInput}
+            />
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s 1300 Temperature</TableCell>
-            <TableCell>
-              <TextField
-                type="number"
-                inputMode="numeric"
-                size="small"
-                variant="outlined"
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">C°</InputAdornment>
-                }}
-                inputProps={{ min: 0, max: 100 }}
-                fullWidth
-                defaultValue={input.todayTemp}
-              />
-            </TableCell>
+            <FWINumberCell
+              inputField={'todayTemp'}
+              input={input}
+              inputProps={{
+                endAdornment: <InputAdornment position="end">C°</InputAdornment>
+              }}
+              setInput={setInput}
+            />
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s 1300 Relative Humidity</TableCell>
-            <TableCell>
-              <TextField
-                type="number"
-                inputMode="numeric"
-                size="small"
-                variant="outlined"
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">%</InputAdornment>
-                }}
-                inputProps={{ min: 0, max: 100 }}
-                fullWidth
-                defaultValue={input.todayRH}
-              />
-            </TableCell>
+            <FWINumberCell
+              inputField={'todayRH'}
+              input={input}
+              inputProps={{
+                endAdornment: <InputAdornment position="end">%</InputAdornment>
+              }}
+              setInput={setInput}
+            />
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s 1300 Wind Speed</TableCell>
-            <TableCell>
-              <TextField
-                type="number"
-                inputMode="numeric"
-                size="small"
-                variant="outlined"
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">km/h</InputAdornment>
-                }}
-                inputProps={{ min: 0, max: 100 }}
-                fullWidth
-                defaultValue={input.todayWindspeed}
-              />
-            </TableCell>
+            <FWINumberCell
+              inputField={'todayWindspeed'}
+              input={input}
+              inputProps={{
+                endAdornment: <InputAdornment position="end">km/h</InputAdornment>
+              }}
+              setInput={setInput}
+            />
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s Precipitation</TableCell>
-            <TableCell>
-              <TextField
-                type="number"
-                inputMode="numeric"
-                size="small"
-                variant="outlined"
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">mm</InputAdornment>
-                }}
-                inputProps={{ min: 0, max: 100 }}
-                fullWidth
-                defaultValue={input.todayPrecip}
-              />
-            </TableCell>
+            <FWINumberCell
+              inputField={'todayPrecip'}
+              input={input}
+              inputProps={{
+                endAdornment: <InputAdornment position="end">mm</InputAdornment>
+              }}
+              setInput={setInput}
+            />
           </TableRow>
         </TableBody>
       </Table>
