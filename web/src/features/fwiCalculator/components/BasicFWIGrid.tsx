@@ -8,7 +8,8 @@ import {
   TableCell,
   TableBody,
   TextField,
-  Grid
+  Grid,
+  InputAdornment
 } from '@material-ui/core'
 import { FWIStationCell } from 'features/fwiCalculator/components/FWIStationCell'
 
@@ -18,7 +19,7 @@ export const BasicFWIGrid: React.FunctionComponent = () => {
     <Grid container direction={'row'} spacing={2}>
       <Grid item xs={4}>
         <TableContainer component={Paper}>
-          <Table aria-label="Basic FWI Calculation Inputs">
+          <Table aria-label="Basic FWI Calculation Inputs" size="small">
             <TableHead>
               <TableRow>
                 <TableCell>Station Name</TableCell>
@@ -37,6 +38,7 @@ export const BasicFWIGrid: React.FunctionComponent = () => {
                     size="small"
                     variant="outlined"
                     inputProps={{ min: 0, max: 100 }}
+                    fullWidth
                     defaultValue={20}
                   />
                 </TableCell>
@@ -50,6 +52,7 @@ export const BasicFWIGrid: React.FunctionComponent = () => {
                     size="small"
                     variant="outlined"
                     inputProps={{ min: 0, max: 100 }}
+                    fullWidth
                     defaultValue={11}
                   />
                 </TableCell>
@@ -63,6 +66,7 @@ export const BasicFWIGrid: React.FunctionComponent = () => {
                     size="small"
                     variant="outlined"
                     inputProps={{ min: 0, max: 100 }}
+                    fullWidth
                     defaultValue={5}
                   />
                 </TableCell>
@@ -75,7 +79,11 @@ export const BasicFWIGrid: React.FunctionComponent = () => {
                     inputMode="numeric"
                     size="small"
                     variant="outlined"
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">C°</InputAdornment>
+                    }}
                     inputProps={{ min: 0, max: 100 }}
+                    fullWidth
                     defaultValue={15}
                   />
                 </TableCell>
@@ -88,7 +96,11 @@ export const BasicFWIGrid: React.FunctionComponent = () => {
                     inputMode="numeric"
                     size="small"
                     variant="outlined"
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">%</InputAdornment>
+                    }}
                     inputProps={{ min: 0, max: 100 }}
+                    fullWidth
                     defaultValue={80}
                   />
                 </TableCell>
@@ -101,7 +113,11 @@ export const BasicFWIGrid: React.FunctionComponent = () => {
                     inputMode="numeric"
                     size="small"
                     variant="outlined"
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">km/h</InputAdornment>
+                    }}
                     inputProps={{ min: 0, max: 100 }}
+                    fullWidth
                     defaultValue={8}
                   />
                 </TableCell>
@@ -114,7 +130,11 @@ export const BasicFWIGrid: React.FunctionComponent = () => {
                     inputMode="numeric"
                     size="small"
                     variant="outlined"
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">mm</InputAdornment>
+                    }}
                     inputProps={{ min: 0, max: 100 }}
+                    fullWidth
                     defaultValue={75}
                   />
                 </TableCell>
