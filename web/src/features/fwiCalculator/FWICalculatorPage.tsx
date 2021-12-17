@@ -55,7 +55,7 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
           </Grid>
           <Grid container spacing={2}>
             <Grid item xs>
-              <BasicFWIGrid />
+              <BasicFWIGrid dateOfInterest={dateOfInterest} />
             </Grid>
           </Grid>
         </Grid>

@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Grid } from '@material-ui/core'
 import BasicFWIInput from 'features/fwiCalculator/components/BasicFWIInput'
 import BasicFWIOutput from 'features/fwiCalculator/components/BasicFWIOutput'
+import { useDispatch } from 'react-redux'
+import { fetchFWICalculation } from 'features/fwiCalculator/slices/fwiSlice'
 export interface Option {
   name: string
   code: number
@@ -28,8 +30,22 @@ const defaultInput: FWIInputParameters = {
   todayPrecip: 0
 }
 
-const BasicFWIGrid: React.FunctionComponent = () => {
+export interface BasicFWIGridProps {
+  dateOfInterest: string
+}
+
+const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
+  const dispatch = useDispatch()
+
   const [input, setInput] = useState<FWIInputParameters>(defaultInput)
+
+  useEffect(() => {
+    console.log(`Computing new input: ${JSON.stringify(input)}`)
+    dispatch(fetchFWICalculation(input, dateOfInterest))
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input])
+
   return (
     <Grid container direction={'row'} spacing={2}>
       <Grid item xs={4}>
