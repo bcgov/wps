@@ -55,7 +55,10 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
         <BasicFWIInput isLoading={isLoading} input={input} setInput={setInput} />
       </Grid>
       <Grid item xs={3}>
-        <BasicFWIOutput output={fwiOutputs.length > 0 ? fwiOutputs[0] : null} />
+        <BasicFWIOutput
+          isLoading={isLoading}
+          output={fwiOutputs.length > 0 ? fwiOutputs[0] : null}
+        />
       </Grid>
     </Grid>
   )

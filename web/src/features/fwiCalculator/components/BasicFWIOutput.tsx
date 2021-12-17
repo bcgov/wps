@@ -6,41 +6,79 @@ import {
   TableCell,
   TableBody
 } from '@material-ui/core'
+import { Skeleton } from '@material-ui/lab'
 import { FWIOutput } from 'api/fwiAPI'
 import React from 'react'
 
 export interface BasicFWIOutputProps {
+  isLoading: boolean
   output: FWIOutput | null | undefined
 }
 
-const BasicFWIOutput = ({ output }: BasicFWIOutputProps) => {
+const BasicFWIOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
   return (
     <TableContainer component={Paper}>
       <Table aria-label="Basic FWI Calculation Inputs">
         <TableBody>
           <TableRow>
             <TableCell>Today&apos;s Standard FFMC</TableCell>
-            <TableCell>{output ? output.ffmc : ''}</TableCell>
+            {isLoading ? (
+              <TableCell data-testid="loading-indicator-fwi">
+                <Skeleton />
+              </TableCell>
+            ) : (
+              <TableCell align="right">{output ? output.ffmc : ''}</TableCell>
+            )}
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s Standard DMC</TableCell>
-            <TableCell>{output ? output.dmc : ''}</TableCell>
+            {isLoading ? (
+              <TableCell data-testid="loading-indicator-fwi">
+                <Skeleton />
+              </TableCell>
+            ) : (
+              <TableCell align="right">{output ? output.dmc : ''}</TableCell>
+            )}
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s Standard DC</TableCell>
-            <TableCell>{output ? output.dc : ''}</TableCell>
+            {isLoading ? (
+              <TableCell data-testid="loading-indicator-fwi">
+                <Skeleton />
+              </TableCell>
+            ) : (
+              <TableCell align="right">{output ? output.dc : ''}</TableCell>
+            )}
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s Standard ISI</TableCell>
-            <TableCell>{output ? output.isi : ''}</TableCell>
+            {isLoading ? (
+              <TableCell data-testid="loading-indicator-fwi">
+                <Skeleton />
+              </TableCell>
+            ) : (
+              <TableCell align="right">{output ? output.isi : ''}</TableCell>
+            )}
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s Standard BUI</TableCell>
-            <TableCell>{output ? output.bui : ''}</TableCell>
+            {isLoading ? (
+              <TableCell data-testid="loading-indicator-fwi">
+                <Skeleton />
+              </TableCell>
+            ) : (
+              <TableCell align="right">{output ? output.bui : ''}</TableCell>
+            )}
           </TableRow>
           <TableRow>
             <TableCell>Today&apos;s Standard FWI</TableCell>
-            <TableCell>{output ? output.fwi : ''}</TableCell>
+            {isLoading ? (
+              <TableCell data-testid="loading-indicator-fwi">
+                <Skeleton />
+              </TableCell>
+            ) : (
+              <TableCell align="right">{output ? output.fwi : ''}</TableCell>
+            )}
           </TableRow>
         </TableBody>
       </Table>
