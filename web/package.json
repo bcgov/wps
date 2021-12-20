@@ -51,6 +51,7 @@
     "react-plotly.js": "^2.5.1",
     "react-redux": "^7.2.4",
     "react-router-dom": "^5.1.2",
+    "recharts": "^2.1.8",
     "typescript": "^4.4"
   },
   "scripts": {
@@ -89,6 +90,7 @@
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.0",
     "@types/jest": "^27.0.2",
+    "@types/recharts": "^1.8.23",
     "cypress": "^9.1.1",
     "eslint": "^7.32.0",
     "eslint-plugin-react-hooks": "^4.2.0",

@@ -8,6 +8,7 @@ import {
 } from '@material-ui/core'
 import { Skeleton } from '@material-ui/lab'
 import { FWIOutput } from 'api/fwiAPI'
+import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import React from 'react'
 
 export interface BasicFWIOutputProps {
@@ -21,63 +22,75 @@ const BasicFWIActualOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
       <Table aria-label="Basic FWI Calculation Inputs">
         <TableBody>
           <TableRow>
-            <TableCell>Today&apos;s Actual FFMC</TableCell>
+            <TableCell>Actual FFMC</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output?.actual?.ffmc}</TableCell>
+              <TableCell align="right">
+                {output?.actual?.ffmc?.toFixed(DECIMAL_PLACES)}
+              </TableCell>
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Today&apos;s Actual DMC</TableCell>
+            <TableCell>Actual DMC</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output?.actual?.dmc}</TableCell>
+              <TableCell align="right">
+                {output?.actual?.dmc?.toFixed(DECIMAL_PLACES)}
+              </TableCell>
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Today&apos;s Actual DC</TableCell>
+            <TableCell>Actual DC</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output?.actual?.dc}</TableCell>
+              <TableCell align="right">
+                {output?.actual?.dc?.toFixed(DECIMAL_PLACES)}
+              </TableCell>
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Today&apos;s Actual ISI</TableCell>
+            <TableCell>Actual ISI</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output?.actual?.isi}</TableCell>
+              <TableCell align="right">
+                {output?.actual?.isi?.toFixed(DECIMAL_PLACES)}
+              </TableCell>
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Today&apos;s Actual BUI</TableCell>
+            <TableCell>Actual BUI</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output?.actual?.bui}</TableCell>
+              <TableCell align="right">
+                {output?.actual?.bui?.toFixed(DECIMAL_PLACES)}
+              </TableCell>
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Today&apos;s Actual FWI</TableCell>
+            <TableCell>Actual FWI</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output?.actual?.fwi}</TableCell>
+              <TableCell align="right">
+                {output?.actual?.fwi?.toFixed(DECIMAL_PLACES)}
+              </TableCell>
             )}
           </TableRow>
         </TableBody>

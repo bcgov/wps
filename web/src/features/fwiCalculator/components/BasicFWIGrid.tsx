@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchFWICalculation } from 'features/fwiCalculator/slices/fwiSlice'
 import { selectFWIOutputs, selectFWIOutputsLoading } from 'app/rootReducer'
 import BasicFWIAdjustedOutput from 'features/fwiCalculator/components/BasicFWIAdjustedOutput'
+import { XAxis, YAxis, CartesianGrid, BarChart, Bar, Legend, Tooltip } from 'recharts'
 export interface Option {
   name: string
   code: number
@@ -50,16 +51,34 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input])
 
+  const data = fwiOutputs.map(output => ({
+    date: output.datetime,
+    actualFFMC: output.actual.ffmc,
+    adjustedFFMC: output?.adjusted?.ffmc
+  }))
+
   return (
     <Grid container direction={'row'} spacing={2}>
-      <Grid item xs={4}>
+      <Grid item xs={3}>
         <BasicFWIInput isLoading={isLoading} input={input} setInput={setInput} />
       </Grid>
-      <Grid item xs={3}>
+      <Grid item xs={2}>
         <BasicFWIActualOutput isLoading={isLoading} output={fwiOutputs[0]} />
       </Grid>
-      <Grid item xs={3}>
+      <Grid item xs={2}>
         <BasicFWIAdjustedOutput isLoading={isLoading} output={fwiOutputs[0]} />
+      </Grid>
+      <Grid item xs={2}>
+        <BarChart width={500} height={300} data={data}>
+          <YAxis />
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="actualFFMC" fill="#8884d8" />
+          <Bar dataKey="adjustedFFMC" fill="#82ca9d" />
+        </BarChart>
       </Grid>
     </Grid>
   )
