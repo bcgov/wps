@@ -1,0 +1,336 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: metabase-postgresql-template
+message: |-
+  The following service(s) have been created in your project:
+    1. ${METABASE_SERVICE_NAME}
+    2. ${METABASE_SERVICE_NAME}-postgresql
+
+metadata:
+  name: metabase
+  annotations:
+    openshift.io/display-name: "Metabase backed by PostgreSQL"
+    openshift.io/long-description: >
+      This template provides a Metabase instance backed by a standalone PostgreSQL
+      server. The database is stored on persistent storage.
+    description: >
+      This is a PostgreSQL backed Metabase (http://www.metabase.com/) deployment. Metabase is the
+      easy, open source way for everyone in your company to ask questions and learn from data.
+    iconClass: "pficon-trend-up"
+    tags: analytics,database,metabase
+objects:
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: ${METABASE_SERVICE_NAME}
+      labels:
+        app: metabase
+        service: ${METABASE_SERVICE_NAME}
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: ${METABASE_SERVICE_NAME}-postgresql-credentials
+      labels:
+        app: metabase
+        service: ${METABASE_SERVICE_NAME}
+    stringData:
+      username: ${POSTGRESQL_USER}
+      password: ${POSTGRESQL_PASSWORD}
+      database: ${POSTGRESQL_DATABASE}
+    type: Opaque
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ${METABASE_SERVICE_NAME}-postgresql
+      labels:
+        app: metabase
+        service: ${METABASE_SERVICE_NAME}
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: ${POSTGRESQL_VOLUME_CAPACITY}
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      labels:
+        app: metabase
+      name: ${METABASE_SERVICE_NAME}
+    spec:
+      tags:
+        - from:
+            kind: DockerImage
+            name: ${METABASE_IMAGE}
+          generation: 2
+          name: latest
+          referencePolicy:
+            type: Source
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        template.openshift.io/expose-uri: http://{.spec.clusterIP}:{.spec.ports[?(.name=="${METABASE_SERVICE_NAME}")].port}
+      name: ${METABASE_SERVICE_NAME}
+      labels:
+        app: metabase
+        service: ${METABASE_SERVICE_NAME}
+    spec:
+      ports:
+        - name: ${METABASE_SERVICE_NAME}
+          port: 3000
+          protocol: TCP
+          targetPort: 3000
+      selector:
+        app: metabase
+        deploymentconfig: ${METABASE_SERVICE_NAME}
+      sessionAffinity: None
+      type: ClusterIP
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="${METABASE_SERVICE_NAME}-postgresql")].port}
+      name: ${METABASE_SERVICE_NAME}-postgresql
+    spec:
+      ports:
+        - name: ${METABASE_SERVICE_NAME}-postgresql
+          port: 5432
+          protocol: TCP
+          targetPort: 5432
+      selector:
+        name: ${METABASE_SERVICE_NAME}-postgresql
+      sessionAffinity: None
+      type: ClusterIP
+  - apiVersion: v1
+    kind: Route
+    metadata:
+      name: ${METABASE_SERVICE_NAME}
+      labels:
+        app: metabase
+        service: ${METABASE_SERVICE_NAME}
+    spec:
+      host: ${METABASE_ROUTE_HOST}
+      tls:
+        insecureEdgeTerminationPolicy: Redirect
+        termination: edge
+      to:
+        kind: Service
+        name: ${METABASE_SERVICE_NAME}
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      name: ${METABASE_SERVICE_NAME}-postgresql
+    spec:
+      replicas: 1
+      selector:
+        name: ${METABASE_SERVICE_NAME}-postgresql
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            name: ${METABASE_SERVICE_NAME}-postgresql
+        spec:
+          containers:
+            - name: ${METABASE_SERVICE_NAME}-postgresql
+              image: " "
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: POSTGRESQL_DATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${METABASE_SERVICE_NAME}-postgresql-credentials
+                      key: database
+                - name: POSTGRESQL_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${METABASE_SERVICE_NAME}-postgresql-credentials
+                      key: username
+                - name: POSTGRESQL_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${METABASE_SERVICE_NAME}-postgresql-credentials
+                      key: password
+              livenessProbe:
+                exec:
+                  command:
+                    - /bin/sh
+                    - -i
+                    - -c
+                    - pg_isready -h 127.0.0.1 -p 5432
+                initialDelaySeconds: 30
+                timeoutSeconds: 1
+              ports:
+                - containerPort: 5432
+                  protocol: TCP
+              readinessProbe:
+                exec:
+                  command:
+                    - /bin/sh
+                    - -i
+                    - -c
+                    - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c
+                      'SELECT 1'
+                initialDelaySeconds: 5
+                timeoutSeconds: 1
+              terminationMessagePath: /dev/termination-log
+              volumeMounts:
+                - mountPath: /var/lib/pgsql/data
+                  name: ${METABASE_SERVICE_NAME}-postgresql-data
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          volumes:
+            - name: ${METABASE_SERVICE_NAME}-postgresql-data
+              persistentVolumeClaim:
+                claimName: ${METABASE_SERVICE_NAME}-postgresql
+      triggers:
+        - type: ConfigChange
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - ${METABASE_SERVICE_NAME}-postgresql
+            from:
+              kind: ImageStreamTag
+              name: postgresql:${POSTGRESQL_VERSION}
+              namespace: ${POSTGRESQL_IMAGE_NAMESPACE}
+            lastTriggeredImage: ""
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      name: ${METABASE_SERVICE_NAME}
+      labels:
+        app: metabase
+        service: ${METABASE_SERVICE_NAME}
+    spec:
+      replicas: 1
+      selector:
+        app: metabase
+        deploymentconfig: ${METABASE_SERVICE_NAME}
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            app: metabase
+            service: ${METABASE_SERVICE_NAME}
+            deploymentconfig: ${METABASE_SERVICE_NAME}
+            template: metabase
+        spec:
+          containers:
+            - name: ${METABASE_SERVICE_NAME}
+              image: ${METABASE_IMAGE}
+              imagePullPolicy: Always
+              env:
+                - name: MB_DB_TYPE
+                  value: postgres
+                - name: MB_DB_HOST
+                  value: ${METABASE_SERVICE_NAME}-postgresql
+                - name: MB_DB_PORT
+                  value: "5432"
+                - name: MB_DB_DBNAME
+                  value: ${POSTGRESQL_DATABASE}
+                - name: MB_DB_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${METABASE_SERVICE_NAME}-postgresql-credentials
+                      key: username
+                - name: MB_DB_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${METABASE_SERVICE_NAME}-postgresql-credentials
+                      key: password
+              command:
+                - java
+              args:
+                - "-Xmx300m"
+                - "-Xss512k"
+                - "-Dfile.encoding=UTF-8"
+                - "-Dlogfile.path=target/log"
+                - "-XX:+CMSClassUnloadingEnabled"
+                - "-XX:+UseConcMarkSweepGC"
+                - "-server"
+                - "-jar"
+                - "/app/metabase.jar"
+              ports:
+                - containerPort: 3000
+                  name: ${METABASE_SERVICE_NAME}
+                  protocol: TCP
+              terminationMessagePath: /dev/termination-log
+              livenessProbe:
+                failureThreshold: 30
+                httpGet:
+                  path: /
+                  port: 3000
+                initialDelaySeconds: 240
+                timeoutSeconds: 3
+              readinessProbe:
+                httpGet:
+                  path: /
+                  port: 3000
+                initialDelaySeconds: 3
+                timeoutSeconds: 3
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          serviceAccount: ${METABASE_SERVICE_NAME}
+          serviceAccountName: ${METABASE_SERVICE_NAME}
+          terminationGracePeriodSeconds: 30
+      triggers:
+        - type: ConfigChange
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - ${METABASE_SERVICE_NAME}
+            from:
+              kind: ImageStreamTag
+              name: ${METABASE_SERVICE_NAME}:latest
+            lastTriggeredImage: ""
+parameters:
+  - name: METABASE_SERVICE_NAME
+    displayName: Metabase Service Name
+    value: metabase
+    required: true
+  - name: METABASE_ROUTE_HOST
+    displayName: Metabase Route Host (FQDN)
+    description: The hostname to use when creating an OpenShift Route (Leave blank to use defaults.)
+    value: ""
+    required: false
+  - name: METABASE_IMAGE
+    displayName: Metabase Docker Image
+    value: registry.hub.docker.com/metabase/metabase:latest
+    description: The metabase docker image to use
+    required: true
+  - description: Version of PostgreSQL image to be used (9.4, 9.5, 9.6 or latest).
+    displayName: Version of PostgreSQL Image
+    name: POSTGRESQL_VERSION
+    required: true
+    value: "9.6"
+  - name: POSTGRESQL_IMAGE_NAMESPACE
+    displayName: PostgreSQL Image Namespace
+    value: openshift
+    description: The OpenShift namespace for the postgresql image to use
+    required: true
+  - name: POSTGRESQL_DATABASE
+    displayName: PostgreSQL Database
+    description: Database name to use
+    value: metabase
+    required: true
+  - name: POSTGRESQL_USER
+    displayName: PostgreSQL Username
+    description: Username for metabase database user
+    value: metabase
+    required: true
+  - name: POSTGRESQL_PASSWORD
+    displayName: PostgreSQL Password
+    description: Password for metabase database user
+    generate: expression
+    from: "[a-zA-Z0-9]{32}"
+    required: true
+  - name: POSTGRESQL_VOLUME_CAPACITY
+    displayName: Database Data Volume Capacity
+    description: Capacity required for the PostgreSQL database data volume
+    value: 1Gi
+    required: true
