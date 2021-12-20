@@ -21,7 +21,16 @@ export async function getFWIOutput(
 ): Promise<FWIOutput[]> {
   const url = '/fwi-calc/'
   const { data } = await axios.post<FWIOutputResponse>(url, {
-    input,
+    input: {
+      stationCode: input.stationOption?.code,
+      yesterdayFFMC: input.yesterdayFFMC,
+      yesterdayDMC: input.yesterdayDMC,
+      yesterdayDC: input.yesterdayDC,
+      todayTemp: input.todayTemp,
+      todayRH: input.todayRH,
+      todayWindspeed: input.todayWindspeed,
+      todayPrecip: input.todayPrecip
+    },
     date
   })
 
