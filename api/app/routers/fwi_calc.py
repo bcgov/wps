@@ -44,6 +44,58 @@ async def dailies_list_mapper(raw_dailies):
     return dailies
 
 
+async def calculate_actual(session: ClientSession, request, time_of_interest):
+    header = await get_auth_header(session)
+
+    wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, [request.input.stationCode])
+    dailies_today: List[Daily] = await dailies_list_mapper(
+        await get_dailies(session, header, wfwx_stations, time_of_interest))
+
+    prev_day = time_of_interest - timedelta(days=1)
+    dailies_yesterday: List[Daily] = await dailies_list_mapper(
+        await get_dailies(session, header, wfwx_stations, prev_day))
+
+    assert len(dailies_today) == len(dailies_yesterday) == 1
+
+    ffmc = fwi_ffmc(
+        dailies_yesterday[0].ffmc,
+        dailies_today[0].temperature,
+        dailies_today[0].relative_humidity,
+        dailies_today[0].precipitation,
+        dailies_today[0].wind_speed)
+    isi = fwi_isi(ffmc, dailies_today[0].wind_speed)
+    dmc = dailies_today[0].dmc
+    dc = dailies_today[0].dc
+    bui = fwi_bui(dailies_yesterday[0].dmc, dailies_yesterday[0].dc)
+    return FWIActual(
+        ffmc=ffmc,
+        dmc=dmc,
+        dc=dc,
+        isi=isi,
+        bui=bui,
+        fwi=random.randint(0, 100))
+
+
+async def calculate_adjusted(request: FWIRequest):
+    ffmc = fwi_ffmc(
+        request.input.yesterdayFFMC,
+        request.input.todayTemp,
+        request.input.todayRH,
+        request.input.todayPrecip,
+        request.input.todayWindspeed)
+    isi = fwi_isi(ffmc, request.input.todayWindspeed)
+    dmc = request.input.yesterdayDMC
+    dc = request.input.yesterdayDC
+    bui = fwi_bui(dmc, dc)
+    return FWIActual(
+        ffmc=ffmc,
+        dmc=dmc,
+        dc=dc,
+        isi=isi,
+        bui=bui,
+        fwi=random.randint(0, 100))
+
+
 @router.post('/', response_model=FWIOutputResponse)
 async def get_fwi_calc_outputs(request: FWIRequest, _=Depends(authentication_required)):
     """ Returns FWI calculations for all inputs """
@@ -53,38 +105,13 @@ async def get_fwi_calc_outputs(request: FWIRequest, _=Depends(authentication_req
         time_of_interest = get_hour_20_from_date(request.date)
 
         async with ClientSession() as session:
-            header = await get_auth_header(session)
-
-            wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, [request.input.stationCode])
-            dailies_today: List[Daily] = await dailies_list_mapper(
-                await get_dailies(session, header, wfwx_stations, time_of_interest))
-
-            prev_day = time_of_interest - timedelta(days=1)
-            dailies_yesterday: List[Daily] = await dailies_list_mapper(
-                await get_dailies(session, header, wfwx_stations, prev_day))
-
-            assert len(dailies_today) == len(dailies_yesterday) == 1
-
-            ffmc = fwi_ffmc(
-                dailies_yesterday[0].ffmc,
-                dailies_today[0].temperature,
-                dailies_today[0].relative_humidity,
-                dailies_today[0].precipitation,
-                dailies_today[0].wind_speed)
-            isi = fwi_isi(ffmc, dailies_today[0].wind_speed)
-            dmc = dailies_today[0].dmc
-            dc = dailies_today[0].dc
-            bui = fwi_bui(dailies_yesterday[0].dmc, dailies_yesterday[0].dc)
+            actual = await calculate_actual(session, request, time_of_interest)
+            adjusted = await calculate_adjusted(request)
 
             output = FWIOutput(
                 datetime=get_hour_20_from_date(request.date),
-                actual=FWIActual(
-                    ffmc=ffmc,
-                    dmc=dmc,
-                    dc=dc,
-                    isi=isi,
-                    bui=bui,
-                    fwi=random.randint(0, 100))
+                actual=actual,
+                adjusted=adjusted
             )
 
             return FWIOutputResponse(fwi_outputs=[output])

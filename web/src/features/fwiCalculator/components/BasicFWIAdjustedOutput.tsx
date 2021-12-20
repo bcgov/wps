@@ -27,7 +27,7 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output.adjusted?.ffmc}</TableCell>
+              <TableCell align="right">{output?.adjusted?.ffmc}</TableCell>
             )}
           </TableRow>
           <TableRow>
@@ -37,7 +37,7 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output.adjusted?.dmc}</TableCell>
+              <TableCell align="right">{output?.adjusted?.dmc}</TableCell>
             )}
           </TableRow>
           <TableRow>
@@ -47,7 +47,7 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output.adjusted?.dc}</TableCell>
+              <TableCell align="right">{output?.adjusted?.dc}</TableCell>
             )}
           </TableRow>
           <TableRow>
@@ -57,7 +57,7 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output.adjusted?.isi}</TableCell>
+              <TableCell align="right">{output?.adjusted?.isi}</TableCell>
             )}
           </TableRow>
           <TableRow>
@@ -67,7 +67,7 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output.adjusted?.bui}</TableCell>
+              <TableCell align="right">{output?.adjusted?.bui}</TableCell>
             )}
           </TableRow>
           <TableRow>
@@ -77,7 +77,7 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output.adjusted?.fwi}</TableCell>
+              <TableCell align="right">{output?.adjusted?.fwi}</TableCell>
             )}
           </TableRow>
         </TableBody>
