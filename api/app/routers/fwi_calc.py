@@ -2,10 +2,18 @@
 """
 import logging
 import random
+from datetime import timedelta
+from typing import List
 from fastapi import APIRouter, Depends
+from aiohttp.client import ClientSession
+from app.utils import cffdrs
+from app.fwi.fwi import fwi_bui, fwi_ffmc, fwi_isi
 from app.auth import authentication_required
 from app.utils.time import get_hour_20_from_date
-from app.schemas.fwi_calc import FWIRequest, FWIOutput, FWIOutputResponse
+from app.schemas.fwi_calc import FWIRequest, FWIOutput, FWIOutputResponse, Daily
+from app.wildfire_one.wfwx_api import (get_auth_header,
+                                       get_dailies,
+                                       get_wfwx_stations_from_station_codes)
 
 logger = logging.getLogger(__name__)
 
@@ -15,21 +23,68 @@ router = APIRouter(
 )
 
 
+async def dailies_list_mapper(raw_dailies):
+    """ Maps raw stations to WeatherStation list"""
+    dailies = []
+    async for raw_daily in raw_dailies:
+        dailies.append(
+            Daily(
+                temperature=raw_daily.get('temperature', None),
+                relative_humidity=raw_daily.get('relativeHumidity', None),
+                precipitation=raw_daily.get('precipitation', None),
+                wind_direction=raw_daily.get('windDirection', None),
+                ffmc=raw_daily.get('fineFuelMoistureCode', None),
+                dmc=raw_daily.get('duffMoistureCode', None),
+                dc=raw_daily.get('droughtCode', None),
+                isi=raw_daily.get('initialSpreadIndex', None),
+                bui=raw_daily.get('buildUpIndex', None),
+                wind_speed=raw_daily.get('windSpeed', None)
+            )
+        )
+    return dailies
+
+
 @router.post('/', response_model=FWIOutputResponse)
 async def get_fwi_calc_outputs(request: FWIRequest, _=Depends(authentication_required)):
     """ Returns FWI calculations for all inputs """
     try:
         logger.info('/fwi_calc/')
-        test = get_hour_20_from_date(request.date)
-        output = FWIOutput(
-            datetime=get_hour_20_from_date(request.date),
-            ffmc=random.randint(0, 100),
-            dmc=random.randint(0, 100),
-            dc=random.randint(0, 100),
-            isi=random.randint(0, 100),
-            bui=random.randint(0, 100),
-            fwi=random.randint(0, 100))
-        return FWIOutputResponse(fwi_outputs=[output])
+        # we're interested in noon on the given day
+        time_of_interest = get_hour_20_from_date(request.date)
+
+        async with ClientSession() as session:
+            header = await get_auth_header(session)
+
+            wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, [request.input.stationCode])
+            dailies_today: List[Daily] = await dailies_list_mapper(
+                await get_dailies(session, header, wfwx_stations, time_of_interest))
+
+            prev_day = time_of_interest - timedelta(days=1)
+            dailies_yesterday: List[Daily] = await dailies_list_mapper(
+                await get_dailies(session, header, wfwx_stations, prev_day))
+
+            assert len(dailies_today) == len(dailies_yesterday) == 1
+
+            ffmc = fwi_ffmc(
+                dailies_yesterday[0].ffmc,
+                dailies_today[0].temperature,
+                dailies_today[0].relative_humidity,
+                dailies_today[0].precipitation,
+                dailies_today[0].wind_speed)
+            isi = fwi_isi(ffmc, dailies_today[0].wind_speed)
+            dmc = dailies_today[0].dmc
+            dc = dailies_today[0].dc
+            bui = fwi_bui(dailies_yesterday[0].dmc, dailies_yesterday[0].dc)
+
+            output = FWIOutput(
+                datetime=get_hour_20_from_date(request.date),
+                ffmc=ffmc,
+                dmc=dmc,
+                dc=dc,
+                isi=isi,
+                bui=bui,
+                fwi=random.randint(0, 100))
+            return FWIOutputResponse(fwi_outputs=[output])
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise

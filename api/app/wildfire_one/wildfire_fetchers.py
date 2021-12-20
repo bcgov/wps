@@ -148,8 +148,8 @@ def prepare_fetch_hourlies_query(raw_station: dict, start_timestamp: datetime, e
     logger.debug('requesting historic data from %s to %s', start_timestamp, end_timestamp)
 
     # Prepare query params and query:
-    query_start_timestamp = math.floor(start_timestamp.timestamp()*1000)
-    query_end_timestamp = math.floor(end_timestamp.timestamp()*1000)
+    query_start_timestamp = math.floor(start_timestamp.timestamp() * 1000)
+    query_end_timestamp = math.floor(end_timestamp.timestamp() * 1000)
 
     station_id = raw_station['id']
     params = {'startTimestamp': query_start_timestamp,
@@ -166,7 +166,7 @@ def prepare_fetch_dailies_for_all_stations_query(time_of_interest: datetime, pag
     stations. """
     base_url = config.get('WFWX_BASE_URL')
     noon_date = _get_noon_date(time_of_interest)
-    timestamp = int(noon_date.timestamp()*1000)
+    timestamp = int(noon_date.timestamp() * 1000)
     # one could filter on recordType.id==FORECAST or recordType.id==ACTUAL but we want it all.
     params = {'query': f'weatherTimestamp=={timestamp}',
               'page': page_count,
