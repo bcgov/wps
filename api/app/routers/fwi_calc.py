@@ -10,7 +10,7 @@ from app.utils import cffdrs
 from app.fwi.fwi import fwi_bui, fwi_ffmc, fwi_isi
 from app.auth import authentication_required
 from app.utils.time import get_hour_20_from_date
-from app.schemas.fwi_calc import FWIRequest, FWIOutput, FWIOutputResponse, Daily
+from app.schemas.fwi_calc import FWIActual, FWIRequest, FWIOutput, FWIOutputResponse, Daily
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies,
                                        get_wfwx_stations_from_station_codes)
@@ -78,12 +78,15 @@ async def get_fwi_calc_outputs(request: FWIRequest, _=Depends(authentication_req
 
             output = FWIOutput(
                 datetime=get_hour_20_from_date(request.date),
-                ffmc=ffmc,
-                dmc=dmc,
-                dc=dc,
-                isi=isi,
-                bui=bui,
-                fwi=random.randint(0, 100))
+                actual=FWIActual(
+                    ffmc=ffmc,
+                    dmc=dmc,
+                    dc=dc,
+                    isi=isi,
+                    bui=bui,
+                    fwi=random.randint(0, 100))
+            )
+
             return FWIOutputResponse(fwi_outputs=[output])
     except Exception as exc:
         logger.critical(exc, exc_info=True)

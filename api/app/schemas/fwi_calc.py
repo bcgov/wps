@@ -34,15 +34,29 @@ class FWIRequest(BaseModel):
     date: datetime
 
 
-class FWIOutput(BaseModel):
-    """ FWI calc output """
-    datetime: datetime
+class FWIActual(BaseModel):
     ffmc: Optional[float]
     dmc: Optional[float]
     dc: Optional[float]
     isi: Optional[float]
     bui: Optional[float]
     fwi: Optional[float]
+
+
+class FWIAdjusted(BaseModel):
+    ffmc: Optional[float]
+    dmc: Optional[float]
+    dc: Optional[float]
+    isi: Optional[float]
+    bui: Optional[float]
+    fwi: Optional[float]
+
+
+class FWIOutput(BaseModel):
+    """ FWI calc output """
+    datetime: datetime
+    actual: FWIActual
+    adjusted: Optional[FWIAdjusted]
 
 
 class FWIOutputResponse(BaseModel):

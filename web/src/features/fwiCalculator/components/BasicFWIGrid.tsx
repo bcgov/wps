@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Grid } from '@material-ui/core'
 import BasicFWIInput from 'features/fwiCalculator/components/BasicFWIInput'
-import BasicFWIOutput from 'features/fwiCalculator/components/BasicFWIOutput'
+import BasicFWIActualOutput from 'features/fwiCalculator/components/BasicFWIActualOutput'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFWICalculation } from 'features/fwiCalculator/slices/fwiSlice'
 import { selectFWIOutputs, selectFWIOutputsLoading } from 'app/rootReducer'
@@ -55,10 +55,7 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
         <BasicFWIInput isLoading={isLoading} input={input} setInput={setInput} />
       </Grid>
       <Grid item xs={3}>
-        <BasicFWIOutput
-          isLoading={isLoading}
-          output={fwiOutputs.length > 0 ? fwiOutputs[0] : null}
-        />
+        <BasicFWIActualOutput isLoading={isLoading} output={fwiOutputs[0]} />
       </Grid>
     </Grid>
   )
