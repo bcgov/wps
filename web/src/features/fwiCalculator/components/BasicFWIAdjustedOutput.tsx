@@ -15,69 +15,69 @@ export interface BasicFWIOutputProps {
   output: FWIOutput
 }
 
-const BasicFWIActualOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
+const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
   return (
     <TableContainer component={Paper}>
       <Table aria-label="Basic FWI Calculation Inputs">
         <TableBody>
           <TableRow>
-            <TableCell>Today&apos;s Actual FFMC</TableCell>
+            <TableCell>Today&apos;s Adjusted FFMC</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output?.actual?.ffmc}</TableCell>
+              <TableCell align="right">{output.adjusted?.ffmc}</TableCell>
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Today&apos;s Actual DMC</TableCell>
+            <TableCell>Today&apos;s Adjusted DMC</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output?.actual?.dmc}</TableCell>
+              <TableCell align="right">{output.adjusted?.dmc}</TableCell>
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Today&apos;s Actual DC</TableCell>
+            <TableCell>Today&apos;s Adjusted DC</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output?.actual?.dc}</TableCell>
+              <TableCell align="right">{output.adjusted?.dc}</TableCell>
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Today&apos;s Actual ISI</TableCell>
+            <TableCell>Today&apos;s Adjusted ISI</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output?.actual?.isi}</TableCell>
+              <TableCell align="right">{output.adjusted?.isi}</TableCell>
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Today&apos;s Actual BUI</TableCell>
+            <TableCell>Today&apos;s Adjusted BUI</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output?.actual?.bui}</TableCell>
+              <TableCell align="right">{output.adjusted?.bui}</TableCell>
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Today&apos;s Actual FWI</TableCell>
+            <TableCell>Today&apos;s Adjusted FWI</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">{output?.actual?.fwi}</TableCell>
+              <TableCell align="right">{output.adjusted?.fwi}</TableCell>
             )}
           </TableRow>
         </TableBody>
@@ -86,4 +86,4 @@ const BasicFWIActualOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
   )
 }
 
-export default React.memo(BasicFWIActualOutput)
+export default React.memo(BasicFWIAdjustedOutput)

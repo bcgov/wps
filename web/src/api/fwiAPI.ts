@@ -4,6 +4,7 @@ import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGr
 export interface FWIOutput {
   datetime: string
   actual: FWIActual
+  adjusted?: FWIActual
 }
 export interface FWIActual {
   ffmc: number | null

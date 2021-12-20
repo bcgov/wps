@@ -5,6 +5,7 @@ import BasicFWIActualOutput from 'features/fwiCalculator/components/BasicFWIActu
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFWICalculation } from 'features/fwiCalculator/slices/fwiSlice'
 import { selectFWIOutputs, selectFWIOutputsLoading } from 'app/rootReducer'
+import BasicFWIAdjustedOutput from 'features/fwiCalculator/components/BasicFWIAdjustedOutput'
 export interface Option {
   name: string
   code: number
@@ -56,6 +57,9 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
       </Grid>
       <Grid item xs={3}>
         <BasicFWIActualOutput isLoading={isLoading} output={fwiOutputs[0]} />
+      </Grid>
+      <Grid item xs={3}>
+        <BasicFWIAdjustedOutput isLoading={isLoading} output={fwiOutputs[0]} />
       </Grid>
     </Grid>
   )
