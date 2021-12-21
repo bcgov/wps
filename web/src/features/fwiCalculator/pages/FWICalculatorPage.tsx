@@ -36,7 +36,7 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
       <Container maxWidth={'xl'}>
         <h1>
           {/* (🔥🦇) */}
-          FWI Calculator
+          FWI Calculator - Basic
         </h1>
         <Grid container direction={'row'}>
           <Grid container spacing={2}>
