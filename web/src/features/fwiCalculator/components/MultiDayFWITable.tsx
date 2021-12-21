@@ -1,10 +1,18 @@
-import { SelectionState, IntegratedSelection } from '@devexpress/dx-react-grid'
 import {
+  SelectionState,
+  IntegratedSelection,
+  IntegratedSorting,
+  SortingState
+} from '@devexpress/dx-react-grid'
+import {
+  ColumnChooser,
   Grid as ReactGrid,
-  Table,
+  TableColumnVisibility,
   TableFixedColumns,
   TableHeaderRow,
-  TableSelection
+  TableSelection,
+  Toolbar,
+  VirtualTable
 } from '@devexpress/dx-react-grid-material-ui'
 import { Paper } from '@material-ui/core'
 import {
@@ -25,11 +33,19 @@ export const MultiDayFWITable = ({
 }: MultiDayFWITableProps): JSX.Element => {
   const [columns] = useState(defaultColumns)
 
-  const [leftColumns] = useState([
+  const [rightColumns] = useState([
     TableSelection.COLUMN_TYPE,
-    'id',
+    'ffmc',
     TableSelection.COLUMN_TYPE,
-    'date'
+    'dmc',
+    TableSelection.COLUMN_TYPE,
+    'dc',
+    TableSelection.COLUMN_TYPE,
+    'isi',
+    TableSelection.COLUMN_TYPE,
+    'bui',
+    TableSelection.COLUMN_TYPE,
+    'fwi'
   ])
 
   const [selection, setSelection] = useState<(string | number)[]>([])
@@ -40,12 +56,17 @@ export const MultiDayFWITable = ({
   return (
     <Paper>
       <ReactGrid rows={genRows} columns={columns}>
-        <Table />
-        <TableHeaderRow />
+        <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
+        <IntegratedSorting />
+        <VirtualTable />
+        <TableHeaderRow showSortingControls />
+        <TableColumnVisibility />
         <SelectionState selection={selection} onSelectionChange={setSelection} />
         <IntegratedSelection />
-        <TableSelection showSelectAll />
-        <TableFixedColumns leftColumns={leftColumns} />
+        <TableSelection showSelectAll selectByRowClick />
+        <TableFixedColumns rightColumns={rightColumns} />
+        <Toolbar />
+        <ColumnChooser />
       </ReactGrid>
     </Paper>
   )
