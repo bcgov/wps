@@ -7,20 +7,23 @@ import {
   TableSelection
 } from '@devexpress/dx-react-grid-material-ui'
 import { Paper } from '@material-ui/core'
+import {
+  defaultColumns,
+  generateDefaultRowsFromDates
+} from 'features/fwiCalculator/components/dataModel'
 import React, { useState } from 'react'
+import { getDaysBetween } from 'utils/date'
 
-export const MultiDayFWITable = (): JSX.Element => {
-  const [columns] = useState([
-    { name: 'date', title: 'Date' },
-    { name: 'status', title: 'Status' },
-    { name: 'temp', title: 'Temperature' },
-    { name: 'rh', title: 'Relative Humidity' }
-  ])
+export interface MultiDayFWITableProps {
+  startDate: string
+  endDate: string
+}
 
-  const [rows] = useState([
-    { id: 0, date: '01/02/2021', status: 'FORECAST', temp: '1', rh: '1' },
-    { id: 1, date: '02/04/2020', status: 'ACTUAL', temp: '1', rh: '1' }
-  ])
+export const MultiDayFWITable = ({
+  startDate,
+  endDate
+}: MultiDayFWITableProps): JSX.Element => {
+  const [columns] = useState(defaultColumns)
 
   const [leftColumns] = useState([
     TableSelection.COLUMN_TYPE,
@@ -31,17 +34,13 @@ export const MultiDayFWITable = (): JSX.Element => {
 
   const [selection, setSelection] = useState<(string | number)[]>([])
 
-  const [tableColumnExtensions] = useState([
-    { columnName: 'date' },
-    { columnName: 'status' },
-    { columnName: 'temperature' },
-    { columnName: 'RH' }
-  ])
+  const dates = getDaysBetween(startDate, endDate)
+  const genRows = generateDefaultRowsFromDates(dates)
 
   return (
     <Paper>
-      <ReactGrid rows={rows} columns={columns}>
-        <Table columnExtensions={tableColumnExtensions} />
+      <ReactGrid rows={genRows} columns={columns}>
+        <Table />
         <TableHeaderRow />
         <SelectionState selection={selection} onSelectionChange={setSelection} />
         <IntegratedSelection />

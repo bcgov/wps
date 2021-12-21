@@ -37,13 +37,23 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
     code: station.properties.code
   }))
 
-  const [dateOfInterest, setDateOfInterest] = useState(
+  const [startDate, setStartDate] = useState(
     pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
   )
 
-  const updateDate = (newDate: string) => {
-    if (newDate !== dateOfInterest) {
-      setDateOfInterest(newDate)
+  const updateStartDate = (newDate: string) => {
+    if (newDate !== startDate) {
+      setStartDate(newDate)
+    }
+  }
+
+  const [endDate, setEndDate] = useState(
+    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+  )
+
+  const updateEndDate = (newDate: string) => {
+    if (newDate !== endDate) {
+      setEndDate(newDate)
     }
   }
 
@@ -61,21 +71,34 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
         </h1>
         <Grid container direction={'row'}>
           <Grid container spacing={2}>
-            <Grid item>
-              <FormControl className={classes.date}>
-                <DatePicker date={dateOfInterest} updateDate={updateDate} />
-              </FormControl>
-            </Grid>
             <Grid item xs={2}>
               <FWIMultiStationSelect
                 isLoading={false}
                 stationOptions={allStationOptions}
               />
             </Grid>
+            <Grid item>
+              <FormControl className={classes.date}>
+                <DatePicker
+                  label={'Start Date'}
+                  date={startDate}
+                  updateDate={updateStartDate}
+                />
+              </FormControl>
+            </Grid>
+            <Grid item>
+              <FormControl className={classes.date}>
+                <DatePicker
+                  label={'End Date'}
+                  date={endDate}
+                  updateDate={updateEndDate}
+                />
+              </FormControl>
+            </Grid>
           </Grid>
           <Grid container spacing={2}>
             <Grid item xs>
-              <MultiDayFWITable />
+              <MultiDayFWITable startDate={startDate} endDate={endDate} />
             </Grid>
           </Grid>
         </Grid>

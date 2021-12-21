@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@material-ui/pickers": "^3.3.10",
+    "materialui-daterange-picker": "^1.1.92"
+  }
+}
