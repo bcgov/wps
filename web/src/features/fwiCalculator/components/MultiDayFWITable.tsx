@@ -2,7 +2,9 @@ import {
   SelectionState,
   IntegratedSelection,
   IntegratedSorting,
-  SortingState
+  SortingState,
+  EditingState,
+  ChangeSet
 } from '@devexpress/dx-react-grid'
 import {
   ColumnChooser,
@@ -10,6 +12,7 @@ import {
   TableColumnVisibility,
   TableFixedColumns,
   TableHeaderRow,
+  TableInlineCellEditing,
   TableSelection,
   Toolbar,
   VirtualTable
@@ -52,19 +55,44 @@ export const MultiDayFWITable = ({
 
   const dates = getDaysBetween(startDate, endDate)
   const genRows = generateDefaultRowsFromDates(dates)
+  const [rows, setRows] = useState(genRows)
+
+  const commitChanges = (changes: ChangeSet) => {
+    if (changes.added) {
+      const startingAddedId = rows.length > 0 ? rows[rows.length - 1].id + 1 : 0
+      const changedRows = [
+        ...rows,
+        ...changes.added.map((row, index) => ({
+          id: startingAddedId + index,
+          ...row
+        }))
+      ]
+      setRows(changedRows)
+    }
+    if (changes.changed) {
+      const changed = changes.changed
+      const changedRows = rows.map(row =>
+        changed[row.id] ? { ...row, ...changed[row.id] } : row
+      )
+      setRows(changedRows)
+    }
+  }
 
   return (
     <Paper>
       <ReactGrid rows={genRows} columns={columns}>
         <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
         <IntegratedSorting />
+        <EditingState onCommitChanges={commitChanges} />
+
         <VirtualTable />
         <TableHeaderRow showSortingControls />
         <TableColumnVisibility />
         <SelectionState selection={selection} onSelectionChange={setSelection} />
         <IntegratedSelection />
-        <TableSelection showSelectAll selectByRowClick />
+        <TableSelection showSelectAll />
         <TableFixedColumns rightColumns={rightColumns} />
+        <TableInlineCellEditing />
         <Toolbar />
         <ColumnChooser />
       </ReactGrid>
