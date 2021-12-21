@@ -41,6 +41,17 @@ services:
       - POSTGRES_HOST_AUTH_METHOD="trust"
     networks:
       - wps_network
+  metabase:
+    image: metabase/metabase
+    ports:
+      - 12345:3000
+    environment:
+      - POSTGRES_DB=wps
+      - POSTGRES_USER=wps
+      - POSTGRES_PASSWORD=wps
+      - POSTGRES_HOST=localhost
+    networks:
+      - wps_network
   web:
     build:
       context: web
