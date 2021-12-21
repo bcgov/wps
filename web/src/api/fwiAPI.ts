@@ -3,10 +3,10 @@ import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGr
 
 export interface FWIOutput {
   datetime: string
-  actual: FWIActual
-  adjusted?: FWIActual
+  actual: FWIIndices
+  adjusted?: FWIIndices
 }
-export interface FWIActual {
+export interface FWIIndices {
   ffmc: number | null
   dmc: number | null
   dc: number | null

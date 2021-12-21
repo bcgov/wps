@@ -6,7 +6,16 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchFWICalculation } from 'features/fwiCalculator/slices/fwiSlice'
 import { selectFWIOutputs, selectFWIOutputsLoading } from 'app/rootReducer'
 import BasicFWIAdjustedOutput from 'features/fwiCalculator/components/BasicFWIAdjustedOutput'
-import { XAxis, YAxis, CartesianGrid, BarChart, Bar, Legend, Tooltip } from 'recharts'
+import {
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  BarChart,
+  Bar,
+  Legend,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts'
 export interface Option {
   name: string
   code: number
@@ -51,11 +60,26 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input])
 
-  const data = fwiOutputs.map(output => ({
-    date: output.datetime,
-    actualFFMC: output.actual.ffmc,
-    adjustedFFMC: output?.adjusted?.ffmc
-  }))
+  const data = [
+    {
+      name: 'Actual',
+      ffmc: fwiOutputs[0]?.actual.ffmc,
+      dmc: fwiOutputs[0]?.actual.dmc,
+      dc: fwiOutputs[0]?.actual.dc,
+      isi: fwiOutputs[0]?.actual.isi,
+      bui: fwiOutputs[0]?.actual.bui,
+      fwi: fwiOutputs[0]?.actual.fwi
+    },
+    {
+      name: 'Adjusted',
+      ffmc: fwiOutputs[0]?.adjusted?.ffmc,
+      dmc: fwiOutputs[0]?.adjusted?.dmc,
+      dc: fwiOutputs[0]?.adjusted?.dc,
+      isi: fwiOutputs[0]?.adjusted?.isi,
+      bui: fwiOutputs[0]?.adjusted?.bui,
+      fwi: fwiOutputs[0]?.adjusted?.fwi
+    }
+  ]
 
   return (
     <Grid container direction={'row'} spacing={2}>
@@ -68,17 +92,23 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
       <Grid item xs={2}>
         <BasicFWIAdjustedOutput isLoading={isLoading} output={fwiOutputs[0]} />
       </Grid>
-      <Grid item xs={2}>
-        <BarChart width={500} height={300} data={data}>
-          <YAxis />
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="actualFFMC" fill="#8884d8" />
-          <Bar dataKey="adjustedFFMC" fill="#82ca9d" />
-        </BarChart>
+      <Grid item xs={4}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart width={500} height={300} data={data}>
+            <YAxis />
+            <CartesianGrid strokeDasharray="3 3" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="ffmc" fill="#264653" />
+            <Bar dataKey="dmc" fill="#2a9d8f" />
+            <Bar dataKey="dc" fill="#e9c46a" />
+            <Bar dataKey="isi" fill="#f4a261" />
+            <Bar dataKey="bui" fill="#e76f51" />
+            <Bar dataKey="fwi" fill="#82ca9d" />
+            <XAxis dataKey="name" />
+          </BarChart>
+        </ResponsiveContainer>
       </Grid>
     </Grid>
   )

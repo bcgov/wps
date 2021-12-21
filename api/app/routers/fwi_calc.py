@@ -7,7 +7,7 @@ from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.utils import cffdrs
-from app.fwi.fwi import fwi_bui, fwi_ffmc, fwi_isi
+from app.fwi.fwi import fwi_bui, fwi_ffmc, fwi_isi, fwi_fwi
 from app.auth import authentication_required
 from app.utils.time import get_hour_20_from_date
 from app.schemas.fwi_calc import FWIActual, FWIRequest, FWIOutput, FWIOutputResponse, Daily
@@ -67,13 +67,15 @@ async def calculate_actual(session: ClientSession, request, time_of_interest):
     dmc = dailies_today[0].dmc
     dc = dailies_today[0].dc
     bui = fwi_bui(dailies_yesterday[0].dmc, dailies_yesterday[0].dc)
+    fwi = fwi_fwi(isi, bui)
     return FWIActual(
         ffmc=ffmc,
         dmc=dmc,
         dc=dc,
         isi=isi,
         bui=bui,
-        fwi=random.randint(0, 100))
+        fwi=fwi
+    )
 
 
 async def calculate_adjusted(request: FWIRequest):
@@ -87,13 +89,15 @@ async def calculate_adjusted(request: FWIRequest):
     dmc = request.input.yesterdayDMC
     dc = request.input.yesterdayDC
     bui = fwi_bui(dmc, dc)
+    fwi = fwi_fwi(isi, bui)
     return FWIActual(
         ffmc=ffmc,
         dmc=dmc,
         dc=dc,
         isi=isi,
         bui=bui,
-        fwi=random.randint(0, 100))
+        fwi=fwi
+    )
 
 
 @router.post('/', response_model=FWIOutputResponse)

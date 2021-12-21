@@ -43,8 +43,7 @@ const BasicFWIInput = ({ isLoading, input, setInput }: BasicFWIInputProps) => {
       <Table aria-label="Basic FWI Calculation Inputs" size="small">
         <TableHead>
           <TableRow>
-            <TableCell>Station Name</TableCell>
-            <TableCell>
+            <TableCell colSpan={2}>
               <FWIStationCell
                 stationOptions={allStationOptions}
                 input={input}

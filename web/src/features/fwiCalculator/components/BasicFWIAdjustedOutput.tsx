@@ -4,7 +4,8 @@ import {
   Table,
   TableRow,
   TableCell,
-  TableBody
+  TableBody,
+  TableHead
 } from '@material-ui/core'
 import { Skeleton } from '@material-ui/lab'
 import { FWIOutput } from 'api/fwiAPI'
@@ -20,9 +21,16 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
   return (
     <TableContainer component={Paper}>
       <Table aria-label="Basic FWI Calculation Inputs">
+        <TableHead>
+          <TableRow>
+            <TableCell align="center" colSpan={2}>
+              Adjusted
+            </TableCell>
+          </TableRow>
+        </TableHead>
         <TableBody>
           <TableRow>
-            <TableCell>Adjusted FFMC</TableCell>
+            <TableCell>FFMC</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
@@ -34,7 +42,7 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Adjusted DMC</TableCell>
+            <TableCell>DMC</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
@@ -46,7 +54,7 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Adjusted DC</TableCell>
+            <TableCell>DC</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
@@ -58,7 +66,7 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Adjusted ISI</TableCell>
+            <TableCell>ISI</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
@@ -70,7 +78,7 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Adjusted BUI</TableCell>
+            <TableCell>BUI</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
@@ -82,7 +90,7 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
             )}
           </TableRow>
           <TableRow>
-            <TableCell>Adjusted FWI</TableCell>
+            <TableCell>FWI</TableCell>
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />

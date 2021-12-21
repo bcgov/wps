@@ -559,6 +559,20 @@ def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False): 
     return result[0]
 
 
+def fire_weather_index(isi: float, bui: float):
+    """ Computes Fire Weather Index (FWI) by delegating to cffdrs R package.
+
+        Args:   isi:    Initial Spread Index
+                bui:    Buildup Index
+
+        Returns: A single fwi value
+    """
+
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._fwiCalc(isi=isi, bui=bui)
+    return result[0]
+
+
 def crown_fraction_burned(fuel_type: FuelTypeEnum, fmc: float, sfc: float,
                           ros: float, cbh: float) -> float:
     """ Computes Crown Fraction Burned (CFB) by delegating to cffdrs R package.

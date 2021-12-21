@@ -26,3 +26,9 @@ def fwi_ffmc(
     if ffmc is None or temperature is None or relative_humidity is None or precipitation is None or wind_speed is None:
         return None
     return cffdrs.fine_fuel_moisture_code(ffmc, temperature, relative_humidity, precipitation, wind_speed)
+
+
+def fwi_fwi(isi: Optional[float], bui: Optional[float]):
+    if isi is None or bui is None:
+        return None
+    return cffdrs.fire_weather_index(isi, bui)
