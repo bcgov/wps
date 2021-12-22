@@ -29,34 +29,46 @@ class FWIInputParameters(BaseModel):
     todayPrecip: float
 
 
+class MultiFWIInput(BaseModel):
+    id: int
+    datetime: datetime
+    temp: Optional[float]
+    rh: Optional[float]
+    windDir: Optional[float]
+    windSpeed: Optional[float]
+    precip: Optional[float]
+
+
+class FWIIndices(BaseModel):
+    ffmc: Optional[float]
+    dmc: Optional[float]
+    dc: Optional[float]
+    isi: Optional[float]
+    bui: Optional[float]
+    fwi: Optional[float]
+
+
+class MultiFWIOutput(BaseModel):
+    id: int
+    datetime: datetime
+    actual: FWIIndices
+    adjusted: Optional[FWIIndices]
+
+
+class MultiFWIRequest(BaseModel):
+    inputs: List[MultiFWIInput]
+
+
 class FWIRequest(BaseModel):
     input: FWIInputParameters
     date: datetime
 
 
-class FWIActual(BaseModel):
-    ffmc: Optional[float]
-    dmc: Optional[float]
-    dc: Optional[float]
-    isi: Optional[float]
-    bui: Optional[float]
-    fwi: Optional[float]
-
-
-class FWIAdjusted(BaseModel):
-    ffmc: Optional[float]
-    dmc: Optional[float]
-    dc: Optional[float]
-    isi: Optional[float]
-    bui: Optional[float]
-    fwi: Optional[float]
-
-
 class FWIOutput(BaseModel):
     """ FWI calc output """
     datetime: datetime
-    actual: FWIActual
-    adjusted: Optional[FWIAdjusted]
+    actual: FWIIndices
+    adjusted: Optional[FWIIndices]
 
 
 class FWIOutputResponse(BaseModel):

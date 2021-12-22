@@ -1,7 +1,6 @@
 """ Routers for FWI calculations.
 """
 import logging
-import random
 from datetime import timedelta
 from typing import List
 from fastapi import APIRouter, Depends
@@ -10,7 +9,7 @@ from app.utils import cffdrs
 from app.fwi.fwi import fwi_bui, fwi_ffmc, fwi_isi, fwi_fwi
 from app.auth import authentication_required
 from app.utils.time import get_hour_20_from_date
-from app.schemas.fwi_calc import FWIActual, FWIRequest, FWIOutput, FWIOutputResponse, Daily
+from app.schemas.fwi_calc import FWIIndices, FWIRequest, FWIOutput, FWIOutputResponse, Daily
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies,
                                        get_wfwx_stations_from_station_codes)
@@ -68,7 +67,7 @@ async def calculate_actual(session: ClientSession, request, time_of_interest):
     dc = dailies_today[0].dc
     bui = fwi_bui(dailies_yesterday[0].dmc, dailies_yesterday[0].dc)
     fwi = fwi_fwi(isi, bui)
-    return FWIActual(
+    return FWIIndices(
         ffmc=ffmc,
         dmc=dmc,
         dc=dc,
@@ -90,7 +89,7 @@ async def calculate_adjusted(request: FWIRequest):
     dc = request.input.yesterdayDC
     bui = fwi_bui(dmc, dc)
     fwi = fwi_fwi(isi, bui)
-    return FWIActual(
+    return FWIIndices(
         ffmc=ffmc,
         dmc=dmc,
         dc=dc,
@@ -119,6 +118,16 @@ async def get_fwi_calc_outputs(request: FWIRequest, _=Depends(authentication_req
             )
 
             return FWIOutputResponse(fwi_outputs=[output])
+    except Exception as exc:
+        logger.critical(exc, exc_info=True)
+        raise
+
+
+@router.post('/multi', response_model=FWIOutputResponse)
+async def get_fwi_calc_outputs(_=Depends(authentication_required)):
+    """ Returns FWI calculations for all inputs """
+    try:
+        logger.info('/fwi_calc/multi')
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise
