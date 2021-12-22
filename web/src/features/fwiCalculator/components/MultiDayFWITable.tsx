@@ -20,9 +20,10 @@ import {
 import { Paper } from '@material-ui/core'
 import {
   defaultColumns,
-  generateDefaultRowsFromDates
+  generateDefaultRowsFromDates,
+  MultiDayRow
 } from 'features/fwiCalculator/components/dataModel'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { getDaysBetween } from 'utils/date'
 
 export interface MultiDayFWITableProps {
@@ -54,8 +55,12 @@ export const MultiDayFWITable = ({
   const [selection, setSelection] = useState<(string | number)[]>([])
 
   const dates = getDaysBetween(startDate, endDate)
-  const genRows = generateDefaultRowsFromDates(dates)
-  const [rows, setRows] = useState(genRows)
+  const [rows, setRows] = useState<MultiDayRow[]>([])
+
+  useEffect(() => {
+    const genRows = generateDefaultRowsFromDates(dates)
+    setRows(genRows)
+  }, [startDate, endDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const commitChanges = (changes: ChangeSet) => {
     if (changes.added) {
@@ -80,7 +85,7 @@ export const MultiDayFWITable = ({
 
   return (
     <Paper>
-      <ReactGrid rows={genRows} columns={columns}>
+      <ReactGrid rows={rows} columns={columns}>
         <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
         <IntegratedSorting />
         <EditingState onCommitChanges={commitChanges} />
