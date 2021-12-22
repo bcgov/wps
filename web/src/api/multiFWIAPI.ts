@@ -13,6 +13,11 @@ export interface MultiFWIInput {
 export interface MultiFWIOutput {
   id: number
   datetime: string
+  temp: number | null
+  rh: number | null
+  windDir: number | null
+  windSpeed: number | null
+  precip: number | null
   actual: FWIIndices
   adjusted?: FWIIndices
 }

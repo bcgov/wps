@@ -1,6 +1,7 @@
 """ Routers for FWI calculations.
 """
 import logging
+import random
 from datetime import timedelta
 from typing import List
 from fastapi import APIRouter, Depends
@@ -9,7 +10,7 @@ from app.utils import cffdrs
 from app.fwi.fwi import fwi_bui, fwi_ffmc, fwi_isi, fwi_fwi
 from app.auth import authentication_required
 from app.utils.time import get_hour_20_from_date
-from app.schemas.fwi_calc import FWIIndices, FWIRequest, FWIOutput, FWIOutputResponse, Daily
+from app.schemas.fwi_calc import FWIIndices, FWIRequest, FWIOutput, FWIOutputResponse, Daily, MultiFWIOutput, MultiFWIOutputResponse, MultiFWIRequest
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies,
                                        get_wfwx_stations_from_station_codes)
@@ -124,10 +125,27 @@ async def get_fwi_calc_outputs(request: FWIRequest, _=Depends(authentication_req
 
 
 @router.post('/multi', response_model=FWIOutputResponse)
-async def get_fwi_calc_outputs(_=Depends(authentication_required)):
-    """ Returns FWI calculations for all inputs """
+async def get_fwi_calc_outputs(request: MultiFWIRequest, _=Depends(authentication_required)):
+    """ Returns FWI calculations for all inputs 
+    """
     try:
         logger.info('/fwi_calc/multi')
+        outputs: List[MultiFWIOutput] = []
+        for input in request.inputs:
+            outputs.append(MultiFWIOutput(id=input.id, datetime=input.datetime,
+                           temp=input.temp,
+                                          rh=input.rh,
+                                          windDir=input.windDir,
+                                          windSpeed=input.windSpeed,
+                                          precip=input.precip,
+                                          actual=FWIIndices(
+                                              ffmc=random.randint(0, 100),
+                                              dmc=random.randint(0, 100),
+                                              dc=random.randint(0, 100),
+                                              isi=random.randint(0, 100),
+                                              bui=random.randint(0, 100),
+                                              fwi=random.randint(0, 100))))
+        return MultiFWIOutputResponse(multi_fwi_outputs=outputs)
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise

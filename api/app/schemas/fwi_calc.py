@@ -51,6 +51,11 @@ class FWIIndices(BaseModel):
 class MultiFWIOutput(BaseModel):
     id: int
     datetime: datetime
+    temp: Optional[float]
+    rh: Optional[float]
+    windDir: Optional[float]
+    windSpeed: Optional[float]
+    precip: Optional[float]
     actual: FWIIndices
     adjusted: Optional[FWIIndices]
 
@@ -74,3 +79,7 @@ class FWIOutput(BaseModel):
 class FWIOutputResponse(BaseModel):
     """ Response for all FWI calc outputs, in a list """
     fwi_outputs: List[FWIOutput]
+
+
+class MultiFWIOutputResponse(BaseModel):
+    multi_fwi_outputs: List[MultiFWIOutput]
