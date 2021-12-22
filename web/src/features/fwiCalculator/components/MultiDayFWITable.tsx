@@ -18,12 +18,14 @@ import {
   VirtualTable
 } from '@devexpress/dx-react-grid-material-ui'
 import { Paper } from '@material-ui/core'
+import { selectMultiFWIOutputs, selectMultiFWIOutputsLoading } from 'app/rootReducer'
 import {
   defaultColumns,
   generateDefaultRowsFromDates,
   MultiDayRow
 } from 'features/fwiCalculator/components/dataModel'
 import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { getDaysBetween } from 'utils/date'
 
 export interface MultiDayFWITableProps {
@@ -35,6 +37,9 @@ export const MultiDayFWITable = ({
   startDate,
   endDate
 }: MultiDayFWITableProps): JSX.Element => {
+  const dispatch = useDispatch()
+  const { multiFWIOutputs } = useSelector(selectMultiFWIOutputs)
+  const isLoading = useSelector(selectMultiFWIOutputsLoading)
   const [columns] = useState(defaultColumns)
 
   const [rightColumns] = useState([

@@ -36,17 +36,17 @@ export const generateDefaultRowsFromDates = (dates: DateTime[]): MultiDayRow[] =
   return dates.map((date, idx) => ({
     id: idx,
     date: date.toFormat('yyyy/MMM/dd'),
-    status: 'FORECAST',
-    temp: Math.floor(Math.random() * 100) + 1,
-    rh: Math.floor(Math.random() * 100) + 1,
-    windDir: Math.floor(Math.random() * 100) + 1,
-    windSpeed: Math.floor(Math.random() * 100) + 1,
-    precip: Math.floor(Math.random() * 100) + 1,
-    ffmc: Math.floor(Math.random() * 100) + 1,
-    dmc: Math.floor(Math.random() * 100) + 1,
-    dc: Math.floor(Math.random() * 100) + 1,
-    isi: Math.floor(Math.random() * 100) + 1,
-    bui: Math.floor(Math.random() * 100) + 1,
-    fwi: Math.floor(Math.random() * 100) + 1
+    status: null,
+    temp: null,
+    rh: null,
+    windDir: null,
+    windSpeed: null,
+    precip: null,
+    ffmc: null,
+    dmc: null,
+    dc: null,
+    isi: null,
+    bui: null,
+    fwi: null
   }))
 }

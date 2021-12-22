@@ -7,13 +7,13 @@ import { logError } from 'utils/error'
 interface State {
   loading: boolean
   error: string | null
-  fwiOutputs: MultiFWIOutput[]
+  multiFWIOutputs: MultiFWIOutput[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  fwiOutputs: []
+  multiFWIOutputs: []
 }
 
 const multiFWISlice = createSlice({
@@ -23,7 +23,7 @@ const multiFWISlice = createSlice({
     getMultiFWIStart(state: State) {
       state.error = null
       state.loading = true
-      state.fwiOutputs = []
+      state.multiFWIOutputs = []
     },
     getMultiFWIFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
@@ -31,7 +31,7 @@ const multiFWISlice = createSlice({
     },
     getMultiFWISuccess(state: State, action: PayloadAction<MultiFWIOutput[]>) {
       state.error = null
-      state.fwiOutputs = action.payload
+      state.multiFWIOutputs = action.payload
       state.loading = false
     }
   }
@@ -47,8 +47,8 @@ export const fetchMultiFWICalculation =
   async dispatch => {
     try {
       dispatch(getMultiFWIStart())
-      const fwiOutputs = await getMultiFWIOutput(input)
-      dispatch(getMultiFWISuccess(fwiOutputs))
+      const multiFWIOutputs = await getMultiFWIOutput(input)
+      dispatch(getMultiFWISuccess(multiFWIOutputs))
     } catch (err) {
       dispatch(getMultiFWIFailed((err as Error).toString()))
       logError(err)
