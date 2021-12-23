@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 class Daily(BaseModel):
     temperature: Optional[float]
+    status: Optional[str]
     relative_humidity: Optional[float]
     precipitation: Optional[float]
     wind_direction: Optional[float]
@@ -51,6 +52,7 @@ class FWIIndices(BaseModel):
 class MultiFWIOutput(BaseModel):
     id: int
     datetime: datetime
+    status: Optional[str]
     temp: Optional[float]
     rh: Optional[float]
     windDir: Optional[float]

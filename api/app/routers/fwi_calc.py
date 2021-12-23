@@ -36,6 +36,7 @@ async def dailies_list_mapper(raw_dailies):
         dailies.append(
             Daily(
                 temperature=raw_daily.get('temperature', None),
+                status=raw_daily.get('recordType', '').get('id', None),
                 relative_humidity=raw_daily.get('relativeHumidity', None),
                 precipitation=raw_daily.get('precipitation', None),
                 wind_direction=raw_daily.get('windDirection', None),
@@ -164,6 +165,7 @@ async def multi_calculate_actual(session: ClientSession, input: MultiFWIInput, s
     fwi = fwi_fwi(isi, bui)
     output = MultiFWIOutput(id=input.id,
                             datetime=input.datetime,
+                            status=dailies_today[0].status,
                             temp=dailies_today[0].temperature,
                             rh=dailies_today[0].relative_humidity,
                             windDir=dailies_today[0].wind_direction,

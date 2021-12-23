@@ -14,6 +14,7 @@ export interface MultiFWIInput {
 export interface MultiFWIOutput {
   id: number
   datetime: string
+  status: string | null
   temp: number | null
   rh: number | null
   windDir: number | null
