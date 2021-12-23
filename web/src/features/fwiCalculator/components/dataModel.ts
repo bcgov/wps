@@ -75,7 +75,7 @@ export const output2Rows = (multiFWIOutputs: MultiFWIOutput[]): MultiDayRow[] =>
     date: DateTime.fromISO(pstFormatter(DateTime.fromISO(output.datetime))).toFormat(
       'yyyy/MMM/dd'
     ),
-    status: null,
+    status: output.status,
     temp: Number(output.temp?.toFixed(DECIMAL_PLACES)),
     rh: Number(output.rh?.toFixed(DECIMAL_PLACES)),
     windDir: Number(output.windDir?.toFixed(DECIMAL_PLACES)),
