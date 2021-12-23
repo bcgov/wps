@@ -12,6 +12,12 @@ export interface MultiDayRow {
   windDir: number | null
   windSpeed: number | null
   precip: number | null
+  ffmc: number | null
+  dmc: number | null
+  dc: number | null
+  isi: number | null
+  bui: number | null
+  fwi: number | null
 }
 
 export interface MultiDayColumn {
