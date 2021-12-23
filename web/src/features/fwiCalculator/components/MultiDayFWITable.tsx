@@ -1,6 +1,4 @@
 import {
-  SelectionState,
-  IntegratedSelection,
   IntegratedSorting,
   SortingState,
   EditingState,
@@ -52,7 +50,7 @@ export const MultiDayFWITable = ({
   const isLoading = useSelector(selectMultiFWIOutputsLoading)
   const [columns] = useState(defaultColumns)
 
-  const [rightColumns] = useState([
+  const rightColumns = [
     TableSelection.COLUMN_TYPE,
     'ffmc',
     TableSelection.COLUMN_TYPE,
@@ -65,9 +63,9 @@ export const MultiDayFWITable = ({
     'bui',
     TableSelection.COLUMN_TYPE,
     'fwi'
-  ])
+  ]
 
-  const [selection, setSelection] = useState<(string | number)[]>([])
+  const leftColumns = [TableSelection.COLUMN_TYPE, 'date']
 
   const [rows, setRows] = useState<MultiDayRow[]>([])
 
@@ -124,10 +122,7 @@ export const MultiDayFWITable = ({
         <VirtualTable />
         <TableHeaderRow showSortingControls />
         <TableColumnVisibility />
-        <SelectionState selection={selection} onSelectionChange={setSelection} />
-        <IntegratedSelection />
-        <TableSelection showSelectAll />
-        <TableFixedColumns rightColumns={rightColumns} />
+        <TableFixedColumns leftColumns={leftColumns} rightColumns={rightColumns} />
         <TableInlineCellEditing />
         <Toolbar />
         <ColumnChooser />
