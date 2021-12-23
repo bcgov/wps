@@ -100,7 +100,7 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
               </FormControl>
             </Grid>
           </Grid>
-          <Grid container spacing={2}>
+          <Grid container>
             <Grid item xs>
               <MultiDayFWITable
                 selectedStation={selectedStation}

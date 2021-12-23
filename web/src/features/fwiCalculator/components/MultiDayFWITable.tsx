@@ -24,6 +24,7 @@ import {
   MultiDayRow,
   output2Rows
 } from 'features/fwiCalculator/components/dataModel'
+import FireIndexGraph from 'features/fwiCalculator/components/FireIndexGraph'
 import { fetchMultiFWICalculation } from 'features/fwiCalculator/slices/multiFWISlice'
 import { DateTime, Interval } from 'luxon'
 import React, { useEffect, useState } from 'react'
@@ -110,23 +111,26 @@ export const MultiDayFWITable = ({
   }
 
   return (
-    <Paper>
-      <ReactGrid rows={rows} columns={columns}>
-        <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
-        <IntegratedSorting />
-        <EditingState
-          onCommitChanges={commitChanges}
-          columnExtensions={isLoading ? disabledColumns : undefined}
-        />
+    <React.Fragment>
+      <Paper>
+        <ReactGrid rows={rows} columns={columns}>
+          <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
+          <IntegratedSorting />
+          <EditingState
+            onCommitChanges={commitChanges}
+            columnExtensions={isLoading ? disabledColumns : undefined}
+          />
 
-        <VirtualTable />
-        <TableHeaderRow showSortingControls />
-        <TableColumnVisibility />
-        <TableFixedColumns leftColumns={leftColumns} rightColumns={rightColumns} />
-        <TableInlineCellEditing />
-        <Toolbar />
-        <ColumnChooser />
-      </ReactGrid>
-    </Paper>
+          <VirtualTable />
+          <TableHeaderRow showSortingControls />
+          <TableColumnVisibility />
+          <TableFixedColumns leftColumns={leftColumns} rightColumns={rightColumns} />
+          <TableInlineCellEditing />
+          <Toolbar />
+          <ColumnChooser />
+        </ReactGrid>
+        <FireIndexGraph rowData={rows} />
+      </Paper>
+    </React.Fragment>
   )
 }
