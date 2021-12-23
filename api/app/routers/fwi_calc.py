@@ -10,7 +10,7 @@ from app.utils import cffdrs
 from app.fwi.fwi import fwi_bui, fwi_ffmc, fwi_isi, fwi_fwi
 from app.auth import authentication_required
 from app.utils.time import get_hour_20_from_date
-from app.schemas.fwi_calc import FWIIndices, FWIRequest, FWIOutput, FWIOutputResponse, Daily, MultiFWIOutput, MultiFWIOutputResponse, MultiFWIRequest
+from app.schemas.fwi_calc import FWIIndices, FWIRequest, FWIOutput, FWIOutputResponse, Daily, MultiFWIInput, MultiFWIOutput, MultiFWIOutputResponse, MultiFWIRequest
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies,
                                        get_wfwx_stations_from_station_codes)
@@ -124,6 +124,48 @@ async def get_fwi_calc_outputs(request: FWIRequest, _=Depends(authentication_req
         raise
 
 
+async def multi_calculate_actual(session: ClientSession, input: MultiFWIInput, station_code: int, time_of_interest):
+    header = await get_auth_header(session)
+
+    wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, [station_code])
+    dailies_today: List[Daily] = await dailies_list_mapper(
+        await get_dailies(session, header, wfwx_stations, time_of_interest))
+
+    prev_day = time_of_interest - timedelta(days=1)
+    dailies_yesterday: List[Daily] = await dailies_list_mapper(
+        await get_dailies(session, header, wfwx_stations, prev_day))
+
+    if len(dailies_today) == 0 or len(dailies_yesterday) == 0:
+        return FWIIndices(
+            ffmc=0,
+            dmc=0,
+            dc=0,
+            isi=0,
+            bui=0,
+            fwi=0
+        )
+
+    ffmc = fwi_ffmc(
+        dailies_yesterday[0].ffmc,
+        dailies_today[0].temperature,
+        dailies_today[0].relative_humidity,
+        dailies_today[0].precipitation,
+        dailies_today[0].wind_speed)
+    isi = fwi_isi(ffmc, dailies_today[0].wind_speed)
+    dmc = dailies_today[0].dmc
+    dc = dailies_today[0].dc
+    bui = fwi_bui(dailies_yesterday[0].dmc, dailies_yesterday[0].dc)
+    fwi = fwi_fwi(isi, bui)
+    return FWIIndices(
+        ffmc=ffmc,
+        dmc=dmc,
+        dc=dc,
+        isi=isi,
+        bui=bui,
+        fwi=fwi
+    )
+
+
 @router.post('/multi', response_model=MultiFWIOutputResponse)
 async def get_fwi_calc_outputs(request: MultiFWIRequest, _=Depends(authentication_required)):
     """ Returns FWI calculations for all inputs 
@@ -131,21 +173,20 @@ async def get_fwi_calc_outputs(request: MultiFWIRequest, _=Depends(authenticatio
     try:
         logger.info('/fwi_calc/multi')
         outputs: List[MultiFWIOutput] = []
-        for input in request.inputs:
-            outputs.append(MultiFWIOutput(id=input.id, datetime=input.datetime,
-                           temp=input.temp,
-                                          rh=input.rh,
-                                          windDir=input.windDir,
-                                          windSpeed=input.windSpeed,
-                                          precip=input.precip,
-                                          actual=FWIIndices(
-                                              ffmc=random.randint(0, 100),
-                                              dmc=random.randint(0, 100),
-                                              dc=random.randint(0, 100),
-                                              isi=random.randint(0, 100),
-                                              bui=random.randint(0, 100),
-                                              fwi=random.randint(0, 100))))
-        return MultiFWIOutputResponse(multi_fwi_outputs=outputs)
+        async with ClientSession() as session:
+
+            for input in request.inputs:
+                time_of_interest = get_hour_20_from_date(input.datetime)
+                actual_indices: FWIIndices = await multi_calculate_actual(
+                    session, input, request.stationCode, time_of_interest)
+                outputs.append(MultiFWIOutput(id=input.id, datetime=input.datetime,
+                                              temp=input.temp,
+                                              rh=input.rh,
+                                              windDir=input.windDir,
+                                              windSpeed=input.windSpeed,
+                                              precip=input.precip,
+                                              actual=actual_indices))
+            return MultiFWIOutputResponse(multi_fwi_outputs=outputs)
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise

@@ -3,6 +3,10 @@ import { getMultiFWIOutput, MultiFWIInput, MultiFWIOutput } from 'api/multiFWIAP
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
+export interface Option {
+  name: string
+  code: number
+}
 
 interface State {
   loading: boolean
@@ -43,11 +47,11 @@ export const { getMultiFWIStart, getMultiFWIFailed, getMultiFWISuccess } =
 export default multiFWISlice.reducer
 
 export const fetchMultiFWICalculation =
-  (input: MultiFWIInput[]): AppThunk =>
+  (selectedStation: Option | null, input: MultiFWIInput[]): AppThunk =>
   async dispatch => {
     try {
       dispatch(getMultiFWIStart())
-      const multiFWIOutputs = await getMultiFWIOutput(input)
+      const multiFWIOutputs = await getMultiFWIOutput(selectedStation, input)
       dispatch(getMultiFWISuccess(multiFWIOutputs))
     } catch (err) {
       dispatch(getMultiFWIFailed((err as Error).toString()))

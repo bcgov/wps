@@ -2,16 +2,22 @@ import { TextField } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 import { Option } from 'features/fwiCalculator/components/BasicFWIInput'
 import { isEqual } from 'lodash'
-import React, { useState } from 'react'
+import React from 'react'
 
 export interface FWIStationCellProps {
+  selectedStation: Option | null
+  setSelectedStation: React.Dispatch<React.SetStateAction<Option | null>>
   isLoading: boolean
   stationOptions: Option[]
 }
 const emptyLabel = 'Select a station'
 
-const FWIMultiStationSelect = ({ isLoading, stationOptions }: FWIStationCellProps) => {
-  const [selectedStation, setSelectedStation] = useState<Option | null>(null)
+const FWIMultiStationSelect = ({
+  isLoading,
+  selectedStation,
+  setSelectedStation,
+  stationOptions
+}: FWIStationCellProps) => {
   return (
     <Autocomplete
       fullWidth

@@ -61,6 +61,7 @@ class MultiFWIOutput(BaseModel):
 
 
 class MultiFWIRequest(BaseModel):
+    stationCode: Optional[int]
     inputs: List[MultiFWIInput]
 
 

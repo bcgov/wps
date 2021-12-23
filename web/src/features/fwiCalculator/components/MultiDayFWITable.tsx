@@ -27,16 +27,23 @@ import {
   output2Rows
 } from 'features/fwiCalculator/components/dataModel'
 import { fetchMultiFWICalculation } from 'features/fwiCalculator/slices/multiFWISlice'
+import { DateTime, Interval } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { getDaysBetween } from 'utils/date'
+export interface Option {
+  name: string
+  code: number
+}
 
 export interface MultiDayFWITableProps {
+  selectedStation: Option | null
   startDate: string
   endDate: string
 }
 
 export const MultiDayFWITable = ({
+  selectedStation,
   startDate,
   endDate
 }: MultiDayFWITableProps): JSX.Element => {
@@ -62,13 +69,19 @@ export const MultiDayFWITable = ({
 
   const [selection, setSelection] = useState<(string | number)[]>([])
 
-  const dates = getDaysBetween(startDate, endDate)
   const [rows, setRows] = useState<MultiDayRow[]>([])
 
   useEffect(() => {
-    const genRows = generateDefaultRowsFromDates(dates)
-    setRows(genRows)
-    dispatch(fetchMultiFWICalculation(genRows))
+    if (
+      Interval.fromDateTimes(DateTime.fromISO(startDate), DateTime.fromISO(endDate))
+        .isValid
+    ) {
+      const dates = getDaysBetween(startDate, endDate)
+
+      const newRows = generateDefaultRowsFromDates(dates)
+      setRows(newRows)
+      dispatch(fetchMultiFWICalculation(selectedStation, newRows))
+    }
   }, [startDate, endDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -94,6 +107,7 @@ export const MultiDayFWITable = ({
         changed[row.id] ? { ...row, ...changed[row.id] } : row
       )
       setRows(changedRows)
+      dispatch(fetchMultiFWICalculation(selectedStation, changedRows))
     }
   }
 

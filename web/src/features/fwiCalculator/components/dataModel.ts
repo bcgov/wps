@@ -1,4 +1,5 @@
 import { MultiFWIOutput } from 'api/multiFWIAPI'
+import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { DateTime } from 'luxon'
 import { pstFormatter } from 'utils/date'
 
@@ -75,16 +76,16 @@ export const output2Rows = (multiFWIOutputs: MultiFWIOutput[]): MultiDayRow[] =>
       'yyyy/MMM/dd'
     ),
     status: null,
-    temp: output.temp,
-    rh: output.rh,
-    windDir: output.windDir,
-    windSpeed: output.windSpeed,
-    precip: output.precip,
-    ffmc: output.actual.ffmc,
-    dmc: output.actual.dmc,
-    dc: output.actual.dc,
-    isi: output.actual.isi,
-    bui: output.actual.bui,
-    fwi: output.actual.fwi
+    temp: Number(output.temp?.toFixed(DECIMAL_PLACES)),
+    rh: Number(output.rh?.toFixed(DECIMAL_PLACES)),
+    windDir: Number(output.windDir?.toFixed(DECIMAL_PLACES)),
+    windSpeed: Number(output.windSpeed?.toFixed(DECIMAL_PLACES)),
+    precip: Number(output.precip?.toFixed(DECIMAL_PLACES)),
+    ffmc: Number(output.actual.ffmc?.toFixed(DECIMAL_PLACES)),
+    dmc: Number(output.actual.dmc?.toFixed(DECIMAL_PLACES)),
+    dc: Number(output.actual.dc?.toFixed(DECIMAL_PLACES)),
+    isi: Number(output.actual.isi?.toFixed(DECIMAL_PLACES)),
+    bui: Number(output.actual.bui?.toFixed(DECIMAL_PLACES)),
+    fwi: Number(output.actual.fwi?.toFixed(DECIMAL_PLACES))
   }))
 }

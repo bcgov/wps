@@ -51,6 +51,8 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
     pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
   )
 
+  const [selectedStation, setSelectedStation] = useState<Option | null>(null)
+
   const updateEndDate = (newDate: string) => {
     if (newDate !== endDate) {
       setEndDate(newDate)
@@ -75,6 +77,8 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
               <FWIMultiStationSelect
                 isLoading={false}
                 stationOptions={allStationOptions}
+                selectedStation={selectedStation}
+                setSelectedStation={setSelectedStation}
               />
             </Grid>
             <Grid item>
@@ -98,7 +102,11 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
           </Grid>
           <Grid container spacing={2}>
             <Grid item xs>
-              <MultiDayFWITable startDate={startDate} endDate={endDate} />
+              <MultiDayFWITable
+                selectedStation={selectedStation}
+                startDate={startDate}
+                endDate={endDate}
+              />
             </Grid>
           </Grid>
         </Grid>

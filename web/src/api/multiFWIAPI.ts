@@ -34,8 +34,12 @@ export interface FWIIndices {
 export interface MultiFWIOutputResponse {
   multi_fwi_outputs: MultiFWIOutput[]
 }
-
+export interface Option {
+  name: string
+  code: number
+}
 export async function getMultiFWIOutput(
+  selectedStation: Option | null,
   input: MultiFWIInput[]
 ): Promise<MultiFWIOutput[]> {
   const url = '/fwi-calc/multi'
@@ -45,7 +49,8 @@ export async function getMultiFWIOutput(
     datetime: DateTime.fromFormat(input.date, 'yyyy/MMM/dd')
   }))
   const { data } = await axios.post<MultiFWIOutputResponse>(url, {
-    inputs
+    inputs,
+    stationCode: selectedStation?.code
   })
 
   return data.multi_fwi_outputs
