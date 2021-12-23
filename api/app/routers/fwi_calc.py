@@ -124,7 +124,7 @@ async def get_fwi_calc_outputs(request: FWIRequest, _=Depends(authentication_req
         raise
 
 
-@router.post('/multi', response_model=FWIOutputResponse)
+@router.post('/multi', response_model=MultiFWIOutputResponse)
 async def get_fwi_calc_outputs(request: MultiFWIRequest, _=Depends(authentication_required)):
     """ Returns FWI calculations for all inputs 
     """

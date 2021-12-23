@@ -1,8 +1,9 @@
 import axios from 'api/axios'
+import { DateTime } from 'luxon'
 
 export interface MultiFWIInput {
   id: number
-  datetime: string
+  date: string
   temp: number | null
   rh: number | null
   windDir: number | null
@@ -38,8 +39,13 @@ export async function getMultiFWIOutput(
   input: MultiFWIInput[]
 ): Promise<MultiFWIOutput[]> {
   const url = '/fwi-calc/multi'
+
+  const inputs = input.map(input => ({
+    ...input,
+    datetime: DateTime.fromFormat(input.date, 'yyyy/MMM/dd')
+  }))
   const { data } = await axios.post<MultiFWIOutputResponse>(url, {
-    inputs: input
+    inputs
   })
 
   return data.multi_fwi_outputs

@@ -21,9 +21,12 @@ import { Paper } from '@material-ui/core'
 import { selectMultiFWIOutputs, selectMultiFWIOutputsLoading } from 'app/rootReducer'
 import {
   defaultColumns,
+  disabledColumns,
   generateDefaultRowsFromDates,
-  MultiDayRow
+  MultiDayRow,
+  output2Rows
 } from 'features/fwiCalculator/components/dataModel'
+import { fetchMultiFWICalculation } from 'features/fwiCalculator/slices/multiFWISlice'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { getDaysBetween } from 'utils/date'
@@ -65,7 +68,13 @@ export const MultiDayFWITable = ({
   useEffect(() => {
     const genRows = generateDefaultRowsFromDates(dates)
     setRows(genRows)
+    dispatch(fetchMultiFWICalculation(genRows))
   }, [startDate, endDate]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const newRows = output2Rows(multiFWIOutputs)
+    setRows(newRows)
+  }, [multiFWIOutputs]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const commitChanges = (changes: ChangeSet) => {
     if (changes.added) {
@@ -93,7 +102,10 @@ export const MultiDayFWITable = ({
       <ReactGrid rows={rows} columns={columns}>
         <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
         <IntegratedSorting />
-        <EditingState onCommitChanges={commitChanges} />
+        <EditingState
+          onCommitChanges={commitChanges}
+          columnExtensions={isLoading ? disabledColumns : undefined}
+        />
 
         <VirtualTable />
         <TableHeaderRow showSortingControls />

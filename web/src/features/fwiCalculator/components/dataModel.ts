@@ -1,4 +1,6 @@
+import { MultiFWIOutput } from 'api/multiFWIAPI'
 import { DateTime } from 'luxon'
+import { pstFormatter } from 'utils/date'
 
 export interface MultiDayRow {
   id: number
@@ -31,6 +33,21 @@ export const defaultColumns = [
   { name: 'bui', title: 'BUI' },
   { name: 'fwi', title: 'FWI' }
 ]
+export const disabledColumns = [
+  { columnName: 'date', editingEnabled: false },
+  { columnName: 'status', editingEnabled: false },
+  { columnName: 'temp', editingEnabled: false },
+  { columnName: 'rh', editingEnabled: false },
+  { columnName: 'windDir', editingEnabled: false },
+  { columnName: 'windSpeed', editingEnabled: false },
+  { columnName: 'precip', editingEnabled: false },
+  { columnName: 'ffmc', editingEnabled: false },
+  { columnName: 'dmc', editingEnabled: false },
+  { columnName: 'dc', editingEnabled: false },
+  { columnName: 'isi', editingEnabled: false },
+  { columnName: 'bui', editingEnabled: false },
+  { columnName: 'fwi', editingEnabled: false }
+]
 
 export const generateDefaultRowsFromDates = (dates: DateTime[]): MultiDayRow[] => {
   return dates.map((date, idx) => ({
@@ -48,5 +65,26 @@ export const generateDefaultRowsFromDates = (dates: DateTime[]): MultiDayRow[] =
     isi: null,
     bui: null,
     fwi: null
+  }))
+}
+
+export const output2Rows = (multiFWIOutputs: MultiFWIOutput[]): MultiDayRow[] => {
+  return multiFWIOutputs.map(output => ({
+    id: output.id,
+    date: DateTime.fromISO(pstFormatter(DateTime.fromISO(output.datetime))).toFormat(
+      'yyyy/MMM/dd'
+    ),
+    status: null,
+    temp: output.temp,
+    rh: output.rh,
+    windDir: output.windDir,
+    windSpeed: output.windSpeed,
+    precip: output.precip,
+    ffmc: output.actual.ffmc,
+    dmc: output.actual.dmc,
+    dc: output.actual.dc,
+    isi: output.actual.isi,
+    bui: output.actual.bui,
+    fwi: output.actual.fwi
   }))
 }
