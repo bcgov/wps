@@ -43,7 +43,7 @@ const BasicFWIInput = ({ isLoading, input, yesterday, setInput }: BasicFWIInputP
 
   return (
     <TableContainer component={Paper}>
-      <Table aria-label="Basic FWI Calculation Inputs" size="small">
+      <Table aria-label="Basic FWI Calculation Inputs">
         <TableHead>
           <TableRow>
             <TableCell colSpan={2}>
