@@ -8,12 +8,14 @@ import {
   TableBody,
   InputAdornment
 } from '@material-ui/core'
+import { YesterdayIndices } from 'api/fwiAPI'
 import { getStations, StationSource, GeoJsonStation } from 'api/stationAPI'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { ErrorMessage } from 'components'
 import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGrid'
 import FWINumberCell from 'features/fwiCalculator/components/FWINumberCell'
 import FWIStationCell from 'features/fwiCalculator/components/FWIStationCell'
+import YesterdayIndexCells from 'features/fwiCalculator/components/YesterdayIndices'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -24,9 +26,10 @@ export interface Option {
 export interface BasicFWIInputProps {
   isLoading: boolean
   input: FWIInputParameters
+  yesterday?: YesterdayIndices
   setInput: React.Dispatch<React.SetStateAction<FWIInputParameters>>
 }
-const BasicFWIInput = ({ isLoading, input, setInput }: BasicFWIInputProps) => {
+const BasicFWIInput = ({ isLoading, input, yesterday, setInput }: BasicFWIInputProps) => {
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -54,36 +57,7 @@ const BasicFWIInput = ({ isLoading, input, setInput }: BasicFWIInputProps) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          <TableRow>
-            <TableCell>Yesterday&apos;s FFMC</TableCell>
-            <FWINumberCell
-              inputField={'yesterdayFFMC'}
-              input={input}
-              setInput={setInput}
-              isLoading={isLoading}
-            />
-          </TableRow>
-          <TableRow>
-            <TableCell>Yesterday&apos;s DMC</TableCell>
-            <FWINumberCell
-              inputField={'yesterdayDMC'}
-              input={input}
-              setInput={setInput}
-              isLoading={isLoading}
-            />
-          </TableRow>
-          <TableRow>
-            <TableCell>Yesterday&apos;s DC</TableCell>
-            <FWINumberCell
-              inputField={'yesterdayDC'}
-              input={input}
-              inputProps={{
-                endAdornment: <InputAdornment position="end">%</InputAdornment>
-              }}
-              setInput={setInput}
-              isLoading={isLoading}
-            />
-          </TableRow>
+          <YesterdayIndexCells isLoading={false} yesterdayActuals={yesterday} />
           <TableRow>
             <TableCell>Today&apos;s 1300 Temperature</TableCell>
             <FWINumberCell
