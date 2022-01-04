@@ -15,7 +15,8 @@ import {
   Toolbar,
   VirtualTable
 } from '@devexpress/dx-react-grid-material-ui'
-import { Paper } from '@material-ui/core'
+import { Container } from 'components'
+import { CircularProgress, Paper, makeStyles } from '@material-ui/core'
 import { selectMultiFWIOutputs, selectMultiFWIOutputsLoading } from 'app/rootReducer'
 import {
   defaultColumns,
@@ -41,11 +42,19 @@ export interface MultiDayFWITableProps {
   endDate: string
 }
 
+const useStyles = makeStyles(() => ({
+  container: {
+    display: 'flex',
+    justifyContent: 'center'
+  }
+}))
+
 export const MultiDayFWITable = ({
   selectedStation,
   startDate,
   endDate
 }: MultiDayFWITableProps): JSX.Element => {
+  const classes = useStyles()
   const dispatch = useDispatch()
   const { multiFWIOutputs } = useSelector(selectMultiFWIOutputs)
   const isLoading = useSelector(selectMultiFWIOutputsLoading)
@@ -113,23 +122,30 @@ export const MultiDayFWITable = ({
   return (
     <React.Fragment>
       <Paper>
-        <ReactGrid rows={rows} columns={columns}>
-          <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
-          <IntegratedSorting />
-          <EditingState
-            onCommitChanges={commitChanges}
-            columnExtensions={isLoading ? disabledColumns : undefined}
-          />
-
-          <VirtualTable />
-          <TableHeaderRow showSortingControls />
-          <TableColumnVisibility />
-          <TableFixedColumns leftColumns={leftColumns} rightColumns={rightColumns} />
-          <TableInlineCellEditing />
-          <Toolbar />
-          <ColumnChooser />
-        </ReactGrid>
-        <FireIndexGraph rowData={rows} />
+        {isLoading ? (
+          <Container className={classes.container}>
+            <CircularProgress />
+          </Container>
+        ) : (
+          <React.Fragment>
+            <ReactGrid rows={rows} columns={columns}>
+              <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
+              <IntegratedSorting />
+              <EditingState
+                onCommitChanges={commitChanges}
+                columnExtensions={isLoading ? disabledColumns : undefined}
+              />
+              <VirtualTable />
+              <TableHeaderRow showSortingControls />
+              <TableColumnVisibility />
+              <TableFixedColumns leftColumns={leftColumns} rightColumns={rightColumns} />
+              <TableInlineCellEditing />
+              <Toolbar />
+              <ColumnChooser />
+            </ReactGrid>
+            <FireIndexGraph rowData={rows} />
+          </React.Fragment>
+        )}
       </Paper>
     </React.Fragment>
   )
