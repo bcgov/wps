@@ -17,21 +17,21 @@ export interface FireIndexGraphProps {
 
 const FireIndexGraph = ({ rowData }: FireIndexGraphProps) => {
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={rowData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Line type="monotone" dataKey="ffmc" stroke="#264653" activeDot={{ r: 8 }} />
-        <Line type="monotone" dataKey="dmc" stroke="#2a9d8f" />
-        <Line type="monotone" dataKey="dc" stroke="#e9c46a" />
-        <Line type="monotone" dataKey="isi" stroke="#f4a261" />
-        <Line type="monotone" dataKey="bui" stroke="#e76f51" />
-        <Line type="monotone" dataKey="fwi" stroke="#82ca9d" />
-      </LineChart>
-    </ResponsiveContainer>
+    // <ResponsiveContainer width="100%" height="100%">
+    <LineChart width={1750} height={800} data={rowData}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="date" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      <Line type="monotone" dataKey="ffmc" stroke="#264653" activeDot={{ r: 8 }} />
+      <Line type="monotone" dataKey="dmc" stroke="#2a9d8f" />
+      <Line type="monotone" dataKey="dc" stroke="#e9c46a" />
+      <Line type="monotone" dataKey="isi" stroke="#f4a261" />
+      <Line type="monotone" dataKey="bui" stroke="#e76f51" />
+      <Line type="monotone" dataKey="fwi" stroke="#82ca9d" />
+    </LineChart>
+    // </ResponsiveContainer>
   )
 }
 
