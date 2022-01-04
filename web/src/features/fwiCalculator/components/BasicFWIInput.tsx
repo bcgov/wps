@@ -57,7 +57,7 @@ const BasicFWIInput = ({ isLoading, input, yesterday, setInput }: BasicFWIInputP
           </TableRow>
         </TableHead>
         <TableBody>
-          <YesterdayIndexCells isLoading={false} yesterdayActuals={yesterday} />
+          <YesterdayIndexCells isLoading={isLoading} yesterdayActuals={yesterday} />
           <TableRow>
             <TableCell>Today&apos;s 1300 Temperature</TableCell>
             <FWINumberCell
