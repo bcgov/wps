@@ -54,21 +54,20 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
   const isLoading = useSelector(selectFWIOutputsLoading)
 
   useEffect(() => {
-    console.log(`Computing new input: ${JSON.stringify(input)}`)
     dispatch(fetchFWICalculation(input, dateOfInterest))
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input])
+  }, [input, dateOfInterest])
 
   const data = [
     {
       name: 'Actual',
-      ffmc: fwiOutputs[0]?.actual.ffmc,
-      dmc: fwiOutputs[0]?.actual.dmc,
-      dc: fwiOutputs[0]?.actual.dc,
-      isi: fwiOutputs[0]?.actual.isi,
-      bui: fwiOutputs[0]?.actual.bui,
-      fwi: fwiOutputs[0]?.actual.fwi
+      ffmc: fwiOutputs ? fwiOutputs[0]?.actual?.ffmc : null,
+      dmc: fwiOutputs ? fwiOutputs[0]?.actual?.dmc : null,
+      dc: fwiOutputs ? fwiOutputs[0]?.actual?.dc : null,
+      isi: fwiOutputs ? fwiOutputs[0]?.actual?.isi : null,
+      bui: fwiOutputs ? fwiOutputs[0]?.actual?.bui : null,
+      fwi: fwiOutputs ? fwiOutputs[0]?.actual?.fwi : null
     },
     {
       name: 'Adjusted',

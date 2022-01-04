@@ -49,6 +49,12 @@ class FWIIndices(BaseModel):
     fwi: Optional[float]
 
 
+class YesterdayIndices(BaseModel):
+    ffmc: Optional[float]
+    dmc: Optional[float]
+    dc: Optional[float]
+
+
 class MultiFWIOutput(BaseModel):
     id: int
     datetime: datetime
@@ -75,7 +81,8 @@ class FWIRequest(BaseModel):
 class FWIOutput(BaseModel):
     """ FWI calc output """
     datetime: datetime
-    actual: FWIIndices
+    yesterday: Optional[YesterdayIndices]
+    actual: Optional[FWIIndices]
     adjusted: Optional[FWIIndices]
 
 

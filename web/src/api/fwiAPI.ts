@@ -3,8 +3,15 @@ import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGr
 
 export interface FWIOutput {
   datetime: string
-  actual: FWIIndices
+  yesterday?: YesterdayIndices
+  actual?: FWIIndices
   adjusted?: FWIIndices
+}
+
+export interface YesterdayIndices {
+  ffmc: number | null
+  dmc: number | null
+  dc: number | null
 }
 export interface FWIIndices {
   ffmc: number | null

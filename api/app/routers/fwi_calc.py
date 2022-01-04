@@ -16,7 +16,7 @@ from app.schemas.fwi_calc import (FWIIndices,
                                   MultiFWIInput,
                                   MultiFWIOutput,
                                   MultiFWIOutputResponse,
-                                  MultiFWIRequest)
+                                  MultiFWIRequest, YesterdayIndices)
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies,
                                        get_wfwx_stations_from_station_codes)
@@ -62,7 +62,8 @@ async def calculate_actual(session: ClientSession, request, time_of_interest):
     dailies_yesterday: List[Daily] = await dailies_list_mapper(
         await get_dailies(session, header, wfwx_stations, prev_day))
 
-    assert len(dailies_today) == len(dailies_yesterday) == 1
+    if len(dailies_today) == 0:
+        return None, None
 
     ffmc = fwi_ffmc(
         dailies_yesterday[0].ffmc,
@@ -75,7 +76,9 @@ async def calculate_actual(session: ClientSession, request, time_of_interest):
     dc = dailies_today[0].dc
     bui = fwi_bui(dailies_yesterday[0].dmc, dailies_yesterday[0].dc)
     fwi = fwi_fwi(isi, bui)
-    return FWIIndices(
+    yesterdayIndices = YesterdayIndices(
+        ffmc=dailies_yesterday[0].ffmc, dmc=dailies_yesterday[0].dmc, dc=dailies_yesterday[0].dc)
+    indices = FWIIndices(
         ffmc=ffmc,
         dmc=dmc,
         dc=dc,
@@ -83,6 +86,7 @@ async def calculate_actual(session: ClientSession, request, time_of_interest):
         bui=bui,
         fwi=fwi
     )
+    return yesterdayIndices, indices
 
 
 async def calculate_adjusted(request: FWIRequest):
@@ -116,11 +120,12 @@ async def get_fwi_calc_outputs(request: FWIRequest, _=Depends(authentication_req
         time_of_interest = get_hour_20_from_date(request.date)
 
         async with ClientSession() as session:
-            actual = await calculate_actual(session, request, time_of_interest)
+            yesterdayActual, actual = await calculate_actual(session, request, time_of_interest)
             adjusted = await calculate_adjusted(request)
 
             output = FWIOutput(
                 datetime=get_hour_20_from_date(request.date),
+                yesterday=yesterdayActual,
                 actual=actual,
                 adjusted=adjusted
             )
