@@ -79,7 +79,7 @@ export const output2Rows = (multiFWIOutputs: MultiFWIOutput[]): MultiDayRow[] =>
   return multiFWIOutputs.map(output => ({
     id: output.id,
     date: DateTime.fromISO(pstFormatter(DateTime.fromISO(output.datetime))).toFormat(
-      'yyyy/MMM/dd'
+      'dd/MMM/yyyy'
     ),
     status: output.status,
     temp: Number(output.temp?.toFixed(DECIMAL_PLACES)),
