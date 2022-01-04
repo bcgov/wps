@@ -17,13 +17,16 @@ export interface BasicFWIOutputProps {
   output: FWIOutput
 }
 
-const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
+const BasicFWIOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
   return (
     <TableContainer component={Paper}>
       <Table aria-label="Basic FWI Calculation Inputs">
         <TableHead>
           <TableRow>
-            <TableCell align="center" colSpan={2}>
+            <TableCell align="right" colSpan={2}>
+              Actual
+            </TableCell>
+            <TableCell align="right" colSpan={2}>
               Adjusted
             </TableCell>
           </TableRow>
@@ -31,6 +34,15 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
         <TableBody>
           <TableRow>
             <TableCell>FFMC</TableCell>
+            {isLoading ? (
+              <TableCell data-testid="loading-indicator-fwi">
+                <Skeleton />
+              </TableCell>
+            ) : (
+              <TableCell align="right">
+                {output?.actual?.ffmc?.toFixed(DECIMAL_PLACES)}
+              </TableCell>
+            )}
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
@@ -49,12 +61,30 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
               </TableCell>
             ) : (
               <TableCell align="right">
+                {output?.actual?.dmc?.toFixed(DECIMAL_PLACES)}
+              </TableCell>
+            )}
+            {isLoading ? (
+              <TableCell data-testid="loading-indicator-fwi">
+                <Skeleton />
+              </TableCell>
+            ) : (
+              <TableCell align="right">
                 {output?.adjusted?.dmc?.toFixed(DECIMAL_PLACES)}
               </TableCell>
             )}
           </TableRow>
           <TableRow>
             <TableCell>DC</TableCell>
+            {isLoading ? (
+              <TableCell data-testid="loading-indicator-fwi">
+                <Skeleton />
+              </TableCell>
+            ) : (
+              <TableCell align="right">
+                {output?.actual?.dc?.toFixed(DECIMAL_PLACES)}
+              </TableCell>
+            )}
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
@@ -73,12 +103,30 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
               </TableCell>
             ) : (
               <TableCell align="right">
+                {output?.actual?.isi?.toFixed(DECIMAL_PLACES)}
+              </TableCell>
+            )}
+            {isLoading ? (
+              <TableCell data-testid="loading-indicator-fwi">
+                <Skeleton />
+              </TableCell>
+            ) : (
+              <TableCell align="right">
                 {output?.adjusted?.isi?.toFixed(DECIMAL_PLACES)}
               </TableCell>
             )}
           </TableRow>
           <TableRow>
             <TableCell>BUI</TableCell>
+            {isLoading ? (
+              <TableCell data-testid="loading-indicator-fwi">
+                <Skeleton />
+              </TableCell>
+            ) : (
+              <TableCell align="right">
+                {output?.actual?.bui?.toFixed(DECIMAL_PLACES)}
+              </TableCell>
+            )}
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
@@ -97,6 +145,15 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
               </TableCell>
             ) : (
               <TableCell align="right">
+                {output?.actual?.fwi?.toFixed(DECIMAL_PLACES)}
+              </TableCell>
+            )}
+            {isLoading ? (
+              <TableCell data-testid="loading-indicator-fwi">
+                <Skeleton />
+              </TableCell>
+            ) : (
+              <TableCell align="right">
                 {output?.adjusted?.fwi?.toFixed(DECIMAL_PLACES)}
               </TableCell>
             )}
@@ -107,4 +164,4 @@ const BasicFWIAdjustedOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
   )
 }
 
-export default React.memo(BasicFWIAdjustedOutput)
+export default React.memo(BasicFWIOutput)

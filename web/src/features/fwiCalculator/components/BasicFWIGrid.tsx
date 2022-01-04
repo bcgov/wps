@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { Grid } from '@material-ui/core'
 import BasicFWIInput from 'features/fwiCalculator/components/BasicFWIInput'
-import BasicFWIActualOutput from 'features/fwiCalculator/components/BasicFWIActualOutput'
+import BasicFWIOutput from 'features/fwiCalculator/components/BasicFWIOutput'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFWICalculation } from 'features/fwiCalculator/slices/fwiSlice'
 import { selectFWIOutputs, selectFWIOutputsLoading } from 'app/rootReducer'
-import BasicFWIAdjustedOutput from 'features/fwiCalculator/components/BasicFWIAdjustedOutput'
 import {
   XAxis,
   YAxis,
@@ -102,13 +101,10 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
           yesterday={fwiOutputs ? fwiOutputs[0]?.yesterday : undefined}
         />
       </Grid>
-      <Grid item xs={2}>
-        <BasicFWIActualOutput isLoading={isLoading} output={fwiOutputs[0]} />
+      <Grid item xs={3}>
+        <BasicFWIOutput isLoading={isLoading} output={fwiOutputs[0]} />
       </Grid>
-      <Grid item xs={2}>
-        <BasicFWIAdjustedOutput isLoading={isLoading} output={fwiOutputs[0]} />
-      </Grid>
-      <Grid item xs={4}>
+      <Grid item xs={6}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart width={500} height={300} data={data}>
             <YAxis />
