@@ -61,22 +61,34 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
 
   const data = [
     {
-      name: 'Actual',
-      ffmc: fwiOutputs ? fwiOutputs[0]?.actual?.ffmc : null,
-      dmc: fwiOutputs ? fwiOutputs[0]?.actual?.dmc : null,
-      dc: fwiOutputs ? fwiOutputs[0]?.actual?.dc : null,
-      isi: fwiOutputs ? fwiOutputs[0]?.actual?.isi : null,
-      bui: fwiOutputs ? fwiOutputs[0]?.actual?.bui : null,
-      fwi: fwiOutputs ? fwiOutputs[0]?.actual?.fwi : null
+      name: 'FFMC',
+      actual: fwiOutputs ? fwiOutputs[0]?.actual?.ffmc : null,
+      adjusted: fwiOutputs[0]?.adjusted?.ffmc
     },
     {
-      name: 'Adjusted',
-      ffmc: fwiOutputs[0]?.adjusted?.ffmc,
-      dmc: fwiOutputs[0]?.adjusted?.dmc,
-      dc: fwiOutputs[0]?.adjusted?.dc,
-      isi: fwiOutputs[0]?.adjusted?.isi,
-      bui: fwiOutputs[0]?.adjusted?.bui,
-      fwi: fwiOutputs[0]?.adjusted?.fwi
+      name: 'DMC',
+      actual: fwiOutputs ? fwiOutputs[0]?.actual?.dmc : null,
+      adjusted: fwiOutputs[0]?.adjusted?.dmc
+    },
+    {
+      name: 'DC',
+      actual: fwiOutputs ? fwiOutputs[0]?.actual?.dc : null,
+      adjusted: fwiOutputs[0]?.adjusted?.dc
+    },
+    {
+      name: 'ISI',
+      actual: fwiOutputs ? fwiOutputs[0]?.actual?.isi : null,
+      adjusted: fwiOutputs[0]?.adjusted?.isi
+    },
+    {
+      name: 'BUI',
+      actual: fwiOutputs ? fwiOutputs[0]?.actual?.bui : null,
+      adjusted: fwiOutputs[0]?.adjusted?.bui
+    },
+    {
+      name: 'FWI',
+      actual: fwiOutputs ? fwiOutputs[0]?.actual?.fwi : null,
+      adjusted: fwiOutputs[0]?.adjusted?.fwi
     }
   ]
 
@@ -104,12 +116,8 @@ const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="ffmc" fill="#264653" />
-            <Bar dataKey="dmc" fill="#2a9d8f" />
-            <Bar dataKey="dc" fill="#e9c46a" />
-            <Bar dataKey="isi" fill="#f4a261" />
-            <Bar dataKey="bui" fill="#e76f51" />
-            <Bar dataKey="fwi" fill="#82ca9d" />
+            <Bar dataKey="actual" fill="#264653" />
+            <Bar dataKey="adjusted" fill="#2a9d8f" />
             <XAxis dataKey="name" />
           </BarChart>
         </ResponsiveContainer>
