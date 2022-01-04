@@ -14,15 +14,13 @@ import {
   C_HAINES_ROUTE,
   FIRE_BEHAVIOR_CALC_ROUTE,
   FIRE_BEHAVIOUR_ADVISORY_ROUTE,
-  FWI_CALC_ROUTE,
-  MULTI_FWI_CALC_ROUTE
+  FWI_CALC_ROUTE
 } from 'utils/constants'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
 import { FireBehaviourCalculator } from 'features/fbaCalculator/pages/FireBehaviourCalculatorPage'
 import { FireBehaviourAdvisoryPage } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { FWICalculatorPage } from 'features/fwiCalculator/pages/FWICalculatorPage'
-import MultiDayFWICalculatorPage from 'features/fwiCalculator/pages/MultiDayFWICalculatorPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 const shouldAuthenticate =
@@ -69,11 +67,6 @@ const Routes: React.FunctionComponent = () => {
         <Route path={FWI_CALC_ROUTE}>
           <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
             <FWICalculatorPage />
-          </AuthWrapper>
-        </Route>
-        <Route path={MULTI_FWI_CALC_ROUTE}>
-          <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
-            <MultiDayFWICalculatorPage />
           </AuthWrapper>
         </Route>
 

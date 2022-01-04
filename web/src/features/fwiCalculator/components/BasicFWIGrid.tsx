@@ -42,15 +42,24 @@ const defaultInput: FWIInputParameters = {
 }
 
 export interface BasicFWIGridProps {
+  selectedStation: Option | null
   dateOfInterest: string
 }
 
-const BasicFWIGrid = ({ dateOfInterest }: BasicFWIGridProps) => {
+const BasicFWIGrid = ({ selectedStation, dateOfInterest }: BasicFWIGridProps) => {
   const dispatch = useDispatch()
 
-  const [input, setInput] = useState<FWIInputParameters>(defaultInput)
+  const [input, setInput] = useState<FWIInputParameters>({
+    ...defaultInput,
+    stationOption: selectedStation
+  })
   const { fwiOutputs } = useSelector(selectFWIOutputs)
   const isLoading = useSelector(selectFWIOutputsLoading)
+
+  useEffect(() => {
+    dispatch(fetchFWICalculation(input, dateOfInterest))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     dispatch(fetchFWICalculation(input, dateOfInterest))

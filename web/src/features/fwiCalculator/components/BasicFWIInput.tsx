@@ -30,32 +30,9 @@ export interface BasicFWIInputProps {
   setInput: React.Dispatch<React.SetStateAction<FWIInputParameters>>
 }
 const BasicFWIInput = ({ isLoading, input, yesterday, setInput }: BasicFWIInputProps) => {
-  const dispatch = useDispatch()
-
-  useEffect(() => {
-    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  const { stations, error } = useSelector(selectFireWeatherStations)
-  const allStationOptions: Option[] = (stations as GeoJsonStation[]).map(station => ({
-    name: station.properties.name,
-    code: station.properties.code
-  }))
-
   return (
     <TableContainer component={Paper}>
       <Table aria-label="Basic FWI Calculation Inputs">
-        <TableHead>
-          <TableRow>
-            <TableCell colSpan={2}>
-              <FWIStationCell
-                stationOptions={allStationOptions}
-                input={input}
-                setInput={setInput}
-                isLoading={isLoading}
-              />
-            </TableCell>
-          </TableRow>
-        </TableHead>
         <TableBody>
           <YesterdayIndexCells isLoading={isLoading} yesterdayActuals={yesterday} />
           <TableRow>
@@ -108,7 +85,6 @@ const BasicFWIInput = ({ isLoading, input, yesterday, setInput }: BasicFWIInputP
           </TableRow>
         </TableBody>
       </Table>
-      {error && <ErrorMessage error={error} context="while fetching weather stations" />}
     </TableContainer>
   )
 }
