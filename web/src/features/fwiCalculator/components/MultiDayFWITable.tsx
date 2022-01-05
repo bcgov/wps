@@ -119,6 +119,8 @@ export const MultiDayFWITable = ({
     }
   }
 
+  const loadingDisabledColumns = isLoading ? disabledColumns : undefined
+
   return (
     <React.Fragment>
       <Paper>
@@ -133,7 +135,7 @@ export const MultiDayFWITable = ({
               <IntegratedSorting />
               <EditingState
                 onCommitChanges={commitChanges}
-                columnExtensions={isLoading ? disabledColumns : undefined}
+                columnExtensions={loadingDisabledColumns}
               />
               <VirtualTable />
               <TableHeaderRow showSortingControls />
