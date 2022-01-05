@@ -5,6 +5,6 @@
 
 export BASE_URL="https://raw.githubusercontent.com/bcgov/nr-showcase-devops-tools/master/tools/metabase/openshift"
 export NAMESPACE="e1e498-dev"
-export METABASE_VERSION=v0.38.3
+export METABASE_VERSION=v0.41.5
 
 oc process -n $NAMESPACE -f $BASE_URL/metabase.bc.yaml -p METABASE_VERSION=$METABASE_VERSION -o yaml | oc apply -n $NAMESPACE -f -
