@@ -90,7 +90,7 @@ export const MultiDayFWITable = ({
       setRows(newRows)
       dispatch(fetchMultiFWICalculation(selectedStation, newRows))
     }
-  }, [startDate, endDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [startDate, endDate, selectedStation]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const newRows = output2Rows(multiFWIOutputs)
