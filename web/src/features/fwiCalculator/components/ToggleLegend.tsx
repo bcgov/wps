@@ -15,7 +15,7 @@ const ToggleLegend = (props: any) => {
   }
 
   return (
-    <div className="customized-legend">
+    <div className="toggle-legend">
       {payload.map(
         (entry: { value: string; color: string }, idx: React.Key | null | undefined) => {
           const { value, color } = entry
