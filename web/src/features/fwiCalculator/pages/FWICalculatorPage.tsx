@@ -9,7 +9,7 @@ import { pstFormatter } from 'utils/date'
 import BasicFWIGrid from 'features/fwiCalculator/components/BasicFWIGrid'
 import FWIToggle from 'features/fwiCalculator/components/FWIToggle'
 import { MultiDayFWITable } from 'features/fwiCalculator/components/MultiDayFWITable'
-import FWIMultiStationSelect from 'features/fwiCalculator/components/FWIMultiStationSelect'
+import FWIStationSelect from 'features/fwiCalculator/components/FWIStationSelect'
 import { getStations, StationSource, GeoJsonStation } from 'api/stationAPI'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
@@ -79,7 +79,7 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
             <Grid item xs={4}>
               <Grid container spacing={2}>
                 <Grid item xs={4}>
-                  <FWIMultiStationSelect
+                  <FWIStationSelect
                     isLoading={false}
                     stationOptions={allStationOptions}
                     selectedStation={selectedStation}

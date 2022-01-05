@@ -12,7 +12,7 @@ export interface FWIStationCellProps {
 }
 const emptyLabel = 'Select a station'
 
-const FWIMultiStationSelect = ({
+const FWIStationSelect = ({
   isLoading,
   selectedStation,
   setSelectedStation,
@@ -43,4 +43,4 @@ const FWIMultiStationSelect = ({
     />
   )
 }
-export default React.memo(FWIMultiStationSelect)
+export default React.memo(FWIStationSelect)
