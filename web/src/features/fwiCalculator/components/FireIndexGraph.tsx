@@ -32,7 +32,7 @@ export interface FireIndexGraphProps {
 }
 
 const FireIndexGraph = ({ rowData }: FireIndexGraphProps) => {
-  const [disabled, setDisabled] = useState<string[]>([])
+  const [disabled, setDisabled] = useState<string[]>(['dc'])
   const linesToShow = _.without(Array.from(chartColors.keys()), ...disabled).map(
     (line, idx) => (
       <Line key={idx} type="monotone" dataKey={line} stroke={chartColors.get(line)} />
@@ -47,6 +47,9 @@ const FireIndexGraph = ({ rowData }: FireIndexGraphProps) => {
         <YAxis />
         <Tooltip />
         <Legend
+          wrapperStyle={{
+            textAlign: 'center'
+          }}
           content={<ToggleLegend disabled={disabled} setDisabled={setDisabled} />}
           payload={_.toPairs(chartColors).map(pair => ({
             value: pair[0],
