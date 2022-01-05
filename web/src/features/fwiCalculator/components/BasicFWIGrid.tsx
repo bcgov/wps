@@ -62,10 +62,11 @@ const BasicFWIGrid = ({ selectedStation, dateOfInterest }: BasicFWIGridProps) =>
   }, [])
 
   useEffect(() => {
-    dispatch(fetchFWICalculation(input, dateOfInterest))
+    const latestInput = { ...input, stationOption: selectedStation }
+    dispatch(fetchFWICalculation(latestInput, dateOfInterest))
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input, dateOfInterest])
+  }, [input, dateOfInterest, selectedStation])
 
   const data = [
     {
