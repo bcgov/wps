@@ -41,11 +41,11 @@ export interface Option {
 }
 export async function getMultiFWIOutput(
   selectedStation: Option | null,
-  input: MultiFWIInput[]
+  multiInput: MultiFWIInput[]
 ): Promise<MultiFWIOutput[]> {
   const url = '/fwi-calc/multi'
 
-  const inputs = input.map(input => ({
+  const inputs = multiInput.map(input => ({
     ...input,
     datetime: DateTime.fromFormat(input.date, 'yyyy/MMM/dd')
   }))
