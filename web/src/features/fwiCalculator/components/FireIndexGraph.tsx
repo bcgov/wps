@@ -3,12 +3,12 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  Line,
+  LineChart,
   Legend,
   Tooltip,
   ResponsiveContainer
 } from 'recharts'
-import { LineChart } from 'recharts'
-import { Line } from 'recharts'
 import { MultiDayRow } from 'features/fwiCalculator/components/dataModel'
 import _ from 'lodash'
 import ToggleLegend from 'features/fwiCalculator/components/ToggleLegend'

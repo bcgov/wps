@@ -76,7 +76,7 @@ async def calculate_actual(session: ClientSession, request, time_of_interest):
     dc = dailies_today[0].dc
     bui = fwi_bui(dailies_yesterday[0].dmc, dailies_yesterday[0].dc)
     fwi = fwi_fwi(isi, bui)
-    yesterdayIndices = YesterdayIndices(
+    yesterday_indices = YesterdayIndices(
         ffmc=dailies_yesterday[0].ffmc, dmc=dailies_yesterday[0].dmc, dc=dailies_yesterday[0].dc)
     indices = FWIIndices(
         ffmc=ffmc,
@@ -86,7 +86,7 @@ async def calculate_actual(session: ClientSession, request, time_of_interest):
         bui=bui,
         fwi=fwi
     )
-    return yesterdayIndices, indices
+    return yesterday_indices, indices
 
 
 async def calculate_adjusted(request: FWIRequest):
@@ -120,12 +120,12 @@ async def get_fwi_calc_outputs(request: FWIRequest, _=Depends(authentication_req
         time_of_interest = get_hour_20_from_date(request.date)
 
         async with ClientSession() as session:
-            yesterdayActual, actual = await calculate_actual(session, request, time_of_interest)
+            yesterday_actual, actual = await calculate_actual(session, request, time_of_interest)
             adjusted = await calculate_adjusted(request)
 
             output = FWIOutput(
                 datetime=get_hour_20_from_date(request.date),
-                yesterday=yesterdayActual,
+                yesterday=yesterday_actual,
                 actual=actual,
                 adjusted=adjusted
             )
