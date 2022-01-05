@@ -74,16 +74,6 @@ const BasicFWIGrid = ({ selectedStation, dateOfInterest }: BasicFWIGridProps) =>
       adjusted: fwiOutputs[0]?.adjusted?.ffmc
     },
     {
-      name: 'DMC',
-      actual: fwiOutputs ? fwiOutputs[0]?.actual?.dmc : null,
-      adjusted: fwiOutputs[0]?.adjusted?.dmc
-    },
-    {
-      name: 'DC',
-      actual: fwiOutputs ? fwiOutputs[0]?.actual?.dc : null,
-      adjusted: fwiOutputs[0]?.adjusted?.dc
-    },
-    {
       name: 'ISI',
       actual: fwiOutputs ? fwiOutputs[0]?.actual?.isi : null,
       adjusted: fwiOutputs[0]?.adjusted?.isi
