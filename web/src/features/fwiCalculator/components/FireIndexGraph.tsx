@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   XAxis,
   YAxis,
@@ -10,12 +10,35 @@ import {
 import { LineChart } from 'recharts'
 import { Line } from 'recharts'
 import { MultiDayRow } from 'features/fwiCalculator/components/dataModel'
+import _ from 'lodash'
+import ToggleLegend from 'features/fwiCalculator/components/ToggleLegend'
+
+const chartColors = new Map([
+  ['ffmc', '#264653'],
+  ['dmc', '#2a9d8f'],
+  ['dc', '#e9c46a'],
+  ['isi', '#f4a261'],
+  ['bui', '#e76f51'],
+  ['fwi', '#82ca9d']
+])
+
+export interface FWIGraphRow {
+  rowData: MultiDayRow
+  color: string
+}
 
 export interface FireIndexGraphProps {
   rowData: MultiDayRow[]
 }
 
 const FireIndexGraph = ({ rowData }: FireIndexGraphProps) => {
+  const [disabled, setDisabled] = useState<string[]>([])
+  const linesToShow = _.without(Array.from(chartColors.keys()), ...disabled).map(
+    (line, idx) => (
+      <Line key={idx} type="monotone" dataKey={line} stroke={chartColors.get(line)} />
+    )
+  )
+
   return (
     <ResponsiveContainer minWidth={100} minHeight={600}>
       <LineChart data={rowData}>
@@ -23,13 +46,14 @@ const FireIndexGraph = ({ rowData }: FireIndexGraphProps) => {
         <XAxis dataKey="date" />
         <YAxis />
         <Tooltip />
-        <Legend />
-        <Line type="monotone" dataKey="ffmc" stroke="#264653" activeDot={{ r: 8 }} />
-        <Line type="monotone" dataKey="dmc" stroke="#2a9d8f" />
-        <Line type="monotone" dataKey="dc" stroke="#e9c46a" />
-        <Line type="monotone" dataKey="isi" stroke="#f4a261" />
-        <Line type="monotone" dataKey="bui" stroke="#e76f51" />
-        <Line type="monotone" dataKey="fwi" stroke="#82ca9d" />
+        <Legend
+          content={<ToggleLegend disabled={disabled} setDisabled={setDisabled} />}
+          payload={_.toPairs(chartColors).map(pair => ({
+            value: pair[0],
+            color: pair[1]
+          }))}
+        />
+        {linesToShow}
       </LineChart>
     </ResponsiveContainer>
   )
