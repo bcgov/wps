@@ -53,6 +53,10 @@ export interface FetchableFBAStation extends Identifiable {
   windSpeed: number | undefined
 }
 
+export interface WeatherWarningStation extends Identifiable {
+  station_code: number
+}
+
 export async function postFBAStations(
   date: string,
   fireBehaviorStations: FetchableFBAStation[]
@@ -71,6 +75,18 @@ export async function postFBAStations(
       crown_base_height: fireBehaviorStation.crownBaseHeight,
       wind_speed: fireBehaviorStation.windSpeed
     }))
+  })
+  return data
+}
+
+export async function postHistoricFBAStations(
+  date: string,
+  stations: WeatherWarningStation[]
+): Promise<WeatherWarningStation> {
+  const url = '/hfi-calc/daily'
+  const { data } = await axios.post(url, {
+    station_codes: stations[0].station_code,
+    start_time_stamp: +date
   })
   return data
 }
