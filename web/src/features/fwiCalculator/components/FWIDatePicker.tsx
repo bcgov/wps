@@ -11,7 +11,7 @@ export interface FWIDateRangeProps {
   dateClassName: string
 }
 
-const FWIDateRange = ({
+const FWIDatePicker = ({
   isBasic,
   startDate,
   updateStartDate,
@@ -40,4 +40,4 @@ const FWIDateRange = ({
     </React.Fragment>
   )
 }
-export default React.memo(FWIDateRange)
+export default React.memo(FWIDatePicker)
