@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { FormControl, TextField, IconButton, InputAdornment } from '@material-ui/core'
+import { TextField, IconButton, InputAdornment } from '@material-ui/core'
 import FWIDateRange from 'features/fwiCalculator/components/FWIDateRange'
-import { CalendarToday } from '@material-ui/icons'
+import { DateRange } from '@material-ui/icons'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import DatePicker from 'components/DatePicker'
@@ -40,53 +40,52 @@ const FWIDatePicker = ({
 
   return (
     <React.Fragment>
-      <FormControl variant="outlined">
-        {isBasic ? (
-          <DatePicker
-            label={isBasic ? 'Date of Interest (PST-08:00)' : 'Start Date'}
-            date={pstFormatter(
-              DateTime.fromJSDate(startDate).setZone(`UTC${PST_UTC_OFFSET}`)
-            )}
-            updateDate={updateStartDateWrapper}
-          />
-        ) : (
-          <React.Fragment>
-            <TextField
-              id="outlined-basic"
-              variant="outlined"
-              label={
-                isBasic ? 'Date of Interest (PST-08:00)' : 'Dates of Interest (PST-08:00)'
-              }
-              onClick={() => setOpen(!open)}
-              value={`${DateTime.fromJSDate(startDate)
-                .setZone(`UTC${PST_UTC_OFFSET}`)
-                .toFormat(displayFormat)
-                .trim()} - ${DateTime.fromJSDate(endDate)
-                .setZone(`UTC${PST_UTC_OFFSET}`)
-                .toFormat(displayFormat)
-                .trim()}
+      {isBasic ? (
+        <DatePicker
+          label={'Date of Interest (PST-08:00)'}
+          date={pstFormatter(
+            DateTime.fromJSDate(startDate).setZone(`UTC${PST_UTC_OFFSET}`)
+          )}
+          updateDate={updateStartDateWrapper}
+        />
+      ) : (
+        <React.Fragment>
+          <TextField
+            fullWidth
+            size="medium"
+            id="outlined-basic"
+            variant="outlined"
+            disabled={true}
+            label={'Dates of Interest (PST-08:00)'}
+            onClick={() => setOpen(!open)}
+            value={`${DateTime.fromJSDate(startDate)
+              .setZone(`UTC${PST_UTC_OFFSET}`)
+              .toFormat(displayFormat)
+              .trim()} - ${DateTime.fromJSDate(endDate)
+              .setZone(`UTC${PST_UTC_OFFSET}`)
+              .toFormat(displayFormat)
+              .trim()}
                       `}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton aria-label="toggle password visibility" edge="end">
-                      <CalendarToday />
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-            />
-            <FWIDateRange
-              open={open}
-              setOpen={setOpen}
-              updateStartDate={updateStartDate}
-              startDate={startDate}
-              updateEndDate={updateEndDate}
-              endDate={endDate}
-            />
-          </React.Fragment>
-        )}
-      </FormControl>
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <IconButton aria-label="toggle password visibility" edge="end">
+                    <DateRange />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
+          />
+          <FWIDateRange
+            open={open}
+            setOpen={setOpen}
+            updateStartDate={updateStartDate}
+            startDate={startDate}
+            updateEndDate={updateEndDate}
+            endDate={endDate}
+          />
+        </React.Fragment>
+      )}
     </React.Fragment>
   )
 }

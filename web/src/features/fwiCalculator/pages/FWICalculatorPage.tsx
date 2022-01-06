@@ -1,4 +1,4 @@
-import { Grid } from '@material-ui/core'
+import { Grid, makeStyles } from '@material-ui/core'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -18,8 +18,17 @@ export interface Option {
   name: string
   code: number
 }
-
+const useStyles = makeStyles(() => ({
+  menuSpacer: {
+    marginRight: 40
+  },
+  whitespaceBelow: {
+    marginBottom: 10
+  }
+}))
 export const FWICalculatorPage: React.FunctionComponent = () => {
+  const classes = useStyles()
+
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -68,10 +77,15 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
           FWI Calculator
         </h1>
         <Grid container direction={'row'}>
-          <Grid container justifyContent="space-between" spacing={2}>
-            <Grid item xs={5}>
-              <Grid container spacing={1}>
-                <Grid item xs={4}>
+          <Grid
+            container
+            justifyContent="space-between"
+            spacing={2}
+            className={classes.whitespaceBelow}
+          >
+            <Grid item xs={8}>
+              <Grid container spacing={2}>
+                <Grid item xs={4} className={classes.menuSpacer}>
                   <FWIStationSelect
                     isLoading={false}
                     stationOptions={allStationOptions}
@@ -79,7 +93,7 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
                     setSelectedStation={setSelectedStation}
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={4}>
                   <FWIDatePicker
                     isBasic={isBasic}
                     startDate={startDate}
