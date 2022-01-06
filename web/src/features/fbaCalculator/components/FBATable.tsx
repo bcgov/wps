@@ -51,6 +51,7 @@ import FilterColumnsModal from 'components/FilterColumnsModal'
 import { formControlStyles } from 'app/theme'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { pstFormatter } from 'utils/date'
+import { WeatherWarningTooltip } from '../components/WeatherWarningTooltip'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -606,6 +607,10 @@ const FBATable = (props: FBATableProps) => {
 
   return (
     <React.Fragment>
+      <WeatherWarningTooltip
+        rows={rows}
+        stations={fireBehaviourResultStations}
+      ></WeatherWarningTooltip>
       {stationsError ||
         (fbaResultsError && (
           <ErrorAlert stationsError={stationsError} fbaResultsError={fbaResultsError} />
