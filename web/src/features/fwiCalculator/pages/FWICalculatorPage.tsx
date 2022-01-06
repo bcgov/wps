@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
-import { pstFormatter } from 'utils/date'
 import BasicFWIGrid from 'features/fwiCalculator/components/BasicFWIGrid'
 import FWIToggle from 'features/fwiCalculator/components/FWIToggle'
 import { MultiDayFWITable } from 'features/fwiCalculator/components/MultiDayFWITable'
@@ -49,8 +48,11 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
   )
 
   const updateStartDate = (newDate: Date) => {
-    if (!isEqual(newDate, startDate)) {
-      setStartDate(newDate)
+    const pstDate = DateTime.fromJSDate(newDate)
+      .setZone(`UTC${PST_UTC_OFFSET}`)
+      .toJSDate()
+    if (!isEqual(pstDate, startDate)) {
+      setStartDate(pstDate)
     }
   }
 
@@ -112,20 +114,14 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
             <Grid item xs>
               {isBasic ? (
                 <BasicFWIGrid
-                  dateOfInterest={pstFormatter(
-                    DateTime.fromJSDate(startDate).setZone(`UTC${PST_UTC_OFFSET}`)
-                  )}
+                  dateOfInterest={startDate.toISOString()}
                   selectedStation={selectedStation}
                 />
               ) : (
                 <MultiDayFWITable
                   selectedStation={selectedStation}
-                  startDate={pstFormatter(
-                    DateTime.fromJSDate(startDate).setZone(`UTC${PST_UTC_OFFSET}`)
-                  )}
-                  endDate={pstFormatter(
-                    DateTime.fromJSDate(endDate).setZone(`UTC${PST_UTC_OFFSET}`)
-                  )}
+                  startDate={startDate.toISOString()}
+                  endDate={endDate.toISOString()}
                 />
               )}
             </Grid>

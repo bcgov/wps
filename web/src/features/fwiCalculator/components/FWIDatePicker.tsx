@@ -5,7 +5,6 @@ import { DateRange } from '@material-ui/icons'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import DatePicker from 'components/DatePicker'
-import { pstFormatter } from 'utils/date'
 
 export interface FWIDateRangeProps {
   isBasic: boolean
@@ -23,10 +22,11 @@ const FWIDatePicker = ({
   endDate
 }: FWIDateRangeProps) => {
   const [open, setOpen] = useState(false)
-  const displayFormat = 'dd/MMM/yyyy'
+  const displayFormat = 'dd/MM/yyyy'
 
   const updateStartDateWrapper = (startDateString: string) => {
     const newDate = DateTime.fromISO(startDateString)
+      .startOf('day')
       .setZone(`UTC${PST_UTC_OFFSET}`)
       .toJSDate()
     updateStartDate(newDate)
@@ -43,9 +43,7 @@ const FWIDatePicker = ({
       {isBasic ? (
         <DatePicker
           label={'Date of Interest (PST-08:00)'}
-          date={pstFormatter(
-            DateTime.fromJSDate(startDate).startOf('day').setZone(`UTC${PST_UTC_OFFSET}`)
-          )}
+          date={startDate.toISOString()}
           updateDate={updateStartDateWrapper}
         />
       ) : (
@@ -59,12 +57,8 @@ const FWIDatePicker = ({
             label={'Dates of Interest (PST-08:00)'}
             onClick={() => setOpen(!open)}
             value={`${DateTime.fromJSDate(startDate)
-              .setZone(`UTC${PST_UTC_OFFSET}`)
               .toFormat(displayFormat)
-              .trim()} - ${DateTime.fromJSDate(endDate)
-              .setZone(`UTC${PST_UTC_OFFSET}`)
-              .toFormat(displayFormat)
-              .trim()}
+              .trim()} - ${DateTime.fromJSDate(endDate).toFormat(displayFormat).trim()}
                       `}
             InputProps={{
               startAdornment: (

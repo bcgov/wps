@@ -2,6 +2,8 @@ import React from 'react'
 import { DateRange, DateRangePicker } from 'materialui-daterange-picker'
 import { Dialog } from '@material-ui/core'
 import { isUndefined } from 'lodash'
+import { DateTime } from 'luxon'
+import { PST_UTC_OFFSET } from 'utils/constants'
 
 export interface FWIDateRangeProps {
   open: boolean
@@ -23,8 +25,29 @@ const FWIDateRange = ({
   const toggle = () => setOpen(!open)
   const changeHandler = (newDateRange: DateRange) => {
     if (!isUndefined(newDateRange.startDate) && !isUndefined(newDateRange.endDate)) {
-      updateStartDate(newDateRange.startDate)
-      updateEndDate(newDateRange.endDate)
+      const isoStart = DateTime.fromISO(newDateRange.startDate.toISOString())
+      const isoEnd = DateTime.fromISO(newDateRange.endDate.toISOString())
+
+      const pstStartDate = DateTime.fromObject(
+        {
+          year: isoStart.year,
+          month: isoStart.month,
+          day: isoStart.day
+        },
+        { zone: `UTC${PST_UTC_OFFSET}` }
+      )
+
+      const pstEndDate = DateTime.fromObject(
+        {
+          year: isoEnd.year,
+          month: isoEnd.month,
+          day: isoEnd.day
+        },
+        { zone: `UTC${PST_UTC_OFFSET}` }
+      )
+
+      updateStartDate(pstStartDate.toJSDate())
+      updateEndDate(pstEndDate.toJSDate())
       toggle()
     }
   }

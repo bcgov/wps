@@ -6,6 +6,7 @@ import { pstFormatter } from 'utils/date'
 export interface MultiDayRow {
   id: number
   date: string
+  isoDate: string
   status: string | null
   temp: number | null
   rh: number | null
@@ -60,6 +61,7 @@ export const generateDefaultRowsFromDates = (dates: DateTime[]): MultiDayRow[] =
   return dates.map((date, idx) => ({
     id: idx,
     date: date.toFormat('yyyy/MMM/dd'),
+    isoDate: date.toISO(),
     status: null,
     temp: null,
     rh: null,
@@ -81,6 +83,7 @@ export const output2Rows = (multiFWIOutputs: MultiFWIOutput[]): MultiDayRow[] =>
     date: DateTime.fromISO(pstFormatter(DateTime.fromISO(output.datetime))).toFormat(
       'dd/MMM/yyyy'
     ),
+    isoDate: output.datetime,
     status: output.status,
     temp: Number(output.temp?.toFixed(DECIMAL_PLACES)),
     rh: Number(output.rh?.toFixed(DECIMAL_PLACES)),
