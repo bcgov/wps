@@ -44,7 +44,7 @@ const FWIDatePicker = ({
         <DatePicker
           label={'Date of Interest (PST-08:00)'}
           date={pstFormatter(
-            DateTime.fromJSDate(startDate).setZone(`UTC${PST_UTC_OFFSET}`)
+            DateTime.fromJSDate(startDate).startOf('day').setZone(`UTC${PST_UTC_OFFSET}`)
           )}
           updateDate={updateStartDateWrapper}
         />
