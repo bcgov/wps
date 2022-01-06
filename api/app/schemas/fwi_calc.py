@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 
 class Daily(BaseModel):
+    """ Daily actual schema for computing FWI values """
     temperature: Optional[float]
     status: Optional[str]
     relative_humidity: Optional[float]
@@ -20,6 +21,7 @@ class Daily(BaseModel):
 
 
 class FWIInputParameters(BaseModel):
+    """Input for basic, single day FWI calculations """
     stationCode: int
     yesterdayFFMC: float
     yesterdayDMC: float
@@ -31,6 +33,7 @@ class FWIInputParameters(BaseModel):
 
 
 class MultiFWIInput(BaseModel):
+    """Input for multi day FWI calculations """
     id: int
     datetime: datetime
     temp: Optional[float]
@@ -41,6 +44,7 @@ class MultiFWIInput(BaseModel):
 
 
 class FWIIndices(BaseModel):
+    """ Indices for FWI calculations """
     ffmc: Optional[float]
     dmc: Optional[float]
     dc: Optional[float]
@@ -50,12 +54,14 @@ class FWIIndices(BaseModel):
 
 
 class YesterdayIndices(BaseModel):
+    """ Yesterday indices for FWI calculations """
     ffmc: Optional[float]
     dmc: Optional[float]
     dc: Optional[float]
 
 
 class MultiFWIOutput(BaseModel):
+    """ Output for multi day FWI calculations """
     id: int
     datetime: datetime
     status: Optional[str]
@@ -69,11 +75,13 @@ class MultiFWIOutput(BaseModel):
 
 
 class MultiFWIRequest(BaseModel):
+    """ Request input for multi day FWI calculations """
     stationCode: Optional[int]
     inputs: List[MultiFWIInput]
 
 
 class FWIRequest(BaseModel):
+    """ Request input for single day, basic FWI calculations """
     input: FWIInputParameters
     date: datetime
 
@@ -87,9 +95,10 @@ class FWIOutput(BaseModel):
 
 
 class FWIOutputResponse(BaseModel):
-    """ Response for all FWI calc outputs, in a list """
+    """ Response for all single day FWI calc outputs, in a list """
     fwi_outputs: List[FWIOutput]
 
 
 class MultiFWIOutputResponse(BaseModel):
+    """ Response for all multi day FWI calc outputs, in a list """
     multi_fwi_outputs: List[MultiFWIOutput]
