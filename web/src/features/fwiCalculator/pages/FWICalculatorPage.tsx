@@ -1,4 +1,4 @@
-import { Grid, makeStyles } from '@material-ui/core'
+import { Grid } from '@material-ui/core'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -13,20 +13,13 @@ import { getStations, StationSource, GeoJsonStation } from 'api/stationAPI'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import FWIDatePicker from 'features/fwiCalculator/components/FWIDatePicker'
-
-const useStyles = makeStyles(() => ({
-  date: {
-    paddingBottom: 6
-  }
-}))
-
+import { isEqual } from 'lodash'
 export interface Option {
   name: string
   code: number
 }
 
 export const FWICalculatorPage: React.FunctionComponent = () => {
-  const classes = useStyles()
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -43,21 +36,21 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
   const [selectedStation, setSelectedStation] = useState<Option | null>(null)
 
   const [startDate, setStartDate] = useState(
-    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toJSDate()
   )
 
-  const updateStartDate = (newDate: string) => {
-    if (newDate !== startDate) {
+  const updateStartDate = (newDate: Date) => {
+    if (!isEqual(newDate, startDate)) {
       setStartDate(newDate)
     }
   }
 
   const [endDate, setEndDate] = useState(
-    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toJSDate()
   )
 
-  const updateEndDate = (newDate: string) => {
-    if (newDate !== endDate) {
+  const updateEndDate = (newDate: Date) => {
+    if (!isEqual(newDate, endDate)) {
       setEndDate(newDate)
     }
   }
@@ -77,7 +70,7 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
         <Grid container direction={'row'}>
           <Grid container justifyContent="space-between" spacing={2}>
             <Grid item xs={5}>
-              <Grid container spacing={2}>
+              <Grid container spacing={1}>
                 <Grid item xs={4}>
                   <FWIStationSelect
                     isLoading={false}
@@ -86,14 +79,15 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
                     setSelectedStation={setSelectedStation}
                   />
                 </Grid>
-                <FWIDatePicker
-                  isBasic={isBasic}
-                  startDate={startDate}
-                  endDate={endDate}
-                  updateStartDate={updateStartDate}
-                  updateEndDate={updateEndDate}
-                  dateClassName={classes.date}
-                />
+                <Grid item xs={6}>
+                  <FWIDatePicker
+                    isBasic={isBasic}
+                    startDate={startDate}
+                    endDate={endDate}
+                    updateStartDate={updateStartDate}
+                    updateEndDate={updateEndDate}
+                  />
+                </Grid>
               </Grid>
             </Grid>
             <Grid item>
@@ -104,14 +98,20 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
             <Grid item xs>
               {isBasic ? (
                 <BasicFWIGrid
-                  dateOfInterest={startDate}
+                  dateOfInterest={pstFormatter(
+                    DateTime.fromJSDate(startDate).setZone(`UTC${PST_UTC_OFFSET}`)
+                  )}
                   selectedStation={selectedStation}
                 />
               ) : (
                 <MultiDayFWITable
                   selectedStation={selectedStation}
-                  startDate={startDate}
-                  endDate={endDate}
+                  startDate={pstFormatter(
+                    DateTime.fromJSDate(startDate).setZone(`UTC${PST_UTC_OFFSET}`)
+                  )}
+                  endDate={pstFormatter(
+                    DateTime.fromJSDate(endDate).setZone(`UTC${PST_UTC_OFFSET}`)
+                  )}
                 />
               )}
             </Grid>
