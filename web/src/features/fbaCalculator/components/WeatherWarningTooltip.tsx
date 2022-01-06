@@ -72,11 +72,13 @@ export const WeatherWarningTooltip = (props: WeatherWarningTooltipProps) => {
       marginTop: '24px'
     }
   }))
-  const { historicFireStations, error: error } = useSelector(selectHistoricFireStations)
+  const { fireBehaviourResultStations, error: error } = useSelector(
+    selectHistoricFireStations
+  )
   const [calculatedResults, setCalculatedResults] =
-    useState<WeatherWarningStation>(historicFireStations)
+    useState<WeatherWarningStation | null>(fireBehaviourResultStations)
 
-  console.log(historicFireStations)
+  console.log(fireBehaviourResultStations)
 
   const date = '2022-01-05T00:00:00.000-08:00'
   console.log(fetchWeatherWarningStations(date, props.rows))
