@@ -46,6 +46,7 @@
     "leaflet": "^1.7.1",
     "lodash": "^4.17.21",
     "luxon": "^2.1.1",
+    "materialui-daterange-picker": "^1.1.92",
     "ol": "^6.5.0",
     "plotly.js": "^2.5.1",
     "prettier": "^2.4.1",

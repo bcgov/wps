@@ -1,8 +1,7 @@
-import { FormControl, Grid, makeStyles } from '@material-ui/core'
+import { Grid, makeStyles } from '@material-ui/core'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import DatePicker from 'components/DatePicker'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { pstFormatter } from 'utils/date'
@@ -13,6 +12,7 @@ import FWIStationSelect from 'features/fwiCalculator/components/FWIStationSelect
 import { getStations, StationSource, GeoJsonStation } from 'api/stationAPI'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import FWIDatePicker from 'features/fwiCalculator/components/FWIDatePicker'
 
 const useStyles = makeStyles(() => ({
   date: {
@@ -76,7 +76,7 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
         </h1>
         <Grid container direction={'row'}>
           <Grid container justifyContent="space-between" spacing={2}>
-            <Grid item xs={4}>
+            <Grid item xs={5}>
               <Grid container spacing={2}>
                 <Grid item xs={4}>
                   <FWIStationSelect
@@ -86,26 +86,14 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
                     setSelectedStation={setSelectedStation}
                   />
                 </Grid>
-                <Grid item xs={isBasic ? 5 : 4}>
-                  <FormControl className={classes.date}>
-                    <DatePicker
-                      label={isBasic ? 'Date of Interest (PST-08:00)' : 'Start Date'}
-                      date={startDate}
-                      updateDate={updateStartDate}
-                    />
-                  </FormControl>
-                </Grid>
-                {!isBasic && (
-                  <Grid item xs={4}>
-                    <FormControl className={classes.date}>
-                      <DatePicker
-                        label={'End Date'}
-                        date={endDate}
-                        updateDate={updateEndDate}
-                      />
-                    </FormControl>
-                  </Grid>
-                )}
+                <FWIDatePicker
+                  isBasic={isBasic}
+                  startDate={startDate}
+                  endDate={endDate}
+                  updateStartDate={updateStartDate}
+                  updateEndDate={updateEndDate}
+                  dateClassName={classes.date}
+                />
               </Grid>
             </Grid>
             <Grid item>
