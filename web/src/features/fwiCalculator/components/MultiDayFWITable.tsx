@@ -7,13 +7,13 @@ import {
 import {
   ColumnChooser,
   Grid as ReactGrid,
+  Table,
   TableColumnVisibility,
   TableFixedColumns,
   TableHeaderRow,
   TableInlineCellEditing,
   TableSelection,
-  Toolbar,
-  VirtualTable
+  Toolbar
 } from '@devexpress/dx-react-grid-material-ui'
 import { Container } from 'components'
 import { CircularProgress, Paper, makeStyles } from '@material-ui/core'
@@ -137,7 +137,7 @@ export const MultiDayFWITable = ({
                 onCommitChanges={commitChanges}
                 columnExtensions={loadingDisabledColumns}
               />
-              <VirtualTable />
+              <Table />
               <TableHeaderRow showSortingControls />
               <TableColumnVisibility />
               <TableFixedColumns leftColumns={leftColumns} rightColumns={rightColumns} />
