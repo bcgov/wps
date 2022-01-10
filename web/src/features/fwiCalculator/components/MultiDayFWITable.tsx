@@ -15,9 +15,8 @@ import {
   TableSelection,
   Toolbar
 } from '@devexpress/dx-react-grid-material-ui'
-import { Container } from 'components'
-import { CircularProgress, Paper, makeStyles, IconButton } from '@material-ui/core'
-import { Add } from '@material-ui/icons'
+import { Paper, IconButton, LinearProgress } from '@material-ui/core'
+import { Add, Refresh } from '@material-ui/icons'
 import { selectMultiFWIOutputs, selectMultiFWIOutputsLoading } from 'app/rootReducer'
 import {
   defaultColumns,
@@ -46,19 +45,11 @@ export interface MultiDayFWITableProps {
   endDate: string
 }
 
-const useStyles = makeStyles(() => ({
-  container: {
-    display: 'flex',
-    justifyContent: 'center'
-  }
-}))
-
 export const MultiDayFWITable = ({
   selectedStation,
   startDate,
   endDate
 }: MultiDayFWITableProps): JSX.Element => {
-  const classes = useStyles()
   const dispatch = useDispatch()
   const { multiFWIOutputs } = useSelector(selectMultiFWIOutputs)
   const isLoading = useSelector(selectMultiFWIOutputsLoading)
@@ -83,17 +74,20 @@ export const MultiDayFWITable = ({
 
   const [rows, setRows] = useState<MultiDayRow[]>([])
 
-  useEffect(() => {
+  const loadFromRange = () => {
     if (
       Interval.fromDateTimes(DateTime.fromISO(startDate), DateTime.fromISO(endDate))
         .isValid
     ) {
       const dates = getDaysBetween(startDate, endDate)
-
       const newRows = generateDefaultRowsFromDates(dates)
       setRows(newRows)
       dispatch(fetchMultiFWICalculation(selectedStation, newRows))
     }
+  }
+
+  useEffect(() => {
+    loadFromRange()
   }, [startDate, endDate, selectedStation]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -104,6 +98,10 @@ export const MultiDayFWITable = ({
 
   const addRow = () => {
     commitChanges({ added: [{ ...pick(last(rows), ['date', 'isoDate']) }] })
+  }
+
+  const resetFromRange = () => {
+    loadFromRange()
   }
 
   const commitChanges = (changes: ChangeSet) => {
@@ -142,36 +140,32 @@ export const MultiDayFWITable = ({
   return (
     <React.Fragment>
       <Paper>
-        {isLoading ? (
-          <Container className={classes.container}>
-            <CircularProgress />
-          </Container>
-        ) : (
-          <React.Fragment>
-            <ReactGrid rows={rows} columns={columns}>
-              <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
-              <IntegratedSorting />
-              <EditingState
-                onCommitChanges={commitChanges}
-                columnExtensions={disabledColumns}
-              />
-              <Table />
-              <TableHeaderRow showSortingControls />
-              <TableColumnVisibility />
-              <TableFixedColumns leftColumns={leftColumns} rightColumns={rightColumns} />
-              <TableInlineCellEditing />
-              <Toolbar />
-              <Template name="toolbarContent">
-                <TemplatePlaceholder />
-                <IconButton onClick={addRow}>
-                  <Add />
-                </IconButton>
-              </Template>
-              <ColumnChooser />
-            </ReactGrid>
-            <FireIndexGraph rowData={rows} />
-          </React.Fragment>
-        )}
+        <ReactGrid rows={rows} columns={columns}>
+          {isLoading && <LinearProgress />}
+          <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
+          <IntegratedSorting />
+          <EditingState
+            onCommitChanges={commitChanges}
+            columnExtensions={disabledColumns}
+          />
+          <Table />
+          <TableHeaderRow showSortingControls />
+          <TableColumnVisibility />
+          <TableFixedColumns leftColumns={leftColumns} rightColumns={rightColumns} />
+          <TableInlineCellEditing />
+          <Toolbar />
+          <Template name="toolbarContent">
+            <TemplatePlaceholder />
+            <IconButton onClick={resetFromRange}>
+              <Refresh />
+            </IconButton>
+            <IconButton onClick={addRow}>
+              <Add />
+            </IconButton>
+          </Template>
+          <ColumnChooser />
+        </ReactGrid>
+        <FireIndexGraph rowData={rows} />
       </Paper>
     </React.Fragment>
   )
