@@ -2,8 +2,7 @@ import {
   IntegratedSorting,
   SortingState,
   EditingState,
-  ChangeSet,
-  EditingCell
+  ChangeSet
 } from '@devexpress/dx-react-grid'
 import {
   ColumnChooser,
@@ -80,7 +79,6 @@ export const MultiDayFWITable = ({
   const leftColumns = [TableSelection.COLUMN_TYPE, 'date']
 
   const [rows, setRows] = useState<MultiDayRow[]>([])
-  const [editingCells, setEditingCells] = useState<EditingCell[]>([])
 
   useEffect(() => {
     if (
@@ -125,9 +123,7 @@ export const MultiDayFWITable = ({
         return changed[row.id] ? { ...row, ...changed[row.id] } : row
       })
       setRows(allRowsWithChanges)
-      setEditingCells([])
       const changedRows = allRowsWithChanges.filter(row => changed[row.id] !== undefined)
-      console.log(changedRows)
       dispatch(fetchMultiFWICalculation(selectedStation, changedRows))
     }
   }
@@ -149,8 +145,6 @@ export const MultiDayFWITable = ({
               <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
               <IntegratedSorting />
               <EditingState
-                editingCells={editingCells}
-                onEditingCellsChange={setEditingCells}
                 onCommitChanges={commitChanges}
                 columnExtensions={disabledColumns}
               />
