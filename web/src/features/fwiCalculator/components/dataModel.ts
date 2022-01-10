@@ -41,7 +41,7 @@ export const defaultColumns = [
   { name: 'bui', title: 'BUI' },
   { name: 'fwi', title: 'FWI' }
 ]
-export const disabledColumns = [
+export const allDisabledColumns = [
   { columnName: 'date', editingEnabled: false },
   { columnName: 'status', editingEnabled: false },
   { columnName: 'temp', editingEnabled: false },

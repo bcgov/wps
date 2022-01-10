@@ -2,7 +2,8 @@ import {
   IntegratedSorting,
   SortingState,
   EditingState,
-  ChangeSet
+  ChangeSet,
+  EditingCell
 } from '@devexpress/dx-react-grid'
 import {
   ColumnChooser,
@@ -20,7 +21,7 @@ import { CircularProgress, Paper, makeStyles } from '@material-ui/core'
 import { selectMultiFWIOutputs, selectMultiFWIOutputsLoading } from 'app/rootReducer'
 import {
   defaultColumns,
-  disabledColumns,
+  allDisabledColumns,
   generateDefaultRowsFromDates,
   MultiDayRow,
   output2Rows
@@ -78,6 +79,7 @@ export const MultiDayFWITable = ({
   const leftColumns = [TableSelection.COLUMN_TYPE, 'date']
 
   const [rows, setRows] = useState<MultiDayRow[]>([])
+  const [editingCells, setEditingCells] = useState<EditingCell[]>([])
 
   useEffect(() => {
     if (
@@ -111,15 +113,24 @@ export const MultiDayFWITable = ({
     }
     if (changes.changed) {
       const changed = changes.changed
-      const changedRows = rows.map(row =>
-        changed[row.id] ? { ...row, ...changed[row.id] } : row
-      )
+      const changedRows = rows.map(row => {
+        if (changed[row.id]) {
+          Object.keys(changed[row.id]).forEach(key => {
+            changed[row.id][key] = Number(changed[row.id][key])
+          })
+        }
+
+        return changed[row.id] ? { ...row, ...changed[row.id] } : row
+      })
       setRows(changedRows)
-      dispatch(fetchMultiFWICalculation(selectedStation, changedRows))
+      setEditingCells([])
+      // dispatch(fetchMultiFWICalculation(selectedStation, changedRows))
     }
   }
 
-  const loadingDisabledColumns = isLoading ? disabledColumns : undefined
+  const disabledColumns = isLoading
+    ? allDisabledColumns
+    : [{ columnName: 'status', editingEnabled: false }]
 
   return (
     <React.Fragment>
@@ -134,8 +145,10 @@ export const MultiDayFWITable = ({
               <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
               <IntegratedSorting />
               <EditingState
+                editingCells={editingCells}
+                onEditingCellsChange={setEditingCells}
                 onCommitChanges={commitChanges}
-                columnExtensions={loadingDisabledColumns}
+                columnExtensions={disabledColumns}
               />
               <Table />
               <TableHeaderRow showSortingControls />
