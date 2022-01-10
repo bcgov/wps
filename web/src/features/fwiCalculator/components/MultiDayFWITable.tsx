@@ -103,7 +103,7 @@ export const MultiDayFWITable = ({
   }, [multiFWIOutputs]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const addRow = () => {
-    commitChanges({ added: [pick(last(rows), ['date', 'isoDate'])] })
+    commitChanges({ added: [{ ...pick(last(rows), ['date', 'isoDate']) }] })
   }
 
   const commitChanges = (changes: ChangeSet) => {
