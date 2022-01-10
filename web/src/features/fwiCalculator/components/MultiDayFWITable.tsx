@@ -16,7 +16,8 @@ import {
   Toolbar
 } from '@devexpress/dx-react-grid-material-ui'
 import { Container } from 'components'
-import { CircularProgress, Paper, makeStyles } from '@material-ui/core'
+import { CircularProgress, Paper, makeStyles, IconButton } from '@material-ui/core'
+import { Add } from '@material-ui/icons'
 import { selectMultiFWIOutputs, selectMultiFWIOutputsLoading } from 'app/rootReducer'
 import {
   defaultColumns,
@@ -32,6 +33,8 @@ import { DateTime, Interval } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { getDaysBetween } from 'utils/date'
+import { Template, TemplatePlaceholder } from '@devexpress/dx-react-core'
+import { last, pick } from 'lodash'
 export interface Option {
   name: string
   code: number
@@ -99,6 +102,10 @@ export const MultiDayFWITable = ({
     setRows(updatedRows)
   }, [multiFWIOutputs]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const addRow = () => {
+    commitChanges({ added: [pick(last(rows), ['date', 'isoDate'])] })
+  }
+
   const commitChanges = (changes: ChangeSet) => {
     if (changes.added) {
       const startingAddedId = rows.length > 0 ? rows[rows.length - 1].id + 1 : 0
@@ -154,6 +161,12 @@ export const MultiDayFWITable = ({
               <TableFixedColumns leftColumns={leftColumns} rightColumns={rightColumns} />
               <TableInlineCellEditing />
               <Toolbar />
+              <Template name="toolbarContent">
+                <TemplatePlaceholder />
+                <IconButton onClick={addRow}>
+                  <Add />
+                </IconButton>
+              </Template>
               <ColumnChooser />
             </ReactGrid>
             <FireIndexGraph rowData={rows} />
