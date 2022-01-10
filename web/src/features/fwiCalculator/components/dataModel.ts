@@ -1,5 +1,7 @@
 import { MultiFWIOutput } from 'api/multiFWIAPI'
+import assert from 'assert'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
+import { merge, uniqBy } from 'lodash'
 import { DateTime } from 'luxon'
 import { pstFormatter } from 'utils/date'
 
@@ -97,4 +99,23 @@ export const output2Rows = (multiFWIOutputs: MultiFWIOutput[]): MultiDayRow[] =>
     bui: Number(output.actual.bui?.toFixed(DECIMAL_PLACES)),
     fwi: Number(output.actual.fwi?.toFixed(DECIMAL_PLACES))
   }))
+}
+
+export const updateRows = <T extends { id: number }>(
+  existingRows: Array<T>,
+  updatedCalculatedRows: MultiDayRow[]
+): Array<T> => {
+  const rows = [...existingRows]
+  const updatedRowById = new Map(updatedCalculatedRows.map(row => [row.id, row]))
+  const mergedRows = rows.map(row => {
+    if (updatedRowById.has(row.id)) {
+      const mergedRow = merge(row, updatedRowById.get(row.id))
+      updatedRowById.delete(row.id)
+      return mergedRow
+    }
+    return row
+  })
+
+  assert(mergedRows.length === uniqBy(mergedRows, 'id').length)
+  return mergedRows
 }

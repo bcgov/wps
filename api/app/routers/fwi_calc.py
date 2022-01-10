@@ -163,25 +163,37 @@ async def multi_calculate_actual(
             fwi=0
         )
 
+    temp_input = multi_fwi_input.temp if multi_fwi_input.temp else dailies_today[0].temperature
+    rh_input = multi_fwi_input.rh if multi_fwi_input.rh else dailies_today[0].relative_humidity
+    precip_input = multi_fwi_input.precip if multi_fwi_input.precip else dailies_today[0].precipitation
+    wind_speed_input = multi_fwi_input.windSpeed if multi_fwi_input.windSpeed else dailies_today[0].wind_speed
+
+    is_adjusted = multi_fwi_input.temp is not None or \
+        multi_fwi_input.rh is not None or \
+        multi_fwi_input.precip is not None or \
+        multi_fwi_input.windSpeed is not None
+
+    status = 'ADJUSTED' if is_adjusted is True else dailies_today[0].status
+
     ffmc = fwi_ffmc(
         dailies_yesterday[0].ffmc,
-        dailies_today[0].temperature,
-        dailies_today[0].relative_humidity,
-        dailies_today[0].precipitation,
-        dailies_today[0].wind_speed)
-    isi = fwi_isi(ffmc, dailies_today[0].wind_speed)
+        temp_input,
+        rh_input,
+        precip_input,
+        wind_speed_input)
+    isi = fwi_isi(ffmc, wind_speed_input)
     dmc = dailies_today[0].dmc
     dc = dailies_today[0].dc  # pylint: disable=invalid-name
     bui = fwi_bui(dailies_yesterday[0].dmc, dailies_yesterday[0].dc)
     fwi = fwi_fwi(isi, bui)
     output = MultiFWIOutput(id=multi_fwi_input.id,
                             datetime=multi_fwi_input.datetime,
-                            status=dailies_today[0].status,
-                            temp=dailies_today[0].temperature,
-                            rh=dailies_today[0].relative_humidity,
+                            status=status,
+                            temp=temp_input,
+                            rh=rh_input,
                             windDir=dailies_today[0].wind_direction,
-                            windSpeed=dailies_today[0].wind_speed,
-                            precip=dailies_today[0].precipitation,
+                            windSpeed=wind_speed_input,
+                            precip=precip_input,
                             actual=FWIIndices(
                                 ffmc=ffmc,
                                 dmc=dmc,

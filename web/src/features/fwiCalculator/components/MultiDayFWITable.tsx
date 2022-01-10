@@ -24,7 +24,8 @@ import {
   allDisabledColumns,
   generateDefaultRowsFromDates,
   MultiDayRow,
-  output2Rows
+  output2Rows,
+  updateRows
 } from 'features/fwiCalculator/components/dataModel'
 import FireIndexGraph from 'features/fwiCalculator/components/FireIndexGraph'
 import { fetchMultiFWICalculation } from 'features/fwiCalculator/slices/multiFWISlice'
@@ -96,7 +97,8 @@ export const MultiDayFWITable = ({
 
   useEffect(() => {
     const newRows = output2Rows(multiFWIOutputs)
-    setRows(newRows)
+    const updatedRows = updateRows(rows, newRows)
+    setRows(updatedRows)
   }, [multiFWIOutputs]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const commitChanges = (changes: ChangeSet) => {
@@ -113,7 +115,7 @@ export const MultiDayFWITable = ({
     }
     if (changes.changed) {
       const changed = changes.changed
-      const changedRows = rows.map(row => {
+      const allRowsWithChanges = rows.map(row => {
         if (changed[row.id]) {
           Object.keys(changed[row.id]).forEach(key => {
             changed[row.id][key] = Number(changed[row.id][key])
@@ -122,9 +124,11 @@ export const MultiDayFWITable = ({
 
         return changed[row.id] ? { ...row, ...changed[row.id] } : row
       })
-      setRows(changedRows)
+      setRows(allRowsWithChanges)
       setEditingCells([])
-      // dispatch(fetchMultiFWICalculation(selectedStation, changedRows))
+      const changedRows = allRowsWithChanges.filter(row => changed[row.id] !== undefined)
+      console.log(changedRows)
+      dispatch(fetchMultiFWICalculation(selectedStation, changedRows))
     }
   }
 

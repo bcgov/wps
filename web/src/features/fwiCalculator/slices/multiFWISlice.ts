@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { getMultiFWIOutput, MultiFWIInput, MultiFWIOutput } from 'api/multiFWIAPI'
+import { getMultiFWIOutput, MultiFWIOutput } from 'api/multiFWIAPI'
 
 import { AppThunk } from 'app/store'
+import { MultiDayRow } from 'features/fwiCalculator/components/dataModel'
 import { logError } from 'utils/error'
 export interface Option {
   name: string
@@ -47,7 +48,7 @@ export const { getMultiFWIStart, getMultiFWIFailed, getMultiFWISuccess } =
 export default multiFWISlice.reducer
 
 export const fetchMultiFWICalculation =
-  (selectedStation: Option | null, input: MultiFWIInput[]): AppThunk =>
+  (selectedStation: Option | null, input: MultiDayRow[]): AppThunk =>
   async dispatch => {
     try {
       dispatch(getMultiFWIStart())
