@@ -143,6 +143,7 @@ async def multi_calculate_actual(
         station_code: int,
         time_of_interest):
     """ Calculates actual FWI values based on date range """
+    # pylint: disable=too-many-locals
     header = await get_auth_header(session)
 
     wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, [station_code])
