@@ -34,6 +34,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { getDaysBetween } from 'utils/date'
 import { Template, TemplatePlaceholder } from '@devexpress/dx-react-core'
 import { last, pick } from 'lodash'
+import { MultiFWITableCell } from 'features/fwiCalculator/components/MultiFWITableCell'
 export interface Option {
   name: string
   code: number
@@ -148,7 +149,7 @@ export const MultiDayFWITable = ({
             onCommitChanges={commitChanges}
             columnExtensions={disabledColumns}
           />
-          <Table />
+          <Table cellComponent={MultiFWITableCell} />
           <TableHeaderRow showSortingControls />
           <TableColumnVisibility />
           <TableFixedColumns leftColumns={leftColumns} rightColumns={rightColumns} />

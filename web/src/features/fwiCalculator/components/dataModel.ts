@@ -43,6 +43,7 @@ export const defaultColumns = [
   { name: 'bui', title: 'BUI' },
   { name: 'fwi', title: 'FWI' }
 ]
+export const inputColumns = ['temp', 'rh', 'windDir', 'windSpeed', 'precip']
 export const allDisabledColumns = [
   { columnName: 'date', editingEnabled: false },
   { columnName: 'status', editingEnabled: false },
