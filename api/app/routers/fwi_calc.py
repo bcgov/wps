@@ -164,10 +164,12 @@ async def multi_calculate_actual(
             fwi=0
         )
 
-    temp_input = multi_fwi_input.temp if multi_fwi_input.temp else dailies_today[0].temperature
-    rh_input = multi_fwi_input.rh if multi_fwi_input.rh else dailies_today[0].relative_humidity
-    precip_input = multi_fwi_input.precip if multi_fwi_input.precip else dailies_today[0].precipitation
-    wind_speed_input = multi_fwi_input.windSpeed if multi_fwi_input.windSpeed else dailies_today[0].wind_speed
+    temp_input = multi_fwi_input.temp if multi_fwi_input.temp is not None else dailies_today[0].temperature
+    rh_input = multi_fwi_input.rh if multi_fwi_input.rh is not None else dailies_today[0].relative_humidity
+    precip_input = multi_fwi_input.precip if multi_fwi_input.precip is not None else dailies_today[
+        0].precipitation
+    wind_speed_input = multi_fwi_input.windSpeed if multi_fwi_input.windSpeed is not None else dailies_today[
+        0].wind_speed
 
     is_adjusted = multi_fwi_input.temp is not None or \
         multi_fwi_input.rh is not None or \
