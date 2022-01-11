@@ -24,7 +24,8 @@ import {
   generateDefaultRowsFromDates,
   MultiDayRow,
   output2Rows,
-  updateRows
+  updateRows,
+  outputColumns
 } from 'features/fwiCalculator/components/dataModel'
 import FireIndexGraph from 'features/fwiCalculator/components/FireIndexGraph'
 import { fetchMultiFWICalculation } from 'features/fwiCalculator/slices/multiFWISlice'
@@ -134,9 +135,7 @@ export const MultiDayFWITable = ({
     }
   }
 
-  const disabledColumns = isLoading
-    ? allDisabledColumns
-    : [{ columnName: 'status', editingEnabled: false }]
+  const disabledColumns = isLoading ? allDisabledColumns : outputColumns
 
   return (
     <React.Fragment>

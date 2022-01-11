@@ -1,24 +1,39 @@
 import { Table } from '@devexpress/dx-react-grid-material-ui'
-import { TextField } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core'
 import { inputColumns } from 'features/fwiCalculator/components/dataModel'
-import { MultiFWIStaticCell } from 'features/fwiCalculator/components/MultiFWIStaticCell'
 import React from 'react'
+
+const useStyles = makeStyles({
+  adjusted: {
+    color: 'purple',
+    fontWeight: 'bold'
+  },
+  input: {
+    textDecoration: 'underline'
+  }
+})
 
 // eslint-disable-next-line
 export const MultiFWITableCell = (props: any): JSX.Element => {
-  const { column } = props
-  const isNumericCell = inputColumns.includes(column.name)
+  const classes = useStyles()
 
-  return isNumericCell ? (
-    <Table.Cell {...props}>
-      <TextField
-        inputMode="numeric"
-        size="small"
-        inputProps={{ style: { fontSize: '0.875rem' } }}
-        value={props.value}
+  const { onClick, ...restProps } = props
+  const isNumericEditableCell = inputColumns.includes(restProps.column.name)
+
+  if (isNumericEditableCell) {
+    return (
+      <Table.Cell
+        className={classes.input}
+        {...restProps}
+        tabIndex={0}
+        onFocus={onClick}
       />
-    </Table.Cell>
-  ) : (
-    <MultiFWIStaticCell {...props}></MultiFWIStaticCell>
-  )
+    )
+  }
+
+  const isAdjustedStatus =
+    restProps.column.name === 'status' &&
+    String(restProps.value).toLowerCase() === 'adjusted'
+  const classToApply = isAdjustedStatus ? classes.adjusted : undefined
+  return <Table.Cell className={classToApply} {...restProps} />
 }
