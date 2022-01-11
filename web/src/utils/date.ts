@@ -108,6 +108,10 @@ export const getDaysBetween = (startDate: string, endDate: string): DateTime[] =
   const end = DateTime.fromISO(endDate)
   const interval = Interval.fromDateTimes(start, end)
 
+  if (interval.length('days') === 0) {
+    return [start]
+  }
+
   const dates = []
 
   let cursor = interval.start.startOf('day')

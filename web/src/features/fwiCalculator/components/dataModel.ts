@@ -114,8 +114,11 @@ export const output2Rows = (multiFWIOutputs: MultiFWIOutput[]): MultiDayRow[] =>
 
 export const updateRows = <T extends { id: number }>(
   existingRows: Array<T>,
-  updatedCalculatedRows: MultiDayRow[]
+  updatedCalculatedRows: T[]
 ): Array<T> => {
+  if (existingRows.length === 0) {
+    return updatedCalculatedRows
+  }
   const rows = [...existingRows]
   const updatedRowById = new Map(updatedCalculatedRows.map(row => [row.id, row]))
   const mergedRows = rows.map(row => {
