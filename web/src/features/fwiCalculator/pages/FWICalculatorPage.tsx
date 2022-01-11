@@ -1,4 +1,5 @@
-import { Grid, makeStyles } from '@material-ui/core'
+import { Grid, makeStyles, Tooltip } from '@material-ui/core'
+import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -23,8 +24,14 @@ const useStyles = makeStyles(() => ({
   },
   whitespaceBelow: {
     marginBottom: 10
+  },
+  prototypeWarning: {
+    color: 'red'
   }
 }))
+
+const prototypeWarning = `This is an experimental tool that is not well-tested and requires advocacy for maturing.
+\n Please send feedback and bug reports to bcws.predictiveservices@gov.bc.ca`
 export const FWICalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
@@ -76,7 +83,13 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
       <Container maxWidth={'xl'}>
         <h1>
           {/* (🔥🦇) */}
-          FWI Calculator
+          FWI Calculator -{' '}
+          <span className={classes.prototypeWarning}>
+            Prototype
+            <Tooltip title={prototypeWarning} aria-label={prototypeWarning}>
+              <InfoOutlinedIcon></InfoOutlinedIcon>
+            </Tooltip>
+          </span>
         </h1>
         <Grid container direction={'row'}>
           <Grid
