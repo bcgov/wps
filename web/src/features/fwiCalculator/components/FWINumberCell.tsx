@@ -1,6 +1,7 @@
 import { OutlinedTextFieldProps, TableCell, TextField } from '@material-ui/core'
 import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGrid'
-import React, { ChangeEvent } from 'react'
+import { isEqual, isNull, isUndefined } from 'lodash'
+import React, { ChangeEvent, useState } from 'react'
 
 export interface FWIStationCellProps {
   isLoading: boolean
@@ -16,17 +17,44 @@ const FWINumberCell = ({
   inputProps,
   setInput
 }: FWIStationCellProps) => {
+  const [previousValue, setPreviousValue] = useState(input[inputField])
+  const [value, setValue] = useState(input[inputField])
+
   // eslint-disable-next-line
 
-  const handleChange = (
+  const changeHandler = (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => {
-    const value = Number(event.target.value)
-    setInput(prevState => ({
-      ...prevState,
-      [inputField]: value
-    }))
+    const stringInput = String(event.target.value)
+    const numberInput = Number(stringInput)
+    if (
+      isUndefined(stringInput) ||
+      isNull(stringInput) ||
+      isNaN(numberInput) ||
+      stringInput.length <= 3
+    ) {
+      setValue(Number(numberInput))
+    }
+  }
+
+  const enterHandler = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter') {
+      setInput(prevState => ({
+        ...prevState,
+        [inputField]: value
+      }))
+    }
+  }
+
+  const blurHandler = () => {
+    if (!isEqual(previousValue, value)) {
+      setPreviousValue(value)
+      setInput(prevState => ({
+        ...prevState,
+        [inputField]: value
+      }))
+    }
   }
 
   return (
@@ -42,7 +70,9 @@ const FWINumberCell = ({
           inputProps={{ min: 0, max: 100 }}
           fullWidth
           defaultValue={input[inputField]}
-          onChange={handleChange}
+          onChange={changeHandler}
+          onKeyDown={enterHandler}
+          onBlur={blurHandler}
         />
       </TableCell>
     </React.Fragment>
