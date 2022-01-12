@@ -15,6 +15,10 @@ To deploy Metabase manually into an Openshift environment,
 3. Run the `oc_deploy_metabase.sh` script in this folder, updating the exported variables as needed.
 4. (Optional) If your Metabase instance is located in a different namespace than the database you want to connect to, run the `oc_network_policy_metabase.sh` script in this folder to create a network policy that will allow connections between the two Openshift namespaces.
 
+## Configuring Database Connection
+
+The Metabase instance's connection to the database is configured manually through the Metabase admin panel.
+
 ## Configuring LDAP authentication
 
 Metabase requires user authentication, and by default will require that users create a Metabase account in order to access the instance.
