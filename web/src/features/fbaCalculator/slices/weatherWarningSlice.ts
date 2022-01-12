@@ -8,11 +8,11 @@ import {
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FuelTypes } from '../fuelTypes'
 import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
+import { FuelTypes } from '../fuelTypes'
 
 interface State {
   loading: boolean
@@ -65,9 +65,15 @@ export const fetchWeatherWarningStations =
       if (isUndefined(row.weatherStation) || isEqual(row.weatherStation, 'undefined')) {
         return []
       }
+      const fuelTypeDetails = FuelTypes.lookup(row.fuelType?.value)
+
       return {
         id: row.id,
-        station_code: parseInt(row.weatherStation ? row.weatherStation.value : '')
+        dailies: [],
+        fuelType: fuelTypeDetails?.name,
+        station_code: parseInt(row.weatherStation ? row.weatherStation.value : ''),
+        duff_moisture_code: parseInt(row.weatherStation ? row.weatherStation.value : ''),
+        build_up_index: parseInt(row.weatherStation ? row.weatherStation.value : '')
       }
     })
     try {

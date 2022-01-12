@@ -40,6 +40,15 @@ export interface StationDailyResponse {
   dailies: RawDaily[]
 }
 
+export interface HistoricStationResponse {
+  station_code: number
+  id: number
+  dailies: Array<StationDaily>
+  duff_moisture_code: number
+  build_up_index: number
+  fuelType: string | undefined
+}
+
 const url = '/hfi-calc/daily'
 
 export async function getDailies(

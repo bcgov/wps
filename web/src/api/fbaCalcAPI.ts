@@ -1,4 +1,6 @@
 import axios from 'api/axios'
+import { DateTime } from 'luxon'
+import { HistoricStationResponse, StationDaily } from './hfiCalculatorAPI'
 
 export interface CriticalHoursHFI {
   start: number
@@ -55,6 +57,10 @@ export interface FetchableFBAStation extends Identifiable {
 
 export interface WeatherWarningStation extends Identifiable {
   station_code: number
+  dailies: StationDaily[]
+  duff_moisture_code: number
+  build_up_index: number
+  fuelType: string | undefined
 }
 
 export async function postFBAStations(
@@ -83,10 +89,14 @@ export async function postHistoricFBAStations(
   date: string,
   stations: WeatherWarningStation[]
 ): Promise<WeatherWarningStation> {
-  const url = '/hfi-calc/daily'
-  const { data } = await axios.post(url, {
-    station_codes: stations[0].station_code,
-    start_time_stamp: +date
+  const url = '/hfi-calc/customdaily'
+  const { data } = await axios.get<HistoricStationResponse>(url, {
+    params: {
+      station_codes: stations[0].station_code,
+      start_time_stamp: DateTime.fromISO(date).startOf('day').toMillis(),
+      end_time_stamp: DateTime.fromISO(date).endOf('day').toMillis(),
+      fuel_type: stations[0].fuelType
+    }
   })
   return data
 }

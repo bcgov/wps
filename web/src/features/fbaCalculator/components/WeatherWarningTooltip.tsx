@@ -58,7 +58,6 @@ const getHistoricFireDates = async (fbaStations: FBAStation[]) => {
       stationFireDates.push(fireDateObject)
     }
   }
-  console.log(stationFireDates)
   return stationFireDates
 }
 
@@ -66,30 +65,83 @@ export const WeatherWarningTooltip = (props: WeatherWarningTooltipProps) => {
   const dispatch = useDispatch()
   const useStyles = makeStyles(theme => ({
     tooltip: {
-      borderLeft: '6px solid #FCBA19',
-      padding: '10px',
-      marginBottom: theme.spacing(8),
-      marginTop: '24px'
+      borderLeft: '6px solid red',
+      padding: '5px',
+      marginTop: '10px',
+      marginBottom: '5px'
+    },
+    hiddenTooltip: {
+      display: 'none'
     }
   }))
+  const classes = useStyles()
   const { fireBehaviourResultStations, error: error } = useSelector(
     selectHistoricFireStations
   )
-  const [calculatedResults, setCalculatedResults] =
-    useState<WeatherWarningStation | null>(fireBehaviourResultStations)
+  const [showTooltip, setShowTooltip] = useState<boolean>(false)
+
+  const thisdate = '2021-07-06T00:00:00.000-08:00'
+  useEffect(() => {
+    dispatch(fetchWeatherWarningStations(thisdate, props.rows))
+  }, [props.rows])
 
   console.log(fireBehaviourResultStations)
 
-  const date = '2022-01-05T00:00:00.000-08:00'
-  console.log(fetchWeatherWarningStations(date, props.rows))
+  const compareValues = (
+    currentStations: FBAStation[],
+    historicStation: WeatherWarningStation | null
+  ) => {
+    if (historicStation !== null) {
+      const historicDaily = historicStation.dailies[0]
+      console.log(historicDaily)
+      currentStations.forEach(station => {
+        if (historicDaily.code === station.station_code) {
+          console.log(historicDaily)
+          const buiDifference = historicDaily.bui * 0.1
+          const buiMaxDifference = historicDaily.bui + buiDifference
+          const buiMinDifference = historicDaily.bui - buiDifference
+          const dmcDifference = historicDaily.dmc * 0.1
+          const dmcMaxDifference = historicDaily.dmc + dmcDifference
+          const dmcMinDifference = historicDaily.dmc - dmcDifference
+          if (
+            station.build_up_index < buiMaxDifference &&
+            station.build_up_index > buiMinDifference &&
+            station.duff_moisture_code < dmcMaxDifference &&
+            station.duff_moisture_code > dmcMinDifference
+          ) {
+            setShowTooltip(true)
+          }
+        }
+      })
+    }
+  }
 
-  const classes = useStyles()
+  const BASE_URL = 'https://wfapps.nrs.gov.bc.ca/pub/wfim/incidents/detail/'
 
+  useEffect(() => {
+    compareValues(props.stations, fireBehaviourResultStations)
+  }, [props.rows])
+
+  if (showTooltip) {
+    return (
+      <Paper className={classes.tooltip}>
+        <div>
+          <h4>Historical Fire Weather Pattern Detected</h4>
+          <p>
+            There were very similar weather conditions around McLean Lake for this{' '}
+            <a href={BASE_URL + '2017/500637'}>incident.</a>
+          </p>
+        </div>
+      </Paper>
+    )
+  }
   return (
-    <Paper className={classes.tooltip}>
-      <div>
-        <h4>Weather Warning</h4>
-        <p>There were very similar weather conditions at *station* for this *fire*</p>
+    <Paper>
+      <div className={classes.hiddenTooltip}>
+        <h4>Historical Fire Weather Pattern Detected</h4>
+        <p>
+          There were very similar weather conditions around McLean Lake for this incident
+        </p>
       </div>
     </Paper>
   )

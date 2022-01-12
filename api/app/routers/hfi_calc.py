@@ -12,7 +12,7 @@ from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProp
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
 from app.db.crud.hfi_calc import get_fire_weather_stations
 from app.wildfire_one.wfwx_api import (get_auth_header,
-                                       get_dailies_lookup_fuel_types,
+                                       get_dailies_lookup_fuel_types, get_dailies_with_fuel_type,
                                        get_stations_by_codes)
 
 
@@ -29,7 +29,7 @@ def validate_time_range(start_time_stamp: Optional[int], end_time_stamp: Optiona
         Defaults to start of today and end of today if no range is given. """
     if start_time_stamp is None or end_time_stamp is None:
         today_start, today_end = app.utils.time.get_pst_today_start_and_end()
-        return math.floor(today_start.timestamp()*1000), math.floor(today_end.timestamp()*1000)
+        return math.floor(today_start.timestamp() * 1000), math.floor(today_end.timestamp() * 1000)
     return int(start_time_stamp), int(end_time_stamp)
 
 
@@ -51,6 +51,31 @@ async def get_daily_view(response: Response,
                 session, header, station_codes)
             dailies = await get_dailies_lookup_fuel_types(
                 session, header, wfwx_stations, valid_start_time, valid_end_time)
+            return StationDailyResponse(dailies=dailies)
+    except Exception as exc:
+        logger.critical(exc, exc_info=True)
+        raise
+
+
+@router.get('/customdaily', response_model=StationDailyResponse)
+async def get_custom_daily_view(response: Response,
+                                _=Depends(authentication_required),
+                                station_codes: Optional[List[int]] = Query(None),
+                                start_time_stamp: Optional[int] = None,
+                                end_time_stamp: Optional[int] = None,
+                                fuel_type: str = None):
+    """ Returns daily metrics for each station code. """
+    try:
+        logger.info('/hfi-calc/customdaily')
+        response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
+        valid_start_time, valid_end_time = validate_time_range(start_time_stamp, end_time_stamp)
+
+        async with ClientSession() as session:
+            header = await get_auth_header(session)
+            wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
+                session, header, station_codes)
+            dailies = await get_dailies_with_fuel_type(
+                session, header, fuel_type, wfwx_stations, valid_start_time, valid_end_time)
             return StationDailyResponse(dailies=dailies)
     except Exception as exc:
         logger.critical(exc, exc_info=True)
