@@ -6,6 +6,7 @@ import { pstFormatter } from 'utils/date'
 
 interface DatePickerProps {
   testId?: string
+  label?: string
   date: string
   updateDate: (d: string) => void
 }
@@ -15,7 +16,7 @@ const DatePicker = (props: DatePickerProps) => {
     <MuiPickersUtilsProvider utils={LuxonUtils}>
       <KeyboardDatePicker
         data-testid="date-of-interest-picker"
-        label="Date of Interest (PST-08:00)"
+        label={props.label ? props.label : 'Date of Interest (PST-08:00)'}
         inputVariant="outlined"
         value={props.date}
         format="yyyy/MM/dd"
