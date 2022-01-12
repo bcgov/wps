@@ -39,8 +39,8 @@ const rootReducer = combineReducers({
   hfiCalculatorDailies: hfiCalculatorDailiesReducer,
   hfiStations: hfiStationsReducer,
   fbaCalculatorResults: fbaCalculatorSlice,
-  fireCenters: fireCentersSlice,
-  historicFireStations: weatherWarningSlice
+  historicFireStations: weatherWarningSlice,
+  fireCenters: fireCentersSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
