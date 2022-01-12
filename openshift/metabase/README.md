@@ -28,3 +28,8 @@ Alternatively, users can use their government-issued IDIR account to authenticat
 
 Refer to [this Confluence page](https://apps.nrs.gov.bc.ca/int/confluence/display/OPTIMIZE/Updating+Metabase) for instructions on how to update the version of Metabase you're using.
 
+## TODOs
+
+- Copy template files from source GitHub repo into ours to ensure versioning
+- Parameterize certain fields in bash scripts
+- If warranted, implement backups on Metabase dashboards/questions
