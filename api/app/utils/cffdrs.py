@@ -532,6 +532,8 @@ def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: 
     """
 
     # pylint: disable=protected-access, no-member
+    if ffmc is None:
+        ffmc = NULL
     result = CFFDRS.instance().cffdrs._ffmcCalc(ffmc_yda=ffmc, temp=temperature, rh=relative_humidity,
                                                 prec=precipitation, ws=wind_speed)
     return result[0]
@@ -551,7 +553,23 @@ def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False): 
     #   ISI:    Intial Spread Index
     """
     # pylint: disable=protected-access, no-member
+    if ffmc is None:
+        ffmc = NULL
     result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed, fbpMod=fbpMod)
+    return result[0]
+
+
+def fire_weather_index(isi: float, bui: float):
+    """ Computes Fire Weather Index (FWI) by delegating to cffdrs R package.
+
+        Args:   isi:    Initial Spread Index
+                bui:    Buildup Index
+
+        Returns: A single fwi value
+    """
+
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._fwiCalc(isi=isi, bui=bui)
     return result[0]
 
 
