@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 
 import { PST_UTC_OFFSET } from './constants'
 
@@ -101,4 +101,24 @@ export const getDateRange = (
   return isWeeklyView
     ? getPrepWeeklyDateRange(dateOfInterest)
     : getPrepDailyDateRange(dateOfInterest)
+}
+
+export const getDaysBetween = (startDate: string, endDate: string): DateTime[] => {
+  const start = DateTime.fromISO(startDate)
+  const end = DateTime.fromISO(endDate)
+  const interval = Interval.fromDateTimes(start, end)
+
+  if (interval.length('days') === 0) {
+    return [start]
+  }
+
+  const dates = []
+
+  let cursor = interval.start.startOf('day')
+  while (cursor < interval.end) {
+    dates.push(cursor)
+    cursor = cursor.plus({ days: 1 })
+  }
+
+  return dates
 }
