@@ -4,7 +4,7 @@
 # https://github.com/bcgov/nr-showcase-devops-tools/tree/master/tools/metabase
 
 export BASE_URL="https://raw.githubusercontent.com/bcgov/nr-showcase-devops-tools/master/tools/metabase/openshift"
-export ADMIN_EMAIL=Andrea.Williams@gov.bc.ca
+export ADMIN_EMAIL=BCWS.predictiveservices@gov.bc.ca
 export NAMESPACE=e1e498-dev
 export PREFIX="app-pr-1625-"
 
