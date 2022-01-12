@@ -607,10 +607,6 @@ const FBATable = (props: FBATableProps) => {
 
   return (
     <React.Fragment>
-      <WeatherWarningTooltip
-        rows={rows}
-        stations={fireBehaviourResultStations}
-      ></WeatherWarningTooltip>
       {stationsError ||
         (fbaResultsError && (
           <ErrorAlert stationsError={stationsError} fbaResultsError={fbaResultsError} />
@@ -671,6 +667,11 @@ const FBATable = (props: FBATableProps) => {
           setModalOpen={setModalOpen}
           parentCallback={filterColumnsCallback}
         />
+
+        <WeatherWarningTooltip
+          rows={rows}
+          stations={fireBehaviourResultStations}
+        ></WeatherWarningTooltip>
 
         <FireTable
           ariaLabel="Fire Behaviour Analysis table"

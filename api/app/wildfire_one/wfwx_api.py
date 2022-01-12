@@ -188,8 +188,8 @@ async def get_hourly_actuals_all_stations(
     # Iterate through "raw" station data.
     hourlies_iterator = fetch_paged_response_generator(
         session, header, BuildQueryAllHourliesByRange(
-            math.floor(start_timestamp.timestamp()*1000),
-            math.floor(end_timestamp.timestamp()*1000)), 'hourlies')
+            math.floor(start_timestamp.timestamp() * 1000),
+            math.floor(end_timestamp.timestamp() * 1000)), 'hourlies')
 
     hourlies = []
     async for hourly in hourlies_iterator:
@@ -277,6 +277,36 @@ async def get_dailies_lookup_fuel_types(  # pylint: disable=too-many-locals
     return dailies
 
 
+async def get_dailies_with_fuel_type(  # pylint: disable=too-many-locals
+        session: ClientSession,
+        header: dict,
+        fuel_type: str,
+        wfwx_stations: List[WFWXWeatherStation],
+        start_timestamp: int,
+        end_timestamp: int) -> List[StationDaily]:
+    """ Get the daily actuals for the given station ids.
+    Looks up fuel type in our database based on station code.
+    This function is used for HFI calculator, where fuel types are hard-coded for relevant stations.
+    """
+
+    wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
+
+    dailies_iterator = fetch_paged_response_generator(
+        session, header, BuildQueryDailesByStationCode(
+            start_timestamp,
+            end_timestamp, wfwx_station_ids), 'dailies')
+
+    dailies = []
+    station_dict: Dict[str, WFWXWeatherStation] = {station.wfwx_id: station for station in wfwx_stations}
+    async for raw_daily in dailies_iterator:
+        wfwx_id = raw_daily.get('stationId', None)
+        station = station_dict.get(wfwx_id, None)
+        fuel_type = fuel_type
+        daily = generate_station_daily(raw_daily, station, fuel_type)
+        dailies.append(daily)
+    return dailies
+
+
 async def get_dailies(
         session: ClientSession,
         header: dict,
@@ -286,7 +316,7 @@ async def get_dailies(
     # build a list of wfwx station id's
     wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
 
-    timestamp_of_intereset = math.floor(time_of_interest.timestamp()*1000)
+    timestamp_of_intereset = math.floor(time_of_interest.timestamp() * 1000)
 
     # for local dev, we can use redis to reduce load in prod, and generally just makes development faster.
     # for production, it's more tricky - we don't want to put too much load on the wf1 api, but we don't

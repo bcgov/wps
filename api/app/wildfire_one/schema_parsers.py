@@ -245,6 +245,8 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         logger.error('Encountered error while generating StationDaily for station %s', station.code)
         logger.error(exc, exc_info=True)
 
+    logger.info(raw_daily)
+
     return StationDaily(
         code=station.code,
         date=date,
