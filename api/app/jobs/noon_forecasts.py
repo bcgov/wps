@@ -43,7 +43,7 @@ class NoonForecastJob():
 
             noon_forecasts = await wfwx_api.get_noon_forecasts_all_stations(
                 session, header, self.now)
-            logger.info(f"Retrieved {len(noon_forecasts)} noon forecasts")
+            logger.info('Retrieved %s noon forecasts', len(noon_forecasts))
 
         with app.db.database.get_write_session_scope() as session:
             for noon_forecast in noon_forecasts:

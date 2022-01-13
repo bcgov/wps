@@ -47,7 +47,7 @@ class HourlyActualsJob():
             hourly_actuals = await wfwx_api.get_hourly_actuals_all_stations(
                 session, header, start_date, end_date)
 
-            logger.info(f"Retrieved {len(hourly_actuals)} noon forecasts")
+            logger.info('Retrieved %s hourly actuals', len(hourly_actuals))
 
         with app.db.database.get_write_session_scope() as session:
             for hourly_actual in hourly_actuals:
