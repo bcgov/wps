@@ -81,21 +81,6 @@ objects:
                         secretKeyRef:
                           name: ${NAME}-global
                           key: wfwx-secret
-                    - name: BC_FIRE_WEATHER_SECRET
-                      valueFrom:
-                        secretKeyRef:
-                          name: ${NAME}-global
-                          key: bc-fire-weather-secret
-                    - name: BC_FIRE_WEATHER_USER
-                      valueFrom:
-                        configMapKeyRef:
-                          name: ${NAME}-global
-                          key: bc-fire-weather-user
-                    - name: BC_FIRE_WEATHER_FILTER_ID
-                      valueFrom:
-                        configMapKeyRef:
-                          name: ${NAME}-global
-                          key: bc-fire-weather-filter-id
                     - name: POSTGRES_READ_USER
                       value: ${POSTGRES_USER}
                     - name: POSTGRES_WRITE_USER
