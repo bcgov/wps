@@ -30,22 +30,23 @@ const BaseStationAttributeCells = ({
   return (
     <React.Fragment>
       <StickyCell left={0} zIndexOffset={11} backgroundColor={'#ffffff'}>
-        <TableCell className={`${className} ${classes.noBottomBorder}`}>
-          <Checkbox
-            checked={stationCodeInSelected(station.code)}
-            onClick={() => toggleSelectedStation(station.code)}
-            data-testid={`select-station-${station.code}`}
-            color="primary"
-          ></Checkbox>
-        </TableCell>
+        {/* you can't just throw a cell inside a cell. not valid html. */}
+        {/* <TableCell className={`${className} ${classes.noBottomBorder}`}> */}
+        <Checkbox
+          checked={stationCodeInSelected(station.code)}
+          onClick={() => toggleSelectedStation(station.code)}
+          data-testid={`select-station-${station.code}`}
+          color="primary"
+        ></Checkbox>
+        {/* </TableCell> */}
       </StickyCell>
       <StickyCell left={50} zIndexOffset={11} backgroundColor={'#ffffff'}>
-        <TableCell
+        {/* you can't just throw a cell inside a cell. not valid html. */}
+        {/* <TableCell
           key={`station-${station.code}-name`}
           className={`${className} ${classes.stationLocation} ${classes.noBottomBorder}`}
-        >
-          {station.station_props.name} ({station.code})
-        </TableCell>
+        > */}
+        {station.station_props.name} ({station.code}){/* </TableCell> */}
       </StickyCell>
       <TableCell key={`station-${station.code}-elevation`} className={className}>
         {station.station_props.elevation}
@@ -56,12 +57,13 @@ const BaseStationAttributeCells = ({
         backgroundColor={'#ffffff'}
         className={`${isDailyTable ? classes.rightBorder : undefined}`}
       >
-        <TableCell
+        {/* you can't just throw a cell inside a cell. not valid html. */}
+        {/* <TableCell
           key={`station-${station.code}-fuel-type`}
           className={`${className} ${classes.noBottomBorder}`}
-        >
-          {station.station_props.fuel_type.abbrev}
-        </TableCell>
+        > */}
+        {station.station_props.fuel_type.abbrev}
+        {/* </TableCell> */}
       </StickyCell>
     </React.Fragment>
   )

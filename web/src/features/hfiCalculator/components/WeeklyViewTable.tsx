@@ -82,14 +82,16 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
         </TableRow>
         <TableRow>
           <StickyCell left={0} zIndexOffset={12} className={classes.noBottomBorder}>
-            <TableCell className={classes.noBottomBorder}>
-              {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
-            </TableCell>
+            {/* you can't just throw a cell inside a cell. not valid html. */}
+            {/* <TableCell className={classes.noBottomBorder}> */}
+            {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
+            {/* </TableCell> */}
           </StickyCell>
           <StickyCell left={50} zIndexOffset={12}>
-            <TableCell key="header-location" className={classes.noBottomBorder}>
-              Location
-            </TableCell>
+            {/* you can't just throw a cell inside a cell. not valid html. */}
+            {/* <TableCell key="header-location" className={classes.noBottomBorder}> */}
+            Location
+            {/* </TableCell> */}
           </StickyCell>
           <TableCell key="header-elevation" className={classes.nonstickyHeaderCell}>
             Elev.
@@ -97,22 +99,24 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
             (m)
           </TableCell>
           <StickyCell left={234} zIndexOffset={12}>
-            <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
-              FBP
-              <br />
-              Fuel
-              <br />
-              Type
-            </TableCell>
+            {/* you can't just throw a cell inside a cell. not valid html. */}
+            {/* <TableCell key="header-fuel-type" className={classes.noBottomBorder}> */}
+            FBP
+            <br />
+            Fuel
+            <br />
+            Type
+            {/* </TableCell> */}
           </StickyCell>
           <StickyCell left={284} zIndexOffset={12} className={classes.rightBorder}>
-            <TableCell className={classes.noBottomBorder}>
-              Grass
-              <br />
-              Cure
-              <br />
-              (%)
-            </TableCell>
+            {/* you can't just throw a cell inside a cell. not valid html. */}
+            {/* <TableCell className={classes.noBottomBorder}> */}
+            Grass
+            <br />
+            Cure
+            <br />
+            (%)
+            {/* </TableCell> */}
           </StickyCell>
           <DayIndexHeaders />
           <TableCell className={classes.sectionSeparatorBorder}>
@@ -162,9 +166,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           backgroundColor={BACKGROUND_COLOR.backgroundColor}
                           colSpan={2}
                         >
-                          <TableCell className={classes.noBottomBorder}>
-                            {area.name}
-                          </TableCell>
+                          {/* you can't just throw a cell inside a cell. not valid html. */}
+                          {/* <TableCell className={classes.noBottomBorder}> */}
+                          {area.name}
+                          {/* </TableCell> */}
                         </StickyCell>
                         <TableCell
                           className={`${classes.planningArea} ${classes.nonstickyHeaderCell}`}
@@ -175,9 +180,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           className={`${classes.rightBorder} ${classes.defaultBackground}`}
                           colSpan={2}
                         >
-                          <TableCell
+                          {/* you can't just throw a cell inside a cell. not valid html. */}
+                          {/* <TableCell
                             className={`${classes.planningArea} ${classes.noBottomBorder}`}
-                          ></TableCell>
+                          ></TableCell> */}
                         </StickyCell>
                         <CalculatedPlanningAreaCells
                           area={area}
@@ -216,7 +222,8 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 backgroundColor={'#ffffff'}
                                 className={classes.rightBorder}
                               >
-                                <GrassCureCell
+                                {/* you can't just throw a cell inside a cell. not valid html. */}
+                                {/* <GrassCureCell
                                   value={
                                     !isEmpty(dailiesForStation)
                                       ? dailiesForStation[0].grass_cure_percentage
@@ -231,7 +238,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                     }
                                   `}
                                   selected={isRowSelected}
-                                />
+                                /> */}
                               </StickyCell>
 
                               <StaticCells

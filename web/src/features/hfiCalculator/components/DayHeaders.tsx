@@ -35,9 +35,10 @@ const DayHeaders = (props: DayHeadersProps) => {
         colSpan={2}
         className={classes.noBottomBorder}
       >
-        <TableCell
+        {/* you can't just throw a cell inside a cell. not valid html. */}
+        {/* <TableCell
           className={`${classes.spaceHeader} ${classes.noBottomBorder}`}
-        ></TableCell>
+        ></TableCell> */}
       </StickyCell>
       <TableCell className={classes.spaceHeader}></TableCell>
       <StickyCell
@@ -46,7 +47,8 @@ const DayHeaders = (props: DayHeadersProps) => {
         zIndexOffset={11}
         className={`${classes.rightBorder} ${classes.noBottomBorder}`}
       >
-        <TableCell className={classes.noBottomBorder}></TableCell>
+        {/* you can't just throw a cell inside a cell. not valid html. */}
+        {/* <TableCell className={classes.noBottomBorder}></TableCell> */}
       </StickyCell>
       {range(NUM_WEEK_DAYS).map(i => (
         <TableCell

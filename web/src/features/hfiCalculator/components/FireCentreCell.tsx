@@ -22,9 +22,10 @@ const FireCentreCell = (props: FireCentreCellProps) => {
       colSpan={4}
       data-testid={props.testId}
     >
-      <TableCell className={`${classes.fireCentre} ${classes.noBottomBorder}`}>
-        {props.centre.name}
-      </TableCell>
+      {/* you can't just throw a cell inside a cell. not valid html. */}
+      {/* <TableCell className={`${classes.fireCentre} ${classes.noBottomBorder}`}> */}
+      {props.centre.name}
+      {/* </TableCell> */}
     </StickyCell>
   )
 }
