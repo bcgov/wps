@@ -7,7 +7,7 @@
 export BASE_URL="https://raw.githubusercontent.com/bcgov/nr-showcase-devops-tools/master/tools/metabase/openshift"
 export ADMIN_EMAIL=BCWS.predictiveservices@gov.bc.ca
 # TODO: parameterize namespace
-export NAMESPACE=e1e498-dev
+export NAMESPACE=e1e498-prod
 # TODO: parameterize prefix
 export PREFIX="prod-"
 
