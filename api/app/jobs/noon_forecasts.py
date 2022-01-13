@@ -15,11 +15,6 @@ from app.wildfire_one import wfwx_api
 import app.utils.time
 from app.rocketchat_notifications import send_rocketchat_notification
 
-
-# If running as it's own process, configure logging appropriately.
-if __name__ == "__main__":
-    configure_logging()
-
 logger = logging.getLogger(__name__)
 
 """
@@ -48,6 +43,7 @@ class NoonForecastJob():
 
             noon_forecasts = await wfwx_api.get_noon_forecasts_all_stations(
                 session, header, self.now)
+            logger.info(f"Retrieved {len(noon_forecasts)} noon forecasts")
 
         with app.db.database.get_write_session_scope() as session:
             for noon_forecast in noon_forecasts:
@@ -88,4 +84,5 @@ def main():
 
 
 if __name__ == '__main__':
+    configure_logging()
     main()
