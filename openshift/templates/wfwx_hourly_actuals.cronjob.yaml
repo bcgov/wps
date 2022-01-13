@@ -55,6 +55,28 @@ objects:
                   imagePullPolicy: "Always"
                   command: ["python", "-m", "app.jobs.hourly_actuals"]
                   env:
+                    - name: WFWX_MAX_PAGE_SIZE
+                      value: ${WFWX_MAX_PAGE_SIZE}
+                    - name: WFWX_AUTH_URL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.wfwx-auth-url
+                    - name: WFWX_BASE_URL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.wfwx-base-url
+                    - name: WFWX_USER
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.wfwx-user
+                    - name: WFWX_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: wfwx-secret
                     - name: BC_FIRE_WEATHER_SECRET
                       valueFrom:
                         secretKeyRef:
