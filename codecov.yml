@@ -20,5 +20,5 @@ coverage:
       web:
         paths:
           - web/src
-        # web isn't quite amazing yet - would be nice to push it up to 80&
-        target: 73%
+        # web isn't quite amazing yet - would be nice to push it up to 80%
+        target: 71%
