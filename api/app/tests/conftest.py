@@ -85,7 +85,7 @@ def mock_redis(monkeypatch):
 
         def set(self,  # pylint: disable=unused-argument, invalid-name, unused-argument, too-many-arguments
                 name, value,
-                ex=None, px=None, nx=False, xx=False, keepttl=False):
+                ex=None, px=None, nx=False, xx=False, keepttl=False):  # pylint: disable=invalid-name
             """ mock set """
 
     def create_mock_redis():
@@ -96,7 +96,7 @@ def mock_redis(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_get_now(monkeypatch):
     """ Patch all calls to app.util.time: get_utc_now and get_pst_now  """
-    timestamp = 1590076213962/1000
+    timestamp = 1590076213962 / 1000
 
     # The default value for WeatherDataRequest cannot be mocked out, as it
     # is declared prior to test mocks being loaded. We manipulate the class
