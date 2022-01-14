@@ -36,11 +36,13 @@ const DayHeaders = (props: DayHeadersProps) => {
         className={classes.noBottomBorder}
       >
         <table>
-          <tr>
-            <TableCell
-              className={`${classes.spaceHeader} ${classes.noBottomBorder}`}
-            ></TableCell>
-          </tr>
+          <tbody>
+            <tr>
+              <TableCell
+                className={`${classes.spaceHeader} ${classes.noBottomBorder}`}
+              ></TableCell>
+            </tr>
+          </tbody>
         </table>
       </StickyCell>
       <TableCell className={classes.spaceHeader}></TableCell>
@@ -51,9 +53,11 @@ const DayHeaders = (props: DayHeadersProps) => {
         className={`${classes.rightBorder} ${classes.noBottomBorder}`}
       >
         <table>
-          <tr>
-            <TableCell className={classes.noBottomBorder}></TableCell>
-          </tr>
+          <tbody>
+            <tr>
+              <TableCell className={classes.noBottomBorder}></TableCell>
+            </tr>
+          </tbody>
         </table>
       </StickyCell>
       {range(NUM_WEEK_DAYS).map(i => (

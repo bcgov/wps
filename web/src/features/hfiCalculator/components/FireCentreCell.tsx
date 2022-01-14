@@ -23,11 +23,13 @@ const FireCentreCell = (props: FireCentreCellProps) => {
       data-testid={props.testId}
     >
       <table>
-        <tr>
-          <TableCell className={`${classes.fireCentre} ${classes.noBottomBorder}`}>
-            {props.centre.name}
-          </TableCell>
-        </tr>
+        <tbody>
+          <tr>
+            <TableCell className={`${classes.fireCentre} ${classes.noBottomBorder}`}>
+              {props.centre.name}
+            </TableCell>
+          </tr>
+        </tbody>
       </table>
     </StickyCell>
   )

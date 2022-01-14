@@ -31,28 +31,32 @@ const BaseStationAttributeCells = ({
     <React.Fragment>
       <StickyCell left={0} zIndexOffset={11} backgroundColor={'#ffffff'}>
         <table>
-          <tr>
-            <TableCell className={`${className} ${classes.noBottomBorder}`}>
-              <Checkbox
-                checked={stationCodeInSelected(station.code)}
-                onClick={() => toggleSelectedStation(station.code)}
-                data-testid={`select-station-${station.code}`}
-                color="primary"
-              ></Checkbox>
-            </TableCell>
-          </tr>
+          <tbody>
+            <tr>
+              <TableCell className={`${className} ${classes.noBottomBorder}`}>
+                <Checkbox
+                  checked={stationCodeInSelected(station.code)}
+                  onClick={() => toggleSelectedStation(station.code)}
+                  data-testid={`select-station-${station.code}`}
+                  color="primary"
+                ></Checkbox>
+              </TableCell>
+            </tr>
+          </tbody>
         </table>
       </StickyCell>
       <StickyCell left={50} zIndexOffset={11} backgroundColor={'#ffffff'}>
         <table>
-          <tr>
-            <TableCell
-              key={`station-${station.code}-name`}
-              className={`${className} ${classes.stationLocation} ${classes.noBottomBorder}`}
-            >
-              {station.station_props.name} ({station.code})
-            </TableCell>
-          </tr>
+          <tbody>
+            <tr>
+              <TableCell
+                key={`station-${station.code}-name`}
+                className={`${className} ${classes.stationLocation} ${classes.noBottomBorder}`}
+              >
+                {station.station_props.name} ({station.code})
+              </TableCell>
+            </tr>
+          </tbody>
         </table>
       </StickyCell>
       <TableCell key={`station-${station.code}-elevation`} className={className}>
@@ -65,14 +69,16 @@ const BaseStationAttributeCells = ({
         className={`${isDailyTable ? classes.rightBorder : undefined}`}
       >
         <table>
-          <tr>
-            <TableCell
-              key={`station-${station.code}-fuel-type`}
-              className={`${className} ${classes.noBottomBorder}`}
-            >
-              {station.station_props.fuel_type.abbrev}
-            </TableCell>
-          </tr>
+          <tbody>
+            <tr>
+              <TableCell
+                key={`station-${station.code}-fuel-type`}
+                className={`${className} ${classes.noBottomBorder}`}
+              >
+                {station.station_props.fuel_type.abbrev}
+              </TableCell>
+            </tr>
+          </tbody>
         </table>
       </StickyCell>
     </React.Fragment>
