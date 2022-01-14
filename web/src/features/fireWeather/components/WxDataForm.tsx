@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles'
-import { useHistory, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
@@ -45,7 +45,7 @@ interface Props {
 
 const WxDataForm = ({ stationCodesQuery, toiFromQuery, setSidePanelState }: Props) => {
   const classes = useStyles()
-  const history = useHistory()
+  const navigate = useNavigate()
   const location = useLocation()
 
   const { selectedStationsByCode } = useSelector(selectFireWeatherStations)
@@ -73,7 +73,7 @@ const WxDataForm = ({ stationCodesQuery, toiFromQuery, setSidePanelState }: Prop
     }
 
     // Update the url query with the new station codes and time of interest
-    history.push({
+    navigate({
       search: potentialCodes + `${timeOfInterestQueryKey}=${timeOfInterest}`
     })
 

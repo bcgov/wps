@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { useLocation, useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { PercentileHeader, PageTitle, Container, ErrorBoundary } from 'components'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
@@ -25,7 +25,7 @@ const defaultPercentile = 90
 const PercentileCalculatorPage = () => {
   const dispatch = useDispatch()
   const location = useLocation()
-  const history = useHistory()
+  const navigate = useNavigate()
 
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const [stationCodes, setStationCodes] = useState<number[]>(codesFromQuery)
@@ -52,7 +52,7 @@ const PercentileCalculatorPage = () => {
 
   const onCalculateClick = () => {
     // Update the url query with the new station codes
-    history.push({ search: `${stationCodeQueryKey}=${stationCodes.join(',')}` })
+    navigate({ search: `${stationCodeQueryKey}=${stationCodes.join(',')}` })
 
     // Create a matomo event, pushing various variables onto the dataLayer
     // NOTE: This section is proof of concept - strongly consider re-factoring when adding other events.
@@ -69,7 +69,7 @@ const PercentileCalculatorPage = () => {
   }
 
   const onResetClick = () => {
-    history.replace({ search: undefined })
+    navigate({ search: undefined })
     setTimeRange(defaultTimeRange)
   }
 
