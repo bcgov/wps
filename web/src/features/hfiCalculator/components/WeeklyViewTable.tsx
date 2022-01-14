@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-import { TableBody, TableCell, TableHead, TableRow } from '@material-ui/core'
+import { Table, TableBody, TableCell, TableHead, TableRow } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { FireCentre } from 'api/hfiCalcAPI'
 import FireTable from 'components/FireTable'
@@ -82,14 +82,26 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
         </TableRow>
         <TableRow>
           <StickyCell left={0} zIndexOffset={12} className={classes.noBottomBorder}>
-            <TableCell className={classes.noBottomBorder}>
-              {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
-            </TableCell>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell className={classes.noBottomBorder}>
+                    {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </StickyCell>
           <StickyCell left={50} zIndexOffset={12}>
-            <TableCell key="header-location" className={classes.noBottomBorder}>
-              Location
-            </TableCell>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell key="header-location" className={classes.noBottomBorder}>
+                    Location
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </StickyCell>
           <TableCell key="header-elevation" className={classes.nonstickyHeaderCell}>
             Elev.
@@ -97,22 +109,34 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
             (m)
           </TableCell>
           <StickyCell left={234} zIndexOffset={12}>
-            <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
-              FBP
-              <br />
-              Fuel
-              <br />
-              Type
-            </TableCell>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
+                    FBP
+                    <br />
+                    Fuel
+                    <br />
+                    Type
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </StickyCell>
           <StickyCell left={284} zIndexOffset={12} className={classes.rightBorder}>
-            <TableCell className={classes.noBottomBorder}>
-              Grass
-              <br />
-              Cure
-              <br />
-              (%)
-            </TableCell>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell className={classes.noBottomBorder}>
+                    Grass
+                    <br />
+                    Cure
+                    <br />
+                    (%)
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </StickyCell>
           <DayIndexHeaders />
           <TableCell className={classes.sectionSeparatorBorder}>
@@ -162,9 +186,15 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           backgroundColor={BACKGROUND_COLOR.backgroundColor}
                           colSpan={2}
                         >
-                          <TableCell className={classes.noBottomBorder}>
-                            {area.name}
-                          </TableCell>
+                          <Table>
+                            <TableBody>
+                              <TableRow>
+                                <TableCell className={classes.noBottomBorder}>
+                                  {area.name}
+                                </TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
                         </StickyCell>
                         <TableCell
                           className={`${classes.planningArea} ${classes.nonstickyHeaderCell}`}
@@ -175,9 +205,15 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           className={`${classes.rightBorder} ${classes.defaultBackground}`}
                           colSpan={2}
                         >
-                          <TableCell
-                            className={`${classes.planningArea} ${classes.noBottomBorder}`}
-                          ></TableCell>
+                          <Table>
+                            <TableBody>
+                              <TableRow>
+                                <TableCell
+                                  className={`${classes.planningArea} ${classes.noBottomBorder}`}
+                                ></TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
                         </StickyCell>
                         <CalculatedPlanningAreaCells
                           area={area}
@@ -216,22 +252,30 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 backgroundColor={'#ffffff'}
                                 className={classes.rightBorder}
                               >
-                                <GrassCureCell
-                                  value={
-                                    !isEmpty(dailiesForStation)
-                                      ? dailiesForStation[0].grass_cure_percentage
-                                      : undefined
-                                  }
-                                  isGrassFuelType={isGrassFuelType(station.station_props)}
-                                  className={`${classes.noBottomBorder}
+                                <Table>
+                                  <TableBody>
+                                    <TableRow>
+                                      <GrassCureCell
+                                        value={
+                                          !isEmpty(dailiesForStation)
+                                            ? dailiesForStation[0].grass_cure_percentage
+                                            : undefined
+                                        }
+                                        isGrassFuelType={isGrassFuelType(
+                                          station.station_props
+                                        )}
+                                        className={`${classes.noBottomBorder}
                                     ${
                                       isRowSelected
                                         ? classes.stationCellPlainStyling
                                         : classes.unselectedStation
                                     }
                                   `}
-                                  selected={isRowSelected}
-                                />
+                                        selected={isRowSelected}
+                                      />
+                                    </TableRow>
+                                  </TableBody>
+                                </Table>
                               </StickyCell>
 
                               <StaticCells
