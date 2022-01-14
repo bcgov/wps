@@ -8,7 +8,7 @@ export interface PrepLevelCellProps {
   meanIntensityGroup: number | undefined
   areaName: string
   meanPrepLevelBoolean: boolean
-  meanPrepLevel?: number | undefined
+  meanPrepLevel?: number
 }
 
 const prepLevelColours: { [description: string]: string } = {
