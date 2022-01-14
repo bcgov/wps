@@ -3,14 +3,14 @@ import { CssBaseline } from '@material-ui/core'
 import { ThemeProvider } from '@material-ui/core/styles'
 
 import { theme } from 'app/theme'
-import Routes from 'app/Routes'
+import WPSRoutes from 'app/Routes'
 
 const App: React.FunctionComponent = () => {
   return (
     <React.StrictMode>
       <CssBaseline />
       <ThemeProvider theme={theme}>
-        <Routes />
+        <WPSRoutes />
       </ThemeProvider>
     </React.StrictMode>
   )

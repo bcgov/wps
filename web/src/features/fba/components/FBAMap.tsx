@@ -2,7 +2,6 @@ import * as ol from 'ol'
 import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls } from 'ol/control'
 import { fromLonLat, get } from 'ol/proj'
-import { Fill, Style } from 'ol/style'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import VectorTileSource from 'ol/source/VectorTile'
@@ -10,27 +9,30 @@ import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
 
 import GeoJSON from 'ol/format/GeoJSON'
-import CircleStyle from 'ol/style/Circle'
 
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations } from 'app/rootReducer'
-import { source } from 'features/fireWeather/components/maps/constants'
+import { monochromeSource as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter } from 'api/fbaAPI'
-import { extentsMap } from 'features/fba/fireCenterExtents'
+import { extentsMap } from 'features/fba/fireCentreExtents'
 import {
-  fireCenterStyler,
+  fireCentreStyler,
+  fireCentreLabelStyler,
   fireZoneStyler,
+  fireZoneLabelStyler,
+  stationStyler,
   thessianPolygonStyler
 } from 'features/fba/components/featureStylers'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 5.45
-const BC_CENTER_FIRE_CENTERS = [-124.16748046874999, 54.584796743678744]
+const BC_CENTER_FIRE_CENTRES = [-124.16748046874999, 54.584796743678744]
+const TILE_SERVER_URL = 'https://wps-prod-tileserv.apps.silver.devops.gov.bc.ca'
 
 export interface FBAMapProps {
   testId?: string
@@ -51,46 +53,70 @@ const FBAMap = (props: FBAMapProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null)
 
   const fireZoneVector = new VectorTileLayer({
-    opacity: 0.5,
     source: new VectorTileSource({
-      attributions: 'BC Fire Zones',
+      attributions: ['BC Wildfire Service'],
       format: new MVT(),
-      url: 'https://tileserv-dev.apps.silver.devops.gov.bc.ca/public.fire_zones/{z}/{x}/{y}.pbf'
+      url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
     }),
     style: fireZoneStyler,
-    declutter: true
+    zIndex: 49
   })
 
-  const fireCenterVector = new VectorTileLayer({
+  // Seperate layer for polygons and for labels, to avoid duplicate labels.
+  const fireZoneLabel = new VectorTileLayer({
     source: new VectorTileSource({
-      attributions: 'BC Fire Centers',
+      attributions: ['BC Wildfire Service'],
       format: new MVT(),
-      url: 'https://tileserv-dev.apps.silver.devops.gov.bc.ca/public.fire_centres/{z}/{x}/{y}.pbf'
+      url: `${TILE_SERVER_URL}/public.fire_zones_labels_ext/{z}/{x}/{y}.pbf`
     }),
-    style: fireCenterStyler,
-    declutter: true
+    style: fireZoneLabelStyler,
+    zIndex: 99,
+    minZoom: 6
   })
 
-  const thesianVector = new VectorTileLayer({
+  const fireCentreVector = new VectorTileLayer({
     source: new VectorTileSource({
-      attributions: 'BC stuff',
+      attributions: ['BC Wildfire Service'],
       format: new MVT(),
-      url: 'https://tileserv-dev.apps.silver.devops.gov.bc.ca/public.fire_area_thessian_polygons/{z}/{x}/{y}.pbf'
+      url: `${TILE_SERVER_URL}/public.fire_centres/{z}/{x}/{y}.pbf`
     }),
-    style: thessianPolygonStyler
+    style: fireCentreStyler,
+    zIndex: 50
+  })
+
+  // Seperate layer for polygons and for labels, to avoid duplicate labels.
+  const fireCentreLabel = new VectorTileLayer({
+    source: new VectorTileSource({
+      attributions: ['BC Wildfire Service'],
+      format: new MVT(),
+      url: `${TILE_SERVER_URL}/public.fire_centres_labels/{z}/{x}/{y}.pbf`
+    }),
+    style: fireCentreLabelStyler,
+    zIndex: 100,
+    maxZoom: 6
+  })
+
+  const thessianVector = new VectorTileLayer({
+    source: new VectorTileSource({
+      attributions: ['BC Wildfire Service'],
+      format: new MVT(),
+      url: `${TILE_SERVER_URL}/public.fire_area_thessian_polygons/{z}/{x}/{y}.pbf`
+    }),
+    style: thessianPolygonStyler,
+    zIndex: 50
   })
 
   useEffect(() => {
     if (!map) return
 
     if (props.selectedFireCenter) {
-      const fireCenterExtent = extentsMap.get(props.selectedFireCenter.name)
-      if (fireCenterExtent) {
-        map.getView().fit(fireCenterExtent.extent)
+      const fireCentreExtent = extentsMap.get(props.selectedFireCenter.name)
+      if (fireCentreExtent) {
+        map.getView().fit(fireCentreExtent.extent)
       }
     } else {
       // reset map view to full province
-      map.getView().setCenter(fromLonLat(BC_CENTER_FIRE_CENTERS))
+      map.getView().setCenter(fromLonLat(BC_CENTER_FIRE_CENTRES))
       map.getView().setZoom(zoom)
     }
   }, [props.selectedFireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -106,15 +132,17 @@ const FBAMap = (props: FBAMapProps) => {
     const options: MapOptions = {
       view: new ol.View({
         zoom,
-        center: fromLonLat(BC_CENTER_FIRE_CENTERS)
+        center: fromLonLat(BC_CENTER_FIRE_CENTRES)
       }),
       layers: [
         new Tile({
-          source
+          source: baseMapSource
         }),
-        fireCenterVector,
         fireZoneVector,
-        thesianVector
+        fireCentreVector,
+        thessianVector,
+        fireZoneLabel,
+        fireCentreLabel
       ],
       overlays: [],
       controls: defaultControls()
@@ -125,9 +153,9 @@ const FBAMap = (props: FBAMapProps) => {
     mapObject.setTarget(mapRef.current)
 
     if (props.selectedFireCenter) {
-      const fireCenterExtent = extentsMap.get(props.selectedFireCenter.name)
-      if (fireCenterExtent) {
-        mapObject.getView().fit(fireCenterExtent.extent)
+      const fireCentreExtent = extentsMap.get(props.selectedFireCenter.name)
+      if (fireCentreExtent) {
+        mapObject.getView().fit(fireCentreExtent.extent)
       }
     }
     setMap(mapObject)
@@ -144,14 +172,9 @@ const FBAMap = (props: FBAMapProps) => {
     })
     const stationsLayer = new OLVectorLayer({
       source: stationsSource,
-      style: new Style({
-        image: new CircleStyle({
-          radius: 5,
-          fill: new Fill({
-            color: 'black'
-          })
-        })
-      })
+      minZoom: 6,
+      style: stationStyler,
+      zIndex: 51
     })
 
     map?.addLayer(stationsLayer)
