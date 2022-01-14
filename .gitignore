@@ -154,3 +154,4 @@ renv
 
 # Node Version Management
 web/.nvmrc
+node_modules
