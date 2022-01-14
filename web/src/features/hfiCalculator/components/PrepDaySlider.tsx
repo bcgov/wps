@@ -1,8 +1,8 @@
 import { Slider, Typography } from '@material-ui/core'
-import React, { useState } from 'react'
+import React from 'react'
 
-const MIN_PREP_DAYS = 2
-const MAX_PREP_DAYS = 5
+export const MIN_PREP_DAYS = 2
+export const MAX_PREP_DAYS = 5
 
 const PREP_DAY_RANGE_OPTIONS = [
   {
@@ -23,8 +23,12 @@ const PREP_DAY_RANGE_OPTIONS = [
   }
 ]
 
-const PrepDaySlider = () => {
-  const [days, setDays] = useState(MAX_PREP_DAYS)
+export interface PrepDaySliderProps {
+  days: number
+  setDays: React.Dispatch<React.SetStateAction<number>>
+}
+
+const PrepDaySlider = ({ days, setDays }: PrepDaySliderProps) => {
   return (
     <React.Fragment>
       <Typography variant="button" gutterBottom>
