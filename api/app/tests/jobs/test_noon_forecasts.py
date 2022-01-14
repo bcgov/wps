@@ -44,15 +44,12 @@ def test_noon_forecasts_bot(monkeypatch, mocker: MockerFixture, mock_noon_foreca
     assert save_noon_forecast_spy.call_count == 2
 
 
-def test_noon_forecasts_bot_fail_in_season(mocker: MockerFixture,
-                                           monkeypatch):  # pylint: disable=unused-argument
+def test_noon_forecasts_bot_fail(mocker: MockerFixture,
+                                 monkeypatch):  # pylint: disable=unused-argument
     """
     Test that when the bot fails a message is sent to
     rocket-chat, and our exit code is 1.
     """
-
-    def mock_get_utc_now():
-        return datetime.datetime(2020, 7, 1)
 
     def mock_get_noon_forecasts():
         raise Exception()
