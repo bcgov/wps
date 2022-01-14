@@ -365,7 +365,7 @@ describe('RowManager', () => {
       fireCentres,
       dailies
     )
-    const expectedDailyString = `"Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level"
+    const expectedDailyString = `Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level
     Kamloops Fire Centre
     "Kamloops (K2), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1"
     AFTON (322),780,O1B,ND,ND,ND,ND,ND,ND,ERROR,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
@@ -704,7 +704,7 @@ describe('RowManager', () => {
       dailies
     )
 
-    const expectedDailyEscapeString = `"Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level"
+    const expectedDailyEscapeString = `Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level
     Kamloops Fire Centre
     "Kamloops (K2), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1"
     AF\`TON (322),780,O1B,ND,ND,ND,ND,ND,ND,ERROR,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
@@ -748,7 +748,7 @@ describe('RowManager', () => {
       missingElevationFireCentres,
       dailies
     )
-    const expectedDailyNDString = `"Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level"
+    const expectedDailyNDString = `Location,Elev. (m),FBP Fuel Type,Status,Temp (°C),RH (%),Wind Dir (°),Wind Speed (km/h),Precip (mm),Grass Cure (%),FFMC,DMC,DC,ISI,BUI,FWI,DGR CL,ROS (m/min),HFI,60 min fire size (ha),Fire Type,M/FIG,Fire Starts,Prep Level
     Kamloops Fire Centre
     "Kamloops (K2), ,,,,,,,,,,,,,,,,,,,, 1, 0-1, 1"
     AFTON (322),ND,O1B,ND,ND,ND,ND,ND,ND,ERROR,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND,ND
