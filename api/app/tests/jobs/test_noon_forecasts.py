@@ -47,7 +47,7 @@ def test_noon_forecasts_bot(monkeypatch, mocker: MockerFixture, mock_noon_foreca
 def test_noon_forecasts_bot_fail_in_season(mocker: MockerFixture,
                                            monkeypatch):  # pylint: disable=unused-argument
     """
-    Test that when the bot fails and the current date is within fire season, a message is sent to
+    Test that when the bot fails a message is sent to
     rocket-chat, and our exit code is 1.
     """
 
@@ -58,7 +58,6 @@ def test_noon_forecasts_bot_fail_in_season(mocker: MockerFixture,
         raise Exception()
 
     monkeypatch.setattr(wfwx_api, 'get_noon_forecasts_all_stations', mock_get_noon_forecasts)
-    monkeypatch.setattr(app.utils.time, 'get_utc_now', mock_get_utc_now)
     rocket_chat_spy = mocker.spy(noon_forecasts, 'send_rocketchat_notification')
 
     with pytest.raises(SystemExit) as excinfo:
@@ -67,27 +66,3 @@ def test_noon_forecasts_bot_fail_in_season(mocker: MockerFixture,
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
     assert rocket_chat_spy.call_count == 1
-
-
-def test_noon_forecasts_bot_fail_outside_season(mocker: MockerFixture,
-                                                monkeypatch):  # pylint: disable=unused-argument
-    """
-    Test that when the bot fails and the current date is outside fire season, no RC message is sent.
-    Assert exit code 1.
-    """
-    def mock_get_utc_now():
-        return datetime.datetime(2020, 12, 31)
-
-    def mock_get_noon_forecasts():
-        raise Exception()
-
-    monkeypatch.setattr(wfwx_api, 'get_noon_forecasts_all_stations', mock_get_noon_forecasts)
-    monkeypatch.setattr(app.utils.time, 'get_utc_now', mock_get_utc_now)
-    rocket_chat_spy = mocker.spy(noon_forecasts, 'send_rocketchat_notification')
-
-    with pytest.raises(SystemExit) as excinfo:
-        noon_forecasts.main()
-    # Assert that we exited with an error code
-    assert excinfo.value.code == os.EX_SOFTWARE
-    # Assert that rocket chat was NOT called
-    assert rocket_chat_spy.call_count == 0

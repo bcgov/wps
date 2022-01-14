@@ -17,18 +17,6 @@ from app.rocketchat_notifications import send_rocketchat_notification
 
 logger = logging.getLogger(__name__)
 
-"""
-Define a "fire season" applicable to all weather stations.
-If bot fails to retrieve a forecast for any weather station during the fire season,
-an automatic notification will be sent via Rocketchat.
-Outside of the fire season, forecasts are not usually issued, so no RC notification
-should be sent if the bot fails to retrieve any data.
-"""
-FIRE_SEASON_START_MONTH = 4
-FIRE_SEASON_START_DAY = 1
-FIRE_SEASON_END_MONTH = 9
-FIRE_SEASON_END_DAY = 30
-
 
 class NoonForecastJob():
     """ Implementation of class to process noon forecasts. """
@@ -73,13 +61,8 @@ def main():
         # Exit non 0 - failure.
         logger.error('Failed to retrieve noon forecasts.',
                      exc_info=exception)
-        # If and only if current date is during fire season, send a message to Rocketchat to notify
-        # us of the error.
-        now = app.utils.time.get_utc_now()
-        if (FIRE_SEASON_START_MONTH <= now.month <= FIRE_SEASON_END_MONTH)\
-                and (FIRE_SEASON_START_DAY <= now.day <= FIRE_SEASON_END_DAY):
-            rc_message = ':confounded: Encountered error retrieving noon forecasts'
-            send_rocketchat_notification(rc_message, exception)
+        rc_message = ':confounded: Encountered error retrieving noon forecasts'
+        send_rocketchat_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
 
