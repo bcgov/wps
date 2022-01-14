@@ -1,5 +1,10 @@
 # feeling sad? remember to validate this file!
 # curl --data-binary @codecov.yml https://codecov.io/validate
+
+# Ignore prototype features until matured
+ignore:
+  - "web/src/features/cHaines"
+  - "web/src/features/fwiCalculator"
 coverage:
   # https://docs.codecov.com/docs/commit-status
   status:
@@ -21,4 +26,4 @@ coverage:
         paths:
           - web/src
         # web isn't quite amazing yet - would be nice to push it up to 80%
-        target: 71%
+        target: 73%
