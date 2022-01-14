@@ -24,6 +24,7 @@ import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 import { PST_UTC_OFFSET } from 'utils/constants'
+import PrepDaySlider from 'features/hfiCalculator/components/PrepDaySlider'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -159,6 +160,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               isWeeklyView={isWeeklyView}
               toggleTableView={toggleTableView}
             />
+          </FormControl>
+          <FormControl className={classes.formControl}>
+            <PrepDaySlider />
           </FormControl>
 
           <FormControl className={classes.formControl}>
