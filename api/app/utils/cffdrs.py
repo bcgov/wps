@@ -55,7 +55,8 @@ def correct_wind_azimuth(wind_direction: float):
     return waz
 
 
-def calculate_wind_speed(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-arguments, disable=invalid-name
+# pylint: disable=too-many-arguments, disable=invalid-name
+def calculate_wind_speed(fuel_type: FuelTypeEnum,
                          ffmc: float,
                          bui: float,
                          ws: float,
@@ -531,6 +532,8 @@ def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: 
     """
 
     # pylint: disable=protected-access, no-member
+    if ffmc is None:
+        ffmc = NULL
     result = CFFDRS.instance().cffdrs._ffmcCalc(ffmc_yda=ffmc, temp=temperature, rh=relative_humidity,
                                                 prec=precipitation, ws=wind_speed)
     return result[0]
@@ -550,7 +553,23 @@ def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False): 
     #   ISI:    Intial Spread Index
     """
     # pylint: disable=protected-access, no-member
+    if ffmc is None:
+        ffmc = NULL
     result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed, fbpMod=fbpMod)
+    return result[0]
+
+
+def fire_weather_index(isi: float, bui: float):
+    """ Computes Fire Weather Index (FWI) by delegating to cffdrs R package.
+
+        Args:   isi:    Initial Spread Index
+                bui:    Buildup Index
+
+        Returns: A single fwi value
+    """
+
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._fwiCalc(isi=isi, bui=bui)
     return result[0]
 
 
@@ -739,9 +758,9 @@ def get_ffmc_for_target_hfi(    # pylint: disable=too-many-arguments
         if experimental_ffmc <= 0.1:
             break
         if error_hfi > 0:  # if the error value is a positive number, make experimental FFMC value bigger
-            experimental_ffmc = min(101, experimental_ffmc + ((101 - experimental_ffmc)/2))
+            experimental_ffmc = min(101, experimental_ffmc + ((101 - experimental_ffmc) / 2))
         else:  # if the error value is a negative number, need to make experimental FFMC value smaller
-            experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc)/2))
+            experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc) / 2))
         experimental_isi = initial_spread_index(experimental_ffmc, wind_speed)
         experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
         experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc,
