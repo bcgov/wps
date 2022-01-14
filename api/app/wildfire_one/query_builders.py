@@ -72,7 +72,7 @@ class BuildQueryAllForecastsByAfterStart(BuildQuery):
     def __init__(self, start_timestamp: int):
         """ Initialize object """
         super().__init__()
-        self.querystring = f"weatherTimestamp >= {start_timestamp};recordType.id == 'FORECAST'"
+        self.querystring = f"weatherTimestamp >={start_timestamp};recordType.id == 'FORECAST'"
 
     def query(self, page) -> Tuple[str, dict]:
         """ Return query url for dailies between start_timestamp, end_timestamp"""
