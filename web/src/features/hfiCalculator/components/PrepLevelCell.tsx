@@ -1,16 +1,14 @@
 import { makeStyles, TableCell } from '@material-ui/core'
 import { fireTableStyles } from 'app/theme'
-import {
-  calculateMeanPrepLevel,
-  calculatePrepLevel
-} from 'features/hfiCalculator/components/prepLevel'
+import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import React from 'react'
 
 export interface PrepLevelCellProps {
   testid?: string
   meanIntensityGroup: number | undefined
   areaName: string
-  meanPrepLevel: boolean
+  meanPrepLevelBoolean: boolean
+  meanPrepLevel?: number | undefined
 }
 
 const prepLevelColours: { [description: string]: string } = {
@@ -88,15 +86,15 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
   const classes = useStyles()
 
   const prepLevel = () => {
-    if (props.meanPrepLevel) {
-      return calculateMeanPrepLevel(props.meanIntensityGroup)
+    if (props.meanPrepLevelBoolean) {
+      return props.meanPrepLevel
     } else {
       return calculatePrepLevel(props.meanIntensityGroup)
     }
   }
 
   const formatPrepLevelByValue = () => {
-    if (!props.meanPrepLevel) {
+    if (!props.meanPrepLevelBoolean) {
       switch (prepLevel()) {
         case 1:
           return classes.prepLevel1

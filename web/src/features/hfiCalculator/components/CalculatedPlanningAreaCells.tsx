@@ -4,15 +4,15 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
 import {
   calculateDailyMeanIntensities,
-  calculateMaxMeanIntensityGroup,
-  calculateMeanIntensityGroupLevel
+  calculateMaxMeanIntensityGroup
 } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { getDailiesForArea } from 'features/hfiCalculator/util'
-import { groupBy, range } from 'lodash'
+import { groupBy, isUndefined, range } from 'lodash'
 import React from 'react'
+import { calculatePrepLevel } from './prepLevel'
 
 export interface CalculatedCellsProps {
   testId?: string
@@ -29,6 +29,34 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
     daily.date.toUTC().toMillis()
   )
 
+  const calculateDailyPrepLevels = () => {
+    const prepLevels: (number | undefined)[] = []
+    range(NUM_WEEK_DAYS).map(day => {
+      const meanIntensityGroup = dailyMeanIntensityGroups[day]
+      prepLevels.push(calculatePrepLevel(meanIntensityGroup))
+    })
+    return prepLevels
+  }
+  const calculateMeanPrepLevel = (
+    rawMeanIntensityGroups: (number | undefined)[]
+  ): number | undefined => {
+    // for now, prep level calculation assumed a fixed Fire Starts value of 0-1
+    if (isUndefined(rawMeanIntensityGroups)) {
+      return undefined
+    } else {
+      console.log(rawMeanIntensityGroups)
+      const existingDailies: number[] = []
+      rawMeanIntensityGroups.forEach(daily => {
+        if (!isUndefined(daily)) {
+          existingDailies.push(Math.round(daily))
+        }
+      })
+      return Math.round(
+        existingDailies?.reduce((a, b) => a + b, 0) / existingDailies.length
+      )
+    }
+  }
+
   const dailiesByDayUTC = new Map(
     Object.entries(utcDict).map(entry => [Number(entry[0]), entry[1]])
   )
@@ -40,7 +68,9 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
   const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
     dailyMeanIntensityGroups
   )
-  const meanPrepLevel = calculateMeanIntensityGroupLevel(dailyMeanIntensityGroups)
+
+  const dailyPrepLevels = calculateDailyPrepLevels()
+  const meanPrepLevel = calculateMeanPrepLevel(dailyPrepLevels)
 
   return (
     <React.Fragment>
@@ -60,9 +90,10 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
             ></MeanIntensityGroupRollup>
             <FireStartsCell areaName={props.areaName} />
             <PrepLevelCell
-              meanPrepLevel={false}
+              meanPrepLevelBoolean={false}
               meanIntensityGroup={meanIntensityGroup}
               areaName={props.areaName}
+              meanPrepLevel={meanPrepLevel}
             />
           </React.Fragment>
         )
@@ -75,9 +106,10 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
         meanIntensityGroup={highestMeanIntensityGroup}
       ></MeanIntensityGroupRollup>
       <PrepLevelCell
-        meanPrepLevel={true}
+        meanPrepLevelBoolean={true}
         meanIntensityGroup={meanPrepLevel}
         areaName={props.areaName}
+        meanPrepLevel={meanPrepLevel}
       />
     </React.Fragment>
   )

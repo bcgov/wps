@@ -289,7 +289,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           testid={`daily-prep-level-${areaName}`}
                           meanIntensityGroup={meanIntensityGroup}
                           areaName={areaName}
-                          meanPrepLevel={true}
+                          meanPrepLevelBoolean={true}
                         />
                       </TableRow>
                       {Object.entries(area.stations)

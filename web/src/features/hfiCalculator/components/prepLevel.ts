@@ -21,14 +21,3 @@ export const calculatePrepLevel = (
   }
   return 4
 }
-
-export const calculateMeanPrepLevel = (
-  rawMeanIntensityGroup: number | undefined
-): number | undefined => {
-  // for now, prep level calculation assumed a fixed Fire Starts value of 0-1
-  if (isUndefined(rawMeanIntensityGroup)) {
-    return undefined
-  } else {
-    return Math.round(rawMeanIntensityGroup)
-  }
-}
