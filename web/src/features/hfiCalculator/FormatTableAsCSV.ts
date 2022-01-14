@@ -1,7 +1,6 @@
 import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { groupBy, isNull, isUndefined, range } from 'lodash'
-import * as CSV from 'csv-string'
 import {
   getDailiesByStationCode,
   getDailiesForArea,
@@ -21,6 +20,7 @@ import {
 import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { NUM_WEEK_DAYS, DECIMAL_PLACES } from 'features/hfiCalculator/constants'
+import Papa from 'papaparse'
 
 // padding for station-data cells (e.g., station name, fuel type) before dates begin
 const NUM_STATION_DATA_COLS = 5
@@ -43,12 +43,12 @@ export class FormatTableAsCSV {
     fireCentres: Record<string, FireCentre>,
     dailies: StationDaily[]
   ): string => {
-    const rowsAsStrings: string[] = []
+    const rows: string[][] = []
 
-    rowsAsStrings.push(CSV.stringify(dailyTableColumnLabels.toString()))
+    rows.push(dailyTableColumnLabels)
 
     Object.entries(fireCentres).forEach(([, centre]) => {
-      rowsAsStrings.push(CSV.stringify(centre.name))
+      rows.push([centre.name])
       Object.entries(centre.planning_areas)
         .sort((a, b) =>
           getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
@@ -61,13 +61,11 @@ export class FormatTableAsCSV {
           const areaDailies = getDailiesForArea(area, dailies, stationCodesInArea)
           const meanIntensityGroup = calculateMeanIntensity(areaDailies)
           const areaPrepLevel = calculatePrepLevel(meanIntensityGroup)
-          rowsAsStrings.push(
-            CSV.stringify(
-              `${area.name}, ${Array(21).join(
-                ','
-              )} ${meanIntensityGroup}, 0-1, ${areaPrepLevel}` // fire starts of 0-1 is hard-coded for now
-            )
-          )
+          rows.push([
+            `${area.name}, ${Array(21).join(
+              ','
+            )} ${meanIntensityGroup}, 0-1, ${areaPrepLevel}`
+          ])
           Object.entries(area.stations).forEach(([, station]) => {
             const rowArray: string[] = []
             const daily = getDailiesByStationCode(dailies, station.code)[0]
@@ -144,11 +142,11 @@ export class FormatTableAsCSV {
                 : 'ND'
             )
 
-            rowsAsStrings.push(CSV.stringify(rowArray))
+            rows.push(rowArray)
           })
         })
     })
-    return rowsAsStrings.join('')
+    return Papa.unparse(rows, { quotes: false })
   }
 
   static buildAreaWeeklySummaryString = (
@@ -286,6 +284,6 @@ export class FormatTableAsCSV {
           })
         })
     })
-    return CSV.stringify(rowsAsStringArrays)
+    return Papa.unparse(rowsAsStringArrays, { quotes: false })
   }
 }
