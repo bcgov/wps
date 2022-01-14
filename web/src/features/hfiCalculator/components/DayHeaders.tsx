@@ -1,4 +1,4 @@
-import { TableCell } from '@material-ui/core'
+import { Table, TableBody, TableCell, TableRow } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
@@ -35,9 +35,15 @@ const DayHeaders = (props: DayHeadersProps) => {
         colSpan={2}
         className={classes.noBottomBorder}
       >
-        <TableCell
-          className={`${classes.spaceHeader} ${classes.noBottomBorder}`}
-        ></TableCell>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell
+                className={`${classes.spaceHeader} ${classes.noBottomBorder}`}
+              ></TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </StickyCell>
       <TableCell className={classes.spaceHeader}></TableCell>
       <StickyCell
@@ -46,7 +52,13 @@ const DayHeaders = (props: DayHeadersProps) => {
         zIndexOffset={11}
         className={`${classes.rightBorder} ${classes.noBottomBorder}`}
       >
-        <TableCell className={classes.noBottomBorder}></TableCell>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className={classes.noBottomBorder}></TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </StickyCell>
       {range(NUM_WEEK_DAYS).map(i => (
         <TableCell

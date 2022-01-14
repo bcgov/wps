@@ -1,4 +1,4 @@
-import { Checkbox, TableCell } from '@material-ui/core'
+import { Table, TableBody, TableRow, Checkbox, TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { WeatherStation } from 'api/hfiCalcAPI'
 import StickyCell from 'components/StickyCell'
@@ -30,22 +30,34 @@ const BaseStationAttributeCells = ({
   return (
     <React.Fragment>
       <StickyCell left={0} zIndexOffset={11} backgroundColor={'#ffffff'}>
-        <TableCell className={`${className} ${classes.noBottomBorder}`}>
-          <Checkbox
-            checked={stationCodeInSelected(station.code)}
-            onClick={() => toggleSelectedStation(station.code)}
-            data-testid={`select-station-${station.code}`}
-            color="primary"
-          ></Checkbox>
-        </TableCell>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className={`${className} ${classes.noBottomBorder}`}>
+                <Checkbox
+                  checked={stationCodeInSelected(station.code)}
+                  onClick={() => toggleSelectedStation(station.code)}
+                  data-testid={`select-station-${station.code}`}
+                  color="primary"
+                ></Checkbox>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </StickyCell>
       <StickyCell left={50} zIndexOffset={11} backgroundColor={'#ffffff'}>
-        <TableCell
-          key={`station-${station.code}-name`}
-          className={`${className} ${classes.stationLocation} ${classes.noBottomBorder}`}
-        >
-          {station.station_props.name} ({station.code})
-        </TableCell>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell
+                key={`station-${station.code}-name`}
+                className={`${className} ${classes.stationLocation} ${classes.noBottomBorder}`}
+              >
+                {station.station_props.name} ({station.code})
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </StickyCell>
       <TableCell key={`station-${station.code}-elevation`} className={className}>
         {station.station_props.elevation}
@@ -56,12 +68,18 @@ const BaseStationAttributeCells = ({
         backgroundColor={'#ffffff'}
         className={`${isDailyTable ? classes.rightBorder : undefined}`}
       >
-        <TableCell
-          key={`station-${station.code}-fuel-type`}
-          className={`${className} ${classes.noBottomBorder}`}
-        >
-          {station.station_props.fuel_type.abbrev}
-        </TableCell>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell
+                key={`station-${station.code}-fuel-type`}
+                className={`${className} ${classes.noBottomBorder}`}
+              >
+                {station.station_props.fuel_type.abbrev}
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </StickyCell>
     </React.Fragment>
   )
