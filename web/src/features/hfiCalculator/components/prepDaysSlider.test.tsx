@@ -1,11 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import PrepDaysSlider from 'features/hfiCalculator/components/PrepDaysSlider'
+import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import React from 'react'
 describe('PrepDaySlider', () => {
   it('should render the status if it is defined', () => {
     const setDaysMock = jest.fn()
     const { getAllByDisplayValue } = render(
-      <PrepDaysSlider days={2} setDays={setDaysMock} />
+      <PrepDaysDropdown days={2} setNumPrepDays={setDaysMock} />
     )
     expect(getAllByDisplayValue(2)[0]).toHaveAttribute('name', 'input-prep-days-input')
     expect(setDaysMock.mock.calls.length).toBe(0)
@@ -13,7 +13,7 @@ describe('PrepDaySlider', () => {
   it.only('should change when input is changed', () => {
     const setDaysMock = jest.fn()
     const { getAllByDisplayValue } = render(
-      <PrepDaysSlider days={2} setDays={setDaysMock} />
+      <PrepDaysDropdown days={2} setNumPrepDays={setDaysMock} />
     )
     const input = screen.getByTestId('prep-days-slider')
     console.log(input.nextSibling)

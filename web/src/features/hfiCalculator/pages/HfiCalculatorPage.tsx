@@ -24,10 +24,10 @@ import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 import { PST_UTC_OFFSET } from 'utils/constants'
-import PrepDaysSelect from 'features/hfiCalculator/components/PrepDaysSlider'
-import { HFIDatePicker } from 'features/hfiCalculator/components/HFIDatePicker'
+import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import { setPrepDays } from 'features/hfiCalculator/slices/hfiPrepSlice'
 import { getDailiesForCSV } from 'features/hfiCalculator/util'
+import DatePicker from 'components/DatePicker'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -158,9 +158,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         title="Predictive Services Unit"
         productName="HFI Calculator"
       />
-      <PageTitle maxWidth={false} padding="1rem" title="HFI Calculator">
-        <HFIDatePicker dateOfInterest={dateOfInterest} updateDate={updateDate} />
-      </PageTitle>
+      <PageTitle maxWidth={false} padding="1rem" title="HFI Calculator" />
       {loading || stationDataLoading ? (
         <Container className={classes.container}>
           <CircularProgress />
@@ -168,7 +166,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       ) : (
         <Container maxWidth={'xl'}>
           <FormControl className={classes.prepDays}>
-            <PrepDaysSelect days={numPrepDays} setNumPrepDays={setNumPrepDays} />
+            <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
+          </FormControl>
+          <FormControl className={classes.formControl}>
+            <DatePicker date={dateOfInterest} updateDate={updateDate} />
           </FormControl>
           <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
