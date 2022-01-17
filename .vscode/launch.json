@@ -19,6 +19,18 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "app.jobs.noon_forecasts",
+            "type": "python",
+            "request": "launch",
+            "module": "app.jobs.noon_forecasts"
+        },
+        {
+            "name": "app.jobs.hourly_actuals",
+            "type": "python",
+            "request": "launch",
+            "module": "app.jobs.hourly_actuals"
+        },
+        {
             "name": "app.weather_models.env_canada RDPS",
             "type": "python",
             "request": "launch",
