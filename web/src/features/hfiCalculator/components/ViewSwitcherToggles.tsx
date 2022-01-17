@@ -24,6 +24,9 @@ const useStyles = makeStyles(() => ({
       backgroundColor: theme.palette.primary.main,
       color: 'white',
       fontWeight: 'bold'
+    },
+    '& .MuiToggleButton-label': {
+      lineHeight: '16px'
     }
   }
 }))
