@@ -1,7 +1,7 @@
 """Import remaining fire centres, planning areas, etc. for HFI calc
 
 Revision ID: 8efe0e7b9712
-Revises: 1caf3488a340
+Revises: b557469a7727
 Create Date: 2022-01-13 17:18:52.430766
 
 """
@@ -11,7 +11,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '8efe0e7b9712'
-down_revision = '1caf3488a340'
+down_revision = 'b557469a7727'
 branch_labels = None
 depends_on = None
 
@@ -19,12 +19,11 @@ depends_on = None
 def upgrade():
     conn = op.get_bind()
 
-    # Migration to import remaining data from updated planning_areas.json
-    # performs same operation as in initial_hfi_data_import.py except ignores conflicts
-    # so that there's no duplicate entries
+    # Migration to import remaining data from 8efe0e7b9712_add_remaining_fcs_for_hfi.json
+    # performs same operation as in initial_hfi_data_import.py
 
     # Load planning areas data
-    with open('app/data/planning_areas.json') as planning_areas_file:
+    with open('alembic/versions/8efe0e7b9712_add_remaining_fcs_for_hfi.json') as planning_areas_file:
         planning_areas_data = json.load(planning_areas_file)
 
     # populate fire_centres table with all fire centres from planning_areas_file that don't already exist in database
@@ -33,7 +32,7 @@ def upgrade():
         for key, values in centre.items():
             fire_centre_name = '\'' + key + '\''
 
-            op.execute('INSERT INTO fire_centres (name) VALUES ({}) ON CONFLICT (name) DO NOTHING'.format(
+            op.execute('INSERT INTO fire_centres (name) VALUES ({})'.format(
                 fire_centre_name))
 
             # for each zone (planning area), need to get the fire centre id based on the fire centre name
@@ -43,7 +42,7 @@ def upgrade():
                 res = conn.execute('SELECT id FROM fire_centres WHERE name LIKE {}'.format(fire_centre_name))
                 results = res.fetchall()
                 fire_centre_id = str(results[0]).replace('(', '').replace(')', '').replace(',', '')
-                op.execute('INSERT INTO planning_areas (name, fire_centre_id) VALUES ({}, {}) ON CONFLICT (name, fire_centre_id) DO NOTHING'.format(
+                op.execute('INSERT INTO planning_areas (name, fire_centre_id) VALUES ({}, {})'.format(
                     zone_name, fire_centre_id))
 
                 stations = list(zone_dict.values())[0].get('stations')[0]
@@ -61,7 +60,7 @@ def upgrade():
                     planning_area_id = str(planning_area_results[0]).replace(
                         '(', '').replace(')', '').replace(',', '')
                     op.execute('INSERT INTO planning_weather_stations (station_code, fuel_type_id, '
-                               'planning_area_id) VALUES ({}, {}, {}) ON CONFLICT (station_code, fuel_type_id, planning_area_id) DO NOTHING'.format(
+                               'planning_area_id) VALUES ({}, {}, {})'.format(
                                    station_code, fuel_type_id, planning_area_id))
 
 
@@ -69,6 +68,21 @@ def downgrade():
     # deletes all entries in planning_weather_stations, planning_areas, and fire_centres EXCEPT for
     # those pertaining to Kamloops Fire Centre - those were added in a previous migration (1caf3488a340)
     # I don't like this approach but I can't think of a better way to do it
-    op.execute('DELETE FROM planning_weather_stations WHERE planning_area_id > 5 ')
-    op.execute('DELETE FROM planning_areas WHERE fire_centre_id > 1')
-    op.execute('DELETE FROM fire_centres WHERE id > 1')
+    conn = op.get_bind()
+
+    kamloops_fire_centre_id_query = conn.execute(
+        'SELECT id FROM fire_centres WHERE name like \'Kamloops Fire Centre\'')
+    kamloops_fire_centre_id = str(kamloops_fire_centre_id_query.fetchall()[0]).replace(
+        '(', '').replace(')', '').replace(',', '')
+    kamloops_planning_area_ids_query = conn.execute(
+        'SELECT id FROM planning_areas WHERE fire_centre_id = {}'.format(kamloops_fire_centre_id))
+    kamloops_planning_area_ids = kamloops_planning_area_ids_query.fetchall()
+    kamloops_planning_area_ids = str(kamloops_planning_area_ids).replace(
+        '[', '').replace(']', '').replace("(", "").replace(")", "").replace(',,', ',')
+    kamloops_planning_area_ids = '(' + kamloops_planning_area_ids[:-1] + ')'
+    print(kamloops_planning_area_ids)
+    op.execute('DELETE FROM planning_weather_stations WHERE planning_area_id NOT IN {}'.format(
+        kamloops_planning_area_ids))
+    op.execute('DELETE FROM planning_areas WHERE id NOT IN {}'.format(
+        kamloops_planning_area_ids))
+    op.execute('DELETE FROM fire_centres WHERE id != {}'.format(kamloops_fire_centre_id))
