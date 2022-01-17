@@ -26,13 +26,14 @@ interface Props {
 export const PageTitle: React.FunctionComponent<Props> = (props: Props) => {
   const classes = useStyles(props)
   const { title, maxWidth, children } = props
+  const toDisplay = children ? children : title
 
   return (
     <div className={classes.root}>
       {maxWidth !== undefined ? (
-        <Container maxWidth={maxWidth}>{children ? children : title}</Container>
+        <Container maxWidth={maxWidth}>{toDisplay}</Container>
       ) : (
-        <Container>{children ? children : title}</Container>
+        <Container>{toDisplay}</Container>
       )}
     </div>
   )
