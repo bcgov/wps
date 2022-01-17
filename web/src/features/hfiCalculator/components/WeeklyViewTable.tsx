@@ -22,6 +22,8 @@ export interface Props {
   fireCentres: Record<string, FireCentre>
   dailies: StationDaily[]
   currentDay: string
+  days: number
+  setDays: React.Dispatch<React.SetStateAction<number>>
   testId?: string
 }
 
@@ -77,7 +79,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
     >
       <TableHead>
         <TableRow>
-          <DayHeaders isoDate={props.currentDay} />
+          <DayHeaders isoDate={props.currentDay} days={props.days} />
           <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>
@@ -138,7 +140,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               </TableBody>
             </Table>
           </StickyCell>
-          <DayIndexHeaders />
+          <DayIndexHeaders days={props.days} />
           <TableCell className={classes.sectionSeparatorBorder}>
             Highest
             <br />
@@ -221,6 +223,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           dailies={props.dailies}
                           selected={selected}
                           planningAreaClass={classes.planningArea}
+                          days={props.days}
                         />
                       </TableRow>
                       {Object.entries(area.stations)

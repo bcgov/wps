@@ -12,7 +12,7 @@ const prepCycleIteration = (prepDay: DateTime, isoDate: DateTime) => {
       <Table>
         <TableBody>
           <TableRow>
-            <DayHeaders isoDate={isoDate.toISO()}></DayHeaders>
+            <DayHeaders isoDate={isoDate.toISO()} days={NUM_WEEK_DAYS}></DayHeaders>
           </TableRow>
         </TableBody>
       </Table>

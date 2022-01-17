@@ -18,7 +18,6 @@ const PrepDaysSelect = ({ days, setDays }: PrepDaySelectProps) => {
   return (
     <React.Fragment>
       <InputLabel id="prep-days-label"># Prep Days</InputLabel>
-
       <Select variant="outlined" value={days} onChange={changeHandler}>
         <MenuItem value={2}>2</MenuItem>
         <MenuItem value={3}>3</MenuItem>

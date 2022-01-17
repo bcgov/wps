@@ -207,6 +207,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               fireCentres={fireCentres}
               dailies={dailies}
               dateOfInterest={dateOfInterest}
+              days={days}
+              setDays={setDays}
             />
           </ErrorBoundary>
         </Container>
