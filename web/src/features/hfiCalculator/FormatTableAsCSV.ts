@@ -155,10 +155,7 @@ export class FormatTableAsCSV {
     area: PlanningArea,
     dailies: StationDaily[]
   ): string[] => {
-    const areaWeeklySummary: string[] = [
-      area.name,
-      ...Array(numPrepDays - NUM_DAILY_DATA_COLS_THAT_DONT_APPLY_TO_AREA).fill(' ')
-    ]
+    const areaWeeklySummary: string[] = [area.name, ...Array(numPrepDays).fill(' ')]
 
     const stationCodesInArea: number[] = []
     Object.entries(area.stations).forEach(([, station]) => {
@@ -230,7 +227,7 @@ export class FormatTableAsCSV {
     // according to docs for csv-string library (https://www.npmjs.com/package/csv-string#api-documentation),
     // \n char should be used as newline indicator regardless of OS. Later on in code, these strings will be
     // "CSV stringified", so using /n here as line separator
-    rowsAsStringArrays.push(weeklyTableColumnLabels)
+    rowsAsStringArrays.push(weeklyTableColumnLabels(numPrepDays))
 
     Object.entries(fireCentres).forEach(([, centre]) => {
       rowsAsStringArrays.push([centre.name])

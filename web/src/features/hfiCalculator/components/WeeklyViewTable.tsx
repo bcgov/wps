@@ -35,12 +35,12 @@ export const columnLabelsForEachDayInWeek: string[] = [
   'Prep Level'
 ]
 
-export const weeklyTableColumnLabels: string[] = [
+export const weeklyTableColumnLabels = (numPrepDays: number): string[] => [
   'Location',
   'Elev. (m)',
   'FBP Fuel Type',
   'Grass Cure (%)',
-  ...Array(5).fill(columnLabelsForEachDayInWeek).flat(),
+  ...Array(numPrepDays).fill(columnLabelsForEachDayInWeek).flat(),
   'Highest Daily FIG',
   'Calc. Prep'
 ]

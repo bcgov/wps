@@ -1,6 +1,6 @@
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { groupBy, sortBy, take } from 'lodash'
+import { chain, groupBy, sortBy, take } from 'lodash'
 
 export const getDailiesForArea = (
   area: PlanningArea,
@@ -17,6 +17,19 @@ export const getDailiesForArea = (
 
 export const getZoneFromAreaName = (areaName: string): string => {
   return areaName.slice(-3)
+}
+
+export const getDailiesForCSV = (
+  numPrepDays: number,
+  dailies: StationDaily[]
+): StationDaily[] => {
+  // Group all dailies by their station code, then take only the number we need for each station
+  return chain(dailies)
+    .groupBy(daily => daily.code)
+    .map((stationDailies, code) => ({ code, stationDailies }))
+    .value()
+    .map(({ stationDailies }) => take(stationDailies, numPrepDays))
+    .flat()
 }
 
 export const getDailiesByStationCode = (

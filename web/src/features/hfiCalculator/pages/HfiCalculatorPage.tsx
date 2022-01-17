@@ -27,6 +27,7 @@ import { PST_UTC_OFFSET } from 'utils/constants'
 import PrepDaysSelect from 'features/hfiCalculator/components/PrepDaysSlider'
 import { HFIDatePicker } from 'features/hfiCalculator/components/HFIDatePicker'
 import { setPrepDays } from 'features/hfiCalculator/slices/hfiPrepSlice'
+import { getDailiesForCSV } from 'features/hfiCalculator/util'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -108,7 +109,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const weeklyViewAsString = FormatTableAsCSV.exportWeeklyRowsAsStrings(
         numPrepDays,
         fireCentres,
-        dailies
+        getDailiesForCSV(numPrepDays, dailies)
       )
       navigator.clipboard.writeText(weeklyViewAsString)
     } else {
