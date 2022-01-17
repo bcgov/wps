@@ -60,7 +60,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const [isWeeklyView, toggleTableView] = useState(true)
+  const [selectedPredDay, setSelectedPrepDay] = useState<DateTime | null>(null)
+  const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPredDay == null)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
 
   // the DatePicker component requires dateOfInterest to be in string format
@@ -131,9 +132,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [])
 
   useEffect(() => {
+    setIsWeeklyView(selectedPredDay == null)
     refreshView()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isWeeklyView])
+  }, [selectedPredDay])
 
   return (
     <main data-testid="hfi-calculator-page">
@@ -156,8 +158,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
           <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
-              isWeeklyView={isWeeklyView}
-              toggleTableView={toggleTableView}
+              setSelectedPrepDay={setSelectedPrepDay}
+              selectedPrepDay={selectedPredDay}
+              dateOfInterest={dateOfInterest}
             />
           </FormControl>
 
