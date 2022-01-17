@@ -53,8 +53,7 @@ def parse_table_records_to_noon_forecast_response(data: [app.db.models.forecasts
             isi=None if math.isnan(record.isi) else record.isi,
             bui=None if math.isnan(record.bui) else record.bui,
             fwi=None if math.isnan(record.fwi) else record.fwi,
-            danger_rating=None if math.isnan(
-                record.danger_rating) else record.danger_rating,
+            danger_rating=None,
             created_at=record.created_at
         )
         noon_forecasts[station_code].append(noon_forecast_value)

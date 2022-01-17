@@ -1,6 +1,13 @@
 import React, { ReactFragment, useState } from 'react'
 
-import { TableBody, TableCell, TableHead, TableRow, Tooltip } from '@material-ui/core'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Tooltip
+} from '@material-ui/core'
 import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
@@ -126,14 +133,26 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       <TableHead>
         <TableRow>
           <StickyCell left={0} zIndexOffset={12}>
-            <TableCell className={classes.noBottomBorder}>
-              {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
-            </TableCell>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell className={classes.noBottomBorder}>
+                    {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </StickyCell>
           <StickyCell left={50} zIndexOffset={12} className={classes.stationLocation}>
-            <TableCell key="header-location" className={classes.noBottomBorder}>
-              Location
-            </TableCell>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell key="header-location" className={classes.noBottomBorder}>
+                    Location
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </StickyCell>
           <TableCell key="header-elevation" className={classes.nonstickyHeaderCell}>
             Elev.
@@ -141,13 +160,19 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             (m)
           </TableCell>
           <StickyCell left={230} zIndexOffset={12} className={classes.rightBorder}>
-            <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
-              FBP
-              <br />
-              Fuel
-              <br />
-              Type
-            </TableCell>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
+                    FBP
+                    <br />
+                    Fuel
+                    <br />
+                    Type
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </StickyCell>
           <TableCell>Status</TableCell>
           <TableCell>
@@ -270,9 +295,15 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           colSpan={3}
                           backgroundColor={BACKGROUND_COLOR.backgroundColor}
                         >
-                          <TableCell className={classes.noBottomBorder}>
-                            {area.name}
-                          </TableCell>
+                          <Table>
+                            <TableBody>
+                              <TableRow>
+                                <TableCell className={classes.noBottomBorder}>
+                                  {area.name}
+                                </TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
                         </StickyCell>
                         <TableCell
                           colSpan={19}
