@@ -5,8 +5,7 @@ import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { range } from 'lodash'
 import { theme } from 'app/theme'
 import React from 'react'
-import { getPrepWeeklyDateRange } from 'utils/date'
-import { toISO } from 'utils/date'
+import { getPrepWeeklyDateRange, toISO } from 'utils/date'
 
 export interface ViewSwitcherTogglesProps {
   testId?: string
