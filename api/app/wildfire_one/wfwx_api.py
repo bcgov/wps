@@ -10,22 +10,22 @@ import app
 from app import config
 from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
-from app.schemas.hfi_calc import HFIWeatherStationsResponse, StationDaily
+from app.db.models.forecasts import NoonForecast
+from app.schemas.hfi_calc import StationDaily
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.fba import FireCentre
 from app.schemas.stations import (WeatherStation,
                                   WeatherVariables)
-from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_mapper,
+from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_mapper, parse_noon_forecast,
                                              parse_station,
                                              generate_station_daily,
-                                             parse_hourly,
                                              parse_hourly_actual,
                                              station_list_mapper,
                                              wfwx_station_list_mapper)
-from app.wildfire_one.query_builders import (BuildQueryAllActiveStations,
+from app.wildfire_one.query_builders import (BuildQueryAllActiveStations, BuildQueryAllForecastsByAfterStart,
                                              BuildQueryAllHourliesByRange,
                                              BuildQueryByStationCode,
-                                             BuildQueryDailesByStationCode)
+                                             BuildQueryDailiesByStationCode)
 from app.wildfire_one.util import is_station_valid
 from app.wildfire_one.wildfire_fetchers import (fetch_access_token,
                                                 fetch_detailed_geojson_stations,
@@ -175,6 +175,43 @@ async def get_hourly_readings(
     return await asyncio.gather(*tasks)
 
 
+async def get_noon_forecasts_all_stations(
+        session: ClientSession,
+        header: dict,
+        start_timestamp: datetime) -> List[NoonForecast]:
+    """ Get the noon forecasts for all stations.
+    """
+
+    noon_forecasts: List[NoonForecast] = []
+
+    # Iterate through "raw" forecast data.
+    forecasts_iterator = fetch_paged_response_generator(
+        session, header, BuildQueryAllForecastsByAfterStart(
+            math.floor(start_timestamp.timestamp() * 1000)), 'dailies')
+
+    forecasts = []
+    async for noon_forecast in forecasts_iterator:
+        forecasts.append(noon_forecast)
+
+    stations: List[WFWXWeatherStation] = await get_station_data(
+        session,
+        header,
+        mapper=wfwx_station_list_mapper)
+
+    station_code_dict = {station.wfwx_id: station.code for station in stations}
+
+    for noon_forecast in forecasts:
+        try:
+            station_code = station_code_dict[(noon_forecast['stationId'])]
+            parsed_noon_forecast = parse_noon_forecast(station_code, noon_forecast)
+            if parsed_noon_forecast is not None:
+                noon_forecasts.append(parsed_noon_forecast)
+        except KeyError as exception:
+            logger.warning("Missing noon forecast for station code", exc_info=exception)
+
+    return noon_forecasts
+
+
 async def get_hourly_actuals_all_stations(
         session: ClientSession,
         header: dict,
@@ -185,17 +222,17 @@ async def get_hourly_actuals_all_stations(
 
     hourly_actuals: List[HourlyActual] = []
 
-    # Iterate through "raw" station data.
+    # Iterate through "raw" hourlies data.
     hourlies_iterator = fetch_paged_response_generator(
         session, header, BuildQueryAllHourliesByRange(
-            math.floor(start_timestamp.timestamp()*1000),
-            math.floor(end_timestamp.timestamp()*1000)), 'hourlies')
+            math.floor(start_timestamp.timestamp() * 1000),
+            math.floor(end_timestamp.timestamp() * 1000)), 'hourlies')
 
     hourlies = []
     async for hourly in hourlies_iterator:
         hourlies.append(hourly)
 
-    stations: List[HFIWeatherStationsResponse] = await get_station_data(
+    stations: List[WFWXWeatherStation] = await get_station_data(
         session,
         header,
         mapper=wfwx_station_list_mapper)
@@ -204,10 +241,9 @@ async def get_hourly_actuals_all_stations(
 
     for hourly in hourlies:
         if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
-            parsed_hourly = parse_hourly(hourly)
             try:
                 station_code = station_code_dict[(hourly['stationId'])]
-                hourly_actual = parse_hourly_actual(station_code, parsed_hourly)
+                hourly_actual = parse_hourly_actual(station_code, hourly)
                 if hourly_actual is not None:
                     hourly_actuals.append(hourly_actual)
             except KeyError as exception:
@@ -262,7 +298,7 @@ async def get_dailies_lookup_fuel_types(  # pylint: disable=too-many-locals
             fuel_type_dict[planning_station_record.station_code] = fuel_type_record.abbrev
 
     dailies_iterator = fetch_paged_response_generator(
-        session, header, BuildQueryDailesByStationCode(
+        session, header, BuildQueryDailiesByStationCode(
             start_timestamp,
             end_timestamp, wfwx_station_ids), 'dailies')
 
@@ -286,7 +322,7 @@ async def get_dailies(
     # build a list of wfwx station id's
     wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
 
-    timestamp_of_intereset = math.floor(time_of_interest.timestamp()*1000)
+    timestamp_of_interset = math.floor(time_of_interest.timestamp() * 1000)
 
     # for local dev, we can use redis to reduce load in prod, and generally just makes development faster.
     # for production, it's more tricky - we don't want to put too much load on the wf1 api, but we don't
@@ -294,8 +330,8 @@ async def get_dailies(
     cache_expiry_seconds = config.get('REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY', 300)
     use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
 
-    dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailesByStationCode(
-        timestamp_of_intereset, timestamp_of_intereset, wfwx_station_ids), 'dailies',
+    dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailiesByStationCode(
+        timestamp_of_interset, timestamp_of_interset, wfwx_station_ids), 'dailies',
         use_cache=use_cache,
         cache_expiry_seconds=cache_expiry_seconds)
 
