@@ -45,8 +45,6 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
   const selectedPrepDayString =
     props.selectedPrepDay == null ? null : toISO(props.selectedPrepDay)
 
-  console.log('selectedPrepDayString', selectedPrepDayString)
-
   return (
     <React.Fragment>
       <ToggleButtonGroup
@@ -65,15 +63,15 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
         </ToggleButton>
         {/* Create a button for each day of the prep period. */}
         {range(NUM_WEEK_DAYS).map(i => {
+          const day = start.plus({ days: i })
           const rowA = `Day ${i + 1}`
-          const rowB = start.plus({ days: i }).toLocaleString({
+          const rowB = day.toLocaleString({
             weekday: 'short',
             month: 'short',
             day: '2-digit'
           })
-          const dateString = toISO(start.plus({ days: i }))
           return (
-            <ToggleButton key={i} value={dateString} aria-label={`${rowA}. ${rowB}.`}>
+            <ToggleButton key={i} value={toISO(day)} aria-label={`${rowA}. ${rowB}.`}>
               {rowA}
               <br />
               {rowB}
