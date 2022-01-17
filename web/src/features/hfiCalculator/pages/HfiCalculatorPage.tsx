@@ -24,9 +24,9 @@ import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 import { PST_UTC_OFFSET } from 'utils/constants'
-import PrepDaySlider, {
+import PrepDaysSlider, {
   MAX_PREP_DAYS
-} from 'features/hfiCalculator/components/PrepDaySlider'
+} from 'features/hfiCalculator/components/PrepDaysSlider'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -165,7 +165,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             />
           </FormControl>
           <FormControl className={classes.formControl}>
-            <PrepDaySlider days={days} setDays={setDays} />
+            <PrepDaysSlider days={days} setDays={setDays} />
           </FormControl>
 
           <FormControl className={classes.formControl}>

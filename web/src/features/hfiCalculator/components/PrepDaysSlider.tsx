@@ -28,18 +28,21 @@ export interface PrepDaySliderProps {
   setDays: React.Dispatch<React.SetStateAction<number>>
 }
 
-const PrepDaySlider = ({ days, setDays }: PrepDaySliderProps) => {
+const PrepDaysSlider = ({ days, setDays }: PrepDaySliderProps) => {
   return (
     <React.Fragment>
       <Typography variant="button" gutterBottom>
         Number of Prep Days
       </Typography>
       <Slider
+        data-testid="prep-days-slider"
         aria-label="Prep Day Range"
+        name="input-prep-days-input"
         marks={PREP_DAY_RANGE_OPTIONS}
         max={MAX_PREP_DAYS}
         min={MIN_PREP_DAYS}
         onChange={(_, timeRange) => {
+          console.log('Been changed')
           if (typeof timeRange === 'number') {
             setDays(timeRange)
           }
@@ -51,4 +54,4 @@ const PrepDaySlider = ({ days, setDays }: PrepDaySliderProps) => {
   )
 }
 
-export default React.memo(PrepDaySlider)
+export default React.memo(PrepDaysSlider)
