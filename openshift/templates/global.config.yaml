@@ -32,15 +32,6 @@ parameters:
     displayName: Repication Passsword
     name: PATRONI_REPLICATION_PASSWORD
     required: true
-  - name: BC_FIRE_WEATHER_USER
-    description: Username (idir) to be used for authentication to access BC FireWeather Phase 1
-    required: true
-  - name: BC_FIRE_WEATHER_SECRET
-    description: Password for the BC_FIRE_WEATHER_USER account
-    required: true
-  - name: BC_FIRE_WEATHER_FILTER_ID
-    description: ID of custom-made filter associated with BC_FIRE_WEATHER_USER account, used for querying forecast data for all stations
-    required: true
   - name: STATUS_CHECKER_SECRET
     description: Token for status-checker Openshift service account. Used for /health check
   - name: OPENSHIFT_BASE_URI
