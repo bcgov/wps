@@ -35,7 +35,10 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
 
   const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
 
-  const dailyMeanIntensityGroups = calculateDailyMeanIntensities(dailiesByDayUTC)
+  const dailyMeanIntensityGroups = calculateDailyMeanIntensities(
+    props.days,
+    dailiesByDayUTC
+  )
 
   const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
     dailyMeanIntensityGroups

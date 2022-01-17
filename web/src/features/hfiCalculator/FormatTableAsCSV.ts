@@ -40,6 +40,7 @@ const printGrassCurePercentage = (daily: StationDaily): string => {
 
 export class FormatTableAsCSV {
   public static exportDailyRowsAsStrings = (
+    days: number,
     fireCentres: Record<string, FireCentre>,
     dailies: StationDaily[]
   ): string => {
@@ -70,7 +71,7 @@ export class FormatTableAsCSV {
           )
           Object.entries(area.stations).forEach(([, station]) => {
             const rowArray: string[] = []
-            const daily = getDailiesByStationCode(dailies, station.code)[0]
+            const daily = getDailiesByStationCode(days, dailies, station.code)[0]
 
             const grassCureError = !isValidGrassCure(daily, station.station_props)
 
@@ -152,6 +153,7 @@ export class FormatTableAsCSV {
   }
 
   static buildAreaWeeklySummaryString = (
+    days: number,
     area: PlanningArea,
     dailies: StationDaily[]
   ): string[] => {
@@ -175,7 +177,7 @@ export class FormatTableAsCSV {
     const dailiesByDayUTC = new Map(
       Object.entries(utcDict).map(entry => [Number(entry[0]), entry[1]])
     )
-    const dailyMeanIntensityGroups = calculateDailyMeanIntensities(dailiesByDayUTC)
+    const dailyMeanIntensityGroups = calculateDailyMeanIntensities(days, dailiesByDayUTC)
     const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
       dailyMeanIntensityGroups
     )
@@ -204,6 +206,7 @@ export class FormatTableAsCSV {
   }
 
   public static exportWeeklyRowsAsStrings = (
+    days: number,
     fireCentres: Record<string, FireCentre>,
     dailies: StationDaily[]
   ): string => {
@@ -238,10 +241,10 @@ export class FormatTableAsCSV {
           getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
         )
         .forEach(([, area]) => {
-          rowsAsStringArrays.push(this.buildAreaWeeklySummaryString(area, dailies))
+          rowsAsStringArrays.push(this.buildAreaWeeklySummaryString(days, area, dailies))
 
           Object.entries(area.stations).forEach(([, station]) => {
-            const dailiesForStation = getDailiesByStationCode(dailies, station.code)
+            const dailiesForStation = getDailiesByStationCode(days, dailies, station.code)
             const grassCureError = !isValidGrassCure(dailies[0], station.station_props)
 
             const rowArray: string[] = []

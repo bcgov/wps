@@ -1,5 +1,4 @@
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { range } from 'lodash'
 
 export const intensityGroupColours: { [description: string]: string } = {
@@ -25,9 +24,10 @@ const isDefined = (item: number | undefined): item is number => {
   return !!item
 }
 export const calculateDailyMeanIntensities = (
+  days: number,
   dailiesByDayUTC: Map<number, StationDaily[]>
 ): (number | undefined)[] =>
-  range(NUM_WEEK_DAYS).map(i => {
+  range(days).map(i => {
     const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
 
     const dailies: StationDaily[] | undefined = dailiesByDayUTC.get(

@@ -327,6 +327,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
                           const daily = getDailiesByStationCode(
+                            1,
                             props.dailies,
                             station.code
                           )[0]

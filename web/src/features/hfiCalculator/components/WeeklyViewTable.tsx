@@ -230,6 +230,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
                           const dailiesForStation = getDailiesByStationCode(
+                            props.days,
                             props.dailies,
                             station.code
                           )

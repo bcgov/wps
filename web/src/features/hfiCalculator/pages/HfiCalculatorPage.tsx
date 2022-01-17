@@ -102,12 +102,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const copyTable = () => {
     if (isWeeklyView) {
       const weeklyViewAsString = FormatTableAsCSV.exportWeeklyRowsAsStrings(
+        days,
         fireCentres,
         dailies
       )
       navigator.clipboard.writeText(weeklyViewAsString)
     } else {
       const dailyViewAsString = FormatTableAsCSV.exportDailyRowsAsStrings(
+        days,
         fireCentres,
         dailies
       )

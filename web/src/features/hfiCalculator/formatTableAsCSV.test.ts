@@ -2,6 +2,7 @@ import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 import { DateTime } from 'luxon'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 describe('RowManager', () => {
   const fireCentres: Record<string, FireCentre> = {
     0: {
@@ -362,6 +363,7 @@ describe('RowManager', () => {
 
   it('should export Daily Table to a CSV string correctly', () => {
     const dailyTableCSVString = FormatTableAsCSV.exportDailyRowsAsStrings(
+      NUM_WEEK_DAYS,
       fireCentres,
       dailies
     )
@@ -652,6 +654,7 @@ describe('RowManager', () => {
       }
     ]
     const weeklyTableString = FormatTableAsCSV.exportWeeklyRowsAsStrings(
+      NUM_WEEK_DAYS,
       fireCentres,
       stationDailiesForWeek
     )
@@ -700,6 +703,7 @@ describe('RowManager', () => {
       'WELLS" GRAY'
     escapeCharFireCentres[0].planning_areas[2].stations[0].station_props.name = 'FINTRY,'
     const dailyTableCSVString = FormatTableAsCSV.exportDailyRowsAsStrings(
+      NUM_WEEK_DAYS,
       escapeCharFireCentres,
       dailies
     )
@@ -745,6 +749,7 @@ describe('RowManager', () => {
       undefined
 
     const dailyTableCSVString = FormatTableAsCSV.exportDailyRowsAsStrings(
+      NUM_WEEK_DAYS,
       missingElevationFireCentres,
       dailies
     )
