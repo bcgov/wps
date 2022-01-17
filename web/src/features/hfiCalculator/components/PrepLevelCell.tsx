@@ -89,6 +89,7 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
     if (props.meanPrepLevelBoolean) {
       return props.meanPrepLevel
     } else {
+      console.log(calculatePrepLevel(props.meanIntensityGroup))
       return calculatePrepLevel(props.meanIntensityGroup)
     }
   }

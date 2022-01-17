@@ -34,14 +34,14 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('280-fire-type').contains('IC')
       cy.getByTestId('280-intensity-group').contains(3)
       cy.getByTestId('zone-1-mean-intensity').contains(2.4)
-      cy.getByTestId('daily-prep-level-0').contains(2)
+      cy.getByTestId('daily-prep-level-0').contains(1)
       cy.getByTestId('daily-prep-level-0').should($td => {
         const className = $td[0].className
-        expect(className).to.match(/makeStyles-meanPrepLevel2-/)
+        expect(className).to.match(/makeStyles-prepLevel1-/)
       })
-      cy.getByTestId('daily-prep-level-2').contains(4)
+      cy.getByTestId('daily-prep-level-2').contains(3)
       cy.getByTestId('daily-prep-level-2').should($td => {
-        expect($td[0].className).to.match(/makeStyles-meanPrepLevel4-/)
+        expect($td[0].className).to.match(/makeStyles-prepLevel3-/)
       })
     })
 

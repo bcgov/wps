@@ -44,7 +44,6 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
     if (isUndefined(rawMeanIntensityGroups)) {
       return undefined
     } else {
-      console.log(rawMeanIntensityGroups)
       const existingDailies: number[] = []
       rawMeanIntensityGroups.forEach(daily => {
         if (!isUndefined(daily)) {
