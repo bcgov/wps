@@ -52,7 +52,7 @@ class PlanningWeatherStation(Base):
     """ Weather station within planning area selected as a representative of its associated planning area """
     __tablename__ = 'planning_weather_stations'
     __table_args__ = (
-        UniqueConstraint('station_code'),
+        UniqueConstraint('station_code', 'planning_area_id'),
         {'comment': 'Identifies the unique code used to identify the station'}
     )
 
