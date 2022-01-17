@@ -1,4 +1,4 @@
-import { makeStyles, TableCell } from '@material-ui/core'
+import { makeStyles, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
@@ -22,9 +22,15 @@ const FireCentreCell = (props: FireCentreCellProps) => {
       colSpan={4}
       data-testid={props.testId}
     >
-      <TableCell className={`${classes.fireCentre} ${classes.noBottomBorder}`}>
-        {props.centre.name}
-      </TableCell>
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell className={`${classes.fireCentre} ${classes.noBottomBorder}`}>
+              {props.centre.name}
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </StickyCell>
   )
 }

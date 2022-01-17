@@ -30,7 +30,7 @@ import {
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
-import { useLocation, useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import DatePicker from 'components/DatePicker'
 import assert from 'assert'
 import { rowShouldUpdate, isWindSpeedInvalid } from 'features/fbaCalculator/validation'
@@ -123,7 +123,7 @@ const tableColumnLabels: string[] = [
 
 const FBATable = (props: FBATableProps) => {
   const classes = useStyles()
-  const history = useHistory()
+  const navigate = useNavigate()
   const location = useLocation()
   const dispatch = useDispatch()
 
@@ -309,7 +309,7 @@ const FBATable = (props: FBATableProps) => {
   }
 
   const updateQueryParams = (queryParams: string) => {
-    history.push({
+    navigate({
       search: queryParams
     })
   }
