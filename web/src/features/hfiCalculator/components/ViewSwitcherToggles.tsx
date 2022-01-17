@@ -36,17 +36,15 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
 
   const handleToggle = (
     _: React.MouseEvent<HTMLElement, MouseEvent>,
-    dayOfInterest: string | null
+    dayOfInterest: string
   ) => {
-    props.setSelectedPrepDay(
-      dayOfInterest == null ? null : DateTime.fromISO(dayOfInterest)
-    )
+    props.setSelectedPrepDay(dayOfInterest == '' ? null : DateTime.fromISO(dayOfInterest))
   }
 
   const { start } = getPrepWeeklyDateRange(props.dateOfInterest)
 
   const selectedPrepDayString =
-    props.selectedPrepDay == null ? null : toISO(props.selectedPrepDay)
+    props.selectedPrepDay == null ? '' : toISO(props.selectedPrepDay)
 
   return (
     <React.Fragment>
@@ -59,7 +57,7 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
       >
         <ToggleButton
           data-testid="prep-period-toggle"
-          value={null}
+          value={''}
           aria-label="prep toggle"
         >
           Prep Period
@@ -74,7 +72,12 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
             day: '2-digit'
           })
           return (
-            <ToggleButton key={i} value={toISO(day)} aria-label={`${rowA}. ${rowB}.`}>
+            <ToggleButton
+              key={i}
+              value={toISO(day)}
+              aria-label={`${rowA}. ${rowB}.`}
+              data-testid={`daily-toggle-${i}`}
+            >
               {rowA}
               <br />
               {rowB}
