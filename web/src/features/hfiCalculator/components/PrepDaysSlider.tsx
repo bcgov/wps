@@ -1,57 +1,32 @@
-import { Slider, Typography } from '@material-ui/core'
+import { InputLabel, MenuItem, Select } from '@material-ui/core'
 import React from 'react'
 
 export const MIN_PREP_DAYS = 2
 export const MAX_PREP_DAYS = 5
 
-const PREP_DAY_RANGE_OPTIONS = [
-  {
-    value: MIN_PREP_DAYS,
-    label: MIN_PREP_DAYS
-  },
-  {
-    value: 3,
-    label: 3
-  },
-  {
-    value: 4,
-    label: 4
-  },
-  {
-    value: MAX_PREP_DAYS,
-    label: MAX_PREP_DAYS
-  }
-]
-
-export interface PrepDaySliderProps {
+export interface PrepDaySelectProps {
   days: number
   setDays: React.Dispatch<React.SetStateAction<number>>
 }
 
-const PrepDaysSlider = ({ days, setDays }: PrepDaySliderProps) => {
+const PrepDaysSelect = ({ days, setDays }: PrepDaySelectProps) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const changeHandler = (event: React.ChangeEvent<{ value: any }>) => {
+    setDays(Number(event.target.value))
+  }
+
   return (
     <React.Fragment>
-      <Typography variant="button" gutterBottom>
-        Number of Prep Days
-      </Typography>
-      <Slider
-        data-testid="prep-days-slider"
-        aria-label="Prep Day Range"
-        name="input-prep-days-input"
-        marks={PREP_DAY_RANGE_OPTIONS}
-        max={MAX_PREP_DAYS}
-        min={MIN_PREP_DAYS}
-        onChange={(_, timeRange) => {
-          console.log('Been changed')
-          if (typeof timeRange === 'number') {
-            setDays(timeRange)
-          }
-        }}
-        step={null}
-        value={days}
-      />
+      <InputLabel id="prep-days-label"># Prep Days</InputLabel>
+
+      <Select variant="outlined" value={days} onChange={changeHandler}>
+        <MenuItem value={2}>2</MenuItem>
+        <MenuItem value={3}>3</MenuItem>
+        <MenuItem value={4}>4</MenuItem>
+        <MenuItem value={5}>5</MenuItem>
+      </Select>
     </React.Fragment>
   )
 }
 
-export default React.memo(PrepDaysSlider)
+export default React.memo(PrepDaysSelect)

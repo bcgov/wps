@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Container, ErrorBoundary, GeneralHeader, PageTitle } from 'components'
-import DatePicker from 'components/DatePicker'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import { fetchHFIDailies } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -24,9 +23,10 @@ import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 import { PST_UTC_OFFSET } from 'utils/constants'
-import PrepDaysSlider, {
+import PrepDaysSelect, {
   MAX_PREP_DAYS
 } from 'features/hfiCalculator/components/PrepDaysSlider'
+import { HFIDatePicker } from 'features/hfiCalculator/components/HFIDatePicker'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -51,6 +51,10 @@ const useStyles = makeStyles(() => ({
   positionStyler: {
     position: 'absolute',
     right: '20px'
+  },
+  prepDays: {
+    margin: theme.spacing(1),
+    minWidth: 100
   }
 }))
 
@@ -147,27 +151,24 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         title="Predictive Services Unit"
         productName="HFI Calculator"
       />
-      <PageTitle maxWidth={false} padding="1rem" title="HFI Calculator" />
+      <PageTitle maxWidth={false} padding="1rem" title="HFI Calculator">
+        <HFIDatePicker dateOfInterest={dateOfInterest} updateDate={updateDate} />
+      </PageTitle>
       {loading || stationDataLoading ? (
         <Container className={classes.container}>
           <CircularProgress />
         </Container>
       ) : (
         <Container maxWidth={'xl'}>
-          <FormControl className={classes.formControl}>
-            <DatePicker date={dateOfInterest} updateDate={updateDate} />
+          <FormControl className={classes.prepDays}>
+            <PrepDaysSelect days={days} setDays={setDays} />
           </FormControl>
-
           <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
               isWeeklyView={isWeeklyView}
               toggleTableView={toggleTableView}
             />
           </FormControl>
-          <FormControl className={classes.formControl}>
-            <PrepDaysSlider days={days} setDays={setDays} />
-          </FormControl>
-
           <FormControl className={classes.formControl}>
             {isCopied ? (
               <Button>

@@ -20,18 +20,19 @@ interface Props {
   title: string
   padding?: string
   maxWidth?: false | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | undefined
+  children?: React.ReactNode
 }
 
 export const PageTitle: React.FunctionComponent<Props> = (props: Props) => {
   const classes = useStyles(props)
-  const { title, maxWidth } = props
+  const { title, maxWidth, children } = props
 
   return (
     <div className={classes.root}>
       {maxWidth !== undefined ? (
-        <Container maxWidth={maxWidth}>{title}</Container>
+        <Container maxWidth={maxWidth}>{children ? children : title}</Container>
       ) : (
-        <Container>{title}</Container>
+        <Container>{children ? children : title}</Container>
       )}
     </div>
   )
