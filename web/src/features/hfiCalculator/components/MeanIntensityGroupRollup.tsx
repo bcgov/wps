@@ -92,18 +92,20 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   }
   if (genericError) {
     return (
-      <ThemeProvider theme={errorIconTheme}>
-        <Tooltip
-          title={genericErrorToolTipElement}
-          aria-label={`${genericErrorToolTipFirstLine} ${toolTipSecondLine}`}
-        >
-          <div className={classes.alignErrorIcon}>
-            <ErrorOutlineIcon
-              data-testid={`zone-${props.area.id}-mig-error`}
-            ></ErrorOutlineIcon>
-          </div>
-        </Tooltip>
-      </ThemeProvider>
+      <TableCell>
+        <ThemeProvider theme={errorIconTheme}>
+          <Tooltip
+            title={genericErrorToolTipElement}
+            aria-label={`${genericErrorToolTipFirstLine} ${toolTipSecondLine}`}
+          >
+            <div className={classes.alignErrorIcon}>
+              <ErrorOutlineIcon
+                data-testid={`zone-${props.area.id}-mig-error`}
+              ></ErrorOutlineIcon>
+            </div>
+          </Tooltip>
+        </ThemeProvider>
+      </TableCell>
     )
   }
   return (
