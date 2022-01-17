@@ -20,7 +20,7 @@ export const getZoneFromAreaName = (areaName: string): string => {
 }
 
 export const getDailiesByStationCode = (
-  days: number,
+  numPrepDays: number,
   dailies: StationDaily[],
   stationCode: number
 ): StationDaily[] => {
@@ -33,7 +33,7 @@ export const getDailiesByStationCode = (
 
   const dailiesForCode = take(
     sortBy(dailiesByCode.get(stationCode), daily => daily.date.toMillis()),
-    days
+    numPrepDays
   )
 
   return dailiesForCode ? dailiesForCode : []

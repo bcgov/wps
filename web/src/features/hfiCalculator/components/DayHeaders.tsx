@@ -9,7 +9,7 @@ import { getPrepWeeklyDateRange } from 'utils/date'
 export interface DayHeadersProps {
   testId?: string
   isoDate: string
-  days: number
+  numPrepDays: number
 }
 
 const useStyles = makeStyles({
@@ -60,7 +60,7 @@ const DayHeaders = (props: DayHeadersProps) => {
           </TableBody>
         </Table>
       </StickyCell>
-      {range(props.days).map(i => (
+      {range(props.numPrepDays).map(i => (
         <TableCell
           data-testid={`day-${i}`}
           colSpan={5}

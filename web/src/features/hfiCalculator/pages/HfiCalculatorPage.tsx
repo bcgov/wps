@@ -7,7 +7,8 @@ import { DateTime } from 'luxon'
 import {
   selectHFIDailies,
   selectHFIStations,
-  selectHFIStationsLoading
+  selectHFIStationsLoading,
+  selectHFIPrepDays
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui/core'
 import {
@@ -23,10 +24,9 @@ import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 import { PST_UTC_OFFSET } from 'utils/constants'
-import PrepDaysSelect, {
-  MAX_PREP_DAYS
-} from 'features/hfiCalculator/components/PrepDaysSlider'
+import PrepDaysSelect from 'features/hfiCalculator/components/PrepDaysSlider'
 import { HFIDatePicker } from 'features/hfiCalculator/components/HFIDatePicker'
+import { setPrepDays } from 'features/hfiCalculator/slices/hfiPrepSlice'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -67,9 +67,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
+  const numPrepDays = useSelector(selectHFIPrepDays)
+  const setNumPrepDays = (numDays: number) => {
+    dispatch(setPrepDays(numDays))
+  }
+
   const [isWeeklyView, toggleTableView] = useState(true)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
-  const [days, setDays] = useState(MAX_PREP_DAYS)
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(
@@ -102,14 +106,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const copyTable = () => {
     if (isWeeklyView) {
       const weeklyViewAsString = FormatTableAsCSV.exportWeeklyRowsAsStrings(
-        days,
+        numPrepDays,
         fireCentres,
         dailies
       )
       navigator.clipboard.writeText(weeklyViewAsString)
     } else {
       const dailyViewAsString = FormatTableAsCSV.exportDailyRowsAsStrings(
-        days,
+        numPrepDays,
         fireCentres,
         dailies
       )
@@ -163,7 +167,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       ) : (
         <Container maxWidth={'xl'}>
           <FormControl className={classes.prepDays}>
-            <PrepDaysSelect days={days} setDays={setDays} />
+            <PrepDaysSelect days={numPrepDays} setNumPrepDays={setNumPrepDays} />
           </FormControl>
           <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
@@ -209,8 +213,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               fireCentres={fireCentres}
               dailies={dailies}
               dateOfInterest={dateOfInterest}
-              days={days}
-              setDays={setDays}
             />
           </ErrorBoundary>
         </Container>

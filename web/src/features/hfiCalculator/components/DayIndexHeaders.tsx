@@ -9,13 +9,13 @@ const useStyles = makeStyles({
 })
 
 export interface DayIndexHeadersProps {
-  days: number
+  numPrepDays: number
 }
 const DayIndexHeaders = (props: DayIndexHeadersProps) => {
   const classes = useStyles()
   return (
     <React.Fragment>
-      {range(props.days).map(i => (
+      {range(props.numPrepDays).map(i => (
         <React.Fragment key={i}>
           <TableCell
             data-testid={`ros-header-${i}`}

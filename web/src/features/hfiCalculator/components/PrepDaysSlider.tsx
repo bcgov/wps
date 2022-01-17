@@ -6,13 +6,13 @@ export const MAX_PREP_DAYS = 5
 
 export interface PrepDaySelectProps {
   days: number
-  setDays: React.Dispatch<React.SetStateAction<number>>
+  setNumPrepDays: (numDays: number) => void
 }
 
-const PrepDaysSelect = ({ days, setDays }: PrepDaySelectProps) => {
+const PrepDaysSelect = ({ days, setNumPrepDays }: PrepDaySelectProps) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const changeHandler = (event: React.ChangeEvent<{ value: any }>) => {
-    setDays(Number(event.target.value))
+    setNumPrepDays(Number(event.target.value))
   }
 
   return (

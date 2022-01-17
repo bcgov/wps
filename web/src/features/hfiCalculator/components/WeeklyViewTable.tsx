@@ -17,13 +17,13 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import { getDailiesByStationCode, getZoneFromAreaName } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
+import { selectHFIPrepDays } from 'app/rootReducer'
+import { useSelector } from 'react-redux'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
   dailies: StationDaily[]
   currentDay: string
-  days: number
-  setDays: React.Dispatch<React.SetStateAction<number>>
   testId?: string
 }
 
@@ -52,6 +52,8 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
+  const numPrepDays = useSelector(selectHFIPrepDays)
+
   const [selected, setSelected] = useState<number[]>(
     union(props.dailies.map(daily => daily.code))
   )
@@ -79,7 +81,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
     >
       <TableHead>
         <TableRow>
-          <DayHeaders isoDate={props.currentDay} days={props.days} />
+          <DayHeaders isoDate={props.currentDay} numPrepDays={numPrepDays} />
           <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>
@@ -140,7 +142,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               </TableBody>
             </Table>
           </StickyCell>
-          <DayIndexHeaders days={props.days} />
+          <DayIndexHeaders numPrepDays={numPrepDays} />
           <TableCell className={classes.sectionSeparatorBorder}>
             Highest
             <br />
@@ -223,14 +225,14 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           dailies={props.dailies}
                           selected={selected}
                           planningAreaClass={classes.planningArea}
-                          days={props.days}
+                          days={numPrepDays}
                         />
                       </TableRow>
                       {Object.entries(area.stations)
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
                           const dailiesForStation = getDailiesByStationCode(
-                            props.days,
+                            numPrepDays,
                             props.dailies,
                             station.code
                           )
