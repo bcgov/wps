@@ -22,6 +22,9 @@ import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 
+// padding for station-data cells (e.g., station name, fuel type) before dates begin
+const NUM_STATION_DATA_COLS = 5
+
 // padding for station-specific cells (repeated daily) that will be left empty in planning area row
 // (e.g., ROS, HFI)
 const NUM_DAILY_DATA_COLS_THAT_DONT_APPLY_TO_AREA = 2
@@ -155,7 +158,12 @@ export class FormatTableAsCSV {
     area: PlanningArea,
     dailies: StationDaily[]
   ): string[] => {
-    const areaWeeklySummary: string[] = [area.name, ...Array(numPrepDays).fill(' ')]
+    const areaWeeklySummary: string[] = [
+      area.name,
+      ...Array(NUM_STATION_DATA_COLS - NUM_DAILY_DATA_COLS_THAT_DONT_APPLY_TO_AREA).fill(
+        ' '
+      )
+    ]
 
     const stationCodesInArea: number[] = []
     Object.entries(area.stations).forEach(([, station]) => {
@@ -217,7 +225,7 @@ export class FormatTableAsCSV {
       )
     })
     // build header row of dates
-    const dateRow: string[] = Array(numPrepDays - 1).fill(' ')
+    const dateRow: string[] = Array(NUM_STATION_DATA_COLS - 1).fill(' ')
     Array.from(dateSet).forEach(date => {
       dateRow.push(date)
       dateRow.push(...Array(columnLabelsForEachDayInWeek.length - 1).fill(' '))
