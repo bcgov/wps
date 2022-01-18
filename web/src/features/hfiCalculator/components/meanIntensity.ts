@@ -24,10 +24,10 @@ const isDefined = (item: number | undefined): item is number => {
   return !!item
 }
 export const calculateDailyMeanIntensities = (
-  days: number,
+  numPrepDays: number,
   dailiesByDayUTC: Map<number, StationDaily[]>
 ): (number | undefined)[] =>
-  range(days).map(i => {
+  range(numPrepDays).map(i => {
     const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
 
     const dailies: StationDaily[] | undefined = dailiesByDayUTC.get(
