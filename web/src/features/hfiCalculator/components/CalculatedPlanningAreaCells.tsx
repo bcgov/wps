@@ -10,14 +10,10 @@ import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanInte
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { getDailiesForArea } from 'features/hfiCalculator/util'
-import { groupBy, isUndefined, range } from 'lodash'
+import { groupBy, range } from 'lodash'
 import React from 'react'
 import AveragePrepLevelCell from './AveragePrepLevelCell'
-import {
-  calculateDailyPrepLevels,
-  calculateMeanPrepLevel,
-  calculatePrepLevel
-} from './prepLevel'
+import { calculateDailyPrepLevels, calculateMeanPrepLevel } from './prepLevel'
 
 export interface CalculatedCellsProps {
   testId?: string

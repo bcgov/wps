@@ -57,12 +57,10 @@ const useStyles = makeStyles({
 const PrepLevelCell = (props: PrepLevelCellProps) => {
   const classes = useStyles()
 
-  const prepLevel = () => {
-    return calculatePrepLevel(props.meanIntensityGroup)
-  }
+  const prepLevel = calculatePrepLevel(props.meanIntensityGroup)
 
   const formatPrepLevelByValue = () => {
-    switch (prepLevel()) {
+    switch (prepLevel) {
       case 1:
         return classes.prepLevel1
       case 2:
@@ -82,7 +80,7 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
 
   return (
     <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
-      {prepLevel()}
+      {prepLevel}
     </TableCell>
   )
 }
