@@ -20,10 +20,11 @@ import {
 } from 'features/hfiCalculator/components/meanIntensity'
 import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
-import { NUM_WEEK_DAYS, DECIMAL_PLACES } from 'features/hfiCalculator/constants'
+import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 
 // padding for station-data cells (e.g., station name, fuel type) before dates begin
 const NUM_STATION_DATA_COLS = 5
+
 // padding for station-specific cells (repeated daily) that will be left empty in planning area row
 // (e.g., ROS, HFI)
 const NUM_DAILY_DATA_COLS_THAT_DONT_APPLY_TO_AREA = 2
@@ -40,6 +41,7 @@ const printGrassCurePercentage = (daily: StationDaily): string => {
 
 export class FormatTableAsCSV {
   public static exportDailyRowsAsStrings = (
+    numPrepDays: number,
     fireCentres: Record<string, FireCentre>,
     dailies: StationDaily[]
   ): string => {
@@ -70,7 +72,7 @@ export class FormatTableAsCSV {
           )
           Object.entries(area.stations).forEach(([, station]) => {
             const rowArray: string[] = []
-            const daily = getDailiesByStationCode(dailies, station.code)[0]
+            const daily = getDailiesByStationCode(numPrepDays, dailies, station.code)[0]
 
             const grassCureError = !isValidGrassCure(daily, station.station_props)
 
@@ -152,6 +154,7 @@ export class FormatTableAsCSV {
   }
 
   static buildAreaWeeklySummaryString = (
+    numPrepDays: number,
     area: PlanningArea,
     dailies: StationDaily[]
   ): string[] => {
@@ -175,14 +178,17 @@ export class FormatTableAsCSV {
     const dailiesByDayUTC = new Map(
       Object.entries(utcDict).map(entry => [Number(entry[0]), entry[1]])
     )
-    const dailyMeanIntensityGroups = calculateDailyMeanIntensities(dailiesByDayUTC)
+    const dailyMeanIntensityGroups = calculateDailyMeanIntensities(
+      numPrepDays,
+      dailiesByDayUTC
+    )
     const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
       dailyMeanIntensityGroups
     )
     const meanIntensityGroup = calculateMeanIntensityGroupLevel(dailyMeanIntensityGroups)
     const calcPrepLevel = calculatePrepLevel(meanIntensityGroup)
 
-    Array.from(range(NUM_WEEK_DAYS)).forEach(day => {
+    Array.from(range(numPrepDays)).forEach(day => {
       const dailyIntensityGroup = dailyMeanIntensityGroups[day]
       const areaDailyPrepLevel = calculatePrepLevel(dailyIntensityGroup)
       const fireStarts = '0-1' // hard-coded for now
@@ -204,6 +210,7 @@ export class FormatTableAsCSV {
   }
 
   public static exportWeeklyRowsAsStrings = (
+    numPrepDays: number,
     fireCentres: Record<string, FireCentre>,
     dailies: StationDaily[]
   ): string => {
@@ -228,7 +235,7 @@ export class FormatTableAsCSV {
     // according to docs for csv-string library (https://www.npmjs.com/package/csv-string#api-documentation),
     // \n char should be used as newline indicator regardless of OS. Later on in code, these strings will be
     // "CSV stringified", so using /n here as line separator
-    rowsAsStringArrays.push(weeklyTableColumnLabels)
+    rowsAsStringArrays.push(weeklyTableColumnLabels(numPrepDays))
 
     Object.entries(fireCentres).forEach(([, centre]) => {
       rowsAsStringArrays.push([centre.name])
@@ -238,10 +245,16 @@ export class FormatTableAsCSV {
           getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
         )
         .forEach(([, area]) => {
-          rowsAsStringArrays.push(this.buildAreaWeeklySummaryString(area, dailies))
+          rowsAsStringArrays.push(
+            this.buildAreaWeeklySummaryString(numPrepDays, area, dailies)
+          )
 
           Object.entries(area.stations).forEach(([, station]) => {
-            const dailiesForStation = getDailiesByStationCode(dailies, station.code)
+            const dailiesForStation = getDailiesByStationCode(
+              numPrepDays,
+              dailies,
+              station.code
+            )
             const grassCureError = !isValidGrassCure(dailies[0], station.station_props)
 
             const rowArray: string[] = []

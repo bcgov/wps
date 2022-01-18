@@ -8,7 +8,6 @@ import {
 } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
-import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { getDailiesForArea } from 'features/hfiCalculator/util'
 import { groupBy, range } from 'lodash'
 import React from 'react'
@@ -25,6 +24,7 @@ export interface CalculatedCellsProps {
   areaName: string
   selected: number[]
   planningAreaClass: string
+  numPrepDays: number
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
@@ -39,7 +39,10 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
 
   const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
 
-  const dailyMeanIntensityGroups = calculateDailyMeanIntensities(dailiesByDayUTC)
+  const dailyMeanIntensityGroups = calculateDailyMeanIntensities(
+    props.numPrepDays,
+    dailiesByDayUTC
+  )
 
   const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
     dailyMeanIntensityGroups
@@ -50,7 +53,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
 
   return (
     <React.Fragment>
-      {range(NUM_WEEK_DAYS).map(day => {
+      {range(props.numPrepDays).map(day => {
         const dailies: StationDaily[] | undefined = dailiesByDayUTC.get(
           orderedDayTimestamps[day]
         )
