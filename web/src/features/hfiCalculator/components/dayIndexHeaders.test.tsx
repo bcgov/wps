@@ -12,7 +12,7 @@ describe('DayIndexHeaders', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <DayIndexHeaders days={NUM_WEEK_DAYS} />
+              <DayIndexHeaders numPrepDays={NUM_WEEK_DAYS} />
             </TableRow>
           </TableBody>
         </Table>
