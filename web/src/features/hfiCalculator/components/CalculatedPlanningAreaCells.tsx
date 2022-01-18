@@ -13,7 +13,10 @@ import { getDailiesForArea } from 'features/hfiCalculator/util'
 import { groupBy, range } from 'lodash'
 import React from 'react'
 import AveragePrepLevelCell from './AveragePrepLevelCell'
-import { calculateDailyPrepLevels, calculateMeanPrepLevel } from './prepLevel'
+import {
+  calculateDailyPrepLevels,
+  calculateMeanPrepLevel
+} from 'features/hfiCalculator/components/prepLevel'
 
 export interface CalculatedCellsProps {
   testId?: string
