@@ -24,6 +24,7 @@ import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 import { PST_UTC_OFFSET } from 'utils/constants'
+import FireCentreDropdown from '../components/FireCentreDropdown'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -150,6 +151,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         </Container>
       ) : (
         <Container maxWidth={'xl'}>
+          <FormControl className={classes.formControl}>
+            <FireCentreDropdown fireCentres={fireCentres} />
+          </FormControl>
+
           <FormControl className={classes.formControl}>
             <DatePicker date={dateOfInterest} updateDate={updateDate} />
           </FormControl>
