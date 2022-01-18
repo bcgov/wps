@@ -225,7 +225,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           dailies={props.dailies}
                           selected={selected}
                           planningAreaClass={classes.planningArea}
-                          days={numPrepDays}
+                          numPrepDays={numPrepDays}
                         />
                       </TableRow>
                       {Object.entries(area.stations)

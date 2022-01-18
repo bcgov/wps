@@ -20,7 +20,7 @@ export interface CalculatedCellsProps {
   areaName: string
   selected: number[]
   planningAreaClass: string
-  days: number
+  numPrepDays: number
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
@@ -36,7 +36,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
   const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
 
   const dailyMeanIntensityGroups = calculateDailyMeanIntensities(
-    props.days,
+    props.numPrepDays,
     dailiesByDayUTC
   )
 
@@ -47,7 +47,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
 
   return (
     <React.Fragment>
-      {range(props.days).map(day => {
+      {range(props.numPrepDays).map(day => {
         const dailies: StationDaily[] | undefined = dailiesByDayUTC.get(
           orderedDayTimestamps[day]
         )
