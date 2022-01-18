@@ -44,7 +44,7 @@ export const calculateMeanPrepLevel = (
 
 export const calculateDailyPrepLevels = (
   dailyMeanIntensityGroups: (number | undefined)[]
-) => {
+): (number | undefined)[] => {
   const prepLevels: (number | undefined)[] = []
   range(NUM_WEEK_DAYS).map(day => {
     const meanIntensityGroup = dailyMeanIntensityGroups[day]
