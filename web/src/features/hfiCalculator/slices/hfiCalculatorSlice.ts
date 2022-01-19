@@ -19,10 +19,10 @@ export interface HFICalculatorState {
   loading: boolean
   error: string | null
   dailies: StationDaily[]
-  fireCentres: Record<string, FireCentre>
+  fireCentres: { [key: string]: FireCentre }
   numPrepDays: number
   selected: number[]
-  planningAreaHFIResults: Map<string, HFIResult>
+  planningAreaHFIResults: { [key: string]: HFIResult }
 }
 
 const initialState: HFICalculatorState = {
@@ -32,7 +32,7 @@ const initialState: HFICalculatorState = {
   fireCentres: {},
   numPrepDays: NUM_WEEK_DAYS,
   selected: [],
-  planningAreaHFIResults: new Map()
+  planningAreaHFIResults: {}
 }
 
 const calculateMeanIntensity = (dailies: StationDaily[]): number | undefined =>
@@ -121,12 +121,12 @@ export const calculateMeanPrepLevel = (
 }
 
 const calculateHFIResults = (
-  fireCentres: Record<string, FireCentre>,
+  fireCentres: { [key: string]: FireCentre },
   dailies: StationDaily[],
   numPrepDays: number,
   selected: number[]
-): Map<string, HFIResult> => {
-  const planningAreaToDailies: Map<string, HFIResult> = new Map()
+): { [key: string]: HFIResult } => {
+  const planningAreaToDailies: { [key: string]: HFIResult } = {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Object.entries(fireCentres).map(([_, fireCentre]) =>
@@ -146,13 +146,13 @@ const calculateHFIResults = (
       )
       const dailyPrepLevels = calculateDailyPrepLevels(dailyMeanIntensityGroups)
       const meanPrepLevel = calculateMeanPrepLevel(dailyPrepLevels)
-      planningAreaToDailies.set(areaName, {
+      planningAreaToDailies[areaName] = {
         dailies: areaDailies,
         dailyMeanIntensityGroups,
         maxMeanIntensityGroup,
         dailyPrepLevels,
         meanPrepLevel
-      })
+      }
     })
   )
   return planningAreaToDailies
@@ -179,6 +179,7 @@ const dailiesSlice = createSlice({
     ) {
       state.error = null
       state.dailies = action.payload.dailies
+      state.fireCentres = action.payload.fireCentres
       state.selected = action.payload.selected
       state.planningAreaHFIResults = calculateHFIResults(
         action.payload.fireCentres,

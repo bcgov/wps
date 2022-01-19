@@ -169,7 +169,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                   getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
                 ) // sort by zone code
                 .map(([areaName, area]) => {
-                  const areaHFIResult = planningAreaHFIResults.get(areaName)
+                  const areaHFIResult = planningAreaHFIResults[areaName]
                   return (
                     areaHFIResult && (
                       <React.Fragment key={`zone-${areaName}`}>
