@@ -11,7 +11,7 @@ export interface ViewSwitcherProps {
   dailies: StationDaily[]
   dateOfInterest: string
   selected: number[]
-  setSelected: React.Dispatch<React.SetStateAction<number[]>>
+  setSelected: (selected: number[]) => void
 }
 
 const ViewSwitcher = (props: ViewSwitcherProps) => {

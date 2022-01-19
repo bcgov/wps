@@ -197,12 +197,26 @@ const dailiesSlice = createSlice({
         action.payload,
         state.selected
       )
+    },
+    setSelectedStations: (state, action: PayloadAction<number[]>) => {
+      state.selected = action.payload
+      state.planningAreaHFIResults = calculateHFIResults(
+        state.fireCentres,
+        state.dailies,
+        state.numPrepDays,
+        action.payload
+      )
     }
   }
 })
 
-export const { getDailiesStart, getDailiesFailed, getDailiesSuccess, setPrepDays } =
-  dailiesSlice.actions
+export const {
+  getDailiesStart,
+  getDailiesFailed,
+  getDailiesSuccess,
+  setPrepDays,
+  setSelectedStations
+} = dailiesSlice.actions
 
 export default dailiesSlice.reducer
 

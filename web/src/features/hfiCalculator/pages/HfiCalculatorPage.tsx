@@ -3,7 +3,8 @@ import { Button, Container, ErrorBoundary, GeneralHeader, PageTitle } from 'comp
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   fetchHFIDailies,
-  setPrepDays
+  setPrepDays,
+  setSelectedStations
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
@@ -71,13 +72,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const { numPrepDays } = useSelector(selectHFICalculatorState)
+  const { numPrepDays, selected } = useSelector(selectHFICalculatorState)
   const setNumPrepDays = (numDays: number) => {
     dispatch(setPrepDays(numDays))
   }
-  const [selected, setSelected] = useState<number[]>(
-    union(dailies.map(daily => daily.code))
-  )
+
+  const setSelected = (selected: number[]) => {
+    dispatch(setSelectedStations(selected))
+  }
 
   const [isWeeklyView, toggleTableView] = useState(true)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
@@ -99,6 +101,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       )
     )
   }
+
+  useEffect(() => {
+    setSelected(union(dailies.map(daily => daily.code)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dailies])
 
   useEffect(() => {
     const { start, end } = getDateRange(isWeeklyView, dateOfInterest)

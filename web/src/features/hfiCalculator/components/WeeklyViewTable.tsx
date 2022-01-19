@@ -26,7 +26,7 @@ export interface Props {
   dailies: StationDaily[]
   currentDay: string
   selected: number[]
-  setSelected: React.Dispatch<React.SetStateAction<number[]>>
+  setSelected: (selected: number[]) => void
 }
 
 export const columnLabelsForEachDayInWeek: string[] = [
