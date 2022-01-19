@@ -29,7 +29,7 @@ def validate_time_range(start_time_stamp: Optional[int], end_time_stamp: Optiona
         Defaults to start of today and end of today if no range is given. """
     if start_time_stamp is None or end_time_stamp is None:
         today_start, today_end = app.utils.time.get_pst_today_start_and_end()
-        return math.floor(today_start.timestamp()*1000), math.floor(today_end.timestamp()*1000)
+        return math.floor(today_start.timestamp() * 1000), math.floor(today_end.timestamp() * 1000)
     return int(start_time_stamp), int(end_time_stamp)
 
 
@@ -42,6 +42,7 @@ async def get_daily_view(response: Response,
     """ Returns daily metrics for each station code. """
     try:
         logger.info('/hfi-calc/daily')
+        logger.info(station_codes)
         response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
         valid_start_time, valid_end_time = validate_time_range(start_time_stamp, end_time_stamp)
 

@@ -43,11 +43,11 @@ export const { getDailiesStart, getDailiesFailed, getDailiesSuccess } =
 export default dailiesSlice.reducer
 
 export const fetchHFIDailies =
-  (startTime: number, endTime: number): AppThunk =>
+  (startTime: number, endTime: number, stationCodes: number[] = []): AppThunk =>
   async dispatch => {
     try {
       dispatch(getDailiesStart())
-      const dailies = await getDailies(startTime, endTime)
+      const dailies = await getDailies(startTime, endTime, stationCodes)
       dispatch(getDailiesSuccess(dailies))
     } catch (err) {
       dispatch(getDailiesFailed((err as Error).toString()))

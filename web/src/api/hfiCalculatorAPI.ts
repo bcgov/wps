@@ -44,12 +44,14 @@ const url = '/hfi-calc/daily'
 
 export async function getDailies(
   startTime: number,
-  endTime: number
+  endTime: number,
+  stationCodes: number[]
 ): Promise<StationDaily[]> {
   const { data } = await axios.get<StationDailyResponse>(url, {
     params: {
       start_time_stamp: startTime,
-      end_time_stamp: endTime
+      end_time_stamp: endTime,
+      station_codes: stationCodes
     }
   })
 

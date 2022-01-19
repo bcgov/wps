@@ -3,6 +3,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete'
 import { TextField } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { FireCentre } from 'api/hfiCalcAPI'
+import { isNull } from 'lodash'
 
 const useStyles = makeStyles({
   autocomplete: {
@@ -22,6 +23,7 @@ export interface Option {
 interface Props {
   className?: string
   fireCentres: Record<string, FireCentre>
+  onChange: (value: FireCentre | undefined) => void
 }
 
 const FireCentreDropdown = (props: Props) => {
@@ -41,6 +43,16 @@ const FireCentreDropdown = (props: Props) => {
           options={allFireCentreOptions}
           getOptionLabel={option => `${option.name}`}
           getOptionSelected={(option, value) => option.name === value.name}
+          onChange={(_, option) => {
+            if (isNull(option)) {
+              props.onChange(undefined)
+            } else {
+              const fc = Object.values(props.fireCentres).filter(
+                record => record.name === option.name
+              )[0]
+              props.onChange(fc)
+            }
+          }}
           size="small"
           renderInput={params => (
             <TextField
