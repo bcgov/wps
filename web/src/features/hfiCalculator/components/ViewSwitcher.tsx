@@ -7,9 +7,9 @@ import React from 'react'
 export interface ViewSwitcherProps {
   testId?: string
   isWeeklyView: boolean
-  fireCentres: Record<string, FireCentre>
   dailies: StationDaily[]
   dateOfInterest: string
+  selectedFireCentre: FireCentre | undefined
 }
 
 const ViewSwitcher = (props: ViewSwitcherProps) => {
@@ -18,14 +18,14 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
       {props.isWeeklyView ? (
         <WeeklyViewTable
           testId="hfi-calc-weekly-table"
-          fireCentres={props.fireCentres}
+          fireCentre={props.selectedFireCentre}
           dailies={props.dailies}
           currentDay={props.dateOfInterest}
         />
       ) : (
         <DailyViewTable
           testId="hfi-calc-daily-table"
-          fireCentres={props.fireCentres}
+          fireCentre={props.selectedFireCentre}
           dailies={props.dailies}
         ></DailyViewTable>
       )}

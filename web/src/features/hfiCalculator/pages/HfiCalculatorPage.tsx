@@ -25,6 +25,8 @@ import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import FireCentreDropdown from '../components/FireCentreDropdown'
+import { FireCentre } from 'api/hfiCalcAPI'
+import { isUndefined } from 'lodash'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -70,9 +72,21 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   )
   const [isCopied, setIsCopied] = useState(false)
 
+  const [selectedFireCentre, setSelectedFireCentre] = useState<FireCentre | undefined>(
+    undefined
+  )
+
   const callDispatch = (start: DateTime, end: DateTime) => {
     dispatch(fetchHFIStations())
-    dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
+    if (!isUndefined(selectedFireCentre)) {
+      dispatch(
+        fetchHFIDailies(
+          start.toUTC().valueOf(),
+          end.toUTC().valueOf(),
+          getAllPlanningWeatherStationCodesFromFireCentre(selectedFireCentre)
+        )
+      )
+    }
   }
 
   const refreshView = () => {
@@ -90,6 +104,21 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const openAboutModal = () => {
     setModalOpen(true)
+  }
+
+  const getAllPlanningWeatherStationCodesFromFireCentre = (
+    centre: FireCentre | undefined
+  ): number[] => {
+    const stationCodes: number[] = []
+    if (isUndefined(centre)) {
+      return stationCodes
+    }
+    for (const area of Object.values(centre.planning_areas)) {
+      for (const station of Object.values(area.stations)) {
+        stationCodes.push(station.code)
+      }
+    }
+    return stationCodes
   }
 
   const copyTable = () => {
@@ -152,7 +181,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       ) : (
         <Container maxWidth={'xl'}>
           <FormControl className={classes.formControl}>
-            <FireCentreDropdown fireCentres={fireCentres} />
+            <FireCentreDropdown
+              fireCentres={fireCentres}
+              onChange={setSelectedFireCentre}
+            />
           </FormControl>
 
           <FormControl className={classes.formControl}>
@@ -201,7 +233,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           <ErrorBoundary>
             <ViewSwitcher
               isWeeklyView={isWeeklyView}
-              fireCentres={fireCentres}
+              selectedFireCentre={selectedFireCentre}
               dailies={dailies}
               dateOfInterest={dateOfInterest}
             />
