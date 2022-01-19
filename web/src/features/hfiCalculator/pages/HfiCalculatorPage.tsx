@@ -180,6 +180,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isWeeklyView])
 
+  useEffect(() => {
+    const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
+    callDispatch(start, end)
+  }, [selectedFireCentre, dateOfInterest, isWeeklyView])
+
   return (
     <main data-testid="hfi-calculator-page">
       <GeneralHeader
