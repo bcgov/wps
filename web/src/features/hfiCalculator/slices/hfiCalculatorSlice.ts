@@ -18,6 +18,7 @@ interface State {
   maxMeanIntensityGroup: number | undefined
   dailyPrepLevels: (number | undefined)[]
   meanPrepLevel: number | undefined
+  planningAreaDailies: Map<string, StationDaily[]>
 }
 
 const initialState: State = {
@@ -29,7 +30,8 @@ const initialState: State = {
   dailyMeanIntensityGroups: [],
   maxMeanIntensityGroup: undefined,
   dailyPrepLevels: [],
-  meanPrepLevel: undefined
+  meanPrepLevel: undefined,
+  planningAreaDailies: new Map()
 }
 
 const calculateMeanIntensity = (dailies: StationDaily[]): number | undefined =>
@@ -98,6 +100,28 @@ export const calculatePrepLevel = (
   return 4
 }
 
+const buildPlanningAreaDailies = (
+  fireCentres: Record<string, FireCentre>,
+  dailies: StationDaily[],
+  selected: number[]
+): Map<string, StationDaily[]> => {
+  const planningAreaToDailies: Map<string, StationDaily[]> = new Map()
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Object.entries(fireCentres).map(([_, fireCentre]) =>
+    Object.entries(fireCentre.planning_areas).map(([areaName, area]) => {
+      const areaStationCodes = new Set(
+        Object.entries(area.stations).map(([, station]) => station.code)
+      )
+      const areaDailies = dailies.filter(
+        daily => selected.includes(daily.code) && areaStationCodes.has(daily.code)
+      )
+      planningAreaToDailies.set(areaName, areaDailies)
+    })
+  )
+  return planningAreaToDailies
+}
+
 const dailiesSlice = createSlice({
   name: 'dailies',
   initialState,
@@ -114,6 +138,7 @@ const dailiesSlice = createSlice({
       action: PayloadAction<{
         dailies: StationDaily[]
         fireCentres: Record<string, FireCentre>
+        selected: number[]
       }>
     ) {
       state.error = null
@@ -127,6 +152,11 @@ const dailiesSlice = createSlice({
       )
       state.dailyPrepLevels = calculateDailyPrepLevels(state.dailyMeanIntensityGroups)
       state.meanPrepLevel = calculateMeanPrepLevel(state.dailyPrepLevels)
+      state.planningAreaDailies = buildPlanningAreaDailies(
+        action.payload.fireCentres,
+        action.payload.dailies,
+        action.payload.selected
+      )
       state.loading = false
     },
     setPrepDays: (state, action: PayloadAction<number>) => {
@@ -152,6 +182,7 @@ export default dailiesSlice.reducer
 export const fetchHFIDailies =
   (
     fireCentres: Record<string, FireCentre>,
+    selected: number[],
     startTime: number,
     endTime: number
   ): AppThunk =>
@@ -159,7 +190,7 @@ export const fetchHFIDailies =
     try {
       dispatch(getDailiesStart())
       const dailies = await getDailies(startTime, endTime)
-      dispatch(getDailiesSuccess({ dailies, fireCentres }))
+      dispatch(getDailiesSuccess({ dailies, fireCentres, selected }))
     } catch (err) {
       dispatch(getDailiesFailed((err as Error).toString()))
       logError(err)

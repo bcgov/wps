@@ -30,6 +30,7 @@ import { PST_UTC_OFFSET } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import { getDailiesForCSV } from 'features/hfiCalculator/util'
 import DatePicker from 'components/DatePicker'
+import { union } from 'lodash'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -74,6 +75,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const setNumPrepDays = (numDays: number) => {
     dispatch(setPrepDays(numDays))
   }
+  const [selected, setSelected] = useState<number[]>(
+    union(dailies.map(daily => daily.code))
+  )
 
   const [isWeeklyView, toggleTableView] = useState(true)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
@@ -86,7 +90,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const callDispatch = (start: DateTime, end: DateTime) => {
     dispatch(fetchHFIStations())
-    dispatch(fetchHFIDailies(fireCentres, start.toUTC().valueOf(), end.toUTC().valueOf()))
+    dispatch(
+      fetchHFIDailies(
+        fireCentres,
+        selected,
+        start.toUTC().valueOf(),
+        end.toUTC().valueOf()
+      )
+    )
   }
 
   const refreshView = () => {
@@ -151,6 +162,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     refreshView()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isWeeklyView])
+
+  useEffect(() => {
+    setSelected(union(dailies.map(daily => daily.code)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dailies])
 
   return (
     <main data-testid="hfi-calculator-page">
@@ -217,6 +233,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               fireCentres={fireCentres}
               dailies={dailies}
               dateOfInterest={dateOfInterest}
+              selected={selected}
+              setSelected={setSelected}
             />
           </ErrorBoundary>
         </Container>

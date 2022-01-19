@@ -10,6 +10,8 @@ export interface ViewSwitcherProps {
   fireCentres: Record<string, FireCentre>
   dailies: StationDaily[]
   dateOfInterest: string
+  selected: number[]
+  setSelected: React.Dispatch<React.SetStateAction<number[]>>
 }
 
 const ViewSwitcher = (props: ViewSwitcherProps) => {
@@ -21,6 +23,8 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
           fireCentres={props.fireCentres}
           dailies={props.dailies}
           currentDay={props.dateOfInterest}
+          selected={props.selected}
+          setSelected={props.setSelected}
         />
       ) : (
         <DailyViewTable

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
@@ -12,7 +12,7 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
-import { isEmpty, union } from 'lodash'
+import { isEmpty } from 'lodash'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { getDailiesByStationCode, getZoneFromAreaName } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
@@ -21,10 +21,12 @@ import { selectHFIPrepDays } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
 
 export interface Props {
+  testId?: string
   fireCentres: Record<string, FireCentre>
   dailies: StationDaily[]
   currentDay: string
-  testId?: string
+  selected: number[]
+  setSelected: React.Dispatch<React.SetStateAction<number[]>>
 }
 
 export const columnLabelsForEachDayInWeek: string[] = [
@@ -54,15 +56,11 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
 
   const numPrepDays = useSelector(selectHFIPrepDays)
 
-  const [selected, setSelected] = useState<number[]>(
-    union(props.dailies.map(daily => daily.code))
-  )
-
   const stationCodeInSelected = (code: number) => {
-    return selected.includes(code)
+    return props.selected.includes(code)
   }
   const toggleSelectedStation = (code: number) => {
-    const selectedSet = new Set(selected)
+    const selectedSet = new Set(props.selected)
     if (stationCodeInSelected(code)) {
       // remove station from selected
       selectedSet.delete(code)
@@ -70,7 +68,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
       // add station to selected
       selectedSet.add(code)
     }
-    setSelected(Array.from(selectedSet))
+    props.setSelected(Array.from(selectedSet))
   }
 
   return (
@@ -223,7 +221,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           area={area}
                           areaName={areaName}
                           dailies={props.dailies}
-                          selected={selected}
+                          selected={props.selected}
                           planningAreaClass={classes.planningArea}
                           numPrepDays={numPrepDays}
                         />
