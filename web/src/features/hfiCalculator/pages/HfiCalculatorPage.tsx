@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Container, ErrorBoundary, GeneralHeader, PageTitle } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
-import { fetchHFIDailies } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import {
+  fetchHFIDailies,
+  setPrepDays
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
 import {
@@ -25,7 +28,6 @@ import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
-import { setPrepDays } from 'features/hfiCalculator/slices/hfiPrepSlice'
 import { getDailiesForCSV } from 'features/hfiCalculator/util'
 import DatePicker from 'components/DatePicker'
 
@@ -84,7 +86,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const callDispatch = (start: DateTime, end: DateTime) => {
     dispatch(fetchHFIStations())
-    dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
+    dispatch(fetchHFIDailies(fireCentres, start.toUTC().valueOf(), end.toUTC().valueOf()))
   }
 
   const refreshView = () => {
