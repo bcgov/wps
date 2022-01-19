@@ -14,7 +14,9 @@ import highResModelsReducer from 'features/fireWeather/slices/highResModelsSlice
 import highResModelSummariesReducer from 'features/fireWeather/slices/highResModelSummariesSlice'
 import regionalModelsReducer from 'features/fireWeather/slices/regionalModelsSlice'
 import regionalModelSummariesReducer from 'features/fireWeather/slices/regionalModelSummariesSlice'
-import hfiCalculatorDailiesReducer from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import hfiCalculatorDailiesReducer, {
+  HFICalculatorState
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import hfiStationsReducer from 'features/hfiCalculator/slices/stationsSlice'
 import fbaCalculatorSlice from 'features/fbaCalculator/slices/fbaCalculatorSlice'
 import fireCentersSlice from 'features/fbaCalculator/slices/fireCentersSlice'
@@ -93,6 +95,8 @@ export const selectHFIDailiesLoading = (state: RootState): boolean =>
   state.hfiCalculatorDailies.loading
 export const selectHFIPrepDays = (state: RootState): number =>
   state.hfiCalculatorDailies.numPrepDays
+export const selectHFICalculatorState = (state: RootState): HFICalculatorState =>
+  state.hfiCalculatorDailies
 export const selectHFIStationsLoading = (state: RootState): boolean =>
   state.hfiStations.loading
 export const selectFireBehaviourStationsLoading = (state: RootState): boolean =>
