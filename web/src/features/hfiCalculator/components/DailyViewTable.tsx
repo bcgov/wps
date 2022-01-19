@@ -282,10 +282,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   const areaDailies = getDailiesForArea(area, props.dailies, selected)
                   const meanIntensityGroup = calculateMeanIntensity(
                     areaDailies.filter(
-                      daily =>
-                        daily.date.year === props.selectedPrepDay.year &&
-                        daily.date.month === props.selectedPrepDay.month &&
-                        daily.date.day === props.selectedPrepDay.day
+                      day =>
+                        day.date.year === props.selectedPrepDay.year &&
+                        day.date.month === props.selectedPrepDay.month &&
+                        day.date.day === props.selectedPrepDay.day
                     )
                   )
                   return (
@@ -342,10 +342,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             props.dailies,
                             station.code
                           ).filter(
-                            daily =>
-                              daily.date.year === props.selectedPrepDay.year &&
-                              daily.date.month === props.selectedPrepDay.month &&
-                              daily.date.day === props.selectedPrepDay.day
+                            day =>
+                              day.date.year === props.selectedPrepDay.year &&
+                              day.date.month === props.selectedPrepDay.month &&
+                              day.date.day === props.selectedPrepDay.day
                           )[0]
                           const grassCureError = !isValidGrassCure(
                             daily,
