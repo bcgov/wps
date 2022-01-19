@@ -11,7 +11,7 @@ import {
   selectHFIDailies,
   selectHFIStations,
   selectHFIStationsLoading,
-  selectHFIPrepDays
+  selectHFICalculatorState
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui/core'
 import {
@@ -71,7 +71,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const numPrepDays = useSelector(selectHFIPrepDays)
+  const { numPrepDays } = useSelector(selectHFICalculatorState)
   const setNumPrepDays = (numDays: number) => {
     dispatch(setPrepDays(numDays))
   }

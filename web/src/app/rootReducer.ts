@@ -93,8 +93,6 @@ export const selectFireWeatherStationsLoading = (state: RootState): boolean =>
   state.fireWeatherStations.loading
 export const selectHFIDailiesLoading = (state: RootState): boolean =>
   state.hfiCalculatorDailies.loading
-export const selectHFIPrepDays = (state: RootState): number =>
-  state.hfiCalculatorDailies.numPrepDays
 export const selectHFICalculatorState = (state: RootState): HFICalculatorState =>
   state.hfiCalculatorDailies
 export const selectHFIStationsLoading = (state: RootState): boolean =>
