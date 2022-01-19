@@ -72,6 +72,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPredDay == null)
   const numPrepDays = useSelector(selectHFIPrepDays)
   const setNumPrepDays = (numDays: number) => {
+    // if the number of prep days change, we need to unset the selected prep day - it
+    // could be that the selected prep day no longer falls into the prep period.
+    setSelectedPrepDay(null)
     dispatch(setPrepDays(numDays))
   }
   const [modalOpen, setModalOpen] = useState<boolean>(false)
@@ -148,8 +151,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     setIsWeeklyView(selectedPredDay == null)
-    refreshView()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPredDay])
 
   return (
@@ -214,10 +215,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
           <ErrorBoundary>
             <ViewSwitcher
-              isWeeklyView={isWeeklyView}
               fireCentres={fireCentres}
               dailies={dailies}
               dateOfInterest={dateOfInterest}
+              selectedPrepDay={selectedPredDay}
             />
           </ErrorBoundary>
         </Container>
