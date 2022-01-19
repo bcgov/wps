@@ -2,6 +2,7 @@ import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 import { DateTime } from 'luxon'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 describe('RowManager', () => {
   const fireCentres: Record<string, FireCentre> = {
     0: {
@@ -362,6 +363,7 @@ describe('RowManager', () => {
 
   it('should export Daily Table to a CSV string correctly', () => {
     const dailyTableCSVString = FormatTableAsCSV.exportDailyRowsAsStrings(
+      NUM_WEEK_DAYS,
       fireCentres,
       dailies
     )
@@ -652,6 +654,7 @@ describe('RowManager', () => {
       }
     ]
     const weeklyTableString = FormatTableAsCSV.exportWeeklyRowsAsStrings(
+      NUM_WEEK_DAYS,
       fireCentres,
       stationDailiesForWeek
     )
@@ -677,7 +680,7 @@ describe('RowManager', () => {
     Merritt (K6), , , ,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,,,ND,0-1,ND,-Infinity,ND
     AUGUST LAKE (836),855,C7,ND,,
     MERRITT 2 HUB (1399),640,C7,ND,,
-    Lillooet (K7), , , ,,,2,0-1,1,,,4.5,0-1,3,,,5,0-1,4,,,5,0-1,4,,,5,0-1,4,5,3
+    Lillooet (K7), , , ,,,2,0-1,1,,,4.5,0-1,4,,,5,0-1,4,,,5,0-1,4,,,5,0-1,4,5,3
     FIVE MILE (1029),865,C7,NaN,1.4,1365.3,3,,,5.5,5545.4,5,,,6.4,6468.9,5,,,4.6,4630.0,5,,,5.7,5619.7,5,,,,
     FRENCH BAR (306),1320,C7,ND,,
     GWYNETH LAKE (309),1205,C7,ND,,
@@ -700,6 +703,7 @@ describe('RowManager', () => {
       'WELLS" GRAY'
     escapeCharFireCentres[0].planning_areas[2].stations[0].station_props.name = 'FINTRY,'
     const dailyTableCSVString = FormatTableAsCSV.exportDailyRowsAsStrings(
+      NUM_WEEK_DAYS,
       escapeCharFireCentres,
       dailies
     )
@@ -745,6 +749,7 @@ describe('RowManager', () => {
       undefined
 
     const dailyTableCSVString = FormatTableAsCSV.exportDailyRowsAsStrings(
+      NUM_WEEK_DAYS,
       missingElevationFireCentres,
       dailies
     )

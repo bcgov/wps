@@ -325,13 +325,13 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         testid={`daily-prep-level-${areaName}`}
                         meanIntensityGroup={meanIntensityGroup}
                         areaName={areaName}
-                        meanPrepLevel={true}
                       />
                     </TableRow>
                     {Object.entries(area.stations)
                       .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                       .map(([stationCode, station]) => {
                         const daily = getDailiesByStationCode(
+                          1,
                           props.dailies,
                           station.code
                         )[0]

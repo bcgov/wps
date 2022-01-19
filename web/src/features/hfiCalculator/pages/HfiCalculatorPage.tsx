@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Container, ErrorBoundary, GeneralHeader, PageTitle } from 'components'
-import DatePicker from 'components/DatePicker'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import { fetchHFIDailies } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -8,7 +7,8 @@ import { DateTime } from 'luxon'
 import {
   selectHFIDailies,
   selectHFIStations,
-  selectHFIStationsLoading
+  selectHFIStationsLoading,
+  selectHFIPrepDays
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui/core'
 import {
@@ -24,9 +24,13 @@ import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
 import { PST_UTC_OFFSET } from 'utils/constants'
-import FireCentreDropdown from '../components/FireCentreDropdown'
+import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
+import { setPrepDays } from 'features/hfiCalculator/slices/hfiPrepSlice'
+import { getDailiesForCSV } from 'features/hfiCalculator/util'
+import DatePicker from 'components/DatePicker'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { isUndefined } from 'lodash'
+import FireCentreDropdown from 'features/hfiCalculator/components/FireCentreDropdown'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -51,6 +55,10 @@ const useStyles = makeStyles(() => ({
   positionStyler: {
     position: 'absolute',
     right: '20px'
+  },
+  prepDays: {
+    margin: theme.spacing(1),
+    minWidth: 100
   }
 }))
 
@@ -63,6 +71,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
+  const numPrepDays = useSelector(selectHFIPrepDays)
+  const setNumPrepDays = (numDays: number) => {
+    dispatch(setPrepDays(numDays))
+  }
+
   const [isWeeklyView, toggleTableView] = useState(true)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
 
@@ -124,12 +137,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const copyTable = () => {
     if (isWeeklyView) {
       const weeklyViewAsString = FormatTableAsCSV.exportWeeklyRowsAsStrings(
+        numPrepDays,
         fireCentres,
-        dailies
+        getDailiesForCSV(numPrepDays, dailies)
       )
       navigator.clipboard.writeText(weeklyViewAsString)
     } else {
       const dailyViewAsString = FormatTableAsCSV.exportDailyRowsAsStrings(
+        numPrepDays,
         fireCentres,
         dailies
       )
@@ -180,6 +195,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         </Container>
       ) : (
         <Container maxWidth={'xl'}>
+          <FormControl className={classes.prepDays}>
+            <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
+          </FormControl>
           <FormControl className={classes.formControl}>
             <FireCentreDropdown
               fireCentres={fireCentres}
@@ -190,14 +208,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           <FormControl className={classes.formControl}>
             <DatePicker date={dateOfInterest} updateDate={updateDate} />
           </FormControl>
-
           <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
               isWeeklyView={isWeeklyView}
               toggleTableView={toggleTableView}
             />
           </FormControl>
-
           <FormControl className={classes.formControl}>
             {isCopied ? (
               <Button>

@@ -4,15 +4,18 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
 import {
   calculateDailyMeanIntensities,
-  calculateMaxMeanIntensityGroup,
-  calculateMeanIntensityGroupLevel
+  calculateMaxMeanIntensityGroup
 } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
-import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { getDailiesForArea } from 'features/hfiCalculator/util'
 import { groupBy, range } from 'lodash'
 import React from 'react'
+import AveragePrepLevelCell from './AveragePrepLevelCell'
+import {
+  calculateDailyPrepLevels,
+  calculateMeanPrepLevel
+} from 'features/hfiCalculator/components/prepLevel'
 
 export interface CalculatedCellsProps {
   testId?: string
@@ -21,6 +24,7 @@ export interface CalculatedCellsProps {
   areaName: string
   selected: number[]
   planningAreaClass: string
+  numPrepDays: number
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
@@ -35,16 +39,21 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
 
   const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
 
-  const dailyMeanIntensityGroups = calculateDailyMeanIntensities(dailiesByDayUTC)
+  const dailyMeanIntensityGroups = calculateDailyMeanIntensities(
+    props.numPrepDays,
+    dailiesByDayUTC
+  )
 
   const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
     dailyMeanIntensityGroups
   )
-  const meanPrepLevel = calculateMeanIntensityGroupLevel(dailyMeanIntensityGroups)
+
+  const dailyPrepLevels = calculateDailyPrepLevels(dailyMeanIntensityGroups)
+  const meanPrepLevel = calculateMeanPrepLevel(dailyPrepLevels)
 
   return (
     <React.Fragment>
-      {range(NUM_WEEK_DAYS).map(day => {
+      {range(props.numPrepDays).map(day => {
         const dailies: StationDaily[] | undefined = dailiesByDayUTC.get(
           orderedDayTimestamps[day]
         )
@@ -60,7 +69,6 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
             ></MeanIntensityGroupRollup>
             <FireStartsCell areaName={props.areaName} />
             <PrepLevelCell
-              meanPrepLevel={false}
               meanIntensityGroup={meanIntensityGroup}
               areaName={props.areaName}
             />
@@ -74,10 +82,10 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
         selectedStations={props.selected}
         meanIntensityGroup={highestMeanIntensityGroup}
       ></MeanIntensityGroupRollup>
-      <PrepLevelCell
-        meanPrepLevel={true}
+      <AveragePrepLevelCell
         meanIntensityGroup={meanPrepLevel}
         areaName={props.areaName}
+        meanPrepLevel={meanPrepLevel}
       />
     </React.Fragment>
   )
