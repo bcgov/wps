@@ -1,11 +1,12 @@
 import { makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab'
-import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { range } from 'lodash'
 import { theme } from 'app/theme'
 import React from 'react'
 import { getPrepWeeklyDateRange, toISO } from 'utils/date'
+import { selectHFIPrepDays } from 'app/rootReducer'
+import { useSelector } from 'react-redux'
 
 export interface ViewSwitcherTogglesProps {
   testId?: string
@@ -31,6 +32,7 @@ const useStyles = makeStyles(() => ({
 }))
 
 const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
+  const numPrepDays = useSelector(selectHFIPrepDays)
   const classes = useStyles()
 
   const handleToggle = (
@@ -62,7 +64,7 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
           Prep Period
         </ToggleButton>
         {/* Create a button for each day of the prep period. */}
-        {range(NUM_WEEK_DAYS).map(i => {
+        {range(numPrepDays).map(i => {
           const day = start.plus({ days: i })
           const rowA = `Day ${i + 1}`
           const rowB = day.toLocaleString({
