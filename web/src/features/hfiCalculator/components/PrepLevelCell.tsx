@@ -5,7 +5,6 @@ import React from 'react'
 export interface PrepLevelCellProps {
   testid?: string
   prepLevel: number | undefined
-  areaName: string
 }
 
 const prepLevelColours: { [description: string]: string } = {

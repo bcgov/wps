@@ -318,7 +318,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         <PrepLevelCell
                           testid={`daily-prep-level-${areaName}`}
                           prepLevel={prepLevel}
-                          areaName={areaName}
                         />
                       </TableRow>
                       {Object.entries(area.stations)
