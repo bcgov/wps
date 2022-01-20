@@ -1,16 +1,15 @@
 import { makeStyles } from '@material-ui/core'
-import { DateTime } from 'luxon'
 import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab'
 import { range } from 'lodash'
 import { theme } from 'app/theme'
 import React from 'react'
 import { getPrepWeeklyDateRange, toISO } from 'utils/date'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { selectHFICalculatorState } from 'app/rootReducer'
+import { setSelectedPrepDate } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface ViewSwitcherTogglesProps {
   testId?: string
-  setSelectedPrepDay: (prepDayIso: string | null) => void
   dateOfInterest: string
 }
 
@@ -31,16 +30,15 @@ const useStyles = makeStyles(() => ({
 }))
 
 const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
-  const { numPrepDays, selectedPrepDay } = useSelector(selectHFICalculatorState)
+  const { numPrepDays, selectedPrepDate } = useSelector(selectHFICalculatorState)
   const classes = useStyles()
+  const dispatch = useDispatch()
 
   const handleToggle = (
     _: React.MouseEvent<HTMLElement, MouseEvent>,
-    dayOfInterest: string
+    prepDate: string
   ) => {
-    props.setSelectedPrepDay(
-      dayOfInterest == '' ? null : DateTime.fromISO(dayOfInterest).toISO()
-    )
+    dispatch(setSelectedPrepDate(prepDate))
   }
 
   const { start } = getPrepWeeklyDateRange(props.dateOfInterest)
@@ -51,7 +49,7 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
         exclusive
         onChange={handleToggle}
         aria-label="view toggles"
-        value={selectedPrepDay}
+        value={selectedPrepDate}
         className={classes.toggleGroup}
       >
         <ToggleButton

@@ -25,7 +25,7 @@ export interface HFICalculatorState {
   fireCentres: { [key: string]: FireCentre }
   numPrepDays: number
   selected: number[]
-  selectedPrepDay: string | null
+  selectedPrepDate: string
   formattedDateStringHeaders: string[]
   planningAreaHFIResults: { [key: string]: HFIResult }
 }
@@ -37,7 +37,7 @@ const initialState: HFICalculatorState = {
   fireCentres: {},
   numPrepDays: NUM_WEEK_DAYS,
   selected: [],
-  selectedPrepDay: null,
+  selectedPrepDate: '',
   formattedDateStringHeaders: [],
   planningAreaHFIResults: {}
 }
@@ -136,11 +136,10 @@ const calculateHFIResults = (
   dailies: StationDaily[],
   numPrepDays: number,
   selected: number[],
-  selectedPrepDayIso: string | null
+  selectedPrepDayIso: string
 ): { [key: string]: HFIResult } => {
-  const selectedPrepDay = isNull(selectedPrepDayIso)
-    ? null
-    : DateTime.fromISO(selectedPrepDayIso)
+  const selectedPrepDay =
+    selectedPrepDayIso == '' ? null : DateTime.fromISO(selectedPrepDayIso)
   const planningAreaToDailies: { [key: string]: HFIResult } = {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -216,7 +215,7 @@ const dailiesSlice = createSlice({
         action.payload.dailies,
         state.numPrepDays,
         action.payload.selected,
-        state.selectedPrepDay
+        state.selectedPrepDate
       )
       state.loading = false
     },
@@ -227,7 +226,7 @@ const dailiesSlice = createSlice({
         state.dailies,
         action.payload,
         state.selected,
-        state.selectedPrepDay
+        state.selectedPrepDate
       )
     },
     setSelectedStations: (state, action: PayloadAction<number[]>) => {
@@ -237,11 +236,11 @@ const dailiesSlice = createSlice({
         state.dailies,
         state.numPrepDays,
         action.payload,
-        state.selectedPrepDay
+        state.selectedPrepDate
       )
     },
-    setSelectedPrepDay: (state, action: PayloadAction<string | null>) => {
-      state.selectedPrepDay = action.payload
+    setSelectedPrepDate: (state, action: PayloadAction<string>) => {
+      state.selectedPrepDate = action.payload
       state.planningAreaHFIResults = calculateHFIResults(
         state.fireCentres,
         state.dailies,
@@ -259,7 +258,7 @@ export const {
   getDailiesSuccess,
   setPrepDays,
   setSelectedStations,
-  setSelectedPrepDay
+  setSelectedPrepDate
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer

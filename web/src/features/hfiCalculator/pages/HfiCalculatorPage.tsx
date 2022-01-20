@@ -4,7 +4,7 @@ import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   fetchHFIDailies,
   setPrepDays,
-  setSelectedPrepDay,
+  setSelectedPrepDate,
   setSelectedStations
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -72,18 +72,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const { numPrepDays, selected, planningAreaHFIResults, selectedPrepDay } = useSelector(
+  const { numPrepDays, selected, planningAreaHFIResults, selectedPrepDate } = useSelector(
     selectHFICalculatorState
   )
 
-  const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPrepDay == null)
-  const setNewSelectedPrepDay = (prepDayIso: string | null) => {
-    dispatch(setSelectedPrepDay(prepDayIso))
-  }
+  const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPrepDate == '')
   const setNumPrepDays = (numDays: number) => {
     // if the number of prep days change, we need to unset the selected prep day - it
     // could be that the selected prep day no longer falls into the prep period.
-    dispatch(setSelectedPrepDay(null))
+    dispatch(setSelectedPrepDate(''))
     dispatch(setPrepDays(numDays))
   }
 
@@ -138,7 +135,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     if (newDate !== dateOfInterest) {
       setDateOfInterest(newDate)
       const { start, end } = getDateRange(true, newDate)
-      setSelectedPrepDay(null)
+      dispatch(setSelectedPrepDate(''))
       callDispatch(start, end)
     }
   }
@@ -190,8 +187,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [])
 
   useEffect(() => {
-    setIsWeeklyView(selectedPrepDay == null)
-  }, [selectedPrepDay])
+    setIsWeeklyView(selectedPrepDate == '')
+  }, [selectedPrepDate])
 
   useEffect(() => {
     setSelected(union(dailies.map(daily => daily.code)))
@@ -220,10 +217,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             <DatePicker date={dateOfInterest} updateDate={updateDate} />
           </FormControl>
           <FormControl className={classes.formControl}>
-            <ViewSwitcherToggles
-              setSelectedPrepDay={setNewSelectedPrepDay}
-              dateOfInterest={dateOfInterest}
-            />
+            <ViewSwitcherToggles dateOfInterest={dateOfInterest} />
           </FormControl>
           <FormControl className={classes.formControl}>
             {isCopied ? (
@@ -263,7 +257,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               dailies={dailies}
               dateOfInterest={dateOfInterest}
               setSelected={setSelected}
-              selectedPrepDay={selectedPrepDay}
+              selectedPrepDay={selectedPrepDate}
             />
           </ErrorBoundary>
         </Container>

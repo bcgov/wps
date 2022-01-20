@@ -10,13 +10,13 @@ export interface ViewSwitcherProps {
   dailies: StationDaily[]
   dateOfInterest: string
   setSelected: (selected: number[]) => void
-  selectedPrepDay: string | null
+  selectedPrepDay: string
 }
 
 const ViewSwitcher = (props: ViewSwitcherProps) => {
   return (
     <React.Fragment>
-      {props.selectedPrepDay == null ? (
+      {props.selectedPrepDay == '' ? (
         <WeeklyViewTable
           testId="hfi-calc-weekly-table"
           fireCentres={props.fireCentres}

@@ -30,7 +30,6 @@ import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { DateTime } from 'luxon'
-import { isNull } from 'lodash'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -73,7 +72,7 @@ const useStyles = makeStyles({
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const { planningAreaHFIResults, selected, numPrepDays, selectedPrepDay } = useSelector(
+  const { planningAreaHFIResults, selected, numPrepDays, selectedPrepDate } = useSelector(
     selectHFICalculatorState
   )
 
@@ -83,13 +82,13 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       props.dailies,
       stationCode
     )
-    if (!isNull(selectedPrepDay)) {
-      const selectedPrepDate = DateTime.fromISO(selectedPrepDay)
+    if (selectedPrepDate != '') {
+      const selectedPrepDateObject = DateTime.fromISO(selectedPrepDate)
       return dailiesForStation.filter(
         daily =>
-          daily.date.year === selectedPrepDate.year &&
-          daily.date.month === selectedPrepDate.month &&
-          daily.date.day === selectedPrepDate.day
+          daily.date.year === selectedPrepDateObject.year &&
+          daily.date.month === selectedPrepDateObject.month &&
+          daily.date.day === selectedPrepDateObject.day
       )[0]
     }
     return dailiesForStation[0]
