@@ -15,7 +15,7 @@ import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
-import { isGrassFuelType } from 'features/hfiCalculator/validation'
+import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
 import { calculateMeanIntensity } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import FireTable from 'components/FireTable'
@@ -34,6 +34,8 @@ import {
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFIPrepDays } from 'app/rootReducer'
+import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
+import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -351,10 +353,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             day.date.month === props.selectedPrepDay.month &&
                             day.date.day === props.selectedPrepDay.day
                         )[0]
-                        // const grassCureError = !isValidGrassCure(
-                        //   daily,
-                        //   station.station_props
-                        // )
+                        const grassCureError = !isValidGrassCure(
+                          daily,
+                          station.station_props
+                        )
                         const isRowSelected = stationCodeInSelected(station.code)
                         const classNameForRow = !isRowSelected
                           ? classes.unselectedStation
@@ -429,6 +431,44 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             </TableCell>
                             <TableCell className={classNameForRow}>
                               {daily?.fwi?.toFixed(DECIMAL_PLACES)}
+                            </TableCell>
+                            <TableCell className={classNameForRow}>
+                              {daily?.danger_class}
+                            </TableCell>
+                            <CalculatedCell
+                              testid={`${daily?.code}-ros`}
+                              value={daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+                              error={grassCureError}
+                              className={classNameForRow}
+                            ></CalculatedCell>
+                            <CalculatedCell
+                              testid={`${daily?.code}-hfi`}
+                              value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
+                              error={grassCureError}
+                              className={classNameForRow}
+                            ></CalculatedCell>
+                            <CalculatedCell
+                              testid={`${daily?.code}-1-hr-size`}
+                              value={daily?.sixty_minute_fire_size?.toFixed(
+                                DECIMAL_PLACES
+                              )}
+                              error={grassCureError}
+                              className={classNameForRow}
+                            ></CalculatedCell>
+                            <CalculatedCell
+                              testid={`${daily?.code}-fire-type`}
+                              value={daily?.fire_type}
+                              error={grassCureError}
+                              className={classNameForRow}
+                            ></CalculatedCell>
+                            <IntensityGroupCell
+                              testid={`${daily?.code}-intensity-group`}
+                              value={daily?.intensity_group}
+                              error={grassCureError}
+                              selected={isRowSelected}
+                            ></IntensityGroupCell>
+                            <TableCell colSpan={2}>
+                              {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
                             </TableCell>
                           </TableRow>
                         )
