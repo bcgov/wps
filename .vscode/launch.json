@@ -55,5 +55,12 @@
             "program": "openshift/s3-backup/docker/prune_test.py",
             "console": "integratedTerminal"
         },
+        {
+            "name": "Chrome",
+            "type": "pwa-chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/web"
+        }
     ]
 }

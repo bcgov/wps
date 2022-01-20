@@ -20,7 +20,7 @@ interface Props {
 }
 
 const Contact = (props: Props) => {
-  const productName = props
+  const productName = props.productName
 
   const classes = useStyles()
 

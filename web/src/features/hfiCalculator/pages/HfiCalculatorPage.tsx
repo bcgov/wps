@@ -68,12 +68,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
+  const [selectedPredDay, setSelectedPrepDay] = useState<DateTime | null>(null)
+  const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPredDay == null)
   const numPrepDays = useSelector(selectHFIPrepDays)
   const setNumPrepDays = (numDays: number) => {
+    // if the number of prep days change, we need to unset the selected prep day - it
+    // could be that the selected prep day no longer falls into the prep period.
+    setSelectedPrepDay(null)
     dispatch(setPrepDays(numDays))
   }
-
-  const [isWeeklyView, toggleTableView] = useState(true)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
 
   // the DatePicker component requires dateOfInterest to be in string format
@@ -95,7 +98,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const updateDate = (newDate: string) => {
     if (newDate !== dateOfInterest) {
       setDateOfInterest(newDate)
-      const { start, end } = getDateRange(isWeeklyView, newDate)
+      const { start, end } = getDateRange(true, newDate)
+      setSelectedPrepDay(null)
       callDispatch(start, end)
     }
   }
@@ -146,9 +150,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [])
 
   useEffect(() => {
-    refreshView()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isWeeklyView])
+    setIsWeeklyView(selectedPredDay == null)
+  }, [selectedPredDay])
 
   return (
     <main data-testid="hfi-calculator-page">
@@ -173,8 +176,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           </FormControl>
           <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
-              isWeeklyView={isWeeklyView}
-              toggleTableView={toggleTableView}
+              setSelectedPrepDay={setSelectedPrepDay}
+              selectedPrepDay={selectedPredDay}
+              dateOfInterest={dateOfInterest}
             />
           </FormControl>
           <FormControl className={classes.formControl}>
@@ -211,10 +215,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
           <ErrorBoundary>
             <ViewSwitcher
-              isWeeklyView={isWeeklyView}
               fireCentres={fireCentres}
               dailies={dailies}
               dateOfInterest={dateOfInterest}
+              selectedPrepDay={selectedPredDay}
             />
           </ErrorBoundary>
         </Container>
