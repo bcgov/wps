@@ -1,5 +1,5 @@
 import React, { ReactFragment, useState } from 'react'
-
+import { DateTime } from 'luxon'
 import {
   Table,
   TableBody,
@@ -9,16 +9,15 @@ import {
   Tooltip
 } from '@material-ui/core'
 import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
+import { useSelector } from 'react-redux'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
-import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
+import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { calculateMeanIntensity } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
-import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
-import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import FireTable from 'components/FireTable'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
@@ -34,11 +33,13 @@ import {
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
+import { selectHFIPrepDays } from 'app/rootReducer'
 
 export interface Props {
   fireCentre: FireCentre | undefined
   dailies: StationDaily[]
   testId?: string
+  selectedPrepDay: DateTime
 }
 
 export const dailyTableColumnLabels = [
@@ -74,6 +75,8 @@ const useStyles = makeStyles({
 
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
+
+  const numPrepDays = useSelector(selectHFIPrepDays)
 
   const [selected, setSelected] = useState<number[]>(
     union(props.dailies.map(daily => daily.code))
@@ -265,7 +268,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
         {isUndefined(props.fireCentre) ? (
           <React.Fragment>
             <TableRow>
-              <TableCell>To begin, select a fire centre</TableCell>
+              <TableCell></TableCell>
+              <TableCell colSpan={6}>To begin, select a fire centre</TableCell>
             </TableRow>
           </React.Fragment>
         ) : (
@@ -280,7 +284,14 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               ) // sort by zone code
               .map(([areaName, area]) => {
                 const areaDailies = getDailiesForArea(area, props.dailies, selected)
-                const meanIntensityGroup = calculateMeanIntensity(areaDailies)
+                const meanIntensityGroup = calculateMeanIntensity(
+                  areaDailies.filter(
+                    day =>
+                      day.date.year === props.selectedPrepDay.year &&
+                      day.date.month === props.selectedPrepDay.month &&
+                      day.date.day === props.selectedPrepDay.day
+                  )
+                )
                 return (
                   <React.Fragment key={`zone-${areaName}`}>
                     <TableRow>
@@ -331,14 +342,19 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                       .map(([stationCode, station]) => {
                         const daily = getDailiesByStationCode(
-                          1,
+                          numPrepDays,
                           props.dailies,
                           station.code
+                        ).filter(
+                          day =>
+                            day.date.year === props.selectedPrepDay.year &&
+                            day.date.month === props.selectedPrepDay.month &&
+                            day.date.day === props.selectedPrepDay.day
                         )[0]
-                        const grassCureError = !isValidGrassCure(
-                          daily,
-                          station.station_props
-                        )
+                        // const grassCureError = !isValidGrassCure(
+                        //   daily,
+                        //   station.station_props
+                        // )
                         const isRowSelected = stationCodeInSelected(station.code)
                         const classNameForRow = !isRowSelected
                           ? classes.unselectedStation
@@ -413,44 +429,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             </TableCell>
                             <TableCell className={classNameForRow}>
                               {daily?.fwi?.toFixed(DECIMAL_PLACES)}
-                            </TableCell>
-                            <TableCell className={classNameForRow}>
-                              {daily?.danger_class}
-                            </TableCell>
-                            <CalculatedCell
-                              testid={`${daily?.code}-ros`}
-                              value={daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
-                              error={grassCureError}
-                              className={classNameForRow}
-                            ></CalculatedCell>
-                            <CalculatedCell
-                              testid={`${daily?.code}-hfi`}
-                              value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
-                              error={grassCureError}
-                              className={classNameForRow}
-                            ></CalculatedCell>
-                            <CalculatedCell
-                              testid={`${daily?.code}-1-hr-size`}
-                              value={daily?.sixty_minute_fire_size?.toFixed(
-                                DECIMAL_PLACES
-                              )}
-                              error={grassCureError}
-                              className={classNameForRow}
-                            ></CalculatedCell>
-                            <CalculatedCell
-                              testid={`${daily?.code}-fire-type`}
-                              value={daily?.fire_type}
-                              error={grassCureError}
-                              className={classNameForRow}
-                            ></CalculatedCell>
-                            <IntensityGroupCell
-                              testid={`${daily?.code}-intensity-group`}
-                              value={daily?.intensity_group}
-                              error={grassCureError}
-                              selected={isRowSelected}
-                            ></IntensityGroupCell>
-                            <TableCell colSpan={2}>
-                              {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
                             </TableCell>
                           </TableRow>
                         )

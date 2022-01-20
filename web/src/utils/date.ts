@@ -4,7 +4,7 @@ import { PST_UTC_OFFSET } from './constants'
 
 const UTC_NOON_HOUR = Math.abs(PST_UTC_OFFSET) + 12
 
-const toISO = (dtDateTime: DateTime): string => {
+export const toISO = (dtDateTime: DateTime): string => {
   // Use for consistent ISO formatting.
   return dtDateTime.toISO({ suppressMilliseconds: true, includeOffset: true })
 }
