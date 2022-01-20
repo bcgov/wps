@@ -72,7 +72,9 @@ const AveragePrepLevelCell = (props: AveragePrepLevelCellProps) => {
 
   return (
     <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
-      {props.meanPrepLevel}
+      {props.meanPrepLevel === undefined || isNaN(props.meanPrepLevel)
+        ? ''
+        : props.meanPrepLevel}
     </TableCell>
   )
 }

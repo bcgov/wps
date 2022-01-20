@@ -98,7 +98,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const updateDate = (newDate: string) => {
     if (newDate !== dateOfInterest) {
       setDateOfInterest(newDate)
-      const { start, end } = getDateRange(isWeeklyView, newDate)
+      const { start, end } = getDateRange(true, newDate)
       setSelectedPrepDay(null)
       callDispatch(start, end)
     }
