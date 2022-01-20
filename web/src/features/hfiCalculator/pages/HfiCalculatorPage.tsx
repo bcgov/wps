@@ -21,7 +21,7 @@ import {
   InfoOutlined,
   HelpOutlineOutlined
 } from '@material-ui/icons'
-import { getDateRange, pstFormatter } from 'utils/date'
+import { getDateRange, getPrepWeeklyDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles, theme } from 'app/theme'
@@ -140,9 +140,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const copyTable = () => {
     if (isWeeklyView) {
+      const { start } = getPrepWeeklyDateRange(dateOfInterest)
       const weeklyViewAsString = HFITableCSVFormatter.exportWeeklyRowsAsStrings(
         numPrepDays,
-        dateOfInterest,
+        start,
         fireCentres,
         planningAreaHFIResults
       )

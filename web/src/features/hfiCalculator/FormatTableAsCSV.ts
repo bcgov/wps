@@ -1,6 +1,6 @@
 import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { isNull, isUndefined, range } from 'lodash'
+import { isNull, isUndefined, range, sortBy, take } from 'lodash'
 import * as CSV from 'csv-string'
 import { getZoneFromAreaName } from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
@@ -186,7 +186,7 @@ export class HFITableCSVFormatter {
 
   public static exportWeeklyRowsAsStrings = (
     numPrepDays: number,
-    startDateIso: string,
+    startDate: DateTime,
     fireCentres: Record<string, FireCentre>,
     planningAreaHFIResults: {
       [key: string]: HFIResult
@@ -197,7 +197,6 @@ export class HFITableCSVFormatter {
     const rowsAsStringArrays: string[][] = []
 
     // build header row of dates
-    const startDate = DateTime.fromISO(startDateIso)
     const dateStrings = range(numPrepDays).map(dayOffset => {
       const date = startDate.plus({ days: dayOffset })
       return `${date.weekdayShort} ${date.monthShort} ${date.day}`
@@ -228,8 +227,12 @@ export class HFITableCSVFormatter {
           )
 
           Object.entries(area.stations).forEach(([, station]) => {
-            const dailiesForStation = areaHFIResult.dailies.filter(
-              daily => daily.code === station.code
+            const dailiesForStation = take(
+              sortBy(
+                areaHFIResult.dailies.filter(daily => daily.code === station.code),
+                daily => daily.date.toMillis()
+              ),
+              numPrepDays
             )
             const grassCureError = !isValidGrassCure(
               dailiesForStation[0],
