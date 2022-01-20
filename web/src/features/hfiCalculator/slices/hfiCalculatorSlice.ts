@@ -130,7 +130,8 @@ const calculateHFIResults = (
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Object.entries(fireCentres).map(([_, fireCentre]) =>
-    Object.entries(fireCentre.planning_areas).map(([areaName, area]) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    Object.entries(fireCentre.planning_areas).map(([_, area]) => {
       const areaStationCodes = new Set(
         Object.entries(area.stations).map(([, station]) => station.code)
       )
@@ -146,7 +147,7 @@ const calculateHFIResults = (
       )
       const dailyPrepLevels = calculateDailyPrepLevels(dailyMeanIntensityGroups)
       const meanPrepLevel = calculateMeanPrepLevel(dailyPrepLevels)
-      planningAreaToDailies[areaName] = {
+      planningAreaToDailies[area.name] = {
         dailies: areaDailies,
         dailyMeanIntensityGroups,
         maxMeanIntensityGroup,
