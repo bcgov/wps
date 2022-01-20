@@ -1,5 +1,5 @@
 import React, { ReactFragment, useState } from 'react'
-
+import { DateTime } from 'luxon'
 import {
   Table,
   TableBody,
@@ -9,6 +9,7 @@ import {
   Tooltip
 } from '@material-ui/core'
 import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
+import { useSelector } from 'react-redux'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import { FireCentre } from 'api/hfiCalcAPI'
@@ -34,11 +35,13 @@ import {
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
+import { selectHFIPrepDays } from 'app/rootReducer'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
   dailies: StationDaily[]
   testId?: string
+  selectedPrepDay: DateTime
 }
 
 export const dailyTableColumnLabels = [
@@ -74,6 +77,8 @@ const useStyles = makeStyles({
 
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
+
+  const numPrepDays = useSelector(selectHFIPrepDays)
 
   const [selected, setSelected] = useState<number[]>(
     union(props.dailies.map(daily => daily.code))
@@ -275,7 +280,14 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                 ) // sort by zone code
                 .map(([areaName, area]) => {
                   const areaDailies = getDailiesForArea(area, props.dailies, selected)
-                  const meanIntensityGroup = calculateMeanIntensity(areaDailies)
+                  const meanIntensityGroup = calculateMeanIntensity(
+                    areaDailies.filter(
+                      day =>
+                        day.date.year === props.selectedPrepDay.year &&
+                        day.date.month === props.selectedPrepDay.month &&
+                        day.date.day === props.selectedPrepDay.day
+                    )
+                  )
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
                       <TableRow>
@@ -326,9 +338,14 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
                           const daily = getDailiesByStationCode(
-                            1,
+                            numPrepDays,
                             props.dailies,
                             station.code
+                          ).filter(
+                            day =>
+                              day.date.year === props.selectedPrepDay.year &&
+                              day.date.month === props.selectedPrepDay.month &&
+                              day.date.day === props.selectedPrepDay.day
                           )[0]
                           const grassCureError = !isValidGrassCure(
                             daily,
