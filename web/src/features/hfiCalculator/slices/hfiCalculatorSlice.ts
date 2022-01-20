@@ -42,7 +42,7 @@ const initialState: HFICalculatorState = {
   planningAreaHFIResults: {}
 }
 
-const calculateMeanIntensity = (dailies: StationDaily[]): number | undefined =>
+export const calculateMeanIntensity = (dailies: StationDaily[]): number | undefined =>
   dailies.length === 0
     ? undefined
     : Math.round(
@@ -50,7 +50,10 @@ const calculateMeanIntensity = (dailies: StationDaily[]): number | undefined =>
           dailies.length
       ) / 10
 
-const calculateDailyMeanIntensities = (dailies: StationDaily[], numPrepDays: number) => {
+export const calculateDailyMeanIntensities = (
+  dailies: StationDaily[],
+  numPrepDays: number
+): (number | undefined)[] => {
   const utcDict = groupBy(dailies, (daily: StationDaily) => daily.date.toUTC().toMillis())
 
   const dailiesByDayUTC = new Map(
@@ -67,7 +70,7 @@ const calculateDailyMeanIntensities = (dailies: StationDaily[], numPrepDays: num
   })
 }
 
-const calculateMaxMeanIntensityGroup = (
+export const calculateMaxMeanIntensityGroup = (
   dailyMeanIntensityGroups: (number | undefined)[]
 ): number => Math.max(...dailyMeanIntensityGroups.filter(isDefined))
 
