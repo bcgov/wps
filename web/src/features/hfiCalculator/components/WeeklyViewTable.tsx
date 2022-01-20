@@ -25,7 +25,6 @@ export interface Props {
   fireCentres: Record<string, FireCentre>
   dailies: StationDaily[]
   currentDay: string
-  selected: number[]
   setSelected: (selected: number[]) => void
 }
 
@@ -54,13 +53,15 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const { numPrepDays, planningAreaHFIResults } = useSelector(selectHFICalculatorState)
+  const { numPrepDays, planningAreaHFIResults, selected } = useSelector(
+    selectHFICalculatorState
+  )
 
   const stationCodeInSelected = (code: number) => {
-    return props.selected.includes(code)
+    return selected.includes(code)
   }
   const toggleSelectedStation = (code: number) => {
-    const selectedSet = new Set(props.selected)
+    const selectedSet = new Set(selected)
     if (stationCodeInSelected(code)) {
       // remove station from selected
       selectedSet.delete(code)
@@ -223,7 +224,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             area={area}
                             areaName={areaName}
                             areaHFIResults={areaHFIResult}
-                            selected={props.selected}
+                            selected={selected}
                             planningAreaClass={classes.planningArea}
                             numPrepDays={numPrepDays}
                           />

@@ -10,7 +10,6 @@ export interface ViewSwitcherProps {
   fireCentres: Record<string, FireCentre>
   dailies: StationDaily[]
   dateOfInterest: string
-  selected: number[]
   setSelected: (selected: number[]) => void
 }
 
@@ -23,7 +22,6 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
           fireCentres={props.fireCentres}
           dailies={props.dailies}
           currentDay={props.dateOfInterest}
-          selected={props.selected}
           setSelected={props.setSelected}
         />
       ) : (

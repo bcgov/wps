@@ -253,7 +253,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               fireCentres={fireCentres}
               dailies={dailies}
               dateOfInterest={dateOfInterest}
-              selected={selected}
               setSelected={setSelected}
             />
           </ErrorBoundary>
