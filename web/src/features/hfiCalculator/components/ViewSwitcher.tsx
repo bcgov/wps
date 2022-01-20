@@ -6,17 +6,17 @@ import React from 'react'
 
 export interface ViewSwitcherProps {
   testId?: string
-  isWeeklyView: boolean
   fireCentres: Record<string, FireCentre>
   dailies: StationDaily[]
   dateOfInterest: string
   setSelected: (selected: number[]) => void
+  selectedPrepDay: string | null
 }
 
 const ViewSwitcher = (props: ViewSwitcherProps) => {
   return (
     <React.Fragment>
-      {props.isWeeklyView ? (
+      {props.selectedPrepDay == null ? (
         <WeeklyViewTable
           testId="hfi-calc-weekly-table"
           fireCentres={props.fireCentres}

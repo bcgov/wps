@@ -3,9 +3,10 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { getDailies, StationDaily } from 'api/hfiCalculatorAPI'
-import { groupBy, isUndefined, range } from 'lodash'
+import { groupBy, isNull, isUndefined, range } from 'lodash'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
+import { DateTime } from 'luxon'
 
 export interface HFIResult {
   dailies: StationDaily[]
@@ -24,6 +25,7 @@ export interface HFICalculatorState {
   fireCentres: { [key: string]: FireCentre }
   numPrepDays: number
   selected: number[]
+  selectedPrepDay: string | null
   formattedDateStringHeaders: string[]
   planningAreaHFIResults: { [key: string]: HFIResult }
 }
@@ -35,6 +37,7 @@ const initialState: HFICalculatorState = {
   fireCentres: {},
   numPrepDays: NUM_WEEK_DAYS,
   selected: [],
+  selectedPrepDay: null,
   formattedDateStringHeaders: [],
   planningAreaHFIResults: {}
 }
@@ -129,8 +132,12 @@ const calculateHFIResults = (
   fireCentres: { [key: string]: FireCentre },
   dailies: StationDaily[],
   numPrepDays: number,
-  selected: number[]
+  selected: number[],
+  selectedPrepDayIso: string | null
 ): { [key: string]: HFIResult } => {
+  const selectedPrepDay = isNull(selectedPrepDayIso)
+    ? null
+    : DateTime.fromISO(selectedPrepDayIso)
   const planningAreaToDailies: { [key: string]: HFIResult } = {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -143,7 +150,17 @@ const calculateHFIResults = (
       const areaDailies = dailies.filter(
         daily => selected.includes(daily.code) && areaStationCodes.has(daily.code)
       )
-      const dailyMeanIntensity = calculateMeanIntensity(areaDailies)
+
+      const dailyMeanIntensity = calculateMeanIntensity(
+        isNull(selectedPrepDayIso)
+          ? areaDailies
+          : areaDailies.filter(
+              day =>
+                day.date.year === selectedPrepDay?.year &&
+                day.date.month === selectedPrepDay?.month &&
+                day.date.day === selectedPrepDay?.day
+            )
+      )
       const dailyMeanIntensityGroups = calculateDailyMeanIntensities(
         areaDailies,
         numPrepDays
@@ -195,7 +212,8 @@ const dailiesSlice = createSlice({
         action.payload.fireCentres,
         action.payload.dailies,
         state.numPrepDays,
-        action.payload.selected
+        action.payload.selected,
+        state.selectedPrepDay
       )
       state.loading = false
     },
@@ -205,7 +223,8 @@ const dailiesSlice = createSlice({
         state.fireCentres,
         state.dailies,
         action.payload,
-        state.selected
+        state.selected,
+        state.selectedPrepDay
       )
     },
     setSelectedStations: (state, action: PayloadAction<number[]>) => {
@@ -214,6 +233,17 @@ const dailiesSlice = createSlice({
         state.fireCentres,
         state.dailies,
         state.numPrepDays,
+        action.payload,
+        state.selectedPrepDay
+      )
+    },
+    setSelectedPrepDay: (state, action: PayloadAction<string | null>) => {
+      state.selectedPrepDay = action.payload
+      state.planningAreaHFIResults = calculateHFIResults(
+        state.fireCentres,
+        state.dailies,
+        state.numPrepDays,
+        state.selected,
         action.payload
       )
     }
@@ -225,7 +255,8 @@ export const {
   getDailiesFailed,
   getDailiesSuccess,
   setPrepDays,
-  setSelectedStations
+  setSelectedStations,
+  setSelectedPrepDay
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer

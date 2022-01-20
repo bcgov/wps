@@ -59,7 +59,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
             </p>
             <p>
               If you have any questions about how values are calculated, please{' '}
-              <a href="mailto: bcws.predictiveservices@gov.bc.ca? subject= Predictive Services Unit - Fire Behaviour Advisory Calculator">
+              <a href="mailto: bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - Fire Behaviour Advisory Calculator">
                 contact us.
               </a>
             </p>

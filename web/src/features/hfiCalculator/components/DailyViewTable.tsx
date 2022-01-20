@@ -1,5 +1,4 @@
 import React, { ReactFragment } from 'react'
-
 import {
   Table,
   TableBody,
@@ -9,6 +8,7 @@ import {
   Tooltip
 } from '@material-ui/core'
 import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
+import { useSelector } from 'react-redux'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import { FireCentre } from 'api/hfiCalcAPI'
@@ -29,7 +29,6 @@ import { getDailiesByStationCode, getZoneFromAreaName } from 'features/hfiCalcul
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
-import { useSelector } from 'react-redux'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -72,7 +71,9 @@ const useStyles = makeStyles({
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const { planningAreaHFIResults, selected } = useSelector(selectHFICalculatorState)
+  const { planningAreaHFIResults, selected, numPrepDays, selectedPrepDay } = useSelector(
+    selectHFICalculatorState
+  )
 
   const stationCodeInSelected = (code: number) => {
     return selected.includes(code)
@@ -275,6 +276,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                     ? hfiResult.dailyMeanIntensity
                     : undefined
                   const prepLevel = hfiResult ? hfiResult.dailyPrepLevel : undefined
+
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
                       <TableRow>
@@ -324,7 +326,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
                           const daily = getDailiesByStationCode(
-                            1,
+                            numPrepDays,
+                            selectedPrepDay,
                             props.dailies,
                             station.code
                           )[0]

@@ -1,6 +1,7 @@
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { chain, groupBy, sortBy, take } from 'lodash'
+import { DateTime } from 'luxon'
 
 export const getDailiesForArea = (
   area: PlanningArea,
@@ -34,9 +35,13 @@ export const getDailiesForCSV = (
 
 export const getDailiesByStationCode = (
   numPrepDays: number,
+  selectedPrepDayIso: string | null,
   dailies: StationDaily[],
   stationCode: number
 ): StationDaily[] => {
+  const selectedPrepDayDate = selectedPrepDayIso
+    ? DateTime.fromISO(selectedPrepDayIso)
+    : undefined
   const stationCodeDict = groupBy(dailies, 'code')
   const dailiesByCode = new Map<number, StationDaily[]>()
 
