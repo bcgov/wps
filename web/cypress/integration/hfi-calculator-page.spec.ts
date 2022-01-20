@@ -1,9 +1,25 @@
+import { CyHttpMessages } from 'cypress/types/net-stubbing'
 import { HFI_CALC_ROUTE } from '../../src/utils/constants'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applyDate(dailies: any, req: CyHttpMessages.IncomingHttpRequest) {
+  // grab date from request and apply to dailies.
+  const date = new Date(Number(req.query['start_time_stamp']))
+  dailies['dailies'].forEach(daily => {
+    daily['date'] = date.toISOString()
+  })
+}
 
 describe('HFI Calculator Page', () => {
   describe('all data exists', () => {
     beforeEach(() => {
-      cy.intercept('GET', 'api/hfi-calc/daily*', { fixture: 'hfi-calc/dailies.json' }).as('getDaily')
+      // We need to inject an appropriate date into our mock data.
+      cy.readFile('cypress/fixtures/hfi-calc/dailies.json').then(dailies => {
+        cy.intercept('GET', 'api/hfi-calc/daily*', req => {
+          applyDate(dailies, req)
+          req.reply(dailies)
+        }).as('getDaily')
+      })
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
@@ -48,7 +64,6 @@ describe('HFI Calculator Page', () => {
     it('should allow date of interest to be changed with DatePicker component', () => {
       cy.visit(HFI_CALC_ROUTE)
       cy.getByTestId('daily-toggle-0').click()
-      cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('date-of-interest-picker').type('2021-07-22')
       cy.getByTestId('hfi-calc-daily-table').click({ force: true })
       cy.wait(['@getFireCentres', '@getDaily'])
@@ -56,9 +71,12 @@ describe('HFI Calculator Page', () => {
   })
   describe('dailies data are missing', () => {
     beforeEach(() => {
-      cy.intercept('GET', 'api/hfi-calc/daily*', {
-        fixture: 'hfi-calc/dailies-missing.json'
-      }).as('getDaily')
+      cy.readFile('cypress/fixtures/hfi-calc/dailies-missing.json').then(dailies => {
+        cy.intercept('GET', 'api/hfi-calc/daily*', req => {
+          applyDate(dailies, req)
+          req.reply(dailies)
+        }).as('getDaily')
+      })
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-grass.json'
       }).as('getFireCentres')
@@ -76,9 +94,12 @@ describe('HFI Calculator Page', () => {
   })
   describe('high intensity', () => {
     beforeEach(() => {
-      cy.intercept('GET', 'api/hfi-calc/daily*', {
-        fixture: 'hfi-calc/dailies-high-intensity.json'
-      }).as('getDaily')
+      cy.readFile('cypress/fixtures/hfi-calc/dailies-high-intensity.json').then(dailies => {
+        cy.intercept('GET', 'api/hfi-calc/daily*', req => {
+          applyDate(dailies, req)
+          req.reply(dailies)
+        }).as('getDaily')
+      })
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-minimal.json'
       }).as('getFireCentres')
