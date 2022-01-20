@@ -2,14 +2,9 @@ import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { isNull, isUndefined, range } from 'lodash'
 import * as CSV from 'csv-string'
-import {
-  getDailiesByStationCode,
-  getDailiesForArea,
-  getZoneFromAreaName
-} from 'features/hfiCalculator/util'
+import { getZoneFromAreaName } from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
 import { columnLabelsForEachDayInWeek } from 'features/hfiCalculator/components/WeeklyViewTable'
-import { calculateMeanIntensity } from 'features/hfiCalculator/components/meanIntensity'
 import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
@@ -34,9 +29,10 @@ const printGrassCurePercentage = (daily: StationDaily): string => {
 
 export class FormatTableAsCSV {
   public static exportDailyRowsAsStrings = (
-    numPrepDays: number,
     fireCentres: Record<string, FireCentre>,
-    dailies: StationDaily[]
+    planningAreaHFIResults: {
+      [key: string]: HFIResult
+    }
   ): string => {
     const rowsAsStrings: string[] = []
 
@@ -53,8 +49,9 @@ export class FormatTableAsCSV {
           Object.entries(area.stations).forEach(([, station]) => {
             stationCodesInArea.push(station.code)
           })
-          const areaDailies = getDailiesForArea(area, dailies, stationCodesInArea)
-          const meanIntensityGroup = calculateMeanIntensity(areaDailies)
+          const hfiResult = planningAreaHFIResults[area.name]
+          const areaDailies = hfiResult.dailies
+          const meanIntensityGroup = hfiResult.dailyMeanIntensity
           const areaPrepLevel = calculatePrepLevel(meanIntensityGroup)
           rowsAsStrings.push(
             CSV.stringify(
@@ -65,7 +62,7 @@ export class FormatTableAsCSV {
           )
           Object.entries(area.stations).forEach(([, station]) => {
             const rowArray: string[] = []
-            const daily = getDailiesByStationCode(numPrepDays, dailies, station.code)[0]
+            const daily = areaDailies.filter(daily => daily.code === station.code)[0]
 
             const grassCureError = !isValidGrassCure(daily, station.station_props)
 

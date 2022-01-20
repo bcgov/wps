@@ -147,9 +147,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       navigator.clipboard.writeText(weeklyViewAsString)
     } else {
       const dailyViewAsString = FormatTableAsCSV.exportDailyRowsAsStrings(
-        numPrepDays,
         fireCentres,
-        dailies
+        planningAreaHFIResults
       )
       navigator.clipboard.writeText(dailyViewAsString)
     }
