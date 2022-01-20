@@ -29,6 +29,8 @@ import { getDailiesByStationCode, getZoneFromAreaName } from 'features/hfiCalcul
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
+import { DateTime } from 'luxon'
+import { isNull } from 'lodash'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -74,6 +76,24 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   const { planningAreaHFIResults, selected, numPrepDays, selectedPrepDay } = useSelector(
     selectHFICalculatorState
   )
+
+  const getDailyForDay = (
+    numPrepDays: number,
+    stationCode: number,
+    dailies: StationDaily[]
+  ): StationDaily => {
+    const dailiesForStation = getDailiesByStationCode(numPrepDays, dailies, stationCode)
+    if (!isNull(selectedPrepDay)) {
+      const selectedPrepDate = DateTime.fromISO(selectedPrepDay)
+      return dailiesForStation.filter(
+        daily =>
+          daily.date.year === selectedPrepDate.year &&
+          daily.date.month === selectedPrepDate.month &&
+          daily.date.day === selectedPrepDate.day
+      )[0]
+    }
+    return dailiesForStation[0]
+  }
 
   const stationCodeInSelected = (code: number) => {
     return selected.includes(code)
@@ -325,12 +345,11 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       {Object.entries(area.stations)
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
-                          const daily = getDailiesByStationCode(
+                          const daily = getDailyForDay(
                             numPrepDays,
-                            selectedPrepDay,
-                            props.dailies,
-                            station.code
-                          )[0]
+                            station.code,
+                            props.dailies
+                          )
                           const grassCureError = !isValidGrassCure(
                             daily,
                             station.station_props

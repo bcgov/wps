@@ -234,7 +234,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           .map(([stationCode, station]) => {
                             const dailiesForStation = getDailiesByStationCode(
                               numPrepDays,
-                              null,
                               props.dailies,
                               station.code
                             )
