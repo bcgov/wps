@@ -4,7 +4,10 @@ import { isNull, isUndefined, range } from 'lodash'
 import * as CSV from 'csv-string'
 import { getZoneFromAreaName } from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
-import { columnLabelsForEachDayInWeek } from 'features/hfiCalculator/components/WeeklyViewTable'
+import {
+  columnLabelsForEachDayInWeek,
+  weeklyTableColumnLabels
+} from 'features/hfiCalculator/components/WeeklyViewTable'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { HFIResult } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -26,7 +29,7 @@ const printGrassCurePercentage = (daily: StationDaily): string => {
   }
 }
 
-export class FormatTableAsCSV {
+export class HFITableCSVFormatter {
   public static exportDailyRowsAsStrings = (
     fireCentres: Record<string, FireCentre>,
     planningAreaHFIResults: {
@@ -186,7 +189,9 @@ export class FormatTableAsCSV {
   }
 
   public static exportWeeklyRowsAsStrings = (
+    numPrepDays: number,
     fireCentres: Record<string, FireCentre>,
+    formattedDateStringHeaders: string[],
     planningAreaHFIResults: {
       [key: string]: HFIResult
     }
@@ -194,16 +199,10 @@ export class FormatTableAsCSV {
     // build up array of string arrays, which will be converted to CSV string at end
     // each string array represents one row of table
     const rowsAsStringArrays: string[][] = []
-    const dateSet = new Set<string>()
 
-    // dailies.flatMap(dailyRecord => {
-    //   dateSet.add(
-    //     `${dailyRecord.date.weekdayShort} ${dailyRecord.date.monthShort} ${dailyRecord.date.day}`
-    //   )
-    // })
     // build header row of dates
     const dateRow: string[] = Array(NUM_STATION_DATA_COLS - 1).fill(' ')
-    Array.from(dateSet).forEach(date => {
+    formattedDateStringHeaders.forEach(date => {
       dateRow.push(date)
       dateRow.push(...Array(columnLabelsForEachDayInWeek.length - 1).fill(' '))
     })
@@ -212,7 +211,7 @@ export class FormatTableAsCSV {
     // according to docs for csv-string library (https://www.npmjs.com/package/csv-string#api-documentation),
     // \n char should be used as newline indicator regardless of OS. Later on in code, these strings will be
     // "CSV stringified", so using /n here as line separator
-    // rowsAsStringArrays.push(weeklyTableColumnLabels(numPrepDays))
+    rowsAsStringArrays.push(weeklyTableColumnLabels(numPrepDays))
 
     Object.entries(fireCentres).forEach(([, centre]) => {
       rowsAsStringArrays.push([centre.name])

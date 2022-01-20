@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { getDailies, StationDaily } from 'api/hfiCalculatorAPI'
-import { groupBy, isUndefined, range } from 'lodash'
+import { chain, groupBy, isUndefined, range } from 'lodash'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 
@@ -24,6 +24,7 @@ export interface HFICalculatorState {
   fireCentres: { [key: string]: FireCentre }
   numPrepDays: number
   selected: number[]
+  formattedDateStringHeaders: string[]
   planningAreaHFIResults: { [key: string]: HFIResult }
 }
 
@@ -34,6 +35,7 @@ const initialState: HFICalculatorState = {
   fireCentres: {},
   numPrepDays: NUM_WEEK_DAYS,
   selected: [],
+  formattedDateStringHeaders: [],
   planningAreaHFIResults: {}
 }
 
@@ -122,6 +124,16 @@ export const calculateMeanPrepLevel = (
   }
 }
 
+const buildFormattedDateStringHeaders = (dailies: StationDaily[]) => {
+  // Make date string array from dates with the max number of dailies
+  return chain(dailies)
+    .groupBy(daily => daily.code)
+    .sortBy(dailiesByDay => dailiesByDay.length)
+    .last()
+    .map(daily => `${daily.date.weekdayShort} ${daily.date.monthShort} ${daily.date.day}`)
+    .value()
+}
+
 const calculateHFIResults = (
   fireCentres: { [key: string]: FireCentre },
   dailies: StationDaily[],
@@ -193,6 +205,9 @@ const dailiesSlice = createSlice({
         action.payload.dailies,
         state.numPrepDays,
         action.payload.selected
+      )
+      state.formattedDateStringHeaders = buildFormattedDateStringHeaders(
+        action.payload.dailies
       )
       state.loading = false
     },

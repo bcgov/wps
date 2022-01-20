@@ -26,7 +26,7 @@ import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
-import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
+import { HFITableCSVFormatter } from 'features/hfiCalculator/FormatTableAsCSV'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import DatePicker from 'components/DatePicker'
@@ -71,9 +71,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const { numPrepDays, selected, planningAreaHFIResults } = useSelector(
-    selectHFICalculatorState
-  )
+  const { numPrepDays, selected, planningAreaHFIResults, formattedDateStringHeaders } =
+    useSelector(selectHFICalculatorState)
   const setNumPrepDays = (numDays: number) => {
     dispatch(setPrepDays(numDays))
   }
@@ -140,13 +139,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const copyTable = () => {
     if (isWeeklyView) {
-      const weeklyViewAsString = FormatTableAsCSV.exportWeeklyRowsAsStrings(
+      const weeklyViewAsString = HFITableCSVFormatter.exportWeeklyRowsAsStrings(
+        numPrepDays,
         fireCentres,
+        formattedDateStringHeaders,
         planningAreaHFIResults
       )
       navigator.clipboard.writeText(weeklyViewAsString)
     } else {
-      const dailyViewAsString = FormatTableAsCSV.exportDailyRowsAsStrings(
+      const dailyViewAsString = HFITableCSVFormatter.exportDailyRowsAsStrings(
         fireCentres,
         planningAreaHFIResults
       )
