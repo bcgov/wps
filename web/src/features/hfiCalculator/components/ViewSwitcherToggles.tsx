@@ -1,13 +1,18 @@
 import { makeStyles } from '@material-ui/core'
+import { DateTime } from 'luxon'
 import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab'
+import { range } from 'lodash'
 import { theme } from 'app/theme'
-import { isNull } from 'lodash'
 import React from 'react'
+import { getPrepWeeklyDateRange, toISO } from 'utils/date'
+import { selectHFIPrepDays } from 'app/rootReducer'
+import { useSelector } from 'react-redux'
 
 export interface ViewSwitcherTogglesProps {
   testId?: string
-  isWeeklyView: boolean
-  toggleTableView: React.Dispatch<React.SetStateAction<boolean>>
+  setSelectedPrepDay: React.Dispatch<React.SetStateAction<DateTime | null>>
+  selectedPrepDay: DateTime | null
+  dateOfInterest: string
 }
 
 const useStyles = makeStyles(() => ({
@@ -19,40 +24,67 @@ const useStyles = makeStyles(() => ({
       backgroundColor: theme.palette.primary.main,
       color: 'white',
       fontWeight: 'bold'
+    },
+    '& .MuiToggleButton-label': {
+      lineHeight: '16px'
     }
   }
 }))
 
 const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
+  const numPrepDays = useSelector(selectHFIPrepDays)
   const classes = useStyles()
 
   const handleToggle = (
     _: React.MouseEvent<HTMLElement, MouseEvent>,
-    changeToWeekly: boolean
+    dayOfInterest: string
   ) => {
-    if (!isNull(changeToWeekly)) {
-      props.toggleTableView(changeToWeekly)
-    }
+    props.setSelectedPrepDay(dayOfInterest == '' ? null : DateTime.fromISO(dayOfInterest))
   }
+
+  const { start } = getPrepWeeklyDateRange(props.dateOfInterest)
+
+  const selectedPrepDayString =
+    props.selectedPrepDay == null ? '' : toISO(props.selectedPrepDay)
+
   return (
     <React.Fragment>
       <ToggleButtonGroup
         exclusive
         onChange={handleToggle}
         aria-label="view toggles"
-        value={props.isWeeklyView}
+        value={selectedPrepDayString}
         className={classes.toggleGroup}
       >
         <ToggleButton
           data-testid="prep-period-toggle"
-          value={true}
+          value={''}
           aria-label="prep toggle"
         >
           Prep Period
         </ToggleButton>
-        <ToggleButton data-testid="daily-toggle" value={false} aria-label="daily toggle">
-          Daily Table
-        </ToggleButton>
+        {/* Create a button for each day of the prep period. */}
+        {range(numPrepDays).map(i => {
+          const day = start.plus({ days: i })
+          const rowA = `Day ${i + 1}`
+          const rowB = day.toLocaleString({
+            weekday: 'short',
+            month: 'short',
+            day: '2-digit'
+          })
+          return (
+            <ToggleButton
+              key={i}
+              value={toISO(day)}
+              aria-label={`${rowA}. ${rowB}.`}
+              data-testid={`daily-toggle-${i}`}
+            >
+              {rowA}
+              <br />
+              {rowB}
+            </ToggleButton>
+          )
+        })}
       </ToggleButtonGroup>
     </React.Fragment>
   )
