@@ -1,6 +1,7 @@
 import { HFI_CALC_ROUTE } from '../../src/utils/constants'
 
 function interceptDaily(fixturePath: string) {
+  // Inject an appropriate date into our mock data.
   cy.readFile(fixturePath).then(dailies => {
     cy.intercept('GET', 'api/hfi-calc/daily*', req => {
       const date = new Date(Number(req.query['start_time_stamp']))
@@ -15,7 +16,6 @@ function interceptDaily(fixturePath: string) {
 describe('HFI Calculator Page', () => {
   describe('all data exists', () => {
     beforeEach(() => {
-      // We need to inject an appropriate date into our mock data.
       interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
