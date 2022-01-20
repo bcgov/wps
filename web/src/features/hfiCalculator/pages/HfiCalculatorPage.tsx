@@ -153,6 +153,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     setIsCopied(true)
   }
 
+  const setSelectedFireCentreFromLocalStorage = () => {
+    const findCentre = (name: string | null): FireCentre | undefined => {
+      const fireCentresArray = Object.values(fireCentres) as Array<FireCentre>
+      const fc = fireCentresArray.find(centre => centre.name == name)
+      return fc
+    }
+    const storedFireCentre = findCentre(localStorage.getItem('preferredFireCentre'))
+    if (!isUndefined(storedFireCentre) && storedFireCentre !== selectedFireCentre) {
+      setSelectedFireCentre(storedFireCentre)
+    }
+  }
+
   useEffect(() => {
     /**  this logic is copied from
      https://github.com/danoc/react-use-clipboard/blob/master/src/index.tsx 
@@ -171,6 +183,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [isCopied])
 
   useEffect(() => {
+    setSelectedFireCentreFromLocalStorage()
     refreshView()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -181,9 +194,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [isWeeklyView])
 
   useEffect(() => {
+    if (selectedFireCentre?.name) {
+      localStorage.setItem('preferredFireCentre', selectedFireCentre?.name)
+    }
     const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
     callDispatch(start, end)
-  }, [selectedFireCentre, dateOfInterest, isWeeklyView])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFireCentre])
 
   return (
     <main data-testid="hfi-calculator-page">
@@ -206,6 +223,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           <FormControl className={classes.formControl}>
             <FireCentreDropdown
               fireCentres={fireCentres}
+              selectedValue={
+                isUndefined(selectedFireCentre)
+                  ? null
+                  : { name: selectedFireCentre?.name }
+              }
               onChange={setSelectedFireCentre}
             />
           </FormControl>
