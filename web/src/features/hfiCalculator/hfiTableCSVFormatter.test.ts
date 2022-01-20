@@ -1,8 +1,9 @@
-import { HFITableCSVFormatter } from 'features/hfiCalculator/FormatTableAsCSV'
+import { HFITableCSVFormatter } from 'features/hfiCalculator/HFITableCSVFormatter'
 import { DateTime } from 'luxon'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
+import { HFIResult } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 describe('RowManager', () => {
   const fireCentres: Record<string, FireCentre> = {
     0: {
@@ -362,6 +363,11 @@ describe('RowManager', () => {
   ]
 
   it('should export Daily Table to a CSV string correctly', () => {
+    const planningAreaHFIResults: {
+      [key: string]: HFIResult
+    } = {
+      "Kamloops (K2)": {}
+    }
     const dailyTableCSVString = HFITableCSVFormatter.exportDailyRowsAsStrings(
       NUM_WEEK_DAYS,
       fireCentres,
@@ -401,6 +407,7 @@ describe('RowManager', () => {
   })
 
   it('should export Weekly Table to a CSV string correctly', () => {
+    const startDate = DateTime.fromISO('2021-08-02T13:00:00.000-07:00')
     const stationDailiesForWeek: StationDaily[] = [
       {
         code: 1029,
@@ -425,7 +432,7 @@ describe('RowManager', () => {
         intensity_group: 3,
         sixty_minute_fire_size: 0.5190222203123409,
         fire_type: 'SUR',
-        date: DateTime.fromISO('2021-08-02T13:00:00.000-07:00')
+        date: startDate
       },
       {
         code: 1029,
@@ -450,7 +457,7 @@ describe('RowManager', () => {
         intensity_group: 5,
         sixty_minute_fire_size: 6.09065638734279,
         fire_type: 'SUR',
-        date: DateTime.fromISO('2021-08-03T13:00:00.000-07:00')
+        date: startDate.plus({days:})
       },
       {
         code: 1029,
@@ -475,7 +482,7 @@ describe('RowManager', () => {
         intensity_group: 5,
         sixty_minute_fire_size: 10.051119945012843,
         fire_type: 'SUR',
-        date: DateTime.fromISO('2021-08-04T13:00:00.000-07:00')
+        date: startDate.plus({ days: 2 })
       },
       {
         code: 1029,
@@ -500,7 +507,7 @@ describe('RowManager', () => {
         intensity_group: 5,
         sixty_minute_fire_size: 5.8353996010594384,
         fire_type: 'SUR',
-        date: DateTime.fromISO('2021-08-05T13:00:00.000-07:00')
+        date: startDate.plus({ days: 3 })
       },
       {
         code: 1029,
@@ -525,7 +532,7 @@ describe('RowManager', () => {
         intensity_group: 5,
         sixty_minute_fire_size: 3.025776248052835,
         fire_type: 'SUR',
-        date: DateTime.fromISO('2021-08-06T13:00:00.000-07:00')
+        date: startDate.plus({ days: 4 })
       },
       {
         code: 1055,
@@ -550,7 +557,7 @@ describe('RowManager', () => {
         intensity_group: 1,
         sixty_minute_fire_size: 0.0002857324028999626,
         fire_type: 'SUR',
-        date: DateTime.fromISO('2021-08-02T13:00:00.000-07:00')
+        date: startDate
       },
       {
         code: 1055,
@@ -575,7 +582,7 @@ describe('RowManager', () => {
         intensity_group: 4,
         sixty_minute_fire_size: 2.3142452776597726,
         fire_type: 'SUR',
-        date: DateTime.fromISO('2021-08-03T13:00:00.000-07:00')
+        date: startDate.plus({ days: 1 })
       },
       {
         code: 1055,
@@ -600,7 +607,7 @@ describe('RowManager', () => {
         intensity_group: 5,
         sixty_minute_fire_size: 6.580497981162746,
         fire_type: 'SUR',
-        date: DateTime.fromISO('2021-08-04T13:00:00.000-07:00')
+        date: startDate.plus({ days: 2 })
       },
       {
         code: 1055,
@@ -625,7 +632,7 @@ describe('RowManager', () => {
         intensity_group: 5,
         sixty_minute_fire_size: 4.179466308544374,
         fire_type: 'IC',
-        date: DateTime.fromISO('2021-08-05T13:00:00.000-07:00')
+        date: startDate.plus({ days: 3 })
       },
       {
         code: 1055,
@@ -650,7 +657,7 @@ describe('RowManager', () => {
         intensity_group: 5,
         sixty_minute_fire_size: 10.488183633122842,
         fire_type: 'IC',
-        date: DateTime.fromISO('2021-08-06T13:00:00.000-07:00')
+        date: startDate.plus({ days: 4 })
       }
     ]
     const weeklyTableString = HFITableCSVFormatter.exportWeeklyRowsAsStrings(
