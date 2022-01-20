@@ -1,4 +1,4 @@
-import React, { ReactFragment, useState } from 'react'
+import React, { ReactFragment } from 'react'
 
 import {
   Table,
@@ -15,7 +15,6 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
-import { calculateMeanIntensity } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
@@ -26,18 +25,16 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
-import { union } from 'lodash'
-import {
-  getDailiesByStationCode,
-  getDailiesForArea,
-  getZoneFromAreaName
-} from 'features/hfiCalculator/util'
+import { getDailiesByStationCode, getZoneFromAreaName } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
+import { selectHFICalculatorState } from 'app/rootReducer'
+import { useSelector } from 'react-redux'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
   dailies: StationDaily[]
+  setSelected: (selected: number[]) => void
   testId?: string
 }
 
@@ -75,9 +72,7 @@ const useStyles = makeStyles({
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const [selected, setSelected] = useState<number[]>(
-    union(props.dailies.map(daily => daily.code))
-  )
+  const { planningAreaHFIResults, selected } = useSelector(selectHFICalculatorState)
 
   const stationCodeInSelected = (code: number) => {
     return selected.includes(code)
@@ -91,7 +86,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       // add station to selected
       selectedSet.add(code)
     }
-    setSelected(Array.from(selectedSet))
+    props.setSelected(Array.from(selectedSet))
   }
 
   const errorIconTheme = createTheme({
@@ -274,8 +269,11 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
                 ) // sort by zone code
                 .map(([areaName, area]) => {
-                  const areaDailies = getDailiesForArea(area, props.dailies, selected)
-                  const meanIntensityGroup = calculateMeanIntensity(areaDailies)
+                  const hfiResult = planningAreaHFIResults[area.name]
+                  const areaDailies = hfiResult ? hfiResult.dailies : []
+                  const meanIntensityGroup = hfiResult
+                    ? hfiResult.dailyMeanIntensity
+                    : undefined
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
                       <TableRow>

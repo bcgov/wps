@@ -29,6 +29,7 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
           testId="hfi-calc-daily-table"
           fireCentres={props.fireCentres}
           dailies={props.dailies}
+          setSelected={props.setSelected}
         ></DailyViewTable>
       )}
     </React.Fragment>

@@ -9,6 +9,7 @@ import { FireCentre } from 'api/hfiCalcAPI'
 
 export interface HFIResult {
   dailies: StationDaily[]
+  dailyMeanIntensity: number | undefined
   dailyMeanIntensityGroups: (number | undefined)[]
   maxMeanIntensityGroup: number | undefined
   dailyPrepLevels: (number | undefined)[]
@@ -138,6 +139,7 @@ const calculateHFIResults = (
       const areaDailies = dailies.filter(
         daily => selected.includes(daily.code) && areaStationCodes.has(daily.code)
       )
+      const dailyMeanIntensity = calculateMeanIntensity(areaDailies)
       const dailyMeanIntensityGroups = calculateDailyMeanIntensities(
         areaDailies,
         numPrepDays
@@ -149,6 +151,7 @@ const calculateHFIResults = (
       const meanPrepLevel = calculateMeanPrepLevel(dailyPrepLevels)
       planningAreaToDailies[area.name] = {
         dailies: areaDailies,
+        dailyMeanIntensity,
         dailyMeanIntensityGroups,
         maxMeanIntensityGroup,
         dailyPrepLevels,
