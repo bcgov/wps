@@ -71,8 +71,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const { numPrepDays, selected, planningAreaHFIResults, formattedDateStringHeaders } =
-    useSelector(selectHFICalculatorState)
+  const { numPrepDays, selected, planningAreaHFIResults } = useSelector(
+    selectHFICalculatorState
+  )
   const setNumPrepDays = (numDays: number) => {
     dispatch(setPrepDays(numDays))
   }
@@ -141,8 +142,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     if (isWeeklyView) {
       const weeklyViewAsString = HFITableCSVFormatter.exportWeeklyRowsAsStrings(
         numPrepDays,
+        dateOfInterest,
         fireCentres,
-        formattedDateStringHeaders,
         planningAreaHFIResults
       )
       navigator.clipboard.writeText(weeklyViewAsString)

@@ -11,6 +11,7 @@ import {
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { HFIResult } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { DateTime } from 'luxon'
 
 // padding for station-data cells (e.g., station name, fuel type) before dates begin
 const NUM_STATION_DATA_COLS = 5
@@ -190,8 +191,8 @@ export class HFITableCSVFormatter {
 
   public static exportWeeklyRowsAsStrings = (
     numPrepDays: number,
+    startDateIso: string,
     fireCentres: Record<string, FireCentre>,
-    formattedDateStringHeaders: string[],
     planningAreaHFIResults: {
       [key: string]: HFIResult
     }
@@ -201,8 +202,13 @@ export class HFITableCSVFormatter {
     const rowsAsStringArrays: string[][] = []
 
     // build header row of dates
+    const startDate = DateTime.fromISO(startDateIso)
+    const dateStrings = range(numPrepDays).map(dayOffset => {
+      const date = startDate.plus({ days: dayOffset })
+      return `${date.weekdayShort} ${date.monthShort} ${date.day}`
+    })
     const dateRow: string[] = Array(NUM_STATION_DATA_COLS - 1).fill(' ')
-    formattedDateStringHeaders.forEach(date => {
+    dateStrings.forEach(date => {
       dateRow.push(date)
       dateRow.push(...Array(columnLabelsForEachDayInWeek.length - 1).fill(' '))
     })
