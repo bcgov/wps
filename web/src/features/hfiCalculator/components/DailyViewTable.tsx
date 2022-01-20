@@ -77,12 +77,12 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     selectHFICalculatorState
   )
 
-  const getDailyForDay = (
-    numPrepDays: number,
-    stationCode: number,
-    dailies: StationDaily[]
-  ): StationDaily => {
-    const dailiesForStation = getDailiesByStationCode(numPrepDays, dailies, stationCode)
+  const getDailyForDay = (stationCode: number): StationDaily => {
+    const dailiesForStation = getDailiesByStationCode(
+      numPrepDays,
+      props.dailies,
+      stationCode
+    )
     if (!isNull(selectedPrepDay)) {
       const selectedPrepDate = DateTime.fromISO(selectedPrepDay)
       return dailiesForStation.filter(
@@ -339,11 +339,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       {Object.entries(area.stations)
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
-                          const daily = getDailyForDay(
-                            numPrepDays,
-                            station.code,
-                            props.dailies
-                          )
+                          const daily = getDailyForDay(station.code)
                           const grassCureError = !isValidGrassCure(
                             daily,
                             station.station_props
