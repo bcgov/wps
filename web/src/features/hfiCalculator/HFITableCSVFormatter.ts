@@ -1,6 +1,6 @@
 import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { isNull, isUndefined, range, sortBy, take } from 'lodash'
+import { isNull, isUndefined, range, sortBy, take, zip } from 'lodash'
 import * as CSV from 'csv-string'
 import { getZoneFromAreaName } from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
@@ -253,22 +253,33 @@ export class HFITableCSVFormatter {
               grassCureError ? 'ERROR' : printGrassCurePercentage(dailiesForStation[0])
             )
 
-            dailiesForStation.forEach(day => {
-              rowArray.push(
-                !isUndefined(day) && !grassCureError
-                  ? day.rate_of_spread.toFixed(DECIMAL_PLACES)
-                  : 'ND'
-              )
-              rowArray.push(
-                !isUndefined(day) && !grassCureError
-                  ? day.hfi.toFixed(DECIMAL_PLACES)
-                  : 'ND'
-              )
-              rowArray.push(
-                !isUndefined(day) && !grassCureError
-                  ? day.intensity_group.toString()
-                  : 'ND'
-              )
+            const rateOfSpreads = dailiesForStation.map(day =>
+              isNull(day.rate_of_spread) ||
+              isUndefined(day.rate_of_spread) ||
+              grassCureError
+                ? 'ND'
+                : day.rate_of_spread.toFixed(DECIMAL_PLACES)
+            )
+
+            const hfis = dailiesForStation.map(day =>
+              isNull(day.hfi) || isUndefined(day.hfi) || grassCureError
+                ? 'ND'
+                : day.hfi.toFixed(DECIMAL_PLACES)
+            )
+
+            const intensityGroups = dailiesForStation.map(day =>
+              isNull(day.intensity_group) ||
+              isUndefined(day.intensity_group) ||
+              grassCureError
+                ? 'ND'
+                : String(day.intensity_group)
+            )
+
+            const validatedIndices = zip(rateOfSpreads, hfis, intensityGroups)
+            validatedIndices.forEach(indices => {
+              rowArray.push(indices[0] ? indices[0] : 'ND')
+              rowArray.push(indices[1] ? indices[1] : 'ND')
+              rowArray.push(indices[2] ? indices[2] : 'ND')
               rowArray.push(...Array(NUM_WEEKLY_SUMMARY_CELLS).fill(''))
             })
 
