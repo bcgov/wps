@@ -37,6 +37,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
           orderedDayTimestamps[day]
         )
         const meanIntensityGroup = props.areaHFIResults.dailyMeanIntensityGroups[day]
+        const prepLevel = props.areaHFIResults.dailyPrepLevels[day]
         return (
           <React.Fragment key={`calc-cells-${day}`}>
             <TableCell colSpan={2} className={props.planningAreaClass}></TableCell>
@@ -47,7 +48,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
               meanIntensityGroup={meanIntensityGroup}
             />
             <FireStartsCell areaName={props.areaName} />
-            <PrepLevelCell prepLevel={props.areaHFIResults.dailyPrepLevel} />
+            <PrepLevelCell prepLevel={prepLevel} />
           </React.Fragment>
         )
       })}
