@@ -48,10 +48,6 @@ export class HFITableCSVFormatter {
           getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
         )
         .forEach(([, area]) => {
-          const stationCodesInArea: number[] = []
-          Object.entries(area.stations).forEach(([, station]) => {
-            stationCodesInArea.push(station.code)
-          })
           const hfiResult = planningAreaHFIResults[area.name]
           const areaDailies = hfiResult.dailies
           const meanIntensityGroup = hfiResult.dailyMeanIntensity
@@ -65,7 +61,9 @@ export class HFITableCSVFormatter {
           )
           Object.entries(area.stations).forEach(([, station]) => {
             const rowArray: string[] = []
-            const daily = areaDailies.filter(daily => daily.code === station.code)[0]
+            const daily = areaDailies.filter(
+              areaDaily => areaDaily.code === station.code
+            )[0]
 
             const grassCureError = !isValidGrassCure(daily, station.station_props)
 

@@ -57,10 +57,10 @@ const calculateDailyMeanIntensities = (dailies: StationDaily[], numPrepDays: num
   return range(numPrepDays).map(i => {
     const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
 
-    const dailies: StationDaily[] | undefined = dailiesByDayUTC.get(
+    const dailiesForDay: StationDaily[] | undefined = dailiesByDayUTC.get(
       orderedDayTimestamps[i]
     )
-    return dailies ? calculateMeanIntensity(dailies) : undefined
+    return dailiesForDay ? calculateMeanIntensity(dailiesForDay) : undefined
   })
 }
 
@@ -134,9 +134,9 @@ const calculateHFIResults = (
   const planningAreaToDailies: { [key: string]: HFIResult } = {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Object.entries(fireCentres).map(([_, fireCentre]) =>
+  Object.entries(fireCentres).forEach(([_, fireCentre]) =>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Object.entries(fireCentre.planning_areas).map(([_, area]) => {
+    Object.entries(fireCentre.planning_areas).forEach(([_, area]) => {
       const areaStationCodes = new Set(
         Object.entries(area.stations).map(([, station]) => station.code)
       )

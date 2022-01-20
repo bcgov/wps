@@ -78,8 +78,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     dispatch(setPrepDays(numDays))
   }
 
-  const setSelected = (selected: number[]) => {
-    dispatch(setSelectedStations(selected))
+  const setSelected = (newSelected: number[]) => {
+    dispatch(setSelectedStations(newSelected))
   }
 
   const [isWeeklyView, toggleTableView] = useState(true)
