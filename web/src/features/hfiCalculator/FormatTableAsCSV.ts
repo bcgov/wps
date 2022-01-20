@@ -5,7 +5,6 @@ import * as CSV from 'csv-string'
 import { getZoneFromAreaName } from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
 import { columnLabelsForEachDayInWeek } from 'features/hfiCalculator/components/WeeklyViewTable'
-import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { HFIResult } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -52,7 +51,7 @@ export class FormatTableAsCSV {
           const hfiResult = planningAreaHFIResults[area.name]
           const areaDailies = hfiResult.dailies
           const meanIntensityGroup = hfiResult.dailyMeanIntensity
-          const areaPrepLevel = calculatePrepLevel(meanIntensityGroup)
+          const areaPrepLevel = hfiResult.dailyPrepLevels
           rowsAsStrings.push(
             CSV.stringify(
               `${area.name}, ${Array(21).join(

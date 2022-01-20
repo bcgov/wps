@@ -48,7 +48,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
             ></MeanIntensityGroupRollup>
             <FireStartsCell areaName={props.areaName} />
             <PrepLevelCell
-              meanIntensityGroup={meanIntensityGroup}
+              prepLevel={props.areaHFIResults.dailyPrepLevel}
               areaName={props.areaName}
             />
           </React.Fragment>

@@ -12,6 +12,7 @@ export interface HFIResult {
   dailyMeanIntensity: number | undefined
   dailyMeanIntensityGroups: (number | undefined)[]
   maxMeanIntensityGroup: number | undefined
+  dailyPrepLevel: number | undefined
   dailyPrepLevels: (number | undefined)[]
   meanPrepLevel: number | undefined
 }
@@ -147,6 +148,7 @@ const calculateHFIResults = (
       const maxMeanIntensityGroup = calculateMaxMeanIntensityGroup(
         dailyMeanIntensityGroups
       )
+      const dailyPrepLevel = calculatePrepLevel(dailyMeanIntensity)
       const dailyPrepLevels = calculateDailyPrepLevels(dailyMeanIntensityGroups)
       const meanPrepLevel = calculateMeanPrepLevel(dailyPrepLevels)
       planningAreaToDailies[area.name] = {
@@ -154,6 +156,7 @@ const calculateHFIResults = (
         dailyMeanIntensity,
         dailyMeanIntensityGroups,
         maxMeanIntensityGroup,
+        dailyPrepLevel,
         dailyPrepLevels,
         meanPrepLevel
       }

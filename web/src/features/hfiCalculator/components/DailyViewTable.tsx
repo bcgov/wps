@@ -274,6 +274,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   const meanIntensityGroup = hfiResult
                     ? hfiResult.dailyMeanIntensity
                     : undefined
+                  const prepLevel = hfiResult ? hfiResult.dailyPrepLevel : undefined
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
                       <TableRow>
@@ -316,7 +317,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         <FireStartsCell areaName={areaName} />
                         <PrepLevelCell
                           testid={`daily-prep-level-${areaName}`}
-                          meanIntensityGroup={meanIntensityGroup}
+                          prepLevel={prepLevel}
                           areaName={areaName}
                         />
                       </TableRow>
