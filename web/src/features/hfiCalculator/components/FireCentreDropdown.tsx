@@ -23,6 +23,7 @@ export interface Option {
 interface Props {
   className?: string
   fireCentres: Record<string, FireCentre>
+  selectedValue: Option | null
   onChange: (value: FireCentre | undefined) => void
 }
 
@@ -41,6 +42,7 @@ const FireCentreDropdown = (props: Props) => {
           className={classes.autocomplete}
           data-testid="fire-centre-dropdown"
           options={allFireCentreOptions}
+          value={props.selectedValue}
           getOptionLabel={option => `${option.name}`}
           getOptionSelected={(option, value) => option.name === value.name}
           onChange={(_, option) => {
