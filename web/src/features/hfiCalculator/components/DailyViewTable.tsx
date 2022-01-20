@@ -291,12 +291,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                 ) // sort by zone code
                 .map(([areaName, area]) => {
                   const hfiResult = planningAreaHFIResults[area.name]
-                  const areaDailies = hfiResult ? hfiResult.dailies : []
-                  const meanIntensityGroup = hfiResult
-                    ? hfiResult.dailyMeanIntensity
-                    : undefined
-                  const prepLevel = hfiResult ? hfiResult.dailyPrepLevel : undefined
-
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
                       <TableRow>
@@ -332,14 +326,14 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         ></TableCell>
                         <MeanIntensityGroupRollup
                           area={area}
-                          dailies={areaDailies}
+                          dailies={hfiResult ? hfiResult.dailies : []}
                           selectedStations={selected}
-                          meanIntensityGroup={meanIntensityGroup}
+                          meanIntensityGroup={hfiResult?.dailyMeanIntensity}
                         ></MeanIntensityGroupRollup>
                         <FireStartsCell areaName={areaName} />
                         <PrepLevelCell
                           testid={`daily-prep-level-${areaName}`}
-                          prepLevel={prepLevel}
+                          prepLevel={hfiResult?.dailyPrepLevel}
                         />
                       </TableRow>
                       {Object.entries(area.stations)
