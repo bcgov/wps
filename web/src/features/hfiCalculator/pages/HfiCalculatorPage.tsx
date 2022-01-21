@@ -92,8 +92,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     undefined
   )
 
-  const callDispatch = (start: DateTime, end: DateTime) => {
-    dispatch(fetchHFIStations())
+  const callDispatchHFIDailies = (start: DateTime, end: DateTime) => {
     if (!isUndefined(selectedFireCentre)) {
       dispatch(
         fetchHFIDailies(
@@ -107,7 +106,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const refreshView = () => {
     const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
-    callDispatch(start, end)
+    callDispatchHFIDailies(start, end)
   }
 
   const updateDate = (newDate: string) => {
@@ -115,7 +114,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       setDateOfInterest(newDate)
       const { start, end } = getDateRange(true, newDate)
       setSelectedPrepDay(null)
-      callDispatch(start, end)
+      callDispatchHFIDailies(start, end)
     }
   }
 
@@ -189,6 +188,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [isCopied])
 
   useEffect(() => {
+    dispatch(fetchHFIStations())
     refreshView()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
