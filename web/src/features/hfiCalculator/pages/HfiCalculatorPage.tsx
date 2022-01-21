@@ -71,8 +71,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const [selectedPredDay, setSelectedPrepDay] = useState<DateTime | null>(null)
-  const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPredDay == null)
+  const [selectedPrepDay, setSelectedPrepDay] = useState<DateTime | null>(null)
+  const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPrepDay == null)
   const numPrepDays = useSelector(selectHFIPrepDays)
   const setNumPrepDays = (numDays: number) => {
     // if the number of prep days change, we need to unset the selected prep day - it
@@ -163,7 +163,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const fc = fireCentresArray.find(centre => centre.name == name)
       return fc
     }
-    const storedFireCentre = findCentre(localStorage.getItem('preferredFireCentre'))
+    const storedFireCentre = findCentre(
+      localStorage.getItem('hfiCalcPreferredFireCentre')
+    )
     if (!isUndefined(storedFireCentre) && storedFireCentre !== selectedFireCentre) {
       setSelectedFireCentre(storedFireCentre)
     }
@@ -187,23 +189,40 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [isCopied])
 
   useEffect(() => {
-    setSelectedFireCentreFromLocalStorage()
     refreshView()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
-    setIsWeeklyView(selectedPredDay == null)
-  }, [selectedPredDay])
+    setIsWeeklyView(selectedPrepDay == null)
+  }, [selectedPrepDay])
 
   useEffect(() => {
-    if (selectedFireCentre?.name) {
-      localStorage.setItem('preferredFireCentre', selectedFireCentre?.name)
+    if (
+      selectedFireCentre &&
+      selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')
+    ) {
+      localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
     const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
-    callDispatch(start, end)
+    if (!isUndefined(selectedFireCentre)) {
+      dispatch(
+        fetchHFIDailies(
+          start.toUTC().valueOf(),
+          end.toUTC().valueOf(),
+          getAllPlanningWeatherStationCodesFromFireCentre(selectedFireCentre)
+        )
+      )
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre])
+
+  useEffect(() => {
+    if (Object.keys(fireCentres).length > 0) {
+      setSelectedFireCentreFromLocalStorage()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fireCentres])
 
   return (
     <main data-testid="hfi-calculator-page">
@@ -241,7 +260,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
               setSelectedPrepDay={setSelectedPrepDay}
-              selectedPrepDay={selectedPredDay}
+              selectedPrepDay={selectedPrepDay}
               dateOfInterest={dateOfInterest}
             />
           </FormControl>
@@ -282,7 +301,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               selectedFireCentre={selectedFireCentre}
               dailies={dailies}
               dateOfInterest={dateOfInterest}
-              selectedPrepDay={selectedPredDay}
+              selectedPrepDay={selectedPrepDay}
             />
           </ErrorBoundary>
         </Container>
