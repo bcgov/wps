@@ -118,17 +118,14 @@ export const calculateMeanPrepLevel = (
   // for now, prep level calculation assumed a fixed Fire Starts value of 0-1
   if (isUndefined(rawMeanIntensityGroups)) {
     return undefined
-  } else {
-    const existingDailies: number[] = []
-    rawMeanIntensityGroups.forEach(daily => {
-      if (!isUndefined(daily)) {
-        existingDailies.push(Math.round(daily))
-      }
-    })
-    return Math.round(
-      existingDailies?.reduce((a, b) => a + b, 0) / existingDailies.length
-    )
   }
+  const existingDailies: number[] = []
+  rawMeanIntensityGroups.forEach(daily => {
+    if (!isUndefined(daily)) {
+      existingDailies.push(Math.round(daily))
+    }
+  })
+  return Math.round(existingDailies?.reduce((a, b) => a + b, 0) / existingDailies.length)
 }
 
 // TODO: Inefficient, improve if it becomes a problem
