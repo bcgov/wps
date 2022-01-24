@@ -145,7 +145,7 @@ const calculateHFIResults = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Object.entries(fireCentres).forEach(([_, fireCentre]) =>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Object.entries(fireCentre.planning_areas).forEach(([_, area]) => {
+    Object.entries(fireCentre.planning_areas).forEach(([__, area]) => {
       const areaStationCodes = new Set(
         Object.entries(area.stations).map(([, station]) => station.code)
       )
