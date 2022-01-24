@@ -51,7 +51,7 @@ export class HFITableCSVFormatter {
           const hfiResult = planningAreaHFIResults[area.name]
           const areaDailies = hfiResult.dailies
           const meanIntensityGroup = hfiResult.dailyMeanIntensity
-          const areaPrepLevel = hfiResult.dailyPrepLevels
+          const areaPrepLevel = hfiResult.dailyPrepLevel
           rowsAsStrings.push(
             CSV.stringify(
               `${area.name}, ${Array(21).join(
