@@ -1,26 +1,17 @@
 import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { groupBy, isNull, isUndefined, range } from 'lodash'
+import { isNull, isUndefined, range, sortBy, take, zip } from 'lodash'
 import * as CSV from 'csv-string'
-import {
-  getDailiesByStationCode,
-  getDailiesForArea,
-  getZoneFromAreaName
-} from 'features/hfiCalculator/util'
+import { getZoneFromAreaName } from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
 import {
   columnLabelsForEachDayInWeek,
   weeklyTableColumnLabels
 } from 'features/hfiCalculator/components/WeeklyViewTable'
-import {
-  calculateDailyMeanIntensities,
-  calculateMaxMeanIntensityGroup,
-  calculateMeanIntensity,
-  calculateMeanIntensityGroupLevel
-} from 'features/hfiCalculator/components/meanIntensity'
-import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
+import { HFIResult } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { DateTime } from 'luxon'
 
 // padding for station-data cells (e.g., station name, fuel type) before dates begin
 const NUM_STATION_DATA_COLS = 5
@@ -39,11 +30,13 @@ const printGrassCurePercentage = (daily: StationDaily): string => {
   }
 }
 
-export class FormatTableAsCSV {
+export class HFITableCSVFormatter {
   public static exportDailyRowsAsStrings = (
-    numPrepDays: number,
+    dateOfInterest: string,
     fireCentres: Record<string, FireCentre>,
-    dailies: StationDaily[]
+    planningAreaHFIResults: {
+      [key: string]: HFIResult
+    }
   ): string => {
     const rowsAsStrings: string[] = []
 
@@ -56,13 +49,10 @@ export class FormatTableAsCSV {
           getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
         )
         .forEach(([, area]) => {
-          const stationCodesInArea: number[] = []
-          Object.entries(area.stations).forEach(([, station]) => {
-            stationCodesInArea.push(station.code)
-          })
-          const areaDailies = getDailiesForArea(area, dailies, stationCodesInArea)
-          const meanIntensityGroup = calculateMeanIntensity(areaDailies)
-          const areaPrepLevel = calculatePrepLevel(meanIntensityGroup)
+          const hfiResult = planningAreaHFIResults[area.name]
+          const areaDailies = hfiResult.dailies
+          const meanIntensityGroup = hfiResult.dailyMeanIntensity
+          const areaPrepLevel = hfiResult.dailyPrepLevel
           rowsAsStrings.push(
             CSV.stringify(
               `${area.name}, ${Array(21).join(
@@ -72,7 +62,11 @@ export class FormatTableAsCSV {
           )
           Object.entries(area.stations).forEach(([, station]) => {
             const rowArray: string[] = []
-            const daily = getDailiesByStationCode(numPrepDays, dailies, station.code)[0]
+            const daily = areaDailies.filter(
+              areaDaily =>
+                areaDaily.code === station.code &&
+                areaDaily.date.weekday === DateTime.fromISO(dateOfInterest).weekday
+            )[0]
 
             const grassCureError = !isValidGrassCure(daily, station.station_props)
 
@@ -154,9 +148,11 @@ export class FormatTableAsCSV {
   }
 
   static buildAreaWeeklySummaryString = (
-    numPrepDays: number,
     area: PlanningArea,
-    dailies: StationDaily[]
+    numPrepDays: number,
+    planningAreaHFIResults: {
+      [key: string]: HFIResult
+    }
   ): string[] => {
     const areaWeeklySummary: string[] = [
       area.name,
@@ -164,33 +160,11 @@ export class FormatTableAsCSV {
         ' '
       )
     ]
-
-    const stationCodesInArea: number[] = []
-    Object.entries(area.stations).forEach(([, station]) => {
-      stationCodesInArea.push(station.code)
-    })
-    const areaDailies = getDailiesForArea(area, dailies, stationCodesInArea)
-
-    const utcDict = groupBy(areaDailies, (daily: StationDaily) =>
-      daily.date.toUTC().toMillis()
-    )
-
-    const dailiesByDayUTC = new Map(
-      Object.entries(utcDict).map(entry => [Number(entry[0]), entry[1]])
-    )
-    const dailyMeanIntensityGroups = calculateDailyMeanIntensities(
-      numPrepDays,
-      dailiesByDayUTC
-    )
-    const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
-      dailyMeanIntensityGroups
-    )
-    const meanIntensityGroup = calculateMeanIntensityGroupLevel(dailyMeanIntensityGroups)
-    const calcPrepLevel = calculatePrepLevel(meanIntensityGroup)
+    const hfiResult = planningAreaHFIResults[area.name]
 
     Array.from(range(numPrepDays)).forEach(day => {
-      const dailyIntensityGroup = dailyMeanIntensityGroups[day]
-      const areaDailyPrepLevel = calculatePrepLevel(dailyIntensityGroup)
+      const dailyIntensityGroup = hfiResult.dailyMeanIntensityGroups[day]
+      const areaDailyPrepLevel = hfiResult.dailyPrepLevel
       const fireStarts = '0-1' // hard-coded for now
 
       areaWeeklySummary.push(
@@ -204,29 +178,32 @@ export class FormatTableAsCSV {
         isUndefined(areaDailyPrepLevel) ? 'ND' : areaDailyPrepLevel.toString()
       )
     })
-    areaWeeklySummary.push(highestMeanIntensityGroup.toString())
-    areaWeeklySummary.push(isUndefined(calcPrepLevel) ? 'ND' : calcPrepLevel.toString())
+    areaWeeklySummary.push(String(hfiResult.maxMeanIntensityGroup))
+    areaWeeklySummary.push(
+      isUndefined(hfiResult.meanPrepLevel) ? 'ND' : String(hfiResult.meanPrepLevel)
+    )
     return areaWeeklySummary
   }
 
   public static exportWeeklyRowsAsStrings = (
     numPrepDays: number,
+    startDate: DateTime,
     fireCentres: Record<string, FireCentre>,
-    dailies: StationDaily[]
+    planningAreaHFIResults: {
+      [key: string]: HFIResult
+    }
   ): string => {
     // build up array of string arrays, which will be converted to CSV string at end
     // each string array represents one row of table
     const rowsAsStringArrays: string[][] = []
-    const dateSet = new Set<string>()
 
-    dailies.flatMap(dailyRecord => {
-      dateSet.add(
-        `${dailyRecord.date.weekdayShort} ${dailyRecord.date.monthShort} ${dailyRecord.date.day}`
-      )
-    })
     // build header row of dates
+    const dateStrings = range(numPrepDays).map(dayOffset => {
+      const date = startDate.plus({ days: dayOffset })
+      return `${date.weekdayShort} ${date.monthShort} ${date.day}`
+    })
     const dateRow: string[] = Array(NUM_STATION_DATA_COLS - 1).fill(' ')
-    Array.from(dateSet).forEach(date => {
+    dateStrings.forEach(date => {
       dateRow.push(date)
       dateRow.push(...Array(columnLabelsForEachDayInWeek.length - 1).fill(' '))
     })
@@ -245,17 +222,23 @@ export class FormatTableAsCSV {
           getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
         )
         .forEach(([, area]) => {
+          const areaHFIResult = planningAreaHFIResults[area.name]
           rowsAsStringArrays.push(
-            this.buildAreaWeeklySummaryString(numPrepDays, area, dailies)
+            this.buildAreaWeeklySummaryString(area, numPrepDays, planningAreaHFIResults)
           )
 
           Object.entries(area.stations).forEach(([, station]) => {
-            const dailiesForStation = getDailiesByStationCode(
-              numPrepDays,
-              dailies,
-              station.code
+            const dailiesForStation = take(
+              sortBy(
+                areaHFIResult.dailies.filter(daily => daily.code === station.code),
+                daily => daily.date.toMillis()
+              ),
+              numPrepDays
             )
-            const grassCureError = !isValidGrassCure(dailies[0], station.station_props)
+            const grassCureError = !isValidGrassCure(
+              dailiesForStation[0],
+              station.station_props
+            )
 
             const rowArray: string[] = []
 
@@ -273,22 +256,33 @@ export class FormatTableAsCSV {
               grassCureError ? 'ERROR' : printGrassCurePercentage(dailiesForStation[0])
             )
 
-            dailiesForStation.forEach(day => {
-              rowArray.push(
-                !isUndefined(day) && !grassCureError
-                  ? day.rate_of_spread.toFixed(DECIMAL_PLACES)
-                  : 'ND'
-              )
-              rowArray.push(
-                !isUndefined(day) && !grassCureError
-                  ? day.hfi.toFixed(DECIMAL_PLACES)
-                  : 'ND'
-              )
-              rowArray.push(
-                !isUndefined(day) && !grassCureError
-                  ? day.intensity_group.toString()
-                  : 'ND'
-              )
+            const rateOfSpreads = dailiesForStation.map(day =>
+              isNull(day.rate_of_spread) ||
+              isUndefined(day.rate_of_spread) ||
+              grassCureError
+                ? 'ND'
+                : day.rate_of_spread.toFixed(DECIMAL_PLACES)
+            )
+
+            const hfis = dailiesForStation.map(day =>
+              isNull(day.hfi) || isUndefined(day.hfi) || grassCureError
+                ? 'ND'
+                : day.hfi.toFixed(DECIMAL_PLACES)
+            )
+
+            const intensityGroups = dailiesForStation.map(day =>
+              isNull(day.intensity_group) ||
+              isUndefined(day.intensity_group) ||
+              grassCureError
+                ? 'ND'
+                : String(day.intensity_group)
+            )
+
+            const validatedIndices = zip(rateOfSpreads, hfis, intensityGroups)
+            validatedIndices.forEach(indices => {
+              rowArray.push(indices[0] ? indices[0] : 'ND')
+              rowArray.push(indices[1] ? indices[1] : 'ND')
+              rowArray.push(indices[2] ? indices[2] : 'ND')
               rowArray.push(...Array(NUM_WEEKLY_SUMMARY_CELLS).fill(''))
             })
 

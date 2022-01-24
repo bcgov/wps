@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Container, ErrorBoundary, GeneralHeader, PageTitle } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
-import { fetchHFIDailies } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import {
+  fetchHFIDailies,
+  setPrepDays,
+  setSelectedPrepDate,
+  setSelectedSelectedStationCodes
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
 import {
   selectHFIDailies,
   selectHFIStations,
   selectHFIStationsLoading,
-  selectHFIPrepDays
+  selectHFICalculatorState
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui/core'
 import {
@@ -17,17 +22,16 @@ import {
   InfoOutlined,
   HelpOutlineOutlined
 } from '@material-ui/icons'
-import { getDateRange, pstFormatter } from 'utils/date'
+import { getDateRange, getPrepWeeklyDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
-import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
+import { HFITableCSVFormatter } from 'features/hfiCalculator/HFITableCSVFormatter'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
-import { setPrepDays } from 'features/hfiCalculator/slices/hfiPrepSlice'
-import { getDailiesForCSV } from 'features/hfiCalculator/util'
 import DatePicker from 'components/DatePicker'
+import { union } from 'lodash'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -68,15 +72,25 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const [selectedPredDay, setSelectedPrepDay] = useState<DateTime | null>(null)
-  const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPredDay == null)
-  const numPrepDays = useSelector(selectHFIPrepDays)
+  const {
+    numPrepDays,
+    selectedStationCodes: selected,
+    planningAreaHFIResults,
+    selectedPrepDate
+  } = useSelector(selectHFICalculatorState)
+
+  const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPrepDate == '')
   const setNumPrepDays = (numDays: number) => {
     // if the number of prep days change, we need to unset the selected prep day - it
     // could be that the selected prep day no longer falls into the prep period.
-    setSelectedPrepDay(null)
+    dispatch(setSelectedPrepDate(''))
     dispatch(setPrepDays(numDays))
   }
+
+  const setSelected = (newSelected: number[]) => {
+    dispatch(setSelectedSelectedStationCodes(newSelected))
+  }
+
   const [modalOpen, setModalOpen] = useState<boolean>(false)
 
   // the DatePicker component requires dateOfInterest to be in string format
@@ -85,22 +99,41 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   )
   const [isCopied, setIsCopied] = useState(false)
 
-  const callDispatch = (start: DateTime, end: DateTime) => {
-    dispatch(fetchHFIStations())
-    dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
+  const getDailies = (start: DateTime, end: DateTime) => {
+    dispatch(
+      fetchHFIDailies(
+        fireCentres,
+        selected,
+        start.toUTC().valueOf(),
+        end.toUTC().valueOf()
+      )
+    )
   }
 
-  const refreshView = () => {
+  useEffect(() => {
+    setSelected(union(dailies.map(daily => daily.code)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dailies])
+
+  useEffect(() => {
     const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
-    callDispatch(start, end)
-  }
+    dispatch(
+      fetchHFIDailies(
+        fireCentres,
+        selected,
+        start.toUTC().valueOf(),
+        end.toUTC().valueOf()
+      )
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fireCentres])
 
   const updateDate = (newDate: string) => {
     if (newDate !== dateOfInterest) {
       setDateOfInterest(newDate)
       const { start, end } = getDateRange(true, newDate)
-      setSelectedPrepDay(null)
-      callDispatch(start, end)
+      dispatch(setSelectedPrepDate(''))
+      getDailies(start, end)
     }
   }
 
@@ -110,17 +143,19 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const copyTable = () => {
     if (isWeeklyView) {
-      const weeklyViewAsString = FormatTableAsCSV.exportWeeklyRowsAsStrings(
+      const { start } = getPrepWeeklyDateRange(dateOfInterest)
+      const weeklyViewAsString = HFITableCSVFormatter.exportWeeklyRowsAsStrings(
         numPrepDays,
+        start,
         fireCentres,
-        getDailiesForCSV(numPrepDays, dailies)
+        planningAreaHFIResults
       )
       navigator.clipboard.writeText(weeklyViewAsString)
     } else {
-      const dailyViewAsString = FormatTableAsCSV.exportDailyRowsAsStrings(
-        numPrepDays,
+      const dailyViewAsString = HFITableCSVFormatter.exportDailyRowsAsStrings(
+        dateOfInterest,
         fireCentres,
-        dailies
+        planningAreaHFIResults
       )
       navigator.clipboard.writeText(dailyViewAsString)
     }
@@ -145,13 +180,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [isCopied])
 
   useEffect(() => {
-    refreshView()
+    dispatch(fetchHFIStations())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
-    setIsWeeklyView(selectedPredDay == null)
-  }, [selectedPredDay])
+    setIsWeeklyView(selectedPrepDate == '')
+  }, [selectedPrepDate])
+
+  useEffect(() => {
+    setSelected(union(dailies.map(daily => daily.code)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dailies])
 
   return (
     <main data-testid="hfi-calculator-page">
@@ -175,11 +215,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             <DatePicker date={dateOfInterest} updateDate={updateDate} />
           </FormControl>
           <FormControl className={classes.formControl}>
-            <ViewSwitcherToggles
-              setSelectedPrepDay={setSelectedPrepDay}
-              selectedPrepDay={selectedPredDay}
-              dateOfInterest={dateOfInterest}
-            />
+            <ViewSwitcherToggles dateOfInterest={dateOfInterest} />
           </FormControl>
           <FormControl className={classes.formControl}>
             {isCopied ? (
@@ -218,7 +254,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               fireCentres={fireCentres}
               dailies={dailies}
               dateOfInterest={dateOfInterest}
-              selectedPrepDay={selectedPredDay}
+              setSelected={setSelected}
+              selectedPrepDay={selectedPrepDate}
             />
           </ErrorBoundary>
         </Container>
