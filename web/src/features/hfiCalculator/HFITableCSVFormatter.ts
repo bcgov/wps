@@ -32,6 +32,7 @@ const printGrassCurePercentage = (daily: StationDaily): string => {
 
 export class HFITableCSVFormatter {
   public static exportDailyRowsAsStrings = (
+    dateOfInterest: string,
     fireCentres: Record<string, FireCentre>,
     planningAreaHFIResults: {
       [key: string]: HFIResult
@@ -62,7 +63,9 @@ export class HFITableCSVFormatter {
           Object.entries(area.stations).forEach(([, station]) => {
             const rowArray: string[] = []
             const daily = areaDailies.filter(
-              areaDaily => areaDaily.code === station.code
+              areaDaily =>
+                areaDaily.code === station.code &&
+                areaDaily.date.weekday === DateTime.fromISO(dateOfInterest).weekday
             )[0]
 
             const grassCureError = !isValidGrassCure(daily, station.station_props)
