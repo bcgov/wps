@@ -6,7 +6,7 @@ import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanInte
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { groupBy, range } from 'lodash'
 import React from 'react'
-import AveragePrepLevelCell from './AveragePrepLevelCell'
+import MeanPrepLevelCell from './MeanPrepLevelCell'
 import { HFIResult } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface CalculatedCellsProps {
@@ -59,8 +59,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
         selectedStations={props.selected}
         meanIntensityGroup={props.areaHFIResults.maxMeanIntensityGroup}
       ></MeanIntensityGroupRollup>
-      <AveragePrepLevelCell
-        meanIntensityGroup={props.areaHFIResults.meanPrepLevel}
+      <MeanPrepLevelCell
         areaName={props.areaName}
         meanPrepLevel={props.areaHFIResults.meanPrepLevel}
       />
