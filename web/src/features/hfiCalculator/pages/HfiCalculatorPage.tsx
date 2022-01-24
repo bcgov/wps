@@ -158,9 +158,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const setSelectedFireCentreFromLocalStorage = () => {
     const findCentre = (name: string | null): FireCentre | undefined => {
-      const fireCentresArray = Object.values(fireCentres) as Array<FireCentre>
-      const fc = fireCentresArray.find(centre => centre.name == name)
-      return fc
+      const fireCentresArray = Object.values(fireCentres)
+      return fireCentresArray.find(centre => centre.name == name)
     }
     const storedFireCentre = findCentre(
       localStorage.getItem('hfiCalcPreferredFireCentre')

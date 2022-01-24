@@ -17,8 +17,10 @@ depends_on = None
 
 
 def upgrade():
+    # No action necessary, just merging 2 Alembic version HEADs into one
     pass
 
 
 def downgrade():
+    # No action necessary, just merging 2 Alembic version HEADs into one
     pass
