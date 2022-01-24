@@ -24,7 +24,7 @@ export interface HFICalculatorState {
   dailies: StationDaily[]
   fireCentres: { [key: string]: FireCentre }
   numPrepDays: number
-  selected: number[]
+  selectedStationCodes: number[]
   selectedPrepDate: string
   formattedDateStringHeaders: string[]
   planningAreaHFIResults: { [key: string]: HFIResult }
@@ -36,7 +36,7 @@ const initialState: HFICalculatorState = {
   dailies: [],
   fireCentres: {},
   numPrepDays: NUM_WEEK_DAYS,
-  selected: [],
+  selectedStationCodes: [],
   selectedPrepDate: '',
   formattedDateStringHeaders: [],
   planningAreaHFIResults: {}
@@ -96,16 +96,17 @@ export const calculatePrepLevel = (
 
   if (isUndefined(meanIntensityGroup)) {
     return undefined
-  } else {
-    meanIntensityGroup = Math.round(meanIntensityGroup)
   }
-  if (meanIntensityGroup < 3) {
+
+  const roundedMeanIntensityGroup = Math.round(meanIntensityGroup)
+
+  if (roundedMeanIntensityGroup < 3) {
     return 1
   }
-  if (meanIntensityGroup < 4) {
+  if (roundedMeanIntensityGroup < 4) {
     return 2
   }
-  if (meanIntensityGroup < 5) {
+  if (roundedMeanIntensityGroup < 5) {
     return 3
   }
   return 4
@@ -203,18 +204,18 @@ const dailiesSlice = createSlice({
       action: PayloadAction<{
         dailies: StationDaily[]
         fireCentres: Record<string, FireCentre>
-        selected: number[]
+        selectedStationCodes: number[]
       }>
     ) {
       state.error = null
       state.dailies = action.payload.dailies
       state.fireCentres = action.payload.fireCentres
-      state.selected = action.payload.selected
+      state.selectedStationCodes = action.payload.selectedStationCodes
       state.planningAreaHFIResults = calculateHFIResults(
         action.payload.fireCentres,
         action.payload.dailies,
         state.numPrepDays,
-        action.payload.selected,
+        action.payload.selectedStationCodes,
         state.selectedPrepDate
       )
       state.loading = false
@@ -225,12 +226,12 @@ const dailiesSlice = createSlice({
         state.fireCentres,
         state.dailies,
         action.payload,
-        state.selected,
+        state.selectedStationCodes,
         state.selectedPrepDate
       )
     },
-    setSelectedStations: (state, action: PayloadAction<number[]>) => {
-      state.selected = action.payload
+    setSelectedSelectedStationCodes: (state, action: PayloadAction<number[]>) => {
+      state.selectedStationCodes = action.payload
       state.planningAreaHFIResults = calculateHFIResults(
         state.fireCentres,
         state.dailies,
@@ -245,7 +246,7 @@ const dailiesSlice = createSlice({
         state.fireCentres,
         state.dailies,
         state.numPrepDays,
-        state.selected,
+        state.selectedStationCodes,
         action.payload
       )
     }
@@ -257,7 +258,7 @@ export const {
   getDailiesFailed,
   getDailiesSuccess,
   setPrepDays,
-  setSelectedStations,
+  setSelectedSelectedStationCodes,
   setSelectedPrepDate
 } = dailiesSlice.actions
 
@@ -266,7 +267,7 @@ export default dailiesSlice.reducer
 export const fetchHFIDailies =
   (
     fireCentres: Record<string, FireCentre>,
-    selected: number[],
+    selectedStationCodes: number[],
     startTime: number,
     endTime: number
   ): AppThunk =>
@@ -274,7 +275,7 @@ export const fetchHFIDailies =
     try {
       dispatch(getDailiesStart())
       const dailies = await getDailies(startTime, endTime)
-      dispatch(getDailiesSuccess({ dailies, fireCentres, selected }))
+      dispatch(getDailiesSuccess({ dailies, fireCentres, selectedStationCodes }))
     } catch (err) {
       dispatch(getDailiesFailed((err as Error).toString()))
       logError(err)

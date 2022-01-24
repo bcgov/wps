@@ -5,7 +5,7 @@ import {
   fetchHFIDailies,
   setPrepDays,
   setSelectedPrepDate,
-  setSelectedStations
+  setSelectedSelectedStationCodes
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
@@ -72,9 +72,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const { numPrepDays, selected, planningAreaHFIResults, selectedPrepDate } = useSelector(
-    selectHFICalculatorState
-  )
+  const {
+    numPrepDays,
+    selectedStationCodes: selected,
+    planningAreaHFIResults,
+    selectedPrepDate
+  } = useSelector(selectHFICalculatorState)
 
   const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPrepDate == '')
   const setNumPrepDays = (numDays: number) => {
@@ -85,7 +88,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   const setSelected = (newSelected: number[]) => {
-    dispatch(setSelectedStations(newSelected))
+    dispatch(setSelectedSelectedStationCodes(newSelected))
   }
 
   const [modalOpen, setModalOpen] = useState<boolean>(false)

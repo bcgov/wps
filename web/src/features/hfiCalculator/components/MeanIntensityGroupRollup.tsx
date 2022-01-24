@@ -10,7 +10,7 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
   dailies: StationDaily[]
-  selectedStations: number[]
+  selectedStationCodes: number[]
   meanIntensityGroup: number | undefined
 }
 

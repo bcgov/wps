@@ -53,9 +53,11 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const { numPrepDays, planningAreaHFIResults, selected } = useSelector(
-    selectHFICalculatorState
-  )
+  const {
+    numPrepDays,
+    planningAreaHFIResults,
+    selectedStationCodes: selected
+  } = useSelector(selectHFICalculatorState)
 
   const stationCodeInSelected = (code: number) => {
     return selected.includes(code)
@@ -224,7 +226,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             area={area}
                             areaName={areaName}
                             areaHFIResults={areaHFIResult}
-                            selected={selected}
+                            selectedStationCodes={selected}
                             planningAreaClass={classes.planningArea}
                             numPrepDays={numPrepDays}
                           />

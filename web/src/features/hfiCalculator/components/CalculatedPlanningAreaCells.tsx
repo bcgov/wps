@@ -14,7 +14,7 @@ export interface CalculatedCellsProps {
   area: PlanningArea
   areaName: string
   areaHFIResults: HFIResult
-  selected: number[]
+  selectedStationCodes: number[]
   planningAreaClass: string
   numPrepDays: number
 }
@@ -44,7 +44,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
             <MeanIntensityGroupRollup
               area={props.area}
               dailies={dailies ? dailies : []}
-              selectedStations={props.selected}
+              selectedStationCodes={props.selectedStationCodes}
               meanIntensityGroup={meanIntensityGroup}
             />
             <FireStartsCell areaName={props.areaName} />
@@ -56,7 +56,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
       <MeanIntensityGroupRollup
         area={props.area}
         dailies={props.areaHFIResults.dailies}
-        selectedStations={props.selected}
+        selectedStationCodes={props.selectedStationCodes}
         meanIntensityGroup={props.areaHFIResults.maxMeanIntensityGroup}
       ></MeanIntensityGroupRollup>
       <MeanPrepLevelCell
