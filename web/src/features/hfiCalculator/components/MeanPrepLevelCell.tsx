@@ -2,9 +2,8 @@ import { makeStyles, TableCell } from '@material-ui/core'
 import { fireTableStyles } from 'app/theme'
 import React from 'react'
 
-export interface AveragePrepLevelCellProps {
+export interface MeanPrepLevelCellProps {
   testid?: string
-  meanIntensityGroup: number | undefined
   areaName: string
   meanPrepLevel?: number
 }
@@ -48,7 +47,7 @@ const useStyles = makeStyles({
   }
 })
 
-const AveragePrepLevelCell = (props: AveragePrepLevelCellProps) => {
+const MeanPrepLevelCell = (props: MeanPrepLevelCellProps) => {
   const classes = useStyles()
 
   const formatPrepLevelByValue = () => {
@@ -79,4 +78,4 @@ const AveragePrepLevelCell = (props: AveragePrepLevelCellProps) => {
   )
 }
 
-export default React.memo(AveragePrepLevelCell)
+export default React.memo(MeanPrepLevelCell)
