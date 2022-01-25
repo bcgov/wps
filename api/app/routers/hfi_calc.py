@@ -42,7 +42,6 @@ async def get_daily_view(response: Response,
     """ Returns daily metrics for each station code. """
     try:
         logger.info('/hfi-calc/daily')
-        logger.info(station_codes)
         response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
         valid_start_time, valid_end_time = validate_time_range(start_time_stamp, end_time_stamp)
 

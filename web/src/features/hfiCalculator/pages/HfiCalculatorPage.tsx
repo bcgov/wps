@@ -249,6 +249,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dailies])
 
+  const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
+    dispatch(setSelectedFireCentre(newSelection))
+  }
+
   return (
     <main data-testid="hfi-calculator-page">
       <GeneralHeader
@@ -275,7 +279,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                   ? null
                   : { name: selectedFireCentre?.name }
               }
-              onChange={setSelectedFireCentre}
+              onChange={selectNewFireCentre}
             />
           </FormControl>
 
