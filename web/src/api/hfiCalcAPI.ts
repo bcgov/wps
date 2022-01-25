@@ -21,6 +21,7 @@ export interface FireCentre {
 export interface PlanningArea {
   id: number
   name: string
+  order_of_appearance_in_list: number
   stations: Record<number, WeatherStation>
 }
 

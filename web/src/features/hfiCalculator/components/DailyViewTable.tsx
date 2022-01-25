@@ -26,11 +26,7 @@ import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { isUndefined, union } from 'lodash'
-import {
-  getDailiesByStationCode,
-  getDailiesForArea,
-  getZoneFromAreaName
-} from 'features/hfiCalculator/util'
+import { getDailiesByStationCode, getDailiesForArea } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFIPrepDays } from 'app/rootReducer'
@@ -282,8 +278,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             </TableRow>
             {Object.entries(props.fireCentre.planning_areas)
               .sort((a, b) =>
-                getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
-              ) // sort by zone code
+                a[1].order_of_appearance_in_list < b[1].order_of_appearance_in_list
+                  ? -1
+                  : 1
+              )
               .map(([areaName, area]) => {
                 const areaDailies = getDailiesForArea(area, props.dailies, selected)
                 const meanIntensityGroup = calculateMeanIntensity(

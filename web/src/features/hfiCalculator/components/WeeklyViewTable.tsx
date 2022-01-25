@@ -14,7 +14,7 @@ import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { isEmpty, isUndefined, union } from 'lodash'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { getDailiesByStationCode, getZoneFromAreaName } from 'features/hfiCalculator/util'
+import { getDailiesByStationCode } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFIPrepDays } from 'app/rootReducer'
@@ -173,8 +173,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
             </TableRow>
             {Object.entries(props.fireCentre.planning_areas)
               .sort((a, b) =>
-                getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
-              ) // sort by zone code
+                a[1].order_of_appearance_in_list < b[1].order_of_appearance_in_list
+                  ? -1
+                  : 1
+              )
               .map(([areaName, area]) => {
                 return (
                   <React.Fragment key={`zone-${areaName}`}>
