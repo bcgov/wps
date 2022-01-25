@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
@@ -17,14 +17,15 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import { getDailiesByStationCode } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
-import { selectHFIPrepDays } from 'app/rootReducer'
+import { selectHFICalculatorState } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
 
 export interface Props {
   fireCentre: FireCentre | undefined
+  testId?: string
   dailies: StationDaily[]
   currentDay: string
-  testId?: string
+  setSelected: (selected: number[]) => void
 }
 
 export const columnLabelsForEachDayInWeek: string[] = [
@@ -52,11 +53,11 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const numPrepDays = useSelector(selectHFIPrepDays)
-
-  const [selected, setSelected] = useState<number[]>(
-    union(props.dailies.map(daily => daily.code))
-  )
+  const {
+    numPrepDays,
+    planningAreaHFIResults,
+    selectedStationCodes: selected
+  } = useSelector(selectHFICalculatorState)
 
   const stationCodeInSelected = (code: number) => {
     return selected.includes(code)
@@ -70,7 +71,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
       // add station to selected
       selectedSet.add(code)
     }
-    setSelected(Array.from(selectedSet))
+    props.setSelected(Array.from(selectedSet))
   }
 
   return (
@@ -176,131 +177,134 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                 a[1].order_of_appearance_in_list < b[1].order_of_appearance_in_list
                   ? -1
                   : 1
-              )
+              ) // sort by zone code
               .map(([areaName, area]) => {
+                const areaHFIResult = planningAreaHFIResults[area.name]
                 return (
-                  <React.Fragment key={`zone-${areaName}`}>
-                    <TableRow>
-                      <TableCell
-                        colSpan={42}
-                        className={classes.planningAreaBorder}
-                      ></TableCell>
-                    </TableRow>
-                    <TableRow
-                      className={classes.planningArea}
-                      key={`zone-${areaName}`}
-                      data-testid={`zone-${areaName}`}
-                    >
-                      <StickyCell
-                        left={0}
-                        zIndexOffset={10}
-                        backgroundColor={BACKGROUND_COLOR.backgroundColor}
-                        colSpan={2}
+                  areaHFIResult && (
+                    <React.Fragment key={`zone-${areaName}`}>
+                      <TableRow>
+                        <TableCell
+                          colSpan={42}
+                          className={classes.planningAreaBorder}
+                        ></TableCell>
+                      </TableRow>
+                      <TableRow
+                        className={classes.planningArea}
+                        key={`zone-${areaName}`}
+                        data-testid={`zone-${areaName}`}
                       >
-                        <Table>
-                          <TableBody>
-                            <TableRow>
-                              <TableCell className={classes.noBottomBorder}>
-                                {area.name}
-                              </TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </StickyCell>
-                      <TableCell
-                        className={`${classes.planningArea} ${classes.nonstickyHeaderCell}`}
-                      ></TableCell>
-                      <StickyCell
-                        left={230}
-                        zIndexOffset={10}
-                        className={`${classes.rightBorder} ${classes.defaultBackground}`}
-                        colSpan={2}
-                      >
-                        <Table>
-                          <TableBody>
-                            <TableRow>
-                              <TableCell
-                                className={`${classes.planningArea} ${classes.noBottomBorder}`}
-                              ></TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </StickyCell>
-                      <CalculatedPlanningAreaCells
-                        area={area}
-                        areaName={areaName}
-                        dailies={props.dailies}
-                        selected={selected}
-                        planningAreaClass={classes.planningArea}
-                        numPrepDays={numPrepDays}
-                      />
-                    </TableRow>
-                    {Object.entries(area.stations)
-                      .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
-                      .map(([stationCode, station]) => {
-                        const dailiesForStation = getDailiesByStationCode(
-                          numPrepDays,
-                          props.dailies,
-                          station.code
-                        )
-                        const isRowSelected = stationCodeInSelected(station.code)
-                        const classNameForRow = !isRowSelected
-                          ? classes.unselectedStation
-                          : classes.stationCellPlainStyling
+                        <StickyCell
+                          left={0}
+                          zIndexOffset={10}
+                          backgroundColor={BACKGROUND_COLOR.backgroundColor}
+                          colSpan={2}
+                        >
+                          <Table>
+                            <TableBody>
+                              <TableRow>
+                                <TableCell className={classes.noBottomBorder}>
+                                  {area.name}
+                                </TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
+                        </StickyCell>
+                        <TableCell
+                          className={`${classes.planningArea} ${classes.nonstickyHeaderCell}`}
+                        ></TableCell>
+                        <StickyCell
+                          left={230}
+                          zIndexOffset={10}
+                          className={`${classes.rightBorder} ${classes.defaultBackground}`}
+                          colSpan={2}
+                        >
+                          <Table>
+                            <TableBody>
+                              <TableRow>
+                                <TableCell
+                                  className={`${classes.planningArea} ${classes.noBottomBorder}`}
+                                ></TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
+                        </StickyCell>
+                        <CalculatedPlanningAreaCells
+                          area={area}
+                          areaName={areaName}
+                          areaHFIResults={areaHFIResult}
+                          selectedStationCodes={selected}
+                          planningAreaClass={classes.planningArea}
+                          numPrepDays={numPrepDays}
+                        />
+                      </TableRow>
+                      {Object.entries(area.stations)
+                        .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
+                        .map(([stationCode, station]) => {
+                          const dailiesForStation = getDailiesByStationCode(
+                            numPrepDays,
+                            props.dailies,
+                            station.code
+                          )
+                          const isRowSelected = stationCodeInSelected(station.code)
+                          const classNameForRow = !isRowSelected
+                            ? classes.unselectedStation
+                            : classes.stationCellPlainStyling
 
-                        return (
-                          <TableRow
-                            className={classNameForRow}
-                            key={`station-${stationCode}`}
-                          >
-                            <BaseStationAttributeCells
-                              station={station}
+                          return (
+                            <TableRow
                               className={classNameForRow}
-                              stationCodeInSelected={stationCodeInSelected}
-                              toggleSelectedStation={toggleSelectedStation}
-                            />
-                            <StickyCell
-                              left={284}
-                              zIndexOffset={11}
-                              backgroundColor={'#ffffff'}
-                              className={classes.rightBorder}
+                              key={`station-${stationCode}`}
                             >
-                              <Table>
-                                <TableBody>
-                                  <TableRow>
-                                    <GrassCureCell
-                                      value={
-                                        !isEmpty(dailiesForStation)
-                                          ? dailiesForStation[0].grass_cure_percentage
-                                          : undefined
-                                      }
-                                      isGrassFuelType={isGrassFuelType(
-                                        station.station_props
-                                      )}
-                                      className={`${classes.noBottomBorder}
+                              <BaseStationAttributeCells
+                                station={station}
+                                className={classNameForRow}
+                                stationCodeInSelected={stationCodeInSelected}
+                                toggleSelectedStation={toggleSelectedStation}
+                              />
+                              <StickyCell
+                                left={284}
+                                zIndexOffset={11}
+                                backgroundColor={'#ffffff'}
+                                className={classes.rightBorder}
+                              >
+                                <Table>
+                                  <TableBody>
+                                    <TableRow>
+                                      <GrassCureCell
+                                        value={
+                                          !isEmpty(dailiesForStation)
+                                            ? dailiesForStation[0].grass_cure_percentage
+                                            : undefined
+                                        }
+                                        isGrassFuelType={isGrassFuelType(
+                                          station.station_props
+                                        )}
+                                        className={`${classes.noBottomBorder}
                                     ${
                                       isRowSelected
                                         ? classes.stationCellPlainStyling
                                         : classes.unselectedStation
                                     }
                                   `}
-                                      selected={isRowSelected}
-                                    />
-                                  </TableRow>
-                                </TableBody>
-                              </Table>
-                            </StickyCell>
+                                        selected={isRowSelected}
+                                      />
+                                    </TableRow>
+                                  </TableBody>
+                                </Table>
+                              </StickyCell>
 
-                            <StaticCells
-                              dailies={dailiesForStation}
-                              station={station}
-                              classNameForRow={classNameForRow}
-                              isRowSelected={isRowSelected}
-                            />
-                          </TableRow>
-                        )
-                      })}
-                  </React.Fragment>
+                              <StaticCells
+                                dailies={dailiesForStation}
+                                station={station}
+                                classNameForRow={classNameForRow}
+                                isRowSelected={isRowSelected}
+                              />
+                            </TableRow>
+                          )
+                        })}
+                    </React.Fragment>
+                  )
                 )
               })}
           </React.Fragment>

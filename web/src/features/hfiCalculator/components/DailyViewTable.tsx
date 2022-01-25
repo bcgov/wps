@@ -1,5 +1,4 @@
-import React, { ReactFragment, useState } from 'react'
-import { DateTime } from 'luxon'
+import React, { ReactFragment } from 'react'
 import {
   Table,
   TableBody,
@@ -16,7 +15,6 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
-import { calculateMeanIntensity } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import FireTable from 'components/FireTable'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
@@ -25,19 +23,20 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
-import { isUndefined, union } from 'lodash'
-import { getDailiesByStationCode, getDailiesForArea } from 'features/hfiCalculator/util'
+import { getDailiesByStationCode } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
-import { selectHFIPrepDays } from 'app/rootReducer'
+import { selectHFICalculatorState } from 'app/rootReducer'
+import { DateTime } from 'luxon'
+import { isUndefined } from 'lodash'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 
 export interface Props {
   fireCentre: FireCentre | undefined
   dailies: StationDaily[]
+  setSelected: (selected: number[]) => void
   testId?: string
-  selectedPrepDay: DateTime
 }
 
 export const dailyTableColumnLabels = [
@@ -74,17 +73,32 @@ const useStyles = makeStyles({
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const numPrepDays = useSelector(selectHFIPrepDays)
+  const { planningAreaHFIResults, selectedStationCodes, numPrepDays, selectedPrepDate } =
+    useSelector(selectHFICalculatorState)
 
-  const [selected, setSelected] = useState<number[]>(
-    union(props.dailies.map(daily => daily.code))
-  )
+  const getDailyForDay = (stationCode: number): StationDaily => {
+    const dailiesForStation = getDailiesByStationCode(
+      numPrepDays,
+      props.dailies,
+      stationCode
+    )
+    if (selectedPrepDate != '') {
+      const selectedPrepDateObject = DateTime.fromISO(selectedPrepDate)
+      return dailiesForStation.filter(
+        daily =>
+          daily.date.year === selectedPrepDateObject.year &&
+          daily.date.month === selectedPrepDateObject.month &&
+          daily.date.day === selectedPrepDateObject.day
+      )[0]
+    }
+    return dailiesForStation[0]
+  }
 
   const stationCodeInSelected = (code: number) => {
-    return selected.includes(code)
+    return selectedStationCodes.includes(code)
   }
   const toggleSelectedStation = (code: number) => {
-    const selectedSet = new Set(selected)
+    const selectedSet = new Set(selectedStationCodes)
     if (stationCodeInSelected(code)) {
       // remove station from selected
       selectedSet.delete(code)
@@ -92,7 +106,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       // add station to selected
       selectedSet.add(code)
     }
-    setSelected(Array.from(selectedSet))
+    props.setSelected(Array.from(selectedSet))
   }
 
   const errorIconTheme = createTheme({
@@ -283,15 +297,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   : 1
               )
               .map(([areaName, area]) => {
-                const areaDailies = getDailiesForArea(area, props.dailies, selected)
-                const meanIntensityGroup = calculateMeanIntensity(
-                  areaDailies.filter(
-                    day =>
-                      day.date.year === props.selectedPrepDay.year &&
-                      day.date.month === props.selectedPrepDay.month &&
-                      day.date.day === props.selectedPrepDay.day
-                  )
-                )
+                const hfiResult = planningAreaHFIResults[area.name]
                 return (
                   <React.Fragment key={`zone-${areaName}`}>
                     <TableRow>
@@ -327,30 +333,20 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       ></TableCell>
                       <MeanIntensityGroupRollup
                         area={area}
-                        dailies={areaDailies}
-                        selectedStations={selected}
-                        meanIntensityGroup={meanIntensityGroup}
+                        dailies={hfiResult ? hfiResult.dailies : []}
+                        selectedStationCodes={selectedStationCodes}
+                        meanIntensityGroup={hfiResult?.dailyMeanIntensity}
                       ></MeanIntensityGroupRollup>
                       <FireStartsCell areaName={areaName} />
                       <PrepLevelCell
                         testid={`daily-prep-level-${areaName}`}
-                        meanIntensityGroup={meanIntensityGroup}
-                        areaName={areaName}
+                        prepLevel={hfiResult?.dailyPrepLevel}
                       />
                     </TableRow>
                     {Object.entries(area.stations)
                       .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                       .map(([stationCode, station]) => {
-                        const daily = getDailiesByStationCode(
-                          numPrepDays,
-                          props.dailies,
-                          station.code
-                        ).filter(
-                          day =>
-                            day.date.year === props.selectedPrepDay.year &&
-                            day.date.month === props.selectedPrepDay.month &&
-                            day.date.day === props.selectedPrepDay.day
-                        )[0]
+                        const daily = getDailyForDay(station.code)
                         const grassCureError = !isValidGrassCure(
                           daily,
                           station.station_props
