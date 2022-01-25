@@ -1,13 +1,13 @@
 import { TableCell } from '@material-ui/core'
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { groupBy, range } from 'lodash'
 import React from 'react'
 import MeanPrepLevelCell from './MeanPrepLevelCell'
 import { HFIResult } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
 
 export interface CalculatedCellsProps {
   testId?: string
@@ -47,7 +47,11 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
               selectedStationCodes={props.selectedStationCodes}
               meanIntensityGroup={meanIntensityGroup}
             />
-            <FireStartsCell areaName={props.areaName} />
+            <FireStartsDropdown
+              setFireStarts={function (fireStarts: string): void {
+                console.log(fireStarts)
+              }}
+            />
             <PrepLevelCell prepLevel={prepLevel} />
           </React.Fragment>
         )
