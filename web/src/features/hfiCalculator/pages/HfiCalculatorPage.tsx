@@ -33,9 +33,8 @@ import { PST_UTC_OFFSET } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import DatePicker from 'components/DatePicker'
 import { FireCentre } from 'api/hfiCalcAPI'
-import { isUndefined } from 'lodash'
+import { isUndefined, union } from 'lodash'
 import FireCentreDropdown from 'features/hfiCalculator/components/FireCentreDropdown'
-import { union } from 'lodash'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,

@@ -12,7 +12,7 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
-import { isEmpty, isUndefined, union } from 'lodash'
+import { isEmpty, isUndefined } from 'lodash'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { getDailiesByStationCode } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
