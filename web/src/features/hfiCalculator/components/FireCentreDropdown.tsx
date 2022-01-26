@@ -55,14 +55,14 @@ const FireCentreDropdown = (props: Props) => {
               props.onChange(fc)
             }
           }}
-          size="small"
+          size="medium"
           renderInput={params => (
             <TextField
               {...params}
               label="Fire Centre"
               variant="outlined"
               fullWidth
-              size="small"
+              size="medium"
             />
           )}
         />
