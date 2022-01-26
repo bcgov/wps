@@ -1,7 +1,7 @@
 """Add column for order of appearance in planning_areas, with unique constraint for each fire centre
 
 Revision ID: 6d2f4d058ebc
-Revises: 481905f1dfe8
+Revises: 8efe0e7b9712
 Create Date: 2022-01-21 17:04:36.512341
 
 """
@@ -12,7 +12,7 @@ import json
 
 # revision identifiers, used by Alembic.
 revision = '6d2f4d058ebc'
-down_revision = '481905f1dfe8'
+down_revision = '8efe0e7b9712'
 branch_labels = None
 depends_on = None
 

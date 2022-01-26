@@ -1,7 +1,7 @@
 """Import remaining fire centres, planning areas, etc. for HFI calc
 
 Revision ID: 8efe0e7b9712
-Revises: b557469a7727
+Revises: 39806f02cdec
 Create Date: 2022-01-13 17:18:52.430766
 
 """
@@ -11,7 +11,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '8efe0e7b9712'
-down_revision = 'b557469a7727'
+down_revision = '39806f02cdec'
 branch_labels = None
 depends_on = None
 
