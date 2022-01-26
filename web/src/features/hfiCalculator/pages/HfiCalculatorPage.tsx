@@ -142,16 +142,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const getAllPlanningWeatherStationCodesFromFireCentre = (
     centre: FireCentre | undefined
   ): number[] => {
-    const stationCodes: number[] = []
     if (isUndefined(centre)) {
-      return stationCodes
+      return []
     }
-    for (const area of Object.values(centre.planning_areas)) {
-      for (const station of Object.values(area.stations)) {
-        stationCodes.push(station.code)
-      }
-    }
-    return stationCodes
+    return Object.values(centre?.planning_areas).flatMap(area =>
+      Object.values(area.stations).map(station => station.code)
+    )
   }
 
   const copyTable = () => {
