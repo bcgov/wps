@@ -103,12 +103,24 @@ export class HFITableCSVFormatter {
               : 'ND'
           )
           rowArray.push(grassCureError ? 'ERROR' : printGrassCurePercentage(daily))
-          rowArray.push(!isUndefined(daily) ? daily.ffmc.toString() : 'ND')
-          rowArray.push(!isUndefined(daily) ? daily.dmc.toString() : 'ND')
-          rowArray.push(!isUndefined(daily) ? daily.dc.toString() : 'ND')
-          rowArray.push(!isUndefined(daily) ? daily.isi.toString() : 'ND')
-          rowArray.push(!isUndefined(daily) ? daily.bui.toString() : 'ND')
-          rowArray.push(!isUndefined(daily) ? daily.fwi.toString() : 'ND')
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.ffmc) ? daily.ffmc.toString() : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.dmc) ? daily.dmc.toString() : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.dc) ? daily.dc.toString() : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.isi) ? daily.isi.toString() : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.bui) ? daily.bui.toString() : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.fwi) ? daily.fwi.toString() : 'ND'
+          )
           rowArray.push(
             !isUndefined(daily) && !isNull(daily.danger_class)
               ? daily.danger_class.toString()
