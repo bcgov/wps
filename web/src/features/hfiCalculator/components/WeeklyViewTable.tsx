@@ -177,7 +177,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                 a[1].order_of_appearance_in_list < b[1].order_of_appearance_in_list
                   ? -1
                   : 1
-              ) // sort by zone code
+              )
               .map(([areaName, area]) => {
                 const areaHFIResult = planningAreaHFIResults[area.name]
                 return (

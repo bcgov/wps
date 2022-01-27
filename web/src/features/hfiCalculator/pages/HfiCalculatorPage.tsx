@@ -151,24 +151,27 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   const copyTable = () => {
-    if (isWeeklyView) {
+    if (isUndefined(selectedFireCentre)) {
+      setIsCopied(false)
+    } else if (isWeeklyView) {
       const { start } = getPrepWeeklyDateRange(dateOfInterest)
       const weeklyViewAsString = HFITableCSVFormatter.exportWeeklyRowsAsStrings(
         numPrepDays,
         start,
-        fireCentres,
+        selectedFireCentre,
         planningAreaHFIResults
       )
       navigator.clipboard.writeText(weeklyViewAsString)
+      setIsCopied(true)
     } else {
       const dailyViewAsString = HFITableCSVFormatter.exportDailyRowsAsStrings(
         dateOfInterest,
-        fireCentres,
+        selectedFireCentre,
         planningAreaHFIResults
       )
       navigator.clipboard.writeText(dailyViewAsString)
+      setIsCopied(true)
     }
-    setIsCopied(true)
   }
 
   const setSelectedFireCentreFromLocalStorage = () => {
@@ -213,7 +216,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     ) {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
-    const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
+    const { start, end } = getDateRange(true, dateOfInterest)
     if (!isUndefined(selectedFireCentre)) {
       dispatch(
         fetchHFIDailies(
