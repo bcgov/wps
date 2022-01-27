@@ -151,26 +151,27 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   const copyTable = () => {
-    if (isUndefined(selectedFireCentre)) {
-      setIsCopied(false)
-    } else if (isWeeklyView) {
-      const { start } = getPrepWeeklyDateRange(dateOfInterest)
-      const weeklyViewAsString = HFITableCSVFormatter.exportWeeklyRowsAsStrings(
-        numPrepDays,
-        start,
-        selectedFireCentre,
-        planningAreaHFIResults
-      )
-      navigator.clipboard.writeText(weeklyViewAsString)
+    if (!isUndefined(selectedFireCentre)) {
+      let csvString = ''
+      if (isWeeklyView) {
+        const { start } = getPrepWeeklyDateRange(dateOfInterest)
+        csvString += HFITableCSVFormatter.exportWeeklyRowsAsStrings(
+          numPrepDays,
+          start,
+          selectedFireCentre,
+          planningAreaHFIResults
+        )
+      } else {
+        csvString += HFITableCSVFormatter.exportDailyRowsAsStrings(
+          dateOfInterest,
+          selectedFireCentre,
+          planningAreaHFIResults
+        )
+      }
+      navigator.clipboard.writeText(csvString)
       setIsCopied(true)
     } else {
-      const dailyViewAsString = HFITableCSVFormatter.exportDailyRowsAsStrings(
-        dateOfInterest,
-        selectedFireCentre,
-        planningAreaHFIResults
-      )
-      navigator.clipboard.writeText(dailyViewAsString)
-      setIsCopied(true)
+      setIsCopied(false)
     }
   }
 
