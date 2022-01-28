@@ -299,7 +299,8 @@ export const {
   getDailiesSuccess,
   setPrepDays,
   setSelectedSelectedStationCodes,
-  setSelectedPrepDate
+  setSelectedPrepDate,
+  setFireStarts
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer

@@ -17,6 +17,11 @@ export interface CalculatedCellsProps {
   areaName: string
   planningAreaResult: PlanningAreaResult
   selectedStationCodes: number[]
+  setNewFireStarts: (
+    areaName: string,
+    dayOffset: number,
+    newFireStarts: FireStarts
+  ) => void
   planningAreaClass: string
   numPrepDays: number
 }
@@ -31,6 +36,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
         const meanIntensityGroup =
           props.planningAreaResult.dailyResults[day]?.meanIntensityGroup
         const prepLevel = props.planningAreaResult.dailyResults[day]?.prepLevel
+        const fireStarts = props.planningAreaResult.dailyResults[day]?.fireStarts
 
         return (
           <React.Fragment key={`calc-cells-${day}`}>
@@ -42,17 +48,10 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
               meanIntensityGroup={meanIntensityGroup}
             />
             <FireStartsDropdown
+              fireStarts={fireStarts}
               areaName={props.area.name}
               dayOffset={day}
-              setFireStarts={function (
-                areaName: string,
-                dayOffSets: number,
-                newFireStarts: FireStarts
-              ): void {
-                console.log(
-                  `areaName: ${areaName}, dayOffset: ${dayOffSets}, newFireStarts: ${newFireStarts.label}`
-                )
-              }}
+              setFireStarts={props.setNewFireStarts}
             />
             <PrepLevelCell prepLevel={prepLevel} />
           </React.Fragment>
