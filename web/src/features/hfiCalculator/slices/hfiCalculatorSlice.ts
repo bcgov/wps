@@ -185,13 +185,13 @@ const calculateHFIResults = (
 
       // Daily calculations
       const dailyResults: DailyResult[] = take(chronologicalAreaDailies, numPrepDays).map(
-        (dailies, index) => {
+        (resultDailies, index) => {
           const dailyFireStarts = planningAreaFireStarts[area.name][index]
-          const meanIntensityGroup = calculateMeanIntensity(dailies)
+          const meanIntensityGroup = calculateMeanIntensity(resultDailies)
           const prepLevel = calculatePrepLevel(meanIntensityGroup, dailyFireStarts)
           return {
-            dateISO: dailies[0].date.toISO(),
-            dailies,
+            dateISO: resultDailies[0].date.toISO(),
+            dailies: resultDailies,
             fireStarts: dailyFireStarts,
             meanIntensityGroup,
             prepLevel
