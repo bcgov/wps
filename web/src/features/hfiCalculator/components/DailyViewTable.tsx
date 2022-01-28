@@ -30,6 +30,10 @@ import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { DateTime } from 'luxon'
+import {
+  DailyResult,
+  PlanningAreaResult
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -91,6 +95,20 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       )[0]
     }
     return dailiesForStation[0]
+  }
+
+  const getDailyResult = (
+    planningAreaHFIResult: PlanningAreaResult
+  ): DailyResult | undefined => {
+    return planningAreaHFIResult.dailyResults.find(dailyResult => {
+      const dailyResultDate = DateTime.fromISO(dailyResult.dateISO)
+      const selectedPrepDateObject = DateTime.fromISO(selectedPrepDate)
+      return (
+        dailyResultDate.year === selectedPrepDateObject.year &&
+        dailyResultDate.month === selectedPrepDateObject.month &&
+        dailyResultDate.day === selectedPrepDateObject.day
+      )
+    })
   }
 
   const stationCodeInSelected = (code: number) => {
@@ -288,7 +306,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
                 ) // sort by zone code
                 .map(([areaName, area]) => {
-                  const hfiResult = planningAreaHFIResults[area.name]
+                  const dailyResult = getDailyResult(planningAreaHFIResults[area.name])
                   return (
                     <React.Fragment key={`zone-${areaName}`}>
                       <TableRow>
@@ -324,14 +342,14 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         ></TableCell>
                         <MeanIntensityGroupRollup
                           area={area}
-                          dailies={hfiResult ? hfiResult.dailies : []}
+                          dailies={dailyResult ? dailyResult.dailies : []}
                           selectedStationCodes={selectedStationCodes}
-                          meanIntensityGroup={hfiResult?.dailyMeanIntensity}
+                          meanIntensityGroup={dailyResult?.meanIntensityGroup}
                         ></MeanIntensityGroupRollup>
                         <FireStartsCell areaName={areaName} />
                         <PrepLevelCell
                           testid={`daily-prep-level-${areaName}`}
-                          prepLevel={hfiResult?.dailyPrepLevel}
+                          prepLevel={dailyResult?.prepLevel}
                         />
                       </TableRow>
                       {Object.entries(area.stations)

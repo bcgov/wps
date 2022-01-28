@@ -1,49 +1,40 @@
 import { TableCell } from '@material-ui/core'
 import { PlanningArea } from 'api/hfiCalcAPI'
-import { StationDaily } from 'api/hfiCalculatorAPI'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
-import { groupBy, range } from 'lodash'
+import { range } from 'lodash'
 import React from 'react'
 import MeanPrepLevelCell from './MeanPrepLevelCell'
-import { HFIResult } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { PlanningAreaResult } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
 
 export interface CalculatedCellsProps {
   testId?: string
   area: PlanningArea
   areaName: string
-  areaHFIResults: HFIResult
+  planningAreaResult: PlanningAreaResult
   selectedStationCodes: number[]
   planningAreaClass: string
   numPrepDays: number
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
-  const utcDict = groupBy(props.areaHFIResults.dailies, (daily: StationDaily) =>
-    daily.date.toUTC().toMillis()
+  const allDailies = props.planningAreaResult.dailyResults.flatMap(
+    result => result.dailies
   )
-
-  const dailiesByDayUTC = new Map(
-    Object.entries(utcDict).map(entry => [Number(entry[0]), entry[1]])
-  )
-
-  const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
-
   return (
     <React.Fragment>
       {range(props.numPrepDays).map(day => {
-        const dailies: StationDaily[] | undefined = dailiesByDayUTC.get(
-          orderedDayTimestamps[day]
-        )
-        const meanIntensityGroup = props.areaHFIResults.dailyMeanIntensityGroups[day]
-        const prepLevel = props.areaHFIResults.dailyPrepLevels[day]
+        const meanIntensityGroup =
+          props.planningAreaResult.dailyResults[day]?.meanIntensityGroup
+        const prepLevel = props.planningAreaResult.dailyResults[day]?.prepLevel
+
         return (
           <React.Fragment key={`calc-cells-${day}`}>
             <TableCell colSpan={2} className={props.planningAreaClass}></TableCell>
             <MeanIntensityGroupRollup
               area={props.area}
-              dailies={dailies ? dailies : []}
+              dailies={allDailies ? allDailies : []}
               selectedStationCodes={props.selectedStationCodes}
               meanIntensityGroup={meanIntensityGroup}
             />
@@ -59,13 +50,13 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
 
       <MeanIntensityGroupRollup
         area={props.area}
-        dailies={props.areaHFIResults.dailies}
+        dailies={allDailies}
         selectedStationCodes={props.selectedStationCodes}
-        meanIntensityGroup={props.areaHFIResults.maxMeanIntensityGroup}
+        meanIntensityGroup={props.planningAreaResult.highestDailyIntensityGroup}
       ></MeanIntensityGroupRollup>
       <MeanPrepLevelCell
         areaName={props.areaName}
-        meanPrepLevel={props.areaHFIResults.meanPrepLevel}
+        meanPrepLevel={props.planningAreaResult.meanPrepLevel}
       />
     </React.Fragment>
   )

@@ -225,7 +225,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           <CalculatedPlanningAreaCells
                             area={area}
                             areaName={areaName}
-                            areaHFIResults={areaHFIResult}
+                            planningAreaResult={areaHFIResult}
                             selectedStationCodes={selected}
                             planningAreaClass={classes.planningArea}
                             numPrepDays={numPrepDays}
