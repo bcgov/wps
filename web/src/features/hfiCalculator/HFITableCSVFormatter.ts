@@ -177,8 +177,7 @@ export class HFITableCSVFormatter {
       areaWeeklySummary.push(
         isUndefined(dailyIntensityGroup) ? 'ND' : dailyIntensityGroup.toString()
       )
-      // TODO fix:
-      areaWeeklySummary.push(Number(1).toString())
+      areaWeeklySummary.push(fireStarts.label)
       areaWeeklySummary.push(
         isUndefined(areaDailyPrepLevel) ? 'ND' : areaDailyPrepLevel.toString()
       )

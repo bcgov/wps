@@ -3,15 +3,19 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { getDailies, StationDaily } from 'api/hfiCalculatorAPI'
-import { groupBy, isUndefined, range, chain, flatten } from 'lodash'
+import { groupBy, isUndefined, range, chain, flatten, take, fill } from 'lodash'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
-import { DateTime } from 'luxon'
+
+export interface FireStarts {
+  label: string
+  value: number
+}
 
 export interface DailyResult {
   dateISO: string
   dailies: StationDaily[]
-  fireStarts: number
+  fireStarts: FireStarts
   meanIntensityGroup: number | undefined
   prepLevel: number | undefined
 }
@@ -26,7 +30,7 @@ export interface HFICalculatorState {
   loading: boolean
   error: string | null
   dailies: StationDaily[]
-  fireStarts: number[]
+  fireStartsForDates: FireStarts[]
   fireCentres: { [key: string]: FireCentre }
   numPrepDays: number
   selectedStationCodes: number[]
@@ -35,11 +39,21 @@ export interface HFICalculatorState {
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
 }
 
+const lowestFireStarts: FireStarts = { label: '0-1', value: 1 }
+
+export const FIRE_STARTS_SET: FireStarts[] = [
+  lowestFireStarts,
+  { label: '1-2', value: 2 },
+  { label: '2-3', value: 3 },
+  { label: '3-6', value: 6 },
+  { label: '6+', value: 7 }
+]
+
 const initialState: HFICalculatorState = {
   loading: false,
   error: null,
   dailies: [],
-  fireStarts: [],
+  fireStartsForDates: fill(Array(NUM_WEEK_DAYS), lowestFireStarts),
   fireCentres: {},
   numPrepDays: NUM_WEEK_DAYS,
   selectedStationCodes: [],
@@ -86,7 +100,7 @@ const isDefined = (item: number | undefined): item is number => {
 
 export const calculateDailyPrepLevels = (
   dailyMeanIntensityGroups: (number | undefined)[],
-  fireStartsForDays: number[]
+  fireStartsForDays: FireStarts[]
 ): (number | undefined)[] => {
   const prepLevels: (number | undefined)[] = []
   range(NUM_WEEK_DAYS).map(day => {
@@ -99,7 +113,7 @@ export const calculateDailyPrepLevels = (
 
 export const calculatePrepLevel = (
   meanIntensityGroup: number | undefined,
-  fireStarts: number
+  fireStarts: FireStarts
 ): number | undefined => {
   // for now, prep level calculation assumed a fixed Fire Starts value of 0-1
 
@@ -107,7 +121,7 @@ export const calculatePrepLevel = (
     return undefined
   }
 
-  const roundedMeanIntensityGroup = Math.round(meanIntensityGroup * fireStarts)
+  const roundedMeanIntensityGroup = Math.round(meanIntensityGroup * fireStarts.value)
 
   if (roundedMeanIntensityGroup < 3) {
     return 1
@@ -141,13 +155,10 @@ export const calculateMeanPrepLevel = (
 const calculateHFIResults = (
   fireCentres: { [key: string]: FireCentre },
   dailies: StationDaily[],
-  fireStarts: number[],
+  fireStarts: FireStarts[],
   numPrepDays: number,
-  selected: number[],
-  selectedPrepDayIso: string
+  selected: number[]
 ): { [key: string]: PlanningAreaResult } => {
-  const selectedPrepDay =
-    selectedPrepDayIso == '' ? null : DateTime.fromISO(selectedPrepDayIso)
   const planningAreaToDailies: { [key: string]: PlanningAreaResult } = {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -160,30 +171,29 @@ const calculateHFIResults = (
       const areaDailies = dailies.filter(
         daily => selected.includes(daily.code) && areaStationCodes.has(daily.code)
       )
-      // We now have an unstructured array of dailies, need to group them by day chronologically
-
-      // Unique dates in chronological order
 
       // Planning area dailies in chronological order
-      const sortedAreaDailies = chain(
+      const chronologicalAreaDailies = chain(
         groupBy(areaDailies, (daily: StationDaily) => daily.date)
       )
         .map(group => flatten(group))
         .value()
 
       // Daily calculations
-      const dailyResults: DailyResult[] = sortedAreaDailies.map((dailies, index) => {
-        const dailiyFireStarts = fireStarts[index]
-        const meanIntensityGroup = calculateMeanIntensity(dailies)
-        const prepLevel = calculatePrepLevel(meanIntensityGroup, 1)
-        return {
-          dateISO: dailies[0].date.toISO(),
-          dailies,
-          fireStarts: dailiyFireStarts,
-          meanIntensityGroup,
-          prepLevel
+      const dailyResults: DailyResult[] = take(chronologicalAreaDailies, numPrepDays).map(
+        (dailies, index) => {
+          const dailyFireStarts = fireStarts[index]
+          const meanIntensityGroup = calculateMeanIntensity(dailies)
+          const prepLevel = calculatePrepLevel(meanIntensityGroup, dailyFireStarts)
+          return {
+            dateISO: dailies[0].date.toISO(),
+            dailies,
+            fireStarts: dailyFireStarts,
+            meanIntensityGroup,
+            prepLevel
+          }
         }
-      })
+      )
 
       // Aggregate calculations
       const highestDailyIntensityGroup = calculateMaxMeanIntensityGroup(
@@ -229,10 +239,9 @@ const dailiesSlice = createSlice({
       state.planningAreaHFIResults = calculateHFIResults(
         action.payload.fireCentres,
         action.payload.dailies,
-        state.fireStarts,
+        state.fireStartsForDates,
         state.numPrepDays,
-        action.payload.selectedStationCodes,
-        state.selectedPrepDate
+        action.payload.selectedStationCodes
       )
       state.loading = false
     },
@@ -241,10 +250,9 @@ const dailiesSlice = createSlice({
       state.planningAreaHFIResults = calculateHFIResults(
         state.fireCentres,
         state.dailies,
-        state.fireStarts,
+        state.fireStartsForDates,
         action.payload,
-        state.selectedStationCodes,
-        state.selectedPrepDate
+        state.selectedStationCodes
       )
     },
     setSelectedSelectedStationCodes: (state, action: PayloadAction<number[]>) => {
@@ -252,22 +260,13 @@ const dailiesSlice = createSlice({
       state.planningAreaHFIResults = calculateHFIResults(
         state.fireCentres,
         state.dailies,
-        state.fireStarts,
+        state.fireStartsForDates,
         state.numPrepDays,
-        action.payload,
-        state.selectedPrepDate
+        action.payload
       )
     },
     setSelectedPrepDate: (state, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
-      state.planningAreaHFIResults = calculateHFIResults(
-        state.fireCentres,
-        state.dailies,
-        state.fireStarts,
-        state.numPrepDays,
-        state.selectedStationCodes,
-        action.payload
-      )
     }
   }
 })
