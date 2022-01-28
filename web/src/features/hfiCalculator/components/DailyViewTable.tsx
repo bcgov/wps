@@ -98,9 +98,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   }
 
   const getDailyResult = (
-    planningAreaHFIResult: PlanningAreaResult
+    planningAreaHFIResult: PlanningAreaResult | undefined
   ): DailyResult | undefined => {
-    return planningAreaHFIResult.dailyResults.find(dailyResult => {
+    return planningAreaHFIResult?.dailyResults.find(dailyResult => {
       const dailyResultDate = DateTime.fromISO(dailyResult.dateISO)
       const selectedPrepDateObject = DateTime.fromISO(selectedPrepDate)
       return (
