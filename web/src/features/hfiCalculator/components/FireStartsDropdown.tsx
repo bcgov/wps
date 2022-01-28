@@ -1,16 +1,23 @@
 import { TextField } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
-import { isNull } from 'lodash'
+import {
+  FireStarts,
+  FIRE_STARTS_SET,
+  lowestFireStarts
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { isEqual, isNull } from 'lodash'
 import React from 'react'
 
-const fireStartsOptions: string[] = ['0-1', '1-2', '2-3', '3-6', '6+']
-
 export interface FireStartsDropdownProps {
-  setFireStarts: (fireStarts: string) => void
+  areaName: string
+  dayOffset: number
+  setFireStarts: (areaName: string, dayOffSet: number, newFireStarts: FireStarts) => void
 }
 
 const FireStartsDropdown = ({
-  setFireStarts: setNumPrepDays
+  areaName,
+  dayOffset,
+  setFireStarts
 }: FireStartsDropdownProps) => {
   return (
     <Autocomplete
@@ -18,12 +25,14 @@ const FireStartsDropdown = ({
       disableClearable
       autoHighlight
       autoSelect
-      options={fireStartsOptions}
+      options={FIRE_STARTS_SET}
+      getOptionSelected={(option, value) => isEqual(option, value)}
+      getOptionLabel={option => option?.label}
       renderInput={params => <TextField {...params} variant="outlined" />}
-      value={fireStartsOptions[0]}
+      value={lowestFireStarts}
       onChange={(_, value) => {
         if (!isNull(value)) {
-          setNumPrepDays(value)
+          setFireStarts(areaName, dayOffset, value)
         }
       }}
     />

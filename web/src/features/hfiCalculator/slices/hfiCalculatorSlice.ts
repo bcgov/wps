@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { getDailies, StationDaily } from 'api/hfiCalculatorAPI'
-import { groupBy, isUndefined, range, chain, flatten, take, fill } from 'lodash'
+import { groupBy, isUndefined, range, chain, flatten, take } from 'lodash'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 
@@ -30,16 +30,16 @@ export interface HFICalculatorState {
   loading: boolean
   error: string | null
   dailies: StationDaily[]
-  fireStartsForDates: FireStarts[]
   fireCentres: { [key: string]: FireCentre }
   numPrepDays: number
   selectedStationCodes: number[]
   selectedPrepDate: string
   formattedDateStringHeaders: string[]
+  planningAreaFireStarts: { [key: string]: FireStarts[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
 }
 
-const lowestFireStarts: FireStarts = { label: '0-1', value: 1 }
+export const lowestFireStarts: FireStarts = { label: '0-1', value: 1 }
 
 export const FIRE_STARTS_SET: FireStarts[] = [
   lowestFireStarts,
@@ -53,12 +53,12 @@ const initialState: HFICalculatorState = {
   loading: false,
   error: null,
   dailies: [],
-  fireStartsForDates: fill(Array(NUM_WEEK_DAYS), lowestFireStarts),
   fireCentres: {},
   numPrepDays: NUM_WEEK_DAYS,
   selectedStationCodes: [],
   selectedPrepDate: '',
   formattedDateStringHeaders: [],
+  planningAreaFireStarts: {},
   planningAreaHFIResults: {}
 }
 
@@ -155,7 +155,7 @@ export const calculateMeanPrepLevel = (
 const calculateHFIResults = (
   fireCentres: { [key: string]: FireCentre },
   dailies: StationDaily[],
-  fireStarts: FireStarts[],
+  planningAreaFireStarts: { [key: string]: FireStarts[] },
   numPrepDays: number,
   selected: number[]
 ): { [key: string]: PlanningAreaResult } => {
@@ -172,17 +172,21 @@ const calculateHFIResults = (
         daily => selected.includes(daily.code) && areaStationCodes.has(daily.code)
       )
 
-      // Planning area dailies in chronological order
       const chronologicalAreaDailies = chain(
         groupBy(areaDailies, (daily: StationDaily) => daily.date)
       )
         .map(group => flatten(group))
         .value()
 
+      // Initialize with defaults if empty
+      planningAreaFireStarts[area.name] = isUndefined(planningAreaFireStarts[area.name])
+        ? Array(numPrepDays).fill(lowestFireStarts)
+        : planningAreaFireStarts[area.name]
+
       // Daily calculations
       const dailyResults: DailyResult[] = take(chronologicalAreaDailies, numPrepDays).map(
         (dailies, index) => {
-          const dailyFireStarts = fireStarts[index]
+          const dailyFireStarts = planningAreaFireStarts[area.name][index]
           const meanIntensityGroup = calculateMeanIntensity(dailies)
           const prepLevel = calculatePrepLevel(meanIntensityGroup, dailyFireStarts)
           return {
@@ -239,7 +243,7 @@ const dailiesSlice = createSlice({
       state.planningAreaHFIResults = calculateHFIResults(
         action.payload.fireCentres,
         action.payload.dailies,
-        state.fireStartsForDates,
+        state.planningAreaFireStarts,
         state.numPrepDays,
         action.payload.selectedStationCodes
       )
@@ -250,7 +254,7 @@ const dailiesSlice = createSlice({
       state.planningAreaHFIResults = calculateHFIResults(
         state.fireCentres,
         state.dailies,
-        state.fireStartsForDates,
+        state.planningAreaFireStarts,
         action.payload,
         state.selectedStationCodes
       )
@@ -260,13 +264,31 @@ const dailiesSlice = createSlice({
       state.planningAreaHFIResults = calculateHFIResults(
         state.fireCentres,
         state.dailies,
-        state.fireStartsForDates,
+        state.planningAreaFireStarts,
         state.numPrepDays,
         action.payload
       )
     },
     setSelectedPrepDate: (state, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
+    },
+    setFireStarts: (
+      state,
+      action: PayloadAction<{
+        areaName: string
+        dayOffset: number
+        newFireStarts: FireStarts
+      }>
+    ) => {
+      const { areaName, dayOffset, newFireStarts } = action.payload
+      state.planningAreaFireStarts[areaName][dayOffset] = newFireStarts
+      state.planningAreaHFIResults = calculateHFIResults(
+        state.fireCentres,
+        state.dailies,
+        state.planningAreaFireStarts,
+        state.numPrepDays,
+        state.selectedStationCodes
+      )
     }
   }
 })

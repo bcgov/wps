@@ -5,7 +5,10 @@ import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { range } from 'lodash'
 import React from 'react'
 import MeanPrepLevelCell from './MeanPrepLevelCell'
-import { PlanningAreaResult } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import {
+  FireStarts,
+  PlanningAreaResult
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
 
 export interface CalculatedCellsProps {
@@ -39,8 +42,16 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
               meanIntensityGroup={meanIntensityGroup}
             />
             <FireStartsDropdown
-              setFireStarts={function (fireStarts: string): void {
-                console.log(fireStarts)
+              areaName={props.area.name}
+              dayOffset={day}
+              setFireStarts={function (
+                areaName: string,
+                dayOffSets: number,
+                newFireStarts: FireStarts
+              ): void {
+                console.log(
+                  `areaName: ${areaName}, dayOffset: ${dayOffSets}, newFireStarts: ${newFireStarts.label}`
+                )
               }}
             />
             <PrepLevelCell prepLevel={prepLevel} />
