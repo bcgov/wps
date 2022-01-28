@@ -35,19 +35,6 @@ class StationDaily(BaseModel):
     date: Optional[datetime] = None
 
 
-class FireStartOption(BaseModel):
-    date: datetime
-    fire_starts_lower_bound: float
-
-
-class StationDailyRequest(BaseModel):
-    """ Request for dailies. """
-    start_time_stamp: int
-    end_time_stamp: int
-    fire_start_options: Optional[List[FireStartOption]]
-    station_codes: Optional[List[int]]
-
-
 class StationDailyResponse(BaseModel):
     """ Response that includes list of station daily data."""
     dailies: List[StationDaily]

@@ -28,7 +28,7 @@ export interface StationDaily {
 }
 
 /**
- * Axios doesn't marshal complex objects like DateTime.
+ * Axios does't marshal complex objects like DateTime.
  * RawDaily is the daily representation over the wire (a string date)
  * that we then marshall into a StationDaily (with a DateTime)
  */
@@ -46,9 +46,11 @@ export async function getDailies(
   startTime: number,
   endTime: number
 ): Promise<StationDaily[]> {
-  const { data } = await axios.post<StationDailyResponse>(url, {
-    start_time_stamp: startTime,
-    end_time_stamp: endTime
+  const { data } = await axios.get<StationDailyResponse>(url, {
+    params: {
+      start_time_stamp: startTime,
+      end_time_stamp: endTime
+    }
   })
 
   return data.dailies.map(daily => ({ ...daily, date: DateTime.fromISO(daily.date) }))

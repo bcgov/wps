@@ -5,7 +5,7 @@ from typing import List, Optional
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends, Query
 import app.utils.time
-from app.schemas.hfi_calc import StationDailyRequest, StationDailyResponse
+from app.schemas.hfi_calc import StationDailyResponse
 import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
@@ -33,22 +33,22 @@ def validate_time_range(start_time_stamp: Optional[int], end_time_stamp: Optiona
     return int(start_time_stamp), int(end_time_stamp)
 
 
-@router.post('/daily', response_model=StationDailyResponse)
-async def get_daily_view(
-        request: StationDailyRequest,
-        response: Response,
-        _=Depends(authentication_required),):
+@router.get('/daily', response_model=StationDailyResponse)
+async def get_daily_view(response: Response,
+                         _=Depends(authentication_required),
+                         station_codes: Optional[List[int]] = Query(None),
+                         start_time_stamp: Optional[int] = None,
+                         end_time_stamp: Optional[int] = None):
     """ Returns daily metrics for each station code. """
     try:
         logger.info('/hfi-calc/daily')
         response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
-        valid_start_time, valid_end_time = validate_time_range(
-            request.start_time_stamp, request.end_time_stamp)
+        valid_start_time, valid_end_time = validate_time_range(start_time_stamp, end_time_stamp)
 
         async with ClientSession() as session:
             header = await get_auth_header(session)
             wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
-                session, header, request.station_codes)
+                session, header, station_codes)
             dailies = await get_dailies_lookup_fuel_types(
                 session, header, wfwx_stations, valid_start_time, valid_end_time)
             return StationDailyResponse(dailies=dailies)
