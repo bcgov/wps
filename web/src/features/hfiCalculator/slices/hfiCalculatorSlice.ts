@@ -40,6 +40,7 @@ export interface HFICalculatorState {
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
 }
 
+// Encodes lookup tables for each fire starts range from workbook
 export const lowestFireStarts: FireStarts = {
   label: '0-1',
   value: 1,

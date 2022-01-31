@@ -1,6 +1,9 @@
 import { render, fireEvent, within, waitFor } from '@testing-library/react'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
-import { lowestFireStarts } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import {
+  highestFireStarts,
+  lowestFireStarts
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import React from 'react'
 describe('FireStartsDropdown', () => {
   const testAreaName = 'testArea'
@@ -43,10 +46,7 @@ describe('FireStartsDropdown', () => {
     await waitFor(() => expect(input.value).toBe('6+'))
     await waitFor(() => expect(setFireStartsMock).toBeCalledTimes(1))
     await waitFor(() =>
-      expect(setFireStartsMock).toBeCalledWith(testAreaName, dayOffset, {
-        label: '6+',
-        value: 7
-      })
+      expect(setFireStartsMock).toBeCalledWith(testAreaName, dayOffset, highestFireStarts)
     )
   })
 })
