@@ -6,6 +6,45 @@ Updated (formatting, layout) by D. Perrakis, 2014
 from math import exp, log, pow
 
 
+def intensity(ros: float  # excel column C54
+              ):
+
+    # Surface Fuel Consumption
+    # C32: IF(2*(1-EXP(-0.104*(C29-70)))<0,0,2*(1-EXP(-0.104*(C29-70))))
+    surface_fuel_consumption = None
+
+    # Woody Fuel Consumption
+    # C33: 1.5*(1-EXP(-0.0201*C30))
+    wood_fuel_consumption = None
+
+    # Total fuel consumption
+    # C34: SUM(C32:C33)
+    total_fuel_consumption = surface_fuel_consumption + wood_fuel_consumption
+
+    # RSO (Critical Rate of Spread)
+    # C71: C70/(C34*300)
+    RSO = C70 / (total_fuel_consumption * 300)
+
+    # CFB
+    # C72: IF(C54>C71,1-EXP(-0.23*(C54-C71)),0)
+    if ros > RSO:
+        CFB = 1 - exp(-0.23 * (ros - RSO))
+    else:
+        CFB = 0
+
+    # CFC
+    # C73: C72*0.5
+    CFC = CFB * 0.5
+
+    # TFC
+    # C74: C73+C34
+    TFC = CFC + total_fuel_consumption
+
+    # Intensity (kW/m)
+    # C75: 300*C74*C54
+    return 300.0 * TFC * ros
+
+
 def rate_of_spread(ffmc: float,  # excel column: C29
                    bui: float,  # excel column: C30
                    wind_speed: float,  # excel column: C37
