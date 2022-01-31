@@ -19,6 +19,10 @@ depends_on = None
 def upgrade():
     conn = op.get_bind()
 
+    # Due to confusing Alembic revision conflicts, some databases will have this constraint at this revision and
+    # others won't. Delete the constraint if it exists - it's not applicable anymore.
+    op.execute('ALTER TABLE planning_weather_stations DROP CONSTRAINT IF EXISTS planning_weather_stations_station_code_key')
+
     # Migration to import remaining data from 8efe0e7b9712_add_remaining_fcs_for_hfi.json
     # performs same operation as in initial_hfi_data_import.py
 
