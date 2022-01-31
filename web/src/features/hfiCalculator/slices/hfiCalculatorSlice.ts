@@ -10,6 +10,7 @@ import { FireCentre } from 'api/hfiCalcAPI'
 export interface FireStarts {
   label: string
   value: number
+  lookupTable: { [mig: number]: number }
 }
 
 export interface DailyResult {
@@ -39,14 +40,38 @@ export interface HFICalculatorState {
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
 }
 
-export const lowestFireStarts: FireStarts = { label: '0-1', value: 1 }
+export const lowestFireStarts: FireStarts = {
+  label: '0-1',
+  value: 1,
+  lookupTable: { 1: 1, 2: 1, 3: 2, 4: 3, 5: 4 }
+}
+export const one2TwoStarts: FireStarts = {
+  label: '1-2',
+  value: 2,
+  lookupTable: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
+}
+export const two2ThreeStarts: FireStarts = {
+  label: '2-3',
+  value: 3,
+  lookupTable: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 }
+}
+export const three2SixStarts: FireStarts = {
+  label: '3-6',
+  value: 6,
+  lookupTable: { 1: 3, 2: 4, 3: 5, 4: 6, 5: 6 }
+}
+export const highestFireStarts: FireStarts = {
+  label: '6+',
+  value: 7,
+  lookupTable: { 1: 4, 2: 5, 3: 6, 4: 6, 5: 6 }
+}
 
 export const FIRE_STARTS_SET: FireStarts[] = [
   lowestFireStarts,
-  { label: '1-2', value: 2 },
-  { label: '2-3', value: 3 },
-  { label: '3-6', value: 6 },
-  { label: '6+', value: 7 }
+  one2TwoStarts,
+  two2ThreeStarts,
+  three2SixStarts,
+  highestFireStarts
 ]
 
 const initialState: HFICalculatorState = {
@@ -115,24 +140,13 @@ export const calculatePrepLevel = (
   meanIntensityGroup: number | undefined,
   fireStarts: FireStarts
 ): number | undefined => {
-  // for now, prep level calculation assumed a fixed Fire Starts value of 0-1
-
   if (isUndefined(meanIntensityGroup)) {
     return undefined
   }
 
-  const roundedMeanIntensityGroup = Math.round(meanIntensityGroup * fireStarts.value)
+  const roundedMeanIntensityGroup = Math.round(meanIntensityGroup)
 
-  if (roundedMeanIntensityGroup < 3) {
-    return 1
-  }
-  if (roundedMeanIntensityGroup < 4) {
-    return 2
-  }
-  if (roundedMeanIntensityGroup < 5) {
-    return 3
-  }
-  return 4
+  return fireStarts.lookupTable[roundedMeanIntensityGroup]
 }
 
 export const calculateMeanPrepLevel = (
