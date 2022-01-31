@@ -8,6 +8,7 @@ from app.db.models.observations import HourlyActual
 from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.stations import WeatherStation
 from app.utils import cffdrs
+from app.utils import c7b
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
@@ -173,6 +174,134 @@ def calculate_intensity_group(hfi: float) -> int:
     return 5
 
 
+class FireBehaviourPrediction:
+
+    def __init__(self, ros: float,
+                 hfi: float, intensity_group,
+                 sixty_minute_fire_size: float,
+                 fire_type) -> None:
+        self.ros = ros
+        self.hfi = hfi
+        self.intensity_group = intensity_group
+        self.sixty_minute_fire_size = sixty_minute_fire_size
+        self.fire_type = fire_type
+
+
+def calculate_fire_behaviour_prediction_using_cffdrs(
+        latitude: float,
+        longitude: float,
+        elevation: float,
+        fuel_type: FuelTypeEnum,
+        bui: float,
+        ffmc: float,
+        cc: float,
+        pc: float,
+        wind_speed: float,
+        isi: float,
+        pdf: float,
+        cbh: float,
+        cfl: float):
+
+    # set default values in case the calculation fails (likely due to missing data)
+    fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, get_julian_date_now())
+    sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
+    if cc is None:
+        cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
+
+    if fuel_type == FuelTypeEnum.C7b:
+        ros = c7b.rate_of_spread(ffmc=ffmc, bui=bui, wind_speed=wind_speed, percentage_slope=0.0, cc=cc)
+    else:
+        ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
+                                    cc=cc,
+                                    pdf=pdf,
+                                    cbh=cbh)
+    if sfc is not None:
+        cfb = calculate_cfb(FuelTypeEnum[fuel_type], fmc, sfc, ros, cbh)
+
+    if ros is not None and cfb is not None and cfl is not None:
+        hfi = cffdrs.head_fire_intensity(fuel_type=FuelTypeEnum[fuel_type],
+                                         percentage_conifer=pc,
+                                         percentage_dead_balsam_fir=pdf,
+                                         ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
+
+    lb_ratio = cffdrs.length_to_breadth_ratio(FuelTypeEnum[fuel_type], wind_speed)
+    wsv = cffdrs.calculate_wind_speed(FuelTypeEnum[fuel_type],
+                                      ffmc=ffmc,
+                                      bui=bui,
+                                      ws=wind_speed,
+                                      fmc=fmc,
+                                      sfc=sfc,
+                                      pc=pc,
+                                      cc=cc,
+                                      pdf=pdf,
+                                      cbh=cbh,
+                                      isi=isi)
+
+    bros = cffdrs.back_rate_of_spread(FuelTypeEnum[fuel_type],
+                                      ffmc=ffmc,
+                                      bui=bui,
+                                      wsv=wsv,
+                                      fmc=fmc, sfc=sfc,
+                                      pc=pc,
+                                      cc=cc,
+                                      pdf=pdf,
+                                      cbh=cbh)
+
+    sixty_minute_fire_size = get_fire_size(FuelTypeEnum[fuel_type], ros, bros, 60, cfb, lb_ratio)
+
+    fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
+
+    if hfi is not None:
+        intensity_group = calculate_intensity_group(hfi)
+
+    fire_behaviour_prediction = FireBehaviourPrediction(ros=ros, hfi=hfi, intensity_group=intensity_group,
+                                                        sixty_minute_fire_size=sixty_minute_fire_size,
+                                                        fire_type=fire_type)
+    return fire_behaviour_prediction
+
+
+def calculate_fire_behaviour_prediction_using_c7b(ffmc: float,
+                                                  bui: float,
+                                                  wind_speed: float,
+                                                  cc: float):
+    ros = c7b.rate_of_spread(ffmc=ffmc, bui=bui, wind_speed=wind_speed, percentage_slope=0.0, cc=cc)
+
+    fire_behaviour_prediction = FireBehaviourPrediction(
+        ros=ros,
+        hfi=None,
+        intensity_group=None,
+        sixty_minute_fire_size=None,
+        fire_type=None)
+
+    return fire_behaviour_prediction
+
+
+def calculate_fire_behaviour_prediction(latitude: float, longitude: float, elevation: float,
+                                        fuel_type: FuelTypeEnum,
+                                        bui: float, ffmc: float, wind_speed: float, cc: float,
+                                        pc: float, isi: float, pdf: float, cbh: float, cfl: float):
+    if fuel_type == FuelTypeEnum.C7b:
+        return calculate_fire_behaviour_prediction_using_c7b(
+            ffmc=ffmc,
+            bui=bui,
+            wind_speed=wind_speed,
+            cc=cc)
+    return calculate_fire_behaviour_prediction_using_cffdrs(
+        latitude=latitude,
+        longitude=longitude,
+        elevation=elevation,
+        fuel_type=fuel_type,
+        bui=bui,
+        ffmc=ffmc,
+        cc=cc,
+        pc=pc,
+        wind_speed=wind_speed,
+        isi=isi,
+        pdf=pdf,
+        cbh=cbh,
+        cfl=cfl)
+
+
 def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
                            station: WFWXWeatherStation,
                            fuel_type: str) -> StationDaily:
@@ -189,63 +318,29 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
     cc = raw_daily.get('grasslandCuring', None)
+    wind_speed = raw_daily.get('windSpeed', None)
 
-    # set default values in case the calculation fails (likely due to missing data)
-    fmc, sfc, ros, cfb, hfi, lb_ratio, bros, sixty_minute_fire_size,\
-        fire_type, intensity_group = None, None, None, None, None, None, None, None, None, None
     try:
-        fmc = cffdrs.foliar_moisture_content(
-            station.lat, station.long, station.elevation, get_julian_date_now())
-        sfc = cffdrs.surface_fuel_consumption(
-            FuelTypeEnum[fuel_type], bui, ffmc, pc)
-        if cc is None:
-            cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
-        ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
-                                    cc=cc,
-                                    pdf=pdf,
-                                    cbh=cbh)
-        if sfc is not None:
-            cfb = calculate_cfb(FuelTypeEnum[fuel_type], fmc, sfc, ros, cbh)
-
-        if ros is not None and cfb is not None and cfl is not None:
-            hfi = cffdrs.head_fire_intensity(fuel_type=FuelTypeEnum[fuel_type],
-                                             percentage_conifer=pc,
-                                             percentage_dead_balsam_fir=pdf,
-                                             ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
-
-        lb_ratio = cffdrs.length_to_breadth_ratio(FuelTypeEnum[fuel_type], raw_daily.get('windSpeed', None))
-        wsv = cffdrs.calculate_wind_speed(FuelTypeEnum[fuel_type],
-                                          ffmc=ffmc,
-                                          bui=bui,
-                                          ws=raw_daily.get('windSpeed', None),
-                                          fmc=fmc,
-                                          sfc=sfc,
-                                          pc=pc,
-                                          cc=raw_daily.get('grasslandCuring', None),
-                                          pdf=pdf,
-                                          cbh=cbh,
-                                          isi=isi)
-
-        bros = cffdrs.back_rate_of_spread(FuelTypeEnum[fuel_type],
-                                          ffmc=ffmc,
-                                          bui=bui,
-                                          wsv=wsv,
-                                          fmc=fmc, sfc=sfc,
-                                          pc=pc,
-                                          cc=raw_daily.get('grasslandCuring', None),
-                                          pdf=pdf,
-                                          cbh=cbh)
-
-        sixty_minute_fire_size = get_fire_size(FuelTypeEnum[fuel_type], ros, bros, 60, cfb, lb_ratio)
-
-        fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
-
-        if hfi is not None:
-            intensity_group = calculate_intensity_group(hfi)
+        fire_behaviour_prediction = calculate_fire_behaviour_prediction(
+            latitude=station.lat,
+            longitude=station.long,
+            elevation=station.elevation,
+            fuel_type=FuelTypeEnum[fuel_type],
+            bui=bui,
+            ffmc=ffmc,
+            wind_speed=wind_speed,
+            cc=cc,
+            pc=pc,
+            isi=isi,
+            pdf=pdf,
+            cbh=cbh,
+            cfl=cfl)
     # pylint: disable=broad-except
     except Exception as exc:
         logger.error('Encountered error while generating StationDaily for station %s', station.code)
         logger.error(exc, exc_info=True)
+        # prediction calculation failed, so we set the values to None
+        fire_behaviour_prediction = FireBehaviourPrediction(None, None, None, None, None)
 
     return StationDaily(
         code=station.code,
@@ -264,14 +359,14 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         danger_class=raw_daily.get('dailySeverityRating', None),
         isi=isi,
         bui=bui,
-        rate_of_spread=ros,
-        hfi=hfi,
+        rate_of_spread=fire_behaviour_prediction.ros,
+        hfi=fire_behaviour_prediction.hfi,
         observation_valid=raw_daily.get('observationValidInd', None),
         observation_valid_comment=raw_daily.get(
             'observationValidComment', None),
-        intensity_group=intensity_group,
-        sixty_minute_fire_size=sixty_minute_fire_size,
-        fire_type=fire_type,
+        intensity_group=fire_behaviour_prediction.intensity_group,
+        sixty_minute_fire_size=fire_behaviour_prediction.sixty_minute_fire_size,
+        fire_type=fire_behaviour_prediction.fire_type,
         error=raw_daily.get('observationValidInd', None),
         error_message=raw_daily.get('observationValidComment', None)
     )

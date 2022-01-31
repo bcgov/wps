@@ -10,6 +10,7 @@ from rpy2.rinterface import NULL
 import app.utils.r_importer
 from app.utils.singleton import Singleton
 from app.schemas.fba_calc import FuelTypeEnum
+from app.utils import c7b
 
 logger = logging.getLogger(__name__)
 
@@ -345,7 +346,6 @@ def rate_of_spread(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-argument
     # Returns:
     #   ROS: Rate of spread (m/min)
     #
-
     NOTE: For C1, only ISI and BUI is used to calculate ROS. All other inputs are ignored.
     """
     if fuel_type is None or isi is None or bui is None or sfc is None:

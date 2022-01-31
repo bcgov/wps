@@ -6,24 +6,17 @@ Updated (formatting, layout) by D. Perrakis, 2014
 from math import exp, log, pow
 
 
-def rate_of_spread(isi: float,
-                   bui: float,  # C30
-                   fmc: float,
-                   sfc: float,
-                   pc: float,
-                   cc: float,  # C17 (% curing)
-                   pdf: float,
-                   cbh: float):
+def rate_of_spread(ffmc: float,  # excel column: C29
+                   bui: float,  # excel column: C30
+                   wind_speed: float,  # excel column: C37
+                   percentage_slope: float,  # excel column: C38
+                   cc: float,  # excel column: C17 (% curing)
+                   ):
     ''' Compute the rate of spread for the C7b fuel type 
     Based on:
     Spreadsheet originally created by J. Beck, 2003,
     Updated (formatting, layout) by D. Perrakis, 2014
     '''
-
-    # hard coded inputs just for spreadsheet sanity check
-    ffmc = 93.9  # C29
-    wind_speed = 10  # C37
-    percentage_slope = 0  # C38
 
     # Calculated Curing Factor
     # C25: =1.25924/(1+EXP(-0.075*(C17-82)))
