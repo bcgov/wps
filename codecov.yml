@@ -5,7 +5,7 @@
 ignore:
   - "web/src/features/cHaines"
   - "web/src/features/fwiCalculator"
-  - "web/src/features/hfiCalculator/HFITableCSVFormatter.ts"
+  - "web/src/features/hfiCalculator/HFITableCSVFormatter.ts" # Currently not run and will be moved to the backend
 coverage:
   # https://docs.codecov.com/docs/commit-status
   status:
