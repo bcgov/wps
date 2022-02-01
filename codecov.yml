@@ -5,6 +5,7 @@
 ignore:
   - "web/src/features/cHaines"
   - "web/src/features/fwiCalculator"
+  - "web/src/features/hfiCalculator/HFITableCSVFormatter.ts"
 coverage:
   # https://docs.codecov.com/docs/commit-status
   status:
