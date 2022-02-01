@@ -263,18 +263,20 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
                                                   ffmc: float,
                                                   bui: float,
                                                   wind_speed: float,
-                                                  isi: float,
-                                                  cc: float):
-    # C7b uses a crown base height of 10m
-    cbh = 10.0
+                                                  cc: float,
+                                                  cbh: float):
 
     ros = c7b.rate_of_spread(ffmc=ffmc, bui=bui, wind_speed=wind_speed, percentage_slope=0.0, cc=cc)
 
     fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, get_julian_date_now())
 
-    cfb = cffdrs.crown_fraction_burned(fuel_type=FuelTypeEnum.C7, fmc=fmc, sfc=None, ros=ros, cbh=cbh)
+    # TODO: do we substitue total for surface when calculating cfb?
+    # total_fuel_consumption = c7b.calculate_total_fuel_consumption(ffmc, bui)
+    sfc = cffdrs.surface_fuel_consumption(fuel_type=FuelTypeEnum.C7, bui=bui, ffmc=ffmc, pc=None)
+    cfb = cffdrs.crown_fraction_burned(fuel_type=FuelTypeEnum.C7, fmc=fmc,
+                                       sfc=sfc, ros=ros, cbh=cbh)
 
-    hfi = c7b.intensity(fmc=fmc, ffmc=ffmc, bui=bui, ros=ros, cfb=cfb)
+    hfi = c7b.intensity(bui=bui, ros=ros, cfb=cfb, total_fuel_consumption=sfc)
 
     fire_type = get_fire_type(FuelTypeEnum.C7b, cfb)
 
@@ -304,8 +306,8 @@ def calculate_fire_behaviour_prediction(latitude: float, longitude: float, eleva
             ffmc=ffmc,
             bui=bui,
             wind_speed=wind_speed,
-            isi=isi,
-            cc=cc)
+            cc=cc,
+            cbh=cbh)
     return calculate_fire_behaviour_prediction_using_cffdrs(
         latitude=latitude,
         longitude=longitude,
@@ -327,6 +329,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
                            fuel_type: str) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
+    fuel_type = 'C7b'
     # pylint: disable=invalid-name
     # we use the fuel type lookup to get default values.
     pc = FUEL_TYPE_DEFAULTS[fuel_type]["PC"]
@@ -339,6 +342,10 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
     cc = raw_daily.get('grasslandCuring', None)
     wind_speed = raw_daily.get('windSpeed', None)
+
+    if cc is None:
+        # TODO: Set cc back to None - just for testing I want something
+        cc = 80.0
 
     try:
         fire_behaviour_prediction = calculate_fire_behaviour_prediction(

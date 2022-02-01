@@ -17,4 +17,6 @@ def test_ros():
 
 def test_intensity():
     # spreadhseet example of 2643:
-    assert c7b.intensity(fmc=120, ffmc=93.9, bui=201, ros=2.6636471840719254, cfb=None) == 2642.648547252778
+    assert c7b.intensity(ros=2.6636471840719254,
+                         cfb=0,
+                         sfc=3.307055282515498) == 2642.648547252778

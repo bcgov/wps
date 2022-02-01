@@ -6,59 +6,21 @@ Updated (formatting, layout) by D. Perrakis, 2014
 from math import exp, log, pow
 
 
-def calculate_total_fuel_consumption(ffmc: float, bui: float):
-    # Surface Fuel Consumption
-    # C32: IF(2*(1-EXP(-0.104*(C29-70)))<0,0,2*(1-EXP(-0.104*(C29-70))))
-    if 2 * (1 - exp(-0.104 * (ffmc - 70))) < 0:
-        surface_fuel_consumption = 0
-    else:
-        surface_fuel_consumption = 2 * (1 - exp(-0.104 * (ffmc - 70)))
-
-    # Woody Fuel Consumption
-    # C33: 1.5*(1-EXP(-0.0201*C30))
-    wood_fuel_consumption = 1.5 * (1 - exp(-0.0201 * bui))
-
-    # Total fuel consumption
-    # C34: SUM(C32:C33)
-    return surface_fuel_consumption + wood_fuel_consumption
-
-
-def intensity(fmc: float,
-              ffmc: float,  # excel column C29
-              bui: float,  # excel column C30
-              ros: float,  # excel column C54
-              cfb: float):
-
-    total_fuel_consumption = calculate_total_fuel_consumption(ffmc, bui)
-
-    # FMC
-    # C69: IF(C68<30,85+0.0189*C68^2,IF(C68<50,32.9+3.17*C68-0.0288*C68^2,120))
-    # We use FMC from CFFDRS
-
-    # CSI (Critical Surface Fire Intensity)
-    # C70: 0.001*10^1.5*(460+25.9*C69)^1.5
-    CSI = 0.001 * pow(10, 1.5) * pow((460 + 25.9 * fmc), 1.5)
-
-    # RSO (Critical Rate of Spread)
-    # C71: C70/(C34*300)
-    RSO = CSI / (total_fuel_consumption * 300)
-
-    # CFB
-    # C72: IF(C54>C71,1-EXP(-0.23*(C54-C71)),0)
-    if ros > RSO:
-        CFB = 1 - exp(-0.23 * (ros - RSO))
-    else:
-        CFB = 0
-    # TODO: use cfb passed in
-    print(f'CFB: {CFB} vs. cfb: {cfb}')
-
+def intensity(ros: float,  # excel column C54
+              cfb: float,
+              sfc: float):
+    ''' Compute the intensity (kW/m) for the C7b fuel type 
+    Based on:
+    Spreadsheet originally created by J. Beck, 2003,
+    Updated (formatting, layout) by D. Perrakis, 2014
+    '''
     # CFC
     # C73: C72*0.5
-    CFC = CFB * 0.5
+    CFC = cfb * 0.5
 
     # TFC
     # C74: C73+C34
-    TFC = CFC + total_fuel_consumption
+    TFC = CFC + sfc
 
     # Intensity (kW/m)
     # C75: 300*C74*C54
