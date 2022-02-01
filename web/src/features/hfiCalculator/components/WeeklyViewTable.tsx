@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
@@ -12,19 +12,20 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
-import { isEmpty, union } from 'lodash'
+import { isEmpty, isUndefined } from 'lodash'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { getDailiesByStationCode, getZoneFromAreaName } from 'features/hfiCalculator/util'
+import { getDailiesByStationCode } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
-import { selectHFIPrepDays } from 'app/rootReducer'
+import { selectHFICalculatorState } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
 
 export interface Props {
-  fireCentres: Record<string, FireCentre>
+  fireCentre: FireCentre | undefined
+  testId?: string
   dailies: StationDaily[]
   currentDay: string
-  testId?: string
+  setSelected: (selected: number[]) => void
 }
 
 export const columnLabelsForEachDayInWeek: string[] = [
@@ -52,11 +53,11 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const numPrepDays = useSelector(selectHFIPrepDays)
-
-  const [selected, setSelected] = useState<number[]>(
-    union(props.dailies.map(daily => daily.code))
-  )
+  const {
+    numPrepDays,
+    planningAreaHFIResults,
+    selectedStationCodes: selected
+  } = useSelector(selectHFICalculatorState)
 
   const stationCodeInSelected = (code: number) => {
     return selected.includes(code)
@@ -70,7 +71,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
       // add station to selected
       selectedSet.add(code)
     }
-    setSelected(Array.from(selectedSet))
+    props.setSelected(Array.from(selectedSet))
   }
 
   return (
@@ -158,20 +159,29 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
         </TableRow>
       </TableHead>
       <TableBody>
-        {Object.entries(props.fireCentres).map(([centreName, centre]) => {
-          return (
-            <React.Fragment key={`fire-centre-${centreName}`}>
-              <TableRow key={`fire-centre-${centreName}`}>
-                <FireCentreCell centre={centre}></FireCentreCell>
+        {isUndefined(props.fireCentre) ? (
+          <React.Fragment>
+            <TableRow>
+              <TableCell colSpan={15}>To begin, select a fire centre</TableCell>
+            </TableRow>
+          </React.Fragment>
+        ) : (
+          <React.Fragment key={`fire-centre-${props.fireCentre?.name}`}>
+            <TableRow key={`fire-centre-${props.fireCentre.name}`}>
+              <FireCentreCell centre={props.fireCentre}></FireCentreCell>
 
-                <TableCell className={classes.fireCentre} colSpan={28}></TableCell>
-              </TableRow>
-              {Object.entries(centre.planning_areas)
-                .sort((a, b) =>
-                  getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
-                ) // sort by zone code
-                .map(([areaName, area]) => {
-                  return (
+              <TableCell className={classes.fireCentre} colSpan={28}></TableCell>
+            </TableRow>
+            {Object.entries(props.fireCentre.planning_areas)
+              .sort((a, b) =>
+                a[1].order_of_appearance_in_list < b[1].order_of_appearance_in_list
+                  ? -1
+                  : 1
+              )
+              .map(([areaName, area]) => {
+                const areaHFIResult = planningAreaHFIResults[area.name]
+                return (
+                  areaHFIResult && (
                     <React.Fragment key={`zone-${areaName}`}>
                       <TableRow>
                         <TableCell
@@ -222,8 +232,8 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         <CalculatedPlanningAreaCells
                           area={area}
                           areaName={areaName}
-                          dailies={props.dailies}
-                          selected={selected}
+                          areaHFIResults={areaHFIResult}
+                          selectedStationCodes={selected}
                           planningAreaClass={classes.planningArea}
                           numPrepDays={numPrepDays}
                         />
@@ -295,10 +305,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         })}
                     </React.Fragment>
                   )
-                })}
-            </React.Fragment>
-          )
-        })}
+                )
+              })}
+          </React.Fragment>
+        )}
       </TableBody>
     </FireTable>
   )

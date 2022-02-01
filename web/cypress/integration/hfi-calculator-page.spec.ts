@@ -24,6 +24,7 @@ describe('HFI Calculator Page', () => {
 
     it('should display Daily View Table after clicking on daily button', () => {
       cy.visit(HFI_CALC_ROUTE)
+      cy.selectFireCentreInDropdown('Kamloops')
       cy.getByTestId('daily-toggle-0').click()
       cy.wait('@getFireCentres')
       cy.wait('@getDaily')
@@ -32,12 +33,14 @@ describe('HFI Calculator Page', () => {
 
     it('should have at least 15 rows in Daily Table View', () => {
       cy.visit(HFI_CALC_ROUTE)
+      cy.selectFireCentreInDropdown('Kamloops')
       cy.getByTestId('daily-toggle-0').click()
       cy.getByTestId('hfi-calc-daily-table').find('tr').should('have.length.at.least', 15)
     })
 
     it('should display weather results, intensity groups, & prep levels in Daily View Table', () => {
       cy.visit(HFI_CALC_ROUTE)
+      cy.selectFireCentreInDropdown('Kamloops')
       cy.getByTestId('daily-toggle-0').click()
       cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('239-hfi').contains(2655.5)
@@ -75,6 +78,7 @@ describe('HFI Calculator Page', () => {
     })
     it('should display error icon for mean intensity group in Daily View Table', () => {
       cy.visit(HFI_CALC_ROUTE)
+      cy.selectFireCentreInDropdown('Kamloops')
       cy.getByTestId('daily-toggle-0').click()
       cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('306-ros').should('have.value', '')
@@ -93,6 +97,7 @@ describe('HFI Calculator Page', () => {
     })
     it('should show highest intensity values for mean intensity group in Daily View Table', () => {
       cy.visit(HFI_CALC_ROUTE)
+      cy.selectFireCentreInDropdown('Kamloops')
       cy.getByTestId('daily-toggle-0').click()
       cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('306-intensity-group').contains(5)
