@@ -208,13 +208,10 @@ def calculate_fire_behaviour_prediction_using_cffdrs(
     if cc is None:
         cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
 
-    if fuel_type == FuelTypeEnum.C7b:
-        ros = c7b.rate_of_spread(ffmc=ffmc, bui=bui, wind_speed=wind_speed, percentage_slope=0.0, cc=cc)
-    else:
-        ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
-                                    cc=cc,
-                                    pdf=pdf,
-                                    cbh=cbh)
+    ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
+                                cc=cc,
+                                pdf=pdf,
+                                cbh=cbh)
     if sfc is not None:
         cfb = calculate_cfb(FuelTypeEnum[fuel_type], fmc, sfc, ros, cbh)
 
@@ -260,18 +257,37 @@ def calculate_fire_behaviour_prediction_using_cffdrs(
     return fire_behaviour_prediction
 
 
-def calculate_fire_behaviour_prediction_using_c7b(ffmc: float,
+def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
+                                                  longitude: float,
+                                                  elevation: float,
+                                                  ffmc: float,
                                                   bui: float,
                                                   wind_speed: float,
+                                                  isi: float,
                                                   cc: float):
+    # C7b uses a crown base height of 10m
+    cbh = 10.0
+
     ros = c7b.rate_of_spread(ffmc=ffmc, bui=bui, wind_speed=wind_speed, percentage_slope=0.0, cc=cc)
 
+    fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, get_julian_date_now())
+
+    cfb = cffdrs.crown_fraction_burned(fuel_type=FuelTypeEnum.C7, fmc=fmc, sfc=None, ros=ros, cbh=cbh)
+
+    hfi = c7b.intensity(fmc=fmc, ffmc=ffmc, bui=bui, ros=ros, cfb=cfb)
+
+    fire_type = get_fire_type(FuelTypeEnum.C7b, cfb)
+
+    intensity_group = calculate_intensity_group(hfi)
+
+    # TODO: not required for HFI, but for FireBat - we need to calculate 60 minute fire size, which
+    # will take a fair amount of peeking at the math.
     fire_behaviour_prediction = FireBehaviourPrediction(
         ros=ros,
-        hfi=None,
-        intensity_group=None,
+        hfi=hfi,
+        intensity_group=intensity_group,
         sixty_minute_fire_size=None,
-        fire_type=None)
+        fire_type=fire_type)
 
     return fire_behaviour_prediction
 
@@ -282,9 +298,13 @@ def calculate_fire_behaviour_prediction(latitude: float, longitude: float, eleva
                                         pc: float, isi: float, pdf: float, cbh: float, cfl: float):
     if fuel_type == FuelTypeEnum.C7b:
         return calculate_fire_behaviour_prediction_using_c7b(
+            latitude=latitude,
+            longitude=longitude,
+            elevation=elevation,
             ffmc=ffmc,
             bui=bui,
             wind_speed=wind_speed,
+            isi=isi,
             cc=cc)
     return calculate_fire_behaviour_prediction_using_cffdrs(
         latitude=latitude,

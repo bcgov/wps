@@ -10,3 +10,11 @@ def test_ros():
                               percentage_slope=0, cc=80) == 2.6272848155902238
     assert c7b.rate_of_spread(ffmc=93.9, bui=201, wind_speed=10,
                               percentage_slope=0, cc=100) == 4.572887218615345
+    # spreadsheet example 2.66:
+    assert c7b.rate_of_spread(ffmc=93.9, bui=201, wind_speed=10,
+                              percentage_slope=0, cc=80) == 2.6636471840719254
+
+
+def test_intensity():
+    # spreadhseet example of 2643:
+    assert c7b.intensity(fmc=120, ffmc=93.9, bui=201, ros=2.6636471840719254, cfb=None) == 2642.648547252778
