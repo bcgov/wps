@@ -280,7 +280,7 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
                                      percentage_dead_balsam_fir=None,
                                      ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
 
-    fire_type = get_fire_type(FuelTypeEnum.C7b, cfb)
+    fire_type = get_fire_type(FuelTypeEnum.C7B, cfb)
 
     intensity_group = calculate_intensity_group(hfi)
 

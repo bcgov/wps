@@ -15,7 +15,7 @@ class FuelTypeEnum(str, Enum):
     C5 = 'C5'
     C6 = 'C6'
     C7 = 'C7'
-    C7b = 'C7b'
+    C7B = 'C7b'
     D1 = 'D1'
     D2 = 'D2'
     M1 = 'M1'
