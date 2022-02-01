@@ -41,13 +41,13 @@ class AsyncIter:
               bui=float,
               fwi=float,
               danger_cl=float,
-              fbp_fuel_type=str))
+              fuel_type_abbrev=str))
 def test_hfi_daily_metrics():
     """ BDD Scenario. """
 
 
-@given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp>.', target_fixture='response')  # pylint: disable=line-too-long
-def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture):  # pylint: disable=unused-argument
+@given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp> with <fuel_type_abbrev>.', target_fixture='response')  # pylint: disable=line-too-long
+def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture, fuel_type_abbrev: str):  # pylint: disable=unused-argument
     """ Make /hfi-calc/daily request using mocked out ClientSession.
     """
 
@@ -77,7 +77,7 @@ def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture):  # pyl
     # To build generic objects with attributes
     object_builder = lambda **kwargs: type("Object", (), kwargs)()
     planning_station = object_builder(station_code=322)
-    fuel_type = object_builder(abbrev='C7', value='C7')
+    fuel_type = object_builder(abbrev=fuel_type_abbrev, value=fuel_type_abbrev)
     mocker.patch('app.db.crud.hfi_calc.get_stations_with_fuel_types',
                  return_value=[(planning_station, fuel_type)])
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)

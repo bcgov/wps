@@ -1,7 +1,7 @@
 Feature: /hfi-calc/daily
 
     Scenario: Get metrics for stations
-        Given I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp>.
+        Given I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp> with <fuel_type_abbrev>.
         Then the response status code is <status_code>
         And the response has status <status>
         And <temperature>
@@ -19,7 +19,8 @@ Feature: /hfi-calc/daily
         And <danger_class>
 
         Examples:
-            | status_code | start_time_stamp | end_time_stamp | status | temperature | relative_humidity | wind_direction | wind_speed | precipitation | grass_cure_percentage | ffmc | dc  | dmc | isi | bui | fwi | danger_class |
-            | 200         | 0                | 1              | ACTUAL | 1.0         | 1.0               | 1.0            | 1.0        | 1.0           | 1.0                   | 1.0  | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0          |
+            | status_code | start_time_stamp | end_time_stamp | status | temperature | relative_humidity | wind_direction | wind_speed | precipitation | grass_cure_percentage | ffmc | dc  | dmc | isi | bui | fwi | danger_class | fuel_type_abbrev |
+            | 200         | 0                | 1              | ACTUAL | 1.0         | 1.0               | 1.0            | 1.0        | 1.0           | 1.0                   | 1.0  | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0          | C7B              |
+            | 200         | 0                | 1              | ACTUAL | 1.0         | 1.0               | 1.0            | 1.0        | 1.0           | 1.0                   | 1.0  | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0          | C7               |
 
 
