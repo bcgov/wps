@@ -1,9 +1,11 @@
 import { makeStyles, TableCell } from '@material-ui/core'
 import { fireTableStyles, BACKGROUND_COLOR } from 'app/theme'
+import { FireStarts } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import React from 'react'
 
 export interface FireStartsCellProps {
   testId?: string
+  fireStarts?: FireStarts
   areaName: string
 }
 
@@ -22,8 +24,7 @@ const FireStartsCell = (props: FireStartsCellProps) => {
       className={classes.fireStarts}
       data-testid={`fire-starts-${props.areaName}`}
     >
-      {/* using a fixed value of 0-1 Fire Starts for now */}
-      0-1
+      {props.fireStarts ? props.fireStarts.label : ''}
     </TableCell>
   )
 }
