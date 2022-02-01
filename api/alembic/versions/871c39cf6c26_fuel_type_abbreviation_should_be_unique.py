@@ -17,10 +17,12 @@ depends_on = None
 
 
 def upgrade():
+    # make fuel type abbreviation index, and unique.
     op.create_index(op.f('ix_fuel_types_abbrev'), 'fuel_types', ['abbrev'], unique=True)
     op.create_unique_constraint(None, 'planning_weather_stations', ['station_code', 'planning_area_id'])
 
 
 def downgrade():
+    # drop index and unique constraint.
     op.drop_constraint(None, 'planning_weather_stations', type_='unique')
     op.drop_index(op.f('ix_fuel_types_abbrev'), table_name='fuel_types')

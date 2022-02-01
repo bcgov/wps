@@ -42,6 +42,7 @@ class FuelType(Base):
     __tablename__ = 'fuel_types'
 
     id = Column(Integer, Sequence('fuel_types_id_seq'), primary_key=True, nullable=False, index=True)
+    # The abbreviation should be unique - we don't want duplicate fuel types.
     abbrev = Column(String, nullable=False, index=True, unique=True)
     description = Column(String)
 
