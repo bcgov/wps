@@ -245,6 +245,7 @@ If successful, this command will output `CREATE DATABASE`.
 `\l` should show "wps" in the list of databases.
 
 ```psql
+\c wps
 \dx
 ```
 will show the list of extensions, and "postgis" should be one of them. If it isn't, run
