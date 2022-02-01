@@ -175,6 +175,7 @@ def calculate_intensity_group(hfi: float) -> int:
 
 
 class FireBehaviourPrediction:
+    """ Structure for storing fire behaviour prediction data. """
 
     def __init__(self, ros: float,
                  hfi: float, intensity_group,
@@ -187,20 +188,22 @@ class FireBehaviourPrediction:
         self.fire_type = fire_type
 
 
-def calculate_fire_behaviour_prediction_using_cffdrs(
+def calculate_fire_behaviour_prediction_using_cffdrs(  # pylint: disable=too-many-arguments
         latitude: float,
         longitude: float,
         elevation: float,
         fuel_type: FuelTypeEnum,
         bui: float,
         ffmc: float,
-        cc: float,
-        pc: float,
+        cc: float,  # pylint: disable=invalid-name
+        pc: float,  # pylint: disable=invalid-name
         wind_speed: float,
         isi: float,
         pdf: float,
         cbh: float,
         cfl: float):
+    """ Calculates fire behaviour prediction using CFFDRS. """
+    # pylint: disable=too-many-locals
 
     # set default values in case the calculation fails (likely due to missing data)
     fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, get_julian_date_now())
@@ -263,9 +266,10 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
                                                   ffmc: float,
                                                   bui: float,
                                                   wind_speed: float,
-                                                  cc: float,
+                                                  cc: float,  # pylint: disable=invalid-name
                                                   cbh: float,
                                                   cfl: float):
+    """ Calculates fire behaviour prediction using C7B. """
 
     ros = c7b.rate_of_spread(ffmc=ffmc, bui=bui, wind_speed=wind_speed, percentage_slope=0.0, cc=cc)
 
@@ -286,6 +290,7 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
 
     # TODO: not required for HFI, but for FireBat - we need to calculate 60 minute fire size, which
     # will take a fair amount of peeking at the math.
+    # Some of the math in the c7b.rate_of_spread can be extracted, and the standard cffdrs math used.
     fire_behaviour_prediction = FireBehaviourPrediction(
         ros=ros,
         hfi=hfi,
@@ -296,10 +301,14 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
     return fire_behaviour_prediction
 
 
-def calculate_fire_behaviour_prediction(latitude: float, longitude: float, elevation: float,
+def calculate_fire_behaviour_prediction(latitude: float,  # pylint: disable=too-many-arguments
+                                        longitude: float, elevation: float,
                                         fuel_type: FuelTypeEnum,
-                                        bui: float, ffmc: float, wind_speed: float, cc: float,
-                                        pc: float, isi: float, pdf: float, cbh: float, cfl: float):
+                                        bui: float, ffmc: float, wind_speed: float,
+                                        cc: float,  # pylint: disable=invalid-name
+                                        pc: float,  # pylint: disable=invalid-name
+                                        isi: float, pdf: float, cbh: float, cfl: float):
+    """ Calculate the fire behaviour prediction. """
     if fuel_type == FuelTypeEnum.C7B:
         return calculate_fire_behaviour_prediction_using_c7b(
             latitude=latitude,

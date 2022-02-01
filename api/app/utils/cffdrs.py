@@ -10,7 +10,6 @@ from rpy2.rinterface import NULL
 import app.utils.r_importer
 from app.utils.singleton import Singleton
 from app.schemas.fba_calc import FuelTypeEnum
-from app.utils import c7b
 
 logger = logging.getLogger(__name__)
 
