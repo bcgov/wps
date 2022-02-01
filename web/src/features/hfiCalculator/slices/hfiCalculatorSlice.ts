@@ -180,6 +180,10 @@ const calculateHFIResults = (
     return planningAreaToDailies
   }
 
+  if (isUndefined(fireCentre)) {
+    return planningAreaToDailies
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Object.entries(fireCentre.planning_areas).forEach(([__, area]) => {
     const areaStationCodes = new Set(
