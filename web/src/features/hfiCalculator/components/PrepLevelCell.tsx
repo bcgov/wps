@@ -85,6 +85,7 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
     <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
       {isUndefined(props.prepLevel) ? (
         <ErrorIconWithTooltip
+          testId="prep-level-error"
           tooltipElement={prepLevelErrorTooltipElement}
           tooltipAriaText={[prepLevelTooltipText]}
         />

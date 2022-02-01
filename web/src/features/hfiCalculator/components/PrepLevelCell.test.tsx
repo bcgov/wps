@@ -61,6 +61,7 @@ describe('PrepLevelCell', () => {
     const { getByTestId } = renderPrepLevel(undefined)
     const cell = getByTestId('weekly-prep-level-afton')
     expect(cell.className).toMatch(/makeStyles-defaultBackground-/)
-    expect(cell.innerHTML).toBe('')
+    const errorIcon = getByTestId('prep-level-error')
+    expect(errorIcon).toBeDefined()
   })
 })
