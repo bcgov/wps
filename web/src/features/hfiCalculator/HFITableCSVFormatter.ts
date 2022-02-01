@@ -9,7 +9,7 @@ import {
 } from 'features/hfiCalculator/components/WeeklyViewTable'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
-import { HFIResult } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { PlanningAreaResult } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
 
 // padding for station-data cells (e.g., station name, fuel type) before dates begin
@@ -21,7 +21,7 @@ const NUM_DAILY_DATA_COLS_THAT_DONT_APPLY_TO_AREA = 2
 // padding for end-of-week cells (e.g., Highest Daily FIG, Calc. Prep)
 const NUM_WEEKLY_SUMMARY_CELLS = 2
 
-const printGrassCurePercentage = (daily: StationDaily): string => {
+const printGrassCurePercentage = (daily: StationDaily | undefined): string => {
   if (!isUndefined(daily) && !isNull(daily.grass_cure_percentage)) {
     return daily.grass_cure_percentage.toString()
   } else {
@@ -34,7 +34,7 @@ export class HFITableCSVFormatter {
     dateOfInterest: string,
     centre: FireCentre,
     planningAreaHFIResults: {
-      [key: string]: HFIResult
+      [key: string]: PlanningAreaResult
     }
   ): string => {
     const rowsAsStrings: string[] = []
@@ -47,10 +47,14 @@ export class HFITableCSVFormatter {
         a[1].order_of_appearance_in_list < b[1].order_of_appearance_in_list ? -1 : 1
       )
       .forEach(([, area]) => {
-        const hfiResult = planningAreaHFIResults[area.name]
-        const areaDailies = hfiResult.dailies
-        const meanIntensityGroup = hfiResult.dailyMeanIntensity
-        const areaPrepLevel = hfiResult.dailyPrepLevel
+        const planningAreaResult = planningAreaHFIResults[area.name]
+        const areaDailyResult = planningAreaResult.dailyResults.find(
+          result =>
+            DateTime.fromISO(result.dateISO).weekday ===
+            DateTime.fromISO(dateOfInterest).weekday
+        )
+        const meanIntensityGroup = areaDailyResult?.meanIntensityGroup
+        const areaPrepLevel = areaDailyResult?.prepLevel
         rowsAsStrings.push(
           CSV.stringify(
             `${area.name}, ${Array(21).join(
@@ -60,11 +64,11 @@ export class HFITableCSVFormatter {
         )
         Object.entries(area.stations).forEach(([, station]) => {
           const rowArray: string[] = []
-          const daily = areaDailies.filter(
+          const daily = areaDailyResult?.dailies.find(
             areaDaily =>
               areaDaily.code === station.code &&
               areaDaily.date.weekday === DateTime.fromISO(dateOfInterest).weekday
-          )[0]
+          )
 
           const grassCureError = !isValidGrassCure(daily, station.station_props)
 
@@ -161,7 +165,7 @@ export class HFITableCSVFormatter {
     area: PlanningArea,
     numPrepDays: number,
     planningAreaHFIResults: {
-      [key: string]: HFIResult
+      [key: string]: PlanningAreaResult
     }
   ): string[] => {
     const areaWeeklySummary: string[] = [
@@ -170,12 +174,12 @@ export class HFITableCSVFormatter {
         ' '
       )
     ]
-    const hfiResult = planningAreaHFIResults[area.name]
+    const planningAreaResult = planningAreaHFIResults[area.name]
 
-    Array.from(range(numPrepDays)).forEach(day => {
-      const dailyIntensityGroup = hfiResult.dailyMeanIntensityGroups[day]
-      const areaDailyPrepLevel = hfiResult.dailyPrepLevel
-      const fireStarts = '0-1' // hard-coded for now
+    planningAreaResult.dailyResults.forEach(dailyResult => {
+      const dailyIntensityGroup = dailyResult.meanIntensityGroup
+      const areaDailyPrepLevel = dailyResult.prepLevel
+      const fireStarts = dailyResult.fireStarts
 
       areaWeeklySummary.push(
         ...Array(NUM_DAILY_DATA_COLS_THAT_DONT_APPLY_TO_AREA).fill('')
@@ -183,14 +187,16 @@ export class HFITableCSVFormatter {
       areaWeeklySummary.push(
         isUndefined(dailyIntensityGroup) ? 'ND' : dailyIntensityGroup.toString()
       )
-      areaWeeklySummary.push(fireStarts.toString())
+      areaWeeklySummary.push(fireStarts.label)
       areaWeeklySummary.push(
         isUndefined(areaDailyPrepLevel) ? 'ND' : areaDailyPrepLevel.toString()
       )
     })
-    areaWeeklySummary.push(String(hfiResult.maxMeanIntensityGroup))
+    areaWeeklySummary.push(String(planningAreaResult.highestDailyIntensityGroup))
     areaWeeklySummary.push(
-      isUndefined(hfiResult.meanPrepLevel) ? 'ND' : String(hfiResult.meanPrepLevel)
+      isUndefined(planningAreaResult.meanPrepLevel)
+        ? 'ND'
+        : String(planningAreaResult.meanPrepLevel)
     )
     return areaWeeklySummary
   }
@@ -200,7 +206,7 @@ export class HFITableCSVFormatter {
     startDate: DateTime,
     centre: FireCentre,
     planningAreaHFIResults: {
-      [key: string]: HFIResult
+      [key: string]: PlanningAreaResult
     }
   ): string => {
     // build up array of string arrays, which will be converted to CSV string at end
@@ -231,7 +237,7 @@ export class HFITableCSVFormatter {
         a[1].order_of_appearance_in_list < b[1].order_of_appearance_in_list ? -1 : 1
       )
       .forEach(([, area]) => {
-        const areaHFIResult = planningAreaHFIResults[area.name]
+        const planningAreaResult = planningAreaHFIResults[area.name]
         rowsAsStringArrays.push(
           this.buildAreaWeeklySummaryString(area, numPrepDays, planningAreaHFIResults)
         )
@@ -239,7 +245,9 @@ export class HFITableCSVFormatter {
         Object.entries(area.stations).forEach(([, station]) => {
           const dailiesForStation = take(
             sortBy(
-              areaHFIResult.dailies.filter(daily => daily.code === station.code),
+              planningAreaResult.dailyResults
+                .flatMap(result => result.dailies)
+                .filter(daily => daily.code === station.code),
               daily => daily.date.toMillis()
             ),
             numPrepDays

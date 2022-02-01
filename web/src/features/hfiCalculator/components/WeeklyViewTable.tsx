@@ -19,6 +19,7 @@ import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
+import { FireStarts } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -26,6 +27,11 @@ export interface Props {
   dailies: StationDaily[]
   currentDay: string
   setSelected: (selected: number[]) => void
+  setNewFireStarts: (
+    areaName: string,
+    dayOffset: number,
+    newFireStarts: FireStarts
+  ) => void
 }
 
 export const columnLabelsForEachDayInWeek: string[] = [
@@ -232,8 +238,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         <CalculatedPlanningAreaCells
                           area={area}
                           areaName={areaName}
-                          areaHFIResults={areaHFIResult}
+                          planningAreaResult={areaHFIResult}
                           selectedStationCodes={selected}
+                          setNewFireStarts={props.setNewFireStarts}
                           planningAreaClass={classes.planningArea}
                           numPrepDays={numPrepDays}
                         />
