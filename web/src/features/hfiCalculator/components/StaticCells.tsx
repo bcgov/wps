@@ -1,13 +1,16 @@
 import { TableCell } from '@material-ui/core'
 import { WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import EmptyStaticCells from 'features/hfiCalculator/components/EmptyStaticCells'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
+import { isUndefined, range } from 'lodash'
 import React, { ReactElement } from 'react'
 
 export interface StaticCellsProps {
+  numPrepDays: number
   dailies: StationDaily[] | undefined
   station: WeatherStation
   classNameForRow: string | undefined
@@ -15,14 +18,18 @@ export interface StaticCellsProps {
 }
 
 export const StaticCells = ({
+  numPrepDays,
   dailies,
   station,
   classNameForRow,
   isRowSelected
 }: StaticCellsProps): ReactElement => {
-  const staticCells = dailies?.map(daily => {
+  const staticCells = range(numPrepDays).map(dailyIndex => {
+    const daily = dailies?.at(dailyIndex)
     const error = !isValidGrassCure(daily, station.station_props)
-    return (
+    return isUndefined(daily) ? (
+      <EmptyStaticCells rowId={dailyIndex} classNameForRow={classNameForRow} />
+    ) : (
       <React.Fragment key={`${station.code}-${daily.date}`}>
         <WeeklyROSCell
           daily={daily}

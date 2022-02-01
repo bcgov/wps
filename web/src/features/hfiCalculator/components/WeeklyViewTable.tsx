@@ -302,6 +302,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                               </StickyCell>
 
                               <StaticCells
+                                numPrepDays={numPrepDays}
                                 dailies={dailiesForStation}
                                 station={station}
                                 classNameForRow={classNameForRow}
