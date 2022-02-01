@@ -12,7 +12,7 @@ export interface FireStartsDropdownProps {
   fireStarts: FireStarts | undefined
   areaName: string
   dayOffset: number
-  setFireStarts: (areaName: string, dayOffSet: number, newFireStarts: FireStarts) => void
+  setFireStarts: (areaName: string, dayOffset: number, newFireStarts: FireStarts) => void
 }
 
 const FireStartsDropdown = ({
