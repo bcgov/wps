@@ -22,11 +22,14 @@ class FireCentre(Base):
 class PlanningArea(Base):
     """ Wildfire prep planning area within a fire centre """
     __tablename__ = 'planning_areas'
+    __table_args__ = (UniqueConstraint('order_of_appearance_in_list', 'fire_centre_id', name='unique_list_order_for_fire_centre_constraint'), {
+                      'comment': 'Only one planning area can be assigned a position in the list for a fire centre'})
 
     id = Column(Integer, Sequence('planning_areas_id_seq'),
                 primary_key=True, nullable=False, index=True)
     name = Column(String, nullable=False, index=True)
     fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
+    order_of_appearance_in_list = Column(Integer, nullable=False)
 
     def __str__(self):
         return (f'id:{self.id}, '
@@ -52,7 +55,7 @@ class PlanningWeatherStation(Base):
     """ Weather station within planning area selected as a representative of its associated planning area """
     __tablename__ = 'planning_weather_stations'
     __table_args__ = (
-        UniqueConstraint('station_code'),
+        UniqueConstraint('station_code', 'planning_area_id'),
         {'comment': 'Identifies the unique code used to identify the station'}
     )
 

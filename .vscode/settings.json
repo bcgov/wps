@@ -49,5 +49,6 @@
     },
     "python.testing.pytestArgs": [
         "api"
-    ]
+    ],
+    "typescript.preferences.importModuleSpecifier": "non-relative"
 }

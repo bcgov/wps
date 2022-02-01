@@ -5,7 +5,8 @@ import {
   fetchHFIDailies,
   setPrepDays,
   setSelectedPrepDate,
-  setSelectedSelectedStationCodes
+  setSelectedSelectedStationCodes,
+  setSelectedFireCentre
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
@@ -31,7 +32,9 @@ import { HFITableCSVFormatter } from 'features/hfiCalculator/HFITableCSVFormatte
 import { PST_UTC_OFFSET } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import DatePicker from 'components/DatePicker'
-import { union } from 'lodash'
+import { FireCentre } from 'api/hfiCalcAPI'
+import { isUndefined, union } from 'lodash'
+import FireCentreDropdown from 'features/hfiCalculator/components/FireCentreDropdown'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -76,7 +79,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     numPrepDays,
     selectedStationCodes: selected,
     planningAreaHFIResults,
-    selectedPrepDate
+    selectedPrepDate,
+    selectedFireCentre
   } = useSelector(selectHFICalculatorState)
 
   const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPrepDate == '')
@@ -102,7 +106,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const getDailies = (start: DateTime, end: DateTime) => {
     dispatch(
       fetchHFIDailies(
-        fireCentres,
+        selectedFireCentre,
+        getAllPlanningWeatherStationCodesFromFireCentre(selectedFireCentre),
         selected,
         start.toUTC().valueOf(),
         end.toUTC().valueOf()
@@ -117,14 +122,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
-    dispatch(
-      fetchHFIDailies(
-        fireCentres,
-        selected,
-        start.toUTC().valueOf(),
-        end.toUTC().valueOf()
-      )
-    )
+    getDailies(start, end)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireCentres])
 
@@ -141,25 +139,53 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     setModalOpen(true)
   }
 
-  const copyTable = () => {
-    if (isWeeklyView) {
-      const { start } = getPrepWeeklyDateRange(dateOfInterest)
-      const weeklyViewAsString = HFITableCSVFormatter.exportWeeklyRowsAsStrings(
-        numPrepDays,
-        start,
-        fireCentres,
-        planningAreaHFIResults
-      )
-      navigator.clipboard.writeText(weeklyViewAsString)
-    } else {
-      const dailyViewAsString = HFITableCSVFormatter.exportDailyRowsAsStrings(
-        dateOfInterest,
-        fireCentres,
-        planningAreaHFIResults
-      )
-      navigator.clipboard.writeText(dailyViewAsString)
+  const getAllPlanningWeatherStationCodesFromFireCentre = (
+    centre: FireCentre | undefined
+  ): number[] => {
+    if (isUndefined(centre)) {
+      return []
     }
-    setIsCopied(true)
+    return Object.values(centre?.planning_areas).flatMap(area =>
+      Object.values(area.stations).map(station => station.code)
+    )
+  }
+
+  const copyTable = () => {
+    if (!isUndefined(selectedFireCentre)) {
+      let csvString = ''
+      if (isWeeklyView) {
+        const { start } = getPrepWeeklyDateRange(dateOfInterest)
+        csvString += HFITableCSVFormatter.exportWeeklyRowsAsStrings(
+          numPrepDays,
+          start,
+          selectedFireCentre,
+          planningAreaHFIResults
+        )
+      } else {
+        csvString += HFITableCSVFormatter.exportDailyRowsAsStrings(
+          dateOfInterest,
+          selectedFireCentre,
+          planningAreaHFIResults
+        )
+      }
+      navigator.clipboard.writeText(csvString)
+      setIsCopied(true)
+    } else {
+      setIsCopied(false)
+    }
+  }
+
+  const setSelectedFireCentreFromLocalStorage = () => {
+    const findCentre = (name: string | null): FireCentre | undefined => {
+      const fireCentresArray = Object.values(fireCentres)
+      return fireCentresArray.find(centre => centre.name == name)
+    }
+    const storedFireCentre = findCentre(
+      localStorage.getItem('hfiCalcPreferredFireCentre')
+    )
+    if (!isUndefined(storedFireCentre) && storedFireCentre !== selectedFireCentre) {
+      dispatch(setSelectedFireCentre(storedFireCentre))
+    }
   }
 
   useEffect(() => {
@@ -185,6 +211,35 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [])
 
   useEffect(() => {
+    if (
+      selectedFireCentre &&
+      selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')
+    ) {
+      localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
+    }
+    const { start, end } = getDateRange(true, dateOfInterest)
+    if (!isUndefined(selectedFireCentre)) {
+      dispatch(
+        fetchHFIDailies(
+          selectedFireCentre,
+          getAllPlanningWeatherStationCodesFromFireCentre(selectedFireCentre),
+          selected,
+          start.toUTC().valueOf(),
+          end.toUTC().valueOf()
+        )
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFireCentre])
+
+  useEffect(() => {
+    if (Object.keys(fireCentres).length > 0) {
+      setSelectedFireCentreFromLocalStorage()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fireCentres])
+
+  useEffect(() => {
     setIsWeeklyView(selectedPrepDate == '')
   }, [selectedPrepDate])
 
@@ -192,6 +247,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     setSelected(union(dailies.map(daily => daily.code)))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dailies])
+
+  const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
+    dispatch(setSelectedFireCentre(newSelection))
+  }
 
   return (
     <main data-testid="hfi-calculator-page">
@@ -211,6 +270,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           <FormControl className={classes.prepDays}>
             <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
           </FormControl>
+          <FormControl className={classes.formControl}>
+            <FireCentreDropdown
+              fireCentres={fireCentres}
+              selectedValue={
+                isUndefined(selectedFireCentre)
+                  ? null
+                  : { name: selectedFireCentre?.name }
+              }
+              onChange={selectNewFireCentre}
+            />
+          </FormControl>
+
           <FormControl className={classes.formControl}>
             <DatePicker date={dateOfInterest} updateDate={updateDate} />
           </FormControl>
@@ -251,7 +322,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
           <ErrorBoundary>
             <ViewSwitcher
-              fireCentres={fireCentres}
+              selectedFireCentre={selectedFireCentre}
               dailies={dailies}
               dateOfInterest={dateOfInterest}
               setSelected={setSelected}
