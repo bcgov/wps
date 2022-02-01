@@ -1,11 +1,14 @@
 import { makeStyles, TableCell } from '@material-ui/core'
 import { fireTableStyles } from 'app/theme'
+import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
+import { isUndefined } from 'lodash'
 import React from 'react'
 
 export interface MeanPrepLevelCellProps {
   testid?: string
   areaName: string
   meanPrepLevel?: number
+  emptyForecast: boolean
 }
 
 const prepLevelColours: { [description: string]: string } = {
@@ -69,11 +72,23 @@ const MeanPrepLevelCell = (props: MeanPrepLevelCellProps) => {
     }
   }
 
+  const prepLevelTooltipText =
+    'Cannot calculate prep level. Please exclude station(s) displaying errors.'
+
+  const prepLevelErrorTooltipElement = <div>{prepLevelTooltipText}</div>
+
   return (
     <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
-      {props.meanPrepLevel === undefined || isNaN(props.meanPrepLevel)
-        ? ''
-        : props.meanPrepLevel}
+      {isUndefined(props.meanPrepLevel) ||
+      isNaN(props.meanPrepLevel) ||
+      props.emptyForecast === true ? (
+        <ErrorIconWithTooltip
+          tooltipElement={prepLevelErrorTooltipElement}
+          tooltipAriaText={[prepLevelTooltipText]}
+        />
+      ) : (
+        props.meanPrepLevel
+      )}
     </TableCell>
   )
 }
