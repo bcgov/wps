@@ -355,7 +355,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         selectedStationCodes={selectedStationCodes}
                         meanIntensityGroup={dailyResult?.meanIntensityGroup}
                       ></MeanIntensityGroupRollup>
-                      <FireStartsCell areaName={areaName} />
+                      <FireStartsCell
+                        areaName={areaName}
+                        fireStarts={dailyResult?.fireStarts}
+                      />
                       <PrepLevelCell
                         testid={`daily-prep-level-${areaName}`}
                         prepLevel={dailyResult?.prepLevel}
