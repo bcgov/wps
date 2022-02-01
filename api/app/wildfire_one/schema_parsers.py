@@ -264,19 +264,21 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
                                                   bui: float,
                                                   wind_speed: float,
                                                   cc: float,
-                                                  cbh: float):
+                                                  cbh: float,
+                                                  cfl: float):
 
     ros = c7b.rate_of_spread(ffmc=ffmc, bui=bui, wind_speed=wind_speed, percentage_slope=0.0, cc=cc)
 
     fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, get_julian_date_now())
 
-    # TODO: do we substitue total for surface when calculating cfb?
-    # total_fuel_consumption = c7b.calculate_total_fuel_consumption(ffmc, bui)
     sfc = cffdrs.surface_fuel_consumption(fuel_type=FuelTypeEnum.C7, bui=bui, ffmc=ffmc, pc=None)
     cfb = cffdrs.crown_fraction_burned(fuel_type=FuelTypeEnum.C7, fmc=fmc,
                                        sfc=sfc, ros=ros, cbh=cbh)
 
-    hfi = c7b.intensity(bui=bui, ros=ros, cfb=cfb, total_fuel_consumption=sfc)
+    hfi = cffdrs.head_fire_intensity(fuel_type=FuelTypeEnum.C7,
+                                     percentage_conifer=None,
+                                     percentage_dead_balsam_fir=None,
+                                     ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
 
     fire_type = get_fire_type(FuelTypeEnum.C7b, cfb)
 
@@ -307,7 +309,8 @@ def calculate_fire_behaviour_prediction(latitude: float, longitude: float, eleva
             bui=bui,
             wind_speed=wind_speed,
             cc=cc,
-            cbh=cbh)
+            cbh=cbh,
+            cfl=cfl)
     return calculate_fire_behaviour_prediction_using_cffdrs(
         latitude=latitude,
         longitude=longitude,

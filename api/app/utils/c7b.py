@@ -6,27 +6,6 @@ Updated (formatting, layout) by D. Perrakis, 2014
 from math import exp, log, pow
 
 
-def intensity(ros: float,  # excel column C54
-              cfb: float,
-              sfc: float):
-    ''' Compute the intensity (kW/m) for the C7b fuel type 
-    Based on:
-    Spreadsheet originally created by J. Beck, 2003,
-    Updated (formatting, layout) by D. Perrakis, 2014
-    '''
-    # CFC
-    # C73: C72*0.5
-    CFC = cfb * 0.5
-
-    # TFC
-    # C74: C73+C34
-    TFC = CFC + sfc
-
-    # Intensity (kW/m)
-    # C75: 300*C74*C54
-    return 300.0 * TFC * ros
-
-
 def rate_of_spread(ffmc: float,  # excel column: C29
                    bui: float,  # excel column: C30
                    wind_speed: float,  # excel column: C37
