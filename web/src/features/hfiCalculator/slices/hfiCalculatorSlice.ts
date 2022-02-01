@@ -22,24 +22,24 @@ export interface HFICalculatorState {
   loading: boolean
   error: string | null
   dailies: StationDaily[]
-  fireCentres: { [key: string]: FireCentre }
   numPrepDays: number
   selectedStationCodes: number[]
   selectedPrepDate: string
   formattedDateStringHeaders: string[]
   planningAreaHFIResults: { [key: string]: HFIResult }
+  selectedFireCentre: FireCentre | undefined
 }
 
 const initialState: HFICalculatorState = {
   loading: false,
   error: null,
   dailies: [],
-  fireCentres: {},
   numPrepDays: NUM_WEEK_DAYS,
   selectedStationCodes: [],
   selectedPrepDate: '',
   formattedDateStringHeaders: [],
-  planningAreaHFIResults: {}
+  planningAreaHFIResults: {},
+  selectedFireCentre: undefined
 }
 
 export const calculateMeanIntensity = (dailies: StationDaily[]): number | undefined =>
@@ -130,7 +130,7 @@ export const calculateMeanPrepLevel = (
 
 // TODO: Inefficient, improve if it becomes a problem
 const calculateHFIResults = (
-  fireCentres: { [key: string]: FireCentre },
+  fireCentre: FireCentre | undefined,
   dailies: StationDaily[],
   numPrepDays: number,
   selected: number[],
@@ -140,48 +140,47 @@ const calculateHFIResults = (
     selectedPrepDayIso == '' ? null : DateTime.fromISO(selectedPrepDayIso)
   const planningAreaToDailies: { [key: string]: HFIResult } = {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Object.entries(fireCentres).forEach(([_, fireCentre]) =>
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Object.entries(fireCentre.planning_areas).forEach(([__, area]) => {
-      const areaStationCodes = new Set(
-        Object.entries(area.stations).map(([, station]) => station.code)
-      )
-      const areaDailies = dailies.filter(
-        daily => selected.includes(daily.code) && areaStationCodes.has(daily.code)
-      )
+  if (isUndefined(fireCentre)) {
+    return planningAreaToDailies
+  }
 
-      const dailyMeanIntensity = calculateMeanIntensity(
-        isNull(selectedPrepDayIso)
-          ? areaDailies
-          : areaDailies.filter(
-              day =>
-                day.date.year === selectedPrepDay?.year &&
-                day.date.month === selectedPrepDay?.month &&
-                day.date.day === selectedPrepDay?.day
-            )
-      )
-      const dailyMeanIntensityGroups = calculateDailyMeanIntensities(
-        areaDailies,
-        numPrepDays
-      )
-      const maxMeanIntensityGroup = calculateMaxMeanIntensityGroup(
-        dailyMeanIntensityGroups
-      )
-      const dailyPrepLevel = calculatePrepLevel(dailyMeanIntensity)
-      const dailyPrepLevels = calculateDailyPrepLevels(dailyMeanIntensityGroups)
-      const meanPrepLevel = calculateMeanPrepLevel(dailyPrepLevels)
-      planningAreaToDailies[area.name] = {
-        dailies: areaDailies,
-        dailyMeanIntensity,
-        dailyMeanIntensityGroups,
-        maxMeanIntensityGroup,
-        dailyPrepLevel,
-        dailyPrepLevels,
-        meanPrepLevel
-      }
-    })
-  )
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Object.entries(fireCentre.planning_areas).forEach(([__, area]) => {
+    const areaStationCodes = new Set(
+      Object.entries(area.stations).map(([, station]) => station.code)
+    )
+    const areaDailies = dailies.filter(
+      daily => selected.includes(daily.code) && areaStationCodes.has(daily.code)
+    )
+
+    const dailyMeanIntensity = calculateMeanIntensity(
+      isNull(selectedPrepDayIso)
+        ? areaDailies
+        : areaDailies.filter(
+            day =>
+              day.date.year === selectedPrepDay?.year &&
+              day.date.month === selectedPrepDay?.month &&
+              day.date.day === selectedPrepDay?.day
+          )
+    )
+    const dailyMeanIntensityGroups = calculateDailyMeanIntensities(
+      areaDailies,
+      numPrepDays
+    )
+    const maxMeanIntensityGroup = calculateMaxMeanIntensityGroup(dailyMeanIntensityGroups)
+    const dailyPrepLevel = calculatePrepLevel(dailyMeanIntensity)
+    const dailyPrepLevels = calculateDailyPrepLevels(dailyMeanIntensityGroups)
+    const meanPrepLevel = calculateMeanPrepLevel(dailyPrepLevels)
+    planningAreaToDailies[area.name] = {
+      dailies: areaDailies,
+      dailyMeanIntensity,
+      dailyMeanIntensityGroups,
+      maxMeanIntensityGroup,
+      dailyPrepLevel,
+      dailyPrepLevels,
+      meanPrepLevel
+    }
+  })
   return planningAreaToDailies
 }
 
@@ -200,16 +199,16 @@ const dailiesSlice = createSlice({
       state: HFICalculatorState,
       action: PayloadAction<{
         dailies: StationDaily[]
-        fireCentres: Record<string, FireCentre>
+        fireCentre: FireCentre | undefined
         selectedStationCodes: number[]
       }>
     ) {
       state.error = null
       state.dailies = action.payload.dailies
-      state.fireCentres = action.payload.fireCentres
+      state.selectedFireCentre = action.payload.fireCentre
       state.selectedStationCodes = action.payload.selectedStationCodes
       state.planningAreaHFIResults = calculateHFIResults(
-        action.payload.fireCentres,
+        action.payload.fireCentre,
         action.payload.dailies,
         state.numPrepDays,
         action.payload.selectedStationCodes,
@@ -220,7 +219,7 @@ const dailiesSlice = createSlice({
     setPrepDays: (state, action: PayloadAction<number>) => {
       state.numPrepDays = action.payload
       state.planningAreaHFIResults = calculateHFIResults(
-        state.fireCentres,
+        state.selectedFireCentre,
         state.dailies,
         action.payload,
         state.selectedStationCodes,
@@ -230,7 +229,7 @@ const dailiesSlice = createSlice({
     setSelectedSelectedStationCodes: (state, action: PayloadAction<number[]>) => {
       state.selectedStationCodes = action.payload
       state.planningAreaHFIResults = calculateHFIResults(
-        state.fireCentres,
+        state.selectedFireCentre,
         state.dailies,
         state.numPrepDays,
         action.payload,
@@ -240,11 +239,21 @@ const dailiesSlice = createSlice({
     setSelectedPrepDate: (state, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
       state.planningAreaHFIResults = calculateHFIResults(
-        state.fireCentres,
+        state.selectedFireCentre,
         state.dailies,
         state.numPrepDays,
         state.selectedStationCodes,
         action.payload
+      )
+    },
+    setSelectedFireCentre: (state, action: PayloadAction<FireCentre | undefined>) => {
+      state.selectedFireCentre = action.payload
+      state.planningAreaHFIResults = calculateHFIResults(
+        state.selectedFireCentre,
+        state.dailies,
+        state.numPrepDays,
+        state.selectedStationCodes,
+        state.selectedPrepDate
       )
     }
   }
@@ -256,14 +265,16 @@ export const {
   getDailiesSuccess,
   setPrepDays,
   setSelectedSelectedStationCodes,
-  setSelectedPrepDate
+  setSelectedPrepDate,
+  setSelectedFireCentre
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer
 
 export const fetchHFIDailies =
   (
-    fireCentres: Record<string, FireCentre>,
+    fireCentre: FireCentre | undefined,
+    stationCodesToFetch: number[],
     selectedStationCodes: number[],
     startTime: number,
     endTime: number
@@ -271,8 +282,8 @@ export const fetchHFIDailies =
   async dispatch => {
     try {
       dispatch(getDailiesStart())
-      const dailies = await getDailies(startTime, endTime)
-      dispatch(getDailiesSuccess({ dailies, fireCentres, selectedStationCodes }))
+      const dailies = await getDailies(startTime, endTime, stationCodesToFetch)
+      dispatch(getDailiesSuccess({ dailies, fireCentre, selectedStationCodes }))
     } catch (err) {
       dispatch(getDailiesFailed((err as Error).toString()))
       logError(err)
