@@ -300,7 +300,7 @@ def calculate_fire_behaviour_prediction(latitude: float, longitude: float, eleva
                                         fuel_type: FuelTypeEnum,
                                         bui: float, ffmc: float, wind_speed: float, cc: float,
                                         pc: float, isi: float, pdf: float, cbh: float, cfl: float):
-    if fuel_type == FuelTypeEnum.C7b:
+    if fuel_type == FuelTypeEnum.C7B:
         return calculate_fire_behaviour_prediction_using_c7b(
             latitude=latitude,
             longitude=longitude,
@@ -332,7 +332,6 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
                            fuel_type: str) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
-    fuel_type = 'C7b'
     # pylint: disable=invalid-name
     # we use the fuel type lookup to get default values.
     pc = FUEL_TYPE_DEFAULTS[fuel_type]["PC"]
