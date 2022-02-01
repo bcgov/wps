@@ -101,6 +101,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                 if planning_areas_dict.get(planning_area_record.name) is None:
                     planning_areas_dict[planning_area_record.name] = {
                         'planning_area_record': planning_area_record,
+                        'order_of_appearance_in_list': planning_area_record.order_of_appearance_in_list,
                         'station_codes': [station_record.station_code],
                         'station_objects': []
                     }
@@ -131,7 +132,10 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
 
         # create PlanningArea objects containing all corresponding WeatherStation objects
         for key, val in planning_areas_dict.items():
-            planning_area = PlanningArea(name=key, stations=val['station_objects'])
+            planning_area = PlanningArea(
+                name=key,
+                order_of_appearance_in_list=val['order_of_appearance_in_list'],
+                stations=val['station_objects'])
             val['planning_area_object'] = planning_area
 
         # create FireCentre objects containing all corresponding PlanningArea objects

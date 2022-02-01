@@ -16,8 +16,6 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
-import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
-import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import FireTable from 'components/FireTable'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
@@ -25,18 +23,21 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
-import { getDailiesByStationCode, getZoneFromAreaName } from 'features/hfiCalculator/util'
+import { getDailiesByStationCode } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { DateTime } from 'luxon'
+import { isUndefined } from 'lodash'
+import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
+import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import {
   DailyResult,
   PlanningAreaResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface Props {
-  fireCentres: Record<string, FireCentre>
+  fireCentre: FireCentre | undefined
   dailies: StationDaily[]
   setSelected: (selected: number[]) => void
   testId?: string
@@ -294,194 +295,201 @@ export const DailyViewTable = (props: Props): JSX.Element => {
         </TableRow>
       </TableHead>
       <TableBody>
-        {Object.entries(props.fireCentres).map(([centreName, centre]) => {
-          return (
-            <React.Fragment key={`fire-centre-${centreName}`}>
-              <TableRow key={`fire-centre-${centreName}`}>
-                <FireCentreCell centre={centre}></FireCentreCell>
-                <TableCell className={classes.fireCentre} colSpan={25}></TableCell>
-              </TableRow>
-              {Object.entries(centre.planning_areas)
-                .sort((a, b) =>
-                  getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
-                ) // sort by zone code
-                .map(([areaName, area]) => {
-                  const dailyResult = getDailyResult(planningAreaHFIResults[area.name])
-                  return (
-                    <React.Fragment key={`zone-${areaName}`}>
-                      <TableRow>
-                        <TableCell
-                          colSpan={42}
-                          className={classes.planningAreaBorder}
-                        ></TableCell>
-                      </TableRow>
-                      <TableRow
-                        className={classes.planningArea}
-                        key={`zone-${areaName}`}
-                        data-testid={`zone-${areaName}`}
+        {isUndefined(props.fireCentre) ? (
+          <React.Fragment>
+            <TableRow>
+              <TableCell></TableCell>
+              <TableCell colSpan={6}>To begin, select a fire centre</TableCell>
+            </TableRow>
+          </React.Fragment>
+        ) : (
+          <React.Fragment key={`fire-centre-${props.fireCentre.name}`}>
+            <TableRow key={`fire-centre-${props.fireCentre.name}`}>
+              <FireCentreCell centre={props.fireCentre}></FireCentreCell>
+              <TableCell className={classes.fireCentre} colSpan={25}></TableCell>
+            </TableRow>
+            {Object.entries(props.fireCentre.planning_areas)
+              .sort((a, b) =>
+                a[1].order_of_appearance_in_list < b[1].order_of_appearance_in_list
+                  ? -1
+                  : 1
+              )
+              .map(([areaName, area]) => {
+                const dailyResult = getDailyResult(planningAreaHFIResults[area.name])
+                return (
+                  <React.Fragment key={`zone-${areaName}`}>
+                    <TableRow>
+                      <TableCell
+                        colSpan={42}
+                        className={classes.planningAreaBorder}
+                      ></TableCell>
+                    </TableRow>
+                    <TableRow
+                      className={classes.planningArea}
+                      key={`zone-${areaName}`}
+                      data-testid={`zone-${areaName}`}
+                    >
+                      <StickyCell
+                        left={0}
+                        zIndexOffset={10}
+                        colSpan={3}
+                        backgroundColor={BACKGROUND_COLOR.backgroundColor}
                       >
-                        <StickyCell
-                          left={0}
-                          zIndexOffset={10}
-                          colSpan={3}
-                          backgroundColor={BACKGROUND_COLOR.backgroundColor}
-                        >
-                          <Table>
-                            <TableBody>
-                              <TableRow>
-                                <TableCell className={classes.noBottomBorder}>
-                                  {area.name}
-                                </TableCell>
-                              </TableRow>
-                            </TableBody>
-                          </Table>
-                        </StickyCell>
-                        <TableCell
-                          colSpan={19}
-                          className={classes.planningArea}
-                        ></TableCell>
-                        <MeanIntensityGroupRollup
-                          area={area}
-                          dailies={dailyResult ? dailyResult.dailies : []}
-                          selectedStationCodes={selectedStationCodes}
-                          meanIntensityGroup={dailyResult?.meanIntensityGroup}
-                        ></MeanIntensityGroupRollup>
-                        <FireStartsCell areaName={areaName} />
-                        <PrepLevelCell
-                          testid={`daily-prep-level-${areaName}`}
-                          prepLevel={dailyResult?.prepLevel}
-                        />
-                      </TableRow>
-                      {Object.entries(area.stations)
-                        .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
-                        .map(([stationCode, station]) => {
-                          const daily = getDailyForDay(station.code)
-                          const grassCureError = !isValidGrassCure(
-                            daily,
-                            station.station_props
-                          )
-                          const isRowSelected = stationCodeInSelected(station.code)
-                          const classNameForRow = !isRowSelected
-                            ? classes.unselectedStation
-                            : undefined
-                          return (
-                            <TableRow
-                              className={classNameForRow}
-                              key={`station-${stationCode}`}
-                            >
-                              <BaseStationAttributeCells
-                                station={station}
-                                className={classNameForRow}
-                                stationCodeInSelected={stationCodeInSelected}
-                                toggleSelectedStation={toggleSelectedStation}
-                                isDailyTable={true}
-                              />
-                              {daily?.observation_valid === false ? (
-                                <TableCell className={classNameForRow}>
-                                  <ThemeProvider theme={errorIconTheme}>
-                                    <Tooltip
-                                      title={createToolTipElement(
-                                        daily?.observation_valid_comment
-                                      )}
-                                    >
-                                      <ErrorOutlineIcon
-                                        data-testid={`status-error`}
-                                      ></ErrorOutlineIcon>
-                                    </Tooltip>
-                                  </ThemeProvider>
-                                </TableCell>
-                              ) : (
-                                <StatusCell
-                                  className={classNameForRow}
-                                  value={daily?.status}
-                                />
-                              )}
-                              <TableCell className={classNameForRow}>
-                                {daily?.temperature}
-                              </TableCell>
-                              <TableCell className={classNameForRow}>
-                                {daily?.relative_humidity}
-                              </TableCell>
-                              <TableCell className={classNameForRow}>
-                                {daily?.wind_direction?.toFixed(0).padStart(3, '0')}
-                              </TableCell>
-                              <TableCell className={classNameForRow}>
-                                {daily?.wind_speed}
-                              </TableCell>
-                              <TableCell className={classNameForRow}>
-                                {daily?.precipitation}
-                              </TableCell>
-                              <GrassCureCell
-                                value={daily?.grass_cure_percentage}
-                                isGrassFuelType={isGrassFuelType(station.station_props)}
-                                className={classNameForRow}
-                                selected={isRowSelected}
-                              ></GrassCureCell>
-                              <TableCell className={classNameForRow}>
-                                {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
-                              </TableCell>
-                              <TableCell className={classNameForRow}>
-                                {daily?.dmc?.toFixed(DECIMAL_PLACES)}
-                              </TableCell>
-                              <TableCell className={classNameForRow}>
-                                {daily?.dc?.toFixed(DECIMAL_PLACES)}
-                              </TableCell>
-                              <TableCell className={classNameForRow}>
-                                {daily?.isi?.toFixed(DECIMAL_PLACES)}
-                              </TableCell>
-                              <TableCell className={classNameForRow}>
-                                {daily?.bui?.toFixed(DECIMAL_PLACES)}
-                              </TableCell>
-                              <TableCell className={classNameForRow}>
-                                {daily?.fwi?.toFixed(DECIMAL_PLACES)}
-                              </TableCell>
-                              <TableCell className={classNameForRow}>
-                                {daily?.danger_class}
-                              </TableCell>
-                              <CalculatedCell
-                                testid={`${daily?.code}-ros`}
-                                value={daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
-                                error={grassCureError}
-                                className={classNameForRow}
-                              ></CalculatedCell>
-                              <CalculatedCell
-                                testid={`${daily?.code}-hfi`}
-                                value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
-                                error={grassCureError}
-                                className={classNameForRow}
-                              ></CalculatedCell>
-                              <CalculatedCell
-                                testid={`${daily?.code}-1-hr-size`}
-                                value={daily?.sixty_minute_fire_size?.toFixed(
-                                  DECIMAL_PLACES
-                                )}
-                                error={grassCureError}
-                                className={classNameForRow}
-                              ></CalculatedCell>
-                              <CalculatedCell
-                                testid={`${daily?.code}-fire-type`}
-                                value={daily?.fire_type}
-                                error={grassCureError}
-                                className={classNameForRow}
-                              ></CalculatedCell>
-                              <IntensityGroupCell
-                                testid={`${daily?.code}-intensity-group`}
-                                value={daily?.intensity_group}
-                                error={grassCureError}
-                                selected={isRowSelected}
-                              ></IntensityGroupCell>
-                              <TableCell colSpan={2}>
-                                {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
+                        <Table>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell className={classes.noBottomBorder}>
+                                {area.name}
                               </TableCell>
                             </TableRow>
-                          )
-                        })}
-                    </React.Fragment>
-                  )
-                })}
-            </React.Fragment>
-          )
-        })}
+                          </TableBody>
+                        </Table>
+                      </StickyCell>
+                      <TableCell
+                        colSpan={19}
+                        className={classes.planningArea}
+                      ></TableCell>
+                      <MeanIntensityGroupRollup
+                        area={area}
+                        dailies={dailyResult ? dailyResult.dailies : []}
+                        selectedStationCodes={selectedStationCodes}
+                        meanIntensityGroup={dailyResult?.meanIntensityGroup}
+                      ></MeanIntensityGroupRollup>
+                      <FireStartsCell areaName={areaName} />
+                      <PrepLevelCell
+                        testid={`daily-prep-level-${areaName}`}
+                        prepLevel={dailyResult?.prepLevel}
+                      />
+                    </TableRow>
+                    {Object.entries(area.stations)
+                      .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
+                      .map(([stationCode, station]) => {
+                        const daily = getDailyForDay(station.code)
+                        const grassCureError = !isValidGrassCure(
+                          daily,
+                          station.station_props
+                        )
+                        const isRowSelected = stationCodeInSelected(station.code)
+                        const classNameForRow = !isRowSelected
+                          ? classes.unselectedStation
+                          : undefined
+                        return (
+                          <TableRow
+                            className={classNameForRow}
+                            key={`station-${stationCode}`}
+                          >
+                            <BaseStationAttributeCells
+                              station={station}
+                              className={classNameForRow}
+                              stationCodeInSelected={stationCodeInSelected}
+                              toggleSelectedStation={toggleSelectedStation}
+                              isDailyTable={true}
+                            />
+                            {daily?.observation_valid === false ? (
+                              <TableCell className={classNameForRow}>
+                                <ThemeProvider theme={errorIconTheme}>
+                                  <Tooltip
+                                    title={createToolTipElement(
+                                      daily?.observation_valid_comment
+                                    )}
+                                  >
+                                    <ErrorOutlineIcon
+                                      data-testid={`status-error`}
+                                    ></ErrorOutlineIcon>
+                                  </Tooltip>
+                                </ThemeProvider>
+                              </TableCell>
+                            ) : (
+                              <StatusCell
+                                className={classNameForRow}
+                                value={daily?.status}
+                              />
+                            )}
+                            <TableCell className={classNameForRow}>
+                              {daily?.temperature}
+                            </TableCell>
+                            <TableCell className={classNameForRow}>
+                              {daily?.relative_humidity}
+                            </TableCell>
+                            <TableCell className={classNameForRow}>
+                              {daily?.wind_direction?.toFixed(0).padStart(3, '0')}
+                            </TableCell>
+                            <TableCell className={classNameForRow}>
+                              {daily?.wind_speed}
+                            </TableCell>
+                            <TableCell className={classNameForRow}>
+                              {daily?.precipitation}
+                            </TableCell>
+                            <GrassCureCell
+                              value={daily?.grass_cure_percentage}
+                              isGrassFuelType={isGrassFuelType(station.station_props)}
+                              className={classNameForRow}
+                              selected={isRowSelected}
+                            ></GrassCureCell>
+                            <TableCell className={classNameForRow}>
+                              {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
+                            </TableCell>
+                            <TableCell className={classNameForRow}>
+                              {daily?.dmc?.toFixed(DECIMAL_PLACES)}
+                            </TableCell>
+                            <TableCell className={classNameForRow}>
+                              {daily?.dc?.toFixed(DECIMAL_PLACES)}
+                            </TableCell>
+                            <TableCell className={classNameForRow}>
+                              {daily?.isi?.toFixed(DECIMAL_PLACES)}
+                            </TableCell>
+                            <TableCell className={classNameForRow}>
+                              {daily?.bui?.toFixed(DECIMAL_PLACES)}
+                            </TableCell>
+                            <TableCell className={classNameForRow}>
+                              {daily?.fwi?.toFixed(DECIMAL_PLACES)}
+                            </TableCell>
+                            <TableCell className={classNameForRow}>
+                              {daily?.danger_class}
+                            </TableCell>
+                            <CalculatedCell
+                              testid={`${daily?.code}-ros`}
+                              value={daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+                              error={grassCureError}
+                              className={classNameForRow}
+                            ></CalculatedCell>
+                            <CalculatedCell
+                              testid={`${daily?.code}-hfi`}
+                              value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
+                              error={grassCureError}
+                              className={classNameForRow}
+                            ></CalculatedCell>
+                            <CalculatedCell
+                              testid={`${daily?.code}-1-hr-size`}
+                              value={daily?.sixty_minute_fire_size?.toFixed(
+                                DECIMAL_PLACES
+                              )}
+                              error={grassCureError}
+                              className={classNameForRow}
+                            ></CalculatedCell>
+                            <CalculatedCell
+                              testid={`${daily?.code}-fire-type`}
+                              value={daily?.fire_type}
+                              error={grassCureError}
+                              className={classNameForRow}
+                            ></CalculatedCell>
+                            <IntensityGroupCell
+                              testid={`${daily?.code}-intensity-group`}
+                              value={daily?.intensity_group}
+                              error={grassCureError}
+                              selected={isRowSelected}
+                            ></IntensityGroupCell>
+                            <TableCell colSpan={2}>
+                              {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                  </React.Fragment>
+                )
+              })}
+          </React.Fragment>
+        )}
       </TableBody>
     </FireTable>
   )

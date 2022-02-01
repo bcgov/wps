@@ -2,7 +2,6 @@ import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { isNull, isUndefined, range, sortBy, take, zip } from 'lodash'
 import * as CSV from 'csv-string'
-import { getZoneFromAreaName } from 'features/hfiCalculator/util'
 import { dailyTableColumnLabels } from 'features/hfiCalculator/components/DailyViewTable'
 import {
   columnLabelsForEachDayInWeek,
@@ -33,7 +32,7 @@ const printGrassCurePercentage = (daily: StationDaily | undefined): string => {
 export class HFITableCSVFormatter {
   public static exportDailyRowsAsStrings = (
     dateOfInterest: string,
-    fireCentres: Record<string, FireCentre>,
+    centre: FireCentre,
     planningAreaHFIResults: {
       [key: string]: PlanningAreaResult
     }
@@ -42,112 +41,123 @@ export class HFITableCSVFormatter {
 
     rowsAsStrings.push(CSV.stringify(dailyTableColumnLabels.toString()))
 
-    Object.entries(fireCentres).forEach(([, centre]) => {
-      rowsAsStrings.push(CSV.stringify(centre.name))
-      Object.entries(centre.planning_areas)
-        .sort((a, b) =>
-          getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
+    rowsAsStrings.push(CSV.stringify(centre.name))
+    Object.entries(centre.planning_areas)
+      .sort((a, b) =>
+        a[1].order_of_appearance_in_list < b[1].order_of_appearance_in_list ? -1 : 1
+      )
+      .forEach(([, area]) => {
+        const planningAreaResult = planningAreaHFIResults[area.name]
+        const areaDailyResult = planningAreaResult.dailyResults.find(
+          result =>
+            DateTime.fromISO(result.dateISO).weekday ===
+            DateTime.fromISO(dateOfInterest).weekday
         )
-        .forEach(([, area]) => {
-          const planningAreaResult = planningAreaHFIResults[area.name]
-          const areaDailyResult = planningAreaResult.dailyResults.find(
-            result =>
-              DateTime.fromISO(result.dateISO).weekday ===
-              DateTime.fromISO(dateOfInterest).weekday
+        const meanIntensityGroup = areaDailyResult?.meanIntensityGroup
+        const areaPrepLevel = areaDailyResult?.prepLevel
+        rowsAsStrings.push(
+          CSV.stringify(
+            `${area.name}, ${Array(21).join(
+              ','
+            )} ${meanIntensityGroup}, 0-1, ${areaPrepLevel}` // fire starts of 0-1 is hard-coded for now
           )
-          const meanIntensityGroup = areaDailyResult?.meanIntensityGroup
-          const areaPrepLevel = areaDailyResult?.prepLevel
-          rowsAsStrings.push(
-            CSV.stringify(
-              `${area.name}, ${Array(21).join(
-                ','
-              )} ${meanIntensityGroup}, 0-1, ${areaPrepLevel}` // fire starts of 0-1 is hard-coded for now
-            )
+        )
+        Object.entries(area.stations).forEach(([, station]) => {
+          const rowArray: string[] = []
+          const daily = areaDailyResult?.dailies.find(
+            areaDaily =>
+              areaDaily.code === station.code &&
+              areaDaily.date.weekday === DateTime.fromISO(dateOfInterest).weekday
           )
-          Object.entries(area.stations).forEach(([, station]) => {
-            const rowArray: string[] = []
-            const daily = areaDailyResult?.dailies.find(
-              areaDaily =>
-                areaDaily.code === station.code &&
-                areaDaily.date.weekday === DateTime.fromISO(dateOfInterest).weekday
-            )
 
-            const grassCureError = !isValidGrassCure(daily, station.station_props)
+          const grassCureError = !isValidGrassCure(daily, station.station_props)
 
-            rowArray.push(station.station_props.name + ' (' + station.code + ')')
-            rowArray.push(
-              isUndefined(station.station_props.elevation) ||
-                isNull(station.station_props.elevation)
-                ? 'ND'
-                : station.station_props.elevation?.toString()
-            )
-            rowArray.push(station.station_props.fuel_type.abbrev)
-            rowArray.push(!isUndefined(daily) ? daily.status : 'ND')
-            rowArray.push(
-              !isUndefined(daily) && !isUndefined(daily.temperature)
-                ? daily.temperature.toFixed(DECIMAL_PLACES)
-                : 'ND'
-            )
-            rowArray.push(
-              !isUndefined(daily) && !isUndefined(daily.relative_humidity)
-                ? daily.relative_humidity.toFixed(DECIMAL_PLACES)
-                : 'ND'
-            )
-            rowArray.push(
-              !isUndefined(daily) && !isNull(daily.wind_direction)
-                ? daily.wind_direction.toString()
-                : 'ND'
-            )
-            rowArray.push(
-              !isUndefined(daily) && !isUndefined(daily.wind_speed)
-                ? daily.wind_speed.toFixed(DECIMAL_PLACES)
-                : 'ND'
-            )
-            rowArray.push(
-              !isUndefined(daily) && !isUndefined(daily.precipitation)
-                ? daily.precipitation.toFixed(DECIMAL_PLACES)
-                : 'ND'
-            )
-            rowArray.push(grassCureError ? 'ERROR' : printGrassCurePercentage(daily))
-            rowArray.push(!isUndefined(daily) ? daily.ffmc.toString() : 'ND')
-            rowArray.push(!isUndefined(daily) ? daily.dmc.toString() : 'ND')
-            rowArray.push(!isUndefined(daily) ? daily.dc.toString() : 'ND')
-            rowArray.push(!isUndefined(daily) ? daily.isi.toString() : 'ND')
-            rowArray.push(!isUndefined(daily) ? daily.bui.toString() : 'ND')
-            rowArray.push(!isUndefined(daily) ? daily.fwi.toString() : 'ND')
-            rowArray.push(
-              !isUndefined(daily) && !isNull(daily.danger_class)
-                ? daily.danger_class.toString()
-                : 'ND'
-            )
-            rowArray.push(
-              !isUndefined(daily) && !isUndefined(daily.rate_of_spread) && !grassCureError
-                ? daily.rate_of_spread.toFixed(DECIMAL_PLACES)
-                : 'ND'
-            )
-            rowArray.push(
-              !isUndefined(daily) && !isUndefined(daily.hfi) && !grassCureError
-                ? daily.hfi.toFixed(DECIMAL_PLACES)
-                : 'ND'
-            )
-            rowArray.push(
-              !isUndefined(daily) &&
-                !isUndefined(daily.sixty_minute_fire_size) &&
-                !grassCureError
-                ? daily.sixty_minute_fire_size.toFixed(DECIMAL_PLACES)
-                : 'ND'
-            )
-            rowArray.push(!isUndefined(daily) && !grassCureError ? daily.fire_type : 'ND')
-            rowArray.push(
-              !isUndefined(daily) && !grassCureError
-                ? daily.intensity_group.toString()
-                : 'ND'
-            )
+          rowArray.push(station.station_props.name + ' (' + station.code + ')')
+          rowArray.push(
+            isUndefined(station.station_props.elevation) ||
+              isNull(station.station_props.elevation)
+              ? 'ND'
+              : station.station_props.elevation?.toString()
+          )
+          rowArray.push(station.station_props.fuel_type.abbrev)
+          rowArray.push(!isUndefined(daily) ? daily.status : 'ND')
+          rowArray.push(
+            !isUndefined(daily) && !isUndefined(daily.temperature)
+              ? daily.temperature.toFixed(DECIMAL_PLACES)
+              : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isUndefined(daily.relative_humidity)
+              ? daily.relative_humidity.toFixed(DECIMAL_PLACES)
+              : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.wind_direction)
+              ? daily.wind_direction.toString()
+              : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isUndefined(daily.wind_speed)
+              ? daily.wind_speed.toFixed(DECIMAL_PLACES)
+              : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isUndefined(daily.precipitation)
+              ? daily.precipitation.toFixed(DECIMAL_PLACES)
+              : 'ND'
+          )
+          rowArray.push(grassCureError ? 'ERROR' : printGrassCurePercentage(daily))
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.ffmc) ? daily.ffmc.toString() : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.dmc) ? daily.dmc.toString() : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.dc) ? daily.dc.toString() : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.isi) ? daily.isi.toString() : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.bui) ? daily.bui.toString() : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.fwi) ? daily.fwi.toString() : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isNull(daily.danger_class)
+              ? daily.danger_class.toString()
+              : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isUndefined(daily.rate_of_spread) && !grassCureError
+              ? daily.rate_of_spread.toFixed(DECIMAL_PLACES)
+              : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) && !isUndefined(daily.hfi) && !grassCureError
+              ? daily.hfi.toFixed(DECIMAL_PLACES)
+              : 'ND'
+          )
+          rowArray.push(
+            !isUndefined(daily) &&
+              !isUndefined(daily.sixty_minute_fire_size) &&
+              !grassCureError
+              ? daily.sixty_minute_fire_size.toFixed(DECIMAL_PLACES)
+              : 'ND'
+          )
+          rowArray.push(!isUndefined(daily) && !grassCureError ? daily.fire_type : 'ND')
+          rowArray.push(
+            !isUndefined(daily) && !grassCureError
+              ? daily.intensity_group.toString()
+              : 'ND'
+          )
 
-            rowsAsStrings.push(CSV.stringify(rowArray))
-          })
+          rowsAsStrings.push(CSV.stringify(rowArray))
         })
-    })
+      })
+
     return rowsAsStrings.join('')
   }
 
@@ -194,7 +204,7 @@ export class HFITableCSVFormatter {
   public static exportWeeklyRowsAsStrings = (
     numPrepDays: number,
     startDate: DateTime,
-    fireCentres: Record<string, FireCentre>,
+    centre: FireCentre,
     planningAreaHFIResults: {
       [key: string]: PlanningAreaResult
     }
@@ -220,87 +230,86 @@ export class HFITableCSVFormatter {
     // "CSV stringified", so using /n here as line separator
     rowsAsStringArrays.push(weeklyTableColumnLabels(numPrepDays))
 
-    Object.entries(fireCentres).forEach(([, centre]) => {
-      rowsAsStringArrays.push([centre.name])
+    rowsAsStringArrays.push([centre.name])
 
-      Object.entries(centre.planning_areas)
-        .sort((a, b) =>
-          getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
+    Object.entries(centre.planning_areas)
+      .sort((a, b) =>
+        a[1].order_of_appearance_in_list < b[1].order_of_appearance_in_list ? -1 : 1
+      )
+      .forEach(([, area]) => {
+        const planningAreaResult = planningAreaHFIResults[area.name]
+        rowsAsStringArrays.push(
+          this.buildAreaWeeklySummaryString(area, numPrepDays, planningAreaHFIResults)
         )
-        .forEach(([, area]) => {
-          const planningAreaResult = planningAreaHFIResults[area.name]
-          rowsAsStringArrays.push(
-            this.buildAreaWeeklySummaryString(area, numPrepDays, planningAreaHFIResults)
+
+        Object.entries(area.stations).forEach(([, station]) => {
+          const dailiesForStation = take(
+            sortBy(
+              planningAreaResult.dailyResults
+                .flatMap(result => result.dailies)
+                .filter(daily => daily.code === station.code),
+              daily => daily.date.toMillis()
+            ),
+            numPrepDays
+          )
+          const grassCureError = !isValidGrassCure(
+            dailiesForStation[0],
+            station.station_props
           )
 
-          Object.entries(area.stations).forEach(([, station]) => {
-            const dailiesForStation = take(
-              sortBy(
-                planningAreaResult.dailyResults
-                  .flatMap(result => result.dailies)
-                  .filter(daily => daily.code === station.code),
-                daily => daily.date.toMillis()
-              ),
-              numPrepDays
-            )
-            const grassCureError = !isValidGrassCure(
-              dailiesForStation[0],
-              station.station_props
-            )
+          const rowArray: string[] = []
 
-            const rowArray: string[] = []
+          rowArray.push(station.station_props.name + ' (' + station.code + ')')
+          if (
+            isUndefined(station.station_props.elevation) ||
+            isNull(station.station_props.elevation)
+          ) {
+            rowArray.push('ND')
+          } else {
+            rowArray.push(station.station_props.elevation.toString())
+          }
+          rowArray.push(station.station_props.fuel_type.abbrev)
+          rowArray.push(
+            grassCureError ? 'ERROR' : printGrassCurePercentage(dailiesForStation[0])
+          )
 
-            rowArray.push(station.station_props.name + ' (' + station.code + ')')
-            if (
-              isUndefined(station.station_props.elevation) ||
-              isNull(station.station_props.elevation)
-            ) {
-              rowArray.push('ND')
-            } else {
-              rowArray.push(station.station_props.elevation.toString())
-            }
-            rowArray.push(station.station_props.fuel_type.abbrev)
-            rowArray.push(
-              grassCureError ? 'ERROR' : printGrassCurePercentage(dailiesForStation[0])
-            )
+          const rateOfSpreads = dailiesForStation.map(day =>
+            isNull(day.rate_of_spread) ||
+            isUndefined(day.rate_of_spread) ||
+            grassCureError
+              ? 'ND'
+              : day.rate_of_spread.toFixed(DECIMAL_PLACES)
+          )
 
-            const rateOfSpreads = dailiesForStation.map(day =>
-              isNull(day.rate_of_spread) ||
-              isUndefined(day.rate_of_spread) ||
-              grassCureError
-                ? 'ND'
-                : day.rate_of_spread.toFixed(DECIMAL_PLACES)
-            )
+          const hfis = dailiesForStation.map(day =>
+            isNull(day.hfi) || isUndefined(day.hfi) || grassCureError
+              ? 'ND'
+              : day.hfi.toFixed(DECIMAL_PLACES)
+          )
 
-            const hfis = dailiesForStation.map(day =>
-              isNull(day.hfi) || isUndefined(day.hfi) || grassCureError
-                ? 'ND'
-                : day.hfi.toFixed(DECIMAL_PLACES)
-            )
+          const intensityGroups = dailiesForStation.map(day =>
+            isNull(day.intensity_group) ||
+            isUndefined(day.intensity_group) ||
+            grassCureError
+              ? 'ND'
+              : String(day.intensity_group)
+          )
 
-            const intensityGroups = dailiesForStation.map(day =>
-              isNull(day.intensity_group) ||
-              isUndefined(day.intensity_group) ||
-              grassCureError
-                ? 'ND'
-                : String(day.intensity_group)
-            )
-
-            const validatedIndices = zip(rateOfSpreads, hfis, intensityGroups)
-            validatedIndices.forEach(indices => {
-              rowArray.push(indices[0] ? indices[0] : 'ND')
-              rowArray.push(indices[1] ? indices[1] : 'ND')
-              rowArray.push(indices[2] ? indices[2] : 'ND')
-              rowArray.push(...Array(NUM_WEEKLY_SUMMARY_CELLS).fill(''))
-            })
-
+          const validatedIndices = zip(rateOfSpreads, hfis, intensityGroups)
+          validatedIndices.forEach(indices => {
+            rowArray.push(indices[0] ? indices[0] : 'ND')
+            rowArray.push(indices[1] ? indices[1] : 'ND')
+            rowArray.push(indices[2] ? indices[2] : 'ND')
             rowArray.push(...Array(NUM_WEEKLY_SUMMARY_CELLS).fill(''))
-
-            const rowString = rowArray
-            rowsAsStringArrays.push(rowString)
           })
+
+          rowArray.push(...Array(NUM_WEEKLY_SUMMARY_CELLS).fill(''))
+
+          const rowString = rowArray
+          rowsAsStringArrays.push(rowString)
         })
-    })
+      })
+
     return CSV.stringify(rowsAsStringArrays)
   }
 }
