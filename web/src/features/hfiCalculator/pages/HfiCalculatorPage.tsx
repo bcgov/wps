@@ -3,9 +3,11 @@ import { Button, Container, ErrorBoundary, GeneralHeader, PageTitle } from 'comp
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   fetchHFIDailies,
+  FireStarts,
   setPrepDays,
   setSelectedPrepDate,
   setSelectedSelectedStationCodes,
+  setFireStarts,
   setSelectedFireCentre
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -93,6 +95,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const setSelected = (newSelected: number[]) => {
     dispatch(setSelectedSelectedStationCodes(newSelected))
+  }
+
+  const setNewFireStarts = (
+    areaName: string,
+    dayOffset: number,
+    newFireStarts: FireStarts
+  ) => {
+    dispatch(setFireStarts({ areaName, dayOffset, newFireStarts }))
   }
 
   const [modalOpen, setModalOpen] = useState<boolean>(false)
@@ -326,6 +336,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               dailies={dailies}
               dateOfInterest={dateOfInterest}
               setSelected={setSelected}
+              setNewFireStarts={setNewFireStarts}
               selectedPrepDay={selectedPrepDate}
             />
           </ErrorBoundary>
