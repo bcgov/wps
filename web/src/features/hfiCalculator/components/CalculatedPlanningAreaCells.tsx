@@ -53,7 +53,11 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
               dayOffset={day}
               setFireStarts={props.setNewFireStarts}
             />
-            <PrepLevelCell prepLevel={prepLevel} />
+            <PrepLevelCell
+              toolTipText="Cannot calculate prep level. Please check the daily forecast using the tabs above."
+              valid={props.planningAreaResult.allDailiesValid}
+              prepLevel={prepLevel}
+            />
           </React.Fragment>
         )
       })}
