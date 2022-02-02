@@ -67,7 +67,9 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
       <MeanPrepLevelCell
         areaName={props.areaName}
         meanPrepLevel={props.planningAreaResult.meanPrepLevel}
-        emptyForecast={allPlanningAreaDailies.length === 0}
+        emptyOrIncompleteForecast={
+          allPlanningAreaDailies.length === 0 || !props.planningAreaResult.allDailiesValid
+        }
       />
     </React.Fragment>
   )

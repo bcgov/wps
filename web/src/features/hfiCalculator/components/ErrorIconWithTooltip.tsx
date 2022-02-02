@@ -1,17 +1,23 @@
 import { createTheme, makeStyles, ThemeProvider, Tooltip } from '@material-ui/core'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import { fireTableStyles } from 'app/theme'
+import { isUndefined } from 'lodash'
 import React from 'react'
 
 export interface ErrorIconWithTooltipProps {
   testId?: string
   tooltipElement: JSX.Element
   tooltipAriaText: string[]
+  isDataCell?: boolean
 }
 
 const useStyles = makeStyles({
-  alignErrorIcon: {
+  planningAreaIcon: {
     ...fireTableStyles.planningArea,
+    paddingTop: '10px',
+    textAlign: 'center'
+  },
+  dataCellIcon: {
     paddingTop: '10px',
     textAlign: 'center'
   }
@@ -35,7 +41,13 @@ const ErrorIconWithTooltip = (props: ErrorIconWithTooltipProps) => {
         title={props.tooltipElement}
         aria-label={`${props.tooltipAriaText.join('\n')}`}
       >
-        <div className={classes.alignErrorIcon}>
+        <div
+          className={
+            !props.isDataCell || isUndefined(props.isDataCell)
+              ? classes.planningAreaIcon
+              : classes.dataCellIcon
+          }
+        >
           <ErrorOutlineIcon data-testid={props.testId}></ErrorOutlineIcon>
         </div>
       </Tooltip>

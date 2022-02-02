@@ -8,7 +8,7 @@ export interface MeanPrepLevelCellProps {
   testid?: string
   areaName: string
   meanPrepLevel?: number
-  emptyForecast: boolean
+  emptyOrIncompleteForecast: boolean
 }
 
 const prepLevelColours: { [description: string]: string } = {
@@ -81,7 +81,7 @@ const MeanPrepLevelCell = (props: MeanPrepLevelCellProps) => {
     <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
       {isUndefined(props.meanPrepLevel) ||
       isNaN(props.meanPrepLevel) ||
-      props.emptyForecast === true ? (
+      props.emptyOrIncompleteForecast === true ? (
         <ErrorIconWithTooltip
           tooltipElement={prepLevelErrorTooltipElement}
           tooltipAriaText={[prepLevelTooltipText]}

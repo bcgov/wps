@@ -13,18 +13,20 @@ import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { isEmpty, isUndefined } from 'lodash'
-import { StationDaily } from 'api/hfiCalculatorAPI'
 import { getDailiesByStationCode } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
-import { FireStarts } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import {
+  FireStarts,
+  ValidatedStationDaily
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface Props {
   fireCentre: FireCentre | undefined
   testId?: string
-  dailies: StationDaily[]
+  dailies: ValidatedStationDaily[]
   currentDay: string
   setSelected: (selected: number[]) => void
   setNewFireStarts: (
