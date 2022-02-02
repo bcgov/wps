@@ -25,6 +25,7 @@ import {
 import { getDateRange, getPrepWeeklyDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
+import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { formControlStyles, theme } from 'app/theme'
 import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 import { HFITableCSVFormatter } from 'features/hfiCalculator/HFITableCSVFormatter'
@@ -208,6 +209,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         </Container>
       ) : (
         <Container maxWidth={'xl'}>
+          <LastUpdatedHeader dailies={dailies} />
           <FormControl className={classes.prepDays}>
             <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
           </FormControl>
