@@ -42,10 +42,7 @@ export interface HFICalculatorState {
 }
 
 export interface ValidatedStationDaily extends StationDaily {
-  validDetails: {
-    valid: boolean
-    missingFields: RequiredValidField[]
-  }
+  valid: boolean
 }
 
 // Encodes lookup tables for each fire starts range from workbook
@@ -107,16 +104,12 @@ const requiredFields: RequiredValidField[] = [
 ]
 
 export const validateStationDaily = (daily: StationDaily): ValidatedStationDaily => {
-  const missingRequiredFields: RequiredValidField[] = []
   const requiredFieldsPresent = Object.keys(daily)
     .map(key => {
       if (requiredFields.includes(key as keyof StationDaily)) {
         const includesRequiredField =
           !isUndefined(daily[key as keyof StationDaily]) &&
           !isNull(daily[key as keyof StationDaily])
-        if (!includesRequiredField) {
-          missingRequiredFields.push(key as RequiredValidField)
-        }
         return includesRequiredField
       }
       return true
@@ -124,7 +117,7 @@ export const validateStationDaily = (daily: StationDaily): ValidatedStationDaily
     .reduce((prev, curr) => prev && curr, true)
   return {
     ...daily,
-    validDetails: { valid: requiredFieldsPresent, missingFields: missingRequiredFields }
+    valid: requiredFieldsPresent
   }
 }
 
@@ -273,7 +266,7 @@ const calculateHFIResults = (
 
     const allDailiesValid = dailyResults
       .flatMap(result =>
-        result.dailies.every(validatedDaily => validatedDaily.validDetails.valid === true)
+        result.dailies.every(validatedDaily => validatedDaily.valid === true)
       )
       .reduce((prev, curr) => prev && curr, true)
 
