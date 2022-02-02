@@ -1,7 +1,7 @@
 """wfwx_update_date part of unique constraint
 
 Revision ID: 39806f02cdec
-Revises: d99fcdc4800d
+Revises: b557469a7727
 Create Date: 2021-12-14 11:38:35.435805
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '39806f02cdec'
-down_revision = 'd99fcdc4800d'
+down_revision = 'b557469a7727'
 branch_labels = None
 depends_on = None
 
