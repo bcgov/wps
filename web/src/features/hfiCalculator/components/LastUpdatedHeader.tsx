@@ -26,7 +26,9 @@ const findLastUpdate = (dailies: StationDaily[]) => {
   let lastUpdated: any = undefined
   dailies.forEach(daily => {
     if (!lastUpdated || daily.last_updated > lastUpdated) {
-      lastUpdated = daily.last_updated
+      if (daily.status === 'FORECAST') {
+        lastUpdated = daily.last_updated
+      }
     }
   })
   return lastUpdated
