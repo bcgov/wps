@@ -24,12 +24,14 @@ class AsyncIter:
 
 
 def float_or_none(value: str):
+    """ convert string to floating point number, or None if empty string """
     if value == '':
         return None
     return float(value)
 
 
 def str_or_none(value: str):
+    """ Convert string to None if empty string """
     if value == '':
         return None
     return value
@@ -62,7 +64,8 @@ def test_hfi_daily_metrics():
 
 
 @given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp> with <fuel_type_abbrev> and <grass_cure_percentage>.', target_fixture='response')  # pylint: disable=line-too-long
-def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture, fuel_type_abbrev: str, grass_cure_percentage: str):  # pylint: disable=unused-argument
+def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture, fuel_type_abbrev: str,
+                                     grass_cure_percentage: str):  # pylint: disable=unused-argument
     """ Make /hfi-calc/daily request using mocked out ClientSession.
     """
 
@@ -204,7 +207,7 @@ def assert_head_fire_intensity(response, head_fire_intensity):
 
 
 @then('<rate_of_spread>')
-def assert_head_fire_intensity(response, rate_of_spread):
+def assert_rate_of_spread(response, rate_of_spread):
     """ Assert expected head_fire_intensity """
     print(response.json()['dailies'][0])
     assert rate_of_spread == response.json()['dailies'][0]['rate_of_spread']
