@@ -1,18 +1,25 @@
 import { TableCell } from '@material-ui/core'
+import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import React, { ReactElement } from 'react'
 
 export interface EmptyStaticCellsProps {
   rowId: number
+  isRowSelected: boolean
   classNameForRow: string | undefined
 }
 
 export const EmptyStaticCells = ({
   rowId,
+  isRowSelected,
   classNameForRow
 }: EmptyStaticCellsProps): ReactElement => {
   return (
     <React.Fragment key={`empty-row-${rowId}`}>
-      <TableCell data-testid={`empty-ros-${rowId}`} className={classNameForRow} />
+      <WeeklyROSCell
+        data-testid={`empty-ros-${rowId}`}
+        isRowSelected={isRowSelected}
+        error={true}
+      />
       <TableCell data-testid={`empty-hfi-${rowId}`} className={classNameForRow} />
       <TableCell
         data-testid={`empty-intensity-group-${rowId}`}

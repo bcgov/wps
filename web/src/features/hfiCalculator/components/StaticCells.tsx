@@ -28,12 +28,16 @@ export const StaticCells = ({
     const daily = dailies?.at(dailyIndex)
     const error = !isValidGrassCure(daily, station.station_props)
     return isUndefined(daily) ? (
-      <EmptyStaticCells rowId={dailyIndex} classNameForRow={classNameForRow} />
+      <EmptyStaticCells
+        rowId={dailyIndex}
+        isRowSelected={isRowSelected}
+        classNameForRow={classNameForRow}
+      />
     ) : (
       <React.Fragment key={`${station.code}-${daily.date}`}>
         <WeeklyROSCell
           daily={daily}
-          station={station}
+          testId={`${station.code}-ros`}
           error={error}
           isRowSelected={isRowSelected}
         />

@@ -1,14 +1,13 @@
 import { TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import { WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { fireTableStyles, UNSELECTED_STATION_COLOR } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import React from 'react'
 
 export interface WeeklyROSCellProps {
-  daily: StationDaily
-  station: WeatherStation
+  daily?: StationDaily
+  testId?: string
   error: boolean
   isRowSelected: boolean
 }
@@ -20,11 +19,11 @@ const useStyles = makeStyles({
     color: UNSELECTED_STATION_COLOR
   }
 })
-const WeeklyROSCell = ({ daily, station, isRowSelected, error }: WeeklyROSCellProps) => {
+const WeeklyROSCell = ({ daily, testId, isRowSelected, error }: WeeklyROSCellProps) => {
   const classes = useStyles()
   return (
     <TableCell
-      data-testid={`${station.code}-ros`}
+      data-testid={testId}
       className={
         isRowSelected ? classes.sectionSeparatorBorder : classes.unselectedStation
       }
