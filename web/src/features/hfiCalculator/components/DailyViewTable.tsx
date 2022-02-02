@@ -376,7 +376,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               dailyKey={'temperature'}
                               daily={daily}
                               errorToolTipText={
-                                'Temperature cannot be null. Cannot calculate indices.'
+                                'Temperature cannot be null. Impacts DMC, BUI, ROS, HFI, FIG, Prep calculations.'
                               }
                             />
                             <RequiredDataCell
@@ -384,7 +384,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               dailyKey={'relative_humidity'}
                               daily={daily}
                               errorToolTipText={
-                                'Relative humidity cannot be null. Cannot calculate indices.'
+                                'RH cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.'
                               }
                             />
                             <TableCell className={classNameForRow}>
@@ -395,7 +395,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               dailyKey={'wind_speed'}
                               daily={daily}
                               errorToolTipText={
-                                'Wind speed cannot be null. Cannot calculate indices.'
+                                'Wind speed cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.'
                               }
                             />
                             <RequiredDataCell
@@ -403,7 +403,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               dailyKey={'precipitation'}
                               daily={daily}
                               errorToolTipText={
-                                'Precipitation cannot be null. Cannot calculate indices.'
+                                'Precipitation cannot be null. Impacts DC, BUI, ROS, HFI, FIG, Prep calculations.'
                               }
                             />
                             <GrassCureCell
