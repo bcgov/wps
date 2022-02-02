@@ -99,7 +99,8 @@ const requiredFields: RequiredValidField[] = [
   'relative_humidity',
   'wind_speed',
   'wind_direction',
-  'precipitation'
+  'precipitation',
+  'intensity_group'
 ]
 
 export const validateStationDaily = (daily: StationDaily): ValidatedStationDaily => {

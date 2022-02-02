@@ -297,7 +297,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               )
               .map(([areaName, area]) => {
                 const dailyResult = getDailyResult(planningAreaHFIResults[area.name])
-                const validDailies = planningAreaHFIResults[area.name].allDailiesValid
                 return (
                   <React.Fragment key={`zone-${areaName}`}>
                     <TableRow>
@@ -343,8 +342,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       />
                       <PrepLevelCell
                         testid={`daily-prep-level-${areaName}`}
-                        toolTipText="Incomplete data from WFWX for one or more stations. Please exclude station(s) displaying errors."
-                        valid={validDailies}
                         prepLevel={dailyResult?.prepLevel}
                       />
                     </TableRow>

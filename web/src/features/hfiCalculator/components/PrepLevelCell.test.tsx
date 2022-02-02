@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import React from 'react'
 
-const renderPrepLevel = (prepLevel: number | undefined, valid = true) => {
+const renderPrepLevel = (prepLevel: number | undefined) => {
   return render(
     <TableContainer>
       <Table>
@@ -11,8 +11,6 @@ const renderPrepLevel = (prepLevel: number | undefined, valid = true) => {
           <TableRow>
             <PrepLevelCell
               testid={'weekly-prep-level-afton'}
-              toolTipText="Test"
-              valid={valid}
               prepLevel={prepLevel}
             ></PrepLevelCell>
           </TableRow>
@@ -60,7 +58,7 @@ describe('PrepLevelCell', () => {
     expect(cell.innerHTML).toBe('6')
   })
   it('should return a cell with a classname of defaultBackground and a text prep level undefined', () => {
-    const { getByTestId } = renderPrepLevel(undefined, false)
+    const { getByTestId } = renderPrepLevel(undefined)
     const cell = getByTestId('weekly-prep-level-afton')
     expect(cell.className).toMatch(/makeStyles-defaultBackground-/)
     const errorIcon = getByTestId('prep-level-error')
