@@ -77,7 +77,7 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
   }
 
   const prepLevelTooltipText =
-    'Cannot calculate prep level. Please exclude station(s) displaying errors.'
+    'Cannot calculate prep level. Please check the daily forecast using the tabs above.'
 
   const prepLevelErrorTooltipElement = <div>{prepLevelTooltipText}</div>
 
