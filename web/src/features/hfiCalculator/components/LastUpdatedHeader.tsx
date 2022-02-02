@@ -46,7 +46,7 @@ const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
       hour12: false,
       timeZoneName: 'short'
     })
-      .format(new Date())
+      .format(new Date(lastUpdate))
       .toString()
 
     return (
