@@ -354,10 +354,6 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
     cc = raw_daily.get('grasslandCuring', None)
     wind_speed = raw_daily.get('windSpeed', None)
 
-    if cc is None:
-        # TODO: Set cc back to None - just for testing I want something
-        cc = 80.0
-
     try:
         fire_behaviour_prediction = calculate_fire_behaviour_prediction(
             latitude=station.lat,
