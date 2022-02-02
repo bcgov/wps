@@ -25,9 +25,7 @@ const useStyles = makeStyles({
 const findLastUpdate = (dailies: StationDaily[]) => {
   let lastUpdated: any = undefined
   dailies.forEach(daily => {
-    if (!lastUpdated) {
-      lastUpdated = daily.last_updated
-    } else if (daily.last_updated > lastUpdated) {
+    if (!lastUpdated || daily.last_updated > lastUpdated) {
       lastUpdated = daily.last_updated
     }
   })
