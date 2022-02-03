@@ -12,7 +12,7 @@
 #
 
 # drop existing DB, and re-create it
-echo "You maybe be promted for your sudo password now..."
+echo "You may be prompted for your sudo password now..."
 sudo -u postgres psql -U postgres -c "alter role wps superuser;" -c "drop database wps;" -c "create database wps with owner wps;" 
 
 echo "You may be promted for the wps database user password now..."
