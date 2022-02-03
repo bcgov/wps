@@ -277,13 +277,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         </Container>
       ) : (
         <Container maxWidth={'xl'}>
-          {/* {hfiDailiesError ||
-            (fireCentresError && (
-              <HFIErrorAlert
-                hfiDailiesError={hfiDailiesError}
-                fireCentresError={fireCentresError}
-              />
-            ))} */}
           <FormControl className={classes.prepDays}>
             <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
           </FormControl>
