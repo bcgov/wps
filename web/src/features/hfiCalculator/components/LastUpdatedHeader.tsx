@@ -23,7 +23,7 @@ const useStyles = makeStyles({
 })
 
 const findLastUpdate = (dailies: StationDaily[]) => {
-  let lastUpdated: any = undefined
+  let lastUpdated: Date | undefined = undefined
   dailies.forEach(daily => {
     if (!lastUpdated || daily.last_updated > lastUpdated) {
       if (daily.status === 'FORECAST') {
@@ -58,11 +58,7 @@ const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
       </React.Fragment>
     )
   } else {
-    return (
-      <React.Fragment>
-        <p>Could not find last updated station</p>
-      </React.Fragment>
-    )
+    return <React.Fragment></React.Fragment>
   }
 }
 
