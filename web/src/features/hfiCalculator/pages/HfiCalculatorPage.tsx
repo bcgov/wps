@@ -35,8 +35,9 @@ import { PST_UTC_OFFSET } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import DatePicker from 'components/DatePicker'
 import { FireCentre } from 'api/hfiCalcAPI'
-import { isUndefined, union } from 'lodash'
+import { isNull, isUndefined, union } from 'lodash'
 import FireCentreDropdown from 'features/hfiCalculator/components/FireCentreDropdown'
+import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -74,8 +75,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
   const dispatch = useDispatch()
-  const { dailies, loading } = useSelector(selectHFIDailies)
-  const { fireCentres } = useSelector(selectHFIStations)
+  const { dailies, loading, error: hfiDailiesError } = useSelector(selectHFIDailies)
+  const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const {
     numPrepDays,
@@ -276,71 +277,80 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           <CircularProgress />
         </Container>
       ) : (
-        <Container maxWidth={'xl'}>
-          <FormControl className={classes.prepDays}>
-            <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
-          </FormControl>
-          <FormControl className={classes.formControl}>
-            <FireCentreDropdown
-              fireCentres={fireCentres}
-              selectedValue={
-                isUndefined(selectedFireCentre)
-                  ? null
-                  : { name: selectedFireCentre?.name }
-              }
-              onChange={selectNewFireCentre}
-            />
-          </FormControl>
-
-          <FormControl className={classes.formControl}>
-            <DatePicker date={dateOfInterest} updateDate={updateDate} />
-          </FormControl>
-          <FormControl className={classes.formControl}>
-            <ViewSwitcherToggles dateOfInterest={dateOfInterest} />
-          </FormControl>
-          <FormControl className={classes.formControl}>
-            {isCopied ? (
-              <Button>
-                <CheckOutlined />
-                Copied!
-              </Button>
-            ) : (
-              <Button onClick={copyTable}>
-                <FileCopyOutlined className={classes.clipboardIcon} />
-                Copy Data to Clipboard
-                <Tooltip
-                  title={
-                    'You can paste all table data in Excel. To format: go to the Data tab, use Text to Columns > Delimited > Comma.'
-                  }
-                >
-                  <InfoOutlined className={classes.copyToClipboardInfoIcon} />
-                </Tooltip>
-              </Button>
+        <React.Fragment>
+          <Container maxWidth={'xl'}>
+            {(!isNull(hfiDailiesError) || !isNull(fireCentresError)) && (
+              <HFIErrorAlert
+                hfiDailiesError={hfiDailiesError}
+                fireCentresError={fireCentresError}
+              />
             )}
-          </FormControl>
 
-          <FormControl className={classes.positionStyler}>
-            <Button onClick={openAboutModal}>
-              <HelpOutlineOutlined className={classes.helpIcon}></HelpOutlineOutlined>
-              <p className={classes.aboutButtonText}>About this data</p>
-            </Button>
-          </FormControl>
-          <AboutDataModal
-            modalOpen={modalOpen}
-            setModalOpen={setModalOpen}
-          ></AboutDataModal>
+            <FormControl className={classes.prepDays}>
+              <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
+            </FormControl>
+            <FormControl className={classes.formControl}>
+              <FireCentreDropdown
+                fireCentres={fireCentres}
+                selectedValue={
+                  isUndefined(selectedFireCentre)
+                    ? null
+                    : { name: selectedFireCentre?.name }
+                }
+                onChange={selectNewFireCentre}
+              />
+            </FormControl>
 
-          <ErrorBoundary>
-            <ViewSwitcher
-              selectedFireCentre={selectedFireCentre}
-              dailies={dailies}
-              dateOfInterest={dateOfInterest}
-              setSelected={setSelected}
-              setNewFireStarts={setNewFireStarts}
-              selectedPrepDay={selectedPrepDate}
-            />
-          </ErrorBoundary>
-        </Container>
+            <FormControl className={classes.formControl}>
+              <DatePicker date={dateOfInterest} updateDate={updateDate} />
+            </FormControl>
+            <FormControl className={classes.formControl}>
+              <ViewSwitcherToggles dateOfInterest={dateOfInterest} />
+            </FormControl>
+            <FormControl className={classes.formControl}>
+              {isCopied ? (
+                <Button>
+                  <CheckOutlined />
+                  Copied!
+                </Button>
+              ) : (
+                <Button onClick={copyTable}>
+                  <FileCopyOutlined className={classes.clipboardIcon} />
+                  Copy Data to Clipboard
+                  <Tooltip
+                    title={
+                      'You can paste all table data in Excel. To format: go to the Data tab, use Text to Columns > Delimited > Comma.'
+                    }
+                  >
+                    <InfoOutlined className={classes.copyToClipboardInfoIcon} />
+                  </Tooltip>
+                </Button>
+              )}
+            </FormControl>
+
+            <FormControl className={classes.positionStyler}>
+              <Button onClick={openAboutModal}>
+                <HelpOutlineOutlined className={classes.helpIcon}></HelpOutlineOutlined>
+                <p className={classes.aboutButtonText}>About this data</p>
+              </Button>
+            </FormControl>
+            <AboutDataModal
+              modalOpen={modalOpen}
+              setModalOpen={setModalOpen}
+            ></AboutDataModal>
+
+            <ErrorBoundary>
+              <ViewSwitcher
+                selectedFireCentre={selectedFireCentre}
+                dailies={dailies}
+                dateOfInterest={dateOfInterest}
+                setSelected={setSelected}
+                setNewFireStarts={setNewFireStarts}
+                selectedPrepDay={selectedPrepDate}
+              />
+            </ErrorBoundary>
+          </Container>
+        </React.Fragment>
       )}
     </main>
   )
