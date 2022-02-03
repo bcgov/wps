@@ -1,5 +1,6 @@
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import { ValidatedStationDaily } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { groupBy, sortBy, take } from 'lodash'
 
 export const getDailiesForArea = (
@@ -21,11 +22,11 @@ export const getZoneFromAreaName = (areaName: string): string => {
 
 export const getDailiesByStationCode = (
   numPrepDays: number,
-  dailies: StationDaily[],
+  dailies: ValidatedStationDaily[],
   stationCode: number
-): StationDaily[] => {
+): ValidatedStationDaily[] => {
   const stationCodeDict = groupBy(dailies, 'code')
-  const dailiesByCode = new Map<number, StationDaily[]>()
+  const dailiesByCode = new Map<number, ValidatedStationDaily[]>()
 
   Object.keys(stationCodeDict).forEach(key => {
     dailiesByCode.set(Number(key), stationCodeDict[key])
