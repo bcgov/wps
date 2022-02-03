@@ -20,6 +20,8 @@ export const RequiredDataCell = ({
   dailyKey,
   errorToolTipText
 }: RequiredDataCellProps): ReactElement => {
+  const dataValue = daily ? Number(daily[dailyKey])?.toFixed(DECIMAL_PLACES) : ''
+
   return (
     <React.Fragment>
       {(daily && isUndefined(daily[dailyKey])) || (daily && isNull(daily[dailyKey])) ? (
@@ -31,9 +33,7 @@ export const RequiredDataCell = ({
           />
         </TableCell>
       ) : (
-        <TableCell className={classNameForRow}>
-          {daily ? Number(daily[dailyKey])?.toFixed(DECIMAL_PLACES) : ''}
-        </TableCell>
+        <TableCell className={classNameForRow}>{dataValue}</TableCell>
       )}
     </React.Fragment>
   )

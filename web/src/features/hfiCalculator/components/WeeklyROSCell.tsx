@@ -20,6 +20,8 @@ const useStyles = makeStyles({
   }
 })
 const WeeklyROSCell = ({ daily, testId, isRowSelected, error }: WeeklyROSCellProps) => {
+  const dataValue = error ? '' : daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)
+
   const classes = useStyles()
   return (
     <TableCell
@@ -28,7 +30,7 @@ const WeeklyROSCell = ({ daily, testId, isRowSelected, error }: WeeklyROSCellPro
         isRowSelected ? classes.sectionSeparatorBorder : classes.unselectedStation
       }
     >
-      {error ? '' : daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+      {dataValue}
     </TableCell>
   )
 }

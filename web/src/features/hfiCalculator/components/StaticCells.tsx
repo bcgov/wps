@@ -28,6 +28,7 @@ export const StaticCells = ({
   const staticCells = range(numPrepDays).map(dailyIndex => {
     const daily = dailies?.at(dailyIndex)
     const error = !isValidGrassCure(daily, station.station_props)
+    const hfiValue = error ? undefined : daily?.hfi?.toFixed(DECIMAL_PLACES)
     return isUndefined(daily) ? (
       <EmptyStaticCells
         rowId={dailyIndex}
@@ -43,7 +44,7 @@ export const StaticCells = ({
           isRowSelected={isRowSelected}
         />
         <TableCell data-testid={`${daily.code}-hfi`} className={classNameForRow}>
-          {error ? undefined : daily.hfi?.toFixed(DECIMAL_PLACES)}
+          {hfiValue}
         </TableCell>
         <IntensityGroupCell
           testid={`${daily.code}-intensity-group`}
