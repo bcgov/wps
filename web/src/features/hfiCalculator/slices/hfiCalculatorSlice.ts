@@ -94,7 +94,7 @@ const initialState: HFICalculatorState = {
 }
 
 type RequiredValidField = keyof StationDaily
-const requiredFields: RequiredValidField[] = [
+export const requiredFields: RequiredValidField[] = [
   'temperature',
   'relative_humidity',
   'wind_speed',
