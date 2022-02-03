@@ -3,7 +3,6 @@ import React from 'react'
 import UpdateIcon from '@material-ui/icons/Update'
 import { makeStyles } from '@material-ui/core'
 import { maxBy } from 'lodash'
-import { pstFormatter } from 'utils/date'
 
 export interface LastUpdatedHeaderProps {
   dailies: StationDaily[]
@@ -33,7 +32,6 @@ const findLastUpdate = (dailies: StationDaily[]) => {
   if (lastUpdatedDaily?.last_updated) {
     return new Date(lastUpdatedDaily.last_updated.toString())
   }
-  return
 }
 
 const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
