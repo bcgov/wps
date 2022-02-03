@@ -3,7 +3,6 @@
 import math
 import logging
 from datetime import datetime, timezone
-from time import strptime
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
 from app.schemas.fba_calc import FuelTypeEnum
