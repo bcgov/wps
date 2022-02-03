@@ -4,7 +4,7 @@ import { Alert } from '@material-ui/lab'
 import CloseIcon from '@material-ui/icons/Close'
 import React from 'react'
 
-export interface HFIErrorAlert {
+export interface HFIErrorAlertProps {
   hfiDailiesError: string | null
   fireCentresError: string | null
 }
@@ -21,7 +21,7 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 )
 
-const HFIErrorAlert = ({ hfiDailiesError, fireCentresError }: HFIErrorAlert) => {
+const HFIErrorAlert = ({ hfiDailiesError, fireCentresError }: HFIErrorAlertProps) => {
   const classes = useStyles()
   const [open, setOpen] = React.useState(true)
 
