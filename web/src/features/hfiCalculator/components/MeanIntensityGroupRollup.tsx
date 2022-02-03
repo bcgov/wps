@@ -1,11 +1,12 @@
-import { TableCell, Tooltip } from '@material-ui/core'
-import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
-import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
+import { TableCell } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
+import { isUndefined } from 'lodash'
 import React from 'react'
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
@@ -17,21 +18,6 @@ export interface MeanIntensityGroupRollupProps {
 const useStyles = makeStyles({
   intensityGroup: {
     ...fireTableStyles.calculatedPlanningCell
-  },
-  alignErrorIcon: {
-    ...fireTableStyles.planningArea,
-    paddingTop: '10px',
-    textAlign: 'center'
-  }
-})
-
-const errorIconTheme = createTheme({
-  overrides: {
-    MuiSvgIcon: {
-      root: {
-        fill: '#D8292F'
-      }
-    }
   }
 })
 
@@ -75,45 +61,38 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   if (grassCureError) {
     return (
       <TableCell>
-        <ThemeProvider theme={errorIconTheme}>
-          <Tooltip
-            title={grassCureErrorToolTipElement}
-            aria-label={`${grassCureToolTipFirstLine} \n ${toolTipSecondLine}`}
-          >
-            <div className={classes.alignErrorIcon}>
-              <ErrorOutlineIcon
-                data-testid={`zone-${props.area.id}-mig-error`}
-              ></ErrorOutlineIcon>
-            </div>
-          </Tooltip>
-        </ThemeProvider>
+        <ErrorIconWithTooltip
+          testId={`zone-${props.area.id}-mig-error`}
+          tooltipElement={grassCureErrorToolTipElement}
+          tooltipAriaText={[grassCureToolTipFirstLine, toolTipSecondLine]}
+        />
       </TableCell>
     )
   }
   if (genericError) {
     return (
       <TableCell>
-        <ThemeProvider theme={errorIconTheme}>
-          <Tooltip
-            title={genericErrorToolTipElement}
-            aria-label={`${genericErrorToolTipFirstLine} ${toolTipSecondLine}`}
-          >
-            <div className={classes.alignErrorIcon}>
-              <ErrorOutlineIcon
-                data-testid={`zone-${props.area.id}-mig-error`}
-              ></ErrorOutlineIcon>
-            </div>
-          </Tooltip>
-        </ThemeProvider>
+        <ErrorIconWithTooltip
+          testId={`zone-${props.area.id}-mig-error`}
+          tooltipElement={genericErrorToolTipElement}
+          tooltipAriaText={[genericErrorToolTipFirstLine, toolTipSecondLine]}
+        />
       </TableCell>
     )
   }
+  const validatedMig =
+    isUndefined(props.meanIntensityGroup) ||
+    isNaN(props.meanIntensityGroup) ||
+    props.meanIntensityGroup === Infinity ||
+    props.meanIntensityGroup === -Infinity
+      ? ''
+      : props.meanIntensityGroup
   return (
     <TableCell
       className={classes.intensityGroup}
       data-testid={`zone-${props.area.id}-mean-intensity`}
     >
-      {props.meanIntensityGroup}
+      {validatedMig}
     </TableCell>
   )
 }

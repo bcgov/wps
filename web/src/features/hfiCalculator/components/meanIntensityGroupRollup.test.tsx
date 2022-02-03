@@ -7,7 +7,8 @@ describe('Mean Intensity Group Rollup', () => {
   const planningArea: PlanningArea = {
     id: 1,
     name: 'Test Area',
-    stations: []
+    stations: [],
+    order_of_appearance_in_list: 0
   }
 
   it('should return nothing in cell when dailies are empty', () => {
