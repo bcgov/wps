@@ -37,7 +37,6 @@ import DatePicker from 'components/DatePicker'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { isUndefined, union } from 'lodash'
 import FireCentreDropdown from 'features/hfiCalculator/components/FireCentreDropdown'
-import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -75,8 +74,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
   const dispatch = useDispatch()
-  const { dailies, loading, error: hfiDailiesError } = useSelector(selectHFIDailies)
-  const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
+  const { dailies, loading } = useSelector(selectHFIDailies)
+  const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const {
     numPrepDays,
@@ -278,13 +277,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         </Container>
       ) : (
         <Container maxWidth={'xl'}>
-          {hfiDailiesError ||
+          {/* {hfiDailiesError ||
             (fireCentresError && (
               <HFIErrorAlert
                 hfiDailiesError={hfiDailiesError}
                 fireCentresError={fireCentresError}
               />
-            ))}
+            ))} */}
           <FormControl className={classes.prepDays}>
             <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
           </FormControl>
