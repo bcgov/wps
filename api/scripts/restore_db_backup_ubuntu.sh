@@ -15,7 +15,7 @@
 echo "You may be prompted for your sudo password now..."
 sudo -u postgres psql -U postgres -c "alter role wps superuser;" -c "drop database wps;" -c "create database wps with owner wps;" 
 
-echo "You may be promted for the wps database user password now..."
+echo "You may be prompted for the wps database user password now..."
 gunzip -c "${FILENAME}" | psql -v ON_ERROR_STOP=1 -x -h localhost -U wps -d wps
 
 sudo -u postgres psql -U postgres -c "alter role wps nosuperuser;"
