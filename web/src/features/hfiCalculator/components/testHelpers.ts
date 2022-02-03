@@ -38,6 +38,6 @@ export const buildStationDaily = (code: number, intensity_group = 1): StationDai
     sixty_minute_fire_size: 1,
     fire_type: 'fire',
     date: DateTime.fromISO('2021-10-05T17:00:00.000-07:00'),
-    last_updated: new Date('2021-10-05T17:00:00.000-07:00')
+    last_updated: DateTime.fromISO('2021-10-05T17:00:00.000-07:00')
   }
 }

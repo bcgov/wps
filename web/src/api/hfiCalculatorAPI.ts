@@ -27,7 +27,7 @@ export interface StationDaily {
   sixty_minute_fire_size: number
   fire_type: string
   date: DateTime
-  last_updated: Date
+  last_updated: DateTime
 }
 
 /**

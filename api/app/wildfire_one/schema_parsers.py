@@ -3,6 +3,7 @@
 import math
 import logging
 from datetime import datetime, timezone
+from time import strptime
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
 from app.schemas.fba_calc import FuelTypeEnum
@@ -247,6 +248,8 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         logger.error('Encountered error while generating StationDaily for station %s', station.code)
         logger.error(exc, exc_info=True)
 
+    raw_date_string = raw_daily.get('updateDate', None)
+
     return StationDaily(
         code=station.code,
         date=date,
@@ -274,7 +277,8 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         fire_type=fire_type,
         error=raw_daily.get('observationValidInd', None),
         error_message=raw_daily.get('observationValidComment', None),
-        last_updated=raw_daily.get('updateDate', None)
+        last_updated=datetime.fromisoformat(raw_date_string[:len(
+            raw_date_string) - 2] + ':' + raw_date_string[len(raw_date_string) - 2:])
     )
 
 

@@ -2,6 +2,8 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import React from 'react'
 import UpdateIcon from '@material-ui/icons/Update'
 import { makeStyles } from '@material-ui/core'
+import { maxBy } from 'lodash'
+import { pstFormatter } from 'utils/date'
 
 export interface LastUpdatedHeaderProps {
   dailies: StationDaily[]
@@ -23,15 +25,15 @@ const useStyles = makeStyles({
 })
 
 const findLastUpdate = (dailies: StationDaily[]) => {
-  let lastUpdated: Date | undefined = undefined
-  dailies.forEach(daily => {
-    if (!lastUpdated || daily.last_updated > lastUpdated) {
-      if (daily.status === 'FORECAST') {
-        lastUpdated = daily.last_updated
-      }
-    }
-  })
-  return lastUpdated
+  const forecasts = dailies.filter(daily => daily.status === 'FORECAST')
+  const lastUpdatedDaily: StationDaily | undefined = maxBy(
+    forecasts,
+    forecast => forecast.last_updated
+  )
+  if (lastUpdatedDaily?.last_updated) {
+    return new Date(lastUpdatedDaily.last_updated.toString())
+  }
+  return
 }
 
 const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
