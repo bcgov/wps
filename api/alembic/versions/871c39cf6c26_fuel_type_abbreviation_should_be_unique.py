@@ -28,7 +28,6 @@ def upgrade():
 
 def downgrade():
     # drop index and unique constraint.
-    # op.drop_constraint('unique_station_code_for_planning_area',
-    #    'planning_weather_stations', type_='unique')
-    # op.drop_index(op.f('ix_fuel_types_abbrev'), table_name='fuel_types')
-    pass
+    op.drop_constraint('unique_station_code_for_planning_area',
+                       'planning_weather_stations', type_='unique')
+    op.drop_index(op.f('ix_fuel_types_abbrev'), table_name='fuel_types')
