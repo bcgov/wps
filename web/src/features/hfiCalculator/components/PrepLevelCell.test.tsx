@@ -11,6 +11,7 @@ const renderPrepLevel = (prepLevel: number | undefined) => {
           <TableRow>
             <PrepLevelCell
               testid={'weekly-prep-level-afton'}
+              toolTipText="test"
               prepLevel={prepLevel}
             ></PrepLevelCell>
           </TableRow>

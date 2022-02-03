@@ -6,6 +6,7 @@ import React from 'react'
 
 export interface PrepLevelCellProps {
   testid?: string
+  toolTipText: string
   prepLevel: number | undefined
 }
 
@@ -76,18 +77,15 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
     }
   }
 
-  const prepLevelTooltipText =
-    'Cannot calculate prep level. Please check the daily forecast using the tabs above.'
-
-  const prepLevelErrorTooltipElement = <div>{prepLevelTooltipText}</div>
+  const prepLevelErrorTooltipElement = (toolTipText: string) => <div>{toolTipText}</div>
 
   return (
     <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
       {isUndefined(props.prepLevel) ? (
         <ErrorIconWithTooltip
           testId="prep-level-error"
-          tooltipElement={prepLevelErrorTooltipElement}
-          tooltipAriaText={[prepLevelTooltipText]}
+          tooltipElement={prepLevelErrorTooltipElement(props.toolTipText)}
+          tooltipAriaText={[props.toolTipText]}
         />
       ) : (
         props.prepLevel

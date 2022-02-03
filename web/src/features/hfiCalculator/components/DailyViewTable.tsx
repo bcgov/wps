@@ -342,6 +342,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       />
                       <PrepLevelCell
                         testid={`daily-prep-level-${areaName}`}
+                        toolTipText=" Incomplete data from WFWX for one or more stations. Please exclude station(s) displaying errors."
                         prepLevel={dailyResult?.prepLevel}
                       />
                     </TableRow>
