@@ -136,7 +136,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       getDailies(start, end)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fireCentres])
+  }, [selectedFireCentre])
 
   const updateDate = (newDate: string) => {
     if (newDate !== dateOfInterest) {
