@@ -107,10 +107,10 @@ export const validateStationDaily = (daily: StationDaily): ValidatedStationDaily
   const requiredFieldsPresent = Object.keys(daily)
     .map(key => {
       if (requiredFields.includes(key as keyof StationDaily)) {
-        const includesRequiredField =
+        return (
           !isUndefined(daily[key as keyof StationDaily]) &&
           !isNull(daily[key as keyof StationDaily])
-        return includesRequiredField
+        )
       }
       return true
     })
