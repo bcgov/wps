@@ -2,6 +2,9 @@
 Computatations for C7b Based on:
 Spreadsheet originally created by J. Beck, 2003,
 Updated (formatting, layout) by D. Perrakis, 2014
+
+The spreadsheet can be found in the Predictive Services Unit Sharepoint site,
+search for "NewC7b - C7 with curing3.xls"
 """
 import math
 
