@@ -29,6 +29,11 @@ const errorIconTheme = createTheme({
       root: {
         fill: '#D8292F'
       }
+    },
+    MuiTooltip: {
+      tooltip: {
+        fontSize: 14
+      }
     }
   }
 })
