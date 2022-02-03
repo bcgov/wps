@@ -29,6 +29,7 @@ const HFIErrorAlert = ({ hfiDailiesError, fireCentresError }: HFIErrorAlertProps
     <div className={classes.root}>
       <Collapse in={open}>
         <Alert
+          data-testid="hfi-error-alert"
           severity="error"
           action={
             <IconButton
