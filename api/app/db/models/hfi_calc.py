@@ -57,7 +57,7 @@ class PlanningWeatherStation(Base):
     __tablename__ = 'planning_weather_stations'
     __table_args__ = (
         UniqueConstraint('station_code', 'planning_area_id',
-                         name='unique_station_code_for_planning_area_constraint'),
+                         name='unique_station_code_for_planning_area'),
         {'comment': 'Identifies the unique code used to identify the station'}
     )
 

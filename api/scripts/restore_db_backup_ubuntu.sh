@@ -1,9 +1,21 @@
 #!/bin/bash
+
+# Database backup restore helper
+#
+#   Restore database backup (made by the backup container).
+#   This script works on Ubuntu.
+#   TODO: Ideally we should have the same script for Ubuntu and for MacOS.
+#
+# Examples:
+#   
+#   FILENAME=some_backup.sql.gz ./restore_db_backup.sh
+#
+
+# drop existing DB, and re-create it
 echo "You maybe be promted for your sudo password now..."
 sudo -u postgres psql -U postgres -c "alter role wps superuser;" -c "drop database wps;" -c "create database wps with owner wps;" 
 
 echo "You may be promted for the wps database user password now..."
-# pg_restore -h localhost -d wps -U wps --no-owner --role=wps -c tmp/dump_db.tar
 gunzip -c "${FILENAME}" | psql -v ON_ERROR_STOP=1 -x -h localhost -U wps -d wps
 
 sudo -u postgres psql -U postgres -c "alter role wps nosuperuser;"
