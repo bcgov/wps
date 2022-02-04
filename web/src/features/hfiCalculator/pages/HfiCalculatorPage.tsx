@@ -140,7 +140,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [selectedFireCentre])
 
   const updateDate = (newDate: string) => {
-    if (newDate !== dateOfInterest) {
+    if (newDate !== dateOfInterest && !isUndefined(selectedFireCentre)) {
       setDateOfInterest(newDate)
       const { start, end } = getDateRange(true, newDate)
       dispatch(setSelectedPrepDate(''))
