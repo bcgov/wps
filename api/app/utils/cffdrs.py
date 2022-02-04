@@ -345,7 +345,6 @@ def rate_of_spread(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-argument
     # Returns:
     #   ROS: Rate of spread (m/min)
     #
-
     NOTE: For C1, only ISI and BUI is used to calculate ROS. All other inputs are ignored.
     """
     if fuel_type is None or isi is None or bui is None or sfc is None:
