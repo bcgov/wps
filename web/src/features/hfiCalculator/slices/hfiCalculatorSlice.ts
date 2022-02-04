@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { getDailies, StationDaily } from 'api/hfiCalculatorAPI'
-import { groupBy, isUndefined, range, chain, flatten, take } from 'lodash'
+import { groupBy, isUndefined, range, chain, flatten, take, isNull } from 'lodash'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 
@@ -15,13 +15,14 @@ export interface FireStarts {
 
 export interface DailyResult {
   dateISO: string
-  dailies: StationDaily[]
+  dailies: ValidatedStationDaily[]
   fireStarts: FireStarts
   meanIntensityGroup: number | undefined
   prepLevel: number | undefined
 }
 
 export interface PlanningAreaResult {
+  allDailiesValid: boolean
   highestDailyIntensityGroup: number
   meanPrepLevel: number | undefined
   dailyResults: DailyResult[]
@@ -30,7 +31,7 @@ export interface PlanningAreaResult {
 export interface HFICalculatorState {
   loading: boolean
   error: string | null
-  dailies: StationDaily[]
+  dailies: ValidatedStationDaily[]
   numPrepDays: number
   selectedStationCodes: number[]
   selectedPrepDate: string
@@ -38,6 +39,10 @@ export interface HFICalculatorState {
   planningAreaFireStarts: { [key: string]: FireStarts[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
+}
+
+export interface ValidatedStationDaily extends StationDaily {
+  valid: boolean
 }
 
 // Encodes lookup tables for each fire starts range from workbook
@@ -86,6 +91,34 @@ const initialState: HFICalculatorState = {
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
   selectedFireCentre: undefined
+}
+
+type RequiredValidField = keyof StationDaily
+export const requiredFields: RequiredValidField[] = [
+  'temperature',
+  'relative_humidity',
+  'wind_speed',
+  'wind_direction',
+  'precipitation',
+  'intensity_group'
+]
+
+export const validateStationDaily = (daily: StationDaily): ValidatedStationDaily => {
+  const requiredFieldsPresent = Object.keys(daily)
+    .map(key => {
+      if (requiredFields.includes(key as keyof StationDaily)) {
+        return (
+          !isUndefined(daily[key as keyof StationDaily]) &&
+          !isNull(daily[key as keyof StationDaily])
+        )
+      }
+      return true
+    })
+    .reduce((prev, curr) => prev && curr, true)
+  return {
+    ...daily,
+    valid: requiredFieldsPresent
+  }
 }
 
 export const calculateMeanIntensity = (dailies: StationDaily[]): number | undefined =>
@@ -210,9 +243,12 @@ const calculateHFIResults = (
         const dailyFireStarts = planningAreaFireStarts[area.name][index]
         const meanIntensityGroup = calculateMeanIntensity(resultDailies)
         const prepLevel = calculatePrepLevel(meanIntensityGroup, dailyFireStarts)
+        const validatedDailies: ValidatedStationDaily[] = resultDailies.map(daily =>
+          validateStationDaily(daily)
+        )
         return {
           dateISO: resultDailies[0].date.toISO(),
-          dailies: resultDailies,
+          dailies: validatedDailies,
           fireStarts: dailyFireStarts,
           meanIntensityGroup,
           prepLevel
@@ -228,7 +264,14 @@ const calculateHFIResults = (
       dailyResults.map(result => result.prepLevel)
     )
 
+    const allDailiesValid = dailyResults
+      .flatMap(result =>
+        result.dailies.every(validatedDaily => validatedDaily.valid === true)
+      )
+      .reduce((prev, curr) => prev && curr, true)
+
     planningAreaToDailies[area.name] = {
+      allDailiesValid,
       dailyResults,
       highestDailyIntensityGroup,
       meanPrepLevel
@@ -257,7 +300,7 @@ const dailiesSlice = createSlice({
       }>
     ) {
       state.error = null
-      state.dailies = action.payload.dailies
+      state.dailies = action.payload.dailies.map(daily => validateStationDaily(daily))
       state.selectedFireCentre = action.payload.fireCentre
       state.selectedStationCodes = action.payload.selectedStationCodes
       state.planningAreaHFIResults = calculateHFIResults(

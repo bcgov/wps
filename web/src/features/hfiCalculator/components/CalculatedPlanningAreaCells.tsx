@@ -27,7 +27,7 @@ export interface CalculatedCellsProps {
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
-  const allDailies = props.planningAreaResult.dailyResults.flatMap(
+  const allPlanningAreaDailies = props.planningAreaResult.dailyResults.flatMap(
     result => result.dailies
   )
   return (
@@ -43,7 +43,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
             <TableCell colSpan={2} className={props.planningAreaClass}></TableCell>
             <MeanIntensityGroupRollup
               area={props.area}
-              dailies={allDailies ? allDailies : []}
+              dailies={allPlanningAreaDailies ? allPlanningAreaDailies : []}
               selectedStationCodes={props.selectedStationCodes}
               meanIntensityGroup={meanIntensityGroup}
             />
@@ -53,20 +53,28 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
               dayOffset={day}
               setFireStarts={props.setNewFireStarts}
             />
-            <PrepLevelCell prepLevel={prepLevel} />
+            <PrepLevelCell
+              toolTipText={
+                'Cannot calculate prep level. Please check the daily forecast using the tabs above.'
+              }
+              prepLevel={prepLevel}
+            />
           </React.Fragment>
         )
       })}
 
       <MeanIntensityGroupRollup
         area={props.area}
-        dailies={allDailies}
+        dailies={allPlanningAreaDailies}
         selectedStationCodes={props.selectedStationCodes}
         meanIntensityGroup={props.planningAreaResult.highestDailyIntensityGroup}
       ></MeanIntensityGroupRollup>
       <MeanPrepLevelCell
         areaName={props.areaName}
         meanPrepLevel={props.planningAreaResult.meanPrepLevel}
+        emptyOrIncompleteForecast={
+          allPlanningAreaDailies.length === 0 || !props.planningAreaResult.allDailiesValid
+        }
       />
     </React.Fragment>
   )
