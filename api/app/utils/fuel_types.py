@@ -21,6 +21,7 @@ FUEL_TYPE_DEFAULTS = {
     FuelTypeEnum.C5: {"PC": 100, "PDF": 0, "CC": None, "CBH": 18, "CFL": 1.2},
     FuelTypeEnum.C6: {"PC": 100, "PDF": 0, "CC": None, "CBH": 7, "CFL": 1.8},
     FuelTypeEnum.C7: {"PC": 100, "PDF": 0, "CC": None, "CBH": 10, "CFL": 0.5},
+    FuelTypeEnum.C7B: {"PC": 100, "PDF": 0, "CC": None, "CBH": 10, "CFL": 0.5},
     # No CBH listed in RB fire intensity class table for D1.
     # Using default CBH value of 3, as specified in fbp.Rd in cffdrs R package.
     FuelTypeEnum.D1: {"PC": 0, "PDF": 0, "CC": None, "CBH": 3, "CFL": 1.0},  # TODO: check cfl

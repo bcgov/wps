@@ -23,6 +23,20 @@ class AsyncIter:
             yield item
 
 
+def float_or_none(value: str):
+    """ convert string to floating point number, or None if empty string """
+    if value == '':
+        return None
+    return float(value)
+
+
+def str_or_none(value: str):
+    """ Convert string to None if empty string """
+    if value == '':
+        return None
+    return value
+
+
 @pytest.mark.usefixtures("mock_jwt_decode")
 @scenario('test_hfi_dailies.feature', 'Get metrics for stations',
           example_converters=dict(
@@ -32,7 +46,7 @@ class AsyncIter:
               relative_humidity=float,
               wind_speed=float,
               wind_direction=float,
-              grass_cure_percentage=float,
+              grass_cure_percentage=float_or_none,
               precipitation=float,
               ffmc=float,
               dmc=float,
@@ -41,13 +55,17 @@ class AsyncIter:
               bui=float,
               fwi=float,
               danger_cl=float,
-              fbp_fuel_type=str))
+              fuel_type_abbrev=str,
+              head_fire_intensity=float_or_none,
+              fire_type=str_or_none,
+              rate_of_spread=float_or_none))
 def test_hfi_daily_metrics():
     """ BDD Scenario. """
 
 
-@given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp>.', target_fixture='response')  # pylint: disable=line-too-long
-def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture):  # pylint: disable=unused-argument
+@given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp> with <fuel_type_abbrev> and <grass_cure_percentage>.', target_fixture='response')  # pylint: disable=line-too-long
+def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture, fuel_type_abbrev: str,
+                                     grass_cure_percentage: str):  # pylint: disable=unused-argument
     """ Make /hfi-calc/daily request using mocked out ClientSession.
     """
 
@@ -67,7 +85,7 @@ def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture):  # pyl
                                           "windSpeed": 1.0,
                                           "windDirection": 1.0,
                                           "precipitation": 1.0,
-                                          "grasslandCuring": 1.0,
+                                          "grasslandCuring": grass_cure_percentage,
                                           "dailySeverityRating": 1.0,
                                           "droughtCode": 1.0,
                                           "duffMoistureCode": 1.0,
@@ -77,7 +95,7 @@ def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture):  # pyl
     # To build generic objects with attributes
     object_builder = lambda **kwargs: type("Object", (), kwargs)()
     planning_station = object_builder(station_code=322)
-    fuel_type = object_builder(abbrev='C7', value='C7')
+    fuel_type = object_builder(abbrev=fuel_type_abbrev, value=fuel_type_abbrev)
     mocker.patch('app.db.crud.hfi_calc.get_stations_with_fuel_types',
                  return_value=[(planning_station, fuel_type)])
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
@@ -179,3 +197,24 @@ def assert_fwi(response, fwi):
 def assert_danger_class(response, danger_class):
     """ Assert expected danger_class """
     assert float(danger_class) == response.json()['dailies'][0]['danger_class']
+
+
+@then('<head_fire_intensity>')
+def assert_head_fire_intensity(response, head_fire_intensity):
+    """ Assert expected head_fire_intensity """
+    print(response.json()['dailies'][0])
+    assert head_fire_intensity == response.json()['dailies'][0]['hfi']
+
+
+@then('<rate_of_spread>')
+def assert_rate_of_spread(response, rate_of_spread):
+    """ Assert expected head_fire_intensity """
+    print(response.json()['dailies'][0])
+    assert rate_of_spread == response.json()['dailies'][0]['rate_of_spread']
+
+
+@then('<fire_type>')
+def assert_fire_type(response, fire_type):
+    """ Assert expected head_fire_intensity """
+    print(response.json()['dailies'][0])
+    assert fire_type == response.json()['dailies'][0]['fire_type']

@@ -42,7 +42,8 @@ class FuelType(Base):
     __tablename__ = 'fuel_types'
 
     id = Column(Integer, Sequence('fuel_types_id_seq'), primary_key=True, nullable=False, index=True)
-    abbrev = Column(String, nullable=False)
+    # The abbreviation should be unique - we don't want duplicate fuel types.
+    abbrev = Column(String, nullable=False, index=True, unique=True)
     description = Column(String)
 
     def __str__(self):
@@ -55,7 +56,8 @@ class PlanningWeatherStation(Base):
     """ Weather station within planning area selected as a representative of its associated planning area """
     __tablename__ = 'planning_weather_stations'
     __table_args__ = (
-        UniqueConstraint('station_code', 'planning_area_id'),
+        UniqueConstraint('station_code', 'planning_area_id',
+                         name='unique_station_code_for_planning_area'),
         {'comment': 'Identifies the unique code used to identify the station'}
     )
 
