@@ -63,6 +63,7 @@ describe('HFI Calculator Page', () => {
 
     it('should allow date of interest to be changed with DatePicker component', () => {
       cy.visit(HFI_CALC_ROUTE)
+      cy.selectFireCentreInDropdown('Kamloops')
       cy.getByTestId('daily-toggle-0').click()
       cy.getByTestId('date-of-interest-picker').type('2021-07-22')
       cy.getByTestId('hfi-calc-daily-table').click({ force: true })

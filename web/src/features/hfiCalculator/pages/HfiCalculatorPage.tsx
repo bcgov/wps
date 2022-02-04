@@ -132,13 +132,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [dailies])
 
   useEffect(() => {
-    const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
-    getDailies(start, end)
+    if (!isUndefined(selectedFireCentre)) {
+      const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
+      getDailies(start, end)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fireCentres])
+  }, [selectedFireCentre])
 
   const updateDate = (newDate: string) => {
-    if (newDate !== dateOfInterest) {
+    if (newDate !== dateOfInterest && !isUndefined(selectedFireCentre)) {
       setDateOfInterest(newDate)
       const { start, end } = getDateRange(true, newDate)
       dispatch(setSelectedPrepDate(''))
