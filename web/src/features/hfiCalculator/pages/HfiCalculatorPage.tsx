@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Button, Container, ErrorBoundary, GeneralHeader, PageTitle } from 'components'
+import { Button, Container, ErrorBoundary, GeneralHeader } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   fetchHFIDailies,
@@ -19,12 +19,7 @@ import {
   selectHFICalculatorState
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui/core'
-import {
-  FileCopyOutlined,
-  CheckOutlined,
-  InfoOutlined,
-  HelpOutlineOutlined
-} from '@material-ui/icons'
+import { FileCopyOutlined, CheckOutlined, InfoOutlined } from '@material-ui/icons'
 import { getDateRange, getPrepWeeklyDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
@@ -32,13 +27,10 @@ import { formControlStyles, theme } from 'app/theme'
 import { HFITableCSVFormatter } from 'features/hfiCalculator/HFITableCSVFormatter'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
-import DatePicker from 'components/DatePicker'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
 import { isNull, isUndefined, union } from 'lodash'
-import FireCentreDropdown from 'features/hfiCalculator/components/FireCentreDropdown'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
-import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -272,9 +264,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         title="HFI Calculator"
         productName="HFI Calculator"
       />
-      {/* <PageTitle maxWidth={false} padding="1rem" title="HFI Calculator" /> */}
       <HFIPageSubHeader
         fireCentres={fireCentres}
+        dateOfInterest={dateOfInterest}
+        updateDate={updateDate}
         selectedFireCentre={selectedFireCentre}
         selectNewFireCentre={selectNewFireCentre}
         formControlClass={classes.formControl}
@@ -300,21 +293,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             <FormControl className={classes.prepDays}>
               <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
             </FormControl>
-            <FormControl className={classes.formControl}>
-              <FireCentreDropdown
-                fireCentres={fireCentres}
-                selectedValue={
-                  isUndefined(selectedFireCentre)
-                    ? null
-                    : { name: selectedFireCentre?.name }
-                }
-                onChange={selectNewFireCentre}
-              />
-            </FormControl>
 
-            <FormControl className={classes.formControl}>
-              <DatePicker date={dateOfInterest} updateDate={updateDate} />
-            </FormControl>
             <FormControl className={classes.formControl}>
               <ViewSwitcherToggles dateOfInterest={dateOfInterest} />
             </FormControl>
@@ -338,17 +317,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                 </Button>
               )}
             </FormControl>
-
-            <FormControl className={classes.positionStyler}>
-              <Button onClick={openAboutModal}>
-                <HelpOutlineOutlined className={classes.helpIcon}></HelpOutlineOutlined>
-                <p className={classes.aboutButtonText}>About this data</p>
-              </Button>
-            </FormControl>
-            <AboutDataModal
-              modalOpen={modalOpen}
-              setModalOpen={setModalOpen}
-            ></AboutDataModal>
 
             <ErrorBoundary>
               <ViewSwitcher

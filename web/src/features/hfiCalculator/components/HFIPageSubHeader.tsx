@@ -8,18 +8,21 @@ import { isUndefined } from 'lodash'
 import { FireCentre } from 'api/hfiCalcAPI'
 import AboutDataModal from 'features/hfiCalculator/components/AboutDataModal'
 import { HelpOutlineOutlined } from '@material-ui/icons'
+import DatePicker from 'components/DatePicker'
+import { formControlStyles } from 'app/theme'
 
 const useStyles = makeStyles(theme => ({
-  root: (props: Props) => ({
+  ...formControlStyles,
+  root: {
     maxHeight: 60,
     marginBottom: '1rem',
     paddingBottom: '1rem',
     paddingTop: '1rem',
-    paddingLeft: props.padding,
+    paddingLeft: '1rem',
     fontSize: '1.3rem',
     background: theme.palette.primary.light,
     color: theme.palette.primary.contrastText
-  }),
+  },
   positionStyler: {
     position: 'absolute',
     right: '20px'
@@ -38,6 +41,8 @@ interface Props {
   padding?: string
   formControlClass: string
   fireCentres: Record<string, FireCentre>
+  dateOfInterest: string
+  updateDate: (newDate: string) => void
   selectedFireCentre: FireCentre | undefined
   selectNewFireCentre: (newSelection: FireCentre | undefined) => void
   openAboutModal: () => void
@@ -51,6 +56,13 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
   return (
     <div className={classes.root}>
       <Container>
+        <FormControl className={classes.formControl}>
+          <DatePicker
+            date={props.dateOfInterest}
+            updateDate={props.updateDate}
+            size={'small'}
+          />
+        </FormControl>
         <FormControl className={props.formControlClass}>
           <FireCentreDropdown
             fireCentres={props.fireCentres}

@@ -13,6 +13,9 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'flex-start',
     minWidth: 300
+  },
+  fireCentreTextField: {
+    color: 'white'
   }
 })
 
@@ -55,14 +58,15 @@ const FireCentreDropdown = (props: Props) => {
               props.onChange(fc)
             }
           }}
-          size="medium"
+          size="small"
           renderInput={params => (
             <TextField
               {...params}
               label="Fire Centre"
               variant="outlined"
               fullWidth
-              size="medium"
+              size="small"
+              className={classes.fireCentreTextField}
             />
           )}
         />
