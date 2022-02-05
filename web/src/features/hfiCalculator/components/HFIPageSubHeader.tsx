@@ -1,18 +1,15 @@
-import React, { SetStateAction } from 'react'
+import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 
-import { Container } from 'components/Container'
-import { Button, FormControl } from '@material-ui/core'
+import { Button, FormControl, Grid } from '@material-ui/core'
 import FireCentreDropdown from 'features/hfiCalculator/components/FireCentreDropdown'
 import { isUndefined } from 'lodash'
 import { FireCentre } from 'api/hfiCalcAPI'
 import AboutDataModal from 'features/hfiCalculator/components/AboutDataModal'
 import { HelpOutlineOutlined } from '@material-ui/icons'
 import DatePicker from 'components/DatePicker'
-import { formControlStyles } from 'app/theme'
 
 const useStyles = makeStyles(theme => ({
-  ...formControlStyles,
   root: {
     maxHeight: 60,
     marginBottom: '1rem',
@@ -21,7 +18,8 @@ const useStyles = makeStyles(theme => ({
     paddingLeft: '1rem',
     fontSize: '1.3rem',
     background: theme.palette.primary.light,
-    color: theme.palette.primary.contrastText
+    color: theme.palette.primary.contrastText,
+    alignContent: 'center'
   },
   positionStyler: {
     position: 'absolute',
@@ -34,6 +32,21 @@ const useStyles = makeStyles(theme => ({
     color: 'white',
     textDecoration: 'underline',
     fontWeight: 'bold'
+  },
+  dateOfInterestPicker: {
+    marginLeft: '7px',
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'white'
+    },
+    '& .MuiOutlinedInput-input': {
+      color: 'white'
+    },
+    '& .PrivateNotchedOutline-legendLabelled-25': {
+      color: 'white'
+    },
+    '& .MuiIconButton-root': {
+      color: 'white'
+    }
   }
 }))
 
@@ -45,47 +58,59 @@ interface Props {
   updateDate: (newDate: string) => void
   selectedFireCentre: FireCentre | undefined
   selectNewFireCentre: (newSelection: FireCentre | undefined) => void
-  openAboutModal: () => void
-  modalOpen: boolean
-  setModalOpen: React.Dispatch<SetStateAction<boolean>>
 }
 
 export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) => {
   const classes = useStyles(props)
 
+  const [modalOpen, setModalOpen] = useState<boolean>(false)
+
+  const openAboutModal = () => {
+    setModalOpen(true)
+  }
+
   return (
     <div className={classes.root}>
-      <Container>
-        <FormControl className={classes.formControl}>
-          <DatePicker
-            date={props.dateOfInterest}
-            updateDate={props.updateDate}
-            size={'small'}
-          />
-        </FormControl>
-        <FormControl className={props.formControlClass}>
-          <FireCentreDropdown
-            fireCentres={props.fireCentres}
-            selectedValue={
-              isUndefined(props.selectedFireCentre)
-                ? null
-                : { name: props.selectedFireCentre?.name }
-            }
-            onChange={props.selectNewFireCentre}
-          />
-        </FormControl>
+      <Grid container spacing={0}>
+        <Grid item md={3}>
+          <FormControl className={classes.dateOfInterestPicker}>
+            <DatePicker
+              date={props.dateOfInterest}
+              updateDate={props.updateDate}
+              size={'small'}
+            />
+          </FormControl>
+        </Grid>
+        <Grid item md={3}>
+          <FormControl>
+            <FireCentreDropdown
+              fireCentres={props.fireCentres}
+              selectedValue={
+                isUndefined(props.selectedFireCentre)
+                  ? null
+                  : { name: props.selectedFireCentre?.name }
+              }
+              onChange={props.selectNewFireCentre}
+            />
+          </FormControl>
+        </Grid>
+        <Grid item md={4}>
+          {/* empty Grid item for spacing */}
+        </Grid>
 
-        <FormControl className={classes.positionStyler}>
-          <Button onClick={props.openAboutModal}>
-            <HelpOutlineOutlined className={classes.helpIcon}></HelpOutlineOutlined>
-            <p className={classes.aboutButtonText}>About this data</p>
-          </Button>
-        </FormControl>
-        <AboutDataModal
-          modalOpen={props.modalOpen}
-          setModalOpen={props.setModalOpen}
-        ></AboutDataModal>
-      </Container>
+        <Grid item md={2} justifyContent="flex-end">
+          <FormControl>
+            <Button onClick={openAboutModal} size="small">
+              <HelpOutlineOutlined className={classes.helpIcon}></HelpOutlineOutlined>
+              <p className={classes.aboutButtonText}>About this data</p>
+            </Button>
+          </FormControl>
+          <AboutDataModal
+            modalOpen={modalOpen}
+            setModalOpen={setModalOpen}
+          ></AboutDataModal>
+        </Grid>
+      </Grid>
     </div>
   )
 }

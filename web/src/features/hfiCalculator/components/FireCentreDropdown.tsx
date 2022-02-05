@@ -7,7 +7,10 @@ import { isNull } from 'lodash'
 
 const useStyles = makeStyles({
   autocomplete: {
-    width: '100%'
+    width: '100%',
+    hasPopupIcon: 'true',
+    hasClearIcon: 'true',
+    color: 'white'
   },
   wrapper: {
     display: 'flex',
@@ -15,6 +18,21 @@ const useStyles = makeStyles({
     minWidth: 300
   },
   fireCentreTextField: {
+    color: 'white',
+    '& .MuiAutocomplete-clearIndicator': {
+      color: 'white'
+    },
+    '& .MuiAutocomplete-popupIndicator': {
+      color: 'white'
+    },
+    '& .MuiInputLabel-root': {
+      color: 'white'
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'white'
+    }
+  },
+  fireCentreTextFieldInput: {
     color: 'white'
   }
 })
@@ -43,6 +61,7 @@ const FireCentreDropdown = (props: Props) => {
         <Autocomplete
           id="fire-centre-dropdown"
           className={classes.autocomplete}
+          classes={{ inputRoot: classes.fireCentreTextFieldInput }}
           data-testid="fire-centre-dropdown"
           options={allFireCentreOptions}
           value={props.selectedValue}

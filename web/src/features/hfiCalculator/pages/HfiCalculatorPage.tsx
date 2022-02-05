@@ -99,8 +99,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     dispatch(setFireStarts({ areaName, dayOffset, newFireStarts }))
   }
 
-  const [modalOpen, setModalOpen] = useState<boolean>(false)
-
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(
     pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
@@ -139,10 +137,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       dispatch(setSelectedPrepDate(''))
       getDailies(start, end)
     }
-  }
-
-  const openAboutModal = () => {
-    setModalOpen(true)
   }
 
   const getAllPlanningWeatherStationCodesFromFireCentre = (
@@ -274,9 +268,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         selectNewFireCentre={selectNewFireCentre}
         formControlClass={classes.formControl}
         padding="1rem"
-        openAboutModal={openAboutModal}
-        modalOpen={modalOpen}
-        setModalOpen={setModalOpen}
       />
       {loading || stationDataLoading ? (
         <Container className={classes.container}>
