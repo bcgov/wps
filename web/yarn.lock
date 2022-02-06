@@ -2002,10 +2002,10 @@
   resolved "https://registry.yarnpkg.com/@devexpress/dx-core/-/dx-core-2.7.6.tgz#0a8633aa46ea798cb7c1bb071e02cb9bfbd15d1c"
   integrity sha512-ykcgRi1x4DwVK/5vXUhwK/S0FCwdIp5GmsG6x+4Xf24xVlVD+68ln0pK+y5tCVE4Scxzmq3m0YFtMpckUKQ6zA==
 
-"@devexpress/dx-grid-core@2.7.6":
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/@devexpress/dx-grid-core/-/dx-grid-core-2.7.6.tgz#0b4d343944faf203a7df9e169d9b175b3f7b29bb"
-  integrity sha512-BJT3Hg7stk3Gj5pM17oow8g1oeRdLhRyFipMndGVEoaLSL1VyV4fgPnCnAjthFd+cHon0+VJZ2k9Pcm3PqG09Q==
+"@devexpress/dx-grid-core@3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@devexpress/dx-grid-core/-/dx-grid-core-3.0.0.tgz#1a445ed9a91a4b3d4e1127ec355ea9f98e67da70"
+  integrity sha512-zumJF7NyKz+DyNUIKF46qoa7Zjn3jrWcAfrUtIukBfqP+lq/Wr5lqaDdbd1KyJt/FJlvAxPvM3fXOhWnS1N9kw==
 
 "@devexpress/dx-react-core@^2.7.6":
   version "2.7.6"
@@ -2023,12 +2023,12 @@
     clsx "^1.0.4"
     prop-types "^15.7.2"
 
-"@devexpress/dx-react-grid@^2.7.6":
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/@devexpress/dx-react-grid/-/dx-react-grid-2.7.6.tgz#f4fda8257f50c94f9832c72d2cabdffb67f18e20"
-  integrity sha512-cCar74XemAxeUcQwn8iAoDIiEpOgpGwdwdh1Yz9zCFoW+u0q6bcv/Cj05xb1AmM1/tB+v7yy+rZjauIzD81vIQ==
+"@devexpress/dx-react-grid@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@devexpress/dx-react-grid/-/dx-react-grid-3.0.0.tgz#b22fdb958b73eb6642a8b129992bde1786620f27"
+  integrity sha512-NYTKVdu31/IDzu9/CHmSVR6zlvCRtCj9AAhMUUhrhYFTRNr2s4b+OXvZbqkbLdJA39Oue5RqeBrCBjgt2AhfAA==
   dependencies:
-    "@devexpress/dx-grid-core" "2.7.6"
+    "@devexpress/dx-grid-core" "3.0.0"
 
 "@emotion/hash@^0.8.0":
   version "0.8.0"
