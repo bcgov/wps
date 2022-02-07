@@ -3,6 +3,8 @@ import React from 'react'
 import UpdateIcon from '@material-ui/icons/Update'
 import { makeStyles } from '@material-ui/core'
 import { maxBy } from 'lodash'
+import { DateTime } from 'luxon'
+import { PST_UTC_OFFSET } from 'utils/constants'
 
 export interface LastUpdatedHeaderProps {
   dailies: StationDaily[]
@@ -30,7 +32,16 @@ const findLastUpdate = (dailies: StationDaily[]) => {
     forecast => forecast.last_updated
   )
   if (lastUpdatedDaily?.last_updated) {
-    return new Date(lastUpdatedDaily.last_updated.toISO().toString())
+    return DateTime.fromObject(
+      {
+        year: lastUpdatedDaily.last_updated.year,
+        month: lastUpdatedDaily.last_updated.month,
+        day: lastUpdatedDaily.last_updated.day,
+        hour: lastUpdatedDaily.last_updated.hour,
+        minute: lastUpdatedDaily.last_updated.minute
+      },
+      { zone: `UTC${PST_UTC_OFFSET}` }
+    )
   }
 }
 
@@ -39,16 +50,7 @@ const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
   const classes = useStyles()
   const lastUpdate = findLastUpdate(props.dailies)
   if (lastUpdate) {
-    const dateString = new Intl.DateTimeFormat('en', {
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: false,
-      timeZoneName: 'short'
-    })
-      .format(new Date(lastUpdate))
-      .toString()
+    const dateString = lastUpdate.toFormat('MMMM d, HH:mm') + ' PST'
 
     return (
       <React.Fragment>
