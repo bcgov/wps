@@ -30,11 +30,13 @@ const findLastUpdate = (dailies: StationDaily[]) => {
     forecast => forecast.last_updated
   )
   if (lastUpdatedDaily?.last_updated) {
-    return new Date(lastUpdatedDaily.last_updated.toString())
+    console.log(lastUpdatedDaily)
+    return new Date(lastUpdatedDaily.last_updated.toISO().toString())
   }
 }
 
 const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
+  console.log(props.dailies)
   const classes = useStyles()
   const lastUpdate = findLastUpdate(props.dailies)
   if (lastUpdate) {

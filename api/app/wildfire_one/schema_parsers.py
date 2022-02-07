@@ -247,7 +247,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         logger.error('Encountered error while generating StationDaily for station %s', station.code)
         logger.error(exc, exc_info=True)
 
-    raw_date_string = raw_daily.get('updateDate', None)
+    update_timestamp = int(raw_daily.get('lastEntityUpdateTimestamp'))
 
     return StationDaily(
         code=station.code,
@@ -276,8 +276,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         fire_type=fire_type,
         error=raw_daily.get('observationValidInd', None),
         error_message=raw_daily.get('observationValidComment', None),
-        last_updated=datetime.fromisoformat(raw_date_string[:len(
-            raw_date_string) - 2] + ':' + raw_date_string[len(raw_date_string) - 2:])
+        last_updated=datetime.fromtimestamp(update_timestamp / 1000, tz=timezone.utc)
     )
 
 
