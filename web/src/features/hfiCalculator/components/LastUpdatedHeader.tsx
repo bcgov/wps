@@ -30,7 +30,6 @@ const findLastUpdate = (dailies: StationDaily[]) => {
     forecast => forecast.last_updated
   )
   if (lastUpdatedDaily?.last_updated) {
-    console.log(lastUpdatedDaily)
     return new Date(lastUpdatedDaily.last_updated.toISO().toString())
   }
 }
