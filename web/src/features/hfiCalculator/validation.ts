@@ -25,6 +25,7 @@ export const isGrassFuelType = (
   }
   return (
     isEqual(stationProperties.fuel_type.abbrev.toLowerCase(), 'o1a') ||
-    isEqual(stationProperties.fuel_type.abbrev.toLowerCase(), 'o1b')
+    isEqual(stationProperties.fuel_type.abbrev.toLowerCase(), 'o1b') ||
+    isEqual(stationProperties.fuel_type.abbrev.toLowerCase(), 'c7b')
   )
 }

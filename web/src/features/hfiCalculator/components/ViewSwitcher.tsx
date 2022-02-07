@@ -1,13 +1,15 @@
 import { FireCentre } from 'api/hfiCalcAPI'
-import { StationDaily } from 'api/hfiCalculatorAPI'
 import { DailyViewTable } from 'features/hfiCalculator/components/DailyViewTable'
 import WeeklyViewTable from 'features/hfiCalculator/components/WeeklyViewTable'
-import { FireStarts } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import {
+  FireStarts,
+  ValidatedStationDaily
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import React from 'react'
 
 export interface ViewSwitcherProps {
   testId?: string
-  dailies: StationDaily[]
+  dailies: ValidatedStationDaily[]
   dateOfInterest: string
   setSelected: (selected: number[]) => void
   setNewFireStarts: (

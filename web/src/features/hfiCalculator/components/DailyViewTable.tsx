@@ -1,4 +1,4 @@
-import React, { ReactFragment } from 'react'
+import React from 'react'
 import {
   Table,
   TableBody,
@@ -7,12 +7,10 @@ import {
   TableRow,
   Tooltip
 } from '@material-ui/core'
-import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
+import { makeStyles } from '@material-ui/core/styles'
 import { useSelector } from 'react-redux'
-import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import { FireCentre } from 'api/hfiCalcAPI'
-import { StationDaily } from 'api/hfiCalculatorAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
@@ -33,12 +31,14 @@ import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import {
   DailyResult,
-  PlanningAreaResult
+  PlanningAreaResult,
+  ValidatedStationDaily
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredDataCell'
 
 export interface Props {
   fireCentre: FireCentre | undefined
-  dailies: StationDaily[]
+  dailies: ValidatedStationDaily[]
   setSelected: (selected: number[]) => void
   testId?: string
 }
@@ -80,7 +80,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   const { planningAreaHFIResults, selectedStationCodes, numPrepDays, selectedPrepDate } =
     useSelector(selectHFICalculatorState)
 
-  const getDailyForDay = (stationCode: number): StationDaily => {
+  const getDailyForDay = (stationCode: number): ValidatedStationDaily | undefined => {
     const dailiesForStation = getDailiesByStationCode(
       numPrepDays,
       props.dailies,
@@ -125,25 +125,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       selectedSet.add(code)
     }
     props.setSelected(Array.from(selectedSet))
-  }
-
-  const errorIconTheme = createTheme({
-    overrides: {
-      MuiSvgIcon: {
-        root: {
-          fill: '#D8292F'
-        }
-      }
-    }
-  })
-  const toolTipSecondLine = 'Please check WFWX or contact the forecaster.'
-  const createToolTipElement = (toolTipFirstLine: string): ReactFragment => {
-    return (
-      <div>
-        {toolTipFirstLine} <br />
-        {toolTipSecondLine}
-      </div>
-    )
   }
 
   const typeToolTipFirstLine = 'SUR = Surface Type'
@@ -361,6 +342,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       />
                       <PrepLevelCell
                         testid={`daily-prep-level-${areaName}`}
+                        toolTipText=" Incomplete data from WFWX for one or more stations. Please exclude station(s) displaying errors."
                         prepLevel={dailyResult?.prepLevel}
                       />
                     </TableRow>
@@ -388,41 +370,43 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               toggleSelectedStation={toggleSelectedStation}
                               isDailyTable={true}
                             />
-                            {daily?.observation_valid === false ? (
-                              <TableCell className={classNameForRow}>
-                                <ThemeProvider theme={errorIconTheme}>
-                                  <Tooltip
-                                    title={createToolTipElement(
-                                      daily?.observation_valid_comment
-                                    )}
-                                  >
-                                    <ErrorOutlineIcon
-                                      data-testid={`status-error`}
-                                    ></ErrorOutlineIcon>
-                                  </Tooltip>
-                                </ThemeProvider>
-                              </TableCell>
-                            ) : (
-                              <StatusCell
-                                className={classNameForRow}
-                                value={daily?.status}
-                              />
-                            )}
-                            <TableCell className={classNameForRow}>
-                              {daily?.temperature}
-                            </TableCell>
-                            <TableCell className={classNameForRow}>
-                              {daily?.relative_humidity}
-                            </TableCell>
+
+                            <StatusCell daily={daily} className={classNameForRow} />
+                            <RequiredDataCell
+                              classNameForRow={classNameForRow}
+                              dailyKey={'temperature'}
+                              daily={daily}
+                              errorToolTipText={
+                                'Temperature cannot be null. Impacts DMC, BUI, ROS, HFI, FIG, Prep calculations.'
+                              }
+                            />
+                            <RequiredDataCell
+                              classNameForRow={classNameForRow}
+                              dailyKey={'relative_humidity'}
+                              daily={daily}
+                              errorToolTipText={
+                                'RH cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.'
+                              }
+                            />
                             <TableCell className={classNameForRow}>
                               {daily?.wind_direction?.toFixed(0).padStart(3, '0')}
                             </TableCell>
-                            <TableCell className={classNameForRow}>
-                              {daily?.wind_speed}
-                            </TableCell>
-                            <TableCell className={classNameForRow}>
-                              {daily?.precipitation}
-                            </TableCell>
+                            <RequiredDataCell
+                              classNameForRow={classNameForRow}
+                              dailyKey={'wind_speed'}
+                              daily={daily}
+                              errorToolTipText={
+                                'Wind speed cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.'
+                              }
+                            />
+                            <RequiredDataCell
+                              classNameForRow={classNameForRow}
+                              dailyKey={'precipitation'}
+                              daily={daily}
+                              errorToolTipText={
+                                'Precipitation cannot be null. Impacts DC, BUI, ROS, HFI, FIG, Prep calculations.'
+                              }
+                            />
                             <GrassCureCell
                               value={daily?.grass_cure_percentage}
                               isGrassFuelType={isGrassFuelType(station.station_props)}

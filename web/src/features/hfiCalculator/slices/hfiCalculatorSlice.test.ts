@@ -7,8 +7,11 @@ import {
   highestFireStarts,
   lowestFireStarts,
   one2TwoStarts,
+  requiredFields,
   three2SixStarts,
-  two2ThreeStarts
+  two2ThreeStarts,
+  ValidatedStationDaily,
+  validateStationDaily
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { buildStationDaily } from 'features/hfiCalculator/components/testHelpers'
 describe('hfiCalculatorSlice', () => {
@@ -67,6 +70,23 @@ describe('hfiCalculatorSlice', () => {
       expect(calculatePrepLevel(3, highestFireStarts)).toBe(6)
       expect(calculatePrepLevel(4, highestFireStarts)).toBe(6)
       expect(calculatePrepLevel(5, highestFireStarts)).toBe(6)
+    })
+  })
+  describe('daily validation', () => {
+    it('should not validate daily if any required field is missing', () => {
+      requiredFields.forEach(field => {
+        const invalidDaily: ValidatedStationDaily = validateStationDaily({
+          ...buildStationDaily(1),
+          [field]: null
+        })
+        expect(invalidDaily.valid).toBe(false)
+      })
+    })
+    it('should validate daily if all required fields are set', () => {
+      const validDaily: ValidatedStationDaily = validateStationDaily({
+        ...buildStationDaily(1)
+      })
+      expect(validDaily.valid).toBe(true)
     })
   })
 })
