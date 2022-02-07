@@ -11,11 +11,12 @@ import DatePicker from 'components/DatePicker'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    maxHeight: 60,
+    minHeight: 50,
     marginBottom: '1rem',
-    paddingBottom: '1rem',
-    paddingTop: '1rem',
+    paddingBottom: '0.5rem',
+    paddingTop: '0.5rem',
     paddingLeft: '1rem',
+    paddingRight: '1rem',
     fontSize: '1.3rem',
     background: theme.palette.primary.light,
     color: theme.palette.primary.contrastText,
@@ -31,21 +32,32 @@ const useStyles = makeStyles(theme => ({
   aboutButtonText: {
     color: 'white',
     textDecoration: 'underline',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    justifyContent: 'flex-end'
   },
   dateOfInterestPicker: {
     marginLeft: '7px',
+    alignItems: 'center',
     '& .MuiOutlinedInput-notchedOutline': {
       borderColor: 'white'
     },
     '& .MuiOutlinedInput-input': {
       color: 'white'
     },
-    '& .PrivateNotchedOutline-legendLabelled-25': {
-      color: 'white'
-    },
     '& .MuiIconButton-root': {
       color: 'white'
+    },
+    '& .MuiInputLabel-root': {
+      color: 'white'
+    },
+    '& .MuiOutlinedInput-root': {
+      borderColor: 'white'
+    },
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'white'
+    },
+    '&:focus .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'white'
     }
   }
 }))
@@ -71,8 +83,8 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
 
   return (
     <div className={classes.root}>
-      <Grid container spacing={0}>
-        <Grid item md={3}>
+      <Grid container spacing={1}>
+        <Grid item md={3} alignItems="center">
           <FormControl className={classes.dateOfInterestPicker}>
             <DatePicker
               date={props.dateOfInterest}
@@ -81,7 +93,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
             />
           </FormControl>
         </Grid>
-        <Grid item md={3}>
+        <Grid item md={3} alignItems="center">
           <FormControl>
             <FireCentreDropdown
               fireCentres={props.fireCentres}
@@ -98,7 +110,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
           {/* empty Grid item for spacing */}
         </Grid>
 
-        <Grid item md={2} justifyContent="flex-end">
+        <Grid item md={2} justifyContent="flex-end" alignItems="center">
           <FormControl>
             <Button onClick={openAboutModal} size="small">
               <HelpOutlineOutlined className={classes.helpIcon}></HelpOutlineOutlined>
