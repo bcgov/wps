@@ -6,7 +6,7 @@ function interceptDaily(fixturePath: string) {
     cy.intercept('GET', 'api/hfi-calc/daily*', req => {
       const date = new Date(Number(req.query['start_time_stamp']))
       dailies['dailies'].forEach(daily => {
-        daily['date'] = date.toISOString()
+        ;(daily['date'] = date.toISOString()), (daily['last_updated'] = date.toISOString())
       })
       req.reply(dailies)
     }).as('getDaily')

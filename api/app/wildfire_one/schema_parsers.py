@@ -376,8 +376,6 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         # prediction calculation failed, so we set the values to None
         fire_behaviour_prediction = FireBehaviourPrediction(None, None, None, None, None)
 
-    update_timestamp = int(raw_daily.get('lastEntityUpdateTimestamp'))
-
     return StationDaily(
         code=station.code,
         date=date,
@@ -405,7 +403,8 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         fire_type=fire_behaviour_prediction.fire_type,
         error=raw_daily.get('observationValidInd', None),
         error_message=raw_daily.get('observationValidComment', None),
-        last_updated=datetime.fromtimestamp(update_timestamp / 1000, tz=timezone.utc)
+        last_updated=datetime.fromtimestamp(raw_daily.get(
+            'lastEntityUpdateTimestamp') / 1000, tz=timezone.utc)
     )
 
 
