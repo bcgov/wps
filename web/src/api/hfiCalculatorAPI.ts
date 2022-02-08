@@ -27,6 +27,7 @@ export interface StationDaily {
   sixty_minute_fire_size: number
   fire_type: string
   date: DateTime
+  last_updated: DateTime
 }
 
 /**
@@ -34,8 +35,9 @@ export interface StationDaily {
  * RawDaily is the daily representation over the wire (a string date)
  * that we then marshall into a StationDaily (with a DateTime)
  */
-interface RawDaily extends Omit<StationDaily, 'date'> {
+interface RawDaily extends Omit<StationDaily, 'date' | 'last_updated'> {
   date: string
+  last_updated: string
 }
 
 export interface StationDailyResponse {
@@ -63,5 +65,9 @@ export async function getDailies(
     }
   })
 
-  return data.dailies.map(daily => ({ ...daily, date: DateTime.fromISO(daily.date) }))
+  return data.dailies.map(daily => ({
+    ...daily,
+    date: DateTime.fromISO(daily.date),
+    last_updated: DateTime.fromISO(daily.last_updated)
+  }))
 }
