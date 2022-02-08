@@ -1,12 +1,12 @@
 """ HFI calculation logic """
 
 from typing import Mapping, Optional, List
-from app.schemas.hfi_calc import DailyResult, FireCentre, FireStarts, PlanningAreaResult, ValidatedStationDaily
+from app.schemas.hfi_calc import DailyResult, FireCentre, FireStartRange, PlanningAreaResult, ValidatedStationDaily, lowest_fire_starts
 from app.schemas.hfi_calc import FireStartRange, StationDaily
 
 
 def calculate_hfi_results(fire_centre: Optional[FireCentre],
-                          planning_area_fire_starts: Mapping[str, FireStarts],
+                          planning_area_fire_starts: Mapping[str, FireStartRange],
                           dailies: List[StationDaily],
                           num_prep_days: int,
                           selected_station_codes: List[int]):
@@ -18,18 +18,17 @@ def calculate_hfi_results(fire_centre: Optional[FireCentre],
     for area in fire_centre.planning_areas:
         area_station_codes = map(lambda station: (station.code), area.stations)
         area_dailies: List[StationDaily] = list(filter(lambda daily: (daily.code in area_station_codes and daily.code in selected_station_codes),
-                                                       dailies)).sort(key=lambda daily: daily.date)
+                                                       dailies))
         # Initialize with defaults if empty
-        planning_area_fire_starts[area.name] = [FireStarts.lowest_fire_starts for _ in range(5)] \
-            if planning_area_fire_starts[area.name] is None \
-            else planning_area_fire_starts[area.name]
+        if area.name not in planning_area_fire_starts:
+            planning_area_fire_starts[area.name] = [lowest_fire_starts for _ in range(num_prep_days)]
 
-        dailies_in_prep = [daily for _, daily in zip(range(num_prep_days), area_dailies)]
+        dailies_in_prep = area_dailies[:num_prep_days]
 
         daily_results: List[DailyResult] = []
         all_dailies_valid: bool = True
         for index, prep_day_dailies in enumerate(dailies_in_prep):
-            daily_fire_starts: FireStarts = planning_area_fire_starts[area.name][index]
+            daily_fire_starts: FireStartRange = planning_area_fire_starts[area.name][index]
             mean_intensity_group = calculate_mean_intensity(prep_day_dailies)
             prep_level = calculate_prep_level(mean_intensity_group, daily_fire_starts)
             validatedDailies: List[ValidatedStationDaily] = list(map(
@@ -44,10 +43,10 @@ def calculate_hfi_results(fire_centre: Optional[FireCentre],
             daily_results.append(daily_result)
 
         highest_daily_intensity_group = calculate_max_intensity_group(
-            list(map(lambda daily_result: (daily_result.mean_intensity_group, daily_results))))
+            list(map(lambda daily_result: (daily_result.mean_intensity_group), daily_results)))
 
         mean_prep_level = calculate_mean_prep_level(
-            list(map(lambda daily_result: (daily_result.prep_level, daily_results))))
+            list(map(lambda daily_result: (daily_result.prep_level), daily_results)))
 
         planning_area_to_dailies[area.name] = PlanningAreaResult(
             all_dailies_valid=all_dailies_valid,
@@ -59,7 +58,7 @@ def calculate_hfi_results(fire_centre: Optional[FireCentre],
 
 
 def calculate_max_intensity_group(mean_intensity_groups: List[Optional[float]]):
-    return max(mean_intensity_groups)
+    return None if len(mean_intensity_groups) == 0 else max(mean_intensity_groups)
 
 
 def calculate_mean_prep_level(prep_levels: List[Optional[float]]):
