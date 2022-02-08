@@ -402,7 +402,9 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         sixty_minute_fire_size=fire_behaviour_prediction.sixty_minute_fire_size,
         fire_type=fire_behaviour_prediction.fire_type,
         error=raw_daily.get('observationValidInd', None),
-        error_message=raw_daily.get('observationValidComment', None)
+        error_message=raw_daily.get('observationValidComment', None),
+        last_updated=datetime.fromtimestamp(raw_daily.get(
+            'lastEntityUpdateTimestamp') / 1000, tz=timezone.utc)
     )
 
 

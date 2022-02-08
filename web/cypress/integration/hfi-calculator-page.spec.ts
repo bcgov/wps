@@ -7,6 +7,7 @@ function interceptDaily(fixturePath: string) {
       const date = new Date(Number(req.query['start_time_stamp']))
       dailies['dailies'].forEach(daily => {
         daily['date'] = date.toISOString()
+        daily['last_updated'] = date.toISOString()
       })
       req.reply(dailies)
     }).as('getDaily')
