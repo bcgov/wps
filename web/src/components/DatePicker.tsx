@@ -7,6 +7,7 @@ import { pstFormatter } from 'utils/date'
 interface DatePickerProps {
   testId?: string
   label?: string
+  size?: 'small' | 'medium'
   date: string
   updateDate: (d: string) => void
 }
@@ -20,6 +21,7 @@ const DatePicker = (props: DatePickerProps) => {
         inputVariant="outlined"
         value={props.date}
         format="yyyy/MM/dd"
+        size={props.size ? props.size : 'medium'}
         allowKeyboardControl={true}
         InputAdornmentProps={{ position: 'start' }}
         onAccept={d => {
