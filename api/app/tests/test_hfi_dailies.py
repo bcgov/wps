@@ -89,7 +89,8 @@ def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture, fuel_ty
                                           "dailySeverityRating": 1.0,
                                           "droughtCode": 1.0,
                                           "duffMoistureCode": 1.0,
-                                          "fireWeatherIndex": 1.0
+                                          "fireWeatherIndex": 1.0,
+                                          "lastEntityUpdateTimestamp": 1453062318000
                                           }]))
 
     # To build generic objects with attributes
