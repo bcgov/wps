@@ -121,12 +121,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
             />
           </FormControl>
         </Grid>
-        <Grid
-          item
-          md={1}
-          justifyContent="flex-end"
-          className={classes.aboutButtonGridItem}
-        >
+        <Grid item md={1} className={classes.aboutButtonGridItem}>
           <FormControl className={classes.minWidth210}>
             <Button onClick={openAboutModal} size="small">
               <HelpOutlineOutlined className={classes.helpIcon}></HelpOutlineOutlined>
