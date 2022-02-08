@@ -75,7 +75,9 @@ def calculate_mean_prep_level(prep_levels: List[Optional[float]]):
 
 
 def calculate_mean_intensity(dailies: List[StationDaily]):
-    return 0
+    intensity_groups = list(map(lambda daily: (daily.intensity_group), dailies))
+    valid_intensity_groups = list(filter(None, intensity_groups))
+    return round((10 * sum(valid_intensity_groups) / len(valid_intensity_groups))) / 10
 
 
 def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: FireStartRange):
