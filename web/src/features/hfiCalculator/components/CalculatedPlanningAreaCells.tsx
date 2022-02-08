@@ -47,12 +47,14 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
               selectedStationCodes={props.selectedStationCodes}
               meanIntensityGroup={meanIntensityGroup}
             />
-            <FireStartsDropdown
-              fireStarts={fireStarts}
-              areaName={props.area.name}
-              dayOffset={day}
-              setFireStarts={props.setNewFireStarts}
-            />
+            <TableCell>
+              <FireStartsDropdown
+                fireStarts={fireStarts}
+                areaName={props.area.name}
+                dayOffset={day}
+                setFireStarts={props.setNewFireStarts}
+              />
+            </TableCell>
             <PrepLevelCell
               toolTipText={
                 'Cannot calculate prep level. Please check the daily forecast using the tabs above.'
