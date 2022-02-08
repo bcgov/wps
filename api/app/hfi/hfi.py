@@ -1,8 +1,8 @@
 """ HFI calculation logic """
 
 from typing import Mapping, Optional, List
-from app.schemas.hfi_calc import DailyResult, FireCentre, PlanningAreaResult, ValidatedStationDaily
-from app.schemas.hfi_calc import FireStarts, StationDaily
+from app.schemas.hfi_calc import DailyResult, FireCentre, FireStarts, PlanningAreaResult, ValidatedStationDaily
+from app.schemas.hfi_calc import FireStartRange, StationDaily
 
 
 def calculate_hfi_results(fire_centre: Optional[FireCentre],
@@ -20,7 +20,7 @@ def calculate_hfi_results(fire_centre: Optional[FireCentre],
         area_dailies: List[StationDaily] = list(filter(lambda daily: (daily.code in area_station_codes and daily.code in selected_station_codes),
                                                        dailies)).sort(key=lambda daily: daily.date)
         # Initialize with defaults if empty
-        planning_area_fire_starts[area.name] = [0 for i in range(5)] \
+        planning_area_fire_starts[area.name] = [FireStarts.lowest_fire_starts for _ in range(5)] \
             if planning_area_fire_starts[area.name] is None \
             else planning_area_fire_starts[area.name]
 
@@ -70,7 +70,7 @@ def calculate_mean_intensity(dailies: List[StationDaily]):
     return 0
 
 
-def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: FireStarts):
+def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: FireStartRange):
     if mean_intensity_group is None:
         return None
 
