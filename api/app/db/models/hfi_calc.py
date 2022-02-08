@@ -1,8 +1,8 @@
 """ Class models that reflect resources and map to database tables for HFI Calculator.
 """
 from sqlalchemy import (Column, Integer,
-                        Sequence, ForeignKey, UniqueConstraint)
-from sqlalchemy.sql.sqltypes import String
+                        Sequence, ForeignKey, UniqueConstraint, null)
+from sqlalchemy.sql.sqltypes import String, Date, Boolean
 from app.db.database import Base
 
 
@@ -72,3 +72,45 @@ class PlanningWeatherStation(Base):
                 f'station_code:{self.station_code}, '
                 f'fuel_type_id:{self.fuel_type_id}, '
                 f'planning_area_id:{self.planning_area_id}')
+
+
+class PlanningAreaSelectionOverrideForDay(Base):
+    """ For a given day, in a given planning area, we may override the fire starts. """
+    __tablename__ = 'hfi_calc_planning_area_selection_override_for_day'
+    __table_args__ = (UniqueConstraint('planning_area_id', 'day',
+                                       name='unique_planning_area_day_constraint'),
+                      {'comment': 'Identifies the unique planning area + day combo to identify overrides'})
+    id = Column(Integer, Sequence('hfi_calc_planning_area_selection_override_for_day_id_seq'),
+                primary_key=True, nullable=False, index=True)
+    planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)
+    day = Column(Date, nullable=False, index=True)
+    fire_starts = Column(Integer, nullable=False)
+
+
+class PlanningAreaSelectionOverride(Base):
+    """ For a given station, in a given planning area, we may override the fuel type, and station selected
+    status. """
+    __tablename__ = 'hfi_calc_planning_area_selection_override'
+    __table_args__ = (UniqueConstraint('planning_area_id', 'station_code',
+                                       name='unique_planning_area_station_code_constraint'),
+                      {'comment': ("Identifies the unique planning area + station code combo to identify"
+                                   " overrides")})
+    id = Column(Integer, Sequence('hfi_calc_planning_area_selection_override_id_seq'),
+                primary_key=True, nullable=False, index=True)
+    planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)
+    station_code = Column(Integer, nullable=False, index=True)
+    fuel_type_id = Column(Integer, ForeignKey('fuel_types.id'), nullable=False, index=True)
+    station_selected = Column(Boolean, nullable=False)
+
+
+class FireCentrePrepPeriod(Base):
+    """ For a given Fire Centre, for a given prep start date, we may override the prep period. """
+    __tablename__ = 'hfi_calc_fire_centre_prep_period'
+    __table_args__ = (UniqueConstraint('fire_centre_id', 'prep_start_day',
+                                       name='unique_fire_centre_prep_period'),
+                      {'comment': 'Identifies the unique prep period for a fire centre'})
+    id = Column(Integer, Sequence('hfi_calc_fire_centre_prep_period_id_seq'),
+                primary_key=True, nullable=False, index=True)
+    fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
+    prep_start_day = Column(Date, nullable=False, index=True)
+    prep_end_day = Column(Date, nullable=False)
