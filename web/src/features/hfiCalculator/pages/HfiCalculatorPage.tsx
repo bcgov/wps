@@ -266,7 +266,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         updateDate={updateDate}
         selectedFireCentre={selectedFireCentre}
         selectNewFireCentre={selectNewFireCentre}
-        formControlClass={classes.formControl}
         padding="1rem"
       />
       {loading || stationDataLoading ? (

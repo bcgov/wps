@@ -28,8 +28,16 @@ const useStyles = makeStyles({
     '& .MuiInputLabel-root': {
       color: 'white'
     },
-    '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: 'white'
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': {
+        borderColor: 'white'
+      },
+      '&:hover fieldset': {
+        borderColor: 'white'
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: 'white'
+      }
     }
   },
   fireCentreTextFieldInput: {
