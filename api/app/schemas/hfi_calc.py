@@ -34,6 +34,7 @@ class StationDaily(BaseModel):
     error: Optional[bool] = False
     error_message: Optional[str] = None
     date: Optional[datetime] = None
+    last_updated: Optional[datetime] = None
 
 
 class StationDailyResponse(BaseModel):
