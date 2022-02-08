@@ -65,15 +65,13 @@ def calculate_hfi_results(fire_centre: Optional[FireCentre],
 
 
 def calculate_max_intensity_group(mean_intensity_groups: List[Optional[float]]):
-    return None if len(mean_intensity_groups) == 0 else max(mean_intensity_groups)
+    valid_mean_intensity_groups = list(filter(None, mean_intensity_groups))
+    return None if len(valid_mean_intensity_groups) == 0 else max(mean_intensity_groups)
 
 
 def calculate_mean_prep_level(prep_levels: List[Optional[float]]):
     valid_prep_levels = list(filter(None, prep_levels))
-    num_prep_levels = len(valid_prep_levels)
-    if num_prep_levels == 0:
-        return None
-    return mean(valid_prep_levels)
+    return None if len(valid_prep_levels) == 0 else mean(valid_prep_levels)
 
 
 def calculate_mean_intensity(dailies: List[StationDaily]):
