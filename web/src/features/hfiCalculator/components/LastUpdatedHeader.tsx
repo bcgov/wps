@@ -46,7 +46,6 @@ const findLastUpdate = (dailies: StationDaily[]) => {
 }
 
 const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
-  console.log(props.dailies)
   const classes = useStyles()
   const lastUpdate = findLastUpdate(props.dailies)
   if (lastUpdate) {
