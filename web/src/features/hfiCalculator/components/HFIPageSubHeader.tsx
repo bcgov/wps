@@ -28,10 +28,6 @@ const useStyles = makeStyles(theme => ({
   gridContainer: {
     height: '85%'
   },
-  positionStyler: {
-    position: 'absolute',
-    right: '20px'
-  },
   helpIcon: {
     fill: 'white'
   },
@@ -42,9 +38,7 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'flex-end'
   },
   dateOfInterestPicker: {
-    marginLeft: '7px',
-    marginRight: 30,
-    minWidth: 210,
+    marginLeft: 7,
     '& .MuiOutlinedInput-input': {
       color: 'white'
     },
@@ -70,6 +64,9 @@ const useStyles = makeStyles(theme => ({
     marginLeft: 'auto',
     minWidth: 210,
     maxHeight: 56
+  },
+  minWidth210: {
+    minWidth: 210
   }
 }))
 
@@ -102,7 +99,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
       >
         <Grid item md={3} lg={2}>
           <FormControl
-            className={`${classes.formControl} ${classes.dateOfInterestPicker}`}
+            className={`${classes.dateOfInterestPicker} ${classes.minWidth210}`}
           >
             <DatePicker
               date={props.dateOfInterest}
@@ -112,7 +109,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
           </FormControl>
         </Grid>
         <Grid item md={3} lg={2}>
-          <FormControl className={classes.formControl}>
+          <FormControl className={classes.minWidth210}>
             <FireCentreDropdown
               fireCentres={props.fireCentres}
               selectedValue={
@@ -130,7 +127,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
           justifyContent="flex-end"
           className={classes.aboutButtonGridItem}
         >
-          <FormControl className={classes.formControl}>
+          <FormControl className={classes.minWidth210}>
             <Button onClick={openAboutModal} size="small">
               <HelpOutlineOutlined className={classes.helpIcon}></HelpOutlineOutlined>
               <p className={classes.aboutButtonText}>About this data</p>
