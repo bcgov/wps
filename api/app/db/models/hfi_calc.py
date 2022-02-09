@@ -58,6 +58,7 @@ class PlanningWeatherStation(Base):
     __table_args__ = (
         UniqueConstraint('station_code', 'planning_area_id',
                          name='unique_station_code_for_planning_area'),
+        UniqueConstraint('order_of_appearance_in_planning_area_list', 'planning_area_id', name='unique_order_for_planning_area'),
         {'comment': 'Identifies the unique code used to identify the station'}
     )
 
@@ -66,6 +67,7 @@ class PlanningWeatherStation(Base):
     station_code = Column(Integer, nullable=False, index=True)
     fuel_type_id = Column(Integer, ForeignKey('fuel_types.id'), nullable=False, index=True)
     planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)
+    order_of_appearance_in_planning_area_list = Column(Integer, nullable=True)
 
     def __str__(self):
         return (f'id:{self.id}, '
