@@ -36,6 +36,14 @@ class StationDaily(BaseModel):
     last_updated: Optional[datetime] = None
 
 
+required_daily_fields = ['temperature',
+                         'relative_humidity',
+                         'wind_speed',
+                         'wind_direction',
+                         'precipitation',
+                         'intensity_group']
+
+
 class StationDailyResponse(BaseModel):
     """ Response that includes list of station daily data."""
     dailies: List[StationDaily]

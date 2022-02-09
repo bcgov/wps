@@ -3,12 +3,13 @@ from datetime import datetime
 from app.hfi.hfi import (calculate_hfi_results,
                          calculate_mean_intensity,
                          calculate_max_intensity_group,
-                         calculate_prep_level)
+                         calculate_prep_level, validate_station_daily)
 from app.schemas.hfi_calc import (FireCentre,
                                   PlanningArea, PlanningAreaResult,
                                   StationDaily,
                                   WeatherStation,
                                   WeatherStationProperties,
+                                  required_daily_fields,
                                   lowest_fire_starts,
                                   one_2_two_starts,
                                   two_2_three_starts,
@@ -130,6 +131,7 @@ def test_calculate_prep_level_empty():
 
 
 def test_lowest_prep_level():
+    """ Calculates prep level of lowest fire start range """
     assert calculate_prep_level(1, lowest_fire_starts) == 1
     assert calculate_prep_level(2, lowest_fire_starts) == 1
     assert calculate_prep_level(3, lowest_fire_starts) == 2
@@ -138,6 +140,7 @@ def test_lowest_prep_level():
 
 
 def test_1_2_prep_level():
+    """ Calculates prep level for 1-2 fire starts """
     assert calculate_prep_level(1, one_2_two_starts) == 1
     assert calculate_prep_level(2, one_2_two_starts) == 2
     assert calculate_prep_level(3, one_2_two_starts) == 3
@@ -146,6 +149,7 @@ def test_1_2_prep_level():
 
 
 def test_2_3_prep_level():
+    """ Calculates prep level for 2-3 fire starts """
     assert calculate_prep_level(1, two_2_three_starts) == 2
     assert calculate_prep_level(2, two_2_three_starts) == 3
     assert calculate_prep_level(3, two_2_three_starts) == 4
@@ -154,6 +158,7 @@ def test_2_3_prep_level():
 
 
 def test_3_6_prep_level():
+    """ Calculates prep level for 3-6 fire starts """
     assert calculate_prep_level(1, three_2_six_starts) == 3
     assert calculate_prep_level(2, three_2_six_starts) == 4
     assert calculate_prep_level(3, three_2_six_starts) == 5
@@ -162,8 +167,44 @@ def test_3_6_prep_level():
 
 
 def test_highest_prep_level():
+    """ Calculates prep level for 6+ fire starts """
     assert calculate_prep_level(1, highest_fire_starts) == 4
     assert calculate_prep_level(2, highest_fire_starts) == 5
     assert calculate_prep_level(3, highest_fire_starts) == 6
     assert calculate_prep_level(4, highest_fire_starts) == 6
     assert calculate_prep_level(5, highest_fire_starts) == 6
+
+
+def test_valid_daily():
+    """ Daily with all required fields is valid """
+    daily = StationDaily(
+        code=1,
+        date=datetime.now(),
+        temperature=1,
+        relative_humidity=1,
+        wind_speed=1,
+        wind_direction=1,
+        precipitation=1,
+        intensity_group=1
+    )
+    result = validate_station_daily(daily)
+    assert result.valid == True
+
+
+def test_valid_daily():
+    """ Daily missing any required field is invalid """
+    base_daily = StationDaily(
+        code=1,
+        date=datetime.now(),
+        temperature=1,
+        relative_humidity=1,
+        wind_speed=1,
+        wind_direction=1,
+        precipitation=1,
+        intensity_group=1
+    )
+    for field in required_daily_fields:
+        daily = StationDaily(**base_daily.__dict__)
+        setattr(daily, field, None)
+        result = validate_station_daily(daily)
+        assert result.valid == False
