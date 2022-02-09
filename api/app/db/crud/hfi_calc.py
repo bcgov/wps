@@ -34,18 +34,21 @@ def get_stations_with_fuel_types(session: Session, station_codes: List[int]) -> 
         .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)
 
 
-def get_planning_area_overrides_for_day(session: Session,
-                                        fire_centre_prep_period_id: int) -> CursorResult:
-    session.query(PlanningAreaSelectionOverrideForDay).\
-        join(FireCentrePrepPeriod, FireCentrePrepPeriod.id == fire_centre_prep_period_id).\
-        filter(PlanningAreaSelectionOverrideForDay.day >= FireCentrePrepPeriod.prep_start_day).\
-        filter(PlanningAreaSelectionOverrideForDay.day <= FireCentrePrepPeriod.prep_end_day)
+def get_planning_area_overrides_for_period(session: Session,
+                                           prep_start_day: date,
+                                           prep_end_day: date) -> CursorResult:
+    return session.query(PlanningAreaSelectionOverrideForDay).\
+        filter(PlanningAreaSelectionOverrideForDay.day >= prep_start_day).\
+        filter(PlanningAreaSelectionOverrideForDay.day <= prep_end_day)
 
 
-def create_planning_area_selection_override_for_day(session: Session, planning_area_id: int, day: int,
-                                                    fire_starts: int):
+def create_planning_area_selection_override_for_day(session: Session, planning_area_id: int, day: date,
+                                                    fire_starts_min: int, fire_starts_max: int):
     override = PlanningAreaSelectionOverrideForDay(
-        planning_area_id=planning_area_id, day=day, fire_starts=fire_starts)
+        planning_area_id=planning_area_id,
+        day=day,
+        fire_starts_min=fire_starts_min,
+        fire_starts_max=fire_starts_max)
     session.add(override)
 
 
@@ -89,9 +92,10 @@ def get_most_recent_fire_centre_prep_period(session: Session, fire_centre_id: in
 
 def get_fire_centre_planning_area_selection_overrides(session: Session, fire_centre_id: int) -> CursorResult:
     """ Get all the overrides for each planning area in a fire centre """
-    return session.query(PlanningAreaSelectionOverride).\
+    return session.query(PlanningAreaSelectionOverride, FuelType).\
         join(PlanningArea, PlanningArea.id == PlanningAreaSelectionOverride.planning_area_id).\
         join(FireCentre, FireCentre.id == PlanningArea.fire_centre_id).\
+        join(FuelType, FuelType.id == PlanningAreaSelectionOverride.fuel_type_id).\
         filter(FireCentre.id == fire_centre_id)
 
 

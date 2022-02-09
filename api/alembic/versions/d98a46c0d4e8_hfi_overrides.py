@@ -1,8 +1,8 @@
 """HFI overrides
 
-Revision ID: 14c8b2299d5f
+Revision ID: d98a46c0d4e8
 Revises: 839f18e0ecc4
-Create Date: 2022-02-08 16:38:04.868952
+Create Date: 2022-02-08 17:05:53.740974
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '14c8b2299d5f'
+revision = 'd98a46c0d4e8'
 down_revision = '839f18e0ecc4'
 branch_labels = None
 depends_on = None
@@ -35,7 +35,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('planning_area_id', sa.Integer(), nullable=False),
     sa.Column('day', sa.Date(), nullable=False),
-    sa.Column('fire_starts', sa.Integer(), nullable=False),
+    sa.Column('fire_starts_min', sa.Integer(), nullable=False),
+    sa.Column('fire_starts_max', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['planning_area_id'], ['planning_areas.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('planning_area_id', 'day', name='unique_planning_area_day_constraint'),
