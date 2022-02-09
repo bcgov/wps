@@ -31,12 +31,13 @@ export const StaticCells = ({
     const hfiValue = error ? undefined : daily?.hfi?.toFixed(DECIMAL_PLACES)
     return isUndefined(daily) ? (
       <EmptyStaticCells
+        key={`empty-${station.code}-${dailyIndex}`}
         rowId={dailyIndex}
         isRowSelected={isRowSelected}
         classNameForRow={classNameForRow}
       />
     ) : (
-      <React.Fragment key={`${station.code}-${daily.date}`}>
+      <React.Fragment key={`${station.code}-${daily.date}-${dailyIndex}`}>
         <WeeklyROSCell
           daily={daily}
           testId={`${station.code}-ros`}

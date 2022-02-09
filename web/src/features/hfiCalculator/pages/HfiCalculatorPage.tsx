@@ -23,6 +23,7 @@ import { FileCopyOutlined, CheckOutlined, InfoOutlined } from '@material-ui/icon
 import { getDateRange, getPrepWeeklyDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
+import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { formControlStyles, theme } from 'app/theme'
 import { HFITableCSVFormatter } from 'features/hfiCalculator/HFITableCSVFormatter'
 import { PST_UTC_OFFSET } from 'utils/constants'
@@ -281,7 +282,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                 fireCentresError={fireCentresError}
               />
             )}
-
+            <LastUpdatedHeader dailies={dailies} />
             <FormControl className={classes.prepDays}>
               <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
             </FormControl>
