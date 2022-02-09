@@ -109,7 +109,7 @@ def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: Fir
 
 
 def validate_station_daily(daily: StationDaily):
-    """ Returns a validated station daily based on a station daily -- todo, make it real """
+    """ Returns a validated station daily based on a station daily """
     valids = []
     for attr, value in daily.__dict__.items():
         if attr in required_daily_fields:
