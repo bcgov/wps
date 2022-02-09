@@ -22,8 +22,10 @@ class FireCentre(Base):
 class PlanningArea(Base):
     """ Wildfire prep planning area within a fire centre """
     __tablename__ = 'planning_areas'
-    __table_args__ = (UniqueConstraint('order_of_appearance_in_list', 'fire_centre_id', name='unique_list_order_for_fire_centre_constraint'), {
-                      'comment': 'Only one planning area can be assigned a position in the list for a fire centre'})
+    __table_args__ = (UniqueConstraint('order_of_appearance_in_list', 'fire_centre_id',
+                                       name='unique_list_order_for_fire_centre_constraint'), {
+                      'comment':
+                      'Only one planning area can be assigned a position in the list for a fire centre'})
 
     id = Column(Integer, Sequence('planning_areas_id_seq'),
                 primary_key=True, nullable=False, index=True)

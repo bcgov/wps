@@ -52,7 +52,8 @@ def create_planning_area_selection_override_for_day(session: Session, planning_a
     session.add(override)
 
 
-def update_planning_area_selection_override_for_day(session: Session, override: PlanningAreaSelectionOverrideForDay):
+def update_planning_area_selection_override_for_day(session: Session,
+                                                    override: PlanningAreaSelectionOverrideForDay):
     session.add(override)
 
 
@@ -114,7 +115,3 @@ def create_planning_area_selection_override(session: Session,
 
 def update_planning_area_selection_override(session: Session, override: PlanningAreaSelectionOverride):
     session.add(override)
-
-# def get_planning_area_selection_overrides(session: Session):
-#     """ Get all planning area selection overrides """
-#     return session.query(PlanningArea.id, PlanningArea.name, PlanningArea.fire_centre_id)
