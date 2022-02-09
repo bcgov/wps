@@ -26,7 +26,8 @@ def calculate_hfi_results(fire_centre: Optional[FireCentre],
     for area in fire_centre.planning_areas:
         area_station_codes = map(lambda station: (station.code), area.stations)
         area_dailies: List[StationDaily] = sorted(
-            list(filter(lambda daily: (daily.code in area_station_codes and daily.code in selected_station_codes),
+            list(filter(lambda daily, area_station_codes=area_station_codes:
+                        (daily.code in area_station_codes and daily.code in selected_station_codes),
                         dailies)),
             key=attrgetter('date'))
 
