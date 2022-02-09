@@ -9,6 +9,10 @@ from app.schemas.hfi_calc import (FireCentre,
                                   StationDaily,
                                   WeatherStation,
                                   WeatherStationProperties,
+                                  lowest_fire_starts,
+                                  one_2_two_starts,
+                                  two_2_three_starts,
+                                  three_2_six_starts,
                                   highest_fire_starts,
                                   all_ranges)
 from app.schemas.shared import FuelType
@@ -116,3 +120,43 @@ def test_calculate_prep_level_empty():
     for fire_start_range in all_ranges:
         result = calculate_prep_level(None, fire_start_range)
         assert result == None
+
+
+def test_lowest_prep_level():
+    assert calculate_prep_level(1, lowest_fire_starts) == 1
+    assert calculate_prep_level(2, lowest_fire_starts) == 1
+    assert calculate_prep_level(3, lowest_fire_starts) == 2
+    assert calculate_prep_level(4, lowest_fire_starts) == 3
+    assert calculate_prep_level(5, lowest_fire_starts) == 4
+
+
+def test_1_2_prep_level():
+    assert calculate_prep_level(1, one_2_two_starts) == 1
+    assert calculate_prep_level(2, one_2_two_starts) == 2
+    assert calculate_prep_level(3, one_2_two_starts) == 3
+    assert calculate_prep_level(4, one_2_two_starts) == 4
+    assert calculate_prep_level(5, one_2_two_starts) == 5
+
+
+def test_2_3_prep_level():
+    assert calculate_prep_level(1, two_2_three_starts) == 2
+    assert calculate_prep_level(2, two_2_three_starts) == 3
+    assert calculate_prep_level(3, two_2_three_starts) == 4
+    assert calculate_prep_level(4, two_2_three_starts) == 5
+    assert calculate_prep_level(5, two_2_three_starts) == 6
+
+
+def test_3_6_prep_level():
+    assert calculate_prep_level(1, three_2_six_starts) == 3
+    assert calculate_prep_level(2, three_2_six_starts) == 4
+    assert calculate_prep_level(3, three_2_six_starts) == 5
+    assert calculate_prep_level(4, three_2_six_starts) == 6
+    assert calculate_prep_level(5, three_2_six_starts) == 6
+
+
+def test_highest_prep_level():
+    assert calculate_prep_level(1, highest_fire_starts) == 4
+    assert calculate_prep_level(2, highest_fire_starts) == 5
+    assert calculate_prep_level(3, highest_fire_starts) == 6
+    assert calculate_prep_level(4, highest_fire_starts) == 6
+    assert calculate_prep_level(5, highest_fire_starts) == 6
