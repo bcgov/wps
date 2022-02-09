@@ -34,9 +34,9 @@ def get_stations_with_fuel_types(session: Session, station_codes: List[int]) -> 
         .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)
 
 
-def get_planning_area_overrides_for_period(session: Session,
-                                           prep_start_day: date,
-                                           prep_end_day: date) -> CursorResult:
+def get_planning_area_overrides_for_day_in_period(session: Session,
+                                                  prep_start_day: date,
+                                                  prep_end_day: date) -> CursorResult:
     return session.query(PlanningAreaSelectionOverrideForDay).\
         filter(PlanningAreaSelectionOverrideForDay.day >= prep_start_day).\
         filter(PlanningAreaSelectionOverrideForDay.day <= prep_end_day)
