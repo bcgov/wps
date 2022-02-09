@@ -32,15 +32,16 @@ def calculate_hfi_results(fire_centre: Optional[FireCentre],
             key=attrgetter('date'))
 
         area_dailies_by_date = [list(g) for _, g in groupby(area_dailies, lambda area_daily: area_daily.date)]
+
+        prep_week_dailies = area_dailies_by_date[:num_prep_days]
+
         # Initialize with defaults if empty
         if area.name not in planning_area_fire_starts:
             planning_area_fire_starts[area.name] = [lowest_fire_starts for _ in range(num_prep_days)]
 
-        dailies_in_prep = area_dailies_by_date[:num_prep_days]
-
         daily_results: List[DailyResult] = []
         all_dailies_valid: bool = True
-        for index, prep_day_dailies in enumerate(dailies_in_prep):
+        for index, prep_day_dailies in enumerate(prep_week_dailies):
             daily_fire_starts: FireStartRange = planning_area_fire_starts[area.name][index]
             mean_intensity_group = calculate_mean_intensity(prep_day_dailies)
             prep_level = calculate_prep_level(mean_intensity_group, daily_fire_starts)
