@@ -56,30 +56,7 @@ def test_requested_fire_starts_unaltered():
     daily = StationDaily(
         code=1,
         date=datetime.now(),
-        status=None,
-        temperature=None,
-        relative_humidity=None,
-        wind_speed=None,
-        wind_direction=None,
-        grass_cure_percentage=None,
-        precipitation=None,
-        ffmc=None,
-        dmc=None,
-        dc=None,
-        isi=None,
-        bui=None,
-        fwi=None,
-        danger_class=None,
-        observation_valid=None,
-        observation_valid_comment=None,
-        rate_of_spread=None,
-        hfi=None,
-        intensity_group=1,
-        sixty_minute_fire_size=None,
-        fire_type=None,
-        error=None,
-        error_message=None,
-        last_updated=None
+        intensity_group=1
     )
     result = calculate_hfi_results(fire_centre=kamloops_fc,
                                    planning_area_fire_starts={
