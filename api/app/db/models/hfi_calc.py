@@ -6,6 +6,9 @@ from sqlalchemy.sql.sqltypes import String, Date, Boolean
 from app.db.database import Base
 
 
+PLANNING_AREAS_ID = 'planning_areas.id'
+
+
 class FireCentre(Base):
     """ BC Wildfire Service Fire Centre """
     __tablename__ = 'fire_centres'
@@ -67,7 +70,7 @@ class PlanningWeatherStation(Base):
                 primary_key=True, nullable=False, index=True)
     station_code = Column(Integer, nullable=False, index=True)
     fuel_type_id = Column(Integer, ForeignKey('fuel_types.id'), nullable=False, index=True)
-    planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)
+    planning_area_id = Column(Integer, ForeignKey(PLANNING_AREAS_ID), nullable=False, index=True)
 
     def __str__(self):
         return (f'id:{self.id}, '
@@ -84,7 +87,7 @@ class PlanningAreaSelectionOverrideForDay(Base):
                       {'comment': 'Identifies the unique planning area + day combo to identify overrides'})
     id = Column(Integer, Sequence('hfi_calc_planning_area_selection_override_for_day_id_seq'),
                 primary_key=True, nullable=False, index=True)
-    planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)
+    planning_area_id = Column(Integer, ForeignKey(PLANNING_AREAS_ID), nullable=False, index=True)
     day = Column(Date, nullable=False, index=True)
     fire_starts_min = Column(Integer, nullable=False)
     fire_starts_max = Column(Integer, nullable=False)
@@ -100,7 +103,7 @@ class PlanningAreaSelectionOverride(Base):
                                    " overrides")})
     id = Column(Integer, Sequence('hfi_calc_planning_area_selection_override_id_seq'),
                 primary_key=True, nullable=False, index=True)
-    planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)
+    planning_area_id = Column(Integer, ForeignKey(PLANNING_AREAS_ID), nullable=False, index=True)
     station_id = Column(Integer, ForeignKey('planning_weather_stations.id'), nullable=False, index=True)
     fuel_type_id = Column(Integer, ForeignKey('fuel_types.id'), nullable=False, index=True)
     station_selected = Column(Boolean, nullable=False)
