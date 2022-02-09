@@ -43,33 +43,9 @@ class StationDailyResponse(BaseModel):
 
 class ValidatedStationDaily(BaseModel):
     """
-    Station daily metrics and indices with a validity flag
+    Station daily with validity flag
     """
-    code: Optional[int] = None
-    status: Optional[str] = None
-    temperature: Optional[float] = None
-    relative_humidity: Optional[float] = None
-    wind_speed: Optional[float] = None
-    wind_direction: Optional[float] = None
-    grass_cure_percentage: Optional[float] = None
-    precipitation: Optional[float] = None
-    ffmc: Optional[float] = None
-    dmc: Optional[float] = None
-    dc: Optional[float] = None
-    isi: Optional[float] = None
-    bui: Optional[float] = None
-    fwi: Optional[float] = None
-    danger_class: Optional[int] = None
-    observation_valid: Optional[bool] = None
-    observation_valid_comment: Optional[str] = None
-    rate_of_spread: Optional[float] = None
-    hfi: Optional[float] = None
-    intensity_group: Optional[int] = None
-    sixty_minute_fire_size: Optional[float] = None
-    fire_type: Optional[str] = None
-    error: Optional[bool] = False
-    error_message: Optional[str] = None
-    date: Optional[datetime] = None
+    daily: StationDaily
     valid: bool
 
 

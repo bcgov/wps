@@ -109,6 +109,4 @@ def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: Fir
 
 def validate_station_daily(daily: StationDaily):
     """ Returns a validated station daily based on a station daily -- todo, make it real """
-    return ValidatedStationDaily(
-        **daily.__dict__,
-        valid=True)
+    return ValidatedStationDaily(daily=daily, valid=True)

@@ -5,7 +5,7 @@ from app.hfi.hfi import (calculate_hfi_results,
                          calculate_max_intensity_group,
                          calculate_prep_level)
 from app.schemas.hfi_calc import (FireCentre,
-                                  PlanningArea,
+                                  PlanningArea, PlanningAreaResult,
                                   StationDaily,
                                   WeatherStation,
                                   WeatherStationProperties,
@@ -61,7 +61,14 @@ def test_no_dailies_handled():
                                    dailies=[],
                                    num_prep_days=5,
                                    selected_station_codes=[1, 2])
-    assert result != {}
+
+    assert result == {
+        'Vernon': PlanningAreaResult(
+            all_dailies_valid=True,
+            highest_daily_intensity_group=None,
+            mean_prep_level=None,
+            daily_results=[])
+    }
 
 
 def test_requested_fire_starts_unaltered():
