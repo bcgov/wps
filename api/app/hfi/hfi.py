@@ -8,31 +8,36 @@ from app.schemas.hfi_calc import (DailyResult,
                                   FireCentre,
                                   FireStartRange,
                                   PlanningAreaResult,
+                                  StationDaily,
                                   ValidatedStationDaily,
                                   lowest_fire_starts)
-from app.schemas.hfi_calc import FireStartRange, StationDaily
 
 
-def calculate_hfi_results(fire_centre: Optional[FireCentre],
+def calculate_hfi_results(fire_centre: Optional[FireCentre],  # pylint: disable=too-many-locals
                           planning_area_fire_starts: Mapping[str, FireStartRange],
                           dailies: List[StationDaily],
                           num_prep_days: int,
                           selected_station_codes: List[int]):
     """ Computes HFI results based on parameter inputs """
-    planning_area_to_dailies: Mapping[str, PlanningAreaResult] = dict()
+    planning_area_to_dailies: Mapping[str, PlanningAreaResult] = {}
     if fire_centre is None:
         return planning_area_to_dailies
 
     for area in fire_centre.planning_areas:
         area_station_codes = map(lambda station: (station.code), area.stations)
+
+        # Marshall dailies in chronological order,
+        # that are part of the planning area and are selected
         area_dailies: List[StationDaily] = sorted(
             list(filter(lambda daily, area_station_codes=area_station_codes:
                         (daily.code in area_station_codes and daily.code in selected_station_codes),
                         dailies)),
             key=attrgetter('date'))
 
+        # Group dailies into lists by date
         area_dailies_by_date = [list(g) for _, g in groupby(area_dailies, lambda area_daily: area_daily.date)]
 
+        # Take only the number of days requested for
         prep_week_dailies = area_dailies_by_date[:num_prep_days]
 
         # Initialize with defaults if empty
@@ -72,22 +77,27 @@ def calculate_hfi_results(fire_centre: Optional[FireCentre],
 
 
 def calculate_max_intensity_group(mean_intensity_groups: List[Optional[float]]):
+    """ Returns the highest intensity group from a list of values """
     valid_mean_intensity_groups = list(filter(None, mean_intensity_groups))
     return None if len(valid_mean_intensity_groups) == 0 else max(mean_intensity_groups)
 
 
 def calculate_mean_prep_level(prep_levels: List[Optional[float]]):
+    """ Returns the mean prep level from a list of values """
     valid_prep_levels = list(filter(None, prep_levels))
     return None if len(valid_prep_levels) == 0 else mean(valid_prep_levels)
 
 
 def calculate_mean_intensity(dailies: List[StationDaily]):
+    """ Returns the mean intensity group from a list of values """
     intensity_groups = list(map(lambda daily: (daily.intensity_group), dailies))
     valid_intensity_groups = list(filter(None, intensity_groups))
-    return round((10 * sum(valid_intensity_groups) / len(valid_intensity_groups))) / 10
+    return None if len(valid_intensity_groups) == 0 else \
+        round((10 * sum(valid_intensity_groups) / len(valid_intensity_groups))) / 10
 
 
 def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: FireStartRange):
+    """ Returns the prep level based on the MIG and fire starts range """
     if mean_intensity_group is None:
         return None
 
@@ -98,6 +108,7 @@ def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: Fir
 
 
 def validate_station_daily(daily: StationDaily):
+    """ Returns a validated station daily based on a station daily -- todo, make it real """
     return ValidatedStationDaily(
         **daily.__dict__,
         valid=True)

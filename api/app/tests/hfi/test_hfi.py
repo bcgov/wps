@@ -1,7 +1,16 @@
 """ Unit testing for hfi logic """
 from datetime import datetime
-from app.hfi.hfi import calculate_hfi_results
-from app.schemas.hfi_calc import FireCentre, PlanningArea, StationDaily, WeatherStation, WeatherStationProperties, highest_fire_starts
+from app.hfi.hfi import (calculate_hfi_results,
+                         calculate_mean_intensity,
+                         calculate_max_intensity_group,
+                         calculate_prep_level)
+from app.schemas.hfi_calc import (FireCentre,
+                                  PlanningArea,
+                                  StationDaily,
+                                  WeatherStation,
+                                  WeatherStationProperties,
+                                  highest_fire_starts,
+                                  all_ranges)
 from app.schemas.shared import FuelType
 
 # Kamloops FC fixture
@@ -65,3 +74,45 @@ def test_requested_fire_starts_unaltered():
                                    num_prep_days=5,
                                    selected_station_codes=[1, 2])
     assert result[kamloops_fc.planning_areas[0].name].daily_results[0].fire_starts == highest_fire_starts
+
+
+def test_calculate_mean_intensity_basic():
+    """ Calculates mean intensity """
+    daily1 = StationDaily(
+        code=1,
+        date=datetime.now(),
+        intensity_group=1
+    )
+
+    daily2 = StationDaily(
+        code=2,
+        date=datetime.now(),
+        intensity_group=1
+    )
+    result = calculate_mean_intensity([daily1, daily2])
+    assert result == 1
+
+
+def test_calculate_mean_intensity_empty():
+    """ Calculates mean intensity with empty list """
+    result = calculate_mean_intensity([])
+    assert result == None
+
+
+def test_max_mean_intensity_basic():
+    """ Calculates max mean intensity of basic case """
+    result = calculate_max_intensity_group([1, 2])
+    assert result == 2
+
+
+def test_max_mean_intensity_empty():
+    """ Calculates max mean intensity with empty list """
+    result = calculate_max_intensity_group([])
+    assert result == None
+
+
+def test_calculate_prep_level_empty():
+    """ Calculates prep level of empty case """
+    for fire_start_range in all_ranges:
+        result = calculate_prep_level(None, fire_start_range)
+        assert result == None
