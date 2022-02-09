@@ -4,7 +4,12 @@ from itertools import groupby
 from operator import attrgetter
 from statistics import mean
 from typing import Mapping, Optional, List
-from app.schemas.hfi_calc import DailyResult, FireCentre, FireStartRange, PlanningAreaResult, ValidatedStationDaily, lowest_fire_starts
+from app.schemas.hfi_calc import (DailyResult,
+                                  FireCentre,
+                                  FireStartRange,
+                                  PlanningAreaResult,
+                                  ValidatedStationDaily,
+                                  lowest_fire_starts)
 from app.schemas.hfi_calc import FireStartRange, StationDaily
 
 
