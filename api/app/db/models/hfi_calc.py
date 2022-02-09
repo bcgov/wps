@@ -84,7 +84,8 @@ class PlanningAreaSelectionOverrideForDay(Base):
                 primary_key=True, nullable=False, index=True)
     planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)
     day = Column(Date, nullable=False, index=True)
-    fire_starts = Column(Integer, nullable=False)
+    fire_starts_min = Column(Integer, nullable=False)
+    fire_starts_max = Column(Integer, nullable=False)
 
 
 class PlanningAreaSelectionOverride(Base):
