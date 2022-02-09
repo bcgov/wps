@@ -6,6 +6,7 @@ ignore:
   - "web/src/features/cHaines"
   - "web/src/features/fwiCalculator"
   - "web/src/features/hfiCalculator/HFITableCSVFormatter.ts" # Currently not run and will be moved to the backend
+  - "api/app/db/crud" # We don't write tests for the crud layer, the crud layer is mocked out in tests.
 coverage:
   # https://docs.codecov.com/docs/commit-status
   status:
