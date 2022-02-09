@@ -91,14 +91,14 @@ class PlanningAreaSelectionOverride(Base):
     """ For a given station, in a given planning area, we may override the fuel type, and station selected
     status. """
     __tablename__ = 'hfi_calc_planning_area_selection_override'
-    __table_args__ = (UniqueConstraint('planning_area_id', 'station_code',
+    __table_args__ = (UniqueConstraint('planning_area_id', 'station_id',
                                        name='unique_planning_area_station_code_constraint'),
                       {'comment': ("Identifies the unique planning area + station code combo to identify"
                                    " overrides")})
     id = Column(Integer, Sequence('hfi_calc_planning_area_selection_override_id_seq'),
                 primary_key=True, nullable=False, index=True)
     planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)
-    station_code = Column(Integer, nullable=False, index=True)
+    station_id = Column(Integer, ForeignKey('planning_weather_stations.id'), nullable=False, index=True)
     fuel_type_id = Column(Integer, ForeignKey('fuel_types.id'), nullable=False, index=True)
     station_selected = Column(Boolean, nullable=False)
 
