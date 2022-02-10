@@ -19,7 +19,7 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
 
 logger = logging.getLogger(__name__)
 
-ageless_cache = "max-age=0"  # don't let the browser cache this
+no_cache = "max-age=0"  # don't let the browser cache this
 
 router = APIRouter(
     prefix="/hfi-calc",
@@ -35,7 +35,7 @@ async def get_hfi_results(request: HFIResultRequest,
 
     try:
         logger.info('/hfi-calc/')
-        response.headers["Cache-Control"] = ageless_cache
+        response.headers["Cache-Control"] = no_cache
         valid_start_time, valid_end_time = validate_time_range(
             request.start_time_stamp, request.end_time_stamp)
 
@@ -81,7 +81,7 @@ async def get_daily_view(response: Response,
     """ Returns daily metrics for each station code. """
     try:
         logger.info('/hfi-calc/daily')
-        response.headers["Cache-Control"] = ageless_cache
+        response.headers["Cache-Control"] = no_cache
         valid_start_time, valid_end_time = validate_time_range(start_time_stamp, end_time_stamp)
 
         async with ClientSession() as session:
@@ -103,7 +103,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
     for each weather station. """
     try:
         logger.info('/hfi-calc/fire-centres')
-        response.headers["Cache-Control"] = ageless_cache
+        response.headers["Cache-Control"] = no_cache
 
         with app.db.database.get_read_session_scope() as session:
             # Fetch all fire weather stations from the database.
