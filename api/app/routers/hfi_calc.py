@@ -18,7 +18,9 @@ from app.db.crud.hfi_calc import (get_fire_weather_stations,
                                   get_most_recent_fire_centre_prep_period,
                                   create_fire_centre_prep_period,
                                   get_fire_centre_planning_area_selection_overrides,
-                                  get_planning_area_overrides_for_day_in_period)
+                                  get_planning_area_overrides_for_day_in_period,
+                                  create_planning_area_selection_override,
+                                  create_planning_area_selection_override_for_day)
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_lookup_fuel_types,
                                        get_stations_by_codes)
@@ -42,7 +44,7 @@ def is_prep_end_date_valid(start_date: date, end_date: date):
         return False
 
 
-def merge_request_prep_period(session: Session, request: HFIResultRequest):
+def load_prep_period(session: Session, request: HFIResultRequest):
     """ Merge the prep period component of the request from the database with the request from the UI. """
     # TODO: Change request.start_time_stamp and request.end_time_stamp to date.
     if request.start_time_stamp is None or request.end_time_stamp is None:
@@ -65,7 +67,7 @@ def merge_request_prep_period(session: Session, request: HFIResultRequest):
     return request
 
 
-def merge_planning_area_selection_override(session: Session, request: HFIResultRequest):
+def load_planning_area_selection(session: Session, request: HFIResultRequest):
     """ Merge the planning area selection overrides from the database with the request from the UI. """
     planning_area_overrides = get_fire_centre_planning_area_selection_overrides(
         session, request.selected_fire_center)
@@ -91,7 +93,7 @@ def find_fire_start_range(fire_starts_min: int, fire_starts_max: int):
                 and fire_start_range.fire_starts_max == fire_starts_max)
 
 
-def merge_planning_area_selection_override_for_day(session: Session, request: HFIResultRequest):
+def load_planning_area_selection_for_day(session: Session, request: HFIResultRequest):
     planning_area_overrides = get_planning_area_overrides_for_day_in_period(
         session, request.selected_fire_center, request.start_time_stamp, request.end_time_stamp)
 
@@ -110,13 +112,41 @@ def merge_planning_area_selection_override_for_day(session: Session, request: HF
     return request
 
 
-def merge_request_with_overrides(session: Session, request: HFIResultRequest):
+def load_request_overrides(session: Session, request: HFIResultRequest):
     """ Merge the request from the UI with the overrides from the database, with the UI taking precedence. """
     with app.db.database.get_read_session_scope() as session:
-        request = merge_request_prep_period(session, request)
-        request = merge_planning_area_selection_override(session, request)
-        request = merge_planning_area_selection_override_for_day(session, request)
+        request = load_prep_period(session, request)
+        request = load_planning_area_selection(session, request)
+        request = load_planning_area_selection_for_day(session, request)
     return request
+
+
+def store_prep_period(session: Session, request: HFIResultRequest):
+    if request.start_time_stamp is not None or request.end_time_stamp is not None:
+        create_fire_centre_prep_period(session,
+                                       request.selected_fire_center,
+                                       request.start_time_stamp,
+                                       request.end_time_stamp)
+
+
+def store_planning_area_selection(session: Session, request: HFIResultRequest):
+    # TODO: make selected_station_codes be a dictionary - key: planning area, value list of stations id's
+    for planning_area in request.selected_station_codes.keys():
+        for station_id in request.selected_station_codes[planning_area]:
+            # TODO: implement fuel types
+            create_planning_area_selection_override(session, planning_area, station_id, None, True)
+
+
+def store_planning_area_selection_for_day(session: Session, request: HFIResultRequest):
+    for planning_area in request.planning_area_fire_starts.keys():
+        delta = request.end_time_stamp - request.start_time_stamp
+        fire_starts = request.planning_area_fire_starts[planning_area]
+        for day in range(0, delta.days):
+            create_planning_area_selection_override_for_day(session,
+                                                            planning_area,
+                                                            request.start_time_stamp + timedelta(days=day),
+                                                            fire_starts[day].fire_starts_min,
+                                                            fire_starts[day].fire_starts_max)
 
 
 def store_request(request: HFIResultRequest):
@@ -124,12 +154,10 @@ def store_request(request: HFIResultRequest):
     # TODO: we need some kind of flag (corresponding to a save button)
     save = True
     if save:
-        if request.start_time_stamp is not None or request.end_time_stamp is not None:
-            with app.db.database.get_write_session_scope() as session:
-                create_fire_centre_prep_period(session,
-                                               request.selected_fire_center,
-                                               request.start_time_stamp,
-                                               request.end_time_stamp)
+        with app.db.database.get_write_session_scope() as session:
+            store_prep_period(session, request)
+            store_planning_area_selection(session, request)
+            store_planning_area_selection_for_day(session, request)
 
 
 @router.post('/', response_model=HFIResultResponse)
@@ -140,7 +168,7 @@ async def get_hfi_results(request: HFIResultRequest,
 
     try:
         logger.info('/hfi-calc/')
-        request = merge_request_with_overrides(request)
+        request = load_request_overrides(request)
         store_request(request)
         response.headers["Cache-Control"] = no_cache
         valid_start_time, valid_end_time = validate_time_range(
