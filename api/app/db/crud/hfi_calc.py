@@ -1,7 +1,7 @@
 """ CRUD operations relating to HFI Calculator
 """
 import logging
-from typing import List
+from typing import List, Optional
 from datetime import date
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
@@ -107,7 +107,7 @@ def get_fire_centre_planning_area_selection_overrides(session: Session, fire_cen
 def create_planning_area_selection_override(session: Session,
                                             planning_area_id: int,
                                             station_id: int,
-                                            fuel_type_id: int,
+                                            fuel_type_id: Optional[int],
                                             station_selected: bool):
     override = PlanningAreaSelectionOverride(
         planning_area_id=planning_area_id,
