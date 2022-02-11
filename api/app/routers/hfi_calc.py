@@ -33,7 +33,7 @@ def load_request(request: HFIResultRequest) -> HFIResultRequest:
         with app.db.database.get_read_session_scope() as session:
             stored_request = get_most_recent_updated_hfi_request(session, request.selected_fire_center)
             if stored_request:
-                return HFIResultRequest.from_dict(stored_request.request)
+                return HFIResultRequest.parse_obj(stored_request.request)
     return request
 
 

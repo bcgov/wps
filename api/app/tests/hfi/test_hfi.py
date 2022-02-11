@@ -20,6 +20,7 @@ from app.schemas.shared import FuelType
 
 # Kamloops FC fixture
 kamloops_fc = FireCentre(
+    id=1,
     name='Kamloops',
     planning_areas=[PlanningArea(
         name="Vernon",
