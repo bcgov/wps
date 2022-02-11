@@ -4,8 +4,9 @@ import math
 from typing import List, Optional
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends, Query
+from app.hfi.hfi import calculate_hfi_results
 import app.utils.time
-from app.schemas.hfi_calc import StationDailyResponse
+from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationDailyResponse
 import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
@@ -18,10 +19,48 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
 
 logger = logging.getLogger(__name__)
 
+no_cache = "max-age=0"  # don't let the browser cache this
+
 router = APIRouter(
     prefix="/hfi-calc",
     dependencies=[Depends(authentication_required), Depends(audit)]
 )
+
+
+@router.post('/', response_model=HFIResultResponse)
+async def get_hfi_results(request: HFIResultRequest,
+                          response: Response,
+                          _=Depends(authentication_required)):
+    """ Returns calculated HFI results for the supplied details in the POST body """
+
+    try:
+        logger.info('/hfi-calc/')
+        response.headers["Cache-Control"] = no_cache
+        valid_start_time, valid_end_time = validate_time_range(
+            request.start_time_stamp, request.end_time_stamp)
+
+        async with ClientSession() as session:
+            header = await get_auth_header(session)
+            wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
+                session, header, request.station_codes)
+            dailies = await get_dailies_lookup_fuel_types(
+                session, header, wfwx_stations, valid_start_time, valid_end_time)
+            results = calculate_hfi_results(request.selected_fire_center,
+                                            request.planning_area_fire_starts,
+                                            dailies, request.num_prep_days,
+                                            request.selected_station_codes)
+        return HFIResultResponse(
+            num_prep_days=request.num_prep_days,
+            selected_prep_date=request.selected_prep_date,
+            start_time_stamp=valid_start_time,
+            end_time_stamp=valid_end_time,
+            selected_station_codes=request.selected_station_codes,
+            selected_fire_center=request.selected_fire_center,
+            planning_area_hfi_results=results,
+            planning_area_fire_starts=request.planning_area_fire_starts)
+    except Exception as exc:
+        logger.critical(exc, exc_info=True)
+        raise
 
 
 def validate_time_range(start_time_stamp: Optional[int], end_time_stamp: Optional[int]):
@@ -42,7 +81,7 @@ async def get_daily_view(response: Response,
     """ Returns daily metrics for each station code. """
     try:
         logger.info('/hfi-calc/daily')
-        response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
+        response.headers["Cache-Control"] = no_cache
         valid_start_time, valid_end_time = validate_time_range(start_time_stamp, end_time_stamp)
 
         async with ClientSession() as session:
@@ -64,7 +103,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
     for each weather station. """
     try:
         logger.info('/hfi-calc/fire-centres')
-        response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
+        response.headers["Cache-Control"] = no_cache
 
         with app.db.database.get_read_session_scope() as session:
             # Fetch all fire weather stations from the database.
