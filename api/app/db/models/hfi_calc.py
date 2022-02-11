@@ -59,6 +59,7 @@ class FuelType(Base):
 
 class PlanningWeatherStation(Base):
     """ Weather station within planning area selected as a representative of its associated planning area """
+    # NOTE: With this model, a weather station can appear multiple times in a fire centre.
     __tablename__ = 'planning_weather_stations'
     __table_args__ = (
         UniqueConstraint('station_code', 'planning_area_id',
