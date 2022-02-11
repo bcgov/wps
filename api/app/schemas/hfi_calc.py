@@ -1,7 +1,7 @@
 """ This module contains pydandict schemas the HFI Calculator.
 """
 from typing import List, Mapping, Optional
-from datetime import datetime
+from datetime import datetime, date
 from pydantic import BaseModel
 from app.schemas.shared import FuelType
 
@@ -121,19 +121,6 @@ class HFIResultResponse(BaseModel):
     planning_area_fire_starts: Mapping[str, List[FireStartRange]]
 
 
-class HFIResultRequest(BaseModel):
-    """
-    Request that contains inputs necessary for calculating HFI
-    """
-    num_prep_days: int
-    selected_prep_date: datetime
-    start_time_stamp: Optional[int]
-    end_time_stamp: Optional[int]
-    selected_station_codes: List[int]
-    selected_fire_center: Optional[str]
-    planning_area_fire_starts: Mapping[str, List[FireStartRange]]
-
-
 class WeatherStationProperties(BaseModel):
     """ HFI-relevant weather station properties """
     name: str
@@ -161,6 +148,19 @@ class FireCentre(BaseModel):
     has 1 or more planning areas within it. """
     name: str
     planning_areas: List[PlanningArea]
+
+
+class HFIResultRequest(BaseModel):
+    """
+    Request that contains inputs necessary for calculating HFI
+    """
+    prep_start_date: Optional[date]
+    prep_end_date: Optional[date]
+    selected_prep_date: Optional[date]
+    # selected_stations: key is planning area id, value is list of stations
+    selected_stations: Optional[Mapping[int, List[WeatherStation]]]
+    selected_fire_center: Optional[FireCentre]
+    planning_area_fire_starts: Optional[Mapping[int, List[FireStartRange]]]  # key is planning area id
 
 
 class HFIWeatherStationsResponse(BaseModel):
