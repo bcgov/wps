@@ -119,5 +119,6 @@ class FireCentrePrepPeriod(Base):
     id = Column(Integer, Sequence('hfi_calc_fire_centre_prep_period_id_seq'),
                 primary_key=True, nullable=False, index=True)
     fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
+    # TODO: rename to prep_start_date and prep_end_date
     prep_start_day = Column(Date, nullable=False, index=True)
     prep_end_day = Column(Date, nullable=False)

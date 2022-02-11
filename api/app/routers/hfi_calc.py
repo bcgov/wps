@@ -47,24 +47,24 @@ def is_prep_end_date_valid(start_date: date, end_date: date):
 
 def load_prep_period(session: Session, request: HFIResultRequest):
     """ Merge the prep period component of the request from the database with the request from the UI. """
-    # TODO: Change request.start_time_stamp and request.end_time_stamp to date.
-    if request.start_time_stamp is None or request.end_time_stamp is None:
+    if request.prep_start_date is None or request.prep_end_date is None:
         # We can use the timestamp from the database.
         prep_period = get_most_recent_fire_centre_prep_period(session, request.selected_fire_center)
-        if request.start_time_stamp is None:
-            request.start_time_stamp = prep_period.prep_start_day
-        if request.end_time_stamp is None:
-            request.end_time_stamp = prep_period.prep_end_day
+        if prep_period is not None:
+            if request.prep_start_date is None:
+                request.prep_start_date = prep_period.prep_start_day
+            if request.prep_end_date is None:
+                request.prep_end_date = prep_period.prep_end_day
     # Do some data validation - if the data from the request, or from the database is invalid, we fix
     # it here:
-    if request.start_time_stamp is None:
+    if request.prep_start_date is None:
         # If for whatever reason we couldn't get a start date, we use a default
         # TODO: Consider fancy logic setting to monday or thursday?
-        request.start_time_stamp = date.today()
-    if not is_prep_end_date_valid(request.start_time_stamp, request.end_time_stamp):
+        request.prep_start_date = date.today()
+    if not is_prep_end_date_valid(request.prep_start_date, request.prep_end_date):
         # If for whatever reason we couldn't get an end date, we use a default.
         # If for whatever reason the prep perid exceeds 5 days, bring it back down.
-        request.end_time_stamp = request.start_time_stamp + timedelta(days=5)
+        request.prep_end_date = request.prep_start_date + timedelta(days=5)
     return request
 
 
@@ -75,15 +75,22 @@ def load_planning_area_selection(session: Session, request: HFIResultRequest):
 
     # If the request hasn't specified a station list at all, we'll just use whatever is in the database.
     # We don't really "merge" the station list - we either use the database, or we use the request as is.
-    if request.selected_station_codes is None:
-        request.selected_station_codes = []
+    if request.selected_stations is None:
+        request.selected_stations = {}
 
         for override, _, station in planning_area_overrides:
             # TODO: we don't have fuel type yet!
             # If we're using the database as our source, and the station is selected, the add it to the list.
             if override.station_selected:
-                if station.station_code not in request.selected_station_codes:
-                    request.selected_station_codes.append(station.station_code)
+                if override.planning_area_id not in request.selected_stations.keys():
+                    request.selected_stations[override.planning_area_id] = []
+                # TODO: you were right here! fix this code.
+                #
+                raise Exception()
+                # if station.station_code not in request.selected_stations[override.planning_area_id]:
+                #     if request.selected_stations[override.planning_area_id] is None:
+                #         request.selected_stations[override.planning_area_id] = []
+                #     request.selected_station_codes.append(station.station_code)
     return request
 
 
