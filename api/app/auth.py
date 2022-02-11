@@ -44,6 +44,7 @@ async def audit(request: Request, token=Depends(authenticate)):
     username = token.get('preferred_username', None)
 
     create_api_access_audit_log(username, bool(token), path)
+    return token
 
 
 async def authentication_required(token=Depends(authenticate)):
@@ -53,3 +54,4 @@ async def authentication_required(token=Depends(authenticate)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             headers={'WWW-Authenticate': 'Bearer'}
         )
+    return token

@@ -11,7 +11,7 @@ import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
-from app.db.crud.hfi_calc import get_fire_weather_stations
+from app.db.crud.hfi_calc import get_fire_weather_stations, get_most_recent_updated_hfi_request, store_hfi_request
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_lookup_fuel_types,
                                        get_stations_by_codes)
@@ -27,29 +27,49 @@ router = APIRouter(
 )
 
 
+def load_request(request: HFIResultRequest) -> HFIResultRequest:
+    """ If we need to load the request from the database, we do so. Otherwise we return the request as is. """
+    if request.start_time_stamp is None:
+        with app.db.database.get_read_session_scope() as session:
+            stored_request = get_most_recent_updated_hfi_request(session, request.selected_fire_center)
+            if stored_request:
+                return HFIResultRequest.from_dict(stored_request.request)
+    return request
+
+
+def save_request(request: HFIResultRequest, username: str):
+    if request.start_time_stamp is not None and request.end_time_stamp is not None:
+        with app.db.database.get_write_session_scope() as session:
+            store_hfi_request(session, request, username)
+    return request
+
+
 @router.post('/', response_model=HFIResultResponse)
 async def get_hfi_results(request: HFIResultRequest,
                           response: Response,
-                          _=Depends(authentication_required)):
+                          token=Depends(authentication_required)):
     """ Returns calculated HFI results for the supplied details in the POST body """
 
     try:
         logger.info('/hfi-calc/')
         response.headers["Cache-Control"] = no_cache
+
+        request = load_request(request)
+
         valid_start_time, valid_end_time = validate_time_range(
             request.start_time_stamp, request.end_time_stamp)
 
         async with ClientSession() as session:
             header = await get_auth_header(session)
             wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
-                session, header, request.station_codes)
+                session, header, request.selected_station_codes)
             dailies = await get_dailies_lookup_fuel_types(
                 session, header, wfwx_stations, valid_start_time, valid_end_time)
             results = calculate_hfi_results(request.selected_fire_center,
                                             request.planning_area_fire_starts,
                                             dailies, request.num_prep_days,
                                             request.selected_station_codes)
-        return HFIResultResponse(
+        response = HFIResultResponse(
             num_prep_days=request.num_prep_days,
             selected_prep_date=request.selected_prep_date,
             start_time_stamp=valid_start_time,
@@ -58,6 +78,13 @@ async def get_hfi_results(request: HFIResultRequest,
             selected_fire_center=request.selected_fire_center,
             planning_area_hfi_results=results,
             planning_area_fire_starts=request.planning_area_fire_starts)
+
+        # NOTE: we want to delay saving the request as much as possible - if the request breaks the response,
+        # we don't want to save it!
+        # TODO: add check for "save" button
+        save_request(request, token.get('preferred_username', None))
+
+        return response
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise

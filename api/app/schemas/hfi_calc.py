@@ -1,7 +1,7 @@
 """ This module contains pydandict schemas the HFI Calculator.
 """
 from typing import List, Mapping, Optional
-from datetime import datetime
+from datetime import datetime, date
 from pydantic import BaseModel
 from app.schemas.shared import FuelType
 
@@ -97,34 +97,6 @@ class PlanningAreaResult(BaseModel):
     daily_results: List[DailyResult]
 
 
-class HFIResultResponse(BaseModel):
-    """
-    Response that contains daily data, num prep days, selected station codes,
-    selected fire centre, fire starts, HFI results
-    """
-    num_prep_days: int
-    selected_prep_date: datetime
-    start_time_stamp: Optional[int]
-    end_time_stamp: Optional[int]
-    selected_station_codes: List[int]
-    selected_fire_center: Optional[str]
-    planning_area_hfi_results: Mapping[str, PlanningAreaResult]
-    planning_area_fire_starts: Mapping[str, List[FireStartRange]]
-
-
-class HFIResultRequest(BaseModel):
-    """
-    Request that contains inputs necessary for calculating HFI
-    """
-    num_prep_days: int
-    selected_prep_date: datetime
-    start_time_stamp: Optional[int]
-    end_time_stamp: Optional[int]
-    selected_station_codes: List[int]
-    selected_fire_center: Optional[str]
-    planning_area_fire_starts: Mapping[str, List[FireStartRange]]
-
-
 class WeatherStationProperties(BaseModel):
     """ HFI-relevant weather station properties """
     name: str
@@ -150,6 +122,7 @@ class PlanningArea(BaseModel):
 class FireCentre(BaseModel):
     """ The highest-level organizational unit for wildfire planning. Each fire centre
     has 1 or more planning areas within it. """
+    id: int
     name: str
     planning_areas: List[PlanningArea]
 
@@ -158,3 +131,31 @@ class HFIWeatherStationsResponse(BaseModel):
     """ A list of WeatherStations, where each WeatherStation has nested within it all relevant information
     specific to BCWS planning operations. """
     fire_centres: List[FireCentre]
+
+
+class HFIResultRequest(BaseModel):
+    """
+    Request that contains inputs necessary for calculating HFI
+    """
+    num_prep_days: int
+    selected_prep_date: datetime
+    start_time_stamp: Optional[date]
+    end_time_stamp: Optional[date]
+    selected_station_codes: List[int]
+    selected_fire_center: Optional[FireCentre]
+    planning_area_fire_starts: Mapping[str, List[FireStartRange]]
+
+
+class HFIResultResponse(BaseModel):
+    """
+    Response that contains daily data, num prep days, selected station codes,
+    selected fire centre, fire starts, HFI results
+    """
+    num_prep_days: int
+    selected_prep_date: datetime
+    start_time_stamp: Optional[date]
+    end_time_stamp: Optional[date]
+    selected_station_codes: List[int]
+    selected_fire_center: Optional[FireCentre]
+    planning_area_hfi_results: Mapping[str, PlanningAreaResult]
+    planning_area_fire_starts: Mapping[str, List[FireStartRange]]
