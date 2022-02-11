@@ -42,6 +42,7 @@ def is_prep_end_date_valid(start_date: date, end_date: date):
         return False
     if end_date - start_date > timedelta(days=5):
         return False
+    return True
 
 
 def load_prep_period(session: Session, request: HFIResultRequest):
@@ -77,7 +78,7 @@ def load_planning_area_selection(session: Session, request: HFIResultRequest):
     if request.selected_station_codes is None:
         request.selected_station_codes = []
 
-        for override, fuel_type, station in planning_area_overrides:
+        for override, _, station in planning_area_overrides:
             # TODO: we don't have fuel type yet!
             # If we're using the database as our source, and the station is selected, the add it to the list.
             if override.station_selected:
@@ -87,6 +88,7 @@ def load_planning_area_selection(session: Session, request: HFIResultRequest):
 
 
 def find_fire_start_range(fire_starts_min: int, fire_starts_max: int):
+    """ Find the matching fire start range """
     # TODO: this is hellu ugly - need to relook that structure
     return next(fire_start_range for fire_start_range in all_ranges
                 if fire_start_range.fire_starts_min == fire_starts_min
@@ -94,6 +96,7 @@ def find_fire_start_range(fire_starts_min: int, fire_starts_max: int):
 
 
 def load_planning_area_selection_for_day(session: Session, request: HFIResultRequest):
+    """ Load the planning area selection overrides for the day in the request. """
     planning_area_overrides = get_planning_area_overrides_for_day_in_period(
         session, request.selected_fire_center, request.start_time_stamp, request.end_time_stamp)
 
@@ -112,7 +115,7 @@ def load_planning_area_selection_for_day(session: Session, request: HFIResultReq
     return request
 
 
-def load_request_overrides(session: Session, request: HFIResultRequest):
+def load_request_overrides(request: HFIResultRequest):
     """ Merge the request from the UI with the overrides from the database, with the UI taking precedence. """
     with app.db.database.get_read_session_scope() as session:
         request = load_prep_period(session, request)
@@ -122,6 +125,7 @@ def load_request_overrides(session: Session, request: HFIResultRequest):
 
 
 def store_prep_period(session: Session, request: HFIResultRequest):
+    """ Store the prep period for the fire centre in the databse. """
     if request.start_time_stamp is not None or request.end_time_stamp is not None:
         create_fire_centre_prep_period(session,
                                        request.selected_fire_center,
@@ -130,6 +134,7 @@ def store_prep_period(session: Session, request: HFIResultRequest):
 
 
 def store_planning_area_selection(session: Session, request: HFIResultRequest):
+    """ Store the fuel types and selected stations for a planning area. """
     # TODO: make selected_station_codes be a dictionary - key: planning area, value list of stations id's
     for planning_area in request.selected_station_codes.keys():
         for station_id in request.selected_station_codes[planning_area]:
@@ -138,6 +143,7 @@ def store_planning_area_selection(session: Session, request: HFIResultRequest):
 
 
 def store_planning_area_selection_for_day(session: Session, request: HFIResultRequest):
+    """ Store the fire starts for a planning area for a day. """
     for planning_area in request.planning_area_fire_starts.keys():
         delta = request.end_time_stamp - request.start_time_stamp
         fire_starts = request.planning_area_fire_starts[planning_area]
