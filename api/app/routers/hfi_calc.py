@@ -1,17 +1,24 @@
 """ Routers for HFI Calculator """
 import logging
 import math
+from datetime import date, timedelta
 from typing import List, Optional
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends, Query
+from sqlalchemy.orm import Session
 from app.hfi.hfi import calculate_hfi_results
 import app.utils.time
-from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationDailyResponse
+from app.schemas.hfi_calc import (HFIResultRequest, HFIResultResponse, StationDailyResponse, all_ranges)
 import app
+import app.db.database
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
-from app.db.crud.hfi_calc import get_fire_weather_stations
+from app.db.crud.hfi_calc import (get_fire_weather_stations,
+                                  get_most_recent_fire_centre_prep_period,
+                                  create_fire_centre_prep_period,
+                                  get_fire_centre_planning_area_selection_overrides,
+                                  get_planning_area_overrides_for_day_in_period)
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_lookup_fuel_types,
                                        get_stations_by_codes)
@@ -27,6 +34,104 @@ router = APIRouter(
 )
 
 
+def is_prep_end_date_valid(start_date: date, end_date: date):
+    """ Checks if the prep period is valid. Assumes non null start_date """
+    if end_date is None:
+        return False
+    if end_date - start_date > timedelta(days=5):
+        return False
+
+
+def merge_request_prep_period(session: Session, request: HFIResultRequest):
+    """ Merge the prep period component of the request from the database with the request from the UI. """
+    # TODO: Change request.start_time_stamp and request.end_time_stamp to date.
+    if request.start_time_stamp is None or request.end_time_stamp is None:
+        # We can use the timestamp from the database.
+        prep_period = get_most_recent_fire_centre_prep_period(session, request.selected_fire_center)
+        if request.start_time_stamp is None:
+            request.start_time_stamp = prep_period.prep_start_day
+        if request.end_time_stamp is None:
+            request.end_time_stamp = prep_period.prep_end_day
+    # Do some data validation - if the data from the request, or from the database is invalid, we fix
+    # it here:
+    if request.start_time_stamp is None:
+        # If for whatever reason we couldn't get a start date, we use a default
+        # TODO: Consider fancy logic setting to monday or thursday?
+        request.start_time_stamp = date.today()
+    if not is_prep_end_date_valid(request.start_time_stamp, request.end_time_stamp):
+        # If for whatever reason we couldn't get an end date, we use a default.
+        # If for whatever reason the prep perid exceeds 5 days, bring it back down.
+        request.end_time_stamp = request.start_time_stamp + timedelta(days=5)
+    return request
+
+
+def merge_planning_area_selection_override(session: Session, request: HFIResultRequest):
+    """ Merge the planning area selection overrides from the database with the request from the UI. """
+    planning_area_overrides = get_fire_centre_planning_area_selection_overrides(
+        session, request.selected_fire_center)
+
+    # If the request hasn't specified a station list at all, we'll just use whatever is in the database.
+    # We don't really "merge" the station list - we either use the database, or we use the request as is.
+    if request.selected_station_codes is None:
+        request.selected_station_codes = []
+
+        for override, fuel_type, station in planning_area_overrides:
+            # TODO: we don't have fuel type yet!
+            # If we're using the database as our source, and the station is selected, the add it to the list.
+            if override.station_selected:
+                if station.station_code not in request.selected_station_codes:
+                    request.selected_station_codes.append(station.station_code)
+    return request
+
+
+def find_fire_start_range(fire_starts_min: int, fire_starts_max: int):
+    # TODO: this is hellu ugly - need to relook that structure
+    return next(fire_start_range for fire_start_range in all_ranges
+                if fire_start_range.fire_starts_min == fire_starts_min
+                and fire_start_range.fire_starts_max == fire_starts_max)
+
+
+def merge_planning_area_selection_override_for_day(session: Session, request: HFIResultRequest):
+    planning_area_overrides = get_planning_area_overrides_for_day_in_period(
+        session, request.selected_fire_center, request.start_time_stamp, request.end_time_stamp)
+
+    period = request.end_time_stamp - request.start_time_stamp
+
+    # If the request hasn't specified fire starts, then we'll just use whatever is in the database.
+    if request.planning_area_fire_starts is None:
+        for override in planning_area_overrides:
+            if override.planning_area_id not in request.planning_area_fire_starts.keys:
+                # create a list of fire starts for this planning area
+                request.planning_area_fire_starts[override.planning_area_id] = [None] * period.days
+            delta = request.start_time_stamp - override.day
+            request.planning_area_fire_starts[override.planning_area_id][delta.days] = find_fire_start_range(
+                override.fire_starts_min, override.fire_starts_max)
+
+    return request
+
+
+def merge_request_with_overrides(session: Session, request: HFIResultRequest):
+    """ Merge the request from the UI with the overrides from the database, with the UI taking precedence. """
+    with app.db.database.get_read_session_scope() as session:
+        request = merge_request_prep_period(session, request)
+        request = merge_planning_area_selection_override(session, request)
+        request = merge_planning_area_selection_override_for_day(session, request)
+    return request
+
+
+def store_request(request: HFIResultRequest):
+    """ Store the request in the database. """
+    # TODO: we need some kind of flag (corresponding to a save button)
+    save = True
+    if save:
+        if request.start_time_stamp is not None or request.end_time_stamp is not None:
+            with app.db.database.get_write_session_scope() as session:
+                create_fire_centre_prep_period(session,
+                                               request.selected_fire_center,
+                                               request.start_time_stamp,
+                                               request.end_time_stamp)
+
+
 @router.post('/', response_model=HFIResultResponse)
 async def get_hfi_results(request: HFIResultRequest,
                           response: Response,
@@ -35,6 +140,8 @@ async def get_hfi_results(request: HFIResultRequest,
 
     try:
         logger.info('/hfi-calc/')
+        request = merge_request_with_overrides(request)
+        store_request(request)
         response.headers["Cache-Control"] = no_cache
         valid_start_time, valid_end_time = validate_time_range(
             request.start_time_stamp, request.end_time_stamp)
