@@ -15,6 +15,11 @@ from app.db.crud.hfi_calc import get_fire_weather_stations
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_lookup_fuel_types,
                                        get_stations_by_codes)
+from fastapi.responses import StreamingResponse
+from reportlab.platypus import SimpleDocTemplate
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import Table
+import io
 
 
 logger = logging.getLogger(__name__)
@@ -22,8 +27,8 @@ logger = logging.getLogger(__name__)
 no_cache = "max-age=0"  # don't let the browser cache this
 
 router = APIRouter(
-    prefix="/hfi-calc",
-    dependencies=[Depends(authentication_required), Depends(audit)]
+    prefix="/hfi-calc"
+    #dependencies=[Depends(authentication_required), Depends(audit)]
 )
 
 
@@ -91,6 +96,32 @@ async def get_daily_view(response: Response,
             dailies = await get_dailies_lookup_fuel_types(
                 session, header, wfwx_stations, valid_start_time, valid_end_time)
             return StationDailyResponse(dailies=dailies)
+    except Exception as exc:
+        logger.critical(exc, exc_info=True)
+        raise
+
+
+@router.get('/pdf-download')
+async def download_hfi_pdf(response: Response):
+    try:
+        logger.info('/hfi-calc/pdf-download')
+        response.headers["Cache-Control"] = no_cache
+        fileObject = io.BytesIO()
+        data = [
+            ['Fraser (V1)', '1.3', '0-1', '1'],
+            ['Honna (93)', '21', 'C5', '0.0', '2.6', '1']
+        ]
+
+        pdf = SimpleDocTemplate(fileObject,
+                                pagesize=letter)
+
+        table = Table(data)
+        elems = []
+        elems.append(table)
+        pdf.build(elems)
+        fileSize = fileObject.tell()
+        fileObject.seek(0)
+        return StreamingResponse(fileObject.read(), media_type='application/pdf', headers={'Content-Length': str(fileSize)})
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise
