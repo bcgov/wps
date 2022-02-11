@@ -35,11 +35,14 @@ def get_stations_with_fuel_types(session: Session, station_codes: List[int]) -> 
 
 
 def get_planning_area_overrides_for_day_in_period(session: Session,
+                                                  fire_centre_id: int,
                                                   prep_start_day: date,
                                                   prep_end_day: date) -> CursorResult:
     return session.query(PlanningAreaSelectionOverrideForDay).\
+        join(PlanningArea, PlanningArea.id == PlanningAreaSelectionOverrideForDay.planning_area_id).\
         filter(PlanningAreaSelectionOverrideForDay.day >= prep_start_day).\
-        filter(PlanningAreaSelectionOverrideForDay.day <= prep_end_day)
+        filter(PlanningAreaSelectionOverrideForDay.day <= prep_end_day).\
+        filter(PlanningArea.fire_centre_id == fire_centre_id)
 
 
 def create_planning_area_selection_override_for_day(session: Session, planning_area_id: int, day: date,
@@ -93,10 +96,11 @@ def get_most_recent_fire_centre_prep_period(session: Session, fire_centre_id: in
 
 def get_fire_centre_planning_area_selection_overrides(session: Session, fire_centre_id: int) -> CursorResult:
     """ Get all the overrides for each planning area in a fire centre """
-    return session.query(PlanningAreaSelectionOverride, FuelType).\
+    return session.query(PlanningAreaSelectionOverride, FuelType, PlanningWeatherStation).\
         join(PlanningArea, PlanningArea.id == PlanningAreaSelectionOverride.planning_area_id).\
         join(FireCentre, FireCentre.id == PlanningArea.fire_centre_id).\
         join(FuelType, FuelType.id == PlanningAreaSelectionOverride.fuel_type_id).\
+        join(PlanningWeatherStation, PlanningWeatherStation.id == PlanningAreaSelectionOverride.station_id).\
         filter(FireCentre.id == fire_centre_id)
 
 
