@@ -1,6 +1,5 @@
 """ This module contains pydandict schemas the HFI Calculator.
 """
-import math
 from typing import List, Mapping, Optional
 from datetime import datetime
 from pydantic import BaseModel
@@ -66,7 +65,7 @@ class FireStartRange(BaseModel):
     value: int
     lookup_table: Mapping[int, int]
     fire_starts_min: int
-    fire_starts_max: int
+    fire_starts_max: Optional[int]
 
 
 lowest_fire_starts = FireStartRange(
@@ -78,7 +77,8 @@ two_2_three_starts = FireStartRange(
 three_2_six_starts = FireStartRange(
     label='3-6', value=6, lookup_table={1: 3, 2: 4, 3: 5, 4: 6, 5: 6}, fire_starts_min=3, fire_starts_max=6)
 highest_fire_starts = FireStartRange(
-    label='6+', value=7, lookup_table={1: 4, 2: 5, 3: 6, 4: 6, 5: 6}, fire_starts_min=6, fire_starts_max=math.inf)
+    label='6+', value=7, lookup_table={1: 4, 2: 5, 3: 6, 4: 6, 5: 6}, fire_starts_min=6,
+    fire_starts_max=None)
 
 all_ranges = [lowest_fire_starts, one_2_two_starts,
               two_2_three_starts, three_2_six_starts, highest_fire_starts]
