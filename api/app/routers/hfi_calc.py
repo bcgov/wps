@@ -79,10 +79,8 @@ async def get_hfi_results(request: HFIResultRequest,
             planning_area_hfi_results=results,
             planning_area_fire_starts=request.planning_area_fire_starts)
 
-        # NOTE: we want to delay saving the request as much as possible - if the request breaks the response,
-        # we don't want to save it!
-        # TODO: add check for "save" button
-        save_request(request, token.get('preferred_username', None))
+        if request.save == True:
+            save_request(request, token.get('preferred_username', None))
 
         return response
     except Exception as exc:

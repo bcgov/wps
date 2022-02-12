@@ -1,5 +1,6 @@
 """ This module contains pydandict schemas the HFI Calculator.
 """
+from lib2to3.pgen2.token import OP
 from typing import List, Mapping, Optional
 from datetime import datetime, date
 from pydantic import BaseModel
@@ -139,11 +140,13 @@ class HFIResultRequest(BaseModel):
     """
     num_prep_days: int
     selected_prep_date: datetime
+    # TODO: rename "time_stamp" to "date" - since we don't care about time.
     start_time_stamp: Optional[date]
     end_time_stamp: Optional[date]
     selected_station_codes: List[int]
     selected_fire_center: Optional[FireCentre]
     planning_area_fire_starts: Mapping[str, List[FireStartRange]]
+    save: Optional[bool]
 
 
 class HFIResultResponse(BaseModel):
