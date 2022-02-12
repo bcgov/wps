@@ -11,7 +11,8 @@ import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
-from app.db.crud.hfi_calc import get_fire_weather_stations, get_most_recent_updated_hfi_request, store_hfi_request
+from app.db.crud.hfi_calc import (get_fire_weather_stations,
+                                  get_most_recent_updated_hfi_request, store_hfi_request)
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_lookup_fuel_types,
                                        get_stations_by_codes)
@@ -38,6 +39,7 @@ def load_request(request: HFIResultRequest) -> HFIResultRequest:
 
 
 def save_request(request: HFIResultRequest, username: str):
+    """ Save the request to the database (if there's a valid prep period) """
     if request.start_time_stamp is not None and request.end_time_stamp is not None:
         with app.db.database.get_write_session_scope() as session:
             store_hfi_request(session, request, username)
@@ -79,7 +81,7 @@ async def get_hfi_results(request: HFIResultRequest,
             planning_area_hfi_results=results,
             planning_area_fire_starts=request.planning_area_fire_starts)
 
-        if request.save == True:
+        if request.save is True:
             save_request(request, token.get('preferred_username', None))
 
         return response
