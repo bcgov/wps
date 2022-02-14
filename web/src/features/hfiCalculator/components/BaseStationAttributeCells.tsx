@@ -53,7 +53,7 @@ const BaseStationAttributeCells = ({
                 key={`station-${station.code}-name`}
                 className={`${className} ${classes.stationLocation} ${classes.noBottomBorder}`}
               >
-                {station.station_props.name} ({station.code})
+                {station.station_props.name}
               </TableCell>
             </TableRow>
           </TableBody>
