@@ -39,7 +39,7 @@ OC_APPLY="oc -n ${PROJ_TOOLS} apply -f -"
 #
 OC_CANCEL_BUILD="oc -n ${PROJ_TOOLS} cancel-build bc/${NAME_OBJ}"
 [ "${APPLY}" ] || OC_CANCEL_BUILD=""
-OC_START_BUILD="oc -n ${PROJ_TOOLS} start-build ${NAME_OBJ} --follow=true"
+OC_START_BUILD="oc -n ${PROJ_TOOLS} start-build ${NAME_OBJ} --follow=true --wait=true"
 [ "${APPLY}" ] || OC_START_BUILD=""
 
 # Execute commands
