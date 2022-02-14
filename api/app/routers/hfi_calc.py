@@ -102,10 +102,9 @@ async def get_daily_view(response: Response,
 
 
 @router.get('/pdf-download')
-async def download_hfi_pdf(response: Response):
+async def download_hfi_pdf():
     try:
         logger.info('/hfi-calc/pdf-download')
-        response.headers["Cache-Control"] = no_cache
         fileObject = io.BytesIO()
         data = [
             ['Fraser (V1)', '1.3', '0-1', '1'],
@@ -121,7 +120,7 @@ async def download_hfi_pdf(response: Response):
         pdf.build(elems)
         fileSize = fileObject.tell()
         fileObject.seek(0)
-        return StreamingResponse(fileObject.read(), media_type='application/pdf', headers={'Content-Length': str(fileSize)})
+        return StreamingResponse(fileObject, media_type='application/pdf', headers={'Content-Length': str(fileSize), 'Cache-Control': no_cache})
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise
