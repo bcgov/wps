@@ -82,23 +82,27 @@ async def get_hfi_results(request: HFIResultRequest,
         start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_start_date).timestamp() * 1000)
         end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
 
+        selected_prep_date = request.selected_prep_date
+        if selected_prep_date is None or selected_prep_date < valid_start_date or selected_prep_date > valid_end_date:
+            selected_prep_date = valid_start_date
+
         async with ClientSession() as session:
             header = await get_auth_header(session)
             wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
                 session, header, request.selected_station_code_ids)
             dailies = await get_dailies_lookup_fuel_types(
                 session, header, wfwx_stations, start_timestamp, end_timestamp)
+            prep_delta = valid_end_date - valid_start_date
             results = calculate_hfi_results(request.selected_fire_center_id,
                                             request.planning_area_fire_starts,
-                                            dailies, request.num_prep_days,
-                                            request.selected_station_codes)
+                                            dailies, prep_delta.days,
+                                            request.selected_station_code_ids)
         response = HFIResultResponse(
-            num_prep_days=request.num_prep_days,
-            selected_prep_date=request.selected_prep_date,
-            start_time_stamp=start_timestamp,
-            end_time_stamp=end_timestamp,
-            selected_station_codes=request.selected_station_codes,
-            selected_fire_center=request.selected_fire_center,
+            selected_prep_date=selected_prep_date,
+            start_date=start_timestamp,
+            end_date=end_timestamp,
+            selected_station_code_ids=request.selected_station_code_ids,
+            selected_fire_center_id=request.selected_fire_center_id,
             planning_area_hfi_results=results,
             planning_area_fire_starts=request.planning_area_fire_starts)
 
@@ -120,7 +124,7 @@ def validate_time_range(start_time_stamp: Optional[int], end_time_stamp: Optiona
     return int(start_time_stamp), int(end_time_stamp)
 
 
-@router.get('/daily', response_model=StationDailyResponse)
+@ router.get('/daily', response_model=StationDailyResponse)
 async def get_daily_view(response: Response,
                          _=Depends(authentication_required),
                          station_codes: Optional[List[int]] = Query(None),

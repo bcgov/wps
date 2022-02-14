@@ -28,5 +28,5 @@ Feature: /hfi/
         And the response is <response_json>
 
         Examples:
-            | request_json | status_code | response_json | stored_request_json |
-# | test_hfi_endpoint_request_load_no_date_specified.json | 200         | test_hfi_endpoint_response_loaded.json | stored_request.json |
+            | request_json                                          | status_code | response_json                          | stored_request_json |
+            | test_hfi_endpoint_request_load_no_date_specified.json | 200         | test_hfi_endpoint_response_loaded.json | stored_request.json |

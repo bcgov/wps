@@ -22,10 +22,11 @@ def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-local
                           num_prep_days: int,
                           selected_station_codes: List[int]):
     """ Computes HFI results based on parameter inputs """
-    planning_area_to_dailies: Mapping[str, PlanningAreaResult] = {}
+    planning_area_to_dailies: List[PlanningAreaResult] = []
 
     with get_read_session_scope() as session:
         for area in get_planning_areas(session, fire_centre_id):
+            # TODO: doing this nested sql query is super slow - need to come back to this.
             stations = get_planning_area_stations(session, area.id)
             area_station_codes = map(lambda station: (station.station_code), stations)
 
@@ -72,11 +73,12 @@ def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-local
             mean_prep_level = calculate_mean_prep_level(
                 list(map(lambda daily_result: (daily_result.prep_level), daily_results)))
 
-            planning_area_to_dailies[area.name] = PlanningAreaResult(
+            planning_area_to_dailies.append(PlanningAreaResult(
+                planning_area_id=area.id,
                 all_dailies_valid=all_dailies_valid,
                 highest_daily_intensity_group=highest_daily_intensity_group,
                 mean_prep_level=mean_prep_level,
-                daily_results=daily_results)
+                daily_results=daily_results))
 
         return planning_area_to_dailies
 

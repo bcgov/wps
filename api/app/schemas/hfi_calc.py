@@ -148,7 +148,7 @@ class HFIResultRequest(BaseModel):
     end_date: Optional[date]
     selected_station_code_ids: List[int]
     selected_fire_center_id: int
-    # Mapping from planning area id to a list of FireStartRanges.
+    # Mapping from planning area id to a map of FireStartRanges.
     planning_area_fire_starts: Mapping[int, Mapping[date, FireStartRange]]
     save: Optional[bool]
 
@@ -164,4 +164,5 @@ class HFIResultResponse(BaseModel):
     selected_station_code_ids: List[int]
     selected_fire_center_id: int
     planning_area_hfi_results: List[PlanningAreaResult]
+    # Mapping from planning area id to a map of FireStartRanges
     planning_area_fire_starts: Mapping[int, Mapping[date, FireStartRange]]
