@@ -47,10 +47,10 @@ objects:
       resources:
         limits:
           memory: 2Gi
-          cpu: 8000m
+          cpu: 4000m
         requests:
           memory: 1Gi
-          cpu: 4000m
+          cpu: 500m
       output:
         to:
           kind: ImageStreamTag
