@@ -41,7 +41,7 @@ def load_request(request: HFIResultRequest) -> HFIResultRequest:
 
 def save_request(request: HFIResultRequest, username: str):
     """ Save the request to the database (if there's a valid prep period) """
-    if request.start_time_stamp is not None and request.end_time_stamp is not None:
+    if request.start_date is not None and request.end_date is not None:
         with app.db.database.get_write_session_scope() as session:
             store_hfi_request(session, request, username)
     return request
