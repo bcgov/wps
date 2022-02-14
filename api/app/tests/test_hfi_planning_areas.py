@@ -25,7 +25,7 @@ def given_hfi_planning_areas_request(monkeypatch):
     """
 
     def mock_get_fire_weather_stations(_: Session):
-        fire_centre = FireCentre(name='Kamloops Fire Centre')
+        fire_centre = FireCentre(id=1, name='Kamloops Fire Centre')
         planning_area_1 = PlanningArea(name='Kamloops (K2)', fire_centre_id=1)
         planning_area_2 = PlanningArea(name='Vernon (K4)', fire_centre_id=1)
         fuel_type_1 = FuelType(abbrev='O1B', description='neigh')

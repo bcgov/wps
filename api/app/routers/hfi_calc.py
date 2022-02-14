@@ -177,17 +177,17 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                     'fire_centre': fire_centre_record
                 }
 
-                if fire_centres_dict.get(fire_centre_record.name) is None:
-                    fire_centres_dict[fire_centre_record.name] = {
+                if fire_centres_dict.get(fire_centre_record.id) is None:
+                    fire_centres_dict[fire_centre_record.id] = {
                         'fire_centre_record': fire_centre_record,
                         'planning_area_records': [planning_area_record],
                         'planning_area_objects': []
                     }
                 else:
-                    fire_centres_dict.get(fire_centre_record.name)[
+                    fire_centres_dict.get(fire_centre_record.id)[
                         'planning_area_records'].append(planning_area_record)
-                    fire_centres_dict[fire_centre_record.name]['planning_area_records'] = list(
-                        set(fire_centres_dict.get(fire_centre_record.name).get('planning_area_records')))
+                    fire_centres_dict[fire_centre_record.id]['planning_area_records'] = list(
+                        set(fire_centres_dict.get(fire_centre_record.id).get('planning_area_records')))
 
                 if planning_areas_dict.get(planning_area_record.name) is None:
                     planning_areas_dict[planning_area_record.name] = {
@@ -235,7 +235,8 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
             for pa_record in val['planning_area_records']:
                 pa_object = planning_areas_dict.get(pa_record.name).get('planning_area_object')
                 planning_area_objects_list.append(pa_object)
-            fire_centre = FireCentre(name=key, planning_areas=planning_area_objects_list)
+            fire_centre = FireCentre(
+                id=key, name=val['fire_centre_record'].name, planning_areas=planning_area_objects_list)
             fire_centres_list.append(fire_centre)
 
         return HFIWeatherStationsResponse(fire_centres=fire_centres_list)
