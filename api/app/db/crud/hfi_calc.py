@@ -64,9 +64,9 @@ def get_most_recent_updated_hfi_request(session: Session,
 def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, username: str):
     """ Store the supplied hfi request """
     hfi_request = HFIRequest(
-        fire_centre_id=hfi_result_request.selected_fire_center,
-        prep_start_day=hfi_result_request.start_time_stamp,
-        prep_end_day=hfi_result_request.end_time_stamp,
+        fire_centre_id=hfi_result_request.selected_fire_center_id,
+        prep_start_day=hfi_result_request.start_date,
+        prep_end_day=hfi_result_request.end_date,
         create_timestamp=get_utc_now(),
         create_user=username,
         request=hfi_result_request.json())
