@@ -61,13 +61,13 @@ objects:
         to:
           kind: ImageStreamTag
           name: ${NAME}-${SUFFIX}:${SUFFIX}
-      # resources:
-      #   limits:
-      #     cpu: "4000m"
-      #     memory: 6Gi
-      #   requests:
-      #     cpu: "2000m"
-      #     memory: 1Gi
+      resources:
+        limits:
+          cpu: "0"
+          memory: 6Gi
+        requests:
+          cpu: "0"
+          memory: 1Gi
       source:
         type: Git
         git:
