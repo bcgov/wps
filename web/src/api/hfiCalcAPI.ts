@@ -15,7 +15,7 @@ export interface WeatherStationProperties {
 export interface FireCentre {
   id: number
   name: string
-  planning_areas: Record<string, PlanningArea>
+  planning_areas: PlanningArea[]
 }
 
 export interface PlanningArea {

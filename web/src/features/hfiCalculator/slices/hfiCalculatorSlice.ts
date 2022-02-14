@@ -2,7 +2,13 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { getDailies, StationDaily } from 'api/hfiCalculatorAPI'
+import {
+  getCalculatedHFIResults,
+  getDailies,
+  HFIResultRequest,
+  HFIResultResponse,
+  StationDaily
+} from 'api/hfiCalculatorAPI'
 import { groupBy, isUndefined, range, chain, flatten, take, isNull } from 'lodash'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
@@ -39,6 +45,7 @@ export interface HFICalculatorState {
   planningAreaFireStarts: { [key: string]: FireStarts[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
+  newResponse: HFIResultResponse | undefined
 }
 
 export interface ValidatedStationDaily extends StationDaily {
@@ -90,7 +97,8 @@ const initialState: HFICalculatorState = {
   formattedDateStringHeaders: [],
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
-  selectedFireCentre: undefined
+  selectedFireCentre: undefined,
+  newResponse: undefined
 }
 
 type RequiredValidField = keyof StationDaily
@@ -362,6 +370,9 @@ const dailiesSlice = createSlice({
         state.numPrepDays,
         state.selectedStationCodes
       )
+    },
+    setHFIResults: (state, action: PayloadAction<HFIResultResponse>) => {
+      state.newResponse = action.payload
     }
   }
 })
@@ -374,7 +385,8 @@ export const {
   setSelectedSelectedStationCodes,
   setSelectedPrepDate,
   setFireStarts,
-  setSelectedFireCentre
+  setSelectedFireCentre,
+  setHFIResults
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer
@@ -392,6 +404,18 @@ export const fetchHFIDailies =
       dispatch(getDailiesStart())
       const dailies = await getDailies(startTime, endTime, stationCodesToFetch)
       dispatch(getDailiesSuccess({ dailies, fireCentre, selectedStationCodes }))
+    } catch (err) {
+      dispatch(getDailiesFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
+export const fetchHFIResults =
+  (request: HFIResultRequest): AppThunk =>
+  async dispatch => {
+    try {
+      const result = await getCalculatedHFIResults(request)
+      dispatch(setHFIResults(result))
     } catch (err) {
       dispatch(getDailiesFailed((err as Error).toString()))
       logError(err)

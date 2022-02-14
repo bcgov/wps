@@ -3,6 +3,7 @@
 from sqlalchemy import (Column, Integer,
                         Sequence, ForeignKey, UniqueConstraint)
 from sqlalchemy.sql.sqltypes import String
+from sqlalchemy.orm import relationship
 from app.db.database import Base
 
 
@@ -29,6 +30,7 @@ class PlanningArea(Base):
                 primary_key=True, nullable=False, index=True)
     name = Column(String, nullable=False, index=True)
     fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
+    fire_centre = relationship("FireCentre", lazy='joined')
     order_of_appearance_in_list = Column(Integer, nullable=False)
 
     def __str__(self):
@@ -65,7 +67,9 @@ class PlanningWeatherStation(Base):
                 primary_key=True, nullable=False, index=True)
     station_code = Column(Integer, nullable=False, index=True)
     fuel_type_id = Column(Integer, ForeignKey('fuel_types.id'), nullable=False, index=True)
+    fuel_type = relationship("FuelType", lazy='joined')
     planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)
+    planning_area = relationship("PlanningArea", lazy='joined')
 
     def __str__(self):
         return (f'id:{self.id}, '

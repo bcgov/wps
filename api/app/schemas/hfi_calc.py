@@ -97,34 +97,6 @@ class PlanningAreaResult(BaseModel):
     daily_results: List[DailyResult]
 
 
-class HFIResultResponse(BaseModel):
-    """
-    Response that contains daily data, num prep days, selected station codes,
-    selected fire centre, fire starts, HFI results
-    """
-    num_prep_days: int
-    selected_prep_date: datetime
-    start_time_stamp: Optional[int]
-    end_time_stamp: Optional[int]
-    selected_station_codes: List[int]
-    selected_fire_center: Optional[str]
-    planning_area_hfi_results: Mapping[str, PlanningAreaResult]
-    planning_area_fire_starts: Mapping[str, List[FireStartRange]]
-
-
-class HFIResultRequest(BaseModel):
-    """
-    Request that contains inputs necessary for calculating HFI
-    """
-    num_prep_days: int
-    selected_prep_date: datetime
-    start_time_stamp: Optional[int]
-    end_time_stamp: Optional[int]
-    selected_station_codes: List[int]
-    selected_fire_center: Optional[str]
-    planning_area_fire_starts: Mapping[str, List[FireStartRange]]
-
-
 class WeatherStationProperties(BaseModel):
     """ HFI-relevant weather station properties """
     name: str
@@ -158,3 +130,31 @@ class HFIWeatherStationsResponse(BaseModel):
     """ A list of WeatherStations, where each WeatherStation has nested within it all relevant information
     specific to BCWS planning operations. """
     fire_centres: List[FireCentre]
+
+
+class HFIResultResponse(BaseModel):
+    """
+    Response that contains daily data, num prep days, selected station codes,
+    selected fire centre, fire starts, HFI results
+    """
+    num_prep_days: int
+    selected_prep_date: datetime
+    start_time_stamp: Optional[int]
+    end_time_stamp: Optional[int]
+    selected_station_codes: List[int]
+    selected_fire_center: Optional[str]
+    planning_area_hfi_results: Mapping[str, PlanningAreaResult]
+    planning_area_fire_starts: Mapping[str, List[FireStartRange]]
+
+
+class HFIResultRequest(BaseModel):
+    """
+    Request that contains inputs necessary for calculating HFI
+    """
+    num_prep_days: int
+    selected_prep_date: Optional[str]
+    start_time_stamp: Optional[int]
+    end_time_stamp: Optional[int]
+    selected_station_codes: List[int]
+    selected_fire_center: Optional[FireCentre]
+    planning_area_fire_starts: Mapping[str, List[FireStartRange]]

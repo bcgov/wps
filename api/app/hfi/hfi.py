@@ -24,7 +24,7 @@ def calculate_hfi_results(fire_centre: Optional[FireCentre],  # pylint: disable=
     if fire_centre is None:
         return planning_area_to_dailies
 
-    for area in fire_centre.planning_areas:
+    for key, area in enumerate(fire_centre.planning_areas):
         area_station_codes = map(lambda station: (station.code), area.stations)
 
         # Marshall dailies in chronological order,

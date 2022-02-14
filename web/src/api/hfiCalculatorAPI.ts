@@ -1,4 +1,9 @@
 import axios from 'api/axios'
+import { FireCentre } from 'api/hfiCalcAPI'
+import {
+  FireStarts,
+  PlanningAreaResult
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
 import 'qs'
 import { stringify } from 'querystring'
@@ -44,14 +49,12 @@ export interface StationDailyResponse {
   dailies: RawDaily[]
 }
 
-const url = '/hfi-calc/daily'
-
 export async function getDailies(
   startTime: number,
   endTime: number,
   stationCodes: number[]
 ): Promise<StationDaily[]> {
-  const { data } = await axios.get<StationDailyResponse>(url, {
+  const { data } = await axios.get<StationDailyResponse>('/hfi-calc/daily', {
     params: {
       start_time_stamp: startTime,
       end_time_stamp: endTime,
@@ -70,4 +73,32 @@ export async function getDailies(
     date: DateTime.fromISO(daily.date),
     last_updated: DateTime.fromISO(daily.last_updated)
   }))
+}
+
+export interface HFIResultRequest {
+  num_prep_days: number
+  selected_prep_date: string
+  start_time_stamp: number
+  end_time_stamp: number
+  selected_station_codes: number[]
+  selected_fire_center: FireCentre
+  planning_area_fire_starts: { [key: string]: FireStarts[] }
+}
+
+export interface HFIResultResponse {
+  num_prep_days: number
+  selected_prep_date: DateTime
+  start_time_stamp: number
+  end_time_stamp: number
+  selected_station_codes: number[]
+  selected_fire_center: FireCentre
+  planning_area_hfi_results: { [key: string]: PlanningAreaResult }
+  planning_area_fire_starts: { [key: string]: FireStarts[] }
+}
+
+export async function getCalculatedHFIResults(
+  requestBody: HFIResultRequest
+): Promise<HFIResultResponse> {
+  const { data } = await axios.post<HFIResultResponse>('/hfi-calc/', requestBody)
+  return data
 }
