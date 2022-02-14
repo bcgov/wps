@@ -91,6 +91,7 @@ class PlanningAreaResult(BaseModel):
     Mean prep level / max intensity group,
     dailies and validity status of station dailies in a planning area
     """
+    planning_area_id: int
     all_dailies_valid: bool
     highest_daily_intensity_group: Optional[float]
     mean_prep_level: Optional[float]
@@ -135,29 +136,32 @@ class HFIWeatherStationsResponse(BaseModel):
 
 class HFIResultRequest(BaseModel):
     """
-    Request that contains inputs necessary for calculating HFI
+    Request that contains inputs necessary for calculating HFI.
+
+    If a component on the front end needs a timestamp, then convert "2022-01-01" to a datetime at noon PST.
+    Vice versa, if a component is working in terms of a timestamp, then convert from that timestamp to
+    a ISO date string in PST, then grab the YYYY-MM-DD part.
+    The PST part is critical, so that the date doesn't change due to timezone switches.
     """
-    num_prep_days: int
-    selected_prep_date: datetime
-    # TODO: rename "time_stamp" to "date" - since we don't care about time.
-    start_time_stamp: Optional[date]
-    end_time_stamp: Optional[date]
-    selected_station_codes: List[int]
-    selected_fire_center: Optional[FireCentre]
-    planning_area_fire_starts: Mapping[str, List[FireStartRange]]
+    selected_prep_date: Optional[date]
+    start_date: Optional[date]
+    end_date: Optional[date]
+    selected_station_code_ids: List[int]
+    selected_fire_center_id: int
+    # Mapping from planning area id to a list of FireStartRanges.
+    planning_area_fire_starts: Mapping[int, Mapping[date, FireStartRange]]
     save: Optional[bool]
 
 
 class HFIResultResponse(BaseModel):
     """
     Response that contains daily data, num prep days, selected station codes,
-    selected fire centre, fire starts, HFI results
+    selected fire centre, fire starts, HFI results.
     """
-    num_prep_days: int
-    selected_prep_date: datetime
-    start_time_stamp: Optional[date]
-    end_time_stamp: Optional[date]
-    selected_station_codes: List[int]
-    selected_fire_center: Optional[FireCentre]
-    planning_area_hfi_results: Mapping[str, PlanningAreaResult]
-    planning_area_fire_starts: Mapping[str, List[FireStartRange]]
+    selected_prep_date: date
+    start_date: date
+    end_date: date
+    selected_station_code_ids: List[int]
+    selected_fire_center_id: int
+    planning_area_hfi_results: List[PlanningAreaResult]
+    planning_area_fire_starts: Mapping[int, Mapping[date, FireStartRange]]

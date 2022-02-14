@@ -1,6 +1,7 @@
 """ Routers for HFI Calculator """
 import logging
 import math
+from datetime import date, timedelta
 from typing import List, Optional
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends, Query
@@ -30,9 +31,9 @@ router = APIRouter(
 
 def load_request(request: HFIResultRequest) -> HFIResultRequest:
     """ If we need to load the request from the database, we do so. Otherwise we return the request as is. """
-    if request.start_time_stamp is None:
+    if request.start_date is None:
         with app.db.database.get_read_session_scope() as session:
-            stored_request = get_most_recent_updated_hfi_request(session, request.selected_fire_center)
+            stored_request = get_most_recent_updated_hfi_request(session, request.selected_fire_center_id)
             if stored_request:
                 return HFIResultRequest.parse_obj(stored_request.request)
     return request
@@ -44,6 +45,23 @@ def save_request(request: HFIResultRequest, username: str):
         with app.db.database.get_write_session_scope() as session:
             store_hfi_request(session, request, username)
     return request
+
+
+def validate_date_range(start_date: date, end_date: date):
+    """ Sets the start_date to today if it is None.
+    Set the end_date to start_date + 5 days, if it is None."""
+    # we don't have a start date, default to now.
+    if start_date is None:
+        now = app.utils.time.get_pst_now()
+        start_date = date(year=now.year, month=now.month, day=now.day)
+    # don't have an end date, default to start date + 5 days.
+    if end_date is None:
+        end_date = start_date + timedelta(days=5)
+    # check if the span exceeds 5, if it does clamp it down to 5 days.
+    delta = start_date - end_date
+    if delta.days > 5:
+        end_date = start_date + timedelta(days=5)
+    return start_date, end_date
 
 
 @router.post('/', response_model=HFIResultResponse)
@@ -58,24 +76,27 @@ async def get_hfi_results(request: HFIResultRequest,
 
         request = load_request(request)
 
-        valid_start_time, valid_end_time = validate_time_range(
-            request.start_time_stamp, request.end_time_stamp)
+        # ensure we have valid start and end dates
+        valid_start_date, valid_end_date = validate_date_range(request.start_date, request.end_date)
+        # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
+        start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_start_date).timestamp() * 1000)
+        end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
 
         async with ClientSession() as session:
             header = await get_auth_header(session)
             wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
-                session, header, request.selected_station_codes)
+                session, header, request.selected_station_code_ids)
             dailies = await get_dailies_lookup_fuel_types(
-                session, header, wfwx_stations, valid_start_time, valid_end_time)
-            results = calculate_hfi_results(request.selected_fire_center,
+                session, header, wfwx_stations, start_timestamp, end_timestamp)
+            results = calculate_hfi_results(request.selected_fire_center_id,
                                             request.planning_area_fire_starts,
                                             dailies, request.num_prep_days,
                                             request.selected_station_codes)
         response = HFIResultResponse(
             num_prep_days=request.num_prep_days,
             selected_prep_date=request.selected_prep_date,
-            start_time_stamp=valid_start_time,
-            end_time_stamp=valid_end_time,
+            start_time_stamp=start_timestamp,
+            end_time_stamp=end_timestamp,
             selected_station_codes=request.selected_station_codes,
             selected_fire_center=request.selected_fire_center,
             planning_area_hfi_results=results,
