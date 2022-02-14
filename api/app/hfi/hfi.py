@@ -12,7 +12,7 @@ from app.schemas.hfi_calc import (DailyResult,
                                   ValidatedStationDaily,
                                   required_daily_fields,
                                   lowest_fire_starts)
-from app.db.crud.hfi_calc import get_planning_areas, get_planning_area_stations
+from app.db.crud.hfi_calc import get_planning_areas, get_fire_centre_planning_area_stations
 from app.db.database import get_read_session_scope
 
 
@@ -25,9 +25,16 @@ def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-local
     planning_area_to_dailies: List[PlanningAreaResult] = []
 
     with get_read_session_scope() as session:
+        stations = get_fire_centre_planning_area_stations(session, fire_centre_id)
+        area_station_map = {}
+        for station in stations:
+            if not station.planning_area_id in area_station_map.keys():
+                area_station_map[station.planning_area_id] = []
+            area_station_map[station.planning_area_id].append(station)
+
         for area in get_planning_areas(session, fire_centre_id):
             # TODO: doing this nested sql query is super slow - need to come back to this.
-            stations = get_planning_area_stations(session, area.id)
+            stations = area_station_map[area.id]
             area_station_codes = map(lambda station: (station.station_code), stations)
 
             # Marshall dailies in chronological order,
@@ -47,12 +54,12 @@ def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-local
 
             # Initialize with defaults if empty
             if area.name not in planning_area_fire_starts:
-                planning_area_fire_starts[area.name] = [lowest_fire_starts for _ in range(num_prep_days)]
+                planning_area_fire_starts[area.id] = [lowest_fire_starts for _ in range(num_prep_days)]
 
             daily_results: List[DailyResult] = []
             all_dailies_valid: bool = True
             for index, prep_day_dailies in enumerate(prep_week_dailies):
-                daily_fire_starts: FireStartRange = planning_area_fire_starts[area.name][index]
+                daily_fire_starts: FireStartRange = planning_area_fire_starts[area.id][index]
                 mean_intensity_group = calculate_mean_intensity(prep_day_dailies)
                 prep_level = calculate_prep_level(mean_intensity_group, daily_fire_starts)
                 validated_dailies: List[ValidatedStationDaily] = list(

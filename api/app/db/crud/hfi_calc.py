@@ -31,10 +31,12 @@ def get_planning_areas(session, fire_centre_id: int) -> CursorResult:
         .order_by(PlanningArea.order_of_appearance_in_list)
 
 
-def get_planning_area_stations(session, planning_area_id: int) -> CursorResult:
+def get_fire_centre_planning_area_stations(session, fire_centre_id: int) -> CursorResult:
     """ Get all the stations for a planning area """
     return session.query(PlanningWeatherStation)\
-        .filter(PlanningWeatherStation.planning_area_id == planning_area_id)
+        .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
+        .filter(PlanningArea.fire_centre_id == fire_centre_id)\
+        .order_by(PlanningArea.id)
 
 
 def get_stations_with_fuel_types(session: Session, station_codes: List[int]) -> CursorResult:
