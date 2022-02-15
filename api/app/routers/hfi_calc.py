@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from typing import List, Optional
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends, Query
+from app.db.database import get_read_session_scope
 from app.hfi.hfi import calculate_hfi_results
 import app.utils.time
 from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationDailyResponse
@@ -94,10 +95,16 @@ async def get_hfi_results(request: HFIResultRequest,
             dailies = await get_dailies_lookup_fuel_types(
                 session, header, wfwx_stations, start_timestamp, end_timestamp)
             prep_delta = valid_end_date - valid_start_date
-            results = calculate_hfi_results(request.selected_fire_center_id,
-                                            request.planning_area_fire_starts,
-                                            dailies, prep_delta.days,
-                                            request.selected_station_code_ids)
+            # NOTE: database session brought to this level in order to make code review of
+            # calculate_hfi_results easier. (adding session in there, results in the entire function
+            # being indented, which makes code review difficult.) Please move session back into
+            # function in isolated pr.
+            with get_read_session_scope() as orm_session:
+                results = calculate_hfi_results(request.selected_fire_center_id,
+                                                request.planning_area_fire_starts,
+                                                dailies, prep_delta.days,
+                                                request.selected_station_code_ids,
+                                                orm_session)
         response = HFIResultResponse(
             selected_prep_date=selected_prep_date,
             start_date=start_timestamp,
