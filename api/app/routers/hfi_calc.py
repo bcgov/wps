@@ -50,7 +50,7 @@ def save_request(request: HFIResultRequest, username: str):
 
 def validate_date_range(start_date: date, end_date: date):
     """ Sets the start_date to today if it is None.
-    Set the end_date to start_date + 5 days, if it is None."""
+    Set the end_date to start_date + 7 days, if it is None."""
     # we don't have a start date, default to now.
     if start_date is None:
         now = app.utils.time.get_pst_now()
@@ -58,10 +58,13 @@ def validate_date_range(start_date: date, end_date: date):
     # don't have an end date, default to start date + 5 days.
     if end_date is None:
         end_date = start_date + timedelta(days=5)
-    # check if the span exceeds 5, if it does clamp it down to 5 days.
+    # check if the span exceeds 7, if it does clamp it down to 7 days.
     delta = start_date - end_date
-    if delta.days > 5:
+    if delta.days > 7:
         end_date = start_date + timedelta(days=5)
+    # check if the span is less than 2, if it is, push it up to 2.
+    if delta.days < 2:
+        end_date = start_date + timedelta(days=2)
     return start_date, end_date
 
 
