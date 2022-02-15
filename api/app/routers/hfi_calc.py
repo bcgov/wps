@@ -233,7 +233,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
         for key, val in planning_areas_dict.items():
             planning_area = PlanningArea(
                 id=val['planning_area_record'].id,
-                name=key,
+                name=val['planning_area_record'].name,
                 order_of_appearance_in_list=val['order_of_appearance_in_list'],
                 stations=val['station_objects'])
             val['planning_area_object'] = planning_area
