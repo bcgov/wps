@@ -1,11 +1,14 @@
 """ Unit testing for hfi logic """
 from datetime import datetime
+
+from pytest_mock import MockerFixture
 from app.hfi.hfi import (calculate_hfi_results,
                          calculate_mean_intensity,
                          calculate_max_intensity_group,
                          calculate_prep_level, validate_station_daily)
+import app.db.models.hfi_calc as hfi_calc_models
 from app.schemas.hfi_calc import (FireCentre,
-                                  PlanningArea, PlanningAreaResult,
+                                  PlanningArea,
                                   StationDaily,
                                   WeatherStation,
                                   WeatherStationProperties,
@@ -23,6 +26,7 @@ kamloops_fc = FireCentre(
     id=1,
     name='Kamloops',
     planning_areas=[PlanningArea(
+        id=1,
         name="Vernon",
         order_of_appearance_in_list=None,
         stations=[
@@ -64,29 +68,39 @@ def test_no_dailies_handled():
                                    num_prep_days=5,
                                    selected_station_codes=[1, 2])
 
-    assert result == {
-        'Vernon': PlanningAreaResult(
-            all_dailies_valid=True,
-            highest_daily_intensity_group=None,
-            mean_prep_level=None,
-            daily_results=[])
-    }
+    assert result == []
 
 
-def test_requested_fire_starts_unaltered():
+def test_requested_fire_starts_unaltered(mocker: MockerFixture):
     """ Fire starts from user request remain unchanged """
+    def mock_get_planning_areas(session, fire_centre_id):
+        """ Returns mocked PlanningAreas. """
+        return [
+            hfi_calc_models.PlanningArea(id=1, fire_centre_id=1, name='Area 1',
+                                         order_of_appearance_in_list=1),
+            hfi_calc_models.PlanningArea(id=2, fire_centre_id=1, name='Area 2',
+                                         order_of_appearance_in_list=2)]
+
+    def mock_get_fire_centre_planning_area_stations(session, fire_centre_id):
+        """ Returns mocked stations per PlanningAreas """
+        return [hfi_calc_models.PlanningWeatherStation(id=1, planning_area_id=1, station_code=1),
+                hfi_calc_models.PlanningWeatherStation(id=2, planning_area_id=2, station_code=2)]
+
     daily = StationDaily(
         code=1,
         date=datetime.now(),
         intensity_group=1
     )
+    mocker.patch('app.hfi.hfi.get_planning_areas', mock_get_planning_areas)
+    mocker.patch('app.hfi.hfi.get_fire_centre_planning_area_stations',
+                 mock_get_fire_centre_planning_area_stations)
     result = calculate_hfi_results(fire_centre_id=kamloops_fc.id,
                                    planning_area_fire_starts={
-                                       kamloops_fc.planning_areas[0].name: [highest_fire_starts]},
+                                       kamloops_fc.planning_areas[0].id: [highest_fire_starts]},
                                    dailies=[daily],
                                    num_prep_days=5,
                                    selected_station_codes=[1, 2])
-    assert result[kamloops_fc.planning_areas[0].name].daily_results[0].fire_starts == highest_fire_starts
+    assert result[0].daily_results[0].fire_starts == highest_fire_starts
 
 
 def test_calculate_mean_intensity_basic():

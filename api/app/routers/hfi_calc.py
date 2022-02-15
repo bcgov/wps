@@ -189,15 +189,15 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                     fire_centres_dict[fire_centre_record.id]['planning_area_records'] = list(
                         set(fire_centres_dict.get(fire_centre_record.id).get('planning_area_records')))
 
-                if planning_areas_dict.get(planning_area_record.name) is None:
-                    planning_areas_dict[planning_area_record.name] = {
+                if planning_areas_dict.get(planning_area_record.id) is None:
+                    planning_areas_dict[planning_area_record.id] = {
                         'planning_area_record': planning_area_record,
                         'order_of_appearance_in_list': planning_area_record.order_of_appearance_in_list,
                         'station_codes': [station_record.station_code],
                         'station_objects': []
                     }
                 else:
-                    planning_areas_dict[planning_area_record.name]['station_codes'].append(
+                    planning_areas_dict[planning_area_record.id]['station_codes'].append(
                         station_record.station_code)
 
             # We're still missing some data that we need from wfwx, so give it the list of stations
@@ -219,11 +219,12 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                 station_info_dict[wfwx_station.code]['station'] = weather_station
 
                 planning_areas_dict[station_info_dict[wfwx_station.code]
-                                    ['planning_area'].name]['station_objects'].append(weather_station)
+                                    ['planning_area'].id]['station_objects'].append(weather_station)
 
         # create PlanningArea objects containing all corresponding WeatherStation objects
         for key, val in planning_areas_dict.items():
             planning_area = PlanningArea(
+                id=val['planning_area_record'].id,
                 name=key,
                 order_of_appearance_in_list=val['order_of_appearance_in_list'],
                 stations=val['station_objects'])
@@ -233,7 +234,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
         for key, val in fire_centres_dict.items():
             planning_area_objects_list = []
             for pa_record in val['planning_area_records']:
-                pa_object = planning_areas_dict.get(pa_record.name).get('planning_area_object')
+                pa_object = planning_areas_dict.get(pa_record.id).get('planning_area_object')
                 planning_area_objects_list.append(pa_object)
             fire_centre = FireCentre(
                 id=key, name=val['fire_centre_record'].name, planning_areas=planning_area_objects_list)

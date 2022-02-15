@@ -17,10 +17,10 @@ from app.db.database import get_read_session_scope
 
 
 def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-locals
-                          planning_area_fire_starts: Mapping[str, FireStartRange],
+                          planning_area_fire_starts: Mapping[int, FireStartRange],
                           dailies: List[StationDaily],
                           num_prep_days: int,
-                          selected_station_codes: List[int]):
+                          selected_station_codes: List[int]) -> List[PlanningAreaResult]:
     """ Computes HFI results based on parameter inputs """
     planning_area_to_dailies: List[PlanningAreaResult] = []
 
@@ -53,7 +53,7 @@ def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-local
             prep_week_dailies = area_dailies_by_date[:num_prep_days]
 
             # Initialize with defaults if empty
-            if area.name not in planning_area_fire_starts:
+            if area.id not in planning_area_fire_starts:
                 planning_area_fire_starts[area.id] = [lowest_fire_starts for _ in range(num_prep_days)]
 
             daily_results: List[DailyResult] = []

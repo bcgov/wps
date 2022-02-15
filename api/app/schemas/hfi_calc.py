@@ -115,6 +115,7 @@ class WeatherStation(BaseModel):
 class PlanningArea(BaseModel):
     """ A planning area (a.k.a. zone) is a small group of stations selected to represent a particular
     zone within a fire centre. """
+    id: int
     name: str
     order_of_appearance_in_list: Optional[int]
     stations: List[WeatherStation]
