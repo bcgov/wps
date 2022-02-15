@@ -48,17 +48,17 @@ kamloops_fc = FireCentre(
 
 def test_empty_map_without_fire_centre():
     """ No fire centre returns empty result """
-    result = calculate_hfi_results(fire_centre=None,
+    result = calculate_hfi_results(fire_centre_id=None,
                                    planning_area_fire_starts={},
                                    dailies=[],
                                    num_prep_days=5,
                                    selected_station_codes=[])
-    assert result == {}
+    assert result == []
 
 
 def test_no_dailies_handled():
     """ No dailies are handled """
-    result = calculate_hfi_results(fire_centre=kamloops_fc,
+    result = calculate_hfi_results(fire_centre_id=kamloops_fc.id,
                                    planning_area_fire_starts={},
                                    dailies=[],
                                    num_prep_days=5,
@@ -80,7 +80,7 @@ def test_requested_fire_starts_unaltered():
         date=datetime.now(),
         intensity_group=1
     )
-    result = calculate_hfi_results(fire_centre=kamloops_fc,
+    result = calculate_hfi_results(fire_centre_id=kamloops_fc.id,
                                    planning_area_fire_starts={
                                        kamloops_fc.planning_areas[0].name: [highest_fire_starts]},
                                    dailies=[daily],
