@@ -20,7 +20,7 @@ jobs:
           # https://github.com/actions/github-script
           script: |
             // get pull requests relating to this commit hash
-            const pulls = (await github.repos.listPullRequestsAssociatedWithCommit({owner: context.repo.owner, repo: context.repo.repo, commit_sha: context.sha }))
+            const pulls = (await github.rest.repos.listPullRequestsAssociatedWithCommit({owner: context.repo.owner, repo: context.repo.repo, commit_sha: context.sha }))
             console.log(pulls)
             // find an open PR (potentially problematic if you have multiple PR's on the same hash open!)
             const pr = pulls.data.find( ({state}) => state === 'open')
@@ -67,5 +67,5 @@ jobs:
           # https://octokit.github.io/rest.js/v18#repos-create-deployment-status
           script: |
             console.log(context.payload)
-            const status = (await github.repos.createDeploymentStatus({owner: context.repo.owner, repo: context.repo.repo, deployment_id: context.payload.deployment.id, state: 'success'}))
+            const status = (await github.rest.repos.createDeploymentStatus({owner: context.repo.owner, repo: context.repo.repo, deployment_id: context.payload.deployment.id, state: 'success'}))
             console.log(status)
