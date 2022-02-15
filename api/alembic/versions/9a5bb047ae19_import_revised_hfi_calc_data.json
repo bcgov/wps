@@ -713,6 +713,111 @@
                     }]
                 }
             }]
+        },
+        "Kamloops Fire Centre": {
+            "zones": [{
+                "Kamloops (K2)": {
+                    "order_of_appearance_in_list": 1,
+                    "stations": [{
+                        "239": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7" 
+                        },
+                        "266": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C5"
+                        },
+                        "305": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C7B"
+                        },
+                        "322": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "O1B"
+                        },
+                        "1082": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C3"
+                        }
+                    }]
+                },
+                "Vernon (K4)": {
+                    "order_of_appearance_in_list": 2,
+                    "stations": [{
+                        "286": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7B"
+                        },
+                        "298": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7B"
+                        },
+                        "344": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C5"
+                        },
+                        "346": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C7B"
+                        },
+                        "388": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                },
+                "Penticton (K5)": {
+                    "order_of_appearance_in_list": 3,
+                    "stations": [{
+                        "328": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7B"
+                        },
+                        "334": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7B"
+                        }
+                    }]
+                },
+                "Merritt (K6)": {
+                    "order_of_appearance_in_list": 4,
+                    "stations": [{
+                        "836": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7B"
+                        },
+                        "1399": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7B"
+                        }
+                    }]
+                },
+                "Lillooet (K7)": {
+                    "order_of_appearance_in_list": 5,
+                    "stations": [{
+                        "280": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7B"
+                        },
+                        "306": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7B"
+                        },
+                        "309": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C7B"
+                        },
+                        "1029": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C7B"
+                        },
+                        "1055": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C7B"
+                        }
+                    }]
+                }
+            }]
         }
     }]
 }
