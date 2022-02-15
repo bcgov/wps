@@ -83,7 +83,8 @@ async def get_hfi_results(request: HFIResultRequest,
         end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
 
         selected_prep_date = request.selected_prep_date
-        if selected_prep_date is None or selected_prep_date < valid_start_date or selected_prep_date > valid_end_date:
+        if selected_prep_date is None \
+                or selected_prep_date < valid_start_date or selected_prep_date > valid_end_date:
             selected_prep_date = valid_start_date
 
         async with ClientSession() as session:

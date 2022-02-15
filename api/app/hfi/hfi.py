@@ -5,7 +5,6 @@ from operator import attrgetter
 from statistics import mean
 from typing import Mapping, Optional, List
 from app.schemas.hfi_calc import (DailyResult,
-                                  FireCentre,
                                   FireStartRange,
                                   PlanningAreaResult,
                                   StationDaily,
@@ -28,7 +27,7 @@ def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-local
         stations = get_fire_centre_planning_area_stations(session, fire_centre_id)
         area_station_map = {}
         for station in stations:
-            if not station.planning_area_id in area_station_map.keys():
+            if not station.planning_area_id in area_station_map:
                 area_station_map[station.planning_area_id] = []
             area_station_map[station.planning_area_id].append(station)
 
