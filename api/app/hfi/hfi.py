@@ -12,7 +12,7 @@ from app.schemas.hfi_calc import (DailyResult,
                                   ValidatedStationDaily,
                                   required_daily_fields,
                                   lowest_fire_starts)
-from app.db.crud.hfi_calc import get_planning_areas, get_fire_centre_planning_area_stations
+from app.db.crud.hfi_calc import get_planning_areas, get_fire_centre_stations
 
 
 def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-locals
@@ -24,7 +24,7 @@ def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-local
     """ Computes HFI results based on parameter inputs """
     planning_area_to_dailies: List[PlanningAreaResult] = []
 
-    stations = get_fire_centre_planning_area_stations(session, fire_centre_id)
+    stations = get_fire_centre_stations(session, fire_centre_id)
     area_station_map = {}
     for station in stations:
         if not station.planning_area_id in area_station_map:

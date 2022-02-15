@@ -31,8 +31,8 @@ def get_planning_areas(session, fire_centre_id: int) -> CursorResult:
         .order_by(PlanningArea.order_of_appearance_in_list)
 
 
-def get_fire_centre_planning_area_stations(session, fire_centre_id: int) -> CursorResult:
-    """ Get all the stations for a planning area """
+def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
+    """ Get all the stations for a fire centre. """
     return session.query(PlanningWeatherStation)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
         .filter(PlanningArea.fire_centre_id == fire_centre_id)\
