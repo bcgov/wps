@@ -163,7 +163,9 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
     for each weather station. """
     try:
         logger.info('/hfi-calc/fire-centres')
-        response.headers["Cache-Control"] = no_cache
+        # we can safely cache the fire centres, as they don't change them very often.
+        # the eco-division logic is very slow, and chomps up 2 seconds!
+        response.headers["Cache-Control"] = "max-age=86400"
 
         with app.db.database.get_read_session_scope() as session:
             # Fetch all fire weather stations from the database.
