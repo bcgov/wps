@@ -22,6 +22,7 @@ export interface DailyResult {
 }
 
 export interface PlanningAreaResult {
+  planning_area_id: number
   allDailiesValid: boolean
   highestDailyIntensityGroup: number
   meanPrepLevel: number | undefined
@@ -293,6 +294,7 @@ const calculateHFIResults = (
       .reduce((prev, curr) => prev && curr, true)
 
     planningAreaToDailies[area.name] = {
+      planning_area_id: 1,
       allDailiesValid,
       dailyResults,
       highestDailyIntensityGroup,
