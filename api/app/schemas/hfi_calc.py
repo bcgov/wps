@@ -139,6 +139,7 @@ class StationInfo(BaseModel):
     """ Information about a station, including its code, name, and elevation. """
     station_code: int
     selected: bool
+    # fuel_type_id matches to table fuel_types.id
     fuel_type_id: int
 
 
@@ -170,7 +171,6 @@ class HFIResultResponse(BaseModel):
     selected_prep_date: date
     start_date: date
     end_date: date
-    # selected_station_code_ids: List[int]
     planning_area_station_info: Mapping[int, List[StationInfo]]
     selected_fire_center_id: int
     planning_area_hfi_results: List[PlanningAreaResult]
