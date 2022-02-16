@@ -8,7 +8,8 @@ import {
   setSelectedPrepDate,
   setSelectedSelectedStationCodes,
   setFireStarts,
-  setSelectedFireCentre
+  setSelectedFireCentre,
+  fetchHFIResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
@@ -228,6 +229,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           start.toUTC().valueOf(),
           end.toUTC().valueOf()
         )
+      )
+      dispatch(
+        fetchHFIResult({
+          selected_station_code_ids: selected,
+          selected_fire_center_id: selectedFireCentre.id,
+          planning_area_fire_starts: new Map()
+        })
       )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

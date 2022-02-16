@@ -1,4 +1,8 @@
 import axios from 'api/axios'
+import {
+  HFIResultRequest,
+  HFIResultResponse
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
 import 'qs'
 import { stringify } from 'querystring'
@@ -44,14 +48,14 @@ export interface StationDailyResponse {
   dailies: RawDaily[]
 }
 
-const url = '/hfi-calc/daily'
+const baseUrl = '/hfi-calc/'
 
 export async function getDailies(
   startTime: number,
   endTime: number,
   stationCodes: number[]
 ): Promise<StationDaily[]> {
-  const { data } = await axios.get<StationDailyResponse>(url, {
+  const { data } = await axios.get<StationDailyResponse>(baseUrl + 'daily', {
     params: {
       start_time_stamp: startTime,
       end_time_stamp: endTime,
@@ -70,4 +74,12 @@ export async function getDailies(
     date: DateTime.fromISO(daily.date),
     last_updated: DateTime.fromISO(daily.last_updated)
   }))
+}
+
+export async function getHFIResult(
+  request: HFIResultRequest
+): Promise<HFIResultResponse> {
+  const { data } = await axios.post<HFIResultResponse>(baseUrl, { ...request })
+
+  return data
 }

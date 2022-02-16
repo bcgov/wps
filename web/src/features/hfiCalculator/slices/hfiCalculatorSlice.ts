@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { getDailies, StationDaily } from 'api/hfiCalculatorAPI'
+import { getDailies, getHFIResult, StationDaily } from 'api/hfiCalculatorAPI'
 import { groupBy, isUndefined, range, chain, flatten, take, isNull } from 'lodash'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
@@ -39,6 +39,27 @@ export interface HFICalculatorState {
   planningAreaFireStarts: { [key: string]: FireStarts[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
+  result: HFIResultResponse | undefined
+}
+
+export interface HFIResultResponse {
+  selected_prep_date: Date
+  start_date: Date
+  end_date: Date
+  selected_station_code_ids: number[]
+  selected_fire_center_id: number
+  planning_area_hfi_results: PlanningAreaResult[]
+  planning_area_fire_starts: Map<number, FireStarts[]>
+}
+
+export interface HFIResultRequest {
+  selected_prep_date?: Date
+  start_date?: Date
+  end_date?: Date
+  selected_station_code_ids: number[]
+  selected_fire_center_id: number
+  planning_area_fire_starts: Map<number, FireStarts[]>
+  save?: boolean
 }
 
 export interface ValidatedStationDaily extends StationDaily {
@@ -90,7 +111,8 @@ const initialState: HFICalculatorState = {
   formattedDateStringHeaders: [],
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
-  selectedFireCentre: undefined
+  selectedFireCentre: undefined,
+  result: undefined
 }
 
 type RequiredValidField = keyof StationDaily
@@ -362,6 +384,9 @@ const dailiesSlice = createSlice({
         state.numPrepDays,
         state.selectedStationCodes
       )
+    },
+    setResult: (state, action: PayloadAction<HFIResultResponse | undefined>) => {
+      state.result = action.payload
     }
   }
 })
@@ -374,7 +399,8 @@ export const {
   setSelectedSelectedStationCodes,
   setSelectedPrepDate,
   setFireStarts,
-  setSelectedFireCentre
+  setSelectedFireCentre,
+  setResult
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer
@@ -392,6 +418,19 @@ export const fetchHFIDailies =
       dispatch(getDailiesStart())
       const dailies = await getDailies(startTime, endTime, stationCodesToFetch)
       dispatch(getDailiesSuccess({ dailies, fireCentre, selectedStationCodes }))
+    } catch (err) {
+      dispatch(getDailiesFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
+export const fetchHFIResult =
+  (request: HFIResultRequest): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getDailiesStart())
+      const result = await getHFIResult(request)
+      dispatch(setResult(result))
     } catch (err) {
       dispatch(getDailiesFailed((err as Error).toString()))
       logError(err)
