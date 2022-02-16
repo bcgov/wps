@@ -76,7 +76,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     selectedFireCentre
   } = useSelector(selectHFICalculatorState)
 
-  const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPrepDate == '')
   const setNumPrepDays = (numDays: number) => {
     // if the number of prep days change, we need to unset the selected prep day - it
     // could be that the selected prep day no longer falls into the prep period.
@@ -117,14 +116,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     setSelected(union(dailies.map(daily => daily.code)))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dailies])
-
-  useEffect(() => {
-    if (!isUndefined(selectedFireCentre)) {
-      const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
-      getDailies(start, end)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFireCentre])
 
   const updateDate = (newDate: string) => {
     if (newDate !== dateOfInterest && !isUndefined(selectedFireCentre)) {
@@ -199,10 +190,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireCentres])
-
-  useEffect(() => {
-    setIsWeeklyView(selectedPrepDate == '')
-  }, [selectedPrepDate])
 
   useEffect(() => {
     setSelected(union(dailies.map(daily => daily.code)))
