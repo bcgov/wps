@@ -184,7 +184,8 @@ async def fetch_hourlies(
         headers: dict,
         start_timestamp: datetime,
         end_timestamp: datetime,
-        use_cache: bool = False) -> WeatherStationHourlyReadings:
+        use_cache: bool,
+        eco_division: EcodivisionSeasons) -> WeatherStationHourlyReadings:
     """ Fetch hourly weather readings for the specified time range for a give station """
     logger.debug('fetching hourlies for %s(%s)',
                  raw_station['displayLabel'], raw_station['stationCode'])
@@ -212,9 +213,7 @@ async def fetch_hourlies(
 
     return WeatherStationHourlyReadings(values=hourlies,
                                         station=parse_station(
-                                            raw_station,
-                                            EcodivisionSeasons(raw_station.get('stationCode'),
-                                                               use_cache=False)))
+                                            raw_station, eco_division))
 
 
 async def fetch_access_token(session: ClientSession) -> dict:

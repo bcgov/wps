@@ -18,39 +18,54 @@ logger = logging.getLogger(__name__)
 
 
 class EcodivisionSeasons:
-    """ Singleton that loads ecodivision data once and keeps it in memory for reuse.
-        No mutators, data loaded is immutable."""
+    """ Calculate ecodivisions, or do in memory lookup.
+    When used within a context manager, the in memory lookup uses redis as cache.
 
-    def __init__(self, key: str, use_cache: bool = True):
+    Caching one ecodivision in redis at a time isn't really a time save, it's faster to calculate a single
+    ecodivision, than look it up. Where it is a big time save, is caching the ecodivisions for a set of
+    stations.
+    """
+
+    def __init__(self, cache_key: str):
+        """ The cache key would typically be a list of stations.
+        """
         with open(core_season_file_path, encoding="utf-8") as file_handle:
             core_seasons = json.load(file_handle)
         self.core_seasons = core_seasons
         self.ecodivisions = geopandas.read_file(ecodiv_shape_file_path)
-        self.name_lookup: Dict[str, str] = None
-        if use_cache:
-            self.redis_key = f'ecodivision_names:{key}'
-            self.cache = create_redis()
-            self.name_lookup = self.cache.get(self.redis_key)
-            if self.name_lookup is None:
-                self.name_lookup = {}
-                self.update_cache = True
-            else:
-                self.update_cache = False
-                self.name_lookup = json.loads(self.name_lookup)
-        else:
-            self.update_cache = False
+        self.name_lookup: Dict[str, str] = {}
+        self.cache_key = cache_key
+        self.update_cache_on_exit = False
 
-    def cache_ecodivision_names(self):
+    def __enter__(self):
+        if self.cache_key:
+            self.cache_key = f'ecodivision_names:{self.cache_key}'
+            self.cache = create_redis()
+            self.name_lookup = self.cache.get(self.cache_key)
+            if self.name_lookup is None:
+                # cache failed - so just use an empty dict.
+                self.name_lookup = {}
+                # flag that we want to save this when we're done
+                self.update_cache_on_exit = True
+            else:
+                logger.info('redis cache hit %s', self.cache_key)
+                self.name_lookup = json.loads(self.name_lookup)
+        return self
+
+    def __exit__(self, type, value, traceback):
         """ Caches ecodivision names in redis """
-        if self.update_cache:
+        if self.cache_key and self.update_cache_on_exit:
             # cache the result for a day
-            self.cache.set(self.redis_key, json.dumps(self.name_lookup), ex=86400)
+            self.cache.set(self.cache_key, json.dumps(self.name_lookup), ex=86400)
 
     def get_core_seasons(self):
         """Returns core seasons"""
         return self.core_seasons
 
     def _calculate_ecodivision_name(self, station_code: str, latitude: float, longitude: float) -> str:
+        """ Calculate and return the ecodivision name for a given lat/long coordinate """
+        # if station's latitude >= 60 (approx.), it's in the Yukon, so it won't be captured
+        # in the shapefile, but it's considered to be part of the SUB-ARCTIC HIGHLANDS ecodivision.
         if latitude >= 60:
             return 'SUB-ARCTIC HIGHLANDS'
         station_coord = Point(float(longitude), float(latitude))
@@ -66,11 +81,13 @@ class EcodivisionSeasons:
 
     def get_ecodivision_name(self, station_code: str, latitude: float, longitude: float):
         """ Returns the ecodivision name for a given lat/long coordinate """
-        # if station's latitude >= 60 (approx.), it's in the Yukon, so it won't be captured
-        # in the shapefile, but it's considered to be part of the SUB-ARCTIC HIGHLANDS ecodivision.
+        # 1st we look to see if we have this one cached:
         key = f'{station_code}:{latitude}:{longitude}'
         value = self.name_lookup.get(key, None)
         if value is None:
+            # Flag that we want to update the cache when we're done.
+            self.update_cache_on_exit = True
+            # We don't have it cached, so calculate it and cache it:
             value = self._calculate_ecodivision_name(station_code, latitude, longitude)
             self.name_lookup[key] = value
         return value
