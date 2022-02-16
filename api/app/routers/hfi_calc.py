@@ -69,8 +69,9 @@ def validate_date_range(start_date: date, end_date: date):
 
 
 def extract_selected_stations(request: HFIResultRequest) -> List[int]:
+    """ Extract a list of the selected station codes - we use this to get the daily data from wfwx. """
     stations_codes = []
-    for key, value in request.planning_area_station_info.items():
+    for _, value in request.planning_area_station_info.items():
         for station_info in value:
             if station_info.selected:
                 if not station_info.station_code in stations_codes:
