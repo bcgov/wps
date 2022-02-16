@@ -1,9 +1,9 @@
 """ Defines singleton class that keeps ecodivisions in memory for reuse """
 import os
 import json
+from typing import Dict
 import logging
 import geopandas
-from typing import Dict
 from shapely.geometry import Point
 from app.utils.redis import create_redis
 
@@ -35,6 +35,7 @@ class EcodivisionSeasons:
         self.ecodivisions = geopandas.read_file(ecodiv_shape_file_path)
         self.name_lookup: Dict[str, str] = {}
         self.cache_key = cache_key
+        self.cache = None
         self.update_cache_on_exit = False
 
     def __enter__(self):
@@ -52,9 +53,9 @@ class EcodivisionSeasons:
                 self.name_lookup = json.loads(self.name_lookup)
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         """ Caches ecodivision names in redis """
-        if self.cache_key and self.update_cache_on_exit:
+        if self.cache and self.cache_key and self.update_cache_on_exit:
             # cache the result for a day
             self.cache.set(self.cache_key, json.dumps(self.name_lookup), ex=86400)
 
