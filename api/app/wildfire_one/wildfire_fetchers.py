@@ -6,6 +6,7 @@ from typing import Dict, Generator, Tuple, Final
 import json
 from urllib.parse import urlencode
 from aiohttp.client import ClientSession, BasicAuth
+from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.stations import (DetailedWeatherStationProperties,
                                   GeoJsonDetailedWeatherStation,
@@ -209,7 +210,11 @@ async def fetch_hourlies(
     logger.debug('fetched %d hourlies for %s(%s)', len(
         hourlies), raw_station['displayLabel'], raw_station['stationCode'])
 
-    return WeatherStationHourlyReadings(values=hourlies, station=parse_station(raw_station))
+    return WeatherStationHourlyReadings(values=hourlies,
+                                        station=parse_station(
+                                            raw_station,
+                                            EcodivisionSeasons(raw_station.get('stationCode'),
+                                                               use_cache=False)))
 
 
 async def fetch_access_token(session: ClientSession) -> dict:

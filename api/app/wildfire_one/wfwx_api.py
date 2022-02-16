@@ -9,6 +9,7 @@ from aiohttp import ClientSession, TCPConnector
 import app
 from app import config
 from app.utils.hfi_calculator import get_fire_centre_station_codes
+from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.db.models.observations import HourlyActual
 from app.db.models.forecasts import NoonForecast
 from app.schemas.hfi_calc import StationDaily
@@ -56,6 +57,7 @@ async def get_auth_header(session: ClientSession) -> dict:
 async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
     logger.info('Using WFWX to retrieve stations by code')
+    eco_division = EcodivisionSeasons(','.join([str(code) for code in station_codes]))
     async with ClientSession() as session:
         header = await get_auth_header(session)
         stations = []
@@ -70,8 +72,9 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
         async for raw_station in iterator:
             # If the station is valid, add it to our list of stations.
             if is_station_valid(raw_station):
-                stations.append(parse_station(raw_station))
+                stations.append(parse_station(raw_station, eco_division))
         logger.debug('total stations: %d', len(stations))
+        eco_division.cache_ecodivision_names()
         return stations
 
 
