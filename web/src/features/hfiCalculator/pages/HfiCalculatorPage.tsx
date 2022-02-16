@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Button, Container, ErrorBoundary, GeneralHeader } from 'components'
+import { Container, ErrorBoundary, GeneralHeader } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   fetchHFIDailies,
@@ -19,14 +19,12 @@ import {
   selectHFIStationsLoading,
   selectHFICalculatorState
 } from 'app/rootReducer'
-import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui/core'
-import { FileCopyOutlined, CheckOutlined, InfoOutlined } from '@material-ui/icons'
-import { getDateRange, getPrepWeeklyDateRange, pstFormatter } from 'utils/date'
+import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
+import { getDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { formControlStyles, theme } from 'app/theme'
-import { HFITableCSVFormatter } from 'features/hfiCalculator/HFITableCSVFormatter'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import { FireCentre } from 'api/hfiCalcAPI'
@@ -64,8 +62,6 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-const clipboardCopySuccessDuration = 2000 // milliseconds
-
 const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
@@ -76,7 +72,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const {
     numPrepDays,
     selectedStationCodes: selected,
-    planningAreaHFIResults,
     selectedPrepDate,
     selectedFireCentre
   } = useSelector(selectHFICalculatorState)
@@ -105,7 +100,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(
     pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
   )
-  const [isCopied, setIsCopied] = useState(false)
 
   const getDailies = (start: DateTime, end: DateTime) => {
     dispatch(
@@ -152,31 +146,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     )
   }
 
-  const copyTable = () => {
-    if (!isUndefined(selectedFireCentre)) {
-      let csvString = ''
-      if (isWeeklyView) {
-        const { start } = getPrepWeeklyDateRange(dateOfInterest)
-        csvString += HFITableCSVFormatter.exportWeeklyRowsAsStrings(
-          numPrepDays,
-          start,
-          selectedFireCentre,
-          planningAreaHFIResults
-        )
-      } else {
-        csvString += HFITableCSVFormatter.exportDailyRowsAsStrings(
-          dateOfInterest,
-          selectedFireCentre,
-          planningAreaHFIResults
-        )
-      }
-      navigator.clipboard.writeText(csvString)
-      setIsCopied(true)
-    } else {
-      setIsCopied(false)
-    }
-  }
-
   const setSelectedFireCentreFromLocalStorage = () => {
     const findCentre = (name: string | null): FireCentre | undefined => {
       const fireCentresArray = Object.values(fireCentres)
@@ -189,23 +158,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       dispatch(setSelectedFireCentre(storedFireCentre))
     }
   }
-
-  useEffect(() => {
-    /**  this logic is copied from
-     https://github.com/danoc/react-use-clipboard/blob/master/src/index.tsx 
-     (the react-use-clipboard package was too restrictive for our needs, but the logic for
-      having a timeout on the copy success message is helpful for us)
-    */
-    if (isCopied) {
-      const id = setTimeout(() => {
-        setIsCopied(false)
-      }, clipboardCopySuccessDuration)
-
-      return () => {
-        clearTimeout(id)
-      }
-    }
-  }, [isCopied])
 
   useEffect(() => {
     dispatch(fetchHFIStations())
@@ -297,26 +249,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
             <FormControl className={classes.formControl}>
               <ViewSwitcherToggles dateOfInterest={dateOfInterest} />
-            </FormControl>
-            <FormControl className={classes.formControl}>
-              {isCopied ? (
-                <Button>
-                  <CheckOutlined />
-                  Copied!
-                </Button>
-              ) : (
-                <Button onClick={copyTable}>
-                  <FileCopyOutlined className={classes.clipboardIcon} />
-                  Copy Data to Clipboard
-                  <Tooltip
-                    title={
-                      'You can paste all table data in Excel. To format: go to the Data tab, use Text to Columns > Delimited > Comma.'
-                    }
-                  >
-                    <InfoOutlined className={classes.copyToClipboardInfoIcon} />
-                  </Tooltip>
-                </Button>
-              )}
             </FormControl>
 
             <ErrorBoundary>

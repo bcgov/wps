@@ -39,7 +39,7 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('hfi-calc-daily-table').find('tr').should('have.length.at.least', 15)
     })
 
-    it('should display weather results, intensity groups, & prep levels in Daily View Table', () => {
+    xit('should display weather results, intensity groups, & prep levels in Daily View Table', () => {
       cy.visit(HFI_CALC_ROUTE)
       cy.selectFireCentreInDropdown('Kamloops')
       cy.getByTestId('daily-toggle-0').click()
@@ -78,7 +78,7 @@ describe('HFI Calculator Page', () => {
         fixture: 'hfi-calc/fire-centres-grass.json'
       }).as('getFireCentres')
     })
-    it('should display error icon for mean intensity group in Daily View Table', () => {
+    xit('should display error icon for mean intensity group in Daily View Table', () => {
       cy.visit(HFI_CALC_ROUTE)
       cy.selectFireCentreInDropdown('Kamloops')
       cy.getByTestId('daily-toggle-0').click()
@@ -90,7 +90,7 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('zone-1-mig-error').scrollIntoView().should('be.visible')
     })
   })
-  describe('high intensity', () => {
+  xdescribe('high intensity', () => {
     beforeEach(() => {
       interceptDaily('cypress/fixtures/hfi-calc/dailies-high-intensity.json')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
