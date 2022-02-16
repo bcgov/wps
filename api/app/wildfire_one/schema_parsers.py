@@ -115,8 +115,9 @@ def parse_station(station, eco_division: EcodivisionSeasons) -> WeatherStation:
     """
     # pylint: disable=no-member
     core_seasons = eco_division.get_core_seasons()
-    ecodiv_name = eco_division.get_ecodivision_name(
-        station['stationCode'], station['latitude'], station['longitude'])
+    ecodiv_name = eco_division.get_ecodivision_name(station['stationCode'],
+                                                    station['latitude'],
+                                                    station['longitude'])
     return WeatherStation(
         zone_code=construct_zone_code(station),
         code=station['stationCode'],

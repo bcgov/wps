@@ -2,8 +2,9 @@
 """
 from sqlalchemy import (Column, Integer,
                         Sequence, ForeignKey, UniqueConstraint)
-from sqlalchemy.sql.sqltypes import String
+from sqlalchemy.sql.sqltypes import String, Date, JSON
 from app.db.database import Base
+from app.db.models.common import TZTimeStamp
 
 
 class FireCentre(Base):
@@ -72,3 +73,24 @@ class PlanningWeatherStation(Base):
                 f'station_code:{self.station_code}, '
                 f'fuel_type_id:{self.fuel_type_id}, '
                 f'planning_area_id:{self.planning_area_id}')
+
+
+class HFIRequest(Base):
+    """ """
+    __tablename__ = 'hfi_request'
+    __table_args__ = (
+        UniqueConstraint('fire_centre_id', 'prep_start_day', 'prep_end_day', 'create_timestamp',
+                         name='unique_request_create_timestamp_for_fire_centre'),
+        {'comment': 'Identifies the unique code used to identify the station'}
+    )
+    id = Column(Integer, primary_key=True)
+    fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
+    # We use prep start and end date to load a planning area.
+    prep_start_day = Column(Date, nullable=False, index=True)
+    prep_end_day = Column(Date, nullable=False, index=True)
+    # We use the create timestamp to grab the most recent request. (Old records kept for audit purposes)
+    create_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    # We keep track of users for auditing.
+    create_user = Column(String, nullable=False)
+    # NOTE: If the structure of the request changes, the stored request may not longer remain compatible.
+    request = Column(JSON)

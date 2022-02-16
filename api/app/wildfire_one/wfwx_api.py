@@ -8,6 +8,7 @@ import asyncio
 from aiohttp import ClientSession, TCPConnector
 import app
 from app import config
+from app.db.crud.hfi_calc import get_stations_with_fuel_types
 from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.db.models.observations import HourlyActual
@@ -305,7 +306,7 @@ async def get_dailies_lookup_fuel_types(  # pylint: disable=too-many-locals
 
     fuel_type_dict: Dict[int, str] = {}
     with app.db.database.get_read_session_scope() as read_session:
-        result = app.db.crud.hfi_calc.get_stations_with_fuel_types(read_session, station_codes)
+        result = get_stations_with_fuel_types(read_session, station_codes)
         for (planning_station_record, fuel_type_record) in result:
             fuel_type_dict[planning_station_record.station_code] = fuel_type_record.abbrev
 

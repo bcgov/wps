@@ -148,6 +148,7 @@ def get_mock_client_session(url: str, params: dict = None) -> MockClientSession:
     # Get the fixture filename
     fixture_finder = FixtureFinder()
     filename = fixture_finder.get_fixture_path(url, 'get', params)
+    logger.info('using mock client session to load %s, injecting %s', url, filename)
     with open(filename, encoding="utf-8") as fixture_file:
         if is_json(filename):
             return MockClientSession(json=json.load(fixture_file))
