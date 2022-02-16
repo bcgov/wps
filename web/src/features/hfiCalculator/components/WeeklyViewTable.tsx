@@ -20,6 +20,7 @@ import { selectHFICalculatorState } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
 import {
   FireStarts,
+  PlanningAreaResult,
   ValidatedStationDaily
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
@@ -63,7 +64,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
 
   const {
     numPrepDays,
-    planningAreaHFIResults,
+    result,
     selectedStationCodes: selected
   } = useSelector(selectHFICalculatorState)
 
@@ -187,7 +188,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                   : 1
               )
               .map(([areaName, area]) => {
-                const areaHFIResult = planningAreaHFIResults[area.name]
+                const areaHFIResult: PlanningAreaResult | undefined =
+                  result?.planning_area_hfi_results.find(
+                    result => result.planning_area_id === area.id
+                  )
                 return (
                   areaHFIResult && (
                     <React.Fragment key={`zone-${areaName}`}>

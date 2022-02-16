@@ -48,7 +48,7 @@ export class HFITableCSVFormatter {
       )
       .forEach(([, area]) => {
         const planningAreaResult = planningAreaHFIResults[area.name]
-        const areaDailyResult = planningAreaResult.dailyResults.find(
+        const areaDailyResult = planningAreaResult.daily_results.find(
           result =>
             DateTime.fromISO(result.dateISO).weekday ===
             DateTime.fromISO(dateOfInterest).weekday
@@ -176,7 +176,7 @@ export class HFITableCSVFormatter {
     ]
     const planningAreaResult = planningAreaHFIResults[area.name]
 
-    planningAreaResult.dailyResults.forEach(dailyResult => {
+    planningAreaResult.daily_results.forEach(dailyResult => {
       const dailyIntensityGroup = dailyResult.meanIntensityGroup
       const areaDailyPrepLevel = dailyResult.prepLevel
       const fireStarts = dailyResult.fireStarts
@@ -192,11 +192,11 @@ export class HFITableCSVFormatter {
         isUndefined(areaDailyPrepLevel) ? 'ND' : areaDailyPrepLevel.toString()
       )
     })
-    areaWeeklySummary.push(String(planningAreaResult.highestDailyIntensityGroup))
+    areaWeeklySummary.push(String(planningAreaResult.highest_daily_intensity_group))
     areaWeeklySummary.push(
-      isUndefined(planningAreaResult.meanPrepLevel)
+      isUndefined(planningAreaResult.mean_prep_level)
         ? 'ND'
-        : String(planningAreaResult.meanPrepLevel)
+        : String(planningAreaResult.mean_prep_level)
     )
     return areaWeeklySummary
   }
@@ -245,7 +245,7 @@ export class HFITableCSVFormatter {
         Object.entries(area.stations).forEach(([, station]) => {
           const dailiesForStation = take(
             sortBy(
-              planningAreaResult.dailyResults
+              planningAreaResult.daily_results
                 .flatMap(result => result.dailies)
                 .filter(daily => daily.code === station.code),
               daily => daily.date.toMillis()

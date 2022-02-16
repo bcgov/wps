@@ -23,10 +23,10 @@ export interface DailyResult {
 
 export interface PlanningAreaResult {
   planning_area_id: number
-  allDailiesValid: boolean
-  highestDailyIntensityGroup: number
-  meanPrepLevel: number | undefined
-  dailyResults: DailyResult[]
+  all_dailies_valid: boolean
+  highest_daily_intensity_group: number
+  mean_prep_level: number | undefined
+  daily_results: DailyResult[]
 }
 
 export interface HFICalculatorState {
@@ -261,7 +261,7 @@ const calculateHFIResults = (
       : planningAreaFireStarts[area.name]
 
     // Daily calculations
-    const dailyResults: DailyResult[] = take(chronologicalAreaDailies, numPrepDays).map(
+    const daily_results: DailyResult[] = take(chronologicalAreaDailies, numPrepDays).map(
       (resultDailies, index) => {
         const dailyFireStarts = planningAreaFireStarts[area.name][index]
         const meanIntensityGroup = calculateMeanIntensity(resultDailies)
@@ -280,14 +280,14 @@ const calculateHFIResults = (
     )
 
     // Aggregate calculations
-    const highestDailyIntensityGroup = calculateMaxMeanIntensityGroup(
-      dailyResults.map(result => result.meanIntensityGroup)
+    const highest_daily_intensity_group = calculateMaxMeanIntensityGroup(
+      daily_results.map(result => result.meanIntensityGroup)
     )
-    const meanPrepLevel = calculateMeanPrepLevel(
-      dailyResults.map(result => result.prepLevel)
+    const mean_prep_level = calculateMeanPrepLevel(
+      daily_results.map(result => result.prepLevel)
     )
 
-    const allDailiesValid = dailyResults
+    const all_dailies_valid = daily_results
       .flatMap(result =>
         result.dailies.every(validatedDaily => validatedDaily.valid === true)
       )
@@ -295,10 +295,10 @@ const calculateHFIResults = (
 
     planningAreaToDailies[area.name] = {
       planning_area_id: 1,
-      allDailiesValid,
-      dailyResults,
-      highestDailyIntensityGroup,
-      meanPrepLevel
+      all_dailies_valid,
+      daily_results,
+      highest_daily_intensity_group,
+      mean_prep_level
     }
   })
   return planningAreaToDailies

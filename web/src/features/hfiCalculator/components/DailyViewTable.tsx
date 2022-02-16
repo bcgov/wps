@@ -10,7 +10,7 @@ import {
 import { makeStyles } from '@material-ui/core/styles'
 import { useSelector } from 'react-redux'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
-import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
+import { FireCentre } from 'api/hfiCalcAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
@@ -31,7 +31,6 @@ import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import {
   DailyResult,
-  HFIResultResponse,
   PlanningAreaResult,
   ValidatedStationDaily
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -78,13 +77,9 @@ const useStyles = makeStyles({
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const {
-    planningAreaHFIResults,
-    selectedStationCodes,
-    numPrepDays,
-    selectedPrepDate,
-    result
-  } = useSelector(selectHFICalculatorState)
+  const { selectedStationCodes, numPrepDays, selectedPrepDate, result } = useSelector(
+    selectHFICalculatorState
+  )
 
   const getDailyForDay = (stationCode: number): ValidatedStationDaily | undefined => {
     const dailiesForStation = getDailiesByStationCode(
@@ -104,16 +99,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     return dailiesForStation[0]
   }
 
-  const getPlanningAreaResult = (area: PlanningArea, result?: HFIResultResponse) => {
-    /** no op */
-    return result?.planning_area_hfi_results.find(
-      result => result.planning_area_id === area.id
-    )
-  }
   const getDailyResult = (
     planningAreaHFIResult: PlanningAreaResult | undefined
   ): DailyResult | undefined => {
-    return planningAreaHFIResult?.dailyResults.find(dailyResult => {
+    return planningAreaHFIResult?.daily_results.find(dailyResult => {
       const dailyResultDate = DateTime.fromISO(dailyResult.dateISO)
       const selectedPrepDateObject = DateTime.fromISO(selectedPrepDate)
       return (
@@ -308,7 +297,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   : 1
               )
               .map(([areaName, area]) => {
-                const planningAreaResult = getPlanningAreaResult(area, result)
+                const planningAreaResult = result?.planning_area_hfi_results.find(
+                  result => result.planning_area_id === area.id
+                )
                 const dailyResult = getDailyResult(planningAreaResult)
                 return (
                   <React.Fragment key={`zone-${areaName}`}>
