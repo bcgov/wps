@@ -97,7 +97,7 @@ def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture, fuel_ty
     object_builder = lambda **kwargs: type("Object", (), kwargs)()
     planning_station = object_builder(station_code=322)
     fuel_type = object_builder(abbrev=fuel_type_abbrev, value=fuel_type_abbrev)
-    mocker.patch('app.db.crud.hfi_calc.get_stations_with_fuel_types',
+    mocker.patch('app.wildfire_one.wfwx_api.get_stations_with_fuel_types',
                  return_value=[(planning_station, fuel_type)])
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     # Create API client and get the response.
