@@ -1,9 +1,11 @@
 """ Routers for HFI Calculator """
 import logging
 import math
+from datetime import date, timedelta
 from typing import List, Optional
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends, Query
+from app.db.database import get_read_session_scope
 from app.hfi.hfi import calculate_hfi_results
 import app.utils.time
 from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationDailyResponse
@@ -11,7 +13,8 @@ import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
-from app.db.crud.hfi_calc import get_fire_weather_stations
+from app.db.crud.hfi_calc import (get_fire_weather_stations,
+                                  get_most_recent_updated_hfi_request, store_hfi_request)
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_lookup_fuel_types,
                                        get_stations_by_codes)
@@ -27,37 +30,97 @@ router = APIRouter(
 )
 
 
+def load_request(request: HFIResultRequest) -> HFIResultRequest:
+    """ If we need to load the request from the database, we do so. Otherwise we return the request as is. """
+    if request.start_date is None:
+        with app.db.database.get_read_session_scope() as session:
+            stored_request = get_most_recent_updated_hfi_request(session, request.selected_fire_center_id)
+            if stored_request:
+                return HFIResultRequest.parse_obj(stored_request.request)
+    return request
+
+
+def save_request(request: HFIResultRequest, username: str):
+    """ Save the request to the database (if there's a valid prep period) """
+    if request.start_date is not None and request.end_date is not None:
+        with app.db.database.get_write_session_scope() as session:
+            store_hfi_request(session, request, username)
+    return request
+
+
+def validate_date_range(start_date: date, end_date: date):
+    """ Sets the start_date to today if it is None.
+    Set the end_date to start_date + 7 days, if it is None."""
+    # we don't have a start date, default to now.
+    if start_date is None:
+        now = app.utils.time.get_pst_now()
+        start_date = date(year=now.year, month=now.month, day=now.day)
+    # don't have an end date, default to start date + 5 days.
+    if end_date is None:
+        end_date = start_date + timedelta(days=5)
+    # check if the span exceeds 7, if it does clamp it down to 7 days.
+    delta = end_date - start_date
+    if delta.days > 7:
+        end_date = start_date + timedelta(days=5)
+    # check if the span is less than 2, if it is, push it up to 2.
+    if delta.days < 2:
+        end_date = start_date + timedelta(days=2)
+    return start_date, end_date
+
+
 @router.post('/', response_model=HFIResultResponse)
 async def get_hfi_results(request: HFIResultRequest,
                           response: Response,
-                          _=Depends(authentication_required)):
+                          token=Depends(authentication_required)):
     """ Returns calculated HFI results for the supplied details in the POST body """
 
     try:
         logger.info('/hfi-calc/')
         response.headers["Cache-Control"] = no_cache
-        valid_start_time, valid_end_time = validate_time_range(
-            request.start_time_stamp, request.end_time_stamp)
+
+        request = load_request(request)
+
+        # ensure we have valid start and end dates
+        valid_start_date, valid_end_date = validate_date_range(request.start_date, request.end_date)
+        # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
+        start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_start_date).timestamp() * 1000)
+        end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
+
+        selected_prep_date = request.selected_prep_date
+        if selected_prep_date is None \
+                or selected_prep_date < valid_start_date or selected_prep_date > valid_end_date:
+            selected_prep_date = valid_start_date
 
         async with ClientSession() as session:
             header = await get_auth_header(session)
             wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
-                session, header, request.station_codes)
+                session, header, request.selected_station_code_ids)
             dailies = await get_dailies_lookup_fuel_types(
-                session, header, wfwx_stations, valid_start_time, valid_end_time)
-            results = calculate_hfi_results(request.selected_fire_center,
-                                            request.planning_area_fire_starts,
-                                            dailies, request.num_prep_days,
-                                            request.selected_station_codes)
-        return HFIResultResponse(
-            num_prep_days=request.num_prep_days,
-            selected_prep_date=request.selected_prep_date,
-            start_time_stamp=valid_start_time,
-            end_time_stamp=valid_end_time,
-            selected_station_codes=request.selected_station_codes,
-            selected_fire_center=request.selected_fire_center,
+                session, header, wfwx_stations, start_timestamp, end_timestamp)
+            prep_delta = valid_end_date - valid_start_date
+            # NOTE: database session brought to this level in order to make code review of
+            # calculate_hfi_results easier. (adding session in there, results in the entire function
+            # being indented, which makes code review difficult.) Please move session back into
+            # function in isolated pr.
+            with get_read_session_scope() as orm_session:
+                results = calculate_hfi_results(request.selected_fire_center_id,
+                                                request.planning_area_fire_starts,
+                                                dailies, prep_delta.days,
+                                                request.selected_station_code_ids,
+                                                orm_session)
+        response = HFIResultResponse(
+            selected_prep_date=selected_prep_date,
+            start_date=start_timestamp,
+            end_date=end_timestamp,
+            selected_station_code_ids=request.selected_station_code_ids,
+            selected_fire_center_id=request.selected_fire_center_id,
             planning_area_hfi_results=results,
             planning_area_fire_starts=request.planning_area_fire_starts)
+
+        if request.save is True:
+            save_request(request, token.get('preferred_username', None))
+
+        return response
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise
@@ -72,7 +135,7 @@ def validate_time_range(start_time_stamp: Optional[int], end_time_stamp: Optiona
     return int(start_time_stamp), int(end_time_stamp)
 
 
-@router.get('/daily', response_model=StationDailyResponse)
+@ router.get('/daily', response_model=StationDailyResponse)
 async def get_daily_view(response: Response,
                          _=Depends(authentication_required),
                          station_codes: Optional[List[int]] = Query(None),
@@ -103,7 +166,9 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
     for each weather station. """
     try:
         logger.info('/hfi-calc/fire-centres')
-        response.headers["Cache-Control"] = no_cache
+        # we can safely cache the fire centres, as they don't change them very often.
+        # the eco-division logic is very slow, and chomps up 2 seconds!
+        response.headers["Cache-Control"] = "max-age=86400"
 
         with app.db.database.get_read_session_scope() as session:
             # Fetch all fire weather stations from the database.
@@ -125,27 +190,27 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                     'fire_centre': fire_centre_record
                 }
 
-                if fire_centres_dict.get(fire_centre_record.name) is None:
-                    fire_centres_dict[fire_centre_record.name] = {
+                if fire_centres_dict.get(fire_centre_record.id) is None:
+                    fire_centres_dict[fire_centre_record.id] = {
                         'fire_centre_record': fire_centre_record,
                         'planning_area_records': [planning_area_record],
                         'planning_area_objects': []
                     }
                 else:
-                    fire_centres_dict.get(fire_centre_record.name)[
+                    fire_centres_dict.get(fire_centre_record.id)[
                         'planning_area_records'].append(planning_area_record)
-                    fire_centres_dict[fire_centre_record.name]['planning_area_records'] = list(
-                        set(fire_centres_dict.get(fire_centre_record.name).get('planning_area_records')))
+                    fire_centres_dict[fire_centre_record.id]['planning_area_records'] = list(
+                        set(fire_centres_dict.get(fire_centre_record.id).get('planning_area_records')))
 
-                if planning_areas_dict.get(planning_area_record.name) is None:
-                    planning_areas_dict[planning_area_record.name] = {
+                if planning_areas_dict.get(planning_area_record.id) is None:
+                    planning_areas_dict[planning_area_record.id] = {
                         'planning_area_record': planning_area_record,
                         'order_of_appearance_in_list': planning_area_record.order_of_appearance_in_list,
                         'station_codes': [station_record.station_code],
                         'station_objects': []
                     }
                 else:
-                    planning_areas_dict[planning_area_record.name]['station_codes'].append(
+                    planning_areas_dict[planning_area_record.id]['station_codes'].append(
                         station_record.station_code)
 
             # We're still missing some data that we need from wfwx, so give it the list of stations
@@ -167,12 +232,13 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                 station_info_dict[wfwx_station.code]['station'] = weather_station
 
                 planning_areas_dict[station_info_dict[wfwx_station.code]
-                                    ['planning_area'].name]['station_objects'].append(weather_station)
+                                    ['planning_area'].id]['station_objects'].append(weather_station)
 
         # create PlanningArea objects containing all corresponding WeatherStation objects
         for key, val in planning_areas_dict.items():
             planning_area = PlanningArea(
-                name=key,
+                id=val['planning_area_record'].id,
+                name=val['planning_area_record'].name,
                 order_of_appearance_in_list=val['order_of_appearance_in_list'],
                 stations=val['station_objects'])
             val['planning_area_object'] = planning_area
@@ -181,9 +247,10 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
         for key, val in fire_centres_dict.items():
             planning_area_objects_list = []
             for pa_record in val['planning_area_records']:
-                pa_object = planning_areas_dict.get(pa_record.name).get('planning_area_object')
+                pa_object = planning_areas_dict.get(pa_record.id).get('planning_area_object')
                 planning_area_objects_list.append(pa_object)
-            fire_centre = FireCentre(name=key, planning_areas=planning_area_objects_list)
+            fire_centre = FireCentre(
+                id=key, name=val['fire_centre_record'].name, planning_areas=planning_area_objects_list)
             fire_centres_list.append(fire_centre)
 
         return HFIWeatherStationsResponse(fire_centres=fire_centres_list)
