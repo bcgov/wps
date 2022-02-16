@@ -59,7 +59,7 @@ def validate_date_range(start_date: date, end_date: date):
     if end_date is None:
         end_date = start_date + timedelta(days=5)
     # check if the span exceeds 7, if it does clamp it down to 7 days.
-    delta = start_date - end_date
+    delta = end_date - start_date
     if delta.days > 7:
         end_date = start_date + timedelta(days=5)
     # check if the span is less than 2, if it is, push it up to 2.
