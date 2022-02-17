@@ -101,8 +101,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: copy,
           selected_prep_date: result.selected_prep_date,
-          start_date: result.start_date,
-          end_date: result.end_date
+          start_date: result.start_date.toISO(),
+          end_date: result.end_date.toISO()
         })
       )
     }
@@ -131,11 +131,25 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [dailies])
 
   const updateDate = (newDate: string) => {
-    if (newDate !== dateOfInterest && !isUndefined(selectedFireCentre)) {
+    if (
+      newDate !== dateOfInterest &&
+      !isUndefined(selectedFireCentre) &&
+      !isUndefined(result)
+    ) {
       setDateOfInterest(newDate)
       const { start, end } = getDateRange(true, newDate)
       dispatch(setSelectedPrepDate(''))
       getDailies(start, end)
+      dispatch(
+        fetchHFIResult({
+          selected_station_code_ids: result.selected_station_code_ids,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: result.planning_area_fire_starts,
+          selected_prep_date: result.selected_prep_date,
+          start_date: start.toISO(),
+          end_date: end.toISO()
+        })
+      )
     }
   }
 
@@ -188,7 +202,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       )
       dispatch(
         fetchHFIResult({
-          selected_station_code_ids: result ? result.selected_station_code_ids : selected,
+          selected_station_code_ids: result
+            ? result.selected_station_code_ids
+            : Object.entries(selectedFireCentre.planning_areas).flatMap(
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                (a, _b) => a[1].stations[1].code
+              ),
           selected_fire_center_id: result
             ? result.selected_fire_center_id
             : selectedFireCentre.id,
