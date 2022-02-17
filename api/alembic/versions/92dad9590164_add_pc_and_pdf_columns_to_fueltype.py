@@ -21,6 +21,7 @@ depends_on = None
 def upgrade():
     op.add_column('fuel_types', sa.Column('percentage_conifer', sa.Integer(), nullable=True))
     op.add_column('fuel_types', sa.Column('percentage_dead_fir', sa.Integer(), nullable=True))
+    op.add_column('fuel_types', sa.Column('fuel_type_code', sa.String(), nullable=True))
     op.drop_index('ix_fuel_types_abbrev', table_name='fuel_types')
     op.create_index(op.f('ix_fuel_types_abbrev'), 'fuel_types', ['abbrev'], unique=False)
 
@@ -30,3 +31,4 @@ def downgrade():
     op.create_index('ix_fuel_types_abbrev', 'fuel_types', ['abbrev'], unique=False)
     op.drop_column('fuel_types', 'percentage_dead_fir')
     op.drop_column('fuel_types', 'percentage_conifer')
+    op.drop_column('fuel_types', 'fuel_type_code')

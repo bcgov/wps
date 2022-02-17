@@ -23,12 +23,13 @@ def upgrade():
 
     for fuel_type in fuel_types_data['fuel_types']:
         abbrev = fuel_type['abbrev']
+        fuel_type_code = fuel_type['fuel_type_code']
         description = fuel_type['description']
         percentage_conifer = fuel_type['percentage_conifer']
         percentage_dead_fir = fuel_type['percentage_dead_fir']
 
-        op.execute(f"INSERT INTO fuel_types (abbrev, description, percentage_conifer, percentage_dead_fir)\
-            VALUES (\'{abbrev}\', \'{description}\', {percentage_conifer}, {percentage_dead_fir})")
+        op.execute(f"INSERT INTO fuel_types (abbrev, fuel_type_code, description, percentage_conifer, percentage_dead_fir)\
+            VALUES (\'{abbrev}\', \'{fuel_type_code}\', \'{description}\', {percentage_conifer}, {percentage_dead_fir})")
 
 
 def downgrade():

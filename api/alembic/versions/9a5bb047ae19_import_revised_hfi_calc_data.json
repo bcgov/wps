@@ -192,7 +192,7 @@
                         },
                         "1375": {
                             "order_of_appearance_in_planning_area_list": 3,
-                            "fuel_type": "M2_25"
+                            "fuel_type": "BL"
                         },
                         "1083": {
                             "order_of_appearance_in_planning_area_list": 4,
@@ -243,7 +243,7 @@
                     "stations": [{
                         "59": {
                             "order_of_appearance_in_planning_area_list": 1,
-                            "fuel_type": "M2_25"
+                            "fuel_type": "BL"
                         },
                         "37": {
                             "order_of_appearance_in_planning_area_list": 2,
@@ -264,7 +264,7 @@
                         },
                         "19": {
                             "order_of_appearance_in_planning_area_list": 2,
-                            "fuel_type": "M2_25"
+                            "fuel_type": "BL"
                         },
                         "21": {
                             "order_of_appearance_in_planning_area_list": 3,

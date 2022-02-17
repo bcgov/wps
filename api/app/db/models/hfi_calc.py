@@ -45,6 +45,7 @@ class FuelType(Base):
 
     id = Column(Integer, Sequence('fuel_types_id_seq'), primary_key=True, nullable=False, index=True)
     abbrev = Column(String, nullable=False, index=True)
+    fuel_type_code = Column(String, nullable=True)
     description = Column(String)
     percentage_conifer = Column(Integer, nullable=True)
     percentage_dead_fir = Column(Integer, nullable=True)
