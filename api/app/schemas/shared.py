@@ -17,3 +17,5 @@ class FuelType(BaseModel):
     """ Fuel type assigned to a station. """
     abbrev: str
     description: str
+    percentage_conifer: int
+    percentage_dead_fir: int

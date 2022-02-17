@@ -1,7 +1,7 @@
 """Import revised HFI calc data
 
 Revision ID: 9a5bb047ae19
-Revises: 1161fab52ef5
+Revises: fb9d656fdc19
 Create Date: 2022-02-09 11:14:13.773005
 
 """
@@ -11,7 +11,7 @@ import json
 
 # revision identifiers, used by Alembic.
 revision = '9a5bb047ae19'
-down_revision = '1161fab52ef5'
+down_revision = 'fb9d656fdc19'
 branch_labels = None
 depends_on = None
 
@@ -19,7 +19,10 @@ depends_on = None
 def get_fuel_type_id(fuel_type):
     # Helper function to get fuel_types.id
     conn = op.get_bind()
-    cursor = conn.execute(f"SELECT id FROM fuel_types WHERE abbrev = '{fuel_type}'")
+    if fuel_type == 'M2_25':
+        cursor = conn.execute(f"SELECT id FROM fuel_types WHERE abbrev = 'M2' AND percentage_conifer = 25")
+    else:
+        cursor = conn.execute(f"SELECT id FROM fuel_types WHERE abbrev = '{fuel_type}'")
     result = cursor.fetchall()
     return result[0][0]
 

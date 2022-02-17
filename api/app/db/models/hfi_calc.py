@@ -2,6 +2,7 @@
 """
 from sqlalchemy import (Column, Integer,
                         Sequence, ForeignKey, UniqueConstraint)
+from sqlalchemy.sql.expression import null
 from sqlalchemy.sql.sqltypes import String, Date, JSON
 from app.db.database import Base
 from app.db.models.common import TZTimeStamp
@@ -43,9 +44,10 @@ class FuelType(Base):
     __tablename__ = 'fuel_types'
 
     id = Column(Integer, Sequence('fuel_types_id_seq'), primary_key=True, nullable=False, index=True)
-    # The abbreviation should be unique - we don't want duplicate fuel types.
-    abbrev = Column(String, nullable=False, index=True, unique=True)
+    abbrev = Column(String, nullable=False, index=True)
     description = Column(String)
+    percentage_conifer = Column(Integer, nullable=True)
+    percentage_dead_fir = Column(Integer, nullable=True)
 
     def __str__(self):
         return (f'id:{self.id}, '

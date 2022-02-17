@@ -1,7 +1,7 @@
 """Add column for ordering stations in planning area list; add unique constraint
 
 Revision ID: 4e9664f4962e
-Revises: 839f18e0ecc4
+Revises: 318e6887e4b0
 Create Date: 2022-02-08 16:35:20.327919
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '4e9664f4962e'
-down_revision = '839f18e0ecc4'
+down_revision = '318e6887e4b0'
 branch_labels = None
 depends_on = None
 
