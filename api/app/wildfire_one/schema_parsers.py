@@ -345,8 +345,10 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
     """
     # pylint: disable=invalid-name
     # we use the fuel type lookup to get default values.
-    pc = fuel_type.percentage_conifer if fuel_type.percentage_conifer is not None else FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["PC"]
-    pdf = fuel_type.percentage_dead_fir if fuel_type.percentage_dead_fir is not None else FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["PDF"]
+    pc = fuel_type.percentage_conifer if fuel_type.percentage_conifer is not None\
+        else FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["PC"]
+    pdf = fuel_type.percentage_dead_fir if fuel_type.percentage_dead_fir is not None\
+        else FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["PDF"]
     cbh = FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["CBH"]
     cfl = FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["CFL"]
     date = raw_daily.get('weatherTimestamp', None)
