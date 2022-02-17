@@ -64,10 +64,14 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
         yield session
 
     class MockRedis():
-        def get(self, key):
+        """ Mock class"""
+
+        def get(self, _):  # pylint: disable=no-self-use
+            """ Mock function """
             raise Exception('explode')
 
     def mock_create_redis():
+        """ function to mock out creation of redis"""
         return MockRedis()
 
     # mock out redis:
