@@ -34,7 +34,7 @@ def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-local
     for area in get_planning_areas(session, fire_centre_id):
         # TODO: doing this nested sql query is super slow - need to come back to this.
         stations = area_station_map[area.id]
-        area_station_codes = map(lambda station: (station.station_code), stations)
+        area_station_codes = list(map(lambda station: (station.station_code), stations))
 
         # Marshall dailies in chronological order,
         # that are part of the planning area and are selected
