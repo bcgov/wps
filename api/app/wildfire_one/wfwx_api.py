@@ -168,10 +168,11 @@ async def get_hourly_readings(
     eco_division_key = ''
     # not ideal - we iterate through the stations twice. 1'st time to get the list of station codes,
     # so that we can do an eco division lookup in redis.
+    station_codes = set()
     async for raw_station in iterator:
         raw_stations.append(raw_station)
-        station_code = raw_station.get('stationCode')
-        eco_division_key = eco_division_key.join(f'{station_code},')
+        station_codes.add(raw_station.get('stationCode'))
+    eco_division_key = ','.join(str(code) for code in station_codes)
     with EcodivisionSeasons(eco_division_key) as eco_division:
         for raw_station in raw_stations:
             task = asyncio.create_task(
