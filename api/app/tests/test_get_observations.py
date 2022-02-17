@@ -63,6 +63,16 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
         ])
         yield session
 
+    class MockRedis():
+        def get(self, key):
+            raise Exception('explode')
+
+    def mock_create_redis():
+        return MockRedis()
+
+    # mock out redis:
+    monkeypatch.setattr(app.data.ecodivision_seasons, 'create_redis', mock_create_redis)
+
     if use_wfwx == 'True':
         logger.info('running test with WFWX set to True')
         monkeypatch.setenv("USE_WFWX", 'True')
