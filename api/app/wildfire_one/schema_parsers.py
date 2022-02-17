@@ -110,16 +110,14 @@ def construct_zone_code(station: any):
     return zone_code
 
 
-def parse_station(station) -> WeatherStation:
+def parse_station(station, eco_division: EcodivisionSeasons) -> WeatherStation:
     """ Transform from the json object returned by wf1, to our station object.
     """
     # pylint: disable=no-member
-    # TODO: get_ecodivision_name is the most expensive call in this function.
-    # consider ways we could speed it up (storing a lookup for all the ecodivision names in
-    # a lookup may help)
-    core_seasons = EcodivisionSeasons.instance().get_core_seasons()
-    ecodiv_name = EcodivisionSeasons.instance().get_ecodivision_name(
-        station['stationCode'], station['latitude'], station['longitude'])
+    core_seasons = eco_division.get_core_seasons()
+    ecodiv_name = eco_division.get_ecodivision_name(station['stationCode'],
+                                                    station['latitude'],
+                                                    station['longitude'])
     return WeatherStation(
         zone_code=construct_zone_code(station),
         code=station['stationCode'],
