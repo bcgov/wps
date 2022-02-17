@@ -17,11 +17,7 @@ export interface CalculatedCellsProps {
   areaName: string
   planningAreaResult: PlanningAreaResult
   selectedStationCodes: number[]
-  setNewFireStarts: (
-    areaName: string,
-    dayOffset: number,
-    newFireStarts: FireStarts
-  ) => void
+  setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
   planningAreaClass: string
   numPrepDays: number
 }
@@ -50,7 +46,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
             <TableCell>
               <FireStartsDropdown
                 fireStarts={fireStarts}
-                areaName={props.area.name}
+                areaId={props.planningAreaResult.planning_area_id}
                 dayOffset={day}
                 setFireStarts={props.setNewFireStarts}
               />

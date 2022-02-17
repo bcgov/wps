@@ -7,7 +7,6 @@ import {
   setPrepDays,
   setSelectedPrepDate,
   setSelectedSelectedStationCodes,
-  setFireStarts,
   setSelectedFireCentre,
   fetchHFIResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -29,7 +28,7 @@ import { PST_UTC_OFFSET } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
-import { isNull, isUndefined, union } from 'lodash'
+import { cloneDeep, isNull, isUndefined, union } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 
 const useStyles = makeStyles(() => ({
@@ -73,6 +72,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     numPrepDays,
     selectedStationCodes: selected,
     selectedPrepDate,
+    result,
     selectedFireCentre
   } = useSelector(selectHFICalculatorState)
 
@@ -88,11 +88,24 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   const setNewFireStarts = (
-    areaName: string,
+    areaId: number,
     dayOffset: number,
     newFireStarts: FireStarts
   ) => {
-    dispatch(setFireStarts({ areaName, dayOffset, newFireStarts }))
+    if (!isUndefined(result)) {
+      const copy = cloneDeep(result.planning_area_fire_starts)
+      copy[areaId][dayOffset] = { ...newFireStarts }
+      dispatch(
+        fetchHFIResult({
+          selected_station_code_ids: result.selected_station_code_ids,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: copy,
+          selected_prep_date: result.selected_prep_date,
+          start_date: result.start_date,
+          end_date: result.end_date
+        })
+      )
+    }
   }
 
   // the DatePicker component requires dateOfInterest to be in string format
@@ -175,9 +188,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       )
       dispatch(
         fetchHFIResult({
-          selected_station_code_ids: selected,
-          selected_fire_center_id: selectedFireCentre.id,
-          planning_area_fire_starts: new Map()
+          selected_station_code_ids: result ? result.selected_station_code_ids : selected,
+          selected_fire_center_id: result
+            ? result.selected_fire_center_id
+            : selectedFireCentre.id,
+          planning_area_fire_starts: result ? result.planning_area_fire_starts : {}
         })
       )
     }
@@ -190,11 +205,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireCentres])
-
-  useEffect(() => {
-    setSelected(union(dailies.map(daily => daily.code)))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dailies])
 
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))

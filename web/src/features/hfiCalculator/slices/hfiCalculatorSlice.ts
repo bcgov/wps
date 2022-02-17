@@ -10,7 +10,7 @@ import { FireCentre } from 'api/hfiCalcAPI'
 export interface FireStarts {
   label: string
   value: number
-  lookupTable: { [mig: number]: number }
+  lookup_table: { [mig: number]: number }
 }
 
 export interface DailyResult {
@@ -50,7 +50,7 @@ export interface HFIResultResponse {
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: PlanningAreaResult[]
-  planning_area_fire_starts: Map<number, FireStarts[]>
+  planning_area_fire_starts: { [key: number]: FireStarts[] }
 }
 
 export interface HFIResultRequest {
@@ -59,7 +59,7 @@ export interface HFIResultRequest {
   end_date?: Date
   selected_station_code_ids: number[]
   selected_fire_center_id: number
-  planning_area_fire_starts: Map<number, FireStarts[]>
+  planning_area_fire_starts: { [key: number]: FireStarts[] }
   save?: boolean
 }
 
@@ -71,27 +71,27 @@ export interface ValidatedStationDaily extends StationDaily {
 export const lowestFireStarts: FireStarts = {
   label: '0-1',
   value: 1,
-  lookupTable: { 1: 1, 2: 1, 3: 2, 4: 3, 5: 4 }
+  lookup_table: { 1: 1, 2: 1, 3: 2, 4: 3, 5: 4 }
 }
 export const one2TwoStarts: FireStarts = {
   label: '1-2',
   value: 2,
-  lookupTable: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
+  lookup_table: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
 }
 export const two2ThreeStarts: FireStarts = {
   label: '2-3',
   value: 3,
-  lookupTable: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 }
+  lookup_table: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 }
 }
 export const three2SixStarts: FireStarts = {
   label: '3-6',
   value: 6,
-  lookupTable: { 1: 3, 2: 4, 3: 5, 4: 6, 5: 6 }
+  lookup_table: { 1: 3, 2: 4, 3: 5, 4: 6, 5: 6 }
 }
 export const highestFireStarts: FireStarts = {
   label: '6+',
   value: 7,
-  lookupTable: { 1: 4, 2: 5, 3: 6, 4: 6, 5: 6 }
+  lookup_table: { 1: 4, 2: 5, 3: 6, 4: 6, 5: 6 }
 }
 
 export const FIRE_STARTS_SET: FireStarts[] = [
@@ -178,22 +178,12 @@ const dailiesSlice = createSlice({
     setSelectedPrepDate: (state, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
     },
-    setFireStarts: (
-      state,
-      action: PayloadAction<{
-        areaName: string
-        dayOffset: number
-        newFireStarts: FireStarts
-      }>
-    ) => {
-      const { areaName, dayOffset, newFireStarts } = action.payload
-      state.planningAreaFireStarts[areaName][dayOffset] = newFireStarts
-    },
     setSelectedFireCentre: (state, action: PayloadAction<FireCentre | undefined>) => {
       state.selectedFireCentre = action.payload
     },
     setResult: (state, action: PayloadAction<HFIResultResponse | undefined>) => {
       state.result = action.payload
+      state.loading = false
     }
   }
 })
@@ -205,7 +195,6 @@ export const {
   setPrepDays,
   setSelectedSelectedStationCodes,
   setSelectedPrepDate,
-  setFireStarts,
   setSelectedFireCentre,
   setResult
 } = dailiesSlice.actions

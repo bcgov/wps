@@ -12,11 +12,7 @@ export interface ViewSwitcherProps {
   dailies: ValidatedStationDaily[]
   dateOfInterest: string
   setSelected: (selected: number[]) => void
-  setNewFireStarts: (
-    areaName: string,
-    dayOffset: number,
-    newFireStarts: FireStarts
-  ) => void
+  setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
   selectedPrepDay: string
   selectedFireCentre: FireCentre | undefined
 }

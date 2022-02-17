@@ -30,11 +30,7 @@ export interface Props {
   dailies: ValidatedStationDaily[]
   currentDay: string
   setSelected: (selected: number[]) => void
-  setNewFireStarts: (
-    areaName: string,
-    dayOffset: number,
-    newFireStarts: FireStarts
-  ) => void
+  setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
 }
 
 export const columnLabelsForEachDayInWeek: string[] = [
@@ -189,9 +185,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               )
               .map(([areaName, area]) => {
                 const areaHFIResult: PlanningAreaResult | undefined =
-                  result?.planning_area_hfi_results.find(
-                    result => result.planning_area_id === area.id
-                  )
+                  result?.planning_area_hfi_results[area.id]
                 return (
                   areaHFIResult && (
                     <React.Fragment key={`zone-${areaName}`}>
