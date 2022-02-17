@@ -101,8 +101,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: copy,
           selected_prep_date: result.selected_prep_date,
-          start_date: result.start_date.toISO(),
-          end_date: result.end_date.toISO()
+          start_date: result.start_date.toISODate(),
+          end_date: result.end_date.toISODate()
         })
       )
     }
@@ -146,8 +146,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
           selected_prep_date: result.selected_prep_date,
-          start_date: start.toISO(),
-          end_date: end.toISO()
+          start_date: start.toISODate(),
+          end_date: end.toISODate()
         })
       )
     }
