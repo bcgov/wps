@@ -309,7 +309,7 @@ async def get_dailies_lookup_fuel_types(  # pylint: disable=too-many-locals
     with app.db.database.get_read_session_scope() as read_session:
         result = get_stations_with_fuel_types(read_session, station_codes)
         for (planning_station_record, fuel_type_record) in result:
-            fuel_type_dict[planning_station_record.station_code] = fuel_type_record.abbrev
+            fuel_type_dict[planning_station_record.station_code] = fuel_type_record.fuel_type_code
 
     dailies_iterator = fetch_paged_response_generator(
         session, header, BuildQueryDailiesByStationCode(
