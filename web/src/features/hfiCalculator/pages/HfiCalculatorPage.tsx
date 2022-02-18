@@ -204,15 +204,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchHFIResult({
           start_date: result?.start_date,
           end_date: result?.end_date,
-          selected_station_code_ids: Object.entries(
-            selectedFireCentre.planning_areas
-          ).flatMap(
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            (a, _b) => a[1].stations[1].code
+          selected_station_code_ids: selectedFireCentre.planning_areas.flatMap(area =>
+            area.stations.map(station => station.code)
           ),
-          selected_fire_center_id: result
-            ? result.selected_fire_center_id
-            : selectedFireCentre.id,
+          selected_fire_center_id: selectedFireCentre.id,
           planning_area_fire_starts: result ? result.planning_area_fire_starts : {}
         })
       )
