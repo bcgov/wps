@@ -20,15 +20,15 @@ import { selectHFICalculatorState } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
 import {
   FireStarts,
-  PlanningAreaResult,
-  ValidatedStationDaily
+  HFIResultResponse,
+  PlanningAreaResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface Props {
   fireCentre: FireCentre | undefined
   testId?: string
-  dailies: ValidatedStationDaily[]
   currentDay: string
+  result: HFIResultResponse
   setSelected: (selected: number[]) => void
   setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
 }
@@ -250,7 +250,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                       .map(([stationCode, station]) => {
                         const dailiesForStation = getDailiesByStationCode(
                           numPrepDays,
-                          props.dailies,
+                          props.result,
                           station.code
                         )
                         const isRowSelected = stationCodeInSelected(station.code)

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { Container, ErrorBoundary, GeneralHeader } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
-  fetchHFIDailies,
   FireStarts,
   setPrepDays,
   setSelectedPrepDate,
@@ -13,7 +12,6 @@ import {
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
 import {
-  selectHFIDailies,
   selectHFIStations,
   selectHFIStationsLoading,
   selectHFICalculatorState
@@ -65,16 +63,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
   const dispatch = useDispatch()
-  const { dailies, loading, error: hfiDailiesError } = useSelector(selectHFIDailies)
   const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const {
-    numPrepDays,
-    selectedStationCodes: selected,
-    selectedPrepDate,
-    result,
-    selectedFireCentre
-  } = useSelector(selectHFICalculatorState)
+  const { numPrepDays, selectedPrepDate, result, selectedFireCentre, loading } =
+    useSelector(selectHFICalculatorState)
 
   const setNumPrepDays = (numDays: number) => {
     // if the number of prep days change, we need to unset the selected prep day - it
@@ -113,23 +105,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
   )
 
-  const getDailies = (start: DateTime, end: DateTime) => {
-    dispatch(
-      fetchHFIDailies(
-        selectedFireCentre,
-        getAllPlanningWeatherStationCodesFromFireCentre(selectedFireCentre),
-        selected,
-        start.toUTC().valueOf(),
-        end.toUTC().valueOf()
-      )
-    )
-  }
-
-  useEffect(() => {
-    setSelected(union(dailies.map(daily => daily.code)))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dailies])
-
   const updateDate = (newDate: string) => {
     if (
       newDate !== dateOfInterest &&
@@ -139,7 +114,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       setDateOfInterest(newDate)
       const { start, end } = getDateRange(true, newDate)
       dispatch(setSelectedPrepDate(''))
-      getDailies(start, end)
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -151,17 +125,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         })
       )
     }
-  }
-
-  const getAllPlanningWeatherStationCodesFromFireCentre = (
-    centre: FireCentre | undefined
-  ): number[] => {
-    if (isUndefined(centre)) {
-      return []
-    }
-    return Object.values(centre?.planning_areas).flatMap(area =>
-      Object.values(area.stations).map(station => station.code)
-    )
   }
 
   const setSelectedFireCentreFromLocalStorage = () => {
@@ -189,24 +152,17 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     ) {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
-    const { start, end } = getDateRange(true, dateOfInterest)
     if (!isUndefined(selectedFireCentre)) {
-      dispatch(
-        fetchHFIDailies(
-          selectedFireCentre,
-          getAllPlanningWeatherStationCodesFromFireCentre(selectedFireCentre),
-          selected,
-          start.toUTC().valueOf(),
-          end.toUTC().valueOf()
-        )
+      const stationCodes = selectedFireCentre.planning_areas.flatMap(area =>
+        area.stations.map(station => station.code)
       )
+      setSelected(union(stationCodes))
+
       dispatch(
         fetchHFIResult({
           start_date: result?.start_date,
           end_date: result?.end_date,
-          selected_station_code_ids: selectedFireCentre.planning_areas.flatMap(area =>
-            area.stations.map(station => station.code)
-          ),
+          selected_station_code_ids: stationCodes,
           selected_fire_center_id: selectedFireCentre.id,
           planning_area_fire_starts: result ? result.planning_area_fire_starts : {}
         })
@@ -242,20 +198,21 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         selectNewFireCentre={selectNewFireCentre}
         padding="1rem"
       />
-      {loading || stationDataLoading ? (
+      {loading || stationDataLoading || isUndefined(result) ? (
         <Container className={classes.container}>
           <CircularProgress />
         </Container>
       ) : (
         <React.Fragment>
           <Container maxWidth={'xl'}>
-            {(!isNull(hfiDailiesError) || !isNull(fireCentresError)) && (
-              <HFIErrorAlert
-                hfiDailiesError={hfiDailiesError}
-                fireCentresError={fireCentresError}
-              />
+            {!isNull(fireCentresError) && (
+              <HFIErrorAlert hfiDailiesError={null} fireCentresError={fireCentresError} />
             )}
-            <LastUpdatedHeader dailies={dailies} />
+            <LastUpdatedHeader
+              dailies={result?.planning_area_hfi_results.flatMap(result =>
+                result.daily_results.flatMap(result => result.dailies)
+              )}
+            />
             <FormControl className={classes.prepDays}>
               <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
             </FormControl>
@@ -267,8 +224,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             <ErrorBoundary>
               <ViewSwitcher
                 selectedFireCentre={selectedFireCentre}
-                dailies={dailies}
                 dateOfInterest={dateOfInterest}
+                result={result}
                 setSelected={setSelected}
                 setNewFireStarts={setNewFireStarts}
                 selectedPrepDay={selectedPrepDate}
