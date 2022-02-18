@@ -28,8 +28,8 @@ def given_hfi_planning_areas_request(monkeypatch):
         fire_centre = FireCentre(id=1, name='Kamloops Fire Centre')
         planning_area_1 = PlanningArea(id=2, name='Kamloops (K2)', fire_centre_id=1)
         planning_area_2 = PlanningArea(id=3, name='Vernon (K4)', fire_centre_id=1)
-        fuel_type_1 = FuelType(abbrev='O1B', description='neigh')
-        fuel_type_2 = FuelType(abbrev='C7B', description='moo')
+        fuel_type_1 = FuelType(abbrev='O1B', description='neigh', fuel_type_code="O1B", percentage_conifer=0, percentage_dead_fir=0)
+        fuel_type_2 = FuelType(abbrev='C7B', description='moo', fuel_type_code='C7', percentage_conifer=100, percentage_dead_fir=0)
         return (
             (PlanningWeatherStation(station_code=322, fuel_type_id=1,
              planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
