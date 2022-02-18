@@ -51,7 +51,7 @@ export interface Option {
 
 interface Props {
   className?: string
-  fireCentres: Record<string, FireCentre>
+  fireCentres: FireCentre[]
   selectedValue: Option | null
   onChange: (value: FireCentre | undefined) => void
 }
@@ -59,9 +59,9 @@ interface Props {
 const FireCentreDropdown = (props: Props) => {
   const classes = useStyles()
 
-  const allFireCentreOptions: Option[] = Object.values(props.fireCentres).map(
-    (centre: FireCentre) => ({ name: centre.name })
-  )
+  const allFireCentreOptions: Option[] = props.fireCentres.map((centre: FireCentre) => ({
+    name: centre.name
+  }))
 
   return (
     <div className={props.className}>

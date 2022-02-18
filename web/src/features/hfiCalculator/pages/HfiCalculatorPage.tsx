@@ -101,8 +101,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: copy,
           selected_prep_date: result.selected_prep_date,
-          start_date: result.start_date.toISODate(),
-          end_date: result.end_date.toISODate()
+          start_date: result.start_date,
+          end_date: result.end_date
         })
       )
     }
@@ -202,12 +202,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       )
       dispatch(
         fetchHFIResult({
-          selected_station_code_ids: result
-            ? result.selected_station_code_ids
-            : Object.entries(selectedFireCentre.planning_areas).flatMap(
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                (a, _b) => a[1].stations[1].code
-              ),
+          start_date: result?.start_date,
+          end_date: result?.end_date,
+          selected_station_code_ids: Object.entries(
+            selectedFireCentre.planning_areas
+          ).flatMap(
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            (a, _b) => a[1].stations[1].code
+          ),
           selected_fire_center_id: result
             ? result.selected_fire_center_id
             : selectedFireCentre.id,

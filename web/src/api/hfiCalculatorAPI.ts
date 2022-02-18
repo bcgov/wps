@@ -85,8 +85,6 @@ export async function getHFIResult(
   request: HFIResultRequest
 ): Promise<HFIResultResponse> {
   const { data } = await axios.post<RawHFIResult>(baseUrl, { ...request })
-  const start_date = DateTime.fromJSDate(new Date(data.start_date + '00:00-08:00'))
-  const end_date = DateTime.fromJSDate(new Date(data.end_date + '00:00-08:00'))
 
-  return { ...data, start_date, end_date }
+  return data
 }

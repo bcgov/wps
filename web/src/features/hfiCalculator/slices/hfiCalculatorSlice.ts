@@ -6,7 +6,6 @@ import { getDailies, getHFIResult, StationDaily } from 'api/hfiCalculatorAPI'
 import { isUndefined, isNull } from 'lodash'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
-import { DateTime } from 'luxon'
 
 export interface FireStarts {
   label: string
@@ -46,8 +45,8 @@ export interface HFICalculatorState {
 
 export interface HFIResultResponse {
   selected_prep_date: Date
-  start_date: DateTime
-  end_date: DateTime
+  start_date: string
+  end_date: string
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: PlanningAreaResult[]

@@ -290,19 +290,17 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               <FireCentreCell centre={props.fireCentre}></FireCentreCell>
               <TableCell className={classes.fireCentre} colSpan={25}></TableCell>
             </TableRow>
-            {Object.entries(props.fireCentre.planning_areas)
+            {props.fireCentre.planning_areas
               .sort((a, b) =>
-                a[1].order_of_appearance_in_list < b[1].order_of_appearance_in_list
-                  ? -1
-                  : 1
+                a.order_of_appearance_in_list < b.order_of_appearance_in_list ? -1 : 1
               )
-              .map(([areaName, area]) => {
+              .map(area => {
                 const planningAreaResult = result?.planning_area_hfi_results.find(
                   result => result.planning_area_id === area.id
                 )
                 const dailyResult = getDailyResult(planningAreaResult)
                 return (
-                  <React.Fragment key={`zone-${areaName}`}>
+                  <React.Fragment key={`zone-${area.name}`}>
                     <TableRow>
                       <TableCell
                         colSpan={42}
@@ -311,8 +309,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                     </TableRow>
                     <TableRow
                       className={classes.planningArea}
-                      key={`zone-${areaName}`}
-                      data-testid={`zone-${areaName}`}
+                      key={`zone-${area.name}`}
+                      data-testid={`zone-${area.name}`}
                     >
                       <StickyCell
                         left={0}
@@ -341,11 +339,11 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         meanIntensityGroup={dailyResult?.meanIntensityGroup}
                       ></MeanIntensityGroupRollup>
                       <FireStartsCell
-                        areaName={areaName}
+                        areaName={area.name}
                         fireStarts={dailyResult?.fireStarts}
                       />
                       <PrepLevelCell
-                        testid={`daily-prep-level-${areaName}`}
+                        testid={`daily-prep-level-${area.name}`}
                         toolTipText=" Incomplete data from WFWX for one or more stations. Please exclude station(s) displaying errors."
                         prepLevel={dailyResult?.prepLevel}
                       />
