@@ -25,7 +25,7 @@ export const RequiredDataCell = ({
   return (
     <React.Fragment>
       {(daily && isUndefined(daily[dailyKey])) || (daily && isNull(daily[dailyKey])) ? (
-        <TableCell data-testId={testId}>
+        <TableCell data-testid={testId}>
           <ErrorIconWithTooltip
             isDataCell={true}
             tooltipElement={<div>{errorToolTipText}</div>}

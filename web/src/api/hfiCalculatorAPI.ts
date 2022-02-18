@@ -76,15 +76,10 @@ export async function getDailies(
   }))
 }
 
-export interface RawHFIResult extends Omit<HFIResultResponse, 'start_date' | 'end_date'> {
-  start_date: string
-  end_date: string
-}
-
 export async function getHFIResult(
   request: HFIResultRequest
 ): Promise<HFIResultResponse> {
-  const { data } = await axios.post<RawHFIResult>(baseUrl, { ...request })
+  const { data } = await axios.post<HFIResultResponse>(baseUrl, { ...request })
 
   return data
 }

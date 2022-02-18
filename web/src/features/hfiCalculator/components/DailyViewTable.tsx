@@ -26,7 +26,7 @@ import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { DateTime } from 'luxon'
-import { isUndefined } from 'lodash'
+import { isUndefined, sortBy } from 'lodash'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import {
@@ -290,193 +290,187 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               <FireCentreCell centre={props.fireCentre}></FireCentreCell>
               <TableCell className={classes.fireCentre} colSpan={25}></TableCell>
             </TableRow>
-            {props.fireCentre.planning_areas
-              .sort((a, b) =>
-                a.order_of_appearance_in_list < b.order_of_appearance_in_list ? -1 : 1
+            {sortBy(
+              props.fireCentre.planning_areas,
+              planningArea => planningArea.order_of_appearance_in_list
+            ).map(area => {
+              const planningAreaResult = result?.planning_area_hfi_results.find(
+                result => result.planning_area_id === area.id
               )
-              .map(area => {
-                const planningAreaResult = result?.planning_area_hfi_results.find(
-                  result => result.planning_area_id === area.id
-                )
-                const dailyResult = getDailyResult(planningAreaResult)
-                return (
-                  <React.Fragment key={`zone-${area.name}`}>
-                    <TableRow>
-                      <TableCell
-                        colSpan={42}
-                        className={classes.planningAreaBorder}
-                      ></TableCell>
-                    </TableRow>
-                    <TableRow
-                      className={classes.planningArea}
-                      key={`zone-${area.name}`}
-                      data-testid={`zone-${area.name}`}
+              const dailyResult = getDailyResult(planningAreaResult)
+              return (
+                <React.Fragment key={`zone-${area.name}`}>
+                  <TableRow>
+                    <TableCell
+                      colSpan={42}
+                      className={classes.planningAreaBorder}
+                    ></TableCell>
+                  </TableRow>
+                  <TableRow
+                    className={classes.planningArea}
+                    key={`zone-${area.name}`}
+                    data-testid={`zone-${area.name}`}
+                  >
+                    <StickyCell
+                      left={0}
+                      zIndexOffset={10}
+                      colSpan={3}
+                      backgroundColor={BACKGROUND_COLOR.backgroundColor}
                     >
-                      <StickyCell
-                        left={0}
-                        zIndexOffset={10}
-                        colSpan={3}
-                        backgroundColor={BACKGROUND_COLOR.backgroundColor}
-                      >
-                        <Table>
-                          <TableBody>
-                            <TableRow>
-                              <TableCell className={classes.noBottomBorder}>
-                                {area.name}
-                              </TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </StickyCell>
-                      <TableCell
-                        colSpan={19}
-                        className={classes.planningArea}
-                      ></TableCell>
-                      <MeanIntensityGroupRollup
-                        area={area}
-                        dailies={dailyResult ? dailyResult.dailies : []}
-                        selectedStationCodes={selectedStationCodes}
-                        meanIntensityGroup={dailyResult?.meanIntensityGroup}
-                      ></MeanIntensityGroupRollup>
-                      <FireStartsCell
-                        areaName={area.name}
-                        fireStarts={dailyResult?.fireStarts}
-                      />
-                      <PrepLevelCell
-                        testid={`daily-prep-level-${area.name}`}
-                        toolTipText=" Incomplete data from WFWX for one or more stations. Please exclude station(s) displaying errors."
-                        prepLevel={dailyResult?.prepLevel}
-                      />
-                    </TableRow>
-                    {Object.entries(area.stations)
-                      .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
-                      .map(([stationCode, station]) => {
-                        const daily = getDailyForDay(station.code)
-                        const grassCureError = !isValidGrassCure(
-                          daily,
-                          station.station_props
-                        )
-                        const isRowSelected = stationCodeInSelected(station.code)
-                        const classNameForRow = !isRowSelected
-                          ? classes.unselectedStation
-                          : undefined
-                        return (
-                          <TableRow
-                            className={classNameForRow}
-                            key={`station-${stationCode}`}
-                          >
-                            <BaseStationAttributeCells
-                              station={station}
-                              className={classNameForRow}
-                              stationCodeInSelected={stationCodeInSelected}
-                              toggleSelectedStation={toggleSelectedStation}
-                              isDailyTable={true}
-                            />
-
-                            <StatusCell daily={daily} className={classNameForRow} />
-                            <RequiredDataCell
-                              classNameForRow={classNameForRow}
-                              dailyKey={'temperature'}
-                              daily={daily}
-                              errorToolTipText={
-                                'Temperature cannot be null. Impacts DMC, BUI, ROS, HFI, FIG, Prep calculations.'
-                              }
-                            />
-                            <RequiredDataCell
-                              classNameForRow={classNameForRow}
-                              dailyKey={'relative_humidity'}
-                              daily={daily}
-                              errorToolTipText={
-                                'RH cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.'
-                              }
-                            />
-                            <TableCell className={classNameForRow}>
-                              {daily?.wind_direction?.toFixed(0).padStart(3, '0')}
-                            </TableCell>
-                            <RequiredDataCell
-                              classNameForRow={classNameForRow}
-                              dailyKey={'wind_speed'}
-                              daily={daily}
-                              errorToolTipText={
-                                'Wind speed cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.'
-                              }
-                            />
-                            <RequiredDataCell
-                              classNameForRow={classNameForRow}
-                              dailyKey={'precipitation'}
-                              daily={daily}
-                              errorToolTipText={
-                                'Precipitation cannot be null. Impacts DC, BUI, ROS, HFI, FIG, Prep calculations.'
-                              }
-                            />
-                            <GrassCureCell
-                              value={daily?.grass_cure_percentage}
-                              isGrassFuelType={isGrassFuelType(station.station_props)}
-                              className={classNameForRow}
-                              selected={isRowSelected}
-                            ></GrassCureCell>
-                            <TableCell className={classNameForRow}>
-                              {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
-                            </TableCell>
-                            <TableCell className={classNameForRow}>
-                              {daily?.dmc?.toFixed(DECIMAL_PLACES)}
-                            </TableCell>
-                            <TableCell className={classNameForRow}>
-                              {daily?.dc?.toFixed(DECIMAL_PLACES)}
-                            </TableCell>
-                            <TableCell className={classNameForRow}>
-                              {daily?.isi?.toFixed(DECIMAL_PLACES)}
-                            </TableCell>
-                            <TableCell className={classNameForRow}>
-                              {daily?.bui?.toFixed(DECIMAL_PLACES)}
-                            </TableCell>
-                            <TableCell className={classNameForRow}>
-                              {daily?.fwi?.toFixed(DECIMAL_PLACES)}
-                            </TableCell>
-                            <TableCell className={classNameForRow}>
-                              {daily?.danger_class}
-                            </TableCell>
-                            <CalculatedCell
-                              testid={`${daily?.code}-ros`}
-                              value={daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
-                              error={grassCureError}
-                              className={classNameForRow}
-                            ></CalculatedCell>
-                            <CalculatedCell
-                              testid={`${daily?.code}-hfi`}
-                              value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
-                              error={grassCureError}
-                              className={classNameForRow}
-                            ></CalculatedCell>
-                            <CalculatedCell
-                              testid={`${daily?.code}-1-hr-size`}
-                              value={daily?.sixty_minute_fire_size?.toFixed(
-                                DECIMAL_PLACES
-                              )}
-                              error={grassCureError}
-                              className={classNameForRow}
-                            ></CalculatedCell>
-                            <CalculatedCell
-                              testid={`${daily?.code}-fire-type`}
-                              value={daily?.fire_type}
-                              error={grassCureError}
-                              className={classNameForRow}
-                            ></CalculatedCell>
-                            <IntensityGroupCell
-                              testid={`${daily?.code}-intensity-group`}
-                              value={daily?.intensity_group}
-                              error={grassCureError}
-                              selected={isRowSelected}
-                            ></IntensityGroupCell>
-                            <TableCell colSpan={2}>
-                              {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
+                      <Table>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell className={classes.noBottomBorder}>
+                              {area.name}
                             </TableCell>
                           </TableRow>
-                        )
-                      })}
-                  </React.Fragment>
-                )
-              })}
+                        </TableBody>
+                      </Table>
+                    </StickyCell>
+                    <TableCell colSpan={19} className={classes.planningArea}></TableCell>
+                    <MeanIntensityGroupRollup
+                      area={area}
+                      dailies={dailyResult ? dailyResult.dailies : []}
+                      selectedStationCodes={selectedStationCodes}
+                      meanIntensityGroup={dailyResult?.meanIntensityGroup}
+                    ></MeanIntensityGroupRollup>
+                    <FireStartsCell
+                      areaName={area.name}
+                      fireStarts={dailyResult?.fireStarts}
+                    />
+                    <PrepLevelCell
+                      testid={`daily-prep-level-${area.name}`}
+                      toolTipText=" Incomplete data from WFWX for one or more stations. Please exclude station(s) displaying errors."
+                      prepLevel={dailyResult?.prepLevel}
+                    />
+                  </TableRow>
+                  {Object.entries(area.stations)
+                    .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
+                    .map(([stationCode, station]) => {
+                      const daily = getDailyForDay(station.code)
+                      const grassCureError = !isValidGrassCure(
+                        daily,
+                        station.station_props
+                      )
+                      const isRowSelected = stationCodeInSelected(station.code)
+                      const classNameForRow = !isRowSelected
+                        ? classes.unselectedStation
+                        : undefined
+                      return (
+                        <TableRow
+                          className={classNameForRow}
+                          key={`station-${stationCode}`}
+                        >
+                          <BaseStationAttributeCells
+                            station={station}
+                            className={classNameForRow}
+                            stationCodeInSelected={stationCodeInSelected}
+                            toggleSelectedStation={toggleSelectedStation}
+                            isDailyTable={true}
+                          />
+
+                          <StatusCell daily={daily} className={classNameForRow} />
+                          <RequiredDataCell
+                            classNameForRow={classNameForRow}
+                            dailyKey={'temperature'}
+                            daily={daily}
+                            errorToolTipText={
+                              'Temperature cannot be null. Impacts DMC, BUI, ROS, HFI, FIG, Prep calculations.'
+                            }
+                          />
+                          <RequiredDataCell
+                            classNameForRow={classNameForRow}
+                            dailyKey={'relative_humidity'}
+                            daily={daily}
+                            errorToolTipText={
+                              'RH cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.'
+                            }
+                          />
+                          <TableCell className={classNameForRow}>
+                            {daily?.wind_direction?.toFixed(0).padStart(3, '0')}
+                          </TableCell>
+                          <RequiredDataCell
+                            classNameForRow={classNameForRow}
+                            dailyKey={'wind_speed'}
+                            daily={daily}
+                            errorToolTipText={
+                              'Wind speed cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.'
+                            }
+                          />
+                          <RequiredDataCell
+                            classNameForRow={classNameForRow}
+                            dailyKey={'precipitation'}
+                            daily={daily}
+                            errorToolTipText={
+                              'Precipitation cannot be null. Impacts DC, BUI, ROS, HFI, FIG, Prep calculations.'
+                            }
+                          />
+                          <GrassCureCell
+                            value={daily?.grass_cure_percentage}
+                            isGrassFuelType={isGrassFuelType(station.station_props)}
+                            className={classNameForRow}
+                            selected={isRowSelected}
+                          ></GrassCureCell>
+                          <TableCell className={classNameForRow}>
+                            {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
+                          </TableCell>
+                          <TableCell className={classNameForRow}>
+                            {daily?.dmc?.toFixed(DECIMAL_PLACES)}
+                          </TableCell>
+                          <TableCell className={classNameForRow}>
+                            {daily?.dc?.toFixed(DECIMAL_PLACES)}
+                          </TableCell>
+                          <TableCell className={classNameForRow}>
+                            {daily?.isi?.toFixed(DECIMAL_PLACES)}
+                          </TableCell>
+                          <TableCell className={classNameForRow}>
+                            {daily?.bui?.toFixed(DECIMAL_PLACES)}
+                          </TableCell>
+                          <TableCell className={classNameForRow}>
+                            {daily?.fwi?.toFixed(DECIMAL_PLACES)}
+                          </TableCell>
+                          <TableCell className={classNameForRow}>
+                            {daily?.danger_class}
+                          </TableCell>
+                          <CalculatedCell
+                            testid={`${daily?.code}-ros`}
+                            value={daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+                            error={grassCureError}
+                            className={classNameForRow}
+                          ></CalculatedCell>
+                          <CalculatedCell
+                            testid={`${daily?.code}-hfi`}
+                            value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
+                            error={grassCureError}
+                            className={classNameForRow}
+                          ></CalculatedCell>
+                          <CalculatedCell
+                            testid={`${daily?.code}-1-hr-size`}
+                            value={daily?.sixty_minute_fire_size?.toFixed(DECIMAL_PLACES)}
+                            error={grassCureError}
+                            className={classNameForRow}
+                          ></CalculatedCell>
+                          <CalculatedCell
+                            testid={`${daily?.code}-fire-type`}
+                            value={daily?.fire_type}
+                            error={grassCureError}
+                            className={classNameForRow}
+                          ></CalculatedCell>
+                          <IntensityGroupCell
+                            testid={`${daily?.code}-intensity-group`}
+                            value={daily?.intensity_group}
+                            error={grassCureError}
+                            selected={isRowSelected}
+                          ></IntensityGroupCell>
+                          <TableCell colSpan={2}>
+                            {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                </React.Fragment>
+              )
+            })}
           </React.Fragment>
         )}
       </TableBody>

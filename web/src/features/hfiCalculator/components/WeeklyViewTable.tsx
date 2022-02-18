@@ -171,8 +171,8 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
             </TableRow>
           </React.Fragment>
         ) : (
-          <React.Fragment key={`fire-centre-${2}`}>
-            <TableRow key={`fire-centre-${1}`}>
+          <React.Fragment key={`fire-centre-${props.fireCentre.name}`}>
+            <TableRow key={`fire-centre-${props.fireCentre.name}`}>
               <FireCentreCell centre={props.fireCentre}></FireCentreCell>
 
               <TableCell className={classes.fireCentre} colSpan={28}></TableCell>
@@ -181,9 +181,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               props.fireCentre.planning_areas,
               planningArea => planningArea.order_of_appearance_in_list
             ).map(area => {
-              if (isUndefined(result)) {
-                return <div></div>
-              }
               const areaHFIResult: PlanningAreaResult | undefined =
                 result?.planning_area_hfi_results.find(
                   planningAreaResult => planningAreaResult.planning_area_id === area.id
