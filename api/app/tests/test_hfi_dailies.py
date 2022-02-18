@@ -96,7 +96,8 @@ def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture, fuel_ty
     # To build generic objects with attributes
     object_builder = lambda **kwargs: type("Object", (), kwargs)()
     planning_station = object_builder(station_code=322)
-    fuel_type = object_builder(abbrev=fuel_type_abbrev, fuel_type_code=fuel_type_abbrev, value=fuel_type_abbrev)
+    fuel_type = object_builder(abbrev=fuel_type_abbrev, fuel_type_code=fuel_type_abbrev,
+        description=fuel_type_abbrev, percentage_conifer=100, percentage_dead_fir=0)
     mocker.patch('app.wildfire_one.wfwx_api.get_stations_with_fuel_types',
                  return_value=[(planning_station, fuel_type)])
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
