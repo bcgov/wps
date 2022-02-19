@@ -1,14 +1,23 @@
 import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 
-import { Button, FormControl, Grid } from '@material-ui/core'
+import {
+  Button,
+  FormControl,
+  Grid,
+  IconButton,
+  InputAdornment,
+  TextField
+} from '@material-ui/core'
 import FireCentreDropdown from 'features/hfiCalculator/components/FireCentreDropdown'
 import { isUndefined } from 'lodash'
 import { FireCentre } from 'api/hfiCalcAPI'
 import AboutDataModal from 'features/hfiCalculator/components/AboutDataModal'
 import { HelpOutlineOutlined } from '@material-ui/icons'
-import DatePicker from 'components/DatePicker'
+import { DateRange, DateRangePicker } from 'materialui-daterange-picker'
+import * as materialIcons from '@material-ui/icons'
 import { formControlStyles } from 'app/theme'
+import { DateTime } from 'luxon'
 
 const useStyles = makeStyles(theme => ({
   ...formControlStyles,
@@ -37,8 +46,11 @@ const useStyles = makeStyles(theme => ({
     fontWeight: 'bold',
     justifyContent: 'flex-end'
   },
-  dateOfInterestPicker: {
-    marginLeft: 7,
+  dateRangePicker: {
+    zIndex: 3200
+  },
+  dateRangeTextField: {
+    marginLeft: '8px',
     '& .MuiOutlinedInput-input': {
       color: 'white'
     },
@@ -83,10 +95,14 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
   const classes = useStyles(props)
 
   const [modalOpen, setModalOpen] = useState<boolean>(false)
+  const [dateRangePickerOpen, setDateRangePickerOpen] = useState<boolean>(false)
+  const [dateRange, setDateRange] = React.useState<DateRange>({})
+  const dateDisplayFormat = 'dd/MM/yyyy'
 
   const openAboutModal = () => {
     setModalOpen(true)
   }
+  const toggleDateRangePicker = () => setDateRangePickerOpen(!dateRangePickerOpen)
 
   return (
     <div className={classes.root}>
@@ -98,17 +114,6 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
         className={classes.gridContainer}
       >
         <Grid item md={3} lg={2}>
-          <FormControl
-            className={`${classes.dateOfInterestPicker} ${classes.minWidth210}`}
-          >
-            <DatePicker
-              date={props.dateOfInterest}
-              updateDate={props.updateDate}
-              size={'small'}
-            />
-          </FormControl>
-        </Grid>
-        <Grid item md={3} lg={2}>
           <FormControl className={classes.minWidth210}>
             <FireCentreDropdown
               fireCentres={props.fireCentres}
@@ -118,6 +123,43 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
                   : { name: props.selectedFireCentre?.name }
               }
               onChange={props.selectNewFireCentre}
+            />
+          </FormControl>
+        </Grid>
+        <Grid item md={3} lg={2}>
+          <TextField
+            className={`${classes.dateRangeTextField} ${classes.minWidth210}`}
+            size="small"
+            id="outlined-basic"
+            variant="outlined"
+            disabled={true}
+            label={'Set prep period'}
+            onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
+            value={
+              isUndefined(dateRange.startDate) || isUndefined(dateRange.endDate)
+                ? ''
+                : `${DateTime.fromJSDate(dateRange.startDate)
+                    .toFormat(dateDisplayFormat)
+                    .trim()} - ${DateTime.fromJSDate(dateRange.endDate)
+                    .toFormat(dateDisplayFormat)
+                    .trim()}
+                      `
+            }
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <IconButton edge="end">
+                    <materialIcons.DateRange />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
+          />
+          <FormControl className={classes.dateRangePicker}>
+            <DateRangePicker
+              open={dateRangePickerOpen}
+              toggle={toggleDateRangePicker}
+              onChange={range => setDateRange(range)}
             />
           </FormControl>
         </Grid>
