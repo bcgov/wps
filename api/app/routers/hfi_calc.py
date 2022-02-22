@@ -16,9 +16,9 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_lookup_fuel_types,
                                        get_stations_by_codes)
 from fastapi.responses import StreamingResponse
-from reportlab.platypus import SimpleDocTemplate
-from reportlab.lib.pagesizes import letter
 from reportlab.platypus import Table
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
 import io
 
 
@@ -28,7 +28,7 @@ no_cache = "max-age=0"  # don't let the browser cache this
 
 router = APIRouter(
     prefix="/hfi-calc"
-    #dependencies=[Depends(authentication_required), Depends(audit)]
+    # dependencies=[Depends(authentication_required), Depends(audit)]
 )
 
 
@@ -106,20 +106,42 @@ async def download_hfi_pdf():
     try:
         logger.info('/hfi-calc/pdf-download')
         fileObject = io.BytesIO()
-        data = [
-            ['Fraser (V1)', '1.3', '0-1', '1'],
-            ['Honna (93)', '21', 'C5', '0.0', '2.6', '1']
+        pdf = canvas.Canvas(fileObject, pagesize=A4)
+
+        width, height = A4
+
+        prepPeriodHeightList = [
+            height * 10 / 100,
+            height * 90 / 100
         ]
+        prepPeriodWidthList = [
+            width * 10 / 100,
+            width * 80 / 100,
+            width * 10 / 100
+        ]
+        prepPeriodPageStructure = Table([['spacer', 'header', 'spacer'],
+                                         ['spacer', 'body', 'spacer'],
+                                         ], colWidths=prepPeriodWidthList, rowHeights=prepPeriodHeightList)
 
-        pdf = SimpleDocTemplate(fileObject,
-                                pagesize=letter)
+        prepPeriodPageStructure.setStyle([
+            ('GRID', (0, 0), (-1, -1), 1, 'red')
+        ])
+        prepPeriodPageStructure.wrapOn(pdf, 0, 0)
+        prepPeriodPageStructure.drawOn(pdf, 0, 0)
+        pdf.showPage()
+        prepPeriodPageStructure2 = Table([['spacer', 'header', 'spacer'],
+                                         ['spacer', 'body', 'spacer'],
+                                          ], colWidths=prepPeriodWidthList, rowHeights=prepPeriodHeightList)
 
-        table = Table(data)
-        elems = []
-        elems.append(table)
-        pdf.build(elems)
+        prepPeriodPageStructure2.setStyle([
+            ('GRID', (0, 0), (-1, -1), 1, 'red')
+        ])
+        prepPeriodPageStructure2.wrapOn(pdf, 0, 0)
+        prepPeriodPageStructure2.drawOn(pdf, 0, 0)
+        pdf.save()
         fileSize = fileObject.tell()
         fileObject.seek(0)
+
         return StreamingResponse(fileObject, media_type='application/pdf', headers={'Content-Length': str(fileSize), 'Cache-Control': no_cache})
     except Exception as exc:
         logger.critical(exc, exc_info=True)
