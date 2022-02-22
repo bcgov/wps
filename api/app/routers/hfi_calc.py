@@ -197,7 +197,10 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                 station_info_dict[station_record.station_code] = {
                     'fuel_type': FuelType(
                         abbrev=fuel_type_record.abbrev,
-                        description=fuel_type_record.description),
+                        fuel_type_code=fuel_type_record.fuel_type_code,
+                        description=fuel_type_record.description,
+                        percentage_conifer=fuel_type_record.percentage_conifer,
+                        percentage_dead_fir=fuel_type_record.percentage_dead_fir),
                     'planning_area': planning_area_record,
                     'fire_centre': fire_centre_record
                 }

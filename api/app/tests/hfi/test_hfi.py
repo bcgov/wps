@@ -37,14 +37,14 @@ kamloops_fc = FireCentre(
                         wfwx_station_uuid='1',
                         name="station1",
                         elevation=1,
-                        fuel_type=FuelType(abbrev="C1", description=""))),
+                        fuel_type=FuelType(abbrev="C1", description="", fuel_type_code="C1", percentage_conifer=100, percentage_dead_fir=0))),
             WeatherStation(
                 code=2,
                 station_props=WeatherStationProperties(
                     wfwx_station_uuid='2',
                     name="station2",
                     elevation=1,
-                    fuel_type=FuelType(abbrev="C1", description="")))
+                    fuel_type=FuelType(abbrev="C1", description="", fuel_type_code="C1", percentage_conifer=100, percentage_dead_fir=0)))
         ]
     )
     ]
