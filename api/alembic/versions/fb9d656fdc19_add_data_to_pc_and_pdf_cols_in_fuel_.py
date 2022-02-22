@@ -16,6 +16,7 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
+    op.execute("DELETE FROM planning_weather_stations")
     op.execute("DELETE FROM fuel_types")
 
     with open('alembic/versions/fb9d656fdc19_add_data_to_pc_and_pdf_cols__upgrade.json') as fuel_types_data_file:
