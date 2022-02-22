@@ -98,14 +98,14 @@ def calculate_max_intensity_group(mean_intensity_groups: List[Optional[float]]):
 def calculate_mean_prep_level(prep_levels: List[Optional[float]]):
     """ Returns the mean prep level from a list of values """
     valid_prep_levels = list(filter(None, prep_levels))
-    return None if len(valid_prep_levels) == 0 else mean(valid_prep_levels)
+    return None if len(valid_prep_levels) == 0 else round(mean(valid_prep_levels), 1)
 
 
 def calculate_mean_intensity(dailies: List[StationDaily]):
     """ Returns the mean intensity group from a list of values """
     intensity_groups = list(map(lambda daily: (daily.intensity_group), dailies))
     valid_intensity_groups = list(filter(None, intensity_groups))
-    return None if len(valid_intensity_groups) == 0 else mean(valid_intensity_groups)
+    return None if len(valid_intensity_groups) == 0 else round(mean(valid_intensity_groups), 1)
 
 
 def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: FireStartRange):
