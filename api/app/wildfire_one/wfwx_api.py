@@ -9,7 +9,6 @@ from aiohttp import ClientSession, TCPConnector
 import app
 from app import config
 from app.db.crud.hfi_calc import get_stations_with_fuel_types
-from app.schemas.shared import FuelType
 from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.db.models.observations import HourlyActual
@@ -306,17 +305,11 @@ async def get_dailies_lookup_fuel_types(  # pylint: disable=too-many-locals
     wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
     station_codes = [wfwx_station.code for wfwx_station in wfwx_stations]
 
-    fuel_type_dict: Dict[int, FuelType] = {}
+    fuel_type_dict: Dict[int, str] = {}
     with app.db.database.get_read_session_scope() as read_session:
         result = get_stations_with_fuel_types(read_session, station_codes)
         for (planning_station_record, fuel_type_record) in result:
-            fuel_type_dict[planning_station_record.station_code] = FuelType(
-                abbrev=fuel_type_record.abbrev,
-                fuel_type_code=fuel_type_record.fuel_type_code,
-                description=fuel_type_record.description,
-                percentage_conifer=fuel_type_record.percentage_conifer,
-                percentage_dead_fir=fuel_type_record.percentage_dead_fir
-            )
+            fuel_type_dict[planning_station_record.station_code] = fuel_type_record.abbrev
 
     dailies_iterator = fetch_paged_response_generator(
         session, header, BuildQueryDailiesByStationCode(
