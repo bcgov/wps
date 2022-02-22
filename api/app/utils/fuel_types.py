@@ -30,6 +30,7 @@ FUEL_TYPE_DEFAULTS = {
     FuelTypeEnum.D2: {"PC": 0, "PDF": 0, "CC": None, "CBH": 3, "CFL": 1.0},  # TODO: check cfl
     FuelTypeEnum.M1: {"PC": 50, "PDF": 0, "CC": None, "CBH": 6, "CFL": 0.8},
     FuelTypeEnum.M2: {"PC": 50, "PDF": 0, "CC": None, "CBH": 6, "CFL": 0.8},
+    'M2_25': {"PC": 25, "PDF": 0, "CC": None, "CBH": 6, "CFL": 0.8, "cffdrs_fuel_type": FuelTypeEnum.M2},
     FuelTypeEnum.M3: {"PC": 0, "PDF": 30, "CC": None, "CBH": 6, "CFL": 0.8},
     FuelTypeEnum.M4: {"PC": 0, "PDF": 30, "CC": None, "CBH": 6, "CFL": 0.8},
     # NOTE! I think having a default CC of 0 is dangerous, I think we should rather just
