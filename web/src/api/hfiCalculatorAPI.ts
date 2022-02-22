@@ -83,7 +83,7 @@ export async function getHFIResult(
 ): Promise<HFIResultResponse> {
   const { data } = await axios.post<RawHFIResultResponse>(baseUrl, {
     ...request,
-    selected_prep_date: request.selected_prep_date?.toISOString().split('T')[0]
+    selected_prep_date: request.selected_prep_date?.toISOString().split('T')[0] // Infinite sadness
   })
 
   data.planning_area_hfi_results.map(areaResult =>
@@ -100,7 +100,7 @@ export async function getHFIResult(
           daily: {
             ...validatedDaily.daily,
             date: DateTime.fromISO(
-              validatedDaily.daily.date.split('T')[0] + 'T' + '00:00-08:00'
+              validatedDaily.daily.date.split('T')[0] + 'T' + '00:00-08:00' // Infinite sadness
             ),
             last_updated: DateTime.fromISO(validatedDaily.daily.last_updated)
           }
@@ -109,7 +109,7 @@ export async function getHFIResult(
       }))
     }))
   const selectedPrepDateAsDate = DateTime.fromISO(
-    data.selected_prep_date.split('T')[0] + 'T' + '00:00-08:00'
+    data.selected_prep_date.split('T')[0] + 'T' + '00:00-08:00' // Infinite sadness
   )
   return {
     ...data,
