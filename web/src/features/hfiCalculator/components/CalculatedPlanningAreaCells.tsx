@@ -23,16 +23,16 @@ export interface CalculatedCellsProps {
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
-  const allPlanningAreaDailies = props.planningAreaResult.daily_results.flatMap(
-    result => result.dailies
+  const allPlanningAreaDailies = props.planningAreaResult.daily_results.flatMap(result =>
+    result.dailies.map(validatedDaily => validatedDaily.daily)
   )
   return (
     <React.Fragment>
       {range(props.numPrepDays).map(day => {
         const meanIntensityGroup =
-          props.planningAreaResult.daily_results[day]?.meanIntensityGroup
-        const prepLevel = props.planningAreaResult.daily_results[day]?.prepLevel
-        const fireStarts = props.planningAreaResult.daily_results[day]?.fireStarts
+          props.planningAreaResult.daily_results[day]?.mean_intensity_group
+        const prepLevel = props.planningAreaResult.daily_results[day]?.prep_level
+        const fireStarts = props.planningAreaResult.daily_results[day]?.fire_starts
 
         return (
           <React.Fragment key={`calc-cells-${day}`}>

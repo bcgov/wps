@@ -92,7 +92,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: copy,
-          selected_prep_date: result.selected_prep_date,
+          selected_prep_date: result.selected_prep_date.toJSDate(),
           start_date: result.start_date,
           end_date: result.end_date
         })
@@ -119,7 +119,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
-          selected_prep_date: result.selected_prep_date,
+          selected_prep_date: result.selected_prep_date.toJSDate(),
           start_date: start.toISODate(),
           end_date: end.toISODate()
         })
@@ -210,7 +210,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             )}
             <LastUpdatedHeader
               dailies={result?.planning_area_hfi_results.flatMap(result =>
-                result.daily_results.flatMap(result => result.dailies)
+                result.daily_results.flatMap(result =>
+                  result.dailies.map(validatedDaily => validatedDaily.daily)
+                )
               )}
             />
             <FormControl className={classes.prepDays}>

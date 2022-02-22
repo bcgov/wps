@@ -2,10 +2,11 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { getDailies, getHFIResult, StationDaily } from 'api/hfiCalculatorAPI'
+import { getDailies, getHFIResult, RawDaily, StationDaily } from 'api/hfiCalculatorAPI'
 import { isUndefined, isNull } from 'lodash'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
+import { DateTime } from 'luxon'
 
 export interface FireStarts {
   label: string
@@ -14,11 +15,19 @@ export interface FireStarts {
 }
 
 export interface DailyResult {
-  dateISO: string
+  date: DateTime
   dailies: ValidatedStationDaily[]
-  fireStarts: FireStarts
-  meanIntensityGroup: number | undefined
-  prepLevel: number | undefined
+  mean_intensity_group: number | undefined
+  prep_level: number | undefined
+  fire_starts: FireStarts | undefined
+}
+
+export interface RawDailyResult {
+  dateISO: string
+  dailies: RawValidatedStationDaily[]
+  mean_intensity_group: number | undefined
+  prep_level: number | undefined
+  fire_starts: FireStarts | undefined
 }
 
 export interface PlanningAreaResult {
@@ -27,6 +36,14 @@ export interface PlanningAreaResult {
   highest_daily_intensity_group: number
   mean_prep_level: number | undefined
   daily_results: DailyResult[]
+}
+
+export interface RawPlanningAreaResult {
+  planning_area_id: number
+  all_dailies_valid: boolean
+  highest_daily_intensity_group: number
+  mean_prep_level: number | undefined
+  daily_results: RawDailyResult[]
 }
 
 export interface HFICalculatorState {
@@ -44,12 +61,22 @@ export interface HFICalculatorState {
 }
 
 export interface HFIResultResponse {
-  selected_prep_date: Date
+  selected_prep_date: DateTime
   start_date: string
   end_date: string
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: PlanningAreaResult[]
+  planning_area_fire_starts: { [key: number]: FireStarts[] }
+}
+
+export interface RawHFIResultResponse {
+  selected_prep_date: string
+  start_date: string
+  end_date: string
+  selected_station_code_ids: number[]
+  selected_fire_center_id: number
+  planning_area_hfi_results: RawPlanningAreaResult[]
   planning_area_fire_starts: { [key: number]: FireStarts[] }
 }
 
@@ -63,7 +90,13 @@ export interface HFIResultRequest {
   save?: boolean
 }
 
-export interface ValidatedStationDaily extends StationDaily {
+export interface ValidatedStationDaily {
+  daily: StationDaily
+  valid: boolean
+}
+
+export interface RawValidatedStationDaily {
+  daily: RawDaily
   valid: boolean
 }
 
@@ -139,7 +172,7 @@ export const validateStationDaily = (daily: StationDaily): ValidatedStationDaily
     })
     .reduce((prev, curr) => prev && curr, true)
   return {
-    ...daily,
+    daily: daily,
     valid: requiredFieldsPresent
   }
 }

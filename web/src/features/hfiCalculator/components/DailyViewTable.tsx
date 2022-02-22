@@ -32,10 +32,10 @@ import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroup
 import {
   DailyResult,
   HFIResultResponse,
-  PlanningAreaResult,
-  ValidatedStationDaily
+  PlanningAreaResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredDataCell'
+import { StationDaily } from 'api/hfiCalculatorAPI'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -82,7 +82,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     selectHFICalculatorState
   )
 
-  const getDailyForDay = (stationCode: number): ValidatedStationDaily | undefined => {
+  const getDailyForDay = (stationCode: number): StationDaily | undefined => {
     const dailiesForStation = getDailiesByStationCode(
       numPrepDays,
       props.result,
@@ -90,12 +90,14 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     )
     if (selectedPrepDate != '') {
       const selectedPrepDateObject = DateTime.fromISO(selectedPrepDate)
-      return dailiesForStation.filter(
-        daily =>
-          daily.date.year === selectedPrepDateObject.year &&
-          daily.date.month === selectedPrepDateObject.month &&
-          daily.date.day === selectedPrepDateObject.day
-      )[0]
+      return dailiesForStation.filter(daily => {
+        const dailyDate = daily.date
+        return (
+          dailyDate.year === selectedPrepDateObject.year &&
+          dailyDate.month === selectedPrepDateObject.month &&
+          dailyDate.day === selectedPrepDateObject.day
+        )
+      })[0]
     }
     return dailiesForStation[0]
   }
@@ -104,7 +106,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     planningAreaHFIResult: PlanningAreaResult | undefined
   ): DailyResult | undefined => {
     return planningAreaHFIResult?.daily_results.find(dailyResult => {
-      const dailyResultDate = DateTime.fromISO(dailyResult.dateISO)
+      const dailyResultDate = dailyResult.date
       const selectedPrepDateObject = DateTime.fromISO(selectedPrepDate)
       return (
         dailyResultDate.year === selectedPrepDateObject.year &&
@@ -331,18 +333,24 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                     <TableCell colSpan={19} className={classes.planningArea}></TableCell>
                     <MeanIntensityGroupRollup
                       area={area}
-                      dailies={dailyResult ? dailyResult.dailies : []}
+                      dailies={
+                        dailyResult
+                          ? dailyResult.dailies.map(
+                              validatedDaily => validatedDaily.daily
+                            )
+                          : []
+                      }
                       selectedStationCodes={selectedStationCodes}
-                      meanIntensityGroup={dailyResult?.meanIntensityGroup}
+                      meanIntensityGroup={dailyResult?.mean_intensity_group}
                     ></MeanIntensityGroupRollup>
                     <FireStartsCell
                       areaName={area.name}
-                      fireStarts={dailyResult?.fireStarts}
+                      fireStarts={dailyResult?.fire_starts}
                     />
                     <PrepLevelCell
                       testid={`daily-prep-level-${area.name}`}
                       toolTipText=" Incomplete data from WFWX for one or more stations. Please exclude station(s) displaying errors."
-                      prepLevel={dailyResult?.prepLevel}
+                      prepLevel={dailyResult?.prep_level}
                     />
                   </TableRow>
                   {sortBy(area.stations, station => station.code).map(station => {

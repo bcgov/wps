@@ -4,10 +4,10 @@ import { makeStyles } from '@material-ui/core'
 import { maxBy } from 'lodash'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
-import { ValidatedStationDaily } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { StationDaily } from 'api/hfiCalculatorAPI'
 
 export interface LastUpdatedHeaderProps {
-  dailies?: ValidatedStationDaily[]
+  dailies?: StationDaily[]
 }
 
 const useStyles = makeStyles({
@@ -25,9 +25,9 @@ const useStyles = makeStyles({
   }
 })
 
-const findLastUpdate = (dailies?: ValidatedStationDaily[]) => {
+const findLastUpdate = (dailies?: StationDaily[]) => {
   const forecasts = dailies?.filter(daily => daily.status === 'FORECAST')
-  const lastUpdatedDaily: ValidatedStationDaily | undefined = maxBy(
+  const lastUpdatedDaily: StationDaily | undefined = maxBy(
     forecasts,
     forecast => forecast.last_updated
   )

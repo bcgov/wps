@@ -1,7 +1,9 @@
 import axios from 'api/axios'
 import {
   HFIResultRequest,
-  HFIResultResponse
+  HFIResultResponse,
+  PlanningAreaResult,
+  RawHFIResultResponse
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
 import 'qs'
@@ -39,7 +41,7 @@ export interface StationDaily {
  * RawDaily is the daily representation over the wire (a string date)
  * that we then marshall into a StationDaily (with a DateTime)
  */
-interface RawDaily extends Omit<StationDaily, 'date' | 'last_updated'> {
+export interface RawDaily extends Omit<StationDaily, 'date' | 'last_updated'> {
   date: string
   last_updated: string
 }
@@ -79,7 +81,39 @@ export async function getDailies(
 export async function getHFIResult(
   request: HFIResultRequest
 ): Promise<HFIResultResponse> {
-  const { data } = await axios.post<HFIResultResponse>(baseUrl, { ...request })
+  const { data } = await axios.post<RawHFIResultResponse>(baseUrl, {
+    ...request,
+    selected_prep_date: request.selected_prep_date?.toISOString().split('T')[0]
+  })
 
-  return data
+  data.planning_area_hfi_results.map(areaResult =>
+    areaResult.daily_results.map(dailyResult => dailyResult.dateISO)
+  )
+
+  const planningAreaResultsWithDates: PlanningAreaResult[] =
+    data.planning_area_hfi_results.map(areaResult => ({
+      ...areaResult,
+      daily_results: areaResult.daily_results.map(dr => ({
+        ...dr,
+        dailies: dr.dailies.map(validatedDaily => ({
+          ...validatedDaily,
+          daily: {
+            ...validatedDaily.daily,
+            date: DateTime.fromISO(
+              validatedDaily.daily.date.split('T')[0] + 'T' + '00:00-08:00'
+            ),
+            last_updated: DateTime.fromISO(validatedDaily.daily.last_updated)
+          }
+        })),
+        date: DateTime.fromISO(dr.dateISO.split('T')[0] + 'T' + '00:00-08:00') // Infinite sadness
+      }))
+    }))
+  const selectedPrepDateAsDate = DateTime.fromISO(
+    data.selected_prep_date.split('T')[0] + 'T' + '00:00-08:00'
+  )
+  return {
+    ...data,
+    selected_prep_date: selectedPrepDateAsDate,
+    planning_area_hfi_results: planningAreaResultsWithDates
+  }
 }
