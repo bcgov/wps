@@ -98,7 +98,7 @@ def calculate_max_intensity_group(mean_intensity_groups: List[Optional[float]]):
 def calculate_mean_prep_level(prep_levels: List[Optional[float]]):
     """ Returns the mean prep level from a list of values """
     valid_prep_levels = list(filter(None, prep_levels))
-    return None if len(valid_prep_levels) == 0 else round(mean(valid_prep_levels), 1)
+    return None if len(valid_prep_levels) == 0 else round(mean(valid_prep_levels))
 
 
 def calculate_mean_intensity(dailies: List[StationDaily]):
