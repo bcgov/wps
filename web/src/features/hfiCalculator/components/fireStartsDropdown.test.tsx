@@ -6,14 +6,14 @@ import {
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import React from 'react'
 describe('FireStartsDropdown', () => {
-  const testAreaName = 'testArea'
+  const testAreaId = 1
   const dayOffset = 0
   it('should render with the default value', async () => {
     const setFireStartsMock = jest.fn()
     const { getByTestId } = render(
       <FireStartsDropdown
         fireStarts={lowestFireStarts}
-        areaName={testAreaName}
+        areaId={testAreaId}
         dayOffset={dayOffset}
         setFireStarts={setFireStartsMock}
       />
@@ -29,7 +29,7 @@ describe('FireStartsDropdown', () => {
     const { getByTestId } = render(
       <FireStartsDropdown
         fireStarts={lowestFireStarts}
-        areaName={testAreaName}
+        areaId={testAreaId}
         dayOffset={dayOffset}
         setFireStarts={setFireStartsMock}
       />
@@ -46,7 +46,7 @@ describe('FireStartsDropdown', () => {
     await waitFor(() => expect(input.value).toBe('6+'))
     await waitFor(() => expect(setFireStartsMock).toBeCalledTimes(1))
     await waitFor(() =>
-      expect(setFireStartsMock).toBeCalledWith(testAreaName, dayOffset, highestFireStarts)
+      expect(setFireStartsMock).toBeCalledWith(testAreaId, dayOffset, highestFireStarts)
     )
   })
 })
