@@ -104,9 +104,10 @@ async def get_hfi_results(request: HFIResultRequest,
 
         async with ClientSession() as session:
             header = await get_auth_header(session)
-            selected_station_codes = extract_selected_stations(request)
+            # TODO: Enable when fuel type config implemented
+            # selected_station_codes = extract_selected_stations(request)
             wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
-                session, header, selected_station_codes)
+                session, header, request.selected_station_code_ids)
             dailies = await get_dailies_lookup_fuel_types(
                 session, header, wfwx_stations, start_timestamp, end_timestamp)
             prep_delta = valid_end_date - valid_start_date  # num prep days is inclusive
@@ -118,12 +119,13 @@ async def get_hfi_results(request: HFIResultRequest,
                 results = calculate_hfi_results(request.selected_fire_center_id,
                                                 request.planning_area_fire_starts,
                                                 dailies, prep_delta.days,
-                                                selected_station_codes,
+                                                request.selected_station_code_ids,
                                                 orm_session)
         response = HFIResultResponse(
             selected_prep_date=selected_prep_date,
             start_date=start_timestamp,
             end_date=end_timestamp,
+            selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
             planning_area_hfi_results=results,

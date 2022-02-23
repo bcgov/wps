@@ -155,8 +155,10 @@ class HFIResultRequest(BaseModel):
     selected_prep_date: Optional[date]
     start_date: Optional[date]
     end_date: Optional[date]
+    # TODO: Remove when fuel type config implemented
+    selected_station_code_ids: List[int]
     # Each planning area has a list of stations
-    planning_area_station_info: Mapping[int, List[StationInfo]]
+    planning_area_station_info: Optional[Mapping[int, List[StationInfo]]]
     selected_fire_center_id: int
     # Mapping from planning area id to a map of FireStartRanges.
     planning_area_fire_starts: Mapping[int, List[FireStartRange]]
@@ -171,7 +173,9 @@ class HFIResultResponse(BaseModel):
     selected_prep_date: date
     start_date: date
     end_date: date
-    planning_area_station_info: Mapping[int, List[StationInfo]]
+    # TODO: Remove when fuel type config implemented
+    selected_station_code_ids: List[int]
+    planning_area_station_info: Optional[Mapping[int, List[StationInfo]]]
     selected_fire_center_id: int
     planning_area_hfi_results: List[PlanningAreaResult]
     # Mapping from planning area id to a map of FireStartRanges
