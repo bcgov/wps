@@ -58,17 +58,13 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const {
-    numPrepDays,
-    result,
-    selectedStationCodes: selected
-  } = useSelector(selectHFICalculatorState)
+  const { numPrepDays, result } = useSelector(selectHFICalculatorState)
 
   const stationCodeInSelected = (code: number) => {
-    return selected.includes(code)
+    return result ? result.selected_station_code_ids.includes(code) : false
   }
   const toggleSelectedStation = (code: number) => {
-    const selectedSet = new Set(selected)
+    const selectedSet = new Set(result?.selected_station_code_ids)
     if (stationCodeInSelected(code)) {
       // remove station from selected
       selectedSet.delete(code)
@@ -239,7 +235,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         area={area}
                         areaName={area.name}
                         planningAreaResult={areaHFIResult}
-                        selectedStationCodes={selected}
+                        selectedStationCodes={
+                          result ? result.selected_station_code_ids : []
+                        }
                         setNewFireStarts={props.setNewFireStarts}
                         planningAreaClass={classes.planningArea}
                         numPrepDays={numPrepDays}

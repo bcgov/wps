@@ -4,8 +4,6 @@ import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   FireStarts,
   setPrepDays,
-  setSelectedPrepDate,
-  setSelectedSelectedStationCodes,
   setSelectedFireCentre,
   fetchHFIResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -71,12 +69,22 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const setNumPrepDays = (numDays: number) => {
     // if the number of prep days change, we need to unset the selected prep day - it
     // could be that the selected prep day no longer falls into the prep period.
-    dispatch(setSelectedPrepDate(''))
     dispatch(setPrepDays(numDays))
   }
 
   const setSelected = (newSelected: number[]) => {
-    dispatch(setSelectedSelectedStationCodes(newSelected))
+    if (!isUndefined(result)) {
+      dispatch(
+        fetchHFIResult({
+          selected_station_code_ids: newSelected,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: result.planning_area_fire_starts,
+          selected_prep_date: result.selected_prep_date.toJSDate(),
+          start_date: result.start_date,
+          end_date: result.end_date
+        })
+      )
+    }
   }
 
   const setNewFireStarts = (
@@ -113,7 +121,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     ) {
       setDateOfInterest(newDate)
       const { start, end } = getDateRange(true, newDate)
-      dispatch(setSelectedPrepDate(''))
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,

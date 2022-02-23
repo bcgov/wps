@@ -78,9 +78,7 @@ const useStyles = makeStyles({
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const { selectedStationCodes, numPrepDays, selectedPrepDate, result } = useSelector(
-    selectHFICalculatorState
-  )
+  const { numPrepDays, selectedPrepDate, result } = useSelector(selectHFICalculatorState)
 
   const getDailyForDay = (stationCode: number): StationDaily | undefined => {
     const dailiesForStation = getDailiesByStationCode(
@@ -117,10 +115,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   }
 
   const stationCodeInSelected = (code: number) => {
-    return selectedStationCodes.includes(code)
+    return result ? result.selected_station_code_ids.includes(code) : false
   }
   const toggleSelectedStation = (code: number) => {
-    const selectedSet = new Set(selectedStationCodes)
+    const selectedSet = new Set(result?.selected_station_code_ids)
     if (stationCodeInSelected(code)) {
       // remove station from selected
       selectedSet.delete(code)
@@ -340,7 +338,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             )
                           : []
                       }
-                      selectedStationCodes={selectedStationCodes}
+                      selectedStationCodes={
+                        result ? result.selected_station_code_ids : []
+                      }
                       meanIntensityGroup={dailyResult?.mean_intensity_group}
                     ></MeanIntensityGroupRollup>
                     <FireStartsCell
