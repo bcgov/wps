@@ -3,9 +3,9 @@ import { Container, ErrorBoundary, GeneralHeader } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   FireStarts,
-  setPrepDays,
   setSelectedFireCentre,
-  fetchHFIResult
+  fetchHFIResult,
+  setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
@@ -69,8 +69,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const setNumPrepDays = (numDays: number) => {
     // if the number of prep days change, we need to unset the selected prep day - it
     // could be that the selected prep day no longer falls into the prep period.
-    dispatch(setPrepDays(numDays))
     if (!isUndefined(result)) {
+      dispatch(setSelectedPrepDate(''))
       const newEndDate = DateTime.fromISO(result.start_date + 'T00:00-08:00')
         .plus({ days: numDays })
         .toJSDate()
@@ -108,13 +108,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     newFireStarts: FireStarts
   ) => {
     if (!isUndefined(result)) {
-      const copy = cloneDeep(result.planning_area_fire_starts)
-      copy[areaId][dayOffset] = { ...newFireStarts }
+      const newPlanningAreaFireStarts = cloneDeep(result.planning_area_fire_starts)
+      newPlanningAreaFireStarts[areaId][dayOffset] = { ...newFireStarts }
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: copy,
+          planning_area_fire_starts: newPlanningAreaFireStarts,
           selected_prep_date: result.selected_prep_date.toJSDate(),
           start_date: result.start_date,
           end_date: result.end_date

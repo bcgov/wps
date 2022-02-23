@@ -188,9 +188,6 @@ const dailiesSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    setPrepDays: (state, action: PayloadAction<number>) => {
-      state.numPrepDays = action.payload
-    },
     setSelectedPrepDate: (state, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
     },
@@ -199,6 +196,14 @@ const dailiesSlice = createSlice({
     },
     setResult: (state, action: PayloadAction<HFIResultResponse | undefined>) => {
       state.result = action.payload
+
+      if (action.payload) {
+        const start = DateTime.fromISO(action.payload.start_date)
+        const end = DateTime.fromISO(action.payload.end_date)
+        const diff = end.diff(start, ['days']).days
+        state.numPrepDays = diff > 0 ? diff : NUM_WEEK_DAYS
+      }
+
       state.loading = false
     }
   }
@@ -207,7 +212,6 @@ const dailiesSlice = createSlice({
 export const {
   getHFIResultStart,
   getHFIResultFailed,
-  setPrepDays,
   setSelectedPrepDate,
   setSelectedFireCentre,
   setResult
