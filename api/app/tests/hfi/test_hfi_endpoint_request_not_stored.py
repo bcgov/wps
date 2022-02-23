@@ -1,12 +1,13 @@
 
 from typing import Tuple
+from distutils.util import strtobool
 import pytest
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
 from pytest_mock import MockFixture
 import app.main
-from app.tests.common import default_mock_client_get, str_to_bool
+from app.tests.common import default_mock_client_get
 from app.tests import load_json_file, load_json_file_with_name
 from app.tests.hfi import mock_station_crud, mock_planning_area_crud
 
@@ -16,7 +17,7 @@ from app.tests.hfi import mock_station_crud, mock_planning_area_crud
           example_converters=dict(request_json=load_json_file_with_name(__file__),
                                   status_code=int,
                                   response_json=load_json_file(__file__),
-                                  request_saved=str_to_bool))
+                                  request_saved=strtobool))
 def test_fire_behaviour_calculator_scenario_no_request_stored():
     """ BDD Scenario. """
     pass

@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import List, Generator
 from contextlib import contextmanager
 import json
+from distutils.util import strtobool
 from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
@@ -16,7 +17,7 @@ import app.main
 import app.utils.time
 from app.db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
-from app.tests.common import default_mock_client_get, str_to_bool
+from app.tests.common import default_mock_client_get
 import app.wildfire_one.wfwx_api
 
 logger = logging.getLogger(__name__)
@@ -28,8 +29,8 @@ logger = logging.getLogger(__name__)
               codes=json.loads, status=int,
               num_groups=int,
               num_readings_per_group=json.loads,
-              use_wfwx=str_to_bool,
-              mock_redis_exception=str_to_bool))
+              use_wfwx=strtobool,
+              mock_redis_exception=strtobool))
 def test_hourlies():
     """ BDD Scenario. """
 
