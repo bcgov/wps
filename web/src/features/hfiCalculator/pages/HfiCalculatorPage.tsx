@@ -231,9 +231,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               <HFIErrorAlert hfiDailiesError={null} fireCentresError={fireCentresError} />
             )}
             <LastUpdatedHeader
-              dailies={result?.planning_area_hfi_results.flatMap(result =>
-                result.daily_results.flatMap(result =>
-                  result.dailies.map(validatedDaily => validatedDaily.daily)
+              dailies={result?.planning_area_hfi_results.flatMap(areaResult =>
+                areaResult.daily_results.flatMap(dailyResult =>
+                  dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
                 )
               )}
             />

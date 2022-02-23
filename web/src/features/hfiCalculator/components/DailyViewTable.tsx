@@ -296,7 +296,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               planningArea => planningArea.order_of_appearance_in_list
             ).map(area => {
               const planningAreaResult = result?.planning_area_hfi_results.find(
-                result => result.planning_area_id === area.id
+                areaResult => areaResult.planning_area_id === area.id
               )
               const dailyResult = getDailyResult(planningAreaResult)
               return (
