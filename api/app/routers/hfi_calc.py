@@ -97,7 +97,7 @@ async def get_hfi_results(request: HFIResultRequest,
                 session, header, request.selected_station_code_ids)
             dailies = await get_dailies_lookup_fuel_types(
                 session, header, wfwx_stations, start_timestamp, end_timestamp)
-            prep_delta = (valid_end_date + timedelta(days=1)) - valid_start_date  # num prep days is inclusive
+            prep_delta = valid_end_date - valid_start_date  # num prep days is inclusive
             # NOTE: database session brought to this level in order to make code review of
             # calculate_hfi_results easier. (adding session in there, results in the entire function
             # being indented, which makes code review difficult.) Please move session back into

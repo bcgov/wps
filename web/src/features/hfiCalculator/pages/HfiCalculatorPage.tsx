@@ -70,6 +70,21 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // if the number of prep days change, we need to unset the selected prep day - it
     // could be that the selected prep day no longer falls into the prep period.
     dispatch(setPrepDays(numDays))
+    if (!isUndefined(result)) {
+      const newEndDate = DateTime.fromISO(result.start_date + 'T00:00-08:00')
+        .plus({ days: numDays })
+        .toJSDate()
+      dispatch(
+        fetchHFIResult({
+          selected_station_code_ids: result.selected_station_code_ids,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: result.planning_area_fire_starts,
+          selected_prep_date: result.selected_prep_date.toJSDate(),
+          start_date: result.start_date,
+          end_date: newEndDate.toISOString().split('T')[0]
+        })
+      )
+    }
   }
 
   const setSelected = (newSelected: number[]) => {
