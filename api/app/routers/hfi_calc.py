@@ -68,6 +68,17 @@ def validate_date_range(start_date: date, end_date: date):
     return start_date, end_date
 
 
+def extract_selected_stations(request: HFIResultRequest) -> List[int]:
+    """ Extract a list of the selected station codes - we use this to get the daily data from wfwx. """
+    stations_codes = []
+    for _, value in request.planning_area_station_info.items():
+        for station_info in value:
+            if station_info.selected:
+                if not station_info.station_code in stations_codes:
+                    stations_codes.append(station_info.station_code)
+    return stations_codes
+
+
 @router.post('/', response_model=HFIResultResponse)
 async def get_hfi_results(request: HFIResultRequest,
                           response: Response,
@@ -93,8 +104,9 @@ async def get_hfi_results(request: HFIResultRequest,
 
         async with ClientSession() as session:
             header = await get_auth_header(session)
+            selected_station_codes = extract_selected_stations(request)
             wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
-                session, header, request.selected_station_code_ids)
+                session, header, selected_station_codes)
             dailies = await get_dailies_lookup_fuel_types(
                 session, header, wfwx_stations, start_timestamp, end_timestamp)
             prep_delta = valid_end_date - valid_start_date  # num prep days is inclusive
@@ -106,13 +118,13 @@ async def get_hfi_results(request: HFIResultRequest,
                 results = calculate_hfi_results(request.selected_fire_center_id,
                                                 request.planning_area_fire_starts,
                                                 dailies, prep_delta.days,
-                                                request.selected_station_code_ids,
+                                                selected_station_codes,
                                                 orm_session)
         response = HFIResultResponse(
             selected_prep_date=selected_prep_date,
             start_date=start_timestamp,
             end_date=end_timestamp,
-            selected_station_code_ids=request.selected_station_code_ids,
+            planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
             planning_area_hfi_results=results,
             planning_area_fire_starts=request.planning_area_fire_starts)
@@ -185,7 +197,10 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                 station_info_dict[station_record.station_code] = {
                     'fuel_type': FuelType(
                         abbrev=fuel_type_record.abbrev,
-                        description=fuel_type_record.description),
+                        fuel_type_code=fuel_type_record.fuel_type_code,
+                        description=fuel_type_record.description,
+                        percentage_conifer=fuel_type_record.percentage_conifer,
+                        percentage_dead_fir=fuel_type_record.percentage_dead_fir),
                     'planning_area': planning_area_record,
                     'fire_centre': fire_centre_record
                 }

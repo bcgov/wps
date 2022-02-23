@@ -28,6 +28,7 @@ export interface PlanningArea {
 export interface WeatherStation {
   code: number
   station_props: WeatherStationProperties
+  order_of_appearance_in_planning_area_list?: number
 }
 
 export interface HFIWeatherStationsResponse {

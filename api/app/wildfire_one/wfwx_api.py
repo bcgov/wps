@@ -9,7 +9,9 @@ from aiohttp import ClientSession, TCPConnector
 import app
 from app import config
 from app.db.crud.hfi_calc import get_stations_with_fuel_types
+from app.schemas.shared import FuelType
 from app.utils.hfi_calculator import get_fire_centre_station_codes
+from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.db.models.observations import HourlyActual
 from app.db.models.forecasts import NoonForecast
 from app.schemas.hfi_calc import StationDaily
@@ -57,23 +59,24 @@ async def get_auth_header(session: ClientSession) -> dict:
 async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
     logger.info('Using WFWX to retrieve stations by code')
-    async with ClientSession() as session:
-        header = await get_auth_header(session)
-        stations = []
-        # 1 week seems a reasonable period to cache stations for.
-        redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
-        # Iterate through "raw" station data.
-        iterator = fetch_paged_response_generator(session,
-                                                  header,
-                                                  BuildQueryByStationCode(station_codes), 'stations',
-                                                  use_cache=True,
-                                                  cache_expiry_seconds=redis_station_cache_expiry)
-        async for raw_station in iterator:
-            # If the station is valid, add it to our list of stations.
-            if is_station_valid(raw_station):
-                stations.append(parse_station(raw_station))
-        logger.debug('total stations: %d', len(stations))
-        return stations
+    with EcodivisionSeasons(','.join([str(code) for code in station_codes])) as eco_division:
+        async with ClientSession() as session:
+            header = await get_auth_header(session)
+            stations = []
+            # 1 week seems a reasonable period to cache stations for.
+            redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
+            # Iterate through "raw" station data.
+            iterator = fetch_paged_response_generator(session,
+                                                      header,
+                                                      BuildQueryByStationCode(station_codes), 'stations',
+                                                      use_cache=True,
+                                                      cache_expiry_seconds=redis_station_cache_expiry)
+            async for raw_station in iterator:
+                # If the station is valid, add it to our list of stations.
+                if is_station_valid(raw_station):
+                    stations.append(parse_station(raw_station, eco_division))
+            logger.debug('total stations: %d', len(stations))
+            return stations
 
 
 async def get_station_data(session: ClientSession,
@@ -162,15 +165,26 @@ async def get_hourly_readings(
                                               'stations',
                                               True,
                                               redis_station_cache_expiry)
+    raw_stations = []
+    eco_division_key = ''
+    # not ideal - we iterate through the stations twice. 1'st time to get the list of station codes,
+    # so that we can do an eco division lookup in redis.
+    station_codes = set()
     async for raw_station in iterator:
-        task = asyncio.create_task(
-            fetch_hourlies(session,
-                           raw_station,
-                           header,
-                           start_timestamp,
-                           end_timestamp,
-                           use_cache))
-        tasks.append(task)
+        raw_stations.append(raw_station)
+        station_codes.add(raw_station.get('stationCode'))
+    eco_division_key = ','.join(str(code) for code in station_codes)
+    with EcodivisionSeasons(eco_division_key) as eco_division:
+        for raw_station in raw_stations:
+            task = asyncio.create_task(
+                fetch_hourlies(session,
+                               raw_station,
+                               header,
+                               start_timestamp,
+                               end_timestamp,
+                               use_cache,
+                               eco_division))
+            tasks.append(task)
 
     # Run the tasks concurrently, waiting for them all to complete.
     return await asyncio.gather(*tasks)
@@ -292,11 +306,17 @@ async def get_dailies_lookup_fuel_types(  # pylint: disable=too-many-locals
     wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
     station_codes = [wfwx_station.code for wfwx_station in wfwx_stations]
 
-    fuel_type_dict: Dict[int, str] = {}
+    fuel_type_dict: Dict[int, FuelType] = {}
     with app.db.database.get_read_session_scope() as read_session:
         result = get_stations_with_fuel_types(read_session, station_codes)
         for (planning_station_record, fuel_type_record) in result:
-            fuel_type_dict[planning_station_record.station_code] = fuel_type_record.abbrev
+            fuel_type_dict[planning_station_record.station_code] = FuelType(
+                abbrev=fuel_type_record.abbrev,
+                fuel_type_code=fuel_type_record.fuel_type_code,
+                description=fuel_type_record.description,
+                percentage_conifer=fuel_type_record.percentage_conifer,
+                percentage_dead_fir=fuel_type_record.percentage_dead_fir
+            )
 
     dailies_iterator = fetch_paged_response_generator(
         session, header, BuildQueryDailiesByStationCode(
