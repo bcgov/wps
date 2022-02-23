@@ -6,13 +6,9 @@ from fastapi.testclient import TestClient
 from aiohttp import ClientSession
 from pytest_mock import MockFixture
 import app.main
-from app.tests.common import default_mock_client_get
+from app.tests.common import default_mock_client_get, str_to_bool
 from app.tests import load_json_file, load_json_file_with_name
 from app.tests.hfi import mock_station_crud, mock_planning_area_crud
-
-
-def str_to_bool(input: str):
-    return input == 'True'
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')

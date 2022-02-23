@@ -16,7 +16,7 @@ import app.main
 import app.utils.time
 from app.db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
-from app.tests.common import default_mock_client_get
+from app.tests.common import default_mock_client_get, str_to_bool
 import app.wildfire_one.wfwx_api
 
 logger = logging.getLogger(__name__)
@@ -28,13 +28,15 @@ logger = logging.getLogger(__name__)
               codes=json.loads, status=int,
               num_groups=int,
               num_readings_per_group=json.loads,
-              use_wfwx=str))
+              use_wfwx=str_to_bool,
+              mock_redis_exception=str_to_bool))
 def test_hourlies():
     """ BDD Scenario. """
 
 
-@given('I request hourlies for stations: <codes> with <use_wfwx>', target_fixture='response')
-def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
+@given('I request hourlies for stations: <codes> with <use_wfwx> and <mock_redis_exception>',
+       target_fixture='response')
+def given_hourlies_request(monkeypatch, codes: List, use_wfwx: bool, mock_redis_exception: bool):
     """ Make /observations/ request using mocked out ClientSession.
     """
 
@@ -66,9 +68,16 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
     class MockRedis():
         """ Mock class"""
 
-        def get(self, _):  # pylint: disable=no-self-use
+        def get(self, *args, **kwargs):  # pylint: disable=no-self-use, unused-argument
             """ Mock function """
-            raise Exception('explode')
+            if mock_redis_exception:
+                raise Exception('explode')
+            return {}
+
+        def set(self, *args, **kwargs):  # pylint: disable=no-self-use, unused-argument
+            """ Mock function """
+            if mock_redis_exception:
+                raise Exception('explode')
 
     def mock_create_redis():
         """ function to mock out creation of redis"""
@@ -77,7 +86,7 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
     # mock out redis:
     monkeypatch.setattr(app.data.ecodivision_seasons, 'create_redis', mock_create_redis)
 
-    if use_wfwx == 'True':
+    if use_wfwx:
         logger.info('running test with WFWX set to True')
         monkeypatch.setenv("USE_WFWX", 'True')
         monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
