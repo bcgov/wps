@@ -7,6 +7,7 @@ import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
+from pytest_bdd import then
 import app.utils.s3
 from app.utils.time import get_pst_tz
 from app import auth
@@ -188,3 +189,9 @@ def mock_requests_session(monkeypatch):
 def spy_access_logging(mocker: MockerFixture):
     """Spies on access audting logging for tests"""
     return mocker.spy(auth, 'create_api_access_audit_log')
+
+
+@then('the response status code is <status>')
+def assert_status_code(response, status):
+    """ Assert that we receive the expected status code """
+    assert response.status_code == status
