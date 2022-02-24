@@ -7,13 +7,13 @@ import { logError } from 'utils/error'
 interface State {
   loading: boolean
   error: string | null
-  fireCentres: Record<string, FireCentre>
+  fireCentres: FireCentre[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  fireCentres: {}
+  fireCentres: []
 }
 
 const stationsSlice = createSlice({
@@ -23,7 +23,7 @@ const stationsSlice = createSlice({
     getHFIStationsStart(state: State) {
       state.error = null
       state.loading = true
-      state.fireCentres = {}
+      state.fireCentres = []
     },
     getHFIStationsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload

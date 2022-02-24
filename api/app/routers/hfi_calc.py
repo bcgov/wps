@@ -104,12 +104,13 @@ async def get_hfi_results(request: HFIResultRequest,
 
         async with ClientSession() as session:
             header = await get_auth_header(session)
-            selected_station_codes = extract_selected_stations(request)
+            # TODO: Enable when fuel type config implemented
+            # selected_station_codes = extract_selected_stations(request)
             wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
-                session, header, selected_station_codes)
+                session, header, request.selected_station_code_ids)
             dailies = await get_dailies_lookup_fuel_types(
                 session, header, wfwx_stations, start_timestamp, end_timestamp)
-            prep_delta = valid_end_date - valid_start_date
+            prep_delta = valid_end_date - valid_start_date  # num prep days is inclusive
             # NOTE: database session brought to this level in order to make code review of
             # calculate_hfi_results easier. (adding session in there, results in the entire function
             # being indented, which makes code review difficult.) Please move session back into
@@ -118,12 +119,13 @@ async def get_hfi_results(request: HFIResultRequest,
                 results = calculate_hfi_results(request.selected_fire_center_id,
                                                 request.planning_area_fire_starts,
                                                 dailies, prep_delta.days,
-                                                selected_station_codes,
+                                                request.selected_station_code_ids,
                                                 orm_session)
         response = HFIResultResponse(
             selected_prep_date=selected_prep_date,
             start_date=start_timestamp,
             end_date=end_timestamp,
+            selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
             planning_area_hfi_results=results,
@@ -201,6 +203,8 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                         description=fuel_type_record.description,
                         percentage_conifer=fuel_type_record.percentage_conifer,
                         percentage_dead_fir=fuel_type_record.percentage_dead_fir),
+                    # pylint: disable=line-too-long
+                    'order_of_appearance_in_planning_area_list': station_record.order_of_appearance_in_planning_area_list,
                     'planning_area': planning_area_record,
                     'fire_centre': fire_centre_record
                 }
@@ -242,6 +246,8 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                     wfwx_station_uuid=wfwx_station.wfwx_station_uuid)
 
                 weather_station = WeatherStation(code=wfwx_station.code,
+                                                 order_of_appearance_in_planning_area_list=station_info[
+                                                     'order_of_appearance_in_planning_area_list'],
                                                  station_props=station_properties)
 
                 station_info_dict[wfwx_station.code]['station'] = weather_station

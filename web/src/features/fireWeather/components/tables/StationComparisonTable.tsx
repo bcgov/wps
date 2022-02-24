@@ -13,7 +13,7 @@ import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
-import { formatDateInUTC00Suffix, formatDateInPST } from 'utils/date'
+import { formatDateInUTC00Suffix, formatDatetimeInPST } from 'utils/date'
 import { calculateAccumulatedPrecip } from 'utils/table'
 import ComparisonTableRow, { DataSource, WeatherVariable } from './ComparisonTableRow'
 
@@ -89,7 +89,7 @@ const StationComparisonTable = (props: Props) => {
   return (
     <Paper className={classes.paper}>
       <Typography component="div" variant="subtitle2">
-        Station comparison for {formatDateInPST(noonDate)} PDT
+        Station comparison for {formatDatetimeInPST(noonDate)} PDT
       </Typography>
       <Paper>
         <TableContainer>

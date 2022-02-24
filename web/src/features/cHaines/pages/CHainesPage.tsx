@@ -15,7 +15,7 @@ import {
   fetchCHainesGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
 import { Container, GeneralHeader, PageTitle } from 'components'
-import { formatDateInPST } from 'utils/date'
+import { formatDatetimeInPST } from 'utils/date'
 import { logError } from 'utils/error'
 import {
   getCHainesGeoJSONURI,
@@ -296,7 +296,7 @@ const CHainesPage = () => {
                 </div>
                 <div>
                   {selected_model_abbreviation} prediction:{' '}
-                  {formatDateInPST(selected_prediction_timestamp)} (PST)
+                  {formatDatetimeInPST(selected_prediction_timestamp)} (PST)
                 </div>
               </div>
             )
@@ -670,7 +670,7 @@ const CHainesPage = () => {
                   .map((model_run, i) =>
                     model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
                       <option key={`${i}-${i2}`} value={prediction_timestamp}>
-                        {formatDateInPST(prediction_timestamp)} (PST)
+                        {formatDatetimeInPST(prediction_timestamp)} (PST)
                       </option>
                     ))
                   )}
@@ -716,7 +716,8 @@ const CHainesPage = () => {
             <div>
               <a href={KMLUrl} download={KMLFilename}>
                 {selected_model_abbreviation}, model run {selected_model_run_timestamp}{' '}
-                (UTC) prediction {formatDateInPST(selected_prediction_timestamp)} (PST)
+                (UTC) prediction {formatDatetimeInPST(selected_prediction_timestamp)}{' '}
+                (PST)
               </a>
             </div>
             <div>
@@ -726,7 +727,7 @@ const CHainesPage = () => {
               <a href={geoJSONURI}>
                 GeoJSON for {selected_model_abbreviation}, model run{' '}
                 {selected_model_run_timestamp} (UTC) prediction{' '}
-                {formatDateInPST(selected_prediction_timestamp)} (PST)
+                {formatDatetimeInPST(selected_prediction_timestamp)} (PST)
               </a>
               <button onClick={handleCopyClick}>Copy GeoJSON link to clipboard</button>
             </div>

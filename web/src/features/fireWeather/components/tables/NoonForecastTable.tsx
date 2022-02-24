@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { NoonForecastValue } from 'api/forecastAPI'
-import { formatDateInPST, formatDateInUTC00Suffix } from 'utils/date'
+import { formatDatetimeInPST, formatDateInUTC00Suffix } from 'utils/date'
 import {
   Accordion,
   AccordionDetails,
@@ -178,7 +178,7 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                     )
 
                     const indexCell = (
-                      <TableCell>{formatDateInPST(forecast.datetime)}</TableCell>
+                      <TableCell>{formatDatetimeInPST(forecast.datetime)}</TableCell>
                     )
 
                     return (

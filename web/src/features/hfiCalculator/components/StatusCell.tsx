@@ -1,11 +1,11 @@
 import { TableCell } from '@material-ui/core'
+import { StationDaily } from 'api/hfiCalculatorAPI'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
-import { ValidatedStationDaily } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isUndefined } from 'lodash'
 import React from 'react'
 
 export interface StatusCellProps {
-  daily: ValidatedStationDaily | undefined
+  daily: StationDaily | undefined
   className: string | undefined
 }
 
@@ -13,7 +13,7 @@ const noForecastText =
   'Forecast not available. Please check WFWX or contact a Forecaster.'
 const noForecastElement = <div>{noForecastText}</div>
 
-const observationValidCommentElement = (daily: ValidatedStationDaily) => (
+const observationValidCommentElement = (daily: StationDaily) => (
   <div>{daily.observation_valid_comment}</div>
 )
 
