@@ -110,6 +110,7 @@ class WeatherStation(BaseModel):
     """ A fire weather station has a code, planning area, and other properties specific to the station. """
     code: int
     station_props: WeatherStationProperties
+    order_of_appearance_in_planning_area_list: Optional[int]
 
 
 class PlanningArea(BaseModel):

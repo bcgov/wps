@@ -203,6 +203,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                         description=fuel_type_record.description,
                         percentage_conifer=fuel_type_record.percentage_conifer,
                         percentage_dead_fir=fuel_type_record.percentage_dead_fir),
+                    'order_of_appearance_in_planning_area_list': station_record.order_of_appearance_in_planning_area_list,
                     'planning_area': planning_area_record,
                     'fire_centre': fire_centre_record
                 }
@@ -244,6 +245,8 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                     wfwx_station_uuid=wfwx_station.wfwx_station_uuid)
 
                 weather_station = WeatherStation(code=wfwx_station.code,
+                                                 order_of_appearance_in_planning_area_list=station_info[
+                                                     'order_of_appearance_in_planning_area_list'],
                                                  station_props=station_properties)
 
                 station_info_dict[wfwx_station.code]['station'] = weather_station
