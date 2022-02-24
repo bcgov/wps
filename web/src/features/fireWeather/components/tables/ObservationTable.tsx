@@ -12,7 +12,7 @@ import {
   formatRelativeHumidity,
   formatPrecipitation
 } from 'utils/format'
-import { formatDateInPST } from 'utils/date'
+import { formatDatetimeInPST } from 'utils/date'
 
 export const columns: Column[] = [
   {
@@ -20,7 +20,7 @@ export const columns: Column[] = [
     label: 'Date (PST)',
     minWidth: 135,
     align: 'left',
-    formatDt: (value: string): string => formatDateInPST(value)
+    formatDt: (value: string): string => formatDatetimeInPST(value)
   },
   {
     id: 'temperature',

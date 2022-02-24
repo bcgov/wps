@@ -1,11 +1,12 @@
 import { DateTime } from 'luxon'
 import {
   isNoonInPST,
-  formatDateInPST,
+  formatDatetimeInPST,
   formatMonthAndDay,
   formatDateInUTC00Suffix,
   getPrepWeeklyDateRange,
-  getPrepDailyDateRange
+  getPrepDailyDateRange,
+  formatISODateInPST
 } from 'utils/date'
 
 describe('Date util functions', () => {
@@ -18,23 +19,33 @@ describe('Date util functions', () => {
     })
   })
 
-  describe('formatDateInPST', () => {
+  describe('formatDateTimeInPST', () => {
     it("should format the given date in 'YYYY-MM-DD HH:mm'", () => {
-      expect(formatDateInPST('2020-11-24T20:00:00+00:00')).toEqual('2020-11-24 12:00')
-      expect(formatDateInPST('2020-11-25T20:00:00+00:00')).toEqual('2020-11-25 12:00')
+      expect(formatDatetimeInPST('2020-11-24T20:00:00+00:00')).toEqual('2020-11-24 12:00')
+      expect(formatDatetimeInPST('2020-11-25T20:00:00+00:00')).toEqual('2020-11-25 12:00')
       const d = new Date('2020-11-25T20:00:00+00:00')
-      expect(formatDateInPST(d)).toEqual('2020-11-25 12:00')
+      expect(formatDatetimeInPST(d)).toEqual('2020-11-25 12:00')
     })
 
     it('should format the given date based on the given format', () => {
-      expect(formatDateInPST('2020-11-25T20:00:00+00:00', 'yyyy-MM-dd')).toEqual(
+      expect(formatDatetimeInPST('2020-11-25T20:00:00+00:00', 'yyyy-MM-dd')).toEqual(
         '2020-11-25'
       )
-      expect(formatDateInPST('2020-11-25T20:00:00+00:00', 'yyyy-MM-dd HH')).toEqual(
+      expect(formatDatetimeInPST('2020-11-25T20:00:00+00:00', 'yyyy-MM-dd HH')).toEqual(
         '2020-11-25 12'
       )
       const d = new Date('2020-11-25T20:00:00+00:00')
-      expect(formatDateInPST(d, 'yyyy-MM-dd')).toEqual('2020-11-25')
+      expect(formatDatetimeInPST(d, 'yyyy-MM-dd')).toEqual('2020-11-25')
+    })
+  })
+
+  describe('formatDateInPST', () => {
+    it.only('should format the date with PST timezone', () => {
+      const datetime = formatISODateInPST('2021-08-02T20:00:00+00:00')
+      expect(datetime.year).toBe(2021)
+      expect(datetime.month).toBe(8)
+      expect(datetime.day).toBe(2)
+      expect(datetime.zone.name).toBe('America/Vancouver')
     })
   })
 

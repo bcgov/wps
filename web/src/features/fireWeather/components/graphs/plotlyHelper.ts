@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import { Data, Shape, Layout, RangeSlider, PlotData, BoxPlotData } from 'plotly.js'
 import { WIND_SPEED_VALUES_DECIMAL, PST_UTC_OFFSET } from 'utils/constants'
 import { formatWindDirection } from 'utils/format'
-import { formatDateInPST } from 'utils/date'
+import { formatDatetimeInPST } from 'utils/date'
 
 export const findMaxNumber = (arr: number[]): number => {
   if (arr.length === 0) {
@@ -154,7 +154,7 @@ export const populateGraphDataForTempAndRH = (
       bias_adjusted_temperature,
       bias_adjusted_relative_humidity
     } = value
-    const date = formatDateInPST(datetime)
+    const date = formatDatetimeInPST(datetime)
 
     if (temperature != null) {
       tempDates.push(date)
@@ -606,7 +606,7 @@ const createPath = (
     yref: 'y', // we can position these arrows with wind spd values using xanchor & yanchor
     xsizemode: 'pixel', // https://plotly.com/javascript/reference/layout/shapes/#layout-shapes-items-shape-xsizemode
     ysizemode: 'pixel',
-    xanchor: formatDateInPST(datetime),
+    xanchor: formatDatetimeInPST(datetime),
     yanchor: wind_speed,
     line: {
       color: show ? colour : 'transparent'
@@ -639,7 +639,7 @@ export const populateGraphDataForWind = (
 
   values.forEach(({ wind_direction, wind_speed, datetime }) => {
     if (wind_speed != null) {
-      dates.push(formatDateInPST(datetime))
+      dates.push(formatDatetimeInPST(datetime))
       windSpds.push(wind_speed)
       windSpdsTexts.push(
         wind_direction != null ? `${formatWindDirection(wind_direction)}` : '-'

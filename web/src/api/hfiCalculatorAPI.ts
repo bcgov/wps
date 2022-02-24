@@ -8,6 +8,7 @@ import {
 import { DateTime } from 'luxon'
 import 'qs'
 import { stringify } from 'querystring'
+import { formatISODateInPST } from 'utils/date'
 
 export interface StationDaily {
   code: number
@@ -83,7 +84,7 @@ export async function getHFIResult(
 ): Promise<HFIResultResponse> {
   const { data } = await axios.post<RawHFIResultResponse>(baseUrl, {
     ...request,
-    selected_prep_date: request.selected_prep_date?.toISOString().split('T')[0] // Infinite sadness
+    selected_prep_date: request.selected_prep_date?.toISOString().split('T')[0] // Just the date ISO string
   })
 
   data.planning_area_hfi_results.map(areaResult =>
@@ -99,18 +100,14 @@ export async function getHFIResult(
           ...validatedDaily,
           daily: {
             ...validatedDaily.daily,
-            date: DateTime.fromISO(
-              validatedDaily.daily.date.split('T')[0] + 'T' + '00:00-08:00' // Infinite sadness
-            ),
+            date: formatISODateInPST(validatedDaily.daily.date),
             last_updated: DateTime.fromISO(validatedDaily.daily.last_updated)
           }
         })),
-        date: DateTime.fromISO(dr.dateISO.split('T')[0] + 'T' + '00:00-08:00') // Infinite sadness
+        date: formatISODateInPST(dr.dateISO)
       }))
     }))
-  const selectedPrepDateAsDate = DateTime.fromISO(
-    data.selected_prep_date.split('T')[0] + 'T' + '00:00-08:00' // Infinite sadness
-  )
+  const selectedPrepDateAsDate = formatISODateInPST(data.selected_prep_date)
   return {
     ...data,
     selected_prep_date: selectedPrepDateAsDate,
