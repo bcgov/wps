@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import List, Generator
 from contextlib import contextmanager
 import json
+from distutils.util import strtobool
 from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
@@ -28,13 +29,15 @@ logger = logging.getLogger(__name__)
               codes=json.loads, status=int,
               num_groups=int,
               num_readings_per_group=json.loads,
-              use_wfwx=str))
+              use_wfwx=strtobool,
+              mock_redis_exception=strtobool))
 def test_hourlies():
     """ BDD Scenario. """
 
 
-@given('I request hourlies for stations: <codes> with <use_wfwx>', target_fixture='response')
-def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
+@given('I request hourlies for stations: <codes> with <use_wfwx> and <mock_redis_exception>',
+       target_fixture='response')
+def given_hourlies_request(monkeypatch, codes: List, use_wfwx: bool, mock_redis_exception: bool):
     """ Make /observations/ request using mocked out ClientSession.
     """
 
@@ -63,7 +66,28 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
         ])
         yield session
 
-    if use_wfwx == 'True':
+    class MockRedis():
+        """ Mock class"""
+
+        def get(self, *args, **kwargs):  # pylint: disable=no-self-use, unused-argument
+            """ Mock function """
+            if mock_redis_exception:
+                raise Exception('explode')
+            return {}
+
+        def set(self, *args, **kwargs):  # pylint: disable=no-self-use, unused-argument
+            """ Mock function """
+            if mock_redis_exception:
+                raise Exception('explode')
+
+    def mock_create_redis():
+        """ function to mock out creation of redis"""
+        return MockRedis()
+
+    # mock out redis:
+    monkeypatch.setattr(app.data.ecodivision_seasons, 'create_redis', mock_create_redis)
+
+    if use_wfwx:
         logger.info('running test with WFWX set to True')
         monkeypatch.setenv("USE_WFWX", 'True')
         monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
