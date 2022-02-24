@@ -5,7 +5,8 @@ import {
   FireStarts,
   setSelectedFireCentre,
   fetchHFIResult,
-  setSelectedPrepDate
+  setSelectedPrepDate,
+  setSaved
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
@@ -17,6 +18,7 @@ import {
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { getDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
+import SaveButton from 'features/hfiCalculator/components/SaveButton'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { formControlStyles, theme } from 'app/theme'
@@ -54,6 +56,11 @@ const useStyles = makeStyles(() => ({
   prepDays: {
     margin: theme.spacing(1),
     minWidth: 100
+  },
+  saveButton: {
+    margin: theme.spacing(1),
+    float: 'right'
+    // TODO: figure out vertical alignment
   }
 }))
 
@@ -63,7 +70,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const dispatch = useDispatch()
   const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const { numPrepDays, selectedPrepDate, result, selectedFireCentre, loading } =
+  const { numPrepDays, selectedPrepDate, result, selectedFireCentre, loading, saved } =
     useSelector(selectHFICalculatorState)
 
   const setNumPrepDays = (numDays: number) => {
@@ -71,6 +78,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // could be that the selected prep day no longer falls into the prep period.
     if (!isUndefined(result)) {
       dispatch(setSelectedPrepDate(''))
+      dispatch(setSaved(false))
       const newEndDate = DateTime.fromISO(result.start_date + 'T00:00-08:00')
         .plus({ days: numDays })
         .toJSDate()
@@ -89,6 +97,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const setSelected = (newSelected: number[]) => {
     if (!isUndefined(result)) {
+      dispatch(setSaved(false))
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: newSelected,
@@ -110,6 +119,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     if (!isUndefined(result)) {
       const newPlanningAreaFireStarts = cloneDeep(result.planning_area_fire_starts)
       newPlanningAreaFireStarts[areaId][dayOffset] = { ...newFireStarts }
+      dispatch(setSaved(false))
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -136,6 +146,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     ) {
       setDateOfInterest(newDate)
       const { start, end } = getDateRange(true, newDate)
+      dispatch(setSaved(false))
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -204,6 +215,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     dispatch(setSelectedFireCentre(newSelection))
   }
 
+  const handleSaveClicked = () => {
+    dispatch(setSaved(true))
+  }
+
   return (
     <main data-testid="hfi-calculator-page">
       <GeneralHeader
@@ -243,6 +258,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
             <FormControl className={classes.formControl}>
               <ViewSwitcherToggles dateOfInterest={dateOfInterest} />
+            </FormControl>
+
+            <FormControl className={classes.saveButton}>
+              <SaveButton saved={saved} onClick={handleSaveClicked} />
             </FormControl>
 
             <ErrorBoundary>

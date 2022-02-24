@@ -54,6 +54,7 @@ export interface HFICalculatorState {
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
+  saved: boolean
 }
 
 export interface HFIResultResponse {
@@ -139,7 +140,8 @@ const initialState: HFICalculatorState = {
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
   selectedFireCentre: undefined,
-  result: undefined
+  result: undefined,
+  saved: true
 }
 
 const dailiesSlice = createSlice({
@@ -170,6 +172,9 @@ const dailiesSlice = createSlice({
       }
 
       state.loading = false
+    },
+    setSaved: (state: HFICalculatorState, action: PayloadAction<boolean>) => {
+      state.saved = action.payload
     }
   }
 })
@@ -179,7 +184,8 @@ export const {
   getHFIResultFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
-  setResult
+  setResult,
+  setSaved
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer
