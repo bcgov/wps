@@ -40,8 +40,8 @@ describe('Date util functions', () => {
   })
 
   describe('formatDateInPST', () => {
-    it.only('should format the date with PST timezone', () => {
-      const datetime = formatISODateInPST('2021-08-02T20:00:00+00:00')
+    it('should format the date with PST timezone', () => {
+      const datetime = formatISODateInPST('2021-08-02T00:00-08:00')
       expect(datetime.year).toBe(2021)
       expect(datetime.month).toBe(8)
       expect(datetime.day).toBe(2)
