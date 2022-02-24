@@ -1,18 +1,13 @@
-from typing import Tuple, List
+from typing import Tuple
 import pytest
-from pytest_bdd import scenario, given, then
+from pytest_bdd import scenario, given
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
-from pytest_mock import MockFixture
 from app.db.models.hfi_calc import HFIRequest
 import app.main
 from app.tests.common import default_mock_client_get
 from app.tests import load_json_file, load_json_file_with_name
-from app.tests.hfi import mock_station_crud, mock_planning_area_crud
-
-
-def str_to_bool(input: str):
-    return input == 'True'
+from app.tests.hfi import mock_station_crud
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
