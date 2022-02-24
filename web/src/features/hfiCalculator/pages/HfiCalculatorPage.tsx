@@ -20,6 +20,7 @@ import {
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui/core'
 import { FileCopyOutlined, CheckOutlined, InfoOutlined } from '@material-ui/icons'
+import { DateRange } from 'materialui-daterange-picker'
 import { getDateRange, getPrepWeeklyDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
@@ -101,19 +102,20 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   // the DatePicker component requires dateOfInterest to be in string format
-  const [dateOfInterest, setDateOfInterest] = useState(
-    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
-  )
+  // const [dateOfInterest, setDateOfInterest] = useState(
+  //   pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+  // )
+  const [dateRange, setDateRange] = React.useState<DateRange>({})
   const [isCopied, setIsCopied] = useState(false)
 
-  const getDailies = (start: DateTime, end: DateTime) => {
+  const getDailies = () => {
     dispatch(
       fetchHFIDailies(
         selectedFireCentre,
         getAllPlanningWeatherStationCodesFromFireCentre(selectedFireCentre),
         selected,
-        start.toUTC().valueOf(),
-        end.toUTC().valueOf()
+        dateRange.startDate?.getUTCDate(),
+        dateRange.endDate.getUTCDate()
       )
     )
   }
@@ -124,21 +126,16 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [dailies])
 
   useEffect(() => {
-    if (!isUndefined(selectedFireCentre)) {
-      const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
-      getDailies(start, end)
+    if (
+      !isUndefined(selectedFireCentre) &&
+      !isUndefined(dateRange) &&
+      !isUndefined(dateRange.startDate) &&
+      !isUndefined(dateRange.endDate)
+    ) {
+      getDailies()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre])
-
-  const updateDate = (newDate: string) => {
-    if (newDate !== dateOfInterest && !isUndefined(selectedFireCentre)) {
-      setDateOfInterest(newDate)
-      const { start, end } = getDateRange(true, newDate)
-      dispatch(setSelectedPrepDate(''))
-      getDailies(start, end)
-    }
-  }
 
   const getAllPlanningWeatherStationCodesFromFireCentre = (
     centre: FireCentre | undefined
@@ -263,8 +260,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       />
       <HFIPageSubHeader
         fireCentres={fireCentres}
-        dateOfInterest={dateOfInterest}
-        updateDate={updateDate}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
         selectedFireCentre={selectedFireCentre}
         selectNewFireCentre={selectNewFireCentre}
         padding="1rem"

@@ -85,8 +85,8 @@ const useStyles = makeStyles(theme => ({
 interface Props {
   padding?: string
   fireCentres: Record<string, FireCentre>
-  dateOfInterest: string
-  updateDate: (newDate: string) => void
+  dateRange: DateRange
+  setDateRange: (newDateRange: DateRange) => void
   selectedFireCentre: FireCentre | undefined
   selectNewFireCentre: (newSelection: FireCentre | undefined) => void
 }
@@ -96,8 +96,8 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
 
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const [dateRangePickerOpen, setDateRangePickerOpen] = useState<boolean>(false)
-  const [dateRange, setDateRange] = React.useState<DateRange>({})
-  const dateDisplayFormat = 'dd/MM/yyyy'
+
+  const dateDisplayFormat = 'MMMM dd'
 
   const openAboutModal = () => {
     setModalOpen(true)
@@ -113,7 +113,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
         direction="row"
         className={classes.gridContainer}
       >
-        <Grid item md={3} lg={2}>
+        <Grid item md={3}>
           <FormControl className={classes.minWidth210}>
             <FireCentreDropdown
               fireCentres={props.fireCentres}
@@ -136,11 +136,12 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
             label={'Set prep period'}
             onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
             value={
-              isUndefined(dateRange.startDate) || isUndefined(dateRange.endDate)
+              isUndefined(props.dateRange.startDate) ||
+              isUndefined(props.dateRange.endDate)
                 ? ''
-                : `${DateTime.fromJSDate(dateRange.startDate)
+                : `${DateTime.fromJSDate(props.dateRange.startDate)
                     .toFormat(dateDisplayFormat)
-                    .trim()} - ${DateTime.fromJSDate(dateRange.endDate)
+                    .trim()} - ${DateTime.fromJSDate(props.dateRange.endDate)
                     .toFormat(dateDisplayFormat)
                     .trim()}
                       `
@@ -159,7 +160,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
             <DateRangePicker
               open={dateRangePickerOpen}
               toggle={toggleDateRangePicker}
-              onChange={range => setDateRange(range)}
+              onChange={range => props.setDateRange(range)}
             />
           </FormControl>
         </Grid>
