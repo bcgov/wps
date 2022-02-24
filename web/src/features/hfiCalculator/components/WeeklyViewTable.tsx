@@ -243,72 +243,73 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         numPrepDays={numPrepDays}
                       />
                     </TableRow>
-                    {Object.entries(area.stations)
-                      .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
-                      .map(([stationCode, station]) => {
-                        const dailiesForStation = getDailiesByStationCode(
-                          numPrepDays,
-                          props.result,
-                          station.code
-                        )
-                        const isRowSelected = stationCodeInSelected(station.code)
-                        const classNameForRow = !isRowSelected
-                          ? classes.unselectedStation
-                          : classes.stationCellPlainStyling
-
-                        return (
-                          <TableRow
+                    {sortBy(
+                      area.stations,
+                      station => station.order_of_appearance_in_planning_area_list
+                    ).map(station => {
+                      const dailiesForStation = getDailiesByStationCode(
+                        numPrepDays,
+                        props.result,
+                        station.code
+                      )
+                      const isRowSelected = stationCodeInSelected(station.code)
+                      const classNameForRow = !isRowSelected
+                        ? classes.unselectedStation
+                        : classes.stationCellPlainStyling
+                      const stationCode = station.code
+                      return (
+                        <TableRow
+                          className={classNameForRow}
+                          key={`station-${stationCode}`}
+                        >
+                          <BaseStationAttributeCells
+                            station={station}
                             className={classNameForRow}
-                            key={`station-${stationCode}`}
+                            stationCodeInSelected={stationCodeInSelected}
+                            toggleSelectedStation={toggleSelectedStation}
+                          />
+                          <StickyCell
+                            left={284}
+                            zIndexOffset={11}
+                            backgroundColor={'#ffffff'}
+                            className={classes.rightBorder}
                           >
-                            <BaseStationAttributeCells
-                              station={station}
-                              className={classNameForRow}
-                              stationCodeInSelected={stationCodeInSelected}
-                              toggleSelectedStation={toggleSelectedStation}
-                            />
-                            <StickyCell
-                              left={284}
-                              zIndexOffset={11}
-                              backgroundColor={'#ffffff'}
-                              className={classes.rightBorder}
-                            >
-                              <Table>
-                                <TableBody>
-                                  <TableRow>
-                                    <GrassCureCell
-                                      value={
-                                        !isEmpty(dailiesForStation)
-                                          ? dailiesForStation[0].grass_cure_percentage
-                                          : undefined
-                                      }
-                                      isGrassFuelType={isGrassFuelType(
-                                        station.station_props
-                                      )}
-                                      className={`${classes.noBottomBorder}
+                            <Table>
+                              <TableBody>
+                                <TableRow>
+                                  <GrassCureCell
+                                    value={
+                                      !isEmpty(dailiesForStation)
+                                        ? dailiesForStation[0].grass_cure_percentage
+                                        : undefined
+                                    }
+                                    isGrassFuelType={isGrassFuelType(
+                                      station.station_props
+                                    )}
+                                    className={`${classes.noBottomBorder}
                                     ${
                                       isRowSelected
                                         ? classes.stationCellPlainStyling
                                         : classes.unselectedStation
                                     }
                                   `}
-                                      selected={isRowSelected}
-                                    />
-                                  </TableRow>
-                                </TableBody>
-                              </Table>
-                            </StickyCell>
+                                    selected={isRowSelected}
+                                  />
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          </StickyCell>
 
-                            <StaticCells
-                              numPrepDays={numPrepDays}
-                              dailies={dailiesForStation}
-                              station={station}
-                              classNameForRow={classNameForRow}
-                              isRowSelected={isRowSelected}
-                            />
-                          </TableRow>
-                        )
-                      })}
+                          <StaticCells
+                            numPrepDays={numPrepDays}
+                            dailies={dailiesForStation}
+                            station={station}
+                            classNameForRow={classNameForRow}
+                            isRowSelected={isRowSelected}
+                          />
+                        </TableRow>
+                      )
+                    })}
                   </React.Fragment>
                 )
               )
