@@ -353,7 +353,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       prepLevel={dailyResult?.prep_level}
                     />
                   </TableRow>
-                  {sortBy(area.stations, station => station.code).map(station => {
+                  {sortBy(
+                    area.stations,
+                    station => station.order_of_appearance_in_planning_area_list
+                  ).map(station => {
                     const daily = getDailyForDay(station.code)
                     const grassCureError = !isValidGrassCure(daily, station.station_props)
                     const isRowSelected = stationCodeInSelected(station.code)
