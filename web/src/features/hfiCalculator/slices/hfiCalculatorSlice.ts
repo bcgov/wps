@@ -3,7 +3,6 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { getHFIResult, RawDaily, StationDaily } from 'api/hfiCalculatorAPI'
-import { isUndefined, isNull } from 'lodash'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
@@ -49,11 +48,8 @@ export interface RawPlanningAreaResult {
 export interface HFICalculatorState {
   loading: boolean
   error: string | null
-  dailies: ValidatedStationDaily[]
   numPrepDays: number
-  selectedStationCodes: number[]
   selectedPrepDate: string
-  formattedDateStringHeaders: string[]
   planningAreaFireStarts: { [key: string]: FireStarts[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
@@ -138,43 +134,12 @@ export const FIRE_STARTS_SET: FireStarts[] = [
 const initialState: HFICalculatorState = {
   loading: false,
   error: null,
-  dailies: [],
   numPrepDays: NUM_WEEK_DAYS,
-  selectedStationCodes: [],
   selectedPrepDate: '',
-  formattedDateStringHeaders: [],
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
   selectedFireCentre: undefined,
   result: undefined
-}
-
-type RequiredValidField = keyof StationDaily
-export const requiredFields: RequiredValidField[] = [
-  'temperature',
-  'relative_humidity',
-  'wind_speed',
-  'wind_direction',
-  'precipitation',
-  'intensity_group'
-]
-
-export const validateStationDaily = (daily: StationDaily): ValidatedStationDaily => {
-  const requiredFieldsPresent = Object.keys(daily)
-    .map(key => {
-      if (requiredFields.includes(key as keyof StationDaily)) {
-        return (
-          !isUndefined(daily[key as keyof StationDaily]) &&
-          !isNull(daily[key as keyof StationDaily])
-        )
-      }
-      return true
-    })
-    .reduce((prev, curr) => prev && curr, true)
-  return {
-    daily: daily,
-    valid: requiredFieldsPresent
-  }
 }
 
 const dailiesSlice = createSlice({
