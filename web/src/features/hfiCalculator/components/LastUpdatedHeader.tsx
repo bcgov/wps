@@ -1,13 +1,13 @@
-import { StationDaily } from 'api/hfiCalculatorAPI'
 import React from 'react'
 import UpdateIcon from '@material-ui/icons/Update'
 import { makeStyles } from '@material-ui/core'
 import { maxBy } from 'lodash'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
+import { StationDaily } from 'api/hfiCalculatorAPI'
 
 export interface LastUpdatedHeaderProps {
-  dailies: StationDaily[]
+  dailies?: StationDaily[]
 }
 
 const useStyles = makeStyles({
@@ -25,8 +25,8 @@ const useStyles = makeStyles({
   }
 })
 
-const findLastUpdate = (dailies: StationDaily[]) => {
-  const forecasts = dailies.filter(daily => daily.status === 'FORECAST')
+const findLastUpdate = (dailies?: StationDaily[]) => {
+  const forecasts = dailies?.filter(daily => daily.status === 'FORECAST')
   const lastUpdatedDaily: StationDaily | undefined = maxBy(
     forecasts,
     forecast => forecast.last_updated

@@ -1,5 +1,6 @@
 
 from typing import Tuple
+from distutils.util import strtobool
 import pytest
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
@@ -11,16 +12,12 @@ from app.tests import load_json_file, load_json_file_with_name
 from app.tests.hfi import mock_station_crud, mock_planning_area_crud
 
 
-def str_to_bool(input: str):
-    return input == 'True'
-
-
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_hfi_endpoint_request_not_stored.feature', 'HFI - load request, no request stored',
           example_converters=dict(request_json=load_json_file_with_name(__file__),
                                   status_code=int,
                                   response_json=load_json_file(__file__),
-                                  request_saved=str_to_bool))
+                                  request_saved=strtobool))
 def test_fire_behaviour_calculator_scenario_no_request_stored():
     """ BDD Scenario. """
     pass

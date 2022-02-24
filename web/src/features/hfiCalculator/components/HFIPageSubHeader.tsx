@@ -84,7 +84,7 @@ const useStyles = makeStyles(theme => ({
 
 interface Props {
   padding?: string
-  fireCentres: Record<string, FireCentre>
+  fireCentres: FireCentre[]
   dateRange: DateRange
   setDateRange: (newDateRange: DateRange) => void
   selectedFireCentre: FireCentre | undefined

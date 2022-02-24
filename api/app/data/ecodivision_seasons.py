@@ -42,22 +42,35 @@ class EcodivisionSeasons:
         if self.cache_key:
             self.cache_key = f'ecodivision_names:{self.cache_key}'
             self.cache = create_redis()
-            self.name_lookup = self.cache.get(self.cache_key)
-            if self.name_lookup is None:
-                # cache failed - so just use an empty dict.
+            try:
+                self.name_lookup = self.cache.get(self.cache_key)
+                if self.name_lookup is None:
+                    # cache failed - so just use an empty dict.
+                    self.name_lookup = {}
+                    # flag that we want to save this when we're done
+                    self.update_cache_on_exit = True
+                else:
+                    logger.info('redis cache hit %s', self.cache_key)
+                    self.name_lookup = json.loads(self.name_lookup)
+            except Exception as error:  # pylint: disable=broad-except
+                # set the look to an empty dictionary.
                 self.name_lookup = {}
-                # flag that we want to save this when we're done
-                self.update_cache_on_exit = True
-            else:
-                logger.info('redis cache hit %s', self.cache_key)
-                self.name_lookup = json.loads(self.name_lookup)
+                # set the cache object to None, so that we don't try to use
+                # the cache again.
+                self.cache = None
+                logger.error(error)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """ Caches ecodivision names in redis """
         if self.cache and self.cache_key and self.update_cache_on_exit:
             # cache the result for a day
-            self.cache.set(self.cache_key, json.dumps(self.name_lookup), ex=86400)
+            try:
+                self.cache.set(self.cache_key, json.dumps(self.name_lookup), ex=86400)
+            except Exception as error:  # pylint: disable=broad-except
+                # redis cache failing isn't a critical failure. we log it and keep
+                # going.
+                logger.error(error)
 
     def get_core_seasons(self):
         """Returns core seasons"""

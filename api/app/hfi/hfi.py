@@ -34,7 +34,7 @@ def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-local
     for area in get_planning_areas(session, fire_centre_id):
         # TODO: doing this nested sql query is super slow - need to come back to this.
         stations = area_station_map[area.id]
-        area_station_codes = map(lambda station: (station.station_code), stations)
+        area_station_codes = list(map(lambda station: (station.station_code), stations))
 
         # Marshall dailies in chronological order,
         # that are part of the planning area and are selected
@@ -98,14 +98,14 @@ def calculate_max_intensity_group(mean_intensity_groups: List[Optional[float]]):
 def calculate_mean_prep_level(prep_levels: List[Optional[float]]):
     """ Returns the mean prep level from a list of values """
     valid_prep_levels = list(filter(None, prep_levels))
-    return None if len(valid_prep_levels) == 0 else mean(valid_prep_levels)
+    return None if len(valid_prep_levels) == 0 else round(mean(valid_prep_levels))
 
 
 def calculate_mean_intensity(dailies: List[StationDaily]):
     """ Returns the mean intensity group from a list of values """
     intensity_groups = list(map(lambda daily: (daily.intensity_group), dailies))
     valid_intensity_groups = list(filter(None, intensity_groups))
-    return None if len(valid_intensity_groups) == 0 else mean(valid_intensity_groups)
+    return None if len(valid_intensity_groups) == 0 else round(mean(valid_intensity_groups), 1)
 
 
 def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: FireStartRange):

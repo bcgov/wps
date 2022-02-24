@@ -1,6 +1,6 @@
 import { DateTime, Interval } from 'luxon'
 
-import { PST_UTC_OFFSET } from './constants'
+import { PST_ISO_TIMEZONE, PST_UTC_OFFSET } from './constants'
 
 const UTC_NOON_HOUR = Math.abs(PST_UTC_OFFSET) + 12
 
@@ -12,7 +12,7 @@ export const toISO = (dtDateTime: DateTime): string => {
 export const isNoonInPST = (dt: string): boolean =>
   DateTime.fromISO(dt).setZone('UTC').hour === UTC_NOON_HOUR
 
-export const formatDateInPST = (
+export const formatDatetimeInPST = (
   dt: string | Date | DateTime,
   format?: string
 ): string => {
@@ -27,6 +27,12 @@ export const formatDateInPST = (
   }
 
   return datetime.setZone(`UTC${PST_UTC_OFFSET}`).toFormat(format || 'yyyy-MM-dd HH:mm')
+}
+
+export const formatISODateInPST = (dateISOString: string): DateTime => {
+  // Take a datetime ISO string, extract date ISO portion, set PST timezone and return as DateTime
+  // E.g. 2021-08-02T20:00:00+00:00 becomes 2021-08-02T00:00-08:00
+  return DateTime.fromISO(dateISOString.split('T')[0] + PST_ISO_TIMEZONE)
 }
 
 export const formatMonthAndDay = (month: number, day: number): string =>

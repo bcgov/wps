@@ -7,22 +7,25 @@ from fastapi.testclient import TestClient
 import pytest
 import app.auth
 import app.main
+from app.tests import load_json_file
 from app.tests.common import default_mock_client_get
 
 
 @scenario('test_auth.feature', 'Handling unauthenticated users',
-          example_converters=dict(token=str, status=int, message=str, endpoint=str, verb=str))
+          example_converters=dict(token=str, status=int, message=str, endpoint=str, verb=str,
+                                  payload=load_json_file(__file__)))
 def test_auth_1st_scenario():
     """ BDD Scenario #1. """
 
 
-@given("I am an unauthenticated user <token> when I <verb> a protected <endpoint>", target_fixture='response')
-def given_unauthenticated_user(monkeypatch, token: str, endpoint: str, verb: str):
+@given("I am an unauthenticated user <token> when I <verb> a protected <endpoint> with <payload>",
+       target_fixture='response')
+def given_unauthenticated_user(monkeypatch, token: str, endpoint: str, verb: str, payload: dict):
     """ Request (post/get) {endpoint} request which is protected """
     client = TestClient(app.main.app)
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     if verb == 'post':
-        response = client.post(endpoint, headers={'Authorization': token})
+        response = client.post(endpoint, headers={'Authorization': token}, json=payload)
     elif verb == 'get':
         response = client.get(endpoint, headers={'Authorization': token})
     else:
@@ -59,7 +62,7 @@ def access_is_logged(spy_access_logging, endpoint):
 def given_utc_time(monkeypatch, utc_time: int):
     """ Mock out utc time """
     def mock_get_utc_now():
-        return datetime.fromtimestamp(utc_time/1000, tz=timezone.utc)
+        return datetime.fromtimestamp(utc_time / 1000, tz=timezone.utc)
     monkeypatch.setattr(app.routers.stations, 'get_utc_now', mock_get_utc_now)
 
 

@@ -13,6 +13,7 @@ export const FFMC_VALUES_DECIMAL = 1
 export const ISI_VALUES_DECIMAL = 1
 
 export const PST_UTC_OFFSET = -8
+export const PST_ISO_TIMEZONE = 'T00:00-08:00'
 
 export const PERCENTILE_CALC_ROUTE = '/percentile-calculator'
 export const FIRE_WEATHER_ROUTE = '/fire-weather'
