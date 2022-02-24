@@ -45,7 +45,7 @@ describe('Date util functions', () => {
       expect(datetime.year).toBe(2021)
       expect(datetime.month).toBe(8)
       expect(datetime.day).toBe(2)
-      expect(datetime.zone.name).toBe('America/Vancouver')
+      expect(datetime.toFormat('yyyy-MM-dd')).toBe('2021-08-02')
     })
   })
 
