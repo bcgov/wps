@@ -203,6 +203,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                         description=fuel_type_record.description,
                         percentage_conifer=fuel_type_record.percentage_conifer,
                         percentage_dead_fir=fuel_type_record.percentage_dead_fir),
+                    # pylint: disable=line-too-long
                     'order_of_appearance_in_planning_area_list': station_record.order_of_appearance_in_planning_area_list,
                     'planning_area': planning_area_record,
                     'fire_centre': fire_centre_record
