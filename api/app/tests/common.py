@@ -206,8 +206,3 @@ def default_mock_requests_session_post(self, url, data=None, json=None, **kwargs
     """ Return a mocked request response from a request.Session object """
     return default_mock_requests_post(url, data, json, **kwargs)
 # pylint: enable=redefined-outer-name
-
-
-def str_to_bool(value: str):
-    """ Turn a string into a boolean """
-    return value == 'True'

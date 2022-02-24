@@ -5,7 +5,7 @@ from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.fwi.fwi import fwi_bui, fwi_ffmc, fwi_isi, fwi_fwi
-from app.auth import authentication_required
+from app.auth import audit, authentication_required
 from app.utils.time import get_hour_20_from_date
 from app.schemas.fwi_calc import (FWIIndices,
                                   FWIRequest,
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/fwi-calc",
-    dependencies=[Depends(authentication_required)],
+    dependencies=[Depends(audit), Depends(authentication_required)],
 )
 
 
@@ -113,7 +113,7 @@ async def calculate_adjusted(request: FWIRequest):
 
 
 @router.post('/', response_model=FWIOutputResponse)
-async def get_fwi_calc_outputs(request: FWIRequest, _=Depends(authentication_required)):
+async def get_fwi_calc_outputs(request: FWIRequest):
     """ Returns FWI calculations for all inputs """
     try:
         logger.info('/fwi_calc/')
@@ -209,7 +209,7 @@ async def multi_calculate_actual(
 
 
 @router.post('/multi', response_model=MultiFWIOutputResponse)
-async def get_multi_fwi_calc_outputs(request: MultiFWIRequest, _=Depends(authentication_required)):
+async def get_multi_fwi_calc_outputs(request: MultiFWIRequest):
     """ Returns FWI calculations for all inputs """
     try:
         logger.info('/fwi_calc/multi')
