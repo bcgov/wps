@@ -25,6 +25,7 @@ coverage:
       api:
         paths:
           - api/app
+        threshold: 3%
       web:
         paths:
           - web/src
