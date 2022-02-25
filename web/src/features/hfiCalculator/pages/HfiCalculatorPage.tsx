@@ -18,8 +18,6 @@ import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui
 import { FileCopyOutlined, CheckOutlined, InfoOutlined } from '@material-ui/icons'
 import { DateRange } from 'materialui-daterange-picker'
 import { getDateRange, getPrepWeeklyDateRange, pstFormatter } from 'utils/date'
-import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
-import { getDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
@@ -70,27 +68,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { numPrepDays, selectedPrepDate, result, selectedFireCentre, loading } =
     useSelector(selectHFICalculatorState)
 
-  const setNumPrepDays = (numDays: number) => {
-    // if the number of prep days change, we need to unset the selected prep day - it
-    // could be that the selected prep day no longer falls into the prep period.
-    if (!isUndefined(result)) {
-      dispatch(setSelectedPrepDate(''))
-      const newEndDate = DateTime.fromISO(result.start_date + 'T00:00-08:00')
-        .plus({ days: numDays })
-        .toJSDate()
-      dispatch(
-        fetchHFIResult({
-          selected_station_code_ids: result.selected_station_code_ids,
-          selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: result.planning_area_fire_starts,
-          selected_prep_date: result.selected_prep_date.toJSDate(),
-          start_date: result.start_date,
-          end_date: newEndDate.toISOString().split('T')[0]
-        })
-      )
-    }
-  }
-
   const setSelected = (newSelected: number[]) => {
     if (!isUndefined(result)) {
       dispatch(
@@ -99,8 +76,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
           selected_prep_date: result.selected_prep_date.toJSDate(),
-          start_date: result.start_date,
-          end_date: result.end_date
+          date_range: result.date_range
         })
       )
     }
@@ -120,34 +96,28 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: newPlanningAreaFireStarts,
           selected_prep_date: result.selected_prep_date.toJSDate(),
-          start_date: result.start_date,
-          end_date: result.end_date
+          date_range: result.date_range
         })
       )
     }
   }
 
-  // the DatePicker component requires dateOfInterest to be in string format
-  const [dateOfInterest, setDateOfInterest] = useState(
-    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
-  )
+  const [prepDateRange, setPrepDateRange] = useState<DateRange>()
 
-  const updateDate = (newDate: string) => {
+  const updatePrepDateRange = (newDateRange: DateRange) => {
     if (
-      newDate !== dateOfInterest &&
+      newDateRange !== prepDateRange &&
       !isUndefined(selectedFireCentre) &&
       !isUndefined(result)
     ) {
-      setDateOfInterest(newDate)
-      const { start, end } = getDateRange(true, newDate)
+      setPrepDateRange(newDateRange)
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
           selected_prep_date: result.selected_prep_date.toJSDate(),
-          start_date: start.toISODate(),
-          end_date: end.toISODate()
+          date_range: newDateRange
         })
       )
     }
@@ -186,8 +156,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
       dispatch(
         fetchHFIResult({
-          start_date: result?.start_date,
-          end_date: result?.end_date,
+          date_range: result ? result.date_range : prepDateRange,
           selected_station_code_ids: stationCodes,
           selected_fire_center_id: selectedFireCentre.id,
           planning_area_fire_starts: result ? result.planning_area_fire_starts : {}
@@ -218,8 +187,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       />
       <HFIPageSubHeader
         fireCentres={fireCentres}
-        dateRange={dateRange}
-        setDateRange={setDateRange}
+        dateRange={prepDateRange}
+        setDateRange={updatePrepDateRange}
         selectedFireCentre={selectedFireCentre}
         selectNewFireCentre={selectNewFireCentre}
         padding="1rem"
@@ -241,9 +210,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                 )
               )}
             />
-            <FormControl className={classes.prepDays}>
-              <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
-            </FormControl>
 
             <FormControl className={classes.formControl}>
               <ViewSwitcherToggles dateOfInterest={dateOfInterest} />

@@ -58,7 +58,7 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const { numPrepDays, result } = useSelector(selectHFICalculatorState)
+  const { dateRange, result } = useSelector(selectHFICalculatorState)
 
   const stationCodeInSelected = (code: number) => {
     return result ? result.selected_station_code_ids.includes(code) : false
@@ -83,7 +83,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
     >
       <TableHead>
         <TableRow>
-          <DayHeaders isoDate={props.currentDay} numPrepDays={numPrepDays} />
+          <DayHeaders isoDate={props.dateRange.startDate} numPrepDays={numPrepDays} />
           <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>

@@ -2,14 +2,14 @@ import { Table, TableBody, TableCell, TableRow } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
-import { range } from 'lodash'
+import { isUndefined, range } from 'lodash'
+import { DateTime } from 'luxon'
+import { DateRange } from 'materialui-daterange-picker'
 import React from 'react'
-import { getPrepWeeklyDateRange } from 'utils/date'
 
 export interface DayHeadersProps {
   testId?: string
-  isoDate: string
-  numPrepDays: number
+  dateRange: DateRange
 }
 
 const useStyles = makeStyles({
@@ -23,7 +23,13 @@ const useStyles = makeStyles({
   }
 })
 const DayHeaders = (props: DayHeadersProps) => {
-  const { start } = getPrepWeeklyDateRange(props.isoDate)
+  const start = isUndefined(props.dateRange.startDate)
+    ? DateTime.now()
+    : DateTime.fromJSDate(props.dateRange.startDate)
+  const end = isUndefined(props.dateRange.endDate)
+    ? DateTime.now()
+    : DateTime.fromJSDate(props.dateRange.endDate)
+  const numPrepDays = end.diff(start, 'days').valueOf()
 
   const classes = useStyles()
   return (
@@ -60,7 +66,7 @@ const DayHeaders = (props: DayHeadersProps) => {
           </TableBody>
         </Table>
       </StickyCell>
-      {range(props.numPrepDays).map(i => (
+      {range(numPrepDays).map(i => (
         <TableCell
           data-testid={`day-${i}`}
           colSpan={5}

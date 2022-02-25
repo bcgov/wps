@@ -1,16 +1,17 @@
 import { makeStyles } from '@material-ui/core'
 import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab'
-import { range } from 'lodash'
+import { isUndefined, range } from 'lodash'
 import { theme } from 'app/theme'
 import React from 'react'
-import { getPrepWeeklyDateRange, toISO } from 'utils/date'
+import { toISO } from 'utils/date'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { setSelectedPrepDate } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { DateRange } from 'materialui-daterange-picker'
+import { DateTime } from 'luxon'
 
 export interface ViewSwitcherTogglesProps {
   testId?: string
-  dateOfInterest: string
 }
 
 const useStyles = makeStyles(() => ({
@@ -30,7 +31,7 @@ const useStyles = makeStyles(() => ({
 }))
 
 const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
-  const { numPrepDays, selectedPrepDate } = useSelector(selectHFICalculatorState)
+  const { dateRange, selectedPrepDate } = useSelector(selectHFICalculatorState)
   const classes = useStyles()
   const dispatch = useDispatch()
 
@@ -41,7 +42,14 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
     dispatch(setSelectedPrepDate(prepDate))
   }
 
-  const { start } = getPrepWeeklyDateRange(props.dateOfInterest)
+  let daysInDateRange = 0
+  let start: DateTime = DateTime.now()
+
+  if (!isUndefined(dateRange.startDate) && !isUndefined(dateRange.endDate)) {
+    start = DateTime.fromJSDate(dateRange.startDate)
+    const end = DateTime.fromJSDate(dateRange.endDate)
+    daysInDateRange = end.diff(start, 'days').valueOf()
+  }
 
   return (
     <React.Fragment>
@@ -60,7 +68,8 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
           Prep Period
         </ToggleButton>
         {/* Create a button for each day of the prep period. */}
-        {range(numPrepDays).map(i => {
+
+        {range(daysInDateRange).map(i => {
           const day = start.plus({ days: i })
           const rowA = `Day ${i + 1}`
           const rowB = day.toLocaleString({

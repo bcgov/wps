@@ -85,7 +85,7 @@ const useStyles = makeStyles(theme => ({
 interface Props {
   padding?: string
   fireCentres: FireCentre[]
-  dateRange: DateRange
+  dateRange: DateRange | undefined
   setDateRange: (newDateRange: DateRange) => void
   selectedFireCentre: FireCentre | undefined
   selectNewFireCentre: (newSelection: FireCentre | undefined) => void
@@ -136,6 +136,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
             label={'Set prep period'}
             onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
             value={
+              isUndefined(props.dateRange) ||
               isUndefined(props.dateRange.startDate) ||
               isUndefined(props.dateRange.endDate)
                 ? ''

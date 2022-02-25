@@ -21,7 +21,6 @@ export const getZoneFromAreaName = (areaName: string): string => {
 }
 
 export const getDailiesByStationCode = (
-  numPrepDays: number,
   result: HFIResultResponse,
   stationCode: number
 ): StationDaily[] => {

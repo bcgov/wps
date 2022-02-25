@@ -6,6 +6,7 @@ import { getHFIResult, RawDaily, StationDaily } from 'api/hfiCalculatorAPI'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
+import { DateRange } from 'materialui-daterange-picker'
 
 export interface FireStarts {
   label: string
@@ -48,7 +49,7 @@ export interface RawPlanningAreaResult {
 export interface HFICalculatorState {
   loading: boolean
   error: string | null
-  numPrepDays: number
+  dateRange: DateRange
   selectedPrepDate: string
   planningAreaFireStarts: { [key: string]: FireStarts[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
@@ -58,8 +59,7 @@ export interface HFICalculatorState {
 
 export interface HFIResultResponse {
   selected_prep_date: DateTime
-  start_date: string
-  end_date: string
+  date_range: DateRange
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: PlanningAreaResult[]
@@ -68,8 +68,7 @@ export interface HFIResultResponse {
 
 export interface RawHFIResultResponse {
   selected_prep_date: string
-  start_date: string
-  end_date: string
+  date_range: DateRange
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: RawPlanningAreaResult[]
@@ -78,8 +77,7 @@ export interface RawHFIResultResponse {
 
 export interface HFIResultRequest {
   selected_prep_date?: Date
-  start_date?: string
-  end_date?: string
+  date_range?: DateRange
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_fire_starts: { [key: number]: FireStarts[] }

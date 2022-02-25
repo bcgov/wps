@@ -8,7 +8,7 @@ from fastapi import APIRouter, Response, Depends, Query
 from app.db.database import get_read_session_scope
 from app.hfi.hfi import calculate_hfi_results
 import app.utils.time
-from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationDailyResponse
+from app.schemas.hfi_calc import DateRange, HFIResultRequest, HFIResultResponse, StationDailyResponse
 import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
@@ -48,15 +48,15 @@ def save_request(request: HFIResultRequest, username: str):
     return request
 
 
-def validate_date_range(start_date: date, end_date: date):
+def validate_date_range(date_range: DateRange) -> DateRange:
     """ Sets the start_date to today if it is None.
     Set the end_date to start_date + 7 days, if it is None."""
     # we don't have a start date, default to now.
-    if start_date is None:
+    if date_range.start_date is None:
         now = app.utils.time.get_pst_now()
         start_date = date(year=now.year, month=now.month, day=now.day)
     # don't have an end date, default to start date + 5 days.
-    if end_date is None:
+    if date_range.end_date is None:
         end_date = start_date + timedelta(days=5)
     # check if the span exceeds 7, if it does clamp it down to 7 days.
     delta = end_date - start_date
@@ -65,7 +65,7 @@ def validate_date_range(start_date: date, end_date: date):
     # check if the span is less than 2, if it is, push it up to 2.
     if delta.days < 2:
         end_date = start_date + timedelta(days=2)
-    return start_date, end_date
+    return DateRange(start_date=start_date, end_date=end_date)
 
 
 def extract_selected_stations(request: HFIResultRequest) -> List[int]:

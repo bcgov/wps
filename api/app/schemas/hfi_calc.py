@@ -143,6 +143,10 @@ class StationInfo(BaseModel):
     # fuel_type_id matches to table fuel_types.id
     fuel_type_id: int
 
+class DateRange(BaseModel):
+    """ A Pythonic implementation of the DateRange construct we use on the front-end in Typescript. """
+    start_date: date
+    end_date: date
 
 class HFIResultRequest(BaseModel):
     """
@@ -154,8 +158,7 @@ class HFIResultRequest(BaseModel):
     The PST part is critical, so that the date doesn't change due to timezone switches.
     """
     selected_prep_date: Optional[date]
-    start_date: Optional[date]
-    end_date: Optional[date]
+    date_range: Optional[DateRange]
     # TODO: Remove when fuel type config implemented
     selected_station_code_ids: List[int]
     # Each planning area has a list of stations
@@ -172,8 +175,7 @@ class HFIResultResponse(BaseModel):
     selected fire centre, fire starts, HFI results.
     """
     selected_prep_date: date
-    start_date: date
-    end_date: date
+    date_range: DateRange
     # TODO: Remove when fuel type config implemented
     selected_station_code_ids: List[int]
     planning_area_station_info: Optional[Mapping[int, List[StationInfo]]]
