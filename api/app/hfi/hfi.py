@@ -1,7 +1,5 @@
 """ HFI calculation logic """
 
-from email.generator import Generator
-from itertools import groupby
 from operator import attrgetter
 from statistics import mean
 from typing import Mapping, Optional, List
@@ -13,7 +11,6 @@ from app.schemas.hfi_calc import (DailyResult,
                                   ValidatedStationDaily,
                                   required_daily_fields,
                                   lowest_fire_starts)
-from app.db.crud.hfi_calc import get_planning_areas
 from app.utils.time import get_hour_20_from_date
 
 
