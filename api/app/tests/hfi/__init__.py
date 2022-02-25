@@ -37,10 +37,9 @@ def mock_station_crud(monkeypatch):
         result = []
         for station_code in station_codes:
             planning_station = PlanningWeatherStation(station_code=station_code)
-            fuel_type = FuelType(abbrev='C3', fuel_type_code='C3', description='C3', percentage_conifer=100, percentage_dead_fir=0)
+            fuel_type = FuelType(abbrev='C3', fuel_type_code='C3', description='C3',
+                                 percentage_conifer=100, percentage_dead_fir=0)
             result.append((planning_station, fuel_type))
         return result
 
     monkeypatch.setattr(app.utils.hfi_calculator, 'get_all_stations', mock_get_all_stations)
-    monkeypatch.setattr(app.wildfire_one.wfwx_api, 'get_stations_with_fuel_types',
-                        mock_get_station_with_fuel_types)

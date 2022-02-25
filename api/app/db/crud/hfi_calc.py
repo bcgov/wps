@@ -33,17 +33,10 @@ def get_planning_areas(session, fire_centre_id: int) -> CursorResult:
 
 def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
     """ Get all the stations for a fire centre. """
-    return session.query(PlanningWeatherStation)\
-        .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
-        .filter(PlanningArea.fire_centre_id == fire_centre_id)
-
-
-def get_stations_with_fuel_types(session: Session, station_codes: List[int]) -> CursorResult:
-    """ Get all PlanningWeatherStations that match the supplied station codes
-        and include their associated fuel types"""
     return session.query(PlanningWeatherStation, FuelType)\
-        .filter(PlanningWeatherStation.station_code.in_(station_codes))\
-        .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)
+        .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
+        .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)\
+        .filter(PlanningArea.fire_centre_id == fire_centre_id)
 
 
 def get_most_recent_updated_hfi_request(session: Session,

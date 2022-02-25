@@ -1,27 +1,22 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
 import math
-from typing import Dict, List, Optional, Final
+from typing import List, Optional, Final, AsyncGenerator
 from datetime import datetime
 import logging
 import asyncio
 from aiohttp import ClientSession, TCPConnector
-import app
 from app import config
-from app.db.crud.hfi_calc import get_stations_with_fuel_types
-from app.schemas.shared import FuelType
 from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.db.models.observations import HourlyActual
 from app.db.models.forecasts import NoonForecast
-from app.schemas.hfi_calc import StationDaily
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.fba import FireCentre
 from app.schemas.stations import (WeatherStation,
                                   WeatherVariables)
 from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_mapper, parse_noon_forecast,
                                              parse_station,
-                                             generate_station_daily,
                                              parse_hourly_actual,
                                              station_list_mapper,
                                              wfwx_station_list_mapper)
@@ -266,7 +261,7 @@ async def get_hourly_actuals_all_stations(
     return hourly_actuals
 
 
-async def get_wfwx_stations_from_station_codes(session, header, station_codes: Optional[List[int]]):
+async def get_wfwx_stations_from_station_codes(session: ClientSession, header, station_codes: Optional[List[int]]) -> list:
     """ Return the WFWX station ids from WFWX API given a list of station codes. """
 
     # All WFWX stations are requested because WFWX returns a malformed JSON response when too
@@ -292,46 +287,17 @@ async def get_wfwx_stations_from_station_codes(session, header, station_codes: O
     return requested_stations
 
 
-async def get_dailies_lookup_fuel_types(  # pylint: disable=too-many-locals
-        session: ClientSession,
-        header: dict,
-        wfwx_stations: List[WFWXWeatherStation],
-        start_timestamp: int,
-        end_timestamp: int) -> List[StationDaily]:
-    """ Get the daily actuals for the given station ids.
-    Looks up fuel type in our database based on station code.
-    This function is used for HFI calculator, where fuel types are hard-coded for relevant stations.
+async def get_raw_dailies_in_range_generator(session: ClientSession,
+                                             header: dict,
+                                             wfwx_station_ids: List[str],
+                                             start_timestamp: int,
+                                             end_timestamp: int) -> AsyncGenerator[dict, None]:
+    """ Get the raw dailies in range for a list of WFWX station ids.
     """
-
-    wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
-    station_codes = [wfwx_station.code for wfwx_station in wfwx_stations]
-
-    fuel_type_dict: Dict[int, FuelType] = {}
-    with app.db.database.get_read_session_scope() as read_session:
-        result = get_stations_with_fuel_types(read_session, station_codes)
-        for (planning_station_record, fuel_type_record) in result:
-            fuel_type_dict[planning_station_record.station_code] = FuelType(
-                abbrev=fuel_type_record.abbrev,
-                fuel_type_code=fuel_type_record.fuel_type_code,
-                description=fuel_type_record.description,
-                percentage_conifer=fuel_type_record.percentage_conifer,
-                percentage_dead_fir=fuel_type_record.percentage_dead_fir
-            )
-
-    dailies_iterator = fetch_paged_response_generator(
+    return fetch_paged_response_generator(
         session, header, BuildQueryDailiesByStationCode(
             start_timestamp,
-            end_timestamp, wfwx_station_ids), 'dailies')
-
-    dailies = []
-    station_dict: Dict[str, WFWXWeatherStation] = {station.wfwx_id: station for station in wfwx_stations}
-    async for raw_daily in dailies_iterator:
-        wfwx_id = raw_daily.get('stationId', None)
-        station = station_dict.get(wfwx_id, None)
-        fuel_type = fuel_type_dict.get(station.code, None)
-        daily = generate_station_daily(raw_daily, station, fuel_type)
-        dailies.append(daily)
-    return dailies
+            end_timestamp, wfwx_station_ids), 'dailies', True, 60)
 
 
 async def get_dailies(

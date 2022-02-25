@@ -1,5 +1,6 @@
 """ HFI calculation logic """
 
+from email.generator import Generator
 from itertools import groupby
 from operator import attrgetter
 from statistics import mean
@@ -22,7 +23,7 @@ def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -
 
 
 def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange],  # pylint: disable=too-many-locals
-                          dailies: List[StationDaily],
+                          dailies: list,
                           num_prep_days: int,
                           selected_station_codes: List[int],
                           area_station_map: dict,
@@ -31,7 +32,6 @@ def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange
     planning_area_to_dailies: List[PlanningAreaResult] = []
 
     for area_id in area_station_map.keys():
-        # TODO: doing this nested sql query is slow - need to come back to this.
         stations = area_station_map[area_id]
         area_station_codes = list(map(lambda station: (station.station_code), stations))
 
