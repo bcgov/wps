@@ -26,7 +26,7 @@ import { PST_UTC_OFFSET, PST_ISO_TIMEZONE } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
-import { cloneDeep, isNull, isUndefined, union } from 'lodash'
+import { cloneDeep, isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 
 const useStyles = makeStyles(() => ({

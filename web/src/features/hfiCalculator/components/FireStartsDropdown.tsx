@@ -21,6 +21,7 @@ const FireStartsDropdown = ({
   dayOffset,
   setFireStarts
 }: FireStartsDropdownProps) => {
+  console.log('FireStartsDropdown', fireStarts, areaId, dayOffset)
   return (
     <Autocomplete
       data-testid={`fire-starts-dropdown`}

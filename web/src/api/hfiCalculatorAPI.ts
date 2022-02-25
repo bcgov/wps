@@ -89,7 +89,7 @@ export async function getHFIResult(
   })
 
   data.planning_area_hfi_results.map(areaResult =>
-    areaResult.daily_results.map(dailyResult => dailyResult.dateISO)
+    areaResult.daily_results.map(dailyResult => dailyResult.date)
   )
 
   const planningAreaResultsWithDates: PlanningAreaResult[] =
@@ -105,7 +105,7 @@ export async function getHFIResult(
             last_updated: DateTime.fromISO(validatedDaily.daily.last_updated)
           }
         })),
-        date: formatISODateInPST(dr.dateISO)
+        date: formatISODateInPST(dr.date)
       }))
     }))
   return {

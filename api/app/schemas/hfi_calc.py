@@ -79,7 +79,7 @@ class DailyResult(BaseModel):
     """
     Prep level, MIG, fire starts and station daily results for a day in a prep week
     """
-    dateISO: str
+    date: date
     dailies: List[ValidatedStationDaily]
     fire_starts: FireStartRange
     mean_intensity_group: Optional[float]
