@@ -24,7 +24,7 @@ export interface DailyResult {
 }
 
 export interface RawDailyResult {
-  dateISO: string
+  date: string
   dailies: RawValidatedStationDaily[]
   mean_intensity_group: number | undefined
   prep_level: number | undefined

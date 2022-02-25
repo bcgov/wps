@@ -15,7 +15,8 @@ from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
 from app.db.crud.hfi_calc import (get_fire_weather_stations,
-                                  get_most_recent_updated_hfi_request, store_hfi_request)
+                                  get_most_recent_updated_hfi_request, store_hfi_request,
+                                  get_fire_centre_stations)
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_lookup_fuel_types,
                                        get_stations_by_codes)
@@ -109,8 +110,26 @@ async def get_hfi_results(request: HFIResultRequest,
             header = await get_auth_header(session)
             # TODO: Enable when fuel type config implemented
             # selected_station_codes = extract_selected_stations(request)
+
+            with get_read_session_scope() as orm_session:
+                # Fetching dailies is an expensive operation. When a user is clicking an unclicking stations
+                # in the front end, we'd prefer to not change the the call that's going to wfwx so that we can
+                # use cached values. So we don't actually filter out the "selected" stations, but rather go
+                # get all the stations for this fire centre.
+                fire_centre_stations = get_fire_centre_stations(orm_session, request.selected_fire_center_id)
+                fire_centre_station_code_ids = []
+                area_station_map = {}
+                for station in fire_centre_stations:
+                    fire_centre_station_code_ids.append(station.station_code)
+                    if not station.planning_area_id in area_station_map:
+                        area_station_map[station.planning_area_id] = []
+                    area_station_map[station.planning_area_id].append(station)
+
             wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
-                session, header, request.selected_station_code_ids)
+                session, header, fire_centre_station_code_ids)
+
+            # TODO: we could get the fuel types along with the fire_centre stations, and reduce
+            # the number of database calls.
             dailies = await get_dailies_lookup_fuel_types(
                 session, header, wfwx_stations, start_timestamp, end_timestamp)
             prep_delta = valid_end_date - valid_start_date  # num prep days is inclusive
@@ -118,12 +137,12 @@ async def get_hfi_results(request: HFIResultRequest,
             # calculate_hfi_results easier. (adding session in there, results in the entire function
             # being indented, which makes code review difficult.) Please move session back into
             # function in isolated pr.
-            with get_read_session_scope() as orm_session:
-                results = calculate_hfi_results(request.selected_fire_center_id,
-                                                request.planning_area_fire_starts,
-                                                dailies, prep_delta.days,
-                                                request.selected_station_code_ids,
-                                                orm_session)
+
+            results = calculate_hfi_results(request.planning_area_fire_starts,
+                                            dailies, prep_delta.days,
+                                            request.selected_station_code_ids,
+                                            area_station_map,
+                                            valid_start_date)
         response = HFIResultResponse(
             selected_prep_date=selected_prep_date,
             start_date=start_timestamp,
