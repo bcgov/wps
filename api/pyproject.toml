@@ -33,6 +33,8 @@ rpy2 = "^3.4.5"
 redis = "^4.0.0"
 pyjnius = "^1.3.0"
 hiredis = "^2.0.0"
+openpyxl = "^3.0.9"
+pdfkit = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6"
