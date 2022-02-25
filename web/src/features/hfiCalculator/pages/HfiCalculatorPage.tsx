@@ -89,6 +89,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const newEndDate = DateTime.fromISO(result.start_date + PST_ISO_TIMEZONE)
         .plus({ days: numDays })
         .toJSDate()
+      console.log('dispatch fetchHFIResult, due to setNumPrepDays.')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -105,6 +106,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const setSelected = (newSelected: number[]) => {
     if (!isUndefined(result)) {
       dispatch(setSaved(false))
+      console.log('dispatch fetchHFIResult, due to setSelected.')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: newSelected,
@@ -127,6 +129,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const newPlanningAreaFireStarts = cloneDeep(result.planning_area_fire_starts)
       newPlanningAreaFireStarts[areaId][dayOffset] = { ...newFireStarts }
       dispatch(setSaved(false))
+      console.log('dispatch fetchHFIResult, due to setNewFireStarts.')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -140,10 +143,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
+  const getBrowserCurrentDate = () => {
+    return pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+  }
+
   const getTheDate = () => {
     if (isUndefined(result)) {
       // No result! Grab the current date.
-      return pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+      return getBrowserCurrentDate()
     }
     if (isUndefined(result.selected_prep_date)) {
       // Result didn't come with prep date.
@@ -207,15 +214,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const stationCodes = selectedFireCentre.planning_areas.flatMap(area =>
         area.stations.map(station => station.code)
       )
-      setSelected(union(stationCodes))
-
+      console.log('dispatch fetchHFIResult, due to selectedFireCentre change.')
       dispatch(
         fetchHFIResult({
-          start_date: result?.start_date,
-          end_date: result?.end_date,
+          start_date: undefined,
+          end_date: undefined,
           selected_station_code_ids: stationCodes,
           selected_fire_center_id: selectedFireCentre.id,
-          planning_area_fire_starts: result ? result.planning_area_fire_starts : {}
+          planning_area_fire_starts: {}
         })
       )
     }
@@ -242,6 +248,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const handleSaveClicked = () => {
     dispatch(setSaved(true)) // TODO: remove this, we'll set state based on the response.
     if (!isUndefined(result)) {
+      console.log('dispatch fetchHFIResult, due to handleSaveClicked change.')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
