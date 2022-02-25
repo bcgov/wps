@@ -134,9 +134,6 @@ coverage-reports
 # Sonar-scanner
 .scannerwork
 
-# Jupyter notebooks
-*.ipynb
-
 # Temporary files
 tmp/
 
