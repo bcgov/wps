@@ -1,5 +1,6 @@
 """ Routers for HFI Calculator """
 import logging
+import json
 import math
 from datetime import date, timedelta
 from typing import List, Optional
@@ -36,7 +37,7 @@ def load_request(request: HFIResultRequest) -> HFIResultRequest:
         with app.db.database.get_read_session_scope() as session:
             stored_request = get_most_recent_updated_hfi_request(session, request.selected_fire_center_id)
             if stored_request:
-                return HFIResultRequest.parse_obj(stored_request.request)
+                return HFIResultRequest.parse_obj(json.loads(stored_request.request))
     return request
 
 
@@ -98,9 +99,11 @@ async def get_hfi_results(request: HFIResultRequest,
         end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
 
         selected_prep_date = request.selected_prep_date
-        if selected_prep_date is None \
-                or selected_prep_date < valid_start_date or selected_prep_date > valid_end_date:
-            selected_prep_date = valid_start_date
+        if not selected_prep_date is None:
+            # If a selected prep date has been specified, check to see if it's valid.
+            if selected_prep_date < valid_start_date or selected_prep_date > valid_end_date:
+                # The selected date is invalid, so we set it to None.
+                selected_prep_date = None
 
         async with ClientSession() as session:
             header = await get_auth_header(session)

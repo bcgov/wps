@@ -22,7 +22,7 @@ import SaveButton from 'features/hfiCalculator/components/SaveButton'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { formControlStyles, theme } from 'app/theme'
-import { PST_UTC_OFFSET } from 'utils/constants'
+import { PST_UTC_OFFSET, PST_ISO_TIMEZONE } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
@@ -73,13 +73,20 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { numPrepDays, selectedPrepDate, result, selectedFireCentre, loading, saved } =
     useSelector(selectHFICalculatorState)
 
+  const prepareSelectedPrepDate = (selectedPrepDate: string): Date | undefined => {
+    if (selectedPrepDate == '' || isNull(selectedPrepDate)) {
+      return undefined
+    }
+    return DateTime.fromISO(selectedPrepDate).toJSDate()
+  }
+
   const setNumPrepDays = (numDays: number) => {
     // if the number of prep days change, we need to unset the selected prep day - it
     // could be that the selected prep day no longer falls into the prep period.
     if (!isUndefined(result)) {
       dispatch(setSelectedPrepDate(''))
       dispatch(setSaved(false))
-      const newEndDate = DateTime.fromISO(result.start_date + 'T00:00-08:00')
+      const newEndDate = DateTime.fromISO(result.start_date + PST_ISO_TIMEZONE)
         .plus({ days: numDays })
         .toJSDate()
       dispatch(
@@ -87,7 +94,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
-          selected_prep_date: result.selected_prep_date.toJSDate(),
+          selected_prep_date: prepareSelectedPrepDate(selectedPrepDate),
           start_date: result.start_date,
           end_date: newEndDate.toISOString().split('T')[0]
         })
@@ -103,7 +110,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_station_code_ids: newSelected,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
-          selected_prep_date: result.selected_prep_date.toJSDate(),
+          selected_prep_date: prepareSelectedPrepDate(selectedPrepDate),
           start_date: result.start_date,
           end_date: result.end_date
         })
@@ -125,7 +132,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: newPlanningAreaFireStarts,
-          selected_prep_date: result.selected_prep_date.toJSDate(),
+          selected_prep_date: prepareSelectedPrepDate(selectedPrepDate),
           start_date: result.start_date,
           end_date: result.end_date
         })
@@ -133,10 +140,21 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
+  const getTheDate = () => {
+    if (isUndefined(result)) {
+      // No result! Grab the current date.
+      return pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+    }
+    if (isUndefined(result.selected_prep_date)) {
+      // Result didn't come with prep date.
+      return ''
+    }
+    // Convert string to date object.
+    return pstFormatter(result.selected_prep_date)
+  }
+
   // the DatePicker component requires dateOfInterest to be in string format
-  const [dateOfInterest, setDateOfInterest] = useState(
-    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
-  )
+  const [dateOfInterest, setDateOfInterest] = useState(getTheDate())
 
   const updateDate = (newDate: string) => {
     if (
@@ -152,7 +170,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
-          selected_prep_date: result.selected_prep_date.toJSDate(),
+          selected_prep_date: prepareSelectedPrepDate(selectedPrepDate),
           start_date: start.toISODate(),
           end_date: end.toISODate()
         })
@@ -211,12 +229,31 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireCentres])
 
+  useEffect(() => {
+    if (!isUndefined(result)) {
+      setDateOfInterest(result.start_date + 'T00:00-08:00')
+    }
+  }, [result, result?.start_date])
+
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))
   }
 
   const handleSaveClicked = () => {
-    dispatch(setSaved(true))
+    dispatch(setSaved(true)) // TODO: remove this, we'll set state based on the response.
+    if (!isUndefined(result)) {
+      dispatch(
+        fetchHFIResult({
+          selected_station_code_ids: result.selected_station_code_ids,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: result.planning_area_fire_starts,
+          selected_prep_date: prepareSelectedPrepDate(selectedPrepDate),
+          start_date: result.start_date,
+          end_date: result.end_date,
+          save: true
+        })
+      )
+    }
   }
 
   return (
