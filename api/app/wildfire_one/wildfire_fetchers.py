@@ -2,7 +2,7 @@
 import math
 import logging
 from datetime import datetime
-from typing import Dict, Generator, Tuple, Final
+from typing import AsyncGenerator, Dict, Generator, Tuple, Final
 import json
 from urllib.parse import urlencode
 from aiohttp.client import ClientSession, BasicAuth
@@ -52,7 +52,7 @@ async def fetch_paged_response_generator(
         content_key: str,
         use_cache: bool = False,
         cache_expiry_seconds: int = 86400
-) -> Generator[dict, None, None]:
+) -> AsyncGenerator[dict, None]:
     """ Asynchronous generator for iterating through responses from the API.
     The response is a paged response, but this generator abstracts that away.
     """
