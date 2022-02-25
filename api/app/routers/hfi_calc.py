@@ -1,16 +1,16 @@
 """ Routers for HFI Calculator """
 import logging
 import json
-import math
 from time import perf_counter
 from datetime import date, timedelta
-from typing import List, Optional, Generator
+from typing import List
 from aiohttp.client import ClientSession
-from fastapi import APIRouter, Response, Depends, Query
+from fastapi import APIRouter, Response, Depends
 from app.db.database import get_read_session_scope
 from app.hfi.hfi import calculate_hfi_results
 import app.utils.time
-from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationDailyResponse
+from time import perf_counter
+from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse
 import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
@@ -23,10 +23,19 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_stations_by_codes,
                                        get_wfwx_stations_from_station_codes,
                                        get_raw_dailies_in_range_generator)
-from app.schemas.hfi_calc import StationDaily
+from app.utils.cffdrs import CFFDRS
 
 
 logger = logging.getLogger(__name__)
+
+# Instantiate the CFFDRS singleton. Binding to R can take quite some time, doing this when our thread
+# starts up will save us some time on requests. On my local machine, it takes about 3 seconds to start
+# up R.
+# The downside to this is that we're increasing the memory footprint of the app.
+start = perf_counter()
+cffdrs = CFFDRS.instance()
+delta = perf_counter() - start
+print(f'saved {delta} seconds by starting CFFDRS now')
 
 no_cache = "max-age=0"  # don't let the browser cache this
 
