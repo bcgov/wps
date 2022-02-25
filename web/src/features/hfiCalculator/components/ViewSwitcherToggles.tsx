@@ -3,14 +3,16 @@ import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab'
 import { range } from 'lodash'
 import { theme } from 'app/theme'
 import React from 'react'
-import { getPrepWeeklyDateRange, toISO } from 'utils/date'
+import { getPrepWeeklyDateRange } from 'utils/date'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { setSelectedPrepDate } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { DateTime } from 'luxon'
+import { pstFormatter } from 'utils/date'
 
 export interface ViewSwitcherTogglesProps {
   testId?: string
-  dateOfInterest: string
+  dateOfInterest: string // TODO: change this to a DateTime object.
 }
 
 const useStyles = makeStyles(() => ({
@@ -43,13 +45,24 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
 
   const { start } = getPrepWeeklyDateRange(props.dateOfInterest)
 
+  const formatDateString = (dateString: string): string => {
+    // Dates get really gross. We don't know what kind of format the date string is coming in as,
+    // since our codebase is all over the place. Until we re-factor everything date related, I'm
+    // putting this in here to make sure we're dealing with ISO string in the PST timezone.
+    if (dateString == '') {
+      return ''
+    }
+    const dtObject: DateTime = DateTime.fromISO(dateString)
+    return pstFormatter(dtObject)
+  }
+
   return (
     <React.Fragment>
       <ToggleButtonGroup
         exclusive
         onChange={handleToggle}
         aria-label="view toggles"
-        value={selectedPrepDate}
+        value={formatDateString(selectedPrepDate)}
         className={classes.toggleGroup}
       >
         <ToggleButton
@@ -71,7 +84,7 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
           return (
             <ToggleButton
               key={i}
-              value={toISO(day)}
+              value={pstFormatter(day)}
               aria-label={`${rowA}. ${rowB}.`}
               data-testid={`daily-toggle-${i}`}
             >

@@ -171,7 +171,7 @@ class HFIResultResponse(BaseModel):
     Response that contains daily data, num prep days, selected station codes,
     selected fire centre, fire starts, HFI results.
     """
-    selected_prep_date: date
+    selected_prep_date: Optional[date]
     start_date: date
     end_date: date
     # TODO: Remove when fuel type config implemented

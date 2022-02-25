@@ -79,6 +79,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
   const { numPrepDays, selectedPrepDate, result } = useSelector(selectHFICalculatorState)
+  console.log('DailyViewTable selectedPrepDate', selectedPrepDate)
 
   const getDailyForDay = (stationCode: number): StationDaily | undefined => {
     const dailiesForStation = getDailiesByStationCode(

@@ -5,6 +5,7 @@ import {
   PlanningAreaResult,
   RawHFIResultResponse
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import 'qs'
 import { stringify } from 'querystring'
@@ -107,10 +108,11 @@ export async function getHFIResult(
         date: formatISODateInPST(dr.dateISO)
       }))
     }))
-  const selectedPrepDateAsDate = formatISODateInPST(data.selected_prep_date)
   return {
     ...data,
-    selected_prep_date: selectedPrepDateAsDate,
+    selected_prep_date: isNull(data.selected_prep_date)
+      ? undefined
+      : formatISODateInPST(data.selected_prep_date),
     planning_area_hfi_results: planningAreaResultsWithDates
   }
 }

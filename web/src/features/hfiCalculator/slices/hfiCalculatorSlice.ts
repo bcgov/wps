@@ -6,6 +6,8 @@ import { getHFIResult, RawDaily, StationDaily } from 'api/hfiCalculatorAPI'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
+import { toISO } from 'utils/date'
+import { isUndefined } from 'lodash'
 
 export interface FireStarts {
   label: string
@@ -50,6 +52,7 @@ export interface HFICalculatorState {
   error: string | null
   numPrepDays: number
   selectedPrepDate: string
+  startDate: string
   planningAreaFireStarts: { [key: string]: FireStarts[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
@@ -58,7 +61,7 @@ export interface HFICalculatorState {
 }
 
 export interface HFIResultResponse {
-  selected_prep_date: DateTime
+  selected_prep_date?: DateTime
   start_date: string
   end_date: string
   selected_station_code_ids: number[]
@@ -137,6 +140,7 @@ const initialState: HFICalculatorState = {
   error: null,
   numPrepDays: NUM_WEEK_DAYS,
   selectedPrepDate: '',
+  startDate: '',
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
   selectedFireCentre: undefined,
@@ -155,13 +159,19 @@ const dailiesSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    setSelectedPrepDate: (state, action: PayloadAction<string>) => {
+    setSelectedPrepDate: (state: HFICalculatorState, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
     },
-    setSelectedFireCentre: (state, action: PayloadAction<FireCentre | undefined>) => {
+    setSelectedFireCentre: (
+      state: HFICalculatorState,
+      action: PayloadAction<FireCentre | undefined>
+    ) => {
       state.selectedFireCentre = action.payload
     },
-    setResult: (state, action: PayloadAction<HFIResultResponse | undefined>) => {
+    setResult: (
+      state: HFICalculatorState,
+      action: PayloadAction<HFIResultResponse | undefined>
+    ) => {
       state.result = action.payload
 
       if (action.payload) {
@@ -169,6 +179,10 @@ const dailiesSlice = createSlice({
         const end = DateTime.fromISO(action.payload.end_date)
         const diff = end.diff(start, ['days']).days
         state.numPrepDays = diff > 0 ? diff : NUM_WEEK_DAYS
+        state.selectedPrepDate = isUndefined(action.payload.selected_prep_date)
+          ? ''
+          : toISO(action.payload.selected_prep_date)
+        state.startDate = action.payload.start_date
       }
 
       state.loading = false
