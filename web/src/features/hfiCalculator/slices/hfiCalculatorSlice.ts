@@ -208,6 +208,7 @@ export const fetchHFIResult =
   (request: HFIResultRequest): AppThunk =>
   async dispatch => {
     try {
+      console.log('fetchHFIResult')
       dispatch(getHFIResultStart())
       const result = await getHFIResult(request)
       dispatch(setResult(result))
