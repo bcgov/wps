@@ -3,14 +3,13 @@ import logging
 import json
 from time import perf_counter
 from datetime import date, timedelta
-from typing import List
+from typing import AsyncGenerator, List
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends
 from app.db.database import get_read_session_scope
 from app.hfi.hfi import calculate_hfi_results
 import app.utils.time
-from time import perf_counter
-from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse
+from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationDaily
 import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
@@ -23,19 +22,10 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_stations_by_codes,
                                        get_wfwx_stations_from_station_codes,
                                        get_raw_dailies_in_range_generator)
-from app.utils.cffdrs import CFFDRS
 
 
 logger = logging.getLogger(__name__)
 
-# Instantiate the CFFDRS singleton. Binding to R can take quite some time, doing this when our thread
-# starts up will save us some time on requests. On my local machine, it takes about 3 seconds to start
-# up R.
-# The downside to this is that we're increasing the memory footprint of the app.
-start = perf_counter()
-cffdrs = CFFDRS.instance()
-delta = perf_counter() - start
-print(f'saved {delta} seconds by starting CFFDRS now')
 
 no_cache = "max-age=0"  # don't let the browser cache this
 
@@ -94,7 +84,15 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
     return stations_codes
 
 
-async def station_daily_generator(raw_daily_generator, wfwx_stations, station_fuel_type_map):
+async def station_daily_generator(raw_daily_generator,
+                                  wfwx_stations,
+                                  station_fuel_type_map) -> AsyncGenerator[StationDaily, None]:
+    """ Generator that yields the daily data for each station.
+
+    We give this function all the puzzle pieces. The raw_daily_generator (reading dailies from
+    wfwx and giving us dictionaries) + wfwx_stations (from wfwx) + station_fuel_type_map (from our db).
+
+    The puzzle pieces are mangled together, and the generator then yields a StationDaily object."""
     station_lookup = {station.wfwx_id: station for station in wfwx_stations}
     fuel_type = None
     cumulative = 0
@@ -106,8 +104,8 @@ async def station_daily_generator(raw_daily_generator, wfwx_stations, station_fu
         delta = perf_counter() - start
         cumulative = cumulative + delta
         yield result
-    # NOTE: Keeping track of the cumulative time here is informative. Calling out to the CFFDRS R library
-    # takes a lot of time. Especially if the R engine is starting up.
+    # NOTE: Keeping track of the cumulative time here is informative for optimizing code.
+    # Calling out to the CFFDRS R library takes a lot of time. Especially if the R engine is starting up.
     logger.info('station_daily_generator cumulative time %f', cumulative)
 
 
@@ -116,6 +114,8 @@ async def get_hfi_results(request: HFIResultRequest,
                           response: Response,
                           token=Depends(authentication_required)):
     """ Returns calculated HFI results for the supplied details in the POST body """
+    # Yes. There are a lot of locals!
+    # pylint: disable=too-many-locals
 
     try:
         logger.info('/hfi-calc/')
