@@ -29,7 +29,6 @@ class CFFDRS():
 
     def __init__(self):
         # pylint: disable=too-many-function-args
-        logger.info('starting up CFFDRS')
         self.cffdrs = app.utils.r_importer.import_cffsdrs()
 
 

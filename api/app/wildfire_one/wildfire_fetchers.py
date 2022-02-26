@@ -2,7 +2,7 @@
 import math
 import logging
 from datetime import datetime
-from typing import AsyncGenerator, Dict, Generator, Tuple, Final
+from typing import AsyncGenerator, Dict, Tuple, Final
 import json
 from urllib.parse import urlencode
 from aiohttp.client import ClientSession, BasicAuth
