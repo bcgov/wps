@@ -73,11 +73,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { numPrepDays, selectedPrepDate, result, selectedFireCentre, loading, saved } =
     useSelector(selectHFICalculatorState)
 
-  const prepareSelectedPrepDate = (selectedPrepDate: string): Date | undefined => {
-    if (selectedPrepDate == '' || isNull(selectedPrepDate)) {
+  const prepareSelectedPrepDate = (isoDateString: string): Date | undefined => {
+    if (isoDateString == '' || isNull(isoDateString)) {
       return undefined
     }
-    return DateTime.fromISO(selectedPrepDate).toJSDate()
+    return DateTime.fromISO(isoDateString).toJSDate()
   }
 
   const setNumPrepDays = (numDays: number) => {

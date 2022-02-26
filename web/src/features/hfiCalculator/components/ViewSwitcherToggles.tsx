@@ -3,12 +3,11 @@ import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab'
 import { range } from 'lodash'
 import { theme } from 'app/theme'
 import React from 'react'
-import { getPrepWeeklyDateRange } from 'utils/date'
+import { getPrepWeeklyDateRange, pstFormatter } from 'utils/date'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { setSelectedPrepDate } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
-import { pstFormatter } from 'utils/date'
 
 export interface ViewSwitcherTogglesProps {
   testId?: string
