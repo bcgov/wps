@@ -51,41 +51,20 @@ kamloops_fc = FireCentre(
 )
 
 
-def test_empty_map_without_fire_centre():
-    """ No fire centre returns empty result """
-    with get_read_session_scope() as session:
-        result = calculate_hfi_results(fire_centre_id=None,
-                                       planning_area_fire_starts={},
-                                       dailies=[],
-                                       num_prep_days=5,
-                                       selected_station_codes=[],
-                                       session=session)
-    assert result == []
-
-
 def test_no_dailies_handled():
     """ No dailies are handled """
-    with get_read_session_scope() as session:
-        result = calculate_hfi_results(fire_centre_id=kamloops_fc.id,
-                                       planning_area_fire_starts={},
-                                       dailies=[],
-                                       num_prep_days=5,
-                                       selected_station_codes=[1, 2],
-                                       session=session)
+    result = calculate_hfi_results(planning_area_fire_starts={},
+                                   dailies=[],
+                                   num_prep_days=5,
+                                   selected_station_codes=[1, 2],
+                                   area_station_map={},
+                                   start_date=datetime.now())
 
     assert result == []
 
 
 def test_requested_fire_starts_unaltered(mocker: MockerFixture):
     """ Fire starts from user request remain unchanged """
-    # def mock_get_fire_centre_stations(session, fire_centre_id):
-    #     """ Returns mocked stations per PlanningAreas """
-    #     return [(hfi_calc_models.PlanningWeatherStation(id=1, planning_area_id=1, station_code=1),
-    #              hfi_calc_models.FuelType(id=1, abbrev='C3', fuel_type_code='C3',
-    #                                       description='C3', percentage_conifer=100, percentage_dead_fir=0)),
-    #             (hfi_calc_models.PlanningWeatherStation(id=2, planning_area_id=2, station_code=2),
-    #             hfi_calc_models.FuelType(id=1, abbrev='C3', fuel_type_code='C3',
-    #                                      description='C3', percentage_conifer=100, percentage_dead_fir=0))]
 
     start_date = datetime.now()
     daily = StationDaily(
@@ -93,8 +72,6 @@ def test_requested_fire_starts_unaltered(mocker: MockerFixture):
         date=start_date,
         intensity_group=1
     )
-    # mocker.patch('app.routers.hfi_calc.get_fire_centre_stations',
-    #              mock_get_fire_centre_stations)
 
     station = hfi_calc_models.PlanningWeatherStation(id=1, planning_area_id=1, station_code=1)
 
