@@ -15,6 +15,7 @@ from app.utils.time import get_hour_20_from_date
 
 
 def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -> List[StationDaily]:
+    """ Return all the dailys for a given date """
     dailies_date_time = get_hour_20_from_date(dailies_date)
     return list(filter(lambda daily: (daily.date == dailies_date_time), area_dailies))
 
