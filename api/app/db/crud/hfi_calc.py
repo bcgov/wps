@@ -24,13 +24,6 @@ def get_all_stations(session: Session) -> CursorResult:
     return session.query(PlanningWeatherStation.station_code).all()
 
 
-def get_planning_areas(session, fire_centre_id: int) -> CursorResult:
-    """ Get all planning areas for the supplied fire centre """
-    return session.query(PlanningArea)\
-        .filter(PlanningArea.fire_centre_id == fire_centre_id)\
-        .order_by(PlanningArea.order_of_appearance_in_list)
-
-
 def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
     """ Get all the stations for a fire centre. """
     return session.query(PlanningWeatherStation, FuelType)\

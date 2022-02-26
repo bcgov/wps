@@ -42,6 +42,12 @@ def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange
         # Initialize with defaults if empty
         if area_id not in planning_area_fire_starts:
             planning_area_fire_starts[area_id] = [lowest_fire_starts for _ in range(num_prep_days)]
+        else:
+            # Handle edge case where the provided planning area fire starts doesn't match the number
+            # of prep days.
+            if len(planning_area_fire_starts[area_id]) < num_prep_days:
+                for _ in range(len(planning_area_fire_starts[area_id]), num_prep_days):
+                    planning_area_fire_starts[area_id].append(lowest_fire_starts)
 
         daily_results: List[DailyResult] = []
         all_dailies_valid: bool = True
