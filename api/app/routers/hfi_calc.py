@@ -18,6 +18,7 @@ from app.db.crud.hfi_calc import (get_fire_weather_stations,
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_lookup_fuel_types,
                                        get_stations_by_codes)
+from jinja2 import Environment, PackageLoader, select_autoescape
 
 
 logger = logging.getLogger(__name__)
@@ -147,6 +148,23 @@ def validate_time_range(start_time_stamp: Optional[int], end_time_stamp: Optiona
         today_start, today_end = app.utils.time.get_pst_today_start_and_end()
         return math.floor(today_start.timestamp() * 1000), math.floor(today_end.timestamp() * 1000)
     return int(start_time_stamp), int(end_time_stamp)
+
+
+# @ router.get('/download-pdf')
+# async def download_pdf():
+
+#     try:
+#         env = Environment(
+#             loader=PackageLoader("yourapp"),
+#             autoescape=select_autoescape()
+#         )
+
+#         template = env.get_template("template1.html")
+
+#         print(template.render(the="variables", go="here"))
+#     except Exception as exc:
+#         logger.critical(exc, exc_info=True)
+#         raise
 
 
 @ router.get('/daily', response_model=StationDailyResponse)

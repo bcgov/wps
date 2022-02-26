@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Prep Cycle Template</title>
+</head>
+<body>
+    <table>
+        <tr>
+            <td></td>
+            <td></td>
+            {% for day in prepDays %}
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <th>{{ day }}</th>
+            {% endfor %}
+            <td></td>
+            <td></td>
+            <td></td>
+            <th>Prep</th>
+        </tr>
+        <tr>
+            <td></td>
+            <td>Elev</td>
+            <td>Fuel Type</td>
+            <td>Grass Cure</td>
+            {% for day in prepDays %}
+                <td>ROS</td>
+                <td>HFI</td>
+                <td>M/FIG</td>
+                <td>Fire Starts</td>
+                <td>Prep</td>
+            {% endfor %}
+            <td>Highest FIG</td>
+            <td>Prep Level</td>
+        </tr>
+        {% for area in planningAreas %}
+            <tr>
+                <td>{{area}}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            {% for station in stations %}
+            <tr>
+
+            </tr>
+            {% endfor %}
+        {% endfor %}
+
+    </table>
+    </body>
+</html>
