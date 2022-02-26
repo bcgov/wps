@@ -261,7 +261,9 @@ async def get_hourly_actuals_all_stations(
     return hourly_actuals
 
 
-async def get_wfwx_stations_from_station_codes(session: ClientSession, header, station_codes: Optional[List[int]]) -> list:
+async def get_wfwx_stations_from_station_codes(session: ClientSession,
+                                               header,
+                                               station_codes: Optional[List[int]]) -> list:
     """ Return the WFWX station ids from WFWX API given a list of station codes. """
 
     # All WFWX stations are requested because WFWX returns a malformed JSON response when too
