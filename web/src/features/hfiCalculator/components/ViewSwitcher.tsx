@@ -9,7 +9,6 @@ import React from 'react'
 
 export interface ViewSwitcherProps {
   testId?: string
-  dateOfInterest: string
   result: HFIResultResponse
   setSelected: (selected: number[]) => void
   setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
@@ -25,7 +24,6 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
           testId="hfi-calc-weekly-table"
           fireCentre={props.selectedFireCentre}
           result={props.result}
-          currentDay={props.dateOfInterest}
           setSelected={props.setSelected}
           setNewFireStarts={props.setNewFireStarts}
         />

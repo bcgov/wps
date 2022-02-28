@@ -7,7 +7,6 @@ import { toISO } from 'utils/date'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { setSelectedPrepDate } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { DateRange } from 'materialui-daterange-picker'
 import { DateTime } from 'luxon'
 
 export interface ViewSwitcherTogglesProps {
@@ -52,7 +51,7 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
   }
 
   return (
-    <React.Fragment>
+    <React.Fragment data-testid={props.testId}>
       <ToggleButtonGroup
         exclusive
         onChange={handleToggle}

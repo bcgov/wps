@@ -71,15 +71,6 @@ export const getPrepDailyDateRange = (
   return { start, end }
 }
 
-export const getDateRange = (
-  isWeeklyView: boolean,
-  dateOfInterest: string
-): { start: DateTime; end: DateTime } => {
-  return isWeeklyView
-    ? getPrepWeeklyDateRange(dateOfInterest)
-    : getPrepDailyDateRange(dateOfInterest)
-}
-
 export const getDaysBetween = (startDate: string, endDate: string): DateTime[] => {
   const start = DateTime.fromISO(startDate)
   const end = DateTime.fromISO(endDate)

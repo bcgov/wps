@@ -32,7 +32,7 @@ router = APIRouter(
 
 def load_request(request: HFIResultRequest) -> HFIResultRequest:
     """ If we need to load the request from the database, we do so. Otherwise we return the request as is. """
-    if request.start_date is None:
+    if request.date_range is None or request.date_range.start_date is None:
         with app.db.database.get_read_session_scope() as session:
             stored_request = get_most_recent_updated_hfi_request(session, request.selected_fire_center_id)
             if stored_request:
@@ -52,11 +52,11 @@ def validate_date_range(date_range: DateRange) -> DateRange:
     """ Sets the start_date to today if it is None.
     Set the end_date to start_date + 7 days, if it is None."""
     # we don't have a start date, default to now.
-    if date_range.start_date is None:
+    if date_range is None or date_range.start_date is None:
         now = app.utils.time.get_pst_now()
         start_date = date(year=now.year, month=now.month, day=now.day)
     # don't have an end date, default to start date + 5 days.
-    if date_range.end_date is None:
+    if date_range is None or date_range.end_date is None:
         end_date = start_date + timedelta(days=5)
     # check if the span exceeds 7, if it does clamp it down to 7 days.
     delta = end_date - start_date
@@ -92,15 +92,15 @@ async def get_hfi_results(request: HFIResultRequest,
         request = load_request(request)
 
         # ensure we have valid start and end dates
-        valid_start_date, valid_end_date = validate_date_range(request.start_date, request.end_date)
+        valid_date_range = validate_date_range(request.date_range)
         # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
-        start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_start_date).timestamp() * 1000)
-        end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
+        start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_date_range.start_date).timestamp() * 1000)
+        end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_date_range.end_date).timestamp() * 1000)
 
         selected_prep_date = request.selected_prep_date
         if selected_prep_date is None \
-                or selected_prep_date < valid_start_date or selected_prep_date > valid_end_date:
-            selected_prep_date = valid_start_date
+                or selected_prep_date < valid_date_range.start_date or selected_prep_date > valid_date_range.end_date:
+            selected_prep_date = valid_date_range.start_date
 
         async with ClientSession() as session:
             header = await get_auth_header(session)
@@ -110,7 +110,7 @@ async def get_hfi_results(request: HFIResultRequest,
                 session, header, request.selected_station_code_ids)
             dailies = await get_dailies_lookup_fuel_types(
                 session, header, wfwx_stations, start_timestamp, end_timestamp)
-            prep_delta = valid_end_date - valid_start_date  # num prep days is inclusive
+            prep_delta = valid_date_range.end_date - valid_date_range.start_date  # num prep days is inclusive
             # NOTE: database session brought to this level in order to make code review of
             # calculate_hfi_results easier. (adding session in there, results in the entire function
             # being indented, which makes code review difficult.) Please move session back into
@@ -121,10 +121,11 @@ async def get_hfi_results(request: HFIResultRequest,
                                                 dailies, prep_delta.days,
                                                 request.selected_station_code_ids,
                                                 orm_session)
+        start_date = date.fromtimestamp(int(start_timestamp / 1000))
+        end_date = date.fromtimestamp(int(end_timestamp / 1000))
         response = HFIResultResponse(
             selected_prep_date=selected_prep_date,
-            start_date=start_timestamp,
-            end_date=end_timestamp,
+            date_range=DateRange(start_date=start_date, end_date=end_date),
             selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,

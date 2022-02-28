@@ -13,7 +13,10 @@ import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { isEmpty, isUndefined, sortBy } from 'lodash'
-import { getDailiesByStationCode } from 'features/hfiCalculator/util'
+import {
+  calculateNumPrepDays,
+  getDailiesByStationCode
+} from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
@@ -27,7 +30,6 @@ import {
 export interface Props {
   fireCentre: FireCentre | undefined
   testId?: string
-  currentDay: string
   result: HFIResultResponse
   setSelected: (selected: number[]) => void
   setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
@@ -75,6 +77,8 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
     props.setSelected(Array.from(selectedSet))
   }
 
+  const numPrepDays = calculateNumPrepDays(dateRange)
+
   return (
     <FireTable
       maxHeight={700}
@@ -83,7 +87,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
     >
       <TableHead>
         <TableRow>
-          <DayHeaders isoDate={props.dateRange.startDate} numPrepDays={numPrepDays} />
+          <DayHeaders dateRange={dateRange} />
           <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>
@@ -248,7 +252,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                       station => station.order_of_appearance_in_planning_area_list
                     ).map(station => {
                       const dailiesForStation = getDailiesByStationCode(
-                        numPrepDays,
                         props.result,
                         station.code
                       )

@@ -4,26 +4,20 @@ import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   FireStarts,
   setSelectedFireCentre,
-  fetchHFIResult,
-  setSelectedPrepDate
+  fetchHFIResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
-import { DateTime } from 'luxon'
 import {
   selectHFIStations,
   selectHFIStationsLoading,
   selectHFICalculatorState
 } from 'app/rootReducer'
-import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui/core'
-import { FileCopyOutlined, CheckOutlined, InfoOutlined } from '@material-ui/icons'
+import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { DateRange } from 'materialui-daterange-picker'
-import { getDateRange, getPrepWeeklyDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { formControlStyles, theme } from 'app/theme'
-import { PST_UTC_OFFSET } from 'utils/constants'
-import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
 import { cloneDeep, isNull, isUndefined, union } from 'lodash'
@@ -65,8 +59,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const dispatch = useDispatch()
   const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const { numPrepDays, selectedPrepDate, result, selectedFireCentre, loading } =
-    useSelector(selectHFICalculatorState)
+  const { selectedPrepDate, result, selectedFireCentre, loading } = useSelector(
+    selectHFICalculatorState
+  )
 
   const setSelected = (newSelected: number[]) => {
     if (!isUndefined(result)) {
@@ -212,13 +207,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             />
 
             <FormControl className={classes.formControl}>
-              <ViewSwitcherToggles dateOfInterest={dateOfInterest} />
+              <ViewSwitcherToggles />
             </FormControl>
 
             <ErrorBoundary>
               <ViewSwitcher
                 selectedFireCentre={selectedFireCentre}
-                dateOfInterest={dateOfInterest}
                 result={result}
                 setSelected={setSelected}
                 setNewFireStarts={setNewFireStarts}

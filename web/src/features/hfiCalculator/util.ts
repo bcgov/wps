@@ -1,7 +1,9 @@
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { groupBy, sortBy, take } from 'lodash'
+import { groupBy, isUndefined, sortBy, take } from 'lodash'
+import { DateTime } from 'luxon'
+import { DateRange } from 'materialui-daterange-picker'
 
 export const getDailiesForArea = (
   area: PlanningArea,
@@ -18,6 +20,15 @@ export const getDailiesForArea = (
 
 export const getZoneFromAreaName = (areaName: string): string => {
   return areaName.slice(-3)
+}
+
+export const calculateNumPrepDays = (dateRange: DateRange): number => {
+  if (!isUndefined(dateRange.startDate) && !isUndefined(dateRange.endDate)) {
+    const start = DateTime.fromJSDate(dateRange.startDate)
+    const end = DateTime.fromJSDate(dateRange.endDate)
+    return end.diff(start, 'days').valueOf()
+  }
+  return 0
 }
 
 export const getDailiesByStationCode = (
@@ -38,7 +49,7 @@ export const getDailiesByStationCode = (
 
   const dailiesForCode = take(
     sortBy(dailiesByCode.get(stationCode), daily => daily.date.toMillis()),
-    numPrepDays
+    calculateNumPrepDays(result.date_range)
   )
 
   return dailiesForCode ? dailiesForCode : []
