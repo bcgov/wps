@@ -37,7 +37,7 @@
         </tr>
         {% for area in planningAreas %}
             <tr>
-                <td>{{area}}</td>
+                <td>{{area['planning_area_id']}}</td>
                 <td></td>
                 <td></td>
                 <td></td>
@@ -69,10 +69,12 @@
                 <td></td>
                 <td></td>
             </tr>
-            {% for station in stations %}
-            <tr>
-
-            </tr>
+            {% for results in area['daily_results'] %}
+                {% for daily in results['dailies'] %}
+                <tr>
+                    <td>{{daily['daily']['code']}}</td>
+                </tr>
+                {% endfor %}
             {% endfor %}
         {% endfor %}
 
