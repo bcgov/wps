@@ -1,5 +1,5 @@
 {
-  "selected_prep_date": "2020-05-21",
+  "selected_prep_date": null,
   "start_date": "2020-05-21",
   "end_date": "2020-05-26",
   "selected_station_code_ids": [
@@ -19,8 +19,8 @@
     {
       "planning_area_id": 1,
       "all_dailies_valid": true,
-      "highest_daily_intensity_group": 1.0,
-      "mean_prep_level": 1.0,
+      "highest_daily_intensity_group": null,
+      "mean_prep_level": null,
       "daily_results": [
         {
           "date": "2020-05-21",

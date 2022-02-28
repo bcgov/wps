@@ -110,13 +110,13 @@ def test_calculate_mean_intensity_empty():
 
 def test_max_mean_intensity_basic():
     """ Calculates max mean intensity of basic case """
-    result = calculate_max_intensity_group([1, 2])
+    result = calculate_max_intensity_group([1, 2], 2)
     assert result == 2
 
 
 def test_max_mean_intensity_empty():
     """ Calculates max mean intensity with empty list """
-    result = calculate_max_intensity_group([])
+    result = calculate_max_intensity_group([], 0)
     assert result == None
 
 

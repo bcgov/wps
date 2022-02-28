@@ -19,8 +19,8 @@
     {
       "planning_area_id": 1,
       "all_dailies_valid": true,
-      "highest_daily_intensity_group": 1.0,
-      "mean_prep_level": 1.0,
+      "highest_daily_intensity_group": null,
+      "mean_prep_level": null,
       "daily_results": [
         {
           "date": "2020-05-21",
