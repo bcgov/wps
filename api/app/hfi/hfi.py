@@ -1,6 +1,4 @@
 """ HFI calculation logic """
-
-from operator import attrgetter
 from statistics import mean
 from typing import Mapping, Optional, List
 from datetime import date, timedelta
@@ -35,7 +33,7 @@ def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange
 
         # Filter list of dailies to include only those for the selected stations and area.
         area_dailies: List[StationDaily] = list(
-            filter(lambda daily:
+            filter(lambda daily, area_station_codes=area_station_codes:
                    (daily.code in area_station_codes and daily.code in selected_station_codes),
                    dailies))
 
