@@ -137,9 +137,7 @@ async def get_hfi_results(request: HFIResultRequest,
                 selected_prep_date = None
 
         async with ClientSession() as session:
-            logger.info('start: get_auth_header')
             header = await get_auth_header(session)
-            logger.info('done: get_auth_header')
             # TODO: Enable when fuel type config implemented
             # selected_station_codes = extract_selected_stations(request)
 
@@ -148,28 +146,21 @@ async def get_hfi_results(request: HFIResultRequest,
                 # in the front end, we'd prefer to not change the the call that's going to wfwx so that we can
                 # use cached values. So we don't actually filter out the "selected" stations, but rather go
                 # get all the stations for this fire centre.
-                logger.info('start: get_fire_centre_stations')
                 fire_centre_stations = get_fire_centre_stations(
                     orm_session, request.selected_fire_center_id)
-                logger.info('done: get_fire_centre_stations')
                 fire_centre_station_code_ids = set()
                 area_station_map = {}
                 station_fuel_type_map = {}
-                logger.info('start: iterate over fire centre stations')
                 for station, fuel_type in fire_centre_stations:
                     fire_centre_station_code_ids.add(station.station_code)
                     if not station.planning_area_id in area_station_map:
                         area_station_map[station.planning_area_id] = []
                     area_station_map[station.planning_area_id].append(station)
                     station_fuel_type_map[station.station_code] = fuel_type
-                logger.info('done: iterate over fire centre stations')
 
-            logger.info('start: get_wfwx_stations_from_station_codes')
             wfwx_stations = await get_wfwx_stations_from_station_codes(
                 session, header, list(fire_centre_station_code_ids))
-            logger.info('done: get_wfwx_stations_from_station_codes')
 
-            logger.info('start: fetch stations and calculate fbp')
             wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
             raw_dailies_generator = await get_raw_dailies_in_range_generator(
                 session, header, wfwx_station_ids, start_timestamp, end_timestamp)
@@ -178,7 +169,6 @@ async def get_hfi_results(request: HFIResultRequest,
             dailies = []
             async for station_daily in dailies_generator:
                 dailies.append(station_daily)
-            logger.info('done: fetch stations and calculate fbp')
 
             prep_delta = valid_end_date - valid_start_date  # num prep days is inclusive
 

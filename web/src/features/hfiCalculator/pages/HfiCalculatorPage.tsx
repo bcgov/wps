@@ -89,7 +89,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const newEndDate = DateTime.fromISO(result.start_date + PST_ISO_TIMEZONE)
         .plus({ days: numDays })
         .toJSDate()
-      console.log('dispatch fetchHFIResult, due to setNumPrepDays.')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -106,7 +105,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const setSelected = (newSelected: number[]) => {
     if (!isUndefined(result)) {
       dispatch(setSaved(false))
-      console.log('dispatch fetchHFIResult, due to setSelected.')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: newSelected,
@@ -129,7 +127,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const newPlanningAreaFireStarts = cloneDeep(result.planning_area_fire_starts)
       newPlanningAreaFireStarts[areaId][dayOffset] = { ...newFireStarts }
       dispatch(setSaved(false))
-      console.log('dispatch fetchHFIResult, due to setNewFireStarts.')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -214,7 +211,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const stationCodes = selectedFireCentre.planning_areas.flatMap(area =>
         area.stations.map(station => station.code)
       )
-      console.log('dispatch fetchHFIResult, due to selectedFireCentre change.')
       dispatch(
         fetchHFIResult({
           start_date: undefined,
@@ -248,7 +244,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const handleSaveClicked = () => {
     dispatch(setSaved(true)) // TODO: remove this, we'll set state based on the response.
     if (!isUndefined(result)) {
-      console.log('dispatch fetchHFIResult, due to handleSaveClicked change.')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
