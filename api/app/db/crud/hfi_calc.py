@@ -25,7 +25,7 @@ def get_all_stations(session: Session) -> CursorResult:
 
 
 def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
-    """ Get all the stations for a fire centre. """
+    """ Get all the stations, along with fuel type for a fire centre. """
     return session.query(PlanningWeatherStation, FuelType)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
         .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)\

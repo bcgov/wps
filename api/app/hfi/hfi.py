@@ -15,7 +15,7 @@ from app.utils.time import get_hour_20_from_date
 
 
 def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -> List[StationDaily]:
-    """ Return all the dailys for a given date """
+    """ Return all the dailies (that's noon, or 20 hours UTC) for a given date """
     dailies_date_time = get_hour_20_from_date(dailies_date)
     return list(filter(lambda daily: (daily.date == dailies_date_time), area_dailies))
 
@@ -33,11 +33,11 @@ def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange
         stations = area_station_map[area_id]
         area_station_codes = list(map(lambda station: (station.station_code), stations))
 
-        area_dailies: List[StationDaily] = sorted(
-            list(filter(lambda daily, area_station_codes=area_station_codes:
-                        (daily.code in area_station_codes and daily.code in selected_station_codes),
-                        dailies)),
-            key=attrgetter('date'))
+        # Filter list of dailies to include only those for the selected stations and area.
+        area_dailies: List[StationDaily] = list(
+            filter(lambda daily:
+                   (daily.code in area_station_codes and daily.code in selected_station_codes),
+                   dailies))
 
         # Initialize with defaults if empty
         if area_id not in planning_area_fire_starts:
