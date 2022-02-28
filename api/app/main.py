@@ -13,6 +13,7 @@ from app import config
 from app import health
 from app import hourlies
 from app.frontend import frontend
+from app.jinja import jinja
 from app.routers import fba, forecasts, fwi_calc, weather_models, c_haines, stations, hfi_calc, fba_calc
 
 
@@ -68,6 +69,7 @@ api = FastAPI(
 app = Starlette()
 
 
+app.mount('/jinja', app=jinja)
 # The order here is important:
 # 1. Mount the /api
 # Technically we could leave the api on the root (/), but then you'd get index.html
