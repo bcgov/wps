@@ -89,12 +89,14 @@ def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange
 def calculate_max_intensity_group(mean_intensity_groups: List[Optional[float]]):
     """ Returns the highest intensity group from a list of values """
     valid_mean_intensity_groups = list(filter(None, mean_intensity_groups))
-    return None if len(valid_mean_intensity_groups) == 0 else max(mean_intensity_groups)
+    # TODO: establish, if there are any invalid intensity groups, do we return None?
+    return None if len(valid_mean_intensity_groups) == 0 else max(valid_mean_intensity_groups)
 
 
 def calculate_mean_prep_level(prep_levels: List[Optional[float]]):
     """ Returns the mean prep level from a list of values """
     valid_prep_levels = list(filter(None, prep_levels))
+    # TODO: establish, if there are any invalid pre levels, do we return None?
     return None if len(valid_prep_levels) == 0 else round(mean(valid_prep_levels))
 
 

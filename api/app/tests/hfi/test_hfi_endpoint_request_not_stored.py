@@ -9,7 +9,7 @@ from pytest_mock import MockFixture
 import app.main
 from app.tests.common import default_mock_client_get
 from app.tests import load_json_file, load_json_file_with_name
-from app.tests.hfi import mock_station_crud, mock_planning_area_crud
+from app.tests.hfi import mock_station_crud
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
@@ -32,7 +32,6 @@ def given_request_none_stored(monkeypatch: pytest.MonkeyPatch, mocker: MockFixtu
 
     # mock out database calls:
     mock_station_crud(monkeypatch)
-    mock_planning_area_crud(monkeypatch)
 
     store_spy = mocker.spy(app.routers.hfi_calc, 'store_hfi_request')
 
