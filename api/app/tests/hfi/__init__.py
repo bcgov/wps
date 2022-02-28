@@ -1,26 +1,6 @@
-import json
-from typing import List
-from pytest_bdd import then
 from app.schemas.shared import FuelType
-from app.db.models.hfi_calc import PlanningWeatherStation, PlanningArea
+from app.db.models.hfi_calc import PlanningWeatherStation
 import app.hfi.hfi
-
-
-def mock_planning_area_crud(monkeypatch):
-
-    def mock_get_planning_areas(session, fire_centre_id):
-        """ Returns mocked PlanningAreas. """
-        return [PlanningArea(id=1, fire_centre_id=1, name='Area 1', order_of_appearance_in_list=1),
-                PlanningArea(id=2, fire_centre_id=1, name='Area 2', order_of_appearance_in_list=2)]
-
-    def mock_get_fire_centre_stations(session, fire_centre_id):
-        """ Returns mocked stations per PlanningAreas """
-        return [PlanningWeatherStation(id=1, planning_area_id=1, station_code=230),
-                PlanningWeatherStation(id=2, planning_area_id=2, station_code=239)]
-
-    monkeypatch.setattr(app.hfi.hfi, 'get_planning_areas', mock_get_planning_areas)
-    monkeypatch.setattr(app.hfi.hfi, 'get_fire_centre_stations',
-                        mock_get_fire_centre_stations)
 
 
 def mock_station_crud(monkeypatch):
