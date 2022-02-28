@@ -35,22 +35,31 @@ router = APIRouter(
 )
 
 
-def load_request(request: HFIResultRequest) -> HFIResultRequest:
-    """ If we need to load the request from the database, we do so. Otherwise we return the request as is. """
+def load_request_from_database(request: HFIResultRequest) -> HFIResultRequest:
+    """ If we need to load the request from the database, we do so.
+
+    Returns:
+        The request object if saved, otherwise None.
+    """
     if request.start_date is None:
         with app.db.database.get_read_session_scope() as session:
             stored_request = get_most_recent_updated_hfi_request(session, request.selected_fire_center_id)
             if stored_request:
                 return HFIResultRequest.parse_obj(json.loads(stored_request.request))
-    return request
+    return None
 
 
-def save_request(request: HFIResultRequest, username: str):
-    """ Save the request to the database (if there's a valid prep period) """
+def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
+    """ Save the request to the database (if there's a valid prep period).
+
+    Returns:
+        True if the request was saved, False otherwise.
+    """
     if request.start_date is not None and request.end_date is not None:
         with app.db.database.get_write_session_scope() as session:
             store_hfi_request(session, request, username)
-    return request
+            return True
+    return False
 
 
 def validate_date_range(start_date: date, end_date: date):
@@ -121,20 +130,17 @@ async def get_hfi_results(request: HFIResultRequest,
         logger.info('/hfi-calc/')
         response.headers["Cache-Control"] = no_cache
 
-        request = load_request(request)
+        stored_request = load_request_from_database(request)
+        request_loaded = False
+        if stored_request:
+            request = stored_request
+            request_loaded = True
 
         # ensure we have valid start and end dates
         valid_start_date, valid_end_date = validate_date_range(request.start_date, request.end_date)
         # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
         start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_start_date).timestamp() * 1000)
         end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
-
-        selected_prep_date = request.selected_prep_date
-        if not selected_prep_date is None:
-            # If a selected prep date has been specified, check to see if it's valid.
-            if selected_prep_date < valid_start_date or selected_prep_date > valid_end_date:
-                # The selected date is invalid, so we set it to None.
-                selected_prep_date = None
 
         async with ClientSession() as session:
             header = await get_auth_header(session)
@@ -178,17 +184,24 @@ async def get_hfi_results(request: HFIResultRequest,
                                             area_station_map,
                                             valid_start_date)
         response = HFIResultResponse(
-            selected_prep_date=selected_prep_date,
             start_date=start_timestamp,
             end_date=end_timestamp,
             selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
             planning_area_hfi_results=results,
-            planning_area_fire_starts=request.planning_area_fire_starts)
+            planning_area_fire_starts=request.planning_area_fire_starts,
+            request_saved=False)
 
-        if request.save is True:
-            save_request(request, token.get('preferred_username', None))
+        request_saved = False
+        if request.save is True and request_loaded == False:
+            # We save the request if we've been asked to, and it we didn't just load it.
+            # It's important to do that load check, otherwise we end up saving the request every time
+            # we load it!
+            save_request_in_database(request, token.get('preferred_username', None))
+            request_saved = True
+        # Indicate in the response if this request is saved in the database.
+        response.request_saved = request_saved or request_loaded
         return response
     except Exception as exc:
         logger.critical(exc, exc_info=True)

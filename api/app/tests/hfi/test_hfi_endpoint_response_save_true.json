@@ -1,5 +1,4 @@
 {
-  "selected_prep_date": "2020-05-21",
   "start_date": "2020-05-21",
   "end_date": "2020-05-26",
   "selected_station_code_ids": [
@@ -200,5 +199,6 @@
         }
       }
     ]
-  }
+  },
+  "request_saved": true
 }
