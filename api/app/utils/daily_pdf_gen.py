@@ -1,17 +1,19 @@
 import pdfkit
 from jinja2 import Template
 
+from app.schemas.hfi_calc import HFIResultResponse
+
 daily_template_path = "api/app/utils/daily_template.html"
 daily_rendered_path = "api/app/utils/daily_rendered.html"
 
 output_file_path = "api/app/utils/out.pdf"
 
 
-def generate_daily_pdf():
+def generate_daily_pdf(result: HFIResultResponse):
     with open(daily_template_path, 'r') as daily_template:
         template = Template(daily_template.read())
         with open(daily_rendered_path, 'w') as new_page:
-            new_page.write(template.render(date='01-01-2022'))
+            new_page.write(template.render(date='01-01-2022', fire_centre_id=result.selected_fire_center_id))
 
     options = {
         'page-size': 'Tabloid'
