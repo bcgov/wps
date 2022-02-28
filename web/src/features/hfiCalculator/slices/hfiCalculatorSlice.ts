@@ -3,7 +3,6 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { getHFIResult, RawDaily, StationDaily } from 'api/hfiCalculatorAPI'
-import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
 import { DateRange } from 'materialui-daterange-picker'
@@ -132,7 +131,7 @@ export const FIRE_STARTS_SET: FireStarts[] = [
 const initialState: HFICalculatorState = {
   loading: false,
   error: null,
-  numPrepDays: NUM_WEEK_DAYS,
+  dateRange: { startDate: undefined, endDate: undefined },
   selectedPrepDate: '',
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
@@ -159,14 +158,6 @@ const dailiesSlice = createSlice({
     },
     setResult: (state, action: PayloadAction<HFIResultResponse | undefined>) => {
       state.result = action.payload
-
-      if (action.payload) {
-        const start = DateTime.fromISO(action.payload.start_date)
-        const end = DateTime.fromISO(action.payload.end_date)
-        const diff = end.diff(start, ['days']).days
-        state.numPrepDays = diff > 0 ? diff : NUM_WEEK_DAYS
-      }
-
       state.loading = false
     }
   }
