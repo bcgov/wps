@@ -32,6 +32,8 @@ def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange
         area_station_codes = list(map(lambda station: (station.station_code), stations))
 
         # Filter list of dailies to include only those for the selected stations and area.
+        # No need to sort by date, we can't trust that the list doesn't have dates missing - so we
+        # have a bit of code that snatches from this list filtering by date.
         area_dailies: List[StationDaily] = list(
             filter(lambda daily, area_station_codes=area_station_codes:
                    (daily.code in area_station_codes and daily.code in selected_station_codes),
