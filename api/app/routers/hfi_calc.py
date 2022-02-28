@@ -152,12 +152,12 @@ async def get_hfi_results(request: HFIResultRequest,
                 fire_centre_stations = get_fire_centre_stations(
                     orm_session, request.selected_fire_center_id)
                 logger.info('done: get_fire_centre_stations')
-                fire_centre_station_code_ids = []
+                fire_centre_station_code_ids = set()
                 area_station_map = {}
                 station_fuel_type_map = {}
                 logger.info('start: iterate over fire centre stations')
                 for station, fuel_type in fire_centre_stations:
-                    fire_centre_station_code_ids.append(station.station_code)
+                    fire_centre_station_code_ids.add(station.station_code)
                     if not station.planning_area_id in area_station_map:
                         area_station_map[station.planning_area_id] = []
                     area_station_map[station.planning_area_id].append(station)
@@ -166,7 +166,7 @@ async def get_hfi_results(request: HFIResultRequest,
 
             logger.info('start: get_wfwx_stations_from_station_codes')
             wfwx_stations = await get_wfwx_stations_from_station_codes(
-                session, header, fire_centre_station_code_ids)
+                session, header, list(fire_centre_station_code_ids))
             logger.info('done: get_wfwx_stations_from_station_codes')
 
             logger.info('start: fetch stations and calculate fbp')
