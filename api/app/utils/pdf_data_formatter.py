@@ -6,6 +6,9 @@ from app.schemas.hfi_calc import HFIResultResponse, PrepCyclePDFData, StationDai
 
 
 def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
+    """ Marshals HFI result into structure that jinja can easily
+        iterate over for generating the prep cycle PDF sheet
+     """
     prep_cycle_pdf_data: List[PrepCyclePDFData] = []
     for area_result in result.planning_area_hfi_results:
         # all validated dailies from planning area result
@@ -32,3 +35,7 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
                                          dailies=areas_by_code_and_date)
         prep_cycle_pdf_data.append(area_pdf_data)
     return prep_cycle_pdf_data
+
+
+def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
+    pass
