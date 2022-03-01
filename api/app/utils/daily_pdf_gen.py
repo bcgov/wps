@@ -13,7 +13,10 @@ def generate_daily_pdf(result: HFIResultResponse):
     with open(daily_template_path, 'r') as daily_template:
         template = Template(daily_template.read())
         with open(daily_rendered_path, 'w') as new_page:
-            new_page.write(template.render(date='01-01-2022', fire_centre_id=result.selected_fire_center_id))
+            jinja_data = result_to_dicts(result)
+
+            new_page.write(template.render(date='01-01-2022',
+                           fire_centre_id=result.selected_fire_center_id))
 
     options = {
         'page-size': 'Tabloid'
@@ -21,3 +24,14 @@ def generate_daily_pdf(result: HFIResultResponse):
 
     return pdfkit.from_file(daily_rendered_path,
                             output_file_path, options)
+
+
+def result_to_dicts(result: HFIResultResponse):
+    jinja_dicts = []
+    for planning_area in result.planning_area_hfi_results:
+        pl = {'planning_area': planning_area.__dict__}
+        for daily_result in planning_area.daily_results:
+            pl['date'] = daily_result.dateISO
+            pl['dailies'] = list(map(lambda x: x.daily.__dict__, daily_result.dailies))
+
+    jinja_dicts.append(pl)
