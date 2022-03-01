@@ -111,8 +111,7 @@ def calculate_mean_intensity(dailies: List[StationDaily]):
     mean_intensity_group = mean(valid_intensity_groups)
     if mean_intensity_group % 1 < 0.8:
         return math.floor(mean_intensity_group)
-    else:
-        return math.ceil(mean_intensity_group)
+    return math.ceil(mean_intensity_group)
 
 def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: FireStartRange):
     """ Returns the prep level based on the MIG and fire starts range """
