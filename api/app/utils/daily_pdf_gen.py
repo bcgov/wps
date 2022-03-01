@@ -1,4 +1,6 @@
+from itertools import groupby
 import pdfkit
+import json
 from jinja2 import Template
 
 from app.schemas.hfi_calc import HFIResultResponse
@@ -13,10 +15,10 @@ def generate_daily_pdf(result: HFIResultResponse):
     with open(daily_template_path, 'r') as daily_template:
         template = Template(daily_template.read())
         with open(daily_rendered_path, 'w') as new_page:
-            jinja_data = result_to_dicts(result)
-
-            new_page.write(template.render(date='01-01-2022',
-                           fire_centre_id=result.selected_fire_center_id))
+            for index, area_result in enumerate(result.planning_area_hfi_results):
+                new_page.write(template.render(
+                    areaResult=area_result.dict(),
+                    fire_centre_id=result.selected_fire_center_id))
 
     options = {
         'page-size': 'Tabloid'
@@ -26,12 +28,36 @@ def generate_daily_pdf(result: HFIResultResponse):
                             output_file_path, options)
 
 
-def result_to_dicts(result: HFIResultResponse):
-    jinja_dicts = []
-    for planning_area in result.planning_area_hfi_results:
-        pl = {'planning_area': planning_area.__dict__}
-        for daily_result in planning_area.daily_results:
-            pl['date'] = daily_result.dateISO
-            pl['dailies'] = list(map(lambda x: x.daily.__dict__, daily_result.dailies))
+class JinjaAreaResult:
+    def __init__(self, date, planning_area_id, dailies, fire_starts, prep_level, mean_intensity_group):
+        self.date = date
+        self.planning_area_id = planning_area_id
+        self.dailies = dailies
+        self.fire_starts = fire_starts
+        self.prep_level = prep_level
+        self.mean_intensity_group = mean_intensity_group
 
-    jinja_dicts.append(pl)
+
+class JinjaAreaResult:
+    def __init__(self, date, planning_area_id, dailies, fire_starts, prep_level, mean_intensity_group):
+        self.date = date
+        self.planning_area_id = planning_area_id
+        self.dailies = dailies
+        self.fire_starts = fire_starts
+        self.prep_level = prep_level
+        self.mean_intensity_group = mean_intensity_group
+
+
+def get_jinja_area_data(result: HFIResultResponse):
+    jinja_dailies = []
+    for area_result in result.planning_area_hfi_results:
+        # Group daily results into lists by date
+        daily_result_by_date = [list(g) for _, g in groupby(
+            area_result.daily_results, lambda daily_result: daily_result.dateISO)]
+
+        jinja_results = list(map(lambda daily_result: (JinjaAreaResult(date=daily_result.dateISO,
+                                                       planning_area_id=area_result.planning_area_id,
+                                                       dailies=daily_result.dailies,
+                                                       prep_level=area_result.mean_prep_level,
+                                                       mean_intensity_group=area_result.highest_daily_intensity_group
+                                                                       )), area_result.daily_results))
