@@ -1,7 +1,7 @@
 import json
-from app.utils.daily_pdf_gen import generate_daily_pdf, get_jinja_area_data
+from app.utils.daily_pdf_gen import generate_daily_pdf
 from app.schemas.hfi_calc import HFIResultResponse
-from app.utils.pdf_gen import response_2_prep_cycle_jinja_format
+from app.utils.pdf_data_formatter import response_2_prep_cycle_jinja_format
 
 
 def test_gen_daily_pdf():
