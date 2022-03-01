@@ -84,7 +84,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
       const prepDateObj = DateTime.fromISO(selectedPrepDate)
       const startDate = DateTime.fromISO(result.start_date + PST_ISO_TIMEZONE)
-      if (prepDateObj <= startDate || prepDateObj >= newEndDate) {
+      if (prepDateObj < startDate || prepDateObj > newEndDate) {
         // we only need to change the selected prep date, the change in prep days would result in the
         // selected date being invalid.
         dispatch(setSelectedPrepDate(''))
@@ -232,7 +232,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   const handleSaveClicked = () => {
-    dispatch(setSaved(true)) // TODO: remove this, we'll set state based on the response.
     if (!isUndefined(result)) {
       console.log('dispatch setSelected (handleSaveClicked)')
       dispatch(
