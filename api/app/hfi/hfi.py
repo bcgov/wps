@@ -109,7 +109,7 @@ def calculate_mean_intensity(dailies: List[StationDaily]):
     if len(valid_intensity_groups) == 0:
         return None
     mean_intensity_group = mean(valid_intensity_groups)
-    if mean_intensity_group % 1 < 0.8:
+    if round(mean_intensity_group % 1, 1) < 0.8:
         return math.floor(mean_intensity_group)
     return math.ceil(mean_intensity_group)
 
