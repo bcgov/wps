@@ -1,8 +1,7 @@
 from functools import reduce
 import json
-from typing import List
 from app.utils.daily_pdf_gen import generate_daily_pdf
-from app.schemas.hfi_calc import HFIResultResponse, StationDaily
+from app.schemas.hfi_calc import HFIResultResponse
 from operator import attrgetter
 from app.utils.pdf_data_formatter import response_2_prep_cycle_jinja_format
 
