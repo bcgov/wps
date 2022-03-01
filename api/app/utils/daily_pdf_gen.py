@@ -15,7 +15,7 @@ def generate_daily_pdf(result: HFIResultResponse):
         template = Template(daily_template.read())
         with open(daily_rendered_path, 'w') as new_page:
             jinja_result = response_2_daily_jinja_format(result)
-            for date, daily_data in jinja_result:
+            for date, daily_data in jinja_result.items():
                 new_page.write(template.render(
                     date=date,
                     daily_data=daily_data,
