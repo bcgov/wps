@@ -157,7 +157,6 @@ const dailiesSlice = createSlice({
       state.loading = false
     },
     setSelectedPrepDate: (state: HFICalculatorState, action: PayloadAction<string>) => {
-      console.log('setSelectedPrepDate', action.payload)
       state.selectedPrepDate = action.payload
     },
     setSelectedFireCentre: (
@@ -178,6 +177,7 @@ const dailiesSlice = createSlice({
         const diff = end.diff(start, ['days']).days
         state.numPrepDays = diff > 0 ? diff : NUM_WEEK_DAYS
         state.startDate = action.payload.start_date
+        state.saved = action.payload.request_saved
       }
 
       state.loading = false
