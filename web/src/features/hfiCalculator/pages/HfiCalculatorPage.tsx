@@ -73,30 +73,37 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { numPrepDays, selectedPrepDate, result, selectedFireCentre, loading, saved } =
     useSelector(selectHFICalculatorState)
 
-  const prepareSelectedPrepDate = (isoDateString: string): Date | undefined => {
-    if (isoDateString == '' || isNull(isoDateString)) {
-      return undefined
-    }
-    return DateTime.fromISO(isoDateString).toJSDate()
-  }
+  // const prepareSelectedPrepDate = (isoDateString: string): Date | undefined => {
+  //   if (isoDateString == '' || isNull(isoDateString)) {
+  //     return undefined
+  //   }
+  //   return DateTime.fromISO(isoDateString).toJSDate()
+  // }
 
   const setNumPrepDays = (numDays: number) => {
     // if the number of prep days change, we need to unset the selected prep day - it
     // could be that the selected prep day no longer falls into the prep period.
     if (!isUndefined(result)) {
-      dispatch(setSelectedPrepDate(''))
       dispatch(setSaved(false))
-      const newEndDate = DateTime.fromISO(result.start_date + PST_ISO_TIMEZONE)
-        .plus({ days: numDays })
-        .toJSDate()
+      const newEndDate = DateTime.fromISO(result.start_date + PST_ISO_TIMEZONE).plus({
+        days: numDays
+      })
+
+      const prepDateObj = DateTime.fromISO(selectedPrepDate)
+      const startDate = DateTime.fromISO(result.start_date + PST_ISO_TIMEZONE)
+      if (prepDateObj <= startDate || prepDateObj >= newEndDate) {
+        // we only need to change the selected prep date, the change in prep days would result in the
+        // selected date being invalid.
+        dispatch(setSelectedPrepDate(''))
+      }
+
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
-          selected_prep_date: prepareSelectedPrepDate(selectedPrepDate),
           start_date: result.start_date,
-          end_date: newEndDate.toISOString().split('T')[0]
+          end_date: newEndDate.toISO().split('T')[0]
         })
       )
     }
@@ -110,7 +117,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_station_code_ids: newSelected,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
-          selected_prep_date: prepareSelectedPrepDate(selectedPrepDate),
           start_date: result.start_date,
           end_date: result.end_date
         })
@@ -132,7 +138,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: newPlanningAreaFireStarts,
-          selected_prep_date: prepareSelectedPrepDate(selectedPrepDate),
           start_date: result.start_date,
           end_date: result.end_date
         })
@@ -144,21 +149,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     return pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
   }
 
-  const getTheDate = () => {
-    if (isUndefined(result)) {
-      // No result! Grab the current date.
-      return getBrowserCurrentDate()
-    }
-    if (isUndefined(result.selected_prep_date)) {
-      // Result didn't come with prep date.
-      return ''
-    }
-    // Convert string to date object.
-    return pstFormatter(result.selected_prep_date)
-  }
-
   // the DatePicker component requires dateOfInterest to be in string format
-  const [dateOfInterest, setDateOfInterest] = useState(getTheDate())
+  const [dateOfInterest, setDateOfInterest] = useState(getBrowserCurrentDate())
 
   const updateDate = (newDate: string) => {
     if (
@@ -174,7 +166,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
-          selected_prep_date: prepareSelectedPrepDate(selectedPrepDate),
           start_date: start.toISODate(),
           end_date: end.toISODate()
         })
@@ -249,7 +240,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
-          selected_prep_date: prepareSelectedPrepDate(selectedPrepDate),
           start_date: result.start_date,
           end_date: result.end_date,
           save: true
