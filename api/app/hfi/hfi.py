@@ -1,6 +1,7 @@
 """ HFI calculation logic """
 
 from itertools import groupby
+import math
 from operator import attrgetter
 from statistics import mean
 from typing import Mapping, Optional, List
@@ -105,8 +106,13 @@ def calculate_mean_intensity(dailies: List[StationDaily]):
     """ Returns the mean intensity group from a list of values """
     intensity_groups = list(map(lambda daily: (daily.intensity_group), dailies))
     valid_intensity_groups = list(filter(None, intensity_groups))
-    return None if len(valid_intensity_groups) == 0 else round(mean(valid_intensity_groups), 1)
-
+    if len(valid_intensity_groups) == 0:
+        return None
+    mean_intensity_group = mean(valid_intensity_groups)
+    if mean_intensity_group % 1 < 0.8:
+        return math.floor(mean_intensity_group)
+    else:
+        return math.ceil(mean_intensity_group)
 
 def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: FireStartRange):
     """ Returns the prep level based on the MIG and fire starts range """
