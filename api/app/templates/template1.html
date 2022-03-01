@@ -3,6 +3,18 @@
 <head>
     <title>Prep Cycle Template</title>
 </head>
+
+<style>
+    .planningArea {
+        background-color:darksalmon;
+        border-bottom: black '1px solid';
+    }
+    .station{
+        background-color: cadetblue;
+        border-bottom: black '1px solid';
+    }
+</style>
+
 <body>
     <table>
         <tr>
@@ -36,7 +48,7 @@
             <td>Prep Level</td>
         </tr>
         {% for area in planningAreas %}
-            <tr>
+            <tr class="planningArea">
                 <td>{{area['planning_area_id']}}</td>
                 <td></td>
                 <td></td>
@@ -70,11 +82,11 @@
                 <td></td>
             </tr>
             {% for results in area['daily_results'] %}
+            <tr class="station">
                 {% for daily in results['dailies'] %}
-                <tr>
                     <td>{{daily['daily']['code']}}</td>
-                </tr>
                 {% endfor %}
+            </tr>
             {% endfor %}
         {% endfor %}
 
