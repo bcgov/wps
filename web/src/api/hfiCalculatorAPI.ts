@@ -5,7 +5,6 @@ import {
   PlanningAreaResult,
   RawHFIResultResponse
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import 'qs'
 import { stringify } from 'querystring'
@@ -84,8 +83,7 @@ export async function getHFIResult(
   request: HFIResultRequest
 ): Promise<HFIResultResponse> {
   const { data } = await axios.post<RawHFIResultResponse>(baseUrl, {
-    ...request,
-    selected_prep_date: request.selected_prep_date?.toISOString().split('T')[0] // Just the date ISO string
+    ...request
   })
 
   data.planning_area_hfi_results.map(areaResult =>
@@ -110,9 +108,6 @@ export async function getHFIResult(
     }))
   return {
     ...data,
-    selected_prep_date: isNull(data.selected_prep_date)
-      ? undefined
-      : formatISODateInPST(data.selected_prep_date),
     planning_area_hfi_results: planningAreaResultsWithDates
   }
 }

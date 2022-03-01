@@ -6,8 +6,6 @@ import { getHFIResult, RawDaily, StationDaily } from 'api/hfiCalculatorAPI'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
-import { toISO } from 'utils/date'
-import { isUndefined } from 'lodash'
 
 export interface FireStarts {
   label: string
@@ -61,27 +59,26 @@ export interface HFICalculatorState {
 }
 
 export interface HFIResultResponse {
-  selected_prep_date?: DateTime
   start_date: string
   end_date: string
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: PlanningAreaResult[]
   planning_area_fire_starts: { [key: number]: FireStarts[] }
+  request_saved: boolean
 }
 
 export interface RawHFIResultResponse {
-  selected_prep_date: string
   start_date: string
   end_date: string
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: RawPlanningAreaResult[]
   planning_area_fire_starts: { [key: number]: FireStarts[] }
+  request_saved: boolean
 }
 
 export interface HFIResultRequest {
-  selected_prep_date?: Date
   start_date?: string
   end_date?: string
   selected_station_code_ids: number[]
@@ -179,9 +176,6 @@ const dailiesSlice = createSlice({
         const end = DateTime.fromISO(action.payload.end_date)
         const diff = end.diff(start, ['days']).days
         state.numPrepDays = diff > 0 ? diff : NUM_WEEK_DAYS
-        state.selectedPrepDate = isUndefined(action.payload.selected_prep_date)
-          ? ''
-          : toISO(action.payload.selected_prep_date)
         state.startDate = action.payload.start_date
       }
 
