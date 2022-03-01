@@ -1,5 +1,6 @@
 from functools import reduce
 from itertools import groupby
+import operator
 from typing import List
 from app.schemas.hfi_calc import HFIResultResponse, PrepCyclePDFData, StationDaily, ValidatedStationDaily
 
@@ -15,8 +16,8 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
         area_dailies: List[StationDaily] = list(map(lambda x: x.daily, area_validated_dailies))
 
         # group dailies by station code
-        area_dailies_by_code: List[List[StationDaily]] = [list(g) for _, g in groupby(
-            area_dailies, lambda area_daily: area_daily.code)]
+        get_attr = operator.attrgetter('code')
+        area_dailies_by_code = [list(g) for _, g in groupby(sorted(area_dailies, key=get_attr), get_attr)]
 
         # for each group, in place sort by date
         for daily_list in area_dailies_by_code:

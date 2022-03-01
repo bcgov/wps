@@ -18,10 +18,8 @@ def generate_prep_pdf(data):
 
     template = Template(html)
 
-    return(data)
-
     with open('/Users/jforeman/Workspace/wps/api/app/utils/rendered_template.html', 'w') as new_page:
-        # new_page.write(template.render(planningAreas=data['planning_area_hfi_results']))
+        new_page.write(template.render(planningAreas=data))
 
         options = {
             'page-size': 'Tabloid'
