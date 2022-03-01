@@ -3,7 +3,7 @@ import logging
 import json
 from time import perf_counter
 from datetime import date, timedelta
-from typing import AsyncGenerator, List
+from typing import AsyncGenerator, List, Optional
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends
 from app.db.database import get_read_session_scope
@@ -35,7 +35,7 @@ router = APIRouter(
 )
 
 
-def load_request_from_database(request: HFIResultRequest) -> HFIResultRequest:
+def load_request_from_database(request: HFIResultRequest) -> Optional[HFIResultRequest]:
     """ If we need to load the request from the database, we do so.
 
     Returns:

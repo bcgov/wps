@@ -157,6 +157,7 @@ const dailiesSlice = createSlice({
       state.loading = false
     },
     setSelectedPrepDate: (state: HFICalculatorState, action: PayloadAction<string>) => {
+      console.log('setSelectedPrepDate', action.payload)
       state.selectedPrepDate = action.payload
     },
     setSelectedFireCentre: (
