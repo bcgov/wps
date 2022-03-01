@@ -27,11 +27,11 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
         # extract just the station daily
         area_dailies: List[StationDaily] = list(map(lambda x: x.daily, area_validated_dailies))
 
-        # Group dailies by station code
+        # group dailies by station code
         area_dailies_by_code: List[List[StationDaily]] = [list(g) for _, g in groupby(
             area_dailies, lambda area_daily: area_daily.code)]
 
-        # For each group, in place sort by date
+        # for each group, in place sort by date
         for daily_list in area_dailies_by_code:
             daily_list.sort(key=lambda x: x.date)
 
