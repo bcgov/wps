@@ -188,3 +188,13 @@ class PrepCyclePDFData(BaseModel):
     planningAreaName: str
     # Station dailies grouped by station code containing the dailies for each day in the prep cycle
     dailies: List[StationDaily]
+
+
+class DailyPDFData(BaseModel):
+    """ Data needed for daily PDF sheet """
+    planning_area_name: str
+    day: int
+    days_total: int
+    date: str
+    # Every station daily in the above planning area for the specific day
+    dailies: List[StationDaily]
