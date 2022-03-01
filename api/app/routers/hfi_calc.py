@@ -195,7 +195,7 @@ async def get_hfi_results(request: HFIResultRequest,
 
         request_saved = False
         if request.save is True and request_loaded is False:
-            # We save the request if we've been asked to, and it we didn't just load it.
+            # We save the request if we've been asked to, and if we didn't just load it.
             # It's important to do that load check, otherwise we end up saving the request every time
             # we load it!
             save_request_in_database(request, token.get('preferred_username', None))
