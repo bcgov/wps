@@ -181,3 +181,10 @@ class HFIResultResponse(BaseModel):
     planning_area_hfi_results: List[PlanningAreaResult]
     # Mapping from planning area id to a map of FireStartRanges
     planning_area_fire_starts: Mapping[int, List[FireStartRange]]
+
+
+class PrepCyclePDFData(BaseModel):
+    """ Data needed for prep cycle PDF sheet """
+    planningAreaName: str
+    # Station dailies grouped by station code containing the dailies for each day in the prep cycle
+    dailies: List[StationDaily]
