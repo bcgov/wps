@@ -112,7 +112,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
           selected_prep_date: result.selected_prep_date.toJSDate(),
-          date_range: newDateRange
+          date_range: {
+            start_date: newDateRange.startDate,
+            end_date: newDateRange.endDate
+          }
         })
       )
     }
