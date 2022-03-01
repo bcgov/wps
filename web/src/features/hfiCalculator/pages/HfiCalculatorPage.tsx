@@ -73,13 +73,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { numPrepDays, selectedPrepDate, result, selectedFireCentre, loading, saved } =
     useSelector(selectHFICalculatorState)
 
-  // const prepareSelectedPrepDate = (isoDateString: string): Date | undefined => {
-  //   if (isoDateString == '' || isNull(isoDateString)) {
-  //     return undefined
-  //   }
-  //   return DateTime.fromISO(isoDateString).toJSDate()
-  // }
-
   const setNumPrepDays = (numDays: number) => {
     // if the number of prep days change, we need to unset the selected prep day - it
     // could be that the selected prep day no longer falls into the prep period.
@@ -97,6 +90,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         dispatch(setSelectedPrepDate(''))
       }
 
+      console.log('dispatch fetchHFIResult (setNumPrepDays)')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -112,6 +106,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const setSelected = (newSelected: number[]) => {
     if (!isUndefined(result)) {
       dispatch(setSaved(false))
+      console.log('dispatch setSelected (setNumPrepDays)')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: newSelected,
@@ -133,6 +128,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const newPlanningAreaFireStarts = cloneDeep(result.planning_area_fire_starts)
       newPlanningAreaFireStarts[areaId][dayOffset] = { ...newFireStarts }
       dispatch(setSaved(false))
+      console.log('dispatch setSelected (setNewFireStarts)')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -161,6 +157,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       setDateOfInterest(newDate)
       const { start, end } = getDateRange(true, newDate)
       dispatch(setSaved(false))
+      console.log('dispatch setSelected (updateDate)')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -202,6 +199,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const stationCodes = selectedFireCentre.planning_areas.flatMap(area =>
         area.stations.map(station => station.code)
       )
+      console.log('dispatch setSelected (useEffect[selectedFireCentre])')
       dispatch(
         fetchHFIResult({
           start_date: undefined,
@@ -224,7 +222,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     if (!isUndefined(result)) {
-      setDateOfInterest(result.start_date + 'T00:00-08:00')
+      // TODO: Ooooh no! HACK! If you be doing string stuff like this, things will break!
+      setDateOfInterest(result.start_date + 'T00:00:00.000-08:00')
     }
   }, [result, result?.start_date])
 
@@ -235,6 +234,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const handleSaveClicked = () => {
     dispatch(setSaved(true)) // TODO: remove this, we'll set state based on the response.
     if (!isUndefined(result)) {
+      console.log('dispatch setSelected (handleSaveClicked)')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -247,6 +247,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       )
     }
   }
+
+  console.log('rendering hfi-calculator-page')
 
   return (
     <main data-testid="hfi-calculator-page">
