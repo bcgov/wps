@@ -42,6 +42,9 @@ def add_security_headers(scope, response):
         # For anything else - force https.
         response.headers.setdefault('Content-Security-Policy', 'upgrade-insecure-requests')
     path = scope.get('path')
+    if (path and path[path.rfind('.'):] in ('.js',))\
+            and response.media_type in ('text/html',):
+        response.headers.setdefault('Content-Type', 'application/javascript')
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
     if (path and path[path.rfind('.'):] in ('.css', '.js', '.png', '.xml', '.svg', '.json', '.txt'))\
             or response.media_type in ('text/html',):
