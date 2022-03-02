@@ -90,7 +90,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         dispatch(setSelectedPrepDate(''))
       }
 
-      console.log('dispatch fetchHFIResult (setNumPrepDays)')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -106,7 +105,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const setSelected = (newSelected: number[]) => {
     if (!isUndefined(result)) {
       dispatch(setSaved(false))
-      console.log('dispatch setSelected (setNumPrepDays)')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: newSelected,
@@ -128,7 +126,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const newPlanningAreaFireStarts = cloneDeep(result.planning_area_fire_starts)
       newPlanningAreaFireStarts[areaId][dayOffset] = { ...newFireStarts }
       dispatch(setSaved(false))
-      console.log('dispatch setSelected (setNewFireStarts)')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -157,7 +154,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       setDateOfInterest(newDate)
       const { start, end } = getDateRange(true, newDate)
       dispatch(setSaved(false))
-      console.log('dispatch setSelected (updateDate)')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -199,7 +195,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const stationCodes = selectedFireCentre.planning_areas.flatMap(area =>
         area.stations.map(station => station.code)
       )
-      console.log('dispatch setSelected (useEffect[selectedFireCentre])')
       dispatch(
         fetchHFIResult({
           start_date: undefined,
@@ -233,7 +228,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const handleSaveClicked = () => {
     if (!isUndefined(result)) {
-      console.log('dispatch setSelected (handleSaveClicked)')
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
@@ -246,8 +240,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       )
     }
   }
-
-  console.log('rendering hfi-calculator-page')
 
   return (
     <main data-testid="hfi-calculator-page">
