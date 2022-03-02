@@ -73,8 +73,7 @@ def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange
             daily_results.append(daily_result)
 
         highest_daily_intensity_group = calculate_max_intensity_group(
-            list(map(lambda daily_result: (daily_result.mean_intensity_group), daily_results)),
-            num_prep_days)
+            list(map(lambda daily_result: (daily_result.mean_intensity_group), daily_results)))
 
         mean_prep_level = calculate_mean_prep_level(
             list(map(lambda daily_result: (daily_result.prep_level), daily_results)),
@@ -90,12 +89,10 @@ def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange
     return planning_area_to_dailies
 
 
-def calculate_max_intensity_group(mean_intensity_groups: List[Optional[float]], num_prep_days: int):
+def calculate_max_intensity_group(mean_intensity_groups: List[Optional[float]]):
     """ Returns the highest intensity group from a list of values """
     valid_mean_intensity_groups = list(filter(None, mean_intensity_groups))
-    if len(valid_mean_intensity_groups) == 0 or len(valid_mean_intensity_groups) != num_prep_days:
-        return None
-    return max(valid_mean_intensity_groups)
+    return None if len(valid_mean_intensity_groups) == 0 else max(valid_mean_intensity_groups)
 
 
 def calculate_mean_prep_level(prep_levels: List[Optional[float]], num_prep_days: int):
