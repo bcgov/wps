@@ -13,52 +13,74 @@ function interceptDaily(fixturePath: string) {
 }
 
 describe('HFI Calculator Page', () => {
-  describe('all data exists', () => {
+  describe('prep period - saved', () => {
     beforeEach(() => {
-      interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
+      interceptDaily('cypress/fixtures/hfi-calc/dailies-saved.json')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
       cy.visit(HFI_CALC_ROUTE)
       cy.selectFireCentreInDropdown('Kamloops')
-      cy.getByTestId('date-of-interest-picker').clear().type('2021-08-04').type('{enter}')
       cy.wait('@getFireCentres')
       cy.wait('@getHFIResults')
-      cy.getByTestId('daily-toggle-0').click({ force: true })
     })
 
-    it('should display Daily View Table after clicking on daily button', () => {
-      cy.getByTestId('hfi-calc-daily-table')
+    it('save button should be enabled', () => {
+      // cypress/fixtures/hfi-calc/dailies-saved.json has "request_saved": true, save button should be looking at that.
+      cy.getByTestId('save-button').should('be.disabled')
     })
-
-    it('should have at least 15 rows in Daily Table View', () => {
-      cy.getByTestId('hfi-calc-daily-table').find('tr').should('have.length.at.least', 15)
-    })
-
-    it('should display weather results, intensity groups, & prep levels in Daily View Table', () => {
-      cy.getByTestId('239-hfi').contains(2655.5)
-      cy.getByTestId('280-ros').contains(1.7)
-      cy.getByTestId('239-1-hr-size').contains(0.5)
-      cy.getByTestId('239-fire-type').contains('SUR')
-      cy.getByTestId('280-fire-type').contains('IC')
-      cy.getByTestId('280-intensity-group').contains(3)
-      cy.getByTestId('zone-1-mean-intensity').contains(2.4)
-      cy.getByTestId('daily-prep-level-1').contains(1)
-      cy.getByTestId('daily-prep-level-1').should($td => {
-        const className = $td[0].className
-        expect(className).to.match(/makeStyles-prepLevel1-/)
+  }),
+    describe('all data exists', () => {
+      beforeEach(() => {
+        interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
+        cy.intercept('GET', 'api/hfi-calc/fire-centres', {
+          fixture: 'hfi-calc/fire_centres.json'
+        }).as('getFireCentres')
+        cy.visit(HFI_CALC_ROUTE)
+        cy.selectFireCentreInDropdown('Kamloops')
+        cy.getByTestId('date-of-interest-picker').clear().type('2021-08-04').type('{enter}')
+        cy.wait('@getFireCentres')
+        cy.wait('@getHFIResults')
+        cy.getByTestId('daily-toggle-0').click({ force: true })
       })
-      cy.getByTestId('daily-prep-level-2').contains(3)
-      cy.getByTestId('daily-prep-level-2').should($td => {
-        expect($td[0].className).to.match(/makeStyles-prepLevel3-/)
+
+      it('save button should be enabled', () => {
+        // cypress/fixtures/hfi-calc/dailies.json does not have "request_saved": true, save button should be looking at that.
+        cy.getByTestId('save-button').should('be.enabled')
+      })
+
+      it('should display Daily View Table after clicking on daily button', () => {
+        cy.getByTestId('hfi-calc-daily-table')
+      })
+
+      it('should have at least 15 rows in Daily Table View', () => {
+        cy.getByTestId('hfi-calc-daily-table').find('tr').should('have.length.at.least', 15)
+      })
+
+      it('should display weather results, intensity groups, & prep levels in Daily View Table', () => {
+        cy.getByTestId('239-hfi').contains(2655.5)
+        cy.getByTestId('280-ros').contains(1.7)
+        cy.getByTestId('239-1-hr-size').contains(0.5)
+        cy.getByTestId('239-fire-type').contains('SUR')
+        cy.getByTestId('280-fire-type').contains('IC')
+        cy.getByTestId('280-intensity-group').contains(3)
+        cy.getByTestId('zone-1-mean-intensity').contains(2.4)
+        cy.getByTestId('daily-prep-level-1').contains(1)
+        cy.getByTestId('daily-prep-level-1').should($td => {
+          const className = $td[0].className
+          expect(className).to.match(/makeStyles-prepLevel1-/)
+        })
+        cy.getByTestId('daily-prep-level-2').contains(3)
+        cy.getByTestId('daily-prep-level-2').should($td => {
+          expect($td[0].className).to.match(/makeStyles-prepLevel3-/)
+        })
+      })
+
+      it('should allow date of interest to be changed with DatePicker component', () => {
+        cy.getByTestId('date-of-interest-picker').type('2021-07-22')
+        cy.getByTestId('hfi-calc-daily-table').click({ force: true })
       })
     })
-
-    it('should allow date of interest to be changed with DatePicker component', () => {
-      cy.getByTestId('date-of-interest-picker').type('2021-07-22')
-      cy.getByTestId('hfi-calc-daily-table').click({ force: true })
-    })
-  })
   describe('dailies data are missing', () => {
     beforeEach(() => {
       interceptDaily('cypress/fixtures/hfi-calc/dailies-missing.json')

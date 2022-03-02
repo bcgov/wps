@@ -20,6 +20,7 @@ const SaveButton = (props: SaveButtonProps) => {
         disabled={props.saved}
         className={classes.button}
         onClick={props.onClick}
+        data-testid={'save-button'}
       >
         Save changes
       </Button>
