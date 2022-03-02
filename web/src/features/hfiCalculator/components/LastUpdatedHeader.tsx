@@ -21,7 +21,8 @@ const useStyles = makeStyles({
   },
   headerText: {
     marginLeft: '5px',
-    marginTop: '6px'
+    marginTop: '6px',
+    fontSize: '14px'
   }
 })
 

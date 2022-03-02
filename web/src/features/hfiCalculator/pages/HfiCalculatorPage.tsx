@@ -18,7 +18,6 @@ import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { getDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
-import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { formControlStyles, theme } from 'app/theme'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
@@ -216,6 +215,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fireCentres={fireCentres}
         dateOfInterest={dateOfInterest}
         updateDate={updateDate}
+        result={result}
         selectedFireCentre={selectedFireCentre}
         selectNewFireCentre={selectNewFireCentre}
         padding="1rem"
@@ -230,13 +230,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             {!isNull(fireCentresError) && (
               <HFIErrorAlert hfiDailiesError={null} fireCentresError={fireCentresError} />
             )}
-            <LastUpdatedHeader
-              dailies={result?.planning_area_hfi_results.flatMap(areaResult =>
-                areaResult.daily_results.flatMap(dailyResult =>
-                  dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
-                )
-              )}
-            />
             <FormControl className={classes.prepDays}>
               <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
             </FormControl>
