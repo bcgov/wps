@@ -338,7 +338,7 @@ def calculate_fire_behaviour_prediction(latitude: float,  # pylint: disable=too-
         cfl=cfl)
 
 
-# TODO: this doesn't belong in wildfire_one - it's doing fire behaviour calcutions
+# TODO: this doesn't belong in wildfire_one - it's doing fire behaviour calculations
 def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
                            station: WFWXWeatherStation,
                            fuel_type: FuelType) -> StationDaily:
