@@ -193,6 +193,8 @@ class PrepCyclePDFData(BaseModel):
 class DailyPDFData(BaseModel):
     """ Data needed for daily PDF sheet """
     planning_area_name: str
+    mean_prep_level: float
+    fire_starts: str
     day: int
     days_total: int
     date: str
