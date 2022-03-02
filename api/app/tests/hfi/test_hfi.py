@@ -1,5 +1,5 @@
 """ Unit testing for hfi logic """
-from datetime import datetime
+from datetime import date, datetime
 
 from pytest_mock import MockerFixture
 from app.db.database import get_read_session_scope
@@ -107,6 +107,44 @@ def test_calculate_mean_intensity_empty():
     result = calculate_mean_intensity([])
     assert result == None
 
+def test_calculate_mean_intensity_round_down():
+    """ Calculates mean intensity and rounds result down because decimal is below x.8 """
+    daily1 = StationDaily(code=1, date=datetime.now(), intensity_group=1)
+    daily2 = StationDaily(code=2, date=datetime.now(), intensity_group=3)
+    daily3 = StationDaily(code=3, date=datetime.now(), intensity_group=4)
+    # mean is 2.66666667
+    result = calculate_mean_intensity([daily1, daily2, daily3])
+    assert result == 2
+
+def test_calculate_mean_intensity_round_up():
+    """ Calculates mean intensity and rounds result up because decimal is at x.8 """
+    daily1 = StationDaily(code=1, date=datetime.now(), intensity_group=2)
+    daily2 = StationDaily(code=2, date=datetime.now(), intensity_group=4)
+    daily3 = StationDaily(code=3, date=datetime.now(), intensity_group=4)
+    daily4 = StationDaily(code=4, date=datetime.now(), intensity_group=4)
+    daily5 = StationDaily(code=5, date=datetime.now(), intensity_group=5)
+    # mean is 3.8
+    result = calculate_mean_intensity([daily1, daily2, daily3, daily4, daily5])
+    assert result == 4
+
+def test_calculate_mean_intensity_round_up_2():
+    """ Calculates mean intensity and rounds result up because decimal is above x.8 """
+    daily1 = StationDaily(code=1, date=datetime.now(), intensity_group=2)
+    daily2 = StationDaily(code=2, date=datetime.now(), intensity_group=4)
+    daily3 = StationDaily(code=3, date=datetime.now(), intensity_group=4)
+    daily4 = StationDaily(code=4, date=datetime.now(), intensity_group=4)
+    daily5 = StationDaily(code=5, date=datetime.now(), intensity_group=4)
+    daily6 = StationDaily(code=6, date=datetime.now(), intensity_group=5)
+    # mean is 3.83
+    result = calculate_mean_intensity([daily1, daily2, daily3, daily4, daily5, daily6])
+    assert result == 4
+
+def test_calculate_mean_intensity_perfect_divisor():
+    """ Calculates mean intensity, shouldn't need to round """
+    daily1 = StationDaily(code=1, date=datetime.now(), intensity_group=2)
+    daily2 = StationDaily(code=2, date=datetime.now(), intensity_group=2)
+    result = calculate_mean_intensity([daily1, daily2])
+    assert result == 2
 
 def test_max_mean_intensity_basic():
     """ Calculates max mean intensity of basic case """
