@@ -60,7 +60,6 @@ const useStyles = makeStyles(() => ({
   saveButton: {
     margin: theme.spacing(1),
     float: 'right'
-    // TODO: figure out vertical alignment
   }
 }))
 

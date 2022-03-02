@@ -148,6 +148,7 @@ async def get_hfi_results(request: HFIResultRequest,
             # selected_station_codes = extract_selected_stations(request)
 
             with get_read_session_scope() as orm_session:
+                # TODO: move this code to app.hfi (in order to simplify the router)
                 # Fetching dailies is an expensive operation. When a user is clicking an unclicking stations
                 # in the front end, we'd prefer to not change the the call that's going to wfwx so that we can
                 # use cached values. So we don't actually filter out the "selected" stations, but rather go
@@ -193,6 +194,7 @@ async def get_hfi_results(request: HFIResultRequest,
             planning_area_fire_starts=request.planning_area_fire_starts,
             request_saved=False)
 
+        # TODO: move this to own function, as part of refactor app.hfi
         request_saved = False
         if request.save is True and request_loaded is False:
             # We save the request if we've been asked to, and if we didn't just load it.
