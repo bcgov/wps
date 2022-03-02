@@ -107,6 +107,7 @@ def test_calculate_mean_intensity_empty():
     result = calculate_mean_intensity([])
     assert result == None
 
+
 def test_calculate_mean_intensity_round_down():
     """ Calculates mean intensity and rounds result down because decimal is below x.8 """
     daily1 = StationDaily(code=1, date=datetime.now(), intensity_group=1)
@@ -115,6 +116,7 @@ def test_calculate_mean_intensity_round_down():
     # mean is 2.66666667
     result = calculate_mean_intensity([daily1, daily2, daily3])
     assert result == 2
+
 
 def test_calculate_mean_intensity_round_up():
     """ Calculates mean intensity and rounds result up because decimal is at x.8 """
@@ -126,6 +128,7 @@ def test_calculate_mean_intensity_round_up():
     # mean is 3.8
     result = calculate_mean_intensity([daily1, daily2, daily3, daily4, daily5])
     assert result == 4
+
 
 def test_calculate_mean_intensity_round_up_2():
     """ Calculates mean intensity and rounds result up because decimal is above x.8 """
@@ -139,6 +142,7 @@ def test_calculate_mean_intensity_round_up_2():
     result = calculate_mean_intensity([daily1, daily2, daily3, daily4, daily5, daily6])
     assert result == 4
 
+
 def test_calculate_mean_intensity_perfect_divisor():
     """ Calculates mean intensity, shouldn't need to round """
     daily1 = StationDaily(code=1, date=datetime.now(), intensity_group=2)
@@ -146,16 +150,23 @@ def test_calculate_mean_intensity_perfect_divisor():
     result = calculate_mean_intensity([daily1, daily2])
     assert result == 2
 
+
 def test_max_mean_intensity_basic():
     """ Calculates max mean intensity of basic case """
-    result = calculate_max_intensity_group([1, 2], 2)
+    result = calculate_max_intensity_group([1, 2])
     assert result == 2
 
 
 def test_max_mean_intensity_empty():
     """ Calculates max mean intensity with empty list """
-    result = calculate_max_intensity_group([], 0)
+    result = calculate_max_intensity_group([])
     assert result == None
+
+
+def test_max_mean_intensity_with_none():
+    """ Calculates max mean intensity when we don't have values for all days """
+    result = calculate_max_intensity_group([1, None, 2])
+    assert result == 2
 
 
 def test_calculate_prep_level_empty():
