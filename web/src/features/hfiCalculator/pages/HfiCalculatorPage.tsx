@@ -234,7 +234,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           planning_area_fire_starts: result.planning_area_fire_starts,
           start_date: result.start_date,
           end_date: result.end_date,
-          save: true
+          persist_request: true
         })
       )
     }

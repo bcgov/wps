@@ -192,18 +192,18 @@ async def get_hfi_results(request: HFIResultRequest,
             selected_fire_center_id=request.selected_fire_center_id,
             planning_area_hfi_results=results,
             planning_area_fire_starts=request.planning_area_fire_starts,
-            request_saved=False)
+            request_persist_success=False)
 
         # TODO: move this to own function, as part of refactor app.hfi
-        request_saved = False
-        if request.save is True and request_loaded is False:
+        request_persist_success = False
+        if request.persist_request is True and request_loaded is False:
             # We save the request if we've been asked to, and if we didn't just load it.
             # It's important to do that load check, otherwise we end up saving the request every time
             # we load it!
             save_request_in_database(request, token.get('preferred_username', None))
-            request_saved = True
+            request_persist_success = True
         # Indicate in the response if this request is saved in the database.
-        response.request_saved = request_saved or request_loaded
+        response.request_persist_success = request_persist_success or request_loaded
         return response
     except Exception as exc:
         logger.critical(exc, exc_info=True)
