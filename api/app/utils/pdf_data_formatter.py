@@ -38,6 +38,7 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
         area_pdf_data = PrepCyclePDFData(planningAreaName=area_result.planning_area_id,
                                          dailies=areas_by_code_and_date)
         prep_cycle_pdf_data.append(area_pdf_data)
+
     return prep_cycle_pdf_data
 
 
