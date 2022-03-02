@@ -65,7 +65,7 @@ export interface HFIResultResponse {
   selected_fire_center_id: number
   planning_area_hfi_results: PlanningAreaResult[]
   planning_area_fire_starts: { [key: number]: FireStarts[] }
-  request_saved: boolean
+  request_persist_success: boolean
 }
 
 export interface RawHFIResultResponse {
@@ -75,7 +75,7 @@ export interface RawHFIResultResponse {
   selected_fire_center_id: number
   planning_area_hfi_results: RawPlanningAreaResult[]
   planning_area_fire_starts: { [key: number]: FireStarts[] }
-  request_saved: boolean
+  request_persist_success: boolean
 }
 
 export interface HFIResultRequest {
@@ -84,7 +84,7 @@ export interface HFIResultRequest {
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_fire_starts: { [key: number]: FireStarts[] }
-  save?: boolean
+  persist_request?: boolean
 }
 
 export interface ValidatedStationDaily {
@@ -177,7 +177,7 @@ const dailiesSlice = createSlice({
         const diff = end.diff(start, ['days']).days
         state.numPrepDays = diff > 0 ? diff : NUM_WEEK_DAYS
         state.startDate = action.payload.start_date
-        state.saved = action.payload.request_saved
+        state.saved = action.payload.request_persist_success
       }
 
       state.loading = false

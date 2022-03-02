@@ -162,7 +162,7 @@ class HFIResultRequest(BaseModel):
     selected_fire_center_id: int
     # Mapping from planning area id to a map of FireStartRanges.
     planning_area_fire_starts: Mapping[int, List[FireStartRange]]
-    save: Optional[bool]  # Indicate whether to save the request to the database.
+    persist_request: Optional[bool]  # Indicate whether to save the request to the database.
 
 
 class HFIResultResponse(BaseModel):
@@ -179,4 +179,5 @@ class HFIResultResponse(BaseModel):
     planning_area_hfi_results: List[PlanningAreaResult]
     # Mapping from planning area id to a map of FireStartRanges
     planning_area_fire_starts: Mapping[int, List[FireStartRange]]
-    request_saved: bool  # Indicate whether the request was saved to the database.
+    # Indicate whether the request used to generate this response  was saved to the database.
+    request_persist_success: bool

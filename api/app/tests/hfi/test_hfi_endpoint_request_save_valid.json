@@ -15,5 +15,5 @@
   ],
   "selected_fire_center_id": 1,
   "planning_area_fire_starts": {},
-  "save": true
+  "persist_request": true
 }
