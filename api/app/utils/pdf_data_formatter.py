@@ -41,7 +41,7 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
     return prep_cycle_pdf_data
 
 
-def response_2_daily_jinja_format(result: HFIResultResponse):
+def response_2_daily_jinja_format(result: HFIResultResponse) -> dict[str, List[DailyPDFData]]:
     """ Marshals HFI result into structure that jinja can easily
         iterate over for generating the daily PDF sheets
      """
