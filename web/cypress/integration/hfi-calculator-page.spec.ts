@@ -24,7 +24,7 @@ describe('HFI Calculator Page', () => {
       cy.wait('@getFireCentres')
       cy.wait('@getHFIResults')
     })
-    it('save button should be enabled', () => {
+    it('save button should be disable', () => {
       // cypress/fixtures/hfi-calc/dailies-saved.json has "request_saved": true, save button should be looking at that.
       cy.getByTestId('save-button').should('be.disabled')
     })
