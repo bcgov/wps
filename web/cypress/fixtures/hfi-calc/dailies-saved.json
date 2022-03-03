@@ -3412,5 +3412,6 @@
         }
       }
     ]
-  }
+  },
+  "request_persist_success": true
 }

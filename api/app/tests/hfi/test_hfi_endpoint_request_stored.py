@@ -1,4 +1,5 @@
 from typing import Tuple
+import json
 import pytest
 from pytest_bdd import scenario, given
 from fastapi.testclient import TestClient
@@ -35,7 +36,7 @@ def given_request_have_one_stored(monkeypatch,
 
     def mock_get_most_recent_updated_hfi_request(_, __):
         """ Returns mocked WFWXWeatherStation with fuel types. """
-        return HFIRequest(request=stored_request_json)
+        return HFIRequest(request=json.dumps(stored_request_json))
 
     monkeypatch.setattr(app.routers.hfi_calc, 'get_most_recent_updated_hfi_request',
                         mock_get_most_recent_updated_hfi_request)
