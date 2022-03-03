@@ -177,10 +177,11 @@ async def get_hfi_results(request: HFIResultRequest,
             async for station_daily in dailies_generator:
                 dailies.append(station_daily)
 
-            prep_delta = valid_end_date - valid_start_date  # num prep days is inclusive
+            prep_delta = valid_end_date - valid_start_date
+            prep_days = prep_delta.days + 1  # num prep days is inclusive
 
             results = calculate_hfi_results(request.planning_area_fire_starts,
-                                            dailies, prep_delta.days,
+                                            dailies, prep_days,
                                             request.selected_station_code_ids,
                                             area_station_map,
                                             valid_start_date)
