@@ -111,7 +111,7 @@ parameters:
   - name: GUNICORN_TIMEOUT
     description: Workers silent for more than this many seconds are killed and restarted. (https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout)
     required: True
-    value: "120"
+    value: "180"
 objects:
   - kind: ConfigMap
     apiVersion: v1
