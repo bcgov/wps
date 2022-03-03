@@ -24,6 +24,7 @@ def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]
             for station in planning_area.stations:
                 station_dict[station.code] = station
 
+    fire_centre_name = fire_centre_dict[result.selected_fire_center_id].name
     with open(daily_template_path, 'r') as daily_template, open(daily_rendered_path, 'w') as new_page:
         template = Template(daily_template.read())
         daily_pdf_data_by_date = response_2_daily_jinja_format(
@@ -32,7 +33,7 @@ def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]
             station_dict)
         new_page.write(template.render(
             daily_pdf_data_by_date=daily_pdf_data_by_date,
-            fire_centre_id=result.selected_fire_center_id))
+            fire_centre_name=fire_centre_name))
 
     options = {
         'page-size': 'Tabloid'
