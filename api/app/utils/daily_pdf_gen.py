@@ -1,7 +1,6 @@
 from typing import List, Mapping
 import pdfkit
 from jinja2 import Template
-from app.hfi.fire_centres import get_hydrated_fire_centres
 
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
 from app.utils.pdf_data_formatter import response_2_daily_jinja_format
