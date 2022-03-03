@@ -113,22 +113,6 @@ api.include_router(fba.router)
 api.include_router(fwi_calc.router)
 
 
-@api.on_event("startup")
-async def startup_event():
-    """ Startup event handler for API
-    https://fastapi.tiangolo.com/advanced/events/#startup-event
-    """
-    # Instantiate the CFFDRS singleton. Binding to R can take quite some time, doing this when our thread
-    # starts up will save us some time on requests. On my local machine, it takes about 3 seconds to start
-    # up R.
-    # The downside to this is that we're increasing the memory footprint of the app.
-    cffdrs_start = perf_counter()
-    # TODO: Fix in next PR.
-    # CFFDRS.instance()  # pylint: disable=no-member
-    cffdrs_end = perf_counter()
-    logger.info('saved %f seconds by starting CFFDRS now', cffdrs_end - cffdrs_start)
-
-
 @api.get('/ready')
 async def get_ready():
     """ A simple endpoint for OpenShift readiness """
