@@ -1,10 +1,9 @@
 {
-  "selected_prep_date": "2021-08-02",
   "start_date": "2021-08-02",
   "end_date": "2021-08-06",
   "selected_station_code_ids": [
-    19, 1093, 21, 1218, 82, 1016, 75, 317, 1339, 1144, 93, 316, 934, 45, 1283,
-    292, 1375, 1083, 83, 37, 59, 1383, 904, 233
+    37, 59, 1383, 19, 1093, 21, 904, 233, 934, 45, 317, 1339, 1144, 93, 316,
+    1283, 292, 1375, 1083, 83, 1218, 82, 1016, 75
   ],
   "planning_area_station_info": null,
   "selected_fire_center_id": 2,
@@ -12,12 +11,11 @@
     {
       "planning_area_id": 36,
       "all_dailies_valid": true,
-      "highest_daily_intensity_group": 4.2,
+      "highest_daily_intensity_group": 4.0,
       "mean_prep_level": 2.0,
       "daily_results": [
         {
-          "dateISO": "2021-08-02",
-          "weekly_headers": "ROS HFI M/FIG Fire Starts Prep",
+          "date": "2021-08-02",
           "dailies": [
             {
               "daily": {
@@ -180,12 +178,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 1.2,
+          "mean_intensity_group": 1.0,
           "prep_level": 1.0
         },
         {
-          "dateISO": "2021-08-03",
-          "weekly_headers": "ROS HFI M/FIG Fire Starts Prep",
+          "date": "2021-08-03",
           "dailies": [
             {
               "daily": {
@@ -348,12 +345,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 3.6,
-          "prep_level": 3.0
+          "mean_intensity_group": 3.0,
+          "prep_level": 2.0
         },
         {
-          "dateISO": "2021-08-04",
-          "weekly_headers": "ROS HFI M/FIG Fire Starts Prep",
+          "date": "2021-08-04",
           "dailies": [
             {
               "daily": {
@@ -516,13 +512,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 3.4,
+          "mean_intensity_group": 3.0,
           "prep_level": 2.0
         },
         {
-          "dateISO": "2021-08-05",
-          "weekly_headers": "ROS HFI M/FIG Fire Starts Prep",
-
+          "date": "2021-08-05",
           "dailies": [
             {
               "daily": {
@@ -685,7 +679,7 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 4.2,
+          "mean_intensity_group": 4.0,
           "prep_level": 3.0
         }
       ]
@@ -693,11 +687,11 @@
     {
       "planning_area_id": 37,
       "all_dailies_valid": true,
-      "highest_daily_intensity_group": 4.6,
-      "mean_prep_level": 3.0,
+      "highest_daily_intensity_group": 4.0,
+      "mean_prep_level": 2.0,
       "daily_results": [
         {
-          "dateISO": "2021-08-02T20:00:00+00:00",
+          "date": "2021-08-02",
           "dailies": [
             {
               "daily": {
@@ -860,11 +854,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 2.2,
+          "mean_intensity_group": 2.0,
           "prep_level": 1.0
         },
         {
-          "dateISO": "2021-08-03T20:00:00+00:00",
+          "date": "2021-08-03",
           "dailies": [
             {
               "daily": {
@@ -1027,11 +1021,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 4.6,
-          "prep_level": 4.0
+          "mean_intensity_group": 4.0,
+          "prep_level": 3.0
         },
         {
-          "dateISO": "2021-08-04T20:00:00+00:00",
+          "date": "2021-08-04",
           "dailies": [
             {
               "daily": {
@@ -1194,11 +1188,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 4.6,
-          "prep_level": 4.0
+          "mean_intensity_group": 4.0,
+          "prep_level": 3.0
         },
         {
-          "dateISO": "2021-08-05T20:00:00+00:00",
+          "date": "2021-08-05",
           "dailies": [
             {
               "daily": {
@@ -1361,7 +1355,7 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 4.4,
+          "mean_intensity_group": 4.0,
           "prep_level": 3.0
         }
       ]
@@ -1369,11 +1363,11 @@
     {
       "planning_area_id": 38,
       "all_dailies_valid": true,
-      "highest_daily_intensity_group": 3.2,
+      "highest_daily_intensity_group": 3.0,
       "mean_prep_level": 1.0,
       "daily_results": [
         {
-          "dateISO": "2021-08-02T20:00:00+00:00",
+          "date": "2021-08-02",
           "dailies": [
             {
               "daily": {
@@ -1505,11 +1499,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 2.2,
+          "mean_intensity_group": 2.0,
           "prep_level": 1.0
         },
         {
-          "dateISO": "2021-08-03T20:00:00+00:00",
+          "date": "2021-08-03",
           "dailies": [
             {
               "daily": {
@@ -1641,11 +1635,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 2.5,
+          "mean_intensity_group": 2.0,
           "prep_level": 1.0
         },
         {
-          "dateISO": "2021-08-04T20:00:00+00:00",
+          "date": "2021-08-04",
           "dailies": [
             {
               "daily": {
@@ -1777,11 +1771,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 3.2,
+          "mean_intensity_group": 3.0,
           "prep_level": 2.0
         },
         {
-          "dateISO": "2021-08-05T20:00:00+00:00",
+          "date": "2021-08-05",
           "dailies": [
             {
               "daily": {
@@ -1921,11 +1915,11 @@
     {
       "planning_area_id": 39,
       "all_dailies_valid": true,
-      "highest_daily_intensity_group": 3.5,
-      "mean_prep_level": 3.0,
+      "highest_daily_intensity_group": 3.0,
+      "mean_prep_level": 2.0,
       "daily_results": [
         {
-          "dateISO": "2021-08-02T20:00:00+00:00",
+          "date": "2021-08-02",
           "dailies": [
             {
               "daily": {
@@ -1999,7 +1993,7 @@
           "prep_level": 2.0
         },
         {
-          "dateISO": "2021-08-03T20:00:00+00:00",
+          "date": "2021-08-03",
           "dailies": [
             {
               "daily": {
@@ -2069,11 +2063,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 3.5,
-          "prep_level": 3.0
+          "mean_intensity_group": 3.0,
+          "prep_level": 2.0
         },
         {
-          "dateISO": "2021-08-04T20:00:00+00:00",
+          "date": "2021-08-04",
           "dailies": [
             {
               "daily": {
@@ -2143,11 +2137,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 3.5,
-          "prep_level": 3.0
+          "mean_intensity_group": 3.0,
+          "prep_level": 2.0
         },
         {
-          "dateISO": "2021-08-05T20:00:00+00:00",
+          "date": "2021-08-05",
           "dailies": [
             {
               "daily": {
@@ -2217,19 +2211,19 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 3.5,
-          "prep_level": 3.0
+          "mean_intensity_group": 3.0,
+          "prep_level": 2.0
         }
       ]
     },
     {
       "planning_area_id": 40,
       "all_dailies_valid": true,
-      "highest_daily_intensity_group": 3.7,
-      "mean_prep_level": 3.0,
+      "highest_daily_intensity_group": 3.0,
+      "mean_prep_level": 2.0,
       "daily_results": [
         {
-          "dateISO": "2021-08-02T20:00:00+00:00",
+          "date": "2021-08-02",
           "dailies": [
             {
               "daily": {
@@ -2334,7 +2328,7 @@
           "prep_level": 2.0
         },
         {
-          "dateISO": "2021-08-03T20:00:00+00:00",
+          "date": "2021-08-03",
           "dailies": [
             {
               "daily": {
@@ -2435,11 +2429,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 3.7,
-          "prep_level": 3.0
+          "mean_intensity_group": 3.0,
+          "prep_level": 2.0
         },
         {
-          "dateISO": "2021-08-04T20:00:00+00:00",
+          "date": "2021-08-04",
           "dailies": [
             {
               "daily": {
@@ -2540,11 +2534,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 3.7,
-          "prep_level": 3.0
+          "mean_intensity_group": 3.0,
+          "prep_level": 2.0
         },
         {
-          "dateISO": "2021-08-05T20:00:00+00:00",
+          "date": "2021-08-05",
           "dailies": [
             {
               "daily": {
@@ -2645,19 +2639,19 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 3.7,
-          "prep_level": 3.0
+          "mean_intensity_group": 3.0,
+          "prep_level": 2.0
         }
       ]
     },
     {
       "planning_area_id": 41,
       "all_dailies_valid": true,
-      "highest_daily_intensity_group": 3.3,
+      "highest_daily_intensity_group": 3.0,
       "mean_prep_level": 2.0,
       "daily_results": [
         {
-          "dateISO": "2021-08-02T20:00:00+00:00",
+          "date": "2021-08-02",
           "dailies": [
             {
               "daily": {
@@ -2758,11 +2752,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 2.7,
-          "prep_level": 2.0
+          "mean_intensity_group": 2.0,
+          "prep_level": 1.0
         },
         {
-          "dateISO": "2021-08-03T20:00:00+00:00",
+          "date": "2021-08-03",
           "dailies": [
             {
               "daily": {
@@ -2863,11 +2857,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 3.3,
+          "mean_intensity_group": 3.0,
           "prep_level": 2.0
         },
         {
-          "dateISO": "2021-08-04T20:00:00+00:00",
+          "date": "2021-08-04",
           "dailies": [
             {
               "daily": {
@@ -2968,11 +2962,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 3.3,
+          "mean_intensity_group": 3.0,
           "prep_level": 2.0
         },
         {
-          "dateISO": "2021-08-05T20:00:00+00:00",
+          "date": "2021-08-05",
           "dailies": [
             {
               "daily": {
@@ -3073,7 +3067,7 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 1.7,
+          "mean_intensity_group": 1.0,
           "prep_level": 1.0
         }
       ]
@@ -3081,11 +3075,11 @@
     {
       "planning_area_id": 42,
       "all_dailies_valid": true,
-      "highest_daily_intensity_group": 2.5,
+      "highest_daily_intensity_group": 2.0,
       "mean_prep_level": 1.0,
       "daily_results": [
         {
-          "dateISO": "2021-08-02T20:00:00+00:00",
+          "date": "2021-08-02",
           "dailies": [
             {
               "daily": {
@@ -3155,11 +3149,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 2.5,
+          "mean_intensity_group": 2.0,
           "prep_level": 1.0
         },
         {
-          "dateISO": "2021-08-03T20:00:00+00:00",
+          "date": "2021-08-03",
           "dailies": [
             {
               "daily": {
@@ -3229,11 +3223,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 2.5,
+          "mean_intensity_group": 2.0,
           "prep_level": 1.0
         },
         {
-          "dateISO": "2021-08-04T20:00:00+00:00",
+          "date": "2021-08-04",
           "dailies": [
             {
               "daily": {
@@ -3303,11 +3297,11 @@
             "value": 1,
             "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
           },
-          "mean_intensity_group": 2.5,
+          "mean_intensity_group": 2.0,
           "prep_level": 1.0
         },
         {
-          "dateISO": "2021-08-05T20:00:00+00:00",
+          "date": "2021-08-05",
           "dailies": [
             {
               "daily": {
@@ -3384,114 +3378,6 @@
     }
   ],
   "planning_area_fire_starts": {
-    "32": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "33": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "34": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "35": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
     "36": [
       {
         "label": "0-1",
@@ -3681,5 +3567,6 @@
         "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
       }
     ]
-  }
+  },
+  "request_persist_success": false
 }

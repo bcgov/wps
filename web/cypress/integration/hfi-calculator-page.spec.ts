@@ -13,6 +13,35 @@ function interceptDaily(fixturePath: string) {
 }
 
 describe('HFI Calculator Page', () => {
+  describe('prep period - saved', () => {
+    beforeEach(() => {
+      interceptDaily('cypress/fixtures/hfi-calc/dailies-saved.json')
+      cy.intercept('GET', 'api/hfi-calc/fire-centres', {
+        fixture: 'hfi-calc/fire_centres.json'
+      }).as('getFireCentres')
+      cy.visit(HFI_CALC_ROUTE)
+      cy.selectFireCentreInDropdown('Kamloops')
+      cy.wait('@getFireCentres')
+      cy.wait('@getHFIResults')
+    })
+    it('save button should be disable', () => {
+      // cypress/fixtures/hfi-calc/dailies-saved.json has "request_persist_success": true, save button should be looking at that.
+      cy.getByTestId('save-button').should('be.disabled')
+    })
+    it('fire start dropdown triggers hfi request', () => {
+      // Selecting a new fire start, should result in a new request to the server, that comes back with "request_persist_success": false, or
+      // no request_save, which should cause the save button to become enabled.
+      interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
+      cy.getByTestId('fire-starts-dropdown')
+        .first()
+        .find('input')
+        .type('{downarrow}')
+        .type('{downarrow}')
+        .type('{enter}')
+      cy.wait('@getHFIResults')
+      cy.getByTestId('save-button').should('be.enabled')
+    })
+  })
   describe('all data exists', () => {
     beforeEach(() => {
       interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
@@ -25,6 +54,11 @@ describe('HFI Calculator Page', () => {
       cy.wait('@getFireCentres')
       cy.wait('@getHFIResults')
       cy.getByTestId('daily-toggle-0').click({ force: true })
+    })
+
+    it('save button should be enabled', () => {
+      // cypress/fixtures/hfi-calc/dailies.json does not have "request_persist_success": true, save button should be looking at that.
+      cy.getByTestId('save-button').should('be.enabled')
     })
 
     it('should display Daily View Table after clicking on daily button', () => {
