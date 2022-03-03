@@ -75,17 +75,22 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
             </tr>
-            {% for results in area['daily_results'] %}
+            {% for code, dailies in area['dailies'].items() %}
             <tr class="station">
-                {% for daily in results['dailies'] %}
-                    <td>{{daily['daily']['code']}}</td>
+                <td>{{code}}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                {% for daily in dailies %}
+                    <td>{{daily['rate_of_spread']}}</td>
+                    <td>{{daily['hfi']}}</td>
+                    <td>{{daily['intensity_group']}}</td>
+                    <td>X</td>
+                    <td>X</td>
                 {% endfor %}
+                <td></td>
+                <td></td>
             </tr>
             {% endfor %}
         {% endfor %}

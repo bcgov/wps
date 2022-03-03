@@ -34,9 +34,14 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
         # e.g. [{code: 1, date: 1, code: 1, date: 2, ..., code: 2, date: 1, code: 2, date: 2, ...}]
         areas_by_code_and_date = reduce(list.__add__, area_dailies_by_code)
 
+        # Sorting dailies into dict keyed by station code
+        key = operator.attrgetter('code')
+        dailies_by_code = dict((k, list(map(lambda x: x, values)))
+                               for k, values in groupby(sorted(areas_by_code_and_date, key=key), key))
+
         # TODO: Get planning area name, not just id
         area_pdf_data = PrepCyclePDFData(planningAreaName=area_result.planning_area_id,
-                                         dailies=areas_by_code_and_date)
+                                         dailies=dailies_by_code)
         prep_cycle_pdf_data.append(area_pdf_data)
 
     return prep_cycle_pdf_data

@@ -12,14 +12,14 @@ from app.schemas.hfi_calc import (HFIResultResponse,
                                   ValidatedStationDaily)
 
 
-def generate_prep_pdf(data):
+def generate_prep_pdf(data, dates):
 
     html = open('/Users/jforeman/Workspace/wps/api/app/templates/template1.html').read()
 
     template = Template(html)
 
     with open('/Users/jforeman/Workspace/wps/api/app/utils/rendered_template.html', 'w') as new_page:
-        new_page.write(template.render(planningAreas=data))
+        new_page.write(template.render(planningAreas=data, prepDays=dates))
 
         options = {
             'page-size': 'Tabloid'
