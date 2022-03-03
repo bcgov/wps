@@ -12,9 +12,9 @@ def test_gen_daily_pdf():
         result = json.load(hfi_result)
         fc_dict = json.load(fcs)
         fire_centres = []
-        for fire_centre in fc_dict['fire_centres']:
-            fire_centres.append(FireCentre(**fire_centre))
-        assert 1 == 1
+        for fc_json in fc_dict['fire_centres']:
+            fc = FireCentre(**fc_json)
+            fire_centres.append(fc)
         assert generate_daily_pdf(HFIResultResponse(**result), fire_centres) == True
 
 

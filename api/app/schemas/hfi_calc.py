@@ -190,6 +190,10 @@ class PrepCyclePDFData(BaseModel):
     dailies: List[StationDaily]
 
 
+class StationPDFData(StationDaily, WeatherStation):
+    """ All the details we have about stations """
+
+
 class DailyPDFData(BaseModel):
     """ Data needed for daily PDF sheet """
     planning_area_name: str
