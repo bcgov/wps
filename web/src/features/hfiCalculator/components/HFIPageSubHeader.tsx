@@ -95,7 +95,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
     <div className={classes.root}>
       <Grid
         container
-        spacing={0}
+        spacing={1}
         alignItems="center"
         direction="row"
         className={classes.gridContainer}
@@ -111,7 +111,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
             />
           </FormControl>
         </Grid>
-        <Grid item md={3} lg={2}>
+        <Grid item md={3}>
           <FormControl className={classes.minWidth210}>
             <FireCentreDropdown
               fireCentres={props.fireCentres}
