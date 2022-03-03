@@ -98,7 +98,7 @@ api.include_router(fba.router)
 api.include_router(fwi_calc.router)
 
 
-@api.on_event("startup")
+@app.on_event("startup")
 async def startup_event():
     """ Startup event handler for API
     https://fastapi.tiangolo.com/advanced/events/#startup-event
