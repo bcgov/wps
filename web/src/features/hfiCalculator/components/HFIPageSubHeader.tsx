@@ -9,6 +9,8 @@ import AboutDataModal from 'features/hfiCalculator/components/AboutDataModal'
 import { HelpOutlineOutlined } from '@material-ui/icons'
 import DatePicker from 'components/DatePicker'
 import { formControlStyles } from 'app/theme'
+import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
+import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 const useStyles = makeStyles(theme => ({
   ...formControlStyles,
@@ -76,6 +78,7 @@ interface Props {
   dateOfInterest: string
   updateDate: (newDate: string) => void
   selectedFireCentre: FireCentre | undefined
+  result: HFIResultResponse | undefined
   selectNewFireCentre: (newSelection: FireCentre | undefined) => void
 }
 
@@ -92,7 +95,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
     <div className={classes.root}>
       <Grid
         container
-        spacing={0}
+        spacing={1}
         alignItems="center"
         direction="row"
         className={classes.gridContainer}
@@ -108,7 +111,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
             />
           </FormControl>
         </Grid>
-        <Grid item md={3} lg={2}>
+        <Grid item md={3}>
           <FormControl className={classes.minWidth210}>
             <FireCentreDropdown
               fireCentres={props.fireCentres}
@@ -120,6 +123,15 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
               onChange={props.selectNewFireCentre}
             />
           </FormControl>
+        </Grid>
+        <Grid item md={3}>
+          <LastUpdatedHeader
+            dailies={props.result?.planning_area_hfi_results.flatMap(areaResult =>
+              areaResult.daily_results.flatMap(dailyResult =>
+                dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
+              )
+            )}
+          />
         </Grid>
         <Grid item md={1} className={classes.aboutButtonGridItem}>
           <FormControl className={classes.minWidth210}>
