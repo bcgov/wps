@@ -59,7 +59,7 @@ def response_2_daily_jinja_format(result: HFIResultResponse) -> dict[str, List[D
                                       fire_starts=fire_starts.label,
                                       days_total=days_total,
                                       day=j,
-                                      date=daily_result.dateISO,
+                                      date=daily_result.date.isoformat(),
                                       dailies=dailies)
             daily_pdf_data.append(daily_data)
 
