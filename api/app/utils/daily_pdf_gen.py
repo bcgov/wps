@@ -15,12 +15,9 @@ def generate_daily_pdf(result: HFIResultResponse):
         template = Template(daily_template.read())
         with open(daily_rendered_path, 'w') as new_page:
             daily_pdf_data_by_date = response_2_daily_jinja_format(result)
-            for date_key, planning_area_data in daily_pdf_data_by_date.items():
-                new_page.write(template.render(
-                    date=date_key,
-                    daily_data=planning_area_data,
-                    daily_pdf_data_by_date=daily_pdf_data_by_date,
-                    fire_centre_id=result.selected_fire_center_id))
+            new_page.write(template.render(
+                daily_pdf_data_by_date=daily_pdf_data_by_date,
+                fire_centre_id=result.selected_fire_center_id))
 
     options = {
         'page-size': 'Tabloid'
