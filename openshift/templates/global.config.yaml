@@ -108,6 +108,10 @@ parameters:
     description: How long to cache env canada downloads for.
     required: True
     value: "21600"
+  - name: GUNICORN_TIMEOUT
+    description: Workers silent for more than this many seconds are killed and restarted. (https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout)
+    required: True
+    value: "120"
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -138,6 +142,7 @@ objects:
       env.redis-hourlies-by-station-code-cache-expiry: ${REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY}
       env.redis-cache-env-canada: ${REDIS_CACHE_ENV_CANADA}
       env.redis-env-canada-cache-expiry: ${REDIS_ENV_CANADA_CACHE_EXPIRY}
+      env.gunicorn.timeout: ${GUNICORN_TIMEOUT}
 
   - kind: Secret
     apiVersion: v1
