@@ -98,8 +98,11 @@ api.include_router(fba.router)
 api.include_router(fwi_calc.router)
 
 
-@app.on_event("startup")
+@api.on_event("startup")
 async def startup_event():
+    """ Startup event handler for API
+    https://fastapi.tiangolo.com/advanced/events/#startup-event
+    """
     # Instantiate the CFFDRS singleton. Binding to R can take quite some time, doing this when our thread
     # starts up will save us some time on requests. On my local machine, it takes about 3 seconds to start
     # up R.
