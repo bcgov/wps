@@ -33,7 +33,7 @@
     <title>HFI Daily</title>
 </head>
 <body>
-            {% for date, daily_data in daily_pdf_data_by_date.items() %}
+            {% for date, planning_areas in daily_pdf_data_by_date.items() %}
             <h1>BC Wildfire Services - HFI Calculator</h1>
             <h2>Fire Centre ID: {{fire_centre_id}} - Date: {{date}}</h2>
             <table class="table">
@@ -67,7 +67,7 @@
                     <th class="table-header">Prep Level</th>
                 </tr>
                 <tr colspan="22">
-                    {% for planning_area_data in daily_data %}
+                    {% for planning_area_data in planning_areas %}
                         <td class="table-data" colspan="21">{{planning_area_data['planning_area_name']}}</td>
                         <td class="table-data" rowspan="{{planning_area_data['dailies']|length + 1}}">TODO</td>
                         <td class="table-data" rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['fire_starts']}}</td>
