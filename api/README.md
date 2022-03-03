@@ -214,6 +214,7 @@ To shell into the Docker container for the database, execute `make docker-shell-
 ### Running the database locally
 
 #### In Docker
+
 Executing `make docker-build-dev` followed by `make docker-run-dev` will build and run the Docker container needed to run the application locally. Running the dev container will also spin up a local Postgres service and will create a local copy of the wps database with the necessary schemas.
 
 #### Natively
@@ -224,22 +225,26 @@ If you're running Postgresql natively for the first time:
 brew services start postgresql
 brew services list
 ```
+
 should show that the "postgresql" service is running.
 
 ```bash
 psql -d postgres
 ```
+
 will shell you into your local postgres server.
 
 ```psql
 create user wps with password "wps";
 ```
-(or your desired username/password combo. Make sure to update these in your .env file). 
+
+(or your desired username/password combo. Make sure to update these in your .env file).
 If successful, this command will output `CREATE ROLE`.
 
 ```psql
 create database wps with owner wps;
 ```
+
 If successful, this command will output `CREATE DATABASE`.
 
 `\l` should show "wps" in the list of databases.
@@ -248,19 +253,22 @@ If successful, this command will output `CREATE DATABASE`.
 \c wps
 \dx
 ```
+
 will show the list of extensions, and "postgis" should be one of them. If it isn't, run
 
 ```psql
 create extension postgis;
 ```
+
 If successful, this command will output `CREATE EXTENSION`. Re-run `\dx` to confirm the postgis extension has now been added.
 
 From a poetry shell, run
+
 ```bash
 PYTHONPATH=. alembic upgrade head
 ```
 
------
+---
 
 To access the local copy of the database, you can shell into it by opening a new terminal window and executing `psql -h localhost -p 5432 -U <db-username>` and enter the local database password when prompted.
 
@@ -298,6 +306,12 @@ Run python unit tests before pushing code to the repository:
 
 ```bash
 make test
+```
+
+Or run continuously with pytest-testmon and pytest-watch (`ptw --runner "pytest --testmon"` or `ptw -- --testmon`):
+
+```bash
+make test-watch
 ```
 
 Or enforce by running [scripts/test.sh](scripts/test.sh) as part of your ci/cd pipeline.

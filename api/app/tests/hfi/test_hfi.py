@@ -51,62 +51,37 @@ kamloops_fc = FireCentre(
 )
 
 
-def test_empty_map_without_fire_centre():
-    """ No fire centre returns empty result """
-    with get_read_session_scope() as session:
-        result = calculate_hfi_results(fire_centre_id=None,
-                                       planning_area_fire_starts={},
-                                       dailies=[],
-                                       num_prep_days=5,
-                                       selected_station_codes=[],
-                                       session=session)
-    assert result == []
-
-
 def test_no_dailies_handled():
     """ No dailies are handled """
-    with get_read_session_scope() as session:
-        result = calculate_hfi_results(fire_centre_id=kamloops_fc.id,
-                                       planning_area_fire_starts={},
-                                       dailies=[],
-                                       num_prep_days=5,
-                                       selected_station_codes=[1, 2],
-                                       session=session)
+    result = calculate_hfi_results(planning_area_fire_starts={},
+                                   dailies=[],
+                                   num_prep_days=5,
+                                   selected_station_codes=[1, 2],
+                                   area_station_map={},
+                                   start_date=datetime.now())
 
     assert result == []
 
 
 def test_requested_fire_starts_unaltered(mocker: MockerFixture):
     """ Fire starts from user request remain unchanged """
-    def mock_get_planning_areas(session, fire_centre_id):
-        """ Returns mocked PlanningAreas. """
-        return [
-            hfi_calc_models.PlanningArea(id=1, fire_centre_id=1, name='Area 1',
-                                         order_of_appearance_in_list=1),
-            hfi_calc_models.PlanningArea(id=2, fire_centre_id=1, name='Area 2',
-                                         order_of_appearance_in_list=2)]
 
-    def mock_get_fire_centre_stations(session, fire_centre_id):
-        """ Returns mocked stations per PlanningAreas """
-        return [hfi_calc_models.PlanningWeatherStation(id=1, planning_area_id=1, station_code=1),
-                hfi_calc_models.PlanningWeatherStation(id=2, planning_area_id=2, station_code=2)]
-
+    start_date = datetime.now()
     daily = StationDaily(
         code=1,
-        date=datetime.now(),
+        date=start_date,
         intensity_group=1
     )
-    mocker.patch('app.hfi.hfi.get_planning_areas', mock_get_planning_areas)
-    mocker.patch('app.hfi.hfi.get_fire_centre_stations',
-                 mock_get_fire_centre_stations)
-    with get_read_session_scope() as session:
-        result = calculate_hfi_results(fire_centre_id=kamloops_fc.id,
-                                       planning_area_fire_starts={
-                                           kamloops_fc.planning_areas[0].id: [highest_fire_starts]},
-                                       dailies=[daily],
-                                       num_prep_days=5,
-                                       selected_station_codes=[1, 2],
-                                       session=session)
+
+    station = hfi_calc_models.PlanningWeatherStation(id=1, planning_area_id=1, station_code=1)
+
+    result = calculate_hfi_results(planning_area_fire_starts={
+        kamloops_fc.planning_areas[0].id: [highest_fire_starts]},
+        dailies=[daily],
+        num_prep_days=5,
+        selected_station_codes=[1, 2],
+        area_station_map={kamloops_fc.planning_areas[0].id: [station]},
+        start_date=start_date)
     assert result[0].daily_results[0].fire_starts == highest_fire_starts
 
 
@@ -132,6 +107,7 @@ def test_calculate_mean_intensity_empty():
     result = calculate_mean_intensity([])
     assert result == None
 
+
 def test_calculate_mean_intensity_round_down():
     """ Calculates mean intensity and rounds result down because decimal is below x.8 """
     daily1 = StationDaily(code=1, date=datetime.now(), intensity_group=1)
@@ -140,6 +116,7 @@ def test_calculate_mean_intensity_round_down():
     # mean is 2.66666667
     result = calculate_mean_intensity([daily1, daily2, daily3])
     assert result == 2
+
 
 def test_calculate_mean_intensity_round_up():
     """ Calculates mean intensity and rounds result up because decimal is at x.8 """
@@ -151,6 +128,7 @@ def test_calculate_mean_intensity_round_up():
     # mean is 3.8
     result = calculate_mean_intensity([daily1, daily2, daily3, daily4, daily5])
     assert result == 4
+
 
 def test_calculate_mean_intensity_round_up_2():
     """ Calculates mean intensity and rounds result up because decimal is above x.8 """
@@ -164,12 +142,14 @@ def test_calculate_mean_intensity_round_up_2():
     result = calculate_mean_intensity([daily1, daily2, daily3, daily4, daily5, daily6])
     assert result == 4
 
+
 def test_calculate_mean_intensity_perfect_divisor():
     """ Calculates mean intensity, shouldn't need to round """
     daily1 = StationDaily(code=1, date=datetime.now(), intensity_group=2)
     daily2 = StationDaily(code=2, date=datetime.now(), intensity_group=2)
     result = calculate_mean_intensity([daily1, daily2])
     assert result == 2
+
 
 def test_max_mean_intensity_basic():
     """ Calculates max mean intensity of basic case """
@@ -181,6 +161,12 @@ def test_max_mean_intensity_empty():
     """ Calculates max mean intensity with empty list """
     result = calculate_max_intensity_group([])
     assert result == None
+
+
+def test_max_mean_intensity_with_none():
+    """ Calculates max mean intensity when we don't have values for all days """
+    result = calculate_max_intensity_group([1, None, 2])
+    assert result == 2
 
 
 def test_calculate_prep_level_empty():
