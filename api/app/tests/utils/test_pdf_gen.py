@@ -1,16 +1,21 @@
 from functools import reduce
 import json
 from app.utils.daily_pdf_gen import generate_daily_pdf
-from app.schemas.hfi_calc import HFIResultResponse
+from app.schemas.hfi_calc import FireCentre, HFIResultResponse
 from operator import attrgetter
 from app.utils.pdf_data_formatter import (response_2_daily_jinja_format,
                                           response_2_prep_cycle_jinja_format)
 
 
 def test_gen_daily_pdf():
-    with open('api/app/tests/utils/test_hfi_result.json', 'r') as hfi_result:
+    with open('api/app/tests/utils/test_hfi_result.json', 'r') as hfi_result, open('api/app/tests/utils/test_fire_centres.json') as fcs:
         result = json.load(hfi_result)
-        assert generate_daily_pdf(HFIResultResponse(**result)) == True
+        fc_dict = json.load(fcs)
+        fire_centres = []
+        for fire_centre in fc_dict['fire_centres']:
+            fire_centres.append(FireCentre(**fire_centre))
+        assert 1 == 1
+        assert generate_daily_pdf(HFIResultResponse(**result), fire_centres) == True
 
 
 def test_gen_prep_data_converter():

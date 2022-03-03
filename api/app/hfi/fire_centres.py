@@ -1,4 +1,5 @@
 """ Fire centre data logic """
+from typing import List
 import app
 from app.schemas.hfi_calc import (WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
@@ -6,7 +7,7 @@ from app.wildfire_one.wfwx_api import get_stations_by_codes
 from app.db.crud.hfi_calc import get_fire_weather_stations
 
 
-async def get_hydrated_fire_centres():
+async def get_hydrated_fire_centres() -> List[FireCentre]:
     """ Merges all fire centre data from WPS and WFWX sources """
     with app.db.database.get_read_session_scope() as session:
         # Fetch all fire weather stations from the database.
