@@ -19,8 +19,7 @@ const useStyles = makeStyles({
   },
   headerText: {
     fontSize: '14px'
-  },
-  icon: {}
+  }
 })
 
 const findLastUpdate = (dailies?: StationDaily[]) => {
@@ -52,7 +51,7 @@ const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
     return (
       <React.Fragment>
         <span className={`${classes.container} ${props.className}`}>
-          <UpdateIcon className={classes.icon}></UpdateIcon>
+          <UpdateIcon></UpdateIcon>
           <p className={classes.headerText}>Forecast last updated {dateString}</p>
         </span>
       </React.Fragment>
