@@ -70,7 +70,7 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
                                       days_total=days_total,
                                       day=j,
                                       date=daily_result.date.isoformat(),
-                                      dailies=dailies)
+                                      dailies=full_dailies)
             daily_pdf_data.append(daily_data)
 
     key = operator.attrgetter('date')

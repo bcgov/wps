@@ -74,9 +74,9 @@
                         <td class="table-data" rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['mean_prep_level']}}</td>
                             {% for d in planning_area_data['dailies']  %}
                                 <tr>
-                                    <td class="first-cell">{{d['code']}}</td>
-                                    <td class="table-data">{{d['code']}}</td>
-                                    <td class="table-data">{{d['code']}}</td>  
+                                    <td class="first-cell">{{d['station_props']['name']}}</td>
+                                    <td class="table-data">{{d['station_props']['elevation']}}</td>
+                                    <td class="table-data">{{d['station_props']['fuel_type']['abbrev']}}</td>  
                                     <td class="table-data">{{d['grass_cure_percentage']}}</td>
                                     <td class="table-data">{{d['status']}}</td>
                                     <td class="table-data">{{d['temperature']}}</td>   
