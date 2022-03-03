@@ -28,7 +28,6 @@ def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]
         template = Template(daily_template.read())
         daily_pdf_data_by_date = response_2_daily_jinja_format(
             result,
-            fire_centre_dict,
             planning_area_dict,
             station_dict)
         new_page.write(template.render(
