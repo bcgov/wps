@@ -7,8 +7,9 @@ Feature: /hfi/
         And the response is <response_json>
 
         Examples:
-            | request_json                   | status_code | response_json                   |
+            | request_json                                            | status_code | response_json                                            |
             # Test perfect scenario, we have 2 stations, they're both selected, and they have data for all days.
-            | test_hfi_endpoint_request.json | 200         | test_hfi_endpoint_response.json |
-# Test scenario where we have 1 station selected, one station deselected, and data for all days.
+            # | test_hfi_endpoint_request.json                          | 200         | test_hfi_endpoint_response.json                          |
+            # Test scenario where we have 1 station selected, one station deselected, and data for all days.
+            | test_hfi_endpoint_request_1_of_2_stations_selected.json | 200         | test_hfi_endpoint_response_1_of_2_stations_selected.json |
 # Test less than ideal scenario, we have 2 stations, they're both selected, one of them is missing data for some days.
