@@ -8,20 +8,17 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 
 export interface LastUpdatedHeaderProps {
   dailies?: StationDaily[]
+  className?: string
 }
 
 const useStyles = makeStyles({
   container: {
     display: 'flex',
-    height: '30px'
-  },
-  icon: {
-    marginTop: '5px',
-    marginLeft: '5px'
+    alignItems: 'center',
+    minWidth: '210px'
   },
   headerText: {
-    marginLeft: '5px',
-    marginTop: '6px'
+    fontSize: '14px'
   }
 })
 
@@ -53,8 +50,8 @@ const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
 
     return (
       <React.Fragment>
-        <span className={classes.container}>
-          <UpdateIcon className={classes.icon}></UpdateIcon>
+        <span className={`${classes.container} ${props.className}`}>
+          <UpdateIcon></UpdateIcon>
           <p className={classes.headerText}>Forecast last updated {dateString}</p>
         </span>
       </React.Fragment>
