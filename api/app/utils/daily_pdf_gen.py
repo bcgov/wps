@@ -13,6 +13,7 @@ output_file_path = "api/app/utils/out.pdf"
 
 
 def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]):
+    """Generate a daily PDF"""
     # Shift hydrated fire centres into dicts keyed by ids
     fire_centre_dict: Mapping[int, FireCentre] = dict()
     planning_area_dict: Mapping[int, PlanningArea] = dict()
