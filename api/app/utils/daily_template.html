@@ -3,6 +3,8 @@
 <style type="text/css" media="screen">
         .first-cell{
             width: 80px;
+            padding: 5px;
+            border:1px solid #000000;
         }
         .planning-area-header {
             max-width: 80px;
@@ -70,13 +72,12 @@
                         <td class="table-data">TODO</td>
                         <td class="table-data" rowspan="4">{{planning_area_data['fire_starts']}}</td>
                         <td class="table-data" rowspan="4">{{planning_area_data['mean_prep_level']}}</td>
-                        <table class="table">
-
                             {% for d in planning_area_data['dailies']  %}
                                 <tr>
-                                    <td class="table-data first-cell">{{d['code']}}</td>
+                                    <td class="first-cell">{{d['code']}}</td>
                                     <td class="table-data">{{d['code']}}</td>
                                     <td class="table-data">{{d['code']}}</td>  
+                                    <td class="table-data">{{d['grass_cure_percentage']}}</td>
                                     <td class="table-data">{{d['status']}}</td>
                                     <td class="table-data">{{d['temperature']}}</td>   
                                     <td class="table-data">{{d['relative_humidity']| round(1)}}</td>
@@ -97,7 +98,6 @@
                                 </tr>
                             {% endfor %}
                     {% endfor %}
-                    </table>
                 </tr>
             </table>
         <p class="new-page">Page 2, paragraph 1</p>
