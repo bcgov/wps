@@ -1,6 +1,6 @@
 {
-  "start_date": "2020-05-21",
-  "end_date": "2020-05-23",
+  "start_date": "2020-05-14",
+  "end_date": "2020-05-16",
   "selected_station_code_ids": [
     230,
     239
@@ -27,10 +27,10 @@
       "planning_area_id": 1,
       "all_dailies_valid": false,
       "highest_daily_intensity_group": 1.0,
-      "mean_prep_level": 1.0,
+      "mean_prep_level": null,
       "daily_results": [
         {
-          "date": "2020-05-21",
+          "date": "2020-05-14",
           "dailies": [
             {
               "daily": {
@@ -58,7 +58,7 @@
                 "fire_type": "SUR",
                 "error": true,
                 "error_message": null,
-                "date": "2020-05-21T20:00:00+00:00",
+                "date": "2020-05-14T20:00:00+00:00",
                 "last_updated": "2020-05-23T00:00:00+00:00"
               },
               "valid": true
@@ -89,7 +89,7 @@
                 "fire_type": null,
                 "error": true,
                 "error_message": null,
-                "date": "2020-05-21T20:00:00+00:00",
+                "date": "2020-05-14T20:00:00+00:00",
                 "last_updated": "2020-05-23T00:00:00+00:00"
               },
               "valid": false
@@ -110,39 +110,8 @@
           "prep_level": 1.0
         },
         {
-          "date": "2020-05-22",
+          "date": "2020-05-15",
           "dailies": [
-            {
-              "daily": {
-                "code": 230,
-                "status": "FORECAST",
-                "temperature": 25.0,
-                "relative_humidity": 38.0,
-                "wind_speed": 9.0,
-                "wind_direction": 310.0,
-                "grass_cure_percentage": null,
-                "precipitation": 2.8,
-                "ffmc": 91.294,
-                "dmc": 78.937,
-                "dc": 400.498,
-                "isi": 1.724,
-                "bui": 110.71,
-                "fwi": 11.966,
-                "danger_class": null,
-                "observation_valid": true,
-                "observation_valid_comment": null,
-                "rate_of_spread": 0.04874581788128311,
-                "hfi": 49.118357580890226,
-                "intensity_group": 1,
-                "sixty_minute_fire_size": 0.01834085021894554,
-                "fire_type": "SUR",
-                "error": true,
-                "error_message": null,
-                "date": "2020-05-22T20:00:00+00:00",
-                "last_updated": "2020-05-23T00:00:00+00:00"
-              },
-              "valid": true
-            },
             {
               "daily": {
                 "code": 239,
@@ -169,7 +138,7 @@
                 "fire_type": null,
                 "error": true,
                 "error_message": null,
-                "date": "2020-05-22T20:00:00+00:00",
+                "date": "2020-05-15T20:00:00+00:00",
                 "last_updated": "2020-05-23T00:00:00+00:00"
               },
               "valid": false
@@ -186,11 +155,11 @@
               "5": 4
             }
           },
-          "mean_intensity_group": 1.0,
-          "prep_level": 1.0
+          "mean_intensity_group": null,
+          "prep_level": null
         },
         {
-          "date": "2020-05-23",
+          "date": "2020-05-16",
           "dailies": [
             {
               "daily": {
@@ -218,7 +187,7 @@
                 "fire_type": "SUR",
                 "error": true,
                 "error_message": null,
-                "date": "2020-05-23T20:00:00+00:00",
+                "date": "2020-05-16T20:00:00+00:00",
                 "last_updated": "2020-05-23T00:00:00+00:00"
               },
               "valid": true
@@ -249,7 +218,7 @@
                 "fire_type": null,
                 "error": true,
                 "error_message": null,
-                "date": "2020-05-23T20:00:00+00:00",
+                "date": "2020-05-16T20:00:00+00:00",
                 "last_updated": "2020-05-23T00:00:00+00:00"
               },
               "valid": false
@@ -275,10 +244,10 @@
       "planning_area_id": 2,
       "all_dailies_valid": true,
       "highest_daily_intensity_group": 1.0,
-      "mean_prep_level": 1.0,
+      "mean_prep_level": null,
       "daily_results": [
         {
-          "date": "2020-05-21",
+          "date": "2020-05-14",
           "dailies": [
             {
               "daily": {
@@ -306,7 +275,7 @@
                 "fire_type": "SUR",
                 "error": true,
                 "error_message": null,
-                "date": "2020-05-21T20:00:00+00:00",
+                "date": "2020-05-14T20:00:00+00:00",
                 "last_updated": "2020-05-23T00:00:00+00:00"
               },
               "valid": true
@@ -327,40 +296,8 @@
           "prep_level": 1.0
         },
         {
-          "date": "2020-05-22",
-          "dailies": [
-            {
-              "daily": {
-                "code": 230,
-                "status": "FORECAST",
-                "temperature": 25.0,
-                "relative_humidity": 38.0,
-                "wind_speed": 9.0,
-                "wind_direction": 310.0,
-                "grass_cure_percentage": null,
-                "precipitation": 2.8,
-                "ffmc": 91.294,
-                "dmc": 78.937,
-                "dc": 400.498,
-                "isi": 1.724,
-                "bui": 110.71,
-                "fwi": 11.966,
-                "danger_class": null,
-                "observation_valid": true,
-                "observation_valid_comment": null,
-                "rate_of_spread": 0.04874581788128311,
-                "hfi": 49.118357580890226,
-                "intensity_group": 1,
-                "sixty_minute_fire_size": 0.01834085021894554,
-                "fire_type": "SUR",
-                "error": true,
-                "error_message": null,
-                "date": "2020-05-22T20:00:00+00:00",
-                "last_updated": "2020-05-23T00:00:00+00:00"
-              },
-              "valid": true
-            }
-          ],
+          "date": "2020-05-15",
+          "dailies": [],
           "fire_starts": {
             "label": "0-1",
             "value": 1,
@@ -372,11 +309,11 @@
               "5": 4
             }
           },
-          "mean_intensity_group": 1.0,
-          "prep_level": 1.0
+          "mean_intensity_group": null,
+          "prep_level": null
         },
         {
-          "date": "2020-05-23",
+          "date": "2020-05-16",
           "dailies": [
             {
               "daily": {
@@ -404,7 +341,7 @@
                 "fire_type": "SUR",
                 "error": true,
                 "error_message": null,
-                "date": "2020-05-23T20:00:00+00:00",
+                "date": "2020-05-16T20:00:00+00:00",
                 "last_updated": "2020-05-23T00:00:00+00:00"
               },
               "valid": true

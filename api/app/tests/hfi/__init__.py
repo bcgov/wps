@@ -19,7 +19,7 @@ def mock_station_crud(monkeypatch):
                 return 'C3'
             return 'C7B'
         result = []
-        for station_code in [230, 239]:
+        for station_code in [230, 239, 230]:
             planning_station = PlanningWeatherStation(station_code=station_code, planning_area_id=1)
             fuel_type_code = get_fuel_type_code_by_station_code(station_code)
             fuel_type = FuelType(abbrev=fuel_type_code, fuel_type_code=fuel_type_code,
