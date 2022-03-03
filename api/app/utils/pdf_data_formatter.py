@@ -55,6 +55,13 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
         days_total = len(area_result.daily_results)
         for j, daily_result in enumerate(area_result.daily_results):
             dailies: List[StationDaily] = list(map(lambda x: x.daily, daily_result.dailies))
+            full_dailies: List[StationPDFData] = []
+            for daily in dailies:
+                station_data = station_dict[daily.code]
+                merged = daily.dict()
+                merged.update(station_data)
+                full_daily = StationPDFData(**merged)
+                full_dailies.append(full_daily)
             fire_starts = fire_starts_range[j]
             planning_area_name = planning_area_dict[area_result.planning_area_id].name
             # TODO: Get planning area name, not just id
