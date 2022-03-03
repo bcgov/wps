@@ -59,8 +59,8 @@ API_INFO = '''
 
 
 async def startup_event():
-    """ Startup event handler for API
-    https://fastapi.tiangolo.com/advanced/events/#startup-event
+    """ Startup event handler for the app.
+    https://www.starlette.io/events/
     """
     # Instantiate the CFFDRS singleton. Binding to R can take quite some time, doing this when our thread
     # starts up will save us some time on requests. On my local machine, it takes about 3 seconds to start
