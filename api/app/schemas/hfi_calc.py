@@ -79,7 +79,7 @@ class DailyResult(BaseModel):
     """
     Prep level, MIG, fire starts and station daily results for a day in a prep week
     """
-    dateISO: str
+    date: date
     dailies: List[ValidatedStationDaily]
     fire_starts: FireStartRange
     mean_intensity_group: Optional[float]
@@ -153,7 +153,6 @@ class HFIResultRequest(BaseModel):
     a ISO date string in PST, then grab the YYYY-MM-DD part.
     The PST part is critical, so that the date doesn't change due to timezone switches.
     """
-    selected_prep_date: Optional[date]
     start_date: Optional[date]
     end_date: Optional[date]
     # TODO: Remove when fuel type config implemented
@@ -163,7 +162,7 @@ class HFIResultRequest(BaseModel):
     selected_fire_center_id: int
     # Mapping from planning area id to a map of FireStartRanges.
     planning_area_fire_starts: Mapping[int, List[FireStartRange]]
-    save: Optional[bool]
+    persist_request: Optional[bool]  # Indicate whether to save the request to the database.
 
 
 class HFIResultResponse(BaseModel):
@@ -171,7 +170,6 @@ class HFIResultResponse(BaseModel):
     Response that contains daily data, num prep days, selected station codes,
     selected fire centre, fire starts, HFI results.
     """
-    selected_prep_date: date
     start_date: date
     end_date: date
     # TODO: Remove when fuel type config implemented
@@ -181,3 +179,5 @@ class HFIResultResponse(BaseModel):
     planning_area_hfi_results: List[PlanningAreaResult]
     # Mapping from planning area id to a map of FireStartRanges
     planning_area_fire_starts: Mapping[int, List[FireStartRange]]
+    # Indicate whether the request used to generate this response  was saved to the database.
+    request_persist_success: bool

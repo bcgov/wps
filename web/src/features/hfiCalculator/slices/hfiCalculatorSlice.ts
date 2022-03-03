@@ -22,7 +22,7 @@ export interface DailyResult {
 }
 
 export interface RawDailyResult {
-  dateISO: string
+  date: string
   dailies: RawValidatedStationDaily[]
   mean_intensity_group: number | undefined
   prep_level: number | undefined
@@ -50,40 +50,41 @@ export interface HFICalculatorState {
   error: string | null
   numPrepDays: number
   selectedPrepDate: string
+  startDate: string
   planningAreaFireStarts: { [key: string]: FireStarts[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
+  saved: boolean
 }
 
 export interface HFIResultResponse {
-  selected_prep_date: DateTime
   start_date: string
   end_date: string
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: PlanningAreaResult[]
   planning_area_fire_starts: { [key: number]: FireStarts[] }
+  request_persist_success: boolean
 }
 
 export interface RawHFIResultResponse {
-  selected_prep_date: string
   start_date: string
   end_date: string
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: RawPlanningAreaResult[]
   planning_area_fire_starts: { [key: number]: FireStarts[] }
+  request_persist_success: boolean
 }
 
 export interface HFIResultRequest {
-  selected_prep_date?: Date
   start_date?: string
   end_date?: string
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_fire_starts: { [key: number]: FireStarts[] }
-  save?: boolean
+  persist_request?: boolean
 }
 
 export interface ValidatedStationDaily {
@@ -136,10 +137,12 @@ const initialState: HFICalculatorState = {
   error: null,
   numPrepDays: NUM_WEEK_DAYS,
   selectedPrepDate: '',
+  startDate: '',
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
   selectedFireCentre: undefined,
-  result: undefined
+  result: undefined,
+  saved: true
 }
 
 const dailiesSlice = createSlice({
@@ -153,13 +156,19 @@ const dailiesSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    setSelectedPrepDate: (state, action: PayloadAction<string>) => {
+    setSelectedPrepDate: (state: HFICalculatorState, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
     },
-    setSelectedFireCentre: (state, action: PayloadAction<FireCentre | undefined>) => {
+    setSelectedFireCentre: (
+      state: HFICalculatorState,
+      action: PayloadAction<FireCentre | undefined>
+    ) => {
       state.selectedFireCentre = action.payload
     },
-    setResult: (state, action: PayloadAction<HFIResultResponse | undefined>) => {
+    setResult: (
+      state: HFICalculatorState,
+      action: PayloadAction<HFIResultResponse | undefined>
+    ) => {
       state.result = action.payload
 
       if (action.payload) {
@@ -167,9 +176,14 @@ const dailiesSlice = createSlice({
         const end = DateTime.fromISO(action.payload.end_date)
         const diff = end.diff(start, ['days']).days
         state.numPrepDays = diff > 0 ? diff : NUM_WEEK_DAYS
+        state.startDate = action.payload.start_date
+        state.saved = action.payload.request_persist_success
       }
 
       state.loading = false
+    },
+    setSaved: (state: HFICalculatorState, action: PayloadAction<boolean>) => {
+      state.saved = action.payload
     }
   }
 })
@@ -179,7 +193,8 @@ export const {
   getHFIResultFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
-  setResult
+  setResult,
+  setSaved
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer

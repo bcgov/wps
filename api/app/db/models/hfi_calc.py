@@ -2,7 +2,6 @@
 """
 from sqlalchemy import (Column, Integer,
                         Sequence, ForeignKey, UniqueConstraint)
-from sqlalchemy.sql.expression import null
 from sqlalchemy.sql.sqltypes import String, Date, JSON
 from app.db.database import Base
 from app.db.models.common import TZTimeStamp
@@ -62,7 +61,8 @@ class PlanningWeatherStation(Base):
     __table_args__ = (
         UniqueConstraint('station_code', 'planning_area_id',
                          name='unique_station_code_for_planning_area'),
-        UniqueConstraint('order_of_appearance_in_planning_area_list', 'planning_area_id', name='unique_order_for_planning_area'),
+        UniqueConstraint('order_of_appearance_in_planning_area_list',
+                         'planning_area_id', name='unique_order_for_planning_area'),
         {'comment': 'Identifies the unique code used to identify the station'}
     )
 
