@@ -15,7 +15,7 @@ from app import health
 from app import hourlies
 from app.frontend import frontend
 from app.routers import fba, forecasts, fwi_calc, weather_models, c_haines, stations, hfi_calc, fba_calc
-# from app.utils.cffdrs import CFFDRS
+from app.utils.cffdrs import CFFDRS
 
 
 configure_logging()
@@ -58,6 +58,21 @@ API_INFO = '''
     has been specifically advised of the possibility of such damages.'''
 
 
+async def startup_event():
+    """ Startup event handler for the app.
+    https://www.starlette.io/events/
+    """
+    # Instantiate the CFFDRS singleton. Binding to R can take quite some time, doing this when our thread
+    # starts up will save us some time on requests. On my local machine, it takes about 3 seconds to start
+    # up R.
+    # The downside to this is that we're increasing the memory footprint of the app.
+    cffdrs_start = perf_counter()
+    # TODO: Fix in next PR.
+    CFFDRS.instance()  # pylint: disable=no-member
+    cffdrs_end = perf_counter()
+    logger.info('saved %f seconds by starting CFFDRS now', cffdrs_end - cffdrs_start)
+
+
 # This is the api app.
 api = FastAPI(
     title="Predictive Services API",
@@ -67,7 +82,7 @@ api = FastAPI(
 
 # This is our base starlette app - it doesn't do much except glue together
 # the api and the front end.
-app = Starlette()
+app = Starlette(on_startup=[startup_event])
 
 
 # The order here is important:

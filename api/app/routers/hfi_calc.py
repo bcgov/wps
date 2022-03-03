@@ -13,12 +13,14 @@ import app.utils.time
 from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationDaily
 import app
 from app.auth import authentication_required, audit
-from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
-from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request,
-                                  store_hfi_request,
+from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
+                                  FuelType, FireCentre, PlanningArea, WeatherStation)
+from app.db.crud.hfi_calc import (get_fire_weather_stations,
+                                  get_most_recent_updated_hfi_request, store_hfi_request,
                                   get_fire_centre_stations)
 from app.wildfire_one.schema_parsers import generate_station_daily
 from app.wildfire_one.wfwx_api import (get_auth_header,
+                                       get_stations_by_codes,
                                        get_wfwx_stations_from_station_codes,
                                        get_raw_dailies_in_range_generator)
 
@@ -176,10 +178,11 @@ async def get_hfi_results(request: HFIResultRequest,
             async for station_daily in dailies_generator:
                 dailies.append(station_daily)
 
-            prep_delta = valid_end_date - valid_start_date  # num prep days is inclusive
+            prep_delta = valid_end_date - valid_start_date
+            prep_days = prep_delta.days + 1  # num prep days is inclusive
 
             results = calculate_hfi_results(request.planning_area_fire_starts,
-                                            dailies, prep_delta.days,
+                                            dailies, prep_days,
                                             request.selected_station_code_ids,
                                             area_station_map,
                                             valid_start_date)
