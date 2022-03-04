@@ -1,3 +1,6 @@
+""" Marshals HFI result into structure that jinja can easily
+        iterate over for generating the daily PDF sheets
+"""
 from itertools import groupby
 import operator
 from typing import List, Mapping
@@ -11,7 +14,7 @@ from app.schemas.hfi_calc import (DailyPDFData,
 
 def response_2_daily_jinja_format(result: HFIResultResponse,
                                   planning_area_dict: Mapping[int, PlanningArea],
-                                  station_dict: Mapping[int, WeatherStation]) -> dict[str, List[DailyPDFData]]:
+                                  station_dict: Mapping[int, WeatherStation]) -> dict[str, List[DailyPDFData]]:  # pylint: disable=line-too-long
     """ Marshals HFI result into structure that jinja can easily
         iterate over for generating the daily PDF sheets
      """
