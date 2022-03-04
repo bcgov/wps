@@ -13,7 +13,7 @@ daily_rendered_path = os.path.join(os.path.dirname(__file__), 'daily_rendered.ht
 output_file_path = os.path.join(os.path.dirname(__file__), "out.pdf")
 
 
-def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]):
+def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]) -> bool:
     """Generate a daily PDF"""
     # Shift hydrated fire centres into dicts keyed by ids
     fire_centre_dict: Mapping[int, FireCentre] = {}
