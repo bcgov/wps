@@ -2,8 +2,7 @@
   "start_date": "2020-05-21",
   "end_date": "2020-05-23",
   "selected_station_code_ids": [
-    230,
-    239
+    230
   ],
   "planning_area_station_info": {
     "1": [
@@ -25,7 +24,7 @@
   "planning_area_hfi_results": [
     {
       "planning_area_id": 1,
-      "all_dailies_valid": false,
+      "all_dailies_valid": true,
       "highest_daily_intensity_group": 1.0,
       "mean_prep_level": 1.0,
       "daily_results": [
@@ -62,37 +61,6 @@
                 "last_updated": "2020-05-23T00:00:00+00:00"
               },
               "valid": true
-            },
-            {
-              "daily": {
-                "code": 239,
-                "status": "FORECAST",
-                "temperature": 23.0,
-                "relative_humidity": 36.0,
-                "wind_speed": 7.0,
-                "wind_direction": 300.0,
-                "grass_cure_percentage": null,
-                "precipitation": 1.8,
-                "ffmc": 84.294,
-                "dmc": 79.937,
-                "dc": 463.498,
-                "isi": 2.724,
-                "bui": 111.71,
-                "fwi": 12.966,
-                "danger_class": null,
-                "observation_valid": true,
-                "observation_valid_comment": null,
-                "rate_of_spread": null,
-                "hfi": null,
-                "intensity_group": null,
-                "sixty_minute_fire_size": null,
-                "fire_type": null,
-                "error": true,
-                "error_message": null,
-                "date": "2020-05-21T20:00:00+00:00",
-                "last_updated": "2020-05-23T00:00:00+00:00"
-              },
-              "valid": false
             }
           ],
           "fire_starts": {
@@ -142,37 +110,6 @@
                 "last_updated": "2020-05-23T00:00:00+00:00"
               },
               "valid": true
-            },
-            {
-              "daily": {
-                "code": 239,
-                "status": "FORECAST",
-                "temperature": 3.0,
-                "relative_humidity": 6.0,
-                "wind_speed": 1.0,
-                "wind_direction": 320.0,
-                "grass_cure_percentage": null,
-                "precipitation": 0.8,
-                "ffmc": 94.294,
-                "dmc": 89.937,
-                "dc": 473.498,
-                "isi": 3.724,
-                "bui": 121.71,
-                "fwi": 13.866,
-                "danger_class": null,
-                "observation_valid": true,
-                "observation_valid_comment": null,
-                "rate_of_spread": null,
-                "hfi": null,
-                "intensity_group": null,
-                "sixty_minute_fire_size": null,
-                "fire_type": null,
-                "error": true,
-                "error_message": null,
-                "date": "2020-05-22T20:00:00+00:00",
-                "last_updated": "2020-05-23T00:00:00+00:00"
-              },
-              "valid": false
             }
           ],
           "fire_starts": {
@@ -222,37 +159,6 @@
                 "last_updated": "2020-05-23T00:00:00+00:00"
               },
               "valid": true
-            },
-            {
-              "daily": {
-                "code": 239,
-                "status": "FORECAST",
-                "temperature": 13.0,
-                "relative_humidity": 13.0,
-                "wind_speed": 2.3,
-                "wind_direction": 120.0,
-                "grass_cure_percentage": null,
-                "precipitation": 0.2,
-                "ffmc": 14.294,
-                "dmc": 39.937,
-                "dc": 233.498,
-                "isi": 1.123,
-                "bui": 101.71,
-                "fwi": 10.966,
-                "danger_class": null,
-                "observation_valid": true,
-                "observation_valid_comment": null,
-                "rate_of_spread": null,
-                "hfi": null,
-                "intensity_group": null,
-                "sixty_minute_fire_size": null,
-                "fire_type": null,
-                "error": true,
-                "error_message": null,
-                "date": "2020-05-23T20:00:00+00:00",
-                "last_updated": "2020-05-23T00:00:00+00:00"
-              },
-              "valid": false
             }
           ],
           "fire_starts": {
