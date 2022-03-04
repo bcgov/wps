@@ -1,4 +1,5 @@
 """Generate a daily PDF"""
+import os
 from typing import List, Mapping
 import pdfkit
 from jinja2 import Template
@@ -6,8 +7,8 @@ from jinja2 import Template
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
 from app.utils.pdf_data_formatter import response_2_daily_jinja_format
 
-daily_template_path = "api/app/utils/daily_template.html"
-daily_rendered_path = "api/app/utils/daily_rendered.html"
+daily_template_path = os.path.join(os.path.dirname(__file__), 'daily_template.html')
+daily_rendered_path = os.path.join(os.path.dirname(__file__), 'daily_rendered.html')
 
 output_file_path = "api/app/utils/out.pdf"
 
