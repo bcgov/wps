@@ -7,7 +7,7 @@ from typing import AsyncGenerator, List, Optional
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends
 from app.db.database import get_read_session_scope
-from app.hfi.hfi import calculate_hfi_results
+from app.hfi import calculate_hfi_results
 import app.utils.time
 from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationDaily
 import app
@@ -118,14 +118,67 @@ async def station_daily_generator(raw_daily_generator,
     logger.info('station_daily_generator cumulative time %f', cumulative)
 
 
+async def prepare_input(selected_fire_center_id: int, start_date: date, end_date: date):
+    # TODO: move this to another module.
+    # ensure we have valid start and end dates
+    valid_start_date, valid_end_date = validate_date_range(start_date, end_date)
+    # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
+    start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_start_date).timestamp() * 1000)
+    end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
+
+    async with ClientSession() as session:
+        header = await get_auth_header(session)
+        # TODO: Enable when fuel type config implemented
+        # selected_station_codes = extract_selected_stations(request)
+
+        with get_read_session_scope() as orm_session:
+            # TODO: move this code to app.hfi (in order to simplify the router)
+            # Fetching dailies is an expensive operation. When a user is clicking an unclicking stations
+            # in the front end, we'd prefer to not change the the call that's going to wfwx so that we can
+            # use cached values. So we don't actually filter out the "selected" stations, but rather go
+            # get all the stations for this fire centre.
+            fire_centre_stations = get_fire_centre_stations(
+                orm_session, selected_fire_center_id)
+            fire_centre_station_code_ids = set()
+            area_station_map = {}
+            station_fuel_type_map = {}
+            for station, fuel_type in fire_centre_stations:
+                fire_centre_station_code_ids.add(station.station_code)
+                if not station.planning_area_id in area_station_map:
+                    area_station_map[station.planning_area_id] = []
+                area_station_map[station.planning_area_id].append(station)
+                station_fuel_type_map[station.station_code] = fuel_type
+
+        wfwx_stations = await get_wfwx_stations_from_station_codes(
+            session, header, list(fire_centre_station_code_ids))
+
+        wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
+        raw_dailies_generator = await get_raw_dailies_in_range_generator(
+            session, header, wfwx_station_ids, start_timestamp, end_timestamp)
+        dailies_generator = station_daily_generator(
+            raw_dailies_generator, wfwx_stations, station_fuel_type_map)
+        dailies = []
+        async for station_daily in dailies_generator:
+            dailies.append(station_daily)
+
+    prep_delta = valid_end_date - valid_start_date
+    prep_days = prep_delta.days + 1  # num prep days is inclusive
+    return prep_days, dailies, valid_start_date, valid_end_date, area_station_map
+
+
 @router.post('/', response_model=HFIResultResponse)
 async def get_hfi_results(request: HFIResultRequest,
                           response: Response,
                           token=Depends(authentication_required)):
-    """ Returns calculated HFI results for the supplied details in the POST body """
-    # Yes. There are a lot of locals!
-    # pylint: disable=too-many-locals
+    """ Returns calculated HFI results for the supplied details in the POST body.
 
+    - Load request from database, if available.
+    - Collect input for the HFI calculation.
+    - Calculate HFI results.
+    - Save the request.
+    - Return the result.
+    """
+    # Yes. There are a lot of locals!
     try:
         logger.info('/hfi-calc/')
         response.headers["Cache-Control"] = no_cache
@@ -136,58 +189,18 @@ async def get_hfi_results(request: HFIResultRequest,
             request = stored_request
             request_loaded = True
 
-        # ensure we have valid start and end dates
-        valid_start_date, valid_end_date = validate_date_range(request.start_date, request.end_date)
-        # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
-        start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_start_date).timestamp() * 1000)
-        end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
+        prep_days, dailies, start_date, end_date, area_station_map = await prepare_input(request.selected_fire_center_id,
+                                                                                         request.start_date,
+                                                                                         request.end_date)
 
-        async with ClientSession() as session:
-            header = await get_auth_header(session)
-            # TODO: Enable when fuel type config implemented
-            # selected_station_codes = extract_selected_stations(request)
-
-            with get_read_session_scope() as orm_session:
-                # TODO: move this code to app.hfi (in order to simplify the router)
-                # Fetching dailies is an expensive operation. When a user is clicking an unclicking stations
-                # in the front end, we'd prefer to not change the the call that's going to wfwx so that we can
-                # use cached values. So we don't actually filter out the "selected" stations, but rather go
-                # get all the stations for this fire centre.
-                fire_centre_stations = get_fire_centre_stations(
-                    orm_session, request.selected_fire_center_id)
-                fire_centre_station_code_ids = set()
-                area_station_map = {}
-                station_fuel_type_map = {}
-                for station, fuel_type in fire_centre_stations:
-                    fire_centre_station_code_ids.add(station.station_code)
-                    if not station.planning_area_id in area_station_map:
-                        area_station_map[station.planning_area_id] = []
-                    area_station_map[station.planning_area_id].append(station)
-                    station_fuel_type_map[station.station_code] = fuel_type
-
-            wfwx_stations = await get_wfwx_stations_from_station_codes(
-                session, header, list(fire_centre_station_code_ids))
-
-            wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
-            raw_dailies_generator = await get_raw_dailies_in_range_generator(
-                session, header, wfwx_station_ids, start_timestamp, end_timestamp)
-            dailies_generator = station_daily_generator(
-                raw_dailies_generator, wfwx_stations, station_fuel_type_map)
-            dailies = []
-            async for station_daily in dailies_generator:
-                dailies.append(station_daily)
-
-            prep_delta = valid_end_date - valid_start_date
-            prep_days = prep_delta.days + 1  # num prep days is inclusive
-
-            results = calculate_hfi_results(request.planning_area_fire_starts,
-                                            dailies, prep_days,
-                                            request.selected_station_code_ids,
-                                            area_station_map,
-                                            valid_start_date)
-        response = HFIResultResponse(
-            start_date=start_timestamp,
-            end_date=end_timestamp,
+        results = calculate_hfi_results(request.planning_area_fire_starts,
+                                        dailies, prep_days,
+                                        request.selected_station_code_ids,
+                                        area_station_map,
+                                        start_date)
+        hfi_result_response = HFIResultResponse(
+            start_date=start_date,
+            end_date=end_date,
             selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
@@ -204,8 +217,8 @@ async def get_hfi_results(request: HFIResultRequest,
             save_request_in_database(request, token.get('preferred_username', None))
             request_persist_success = True
         # Indicate in the response if this request is saved in the database.
-        response.request_persist_success = request_persist_success or request_loaded
-        return response
+        hfi_result_response.request_persist_success = request_persist_success or request_loaded
+        return hfi_result_response
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise

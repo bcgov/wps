@@ -1,6 +1,7 @@
 from app.schemas.shared import FuelType
 from app.db.models.hfi_calc import PlanningWeatherStation
-import app.hfi.hfi
+import app.utils.hfi_calculator
+import app.routers.hfi_calc
 
 
 def mock_station_crud(monkeypatch):

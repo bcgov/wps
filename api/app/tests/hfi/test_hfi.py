@@ -1,12 +1,11 @@
 """ Unit testing for hfi logic """
-from datetime import date, datetime
+from datetime import datetime
 
 from pytest_mock import MockerFixture
-from app.db.database import get_read_session_scope
-from app.hfi.hfi import (calculate_hfi_results,
-                         calculate_mean_intensity,
-                         calculate_max_intensity_group,
-                         calculate_prep_level, validate_station_daily)
+from app.hfi import (calculate_hfi_results,
+                     calculate_mean_intensity,
+                     calculate_max_intensity_group,
+                     calculate_prep_level, validate_station_daily)
 import app.db.models.hfi_calc as hfi_calc_models
 from app.schemas.hfi_calc import (FireCentre,
                                   PlanningArea,
