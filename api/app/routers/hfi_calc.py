@@ -178,7 +178,6 @@ async def get_hfi_results(request: HFIResultRequest,
     - Save the request.
     - Return the result.
     """
-    # Yes. There are a lot of locals!
     try:
         logger.info('/hfi-calc/')
         response.headers["Cache-Control"] = no_cache
