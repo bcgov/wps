@@ -181,3 +181,26 @@ class HFIResultResponse(BaseModel):
     planning_area_fire_starts: Mapping[int, List[FireStartRange]]
     # Indicate whether the request used to generate this response  was saved to the database.
     request_persist_success: bool
+
+
+class PrepCyclePDFData(BaseModel):
+    """ Data needed for prep cycle PDF sheet """
+    planningAreaName: str
+    # Station dailies grouped by station code containing the dailies for each day in the prep cycle
+    dailies: Mapping[int, List[StationDaily]]
+
+
+class StationPDFData(StationDaily, WeatherStation):
+    """ All the details we have about stations """
+
+
+class DailyPDFData(BaseModel):
+    """ Data needed for daily PDF sheet """
+    planning_area_name: str
+    mean_prep_level: float
+    fire_starts: str
+    day: int
+    days_total: int
+    date: str
+    # Every station daily in the above planning area for the specific day
+    dailies: List[StationPDFData]
