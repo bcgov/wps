@@ -10,7 +10,7 @@ from app.utils.pdf_data_formatter import response_2_daily_jinja_format
 daily_template_path = os.path.join(os.path.dirname(__file__), 'daily_template.html')
 daily_rendered_path = os.path.join(os.path.dirname(__file__), 'daily_rendered.html')
 
-output_file_path = "api/app/utils/out.pdf"
+output_file_path = os.path.join(os.path.dirname(__file__), "out.pdf")
 
 
 def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]):
