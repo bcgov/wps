@@ -16,7 +16,7 @@ jobs:
       RENV_PATHS_ROOT: ~/.local/share/renv
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
@@ -116,7 +116,7 @@ jobs:
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
       - name: Archive coverage report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: api-coverage-report
           path: ./api/coverage-reports/coverage-report.xml
@@ -128,7 +128,7 @@ jobs:
         node-version: [14.x]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
@@ -165,7 +165,7 @@ jobs:
         run: yarn run finalizeCoverage
 
       - name: Archive coverage report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: web-coverage-report
           path: ./web/finalCoverage
@@ -176,9 +176,9 @@ jobs:
     steps:
       # we need to checkout, so that we have codecov.yml
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
@@ -193,7 +193,7 @@ jobs:
         python-version: [3.6.15]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
