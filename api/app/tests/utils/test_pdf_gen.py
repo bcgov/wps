@@ -17,4 +17,4 @@ def test_gen_daily_pdf():
             fc = FireCentre(**fc_json)
             fire_centres.append(fc)
         pdf_bytes = generate_daily_pdf(HFIResultResponse(**result), fire_centres)
-        len(pdf_bytes) > 0
+        assert len(pdf_bytes) > 0
