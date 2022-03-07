@@ -16,7 +16,7 @@ jobs:
       RENV_PATHS_ROOT: ~/.local/share/renv
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
@@ -128,7 +128,7 @@ jobs:
         node-version: [14.x]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
@@ -176,7 +176,7 @@ jobs:
     steps:
       # we need to checkout, so that we have codecov.yml
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v2
       - name: Upload test coverage to Codecov
@@ -193,7 +193,7 @@ jobs:
         python-version: [3.6.15]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
