@@ -34,7 +34,6 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
                 full_dailies.append(full_daily)
             fire_starts = fire_starts_range[j]
             planning_area_name = planning_area_dict[area_result.planning_area_id].name
-            # TODO: Get planning area name, not just id
             daily_data = DailyPDFData(planning_area_name=planning_area_name,
                                       mean_prep_level=area_result.mean_prep_level,
                                       fire_starts=fire_starts.label,

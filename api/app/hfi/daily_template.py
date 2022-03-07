@@ -111,7 +111,6 @@ DAILY_TEMPLATE_HTML = """
 """
 
 
-def str_daily_template(template_name: str):
-    """ Returns the only (currently) template """
-    print(template_name)
+def str_daily_template(template_name: str):    # pylint: disable=unused-argument
+    """ Returns the only (currently) template, arg above will be used for switching """
     return DAILY_TEMPLATE_HTML
