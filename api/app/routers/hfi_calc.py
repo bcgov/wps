@@ -5,7 +5,6 @@ import io
 from time import perf_counter
 from datetime import date, timedelta
 from typing import AsyncGenerator, List, Optional
-from aiohttp import content_disposition_filename
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends
 from starlette.responses import StreamingResponse
@@ -333,8 +332,8 @@ def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int
 
 
 @router.post('/download-pdf')
-async def image_endpoint(token=Depends(authentication_required)):
-
+async def download_result_pdf(_=Depends(authentication_required)):
+    """ Assembles and returns PDF byte representation of HFI result. """
     with open('api/app/tests/hfi/test_hfi_result.json', 'r') as hfi_result, open('api/app/tests/hfi/test_fire_centres.json', 'r') as fcs:
         result = json.load(hfi_result)
         fc_dict = json.load(fcs)
