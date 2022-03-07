@@ -2,15 +2,15 @@
 import os
 from typing import List, Mapping
 import pdfkit
-from jinja2 import Template
-
+from jinja2 import Environment, FunctionLoader
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
+from app.utils.daily_template import str_daily_template
 from app.utils.pdf_data_formatter import response_2_daily_jinja_format
 
-daily_template_path = os.path.join(os.path.dirname(__file__), 'daily_template.html')
 daily_rendered_path = os.path.join(os.path.dirname(__file__), 'daily_rendered.html')
-
 output_file_path = os.path.join(os.path.dirname(__file__), "out.pdf")
+
+jinja_env = Environment(loader=FunctionLoader(str_daily_template))
 
 
 def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]) -> bool:
@@ -27,9 +27,9 @@ def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]
                 station_dict[station.code] = station
 
     fire_centre_name = fire_centre_dict[result.selected_fire_center_id].name
-    # pylint: disable=line-too-long
-    with open(daily_template_path, 'r', encoding='UTF-8') as daily_template, open(daily_rendered_path, 'w', encoding='UTF-8') as new_page:
-        template = Template(daily_template.read())
+
+    with open(daily_rendered_path, 'w', encoding='UTF-8') as new_page:
+        template = jinja_env.get_template('daily_template')
         daily_pdf_data_by_date = response_2_daily_jinja_format(
             result,
             planning_area_dict,
