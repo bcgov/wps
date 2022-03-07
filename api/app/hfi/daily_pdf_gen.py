@@ -3,8 +3,8 @@ from typing import List, Mapping
 import pdfkit
 from jinja2 import Environment, FunctionLoader
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
-from app.utils.daily_template import str_daily_template
-from app.utils.pdf_data_formatter import response_2_daily_jinja_format
+from app.hfi.daily_template import str_daily_template
+from app.hfi.pdf_data_formatter import response_2_daily_jinja_format
 
 # Loads template as string from a function
 # See: https://jinja.palletsprojects.com/en/3.0.x/api/?highlight=functionloader#jinja2.FunctionLoader

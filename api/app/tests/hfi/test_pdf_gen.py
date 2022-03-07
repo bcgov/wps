@@ -1,6 +1,6 @@
 import json
 import os
-from app.utils.daily_pdf_gen import generate_daily_pdf
+from app.hfi.daily_pdf_gen import generate_daily_pdf
 from app.schemas.hfi_calc import HFIResultResponse
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse
 
