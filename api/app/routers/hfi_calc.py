@@ -1,12 +1,16 @@
 """ Routers for HFI Calculator """
 import logging
 import json
+import io
 from time import perf_counter
 from datetime import date, timedelta
 from typing import AsyncGenerator, List, Optional
+from aiohttp import content_disposition_filename
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends
+from starlette.responses import StreamingResponse
 from app.db.database import get_read_session_scope
+from app.hfi.daily_pdf_gen import generate_daily_pdf
 from app.hfi.hfi import calculate_hfi_results
 import app.utils.time
 from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationDaily
@@ -326,3 +330,20 @@ def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int
         if station.code == station_code:
             return station
     return None
+
+
+@router.post('/download-pdf')
+async def image_endpoint(token=Depends(authentication_required)):
+
+    with open('api/app/tests/hfi/test_hfi_result.json', 'r') as hfi_result, open('api/app/tests/hfi/test_fire_centres.json', 'r') as fcs:
+        result = json.load(hfi_result)
+        fc_dict = json.load(fcs)
+        fire_centres = []
+        for fc_json in fc_dict['fire_centres']:
+            fc = FireCentre(**fc_json)
+            fire_centres.append(fc)
+        pdf_bytes = generate_daily_pdf(HFIResultResponse(**result), fire_centres)
+
+    return StreamingResponse(io.BytesIO(pdf_bytes), media_type="application/pdf", headers={
+        'Content-Disposition': f'attachment;filename=test.pdf'
+    })

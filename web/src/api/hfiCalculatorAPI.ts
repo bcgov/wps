@@ -111,3 +111,23 @@ export async function getHFIResult(
     planning_area_hfi_results: planningAreaResultsWithDates
   }
 }
+
+export async function getPDF() {
+  const { data } = await axios.post(
+    baseUrl + 'download-pdf',
+    {},
+    {
+      responseType: 'arraybuffer',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/pdf'
+      }
+    }
+  )
+  const url = window.URL.createObjectURL(new Blob([data]))
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', 'hfi-download.pdf') //or any other extension
+  document.body.appendChild(link)
+  link.click()
+}

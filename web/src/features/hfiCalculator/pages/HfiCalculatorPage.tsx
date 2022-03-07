@@ -6,7 +6,8 @@ import {
   setSelectedFireCentre,
   fetchHFIResult,
   setSelectedPrepDate,
-  setSaved
+  setSaved,
+  fetchPDFDownload
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
@@ -27,6 +28,7 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
 import { cloneDeep, isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
+import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -239,6 +241,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
+  const handleDownloadClicked = () => {
+    if (!isUndefined(result)) {
+      dispatch(fetchPDFDownload())
+    }
+  }
+
   return (
     <main data-testid="hfi-calculator-page">
       <GeneralHeader
@@ -272,6 +280,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
             <FormControl className={classes.formControl}>
               <ViewSwitcherToggles dateOfInterest={dateOfInterest} />
+            </FormControl>
+
+            <FormControl className={classes.saveButton}>
+              <DownloadPDFButton onClick={handleDownloadClicked} />
             </FormControl>
 
             <FormControl className={classes.saveButton}>

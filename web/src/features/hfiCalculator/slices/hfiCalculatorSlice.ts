@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { getHFIResult, RawDaily, StationDaily } from 'api/hfiCalculatorAPI'
+import { getHFIResult, getPDF, RawDaily, StationDaily } from 'api/hfiCalculatorAPI'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
@@ -211,3 +211,12 @@ export const fetchHFIResult =
       logError(err)
     }
   }
+
+export const fetchPDFDownload = (): AppThunk => async dispatch => {
+  try {
+    await getPDF()
+  } catch (err) {
+    dispatch(getHFIResultFailed((err as Error).toString()))
+    logError(err)
+  }
+}
