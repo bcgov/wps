@@ -16,4 +16,5 @@ def test_gen_daily_pdf():
         for fc_json in fc_dict['fire_centres']:
             fc = FireCentre(**fc_json)
             fire_centres.append(fc)
-        assert generate_daily_pdf(HFIResultResponse(**result), fire_centres) == True
+        pdf_bytes = generate_daily_pdf(HFIResultResponse(**result), fire_centres)
+        len(pdf_bytes) > 0
