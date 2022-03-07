@@ -152,6 +152,12 @@ const dailiesSlice = createSlice({
     getHFIResultStart(state: HFICalculatorState) {
       state.loading = true
     },
+    pdfDownloadStart(state: HFICalculatorState) {
+      state.loading = true
+    },
+    pdfDownloadEnd(state: HFICalculatorState) {
+      state.loading = false
+    },
     getHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
@@ -190,6 +196,8 @@ const dailiesSlice = createSlice({
 
 export const {
   getHFIResultStart,
+  pdfDownloadStart,
+  pdfDownloadEnd,
   getHFIResultFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
@@ -214,7 +222,9 @@ export const fetchHFIResult =
 
 export const fetchPDFDownload = (): AppThunk => async dispatch => {
   try {
+    dispatch(pdfDownloadStart())
     await getPDF()
+    dispatch(pdfDownloadEnd())
   } catch (err) {
     dispatch(getHFIResultFailed((err as Error).toString()))
     logError(err)
