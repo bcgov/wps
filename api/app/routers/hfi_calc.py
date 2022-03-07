@@ -345,5 +345,5 @@ async def image_endpoint(token=Depends(authentication_required)):
         pdf_bytes = generate_daily_pdf(HFIResultResponse(**result), fire_centres)
 
     return StreamingResponse(io.BytesIO(pdf_bytes), media_type="application/pdf", headers={
-        'Content-Disposition': f'attachment;filename=test.pdf'
+        'Content-Disposition': 'attachment;filename=test.pdf'
     })
