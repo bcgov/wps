@@ -6,6 +6,8 @@ from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, We
 from app.utils.daily_template import str_daily_template
 from app.utils.pdf_data_formatter import response_2_daily_jinja_format
 
+# Loads template as string from a function
+# See: https://jinja.palletsprojects.com/en/3.0.x/api/?highlight=functionloader#jinja2.FunctionLoader
 jinja_env = Environment(loader=FunctionLoader(str_daily_template), autoescape=True)
 
 
