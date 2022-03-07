@@ -112,7 +112,7 @@ export async function getHFIResult(
   }
 }
 
-export async function getPDF() {
+export async function getPDF(): Promise<void> {
   const { data } = await axios.post(
     baseUrl + 'download-pdf',
     {},
