@@ -1,9 +1,6 @@
 """Generate a daily PDF"""
-import os
-from statistics import mode
 from typing import List, Mapping
 import pdfkit
-import tempfile
 from jinja2 import Environment, FunctionLoader
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
 from app.utils.daily_template import str_daily_template
