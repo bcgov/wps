@@ -1,3 +1,6 @@
+"""String representations of templates for in memory loading"""
+
+
 DAILY_TEMPLATE_HTML = """
 <!DOCTYPE html>
 <html lang="en">
@@ -109,5 +112,6 @@ DAILY_TEMPLATE_HTML = """
 
 
 def str_daily_template(template_name: str):
+    """ Returns the only (currently) template """
     print(template_name)
     return DAILY_TEMPLATE_HTML
