@@ -10,7 +10,7 @@ from typing import List, Generator
 from datetime import datetime
 from sqlalchemy.orm import Session
 import pytest
-from pytest_bdd import scenario, given, then
+from pytest_bdd import scenario, given, then, parsers
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
@@ -53,7 +53,7 @@ def test_noon_forecasts():
     """ BDD Scenario. """
 
 
-@given('I request noon_forecasts for stations: <codes>', target_fixture='response')
+@given(parsers.parse('I request noon_forecasts for stations: {codes}'), target_fixture='response')
 def given_request(monkeypatch, codes: List):
     """ Make /api/forecasts/noon/ request using mocked out ClientSession.
     """
@@ -66,13 +66,13 @@ def given_request(monkeypatch, codes: List):
     return client.post('/api/forecasts/noon/', headers=headers, json={"stations": codes})
 
 
-@then('the response status code is <status>')
+@then(parsers.parse('the response status code is {status}'))
 def assert_status_code(response, status):
     """ Assert that we receive the expected status code """
     assert response.status_code == status
 
 
-@then('there are <num_groups> groups of forecasts')
+@then(parsers.parse('there are {num_groups} groups of forecasts'))
 def assert_number_of_forecasts_groups(response, num_groups):
     """ Assert that we receive the expected number of forecast groups """
     assert len(response.json()['noon_forecasts']) == num_groups
