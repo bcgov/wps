@@ -5,31 +5,75 @@
 </head>
 
 <style>
+    td {
+        border-top: 2px solid black;
+        border-bottom: black 2px solid;
+        padding: 0;
+        border-collapse: collapse;
+        min-width: 35px;
+        max-width: 200px;
+        text-align: center;
+    }
+    th{
+        min-width: 35px;
+        max-width: 200px;
+        text-align: center; 
+    }
+
+    table {
+            border-collapse:collapse;
+            border:2px solid #000000;
+        }
+
+    .leftBorder{
+        border-left: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    .rightBorder{
+        border-right: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    .boldRightBorder{
+        border-right: 2px solid black;
+        border-collapse: collapse;
+    }
+
+    .boldLeftBorder{
+        border-left: 2px solid black;
+        border-collapse: collapse;
+    }
+
     .planningArea {
-        background-color:darksalmon;
-        border-bottom: black '1px solid';
+        background-color: cornflowerblue;
+        border-bottom: black 2px solid;
+        border-collapse: collapse;
+        height: 20px;
+        padding: 0;
     }
     .station{
-        background-color: cadetblue;
-        border-bottom: black '1px solid';
+        border-bottom: black 2px solid;
+        border-collapse: collapse;
+        padding: 0;
     }
 </style>
 
 <body>
     <table>
-        <tr>
+        <tr class="leftBorder">
             <td></td>
             <td></td>
             {% for day in prepDays %}
                 <td></td>
-                <td></td>
+                <td class="boldRightBorder"></td>
                 <td></td>
                 <td></td>
                 <th>{{ day }}</th>
             {% endfor %}
             <td></td>
             <td></td>
-            <td></td>
+            <td class="boldLeftBorder"></td>
             <th>Prep</th>
         </tr>
         <tr>
@@ -38,59 +82,59 @@
             <td>Fuel Type</td>
             <td>Grass Cure</td>
             {% for day in prepDays %}
-                <td>ROS</td>
+                <td class="boldLeftBorder">ROS</td>
                 <td>HFI</td>
                 <td>M/FIG</td>
                 <td>Fire Starts</td>
-                <td>Prep</td>
+                <td class="boldRightBorder">Prep</td>
             {% endfor %}
             <td>Highest FIG</td>
             <td>Prep Level</td>
         </tr>
         {% for area in planningAreas %}
-            <tr class="planningArea">
+            <tr class="planningArea leftBorder rightBorder">
                 <td>{{area['planningAreaName']}}</td>
                 <td></td>
                 <td></td>
+                <td class="boldRightBorder"></td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
+                <td class="boldRightBorder"></td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
+                <td class="boldRightBorder"></td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
+                <td class="boldRightBorder"></td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td class="boldRightBorder"></td>
+                <td class="boldRightBorder"></td>
                 <td></td>
             </tr>
             {% for code, dailies in area['dailies'].items() %}
             <tr class="station">
-                <td>{{code}}</td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td class="rightBorder">{{code}}</td>
+                <td class="rightBorder">X</td>
+                <td class="rightBorder">X</td>
+                <td class="rightBorder">X</td>
                 {% for daily in dailies %}
-                    <td>{{daily['rate_of_spread']}}</td>
-                    <td>{{daily['hfi']}}</td>
-                    <td>{{daily['intensity_group']}}</td>
-                    <td>X</td>
-                    <td>X</td>
+                    <td class="boldLeftBorder rightBorder">{{daily['rate_of_spread'] | round(1)}}</td>
+                    <td class="leftBorder rightBorder">{{daily['hfi'] | round(1)}}</td>
+                    <td class="leftBorder rightBorder">{{daily['intensity_group']}}</td>
+                    <td class="leftBorder rightBorder">X</td>
+                    <td class="leftBorder boldRightBorder">X</td>
                 {% endfor %}
-                <td></td>
-                <td></td>
+                <td class="boldRightBorder">X</td>
+                <td>X</td>
             </tr>
             {% endfor %}
         {% endfor %}

@@ -1,5 +1,7 @@
+import datetime
 from functools import reduce
 import json
+
 from app.utils.daily_pdf_gen import generate_daily_pdf
 from app.utils.pdf_gen import generate_prep_pdf
 from app.schemas.hfi_calc import HFIResultResponse
@@ -31,7 +33,9 @@ def test_gen_prep_data_converter():
         for area in prep_pdf_data:
             for code, dailies in area.dailies.items():
                 for daily in dailies:
-                    dates.append(daily.date)
+                    dateObj = datetime.datetime.strptime(str(daily.date), '%Y-%m-%d %H:%M:%S%z')
+                    formattedDateString = str(dateObj.strftime("%A %B, %d, %Y"))
+                    dates.append(formattedDateString)
                 break
             break
 
@@ -43,6 +47,6 @@ def test_gen_daily_data_converter():
     with open('api/app/tests/utils/test_hfi_result.json', 'r') as hfi_result:
         result = json.load(hfi_result)
         daily_pdf_data = response_2_daily_jinja_format(HFIResultResponse(**result))
-        all_dailies = reduce(list.__add__, list(map(lambda x: [x.dailies[0]], prep_pdf_data)))
+        all_dailies = reduce(list.__add__, list(map(lambda x: [x.dailies[0]], daily_pdf_data)))
         # globally sorted by date
         assert all_dailies == sorted(all_dailies, key=attrgetter('date'))
