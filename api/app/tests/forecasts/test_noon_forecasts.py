@@ -47,13 +47,13 @@ def mock_session(monkeypatch):
 
 
 @pytest.mark.usefixtures('mock_env_with_use_wfwx', 'mock_jwt_decode')
-@scenario('test_noon_forecasts.feature', 'Get noon_forecasts',
-          example_converters=dict(codes=json.loads, status=int, num_groups=int))
+@scenario('test_noon_forecasts.feature', 'Get noon_forecasts')
 def test_noon_forecasts():
     """ BDD Scenario. """
 
 
-@given(parsers.parse('I request noon_forecasts for stations: {codes}'), target_fixture='response')
+@given(parsers.parse('I request noon_forecasts for stations: {codes}'),
+       target_fixture='response', converters={'codes': json.loads})
 def given_request(monkeypatch, codes: List):
     """ Make /api/forecasts/noon/ request using mocked out ClientSession.
     """
@@ -66,13 +66,13 @@ def given_request(monkeypatch, codes: List):
     return client.post('/api/forecasts/noon/', headers=headers, json={"stations": codes})
 
 
-@then(parsers.parse('the response status code is {status}'))
+@then(parsers.parse('the response status code is {status}'), converters={'status': int})
 def assert_status_code(response, status):
     """ Assert that we receive the expected status code """
     assert response.status_code == status
 
 
-@then(parsers.parse('there are {num_groups} groups of forecasts'))
+@then(parsers.parse('there are {num_groups} groups of forecasts'), converters={'num_groups': int})
 def assert_number_of_forecasts_groups(response, num_groups):
     """ Assert that we receive the expected number of forecast groups """
     assert len(response.json()['noon_forecasts']) == num_groups
