@@ -18,6 +18,8 @@ def get_complete_filename(module_path: str, filename: str):
 
 def _load_json_file(module_path: str, filename: str) -> Optional[dict]:
     """ Load json file given a module path and a filename """
+    if filename == 'None':  # Not the best solution...
+        return None
     if filename:
         with open(get_complete_filename(module_path, filename), encoding="utf-8") as file_pointer:
             return json.load(file_pointer)

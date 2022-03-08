@@ -11,7 +11,7 @@ if the change in output is due to a bug, or due to a valid change.
 """
 import json
 from typing import Tuple
-from pytest_bdd import scenario, given, then
+from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
 import pytest
@@ -21,15 +21,14 @@ from app.tests import load_json_file, load_json_file_with_name
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_fba.feature', 'Fire Behaviour Calculation',
-          example_converters=dict(request_json=load_json_file_with_name(__file__),
-                                  status_code=int,
-                                  response_json=load_json_file(__file__)))
+@scenario('test_fba.feature', 'Fire Behaviour Calculation')
 def test_fire_behaviour_calculator_scenario():
     """ BDD Scenario. """
 
 
-@given("I received a <request_json>", target_fixture='result')
+@given(parsers.parse("I received a {request_json}"),
+       target_fixture='result',
+       converters={'request_json': load_json_file_with_name(__file__)})
 def given_request(monkeypatch, request_json: Tuple[dict, str]):
     """ Handle request
     Our request should result in
@@ -49,13 +48,14 @@ def given_request(monkeypatch, request_json: Tuple[dict, str]):
     }
 
 
-@ then("the response status code is <status_code>")
+@then(parsers.parse("the response status code is {status_code}"), converters={'status_code': int})
 def then_status(result, status_code: int):
     """ Check response status code """
     assert result['response'].status_code == status_code, result['filename']
 
 
-@ then("the response is <response_json>")
+@then(parsers.parse("the response is {response_json}"),
+      converters={'response_json': load_json_file(__file__)})
 def then_response(result, response_json: dict):
     """ Check entire response """
     if response_json is not None:
