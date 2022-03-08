@@ -1,7 +1,6 @@
 """ Routers for HFI Calculator """
 import logging
 import json
-import io
 from typing import List, Optional
 from fastapi import APIRouter, Response, Depends
 from app.hfi.daily_pdf_gen import generate_daily_pdf
