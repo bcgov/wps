@@ -1,8 +1,9 @@
 import json
-from pytest_bdd import then
+from pytest_bdd import then, parsers
+from app.tests import load_json_file
 
 
-@then("the response is <response_json>")
+@then(parsers.parse("the response is {response_json}"), converters={'response_json': load_json_file(__file__)})
 def then_response(result, response_json: dict):
     """ Check entire response """
     if response_json is not None:
@@ -11,7 +12,7 @@ def then_response(result, response_json: dict):
         assert result['response'].json() == response_json, result['filename']
 
 
-@then("the response status code is <status_code>")
+@then(parsers.parse("the response status code is {status_code}"), converters={'status_code': int})
 def then_status(result, status_code: int):
     """ Check response status code """
     assert result['response'].status_code == status_code, result['filename']
