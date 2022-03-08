@@ -1,5 +1,6 @@
 """ BDD tests for API /hfi-calc/ """
-from pytest_bdd import scenario, given, then
+from lib2to3.pytree import convert
+from pytest_bdd import scenario, given, then, parsers
 import pytest
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
@@ -11,10 +12,7 @@ import app.routers.hfi_calc
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@scenario('test_hfi_planning_areas.feature', 'Get fire centres, planning areas, and weather stations',
-          example_converters=dict(
-              status=int,
-              num_fire_centres=int))
+@scenario('test_hfi_planning_areas.feature', 'Get fire centres, planning areas, and weather stations')
 def test_hfi_planning_areas():
     """ BDD Scenario. """
 
@@ -29,9 +27,9 @@ def given_hfi_planning_areas_request(monkeypatch):
         planning_area_1 = PlanningArea(id=2, name='Kamloops (K2)', fire_centre_id=1)
         planning_area_2 = PlanningArea(id=3, name='Vernon (K4)', fire_centre_id=1)
         fuel_type_1 = FuelType(abbrev='O1B', description='neigh', fuel_type_code="O1B",
-            percentage_conifer=0, percentage_dead_fir=0)
+                               percentage_conifer=0, percentage_dead_fir=0)
         fuel_type_2 = FuelType(abbrev='C7B', description='moo', fuel_type_code='C7',
-            percentage_conifer=100, percentage_dead_fir=0)
+                               percentage_conifer=100, percentage_dead_fir=0)
         return (
             (PlanningWeatherStation(station_code=322, fuel_type_id=1,
              planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
@@ -52,13 +50,14 @@ def given_hfi_planning_areas_request(monkeypatch):
     return client.get('/api/hfi-calc/fire-centres/', headers=headers)
 
 
-@then('the response status code is <status>')
+@then(parsers.parse('the response status code is {status}'), converters={'status': int})
 def assert_status_code(response, status):
     """ Assert that we receive the expected status code """
     assert response.status_code == status
 
 
-@then('there are at least <num_fire_centres> fire centres')
+@then(parsers.parse('there are at least {num_fire_centres} fire centres'),
+      converters={'num_fire_centres': int})
 def assert_number_of_fire_centres(response, num_fire_centres):
     """ Assert that we receive the minimum expected number of fire centres """
     assert len(response.json()['fire_centres']) >= num_fire_centres
