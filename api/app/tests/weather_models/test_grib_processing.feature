@@ -3,8 +3,8 @@ Feature: Grib file processing
     Scenario: Extract origin and pixel information
         Given a grib file: <filename>
         When I extract the geometry
-        Then I expect <origin>
-        And I expect <pixels>
+        Then I expect origin: <origin>
+        And I expect pixels: <pixels>
 
         Examples:
             | filename                                             | origin             | pixels                       |
@@ -13,8 +13,8 @@ Feature: Grib file processing
     Scenario: Extract the surrounding grid
         Given a grib file: <filename>
         When I get the surrounding grid for <raster_coordinate>
-        Then I expect <points>
-        And I expect <values>
+        Then I expect points: <points>
+        And I expect values: <values>
 
         Examples:
             | filename                                                        | raster_coordinate | points                                               | values                                                                           |
@@ -25,7 +25,7 @@ Feature: Grib file processing
     Scenario: Calculate raster coordinates
         Given a GDAL <geotransform> and <wkt_projection_string>
         When I calculate the raster coordinate for <geographic_coordinate>
-        Then I expect <raster_coordinate>
+        Then I expect raster coordinates: <raster_coordinate>
 
         Examples:
             | geotransform                                                        | wkt_projection_string                            | geographic_coordinate      | raster_coordinate |
