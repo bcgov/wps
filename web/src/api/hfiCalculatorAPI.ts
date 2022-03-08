@@ -119,11 +119,7 @@ export async function getPDF(request: HFIResultRequest): Promise<void> {
       ...request
     },
     {
-      responseType: 'arraybuffer',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/pdf'
-      }
+      responseType: 'blob'
     }
   )
   const url = window.URL.createObjectURL(new Blob([data]))
