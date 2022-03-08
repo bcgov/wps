@@ -6,7 +6,6 @@ import {
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { groupBy, isUndefined, sortBy, take } from 'lodash'
 import { DateTime } from 'luxon'
-import { DateRange } from 'materialui-daterange-picker'
 
 export const getDailiesForArea = (
   area: PlanningArea,

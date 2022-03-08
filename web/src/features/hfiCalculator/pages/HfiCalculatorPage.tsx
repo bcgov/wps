@@ -5,8 +5,7 @@ import {
   FireStarts,
   setSelectedFireCentre,
   fetchHFIResult,
-  setSaved,
-  PrepDateRange
+  setSaved
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -25,7 +24,6 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
 import { cloneDeep, isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
-import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { DateTime } from 'luxon'
 import { pstFormatter } from 'utils/date'
 
@@ -126,6 +124,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
           date_range: {
+            // This is so annoying that I have to do this to make the network call work
             start_date: newDateRange.startDate?.toISOString().split('T')[0],
             end_date: newDateRange.endDate?.toISOString().split('T')[0]
           }
@@ -171,6 +170,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         !isUndefined(prepDateRange?.endDate)
       ) {
         dateRange = {
+          // This is so annoying that I have to do this to make the network call work
           start_date: prepDateRange?.startDate.toISOString().split('T')[0],
           end_date: prepDateRange?.endDate.toISOString().split('T')[0]
         }
@@ -252,13 +252,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             {!isNull(fireCentresError) && (
               <HFIErrorAlert hfiDailiesError={null} fireCentresError={fireCentresError} />
             )}
-            <LastUpdatedHeader
-              dailies={result?.planning_area_hfi_results.flatMap(areaResult =>
-                areaResult.daily_results.flatMap(dailyResult =>
-                  dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
-                )
-              )}
-            />
 
             <FormControl className={classes.formControl}>
               <ViewSwitcherToggles />

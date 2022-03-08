@@ -168,6 +168,15 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
             />
           </FormControl>
         </Grid>
+        <Grid item md={3}>
+          <LastUpdatedHeader
+            dailies={props.result?.planning_area_hfi_results.flatMap(areaResult =>
+              areaResult.daily_results.flatMap(dailyResult =>
+                dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
+              )
+            )}
+          />
+        </Grid>
         <Grid item md={1} className={classes.aboutButtonGridItem}>
           <FormControl className={classes.minWidth210}>
             <Button onClick={openAboutModal} size="small">
