@@ -73,7 +73,7 @@ DAILY_TEMPLATE_HTML = """
                 <tr colspan="22">
                     {% for planning_area_data in planning_areas %}
                         <td class="table-data" colspan="21">{{planning_area_data['planning_area_name']}}</td>
-                        <td class="table-data" rowspan="{{planning_area_data['dailies']|length + 1}}">TODO</td>
+                        <td class="table-data">{{planning_area_data['highest_daily_intensity_group']}}</td>
                         <td class="table-data" rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['fire_starts']}}</td>
                         <td class="table-data" rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['mean_prep_level']}}</td>
                             {% for d in planning_area_data['dailies']  %}
