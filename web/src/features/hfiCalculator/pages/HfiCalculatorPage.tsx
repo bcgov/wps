@@ -4,7 +4,9 @@ import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   FireStarts,
   setSelectedFireCentre,
-  fetchHFIResult
+  fetchHFIResult,
+  setSaved,
+  PrepDateRange
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -15,13 +17,17 @@ import {
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { DateRange } from 'materialui-daterange-picker'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
+import SaveButton from 'features/hfiCalculator/components/SaveButton'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
-import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { formControlStyles, theme } from 'app/theme'
+import { PST_UTC_OFFSET, PST_ISO_TIMEZONE } from 'utils/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
-import { cloneDeep, isNull, isUndefined, union } from 'lodash'
+import { cloneDeep, isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
+import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
+import { DateTime } from 'luxon'
+import { pstFormatter } from 'utils/date'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -50,6 +56,10 @@ const useStyles = makeStyles(() => ({
   prepDays: {
     margin: theme.spacing(1),
     minWidth: 100
+  },
+  saveButton: {
+    margin: theme.spacing(1),
+    float: 'right'
   }
 }))
 
@@ -59,18 +69,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const dispatch = useDispatch()
   const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const { selectedPrepDate, result, selectedFireCentre, loading } = useSelector(
+  const { selectedPrepDate, result, selectedFireCentre, loading, saved } = useSelector(
     selectHFICalculatorState
   )
 
   const setSelected = (newSelected: number[]) => {
     if (!isUndefined(result)) {
+      dispatch(setSaved(false))
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: newSelected,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
-          selected_prep_date: result.selected_prep_date.toJSDate(),
           date_range: result.date_range
         })
       )
@@ -85,12 +95,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     if (!isUndefined(result)) {
       const newPlanningAreaFireStarts = cloneDeep(result.planning_area_fire_starts)
       newPlanningAreaFireStarts[areaId][dayOffset] = { ...newFireStarts }
+      dispatch(setSaved(false))
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: newPlanningAreaFireStarts,
-          selected_prep_date: result.selected_prep_date.toJSDate(),
           date_range: result.date_range
         })
       )
@@ -98,6 +108,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   const [prepDateRange, setPrepDateRange] = useState<DateRange>()
+  const getBrowserCurrentDate = () => {
+    return pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+  }
 
   const updatePrepDateRange = (newDateRange: DateRange) => {
     if (
@@ -106,15 +119,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       !isUndefined(result)
     ) {
       setPrepDateRange(newDateRange)
+      dispatch(setSaved(false))
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
-          selected_prep_date: result.selected_prep_date.toJSDate(),
           date_range: {
-            start_date: newDateRange.startDate,
-            end_date: newDateRange.endDate
+            start_date: newDateRange.startDate?.toISOString().split('T')[0],
+            end_date: newDateRange.endDate?.toISOString().split('T')[0]
           }
         })
       )
@@ -150,14 +163,24 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const stationCodes = selectedFireCentre.planning_areas.flatMap(area =>
         area.stations.map(station => station.code)
       )
-      setSelected(union(stationCodes))
-
+      let dateRange = undefined
+      if (!isUndefined(result)) {
+        dateRange = result.date_range
+      } else if (
+        !isUndefined(prepDateRange?.startDate) &&
+        !isUndefined(prepDateRange?.endDate)
+      ) {
+        dateRange = {
+          start_date: prepDateRange?.startDate.toISOString().split('T')[0],
+          end_date: prepDateRange?.endDate.toISOString().split('T')[0]
+        }
+      }
       dispatch(
         fetchHFIResult({
-          date_range: result ? result.date_range : prepDateRange,
+          date_range: dateRange,
           selected_station_code_ids: stationCodes,
           selected_fire_center_id: selectedFireCentre.id,
-          planning_area_fire_starts: result ? result.planning_area_fire_starts : {}
+          planning_area_fire_starts: {}
         })
       )
     }
@@ -171,8 +194,35 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireCentres])
 
+  useEffect(() => {
+    if (!isUndefined(result)) {
+      setPrepDateRange({
+        startDate: result.date_range.start_date
+          ? new Date(result.date_range.start_date)
+          : undefined,
+        endDate: result.date_range.end_date
+          ? new Date(result.date_range.end_date)
+          : undefined
+      })
+    }
+  }, [result, result?.date_range])
+
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))
+  }
+
+  const handleSaveClicked = () => {
+    if (!isUndefined(result)) {
+      dispatch(
+        fetchHFIResult({
+          selected_station_code_ids: result.selected_station_code_ids,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: result.planning_area_fire_starts,
+          date_range: result.date_range,
+          persist_request: true
+        })
+      )
+    }
   }
 
   return (
@@ -187,6 +237,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fireCentres={fireCentres}
         dateRange={prepDateRange}
         setDateRange={updatePrepDateRange}
+        result={result}
         selectedFireCentre={selectedFireCentre}
         selectNewFireCentre={selectNewFireCentre}
         padding="1rem"
@@ -211,6 +262,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
             <FormControl className={classes.formControl}>
               <ViewSwitcherToggles />
+            </FormControl>
+
+            <FormControl className={classes.saveButton}>
+              <SaveButton saved={saved} onClick={handleSaveClicked} />
             </FormControl>
 
             <ErrorBoundary>

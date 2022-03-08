@@ -1,6 +1,9 @@
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import {
+  HFIResultResponse,
+  PrepDateRange
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { groupBy, isUndefined, sortBy, take } from 'lodash'
 import { DateTime } from 'luxon'
 import { DateRange } from 'materialui-daterange-picker'
@@ -22,10 +25,14 @@ export const getZoneFromAreaName = (areaName: string): string => {
   return areaName.slice(-3)
 }
 
-export const calculateNumPrepDays = (dateRange: DateRange): number => {
-  if (!isUndefined(dateRange.startDate) && !isUndefined(dateRange.endDate)) {
-    const start = DateTime.fromJSDate(dateRange.startDate)
-    const end = DateTime.fromJSDate(dateRange.endDate)
+export const calculateNumPrepDays = (dateRange: PrepDateRange | undefined): number => {
+  if (
+    !isUndefined(dateRange) &&
+    !isUndefined(dateRange.start_date) &&
+    !isUndefined(dateRange.end_date)
+  ) {
+    const start = DateTime.fromISO(dateRange.start_date)
+    const end = DateTime.fromISO(dateRange.end_date)
     return end.diff(start, 'days').valueOf()
   }
   return 0

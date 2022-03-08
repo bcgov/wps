@@ -18,6 +18,8 @@ import { DateRange, DateRangePicker } from 'materialui-daterange-picker'
 import * as materialIcons from '@material-ui/icons'
 import { formControlStyles } from 'app/theme'
 import { DateTime } from 'luxon'
+import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
+import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 const useStyles = makeStyles(theme => ({
   ...formControlStyles,
@@ -88,6 +90,7 @@ interface Props {
   dateRange: DateRange | undefined
   setDateRange: (newDateRange: DateRange) => void
   selectedFireCentre: FireCentre | undefined
+  result: HFIResultResponse | undefined
   selectNewFireCentre: (newSelection: FireCentre | undefined) => void
 }
 
@@ -108,7 +111,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
     <div className={classes.root}>
       <Grid
         container
-        spacing={0}
+        spacing={1}
         alignItems="center"
         direction="row"
         className={classes.gridContainer}

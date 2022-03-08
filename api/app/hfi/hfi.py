@@ -1,10 +1,9 @@
 """ HFI calculation logic """
 
-from itertools import groupby
-from operator import attrgetter
+import math
 from statistics import mean
 from typing import Mapping, Optional, List
-from sqlalchemy.orm import Session
+from datetime import date, timedelta
 from app.schemas.hfi_calc import (DailyResult,
                                   FireStartRange,
                                   PlanningAreaResult,
@@ -12,61 +11,61 @@ from app.schemas.hfi_calc import (DailyResult,
                                   ValidatedStationDaily,
                                   required_daily_fields,
                                   lowest_fire_starts)
-from app.db.crud.hfi_calc import get_planning_areas, get_fire_centre_stations
+from app.utils.time import get_hour_20_from_date
 
 
-def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-locals
-                          planning_area_fire_starts: Mapping[int, FireStartRange],
-                          dailies: List[StationDaily],
+def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -> List[StationDaily]:
+    """ Return all the dailies (that's noon, or 20 hours UTC) for a given date """
+    dailies_date_time = get_hour_20_from_date(dailies_date)
+    return list(filter(lambda daily: (daily.date == dailies_date_time), area_dailies))
+
+
+def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange],  # pylint: disable=too-many-locals
+                          dailies: list,
                           num_prep_days: int,
                           selected_station_codes: List[int],
-                          session: Session) -> List[PlanningAreaResult]:
+                          area_station_map: dict,
+                          start_date: date) -> List[PlanningAreaResult]:
     """ Computes HFI results based on parameter inputs """
     planning_area_to_dailies: List[PlanningAreaResult] = []
 
-    stations = get_fire_centre_stations(session, fire_centre_id)
-    area_station_map = {}
-    for station in stations:
-        if not station.planning_area_id in area_station_map:
-            area_station_map[station.planning_area_id] = []
-        area_station_map[station.planning_area_id].append(station)
-
-    for area in get_planning_areas(session, fire_centre_id):
-        # TODO: doing this nested sql query is super slow - need to come back to this.
-        stations = area_station_map[area.id]
+    for area_id in area_station_map.keys():
+        stations = area_station_map[area_id]
         area_station_codes = list(map(lambda station: (station.station_code), stations))
 
-        # Marshall dailies in chronological order,
-        # that are part of the planning area and are selected
-        area_dailies: List[StationDaily] = sorted(
-            list(filter(lambda daily, area_station_codes=area_station_codes:
-                        (daily.code in area_station_codes and daily.code in selected_station_codes),
-                        dailies)),
-            key=attrgetter('date'))
-
-        # Group dailies into lists by date
-        area_dailies_by_date = [list(g) for _, g in groupby(
-            area_dailies, lambda area_daily: area_daily.date)]
-
-        # Take only the number of days requested for
-        prep_week_dailies = area_dailies_by_date[:num_prep_days]
+        # Filter list of dailies to include only those for the selected stations and area.
+        # No need to sort by date, we can't trust that the list doesn't have dates missing - so we
+        # have a bit of code that snatches from this list filtering by date.
+        area_dailies: List[StationDaily] = list(
+            filter(lambda daily, area_station_codes=area_station_codes:
+                   (daily.code in area_station_codes and daily.code in selected_station_codes),
+                   dailies))
 
         # Initialize with defaults if empty
-        if area.id not in planning_area_fire_starts:
-            planning_area_fire_starts[area.id] = [lowest_fire_starts for _ in range(num_prep_days)]
+        if area_id not in planning_area_fire_starts:
+            planning_area_fire_starts[area_id] = [lowest_fire_starts for _ in range(num_prep_days)]
+        else:
+            # Handle edge case where the provided planning area fire starts doesn't match the number
+            # of prep days.
+            if len(planning_area_fire_starts[area_id]) < num_prep_days:
+                for _ in range(len(planning_area_fire_starts[area_id]), num_prep_days):
+                    planning_area_fire_starts[area_id].append(lowest_fire_starts)
 
         daily_results: List[DailyResult] = []
         all_dailies_valid: bool = True
-        for index, prep_day_dailies in enumerate(prep_week_dailies):
-            daily_fire_starts: FireStartRange = planning_area_fire_starts[area.id][index]
+
+        for index in range(num_prep_days):
+            dailies_date = start_date + timedelta(days=index)
+            prep_day_dailies = get_prep_day_dailies(dailies_date, area_dailies)
+            daily_fire_starts: FireStartRange = planning_area_fire_starts[area_id][index]
             mean_intensity_group = calculate_mean_intensity(prep_day_dailies)
             prep_level = calculate_prep_level(mean_intensity_group, daily_fire_starts)
             validated_dailies: List[ValidatedStationDaily] = list(
                 map(validate_station_daily, prep_day_dailies))
             all_dailies_valid = all(map(lambda validated_daily: (
                 validated_daily.valid), validated_dailies))
-            daily_result: DailyResult = DailyResult(
-                dateISO=prep_day_dailies[0].date.isoformat(),
+            daily_result = DailyResult(
+                date=dailies_date,
                 dailies=validated_dailies,
                 fire_starts=daily_fire_starts,
                 mean_intensity_group=mean_intensity_group,
@@ -77,10 +76,11 @@ def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-local
             list(map(lambda daily_result: (daily_result.mean_intensity_group), daily_results)))
 
         mean_prep_level = calculate_mean_prep_level(
-            list(map(lambda daily_result: (daily_result.prep_level), daily_results)))
+            list(map(lambda daily_result: (daily_result.prep_level), daily_results)),
+            num_prep_days)
 
         planning_area_to_dailies.append(PlanningAreaResult(
-            planning_area_id=area.id,
+            planning_area_id=area_id,
             all_dailies_valid=all_dailies_valid,
             highest_daily_intensity_group=highest_daily_intensity_group,
             mean_prep_level=mean_prep_level,
@@ -92,20 +92,27 @@ def calculate_hfi_results(fire_centre_id: int,  # pylint: disable=too-many-local
 def calculate_max_intensity_group(mean_intensity_groups: List[Optional[float]]):
     """ Returns the highest intensity group from a list of values """
     valid_mean_intensity_groups = list(filter(None, mean_intensity_groups))
-    return None if len(valid_mean_intensity_groups) == 0 else max(mean_intensity_groups)
+    return None if len(valid_mean_intensity_groups) == 0 else max(valid_mean_intensity_groups)
 
 
-def calculate_mean_prep_level(prep_levels: List[Optional[float]]):
+def calculate_mean_prep_level(prep_levels: List[Optional[float]], num_prep_days: int):
     """ Returns the mean prep level from a list of values """
     valid_prep_levels = list(filter(None, prep_levels))
-    return None if len(valid_prep_levels) == 0 else round(mean(valid_prep_levels))
+    if len(valid_prep_levels) == 0 or len(valid_prep_levels) != num_prep_days:
+        return None
+    return round(mean(valid_prep_levels))
 
 
 def calculate_mean_intensity(dailies: List[StationDaily]):
     """ Returns the mean intensity group from a list of values """
     intensity_groups = list(map(lambda daily: (daily.intensity_group), dailies))
     valid_intensity_groups = list(filter(None, intensity_groups))
-    return None if len(valid_intensity_groups) == 0 else round(mean(valid_intensity_groups), 1)
+    if len(valid_intensity_groups) == 0:
+        return None
+    mean_intensity_group = mean(valid_intensity_groups)
+    if round(mean_intensity_group % 1, 1) < 0.8:
+        return math.floor(mean_intensity_group)
+    return math.ceil(mean_intensity_group)
 
 
 def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: FireStartRange):

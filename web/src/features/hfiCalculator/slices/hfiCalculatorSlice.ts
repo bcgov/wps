@@ -5,12 +5,16 @@ import { logError } from 'utils/error'
 import { getHFIResult, RawDaily, StationDaily } from 'api/hfiCalculatorAPI'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
-import { DateRange } from 'materialui-daterange-picker'
 
 export interface FireStarts {
   label: string
   value: number
   lookup_table: { [mig: number]: number }
+}
+
+export interface PrepDateRange {
+  start_date?: string
+  end_date?: string
 }
 
 export interface DailyResult {
@@ -22,7 +26,7 @@ export interface DailyResult {
 }
 
 export interface RawDailyResult {
-  dateISO: string
+  date: string
   dailies: RawValidatedStationDaily[]
   mean_intensity_group: number | undefined
   prep_level: number | undefined
@@ -48,39 +52,39 @@ export interface RawPlanningAreaResult {
 export interface HFICalculatorState {
   loading: boolean
   error: string | null
-  dateRange: DateRange
+  dateRange: PrepDateRange | undefined
   selectedPrepDate: string
   planningAreaFireStarts: { [key: string]: FireStarts[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
+  saved: boolean
 }
 
 export interface HFIResultResponse {
-  selected_prep_date: DateTime
-  date_range: DateRange
+  date_range: PrepDateRange
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: PlanningAreaResult[]
   planning_area_fire_starts: { [key: number]: FireStarts[] }
+  request_persist_success: boolean
 }
 
 export interface RawHFIResultResponse {
-  selected_prep_date: string
-  date_range: DateRange
+  date_range: PrepDateRange
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: RawPlanningAreaResult[]
   planning_area_fire_starts: { [key: number]: FireStarts[] }
+  request_persist_success: boolean
 }
 
 export interface HFIResultRequest {
-  selected_prep_date?: Date
-  date_range?: DateRange
+  date_range?: PrepDateRange
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_fire_starts: { [key: number]: FireStarts[] }
-  save?: boolean
+  persist_request?: boolean
 }
 
 export interface ValidatedStationDaily {
@@ -131,12 +135,13 @@ export const FIRE_STARTS_SET: FireStarts[] = [
 const initialState: HFICalculatorState = {
   loading: false,
   error: null,
-  dateRange: { startDate: undefined, endDate: undefined },
+  dateRange: { start_date: undefined, end_date: undefined },
   selectedPrepDate: '',
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
   selectedFireCentre: undefined,
-  result: undefined
+  result: undefined,
+  saved: true
 }
 
 const dailiesSlice = createSlice({
@@ -150,15 +155,29 @@ const dailiesSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    setSelectedPrepDate: (state, action: PayloadAction<string>) => {
+    setSelectedPrepDate: (state: HFICalculatorState, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
     },
-    setSelectedFireCentre: (state, action: PayloadAction<FireCentre | undefined>) => {
+    setSelectedFireCentre: (
+      state: HFICalculatorState,
+      action: PayloadAction<FireCentre | undefined>
+    ) => {
       state.selectedFireCentre = action.payload
     },
-    setResult: (state, action: PayloadAction<HFIResultResponse | undefined>) => {
+    setResult: (
+      state: HFICalculatorState,
+      action: PayloadAction<HFIResultResponse | undefined>
+    ) => {
       state.result = action.payload
+
+      if (action.payload) {
+        state.saved = action.payload.request_persist_success
+      }
+
       state.loading = false
+    },
+    setSaved: (state: HFICalculatorState, action: PayloadAction<boolean>) => {
+      state.saved = action.payload
     }
   }
 })
@@ -168,7 +187,8 @@ export const {
   getHFIResultFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
-  setResult
+  setResult,
+  setSaved
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer

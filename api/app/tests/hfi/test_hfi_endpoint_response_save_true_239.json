@@ -2,14 +2,14 @@
   "start_date": "2020-05-21",
   "end_date": "2020-05-26",
   "selected_station_code_ids": [
-    230
+    239
   ],
   "planning_area_station_info": {
     "1": [
       {
-        "station_code": 230,
+        "station_code": 239,
         "selected": true,
-        "fuel_type_id": 1
+        "fuel_type_id": 2
       }
     ]
   },
@@ -18,7 +18,7 @@
     {
       "planning_area_id": 1,
       "all_dailies_valid": true,
-      "highest_daily_intensity_group": 1.0,
+      "highest_daily_intensity_group": null,
       "mean_prep_level": null,
       "daily_results": [
         {
@@ -60,7 +60,7 @@
           "dailies": [
             {
               "daily": {
-                "code": 230,
+                "code": 239,
                 "status": "FORECAST",
                 "temperature": 23.0,
                 "relative_humidity": 36.0,
@@ -77,17 +77,17 @@
                 "danger_class": null,
                 "observation_valid": true,
                 "observation_valid_comment": null,
-                "rate_of_spread": 0.18030340382396534,
-                "hfi": 182.97053672131358,
-                "intensity_group": 1,
-                "sixty_minute_fire_size": 0.006935706342019749,
-                "fire_type": "SUR",
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
                 "error": true,
                 "error_message": null,
                 "date": "2020-05-23T20:00:00+00:00",
                 "last_updated": "2020-05-23T00:00:00+00:00"
               },
-              "valid": true
+              "valid": false
             }
           ],
           "fire_starts": {
@@ -101,8 +101,8 @@
               "5": 4
             }
           },
-          "mean_intensity_group": 1.0,
-          "prep_level": 1.0
+          "mean_intensity_group": null,
+          "prep_level": null
         },
         {
           "date": "2020-05-24",
