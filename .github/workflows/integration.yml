@@ -75,6 +75,10 @@ jobs:
         run: |
           poetry run pip install numpy
           poetry run pip install pygdal==3.0.4.10
+      - name: Install pdfkit
+        working-directory: ./api
+        run: |
+          sudo apt install -y wkhtmltopdf
       - name: Lint (api)
         # We used to be able to do linting before installing gdal, but it's not possible anymore.
         # We can however place it ahead of the R installs.
@@ -116,7 +120,7 @@ jobs:
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
       - name: Archive coverage report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: api-coverage-report
           path: ./api/coverage-reports/coverage-report.xml
@@ -165,7 +169,7 @@ jobs:
         run: yarn run finalizeCoverage
 
       - name: Archive coverage report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: web-coverage-report
           path: ./web/finalCoverage

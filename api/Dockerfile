@@ -22,6 +22,9 @@ RUN R -e "install.packages('cffdrs')"
 # Install JDK
 RUN apt-get -y install openjdk-11-jdk
 
+# Install pdf-kit for PDF generation on HFI
+RUN apt-get install wkhtmltopdf
+
 # Update pip
 RUN python -m pip install --upgrade pip
 
