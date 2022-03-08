@@ -2,11 +2,11 @@
 
 import math
 import logging
+from time import perf_counter
+from typing import Mapping, Optional, List, AsyncGenerator
+from datetime import date, timedelta
 from aiohttp.client import ClientSession
 from statistics import mean
-from typing import Mapping, Optional, List, AsyncGenerator
-from time import perf_counter
-from datetime import date, timedelta
 import app
 from app.db.database import get_read_session_scope
 from app.schemas.hfi_calc import (DailyResult,
@@ -61,6 +61,8 @@ async def station_daily_generator(raw_daily_generator,
 
 async def hydrate_fire_centres():
     """Get detailed fire_centres from db and WFWX"""
+
+    # pylint: disable=too-many-locals
     with app.db.database.get_read_session_scope() as session:
         # Fetch all fire weather stations from the database.
         station_query = get_fire_weather_stations(session)
@@ -160,6 +162,7 @@ async def calculate_latest_hfi_results(request: HFIResultRequest,
                                        start_timestamp: int,
                                        end_timestamp: int) -> List[PlanningAreaResult]:
     "Do stuff"
+    # pylint: disable=too-many-locals
     async with ClientSession() as session:
         header = await get_auth_header(session)
         # TODO: Enable when fuel type config implemented

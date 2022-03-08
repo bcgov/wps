@@ -166,7 +166,7 @@ def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int
 
 @router.post('/download-pdf')
 async def download_result_pdf(request: HFIResultRequest,
-                              token=Depends(authentication_required)):
+                              _=Depends(authentication_required)):
     """ Assembles and returns PDF byte representation of HFI result. """
 
     # ensure we have valid start and end dates
