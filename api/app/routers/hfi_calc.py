@@ -4,7 +4,6 @@ import json
 import io
 from typing import List, Optional
 from fastapi import APIRouter, Response, Depends
-from starlette.responses import StreamingResponse
 from app.hfi.daily_pdf_gen import generate_daily_pdf
 from app.hfi.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 import app.utils.time
@@ -156,6 +155,4 @@ async def download_result_pdf(request: HFIResultRequest,
     fire_centres_list = await hydrate_fire_centres()
     pdf_bytes = generate_daily_pdf(response, fire_centres_list)
 
-    return StreamingResponse(io.BytesIO(pdf_bytes), media_type="application/pdf", headers={
-        'Content-Disposition': 'attachment;filename=test.pdf'
-    })
+    return Response(pdf_bytes)
