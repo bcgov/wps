@@ -5,8 +5,8 @@ import logging
 from time import perf_counter
 from typing import Mapping, Optional, List, AsyncGenerator
 from datetime import date, timedelta
-from aiohttp.client import ClientSession
 from statistics import mean
+from aiohttp.client import ClientSession
 import app
 from app.db.database import get_read_session_scope
 from app.schemas.hfi_calc import (DailyResult,
