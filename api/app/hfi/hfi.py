@@ -1,5 +1,6 @@
 """ HFI calculation logic """
 
+from ast import Tuple
 import math
 import logging
 from time import perf_counter
@@ -176,8 +177,8 @@ def validate_date_range(start_date: date, end_date: date):
     return start_date, end_date
 
 
-async def calculate_latest_hfi_results(request: HFIResultRequest) -> List[PlanningAreaResult]:
-    "Do stuff"
+async def calculate_latest_hfi_results(request: HFIResultRequest) -> Tuple[List[PlanningAreaResult], int, int]:
+    "Set up time range and fire centre data for calculating HFI results"
 
     # ensure we have valid start and end dates
     valid_start_date, valid_end_date = validate_date_range(request.start_date, request.end_date)
