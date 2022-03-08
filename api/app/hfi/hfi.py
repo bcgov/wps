@@ -156,12 +156,35 @@ async def hydrate_fire_centres():
     return fire_centres_list
 
 
-async def calculate_latest_hfi_results(request: HFIResultRequest,
-                                       valid_start_date: date,
-                                       valid_end_date: date,
-                                       start_timestamp: int,
-                                       end_timestamp: int) -> List[PlanningAreaResult]:
+def validate_date_range(start_date: date, end_date: date):
+    """ Sets the start_date to today if it is None.
+    Set the end_date to start_date + 7 days, if it is None."""
+    # we don't have a start date, default to now.
+    if start_date is None:
+        now = app.utils.time.get_pst_now()
+        start_date = date(year=now.year, month=now.month, day=now.day)
+    # don't have an end date, default to start date + 5 days.
+    if end_date is None:
+        end_date = start_date + timedelta(days=5)
+    # check if the span exceeds 7, if it does clamp it down to 7 days.
+    delta = end_date - start_date
+    if delta.days > 7:
+        end_date = start_date + timedelta(days=5)
+    # check if the span is less than 2, if it is, push it up to 2.
+    if delta.days < 2:
+        end_date = start_date + timedelta(days=2)
+    return start_date, end_date
+
+
+async def calculate_latest_hfi_results(request: HFIResultRequest) -> List[PlanningAreaResult]:
     "Do stuff"
+
+    # ensure we have valid start and end dates
+    valid_start_date, valid_end_date = validate_date_range(request.start_date, request.end_date)
+    # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
+    start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_start_date).timestamp() * 1000)
+    end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
+
     # pylint: disable=too-many-locals
     async with ClientSession() as session:
         header = await get_auth_header(session)
@@ -205,7 +228,7 @@ async def calculate_latest_hfi_results(request: HFIResultRequest,
                                         request.selected_station_code_ids,
                                         area_station_map,
                                         valid_start_date)
-        return results
+        return results, start_timestamp, end_timestamp
 
 
 def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange],  # pylint: disable=too-many-locals

@@ -2,7 +2,6 @@
 import logging
 import json
 import io
-from datetime import date, timedelta
 from typing import List, Optional
 from fastapi import APIRouter, Response, Depends
 from starlette.responses import StreamingResponse
@@ -54,26 +53,6 @@ def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
     return False
 
 
-def validate_date_range(start_date: date, end_date: date):
-    """ Sets the start_date to today if it is None.
-    Set the end_date to start_date + 7 days, if it is None."""
-    # we don't have a start date, default to now.
-    if start_date is None:
-        now = app.utils.time.get_pst_now()
-        start_date = date(year=now.year, month=now.month, day=now.day)
-    # don't have an end date, default to start date + 5 days.
-    if end_date is None:
-        end_date = start_date + timedelta(days=5)
-    # check if the span exceeds 7, if it does clamp it down to 7 days.
-    delta = end_date - start_date
-    if delta.days > 7:
-        end_date = start_date + timedelta(days=5)
-    # check if the span is less than 2, if it is, push it up to 2.
-    if delta.days < 2:
-        end_date = start_date + timedelta(days=2)
-    return start_date, end_date
-
-
 def extract_selected_stations(request: HFIResultRequest) -> List[int]:
     """ Extract a list of the selected station codes - we use this to get the daily data from wfwx. """
     stations_codes = []
@@ -103,14 +82,7 @@ async def get_hfi_results(request: HFIResultRequest,
             request = stored_request
             request_loaded = True
 
-        # ensure we have valid start and end dates
-        valid_start_date, valid_end_date = validate_date_range(request.start_date, request.end_date)
-        # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
-        start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_start_date).timestamp() * 1000)
-        end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
-
-        results = await calculate_latest_hfi_results(
-            request, valid_start_date, valid_end_date, start_timestamp, end_timestamp)
+        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
         response = HFIResultResponse(
             start_date=start_timestamp,
             end_date=end_timestamp,
@@ -169,14 +141,7 @@ async def download_result_pdf(request: HFIResultRequest,
                               _=Depends(authentication_required)):
     """ Assembles and returns PDF byte representation of HFI result. """
 
-    # ensure we have valid start and end dates
-    valid_start_date, valid_end_date = validate_date_range(request.start_date, request.end_date)
-    # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
-    start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_start_date).timestamp() * 1000)
-    end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
-
-    results = await calculate_latest_hfi_results(
-        request, valid_start_date, valid_end_date, start_timestamp, end_timestamp)
+    results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
 
     response = HFIResultResponse(
         start_date=start_timestamp,
