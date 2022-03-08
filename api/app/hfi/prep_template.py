@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+
+PREP_TEMPLATE_HTML = """
+'<!DOCTYPE html>
 <html lang="en">
 <head>
     <title>Prep Cycle Template</title>
@@ -142,3 +144,9 @@
     </table>
     </body>
 </html>
+"""
+
+
+def str_prep_template(template_name: str):    # pylint: disable=unused-argument
+    """ Returns the only (currently) template, arg above will be used for switching """
+    return PREP_TEMPLATE_HTML

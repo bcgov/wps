@@ -39,7 +39,8 @@ def test_gen_prep_data_converter():
                 break
             break
 
-        generate_prep_pdf(prep_pdf_data, dates)
+        pdf_bytes = generate_prep_pdf(prep_pdf_data, dates)
+        assert len(pdf_bytes) > 0
 
 
 def test_gen_daily_data_converter():

@@ -2,28 +2,33 @@ from functools import reduce
 from itertools import groupby
 from typing import List
 import pdfkit
-from jinja2 import Template
+from jinja2 import Environment, FunctionLoader, Template
 import json
 from app.utils.pdf_data_formatter import response_2_prep_cycle_jinja_format
+from app.hfi.prep_template import str_prep_template
 
-from app.schemas.hfi_calc import (HFIResultResponse,
+from app.schemas.hfi_calc import (HFIResultResponse, PlanningArea,
                                   PrepCyclePDFData,
                                   StationDaily,
                                   ValidatedStationDaily)
 
 
+jinja_env = Environment(loader=FunctionLoader(str_prep_template), autoescape=True)
+
+
 def generate_prep_pdf(data, dates):
 
-    html = open('/Users/jforeman/Workspace/wps/api/app/templates/template1.html').read()
+    rendered_output: str = ''
+    template = jinja_env.get_template('prep_template')
 
-    template = Template(html)
+    rendered_output += template.render(
+        PlanningAreas=data,
+        prepDays=dates)
 
-    with open('/Users/jforeman/Workspace/wps/api/app/utils/rendered_template.html', 'w') as new_page:
-        new_page.write(template.render(planningAreas=data, prepDays=dates))
+    options = {
+        'page-size': 'Tabloid'
+    }
 
-        options = {
-            'page-size': 'Tabloid'
-        }
+    pdf_bytes: bytes = pdfkit.from_string(input=rendered_output, options=options)
 
-    pdfkit.from_file('/Users/jforeman/Workspace/wps/api/app/utils/rendered_template.html',
-                     '/Users/jforeman/Workspace/wps/api/app/utils/out.pdf', options)
+    return pdf_bytes
