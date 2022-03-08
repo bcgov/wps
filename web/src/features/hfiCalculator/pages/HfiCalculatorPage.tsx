@@ -243,7 +243,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const handleDownloadClicked = () => {
     if (!isUndefined(result)) {
-      dispatch(fetchPDFDownload())
+      dispatch(
+        fetchPDFDownload({
+          selected_station_code_ids: result.selected_station_code_ids,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: result.planning_area_fire_starts,
+          start_date: result.start_date,
+          end_date: result.end_date
+        })
+      )
     }
   }
 

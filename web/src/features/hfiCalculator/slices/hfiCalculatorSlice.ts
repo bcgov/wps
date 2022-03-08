@@ -220,13 +220,15 @@ export const fetchHFIResult =
     }
   }
 
-export const fetchPDFDownload = (): AppThunk => async dispatch => {
-  try {
-    dispatch(pdfDownloadStart())
-    await getPDF()
-    dispatch(pdfDownloadEnd())
-  } catch (err) {
-    dispatch(getHFIResultFailed((err as Error).toString()))
-    logError(err)
+export const fetchPDFDownload =
+  (request: HFIResultRequest): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(pdfDownloadStart())
+      await getPDF(request)
+      dispatch(pdfDownloadEnd())
+    } catch (err) {
+      dispatch(getHFIResultFailed((err as Error).toString()))
+      logError(err)
+    }
   }
-}

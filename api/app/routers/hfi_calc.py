@@ -2,20 +2,18 @@
 import logging
 import json
 import io
-from time import perf_counter
 from datetime import date, timedelta
-from typing import AsyncGenerator, List, Optional
+from typing import List, Optional
 from fastapi import APIRouter, Response, Depends
 from starlette.responses import StreamingResponse
 from app.hfi.daily_pdf_gen import generate_daily_pdf
 from app.hfi.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 import app.utils.time
-from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationDaily
+from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse
 import app
 from app.auth import authentication_required, audit
-from app.schemas.hfi_calc import (HFIWeatherStationsResponse, FireCentre, WeatherStation)
+from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
 from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request)
-from app.wildfire_one.schema_parsers import generate_station_daily
 
 
 logger = logging.getLogger(__name__)
@@ -170,14 +168,28 @@ def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int
 async def download_result_pdf(request: HFIResultRequest,
                               token=Depends(authentication_required)):
     """ Assembles and returns PDF byte representation of HFI result. """
-    with open('api/app/tests/hfi/test_hfi_result.json', 'r') as hfi_result, open('api/app/tests/hfi/test_fire_centres.json', 'r') as fcs:
-        result = json.load(hfi_result)
-        fc_dict = json.load(fcs)
-        fire_centres = []
-        for fc_json in fc_dict['fire_centres']:
-            fc = FireCentre(**fc_json)
-            fire_centres.append(fc)
-        pdf_bytes = generate_daily_pdf(HFIResultResponse(**result), fire_centres)
+
+    # ensure we have valid start and end dates
+    valid_start_date, valid_end_date = validate_date_range(request.start_date, request.end_date)
+    # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
+    start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_start_date).timestamp() * 1000)
+    end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
+
+    results = await calculate_latest_hfi_results(
+        request, valid_start_date, valid_end_date, start_timestamp, end_timestamp)
+
+    response = HFIResultResponse(
+        start_date=start_timestamp,
+        end_date=end_timestamp,
+        selected_station_code_ids=request.selected_station_code_ids,
+        planning_area_station_info=request.planning_area_station_info,
+        selected_fire_center_id=request.selected_fire_center_id,
+        planning_area_hfi_results=results,
+        planning_area_fire_starts=request.planning_area_fire_starts,
+        request_persist_success=False)
+
+    fire_centres_list = await hydrate_fire_centres()
+    pdf_bytes = generate_daily_pdf(response, fire_centres_list)
 
     return StreamingResponse(io.BytesIO(pdf_bytes), media_type="application/pdf", headers={
         'Content-Disposition': 'attachment;filename=test.pdf'
