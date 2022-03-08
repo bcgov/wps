@@ -2,10 +2,11 @@
 result.
 """
 from datetime import datetime
+from email import parser
 from typing import List
 import json
 import pytest
-from pytest_bdd import scenario, given, then, when
+from pytest_bdd import scenario, given, then, when, parsers
 from app.db.models import PredictionModel, PredictionModelGridSubset
 from app.weather_models import machine_learning
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
@@ -19,20 +20,12 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
 
 
 @pytest.mark.usefixtures('mock_get_actuals_left_outer_join_with_predictions')
-@scenario("test_machine_learning.feature", "Learn weather",
-          example_converters=dict(coordinate=json.loads,
-                                  points=json.loads,
-                                  model_temp=float,
-                                  model_rh=float,
-                                  timestamp=datetime.fromisoformat,
-                                  bias_adjusted_temp=lambda value: None if value == 'None' else float(
-                                      value),
-                                  bias_adjusted_rh=lambda value: None if value == 'None' else float(value)))
+@scenario("test_machine_learning.feature", "Learn weather")
 def test_machine_learning():
     """ BDD Scenario for predictions """
 
 
-@given("An instance of StationMachineLearning for <coordinate> within <points>", target_fixture='instance')
+@given(parsers.parse("An instance of StationMachineLearning for {coordinate} within {points}"), target_fixture='instance', converters={'coordinate': json.loads, 'points': json.loads})
 def given_an_instance(coordinate: List, points: List):
     """ Bind the data variable """
     return machine_learning.StationMachineLearning(
@@ -51,7 +44,7 @@ def learn(instance: machine_learning.StationMachineLearning):
     instance.learn()
 
 
-@then('The <model_temp> for <timestamp> results in <bias_adjusted_temp>')
+@then(parsers.parse('The {model_temp} for {timestamp} results in {bias_adjusted_temp}'), converters={'model_temp': float, 'timestamp': datetime.fromisoformat, 'bias_adjusted_temp': lambda value: None if value == 'None' else float(value)})
 def assert_temperature(
         instance: machine_learning.StationMachineLearning,
         model_temp: float, timestamp: datetime, bias_adjusted_temp: float):
@@ -60,7 +53,7 @@ def assert_temperature(
     assert result == bias_adjusted_temp
 
 
-@then('The <model_rh> for <timestamp> results in <bias_adjusted_rh>')
+@then(parsers.parse('The {model_rh} for {timestamp} results in {bias_adjusted_rh}'), converters={'model_rh': float, 'timestamp': datetime.fromisoformat, 'bias_adjusted_rh': lambda value: None if value == 'None' else float(value)})
 def assert_rh(instance: machine_learning.StationMachineLearning,
               model_rh: float, timestamp: datetime, bias_adjusted_rh: float):
     """ Assert that the ML algorithm predicts the relative humidity correctly """
