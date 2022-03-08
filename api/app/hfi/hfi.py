@@ -179,7 +179,7 @@ def validate_date_range(start_date: date, end_date: date):
 async def calculate_latest_hfi_results(request: HFIResultRequest):
     "Set up time range and fire centre data for calculating HFI results"
 
-    # pylint: too-many-locals
+    # pylint: disable=too-many-locals
 
     # ensure we have valid start and end dates
     valid_start_date, valid_end_date = validate_date_range(request.start_date, request.end_date)
