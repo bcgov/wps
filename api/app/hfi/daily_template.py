@@ -99,6 +99,7 @@ DAILY_TEMPLATE_HTML = """
                                     <td class="table-data">{{d['hfi']| round(1)}}</td> 
                                     <td class="table-data">{{d['sixty_minute_fire_size']| round(1)}}</td> 
                                     <td class="table-data">{{d['fire_type']}}</td> 
+                                    <td class="table-data">{{d['intensity_group']}}</td>
                                 </tr>
                             {% endfor %}
                     {% endfor %}

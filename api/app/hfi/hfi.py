@@ -177,7 +177,7 @@ def validate_date_range(start_date: date, end_date: date):
     return start_date, end_date
 
 
-async def calculate_latest_hfi_results(request: HFIResultRequest) -> Tuple[List[PlanningAreaResult], int, int]:
+async def calculate_latest_hfi_results(request: HFIResultRequest):
     "Set up time range and fire centre data for calculating HFI results"
 
     # ensure we have valid start and end dates
