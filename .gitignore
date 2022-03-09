@@ -159,3 +159,4 @@ node_modules
 # PDF generation
 api/app/utils/daily_rendered.html
 api/app/utils/out.pdf
+api/app/utils/rendered_template.html

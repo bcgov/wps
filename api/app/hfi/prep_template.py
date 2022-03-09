@@ -136,7 +136,7 @@ PREP_TEMPLATE_HTML = """
                     <td class="leftBorder boldRightBorder">X</td>
                 {% endfor %}
                 <td class="boldRightBorder">X</td>
-                <td>X</td>
+                <td>:D</td>
             </tr>
             {% endfor %}
         {% endfor %}
