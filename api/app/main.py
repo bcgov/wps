@@ -67,8 +67,6 @@ async def startup_event():
     # up R.
     # The downside to this is that we're increasing the memory footprint of the app.
     cffdrs_start = perf_counter()
-    # TODO: Fix in next PR.
-    CFFDRS.instance()  # pylint: disable=no-member
     cffdrs_end = perf_counter()
     logger.info('saved %f seconds by starting CFFDRS now', cffdrs_end - cffdrs_start)
 
@@ -128,6 +126,9 @@ async def get_health():
 
         logger.debug('/health - healthy: %s. %s',
                      health_check.get('healthy'), health_check.get('message'))
+
+        # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
+        CFFDRS.instance()  # pylint: disable=no-member
 
         return health_check
     except Exception as exception:

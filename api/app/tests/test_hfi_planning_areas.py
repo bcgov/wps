@@ -29,9 +29,9 @@ def given_hfi_planning_areas_request(monkeypatch):
         planning_area_1 = PlanningArea(id=2, name='Kamloops (K2)', fire_centre_id=1)
         planning_area_2 = PlanningArea(id=3, name='Vernon (K4)', fire_centre_id=1)
         fuel_type_1 = FuelType(abbrev='O1B', description='neigh', fuel_type_code="O1B",
-            percentage_conifer=0, percentage_dead_fir=0)
+                               percentage_conifer=0, percentage_dead_fir=0)
         fuel_type_2 = FuelType(abbrev='C7B', description='moo', fuel_type_code='C7',
-            percentage_conifer=100, percentage_dead_fir=0)
+                               percentage_conifer=100, percentage_dead_fir=0)
         return (
             (PlanningWeatherStation(station_code=322, fuel_type_id=1,
              planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
@@ -42,7 +42,7 @@ def given_hfi_planning_areas_request(monkeypatch):
         )
 
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
-    monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_weather_stations', mock_get_fire_weather_stations)
+    monkeypatch.setattr(app.hfi.hfi, 'get_fire_weather_stations', mock_get_fire_weather_stations)
 
     # Create API client and get the response.
     client = TestClient(app.main.app)
