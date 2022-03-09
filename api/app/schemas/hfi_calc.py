@@ -197,6 +197,7 @@ class StationPDFData(StationDaily, WeatherStation):
 class DailyPDFData(BaseModel):
     """ Data needed for daily PDF sheet """
     planning_area_name: str
+    highest_daily_intensity_group: float
     mean_prep_level: float
     fire_starts: str
     day: int
