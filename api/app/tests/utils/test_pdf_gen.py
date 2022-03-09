@@ -10,9 +10,11 @@ from operator import attrgetter
 from app.utils.pdf_data_formatter import (response_2_daily_jinja_format,
                                           response_2_prep_cycle_jinja_format)
 
+json_path = 'api/app/tests/utils/test_hfi_result.json'
+
 
 def test_gen_daily_pdf():
-    with open('api/app/tests/utils/test_hfi_result.json', 'r') as hfi_result, open('api/app/tests/utils/test_fire_centres.json') as fcs:
+    with open(json_path, 'r') as hfi_result, open('api/app/tests/utils/test_fire_centres.json') as fcs:
         result = json.load(hfi_result)
         fc_dict = json.load(fcs)
         fire_centres = []
@@ -24,7 +26,7 @@ def test_gen_daily_pdf():
 
 def test_gen_prep_data_converter():
     """ All dailies in prep pdf data are grouped by station code and sorted by date"""
-    with open('api/app/tests/utils/test_hfi_result.json', 'r') as hfi_result:
+    with open(json_path, 'r') as hfi_result:
         result = json.load(hfi_result)
         prep_pdf_data = response_2_prep_cycle_jinja_format(HFIResultResponse(**result))
 
@@ -45,7 +47,7 @@ def test_gen_prep_data_converter():
 
 def test_gen_daily_data_converter():
     """ All dailies in prep pdf data are grouped planning area and keyed by date"""
-    with open('api/app/tests/utils/test_hfi_result.json', 'r') as hfi_result:
+    with open(json_path, 'r') as hfi_result:
         result = json.load(hfi_result)
         daily_pdf_data = response_2_daily_jinja_format(HFIResultResponse(**result))
         all_dailies = reduce(list.__add__, list(map(lambda x: [x.dailies[0]], daily_pdf_data)))
