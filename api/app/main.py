@@ -129,6 +129,9 @@ async def get_health():
         logger.debug('/health - healthy: %s. %s',
                      health_check.get('healthy'), health_check.get('message'))
 
+        # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
+        CFFDRS.instance()
+
         return health_check
     except Exception as exception:
         logger.error(exception, exc_info=True)
