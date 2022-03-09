@@ -1,18 +1,11 @@
 """String representations of templates for in memory loading"""
+import os
 
+CSS_PATH = os.path.join(os.path.dirname(__file__), "style.css")
 
 DAILY_TEMPLATE_HTML = """
 <!DOCTYPE html>
 <html lang="en">
-<style type="text/css" media="screen">
-        body { } 
-        table { margin: 0 auto; border-collapse: collapse; }
-        table, th, td {border: 1px solid #bbb;}  
-        th { border:1px solid #000000; }
-        p {
-            page-break-before: always !important;
-        }
-</style>
 <head>
     <title>HFI Daily</title>
 </head>

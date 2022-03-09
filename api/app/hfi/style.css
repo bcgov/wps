@@ -1,0 +1,20 @@
+body {
+}
+table {
+  border-collapse: collapse;
+  border: 1px solid #000000;
+}
+
+td {
+  padding: 5px;
+  border: 1px solid #000000;
+  width: 80px;
+}
+th {
+  width: 80px;
+  padding: 5px;
+  border: 1px solid #000000;
+}
+p {
+  page-break-before: always;
+}
