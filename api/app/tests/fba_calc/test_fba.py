@@ -26,7 +26,7 @@ def test_fire_behaviour_calculator_scenario():
     """ BDD Scenario. """
 
 
-@given(parsers.parse("I received a {request_json}"),
+@given(parsers.parse("I received a fba-calc {request_json}"),
        target_fixture='result',
        converters={'request_json': load_json_file_with_name(__file__)})
 def given_request(monkeypatch, request_json: Tuple[dict, str]):
@@ -46,12 +46,6 @@ def given_request(monkeypatch, request_json: Tuple[dict, str]):
         'response': client.post('/api/fba-calc/stations', headers=headers, json=request_json[0]),
         'filename': request_json[1]
     }
-
-
-@then(parsers.parse("the response status code is {status_code}"), converters={'status_code': int})
-def then_status(result, status_code: int):
-    """ Check response status code """
-    assert result['response'].status_code == status_code, result['filename']
 
 
 @then(parsers.parse("the response is {response_json}"),

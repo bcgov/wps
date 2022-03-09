@@ -2,7 +2,7 @@ Feature: /hfi/
 
     Scenario: HFI - request
         # In this scenario, we expect a request to be loaded from the database - but there isn't one.
-        Given I received a <request_json>
+        Given I received a hfi-calc <request_json>
         Then the response status code is <status_code>
         And the response is <response_json>
 

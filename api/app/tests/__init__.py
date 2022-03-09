@@ -2,21 +2,21 @@
 """
 from typing import IO, Any, Callable, Optional, Tuple
 import os
+import sys
 import datetime
 import json
 import importlib
-from attr import field
 import jsonpickle
 from app.db.models.common import TZTimeStamp
 
 
 def get_complete_filename(module_path: str, filename: str):
     """ Get the full path of a filename, given it's module path """
-    print('get_complete_filename: {module_path}, {filename}')
+    print(f'get_complete_filename: {module_path}, {filename}')
     dirname = os.path.dirname(os.path.realpath(module_path))
-    print('dirname: {dirname}')
+    print(f'dirname: {dirname}')
     result = os.path.join(dirname, filename)
-    print('result: {result}')
+    print(f'result: {result}')
     return result
 
 

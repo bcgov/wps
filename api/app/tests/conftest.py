@@ -7,7 +7,7 @@ import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
-from pytest_bdd import then
+from pytest_bdd import then, parsers
 import app.utils.s3
 from app.utils.time import get_pst_tz
 from app import auth
@@ -195,3 +195,9 @@ def spy_access_logging(mocker: MockerFixture):
 def assert_status_code(response, status):
     """ Assert that we receive the expected status code """
     assert response.status_code == status
+
+
+@then(parsers.parse("the status code is {status_code}"), converters={'status_code': int})
+def then_status(result, status_code: int):
+    """ Check response status code """
+    assert result['response'].status_code == status_code, result['filename']

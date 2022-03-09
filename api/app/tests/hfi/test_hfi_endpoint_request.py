@@ -49,7 +49,7 @@ def test_fire_behaviour_calculator_scenario_no_request_stored():
     pass
 
 
-@given(parsers.parse("I received a {request_json}"),
+@given(parsers.parse("I received a hfi-calc {request_json}"),
        target_fixture='result',
        converters={'request_json': load_json_file_with_name(__file__)})
 def given_request_none_stored(monkeypatch: pytest.MonkeyPatch, request_json: Tuple[dict, str]):
