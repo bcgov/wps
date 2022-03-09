@@ -138,20 +138,24 @@ def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int
 async def download_result_pdf(request: HFIResultRequest,
                               _=Depends(authentication_required)):
     """ Assembles and returns PDF byte representation of HFI result. """
+    try:
+        logger.info('/hfi-calc/download-pdf')
+        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
 
-    results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
+        response = HFIResultResponse(
+            start_date=start_timestamp,
+            end_date=end_timestamp,
+            selected_station_code_ids=request.selected_station_code_ids,
+            planning_area_station_info=request.planning_area_station_info,
+            selected_fire_center_id=request.selected_fire_center_id,
+            planning_area_hfi_results=results,
+            planning_area_fire_starts=request.planning_area_fire_starts,
+            request_persist_success=False)
 
-    response = HFIResultResponse(
-        start_date=start_timestamp,
-        end_date=end_timestamp,
-        selected_station_code_ids=request.selected_station_code_ids,
-        planning_area_station_info=request.planning_area_station_info,
-        selected_fire_center_id=request.selected_fire_center_id,
-        planning_area_hfi_results=results,
-        planning_area_fire_starts=request.planning_area_fire_starts,
-        request_persist_success=False)
+        fire_centres_list = await hydrate_fire_centres()
+        pdf_bytes = generate_daily_pdf(response, fire_centres_list)
 
-    fire_centres_list = await hydrate_fire_centres()
-    pdf_bytes = generate_daily_pdf(response, fire_centres_list)
-
-    return Response(pdf_bytes)
+        return Response(pdf_bytes)
+    except Exception as exc:
+        logger.critical(exc, exc_info=True)
+        raise
