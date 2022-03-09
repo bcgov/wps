@@ -5,22 +5,10 @@ DAILY_TEMPLATE_HTML = """
 <!DOCTYPE html>
 <html lang="en">
 <style type="text/css" media="screen">
-        table {
-            border-collapse:collapse !important;
-            border:1px solid #000000 !important;;
-        }
-        
-        td {
-            padding: 5px !important;
-            border:1px solid #000000 !important;
-            width: 80px !important;
-        }
-
-        th {
-            width: 80px !important;
-            padding: 5px !important;
-            border:1px solid #000000 !important;
-        }
+        body { } 
+        table { margin: 0 auto; border-collapse: collapse; }
+        table, th, td {border: 1px solid #bbb;}  
+        th { border:1px solid #000000; }
         p {
             page-break-before: always !important;
         }
