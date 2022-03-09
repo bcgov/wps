@@ -68,7 +68,7 @@ async def startup_event():
     # The downside to this is that we're increasing the memory footprint of the app.
     cffdrs_start = perf_counter()
     # TODO: Fix in next PR.
-    CFFDRS.instance()  # pylint: disable=no-member
+    # CFFDRS.instance()  # pylint: disable=no-member
     cffdrs_end = perf_counter()
     logger.info('saved %f seconds by starting CFFDRS now', cffdrs_end - cffdrs_start)
 
