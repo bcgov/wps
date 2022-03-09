@@ -6,23 +6,23 @@ DAILY_TEMPLATE_HTML = """
 <html lang="en">
 <style type="text/css" media="screen">
         table {
-            border-collapse:collapse;
-            border:1px solid #000000;
+            border-collapse:collapse !important;
+            border:1px solid #000000 !important;;
         }
         
         td {
-            padding: 5px;
-            border:1px solid #000000;
-            width: 80px;
+            padding: 5px !important;
+            border:1px solid #000000 !important;
+            width: 80px !important;
         }
 
         th {
-            width: 80px;
-            padding: 5px;
-            border:1px solid #000000;
+            width: 80px !important;
+            padding: 5px !important;
+            border:1px solid #000000 !important;
         }
         p {
-            page-break-before: always;
+            page-break-before: always !important;
         }
 </style>
 <head>
