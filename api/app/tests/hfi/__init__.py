@@ -29,4 +29,4 @@ def mock_station_crud(monkeypatch):
         return result
 
     monkeypatch.setattr(app.utils.hfi_calculator, 'get_all_stations', mock_get_all_stations)
-    monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
+    monkeypatch.setattr(app.hfi.hfi, 'get_fire_centre_stations', mock_get_fire_centre_stations)
