@@ -52,7 +52,7 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
 
 def response_2_daily_jinja_format(result: HFIResultResponse,
                                   planning_area_dict: Mapping[int, PlanningArea],
-                                  station_dict: Mapping[int, WeatherStation]):
+                                  station_dict: Mapping[int, WeatherStation]):  # pylint: disable=line-too-long
     """ Marshals HFI result into structure that jinja can easily
         iterate over for generating the daily PDF sheets
      """
@@ -72,8 +72,8 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
                 full_dailies.append(full_daily)
             fire_starts = fire_starts_range[j]
             planning_area_name = planning_area_dict[area_result.planning_area_id].name
-            # TODO: Get planning area name, not just id
             daily_data = DailyPDFData(planning_area_name=planning_area_name,
+                                      highest_daily_intensity_group=area_result.highest_daily_intensity_group,
                                       mean_prep_level=area_result.mean_prep_level,
                                       fire_starts=fire_starts.label,
                                       days_total=days_total,
