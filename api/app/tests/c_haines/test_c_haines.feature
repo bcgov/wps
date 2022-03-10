@@ -9,10 +9,10 @@ Feature: C-Haines calculation
             | 13.4  | 0     | 2.4    | 4.5               |
 
     Scenario: Calculate severity
-        Given <c_haines_data>
+        Given c_haines_data: <c_haines_data>
         When generating severity
-        Then We expect <mask_data>
-        And We expect <severity_data>
+        Then We expect mask_data: <mask_data>
+        And We expect severity_data: <severity_data>
 
         Examples:
             | c_haines_data   | mask_data   | severity_data |
@@ -26,7 +26,7 @@ Feature: C-Haines calculation
     Scenario: Generate c-haines data
         Given <tmp_700>, <tmp_850> and <dew_850>
         When We generate c-haines
-        Then We expect <c_haines_data>
+        Then We expect c_haines_data: <c_haines_data>
 
         Examples:
             | tmp_700                                                              | tmp_850                                                              | dew_850                                                               | c_haines_data         |
@@ -54,8 +54,8 @@ Feature: C-Haines calculation
     Scenario: Make model run download urls
         Given We run make_model_run_download_urls(<model>, <now>, <model_run_hour>, <prediction_hour>)
         Then <urls> are as expected
-        And <model_run_timestamp> is as expected
-        And <prediction_timestamp> is as expected
+        And model_run_timestamp: <model_run_timestamp> is as expected
+        And prediction_timestamp: <prediction_timestamp> is as expected
 
         Examples:
             | model | now                        | model_run_hour | prediction_hour | urls                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | model_run_timestamp       | prediction_timestamp      |

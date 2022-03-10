@@ -9,13 +9,13 @@ Feature: /stations/
 
         Examples:
             | url            | status | code | name         | lat        | long         | use_wfwx | authentication |
-            | /api/stations/ | 200    | 1142 | 14G (CRD)    | 48.494444  | -123.613889  | True     |                |
-            | /api/stations/ | 200    | 322  | AFTON        | 50.6733333 | -120.4816667 | True     |                |
-            | /api/stations/ | 200    | 317  | ALLISON PASS | 49.0623139 | -120.7674194 | False    |                |
+            | /api/stations/ | 200    | 1142 | 14G (CRD)    | 48.494444  | -123.613889  | True     | False          |
+            | /api/stations/ | 200    | 322  | AFTON        | 50.6733333 | -120.4816667 | True     | False          |
+            | /api/stations/ | 200    | 317  | ALLISON PASS | 49.0623139 | -120.7674194 | False    | False          |
 
     Scenario: Get detailed weather stations
-        Given A <crud_mapping>
-        Given <utc_time>
+        Given A crud mapping <crud_mapping>
+        Given utc_time: <utc_time>
         Given I request a list of weather stations from <url> with <authentication>
         Then the response status code is <status>
         Then the expected response is <expected_response>
