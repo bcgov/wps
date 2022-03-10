@@ -35,7 +35,8 @@ def given_utc_time(monkeypatch, utc_time: int):
     monkeypatch.setattr(app.routers.stations, 'get_utc_now', mock_get_utc_now)
 
 
-@given(parsers.parse("A {crud_mapping}"), target_fixture='collector',
+@given(parsers.parse("A crud mapping {crud_mapping}"),
+       target_fixture='collector',
        converters=dict(crud_mapping=load_json_file(__file__)))
 def given_a_crud_mapping(monkeypatch, crud_mapping: dict):
     """ Mock the sql response.

@@ -2,7 +2,7 @@ Feature: Generic model endpoint testing
 
     Scenario: Generic model endpoint testing
         Given some explanatory <notes>
-        Given A <crud_mapping>
+        Given A weather model crud mapping <crud_mapping>
         When I call <endpoint> with <codes>
         Then The status code = <expected_status_code>
         Then The response = <expected_response>

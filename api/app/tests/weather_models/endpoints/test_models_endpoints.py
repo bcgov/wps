@@ -37,7 +37,7 @@ def given_some_notes(notes: str):
     logger.info(notes)
 
 
-@given(parsers.parse("A {crud_mapping}"), target_fixture='database', converters={'crud_mapping': load_json_file(__file__)})
+@given(parsers.parse("A weather model crud mapping {crud_mapping}"), target_fixture='database', converters={'crud_mapping': load_json_file(__file__)})
 def given_a_database(monkeypatch, crud_mapping: dict):
     """ Mock the sql response """
 

@@ -1,7 +1,7 @@
 """ Test the bounding box logic.
 """
 import os
-
+from distutils.util import strtobool
 from osgeo import gdal
 from pyproj import CRS
 from pytest_bdd import scenario, given, then, parsers
@@ -17,7 +17,7 @@ def test_extract_origin_and_pixel_information():
     """ BDD Scenario. """
 
 
-@given(parsers.parse('a {grib_file}'),
+@given(parsers.parse('a grib file {grib_file}'),
        converters={'grib_file': str},
        target_fixture='grib_info')
 def given_a_grib_file(grib_file: str):
@@ -32,7 +32,7 @@ def given_a_grib_file(grib_file: str):
 
 
 @then(parsers.parse('We expect the coordinate {x_coordinate} {y_coordinate} to be {is_inside}'),
-      converters={'is_inside': lambda a: a.lower() == 'true', 'x_coordinate': int, 'y_coordinate': int})
+      converters=dict(is_inside=strtobool, x_coordinate=int, y_coordinate=int))
 def with_temperature_and_dewpoint_values(
         x_coordinate: int,
         y_coordinate: int,

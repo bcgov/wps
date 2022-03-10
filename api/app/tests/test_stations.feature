@@ -14,7 +14,7 @@ Feature: /stations/
             | /api/stations/ | 200    | 317  | ALLISON PASS | 49.0623139 | -120.7674194 | False    | False          |
 
     Scenario: Get detailed weather stations
-        Given A <crud_mapping>
+        Given A crud mapping <crud_mapping>
         Given utc_time: <utc_time>
         Given I request a list of weather stations from <url> with <authentication>
         Then the response status code is <status>
