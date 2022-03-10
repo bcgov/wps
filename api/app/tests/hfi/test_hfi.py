@@ -1,8 +1,7 @@
 """ Unit testing for hfi logic """
-from datetime import date, datetime
+from datetime import datetime
 
 from pytest_mock import MockerFixture
-from app.db.database import get_read_session_scope
 from app.hfi.hfi import (calculate_hfi_results,
                          calculate_mean_intensity,
                          calculate_max_intensity_group,
@@ -13,13 +12,13 @@ from app.schemas.hfi_calc import (FireCentre,
                                   StationDaily,
                                   WeatherStation,
                                   WeatherStationProperties,
-                                  required_daily_fields,
-                                  lowest_fire_starts,
-                                  one_2_two_starts,
-                                  two_2_three_starts,
-                                  three_2_six_starts,
-                                  highest_fire_starts,
-                                  all_ranges)
+                                  required_daily_fields)
+from app.hfi.fire_starts import (lowest_fire_starts,
+                                 one_2_two_starts,
+                                 two_2_three_starts,
+                                 three_2_six_starts,
+                                 highest_fire_starts,
+                                 all_ranges)
 from app.schemas.shared import FuelType
 
 # Kamloops FC fixture
