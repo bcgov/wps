@@ -207,14 +207,14 @@ def spy_access_logging(mocker: MockerFixture):
 @then(parsers.parse('the response status code is {status}'), converters={'status': int})
 def assert_status_code(response, status: int):
     """ Assert that we receive the expected status code """
-    assert response.status_code == status
+    assert response['response'].status_code == status
 
 
 @then(parsers.parse("the response is {response_json}"),
       converters={'response_json': load_json_file(__file__)})
-def then_response(result, response_json: dict):
+def then_response(response, response_json: dict):
     """ Check entire response """
     if response_json is not None:
-        print('actual:\n{}'.format(json.dumps(result['response'].json(), indent=4)))
+        print('actual:\n{}'.format(json.dumps(response['response'].json(), indent=4)))
         print('expected:\n{}'.format(json.dumps(response_json, indent=4)))
-        assert result['response'].json() == response_json, result['filename']
+        assert response['response'].json() == response_json, response['filename']

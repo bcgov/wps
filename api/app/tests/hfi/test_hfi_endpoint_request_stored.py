@@ -19,7 +19,7 @@ def test_fire_behaviour_calculator_scenario_request_stored():
 
 
 @given(parsers.parse("I received a {request_json}, and have one stored {stored_request_json}"),
-       target_fixture='result',
+       target_fixture='response',
        converters={'request_json': load_json_file_with_name(__file__), 'stored_request_json': load_json_file(__file__)})
 def given_request_have_one_stored(monkeypatch,
                                   request_json: Tuple[dict, str],

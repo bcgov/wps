@@ -8,7 +8,7 @@ from aiohttp import ClientSession
 from pytest_mock import MockFixture
 import app.main
 from app.tests.common import default_mock_client_get
-from app.tests import load_json_file, load_json_file_with_name
+from app.tests import load_json_file_with_name
 from app.tests.hfi import mock_station_crud
 
 
@@ -20,8 +20,8 @@ def test_fire_behaviour_calculator_scenario_no_request_stored():
 
 
 @given(parsers.parse("I received a {request_json}, but don't have one stored"),
-       target_fixture='result',
-       converters={'request_json': load_json_file_with_name(__file__), })
+       target_fixture='response',
+       converters=dict(request_json=load_json_file_with_name(__file__)))
 def given_request_none_stored(monkeypatch: pytest.MonkeyPatch, mocker: MockFixture, request_json: Tuple[dict, str]):
     """ Handle request
     """
@@ -44,6 +44,6 @@ def given_request_none_stored(monkeypatch: pytest.MonkeyPatch, mocker: MockFixtu
 
 
 @then(parsers.parse("request == saved = {request_saved}"), converters={'request_saved': strtobool})
-def then_request_saved(result, request_saved: bool):
+def then_request_saved(response, request_saved: bool):
     """ Check request saved """
-    assert result['saved'] == request_saved
+    assert response['saved'] == request_saved
