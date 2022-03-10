@@ -97,13 +97,13 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx: bool, mock_redis_
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.post('/api/observations/', headers=headers, json={"stations": codes})
+    return dict(response=client.post('/api/observations/', headers=headers, json={"stations": codes}))
 
 
 @then(parsers.parse('there are {num_groups} groups of hourlies'), converters={'num_groups': int})
 def assert_number_of_hourlies_groups(response, num_groups: int):
     """ Assert that we receive the expected number of hourly groups """
-    assert len(response.json()['hourlies']) == num_groups
+    assert len(response['response'].json()['hourlies']) == num_groups
 
 
 @then(parsers.parse('there are {num_readings_per_group} readings per group'), converters={'num_readings_per_group': json.loads})
@@ -112,5 +112,5 @@ def assert_number_of_hourlies_per_group(
         num_readings_per_group: List):
     """ Assert that we receive the expected number of hourlies per groups """
     for index, item in enumerate(num_readings_per_group):
-        assert len(response.json()['hourlies']
+        assert len(response['response'].json()['hourlies']
                    [index]['values']) == item

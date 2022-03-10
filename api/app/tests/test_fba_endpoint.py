@@ -26,10 +26,10 @@ def given_fba_fire_centers_request(monkeypatch):
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
 
-    return client.get('/api/fba/fire-centers/', headers=headers)
+    return dict(response=client.get('/api/fba/fire-centers/', headers=headers))
 
 
 @then(parsers.parse('the response contains the list of {expected_fire_centers}'), converters={'expected_fire_centers': load_json_file(__file__)})
 def assert_fire_centers_list(response, expected_fire_centers):
     """ Assert that the fire centers returned are what is from the middleware """
-    assert response.json() == expected_fire_centers
+    assert response['response'].json() == expected_fire_centers
