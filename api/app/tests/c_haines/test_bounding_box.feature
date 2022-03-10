@@ -1,7 +1,7 @@
 Feature: Bounding Box Checker
 
     Scenario: Check bounding box
-        Given a <grib_file>
+        Given a grib file <grib_file>
         Then We expect the coordinate <x_coordinate> <y_coordinate> to be <is_inside>
 
         Examples:
