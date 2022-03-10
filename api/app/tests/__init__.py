@@ -12,12 +12,8 @@ from app.db.models.common import TZTimeStamp
 
 def get_complete_filename(module_path: str, filename: str):
     """ Get the full path of a filename, given it's module path """
-    print(f'get_complete_filename: {module_path}, {filename}')
     dirname = os.path.dirname(os.path.realpath(module_path))
-    print(f'dirname: {dirname}')
-    result = os.path.join(dirname, filename)
-    print(f'result: {result}')
-    return result
+    return os.path.join(dirname, filename)
 
 
 def _load_json_file(module_path: str, filename: str) -> Optional[dict]:

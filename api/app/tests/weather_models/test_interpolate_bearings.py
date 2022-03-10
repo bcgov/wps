@@ -8,7 +8,14 @@ def test_direction_interpolation():
     """ BDD Scenario for directions """
 
 
-@given(parsers.parse("{time_a}, {time_b}, {target_time}, {direction_a}, {direction_b}"), target_fixture='data', converters={'time_a': datetime.fromisoformat, 'time_b': datetime.fromisoformat, 'target_time': datetime.fromisoformat, 'direction_a': float, 'direction_b': float})
+@given(parsers.parse("{time_a}, {time_b}, {target_time}, {direction_a}, {direction_b}"),
+       target_fixture='data',
+       converters={
+           'time_a': datetime.fromisoformat,
+           'time_b': datetime.fromisoformat,
+           'target_time': datetime.fromisoformat,
+           'direction_a': float,
+           'direction_b': float})
 def given_data(
         time_a: datetime,
         time_b: datetime,
