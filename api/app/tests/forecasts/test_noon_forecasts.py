@@ -63,7 +63,7 @@ def given_request(monkeypatch, codes: List):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.post('/api/forecasts/noon/', headers=headers, json={"stations": codes})
+    return dict(response=client.post('/api/forecasts/noon/', headers=headers, json={"stations": codes}))
 
 
 @then(parsers.parse('there are {num_groups} groups of forecasts'), converters={'num_groups': int})
