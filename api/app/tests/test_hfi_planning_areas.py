@@ -50,12 +50,6 @@ def given_hfi_planning_areas_request(monkeypatch):
     return client.get('/api/hfi-calc/fire-centres/', headers=headers)
 
 
-@then(parsers.parse('the response status code is {status}'), converters={'status': int})
-def assert_status_code(response, status):
-    """ Assert that we receive the expected status code """
-    assert response.status_code == status
-
-
 @then(parsers.parse('there are at least {num_fire_centres} fire centres'),
       converters={'num_fire_centres': int})
 def assert_number_of_fire_centres(response, num_fire_centres):

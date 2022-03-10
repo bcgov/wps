@@ -100,12 +100,6 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx: bool, mock_redis_
     return client.post('/api/observations/', headers=headers, json={"stations": codes})
 
 
-@then(parsers.parse('the response status code is {status}'), converters={'status': int})
-def assert_status_code(response, status: int):
-    """ Assert that we receive the expected status code """
-    assert response.status_code == status
-
-
 @then(parsers.parse('there are {num_groups} groups of hourlies'), converters={'num_groups': int})
 def assert_number_of_hourlies_groups(response, num_groups: int):
     """ Assert that we receive the expected number of hourly groups """

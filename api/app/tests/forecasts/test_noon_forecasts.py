@@ -66,12 +66,6 @@ def given_request(monkeypatch, codes: List):
     return client.post('/api/forecasts/noon/', headers=headers, json={"stations": codes})
 
 
-@then(parsers.parse('the response status code is {status}'), converters={'status': int})
-def assert_status_code(response, status):
-    """ Assert that we receive the expected status code """
-    assert response.status_code == status
-
-
 @then(parsers.parse('there are {num_groups} groups of forecasts'), converters={'num_groups': int})
 def assert_number_of_forecasts_groups(response, num_groups):
     """ Assert that we receive the expected number of forecast groups """

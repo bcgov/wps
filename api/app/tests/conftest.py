@@ -1,5 +1,5 @@
 """ Global fixtures """
-
+import json
 from datetime import timezone, datetime
 import logging
 import requests
@@ -21,6 +21,7 @@ import app.utils.time as time_utils
 from app.schemas.shared import WeatherDataRequest
 import app.wildfire_one.wildfire_fetchers
 import app.utils.redis
+from app.tests import load_json_file
 
 logger = logging.getLogger(__name__)
 
@@ -191,13 +192,29 @@ def spy_access_logging(mocker: MockerFixture):
     return mocker.spy(auth, 'create_api_access_audit_log')
 
 
-@then('the response status code is <status>')
-def assert_status_code(response, status):
+# @then('the response status code is <status>')
+# def assert_status_code(response, status):
+#     """ Assert that we receive the expected status code """
+#     assert response.status_code == status
+
+
+# @then(parsers.parse("the status code is {status_code}"), converters={'status_code': int})
+# def then_status(result, status_code: int):
+#     """ Check response status code """
+#     assert result['response'].status_code == status_code, result['filename']
+
+
+@then(parsers.parse('the response status code is {status}'), converters={'status': int})
+def assert_status_code(response, status: int):
     """ Assert that we receive the expected status code """
     assert response.status_code == status
 
 
-@then(parsers.parse("the status code is {status_code}"), converters={'status_code': int})
-def then_status(result, status_code: int):
-    """ Check response status code """
-    assert result['response'].status_code == status_code, result['filename']
+@then(parsers.parse("the response is {response_json}"),
+      converters={'response_json': load_json_file(__file__)})
+def then_response(result, response_json: dict):
+    """ Check entire response """
+    if response_json is not None:
+        print('actual:\n{}'.format(json.dumps(result['response'].json(), indent=4)))
+        print('expected:\n{}'.format(json.dumps(response_json, indent=4)))
+        assert result['response'].json() == response_json, result['filename']

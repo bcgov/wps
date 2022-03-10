@@ -3,8 +3,8 @@ Feature: Linear regression for weather
     Scenario: Learn weather
         Given An instance of StationMachineLearning for <coordinate> within <points>
         When The machine learns
-        Then The <model_temp> for <timestamp> results in <bias_adjusted_temp>
-        And The <model_rh> for <timestamp> results in <bias_adjusted_rh>
+        Then The model_temp: <model_temp> for <timestamp> results in <bias_adjusted_temp>
+        And The model_rh: <model_rh> for <timestamp> results in <bias_adjusted_rh>
         Examples:
             | model_temp | model_rh | timestamp                        | bias_adjusted_temp | bias_adjusted_rh | coordinate                 | points                                                                                                                                                                     |
             # using a timestamp with sample data, we should get some bias adjusted values:

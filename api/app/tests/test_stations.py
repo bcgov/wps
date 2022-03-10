@@ -54,12 +54,6 @@ def given_request(monkeypatch, url: str, authentication: bool):
     return client.get(url)
 
 
-@then(parsers.parse("the response status code is {status}"), converters={'status': int})
-def status_code(response, status: int):
-    """ Assert that we receive the expected status code """
-    assert response.status_code == status
-
-
 @then("there are at least 200 active weather stations")
 def minimum_200_active_weather_stations(response):
     """ We expect there to be at least 200 active weather stations.
