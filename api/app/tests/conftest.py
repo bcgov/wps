@@ -191,18 +191,6 @@ def spy_access_logging(mocker: MockerFixture):
     return mocker.spy(auth, 'create_api_access_audit_log')
 
 
-# @then('the response status code is <status>')
-# def assert_status_code(response, status):
-#     """ Assert that we receive the expected status code """
-#     assert response.status_code == status
-
-
-# @then(parsers.parse("the status code is {status_code}"), converters={'status_code': int})
-# def then_status(result, status_code: int):
-#     """ Check response status code """
-#     assert result['response'].status_code == status_code, result['filename']
-
-
 @then(parsers.parse('the response status code is {status}'), converters={'status': int})
 def assert_status_code(response, status: int):
     """ Assert that we receive the expected status code """
