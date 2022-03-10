@@ -51,22 +51,22 @@ def given_request(monkeypatch, url: str, authentication: bool):
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     client = TestClient(app.main.app)
     if authentication:
-        return client.get(url, headers={'Authorization': 'Bearer token'})
-    return client.get(url)
+        return dict(response=client.get(url, headers={'Authorization': 'Bearer token'}))
+    return dict(response=client.get(url))
 
 
 @then("there are at least 200 active weather stations")
 def minimum_200_active_weather_stations(response):
     """ We expect there to be at least 200 active weather stations.
     """
-    assert len(response.json()['features']) >= 200
+    assert len(response['response'].json()['features']) >= 200
 
 
 @then(parsers.parse("there is a station with {code}, {name}, {lat} and {long}"),
       converters=dict(code=int, name=str, lat=float, long=float))
 def there_is_a_station(response, code, name, lat, long):  # pylint: disable=too-many-arguments
     """ We expect a station to have a code, name, lat and long. """
-    station = next(x for x in response.json()['features'] if x['properties']['code'] == code)
+    station = next(x for x in response['response'].json()['features'] if x['properties']['code'] == code)
 
     assert station['properties']['code'] == code, "Code"
     assert station['properties']['name'] == name, "Name"
@@ -78,12 +78,12 @@ def there_is_a_station(response, code, name, lat, long):  # pylint: disable=too-
       converters=dict(ecodivision_name=str, core_season=json.loads))
 def station_ecodivision_data(response, index, ecodivision_name, core_season: dict):
     """ We expect station's ecodivision to have name, start_month start_day - end_month end_day """
-    assert (response.json()['features'][index]['properties']['ecodivision_name'] == ecodivision_name and
-            response.json()['features'][index]['properties']['core_season'] == core_season)
+    assert (response['response'].json()['features'][index]['properties']['ecodivision_name'] == ecodivision_name and
+            response['response'].json()['features'][index]['properties']['core_season'] == core_season)
 
 
 @ then(parsers.parse("the expected response is {expected_response}"),
        converters=dict(expected_response=load_json_file(__file__)))
 def assert_expected_response(response, expected_response):
     """ We expect a certain response """
-    assert response.json() == expected_response
+    assert response['response'].json() == expected_response
