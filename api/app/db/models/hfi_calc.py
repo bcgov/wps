@@ -99,3 +99,19 @@ class HFIRequest(Base):
     create_user = Column(String, nullable=False)
     # NOTE: If the structure of the request changes, the stored request may not longer remain compatible.
     request = Column(JSON)
+
+
+class HFIFireStarts(Base):
+    """ """
+    __tablename__ = 'hfi_fire_starts'
+    __table_args__ = (
+        UniqueConstraint('fire_centre_id', 'min_starts', 'max_starts', 'max_starts', 'intensity_group',
+                         name='unique_fire_centre_fire_start_range'),
+        {'comment': 'Identifies the unique fire start range and intensity group mapping'}
+    )
+    id = Column(Integer, primary_key=True)
+    fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
+    min_starts = Column(Integer, nullable=False, index=True)
+    max_starts = Column(Integer, nullable=False, index=True)
+    intensity_group = Column(Integer, nullable=False, index=True)
+    prep_level = Column(Integer, nullable=False, index=True)
