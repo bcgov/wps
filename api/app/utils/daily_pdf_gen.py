@@ -1,18 +1,17 @@
 """Generate a daily PDF"""
 from typing import List, Mapping
 import pdfkit
-from jinja2 import Template
-
+from jinja2 import Environment, FunctionLoader
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
-from app.utils.pdf_data_formatter import response_2_daily_jinja_format
+from app.hfi.daily_template import str_daily_template, CSS_PATH
+from app.hfi.pdf_data_formatter import response_2_daily_jinja_format
 
-daily_template_path = "api/app/utils/daily_template.html"
-daily_rendered_path = "api/app/utils/daily_rendered.html"
+# Loads template as string from a function
+# See: https://jinja.palletsprojects.com/en/3.0.x/api/?highlight=functionloader#jinja2.FunctionLoader
+jinja_env = Environment(loader=FunctionLoader(str_daily_template), autoescape=True)
 
-output_file_path = "api/app/utils/out.pdf"
 
-
-def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]):
+def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]) -> bytes:
     """Generate a daily PDF"""
     # Shift hydrated fire centres into dicts keyed by ids
     fire_centre_dict: Mapping[int, FireCentre] = {}
@@ -26,19 +25,22 @@ def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]
                 station_dict[station.code] = station
 
     fire_centre_name = fire_centre_dict[result.selected_fire_center_id].name
-    with open(daily_template_path, 'r') as daily_template, open(daily_rendered_path, 'w') as new_page:
-        template = Template(daily_template.read())
-        daily_pdf_data_by_date = response_2_daily_jinja_format(
-            result,
-            planning_area_dict,
-            station_dict)
-        new_page.write(template.render(
-            daily_pdf_data_by_date=daily_pdf_data_by_date,
-            fire_centre_name=fire_centre_name))
+
+    rendered_output: str = ''
+
+    template = jinja_env.get_template('daily_template')
+    daily_pdf_data_by_date = response_2_daily_jinja_format(
+        result,
+        planning_area_dict,
+        station_dict)
+    rendered_output += template.render(
+        daily_pdf_data_by_date=daily_pdf_data_by_date,
+        fire_centre_name=fire_centre_name)
 
     options = {
         'page-size': 'Tabloid'
     }
 
-    return pdfkit.from_file(daily_rendered_path,
-                            output_file_path, options)
+    pdf_bytes: bytes = pdfkit.from_string(input=rendered_output, options=options, css=CSS_PATH)
+
+    return pdf_bytes
