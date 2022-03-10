@@ -1,5 +1,4 @@
 """ BDD tests for API /hfi-calc/ """
-from lib2to3.pytree import convert
 from pytest_bdd import scenario, given, then, parsers
 import pytest
 from starlette.testclient import TestClient

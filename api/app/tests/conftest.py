@@ -215,6 +215,6 @@ def assert_status_code(response, status: int):
 def then_response(response, response_json: dict):
     """ Check entire response """
     if response_json is not None:
-        print('actual:\n{}'.format(json.dumps(response['response'].json(), indent=4)))
-        print('expected:\n{}'.format(json.dumps(response_json, indent=4)))
+        # print('actual:\n{}'.format(json.dumps(response['response'].json(), indent=4)))
+        # print('expected:\n{}'.format(json.dumps(response_json, indent=4)))
         assert response['response'].json() == response_json, response['filename']

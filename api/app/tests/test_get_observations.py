@@ -30,7 +30,8 @@ def test_hourlies():
 
 
 @given(parsers.parse('I request hourlies for stations: {codes} with {use_wfwx} and {mock_redis_exception}'),
-       target_fixture='response', converters={'codes': json.loads, 'use_wfwx': strtobool, 'mock_redis_exception': strtobool})
+       target_fixture='response',
+       converters={'codes': json.loads, 'use_wfwx': strtobool, 'mock_redis_exception': strtobool})
 def given_hourlies_request(monkeypatch, codes: List, use_wfwx: bool, mock_redis_exception: bool):
     """ Make /observations/ request using mocked out ClientSession.
     """

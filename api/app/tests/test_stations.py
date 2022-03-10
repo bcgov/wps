@@ -78,8 +78,9 @@ def there_is_a_station(response, code, name, lat, long):  # pylint: disable=too-
       converters=dict(ecodivision_name=str, core_season=json.loads))
 def station_ecodivision_data(response, index, ecodivision_name, core_season: dict):
     """ We expect station's ecodivision to have name, start_month start_day - end_month end_day """
-    assert (response['response'].json()['features'][index]['properties']['ecodivision_name'] == ecodivision_name and
-            response['response'].json()['features'][index]['properties']['core_season'] == core_season)
+    data = response['response'].json()
+    assert (data['features'][index]['properties']['ecodivision_name'] == ecodivision_name and
+            data['features'][index]['properties']['core_season'] == core_season)
 
 
 @ then(parsers.parse("the expected response is {expected_response}"),

@@ -16,9 +16,10 @@ def test_auth_1st_scenario():
     """ BDD Scenario #1. """
 
 
-@given(parsers.parse("I am an unauthenticated user {token} when I {verb} a protected {endpoint} with {payload}"),
-       converters={'token': str, 'verb': str, 'endpoint': str, 'payload': load_json_file(__file__)},
-       target_fixture='response')
+@given(parsers.parse(
+    "I am an unauthenticated user {token} when I {verb} a protected {endpoint} with {payload}"),
+    converters={'token': str, 'verb': str, 'endpoint': str, 'payload': load_json_file(__file__)},
+    target_fixture='response')
 def given_unauthenticated_user(monkeypatch, token: str, endpoint: str, verb: str, payload: dict):
     """ Request (post/get) {endpoint} request which is protected """
     client = TestClient(app.main.app)

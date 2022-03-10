@@ -1,7 +1,7 @@
 """ Test machine learning code - collecting data, learning from data, and predicting a bias adjusted
 result.
 """
-from datetime import datetime
+from datetime import date, datetime
 from typing import List
 import json
 import pytest
@@ -27,7 +27,9 @@ def test_machine_learning():
 
 @given(parsers.parse("An instance of StationMachineLearning for {coordinate} within {points}"),
        target_fixture='instance',
-       converters=dict(coordinate=json.loads, points=json.loads))
+       converters=dict(
+           coordinate=json.loads,
+           points=json.loads))
 def given_an_instance(coordinate: List, points: List):
     """ Bind the data variable """
     return machine_learning.StationMachineLearning(
@@ -47,22 +49,25 @@ def learn(instance: machine_learning.StationMachineLearning):
 
 
 @then(parsers.parse('The model_temp: {model_temp} for {timestamp} results in {bias_adjusted_temp}'),
-      converters=dict(model_temp=float, timestamp=datetime.fromisoformat, bias_adjusted_temp=str2float))
+      converters=dict(
+          model_temp=float,
+          timestamp=str,
+          bias_adjusted_temp=str2float))
 def assert_temperature(
         instance: machine_learning.StationMachineLearning,
-        model_temp: float, timestamp: datetime, bias_adjusted_temp: float):
+        model_temp: float, timestamp: str, bias_adjusted_temp: float):
     """ Assert that the ML algorithm predicts the temperature correctly """
-    result = instance.predict_temperature(model_temp, timestamp)
+    result = instance.predict_temperature(model_temp, datetime.fromisoformat(timestamp))
     assert result == bias_adjusted_temp
 
 
 @then(parsers.parse('The model_rh: {model_rh} for {timestamp} results in {bias_adjusted_rh}'),
       converters=dict(
           model_rh=float,
-          timestamp=datetime.fromisoformat,
+          timestamp=str,
           bias_adjusted_rh=str2float))
 def assert_rh(instance: machine_learning.StationMachineLearning,
-              model_rh: float, timestamp: datetime, bias_adjusted_rh: float):
+              model_rh: float, timestamp: str, bias_adjusted_rh: float):
     """ Assert that the ML algorithm predicts the relative humidity correctly """
-    result = instance.predict_rh(model_rh, timestamp)
+    result = instance.predict_rh(model_rh, datetime.fromisoformat(timestamp))
     assert result == bias_adjusted_rh
