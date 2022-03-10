@@ -2,17 +2,19 @@
 Unit tests for fire behavour calculator.
 """
 from datetime import datetime, timezone as dt_tz
+from multiprocessing.spawn import import_main_path
 import random
 from typing import Final
 import logging
-from pytest_bdd import scenario, given, then
+from pytest_bdd import scenario, given, then, parsers
 from app import configure_logging
 from app.schemas.fba_calc import FuelTypeEnum
 from app.utils.time import get_hour_20_from_date
 from app.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
 from app.utils.cffdrs import initial_spread_index, bui_calc
-from app.tests.fba_calc import str2float, check_metric, fire_size_acceptable_margin_of_error
+from app.tests.fba_calc import check_metric, fire_size_acceptable_margin_of_error
+from app.tests.common import str2float
 import pytest
 
 
@@ -31,24 +33,22 @@ acceptable_margin_of_error: Final = 0.01
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_fba_error_random_sample.feature', 'Fire Behaviour Calculation',
-          example_converters=dict(crown_base_height=str2float,
-                                  fuel_type=str,
-                                  percentage_conifer=str2float,
-                                  percentage_dead_balsam_fir=str2float,
-                                  grass_cure=str2float,
-                                  num_iterations=int,
-                                  ros_margin_of_error=float,
-                                  hfi_margin_of_error=float,
-                                  cfb_margin_of_error=float,
-                                  one_hour_spread_margin_of_error=float))
+@scenario('test_fba_error_random_sample.feature', 'Fire Behaviour Calculation')
 def test_fire_behaviour_calculator_scenario():
     """ BDD Scenario. """
 
 
-@given("""<fuel_type>, <percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure> and """
-       """<crown_base_height> for <num_iterations>""",
-       target_fixture='results')
+@given(
+    parsers.parse("""{fuel_type}, {percentage_conifer}, {percentage_dead_balsam_fir}, {grass_cure} and """
+                  """{crown_base_height} for {num_iterations}"""),
+    converters=dict(crown_base_height=str2float,
+                    fuel_type=str,
+                    percentage_conifer=str2float,
+                    percentage_dead_balsam_fir=str2float,
+                    grass_cure=str2float,
+                    num_iterations=int),
+    target_fixture='results'
+)
 def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsam_fir: float,
                 grass_cure: float, crown_base_height: float, num_iterations: int):
     """ Take input and calculate actual and expected results """
@@ -149,7 +149,8 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
     return results
 
 
-@then("ROS is within <ros_margin_of_error> compared to REDapp")
+@then(parsers.parse("ROS is within {ros_margin_of_error} compared to REDapp"),
+      converters={'ros_margin_of_error': float})
 def then_ros_good(results: list, ros_margin_of_error: float):
     """ check the relative error of ROS """
     for index, result in enumerate(results):
@@ -182,7 +183,8 @@ def then_ros_t(results: list):
                      acceptable_margin_of_error)
 
 
-@then("HFI is within <hfi_margin_of_error> compared to REDapp")
+@then(parsers.parse("HFI is within {hfi_margin_of_error} compared to REDapp"),
+      converters={'hfi_margin_of_error': float})
 def then_hfi_good(results: list, hfi_margin_of_error: float):
     """ check the relative error of HFI """
     for index, result in enumerate(results):
@@ -206,13 +208,14 @@ def then_hfi_t(results: list):
                      acceptable_margin_of_error)
 
 
-@then("CFB is within <cfb_margin_of_error> compared to REDapp")
+@then(parsers.parse("CFB is within {cfb_margin_of_error} compared to REDapp"),
+      converters={'cfb_margin_of_error': float})
 def then_cfb_good(results: list, cfb_margin_of_error: float):
     """ check the relative error of HFI """
     for index, result in enumerate(results):
         error = check_metric('CFB',
                              result['fuel_type'],
-                             result['python'].cfb*100.0,
+                             result['python'].cfb * 100.0,
                              result['java'].cfb, cfb_margin_of_error,
                              f'({index})')
         result['error']['cfb_margin_of_error'] = error
@@ -224,12 +227,13 @@ def then_cfb_t(results: list):
     for result in results:
         check_metric('CFB_t',
                      result['fuel_type'],
-                     result['python'].cfb_t*100.0,
+                     result['python'].cfb_t * 100.0,
                      result['java'].cfb,
                      acceptable_margin_of_error)
 
 
-@then("1 Hour Spread is within <one_hour_spread_margin_of_error> compared to REDapp")
+@then(parsers.parse("1 Hour Spread is within {one_hour_spread_margin_of_error} compared to REDapp"),
+      converters={'one_hour_spread_margin_of_error': float})
 def then_1_hour_spread_good(results: list, one_hour_spread_margin_of_error: float):
     """ check the relative error of HFI """
     for index, result in enumerate(results):
