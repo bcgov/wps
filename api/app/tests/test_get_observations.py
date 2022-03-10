@@ -107,7 +107,8 @@ def assert_number_of_hourlies_groups(response, num_groups: int):
     assert len(response['response'].json()['hourlies']) == num_groups
 
 
-@then(parsers.parse('there are {num_readings_per_group} readings per group'), converters={'num_readings_per_group': json.loads})
+@then(parsers.parse('there are {num_readings_per_group} readings per group'),
+      converters={'num_readings_per_group': json.loads})
 def assert_number_of_hourlies_per_group(
         response,
         num_readings_per_group: List):

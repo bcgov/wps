@@ -1,5 +1,4 @@
 """ Global fixtures """
-import json
 from datetime import timezone, datetime
 import logging
 import requests
