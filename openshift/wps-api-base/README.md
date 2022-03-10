@@ -21,7 +21,7 @@ oc -n e1e498-tools -p GIT_BRANCH=my-branch process -f build.yaml | oc -n e1e498-
 
 ```bash
 # build your docker image
-docker build . --tag=wps-api-base:my-tag .
+docker build . --tag=wps-api-base:my-tag
 # tag it for upload
 docker tag wps-api-base:my-tag image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-api-base:my-tag
 # log in to openshift docker

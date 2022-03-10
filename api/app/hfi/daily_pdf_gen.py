@@ -3,7 +3,7 @@ from typing import List, Mapping
 import pdfkit
 from jinja2 import Environment, FunctionLoader
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
-from app.hfi.daily_template import str_daily_template
+from app.hfi.daily_template import str_daily_template, CSS_PATH
 from app.hfi.pdf_data_formatter import response_2_daily_jinja_format
 
 # Loads template as string from a function
@@ -41,6 +41,6 @@ def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]
         'page-size': 'Tabloid'
     }
 
-    pdf_bytes: bytes = pdfkit.from_string(input=rendered_output, options=options)
+    pdf_bytes: bytes = pdfkit.from_string(input=rendered_output, options=options, css=CSS_PATH)
 
     return pdf_bytes

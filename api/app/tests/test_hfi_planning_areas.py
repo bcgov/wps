@@ -39,7 +39,7 @@ def given_hfi_planning_areas_request(monkeypatch):
         )
 
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
-    monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_weather_stations', mock_get_fire_weather_stations)
+    monkeypatch.setattr(app.hfi.hfi, 'get_fire_weather_stations', mock_get_fire_weather_stations)
 
     # Create API client and get the response.
     client = TestClient(app.main.app)
