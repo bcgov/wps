@@ -12,11 +12,6 @@ all_ranges = [lowest_fire_starts, one_2_two_starts,
 
 kamloops_fire_starts = FireCentreFireStarts(
     fire_centre_id=1,
-    lowest_fire_starts=lowest_fire_starts,
-    one_2_two_starts=one_2_two_starts,
-    two_2_three_starts=two_2_three_starts,
-    three_2_six_starts=three_2_six_starts,
-    highest_fire_starts=highest_fire_starts,
     all_ranges=all_ranges)
 
 
