@@ -26,7 +26,7 @@ def test_fire_behaviour_calculator_scenario():
 
 
 @given(parsers.parse("I received a fba-calc {request_json}"),
-       target_fixture='result',
+       target_fixture='response',
        converters={'request_json': load_json_file_with_name(__file__)})
 def given_request(monkeypatch, request_json: Tuple[dict, str]):
     """ Handle request
