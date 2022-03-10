@@ -2,13 +2,13 @@ import datetime
 from functools import reduce
 import json
 
-from app.utils.daily_pdf_gen import generate_daily_pdf
-from app.utils.pdf_gen import generate_prep_pdf
+from app.hfi.daily_pdf_gen import generate_daily_pdf
+from app.hfi.prep_pdf_gen import generate_prep_pdf
 from app.schemas.hfi_calc import HFIResultResponse
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse
 from operator import attrgetter
-from app.utils.pdf_data_formatter import (response_2_daily_jinja_format,
-                                          response_2_prep_cycle_jinja_format)
+from app.hfi.pdf_data_formatter import (
+    response_2_prep_cycle_jinja_format)
 
 json_path = 'api/app/tests/utils/test_hfi_result.json'
 
@@ -35,9 +35,9 @@ def test_gen_prep_data_converter():
         for area in prep_pdf_data:
             for code, dailies in area.dailies.items():
                 for daily in dailies:
-                    dateObj = datetime.datetime.strptime(str(daily.date), '%Y-%m-%d %H:%M:%S%z')
-                    formattedDateString = str(dateObj.strftime("%A %B, %d, %Y"))
-                    dates.append(formattedDateString)
+                    date_obj = datetime.datetime.strptime(str(daily.date), '%Y-%m-%d %H:%M:%S%z')
+                    formatted_date_string = str(date_obj.strftime("%A %B, %d, %Y"))
+                    dates.append(formatted_date_string)
                 break
             break
 
