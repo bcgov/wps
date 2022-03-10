@@ -2,7 +2,7 @@ from functools import reduce
 from itertools import groupby
 import operator
 from typing import List, Mapping
-from app.schemas.hfi_calc import (DailyPDFData, FireCentre,
+from app.schemas.hfi_calc import (DailyPDFData,
                                   HFIResultResponse, PlanningArea,
                                   PrepCyclePDFData,
                                   StationDaily, StationPDFData,
