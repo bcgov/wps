@@ -291,7 +291,7 @@ def test_c_haines():
     """ BDD Scenario for c-haines """
 
 
-@given(parsers.parse("I call {endpoint}"), target_fixture='collector', converters={'endpoint': str})
+@given(parsers.parse("I call /api/c-haines {endpoint}"), target_fixture='response', converters={'endpoint': str})
 def given_endpoint(endpoint: str):
     """ Call the API endpoint and store the response """
     client = TestClient(app.main.app)
@@ -299,29 +299,23 @@ def given_endpoint(endpoint: str):
     return {'response': client.get(endpoint, allow_redirects=False)}
 
 
-@then(parsers.parse("I expect {status_code}"), converters={'status_code': int})
-def then_status_code(collector, status_code: int):
-    """ Assert that we receive the expected status code """
-    assert collector['response'].status_code == status_code
-
-
 @then(parsers.parse("The {expected_response} is matched"),
       converters={'expected_response': load_expected_response(__file__)})
-def then_expected_response(collector, expected_response):
+def then_expected_response(response, expected_response):
     """ Assert that the response is as expected
     The expected response was saved by running this test, and then
     writing the response to file:
 
     # for json
     with open('expected_response.json', 'w') as f:
-        json.dump(collector['response'].json(), f)
+        json.dump(response['response'].json(), f)
     # for kml
     with open('expected_response.kml', 'w') as f:
-        f.write(collector['response'].text())
+        f.write(response['response'].text())
     """
     if expected_response['type'] == 'json':
-        assert collector['response'].json() == expected_response['data']
+        assert response['response'].json() == expected_response['data']
     else:
         # We don't always check the response, when it's a redirect we don't bother.
         if not expected_response['data'] is None:
-            assert collector['response'].text == expected_response['data']
+            assert response['response'].text == expected_response['data']

@@ -1,8 +1,8 @@
 Feature: C-Haines endpoint testing
 
     Scenario: C-Haines endpoint testing
-        Given I call <endpoint>
-        Then I expect <status_code>
+        Given I call /api/c-haines <endpoint>
+        Then the response status code is <status_code>
         Then The <expected_response> is matched
         Examples:
             | endpoint                                                                                                                                    | status_code | expected_response                                 |

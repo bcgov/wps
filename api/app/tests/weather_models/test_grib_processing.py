@@ -136,7 +136,7 @@ def calculate_geographic_coordinate(data, raster_coordinate):
         raster_coordinate, data['geotransform'], transformer)
 
 
-@then(parsers.parse('I expect {geographic_coordinate}'), converters={'geographic_coordinate': json.loads})
+@then(parsers.parse('I expect the geographic_coordinate {geographic_coordinate}'), converters={'geographic_coordinate': json.loads})
 def assert_geographic_coordinate(data, geographic_coordinate):
     """ assert that geographic_coordinate matches the expected value """
     assert list(data['geographic_coordinate']) == geographic_coordinate

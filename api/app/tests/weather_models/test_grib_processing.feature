@@ -40,7 +40,7 @@ Feature: Grib file processing
     Scenario: Calculate geographic coordinates
         Given a GDAL <geotransform> and <wkt_projection_string>
         When I calculate the geographic coordinate for <raster_coordinate>
-        Then I expect <geographic_coordinate>
+        Then I expect the geographic_coordinate <geographic_coordinate>
 
         Examples:
             | geotransform                                                        | wkt_projection_string                            | raster_coordinate | geographic_coordinate                     |
