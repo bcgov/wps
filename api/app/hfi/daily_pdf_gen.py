@@ -1,8 +1,9 @@
 """Generate a daily PDF"""
+from datetime import date
 from typing import List, Mapping
 import pdfkit
 from jinja2 import Environment, FunctionLoader
-from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
+from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PDFFileDetails, PlanningArea, WeatherStation
 from app.hfi.daily_template import str_daily_template, CSS_PATH
 from app.hfi.pdf_data_formatter import response_2_daily_jinja_format
 
@@ -11,7 +12,11 @@ from app.hfi.pdf_data_formatter import response_2_daily_jinja_format
 jinja_env = Environment(loader=FunctionLoader(str_daily_template), autoescape=True)
 
 
-def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]) -> bytes:
+def generate_daily_pdf(
+    result: HFIResultResponse,
+    fire_centres: List[FireCentre],
+    username: str
+) -> PDFFileDetails:
     """Generate a daily PDF"""
     # Shift hydrated fire centres into dicts keyed by ids
     fire_centre_dict: Mapping[int, FireCentre] = {}
@@ -42,5 +47,15 @@ def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]
     }
 
     pdf_bytes: bytes = pdfkit.from_string(input=rendered_output, options=options, css=CSS_PATH)
+    filename = get_filename(fire_centre_name, date.today(), username)
 
-    return pdf_bytes
+    return PDFFileDetails(pdf=pdf_bytes, filename=filename)
+
+
+def get_filename(firecentre_name: str, date_generated: date, idir: str) -> str:
+    return firecentre_name.replace(" ", "").upper() + \
+        "_HFICALCULATOR_" + \
+        date_generated.isoformat() + \
+        "_" + \
+        idir.upper() + \
+        ".pdf"

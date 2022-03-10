@@ -136,7 +136,7 @@ def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int
 
 @router.post('/download-pdf')
 async def download_result_pdf(request: HFIResultRequest,
-                              _=Depends(authentication_required)):
+                              token=Depends(authentication_required)):
     """ Assembles and returns PDF byte representation of HFI result. """
     try:
         logger.info('/hfi-calc/download-pdf')
@@ -153,9 +153,12 @@ async def download_result_pdf(request: HFIResultRequest,
             request_persist_success=False)
 
         fire_centres_list = await hydrate_fire_centres()
-        pdf_bytes = generate_daily_pdf(response, fire_centres_list)
 
-        return Response(pdf_bytes)
+        username = token.get('preferred_username', None)
+        pdf_details = generate_daily_pdf(response, fire_centres_list, username)
+
+        return Response(pdf_details.pdf, headers={'Content-Disposition': f"attachment; filename={pdf_details.filename}",
+                                                  "Access-Control-Expose-Headers": "Content-Disposition"})
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise

@@ -113,7 +113,7 @@ export async function getHFIResult(
 }
 
 export async function getPDF(request: HFIResultRequest): Promise<void> {
-  const { data } = await axios.post(
+  const response = await axios.post(
     baseUrl + 'download-pdf',
     {
       ...request
@@ -122,10 +122,11 @@ export async function getPDF(request: HFIResultRequest): Promise<void> {
       responseType: 'blob'
     }
   )
-  const url = window.URL.createObjectURL(new Blob([data]))
+  const filename = (response.headers['content-disposition'] as string).split('=')[1]
+  const url = window.URL.createObjectURL(new Blob([response.data]))
   const link = document.createElement('a')
   link.href = url
-  link.setAttribute('download', 'hfi-download.pdf') //or any other extension
+  link.setAttribute('download', filename)
   document.body.appendChild(link)
   link.click()
 }
