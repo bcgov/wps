@@ -43,13 +43,3 @@ def test_gen_prep_data_converter():
 
         pdf_bytes = generate_prep_pdf(prep_pdf_data, dates)
         assert len(pdf_bytes) > 0
-
-
-def test_gen_daily_data_converter():
-    """ All dailies in prep pdf data are grouped planning area and keyed by date"""
-    with open(json_path, 'r') as hfi_result:
-        result = json.load(hfi_result)
-        daily_pdf_data = response_2_daily_jinja_format(HFIResultResponse(**result))
-        all_dailies = reduce(list.__add__, list(map(lambda x: [x.dailies[0]], daily_pdf_data)))
-        # globally sorted by date
-        assert all_dailies == sorted(all_dailies, key=attrgetter('date'))
