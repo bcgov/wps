@@ -62,8 +62,20 @@ class FireStartRange(BaseModel):
     User facing label, value and lookup table of fire starts to prep level
     """
     label: str
-    value: int
     lookup_table: Mapping[int, int]
+
+
+class FireCentreFireStarts(BaseModel):
+    """
+    Fire start definitions specific to a fire centre
+    """
+    fire_centre_id: int
+    lowest_fire_starts: FireStartRange
+    one_2_two_starts: FireStartRange
+    two_2_three_starts: FireStartRange
+    three_2_six_starts: FireStartRange
+    highest_fire_starts: FireStartRange
+    all_ranges: List[FireStartRange]
 
 
 class DailyResult(BaseModel):
