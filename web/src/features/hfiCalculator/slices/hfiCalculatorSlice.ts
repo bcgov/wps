@@ -9,7 +9,6 @@ import { DateTime } from 'luxon'
 
 export interface FireStarts {
   label: string
-  value: number
   lookup_table: { [mig: number]: number }
 }
 
@@ -100,27 +99,22 @@ export interface RawValidatedStationDaily {
 // Encodes lookup tables for each fire starts range from workbook
 export const lowestFireStarts: FireStarts = {
   label: '0-1',
-  value: 1,
   lookup_table: { 1: 1, 2: 1, 3: 2, 4: 3, 5: 4 }
 }
 export const one2TwoStarts: FireStarts = {
   label: '1-2',
-  value: 2,
   lookup_table: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
 }
 export const two2ThreeStarts: FireStarts = {
   label: '2-3',
-  value: 3,
   lookup_table: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 }
 }
 export const three2SixStarts: FireStarts = {
   label: '3-6',
-  value: 6,
   lookup_table: { 1: 3, 2: 4, 3: 5, 4: 6, 5: 6 }
 }
 export const highestFireStarts: FireStarts = {
   label: '6+',
-  value: 7,
   lookup_table: { 1: 4, 2: 5, 3: 6, 4: 6, 5: 6 }
 }
 
