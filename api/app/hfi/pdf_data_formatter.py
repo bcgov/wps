@@ -9,7 +9,6 @@ from app.hfi.hfi import validate_station_daily
 from app.schemas.hfi_calc import (DailyPDFData,
                                   HFIResultResponse,
                                   PlanningArea, PrepCyclePDFData,
-                                  ValidatedStationDaily,
                                   StationDaily,
                                   StationPDFData,
                                   WeatherStation)
