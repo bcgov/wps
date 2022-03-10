@@ -1,3 +1,4 @@
+"""Generate a prep cycle PDF"""
 import pdfkit
 from jinja2 import Environment, FunctionLoader
 from app.hfi.prep_template import str_prep_template
@@ -7,6 +8,7 @@ jinja_env = Environment(loader=FunctionLoader(str_prep_template), autoescape=Tru
 
 
 def generate_prep_pdf(data, dates):
+    """Generate a prep PDF"""
 
     rendered_output: str = ''
     template = jinja_env.get_template('prep_template')

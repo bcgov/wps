@@ -1,4 +1,4 @@
-
+"""Prep cycle pdf template"""
 PREP_TEMPLATE_HTML = """
 '<!DOCTYPE html>
 <html lang="en">

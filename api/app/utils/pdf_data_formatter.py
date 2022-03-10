@@ -1,3 +1,6 @@
+""" Marshals HFI result into structure that jinja can easily
+        iterate over for generating the daily PDF sheets
+"""
 from functools import reduce
 from itertools import groupby
 import operator

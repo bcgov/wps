@@ -1,3 +1,4 @@
+"""Generate a daily PDF"""
 from typing import List, Mapping
 import pdfkit
 from jinja2 import Template
@@ -14,9 +15,9 @@ output_file_path = "api/app/utils/out.pdf"
 def generate_daily_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]):
     """Generate a daily PDF"""
     # Shift hydrated fire centres into dicts keyed by ids
-    fire_centre_dict: Mapping[int, FireCentre] = dict()
-    planning_area_dict: Mapping[int, PlanningArea] = dict()
-    station_dict: Mapping[int, WeatherStation] = dict()
+    fire_centre_dict: Mapping[int, FireCentre] = {}
+    planning_area_dict: Mapping[int, PlanningArea] = {}
+    station_dict: Mapping[int, WeatherStation] = {}
     for fire_centre in fire_centres:
         fire_centre_dict[fire_centre.id] = fire_centre
         for planning_area in fire_centre.planning_areas:
