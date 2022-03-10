@@ -14,8 +14,8 @@ from app.schemas.hfi_calc import (DailyResult,
                                   PlanningAreaResult,
                                   StationDaily,
                                   ValidatedStationDaily,
-                                  required_daily_fields,
-                                  lowest_fire_starts)
+                                  required_daily_fields)
+from app.hfi.fire_starts import lowest_fire_starts
 from app.schemas.hfi_calc import (WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
 from app.utils.time import get_hour_20_from_date
