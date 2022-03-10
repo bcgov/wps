@@ -69,4 +69,4 @@ def given_request(monkeypatch, codes: List):
 @then(parsers.parse('there are {num_groups} groups of forecasts'), converters={'num_groups': int})
 def assert_number_of_forecasts_groups(response, num_groups):
     """ Assert that we receive the expected number of forecast groups """
-    assert len(response.json()['noon_forecasts']) == num_groups
+    assert len(response['response'].json()['noon_forecasts']) == num_groups
