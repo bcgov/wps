@@ -198,3 +198,9 @@ class DailyPDFData(BaseModel):
     date: str
     # Every station daily in the above planning area for the specific day
     dailies: List[StationPDFData]
+
+
+class PDFFileDetails(BaseModel):
+    """ PDF in bytes with associated filename for client """
+    pdf: bytes
+    filename: str
