@@ -13,17 +13,6 @@ from app.hfi.pdf_data_formatter import (
 json_path = 'api/app/tests/utils/test_hfi_result.json'
 
 
-def test_gen_daily_pdf():
-    with open(json_path, 'r') as hfi_result, open('api/app/tests/utils/test_fire_centres.json') as fcs:
-        result = json.load(hfi_result)
-        fc_dict = json.load(fcs)
-        fire_centres = []
-        for fc_json in fc_dict['fire_centres']:
-            fc = FireCentre(**fc_json)
-            fire_centres.append(fc)
-        assert generate_daily_pdf(HFIResultResponse(**result), fire_centres) == True
-
-
 def test_gen_prep_data_converter():
     """ All dailies in prep pdf data are grouped by station code and sorted by date"""
     with open(json_path, 'r') as hfi_result:
