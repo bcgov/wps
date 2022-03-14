@@ -70,9 +70,9 @@ class SPAStaticFiles(StaticFiles):
         # TODO: This is all terrible. Static HTML should be served up by caddy.
         try:
             response = await super().get_response(path, scope)
-        except HTTPException as httpException:
+        except HTTPException as http_exception:
             # In starlette >= 0.17 an exception is thrown when it's a 404.
-            if httpException.status_code == 404:
+            if http_exception.status_code == 404:
                 logger.debug('serving up root for %s', path)
                 request = Request(scope)
                 return await get_index(request)
