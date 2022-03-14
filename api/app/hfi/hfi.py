@@ -15,7 +15,6 @@ from app.schemas.hfi_calc import (DailyResult,
                                   StationDaily,
                                   ValidatedStationDaily,
                                   required_daily_fields)
-from app.hfi.fire_starts import lowest_fire_starts
 from app.schemas.hfi_calc import (WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
 from app.utils.time import get_hour_20_from_date
@@ -23,7 +22,7 @@ from app.wildfire_one.wfwx_api import (get_auth_header, get_stations_by_codes,
                                        get_wfwx_stations_from_station_codes,
                                        get_raw_dailies_in_range_generator)
 from app.wildfire_one.schema_parsers import generate_station_daily
-from app.db.crud.hfi_calc import get_fire_centre_stations, get_fire_weather_stations
+from app.db.crud.hfi_calc import get_fire_centre_stations, get_fire_starts_by_fire_centre, get_fire_weather_stations
 
 logger = logging.getLogger(__name__)
 
@@ -198,6 +197,10 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
             # in the front end, we'd prefer to not change the the call that's going to wfwx so that we can
             # use cached values. So we don't actually filter out the "selected" stations, but rather go
             # get all the stations for this fire centre.
+            fire_start_ranges = []
+            for fire_starts in get_fire_starts_by_fire_centre(orm_session, request.selected_fire_center_id):
+                fire_start_ranges.append(fire_starts)
+
             fire_centre_stations = get_fire_centre_stations(
                 orm_session, request.selected_fire_center_id)
             fire_centre_station_code_ids = set()
@@ -209,6 +212,18 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
                     area_station_map[station.planning_area_id] = []
                 area_station_map[station.planning_area_id].append(station)
                 station_fuel_type_map[station.station_code] = fuel_type
+
+        for area_id in area_station_map.keys():
+            # Initialize with defaults if empty
+            if area_id not in request.planning_area_fire_starts:
+                request.planning_area_fire_starts[area_id] = [
+                    lowest_fire_starts for _ in range(num_prep_days)]
+            else:
+                # Handle edge case where the provided planning area fire starts doesn't match the number
+                # of prep days.
+                if len(request.planning_area_fire_starts[area_id]) < request.num_prep_days:
+                    for _ in range(len(request.planning_area_fire_starts[area_id]), request.num_prep_days):
+                        request.planning_area_fire_starts[area_id].append(lowest_fire_starts)
 
         wfwx_stations = await get_wfwx_stations_from_station_codes(
             session, header, list(fire_centre_station_code_ids))
@@ -254,15 +269,15 @@ def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange
                    (daily.code in area_station_codes and daily.code in selected_station_codes),
                    dailies))
 
-        # Initialize with defaults if empty
-        if area_id not in planning_area_fire_starts:
-            planning_area_fire_starts[area_id] = [lowest_fire_starts for _ in range(num_prep_days)]
-        else:
-            # Handle edge case where the provided planning area fire starts doesn't match the number
-            # of prep days.
-            if len(planning_area_fire_starts[area_id]) < num_prep_days:
-                for _ in range(len(planning_area_fire_starts[area_id]), num_prep_days):
-                    planning_area_fire_starts[area_id].append(lowest_fire_starts)
+        # # Initialize with defaults if empty
+        # if area_id not in planning_area_fire_starts:
+        #     planning_area_fire_starts[area_id] = [lowest_fire_starts for _ in range(num_prep_days)]
+        # else:
+        #     # Handle edge case where the provided planning area fire starts doesn't match the number
+        #     # of prep days.
+        #     if len(planning_area_fire_starts[area_id]) < num_prep_days:
+        #         for _ in range(len(planning_area_fire_starts[area_id]), num_prep_days):
+        #             planning_area_fire_starts[area_id].append(lowest_fire_starts)
 
         daily_results: List[DailyResult] = []
         all_dailies_valid: bool = True
