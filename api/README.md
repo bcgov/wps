@@ -280,7 +280,7 @@ To redeploy prod from a previous image:
 
 1. Find the previous working image in openshift and run
    - `oc -n e1e498-tools tag wps-prod:pr-<last-working-pr-number> wps-prod:prod`
-2. Start a new deployment in openshift
+2. Select "Start rollout" action in openshift
 
 ### Disk space
 
