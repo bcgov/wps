@@ -2,18 +2,20 @@
 """
 from typing import Callable, Generator, Optional, Tuple
 from contextlib import asynccontextmanager
-from pytest_bdd import scenario, given, then
+from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
 import pytest
 import app.main
 import app.routers.c_haines
 import app.c_haines.fetch
-from app.tests import load_json_file, _load_json_file, get_complete_filename
+from app.tests import _load_json_file, get_complete_filename
 from app.tests.common import DefaultMockAioBaseClient
 
 
 def _load_text_file(module_path: str, filename: str) -> Optional[str]:
     """ Load json file given a module path and a filename """
+    if filename == 'None':  # Not the best solution...
+        return None
     if filename:
         with open(get_complete_filename(module_path, filename)) as file_pointer:
             return file_pointer.read()
@@ -284,17 +286,12 @@ def mock_get_s3_client(monkeypatch):
 
 
 @pytest.mark.usefixtures('mock_get_s3_client')
-@scenario("test_c_haines_endpoints.feature", "C-Haines endpoint testing",
-          example_converters=dict(
-              crud_mapping=load_json_file(__file__),
-              endpoint=str,
-              status_code=int,
-              expected_response=load_expected_response(__file__)))
+@scenario("test_c_haines_endpoints.feature", "C-Haines endpoint testing")
 def test_c_haines():
     """ BDD Scenario for c-haines """
 
 
-@given("I call <endpoint>", target_fixture='collector')
+@given(parsers.parse("I call /api/c-haines {endpoint}"), target_fixture='response', converters={'endpoint': str})
 def given_endpoint(endpoint: str):
     """ Call the API endpoint and store the response """
     client = TestClient(app.main.app)
@@ -302,28 +299,23 @@ def given_endpoint(endpoint: str):
     return {'response': client.get(endpoint, allow_redirects=False)}
 
 
-@then("I expect <status_code>")
-def then_status_code(collector, status_code: int):
-    """ Assert that we receive the expected status code """
-    assert collector['response'].status_code == status_code
-
-
-@then("The <expected_response> is matched")
-def then_expected_response(collector, expected_response):
+@then(parsers.parse("The {expected_response} is matched"),
+      converters={'expected_response': load_expected_response(__file__)})
+def then_expected_response(response, expected_response):
     """ Assert that the response is as expected
     The expected response was saved by running this test, and then
     writing the response to file:
 
     # for json
     with open('expected_response.json', 'w') as f:
-        json.dump(collector['response'].json(), f)
+        json.dump(response['response'].json(), f)
     # for kml
     with open('expected_response.kml', 'w') as f:
-        f.write(collector['response'].text())
+        f.write(response['response'].text())
     """
     if expected_response['type'] == 'json':
-        assert collector['response'].json() == expected_response['data']
+        assert response['response'].json() == expected_response['data']
     else:
         # We don't always check the response, when it's a redirect we don't bother.
         if not expected_response['data'] is None:
-            assert collector['response'].text == expected_response['data']
+            assert response['response'].text == expected_response['data']

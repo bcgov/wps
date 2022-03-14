@@ -2,11 +2,9 @@
 """
 import json
 import gzip
-import os
 from datetime import datetime
 from typing import List
-import tempfile
-from pytest_bdd import scenario, given, when, then
+from pytest_bdd import scenario, given, when, then, parsers
 import numpy
 from app.c_haines.severity_index import (
     generate_severity_data, open_gdal, make_model_run_base_url, make_model_run_filename,
@@ -18,13 +16,13 @@ from app.tests import get_complete_filename
 
 @scenario(
     'test_c_haines.feature',
-    'Calculate c-haines',
-    example_converters=dict(t_850=float, t_700=float, dp_850=float, c_haines=float))
+    'Calculate c-haines')
 def test_extract_origin_and_pixel_information():
     """ BDD Scenario. """
 
 
-@then('With <t_850> <t_700> and <dp_850>, I expect <c_haines>')
+@then(parsers.parse('With {t_850} {t_700} and {dp_850}, I expect {c_haines}'),
+      converters={'t_850': float, 't_700': float, 'dp_850': float, 'c_haines': float})
 def with_temperature_and_dewpoint_values(t_850, t_700, dp_850, c_haines):
     """ Open the dataset. """
     calculated = calculate_c_haines_index(t_700, t_850, dp_850)
@@ -33,16 +31,14 @@ def with_temperature_and_dewpoint_values(t_850, t_700, dp_850, c_haines):
 
 @scenario(
     'test_c_haines.feature',
-    'Calculate severity',
-    example_converters=dict(
-        c_haines_data=json.loads,
-        mask_data=json.loads,
-        severity_data=json.loads))
+    'Calculate severity')
 def test_calculate_mask_and_severity():
     """ BDD Scenario. """
 
 
-@given('<c_haines_data>', target_fixture='collector')
+@given(parsers.parse('c_haines_data: {c_haines_data}'),
+       converters={'c_haines_data': json.loads},
+       target_fixture='collector')
 def given_data(c_haines_data):
     """ Given data in some scenario, create a collector. """
     return {'c_haines_data': c_haines_data}
@@ -56,13 +52,13 @@ def generate_data(collector: dict):
     collector['mask_data'] = result[1]
 
 
-@then('We expect <mask_data>')
+@then(parsers.parse('We expect mask_data: {mask_data}'), converters={'mask_data': json.loads})
 def then_expect_mask_data(mask_data: List, collector: dict):
     """ Assert that mask is as expected """
     assert (numpy.array(collector['mask_data']) == numpy.array(mask_data)).all()
 
 
-@then('We expect <severity_data>')
+@then(parsers.parse('We expect severity_data: {severity_data}'), converters={'severity_data': json.loads})
 def then_expect_severity_data(severity_data: List, collector: dict):
     """ Assert that severity is as expected """
     assert (numpy.array(collector['severity_data']) == numpy.array(severity_data)).all()
@@ -70,17 +66,14 @@ def then_expect_severity_data(severity_data: List, collector: dict):
 
 @scenario(
     'test_c_haines.feature',
-    'Generate c-haines data',
-    example_converters=dict(
-        tmp_700=str,
-        tmp_850=str,
-        dew_850=str,
-        c_haines_data=str))
+    'Generate c-haines data')
 def test_generate_c_haines():
     """ BDD Scenario. """
 
 
-@given("<tmp_700>, <tmp_850> and <dew_850>", target_fixture='collector')
+@given(parsers.parse("{tmp_700}, {tmp_850} and {dew_850}"),
+       converters={'tmp_700': str, 'tmp_850': str, 'dew_850': str},
+       target_fixture='collector')
 def given_grib_files(tmp_700, tmp_850, dew_850):
     """ Given grib files for calculating c-haines. """
     return {
@@ -98,7 +91,7 @@ def generate_c_haines(collector):
         collector['data'] = generator.generate_c_haines(gdal_data)
 
 
-@then("We expect <c_haines_data>")
+@then(parsers.parse("We expect c_haines_data: {c_haines_data}"), converters={'c_haines_data': str})
 def check_c_haines(collector, c_haines_data):
     """ Compare the c-haines data against expected data.
 
@@ -121,18 +114,14 @@ def check_c_haines(collector, c_haines_data):
     assert (numpy.array(collector['data']) == numpy.array(data)).all()
 
 
-@scenario(
+@ scenario(
     'test_c_haines.feature',
-    'Make model run base url',
-    example_converters=dict(
-        model=str,
-        model_run_start=str,
-        forecast_hour=str))
+    'Make model run base url')
 def test_make_model_run_base_url():
     """ BDD Scenario. """
 
 
-@then("make_model_run_base_url(<model>, <model_run_start>, <forecast_hour>) == <result>")
+@then(parsers.parse("make_model_run_base_url({model}, {model_run_start}, {forecast_hour}) == {result}"))
 def make_model_run_base_url_expect_result(model, model_run_start, forecast_hour, result):
     """ Check base url """
     assert make_model_run_base_url(model, model_run_start, forecast_hour) == result
@@ -140,19 +129,12 @@ def make_model_run_base_url_expect_result(model, model_run_start, forecast_hour,
 
 @scenario(
     'test_c_haines.feature',
-    'Make model run filename',
-    example_converters=dict(
-        model=str,
-        level=str,
-        date=str,
-        model_run_start=str,
-        forecast_hour=str,
-        result=str))
+    'Make model run filename')
 def test_make_model_run_filename():
     """ BDD Scenario. """
 
 
-@then("make_model_run_filename(<model>, <level>, <date>, <model_run_start>, <forecast_hour>) == <result>")
+@then(parsers.parse("make_model_run_filename({model}, {level}, {date}, {model_run_start}, {forecast_hour}) == {result}"))
 def make_model_run_filename_expect_result(model, level, date, model_run_start, forecast_hour, result):
     """ Check base url """
     assert make_model_run_filename(model, level, date, model_run_start, forecast_hour) == result
@@ -160,20 +142,14 @@ def make_model_run_filename_expect_result(model, level, date, model_run_start, f
 
 @scenario(
     'test_c_haines.feature',
-    'Make model run download urls',
-    example_converters=dict(
-        model=str,
-        now=datetime.fromisoformat,
-        model_run_hour=int,
-        prediction_hour=int,
-        urls=json.loads,
-        model_run_timestamp=datetime.fromisoformat,
-        prediction_timestamp=datetime.fromisoformat))
+    'Make model run download urls')
 def test_make_model_download_urls():
     """ BDD Scenario. """
 
 
-@given("We run make_model_run_download_urls(<model>, <now>, <model_run_hour>, <prediction_hour>)",
+@given(parsers.parse("We run make_model_run_download_urls({model}, {now}, {model_run_hour}, {prediction_hour})"),
+       converters={'model': str, 'now': datetime.fromisoformat,
+                   'model_run_hour': int, 'prediction_hour': int},
        target_fixture='collector')
 def run_make_model_run_download_urls(
         model: ModelEnum, now: datetime, model_run_hour: int, prediction_hour: int):
@@ -187,21 +163,23 @@ def run_make_model_run_download_urls(
     }
 
 
-@then("<urls> are as expected")
+@then(parsers.parse("{urls} are as expected"), converters={'urls': json.loads})
 def make_model_run_download_urls_expect_result(
         collector: dict, urls: dict):
     """ Assert that result matches expected result """
     assert urls == collector['urls']
 
 
-@then("<model_run_timestamp> is as expected")
+@then(parsers.parse("model_run_timestamp: {model_run_timestamp} is as expected"),
+      converters={'model_run_timestamp': datetime.fromisoformat})
 def make_model_run_download_model_run_timestamp_expect_result(collector: dict,
                                                               model_run_timestamp: datetime):
     """ Assert that result matches expected result """
     assert model_run_timestamp == collector['model_run_timestamp']
 
 
-@then("<prediction_timestamp> is as expected")
+@then(parsers.parse("prediction_timestamp: {prediction_timestamp} is as expected"),
+      converters={'prediction_timestamp': datetime.fromisoformat})
 def make_model_run_download_prediction_timestamp_expect_result(collector: dict,
                                                                prediction_timestamp: datetime):
     """ Assert that result matches expected result """
@@ -210,15 +188,14 @@ def make_model_run_download_prediction_timestamp_expect_result(collector: dict,
 
 @scenario(
     'test_c_haines.feature',
-    'Re-project',
-    example_converters=dict(
-        input_geojson=str,
-        expected_output_geojson=str))
+    'Re-project')
 def test_re_project():
     """ BDD Scenario. """
 
 
-@given("<input_geojson> with <source_projection> and <expected_output_geojson>", target_fixture='collector')
+@given(parsers.parse("{input_geojson} with {source_projection} and {expected_output_geojson}"),
+       converters={'input_geojson': str, 'source_projection': str, 'expected_output_geojson': str},
+       target_fixture='collector')
 def prepare_input(input_geojson: str, source_projection: str, expected_output_geojson: str):
     """ Collect url's """
     return {

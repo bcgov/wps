@@ -6,7 +6,7 @@ import json
 import logging
 from contextlib import contextmanager
 from typing import List, Generator
-from pytest_bdd import scenario, given, then
+from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
@@ -54,13 +54,14 @@ def get_session_with_data():
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_noon_forecasts_summaries.feature', 'Get noon forecasts summaries(historic)',
-          example_converters=dict(codes=json.loads, status=int, num_summaries=int))
+@scenario('test_noon_forecasts_summaries.feature', 'Get noon forecasts summaries(historic)')
 def test_noon_forecasts():
     """ BDD Scenario. """
 
 
-@given('I request noon forecasts for stations: <codes>', target_fixture='response')
+@given(parsers.parse('I request noon forecasts for stations: {codes}'),
+       target_fixture='response',
+       converters={'codes': json.loads})
 def given_request(monkeypatch, codes: List):
     """ Stub forecasts into the database and make a request """
 
@@ -75,19 +76,21 @@ def given_request(monkeypatch, codes: List):
         endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': codes})
 
 
-@then('the status code of the response is <status>')
+@then(parsers.parse('the status code of the response is {status}'), converters={'status': int})
 def assert_status_code(response, status: int):
     """ Check if we receive the expected status code """
     assert response.status_code == status
 
 
-@then('the response should have <num_summaries> summaries of forecasts')
+@then(parsers.parse('the response should have {num_summaries} summaries of forecasts'),
+      converters={'num_summaries': int})
 def assert_number_of_summaries(response, num_summaries: int):
     """ Check if we receive the expected number of summaries"""
     assert len(response.json()['summaries']) == num_summaries
 
 
-@then('and contain calculated percentiles for available stations <codes>')
+@then(parsers.parse('and contain calculated percentiles for available stations {codes}'),
+      converters={'codes': json.loads})
 def assert_response(response, codes: List):
     """ Check if we calculate correct percentiles based on its noon forecasts """
     result = response.json()

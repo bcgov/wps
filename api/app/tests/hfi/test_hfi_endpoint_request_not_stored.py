@@ -2,28 +2,26 @@
 from typing import Tuple
 from distutils.util import strtobool
 import pytest
-from pytest_bdd import scenario, given, then
+from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
 from pytest_mock import MockFixture
 import app.main
 from app.tests.common import default_mock_client_get
-from app.tests import load_json_file, load_json_file_with_name
+from app.tests import load_json_file_with_name
 from app.tests.hfi import mock_station_crud
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_hfi_endpoint_request_not_stored.feature', 'HFI - load request, no request stored',
-          example_converters=dict(request_json=load_json_file_with_name(__file__),
-                                  status_code=int,
-                                  response_json=load_json_file(__file__),
-                                  request_saved=strtobool))
+@scenario('test_hfi_endpoint_request_not_stored.feature', 'HFI - load request, no request stored')
 def test_fire_behaviour_calculator_scenario_no_request_stored():
     """ BDD Scenario. """
     pass
 
 
-@given("I received a <request_json>, but don't have one stored", target_fixture='result')
+@given(parsers.parse("I received a {request_json}, but don't have one stored"),
+       target_fixture='response',
+       converters=dict(request_json=load_json_file_with_name(__file__)))
 def given_request_none_stored(monkeypatch: pytest.MonkeyPatch, mocker: MockFixture, request_json: Tuple[dict, str]):
     """ Handle request
     """
@@ -45,7 +43,7 @@ def given_request_none_stored(monkeypatch: pytest.MonkeyPatch, mocker: MockFixtu
     }
 
 
-@then("request == saved = <request_saved>")
-def then_request_saved(result, request_saved: bool):
+@then(parsers.parse("request == saved = {request_saved}"), converters={'request_saved': strtobool})
+def then_request_saved(response, request_saved: bool):
     """ Check request saved """
-    assert result['saved'] == request_saved
+    assert response['saved'] == request_saved

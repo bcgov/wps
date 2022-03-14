@@ -1,5 +1,5 @@
 """ BDD tests for API /hfi-calc/ """
-from pytest_bdd import scenario, given, then
+from pytest_bdd import scenario, given, then, parsers
 import pytest
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
@@ -10,10 +10,7 @@ import app.routers.hfi_calc
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@scenario('test_fba_endpoint.feature', 'Get fire centres with their stations',
-          example_converters=dict(
-              status=int,
-              expected_fire_centers=load_json_file(__file__)))
+@scenario('test_fba_endpoint.feature', 'Get fire centres with their stations')
 def test_fba_fire_centers():
     """ BDD Scenario. """
 
@@ -29,16 +26,11 @@ def given_fba_fire_centers_request(monkeypatch):
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
 
-    return client.get('/api/fba/fire-centers/', headers=headers)
+    return dict(response=client.get('/api/fba/fire-centers/', headers=headers))
 
 
-@then('the response status code is <status>')
-def assert_status_code(response, status):
-    """ Assert that we receive the expected status code """
-    assert response.status_code == status
-
-
-@then('the response contains the list of <expected_fire_centers>')
+@then(parsers.parse('the response contains the list of {expected_fire_centers}'),
+      converters={'expected_fire_centers': load_json_file(__file__)})
 def assert_fire_centers_list(response, expected_fire_centers):
     """ Assert that the fire centers returned are what is from the middleware """
-    assert response.json() == expected_fire_centers
+    assert response['response'].json() == expected_fire_centers

@@ -1,7 +1,7 @@
 from typing import Tuple
 import json
 import pytest
-from pytest_bdd import scenario, given
+from pytest_bdd import scenario, given, parsers
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
 from app.db.models.hfi_calc import HFIRequest
@@ -12,17 +12,15 @@ from app.tests.hfi import mock_station_crud
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_hfi_endpoint_request_stored.feature', 'HFI - load request, request stored',
-          example_converters=dict(request_json=load_json_file_with_name(__file__),
-                                  status_code=int,
-                                  response_json=load_json_file(__file__),
-                                  stored_request_json=load_json_file(__file__)))
+@scenario('test_hfi_endpoint_request_stored.feature', 'HFI - load request, request stored')
 def test_fire_behaviour_calculator_scenario_request_stored():
     """ BDD Scenario. """
     pass
 
 
-@given("I received a <request_json>, and have one stored <stored_request_json>", target_fixture='result')
+@given(parsers.parse("I received a {request_json}, and have one stored {stored_request_json}"),
+       target_fixture='response',
+       converters={'request_json': load_json_file_with_name(__file__), 'stored_request_json': load_json_file(__file__)})
 def given_request_have_one_stored(monkeypatch,
                                   request_json: Tuple[dict, str],
                                   stored_request_json: Tuple[dict, str]):

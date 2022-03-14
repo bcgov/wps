@@ -25,7 +25,7 @@ parameters:
     value: e1e498-tools
   - name: CPU_REQUEST
     description: Requested CPU
-    value: 50m
+    value: 100m
   - name: CPU_LIMIT
     description: CPU upper limit
     value: 500m
@@ -325,7 +325,7 @@ objects:
                 # initialDelaySeconds and initialDelaySeconds + periodSeconds
                 initialDelaySeconds: 30
                 periodSeconds: 120
-                timeoutSeconds: 5
+                timeoutSeconds: 20
   - apiVersion: v1
     kind: Service
     metadata:

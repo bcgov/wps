@@ -2,13 +2,13 @@
 result.
 """
 from datetime import datetime
-from typing import List
-import json
 import pytest
-from pytest_bdd import scenario, given, then, when
+from pytest_bdd import scenario, given, parsers, then, when
+from app.tests import _load_json_file
 from app.db.models import PredictionModel, PredictionModelGridSubset
 from app.weather_models import machine_learning
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
+from app.tests.common import str2float
 
 
 @pytest.fixture()
@@ -19,22 +19,20 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
 
 
 @pytest.mark.usefixtures('mock_get_actuals_left_outer_join_with_predictions')
-@scenario("test_machine_learning.feature", "Learn weather",
-          example_converters=dict(coordinate=json.loads,
-                                  points=json.loads,
-                                  model_temp=float,
-                                  model_rh=float,
-                                  timestamp=datetime.fromisoformat,
-                                  bias_adjusted_temp=lambda value: None if value == 'None' else float(
-                                      value),
-                                  bias_adjusted_rh=lambda value: None if value == 'None' else float(value)))
+@scenario("test_machine_learning.feature", "Learn weather")
 def test_machine_learning():
     """ BDD Scenario for predictions """
 
 
-@given("An instance of StationMachineLearning for <coordinate> within <points>", target_fixture='instance')
-def given_an_instance(coordinate: List, points: List):
+@given(parsers.parse("An instance of StationMachineLearning"),
+       target_fixture='instance')
+def given_an_instance() -> machine_learning.StationMachineLearning:
     """ Bind the data variable """
+    # super weird bug? with pytest_bdd that hooked into isoformat on the coordinate and points fields.
+    # tried forever to figure out why - and gave up in the end. removed coordinate and point from
+    # feature file and just loading it in here.
+    coordinate = _load_json_file(__file__, 'coordinate.json')
+    points = _load_json_file(__file__, 'points.json')
     return machine_learning.StationMachineLearning(
         session=None,
         model=PredictionModel(id=1),
@@ -51,7 +49,11 @@ def learn(instance: machine_learning.StationMachineLearning):
     instance.learn()
 
 
-@then('The <model_temp> for <timestamp> results in <bias_adjusted_temp>')
+@then(parsers.parse('The model_temp: {model_temp} for {timestamp} results in {bias_adjusted_temp}'),
+      converters=dict(
+          model_temp=float,
+          timestamp=datetime.fromisoformat,
+          bias_adjusted_temp=str2float))
 def assert_temperature(
         instance: machine_learning.StationMachineLearning,
         model_temp: float, timestamp: datetime, bias_adjusted_temp: float):
@@ -60,7 +62,11 @@ def assert_temperature(
     assert result == bias_adjusted_temp
 
 
-@then('The <model_rh> for <timestamp> results in <bias_adjusted_rh>')
+@then(parsers.parse('The model_rh: {model_rh} for {timestamp} results in {bias_adjusted_rh}'),
+      converters=dict(
+          model_rh=float,
+          timestamp=datetime.fromisoformat,
+          bias_adjusted_rh=str2float))
 def assert_rh(instance: machine_learning.StationMachineLearning,
               model_rh: float, timestamp: datetime, bias_adjusted_rh: float):
     """ Assert that the ML algorithm predicts the relative humidity correctly """
