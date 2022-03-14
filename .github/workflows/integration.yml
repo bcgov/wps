@@ -61,6 +61,7 @@ jobs:
           poetry install
       - name: Install ubuntu pre-requisites (api)
         # The python gdal and R component relies on libgdal-dev being installed.
+        # The api uses wkhtmltopdf to generate pdf's.
         run: |
           sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev wkhtmltopdf
       - name: Install gdal python (api)
