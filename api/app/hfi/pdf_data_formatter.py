@@ -1,6 +1,7 @@
 """ Marshals HFI result into structure that jinja can easily
         iterate over for generating the daily PDF sheets
 """
+import datetime
 from functools import reduce
 from itertools import groupby
 import operator
@@ -49,7 +50,18 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
                                          dailies=dailies_by_code)
         prep_cycle_pdf_data.append(area_pdf_data)
 
-    return prep_cycle_pdf_data
+        # List of dates for prep period
+        dates = []
+        for area in prep_cycle_pdf_data:
+            for code, dailies in area.dailies.items():
+                for daily in dailies:
+                    date_obj = datetime.datetime.strptime(str(daily.date), '%Y-%m-%d %H:%M:%S%z')
+                    formatted_date_string = str(date_obj.strftime("%A %B, %d, %Y"))
+                    dates.append(formatted_date_string)
+                break
+            break
+
+    return prep_cycle_pdf_data, dates
 
 
 def response_2_daily_jinja_format(result: HFIResultResponse,

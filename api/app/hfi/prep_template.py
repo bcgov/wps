@@ -1,65 +1,15 @@
 """Prep cycle pdf template"""
+
+import os
+
+
+CSS_PATH = os.path.join(os.path.dirname(__file__), "prep_style.css")
 PREP_TEMPLATE_HTML = """
 '<!DOCTYPE html>
 <html lang="en">
 <head>
     <title>Prep Cycle Template</title>
 </head>
-
-<style>
-    td {
-        border-top: 2px solid black;
-        border-bottom: black 2px solid;
-        padding: 0;
-        border-collapse: collapse;
-        min-width: 35px;
-        max-width: 200px;
-        text-align: center;
-    }
-    th{
-        min-width: 35px;
-        max-width: 200px;
-        text-align: center; 
-    }
-
-    table {
-            border-collapse:collapse;
-            border:2px solid #000000;
-        }
-
-    .leftBorder{
-        border-left: 1px solid black;
-        border-collapse: collapse;
-    }
-
-    .rightBorder{
-        border-right: 1px solid black;
-        border-collapse: collapse;
-    }
-
-    .boldRightBorder{
-        border-right: 2px solid black;
-        border-collapse: collapse;
-    }
-
-    .boldLeftBorder{
-        border-left: 2px solid black;
-        border-collapse: collapse;
-    }
-
-    .planningArea {
-        background-color: cornflowerblue;
-        border-bottom: black 2px solid;
-        border-collapse: collapse;
-        height: 20px;
-        padding: 0;
-    }
-    .station{
-        border-bottom: black 2px solid;
-        border-collapse: collapse;
-        padding: 0;
-    }
-</style>
 
 <body>
     <table>
@@ -136,7 +86,7 @@ PREP_TEMPLATE_HTML = """
                     <td class="leftBorder boldRightBorder">X</td>
                 {% endfor %}
                 <td class="boldRightBorder">X</td>
-                <td>:D</td>
+                <td></td>
             </tr>
             {% endfor %}
         {% endfor %}
