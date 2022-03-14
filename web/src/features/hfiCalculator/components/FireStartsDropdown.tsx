@@ -10,14 +10,14 @@ import React from 'react'
 
 export interface FireStartsDropdownProps {
   fireStarts: FireStarts | undefined
-  areaName: string
+  areaId: number
   dayOffset: number
-  setFireStarts: (areaName: string, dayOffset: number, newFireStarts: FireStarts) => void
+  setFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
 }
 
 const FireStartsDropdown = ({
   fireStarts,
-  areaName,
+  areaId,
   dayOffset,
   setFireStarts
 }: FireStartsDropdownProps) => {
@@ -34,7 +34,7 @@ const FireStartsDropdown = ({
       value={fireStarts ? fireStarts : lowestFireStarts}
       onChange={(_, value) => {
         if (!isNull(value)) {
-          setFireStarts(areaName, dayOffset, value)
+          setFireStarts(areaId, dayOffset, value)
         }
       }}
     />

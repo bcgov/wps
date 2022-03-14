@@ -1,5 +1,4 @@
 """ Global fixtures """
-
 from datetime import timezone, datetime
 import logging
 import requests
@@ -7,6 +6,7 @@ import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
+from pytest_bdd import then, parsers
 import app.utils.s3
 from app.utils.time import get_pst_tz
 from app import auth
@@ -20,6 +20,7 @@ import app.utils.time as time_utils
 from app.schemas.shared import WeatherDataRequest
 import app.wildfire_one.wildfire_fetchers
 import app.utils.redis
+from app.tests import load_json_file
 
 logger = logging.getLogger(__name__)
 
@@ -188,3 +189,17 @@ def mock_requests_session(monkeypatch):
 def spy_access_logging(mocker: MockerFixture):
     """Spies on access audting logging for tests"""
     return mocker.spy(auth, 'create_api_access_audit_log')
+
+
+@then(parsers.parse('the response status code is {status}'), converters={'status': int})
+def assert_status_code(response, status: int):
+    """ Assert that we receive the expected status code """
+    assert response['response'].status_code == status
+
+
+@then(parsers.parse("the response is {response_json}"),
+      converters={'response_json': load_json_file(__file__)})
+def then_response(response, response_json: dict):
+    """ Check entire response """
+    if response_json is not None:
+        assert response['response'].json() == response_json, response['filename']

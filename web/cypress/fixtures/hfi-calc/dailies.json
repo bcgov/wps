@@ -1,403 +1,3416 @@
 {
-    "dailies": [
+  "selected_prep_date": "2021-08-02",
+  "start_date": "2021-08-02",
+  "end_date": "2021-08-06",
+  "selected_station_code_ids": [
+    1029,
+    306,
+    309,
+    280,
+    1055,
+    322,
+    239,
+    1082,
+    305,
+    266,
+    836,
+    1399,
+    334,
+    328,
+    298,
+    388,
+    346,
+    344,
+    286
+  ],
+  "selected_fire_center_id": 1,
+  "planning_area_hfi_results": [
+    {
+      "planning_area_id": 1,
+      "all_dailies_valid": true,
+      "highest_daily_intensity_group": 2.4,
+      "mean_prep_level": 2.0,
+      "daily_results": [
         {
-            "code": 1029,
-            "status": "FORECAST",
-            "temperature": 22.0,
-            "relative_humidity": 41.0,
-            "wind_speed": 8.0,
-            "wind_direction": 210.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 88.892,
-            "dmc": 86.375,
-            "dc": 969.583,
-            "isi": 5.473,
-            "bui": 141.284,
-            "fwi": 23.993,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 1.0841529757047716,
-            "hfi": 1018.6596938880173,
-            "intensity_group": 3
+          "date": "2021-08-02T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 1082,
+                "status": "ACTUAL",
+                "temperature": 21.8,
+                "relative_humidity": 71.0,
+                "wind_speed": 7.3,
+                "wind_direction": 80.0,
+                "grass_cure_percentage": null,
+                "precipitation": 4.8,
+                "ffmc": 60.962,
+                "dmc": 90.261,
+                "dc": 521.735,
+                "isi": 0.627,
+                "bui": 126.019,
+                "fwi": 3.537,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 0.002561159296112227,
+                "hfi": 2.836898615305482,
+                "intensity_group": 1,
+                "sixty_minute_fire_size": 1.3295582739064132e-6,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:22:34.999000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 239,
+                "status": "ACTUAL",
+                "temperature": 24.5,
+                "relative_humidity": 64.0,
+                "wind_speed": 5.5,
+                "wind_direction": 206.0,
+                "grass_cure_percentage": null,
+                "precipitation": 2.4,
+                "ffmc": 74.336,
+                "dmc": 112.942,
+                "dc": 673.066,
+                "isi": 0.976,
+                "bui": 159.129,
+                "fwi": 6.276,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 0.03971288752599414,
+                "hfi": 2655.5,
+                "intensity_group": 1,
+                "sixty_minute_fire_size": 0.5,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:11:52.760000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 266,
+                "status": "ACTUAL",
+                "temperature": 22.8,
+                "relative_humidity": 70.0,
+                "wind_speed": 5.5,
+                "wind_direction": 161.0,
+                "grass_cure_percentage": null,
+                "precipitation": 8.0,
+                "ffmc": 55.421,
+                "dmc": 83.406,
+                "dc": 419.732,
+                "isi": 0.382,
+                "bui": 111.447,
+                "fwi": 1.547,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 1.57862627964789e-5,
+                "hfi": 0.014040101630228416,
+                "intensity_group": 1,
+                "sixty_minute_fire_size": 5.5366969342075037e-11,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:22:34.180000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 305,
+                "status": "ACTUAL",
+                "temperature": 22.0,
+                "relative_humidity": 72.0,
+                "wind_speed": 8.2,
+                "wind_direction": 227.0,
+                "grass_cure_percentage": 70.0,
+                "precipitation": 2.6,
+                "ffmc": 68.061,
+                "dmc": 125.309,
+                "dc": 942.274,
+                "isi": 0.889,
+                "bui": 188.086,
+                "fwi": 6.024,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 0.012117383157589035,
+                "hfi": 5.328440103280183,
+                "intensity_group": 1,
+                "sixty_minute_fire_size": null,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2022-02-04T20:59:10.736000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 322,
+                "status": "ACTUAL",
+                "temperature": 22.1,
+                "relative_humidity": 70.0,
+                "wind_speed": 8.0,
+                "wind_direction": 334.0,
+                "grass_cure_percentage": 75.0,
+                "precipitation": 5.2,
+                "ffmc": 61.064,
+                "dmc": 91.485,
+                "dc": 996.685,
+                "isi": 0.653,
+                "bui": 148.82,
+                "fwi": 4.064,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 0.19895608893353176,
+                "hfi": 20.890389338020835,
+                "intensity_group": 1,
+                "sixty_minute_fire_size": 0.004480902129633295,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2022-02-04T20:59:19.750000+00:00"
+              },
+              "valid": true
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": 2.4,
+          "prep_level": 1.0
         },
         {
-            "code": 1055,
-            "status": "FORECAST",
-            "temperature": 24.0,
-            "relative_humidity": 39.0,
-            "wind_speed": 9.0,
-            "wind_direction": 230.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 89.186,
-            "dmc": 17.061,
-            "dc": 583.396,
-            "isi": 6.004,
-            "bui": 31.797,
-            "fwi": 11.944,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 1.0536198100926777,
-            "hfi": 770.1216051355834,
-            "intensity_group": 2
+          "date": "2021-08-03T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 1082,
+                "status": "ACTUAL",
+                "temperature": 28.9,
+                "relative_humidity": 17.0,
+                "wind_speed": 9.9,
+                "wind_direction": 256.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 91.552,
+                "dmc": 95.402,
+                "dc": 529.941,
+                "isi": 8.81,
+                "bui": 131.583,
+                "fwi": 32.434,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 4.219163724346465,
+                "hfi": 4806.780218997672,
+                "intensity_group": 5,
+                "sixty_minute_fire_size": 2.881781164871436,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:21:55.736000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 239,
+                "status": "ACTUAL",
+                "temperature": 30.7,
+                "relative_humidity": 39.0,
+                "wind_speed": 4.4,
+                "wind_direction": 260.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 88.623,
+                "dmc": 116.947,
+                "dc": 681.596,
+                "isi": 4.392,
+                "bui": 163.683,
+                "fwi": 21.419,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 0.7266788063669166,
+                "hfi": 687.973587257314,
+                "intensity_group": 2,
+                "sixty_minute_fire_size": 0.20418376533407426,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:11:15.766000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 266,
+                "status": "ACTUAL",
+                "temperature": 27.2,
+                "relative_humidity": 46.0,
+                "wind_speed": 4.3,
+                "wind_direction": 244.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 81.26,
+                "dmc": 86.561,
+                "dc": 427.632,
+                "isi": 1.622,
+                "bui": 114.951,
+                "fwi": 8.575,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 0.004338682855156095,
+                "hfi": 3.973995112915838,
+                "intensity_group": 1,
+                "sixty_minute_fire_size": 5.056719742181757e-6,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:21:55.154000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 305,
+                "status": "ACTUAL",
+                "temperature": 29.5,
+                "relative_humidity": 23.0,
+                "wind_speed": 9.2,
+                "wind_direction": 334.0,
+                "grass_cure_percentage": 70.0,
+                "precipitation": 0.0,
+                "ffmc": 91.311,
+                "dmc": 130.173,
+                "dc": 950.588,
+                "isi": 8.218,
+                "bui": 193.948,
+                "fwi": 34.042,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 0.83354694624921,
+                "hfi": 813.1017028668069,
+                "intensity_group": 2,
+                "sixty_minute_fire_size": null,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2022-02-04T20:59:10.787000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 322,
+                "status": "ACTUAL",
+                "temperature": 28.4,
+                "relative_humidity": 43.0,
+                "wind_speed": 8.4,
+                "wind_direction": 17.0,
+                "grass_cure_percentage": 75.0,
+                "precipitation": 0.0,
+                "ffmc": 85.226,
+                "dmc": 94.957,
+                "dc": 1004.801,
+                "isi": 3.32,
+                "bui": 153.62,
+                "fwi": 17.16,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 2.919311829811131,
+                "hfi": 306.52774213016875,
+                "intensity_group": 1,
+                "sixty_minute_fire_size": 0.9341192217986003,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2022-02-04T20:59:19.814000+00:00"
+              },
+              "valid": true
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": 2.2,
+          "prep_level": 1.0
         },
         {
-            "code": 1082,
-            "status": "FORECAST",
-            "temperature": 16.0,
-            "relative_humidity": 43.0,
-            "wind_speed": 14.0,
-            "wind_direction": 250.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 85.014,
-            "dmc": 18.926,
-            "dc": 434.165,
-            "isi": 4.275,
-            "bui": 34.133,
-            "fwi": 9.39,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 0.4703212263893736,
-            "hfi": 105.78701262534489,
-            "intensity_group": 1
+          "date": "2021-08-04T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 1082,
+                "status": "ACTUAL",
+                "temperature": 28.0,
+                "relative_humidity": 19.0,
+                "wind_speed": 10.0,
+                "wind_direction": 82.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 94.571,
+                "dmc": 100.268,
+                "dc": 537.985,
+                "isi": 13.509,
+                "bui": 136.797,
+                "fwi": 43.438,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 11.461461414800574,
+                "hfi": 16594.31954576547,
+                "intensity_group": 5,
+                "sixty_minute_fire_size": 20.39931259505494,
+                "fire_type": "IC",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:18:42.128000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 239,
+                "status": "ACTUAL",
+                "temperature": 31.2,
+                "relative_humidity": 24.0,
+                "wind_speed": 5.1,
+                "wind_direction": 189.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 93.707,
+                "dmc": 122.015,
+                "dc": 690.216,
+                "isi": 9.365,
+                "bui": 169.237,
+                "fwi": 36.235,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 2.8587096888333208,
+                "hfi": 2813.0521255389394,
+                "intensity_group": 4,
+                "sixty_minute_fire_size": 2.9299278749022513,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:08:10.423000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 266,
+                "status": "ACTUAL",
+                "temperature": 27.7,
+                "relative_humidity": 31.0,
+                "wind_speed": 7.6,
+                "wind_direction": 203.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 90.733,
+                "dmc": 90.663,
+                "dc": 435.622,
+                "isi": 6.983,
+                "bui": 119.27,
+                "fwi": 26.682,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 0.7353239559503134,
+                "hfi": 696.658215282074,
+                "intensity_group": 2,
+                "sixty_minute_fire_size": 0.10092595283803098,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:29:18.986000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 305,
+                "status": "ACTUAL",
+                "temperature": 29.4,
+                "relative_humidity": 18.0,
+                "wind_speed": 8.8,
+                "wind_direction": 239.0,
+                "grass_cure_percentage": 70.0,
+                "precipitation": 0.0,
+                "ffmc": 94.987,
+                "dmc": 135.336,
+                "dc": 958.884,
+                "isi": 13.465,
+                "bui": 200.076,
+                "fwi": 47.04,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 1.925751356015811,
+                "hfi": 1920.5692730824496,
+                "intensity_group": 3,
+                "sixty_minute_fire_size": null,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2022-02-04T20:59:10.841000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 322,
+                "status": "ACTUAL",
+                "temperature": 29.9,
+                "relative_humidity": 23.0,
+                "wind_speed": 10.9,
+                "wind_direction": 40.0,
+                "grass_cure_percentage": 75.0,
+                "precipitation": 0.0,
+                "ffmc": 93.498,
+                "dmc": 99.885,
+                "dc": 1013.187,
+                "isi": 12.183,
+                "bui": 160.269,
+                "fwi": 42.466,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 20.691176981385713,
+                "hfi": 2172.5735830454996,
+                "intensity_group": 4,
+                "sixty_minute_fire_size": 37.93647579966323,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2022-02-04T20:59:19.877000+00:00"
+              },
+              "valid": true
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": 3.6,
+          "prep_level": 3.0
         },
         {
-            "code": 1108,
-            "status": "FORECAST",
-            "temperature": 17.0,
-            "relative_humidity": 41.0,
-            "wind_speed": 7.0,
-            "wind_direction": 65.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 87.027,
-            "dmc": 24.605,
-            "dc": 337.301,
-            "isi": 3.985,
-            "bui": 41.619,
-            "fwi": 9.934,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 0.09687089430169857,
-            "hfi": 21.423012020951965,
-            "intensity_group": 1
-        },
-        {
-            "code": 1399,
-            "status": "FORECAST",
-            "temperature": 22.0,
-            "relative_humidity": 37.0,
-            "wind_speed": 15.0,
-            "wind_direction": 250.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 89.72,
-            "dmc": 71.85,
-            "dc": 1035.002,
-            "isi": 8.77,
-            "bui": 122.45,
-            "fwi": 31.484,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 2.5044051522720943,
-            "hfi": 2340.18907047944,
-            "intensity_group": 4
-        },
-        {
-            "code": 239,
-            "status": "FORECAST",
-            "temperature": 23.0,
-            "relative_humidity": 32.0,
-            "wind_speed": 15.0,
-            "wind_direction": 230.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 90.575,
-            "dmc": 47.472,
-            "dc": 627.993,
-            "isi": 9.912,
-            "bui": 79.853,
-            "fwi": 28.026,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 2.9870629014080787,
-            "hfi": 2655.4892697198648,
-            "sixty_minute_fire_size": 0.5,
-            "intensity_group": 4,
-            "fire_type": "SUR"
-        },
-        {
-            "code": 280,
-            "status": "FORECAST",
-            "temperature": 26.0,
-            "relative_humidity": 32.0,
-            "wind_speed": 9.0,
-            "wind_direction": 250.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 90.804,
-            "dmc": 26.161,
-            "dc": 512.271,
-            "isi": 7.569,
-            "bui": 46.399,
-            "fwi": 17.479,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 1.7329754357243414,
-            "hfi": 1393.2603780739787,
-            "intensity_group": 3,
-            "fire_type": "IC"
-        },
-        {
-            "code": 836,
-            "status": "FORECAST",
-            "temperature": 23.0,
-            "relative_humidity": 25.0,
-            "wind_speed": 12.0,
-            "wind_direction": 260.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 92.636,
-            "dmc": 96.919,
-            "dc": 888.786,
-            "isi": 11.414,
-            "bui": 152.314,
-            "fwi": 40.212,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 3.981102290978548,
-            "hfi": 3869.422580995614,
-            "intensity_group": 4
-        },
-        {
-            "code": 286,
-            "status": "FORECAST",
-            "temperature": 24.0,
-            "relative_humidity": 33.0,
-            "wind_speed": 14.0,
-            "wind_direction": 210.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 91.127,
-            "dmc": 149.114,
-            "dc": 1199.212,
-            "isi": 10.197,
-            "bui": 227.506,
-            "fwi": 39.881,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 3.3493969772194756,
-            "hfi": 3278.0029301041436,
-            "intensity_group": 4
-        },
-        {
-            "code": 298,
-            "status": "FORECAST",
-            "temperature": 24.0,
-            "relative_humidity": 31.0,
-            "wind_speed": 17.0,
-            "wind_direction": 240.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 91.461,
-            "dmc": 112.947,
-            "dc": 1095.142,
-            "isi": 12.438,
-            "bui": 179.59,
-            "fwi": 44.031,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 4.628116526706878,
-            "hfi": 4505.156615902452,
-            "intensity_group": 5
-        },
-        {
-            "code": 305,
-            "status": "FORECAST",
-            "temperature": 19.0,
-            "relative_humidity": 36.0,
-            "wind_speed": 13.0,
-            "wind_direction": 250.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 88.586,
-            "dmc": 48.87,
-            "dc": 832.259,
-            "isi": 6.738,
-            "bui": 85.228,
-            "fwi": 22.14,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 1.524180813518465,
-            "hfi": 1344.3701675437903,
-            "intensity_group": 3
-        },
-        {
-            "code": 306,
-            "status": "FORECAST",
-            "temperature": 18.0,
-            "relative_humidity": 37.0,
-            "wind_speed": 9.0,
-            "wind_direction": 200.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 88.182,
-            "dmc": 52.438,
-            "dc": 459.752,
-            "isi": 5.198,
-            "bui": 81.607,
-            "fwi": 17.917,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 0.9453443947956616,
-            "hfi": 824.5068988617694,
-            "intensity_group": 2
-        },
-        {
-            "code": 309,
-            "status": "FORECAST",
-            "temperature": 16.0,
-            "relative_humidity": 50.0,
-            "wind_speed": 7.0,
-            "wind_direction": 220.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 88.28,
-            "dmc": 72.462,
-            "dc": 586.67,
-            "isi": 4.767,
-            "bui": 110.732,
-            "fwi": 19.712,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 0.8266973727929624,
-            "hfi": 753.7525848976278,
-            "intensity_group": 2
-        },
-        {
-            "code": 322,
-            "status": "FORECAST",
-            "temperature": 22.0,
-            "relative_humidity": 35.0,
-            "wind_speed": 14.0,
-            "wind_direction": 230.0,
-            "grass_cure_percentage": 1,
-            "precipitation": 0.0,
-            "ffmc": 90.217,
-            "dmc": 81.507,
-            "dc": 831.96,
-            "isi": 8.954,
-            "bui": 130.943,
-            "fwi": 32.731,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 1e-06,
-            "hfi": 0.00010499999999999999,
-            "intensity_group": 1
-        },
-        {
-            "code": 328,
-            "status": "FORECAST",
-            "temperature": 25.0,
-            "relative_humidity": 30.0,
-            "wind_speed": 9.0,
-            "wind_direction": 300.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 91.763,
-            "dmc": 127.91,
-            "dc": 973.918,
-            "isi": 8.676,
-            "bui": 192.586,
-            "fwi": 35.248,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 2.517852413392773,
-            "hfi": 2463.018981469289,
-            "intensity_group": 4
-        },
-        {
-            "code": 334,
-            "status": "FORECAST",
-            "temperature": 22.0,
-            "relative_humidity": 27.0,
-            "wind_speed": 9.0,
-            "wind_direction": 220.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 91.777,
-            "dmc": 89.349,
-            "dc": 949.185,
-            "isi": 8.693,
-            "bui": 144.656,
-            "fwi": 33.152,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 2.4914012084951755,
-            "hfi": 2399.510060890514,
-            "intensity_group": 4
-        },
-        {
-            "code": 346,
-            "status": "FORECAST",
-            "temperature": 24.0,
-            "relative_humidity": 32.0,
-            "wind_speed": 12.0,
-            "wind_direction": 320.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 91.23,
-            "dmc": 106.471,
-            "dc": 942.45,
-            "isi": 9.355,
-            "bui": 166.045,
-            "fwi": 36.063,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 2.8508040888297375,
-            "hfi": 2759.738249645722,
-            "intensity_group": 4
-        },
-        {
-            "code": 388,
-            "status": "FORECAST",
-            "temperature": 20.0,
-            "relative_humidity": 31.0,
-            "wind_speed": 12.0,
-            "wind_direction": 250.0,
-            "grass_cure_percentage": null,
-            "precipitation": 0.0,
-            "ffmc": 89.454,
-            "dmc": 36.95,
-            "dc": 506.207,
-            "isi": 7.258,
-            "bui": 62.495,
-            "fwi": 19.828,
-            "danger_class": null,
-            "observation_valid": true,
-            "observation_valid_comment": null,
-            "rate_of_spread": 0.7610151861065599,
-            "hfi": 329.50073794037877,
-            "intensity_group": 1
+          "date": "2021-08-05T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 1082,
+                "status": "ACTUAL",
+                "temperature": 27.8,
+                "relative_humidity": 18.0,
+                "wind_speed": 9.2,
+                "wind_direction": 260.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.063,
+                "dmc": 105.16,
+                "dc": 545.993,
+                "isi": 13.881,
+                "bui": 141.964,
+                "fwi": 44.702,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 12.207275857690576,
+                "hfi": 18119.827810887728,
+                "intensity_group": 5,
+                "sixty_minute_fire_size": 25.469845563570058,
+                "fire_type": "IC",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:19:03.813000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 239,
+                "status": "ACTUAL",
+                "temperature": 32.3,
+                "relative_humidity": 23.0,
+                "wind_speed": 5.2,
+                "wind_direction": 262.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 94.625,
+                "dmc": 127.324,
+                "dc": 699.034,
+                "isi": 10.686,
+                "bui": 174.973,
+                "fwi": 39.751,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 3.5880694519414864,
+                "hfi": 3553.276587811075,
+                "intensity_group": 4,
+                "sixty_minute_fire_size": 4.586305066642661,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:08:13.751000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 266,
+                "status": "ACTUAL",
+                "temperature": 30.3,
+                "relative_humidity": 26.0,
+                "wind_speed": 4.7,
+                "wind_direction": 204.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 93.376,
+                "dmc": 95.46,
+                "dc": 444.08,
+                "isi": 8.764,
+                "bui": 124.183,
+                "fwi": 31.64,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 1.4612231143049743,
+                "hfi": 1434.243066800149,
+                "intensity_group": 3,
+                "sixty_minute_fire_size": 0.6013190204454261,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:39:48.600000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 305,
+                "status": "ACTUAL",
+                "temperature": 30.1,
+                "relative_humidity": 16.0,
+                "wind_speed": 9.6,
+                "wind_direction": 287.0,
+                "grass_cure_percentage": 70.0,
+                "precipitation": 0.0,
+                "ffmc": 95.877,
+                "dmc": 140.747,
+                "dc": 967.306,
+                "isi": 15.825,
+                "bui": 206.41,
+                "fwi": 52.241,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 2.491958583359295,
+                "hfi": 2497.4867259917514,
+                "intensity_group": 4,
+                "sixty_minute_fire_size": null,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2022-02-04T20:59:10.894000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 322,
+                "status": "ACTUAL",
+                "temperature": 30.6,
+                "relative_humidity": 21.0,
+                "wind_speed": 8.2,
+                "wind_direction": 338.0,
+                "grass_cure_percentage": 75.0,
+                "precipitation": 0.0,
+                "ffmc": 94.756,
+                "dmc": 105.055,
+                "dc": 1021.699,
+                "isi": 12.656,
+                "bui": 167.144,
+                "fwi": 43.917,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 21.788987288180156,
+                "hfi": 2287.843665258916,
+                "intensity_group": 4,
+                "sixty_minute_fire_size": 56.84774245947215,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2022-02-04T20:59:19.933000+00:00"
+              },
+              "valid": true
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": 4.0,
+          "prep_level": 3.0
         }
+      ]
+    },
+    {
+      "planning_area_id": 2,
+      "all_dailies_valid": false,
+      "highest_daily_intensity_group": 3.5,
+      "mean_prep_level": 2.0,
+      "daily_results": [
+        {
+          "date": "2021-08-02T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 286,
+                "status": "ACTUAL",
+                "temperature": 23.6,
+                "relative_humidity": 67.0,
+                "wind_speed": 5.2,
+                "wind_direction": 148.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 87.382,
+                "dmc": 373.631,
+                "dc": 1018.9,
+                "isi": 3.828,
+                "bui": 389.859,
+                "fwi": 20.782,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:22:26.262000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 298,
+                "status": "ACTUAL",
+                "temperature": 26.2,
+                "relative_humidity": 60.0,
+                "wind_speed": 7.6,
+                "wind_direction": 112.0,
+                "grass_cure_percentage": null,
+                "precipitation": 2.4,
+                "ffmc": 77.604,
+                "dmc": 128.553,
+                "dc": 997.817,
+                "isi": 1.338,
+                "bui": 194.47,
+                "fwi": 8.786,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:11:41.025000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 344,
+                "status": "ACTUAL",
+                "temperature": 22.0,
+                "relative_humidity": 87.0,
+                "wind_speed": 3.2,
+                "wind_direction": 240.0,
+                "grass_cure_percentage": null,
+                "precipitation": 3.6,
+                "ffmc": 52.236,
+                "dmc": 83.5,
+                "dc": 496.052,
+                "isi": 0.249,
+                "bui": 117.538,
+                "fwi": 0.772,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 2.9180905333867094e-6,
+                "hfi": 0.002728306637346894,
+                "intensity_group": 1,
+                "sixty_minute_fire_size": 2.7411181020056348e-12,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:22:01.452000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 346,
+                "status": "ACTUAL",
+                "temperature": 23.6,
+                "relative_humidity": 71.0,
+                "wind_speed": 4.6,
+                "wind_direction": 329.0,
+                "grass_cure_percentage": null,
+                "precipitation": 2.0,
+                "ffmc": 73.495,
+                "dmc": 130.878,
+                "dc": 846.251,
+                "isi": 0.897,
+                "bui": 188.77,
+                "fwi": 6.077,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:22:28.636000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 388,
+                "status": "FORECAST",
+                "temperature": 25.0,
+                "relative_humidity": 43.0,
+                "wind_speed": 5.0,
+                "wind_direction": 270.0,
+                "grass_cure_percentage": null,
+                "precipitation": 2.0,
+                "ffmc": 82.923,
+                "dmc": 121.49,
+                "dc": 439.2,
+                "isi": 2.057,
+                "bui": 143.644,
+                "fwi": 11.58,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 0.010782988214810663,
+                "hfi": 11.859225616044275,
+                "intensity_group": 1,
+                "sixty_minute_fire_size": 2.8223316151348537e-5,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-07-28T22:46:24.427000+00:00"
+              },
+              "valid": true
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": 1.0,
+          "prep_level": 3.0
+        },
+        {
+          "date": "2021-08-03T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 286,
+                "status": "ACTUAL",
+                "temperature": 31.1,
+                "relative_humidity": 35.0,
+                "wind_speed": 10.8,
+                "wind_direction": 142.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 91.596,
+                "dmc": 377.952,
+                "dc": 1027.502,
+                "isi": 9.276,
+                "bui": 393.784,
+                "fwi": 38.055,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:21:49.454000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 298,
+                "status": "ACTUAL",
+                "temperature": 30.6,
+                "relative_humidity": 41.0,
+                "wind_speed": 5.7,
+                "wind_direction": 109.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 88.913,
+                "dmc": 132.414,
+                "dc": 1006.329,
+                "isi": 4.889,
+                "bui": 199.276,
+                "fwi": 23.984,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:11:05.091000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 344,
+                "status": "ACTUAL",
+                "temperature": 28.3,
+                "relative_humidity": 52.0,
+                "wind_speed": 4.1,
+                "wind_direction": 215.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 79.304,
+                "dmc": 86.413,
+                "dc": 504.15,
+                "isi": 1.304,
+                "bui": 120.984,
+                "fwi": 7.261,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 0.001902355415765236,
+                "hfi": 1.8253517760238567,
+                "intensity_group": 1,
+                "sixty_minute_fire_size": 9.998822417249202e-7,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:21:25.908000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 346,
+                "status": "ACTUAL",
+                "temperature": 29.5,
+                "relative_humidity": 51.0,
+                "wind_speed": 4.0,
+                "wind_direction": 296.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 85.68,
+                "dmc": 133.973,
+                "dc": 854.565,
+                "isi": 2.833,
+                "bui": 192.5,
+                "fwi": 16.043,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T21:24:47.547000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 388,
+                "status": "FORECAST",
+                "temperature": 28.0,
+                "relative_humidity": 18.0,
+                "wind_speed": 8.0,
+                "wind_direction": null,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 93.725,
+                "dmc": 126.416,
+                "dc": 447.244,
+                "isi": 10.864,
+                "bui": 148.146,
+                "fwi": 38.655,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 2.7003701926146606,
+                "hfi": 3033.997069208578,
+                "intensity_group": 4,
+                "sixty_minute_fire_size": 1.353124986906898,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-02T15:10:02.507000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": 2.5,
+          "prep_level": 1.0
+        },
+        {
+          "date": "2021-08-04T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 286,
+                "status": "ACTUAL",
+                "temperature": 29.2,
+                "relative_humidity": 28.0,
+                "wind_speed": 6.8,
+                "wind_direction": 162.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 92.942,
+                "dmc": 382.456,
+                "dc": 1035.762,
+                "isi": 9.169,
+                "bui": 397.744,
+                "fwi": 37.767,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:29:13.204000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 298,
+                "status": "ACTUAL",
+                "temperature": 31.4,
+                "relative_humidity": 24.0,
+                "wind_speed": 8.4,
+                "wind_direction": 104.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 93.875,
+                "dmc": 137.513,
+                "dc": 1014.985,
+                "isi": 11.319,
+                "bui": 205.442,
+                "fwi": 42.249,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:08:02.392000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 344,
+                "status": "ACTUAL",
+                "temperature": 30.1,
+                "relative_humidity": 30.0,
+                "wind_speed": 3.3,
+                "wind_direction": 210.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 90.847,
+                "dmc": 90.922,
+                "dc": 512.572,
+                "isi": 5.715,
+                "bui": 125.978,
+                "fwi": 23.727,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 0.3905359951002713,
+                "hfi": 388.0212239733873,
+                "intensity_group": 1,
+                "sixty_minute_fire_size": 0.052704494229509194,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:28:50.259000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 346,
+                "status": "ACTUAL",
+                "temperature": 27.3,
+                "relative_humidity": 42.0,
+                "wind_speed": 6.6,
+                "wind_direction": 341.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 89.328,
+                "dmc": 137.374,
+                "dc": 862.483,
+                "isi": 5.429,
+                "bui": 196.502,
+                "fwi": 25.753,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:29:14.708000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 388,
+                "status": "FORECAST",
+                "temperature": 27.0,
+                "relative_humidity": 34.0,
+                "wind_speed": 8.0,
+                "wind_direction": null,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 93.186,
+                "dmc": 130.245,
+                "dc": 455.108,
+                "isi": 10.079,
+                "bui": 151.848,
+                "fwi": 37.057,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 2.20660991953961,
+                "hfi": 2520.2114565180177,
+                "intensity_group": 4,
+                "sixty_minute_fire_size": 0.8965567317138617,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-02T15:10:02.513000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": 2.5,
+          "prep_level": 1.0
+        },
+        {
+          "date": "2021-08-05T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 286,
+                "status": "ACTUAL",
+                "temperature": 32.4,
+                "relative_humidity": 21.0,
+                "wind_speed": 9.5,
+                "wind_direction": 139.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": null,
+                "dmc": null,
+                "dc": null,
+                "isi": null,
+                "bui": null,
+                "fwi": 49.52,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-10-01T20:55:18.954000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 298,
+                "status": "ACTUAL",
+                "temperature": 31.3,
+                "relative_humidity": 24.0,
+                "wind_speed": 5.0,
+                "wind_direction": 146.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 94.285,
+                "dmc": 142.597,
+                "dc": 1023.623,
+                "isi": 10.094,
+                "bui": 211.526,
+                "fwi": 39.365,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:07:59.403000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 344,
+                "status": "ACTUAL",
+                "temperature": 29.4,
+                "relative_humidity": 32.0,
+                "wind_speed": 5.2,
+                "wind_direction": 226.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 92.135,
+                "dmc": 95.204,
+                "dc": 520.868,
+                "isi": 7.55,
+                "bui": 130.689,
+                "fwi": 29.163,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 0.9423382127845183,
+                "hfi": 964.9687195929677,
+                "intensity_group": 2,
+                "sixty_minute_fire_size": 0.22659186122156702,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:39:16.388000+00:00"
+              },
+              "valid": true
+            },
+            {
+              "daily": {
+                "code": 346,
+                "status": "ACTUAL",
+                "temperature": 29.4,
+                "relative_humidity": 33.0,
+                "wind_speed": 8.8,
+                "wind_direction": 344.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 91.816,
+                "dmc": 141.593,
+                "dc": 870.779,
+                "isi": 8.653,
+                "bui": 201.339,
+                "fwi": 35.395,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:18:57.415000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 388,
+                "status": "FORECAST",
+                "temperature": 27.0,
+                "relative_humidity": 34.0,
+                "wind_speed": 12.0,
+                "wind_direction": null,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 93.052,
+                "dmc": 134.074,
+                "dc": 462.972,
+                "isi": 12.101,
+                "bui": 155.539,
+                "fwi": 41.979,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 3.5916924103074055,
+                "hfi": 4165.677842364492,
+                "intensity_group": 5,
+                "sixty_minute_fire_size": 1.6805190574464581,
+                "fire_type": "SUR",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-04T23:52:47.178000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": 3.5,
+          "prep_level": 3.0
+        }
+      ]
+    },
+    {
+      "planning_area_id": 3,
+      "all_dailies_valid": false,
+      "highest_daily_intensity_group": null,
+      "mean_prep_level": null,
+      "daily_results": [
+        {
+          "date": "2021-08-02T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 328,
+                "status": "ACTUAL",
+                "temperature": 26.7,
+                "relative_humidity": 59.0,
+                "wind_speed": 5.8,
+                "wind_direction": 269.0,
+                "grass_cure_percentage": null,
+                "precipitation": 1.8,
+                "ffmc": 79.452,
+                "dmc": 147.154,
+                "dc": 1003.583,
+                "isi": 1.441,
+                "bui": 215.362,
+                "fwi": 9.51,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:22:34.646000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 334,
+                "status": "ACTUAL",
+                "temperature": 24.8,
+                "relative_humidity": 56.0,
+                "wind_speed": 11.1,
+                "wind_direction": 252.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.4,
+                "ffmc": 85.815,
+                "dmc": 188.895,
+                "dc": 826.276,
+                "isi": 4.128,
+                "bui": 240.397,
+                "fwi": 21.679,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:22:24.044000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": null,
+          "prep_level": null
+        },
+        {
+          "date": "2021-08-03T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 328,
+                "status": "ACTUAL",
+                "temperature": 29.4,
+                "relative_humidity": 32.0,
+                "wind_speed": 5.5,
+                "wind_direction": 260.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 90.551,
+                "dmc": 151.436,
+                "dc": 1011.879,
+                "isi": 6.12,
+                "bui": 220.407,
+                "fwi": 28.339,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:21:55.554000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 334,
+                "status": "ACTUAL",
+                "temperature": 30.2,
+                "relative_humidity": 16.0,
+                "wind_speed": 9.4,
+                "wind_direction": 264.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.077,
+                "dmc": 194.323,
+                "dc": 834.716,
+                "isi": 14.05,
+                "bui": 245.667,
+                "fwi": 49.162,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:21:47.456000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": null,
+          "prep_level": null
+        },
+        {
+          "date": "2021-08-04T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 328,
+                "status": "ACTUAL",
+                "temperature": 32.0,
+                "relative_humidity": 25.0,
+                "wind_speed": 8.5,
+                "wind_direction": 273.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 93.93,
+                "dmc": 156.561,
+                "dc": 1020.643,
+                "isi": 11.465,
+                "bui": 226.328,
+                "fwi": 42.987,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:18:41.950000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 334,
+                "status": "ACTUAL",
+                "temperature": 29.4,
+                "relative_humidity": 23.0,
+                "wind_speed": 8.6,
+                "wind_direction": 269.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.128,
+                "dmc": 199.171,
+                "dc": 843.012,
+                "isi": 13.589,
+                "bui": 250.427,
+                "fwi": 48.189,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:18:34.100000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": null,
+          "prep_level": null
+        },
+        {
+          "date": "2021-08-05T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 328,
+                "status": "ACTUAL",
+                "temperature": 29.8,
+                "relative_humidity": 32.0,
+                "wind_speed": 4.5,
+                "wind_direction": 233.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 93.904,
+                "dmc": 160.899,
+                "dc": 1029.011,
+                "isi": 9.337,
+                "bui": 231.358,
+                "fwi": 37.71,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:19:03.413000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 334,
+                "status": "ACTUAL",
+                "temperature": 29.1,
+                "relative_humidity": 22.0,
+                "wind_speed": 7.3,
+                "wind_direction": 249.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.179,
+                "dmc": 204.034,
+                "dc": 851.254,
+                "isi": 12.817,
+                "bui": 255.168,
+                "fwi": 46.482,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:18:51.742000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": null,
+          "prep_level": null
+        }
+      ]
+    },
+    {
+      "planning_area_id": 4,
+      "all_dailies_valid": false,
+      "highest_daily_intensity_group": null,
+      "mean_prep_level": null,
+      "daily_results": [
+        {
+          "date": "2021-08-02T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 1399,
+                "status": "ACTUAL",
+                "temperature": 28.0,
+                "relative_humidity": 50.0,
+                "wind_speed": 6.2,
+                "wind_direction": 190.0,
+                "grass_cure_percentage": null,
+                "precipitation": 2.4,
+                "ffmc": 79.828,
+                "dmc": 123.629,
+                "dc": 1101.956,
+                "isi": 1.527,
+                "bui": 193.098,
+                "fwi": 9.821,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:22:25.541000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 836,
+                "status": "ACTUAL",
+                "temperature": 30.3,
+                "relative_humidity": 38.0,
+                "wind_speed": 8.1,
+                "wind_direction": 115.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 88.588,
+                "dmc": 158.799,
+                "dc": 836.731,
+                "isi": 5.266,
+                "bui": 215.399,
+                "fwi": 25.494,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:11:35.264000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": null,
+          "prep_level": null
+        },
+        {
+          "date": "2021-08-03T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 1399,
+                "status": "ACTUAL",
+                "temperature": 35.3,
+                "relative_humidity": 12.0,
+                "wind_speed": 7.7,
+                "wind_direction": 207.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 96.601,
+                "dmc": 130.242,
+                "dc": 1111.314,
+                "isi": 15.856,
+                "bui": 201.458,
+                "fwi": 52.162,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:21:48.893000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 836,
+                "status": "ACTUAL",
+                "temperature": 32.2,
+                "relative_humidity": 16.0,
+                "wind_speed": 6.8,
+                "wind_direction": 132.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.648,
+                "dmc": 164.574,
+                "dc": 845.531,
+                "isi": 13.322,
+                "bui": 221.41,
+                "fwi": 47.209,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:11:00.266000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": null,
+          "prep_level": null
+        },
+        {
+          "date": "2021-08-04T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 1399,
+                "status": "ACTUAL",
+                "temperature": 32.1,
+                "relative_humidity": 22.0,
+                "wind_speed": 8.4,
+                "wind_direction": 121.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 96.367,
+                "dmc": 135.588,
+                "dc": 1120.096,
+                "isi": 15.918,
+                "bui": 208.177,
+                "fwi": 52.478,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:18:35.513000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 836,
+                "status": "ACTUAL",
+                "temperature": 31.7,
+                "relative_humidity": 18.0,
+                "wind_speed": 9.0,
+                "wind_direction": 103.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.734,
+                "dmc": 170.127,
+                "dc": 854.241,
+                "isi": 15.06,
+                "bui": 227.155,
+                "fwi": 51.092,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:07:58.269000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": null,
+          "prep_level": null
+        },
+        {
+          "date": "2021-08-05T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 1399,
+                "status": "ACTUAL",
+                "temperature": 33.8,
+                "relative_humidity": 16.0,
+                "wind_speed": 30.1,
+                "wind_direction": 194.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 96.525,
+                "dmc": 141.64,
+                "dc": 1129.184,
+                "isi": 48.527,
+                "bui": 215.654,
+                "fwi": 102.258,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:18:54.652000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 836,
+                "status": "ACTUAL",
+                "temperature": 31.1,
+                "relative_humidity": 22.0,
+                "wind_speed": 7.2,
+                "wind_direction": 98.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.785,
+                "dmc": 175.312,
+                "dc": 862.843,
+                "isi": 13.85,
+                "bui": 232.517,
+                "fwi": 48.559,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:07:53.898000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": null,
+          "prep_level": null
+        }
+      ]
+    },
+    {
+      "planning_area_id": 5,
+      "all_dailies_valid": false,
+      "highest_daily_intensity_group": null,
+      "mean_prep_level": null,
+      "daily_results": [
+        {
+          "date": "2021-08-02T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 1029,
+                "status": "ACTUAL",
+                "temperature": 28.5,
+                "relative_humidity": 39.0,
+                "wind_speed": 7.1,
+                "wind_direction": 210.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 90.081,
+                "dmc": 228.649,
+                "dc": 879.147,
+                "isi": 6.203,
+                "bui": 277.116,
+                "fwi": 28.983,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:22:13.114000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 1055,
+                "status": "ACTUAL",
+                "temperature": 27.3,
+                "relative_humidity": 54.0,
+                "wind_speed": 8.0,
+                "wind_direction": 143.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.4,
+                "ffmc": 69.682,
+                "dmc": 78.334,
+                "dc": 834.602,
+                "isi": 0.927,
+                "bui": 126.893,
+                "fwi": 5.393,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:22:31.582000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 280,
+                "status": "ACTUAL",
+                "temperature": 27.3,
+                "relative_humidity": 52.0,
+                "wind_speed": 13.2,
+                "wind_direction": 194.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 79.983,
+                "dmc": 94.873,
+                "dc": 782.956,
+                "isi": 2.208,
+                "bui": 145.63,
+                "fwi": 12.317,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": 1.7,
+                "hfi": null,
+                "intensity_group": 3.0,
+                "sixty_minute_fire_size": null,
+                "fire_type": "IC",
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:11:50.934000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 306,
+                "status": "ACTUAL",
+                "temperature": 26.4,
+                "relative_humidity": 45.0,
+                "wind_speed": 16.3,
+                "wind_direction": 125.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 88.619,
+                "dmc": 128.793,
+                "dc": 402.871,
+                "isi": 7.995,
+                "bui": 143.166,
+                "fwi": 31.252,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:22:07.375000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 309,
+                "status": "ACTUAL",
+                "temperature": 28.4,
+                "relative_humidity": 28.0,
+                "wind_speed": 5.7,
+                "wind_direction": 7.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 91.149,
+                "dmc": 142.054,
+                "dc": 460.639,
+                "isi": 6.733,
+                "bui": 160.426,
+                "fwi": 28.713,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-02T20:00:00+00:00",
+                "last_updated": "2021-08-02T20:22:04.417000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": null,
+          "prep_level": null
+        },
+        {
+          "date": "2021-08-03T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 1029,
+                "status": "ACTUAL",
+                "temperature": 30.1,
+                "relative_humidity": 19.0,
+                "wind_speed": 9.7,
+                "wind_direction": 237.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 94.802,
+                "dmc": 233.866,
+                "dc": 887.569,
+                "isi": 13.735,
+                "bui": 281.983,
+                "fwi": 48.729,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:21:38.423000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 1055,
+                "status": "ACTUAL",
+                "temperature": 32.5,
+                "relative_humidity": 25.0,
+                "wind_speed": 12.5,
+                "wind_direction": 159.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 92.477,
+                "dmc": 83.536,
+                "dc": 843.456,
+                "isi": 11.446,
+                "bui": 133.915,
+                "fwi": 38.769,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T21:24:49.923000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 280,
+                "status": "ACTUAL",
+                "temperature": 32.3,
+                "relative_humidity": 24.0,
+                "wind_speed": 6.2,
+                "wind_direction": 24.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 93.106,
+                "dmc": 100.113,
+                "dc": 791.774,
+                "isi": 9.102,
+                "bui": 152.136,
+                "fwi": 34.673,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:21:54.704000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 306,
+                "status": "ACTUAL",
+                "temperature": 29.0,
+                "relative_humidity": 14.0,
+                "wind_speed": 26.0,
+                "wind_direction": 244.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.852,
+                "dmc": 134.137,
+                "dc": 411.095,
+                "isi": 36.04,
+                "bui": 147.75,
+                "fwi": 80.951,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:21:33.501000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 309,
+                "status": "ACTUAL",
+                "temperature": 28.9,
+                "relative_humidity": 15.0,
+                "wind_speed": 9.9,
+                "wind_direction": 180.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.563,
+                "dmc": 147.318,
+                "dc": 468.845,
+                "isi": 15.397,
+                "bui": 165.013,
+                "fwi": 49.58,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-03T20:00:00+00:00",
+                "last_updated": "2021-08-03T20:21:30.440000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": null,
+          "prep_level": null
+        },
+        {
+          "date": "2021-08-04T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 1029,
+                "status": "ACTUAL",
+                "temperature": 30.1,
+                "relative_humidity": 15.0,
+                "wind_speed": 8.1,
+                "wind_direction": 211.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 96.074,
+                "dmc": 239.341,
+                "dc": 895.991,
+                "isi": 15.07,
+                "bui": 287.012,
+                "fwi": 51.664,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:29:01.337000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 1055,
+                "status": "ACTUAL",
+                "temperature": 32.5,
+                "relative_humidity": 23.0,
+                "wind_speed": 13.4,
+                "wind_direction": 154.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 94.613,
+                "dmc": 88.877,
+                "dc": 852.31,
+                "isi": 16.126,
+                "bui": 140.997,
+                "fwi": 49.047,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:29:17.156000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 280,
+                "status": "ACTUAL",
+                "temperature": 32.3,
+                "relative_humidity": 22.0,
+                "wind_speed": 9.3,
+                "wind_direction": 250.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 94.804,
+                "dmc": 105.491,
+                "dc": 800.592,
+                "isi": 13.465,
+                "bui": 158.703,
+                "fwi": 45.162,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:18:41.081000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 306,
+                "status": "ACTUAL",
+                "temperature": 28.5,
+                "relative_humidity": 15.0,
+                "wind_speed": 11.8,
+                "wind_direction": 145.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.946,
+                "dmc": 139.331,
+                "dc": 419.229,
+                "isi": 17.848,
+                "bui": 152.202,
+                "fwi": 53.36,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:28:55.632000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 309,
+                "status": "ACTUAL",
+                "temperature": 28.3,
+                "relative_humidity": 15.0,
+                "wind_speed": 6.9,
+                "wind_direction": 3.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.887,
+                "dmc": 152.477,
+                "dc": 476.943,
+                "isi": 13.831,
+                "bui": 169.49,
+                "fwi": 46.599,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-04T20:00:00+00:00",
+                "last_updated": "2021-08-04T20:28:52.529000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": null,
+          "prep_level": null
+        },
+        {
+          "date": "2021-08-05T20:00:00+00:00",
+          "dailies": [
+            {
+              "daily": {
+                "code": 1029,
+                "status": "ACTUAL",
+                "temperature": 27.6,
+                "relative_humidity": 27.0,
+                "wind_speed": 7.1,
+                "wind_direction": 250.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 94.941,
+                "dmc": 243.666,
+                "dc": 903.963,
+                "isi": 12.282,
+                "bui": 291.139,
+                "fwi": 45.441,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:39:27.842000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 1055,
+                "status": "ACTUAL",
+                "temperature": 33.2,
+                "relative_humidity": 21.0,
+                "wind_speed": 13.8,
+                "wind_direction": 173.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.271,
+                "dmc": 94.471,
+                "dc": 861.29,
+                "isi": 18.008,
+                "bui": 148.281,
+                "fwi": 53.295,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:39:46.026000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 280,
+                "status": "ACTUAL",
+                "temperature": 32.0,
+                "relative_humidity": 20.0,
+                "wind_speed": 9.0,
+                "wind_direction": 36.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.295,
+                "dmc": 110.958,
+                "dc": 809.356,
+                "isi": 14.186,
+                "bui": 165.271,
+                "fwi": 47.106,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:19:02.237000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 306,
+                "status": "ACTUAL",
+                "temperature": 28.3,
+                "relative_humidity": 16.0,
+                "wind_speed": 20.3,
+                "wind_direction": 256.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 95.997,
+                "dmc": 144.429,
+                "dc": 427.327,
+                "isi": 27.58,
+                "bui": 156.567,
+                "fwi": 70.043,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:39:22.501000+00:00"
+              },
+              "valid": false
+            },
+            {
+              "daily": {
+                "code": 309,
+                "status": "ACTUAL",
+                "temperature": 25.4,
+                "relative_humidity": 31.0,
+                "wind_speed": 10.2,
+                "wind_direction": 209.0,
+                "grass_cure_percentage": null,
+                "precipitation": 0.0,
+                "ffmc": 93.96,
+                "dmc": 156.252,
+                "dc": 484.519,
+                "isi": 12.541,
+                "bui": 173.015,
+                "fwi": 43.965,
+                "danger_class": null,
+                "observation_valid": true,
+                "observation_valid_comment": null,
+                "rate_of_spread": null,
+                "hfi": null,
+                "intensity_group": null,
+                "sixty_minute_fire_size": null,
+                "fire_type": null,
+                "error": true,
+                "error_message": null,
+                "date": "2021-08-05T20:00:00+00:00",
+                "last_updated": "2021-08-05T20:39:18.603000+00:00"
+              },
+              "valid": false
+            }
+          ],
+          "fire_starts": {
+            "label": "0-1",
+            "value": 1,
+            "lookup_table": {
+              "1": 1,
+              "2": 1,
+              "3": 2,
+              "4": 3,
+              "5": 4
+            }
+          },
+          "mean_intensity_group": null,
+          "prep_level": null
+        }
+      ]
+    }
+  ],
+  "planning_area_fire_starts": {
+    "1": [
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      }
+    ],
+    "2": [
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      }
+    ],
+    "3": [
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      }
+    ],
+    "4": [
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      }
+    ],
+    "5": [
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      }
+    ],
+    "6": [
+      {
+        "label": "6+",
+        "value": 7,
+        "lookup_table": {
+          "1": 4,
+          "2": 5,
+          "3": 6,
+          "4": 6,
+          "5": 6
+        }
+      },
+      {
+        "label": "6+",
+        "value": 7,
+        "lookup_table": {
+          "1": 4,
+          "2": 5,
+          "3": 6,
+          "4": 6,
+          "5": 6
+        }
+      },
+      {
+        "label": "6+",
+        "value": 7,
+        "lookup_table": {
+          "1": 4,
+          "2": 5,
+          "3": 6,
+          "4": 6,
+          "5": 6
+        }
+      },
+      {
+        "label": "6+",
+        "value": 7,
+        "lookup_table": {
+          "1": 4,
+          "2": 5,
+          "3": 6,
+          "4": 6,
+          "5": 6
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      }
+    ],
+    "7": [
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      }
+    ],
+    "8": [
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      }
+    ],
+    "9": [
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      }
+    ],
+    "10": [
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      }
+    ],
+    "11": [
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      }
+    ],
+    "12": [
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      },
+      {
+        "label": "0-1",
+        "value": 1,
+        "lookup_table": {
+          "1": 1,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4
+        }
+      }
     ]
+  }
 }

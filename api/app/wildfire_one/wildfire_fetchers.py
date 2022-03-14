@@ -2,10 +2,11 @@
 import math
 import logging
 from datetime import datetime
-from typing import Dict, Generator, Tuple, Final
+from typing import AsyncGenerator, Dict, Tuple, Final
 import json
 from urllib.parse import urlencode
 from aiohttp.client import ClientSession, BasicAuth
+from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.stations import (DetailedWeatherStationProperties,
                                   GeoJsonDetailedWeatherStation,
@@ -51,7 +52,7 @@ async def fetch_paged_response_generator(
         content_key: str,
         use_cache: bool = False,
         cache_expiry_seconds: int = 86400
-) -> Generator[dict, None, None]:
+) -> AsyncGenerator[dict, None]:
     """ Asynchronous generator for iterating through responses from the API.
     The response is a paged response, but this generator abstracts that away.
     """
@@ -183,7 +184,8 @@ async def fetch_hourlies(
         headers: dict,
         start_timestamp: datetime,
         end_timestamp: datetime,
-        use_cache: bool = False) -> WeatherStationHourlyReadings:
+        use_cache: bool,
+        eco_division: EcodivisionSeasons) -> WeatherStationHourlyReadings:
     """ Fetch hourly weather readings for the specified time range for a give station """
     logger.debug('fetching hourlies for %s(%s)',
                  raw_station['displayLabel'], raw_station['stationCode'])
@@ -209,7 +211,9 @@ async def fetch_hourlies(
     logger.debug('fetched %d hourlies for %s(%s)', len(
         hourlies), raw_station['displayLabel'], raw_station['stationCode'])
 
-    return WeatherStationHourlyReadings(values=hourlies, station=parse_station(raw_station))
+    return WeatherStationHourlyReadings(values=hourlies,
+                                        station=parse_station(
+                                            raw_station, eco_division))
 
 
 async def fetch_access_token(session: ClientSession) -> dict:

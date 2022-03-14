@@ -1,22 +1,22 @@
 """ Routers for HFI Calculator """
 import logging
-import math
+import json
 from typing import List, Optional
-from aiohttp.client import ClientSession
-from fastapi import APIRouter, Response, Depends, Query
+from fastapi import APIRouter, Response, Depends
+from app.hfi.daily_pdf_gen import generate_daily_pdf
+from app.hfi.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 import app.utils.time
-from app.schemas.hfi_calc import StationDailyResponse
+from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse
 import app
 from app.auth import authentication_required, audit
-from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
-                                  FuelType, FireCentre, PlanningArea, WeatherStation)
-from app.db.crud.hfi_calc import get_fire_weather_stations
-from app.wildfire_one.wfwx_api import (get_auth_header,
-                                       get_dailies_lookup_fuel_types,
-                                       get_stations_by_codes)
+from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
+from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request)
 
 
 logger = logging.getLogger(__name__)
+
+
+no_cache = "max-age=0"  # don't let the browser cache this
 
 router = APIRouter(
     prefix="/hfi-calc",
@@ -24,34 +24,84 @@ router = APIRouter(
 )
 
 
-def validate_time_range(start_time_stamp: Optional[int], end_time_stamp: Optional[int]):
-    """ Sets timestamp to today if they are None.
-        Defaults to start of today and end of today if no range is given. """
-    if start_time_stamp is None or end_time_stamp is None:
-        today_start, today_end = app.utils.time.get_pst_today_start_and_end()
-        return math.floor(today_start.timestamp() * 1000), math.floor(today_end.timestamp() * 1000)
-    return int(start_time_stamp), int(end_time_stamp)
+def load_request_from_database(request: HFIResultRequest) -> Optional[HFIResultRequest]:
+    """ If we need to load the request from the database, we do so.
+
+    Returns:
+        The request object if saved, otherwise None.
+    """
+    if request.start_date is None:
+        with app.db.database.get_read_session_scope() as session:
+            stored_request = get_most_recent_updated_hfi_request(session, request.selected_fire_center_id)
+            if stored_request:
+                return HFIResultRequest.parse_obj(json.loads(stored_request.request))
+    return None
 
 
-@router.get('/daily', response_model=StationDailyResponse)
-async def get_daily_view(response: Response,
-                         _=Depends(authentication_required),
-                         station_codes: Optional[List[int]] = Query(None),
-                         start_time_stamp: Optional[int] = None,
-                         end_time_stamp: Optional[int] = None):
-    """ Returns daily metrics for each station code. """
+def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
+    """ Save the request to the database (if there's a valid prep period).
+
+    Returns:
+        True if the request was saved, False otherwise.
+    """
+    if request.start_date is not None and request.end_date is not None:
+        with app.db.database.get_write_session_scope() as session:
+            store_hfi_request(session, request, username)
+            return True
+    return False
+
+
+def extract_selected_stations(request: HFIResultRequest) -> List[int]:
+    """ Extract a list of the selected station codes - we use this to get the daily data from wfwx. """
+    stations_codes = []
+    for _, value in request.planning_area_station_info.items():
+        for station_info in value:
+            if station_info.selected:
+                if not station_info.station_code in stations_codes:
+                    stations_codes.append(station_info.station_code)
+    return stations_codes
+
+
+@router.post('/', response_model=HFIResultResponse)
+async def get_hfi_results(request: HFIResultRequest,
+                          response: Response,
+                          token=Depends(authentication_required)):
+    """ Returns calculated HFI results for the supplied details in the POST body """
+    # Yes. There are a lot of locals!
+    # pylint: disable=too-many-locals
+
     try:
-        logger.info('/hfi-calc/daily')
-        response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
-        valid_start_time, valid_end_time = validate_time_range(start_time_stamp, end_time_stamp)
+        logger.info('/hfi-calc/')
+        response.headers["Cache-Control"] = no_cache
 
-        async with ClientSession() as session:
-            header = await get_auth_header(session)
-            wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
-                session, header, station_codes)
-            dailies = await get_dailies_lookup_fuel_types(
-                session, header, wfwx_stations, valid_start_time, valid_end_time)
-            return StationDailyResponse(dailies=dailies)
+        stored_request = load_request_from_database(request)
+        request_loaded = False
+        if stored_request:
+            request = stored_request
+            request_loaded = True
+
+        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
+        response = HFIResultResponse(
+            start_date=start_timestamp,
+            end_date=end_timestamp,
+            selected_station_code_ids=request.selected_station_code_ids,
+            planning_area_station_info=request.planning_area_station_info,
+            selected_fire_center_id=request.selected_fire_center_id,
+            planning_area_hfi_results=results,
+            planning_area_fire_starts=request.planning_area_fire_starts,
+            request_persist_success=False)
+
+        # TODO: move this to own function, as part of refactor app.hfi
+        request_persist_success = False
+        if request.persist_request is True and request_loaded is False:
+            # We save the request if we've been asked to, and if we didn't just load it.
+            # It's important to do that load check, otherwise we end up saving the request every time
+            # we load it!
+            save_request_in_database(request, token.get('preferred_username', None))
+            request_persist_success = True
+        # Indicate in the response if this request is saved in the database.
+        response.request_persist_success = request_persist_success or request_loaded
+        return response
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise
@@ -64,89 +114,10 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
     for each weather station. """
     try:
         logger.info('/hfi-calc/fire-centres')
-        response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
-
-        with app.db.database.get_read_session_scope() as session:
-            # Fetch all fire weather stations from the database.
-            station_query = get_fire_weather_stations(session)
-            # Prepare a dictionary for storing station info in.
-            station_info_dict = {}
-            # Prepare empty data structures to be used in HFIWeatherStationsResponse
-            fire_centres_list = []
-            planning_areas_dict = {}
-            fire_centres_dict = {}
-
-            # Iterate through all the database records, collecting all the data we need.
-            for (station_record, fuel_type_record, planning_area_record, fire_centre_record) in station_query:
-                station_info_dict[station_record.station_code] = {
-                    'fuel_type': FuelType(
-                        abbrev=fuel_type_record.abbrev,
-                        description=fuel_type_record.description),
-                    'planning_area': planning_area_record,
-                    'fire_centre': fire_centre_record
-                }
-
-                if fire_centres_dict.get(fire_centre_record.name) is None:
-                    fire_centres_dict[fire_centre_record.name] = {
-                        'fire_centre_record': fire_centre_record,
-                        'planning_area_records': [planning_area_record],
-                        'planning_area_objects': []
-                    }
-                else:
-                    fire_centres_dict.get(fire_centre_record.name)[
-                        'planning_area_records'].append(planning_area_record)
-                    fire_centres_dict[fire_centre_record.name]['planning_area_records'] = list(
-                        set(fire_centres_dict.get(fire_centre_record.name).get('planning_area_records')))
-
-                if planning_areas_dict.get(planning_area_record.name) is None:
-                    planning_areas_dict[planning_area_record.name] = {
-                        'planning_area_record': planning_area_record,
-                        'order_of_appearance_in_list': planning_area_record.order_of_appearance_in_list,
-                        'station_codes': [station_record.station_code],
-                        'station_objects': []
-                    }
-                else:
-                    planning_areas_dict[planning_area_record.name]['station_codes'].append(
-                        station_record.station_code)
-
-            # We're still missing some data that we need from wfwx, so give it the list of stations
-            wfwx_stations_data = await get_stations_by_codes(list(station_info_dict.keys()))
-            # Iterate through all the stations from wildfire one.
-
-            for wfwx_station in wfwx_stations_data:
-                station_info = station_info_dict[wfwx_station.code]
-                # Combine everything.
-                station_properties = WeatherStationProperties(
-                    name=wfwx_station.name,
-                    fuel_type=station_info['fuel_type'],
-                    elevation=wfwx_station.elevation,
-                    wfwx_station_uuid=wfwx_station.wfwx_station_uuid)
-
-                weather_station = WeatherStation(code=wfwx_station.code,
-                                                 station_props=station_properties)
-
-                station_info_dict[wfwx_station.code]['station'] = weather_station
-
-                planning_areas_dict[station_info_dict[wfwx_station.code]
-                                    ['planning_area'].name]['station_objects'].append(weather_station)
-
-        # create PlanningArea objects containing all corresponding WeatherStation objects
-        for key, val in planning_areas_dict.items():
-            planning_area = PlanningArea(
-                name=key,
-                order_of_appearance_in_list=val['order_of_appearance_in_list'],
-                stations=val['station_objects'])
-            val['planning_area_object'] = planning_area
-
-        # create FireCentre objects containing all corresponding PlanningArea objects
-        for key, val in fire_centres_dict.items():
-            planning_area_objects_list = []
-            for pa_record in val['planning_area_records']:
-                pa_object = planning_areas_dict.get(pa_record.name).get('planning_area_object')
-                planning_area_objects_list.append(pa_object)
-            fire_centre = FireCentre(name=key, planning_areas=planning_area_objects_list)
-            fire_centres_list.append(fire_centre)
-
+        # we can safely cache the fire centres, as they don't change them very often.
+        # the eco-division logic is very slow, and chomps up 2 seconds!
+        response.headers["Cache-Control"] = "max-age=86400"
+        fire_centres_list = await hydrate_fire_centres()
         return HFIWeatherStationsResponse(fire_centres=fire_centres_list)
 
     except Exception as exc:
@@ -161,3 +132,30 @@ def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int
         if station.code == station_code:
             return station
     return None
+
+
+@router.post('/download-pdf')
+async def download_result_pdf(request: HFIResultRequest,
+                              _=Depends(authentication_required)):
+    """ Assembles and returns PDF byte representation of HFI result. """
+    try:
+        logger.info('/hfi-calc/download-pdf')
+        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
+
+        response = HFIResultResponse(
+            start_date=start_timestamp,
+            end_date=end_timestamp,
+            selected_station_code_ids=request.selected_station_code_ids,
+            planning_area_station_info=request.planning_area_station_info,
+            selected_fire_center_id=request.selected_fire_center_id,
+            planning_area_hfi_results=results,
+            planning_area_fire_starts=request.planning_area_fire_starts,
+            request_persist_success=False)
+
+        fire_centres_list = await hydrate_fire_centres()
+        pdf_bytes = generate_daily_pdf(response, fire_centres_list)
+
+        return Response(pdf_bytes)
+    except Exception as exc:
+        logger.critical(exc, exc_info=True)
+        raise

@@ -25,16 +25,16 @@ parameters:
     value: e1e498-tools
   - name: CPU_REQUEST
     description: Requested CPU
-    value: 50m
+    value: 100m
   - name: CPU_LIMIT
     description: CPU upper limit
     value: 500m
   - name: MEMORY_REQUEST
     description: Requested memory
-    value: 1Gi
+    value: 2Gi
   - name: MEMORY_LIMIT
     description: Memory upper limit
-    value: 2Gi
+    value: 3Gi
   - name: REPLICAS
     description: Number of replicas (pods)
     value: "2"
@@ -104,6 +104,11 @@ objects:
                   value: "8080"
                 - name: WORKERS_PER_CORE # The number of worker per code (used by fastapi docker image)
                   value: "0.25"
+                - name: "TIMEOUT" # https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.gunicorn.timeout
                 - name: USE_WFWX
                   value: ${USE_WFWX}
                 - name: WFWX_MAX_PAGE_SIZE
@@ -320,7 +325,7 @@ objects:
                 # initialDelaySeconds and initialDelaySeconds + periodSeconds
                 initialDelaySeconds: 30
                 periodSeconds: 120
-                timeoutSeconds: 5
+                timeoutSeconds: 20
   - apiVersion: v1
     kind: Service
     metadata:

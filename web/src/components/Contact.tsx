@@ -30,7 +30,7 @@ const Contact = (props: Props) => {
       className={classes.contact}
       href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - ${productName}`}
     >
-      Contact
+      Contact Predictive Services Unit
     </a>
   )
 }

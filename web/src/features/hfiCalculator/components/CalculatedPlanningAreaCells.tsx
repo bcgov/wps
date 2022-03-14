@@ -17,26 +17,22 @@ export interface CalculatedCellsProps {
   areaName: string
   planningAreaResult: PlanningAreaResult
   selectedStationCodes: number[]
-  setNewFireStarts: (
-    areaName: string,
-    dayOffset: number,
-    newFireStarts: FireStarts
-  ) => void
+  setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
   planningAreaClass: string
   numPrepDays: number
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
-  const allPlanningAreaDailies = props.planningAreaResult.dailyResults.flatMap(
-    result => result.dailies
+  const allPlanningAreaDailies = props.planningAreaResult.daily_results.flatMap(result =>
+    result.dailies.map(validatedDaily => validatedDaily.daily)
   )
   return (
     <React.Fragment>
       {range(props.numPrepDays).map(day => {
         const meanIntensityGroup =
-          props.planningAreaResult.dailyResults[day]?.meanIntensityGroup
-        const prepLevel = props.planningAreaResult.dailyResults[day]?.prepLevel
-        const fireStarts = props.planningAreaResult.dailyResults[day]?.fireStarts
+          props.planningAreaResult.daily_results[day]?.mean_intensity_group
+        const prepLevel = props.planningAreaResult.daily_results[day]?.prep_level
+        const fireStarts = props.planningAreaResult.daily_results[day]?.fire_starts
 
         return (
           <React.Fragment key={`calc-cells-${day}`}>
@@ -47,12 +43,14 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
               selectedStationCodes={props.selectedStationCodes}
               meanIntensityGroup={meanIntensityGroup}
             />
-            <FireStartsDropdown
-              fireStarts={fireStarts}
-              areaName={props.area.name}
-              dayOffset={day}
-              setFireStarts={props.setNewFireStarts}
-            />
+            <TableCell>
+              <FireStartsDropdown
+                fireStarts={fireStarts}
+                areaId={props.planningAreaResult.planning_area_id}
+                dayOffset={day}
+                setFireStarts={props.setNewFireStarts}
+              />
+            </TableCell>
             <PrepLevelCell
               toolTipText={
                 'Cannot calculate prep level. Please check the daily forecast using the tabs above.'
@@ -67,13 +65,14 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
         area={props.area}
         dailies={allPlanningAreaDailies}
         selectedStationCodes={props.selectedStationCodes}
-        meanIntensityGroup={props.planningAreaResult.highestDailyIntensityGroup}
+        meanIntensityGroup={props.planningAreaResult.highest_daily_intensity_group}
       ></MeanIntensityGroupRollup>
       <MeanPrepLevelCell
         areaName={props.areaName}
-        meanPrepLevel={props.planningAreaResult.meanPrepLevel}
+        meanPrepLevel={props.planningAreaResult.mean_prep_level}
         emptyOrIncompleteForecast={
-          allPlanningAreaDailies.length === 0 || !props.planningAreaResult.allDailiesValid
+          allPlanningAreaDailies.length === 0 ||
+          !props.planningAreaResult.all_dailies_valid
         }
       />
     </React.Fragment>

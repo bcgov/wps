@@ -15,23 +15,24 @@ export interface WeatherStationProperties {
 export interface FireCentre {
   id: number
   name: string
-  planning_areas: Record<string, PlanningArea>
+  planning_areas: PlanningArea[]
 }
 
 export interface PlanningArea {
   id: number
   name: string
   order_of_appearance_in_list: number
-  stations: Record<number, WeatherStation>
+  stations: WeatherStation[]
 }
 
 export interface WeatherStation {
   code: number
   station_props: WeatherStationProperties
+  order_of_appearance_in_planning_area_list?: number
 }
 
 export interface HFIWeatherStationsResponse {
-  fire_centres: Record<string, FireCentre>
+  fire_centres: FireCentre[]
 }
 
 export async function getHFIStations(): Promise<HFIWeatherStationsResponse> {

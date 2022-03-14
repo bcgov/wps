@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
 from app.schemas.fba_calc import FuelTypeEnum
+from app.schemas.shared import FuelType
 from app.schemas.stations import WeatherStation
 from app.utils import cffdrs
 from app.utils import c7b
@@ -110,13 +111,14 @@ def construct_zone_code(station: any):
     return zone_code
 
 
-def parse_station(station) -> WeatherStation:
+def parse_station(station, eco_division: EcodivisionSeasons) -> WeatherStation:
     """ Transform from the json object returned by wf1, to our station object.
     """
     # pylint: disable=no-member
-    core_seasons = EcodivisionSeasons.instance().get_core_seasons()
-    ecodiv_name = EcodivisionSeasons.instance().get_ecodivision_name(
-        station['stationCode'], station['latitude'], station['longitude'])
+    core_seasons = eco_division.get_core_seasons()
+    ecodiv_name = eco_division.get_ecodivision_name(station['stationCode'],
+                                                    station['latitude'],
+                                                    station['longitude'])
     return WeatherStation(
         zone_code=construct_zone_code(station),
         code=station['stationCode'],
@@ -336,17 +338,20 @@ def calculate_fire_behaviour_prediction(latitude: float,  # pylint: disable=too-
         cfl=cfl)
 
 
+# TODO: this doesn't belong in wildfire_one - it's doing fire behaviour calculations
 def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
                            station: WFWXWeatherStation,
-                           fuel_type: str) -> StationDaily:
+                           fuel_type: FuelType) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
     # pylint: disable=invalid-name
     # we use the fuel type lookup to get default values.
-    pc = FUEL_TYPE_DEFAULTS[fuel_type]["PC"]
-    pdf = FUEL_TYPE_DEFAULTS[fuel_type]["PDF"]
-    cbh = FUEL_TYPE_DEFAULTS[fuel_type]["CBH"]
-    cfl = FUEL_TYPE_DEFAULTS[fuel_type]["CFL"]
+    pc = fuel_type.percentage_conifer if fuel_type.percentage_conifer is not None\
+        else FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["PC"]
+    pdf = fuel_type.percentage_dead_fir if fuel_type.percentage_dead_fir is not None\
+        else FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["PDF"]
+    cbh = FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["CBH"]
+    cfl = FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["CFL"]
     date = raw_daily.get('weatherTimestamp', None)
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
@@ -359,7 +364,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
             latitude=station.lat,
             longitude=station.long,
             elevation=station.elevation,
-            fuel_type=FuelTypeEnum[fuel_type],
+            fuel_type=FuelTypeEnum[fuel_type.fuel_type_code],
             bui=bui,
             ffmc=ffmc,
             wind_speed=wind_speed,
@@ -402,7 +407,9 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         sixty_minute_fire_size=fire_behaviour_prediction.sixty_minute_fire_size,
         fire_type=fire_behaviour_prediction.fire_type,
         error=raw_daily.get('observationValidInd', None),
-        error_message=raw_daily.get('observationValidComment', None)
+        error_message=raw_daily.get('observationValidComment', None),
+        last_updated=datetime.fromtimestamp(raw_daily.get(
+            'lastEntityUpdateTimestamp') / 1000, tz=timezone.utc)
     )
 
 

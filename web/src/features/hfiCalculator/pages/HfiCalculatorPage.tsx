@@ -1,43 +1,34 @@
 import React, { useState, useEffect } from 'react'
-import { Button, Container, ErrorBoundary, GeneralHeader, PageTitle } from 'components'
+import { Container, ErrorBoundary, GeneralHeader } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
-  fetchHFIDailies,
   FireStarts,
-  setPrepDays,
+  setSelectedFireCentre,
+  fetchHFIResult,
   setSelectedPrepDate,
-  setSelectedSelectedStationCodes,
-  setFireStarts,
-  setSelectedFireCentre
+  setSaved,
+  fetchPDFDownload
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
 import {
-  selectHFIDailies,
   selectHFIStations,
   selectHFIStationsLoading,
   selectHFICalculatorState
 } from 'app/rootReducer'
-import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui/core'
-import {
-  FileCopyOutlined,
-  CheckOutlined,
-  InfoOutlined,
-  HelpOutlineOutlined
-} from '@material-ui/icons'
-import { getDateRange, getPrepWeeklyDateRange, pstFormatter } from 'utils/date'
+import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
+import { getDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
+import SaveButton from 'features/hfiCalculator/components/SaveButton'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles, theme } from 'app/theme'
-import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
-import { HFITableCSVFormatter } from 'features/hfiCalculator/HFITableCSVFormatter'
-import { PST_UTC_OFFSET } from 'utils/constants'
+import { PST_UTC_OFFSET, PST_ISO_TIMEZONE } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
-import DatePicker from 'components/DatePicker'
 import { FireCentre } from 'api/hfiCalcAPI'
-import { isNull, isUndefined, union } from 'lodash'
-import FireCentreDropdown from 'features/hfiCalculator/components/FireCentreDropdown'
+import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
+import { cloneDeep, isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
+import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -66,125 +57,112 @@ const useStyles = makeStyles(() => ({
   prepDays: {
     margin: theme.spacing(1),
     minWidth: 100
+  },
+  saveButton: {
+    margin: theme.spacing(1),
+    float: 'right'
   }
 }))
-
-const clipboardCopySuccessDuration = 2000 // milliseconds
 
 const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
   const dispatch = useDispatch()
-  const { dailies, loading, error: hfiDailiesError } = useSelector(selectHFIDailies)
   const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const {
-    numPrepDays,
-    selectedStationCodes: selected,
-    planningAreaHFIResults,
-    selectedPrepDate,
-    selectedFireCentre
-  } = useSelector(selectHFICalculatorState)
+  const { numPrepDays, selectedPrepDate, result, selectedFireCentre, loading, saved } =
+    useSelector(selectHFICalculatorState)
 
-  const [isWeeklyView, setIsWeeklyView] = useState<boolean>(selectedPrepDate == '')
   const setNumPrepDays = (numDays: number) => {
     // if the number of prep days change, we need to unset the selected prep day - it
     // could be that the selected prep day no longer falls into the prep period.
-    dispatch(setSelectedPrepDate(''))
-    dispatch(setPrepDays(numDays))
+    if (!isUndefined(result)) {
+      dispatch(setSaved(false))
+      const newEndDate = DateTime.fromISO(result.start_date + PST_ISO_TIMEZONE).plus({
+        days: numDays
+      })
+
+      const prepDateObj = DateTime.fromISO(selectedPrepDate)
+      const startDate = DateTime.fromISO(result.start_date + PST_ISO_TIMEZONE)
+      if (prepDateObj < startDate || prepDateObj > newEndDate) {
+        // we only need to change the selected prep date, the change in prep days would result in the
+        // selected date being invalid.
+        dispatch(setSelectedPrepDate(''))
+      }
+
+      dispatch(
+        fetchHFIResult({
+          selected_station_code_ids: result.selected_station_code_ids,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: result.planning_area_fire_starts,
+          start_date: result.start_date,
+          end_date: newEndDate.toISO().split('T')[0]
+        })
+      )
+    }
   }
 
   const setSelected = (newSelected: number[]) => {
-    dispatch(setSelectedSelectedStationCodes(newSelected))
+    if (!isUndefined(result)) {
+      dispatch(setSaved(false))
+      dispatch(
+        fetchHFIResult({
+          selected_station_code_ids: newSelected,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: result.planning_area_fire_starts,
+          start_date: result.start_date,
+          end_date: result.end_date
+        })
+      )
+    }
   }
 
   const setNewFireStarts = (
-    areaName: string,
+    areaId: number,
     dayOffset: number,
     newFireStarts: FireStarts
   ) => {
-    dispatch(setFireStarts({ areaName, dayOffset, newFireStarts }))
+    if (!isUndefined(result)) {
+      const newPlanningAreaFireStarts = cloneDeep(result.planning_area_fire_starts)
+      newPlanningAreaFireStarts[areaId][dayOffset] = { ...newFireStarts }
+      dispatch(setSaved(false))
+      dispatch(
+        fetchHFIResult({
+          selected_station_code_ids: result.selected_station_code_ids,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: newPlanningAreaFireStarts,
+          start_date: result.start_date,
+          end_date: result.end_date
+        })
+      )
+    }
   }
 
-  const [modalOpen, setModalOpen] = useState<boolean>(false)
+  const getBrowserCurrentDate = () => {
+    return pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+  }
 
   // the DatePicker component requires dateOfInterest to be in string format
-  const [dateOfInterest, setDateOfInterest] = useState(
-    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
-  )
-  const [isCopied, setIsCopied] = useState(false)
-
-  const getDailies = (start: DateTime, end: DateTime) => {
-    dispatch(
-      fetchHFIDailies(
-        selectedFireCentre,
-        getAllPlanningWeatherStationCodesFromFireCentre(selectedFireCentre),
-        selected,
-        start.toUTC().valueOf(),
-        end.toUTC().valueOf()
-      )
-    )
-  }
-
-  useEffect(() => {
-    setSelected(union(dailies.map(daily => daily.code)))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dailies])
-
-  useEffect(() => {
-    if (!isUndefined(selectedFireCentre)) {
-      const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
-      getDailies(start, end)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFireCentre])
+  const [dateOfInterest, setDateOfInterest] = useState(getBrowserCurrentDate())
 
   const updateDate = (newDate: string) => {
-    if (newDate !== dateOfInterest && !isUndefined(selectedFireCentre)) {
+    if (
+      newDate !== dateOfInterest &&
+      !isUndefined(selectedFireCentre) &&
+      !isUndefined(result)
+    ) {
       setDateOfInterest(newDate)
       const { start, end } = getDateRange(true, newDate)
-      dispatch(setSelectedPrepDate(''))
-      getDailies(start, end)
-    }
-  }
-
-  const openAboutModal = () => {
-    setModalOpen(true)
-  }
-
-  const getAllPlanningWeatherStationCodesFromFireCentre = (
-    centre: FireCentre | undefined
-  ): number[] => {
-    if (isUndefined(centre)) {
-      return []
-    }
-    return Object.values(centre?.planning_areas).flatMap(area =>
-      Object.values(area.stations).map(station => station.code)
-    )
-  }
-
-  const copyTable = () => {
-    if (!isUndefined(selectedFireCentre)) {
-      let csvString = ''
-      if (isWeeklyView) {
-        const { start } = getPrepWeeklyDateRange(dateOfInterest)
-        csvString += HFITableCSVFormatter.exportWeeklyRowsAsStrings(
-          numPrepDays,
-          start,
-          selectedFireCentre,
-          planningAreaHFIResults
-        )
-      } else {
-        csvString += HFITableCSVFormatter.exportDailyRowsAsStrings(
-          dateOfInterest,
-          selectedFireCentre,
-          planningAreaHFIResults
-        )
-      }
-      navigator.clipboard.writeText(csvString)
-      setIsCopied(true)
-    } else {
-      setIsCopied(false)
+      dispatch(setSaved(false))
+      dispatch(
+        fetchHFIResult({
+          selected_station_code_ids: result.selected_station_code_ids,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: result.planning_area_fire_starts,
+          start_date: start.toISODate(),
+          end_date: end.toISODate()
+        })
+      )
     }
   }
 
@@ -202,23 +180,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   useEffect(() => {
-    /**  this logic is copied from
-     https://github.com/danoc/react-use-clipboard/blob/master/src/index.tsx 
-     (the react-use-clipboard package was too restrictive for our needs, but the logic for
-      having a timeout on the copy success message is helpful for us)
-    */
-    if (isCopied) {
-      const id = setTimeout(() => {
-        setIsCopied(false)
-      }, clipboardCopySuccessDuration)
-
-      return () => {
-        clearTimeout(id)
-      }
-    }
-  }, [isCopied])
-
-  useEffect(() => {
     dispatch(fetchHFIStations())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -230,16 +191,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     ) {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
-    const { start, end } = getDateRange(true, dateOfInterest)
     if (!isUndefined(selectedFireCentre)) {
+      const stationCodes = selectedFireCentre.planning_areas.flatMap(area =>
+        area.stations.map(station => station.code)
+      )
       dispatch(
-        fetchHFIDailies(
-          selectedFireCentre,
-          getAllPlanningWeatherStationCodesFromFireCentre(selectedFireCentre),
-          selected,
-          start.toUTC().valueOf(),
-          end.toUTC().valueOf()
-        )
+        fetchHFIResult({
+          start_date: undefined,
+          end_date: undefined,
+          selected_station_code_ids: stationCodes,
+          selected_fire_center_id: selectedFireCentre.id,
+          planning_area_fire_starts: {}
+        })
       )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -253,16 +216,43 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [fireCentres])
 
   useEffect(() => {
-    setIsWeeklyView(selectedPrepDate == '')
-  }, [selectedPrepDate])
-
-  useEffect(() => {
-    setSelected(union(dailies.map(daily => daily.code)))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dailies])
+    if (!isUndefined(result)) {
+      // TODO: Ooooh no! HACK! If you be doing string stuff like this, things will break!
+      setDateOfInterest(result.start_date + 'T00:00:00.000-08:00')
+    }
+  }, [result, result?.start_date])
 
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))
+  }
+
+  const handleSaveClicked = () => {
+    if (!isUndefined(result)) {
+      dispatch(
+        fetchHFIResult({
+          selected_station_code_ids: result.selected_station_code_ids,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: result.planning_area_fire_starts,
+          start_date: result.start_date,
+          end_date: result.end_date,
+          persist_request: true
+        })
+      )
+    }
+  }
+
+  const handleDownloadClicked = () => {
+    if (!isUndefined(result)) {
+      dispatch(
+        fetchPDFDownload({
+          selected_station_code_ids: result.selected_station_code_ids,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: result.planning_area_fire_starts,
+          start_date: result.start_date,
+          end_date: result.end_date
+        })
+      )
+    }
   }
 
   return (
@@ -270,82 +260,49 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       <GeneralHeader
         padding="3em"
         spacing={0.985}
-        title="Predictive Services Unit"
+        title="HFI Calculator"
         productName="HFI Calculator"
       />
-      <PageTitle maxWidth={false} padding="1rem" title="HFI Calculator" />
-      {loading || stationDataLoading ? (
+      <HFIPageSubHeader
+        fireCentres={fireCentres}
+        dateOfInterest={dateOfInterest}
+        updateDate={updateDate}
+        result={result}
+        selectedFireCentre={selectedFireCentre}
+        selectNewFireCentre={selectNewFireCentre}
+        padding="1rem"
+      />
+      {loading || stationDataLoading || isUndefined(result) ? (
         <Container className={classes.container}>
           <CircularProgress />
         </Container>
       ) : (
         <React.Fragment>
           <Container maxWidth={'xl'}>
-            {(!isNull(hfiDailiesError) || !isNull(fireCentresError)) && (
-              <HFIErrorAlert
-                hfiDailiesError={hfiDailiesError}
-                fireCentresError={fireCentresError}
-              />
+            {!isNull(fireCentresError) && (
+              <HFIErrorAlert hfiDailiesError={null} fireCentresError={fireCentresError} />
             )}
-
             <FormControl className={classes.prepDays}>
               <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
             </FormControl>
-            <FormControl className={classes.formControl}>
-              <FireCentreDropdown
-                fireCentres={fireCentres}
-                selectedValue={
-                  isUndefined(selectedFireCentre)
-                    ? null
-                    : { name: selectedFireCentre?.name }
-                }
-                onChange={selectNewFireCentre}
-              />
-            </FormControl>
 
-            <FormControl className={classes.formControl}>
-              <DatePicker date={dateOfInterest} updateDate={updateDate} />
-            </FormControl>
             <FormControl className={classes.formControl}>
               <ViewSwitcherToggles dateOfInterest={dateOfInterest} />
             </FormControl>
-            <FormControl className={classes.formControl}>
-              {isCopied ? (
-                <Button>
-                  <CheckOutlined />
-                  Copied!
-                </Button>
-              ) : (
-                <Button onClick={copyTable}>
-                  <FileCopyOutlined className={classes.clipboardIcon} />
-                  Copy Data to Clipboard
-                  <Tooltip
-                    title={
-                      'You can paste all table data in Excel. To format: go to the Data tab, use Text to Columns > Delimited > Comma.'
-                    }
-                  >
-                    <InfoOutlined className={classes.copyToClipboardInfoIcon} />
-                  </Tooltip>
-                </Button>
-              )}
+
+            <FormControl className={classes.saveButton}>
+              <DownloadPDFButton onClick={handleDownloadClicked} />
             </FormControl>
 
-            <FormControl className={classes.positionStyler}>
-              <Button onClick={openAboutModal}>
-                <HelpOutlineOutlined className={classes.helpIcon}></HelpOutlineOutlined>
-                <p className={classes.aboutButtonText}>About this data</p>
-              </Button>
+            <FormControl className={classes.saveButton}>
+              <SaveButton saved={saved} onClick={handleSaveClicked} />
             </FormControl>
-            <AboutDataModal
-              modalOpen={modalOpen}
-              setModalOpen={setModalOpen}
-            ></AboutDataModal>
 
             <ErrorBoundary>
               <ViewSwitcher
                 selectedFireCentre={selectedFireCentre}
-                dailies={dailies}
                 dateOfInterest={dateOfInterest}
+                result={result}
                 setSelected={setSelected}
                 setNewFireStarts={setNewFireStarts}
                 selectedPrepDay={selectedPrepDate}

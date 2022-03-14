@@ -1,0 +1,13 @@
+{
+    "input": {
+        "stationCode": 230,
+        "yesterdayFFMC": 0,
+        "yesterdayDMC": 0,
+        "yesterdayDC": 0,
+        "todayTemp": 0,
+        "todayRH": 0,
+        "todayWindspeed": 0,
+        "todayPrecip": 0
+    },
+    "date": "2021-07-05T13:00:00.000Z"
+}

@@ -5,7 +5,7 @@ import json
 import importlib
 import logging
 import pytest
-from pytest_bdd import scenario, given, then, when
+from pytest_bdd import scenario, given, then, when, parsers
 from fastapi.testclient import TestClient
 import app.main
 from app.tests import load_sqlalchemy_response_from_json
@@ -16,10 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@scenario("test_models_endpoints.feature", "Generic model endpoint testing",
-          example_converters=dict(
-              codes=json.loads, endpoint=str, crud_mapping=load_json_file(__file__), expected_status_code=int,
-              expected_response=load_json_file(__file__), notes=str))
+@scenario("test_models_endpoints.feature", "Generic model endpoint testing")
 def test_model_predictions_summaries_scenario():
     """ BDD Scenario for prediction summaries """
 
@@ -34,13 +31,13 @@ def _patch_function(monkeypatch, module_name: str, function_name: str, json_file
     monkeypatch.setattr(importlib.import_module(module_name), function_name, mock_get_data)
 
 
-@given("some explanatory <notes>")
+@given(parsers.parse("some explanatory {notes}"), converters={'notes': str})
 def given_some_notes(notes: str):
     """ Send notes to the logger. """
     logger.info(notes)
 
 
-@given("A <crud_mapping>", target_fixture='database')
+@given(parsers.parse("A weather model crud mapping {crud_mapping}"), target_fixture='database', converters={'crud_mapping': load_json_file(__file__)})
 def given_a_database(monkeypatch, crud_mapping: dict):
     """ Mock the sql response """
 
@@ -50,7 +47,7 @@ def given_a_database(monkeypatch, crud_mapping: dict):
     return {}
 
 
-@when("I call <endpoint> with <codes>")
+@when(parsers.parse("I call {endpoint} with {codes}"), converters={'endpoint': str, 'codes': json.loads})
 def when_prediction(database: dict, codes: str, endpoint: str):
     """ Make call to endpoint """
     client = TestClient(app.main.app)
@@ -61,14 +58,15 @@ def when_prediction(database: dict, codes: str, endpoint: str):
     database['status_code'] = response.status_code
 
 
-@then('The <expected_status_code> is matched')
-def assert_status_code(database: dict, expected_status_code: str):
+@then(parsers.parse('The status code = {expected_status_code}'), converters={'expected_status_code': int})
+def assert_status_code(database: dict, expected_status_code: int):
     """ Assert that the status code is as expected
     """
-    assert database['status_code'] == int(expected_status_code)
+    assert database['status_code'] == expected_status_code
 
 
-@then('The <expected_response> is matched')
+@then(parsers.parse('The response = {expected_response}'), converters={'expected_response': load_json_file(__file__)})
 def assert_response(database: dict, expected_response: dict):
-    """ "Catch all" test that blindly checks the actual json response against an expected response. """
+    """ Assert that the response is as expected
+    """
     assert database['response_json'] == expected_response

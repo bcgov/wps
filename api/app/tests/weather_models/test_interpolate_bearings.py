@@ -1,20 +1,21 @@
 from datetime import datetime
-from pytest_bdd import scenario, given, when, then
+from pytest_bdd import scenario, given, when, then, parsers
 from app.weather_models import interpolate_bearing
 
 
-@scenario("test_interpolate_bearings.feature", "Interpolate bearings",
-          example_converters=dict(time_a=datetime.fromisoformat,
-                                  time_b=datetime.fromisoformat,
-                                  target_time=datetime.fromisoformat,
-                                  direction_a=float,
-                                  direction_b=float,
-                                  result=float))
+@scenario("test_interpolate_bearings.feature", "Interpolate bearings")
 def test_direction_interpolation():
     """ BDD Scenario for directions """
 
 
-@given("<time_a>, <time_b>, <target_time>, <direction_a>, <direction_b>", target_fixture='data')
+@given(parsers.parse("{time_a}, {time_b}, {target_time}, {direction_a}, {direction_b}"),
+       target_fixture='data',
+       converters={
+           'time_a': datetime.fromisoformat,
+           'time_b': datetime.fromisoformat,
+           'target_time': datetime.fromisoformat,
+           'direction_a': float,
+           'direction_b': float})
 def given_data(
         time_a: datetime,
         time_b: datetime,
@@ -36,7 +37,7 @@ def when_interpolate(data: dict) -> float:
     data['result'] = interpolate_bearing(**data)
 
 
-@then("You get <result>")
+@then(parsers.parse("You get {result}"), converters={'result': float})
 def then_result(result: float, data: dict):
     """ Check results """
     assert result == data['result']

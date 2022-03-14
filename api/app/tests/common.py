@@ -148,6 +148,7 @@ def get_mock_client_session(url: str, params: dict = None) -> MockClientSession:
     # Get the fixture filename
     fixture_finder = FixtureFinder()
     filename = fixture_finder.get_fixture_path(url, 'get', params)
+    logger.info('using mock client session to load %s, injecting %s', url, filename)
     with open(filename, encoding="utf-8") as fixture_file:
         if is_json(filename):
             return MockClientSession(json=json.load(fixture_file))
@@ -205,3 +206,10 @@ def default_mock_requests_session_post(self, url, data=None, json=None, **kwargs
     """ Return a mocked request response from a request.Session object """
     return default_mock_requests_post(url, data, json, **kwargs)
 # pylint: enable=redefined-outer-name
+
+
+def str2float(value: str):
+    """ Change a string into a floating point number, or a None """
+    if value == 'None':
+        return None
+    return float(value)

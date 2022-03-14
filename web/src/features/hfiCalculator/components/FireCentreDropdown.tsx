@@ -7,12 +7,41 @@ import { isNull } from 'lodash'
 
 const useStyles = makeStyles({
   autocomplete: {
-    width: '100%'
+    width: '100%',
+    hasPopupIcon: 'true',
+    hasClearIcon: 'true',
+    color: 'white'
   },
   wrapper: {
     display: 'flex',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     minWidth: 300
+  },
+  fireCentreTextField: {
+    color: 'white',
+    '& .MuiAutocomplete-clearIndicator': {
+      color: 'white'
+    },
+    '& .MuiAutocomplete-popupIndicator': {
+      color: 'white'
+    },
+    '& .MuiInputLabel-root': {
+      color: 'white'
+    },
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': {
+        borderColor: 'white'
+      },
+      '&:hover fieldset': {
+        borderColor: 'white'
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: 'white'
+      }
+    }
+  },
+  fireCentreTextFieldInput: {
+    color: 'white'
   }
 })
 
@@ -22,7 +51,7 @@ export interface Option {
 
 interface Props {
   className?: string
-  fireCentres: Record<string, FireCentre>
+  fireCentres: FireCentre[]
   selectedValue: Option | null
   onChange: (value: FireCentre | undefined) => void
 }
@@ -30,9 +59,9 @@ interface Props {
 const FireCentreDropdown = (props: Props) => {
   const classes = useStyles()
 
-  const allFireCentreOptions: Option[] = Object.values(props.fireCentres).map(
-    (centre: FireCentre) => ({ name: centre.name })
-  )
+  const allFireCentreOptions: Option[] = props.fireCentres.map((centre: FireCentre) => ({
+    name: centre.name
+  }))
 
   return (
     <div className={props.className}>
@@ -40,6 +69,7 @@ const FireCentreDropdown = (props: Props) => {
         <Autocomplete
           id="fire-centre-dropdown"
           className={classes.autocomplete}
+          classes={{ inputRoot: classes.fireCentreTextFieldInput }}
           data-testid="fire-centre-dropdown"
           options={allFireCentreOptions}
           value={props.selectedValue}
@@ -55,14 +85,15 @@ const FireCentreDropdown = (props: Props) => {
               props.onChange(fc)
             }
           }}
-          size="medium"
+          size="small"
           renderInput={params => (
             <TextField
               {...params}
               label="Fire Centre"
               variant="outlined"
               fullWidth
-              size="medium"
+              size="small"
+              className={classes.fireCentreTextField}
             />
           )}
         />

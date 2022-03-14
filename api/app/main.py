@@ -3,6 +3,7 @@
 See README.md for details on how to run.
 """
 import logging
+from time import perf_counter
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
@@ -14,6 +15,7 @@ from app import health
 from app import hourlies
 from app.frontend import frontend
 from app.routers import fba, forecasts, fwi_calc, weather_models, c_haines, stations, hfi_calc, fba_calc
+from app.utils.cffdrs import CFFDRS
 
 
 configure_logging()
@@ -111,6 +113,12 @@ async def get_health():
 
         logger.debug('/health - healthy: %s. %s',
                      health_check.get('healthy'), health_check.get('message'))
+
+        # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
+        cffdrs_start = perf_counter()
+        CFFDRS.instance()  # pylint: disable=no-member
+        cffdrs_end = perf_counter()
+        logger.info('%f seconds added by CFFDRS startup', cffdrs_end - cffdrs_start)
 
         return health_check
     except Exception as exception:

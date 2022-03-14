@@ -5,7 +5,8 @@ from datetime import datetime
 from typing import List, Generator
 from contextlib import contextmanager
 import json
-from pytest_bdd import scenario, given, then
+from distutils.util import strtobool
+from pytest_bdd import scenario, given, then, parsers
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
 from sqlalchemy.orm import Session
@@ -23,18 +24,15 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@scenario('test_get_observations.feature', 'Get hourly observations',
-          example_converters=dict(
-              codes=json.loads, status=int,
-              num_groups=int,
-              num_readings_per_group=json.loads,
-              use_wfwx=str))
+@scenario('test_get_observations.feature', 'Get hourly observations')
 def test_hourlies():
     """ BDD Scenario. """
 
 
-@given('I request hourlies for stations: <codes> with <use_wfwx>', target_fixture='response')
-def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
+@given(parsers.parse('I request hourlies for stations: {codes} with {use_wfwx} and {mock_redis_exception}'),
+       target_fixture='response',
+       converters={'codes': json.loads, 'use_wfwx': strtobool, 'mock_redis_exception': strtobool})
+def given_hourlies_request(monkeypatch, codes: List, use_wfwx: bool, mock_redis_exception: bool):
     """ Make /observations/ request using mocked out ClientSession.
     """
 
@@ -63,7 +61,28 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
         ])
         yield session
 
-    if use_wfwx == 'True':
+    class MockRedis():
+        """ Mock class"""
+
+        def get(self, *args, **kwargs):  # pylint: disable=no-self-use, unused-argument
+            """ Mock function """
+            if mock_redis_exception:
+                raise Exception('explode')
+            return {}
+
+        def set(self, *args, **kwargs):  # pylint: disable=no-self-use, unused-argument
+            """ Mock function """
+            if mock_redis_exception:
+                raise Exception('explode')
+
+    def mock_create_redis():
+        """ function to mock out creation of redis"""
+        return MockRedis()
+
+    # mock out redis:
+    monkeypatch.setattr(app.data.ecodivision_seasons, 'create_redis', mock_create_redis)
+
+    if use_wfwx:
         logger.info('running test with WFWX set to True')
         monkeypatch.setenv("USE_WFWX", 'True')
         monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
@@ -79,26 +98,21 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.post('/api/observations/', headers=headers, json={"stations": codes})
+    return dict(response=client.post('/api/observations/', headers=headers, json={"stations": codes}))
 
 
-@then('the response status code is <status>')
-def assert_status_code(response, status):
-    """ Assert that we receive the expected status code """
-    assert response.status_code == status
-
-
-@then('there are <num_groups> groups of hourlies')
-def assert_number_of_hourlies_groups(response, num_groups):
+@then(parsers.parse('there are {num_groups} groups of hourlies'), converters={'num_groups': int})
+def assert_number_of_hourlies_groups(response, num_groups: int):
     """ Assert that we receive the expected number of hourly groups """
-    assert len(response.json()['hourlies']) == num_groups
+    assert len(response['response'].json()['hourlies']) == num_groups
 
 
-@then('there are <num_readings_per_group> readings per group')
+@then(parsers.parse('there are {num_readings_per_group} readings per group'),
+      converters={'num_readings_per_group': json.loads})
 def assert_number_of_hourlies_per_group(
         response,
         num_readings_per_group: List):
     """ Assert that we receive the expected number of hourlies per groups """
     for index, item in enumerate(num_readings_per_group):
-        assert len(response.json()['hourlies']
+        assert len(response['response'].json()['hourlies']
                    [index]['values']) == item
