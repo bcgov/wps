@@ -13,6 +13,12 @@ function interceptDaily(fixturePath: string) {
 }
 
 describe('HFI Calculator Page', () => {
+  describe('first visit - no selected fire centre', () => {
+    it('should show the select fire centre instructions', () => {
+      cy.visit(HFI_CALC_ROUTE)
+      cy.getByTestId('hfi-empty-fire-centre').should('be.visible')
+    })
+  })
   describe('prep period - saved', () => {
     beforeEach(() => {
       interceptDaily('cypress/fixtures/hfi-calc/dailies-saved.json')
