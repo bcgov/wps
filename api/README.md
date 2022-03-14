@@ -274,6 +274,14 @@ To access the local copy of the database, you can shell into it by opening a new
 
 ## Maintenance
 
+### Reverting Deployment
+
+To redeploy prod from a previous image:
+
+1. Find the previous working image in openshift and run
+   - `oc -n e1e498-tools tag wps-prod:pr-<last-working-pr-number> wps-prod:prod`
+2. Select "Start rollout" action in openshift
+
 ### Disk space
 
 A subset of model predictions is currently being stored, but not actually used once interpolation has been
