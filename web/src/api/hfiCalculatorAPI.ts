@@ -1,6 +1,7 @@
 import axios from 'api/axios'
 import {
   HFIResultRequest,
+  HFILoadResultRequest,
   HFIResultResponse,
   PlanningAreaResult,
   RawHFIResultResponse
@@ -79,6 +80,16 @@ export async function getDailies(
   }))
 }
 
+export async function loadHFIResult(
+  request: HFILoadResultRequest
+): Promise<HFIResultResponse> {
+  const { data } = await axios.post<RawHFIResultResponse>(baseUrl + 'load', {
+    ...request
+  })
+
+  return { ...data, planning_area_hfi_results: buildResult(data) }
+}
+
 export async function getHFIResult(
   request: HFIResultRequest
 ): Promise<HFIResultResponse> {
@@ -86,6 +97,13 @@ export async function getHFIResult(
     ...request
   })
 
+  return {
+    ...data,
+    planning_area_hfi_results: buildResult(data)
+  }
+}
+
+function buildResult(data: RawHFIResultResponse) {
   data.planning_area_hfi_results.map(areaResult =>
     areaResult.daily_results.map(dailyResult => dailyResult.date)
   )
@@ -106,10 +124,7 @@ export async function getHFIResult(
         date: formatISODateInPST(dr.date)
       }))
     }))
-  return {
-    ...data,
-    planning_area_hfi_results: planningAreaResultsWithDates
-  }
+  return planningAreaResultsWithDates
 }
 
 export async function getPDF(request: HFIResultRequest): Promise<void> {
