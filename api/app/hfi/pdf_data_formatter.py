@@ -53,7 +53,7 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
         # List of dates for prep period
         dates = []
         for area in prep_cycle_pdf_data:
-            for code, dailies in area.dailies.items():
+            for dailies in area.dailies.values():
                 for daily in dailies:
                     date_obj = datetime.datetime.strptime(str(daily.date), '%Y-%m-%d %H:%M:%S%z')
                     formatted_date_string = str(date_obj.strftime("%A %B, %d, %Y"))
