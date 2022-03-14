@@ -6,7 +6,7 @@ from functools import reduce
 from itertools import groupby
 import operator
 from typing import List, Mapping
-from app.hfi.hfi import validate_station_daily
+from app.hfi.hfi_calc import validate_station_daily
 from app.schemas.hfi_calc import (DailyPDFData,
                                   HFIResultResponse,
                                   PlanningArea, PrepCyclePDFData,
