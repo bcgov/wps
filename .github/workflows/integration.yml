@@ -59,10 +59,11 @@ jobs:
         working-directory: ./api
         run: |
           poetry install
-      - name: Install libgdal-dev (api)
+      - name: Install ubuntu pre-requisites (api)
         # The python gdal and R component relies on libgdal-dev being installed.
+        # The api uses wkhtmltopdf to generate pdf's.
         run: |
-          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev wkhtmltopdf
       - name: Install gdal python (api)
         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
         # available to us. As such, gdal is not installed by poetry, since the version will differ between
@@ -75,10 +76,6 @@ jobs:
         run: |
           poetry run pip install numpy
           poetry run pip install pygdal==3.0.4.10
-      - name: Install pdfkit
-        working-directory: ./api
-        run: |
-          sudo apt install -y wkhtmltopdf
       - name: Lint (api)
         # We used to be able to do linting before installing gdal, but it's not possible anymore.
         # We can however place it ahead of the R installs.

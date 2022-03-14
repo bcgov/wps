@@ -4,7 +4,7 @@ import json
 from typing import List, Optional
 from fastapi import APIRouter, Response, Depends
 from app.hfi.daily_pdf_gen import generate_daily_pdf
-from app.hfi.hfi import calculate_latest_hfi_results, hydrate_fire_centres
+from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 import app.utils.time
 from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse
 import app
