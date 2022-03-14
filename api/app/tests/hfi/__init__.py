@@ -1,6 +1,6 @@
 from app.schemas.shared import FuelType
 from app.db.models.hfi_calc import PlanningWeatherStation
-import app.hfi.hfi
+import app.hfi.hfi_calc
 
 
 def mock_station_crud(monkeypatch):
@@ -29,4 +29,4 @@ def mock_station_crud(monkeypatch):
         return result
 
     monkeypatch.setattr(app.utils.hfi_calculator, 'get_all_stations', mock_get_all_stations)
-    monkeypatch.setattr(app.hfi.hfi, 'get_fire_centre_stations', mock_get_fire_centre_stations)
+    monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
