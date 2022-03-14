@@ -58,19 +58,6 @@ API_INFO = '''
     has been specifically advised of the possibility of such damages.'''
 
 
-async def startup_event():
-    """ Startup event handler for the app.
-    https://www.starlette.io/events/
-    """
-    # Instantiate the CFFDRS singleton. Binding to R can take quite some time, doing this when our thread
-    # starts up will save us some time on requests. On my local machine, it takes about 3 seconds to start
-    # up R.
-    # The downside to this is that we're increasing the memory footprint of the app.
-    cffdrs_start = perf_counter()
-    cffdrs_end = perf_counter()
-    logger.info('saved %f seconds by starting CFFDRS now', cffdrs_end - cffdrs_start)
-
-
 # This is the api app.
 api = FastAPI(
     title="Predictive Services API",
@@ -80,7 +67,7 @@ api = FastAPI(
 
 # This is our base starlette app - it doesn't do much except glue together
 # the api and the front end.
-app = Starlette(on_startup=[startup_event])
+app = Starlette()
 
 
 # The order here is important:
@@ -128,7 +115,10 @@ async def get_health():
                      health_check.get('healthy'), health_check.get('message'))
 
         # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
+        cffdrs_start = perf_counter()
         CFFDRS.instance()  # pylint: disable=no-member
+        cffdrs_end = perf_counter()
+        logger.info('%f seconds added by CFFDRS startup', cffdrs_end - cffdrs_start)
 
         return health_check
     except Exception as exception:
