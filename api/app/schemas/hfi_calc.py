@@ -59,18 +59,13 @@ class ValidatedStationDaily(BaseModel):
 
 class FireStartRange(BaseModel):
     """
-    User facing label, value and lookup table of fire starts to prep level
-    """
-    label: str
-    lookup_table: Mapping[int, int]
-
-
-class FireCentreFireStarts(BaseModel):
-    """
-    Fire start definitions specific to a fire centre
+    Fire starts for a fire centre
     """
     fire_centre_id: int
-    all_ranges: List[FireStartRange]
+    min_starts: int
+    max_starts: int
+    intensity_group: int
+    prep_level: int
 
 
 class DailyResult(BaseModel):
@@ -159,7 +154,7 @@ class HFIResultRequest(BaseModel):
     planning_area_station_info: Optional[Mapping[int, List[StationInfo]]]
     selected_fire_center_id: int
     # Mapping from planning area id to a map of FireStartRanges.
-    planning_area_fire_starts: Mapping[int, List[FireStartRange]]
+    planning_area_fire_starts: Optional[Mapping[int, List[FireStartRange]]]
     persist_request: Optional[bool]  # Indicate whether to save the request to the database.
 
 
