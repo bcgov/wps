@@ -5,7 +5,6 @@ import {
   FireStarts,
   setSelectedFireCentre,
   fetchHFIResult,
-  setSelectedPrepDate,
   setSaved,
   fetchPDFDownload
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -108,10 +107,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
-  const [prepDateRange, setPrepDateRange] = useState<DateRange>()
   const getBrowserCurrentDate = () => {
     return pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
   }
+  const [prepDateRange, setPrepDateRange] = useState<DateRange>({
+    startDate: new Date(getBrowserCurrentDate()),
+    endDate: new Date(getBrowserCurrentDate())
+  })
 
   const updatePrepDateRange = (newDateRange: DateRange) => {
     if (
@@ -120,6 +122,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       !isUndefined(result)
     ) {
       setPrepDateRange(newDateRange)
+      console.log(newDateRange)
       dispatch(setSaved(false))
       dispatch(
         fetchHFIResult({
