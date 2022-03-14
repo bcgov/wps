@@ -71,7 +71,7 @@ class SPAStaticFiles(StaticFiles):
         try:
             response = await super().get_response(path, scope)
         except HTTPException as httpException:
-            # In starlette >= 0.17 and exception is thrown when it's a 404.
+            # In starlette >= 0.17 an exception is thrown when it's a 404.
             if httpException.status_code == 404:
                 logger.debug('serving up root for %s', path)
                 request = Request(scope)
