@@ -262,8 +262,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
-  const buildNonReadyState = () => {
-    if (isUndefined(result) && isUndefined(selectedFireCentre)) {
+  const buildHFIContent = () => {
+    if (isUndefined(selectedFireCentre)) {
       return (
         <Table>
           <TableBody>
@@ -271,11 +271,47 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           </TableBody>
         </Table>
       )
+    } else if (loading || stationDataLoading || isUndefined(result)) {
+      return (
+        <Container className={classes.container}>
+          <CircularProgress />
+        </Container>
+      )
     }
     return (
-      <Container className={classes.container}>
-        <CircularProgress />
-      </Container>
+      <React.Fragment>
+        <Container maxWidth={'xl'}>
+          {!isNull(fireCentresError) && (
+            <HFIErrorAlert hfiDailiesError={null} fireCentresError={fireCentresError} />
+          )}
+          <FormControl className={classes.prepDays}>
+            <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
+          </FormControl>
+
+          <FormControl className={classes.formControl}>
+            <ViewSwitcherToggles dateOfInterest={dateOfInterest} />
+          </FormControl>
+
+          <FormControl className={classes.saveButton}>
+            <DownloadPDFButton onClick={handleDownloadClicked} />
+          </FormControl>
+
+          <FormControl className={classes.saveButton}>
+            <SaveButton saved={saved} onClick={handleSaveClicked} />
+          </FormControl>
+
+          <ErrorBoundary>
+            <ViewSwitcher
+              selectedFireCentre={selectedFireCentre}
+              dateOfInterest={dateOfInterest}
+              result={result}
+              setSelected={setSelected}
+              setNewFireStarts={setNewFireStarts}
+              selectedPrepDay={selectedPrepDate}
+            />
+          </ErrorBoundary>
+        </Container>
+      </React.Fragment>
     )
   }
 
@@ -296,43 +332,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         selectNewFireCentre={selectNewFireCentre}
         padding="1rem"
       />
-      {loading || stationDataLoading || isUndefined(result) ? (
-        buildNonReadyState()
-      ) : (
-        <React.Fragment>
-          <Container maxWidth={'xl'}>
-            {!isNull(fireCentresError) && (
-              <HFIErrorAlert hfiDailiesError={null} fireCentresError={fireCentresError} />
-            )}
-            <FormControl className={classes.prepDays}>
-              <PrepDaysDropdown days={numPrepDays} setNumPrepDays={setNumPrepDays} />
-            </FormControl>
-
-            <FormControl className={classes.formControl}>
-              <ViewSwitcherToggles dateOfInterest={dateOfInterest} />
-            </FormControl>
-
-            <FormControl className={classes.saveButton}>
-              <DownloadPDFButton onClick={handleDownloadClicked} />
-            </FormControl>
-
-            <FormControl className={classes.saveButton}>
-              <SaveButton saved={saved} onClick={handleSaveClicked} />
-            </FormControl>
-
-            <ErrorBoundary>
-              <ViewSwitcher
-                selectedFireCentre={selectedFireCentre}
-                dateOfInterest={dateOfInterest}
-                result={result}
-                setSelected={setSelected}
-                setNewFireStarts={setNewFireStarts}
-                selectedPrepDay={selectedPrepDate}
-              />
-            </ErrorBoundary>
-          </Container>
-        </React.Fragment>
-      )}
+      {buildHFIContent()}
     </main>
   )
 }
