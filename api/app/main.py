@@ -62,13 +62,8 @@ async def startup_event():
     """ Startup event handler for the app.
     https://www.starlette.io/events/
     """
-    # Instantiate the CFFDRS singleton. Binding to R can take quite some time, doing this when our thread
-    # starts up will save us some time on requests. On my local machine, it takes about 3 seconds to start
-    # up R.
-    # The downside to this is that we're increasing the memory footprint of the app.
-    cffdrs_start = perf_counter()
-    cffdrs_end = perf_counter()
-    logger.info('saved %f seconds by starting CFFDRS now', cffdrs_end - cffdrs_start)
+    # You could put some startup code here - but be aware it could impact startup time.
+    pass
 
 
 # This is the api app.

@@ -5,6 +5,7 @@ import logging
 from starlette.applications import Starlette
 from starlette.types import Scope
 from starlette.routing import Route, Mount
+from starlette.exceptions import HTTPException
 from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -66,8 +67,18 @@ class SPAStaticFiles(StaticFiles):
     """
     async def get_response(self, path: str, scope: Scope) -> Response:
         # Call the method on the base class.
-        response = await super().get_response(path, scope)
+        # TODO: This is all terrible. Static HTML should be served up by caddy.
+        try:
+            response = await super().get_response(path, scope)
+        except HTTPException as httpException:
+            # In starlette >= 0.17 and exception is thrown when it's a 404.
+            if httpException.status_code == 404:
+                logger.debug('serving up root for %s', path)
+                request = Request(scope)
+                return await get_index(request)
+            raise
         # If file not found, try to serve up index.html
+        # In starlette < 0.17, the status code on the response is set to 404.
         if response.status_code == 404:
             logger.debug('serving up root for %s', path)
             request = Request(scope)
