@@ -16,7 +16,13 @@ import {
   selectHFIStationsLoading,
   selectHFICalculatorState
 } from 'app/rootReducer'
-import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
+import {
+  CircularProgress,
+  FormControl,
+  makeStyles,
+  Table,
+  TableBody
+} from '@material-ui/core'
 import { getDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import SaveButton from 'features/hfiCalculator/components/SaveButton'
@@ -29,6 +35,7 @@ import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHe
 import { cloneDeep, isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
+import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -255,6 +262,23 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
+  const buildNonReadyState = () => {
+    if (isUndefined(result) && isUndefined(selectedFireCentre)) {
+      return (
+        <Table>
+          <TableBody>
+            <EmptyFireCentreRow />
+          </TableBody>
+        </Table>
+      )
+    }
+    return (
+      <Container className={classes.container}>
+        <CircularProgress />
+      </Container>
+    )
+  }
+
   return (
     <main data-testid="hfi-calculator-page">
       <GeneralHeader
@@ -273,9 +297,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         padding="1rem"
       />
       {loading || stationDataLoading || isUndefined(result) ? (
-        <Container className={classes.container}>
-          <CircularProgress />
-        </Container>
+        buildNonReadyState()
       ) : (
         <React.Fragment>
           <Container maxWidth={'xl'}>
