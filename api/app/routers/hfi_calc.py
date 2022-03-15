@@ -80,13 +80,14 @@ async def get_hfi_results(request: HFIResultRequest,
             request = stored_request
             request_loaded = True
 
-        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
+        results, fire_centre_fire_starts, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
         response = HFIResultResponse(
             start_date=start_timestamp,
             end_date=end_timestamp,
             selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
+            fire_centre_fire_starts=fire_centre_fire_starts,
             planning_area_hfi_results=results,
             planning_area_fire_starts=request.planning_area_fire_starts,
             request_persist_success=False)

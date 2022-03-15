@@ -238,6 +238,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         selectedStationCodes={
                           result ? result.selected_station_code_ids : []
                         }
+                        allFireStarts={result ? result.fire_centre_fire_starts : []}
                         setNewFireStarts={props.setNewFireStarts}
                         planningAreaClass={classes.planningArea}
                         numPrepDays={numPrepDays}

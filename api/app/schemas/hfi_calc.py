@@ -169,6 +169,7 @@ class HFIResultResponse(BaseModel):
     selected_station_code_ids: List[int]
     planning_area_station_info: Optional[Mapping[int, List[StationInfo]]]
     selected_fire_center_id: int
+    fire_centre_fire_starts: List[FireStartRange]
     planning_area_hfi_results: List[PlanningAreaResult]
     # Mapping from planning area id to a map of FireStartRanges
     planning_area_fire_starts: Mapping[int, List[FireStartRange]]
