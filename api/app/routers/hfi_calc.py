@@ -10,7 +10,8 @@ from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, HFILoadRes
 import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
-from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request)
+from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request,
+                                  get_fire_centre_stations)
 
 
 logger = logging.getLogger(__name__)
@@ -81,10 +82,11 @@ async def load_hfi_result(request: HFILoadResultRequest,
                 result_request = HFIResultRequest.parse_obj(json.loads(stored_request.request))
             else:
                 # No stored request, so we need to create one.
+                fire_centre_stations = get_fire_centre_stations(session, request.selected_fire_center_id)
                 result_request = HFIResultRequest(
                     start_date=request.start_date,
                     selected_fire_center_id=request.selected_fire_center_id,
-                    selected_station_code_ids=[],
+                    selected_station_code_ids=[station.station_code for station, _ in fire_centre_stations],
                     planning_area_fire_starts={})
                 if request.start_date:
                     # If a start date was specified, we go ahead and save this request.
