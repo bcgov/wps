@@ -74,14 +74,17 @@ async def load_hfi_result(request: HFILoadResultRequest,
         logger.info('/hfi-calc/load/')
         response.headers["Cache-Control"] = no_cache
 
+        request_persist_success = False
         with app.db.database.get_read_session_scope() as session:
             stored_request = get_most_recent_updated_hfi_request(session,
                                                                  request.selected_fire_center_id,
                                                                  request.start_date)
             if stored_request:
+                request_loaded = True
                 result_request = HFIResultRequest.parse_obj(json.loads(stored_request.request))
             else:
                 # No stored request, so we need to create one.
+                request_loaded = False
                 fire_centre_stations = get_fire_centre_stations(session, request.selected_fire_center_id)
                 result_request = HFIResultRequest(
                     start_date=request.start_date,
@@ -91,6 +94,7 @@ async def load_hfi_result(request: HFILoadResultRequest,
                 if request.start_date:
                     # If a start date was specified, we go ahead and save this request.
                     save_request_in_database(result_request, token.get('preferred_username', None))
+                    request_persist_success = True
 
         results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(result_request)
         response = HFIResultResponse(
@@ -101,7 +105,7 @@ async def load_hfi_result(request: HFILoadResultRequest,
             selected_fire_center_id=result_request.selected_fire_center_id,
             planning_area_hfi_results=results,
             planning_area_fire_starts=result_request.planning_area_fire_starts,
-            request_persist_success=False)
+            request_persist_success=request_persist_success or request_loaded)
         return response
 
     except Exception as exc:
