@@ -8,8 +8,11 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
 
 export interface FireStarts {
-  label: string
-  lookup_table: { [mig: number]: number }
+  fire_centre_id: number
+  min_starts: number
+  max_starts: number
+  intensity_group: number
+  prep_level: number
 }
 
 export interface DailyResult {
@@ -62,6 +65,7 @@ export interface HFIResultResponse {
   end_date: string
   selected_station_code_ids: number[]
   selected_fire_center_id: number
+  fire_centre_fire_starts: FireStarts[]
   planning_area_hfi_results: PlanningAreaResult[]
   planning_area_fire_starts: { [key: number]: FireStarts[] }
   request_persist_success: boolean
@@ -72,6 +76,7 @@ export interface RawHFIResultResponse {
   end_date: string
   selected_station_code_ids: number[]
   selected_fire_center_id: number
+  fire_centre_fire_starts: FireStarts[]
   planning_area_hfi_results: RawPlanningAreaResult[]
   planning_area_fire_starts: { [key: number]: FireStarts[] }
   request_persist_success: boolean
@@ -95,36 +100,6 @@ export interface RawValidatedStationDaily {
   daily: RawDaily
   valid: boolean
 }
-
-// Encodes lookup tables for each fire starts range from workbook
-export const lowestFireStarts: FireStarts = {
-  label: '0-1',
-  lookup_table: { 1: 1, 2: 1, 3: 2, 4: 3, 5: 4 }
-}
-export const one2TwoStarts: FireStarts = {
-  label: '1-2',
-  lookup_table: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
-}
-export const two2ThreeStarts: FireStarts = {
-  label: '2-3',
-  lookup_table: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 }
-}
-export const three2SixStarts: FireStarts = {
-  label: '3-6',
-  lookup_table: { 1: 3, 2: 4, 3: 5, 4: 6, 5: 6 }
-}
-export const highestFireStarts: FireStarts = {
-  label: '6+',
-  lookup_table: { 1: 4, 2: 5, 3: 6, 4: 6, 5: 6 }
-}
-
-export const FIRE_STARTS_SET: FireStarts[] = [
-  lowestFireStarts,
-  one2TwoStarts,
-  two2ThreeStarts,
-  three2SixStarts,
-  highestFireStarts
-]
 
 const initialState: HFICalculatorState = {
   loading: false,

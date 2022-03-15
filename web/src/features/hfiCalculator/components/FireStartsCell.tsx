@@ -24,7 +24,9 @@ const FireStartsCell = (props: FireStartsCellProps) => {
       className={classes.fireStarts}
       data-testid={`fire-starts-${props.areaName}`}
     >
-      {props.fireStarts ? props.fireStarts.label : ''}
+      {props.fireStarts
+        ? `${props.fireStarts.min_starts}-${props.fireStarts?.max_starts}`
+        : ''}
     </TableCell>
   )
 }

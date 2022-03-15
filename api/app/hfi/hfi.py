@@ -191,6 +191,8 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
     prep_delta = valid_end_date - valid_start_date
     prep_days = prep_delta.days + 1  # num prep days is inclusive
 
+    fire_centre_fire_starts: List[FireStartRange] = []
+
     # pylint: disable=too-many-locals
     async with ClientSession() as session:
         header = await get_auth_header(session)
@@ -202,9 +204,14 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
             # in the front end, we'd prefer to not change the the call that's going to wfwx so that we can
             # use cached values. So we don't actually filter out the "selected" stations, but rather go
             # get all the stations for this fire centre.
-            fire_start_ranges: List[HFIFireStarts] = []
-            for fire_starts in get_fire_starts_by_fire_centre(orm_session, request.selected_fire_center_id):
-                fire_start_ranges.append(fire_starts)
+
+            for hfi_fire_starts in get_fire_starts_by_fire_centre(orm_session, request.selected_fire_center_id):
+                fire_centre_fire_starts.append(
+                    FireStartRange(fire_centre_id=hfi_fire_starts.fire_centre_id,
+                                   min_starts=hfi_fire_starts.min_starts,
+                                   max_starts=hfi_fire_starts.max_starts,
+                                   intensity_group=hfi_fire_starts.intensity_group,
+                                   prep_level=hfi_fire_starts.prep_level))
 
             fire_centre_stations = get_fire_centre_stations(
                 orm_session, request.selected_fire_center_id)
@@ -220,7 +227,7 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
 
         for area_id in area_station_map.keys():
             request.planning_area_fire_starts[area_id] = ensure_fire_starts(
-                area_id, fire_start_ranges, prep_days, request)
+                area_id, fire_centre_fire_starts, prep_days, request)
 
         wfwx_stations = await get_wfwx_stations_from_station_codes(
             session, header, list(fire_centre_station_code_ids))
@@ -235,28 +242,24 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
             dailies.append(station_daily)
 
         results = calculate_hfi_results(request.planning_area_fire_starts,
-                                        fire_start_ranges,
+                                        fire_centre_fire_starts,
                                         dailies,
                                         prep_days,
                                         request.selected_station_code_ids,
                                         area_station_map,
                                         valid_start_date)
-        return results, start_timestamp, end_timestamp
+        return results, fire_centre_fire_starts, start_timestamp, end_timestamp
 
 
 def ensure_fire_starts(area_id: int,
-                       fire_centre_fire_starts: List[HFIFireStarts],
+                       fire_centre_fire_starts: List[FireStartRange],
                        num_prep_days: int,
                        request: HFIResultRequest) -> List[FireStartRange]:
     """ Guarantees fire starts are set for each day in the requested range.
         Returns the ultimate list of fire starts ordered by day.
     """
-    sorted_first_starts: FireStartRange = list(map(lambda hfi_fire_starts: (FireStartRange(fire_centre_id=hfi_fire_starts.fire_centre_id,
-                                                                                           min_starts=hfi_fire_starts.min_starts,
-                                                                                           max_starts=hfi_fire_starts.max_starts,
-                                                                                           intensity_group=hfi_fire_starts.intensity_group,
-                                                                                           prep_level=hfi_fire_starts.prep_level)),
-                                                   sorted(fire_centre_fire_starts, key=operator.attrgetter('min_starts'))))
+    sorted_first_starts: List[FireStartRange] = sorted(
+        fire_centre_fire_starts, key=operator.attrgetter('min_starts'))
 
     lowest_fire_starts = sorted_first_starts[0]
     # Initialize with defaults if empty
