@@ -49,7 +49,7 @@ test:
 	# useful params for pytest:
 	# -s show stdout
 	# -n numprocesses
-	PYTHONPYCACHEPREFIX=python_cache $(POETRY_RUN) pytest -n 3 app;
+	PYTHONPYCACHEPREFIX=python_cache $(POETRY_RUN) pytest -n 3 -x app;
 	# ImportMismatchError? run: make clean
 
 test-watch:
@@ -63,7 +63,7 @@ test-watch:
 
 test-verbose:
 	# Run tests with verbose output
-	$(POETRY_RUN) pytest app -n 3 -vv;
+	$(POETRY_RUN) pytest app -n 3 -x -vv;
 
 test-coverage:
 	# run tests with coverate reports
