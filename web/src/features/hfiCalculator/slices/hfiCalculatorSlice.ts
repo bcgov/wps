@@ -2,7 +2,13 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { getHFIResult, getPDF, RawDaily, StationDaily } from 'api/hfiCalculatorAPI'
+import {
+  getHFIResult,
+  loadHFIResult,
+  getPDF,
+  RawDaily,
+  StationDaily
+} from 'api/hfiCalculatorAPI'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
@@ -87,6 +93,11 @@ export interface HFIResultRequest {
   persist_request?: boolean
 }
 
+export interface HFILoadResultRequest {
+  start_date?: string
+  selected_fire_center_id: number
+}
+
 export interface ValidatedStationDaily {
   daily: StationDaily
   valid: boolean
@@ -149,6 +160,9 @@ const dailiesSlice = createSlice({
   name: 'dailies',
   initialState,
   reducers: {
+    loadHFIResultStart(state: HFICalculatorState) {
+      state.loading = true
+    },
     getHFIResultStart(state: HFICalculatorState) {
       state.loading = true
     },
@@ -159,6 +173,10 @@ const dailiesSlice = createSlice({
       state.loading = false
     },
     getHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
+      state.error = action.payload
+      state.loading = false
+    },
+    loadHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
@@ -196,9 +214,11 @@ const dailiesSlice = createSlice({
 
 export const {
   getHFIResultStart,
+  loadHFIResultStart,
   pdfDownloadStart,
   pdfDownloadEnd,
   getHFIResultFailed,
+  loadHFIResultFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
   setResult,
@@ -206,6 +226,19 @@ export const {
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer
+
+export const fetchLoadHFIResult =
+  (request: HFILoadResultRequest): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(loadHFIResultStart())
+      const result = await loadHFIResult(request)
+      dispatch(setResult(result))
+    } catch (err) {
+      dispatch(loadHFIResultFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
 
 export const fetchHFIResult =
   (request: HFIResultRequest): AppThunk =>
