@@ -89,7 +89,7 @@ async def load_hfi_result(request: HFILoadResultRequest,
                 # TODO: selected_station_code_ids make it impossible to have a station selected in one area,
                 # and de-selected in another area. This has to be fixed!
                 selected_station_code_ids = set()
-                planning_area_station_info = dict()
+                planning_area_station_info = {}
                 for station, fuel_type in fire_centre_stations:
                     selected_station_code_ids.add(station.station_code)
                     if station.planning_area_id not in planning_area_station_info:

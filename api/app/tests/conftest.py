@@ -1,7 +1,6 @@
 """ Global fixtures """
 from datetime import timezone, datetime
 import logging
-import json
 import requests
 import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
@@ -21,7 +20,7 @@ import app.utils.time as time_utils
 from app.schemas.shared import WeatherDataRequest
 import app.wildfire_one.wildfire_fetchers
 import app.utils.redis
-from app.tests import get_complete_filename, load_json_file
+from app.tests import load_json_file
 
 logger = logging.getLogger(__name__)
 
@@ -204,6 +203,8 @@ def then_response(response, response_json: dict):
     """ Check entire response """
     if response_json is not None:
         # it's very useful having this code hang around:
+        # import json
+        # from app.tests import get_complete_filename
         # actual = response['response'].json()
         # actual_filename = get_complete_filename(__file__, 'actual.json')
         # with open(actual_filename, 'w', encoding="utf-8") as file_pointer:
