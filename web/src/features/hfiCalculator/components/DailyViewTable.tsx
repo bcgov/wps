@@ -36,6 +36,7 @@ import {
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredDataCell'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -275,12 +276,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       </TableHead>
       <TableBody>
         {isUndefined(props.fireCentre) ? (
-          <React.Fragment>
-            <TableRow>
-              <TableCell></TableCell>
-              <TableCell colSpan={6}>To begin, select a fire centre</TableCell>
-            </TableRow>
-          </React.Fragment>
+          <EmptyFireCentreRow colSpan={6} />
         ) : (
           <React.Fragment key={`fire-centre-${props.fireCentre.name}`}>
             <TableRow key={`fire-centre-${props.fireCentre.name}`}>

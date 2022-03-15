@@ -26,6 +26,7 @@ import {
   HFIResultResponse,
   PlanningAreaResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -165,11 +166,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
       </TableHead>
       <TableBody>
         {isUndefined(props.fireCentre) ? (
-          <React.Fragment>
-            <TableRow>
-              <TableCell colSpan={15}>To begin, select a fire centre</TableCell>
-            </TableRow>
-          </React.Fragment>
+          <EmptyFireCentreRow colSpan={15} />
         ) : (
           <React.Fragment key={`fire-centre-${props.fireCentre.name}`}>
             <TableRow key={`fire-centre-${props.fireCentre.name}`}>

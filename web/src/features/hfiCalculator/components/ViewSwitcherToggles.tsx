@@ -8,8 +8,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { setSelectedPrepDate } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
+import { DateRange } from 'materialui-daterange-picker'
 
 export interface ViewSwitcherTogglesProps {
+  dateRange: DateRange
+  selectedPrepDate: string
   testId?: string
 }
 
@@ -30,7 +33,6 @@ const useStyles = makeStyles(() => ({
 }))
 
 const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
-  const { dateRange, selectedPrepDate } = useSelector(selectHFICalculatorState)
   const classes = useStyles()
   const dispatch = useDispatch()
 
@@ -45,13 +47,13 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
   let start: DateTime = DateTime.now()
 
   if (
-    !isUndefined(dateRange) &&
-    !isUndefined(dateRange.start_date) &&
-    !isUndefined(dateRange.end_date)
+    !isUndefined(props.dateRange) &&
+    !isUndefined(props.dateRange.startDate) &&
+    !isUndefined(props.dateRange.endDate)
   ) {
-    start = DateTime.fromISO(dateRange.start_date)
-    const end = DateTime.fromISO(dateRange.end_date)
-    daysInDateRange = end.diff(start, 'days').valueOf()
+    start = DateTime.fromJSDate(props.dateRange.startDate)
+    const end = DateTime.fromJSDate(props.dateRange.endDate)
+    daysInDateRange = end.diff(start, 'days').days
   }
 
   const formatDateString = (dateString: string): string => {
@@ -72,7 +74,7 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
           exclusive
           onChange={handleToggle}
           aria-label="view toggles"
-          value={formatDateString(selectedPrepDate)}
+          value={formatDateString(props.selectedPrepDate)}
           className={classes.toggleGroup}
         >
           <ToggleButton
