@@ -104,10 +104,6 @@ export async function getHFIResult(
 }
 
 function buildResult(data: RawHFIResultResponse) {
-  data.planning_area_hfi_results.map(areaResult =>
-    areaResult.daily_results.map(dailyResult => dailyResult.date)
-  )
-
   const planningAreaResultsWithDates: PlanningAreaResult[] =
     data.planning_area_hfi_results.map(areaResult => ({
       ...areaResult,
