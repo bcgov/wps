@@ -144,6 +144,12 @@ class StationInfo(BaseModel):
     fuel_type_id: int
 
 
+class HFILoadResultRequest(BaseModel):
+    """ Request to load the HFI Calculator. """
+    start_date: Optional[date]
+    selected_fire_center_id: int
+
+
 class HFIResultRequest(BaseModel):
     """
     Request that contains inputs necessary for calculating HFI.
