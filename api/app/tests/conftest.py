@@ -1,6 +1,7 @@
 """ Global fixtures """
 from datetime import timezone, datetime
 import logging
+import json
 import requests
 import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
@@ -20,7 +21,7 @@ import app.utils.time as time_utils
 from app.schemas.shared import WeatherDataRequest
 import app.wildfire_one.wildfire_fetchers
 import app.utils.redis
-from app.tests import load_json_file
+from app.tests import get_complete_filename, load_json_file
 
 logger = logging.getLogger(__name__)
 
@@ -202,4 +203,12 @@ def assert_status_code(response, status: int):
 def then_response(response, response_json: dict):
     """ Check entire response """
     if response_json is not None:
+        # print(f'expected:\n{json.dumps(response_json)}')
+        # actual = response['response'].json()
+        # actual_filename = get_complete_filename(__file__, 'actual.json')
+        # with open(actual_filename, 'w', encoding="utf-8") as file_pointer:
+        #     json.dump(actual, file_pointer, indent=2)
+        #     # file_pointer.write(json.dumps(actual, indent=2))
+        # print(f'ACTUAL: {actual_filename}')
+        # print(f'actual:\n{json.dumps(actual)}')
         assert response['response'].json() == response_json, response['filename']

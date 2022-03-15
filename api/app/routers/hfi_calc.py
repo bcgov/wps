@@ -6,7 +6,7 @@ from fastapi import APIRouter, Response, Depends
 from app.hfi.daily_pdf_gen import generate_daily_pdf
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 import app.utils.time
-from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, HFILoadResultRequest
+from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, HFILoadResultRequest, StationInfo
 import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
@@ -86,10 +86,26 @@ async def load_hfi_result(request: HFILoadResultRequest,
                 # No stored request, so we need to create one.
                 request_loaded = False
                 fire_centre_stations = get_fire_centre_stations(session, request.selected_fire_center_id)
+                # TODO: selected_station_code_ids make it impossible to have a station selected in one area,
+                # and de-selected in another area. This has to be fixed!
+                selected_station_code_ids = set()
+                planning_area_station_info = dict()
+                for station, fuel_type in fire_centre_stations:
+                    selected_station_code_ids.add(station.station_code)
+                    if station.planning_area_id not in planning_area_station_info:
+                        planning_area_station_info[station.planning_area_id] = []
+                    planning_area_station_info[station.planning_area_id].append(
+                        StationInfo(
+                            station_code=station.station_code,
+                            selected=True,
+                            fuel_type_id=fuel_type.id
+                        ))
+
                 result_request = HFIResultRequest(
                     start_date=request.start_date,
                     selected_fire_center_id=request.selected_fire_center_id,
-                    selected_station_code_ids=[station.station_code for station, _ in fire_centre_stations],
+                    selected_station_code_ids=list(selected_station_code_ids),
+                    planning_area_station_info=planning_area_station_info,
                     planning_area_fire_starts={})
                 if request.start_date:
                     # If a start date was specified, we go ahead and save this request.
