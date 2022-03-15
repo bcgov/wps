@@ -12,6 +12,12 @@ function interceptDaily(fixturePath: string) {
   })
 }
 
+function interceptLoad() {
+  cy.intercept('POST', 'api/hfi-calc/load', {
+    fixture: 'hfi-calc/dailies-saved.json'
+  }).as('loadHFIResults')
+}
+
 describe('HFI Calculator Page', () => {
   describe('first visit - no selected fire centre', () => {
     it('should show the select fire centre instructions', () => {
@@ -21,9 +27,7 @@ describe('HFI Calculator Page', () => {
   })
   describe('prep period - saved', () => {
     beforeEach(() => {
-      cy.intercept('POST', 'api/hfi-calc/load', {
-        fixture: 'hfi-calc/dailies-saved.json'
-      }).as('loadHFIResults')
+      interceptLoad()
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
@@ -53,9 +57,7 @@ describe('HFI Calculator Page', () => {
   describe('all data exists', () => {
     beforeEach(() => {
       interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
-      cy.intercept('POST', 'api/hfi-calc/load', {
-        fixture: 'hfi-calc/dailies-saved.json'
-      }).as('loadHFIResults')
+      interceptLoad()
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
@@ -108,9 +110,7 @@ describe('HFI Calculator Page', () => {
   describe('dailies data are missing', () => {
     beforeEach(() => {
       interceptDaily('cypress/fixtures/hfi-calc/dailies-missing.json')
-      cy.intercept('POST', 'api/hfi-calc/load', {
-        fixture: 'hfi-calc/dailies-saved.json'
-      }).as('loadHFIResults')
+      interceptLoad()
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-grass.json'
       }).as('getFireCentres')
@@ -133,9 +133,7 @@ describe('HFI Calculator Page', () => {
   describe('high intensity', () => {
     beforeEach(() => {
       interceptDaily('cypress/fixtures/hfi-calc/dailies-high-intensity.json')
-      cy.intercept('POST', 'api/hfi-calc/load', {
-        fixture: 'hfi-calc/dailies-saved.json'
-      }).as('loadHFIResults')
+      interceptLoad()
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-minimal.json'
       }).as('getFireCentres')
