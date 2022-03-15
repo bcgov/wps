@@ -36,7 +36,7 @@ hiredis = "^2.0.0"
 pdfkit = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6"
+pytest = "^7"
 jupyter = "^1"
 notebook = "^6"
 alchemy-mock = "^0"
