@@ -67,7 +67,7 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
 async def load_hfi_result(request: HFILoadResultRequest,
                           response: Response,
                           token=Depends(authentication_required)):
-    """ Given a fire centre id (and optionally a start date), load the most recent HFIResultRequst.
+    """ Given a fire centre id (and optionally a start date), load the most recent HFIResultRequest.
     If there isn't a stored request, one will be created.
     """
     try:
