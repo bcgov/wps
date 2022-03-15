@@ -111,8 +111,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     return pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
   }
   const [prepDateRange, setPrepDateRange] = useState<DateRange>({
-    startDate: new Date(getBrowserCurrentDate()),
-    endDate: new Date(getBrowserCurrentDate())
+    // startDate: new Date(getBrowserCurrentDate()),
+    // endDate: new Date(getBrowserCurrentDate())
   })
 
   const updatePrepDateRange = (newDateRange: DateRange) => {
@@ -183,7 +183,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       }
       dispatch(
         fetchHFIResult({
-          date_range: dateRange,
+          // date_range: dateRange,
           selected_station_code_ids: stationCodes,
           selected_fire_center_id: selectedFireCentre.id,
           planning_area_fire_starts: {}

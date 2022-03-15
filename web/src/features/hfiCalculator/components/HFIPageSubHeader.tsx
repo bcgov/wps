@@ -165,6 +165,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
               open={dateRangePickerOpen}
               toggle={toggleDateRangePicker}
               onChange={range => props.setDateRange(range)}
+              definedRanges={[]}
             />
           </FormControl>
         </Grid>
