@@ -30,7 +30,11 @@ const FireStartsDropdown = ({
       autoSelect
       options={allFireStarts}
       getOptionSelected={(option, value) => isEqual(option, value)}
-      getOptionLabel={option => `${option.min_starts}-${option.max_starts}`}
+      getOptionLabel={option =>
+        option.max_starts > 15
+          ? `${option.min_starts}+`
+          : `${option.min_starts}-${option.max_starts}`
+      }
       renderInput={params => <TextField {...params} variant="outlined" />}
       value={fireStarts ? fireStarts : initialOption}
       onChange={(_, value) => {

@@ -128,3 +128,14 @@ export const getDaysBetween = (startDate: string, endDate: string): DateTime[] =
 
   return dates
 }
+
+export const getNumDaysBetween = (
+  startDateISO: string,
+  endDateISO: string,
+  fallback = 0
+): number => {
+  const start = DateTime.fromISO(startDateISO)
+  const end = DateTime.fromISO(endDateISO)
+  const diff = end.diff(start, ['days']).days
+  return diff > 0 ? diff : fallback
+}

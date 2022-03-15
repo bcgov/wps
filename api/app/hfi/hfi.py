@@ -24,7 +24,9 @@ from app.wildfire_one.wfwx_api import (get_auth_header, get_stations_by_codes,
                                        get_wfwx_stations_from_station_codes,
                                        get_raw_dailies_in_range_generator)
 from app.wildfire_one.schema_parsers import generate_station_daily
-from app.db.crud.hfi_calc import get_fire_centre_stations, get_fire_starts_by_fire_centre, get_fire_weather_stations
+from app.db.crud.hfi_calc import (get_fire_centre_stations,
+                                  get_fire_starts_by_fire_centre,
+                                  get_fire_weather_stations)
 
 logger = logging.getLogger(__name__)
 
@@ -205,7 +207,8 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
             # use cached values. So we don't actually filter out the "selected" stations, but rather go
             # get all the stations for this fire centre.
 
-            for hfi_fire_starts in get_fire_starts_by_fire_centre(orm_session, request.selected_fire_center_id):
+            for hfi_fire_starts in get_fire_starts_by_fire_centre(orm_session,
+                                                                  request.selected_fire_center_id):
                 fire_centre_fire_starts.append(
                     FireStartRange(fire_centre_id=hfi_fire_starts.fire_centre_id,
                                    min_starts=hfi_fire_starts.min_starts,
@@ -225,7 +228,7 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
                 area_station_map[station.planning_area_id].append(station)
                 station_fuel_type_map[station.station_code] = fuel_type
 
-        for area_id in area_station_map.keys():
+        for area_id in area_station_map:
             request.planning_area_fire_starts[area_id] = ensure_fire_starts(
                 area_id, fire_centre_fire_starts, prep_days, request)
 
@@ -265,15 +268,14 @@ def ensure_fire_starts(area_id: int,
     # Initialize with defaults if empty
     if area_id not in request.planning_area_fire_starts:
         return [lowest_fire_starts for _ in range(num_prep_days)]
-    else:
-        # Handle edge case where the provided planning area fire starts doesn't match the number
-        # of prep days.
-        if len(request.planning_area_fire_starts[area_id]) < num_prep_days:
-            for _ in range(len(request.planning_area_fire_starts[area_id]), num_prep_days):
-                fire_starts = list(request.planning_area_fire_starts[area_id]).append(lowest_fire_starts)
-                return fire_starts
-        else:
-            return list(request.planning_area_fire_starts[area_id])
+    # Handle edge case where the provided planning area fire starts doesn't match the number
+    # of prep days.
+    if len(request.planning_area_fire_starts[area_id]) < num_prep_days:
+        for _ in range(len(request.planning_area_fire_starts[area_id]), num_prep_days):
+            fire_starts = list(request.planning_area_fire_starts[area_id]).append(lowest_fire_starts)
+            return fire_starts
+
+    return list(request.planning_area_fire_starts[area_id])
 
 
 def calculate_hfi_results(planning_area_fire_starts: Mapping[int, List[FireStartRange]],  # pylint: disable=too-many-locals
@@ -303,16 +305,18 @@ def calculate_hfi_results(planning_area_fire_starts: Mapping[int, List[FireStart
 
         for index in range(num_prep_days):
             hfi_fire_starts = planning_area_fire_starts[area_id][index]
-            daily_fire_starts: FireStartRange = FireStartRange(fire_centre_id=hfi_fire_starts.fire_centre_id,
-                                                               min_starts=hfi_fire_starts.min_starts,
-                                                               max_starts=hfi_fire_starts.max_starts,
-                                                               intensity_group=hfi_fire_starts.intensity_group,
-                                                               prep_level=hfi_fire_starts.prep_level)
+            daily_fire_starts: FireStartRange = FireStartRange(
+                fire_centre_id=hfi_fire_starts.fire_centre_id,
+                min_starts=hfi_fire_starts.min_starts,
+                max_starts=hfi_fire_starts.max_starts,
+                intensity_group=hfi_fire_starts.intensity_group,
+                prep_level=hfi_fire_starts.prep_level)
 
             dailies_date = start_date + timedelta(days=index)
             prep_day_dailies = get_prep_day_dailies(dailies_date, area_dailies)
             mean_intensity_group = calculate_mean_intensity(prep_day_dailies)
-            prep_level = calculate_prep_level(mean_intensity_group, fire_centre_fire_starts)
+            prep_level = calculate_prep_level(
+                mean_intensity_group, daily_fire_starts, fire_centre_fire_starts)
             validated_dailies: List[ValidatedStationDaily] = list(
                 map(validate_station_daily, prep_day_dailies))
             all_dailies_valid = all(map(lambda validated_daily: (
@@ -369,15 +373,22 @@ def calculate_mean_intensity(dailies: List[StationDaily]):
 
 
 def calculate_prep_level(mean_intensity_group: Optional[float],
-                         fire_centre_fire_starts: List[HFIFireStarts]):
+                         daily_fire_starts: HFIFireStarts,
+                         fire_centre_fire_starts: List[HFIFireStarts]) -> int:
     """ Returns the prep level based on the MIG and fire starts range """
+    possible_fire_starts = list(filter((lambda x: x.min_starts == daily_fire_starts.min_starts and
+                                        x.max_starts == daily_fire_starts.max_starts),
+                                       fire_centre_fire_starts))
+
+    mig_2_prep_level = {
+        fire_starts.intensity_group: fire_starts.prep_level for fire_starts in possible_fire_starts}
     if mean_intensity_group is None:
         return None
 
     rounded_mig = round(mean_intensity_group)
     if rounded_mig == 0:
         return None
-    return next((fire_starts for fire_starts in fire_centre_fire_starts if fire_starts.intensity_group == rounded_mig), None).prep_level
+    return mig_2_prep_level[rounded_mig]
 
 
 def validate_station_daily(daily: StationDaily):

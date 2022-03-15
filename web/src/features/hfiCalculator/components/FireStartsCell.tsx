@@ -18,15 +18,18 @@ const useStyles = makeStyles({
 })
 
 const FireStartsCell = (props: FireStartsCellProps) => {
+  const value = props.fireStarts
+    ? props.fireStarts.max_starts > 15
+      ? `${props.fireStarts.min_starts}+`
+      : `${props.fireStarts.min_starts}-${props.fireStarts.max_starts}`
+    : ''
   const classes = useStyles()
   return (
     <TableCell
       className={classes.fireStarts}
       data-testid={`fire-starts-${props.areaName}`}
     >
-      {props.fireStarts
-        ? `${props.fireStarts.min_starts}-${props.fireStarts?.max_starts}`
-        : ''}
+      {value}
     </TableCell>
   )
 }

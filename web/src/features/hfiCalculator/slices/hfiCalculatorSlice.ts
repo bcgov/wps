@@ -6,6 +6,8 @@ import { getHFIResult, getPDF, RawDaily, StationDaily } from 'api/hfiCalculatorA
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
+import { getNumDaysBetween } from 'utils/date'
+import { uniqWith } from 'lodash'
 
 export interface FireStarts {
   fire_centre_id: number
@@ -56,6 +58,7 @@ export interface HFICalculatorState {
   planningAreaFireStarts: { [key: string]: FireStarts[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
+  fireCentreFireStarts: FireStarts[]
   result: HFIResultResponse | undefined
   saved: boolean
 }
@@ -110,6 +113,7 @@ const initialState: HFICalculatorState = {
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
   selectedFireCentre: undefined,
+  fireCentreFireStarts: [],
   result: undefined,
   saved: true
 }
@@ -147,10 +151,18 @@ const dailiesSlice = createSlice({
       state.result = action.payload
 
       if (action.payload) {
-        const start = DateTime.fromISO(action.payload.start_date)
-        const end = DateTime.fromISO(action.payload.end_date)
-        const diff = end.diff(start, ['days']).days
-        state.numPrepDays = diff > 0 ? diff : NUM_WEEK_DAYS
+        state.numPrepDays = getNumDaysBetween(
+          action.payload.start_date,
+          action.payload.end_date,
+          NUM_WEEK_DAYS
+        )
+
+        state.fireCentreFireStarts = uniqWith(
+          action.payload.fire_centre_fire_starts,
+          (fireStartsA, fireStartsB) =>
+            fireStartsA.min_starts === fireStartsB.min_starts &&
+            fireStartsA.max_starts === fireStartsB.max_starts
+        )
         state.startDate = action.payload.start_date
         state.saved = action.payload.request_persist_success
       }

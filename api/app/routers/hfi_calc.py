@@ -80,6 +80,7 @@ async def get_hfi_results(request: HFIResultRequest,
             request = stored_request
             request_loaded = True
 
+        # pylint: disable=line-too-long
         results, fire_centre_fire_starts, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
         response = HFIResultResponse(
             start_date=start_timestamp,
