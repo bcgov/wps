@@ -21,14 +21,16 @@ describe('HFI Calculator Page', () => {
   })
   describe('prep period - saved', () => {
     beforeEach(() => {
-      interceptDaily('cypress/fixtures/hfi-calc/dailies-saved.json')
+      cy.intercept('POST', 'api/hfi-calc/load', {
+        fixture: 'hfi-calc/dailies-saved.json'
+      }).as('loadHFIResults')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
       cy.visit(HFI_CALC_ROUTE)
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@getFireCentres')
-      cy.wait('@getHFIResults')
+      cy.wait('@loadHFIResults')
     })
     it('save button should be disable', () => {
       // cypress/fixtures/hfi-calc/dailies-saved.json has "request_persist_success": true, save button should be looking at that.
@@ -51,6 +53,9 @@ describe('HFI Calculator Page', () => {
   describe('all data exists', () => {
     beforeEach(() => {
       interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
+      cy.intercept('POST', 'api/hfi-calc/load', {
+        fixture: 'hfi-calc/dailies-saved.json'
+      }).as('loadHFIResults')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
@@ -58,6 +63,7 @@ describe('HFI Calculator Page', () => {
       cy.selectFireCentreInDropdown('Kamloops')
       cy.getByTestId('date-of-interest-picker').clear().type('2021-08-04').type('{enter}')
       cy.wait('@getFireCentres')
+      cy.wait('@loadHFIResults')
       cy.wait('@getHFIResults')
       cy.getByTestId('daily-toggle-0').click({ force: true })
     })
@@ -102,6 +108,9 @@ describe('HFI Calculator Page', () => {
   describe('dailies data are missing', () => {
     beforeEach(() => {
       interceptDaily('cypress/fixtures/hfi-calc/dailies-missing.json')
+      cy.intercept('POST', 'api/hfi-calc/load', {
+        fixture: 'hfi-calc/dailies-saved.json'
+      }).as('loadHFIResults')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-grass.json'
       }).as('getFireCentres')
@@ -109,6 +118,7 @@ describe('HFI Calculator Page', () => {
       cy.selectFireCentreInDropdown('Kamloops')
       cy.getByTestId('date-of-interest-picker').clear().type('2021-08-04').type('{enter}')
       cy.wait('@getFireCentres')
+      cy.wait('@loadHFIResults')
       cy.wait('@getHFIResults')
       cy.getByTestId('daily-toggle-0').click({ force: true })
     })
@@ -123,6 +133,9 @@ describe('HFI Calculator Page', () => {
   describe('high intensity', () => {
     beforeEach(() => {
       interceptDaily('cypress/fixtures/hfi-calc/dailies-high-intensity.json')
+      cy.intercept('POST', 'api/hfi-calc/load', {
+        fixture: 'hfi-calc/dailies-saved.json'
+      }).as('loadHFIResults')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-minimal.json'
       }).as('getFireCentres')
@@ -130,6 +143,7 @@ describe('HFI Calculator Page', () => {
       cy.selectFireCentreInDropdown('Kamloops')
       cy.getByTestId('date-of-interest-picker').clear().type('2021-08-04').type('{enter}')
       cy.wait('@getFireCentres')
+      cy.wait('@loadHFIResults')
       cy.wait('@getHFIResults')
       cy.getByTestId('daily-toggle-0').click({ force: true })
     })
