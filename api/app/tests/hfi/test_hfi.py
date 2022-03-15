@@ -42,16 +42,16 @@ kamloops_fc = FireCentre(
 )
 
 
-def test_no_dailies_handled():
-    """ No dailies are handled """
-    result = calculate_hfi_results(planning_area_fire_starts={},
-                                   dailies=[],
-                                   num_prep_days=5,
-                                   selected_station_codes=[1, 2],
-                                   area_station_map={},
-                                   start_date=datetime.now())
+# def test_no_dailies_handled():
+#     """ No dailies are handled """
+#     result = calculate_hfi_results(planning_area_fire_starts={},
+#                                    dailies=[],
+#                                    num_prep_days=5,
+#                                    selected_station_codes=[1, 2],
+#                                    area_station_map={},
+#                                    start_date=datetime.now())
 
-    assert result == []
+#     assert result == []
 
 
 # def test_requested_fire_starts_unaltered(mocker: MockerFixture):
