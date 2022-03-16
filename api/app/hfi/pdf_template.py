@@ -136,7 +136,7 @@ PREP_TEMPLATE_HTML = """
         </tr>
         {% for area in planningAreas %}
             <tr class="planningArea leftBorder rightBorder">
-                <td>{{area['planningAreaName']}}</td>
+                <td>{{area['planningAreaName'] if area['planningAreaName'] is not none}}</td>
                 <td></td>
                 <td></td>
                 <td class="boldRightBorder"></td>
@@ -170,9 +170,9 @@ PREP_TEMPLATE_HTML = """
                 <td class="rightBorder">X</td>
                 <td class="rightBorder">X</td>
                 {% for daily in dailies %}
-                    <td class="boldLeftBorder rightBorder">{{daily['rate_of_spread'] | round(1)}}</td>
-                    <td class="leftBorder rightBorder">{{daily['hfi'] | round(1)}}</td>
-                    <td class="leftBorder rightBorder">{{daily['intensity_group']}}</td>
+                    <td class="boldLeftBorder rightBorder">{{daily['rate_of_spread'] | round(1) if daily['rate_of_spread'] is not none}}</td>
+                    <td class="leftBorder rightBorder">{{daily['hfi'] | round(1) if daily['hfi'] is not none}}</td>
+                    <td class="leftBorder rightBorder">{{daily['intensity_group'] if daily['intensity_group'] is not none }}</td>
                     <td class="leftBorder rightBorder">X</td>
                     <td class="leftBorder boldRightBorder">X</td>
                 {% endfor %}
