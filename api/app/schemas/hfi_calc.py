@@ -189,6 +189,13 @@ class HFIResultResponse(BaseModel):
     request_persist_success: bool
 
 
+class PrepCyclePDFData(BaseModel):
+    """ Data needed for prep cycle PDF sheet """
+    planningAreaName: str
+    # Station dailies grouped by station code containing the dailies for each day in the prep cycle
+    dailies: Mapping[int, List[StationDaily]]
+
+
 class StationPDFData(StationDaily, WeatherStation):
     """ All the details we have about stations """
 
