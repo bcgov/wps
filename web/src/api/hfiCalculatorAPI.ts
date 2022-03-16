@@ -1,7 +1,6 @@
 import axios from 'api/axios'
 import {
   HFIResultRequest,
-  HFILoadResultRequest,
   HFIResultResponse,
   PlanningAreaResult,
   RawHFIResultResponse
@@ -81,12 +80,14 @@ export async function getDailies(
 }
 
 export async function loadHFIResult(
-  request: HFILoadResultRequest
+  fire_center_id: number,
+  start_date?: string
 ): Promise<HFIResultResponse> {
-  const { data } = await axios.post<RawHFIResultResponse>(baseUrl + 'load', {
-    ...request
-  })
-
+  let url = baseUrl + 'load/' + fire_center_id
+  if (start_date) {
+    url += '/' + start_date
+  }
+  const { data } = await axios.post<RawHFIResultResponse>(url)
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 

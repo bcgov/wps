@@ -2,11 +2,12 @@
 import logging
 import json
 from typing import List, Optional
+from datetime import date
 from fastapi import APIRouter, Response, Depends
 from app.hfi.daily_pdf_gen import generate_daily_pdf
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 import app.utils.time
-from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, HFILoadResultRequest, StationInfo
+from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationInfo
 import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
@@ -63,29 +64,44 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
     return stations_codes
 
 
-@router.post("/load", response_model=HFIResultResponse)
-async def load_hfi_result(request: HFILoadResultRequest,
-                          response: Response,
-                          token=Depends(authentication_required)):
+# @router.post("/planning_area/{planning_area_id}/{prep_start_date}/fire-starts", response_model=HFIResultResponse)
+# async def change_fire_starts(request: HFIChangeFireStartsRequest,
+#                              response: Response,
+#                              token=Depends(authentication_required)):
+#     pass
+
+
+@router.post("/load/{fire_centre_id}", response_model=HFIResultResponse)
+async def load_hfi_result_no_date(fire_centre_id: int,
+                                  response: Response,
+                                  token=Depends(authentication_required)):
+    return await load_hfi_result_with_date(fire_centre_id, None, response, token)
+
+
+@router.post("/load/{fire_centre_id}/{start_date}", response_model=HFIResultResponse)
+async def load_hfi_result_with_date(fire_centre_id: int,
+                                    start_date: Optional[date],
+                                    response: Response,
+                                    token=Depends(authentication_required)):
     """ Given a fire centre id (and optionally a start date), load the most recent HFIResultRequest.
     If there isn't a stored request, one will be created.
     """
     try:
-        logger.info('/hfi-calc/load/')
+        logger.info('/hfi-calc/load/{fire_centre_id}/{start_date}')
         response.headers["Cache-Control"] = no_cache
 
         request_persist_success = False
         with app.db.database.get_read_session_scope() as session:
             stored_request = get_most_recent_updated_hfi_request(session,
-                                                                 request.selected_fire_center_id,
-                                                                 request.start_date)
+                                                                 fire_centre_id,
+                                                                 start_date)
             if stored_request:
                 request_loaded = True
                 result_request = HFIResultRequest.parse_obj(json.loads(stored_request.request))
             else:
                 # No stored request, so we need to create one.
                 request_loaded = False
-                fire_centre_stations = get_fire_centre_stations(session, request.selected_fire_center_id)
+                fire_centre_stations = get_fire_centre_stations(session, fire_centre_id)
                 # TODO: selected_station_code_ids make it impossible to have a station selected in one area,
                 # and de-selected in another area. This has to be fixed!
                 selected_station_code_ids = set()
@@ -102,12 +118,12 @@ async def load_hfi_result(request: HFILoadResultRequest,
                         ))
 
                 result_request = HFIResultRequest(
-                    start_date=request.start_date,
-                    selected_fire_center_id=request.selected_fire_center_id,
+                    start_date=start_date,
+                    selected_fire_center_id=fire_centre_id,
                     selected_station_code_ids=list(selected_station_code_ids),
                     planning_area_station_info=planning_area_station_info,
                     planning_area_fire_starts={})
-                if request.start_date:
+                if start_date:
                     # If a start date was specified, we go ahead and save this request.
                     save_request_in_database(result_request, token.get('preferred_username', None))
                     request_persist_success = True

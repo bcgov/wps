@@ -200,7 +200,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
     if (!isUndefined(selectedFireCentre)) {
-      dispatch(fetchLoadHFIResult({ selected_fire_center_id: selectedFireCentre.id }))
+      dispatch(fetchLoadHFIResult(selectedFireCentre.id))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre])

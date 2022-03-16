@@ -93,11 +93,6 @@ export interface HFIResultRequest {
   persist_request?: boolean
 }
 
-export interface HFILoadResultRequest {
-  start_date?: string
-  selected_fire_center_id: number
-}
-
 export interface ValidatedStationDaily {
   daily: StationDaily
   valid: boolean
@@ -228,11 +223,11 @@ export const {
 export default dailiesSlice.reducer
 
 export const fetchLoadHFIResult =
-  (request: HFILoadResultRequest): AppThunk =>
+  (fire_center_id: number, start_date?: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(loadHFIResultStart())
-      const result = await loadHFIResult(request)
+      const result = await loadHFIResult(fire_center_id, start_date)
       dispatch(setResult(result))
     } catch (err) {
       dispatch(loadHFIResultFailed((err as Error).toString()))
