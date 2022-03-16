@@ -33,7 +33,7 @@ def generate_prep(result: HFIResultResponse):
     template = jinja_env.get_template(PDFTemplateName.PREP.value)
 
     return template.render(
-        PlanningAreas=prep_pdf_data,
+        planningAreas=prep_pdf_data,
         prepDays=dates)
 
 
