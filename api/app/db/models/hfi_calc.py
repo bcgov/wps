@@ -81,7 +81,7 @@ class PlanningWeatherStation(Base):
 
 
 class HFIRequest(Base):
-    """ """
+    """ HFI Request Record """
     __tablename__ = 'hfi_request'
     __table_args__ = (
         UniqueConstraint('fire_centre_id', 'prep_start_day', 'prep_end_day', 'create_timestamp',
@@ -99,3 +99,38 @@ class HFIRequest(Base):
     create_user = Column(String, nullable=False)
     # NOTE: If the structure of the request changes, the stored request may not longer remain compatible.
     request = Column(JSON)
+
+
+class FireStartRange(Base):
+    """"""
+    __tablename__ = 'hfi_fire_start_range'
+    __table_args__ = (
+        {'comment': 'Fire start range'}
+    )
+    id = Column(Integer, primary_key=True)
+    label = Column(String, nullable=False)
+
+
+class FireStartLookup(Base):
+    """ Map mean intensity group to prep level for a fire start range """
+    __tablename__ = 'hfi_fire_start_lookup'
+    __table_args__ = (
+        {'comment': 'Fire start mean intensity group prep level lookup'}
+    )
+    id = Column(Integer, primary_key=True)
+    fire_start_range_id = Column(Integer, ForeignKey('hfi_fire_start_range.id'), nullable=False, index=True)
+    mean_intensity_group = Column(Integer, nullable=False)
+    prep_level = Column(Integer, nullable=False)
+
+
+class FireCentreFireStartRange(Base):
+    __tablename__ = 'hfi_fire_centre_fire_start_range'
+    __table_args__ = (
+        UniqueConstraint('fire_start_range_id', 'fire_centre_id',
+                         name='unique_fire_start_range_for_fire_centre'),
+        {'comment': 'Link table for fire centre fire start ranges'}
+    )
+    id = Column(Integer, primary_key=True)
+    fire_start_range_id = Column(Integer, ForeignKey('hfi_fire_start_range.id'), nullable=False, index=True)
+    fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
+    order = Column(Integer, nullable=False)

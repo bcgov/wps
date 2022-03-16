@@ -64,21 +64,32 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
     return stations_codes
 
 
-# @router.post("/planning_area/{planning_area_id}/{prep_start_date}/fire-starts", response_model=HFIResultResponse)
-# async def change_fire_starts(request: HFIChangeFireStartsRequest,
-#                              response: Response,
-#                              token=Depends(authentication_required)):
-#     pass
+@router.post("/fire_centre/{fire_centre_id}/{start_date}/{planning_area_id}"
+             "/fire_starts/{prep_day_date}/{fire_start_range_id}",
+             response_model=HFIResultResponse)
+async def set_fire_start_range(fire_centre_id: int,
+                               start_date: date,
+                               planning_area_id: int,
+                               prep_day_date: date,
+                               fire_start_range_id: int,
+                               response: Response,
+                               token=Depends(authentication_required)):
+    """ Set the fire start range, by id."""
+    pass
 
 
-@router.post("/load/{fire_centre_id}", response_model=HFIResultResponse)
-async def load_hfi_result_no_date(fire_centre_id: int,
-                                  response: Response,
-                                  token=Depends(authentication_required)):
+@router.get("/fire_centre/{fire_centre_id}", response_model=HFIResultResponse)
+async def load_hfi_result(fire_centre_id: int,
+                          response: Response,
+                          token=Depends(authentication_required)):
+    """ Given a fire centre id, load the most recent HFIResultRequest.
+    If there isn't a stored request, one will be created.
+    """
+    logger.info('/hfi-calc/load/{fire_centre_id}')
     return await load_hfi_result_with_date(fire_centre_id, None, response, token)
 
 
-@router.post("/load/{fire_centre_id}/{start_date}", response_model=HFIResultResponse)
+@router.get("/fire_centre/{fire_centre_id}/{start_date}", response_model=HFIResultResponse)
 async def load_hfi_result_with_date(fire_centre_id: int,
                                     start_date: Optional[date],
                                     response: Response,

@@ -144,11 +144,6 @@ class StationInfo(BaseModel):
     fuel_type_id: int
 
 
-# class HFIChangeFireStartsRequest(BaseModel):
-#     """ Request to change fire starts for a planning area. """
-#     station_code: int
-#     fire_starts: int
-
 class HFIResultRequest(BaseModel):
     """
     Request that contains inputs necessary for calculating HFI.

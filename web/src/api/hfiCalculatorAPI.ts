@@ -83,11 +83,11 @@ export async function loadHFIResult(
   fire_center_id: number,
   start_date?: string
 ): Promise<HFIResultResponse> {
-  let url = baseUrl + 'load/' + fire_center_id
+  let url = baseUrl + 'fire_centre/' + fire_center_id
   if (start_date) {
     url += '/' + start_date
   }
-  const { data } = await axios.post<RawHFIResultResponse>(url)
+  const { data } = await axios.get<RawHFIResultResponse>(url)
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 
