@@ -3,10 +3,13 @@ import logging
 import json
 from typing import List, Optional
 from fastapi import APIRouter, Response, Depends
-from app.hfi.daily_pdf_gen import generate_daily_pdf
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
+from app.hfi.pdf_generator import generate_pdf
 import app.utils.time
-from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, HFILoadResultRequest, StationInfo
+from app.schemas.hfi_calc import (HFIResultRequest,
+                                  HFIResultResponse,
+                                  HFILoadResultRequest,
+                                  StationInfo)
 import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
@@ -220,7 +223,7 @@ async def download_result_pdf(request: HFIResultRequest,
             request_persist_success=False)
 
         fire_centres_list = await hydrate_fire_centres()
-        pdf_bytes = generate_daily_pdf(response, fire_centres_list)
+        pdf_bytes = generate_pdf(response, fire_centres_list)
 
         return Response(pdf_bytes)
     except Exception as exc:

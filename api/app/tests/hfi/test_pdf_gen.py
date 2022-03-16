@@ -1,9 +1,6 @@
-import datetime
 import json
 import os
-from app.hfi.daily_pdf_gen import generate_daily_pdf
-from app.hfi.pdf_data_formatter import response_2_prep_cycle_jinja_format
-from app.hfi.prep_pdf_gen import generate_prep_pdf
+from app.hfi.pdf_generator import generate_daily, generate_prep
 from app.schemas.hfi_calc import HFIResultResponse
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse
 
@@ -19,15 +16,13 @@ def test_gen_daily_pdf():
         for fc_json in fc_dict['fire_centres']:
             fc = FireCentre(**fc_json)
             fire_centres.append(fc)
-        pdf_bytes = generate_daily_pdf(HFIResultResponse(**result), fire_centres)
-        assert len(pdf_bytes) > 0
+        pdf_string = generate_daily(HFIResultResponse(**result), fire_centres)
+        assert len(pdf_string) > 0
 
 
-def test_gen_prep_data_converter():
+def test_gen_prep_pdf():
     """ All dailies in prep pdf data are grouped by station code and sorted by date"""
     with open(test_hfi_result, 'r') as hfi_result:
         result = json.load(hfi_result)
-        prep_pdf_data, dates = response_2_prep_cycle_jinja_format(HFIResultResponse(**result))
-
-        pdf_bytes = generate_prep_pdf(prep_pdf_data, dates)
-        assert len(pdf_bytes) > 0
+        pdf_string = generate_prep(HFIResultResponse(**result))
+        assert len(pdf_string) > 0
