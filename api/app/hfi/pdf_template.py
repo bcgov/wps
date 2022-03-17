@@ -11,7 +11,7 @@ class PDFTemplateName(Enum):
     PREP = 'prep'
 
 
-def get_template(template_name: str):    # pylint: disable=unused-argument
+def get_template(template_name: str):
     """ Returns prep or daily template """
     if template_name == PDFTemplateName.DAILY.value:
         with open(os.path.join(os.path.dirname(__file__),
