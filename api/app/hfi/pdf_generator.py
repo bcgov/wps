@@ -14,8 +14,7 @@ jinja_env = Environment(loader=FunctionLoader(get_template), autoescape=True)
 def generate_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]) -> bytes:
     """Generates the full PDF based on the HFIResultResponse"""
 
-    rendered_output: str = ''
-    rendered_output += generate_prep(result)
+    rendered_output = generate_prep(result)
     rendered_output += generate_daily(result, fire_centres)
 
     options = {
