@@ -3,7 +3,7 @@
 import math
 import logging
 from time import perf_counter
-from typing import Mapping, Optional, List, AsyncGenerator
+from typing import Mapping, Optional, List, AsyncGenerator, Dict
 from datetime import date, timedelta
 from statistics import mean
 from aiohttp.client import ClientSession
@@ -14,8 +14,7 @@ from app.schemas.hfi_calc import (DailyResult,
                                   PlanningAreaResult,
                                   StationDaily,
                                   ValidatedStationDaily,
-                                  required_daily_fields,
-                                  lowest_fire_starts)
+                                  required_daily_fields)
 from app.schemas.hfi_calc import (WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
 from app.utils.time import get_hour_20_from_date
@@ -23,7 +22,9 @@ from app.wildfire_one.wfwx_api import (get_auth_header, get_stations_by_codes,
                                        get_wfwx_stations_from_station_codes,
                                        get_raw_dailies_in_range_generator)
 from app.wildfire_one.schema_parsers import generate_station_daily
-from app.db.crud.hfi_calc import get_fire_centre_stations, get_fire_weather_stations
+from app.db.crud.hfi_calc import (get_fire_centre_stations,
+                                  get_fire_weather_stations, get_fire_centre_fire_start_ranges,
+                                  get_fire_start_lookup)
 
 logger = logging.getLogger(__name__)
 
@@ -210,6 +211,14 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
                 area_station_map[station.planning_area_id].append(station)
                 station_fuel_type_map[station.station_code] = fuel_type
 
+            fire_centre_fire_start_ranges: List[FireStartRange] = []
+            for fire_start_range in get_fire_centre_fire_start_ranges(orm_session,
+                                                                      request.selected_fire_center_id):
+                fire_centre_fire_start_ranges.append(
+                    FireStartRange(label=fire_start_range.label, id=fire_start_range.id))
+
+            fire_start_lookup = build_fire_start_prep_level_lookup(orm_session)
+
         wfwx_stations = await get_wfwx_stations_from_station_codes(
             session, header, list(fire_centre_station_code_ids))
 
@@ -225,15 +234,30 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
         prep_delta = valid_end_date - valid_start_date
         prep_days = prep_delta.days + 1  # num prep days is inclusive
 
-        results = calculate_hfi_results(request.planning_area_fire_starts,
+        results = calculate_hfi_results(fire_centre_fire_start_ranges,
+                                        request.planning_area_fire_starts,
+                                        fire_start_lookup,
                                         dailies, prep_days,
                                         request.selected_station_code_ids,
                                         area_station_map,
                                         valid_start_date)
-        return results, start_timestamp, end_timestamp
+        return results, start_timestamp, end_timestamp, fire_centre_fire_start_ranges
 
 
-def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange],  # pylint: disable=too-many-locals
+def build_fire_start_prep_level_lookup(orm_session) -> Dict[int, Dict[int, int]]:
+    """ Build a mapping from fire start range id to mean intensity group to prep level """
+    fire_start_lookup_records = get_fire_start_lookup(orm_session)
+    fire_start_lookup = {}
+    for lookup in fire_start_lookup_records:
+        if lookup.fire_start_range_id not in fire_start_lookup:
+            fire_start_lookup[lookup.fire_start_range_id] = {}
+        fire_start_lookup[lookup.fire_start_range_id][lookup.mean_intensity_group] = lookup.prep_level
+    return fire_start_lookup
+
+
+def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
+                          planning_area_fire_starts: Mapping[int, FireStartRange],  # pylint: disable=too-many-locals
+                          fire_start_lookup: Dict[int, Dict[int, int]],
                           dailies: list,
                           num_prep_days: int,
                           selected_station_codes: List[int],
@@ -255,6 +279,7 @@ def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange
                    dailies))
 
         # Initialize with defaults if empty
+        lowest_fire_starts = fire_start_ranges[0]
         if area_id not in planning_area_fire_starts:
             planning_area_fire_starts[area_id] = [lowest_fire_starts for _ in range(num_prep_days)]
         else:
@@ -272,7 +297,7 @@ def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange
             prep_day_dailies = get_prep_day_dailies(dailies_date, area_dailies)
             daily_fire_starts: FireStartRange = planning_area_fire_starts[area_id][index]
             mean_intensity_group = calculate_mean_intensity(prep_day_dailies)
-            prep_level = calculate_prep_level(mean_intensity_group, daily_fire_starts)
+            prep_level = calculate_prep_level(mean_intensity_group, daily_fire_starts, fire_start_lookup)
             validated_dailies: List[ValidatedStationDaily] = list(
                 map(validate_station_daily, prep_day_dailies))
             all_dailies_valid = all(map(lambda validated_daily: (
@@ -328,7 +353,7 @@ def calculate_mean_intensity(dailies: List[StationDaily]):
     return math.ceil(mean_intensity_group)
 
 
-def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: FireStartRange):
+def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: FireStartRange, fire_start_lookup):
     """ Returns the prep level based on the MIG and fire starts range """
     if mean_intensity_group is None:
         return None
@@ -336,7 +361,7 @@ def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: Fir
     rounded_mig = round(mean_intensity_group)
     if rounded_mig == 0:
         return None
-    return fire_starts.lookup_table[rounded_mig]
+    return fire_start_lookup[fire_starts.id][rounded_mig]
 
 
 def validate_station_daily(daily: StationDaily):

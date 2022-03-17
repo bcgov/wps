@@ -5,7 +5,8 @@ from datetime import date
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
 from app.schemas.hfi_calc import HFIResultRequest
-from app.db.models.hfi_calc import FireCentre, FuelType, PlanningArea, PlanningWeatherStation, HFIRequest
+from app.db.models.hfi_calc import (FireCentre, FuelType, PlanningArea, PlanningWeatherStation, HFIRequest,
+                                    FireStartRange, FireCentreFireStartRange, FireStartLookup)
 from app.utils.time import get_utc_now
 
 
@@ -56,3 +57,16 @@ def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, us
         create_user=username,
         request=hfi_result_request.json())
     session.add(hfi_request)
+
+
+def get_fire_centre_fire_start_ranges(session: Session, fire_centre_id: id) -> CursorResult:
+    """ Get the fire start ranges for a fire centre """
+    return session.query(FireStartRange)\
+        .join(FireCentreFireStartRange, FireCentreFireStartRange.fire_start_range_id == FireStartRange.id)\
+        .filter(FireCentreFireStartRange.fire_centre_id == fire_centre_id)\
+        .order_by(FireCentreFireStartRange.order)
+
+
+def get_fire_start_lookup(session: Session) -> CursorResult:
+    """ Get the fire start lookup table """
+    return session.query(FireStartLookup)

@@ -2,7 +2,7 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { DailyViewTable } from 'features/hfiCalculator/components/DailyViewTable'
 import WeeklyViewTable from 'features/hfiCalculator/components/WeeklyViewTable'
 import {
-  FireStarts,
+  FireStartRange,
   HFIResultResponse
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import React from 'react'
@@ -12,7 +12,11 @@ export interface ViewSwitcherProps {
   dateOfInterest: string
   result: HFIResultResponse
   setSelected: (selected: number[]) => void
-  setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
+  setNewFireStarts: (
+    areaId: number,
+    dayOffset: number,
+    newFireStarts: FireStartRange
+  ) => void
   selectedPrepDay: string
   selectedFireCentre: FireCentre | undefined
 }

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Container, ErrorBoundary, GeneralHeader } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
-  FireStarts,
+  FireStartRange,
+  PlanningAreaResult,
   setSelectedFireCentre,
   fetchHFIResult,
   fetchLoadHFIResult,
@@ -37,6 +38,19 @@ import { cloneDeep, isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
+
+function constructPlanningAreaFireStarts(
+  planning_area_hfi_results: PlanningAreaResult[]
+) {
+  const fireStarts = {} as { [key: number]: FireStartRange[] }
+  planning_area_hfi_results.forEach(planningAreaResult => {
+    fireStarts[planningAreaResult.planning_area_id] = []
+    planningAreaResult.daily_results.forEach(dailyResult => {
+      fireStarts[planningAreaResult.planning_area_id].push(dailyResult.fire_starts)
+    })
+  })
+  return fireStarts
+}
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -102,7 +116,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: result.planning_area_fire_starts,
+          planning_area_fire_starts: constructPlanningAreaFireStarts(
+            result.planning_area_hfi_results
+          ),
           start_date: result.start_date,
           end_date: newEndDate.toISO().split('T')[0]
         })
@@ -117,7 +133,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchHFIResult({
           selected_station_code_ids: newSelected,
           selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: result.planning_area_fire_starts,
+          planning_area_fire_starts: constructPlanningAreaFireStarts(
+            result.planning_area_hfi_results
+          ),
           start_date: result.start_date,
           end_date: result.end_date
         })
@@ -128,10 +146,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const setNewFireStarts = (
     areaId: number,
     dayOffset: number,
-    newFireStarts: FireStarts
+    newFireStarts: FireStartRange
   ) => {
     if (!isUndefined(result)) {
-      const newPlanningAreaFireStarts = cloneDeep(result.planning_area_fire_starts)
+      const newPlanningAreaFireStarts = cloneDeep(
+        constructPlanningAreaFireStarts(result.planning_area_hfi_results)
+      )
       newPlanningAreaFireStarts[areaId][dayOffset] = { ...newFireStarts }
       dispatch(setSaved(false))
       dispatch(
@@ -166,7 +186,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: result.planning_area_fire_starts,
+          planning_area_fire_starts: constructPlanningAreaFireStarts(
+            result.planning_area_hfi_results
+          ),
           start_date: start.toISODate(),
           end_date: end.toISODate()
         })
@@ -229,7 +251,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: result.planning_area_fire_starts,
+          planning_area_fire_starts: constructPlanningAreaFireStarts(
+            result.planning_area_hfi_results
+          ),
           start_date: result.start_date,
           end_date: result.end_date,
           persist_request: true
@@ -244,7 +268,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchPDFDownload({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: result.planning_area_fire_starts,
+          planning_area_fire_starts: constructPlanningAreaFireStarts(
+            result.planning_area_hfi_results
+          ),
           start_date: result.start_date,
           end_date: result.end_date
         })

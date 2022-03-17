@@ -4,6 +4,7 @@ import json
 from typing import List, Optional
 from datetime import date
 from fastapi import APIRouter, Response, Depends
+from pydantic.error_wrappers import ValidationError
 from app.hfi.daily_pdf_gen import generate_daily_pdf
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 import app.utils.time
@@ -64,8 +65,8 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
     return stations_codes
 
 
-@router.post("/fire_centre/{fire_centre_id}/{start_date}/{planning_area_id}"
-             "/fire_starts/{prep_day_date}/{fire_start_range_id}",
+@router.post("/fire_centre/{fire_centre_id}/{start_date}/planning_area/{planning_area_id}"
+             "/fire_starts/{prep_day_date}/fire_start_range/{fire_start_range_id}",
              response_model=HFIResultResponse)
 async def set_fire_start_range(fire_centre_id: int,
                                start_date: date,
@@ -106,12 +107,16 @@ async def load_hfi_result_with_date(fire_centre_id: int,
             stored_request = get_most_recent_updated_hfi_request(session,
                                                                  fire_centre_id,
                                                                  start_date)
+            request_loaded = False
             if stored_request:
-                request_loaded = True
-                result_request = HFIResultRequest.parse_obj(json.loads(stored_request.request))
-            else:
+                try:
+                    result_request = HFIResultRequest.parse_obj(json.loads(stored_request.request))
+                    request_loaded = True
+                except ValidationError as e:
+                    # This can happen when we change the schema! It's rare - but it happens.
+                    logger.error(e)
+            if not request_loaded:
                 # No stored request, so we need to create one.
-                request_loaded = False
                 fire_centre_stations = get_fire_centre_stations(session, fire_centre_id)
                 # TODO: selected_station_code_ids make it impossible to have a station selected in one area,
                 # and de-selected in another area. This has to be fixed!
@@ -132,14 +137,14 @@ async def load_hfi_result_with_date(fire_centre_id: int,
                     start_date=start_date,
                     selected_fire_center_id=fire_centre_id,
                     selected_station_code_ids=list(selected_station_code_ids),
-                    planning_area_station_info=planning_area_station_info,
-                    planning_area_fire_starts={})
+                    planning_area_fire_starts={},
+                    planning_area_station_info=planning_area_station_info)
                 if start_date:
                     # If a start date was specified, we go ahead and save this request.
                     save_request_in_database(result_request, token.get('preferred_username', None))
                     request_persist_success = True
 
-        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(result_request)
+        results, start_timestamp, end_timestamp, fire_centre_fire_start_ranges = await calculate_latest_hfi_results(result_request)
         response = HFIResultResponse(
             start_date=start_timestamp,
             end_date=end_timestamp,
@@ -147,8 +152,8 @@ async def load_hfi_result_with_date(fire_centre_id: int,
             planning_area_station_info=result_request.planning_area_station_info,
             selected_fire_center_id=result_request.selected_fire_center_id,
             planning_area_hfi_results=results,
-            planning_area_fire_starts=result_request.planning_area_fire_starts,
-            request_persist_success=request_persist_success or request_loaded)
+            request_persist_success=request_persist_success or request_loaded,
+            fire_start_ranges=fire_centre_fire_start_ranges)
         return response
 
     except Exception as exc:
@@ -174,7 +179,7 @@ async def get_hfi_results(request: HFIResultRequest,
             request = stored_request
             request_loaded = True
 
-        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
+        results, start_timestamp, end_timestamp, fire_start_ranges = await calculate_latest_hfi_results(request)
         response = HFIResultResponse(
             start_date=start_timestamp,
             end_date=end_timestamp,
@@ -182,8 +187,8 @@ async def get_hfi_results(request: HFIResultRequest,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
             planning_area_hfi_results=results,
-            planning_area_fire_starts=request.planning_area_fire_starts,
-            request_persist_success=False)
+            request_persist_success=False,
+            fire_start_ranges=fire_start_ranges)
 
         # TODO: move this to own function, as part of refactor app.hfi
         request_persist_success = False
@@ -234,7 +239,7 @@ async def download_result_pdf(request: HFIResultRequest,
     """ Assembles and returns PDF byte representation of HFI result. """
     try:
         logger.info('/hfi-calc/download-pdf')
-        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
+        results, start_timestamp, end_timestamp, fire_start_ranges = await calculate_latest_hfi_results(request)
 
         response = HFIResultResponse(
             start_date=start_timestamp,
@@ -243,8 +248,8 @@ async def download_result_pdf(request: HFIResultRequest,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
             planning_area_hfi_results=results,
-            planning_area_fire_starts=request.planning_area_fire_starts,
-            request_persist_success=False)
+            request_persist_success=False,
+            fire_start_ranges=fire_start_ranges)
 
         fire_centres_list = await hydrate_fire_centres()
         pdf_bytes = generate_daily_pdf(response, fire_centres_list)

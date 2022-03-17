@@ -13,10 +13,9 @@ import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
 
-export interface FireStarts {
+export interface FireStartRange {
   label: string
-  value: number
-  lookup_table: { [mig: number]: number }
+  id: number
 }
 
 export interface DailyResult {
@@ -24,7 +23,7 @@ export interface DailyResult {
   dailies: ValidatedStationDaily[]
   mean_intensity_group: number | undefined
   prep_level: number | undefined
-  fire_starts: FireStarts | undefined
+  fire_starts: FireStartRange
 }
 
 export interface RawDailyResult {
@@ -32,7 +31,7 @@ export interface RawDailyResult {
   dailies: RawValidatedStationDaily[]
   mean_intensity_group: number | undefined
   prep_level: number | undefined
-  fire_starts: FireStarts | undefined
+  fire_starts: FireStartRange
 }
 
 export interface PlanningAreaResult {
@@ -57,7 +56,7 @@ export interface HFICalculatorState {
   numPrepDays: number
   selectedPrepDate: string
   startDate: string
-  planningAreaFireStarts: { [key: string]: FireStarts[] }
+  planningAreaFireStarts: { [key: string]: FireStartRange[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
@@ -70,8 +69,8 @@ export interface HFIResultResponse {
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: PlanningAreaResult[]
-  planning_area_fire_starts: { [key: number]: FireStarts[] }
   request_persist_success: boolean
+  fire_start_ranges: FireStartRange[]
 }
 
 export interface RawHFIResultResponse {
@@ -80,8 +79,8 @@ export interface RawHFIResultResponse {
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: RawPlanningAreaResult[]
-  planning_area_fire_starts: { [key: number]: FireStarts[] }
   request_persist_success: boolean
+  fire_start_ranges: FireStartRange[]
 }
 
 export interface HFIResultRequest {
@@ -89,7 +88,7 @@ export interface HFIResultRequest {
   end_date?: string
   selected_station_code_ids: number[]
   selected_fire_center_id: number
-  planning_area_fire_starts: { [key: number]: FireStarts[] }
+  planning_area_fire_starts: { [key: number]: FireStartRange[] }
   persist_request?: boolean
 }
 
@@ -102,41 +101,6 @@ export interface RawValidatedStationDaily {
   daily: RawDaily
   valid: boolean
 }
-
-// Encodes lookup tables for each fire starts range from workbook
-export const lowestFireStarts: FireStarts = {
-  label: '0-1',
-  value: 1,
-  lookup_table: { 1: 1, 2: 1, 3: 2, 4: 3, 5: 4 }
-}
-export const one2TwoStarts: FireStarts = {
-  label: '1-2',
-  value: 2,
-  lookup_table: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
-}
-export const two2ThreeStarts: FireStarts = {
-  label: '2-3',
-  value: 3,
-  lookup_table: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 }
-}
-export const three2SixStarts: FireStarts = {
-  label: '3-6',
-  value: 6,
-  lookup_table: { 1: 3, 2: 4, 3: 5, 4: 6, 5: 6 }
-}
-export const highestFireStarts: FireStarts = {
-  label: '6+',
-  value: 7,
-  lookup_table: { 1: 4, 2: 5, 3: 6, 4: 6, 5: 6 }
-}
-
-export const FIRE_STARTS_SET: FireStarts[] = [
-  lowestFireStarts,
-  one2TwoStarts,
-  two2ThreeStarts,
-  three2SixStarts,
-  highestFireStarts
-]
 
 const initialState: HFICalculatorState = {
   loading: false,
