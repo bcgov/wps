@@ -1,21 +1,19 @@
 """Generate a daily PDF"""
 from typing import List, Mapping
 import pdfkit
-from jinja2 import Environment, FunctionLoader
+from jinja2 import Environment
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
-from app.hfi.pdf_template import PDFTemplateName, get_template, CSS_PATH
+from app.hfi.pdf_template import PDFTemplateName, CSS_PATH
 from app.hfi.pdf_data_formatter import response_2_daily_jinja_format, response_2_prep_cycle_jinja_format
 
-# Loads template as string from a function
-# See: https://jinja.palletsprojects.com/en/3.0.x/api/?highlight=functionloader#jinja2.FunctionLoader
-jinja_env = Environment(loader=FunctionLoader(get_template), autoescape=True)
 
-
-def generate_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]) -> bytes:
+def generate_pdf(result: HFIResultResponse,
+                 fire_centres: List[FireCentre],
+                 jinja_env: Environment) -> bytes:
     """Generates the full PDF based on the HFIResultResponse"""
 
-    rendered_output = generate_prep(result)
-    rendered_output += generate_daily(result, fire_centres)
+    rendered_output = generate_prep(result, jinja_env)
+    rendered_output += generate_daily(result, fire_centres, jinja_env)
 
     options = {
         'page-size': 'Tabloid'
@@ -26,7 +24,8 @@ def generate_pdf(result: HFIResultResponse, fire_centres: List[FireCentre]) -> b
     return pdf_bytes
 
 
-def generate_prep(result: HFIResultResponse):
+def generate_prep(result: HFIResultResponse,
+                  jinja_env: Environment):
     """Generates the prep cycle portion of the PDF"""
     prep_pdf_data, dates = response_2_prep_cycle_jinja_format(result)
     template = jinja_env.get_template(PDFTemplateName.PREP.value)
@@ -36,7 +35,9 @@ def generate_prep(result: HFIResultResponse):
         prepDays=dates)
 
 
-def generate_daily(result: HFIResultResponse, fire_centres: List[FireCentre]) -> str:
+def generate_daily(result: HFIResultResponse,
+                   fire_centres: List[FireCentre],
+                   jinja_env: Environment) -> str:
     """Generates the daily portion of the PDF"""
     # Shift hydrated fire centres into dicts keyed by ids
     fire_centre_dict: Mapping[int, FireCentre] = {}
