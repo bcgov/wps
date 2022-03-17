@@ -143,6 +143,7 @@ class HFIResultRequest(BaseModel):
     a ISO date string in PST, then grab the YYYY-MM-DD part.
     The PST part is critical, so that the date doesn't change due to timezone switches.
     """
+    # TODO: Change all fields to required!
     start_date: Optional[date]
     end_date: Optional[date]
     selected_fire_center_id: int

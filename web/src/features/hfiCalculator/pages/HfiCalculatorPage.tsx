@@ -7,10 +7,12 @@ import {
   setSelectedFireCentre,
   fetchHFIResult,
   fetchLoadHFIResult,
+  fetchSetNewFireStarts,
   setSelectedPrepDate,
   setSaved,
   fetchPDFDownload
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { SmartDate } from 'utils/date'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
 import {
@@ -34,7 +36,7 @@ import { PST_UTC_OFFSET, PST_ISO_TIMEZONE } from 'utils/constants'
 import PrepDaysDropdown from 'features/hfiCalculator/components/PrepDaysDropdown'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
-import { cloneDeep, isNull, isUndefined } from 'lodash'
+import { isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
@@ -149,19 +151,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     newFireStarts: FireStartRange
   ) => {
     if (!isUndefined(result)) {
-      const newPlanningAreaFireStarts = cloneDeep(
-        constructPlanningAreaFireStarts(result.planning_area_hfi_results)
-      )
-      newPlanningAreaFireStarts[areaId][dayOffset] = { ...newFireStarts }
+      // TODO: Move the smart date higher up
+      const startDate = SmartDate.fromISODateString(result.start_date)
+      const prepDayDate = startDate.plus({ days: dayOffset })
       dispatch(setSaved(false))
       dispatch(
-        fetchHFIResult({
-          selected_station_code_ids: result.selected_station_code_ids,
-          selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: newPlanningAreaFireStarts,
-          start_date: result.start_date,
-          end_date: result.end_date
-        })
+        fetchSetNewFireStarts(
+          result.selected_fire_center_id,
+          startDate,
+          areaId,
+          prepDayDate,
+          newFireStarts.id
+        )
       )
     }
   }

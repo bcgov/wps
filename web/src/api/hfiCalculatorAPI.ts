@@ -8,7 +8,7 @@ import {
 import { DateTime } from 'luxon'
 import 'qs'
 import { stringify } from 'querystring'
-import { formatISODateInPST } from 'utils/date'
+import { formatISODateInPST, SmartDate } from 'utils/date'
 
 export interface StationDaily {
   code: number
@@ -88,6 +88,31 @@ export async function loadHFIResult(
     url += '/' + start_date
   }
   const { data } = await axios.get<RawHFIResultResponse>(url)
+  return { ...data, planning_area_hfi_results: buildResult(data) }
+}
+
+export async function setNewFireStarts(
+  fire_center_id: number,
+  start_date: SmartDate,
+  planning_area_id: number,
+  prep_day_date: SmartDate,
+  fire_start_range_id: number
+): Promise<HFIResultResponse> {
+  // At the API boundary, we convert from our internal date structure to the API's date format
+  const url =
+    baseUrl +
+    'fire_centre/' +
+    fire_center_id +
+    '/' +
+    start_date.toISODateString() +
+    '/planning_area/' +
+    planning_area_id +
+    '/fire_starts/' +
+    prep_day_date.toISODateString() +
+    '/fire_start_range/' +
+    fire_start_range_id
+
+  const { data } = await axios.post<RawHFIResultResponse>(url)
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 

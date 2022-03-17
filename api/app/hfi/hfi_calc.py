@@ -211,11 +211,8 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
                 area_station_map[station.planning_area_id].append(station)
                 station_fuel_type_map[station.station_code] = fuel_type
 
-            fire_centre_fire_start_ranges: List[FireStartRange] = []
-            for fire_start_range in get_fire_centre_fire_start_ranges(orm_session,
-                                                                      request.selected_fire_center_id):
-                fire_centre_fire_start_ranges.append(
-                    FireStartRange(label=fire_start_range.label, id=fire_start_range.id))
+            fire_centre_fire_start_ranges = load_fire_start_ranges(orm_session,
+                                                                   request.selected_fire_center_id)
 
             fire_start_lookup = build_fire_start_prep_level_lookup(orm_session)
 
@@ -255,6 +252,31 @@ def build_fire_start_prep_level_lookup(orm_session) -> Dict[int, Dict[int, int]]
     return fire_start_lookup
 
 
+def load_fire_start_ranges(orm_session, fire_centre_id: int) -> List[FireStartRange]:
+    fire_centre_fire_start_ranges: List[FireStartRange] = []
+    for fire_start_range in get_fire_centre_fire_start_ranges(
+            orm_session,
+            fire_centre_id):
+        fire_centre_fire_start_ranges.append(
+            FireStartRange(label=fire_start_range.label, id=fire_start_range.id))
+    return fire_centre_fire_start_ranges
+
+
+def initialize_planning_area_fire_starts(
+        planning_area_fire_starts: Mapping[int, FireStartRange],
+        planning_area_id: int,
+        num_prep_days: int,
+        lowest_fire_starts: FireStartRange):
+    if planning_area_id not in planning_area_fire_starts:
+        planning_area_fire_starts[planning_area_id] = [lowest_fire_starts for _ in range(num_prep_days)]
+    else:
+        # Handle edge case where the provided planning area fire starts doesn't match the number
+        # of prep days.
+        if len(planning_area_fire_starts[planning_area_id]) < num_prep_days:
+            for _ in range(len(planning_area_fire_starts[planning_area_id]), num_prep_days):
+                planning_area_fire_starts[planning_area_id].append(lowest_fire_starts)
+
+
 def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
                           planning_area_fire_starts: Mapping[int, FireStartRange],  # pylint: disable=too-many-locals
                           fire_start_lookup: Dict[int, Dict[int, int]],
@@ -278,16 +300,13 @@ def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
                    (daily.code in area_station_codes and daily.code in selected_station_codes),
                    dailies))
 
-        # Initialize with defaults if empty
+        # Initialize with defaults if empty/wrong length
         lowest_fire_starts = fire_start_ranges[0]
-        if area_id not in planning_area_fire_starts:
-            planning_area_fire_starts[area_id] = [lowest_fire_starts for _ in range(num_prep_days)]
-        else:
-            # Handle edge case where the provided planning area fire starts doesn't match the number
-            # of prep days.
-            if len(planning_area_fire_starts[area_id]) < num_prep_days:
-                for _ in range(len(planning_area_fire_starts[area_id]), num_prep_days):
-                    planning_area_fire_starts[area_id].append(lowest_fire_starts)
+        initialize_planning_area_fire_starts(
+            planning_area_fire_starts,
+            area_id,
+            num_prep_days,
+            lowest_fire_starts)
 
         daily_results: List[DailyResult] = []
         all_dailies_valid: bool = True

@@ -1,19 +1,22 @@
 """ Routers for HFI Calculator """
 import logging
 import json
-from typing import List, Optional
+from typing import List, Optional, Mapping, Tuple
 from datetime import date
 from fastapi import APIRouter, Response, Depends
 from pydantic.error_wrappers import ValidationError
 from app.hfi.daily_pdf_gen import generate_daily_pdf
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
+from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
+                              validate_date_range,
+                              load_fire_start_ranges)
 import app.utils.time
-from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, StationInfo
+from app.schemas.hfi_calc import FireStartRange, HFIResultRequest, HFIResultResponse, StationInfo
 import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
 from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request,
-                                  get_fire_centre_stations)
+                                  get_fire_centre_stations, get_fire_start_range)
 
 
 logger = logging.getLogger(__name__)
@@ -27,8 +30,64 @@ router = APIRouter(
 )
 
 
+def prepare_pre_existing_request(session,
+                                 fire_centre_id: int,
+                                 start_date: Optional[date]) -> Tuple[HFIResultRequest, bool]:
+    stored_request = get_most_recent_updated_hfi_request(session,
+                                                         fire_centre_id,
+                                                         start_date)
+    request_loaded = False
+    if stored_request:
+        try:
+            result_request = HFIResultRequest.parse_obj(json.loads(stored_request.request))
+            request_loaded = True
+        except ValidationError as e:
+            # This can happen when we change the schema! It's rare - but it happens.
+            logger.error(e)
+    if not request_loaded:
+        # No stored request, so we need to create one.
+        # TODO: selected_station_code_ids make it impossible to have a station selected in one area,
+        # and de-selected in another area. This has to be fixed!
+        selected_station_code_ids = set()
+        planning_area_station_info: Mapping[int, List[StationInfo]] = {}
+        planning_area_fire_starts: Mapping[int, FireStartRange] = {}
+        start_date, end_date = validate_date_range(start_date, None)
+        num_prep_days = (end_date - start_date).days
+        fire_centre_stations = get_fire_centre_stations(session, fire_centre_id)
+        fire_centre_fire_start_ranges = load_fire_start_ranges(session, fire_centre_id)
+        lowest_fire_starts = fire_centre_fire_start_ranges[0]
+        for station, fuel_type in fire_centre_stations:
+            selected_station_code_ids.add(station.station_code)
+            if station.planning_area_id not in planning_area_station_info:
+                planning_area_station_info[station.planning_area_id] = []
+            planning_area_station_info[station.planning_area_id].append(
+                StationInfo(
+                    station_code=station.station_code,
+                    selected=True,
+                    fuel_type_id=fuel_type.id
+                ))
+            initialize_planning_area_fire_starts(
+                planning_area_fire_starts,
+                station.planning_area_id,
+                num_prep_days,
+                lowest_fire_starts
+            )
+
+        result_request = HFIResultRequest(
+            start_date=start_date,
+            end_date=end_date,
+            selected_fire_center_id=fire_centre_id,
+            selected_station_code_ids=list(selected_station_code_ids),
+            planning_area_fire_starts=planning_area_fire_starts,
+            planning_area_station_info=planning_area_station_info)
+
+    return result_request, request_loaded
+
+
 def load_request_from_database(request: HFIResultRequest) -> Optional[HFIResultRequest]:
-    """ If we need to load the request from the database, we do so.
+    """ 
+    THIS FUNCTION DEPRECATED!
+    If we need to load the request from the database, we do so.
 
     Returns:
         The request object if saved, otherwise None.
@@ -76,7 +135,41 @@ async def set_fire_start_range(fire_centre_id: int,
                                response: Response,
                                token=Depends(authentication_required)):
     """ Set the fire start range, by id."""
-    pass
+    logger.info("/fire_centre/%s/%s/planning_area/%s"
+                "/fire_starts/%s/fire_start_range/%s",
+                fire_centre_id, start_date, planning_area_id,
+                prep_day_date, fire_start_range_id)
+
+    with app.db.database.get_read_session_scope() as session:
+        # We get an existing request object (it will load from the DB or create it
+        # from scratch if it doesn't exist).
+        request, _ = prepare_pre_existing_request(session, fire_centre_id, start_date)
+
+        # We set the fire start range in the planning area for the provided prep day.
+        delta = prep_day_date - request.start_date
+        fire_start_range = get_fire_start_range(session, fire_start_range_id)
+        request.planning_area_fire_starts[planning_area_id][delta.days] = FireStartRange(
+            id=fire_start_range.id, label=fire_start_range.label)
+
+        # We calculate the new result.
+        results, start_timestamp, end_timestamp, fire_start_ranges = await calculate_latest_hfi_results(request)
+        # We prepare the response.
+        response = HFIResultResponse(
+            start_date=start_timestamp,
+            end_date=end_timestamp,
+            selected_station_code_ids=request.selected_station_code_ids,
+            planning_area_station_info=request.planning_area_station_info,
+            selected_fire_center_id=request.selected_fire_center_id,
+            planning_area_hfi_results=results,
+            request_persist_success=False,
+            fire_start_ranges=fire_start_ranges)
+
+        # We save the request in the database.
+        saved = save_request_in_database(request, token.get('preferred_username', None))
+        # TODO: we'll get rid of the request_persist_success param soon.
+        response.request_persist_success = saved
+
+    return response
 
 
 @router.get("/fire_centre/{fire_centre_id}", response_model=HFIResultResponse)
@@ -104,45 +197,11 @@ async def load_hfi_result_with_date(fire_centre_id: int,
 
         request_persist_success = False
         with app.db.database.get_read_session_scope() as session:
-            stored_request = get_most_recent_updated_hfi_request(session,
-                                                                 fire_centre_id,
-                                                                 start_date)
-            request_loaded = False
-            if stored_request:
-                try:
-                    result_request = HFIResultRequest.parse_obj(json.loads(stored_request.request))
-                    request_loaded = True
-                except ValidationError as e:
-                    # This can happen when we change the schema! It's rare - but it happens.
-                    logger.error(e)
+            result_request, request_loaded = prepare_pre_existing_request(session, fire_centre_id, start_date)
             if not request_loaded:
-                # No stored request, so we need to create one.
-                fire_centre_stations = get_fire_centre_stations(session, fire_centre_id)
-                # TODO: selected_station_code_ids make it impossible to have a station selected in one area,
-                # and de-selected in another area. This has to be fixed!
-                selected_station_code_ids = set()
-                planning_area_station_info = {}
-                for station, fuel_type in fire_centre_stations:
-                    selected_station_code_ids.add(station.station_code)
-                    if station.planning_area_id not in planning_area_station_info:
-                        planning_area_station_info[station.planning_area_id] = []
-                    planning_area_station_info[station.planning_area_id].append(
-                        StationInfo(
-                            station_code=station.station_code,
-                            selected=True,
-                            fuel_type_id=fuel_type.id
-                        ))
-
-                result_request = HFIResultRequest(
-                    start_date=start_date,
-                    selected_fire_center_id=fire_centre_id,
-                    selected_station_code_ids=list(selected_station_code_ids),
-                    planning_area_fire_starts={},
-                    planning_area_station_info=planning_area_station_info)
-                if start_date:
-                    # If a start date was specified, we go ahead and save this request.
-                    save_request_in_database(result_request, token.get('preferred_username', None))
-                    request_persist_success = True
+                # If a start date was specified, we go ahead and save this request.
+                save_request_in_database(result_request, token.get('preferred_username', None))
+                request_persist_success = True
 
         results, start_timestamp, end_timestamp, fire_centre_fire_start_ranges = await calculate_latest_hfi_results(result_request)
         response = HFIResultResponse(

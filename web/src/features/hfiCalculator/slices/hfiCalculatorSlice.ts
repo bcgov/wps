@@ -5,6 +5,7 @@ import { logError } from 'utils/error'
 import {
   getHFIResult,
   loadHFIResult,
+  setNewFireStarts,
   getPDF,
   RawDaily,
   StationDaily
@@ -12,6 +13,7 @@ import {
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
+import { SmartDate } from 'utils/date'
 
 export interface FireStartRange {
   label: string
@@ -122,9 +124,6 @@ const dailiesSlice = createSlice({
     loadHFIResultStart(state: HFICalculatorState) {
       state.loading = true
     },
-    getHFIResultStart(state: HFICalculatorState) {
-      state.loading = true
-    },
     pdfDownloadStart(state: HFICalculatorState) {
       state.loading = true
     },
@@ -132,10 +131,6 @@ const dailiesSlice = createSlice({
       state.loading = false
     },
     getHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
-      state.error = action.payload
-      state.loading = false
-    },
-    loadHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
@@ -172,12 +167,10 @@ const dailiesSlice = createSlice({
 })
 
 export const {
-  getHFIResultStart,
   loadHFIResultStart,
   pdfDownloadStart,
   pdfDownloadEnd,
   getHFIResultFailed,
-  loadHFIResultFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
   setResult,
@@ -194,7 +187,32 @@ export const fetchLoadHFIResult =
       const result = await loadHFIResult(fire_center_id, start_date)
       dispatch(setResult(result))
     } catch (err) {
-      dispatch(loadHFIResultFailed((err as Error).toString()))
+      dispatch(getHFIResultFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
+export const fetchSetNewFireStarts =
+  (
+    fire_center_id: number,
+    start_date: SmartDate,
+    planning_area_id: number,
+    prep_day_date: SmartDate,
+    fire_start_range_id: number
+  ): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(loadHFIResultStart())
+      const result = await setNewFireStarts(
+        fire_center_id,
+        start_date,
+        planning_area_id,
+        prep_day_date,
+        fire_start_range_id
+      )
+      dispatch(setResult(result))
+    } catch (err) {
+      dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)
     }
   }
@@ -203,7 +221,7 @@ export const fetchHFIResult =
   (request: HFIResultRequest): AppThunk =>
   async dispatch => {
     try {
-      dispatch(getHFIResultStart())
+      dispatch(loadHFIResultStart())
       const result = await getHFIResult(request)
       dispatch(setResult(result))
     } catch (err) {
