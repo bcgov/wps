@@ -148,6 +148,12 @@ class DateRange(BaseModel):
     start_date: date
     end_date: date
 
+class HFILoadResultRequest(BaseModel):
+    """ Request to load the HFI Calculator. """
+    start_date: Optional[date]
+    selected_fire_center_id: int
+
+
 class HFIResultRequest(BaseModel):
     """
     Request that contains inputs necessary for calculating HFI.
@@ -183,6 +189,13 @@ class HFIResultResponse(BaseModel):
     planning_area_fire_starts: Mapping[int, List[FireStartRange]]
     # Indicate whether the request used to generate this response  was saved to the database.
     request_persist_success: bool
+
+
+class PrepCyclePDFData(BaseModel):
+    """ Data needed for prep cycle PDF sheet """
+    planningAreaName: str
+    # Station dailies grouped by station code containing the dailies for each day in the prep cycle
+    dailies: Mapping[int, List[StationDaily]]
 
 
 class StationPDFData(StationDaily, WeatherStation):

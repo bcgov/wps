@@ -5,6 +5,8 @@ import {
   FireStarts,
   setSelectedFireCentre,
   fetchHFIResult,
+  fetchLoadHFIResult,
+  setSelectedPrepDate,
   setSaved,
   fetchPDFDownload,
   PrepDateRange
@@ -169,16 +171,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
     if (!isUndefined(selectedFireCentre)) {
-      const stationCodes = selectedFireCentre.planning_areas.flatMap(area =>
-        area.stations.map(station => station.code)
-      )
-      dispatch(
-        fetchHFIResult({
-          selected_station_code_ids: stationCodes,
-          selected_fire_center_id: selectedFireCentre.id,
-          planning_area_fire_starts: {}
-        })
-      )
+      dispatch(fetchLoadHFIResult({ selected_fire_center_id: selectedFireCentre.id }))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre])

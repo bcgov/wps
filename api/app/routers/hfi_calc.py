@@ -7,11 +7,12 @@ from fastapi import APIRouter, Response, Depends
 from app.hfi.daily_pdf_gen import generate_daily_pdf
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 import app.utils.time
-from app.schemas.hfi_calc import DateRange, HFIResultRequest, HFIResultResponse
+from app.schemas.hfi_calc import HFIResultRequest, HFIResultResponse, HFILoadResultRequest, StationInfo, DateRange
 import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
-from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request)
+from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request,
+                                  get_fire_centre_stations)
 
 
 logger = logging.getLogger(__name__)
@@ -85,6 +86,72 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
                 if not station_info.station_code in stations_codes:
                     stations_codes.append(station_info.station_code)
     return stations_codes
+
+
+@router.post("/load", response_model=HFIResultResponse)
+async def load_hfi_result(request: HFILoadResultRequest,
+                          response: Response,
+                          token=Depends(authentication_required)):
+    """ Given a fire centre id (and optionally a start date), load the most recent HFIResultRequest.
+    If there isn't a stored request, one will be created.
+    """
+    try:
+        logger.info('/hfi-calc/load/')
+        response.headers["Cache-Control"] = no_cache
+
+        request_persist_success = False
+        with app.db.database.get_read_session_scope() as session:
+            stored_request = get_most_recent_updated_hfi_request(session,
+                                                                 request.selected_fire_center_id,
+                                                                 request.start_date)
+            if stored_request:
+                request_loaded = True
+                result_request = HFIResultRequest.parse_obj(json.loads(stored_request.request))
+            else:
+                # No stored request, so we need to create one.
+                request_loaded = False
+                fire_centre_stations = get_fire_centre_stations(session, request.selected_fire_center_id)
+                # TODO: selected_station_code_ids make it impossible to have a station selected in one area,
+                # and de-selected in another area. This has to be fixed!
+                selected_station_code_ids = set()
+                planning_area_station_info = {}
+                for station, fuel_type in fire_centre_stations:
+                    selected_station_code_ids.add(station.station_code)
+                    if station.planning_area_id not in planning_area_station_info:
+                        planning_area_station_info[station.planning_area_id] = []
+                    planning_area_station_info[station.planning_area_id].append(
+                        StationInfo(
+                            station_code=station.station_code,
+                            selected=True,
+                            fuel_type_id=fuel_type.id
+                        ))
+
+                result_request = HFIResultRequest(
+                    start_date=request.start_date,
+                    selected_fire_center_id=request.selected_fire_center_id,
+                    selected_station_code_ids=list(selected_station_code_ids),
+                    planning_area_station_info=planning_area_station_info,
+                    planning_area_fire_starts={})
+                if request.start_date:
+                    # If a start date was specified, we go ahead and save this request.
+                    save_request_in_database(result_request, token.get('preferred_username', None))
+                    request_persist_success = True
+
+        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(result_request)
+        response = HFIResultResponse(
+            start_date=start_timestamp,
+            end_date=end_timestamp,
+            selected_station_code_ids=result_request.selected_station_code_ids,
+            planning_area_station_info=result_request.planning_area_station_info,
+            selected_fire_center_id=result_request.selected_fire_center_id,
+            planning_area_hfi_results=results,
+            planning_area_fire_starts=result_request.planning_area_fire_starts,
+            request_persist_success=request_persist_success or request_loaded)
+        return response
+
+    except Exception as exc:
+        logger.critical(exc, exc_info=True)
+        raise
 
 
 @router.post('/', response_model=HFIResultResponse)
