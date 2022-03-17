@@ -6,7 +6,8 @@ import {
   setSelectedFireCentre,
   fetchHFIResult,
   setSaved,
-  fetchPDFDownload
+  fetchPDFDownload,
+  PrepDateRange
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -117,30 +118,26 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const getBrowserCurrentDate = () => {
     return pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
   }
-  const [prepDateRange, setPrepDateRange] = useState<DateRange>({
-    // startDate: new Date(getBrowserCurrentDate()),
-    // endDate: new Date(getBrowserCurrentDate())
-  })
+  const [prepDateRange, setPrepDateRange] = useState<PrepDateRange>()
 
   const updatePrepDateRange = (newDateRange: DateRange) => {
     if (
-      newDateRange !== prepDateRange &&
+      // newDateRange !== prepDateRange &&
       !isUndefined(selectedFireCentre) &&
       !isUndefined(result)
     ) {
-      setPrepDateRange(newDateRange)
-      console.log(newDateRange)
+      setPrepDateRange({
+        // This is so annoying that I have to do this to make the network call work
+        start_date: newDateRange.startDate?.toISOString().split('T')[0],
+        end_date: newDateRange.endDate?.toISOString().split('T')[0]
+      })
       dispatch(setSaved(false))
       dispatch(
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
           planning_area_fire_starts: result.planning_area_fire_starts,
-          date_range: {
-            // This is so annoying that I have to do this to make the network call work
-            start_date: newDateRange.startDate?.toISOString().split('T')[0],
-            end_date: newDateRange.endDate?.toISOString().split('T')[0]
-          }
+          date_range: prepDateRange
         })
       )
     }
@@ -175,22 +172,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const stationCodes = selectedFireCentre.planning_areas.flatMap(area =>
         area.stations.map(station => station.code)
       )
-      let dateRange = undefined
-      if (!isUndefined(result)) {
-        dateRange = result.date_range
-      } else if (
-        !isUndefined(prepDateRange?.startDate) &&
-        !isUndefined(prepDateRange?.endDate)
-      ) {
-        dateRange = {
-          // This is so annoying that I have to do this to make the network call work
-          start_date: prepDateRange?.startDate.toISOString().split('T')[0],
-          end_date: prepDateRange?.endDate.toISOString().split('T')[0]
-        }
-      }
       dispatch(
         fetchHFIResult({
-          // date_range: dateRange,
           selected_station_code_ids: stationCodes,
           selected_fire_center_id: selectedFireCentre.id,
           planning_area_fire_starts: {}
@@ -209,14 +192,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     if (!isUndefined(result)) {
-      setPrepDateRange({
-        startDate: result.date_range.start_date
-          ? new Date(result.date_range.start_date)
-          : undefined,
-        endDate: result.date_range.end_date
-          ? new Date(result.date_range.end_date)
-          : undefined
-      })
+      setPrepDateRange(result.date_range)
     }
   }, [result, result?.date_range])
 
@@ -293,6 +269,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             <ViewSwitcher
               selectedFireCentre={selectedFireCentre}
               result={result}
+              dateRange={prepDateRange}
               setSelected={setSelected}
               setNewFireStarts={setNewFireStarts}
               selectedPrepDay={selectedPrepDate}

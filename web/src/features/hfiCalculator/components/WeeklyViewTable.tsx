@@ -24,7 +24,8 @@ import { useSelector } from 'react-redux'
 import {
   FireStarts,
   HFIResultResponse,
-  PlanningAreaResult
+  PlanningAreaResult,
+  PrepDateRange
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 
@@ -32,6 +33,7 @@ export interface Props {
   fireCentre: FireCentre | undefined
   testId?: string
   result: HFIResultResponse
+  dateRange?: PrepDateRange
   setSelected: (selected: number[]) => void
   setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
 }
@@ -61,7 +63,7 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const { dateRange, result } = useSelector(selectHFICalculatorState)
+  const { result } = useSelector(selectHFICalculatorState)
 
   const stationCodeInSelected = (code: number) => {
     return result ? result.selected_station_code_ids.includes(code) : false
@@ -78,7 +80,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
     props.setSelected(Array.from(selectedSet))
   }
 
-  const numPrepDays = calculateNumPrepDays(dateRange)
+  const numPrepDays = calculateNumPrepDays(props.dateRange)
 
   return (
     <FireTable
@@ -88,7 +90,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
     >
       <TableHead>
         <TableRow>
-          <DayHeaders dateRange={dateRange} />
+          <DayHeaders dateRange={props.dateRange} />
           <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>

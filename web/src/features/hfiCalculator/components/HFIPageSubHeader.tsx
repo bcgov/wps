@@ -19,7 +19,10 @@ import * as materialIcons from '@material-ui/icons'
 import { formControlStyles } from 'app/theme'
 import { DateTime } from 'luxon'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
-import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import {
+  HFIResultResponse,
+  PrepDateRange
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 const useStyles = makeStyles(theme => ({
   ...formControlStyles,
@@ -87,7 +90,7 @@ const useStyles = makeStyles(theme => ({
 interface Props {
   padding?: string
   fireCentres: FireCentre[]
-  dateRange: DateRange | undefined
+  dateRange?: PrepDateRange
   setDateRange: (newDateRange: DateRange) => void
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
@@ -140,12 +143,12 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
             onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
             value={
               isUndefined(props.dateRange) ||
-              isUndefined(props.dateRange.startDate) ||
-              isUndefined(props.dateRange.endDate)
+              isUndefined(props.dateRange.start_date) ||
+              isUndefined(props.dateRange.end_date)
                 ? ''
-                : `${DateTime.fromJSDate(props.dateRange.startDate)
+                : `${DateTime.fromISO(props.dateRange.start_date)
                     .toFormat(dateDisplayFormat)
-                    .trim()} - ${DateTime.fromJSDate(props.dateRange.endDate)
+                    .trim()} - ${DateTime.fromISO(props.dateRange.end_date)
                     .toFormat(dateDisplayFormat)
                     .trim()}
                       `

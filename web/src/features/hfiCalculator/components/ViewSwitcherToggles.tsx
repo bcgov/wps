@@ -4,14 +4,15 @@ import { isUndefined, range } from 'lodash'
 import { theme } from 'app/theme'
 import React from 'react'
 import { pstFormatter } from 'utils/date'
-import { useDispatch, useSelector } from 'react-redux'
-import { selectHFICalculatorState } from 'app/rootReducer'
-import { setSelectedPrepDate } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { useDispatch } from 'react-redux'
+import {
+  PrepDateRange,
+  setSelectedPrepDate
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
-import { DateRange } from 'materialui-daterange-picker'
 
 export interface ViewSwitcherTogglesProps {
-  dateRange: DateRange
+  dateRange?: PrepDateRange
   selectedPrepDate: string
   testId?: string
 }
@@ -48,12 +49,12 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
 
   if (
     !isUndefined(props.dateRange) &&
-    !isUndefined(props.dateRange.startDate) &&
-    !isUndefined(props.dateRange.endDate)
+    !isUndefined(props.dateRange.start_date) &&
+    !isUndefined(props.dateRange.end_date)
   ) {
-    start = DateTime.fromJSDate(props.dateRange.startDate)
-    const end = DateTime.fromJSDate(props.dateRange.endDate)
-    daysInDateRange = end.diff(start, 'days').days
+    start = DateTime.fromISO(props.dateRange.start_date)
+    const end = DateTime.fromISO(props.dateRange.end_date)
+    daysInDateRange = end.diff(start, 'days').days + 1
   }
 
   const formatDateString = (dateString: string): string => {

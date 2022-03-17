@@ -5,7 +5,6 @@ import StickyCell from 'components/StickyCell'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isUndefined, range } from 'lodash'
 import { DateTime } from 'luxon'
-import { DateRange } from 'materialui-daterange-picker'
 import React from 'react'
 
 export interface DayHeadersProps {
