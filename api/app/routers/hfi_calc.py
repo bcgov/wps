@@ -48,9 +48,9 @@ def get_prepared_request(
         try:
             result_request = HFIResultRequest.parse_obj(json.loads(stored_request.request))
             request_loaded = True
-        except ValidationError as e:
+        except ValidationError as validation_error:
             # This can happen when we change the schema! It's rare - but it happens.
-            logger.error(e)
+            logger.error(validation_error)
     if not request_loaded:
         # No stored request, so we need to create one.
         # TODO: selected_station_code_ids make it impossible to have a station selected in one area,
@@ -263,7 +263,9 @@ async def get_hfi_results(request: HFIResultRequest,
 
         with app.db.database.get_read_session_scope() as session:
             fire_start_ranges = list(load_fire_start_ranges(session, request.selected_fire_center_id))
-            results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(session, request, fire_start_ranges)
+            (results,
+             start_timestamp,
+             end_timestamp) = await calculate_latest_hfi_results(session, request, fire_start_ranges)
         response = HFIResultResponse(
             start_date=start_timestamp,
             end_date=end_timestamp,

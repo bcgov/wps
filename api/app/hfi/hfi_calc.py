@@ -2,12 +2,11 @@
 import math
 import logging
 from time import perf_counter
-from typing import Mapping, Optional, List, AsyncGenerator, Dict, Generator
+from typing import Mapping, Optional, List, AsyncGenerator, Dict, Generator, Tuple
 from datetime import date, timedelta
 from statistics import mean
 from aiohttp.client import ClientSession
 import app
-from app.db.database import get_read_session_scope
 from app.schemas.hfi_calc import (DailyResult,
                                   FireStartRange, HFIResultRequest,
                                   PlanningAreaResult,
@@ -277,6 +276,33 @@ def initialize_planning_area_fire_starts(
                 planning_area_fire_starts[planning_area_id].append(lowest_fire_starts)
 
 
+def calculate_daily_results(num_prep_days: int,
+                            start_date: date,
+                            area_dailies: List[StationDaily],
+                            planning_area_fire_starts: Mapping[int, FireStartRange],
+                            area_id: int,
+                            fire_start_lookup: Dict[int, Dict[int, int]]) -> Tuple[List[DailyResult], bool]:
+    daily_results: List[DailyResult] = []
+    for index in range(num_prep_days):
+        dailies_date = start_date + timedelta(days=index)
+        prep_day_dailies = get_prep_day_dailies(dailies_date, area_dailies)
+        daily_fire_starts: FireStartRange = planning_area_fire_starts[area_id][index]
+        mean_intensity_group = calculate_mean_intensity(prep_day_dailies)
+        prep_level = calculate_prep_level(mean_intensity_group, daily_fire_starts, fire_start_lookup)
+        validated_dailies: List[ValidatedStationDaily] = list(
+            map(validate_station_daily, prep_day_dailies))
+        all_dailies_valid = all(map(lambda validated_daily: (
+            validated_daily.valid), validated_dailies))
+        daily_result = DailyResult(
+            date=dailies_date,
+            dailies=validated_dailies,
+            fire_starts=daily_fire_starts,
+            mean_intensity_group=mean_intensity_group,
+            prep_level=prep_level)
+        daily_results.append(daily_result)
+    return daily_results
+
+
 def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
                           planning_area_fire_starts: Mapping[int, FireStartRange],  # pylint: disable=too-many-locals
                           fire_start_lookup: Dict[int, Dict[int, int]],
@@ -301,6 +327,8 @@ def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
                    dailies))
 
         # Initialize with defaults if empty/wrong length
+        # TODO: Sometimes initialize_planning_area_fire_starts is called twice. Look into this once
+        # endpoint re-factor is complete.
         lowest_fire_starts = fire_start_ranges[0]
         initialize_planning_area_fire_starts(
             planning_area_fire_starts,
@@ -308,26 +336,15 @@ def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
             num_prep_days,
             lowest_fire_starts)
 
-        daily_results: List[DailyResult] = []
         all_dailies_valid: bool = True
 
-        for index in range(num_prep_days):
-            dailies_date = start_date + timedelta(days=index)
-            prep_day_dailies = get_prep_day_dailies(dailies_date, area_dailies)
-            daily_fire_starts: FireStartRange = planning_area_fire_starts[area_id][index]
-            mean_intensity_group = calculate_mean_intensity(prep_day_dailies)
-            prep_level = calculate_prep_level(mean_intensity_group, daily_fire_starts, fire_start_lookup)
-            validated_dailies: List[ValidatedStationDaily] = list(
-                map(validate_station_daily, prep_day_dailies))
-            all_dailies_valid = all(map(lambda validated_daily: (
-                validated_daily.valid), validated_dailies))
-            daily_result = DailyResult(
-                date=dailies_date,
-                dailies=validated_dailies,
-                fire_starts=daily_fire_starts,
-                mean_intensity_group=mean_intensity_group,
-                prep_level=prep_level)
-            daily_results.append(daily_result)
+        (daily_results,
+         all_dailies_valid) = calculate_daily_results(num_prep_days,
+                                                      start_date,
+                                                      area_dailies,
+                                                      planning_area_fire_starts,
+                                                      area_id,
+                                                      fire_start_lookup)
 
         highest_daily_intensity_group = calculate_max_intensity_group(
             list(map(lambda daily_result: (daily_result.mean_intensity_group), daily_results)))
