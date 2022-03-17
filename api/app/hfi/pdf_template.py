@@ -15,9 +15,11 @@ def get_template(template_name: str):    # pylint: disable=unused-argument
     """ Returns prep or daily template """
     if template_name == PDFTemplateName.DAILY.value:
         with open(os.path.join(os.path.dirname(__file__),
-                               'templates/daily_template.jinja.html'), 'r') as daily_template:
+                               'templates/daily_template.jinja.html'),
+                  'r', encoding="utf-8") as daily_template:
             return daily_template.read()
     else:
         with open(os.path.join(os.path.dirname(__file__),
-                               "templates/prep_template.jinja.html"), 'r') as prep_template:
+                               "templates/prep_template.jinja.html"),
+                  'r', encoding="utf-8") as prep_template:
             return prep_template.read()
