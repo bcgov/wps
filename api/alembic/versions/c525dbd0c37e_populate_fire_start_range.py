@@ -17,7 +17,8 @@ branch_labels = None
 depends_on = None
 
 
-def populate_lookups(op, id, hfi_fire_start_lookup, fire_start_ranges, lookups):
+def populate_hfi_fire_start_lookup(op, id, hfi_fire_start_lookup, fire_start_ranges, lookups):
+    """ Populate hfi_fire_start_lookup table with lookups for fire start ranges. """
     data = []
     for index, fire_start_range in enumerate(fire_start_ranges):
         for lookup in lookups[index]:
@@ -40,7 +41,7 @@ def upgrade():
                                  column('label', String)
                                  )
 
-    # Data for kamloops fire centre.
+    # Fire start ranges for kamloops fire centre.
     kamloops_fire_start_ranges = [
         {'id': 1, 'label': '0-1'},
         {'id': 2, 'label': '1-2'},
@@ -51,7 +52,7 @@ def upgrade():
     op.bulk_insert(hfi_fire_start_range,
                    kamloops_fire_start_ranges
                    )
-    # Data for the other fire centres.
+    # Fire start ranges for the other fire centres.
     other_fire_start_ranges = [
         {'id': 6, 'label': '0-2'},
         {'id': 7, 'label': '3-5'},
@@ -69,6 +70,8 @@ def upgrade():
                                              column('fire_start_range_id', Integer),
                                              column('fire_centre_id', Integer),
                                              column('order', Integer))
+
+    # Link fire start ranges to each fire centre.
     fire_centre_ranges = []
     conn = op.get_bind()
     res = conn.execute('SELECT id, name FROM fire_centres')
@@ -101,7 +104,8 @@ def upgrade():
                                   column('prep_level', Integer)
                                   )
 
-    id = populate_lookups(op, 1, hfi_fire_start_lookup, kamloops_fire_start_ranges, [
+    # Populate lookup values for each fire start range.
+    id = populate_hfi_fire_start_lookup(op, 1, hfi_fire_start_lookup, kamloops_fire_start_ranges, [
         # 0-1
         [[1, 1], [2, 1], [3, 2], [4, 3], [5, 4]],
         # 1-2
@@ -114,7 +118,7 @@ def upgrade():
         [[1, 4], [2, 5], [3, 6], [4, 6], [5, 6]],
     ])
 
-    populate_lookups(op, id, hfi_fire_start_lookup, other_fire_start_ranges, [
+    populate_hfi_fire_start_lookup(op, id, hfi_fire_start_lookup, other_fire_start_ranges, [
         # 0-2
         [[1, 1], [2, 1], [3, 2], [4, 3], [5, 4]],
         # 3-5
@@ -126,64 +130,6 @@ def upgrade():
         # 15+
         [[1, 4], [2, 5], [3, 6], [4, 6], [5, 6]],
     ])
-
-    # op.bulk_insert(hfi_fire_start_lookup, [
-    #     # 0-1
-    #     {'id': 1, 'fire_start_range_id': hfi_fire_start_ranges[0]
-    #         ['id'], 'mean_intensity_group': 1, 'prep_level': 1},
-    #     {'id': 2, 'fire_start_range_id': hfi_fire_start_ranges[0]
-    #         ['id'], 'mean_intensity_group': 2, 'prep_level': 1},
-    #     {'id': 3, 'fire_start_range_id': hfi_fire_start_ranges[0]
-    #         ['id'], 'mean_intensity_group': 3, 'prep_level': 2},
-    #     {'id': 4, 'fire_start_range_id': hfi_fire_start_ranges[0]
-    #         ['id'], 'mean_intensity_group': 4, 'prep_level': 3},
-    #     {'id': 5, 'fire_start_range_id': hfi_fire_start_ranges[0]
-    #         ['id'], 'mean_intensity_group': 5, 'prep_level': 4},
-    #     # 1-2
-    #     {'id': 6, 'fire_start_range_id': hfi_fire_start_ranges[1]
-    #         ['id'], 'mean_intensity_group': 1, 'prep_level': 1},
-    #     {'id': 7, 'fire_start_range_id': hfi_fire_start_ranges[1]
-    #         ['id'], 'mean_intensity_group': 2, 'prep_level': 1},
-    #     {'id': 8, 'fire_start_range_id': hfi_fire_start_ranges[1]
-    #         ['id'], 'mean_intensity_group': 3, 'prep_level': 2},
-    #     {'id': 9, 'fire_start_range_id': hfi_fire_start_ranges[1]
-    #         ['id'], 'mean_intensity_group': 4, 'prep_level': 4},
-    #     {'id': 10, 'fire_start_range_id': hfi_fire_start_ranges[1]
-    #         ['id'], 'mean_intensity_group': 5, 'prep_level': 5},
-    #     # 2-3
-    #     {'id': 11, 'fire_start_range_id': hfi_fire_start_ranges[2]
-    #         ['id'], 'mean_intensity_group': 1, 'prep_level': 2},
-    #     {'id': 12, 'fire_start_range_id': hfi_fire_start_ranges[2]
-    #         ['id'], 'mean_intensity_group': 2, 'prep_level': 3},
-    #     {'id': 13, 'fire_start_range_id': hfi_fire_start_ranges[2]
-    #         ['id'], 'mean_intensity_group': 3, 'prep_level': 4},
-    #     {'id': 14, 'fire_start_range_id': hfi_fire_start_ranges[2]
-    #         ['id'], 'mean_intensity_group': 4, 'prep_level': 5},
-    #     {'id': 15, 'fire_start_range_id': hfi_fire_start_ranges[2]
-    #         ['id'], 'mean_intensity_group': 5, 'prep_level': 6},
-    #     # 3-6
-    #     {'id': 16, 'fire_start_range_id': hfi_fire_start_ranges[3]
-    #         ['id'], 'mean_intensity_group': 1, 'prep_level': 3},
-    #     {'id': 17, 'fire_start_range_id': hfi_fire_start_ranges[3]
-    #         ['id'], 'mean_intensity_group': 2, 'prep_level': 4},
-    #     {'id': 18, 'fire_start_range_id': hfi_fire_start_ranges[3]
-    #         ['id'], 'mean_intensity_group': 3, 'prep_level': 4},
-    #     {'id': 19, 'fire_start_range_id': hfi_fire_start_ranges[3]
-    #         ['id'], 'mean_intensity_group': 4, 'prep_level': 5},
-    #     {'id': 20, 'fire_start_range_id': hfi_fire_start_ranges[3]
-    #         ['id'], 'mean_intensity_group': 5, 'prep_level': 6},
-    #     # 6+
-    #     {'id': 21, 'fire_start_range_id': hfi_fire_start_ranges[4]
-    #         ['id'], 'mean_intensity_group': 1, 'prep_level': 4},
-    #     {'id': 22, 'fire_start_range_id': hfi_fire_start_ranges[4]
-    #         ['id'], 'mean_intensity_group': 2, 'prep_level': 5},
-    #     {'id': 23, 'fire_start_range_id': hfi_fire_start_ranges[4]
-    #         ['id'], 'mean_intensity_group': 3, 'prep_level': 6},
-    #     {'id': 24, 'fire_start_range_id': hfi_fire_start_ranges[4]
-    #         ['id'], 'mean_intensity_group': 4, 'prep_level': 6},
-    #     {'id': 25, 'fire_start_range_id': hfi_fire_start_ranges[4]
-    #         ['id'], 'mean_intensity_group': 5, 'prep_level': 6},
-    # ])
 
 
 def downgrade():

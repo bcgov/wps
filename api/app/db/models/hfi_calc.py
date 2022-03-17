@@ -102,7 +102,12 @@ class HFIRequest(Base):
 
 
 class FireStartRange(Base):
-    """"""
+    """ A range of fire starts, described by a label. E.g. "3-5" or "15+"
+    The range need not be stored in terms of "start" and "end" - a label is sufficient, as the lower
+    and upper bound aren't used in calculations.
+
+    The fire start range is associated with a fire centre, and a mean intensity -> prep level lookup.
+    """
     __tablename__ = 'hfi_fire_start_range'
     __table_args__ = (
         {'comment': 'Fire start range'}
@@ -112,7 +117,10 @@ class FireStartRange(Base):
 
 
 class FireStartLookup(Base):
-    """ Map mean intensity group to prep level for a fire start range """
+    """ Map mean intensity group to prep level for a fire start range.
+
+    Given a fire start range, the mean intensity group can be used to find the prep level.
+    """
     __tablename__ = 'hfi_fire_start_lookup'
     __table_args__ = (
         {'comment': 'Fire start mean intensity group prep level lookup'}
@@ -124,6 +132,8 @@ class FireStartLookup(Base):
 
 
 class FireCentreFireStartRange(Base):
+    """ Associate a fire centre with n fire start ranges, in some sort order.
+    """
     __tablename__ = 'hfi_fire_centre_fire_start_range'
     __table_args__ = (
         UniqueConstraint('fire_start_range_id', 'fire_centre_id',

@@ -38,6 +38,8 @@ def get_prepared_request(
         fire_centre_fire_start_ranges: List[FireStartRange]) -> Tuple[HFIResultRequest, bool]:
     """ Attempt to load the most recent request from the database, failing that creates a new request all
     set up with default values.
+
+    TODO: request_loaded should become redudant once all requests have been changed.
     """
 
     stored_request = get_most_recent_updated_hfi_request(session,
@@ -92,7 +94,7 @@ def get_prepared_request(
 
 def load_request_from_database(request: HFIResultRequest) -> Optional[HFIResultRequest]:
     """
-    THIS FUNCTION DEPRECATED!
+    THIS FUNCTION DEPRECATED! Will be removed along with get_hfi_results when all requests have been changed.
     If we need to load the request from the database, we do so.
 
     Returns:
@@ -147,9 +149,10 @@ async def set_fire_start_range(fire_centre_id: int,
                 prep_day_date, fire_start_range_id)
 
     with app.db.database.get_read_session_scope() as session:
+        # Load the fire start ranges - it's referenced by a lot of things.
+        fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
         # We get an existing request object (it will load from the DB or create it
         # from scratch if it doesn't exist).
-        fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
         request, _ = get_prepared_request(session,
                                           fire_centre_id,
                                           start_date,
@@ -166,12 +169,12 @@ async def set_fire_start_range(fire_centre_id: int,
 
         # We calculate the new result.
         (results,
-         start_timestamp,
-         end_timestamp) = await calculate_latest_hfi_results(session, request, fire_centre_fire_start_ranges)
+         start_date,
+         end_date) = await calculate_latest_hfi_results(session, request, fire_centre_fire_start_ranges)
         # We prepare the response.
         response = HFIResultResponse(
-            start_date=start_timestamp,
-            end_date=end_timestamp,
+            start_date=start_date,
+            end_date=end_date,
             selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
@@ -223,13 +226,13 @@ async def load_hfi_result_with_date(fire_centre_id: int,
                 request_persist_success = True
 
             (results,
-             start_timestamp,
-             end_timestamp) = await calculate_latest_hfi_results(session,
-                                                                 result_request,
-                                                                 fire_centre_fire_start_ranges)
+             _,
+             __) = await calculate_latest_hfi_results(session,
+                                                      result_request,
+                                                      fire_centre_fire_start_ranges)
         response = HFIResultResponse(
-            start_date=start_timestamp,
-            end_date=end_timestamp,
+            start_date=result_request.start_date,
+            end_date=result_request.end_date,
             selected_station_code_ids=result_request.selected_station_code_ids,
             planning_area_station_info=result_request.planning_area_station_info,
             selected_fire_center_id=result_request.selected_fire_center_id,
@@ -248,6 +251,7 @@ async def get_hfi_results(request: HFIResultRequest,
                           response: Response,
                           token=Depends(authentication_required)):
     """ Returns calculated HFI results for the supplied details in the POST body """
+    # THIS FUNCTION IS DEPRECATED.
     # Yes. There are a lot of locals!
     # pylint: disable=too-many-locals
 
@@ -264,11 +268,11 @@ async def get_hfi_results(request: HFIResultRequest,
         with app.db.database.get_read_session_scope() as session:
             fire_start_ranges = list(load_fire_start_ranges(session, request.selected_fire_center_id))
             (results,
-             start_timestamp,
-             end_timestamp) = await calculate_latest_hfi_results(session, request, fire_start_ranges)
+             start_date,
+             end_date) = await calculate_latest_hfi_results(session, request, fire_start_ranges)
         response = HFIResultResponse(
-            start_date=start_timestamp,
-            end_date=end_timestamp,
+            start_date=start_date,
+            end_date=end_date,
             selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
@@ -328,12 +332,12 @@ async def download_result_pdf(request: HFIResultRequest,
         with app.db.database.get_read_session_scope() as session:
             fire_start_ranges = list(load_fire_start_ranges(session, request.selected_fire_center_id))
             (results,
-             start_timestamp,
-             end_timestamp) = await calculate_latest_hfi_results(session, request, fire_start_ranges)
+             start_date,
+             end_date) = await calculate_latest_hfi_results(session, request, fire_start_ranges)
 
         response = HFIResultResponse(
-            start_date=start_timestamp,
-            end_date=end_timestamp,
+            start_date=start_date,
+            end_date=end_date,
             selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,

@@ -178,7 +178,7 @@ def validate_date_range(start_date: date, end_date: date):
 async def calculate_latest_hfi_results(
         orm_session,
         request: HFIResultRequest,
-        fire_centre_fire_start_ranges: List[FireStartRange]):
+        fire_centre_fire_start_ranges: List[FireStartRange]) -> Tuple[List[PlanningAreaResult], int, int]:
     "Set up time range and fire centre data for calculating HFI results"
 
     # pylint: disable=too-many-locals
