@@ -12,13 +12,7 @@ from app.schemas.hfi_calc import (FireCentre,
                                   StationDaily,
                                   WeatherStation,
                                   WeatherStationProperties,
-                                  required_daily_fields,
-                                  lowest_fire_starts,
-                                  one_2_two_starts,
-                                  two_2_three_starts,
-                                  three_2_six_starts,
-                                  highest_fire_starts,
-                                  all_ranges)
+                                  required_daily_fields)
 from app.schemas.shared import FuelType
 
 # Kamloops FC fixture

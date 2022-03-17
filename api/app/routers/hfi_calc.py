@@ -5,6 +5,7 @@ from typing import List, Optional, Mapping, Tuple
 from datetime import date
 from fastapi import APIRouter, Response, Depends
 from pydantic.error_wrappers import ValidationError
+from sqlalchemy.orm import Session
 from app.hfi.daily_pdf_gen import generate_daily_pdf
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
@@ -30,9 +31,12 @@ router = APIRouter(
 )
 
 
-def prepare_pre_existing_request(session,
-                                 fire_centre_id: int,
-                                 start_date: Optional[date]) -> Tuple[HFIResultRequest, bool]:
+def prepare_pre_existing_request(
+        session: Session,
+        fire_centre_id: int,
+        start_date: Optional[date],
+        fire_centre_fire_start_ranges: List[FireStartRange]) -> Tuple[HFIResultRequest, bool]:
+
     stored_request = get_most_recent_updated_hfi_request(session,
                                                          fire_centre_id,
                                                          start_date)
@@ -54,7 +58,6 @@ def prepare_pre_existing_request(session,
         start_date, end_date = validate_date_range(start_date, None)
         num_prep_days = (end_date - start_date).days
         fire_centre_stations = get_fire_centre_stations(session, fire_centre_id)
-        fire_centre_fire_start_ranges = load_fire_start_ranges(session, fire_centre_id)
         lowest_fire_starts = fire_centre_fire_start_ranges[0]
         for station, fuel_type in fire_centre_stations:
             selected_station_code_ids.add(station.station_code)
@@ -85,7 +88,7 @@ def prepare_pre_existing_request(session,
 
 
 def load_request_from_database(request: HFIResultRequest) -> Optional[HFIResultRequest]:
-    """ 
+    """
     THIS FUNCTION DEPRECATED!
     If we need to load the request from the database, we do so.
 
@@ -143,7 +146,11 @@ async def set_fire_start_range(fire_centre_id: int,
     with app.db.database.get_read_session_scope() as session:
         # We get an existing request object (it will load from the DB or create it
         # from scratch if it doesn't exist).
-        request, _ = prepare_pre_existing_request(session, fire_centre_id, start_date)
+        fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
+        request, _ = prepare_pre_existing_request(session,
+                                                  fire_centre_id,
+                                                  start_date,
+                                                  fire_centre_fire_start_ranges)
 
         # We set the fire start range in the planning area for the provided prep day.
         if prep_day_date <= request.end_date:
@@ -155,7 +162,9 @@ async def set_fire_start_range(fire_centre_id: int,
             logger.info('prep date falls outside of the prep period')
 
         # We calculate the new result.
-        results, start_timestamp, end_timestamp, fire_start_ranges = await calculate_latest_hfi_results(request)
+        (results,
+         start_timestamp,
+         end_timestamp) = await calculate_latest_hfi_results(session, request, fire_centre_fire_start_ranges)
         # We prepare the response.
         response = HFIResultResponse(
             start_date=start_timestamp,
@@ -165,7 +174,7 @@ async def set_fire_start_range(fire_centre_id: int,
             selected_fire_center_id=request.selected_fire_center_id,
             planning_area_hfi_results=results,
             request_persist_success=False,
-            fire_start_ranges=fire_start_ranges)
+            fire_start_ranges=fire_centre_fire_start_ranges)
 
         # We save the request in the database.
         saved = save_request_in_database(request, token.get('preferred_username', None))
@@ -200,13 +209,21 @@ async def load_hfi_result_with_date(fire_centre_id: int,
 
         request_persist_success = False
         with app.db.database.get_read_session_scope() as session:
-            result_request, request_loaded = prepare_pre_existing_request(session, fire_centre_id, start_date)
+            fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
+            result_request, request_loaded = prepare_pre_existing_request(session,
+                                                                          fire_centre_id,
+                                                                          start_date,
+                                                                          fire_centre_fire_start_ranges)
             if not request_loaded:
                 # If a start date was specified, we go ahead and save this request.
                 save_request_in_database(result_request, token.get('preferred_username', None))
                 request_persist_success = True
 
-        results, start_timestamp, end_timestamp, fire_centre_fire_start_ranges = await calculate_latest_hfi_results(result_request)
+            (results,
+             start_timestamp,
+             end_timestamp) = await calculate_latest_hfi_results(session,
+                                                                 result_request,
+                                                                 fire_centre_fire_start_ranges)
         response = HFIResultResponse(
             start_date=start_timestamp,
             end_date=end_timestamp,
@@ -241,7 +258,9 @@ async def get_hfi_results(request: HFIResultRequest,
             request = stored_request
             request_loaded = True
 
-        results, start_timestamp, end_timestamp, fire_start_ranges = await calculate_latest_hfi_results(request)
+        with app.db.database.get_read_session_scope() as session:
+            fire_start_ranges = list(load_fire_start_ranges(session, request.selected_fire_center_id))
+            results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(session, request, fire_start_ranges)
         response = HFIResultResponse(
             start_date=start_timestamp,
             end_date=end_timestamp,
@@ -301,7 +320,11 @@ async def download_result_pdf(request: HFIResultRequest,
     """ Assembles and returns PDF byte representation of HFI result. """
     try:
         logger.info('/hfi-calc/download-pdf')
-        results, start_timestamp, end_timestamp, fire_start_ranges = await calculate_latest_hfi_results(request)
+        with app.db.database.get_read_session_scope() as session:
+            fire_start_ranges = list(load_fire_start_ranges(session, request.selected_fire_center_id))
+            (results,
+             start_timestamp,
+             end_timestamp) = await calculate_latest_hfi_results(session, request, fire_start_ranges)
 
         response = HFIResultResponse(
             start_date=start_timestamp,

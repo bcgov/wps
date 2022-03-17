@@ -1,9 +1,8 @@
 """ HFI calculation logic """
-
 import math
 import logging
 from time import perf_counter
-from typing import Mapping, Optional, List, AsyncGenerator, Dict
+from typing import Mapping, Optional, List, AsyncGenerator, Dict, Generator
 from datetime import date, timedelta
 from statistics import mean
 from aiohttp.client import ClientSession
@@ -177,7 +176,10 @@ def validate_date_range(start_date: date, end_date: date):
     return start_date, end_date
 
 
-async def calculate_latest_hfi_results(request: HFIResultRequest):
+async def calculate_latest_hfi_results(
+        orm_session,
+        request: HFIResultRequest,
+        fire_centre_fire_start_ranges: List[FireStartRange]):
     "Set up time range and fire centre data for calculating HFI results"
 
     # pylint: disable=too-many-locals
@@ -194,27 +196,23 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
         # TODO: Enable when fuel type config implemented
         # selected_station_codes = extract_selected_stations(request)
 
-        with get_read_session_scope() as orm_session:
-            # Fetching dailies is an expensive operation. When a user is clicking an unclicking stations
-            # in the front end, we'd prefer to not change the the call that's going to wfwx so that we can
-            # use cached values. So we don't actually filter out the "selected" stations, but rather go
-            # get all the stations for this fire centre.
-            fire_centre_stations = get_fire_centre_stations(
-                orm_session, request.selected_fire_center_id)
-            fire_centre_station_code_ids = set()
-            area_station_map = {}
-            station_fuel_type_map = {}
-            for station, fuel_type in fire_centre_stations:
-                fire_centre_station_code_ids.add(station.station_code)
-                if not station.planning_area_id in area_station_map:
-                    area_station_map[station.planning_area_id] = []
-                area_station_map[station.planning_area_id].append(station)
-                station_fuel_type_map[station.station_code] = fuel_type
+        # Fetching dailies is an expensive operation. When a user is clicking an unclicking stations
+        # in the front end, we'd prefer to not change the the call that's going to wfwx so that we can
+        # use cached values. So we don't actually filter out the "selected" stations, but rather go
+        # get all the stations for this fire centre.
+        fire_centre_stations = get_fire_centre_stations(
+            orm_session, request.selected_fire_center_id)
+        fire_centre_station_code_ids = set()
+        area_station_map = {}
+        station_fuel_type_map = {}
+        for station, fuel_type in fire_centre_stations:
+            fire_centre_station_code_ids.add(station.station_code)
+            if not station.planning_area_id in area_station_map:
+                area_station_map[station.planning_area_id] = []
+            area_station_map[station.planning_area_id].append(station)
+            station_fuel_type_map[station.station_code] = fuel_type
 
-            fire_centre_fire_start_ranges = load_fire_start_ranges(orm_session,
-                                                                   request.selected_fire_center_id)
-
-            fire_start_lookup = build_fire_start_prep_level_lookup(orm_session)
+        fire_start_lookup = build_fire_start_prep_level_lookup(orm_session)
 
         wfwx_stations = await get_wfwx_stations_from_station_codes(
             session, header, list(fire_centre_station_code_ids))
@@ -238,7 +236,7 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
                                         request.selected_station_code_ids,
                                         area_station_map,
                                         valid_start_date)
-        return results, start_timestamp, end_timestamp, fire_centre_fire_start_ranges
+        return results, start_timestamp, end_timestamp
 
 
 def build_fire_start_prep_level_lookup(orm_session) -> Dict[int, Dict[int, int]]:
@@ -252,14 +250,14 @@ def build_fire_start_prep_level_lookup(orm_session) -> Dict[int, Dict[int, int]]
     return fire_start_lookup
 
 
-def load_fire_start_ranges(orm_session, fire_centre_id: int) -> List[FireStartRange]:
-    fire_centre_fire_start_ranges: List[FireStartRange] = []
-    for fire_start_range in get_fire_centre_fire_start_ranges(
-            orm_session,
-            fire_centre_id):
-        fire_centre_fire_start_ranges.append(
-            FireStartRange(label=fire_start_range.label, id=fire_start_range.id))
-    return fire_centre_fire_start_ranges
+def load_fire_start_ranges(orm_session, fire_centre_id: int) -> Generator[FireStartRange, None, None]:
+    """ Fetch the fire start ranges for a fire centre from the database, and return them as a list of
+    schema objects.
+    """
+    return [FireStartRange(
+        label=fire_start_range.label,
+        id=fire_start_range.id)
+        for fire_start_range in get_fire_centre_fire_start_ranges(orm_session, fire_centre_id)]
 
 
 def initialize_planning_area_fire_starts(
@@ -372,7 +370,10 @@ def calculate_mean_intensity(dailies: List[StationDaily]):
     return math.ceil(mean_intensity_group)
 
 
-def calculate_prep_level(mean_intensity_group: Optional[float], fire_starts: FireStartRange, fire_start_lookup):
+def calculate_prep_level(
+        mean_intensity_group: Optional[float],
+        fire_starts: FireStartRange,
+        fire_start_lookup: Dict[int, Dict[int, int]]) -> int:
     """ Returns the prep level based on the MIG and fire starts range """
     if mean_intensity_group is None:
         return None
