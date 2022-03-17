@@ -1,8 +1,8 @@
 """ Routers for HFI Calculator """
 import logging
 import json
-from jinja2 import Environment, FunctionLoader
 from typing import List, Optional
+from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, Response, Depends
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
