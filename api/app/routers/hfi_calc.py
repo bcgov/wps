@@ -31,11 +31,14 @@ router = APIRouter(
 )
 
 
-def prepare_pre_existing_request(
+def get_prepared_request(
         session: Session,
         fire_centre_id: int,
         start_date: Optional[date],
         fire_centre_fire_start_ranges: List[FireStartRange]) -> Tuple[HFIResultRequest, bool]:
+    """ Attempt to load the most recent request from the database, failing that creates a new request all
+    set up with default values.
+    """
 
     stored_request = get_most_recent_updated_hfi_request(session,
                                                          fire_centre_id,
@@ -147,10 +150,10 @@ async def set_fire_start_range(fire_centre_id: int,
         # We get an existing request object (it will load from the DB or create it
         # from scratch if it doesn't exist).
         fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
-        request, _ = prepare_pre_existing_request(session,
-                                                  fire_centre_id,
-                                                  start_date,
-                                                  fire_centre_fire_start_ranges)
+        request, _ = get_prepared_request(session,
+                                          fire_centre_id,
+                                          start_date,
+                                          fire_centre_fire_start_ranges)
 
         # We set the fire start range in the planning area for the provided prep day.
         if prep_day_date <= request.end_date:
@@ -210,10 +213,10 @@ async def load_hfi_result_with_date(fire_centre_id: int,
         request_persist_success = False
         with app.db.database.get_read_session_scope() as session:
             fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
-            result_request, request_loaded = prepare_pre_existing_request(session,
-                                                                          fire_centre_id,
-                                                                          start_date,
-                                                                          fire_centre_fire_start_ranges)
+            result_request, request_loaded = get_prepared_request(session,
+                                                                  fire_centre_id,
+                                                                  start_date,
+                                                                  fire_centre_fire_start_ranges)
             if not request_loaded:
                 # If a start date was specified, we go ahead and save this request.
                 save_request_in_database(result_request, token.get('preferred_username', None))

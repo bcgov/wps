@@ -265,6 +265,8 @@ def initialize_planning_area_fire_starts(
         planning_area_id: int,
         num_prep_days: int,
         lowest_fire_starts: FireStartRange):
+    """ Load up the planning area fire start ranges with default values.
+    """
     if planning_area_id not in planning_area_fire_starts:
         planning_area_fire_starts[planning_area_id] = [lowest_fire_starts for _ in range(num_prep_days)]
     else:
