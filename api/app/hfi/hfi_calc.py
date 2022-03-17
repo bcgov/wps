@@ -282,6 +282,7 @@ def calculate_daily_results(num_prep_days: int,
                             planning_area_fire_starts: Mapping[int, FireStartRange],
                             area_id: int,
                             fire_start_lookup: Dict[int, Dict[int, int]]) -> Tuple[List[DailyResult], bool]:
+    """ Calculate the daily results for a planning area."""
     daily_results: List[DailyResult] = []
     for index in range(num_prep_days):
         dailies_date = start_date + timedelta(days=index)
@@ -300,7 +301,7 @@ def calculate_daily_results(num_prep_days: int,
             mean_intensity_group=mean_intensity_group,
             prep_level=prep_level)
         daily_results.append(daily_result)
-    return daily_results
+    return daily_results, all_dailies_valid
 
 
 def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
