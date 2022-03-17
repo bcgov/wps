@@ -5,7 +5,7 @@
   </head>
 
   <body>
-    <table>
+    <table role="presentation">
       <tr class="leftBorder">
         <td></td>
         <td></td>
@@ -14,12 +14,12 @@
         <td class="boldRightBorder"></td>
         <td></td>
         <td></td>
-        <th>{{ day }}</th>
+        <th id="weekday">{{ day }}</th>
         {% endfor %}
         <td></td>
         <td></td>
         <td class="boldLeftBorder"></td>
-        <th>Prep</th>
+        <th id="prep-header-label">Prep</th>
       </tr>
       <tr>
         <td></td>
