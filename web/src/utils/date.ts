@@ -147,7 +147,13 @@ export class SmartDate {
     /* Given a date in the format YYYY-MM-DD return a smart date object.
     
     How we store the object is none of your business. */
-    return new SmartDate(DateTime.fromISO(isoDate + 'T00:00+00:00'))
+
+    // setZone: true is very important here. We're telling DateTime not to use the local timezone,
+    // and to just stick to the offset we've given it. This helps us avoid weird bugs where
+    // converting to and fro between iso strings and date objects results in date changes due
+    // to timezones. (e.g. the 14th of July in PST could be the 15th of July in UTC depending on
+    // the time of day.)
+    return new SmartDate(DateTime.fromISO(isoDate + 'T00:00+00:00', { setZone: true }))
   }
 
   static fromJSDate(jsDate: Date): SmartDate {

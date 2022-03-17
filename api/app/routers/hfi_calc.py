@@ -146,10 +146,13 @@ async def set_fire_start_range(fire_centre_id: int,
         request, _ = prepare_pre_existing_request(session, fire_centre_id, start_date)
 
         # We set the fire start range in the planning area for the provided prep day.
-        delta = prep_day_date - request.start_date
-        fire_start_range = get_fire_start_range(session, fire_start_range_id)
-        request.planning_area_fire_starts[planning_area_id][delta.days] = FireStartRange(
-            id=fire_start_range.id, label=fire_start_range.label)
+        if prep_day_date <= request.end_date:
+            delta = prep_day_date - request.start_date
+            fire_start_range = get_fire_start_range(session, fire_start_range_id)
+            request.planning_area_fire_starts[planning_area_id][delta.days] = FireStartRange(
+                id=fire_start_range.id, label=fire_start_range.label)
+        else:
+            logger.info('prep date falls outside of the prep period')
 
         # We calculate the new result.
         results, start_timestamp, end_timestamp, fire_start_ranges = await calculate_latest_hfi_results(request)
