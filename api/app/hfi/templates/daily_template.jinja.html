@@ -1,19 +1,14 @@
-"""String representations of templates for in memory loading"""
-import os
-
-CSS_PATH = os.path.join(os.path.dirname(__file__), "style.css")
-
-DAILY_TEMPLATE_HTML = """
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <title>HFI Daily</title>
-</head>
-<body>
+    <head>
+        <title>HFI Daily</title>
+    </head>
+        <body>
             {% for date, planning_areas in daily_pdf_data_by_date.items() %}
             <h1>BC Wildfire Services - HFI Calculator</h1>
             <h2>Fire Centre ID: {{fire_centre_name}} - Date: {{date}}</h2>
             <table>
+                <caption>HFI Daily Table</caption>
                 <tr>
                     <th colspan="24">{{date}}</th>
                 </tr>
@@ -85,9 +80,3 @@ DAILY_TEMPLATE_HTML = """
         {% endfor %}
     </body>
 </html>
-"""
-
-
-def str_daily_template(template_name: str):    # pylint: disable=unused-argument
-    """ Returns the only (currently) template, arg above will be used for switching """
-    return DAILY_TEMPLATE_HTML

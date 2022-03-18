@@ -38,7 +38,7 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
 
         # Flat list of station daily grouped by code and ordered by date
         # e.g. [{code: 1, date: 1, code: 1, date: 2, ..., code: 2, date: 1, code: 2, date: 2, ...}]
-        areas_by_code_and_date = reduce(list.__add__, area_dailies_by_code)
+        areas_by_code_and_date = reduce(list.__add__, area_dailies_by_code, [])
 
         # Sorting dailies into dict keyed by station code
         key = operator.attrgetter('code')
