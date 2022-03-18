@@ -66,6 +66,7 @@ export interface HFICalculatorState {
 }
 
 export interface HFIResultResponse {
+  // TODO: Change from string to SmartDate
   start_date: string
   end_date: string
   selected_station_code_ids: number[]

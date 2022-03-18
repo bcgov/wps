@@ -1,4 +1,4 @@
-import { TextField } from '@material-ui/core'
+import { makeStyles, TextField } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 import { FireStartRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isEqual, isNull } from 'lodash'
@@ -16,6 +16,12 @@ export interface FireStartsDropdownProps {
   ) => void
 }
 
+const useStyles = makeStyles({
+  thing: {
+    width: '96px'
+  }
+})
+
 const FireStartsDropdown = ({
   fireStarts,
   fireStartRanges,
@@ -23,9 +29,11 @@ const FireStartsDropdown = ({
   dayOffset,
   setFireStarts
 }: FireStartsDropdownProps) => {
+  const classes = useStyles()
   return (
     <Autocomplete
       data-testid={`fire-starts-dropdown`}
+      className={classes.thing}
       disableClearable
       autoHighlight
       autoSelect
