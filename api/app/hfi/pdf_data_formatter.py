@@ -73,7 +73,6 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
 
     daily_pdf_data: List[DailyPDFData] = []
     for area_result in result.planning_area_hfi_results:
-        fire_starts_range = result.planning_area_fire_starts[area_result.planning_area_id]
         days_total = len(area_result.daily_results)
         for j, daily_result in enumerate(area_result.daily_results):
             dailies: List[StationDaily] = list(map(lambda x: x.daily, daily_result.dailies))
@@ -84,7 +83,7 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
                 merged.update(station_data)
                 full_daily = StationPDFData(**merged)
                 full_dailies.append(full_daily)
-            fire_starts = fire_starts_range[j]
+            fire_starts = daily_result.fire_starts
             planning_area_name = planning_area_dict[area_result.planning_area_id].name
             daily_data = DailyPDFData(planning_area_name=planning_area_name,
                                       highest_daily_intensity_group=area_result.highest_daily_intensity_group,
