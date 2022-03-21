@@ -19,9 +19,10 @@ from app.schemas.hfi_calc import (DailyPDFData, DailyResult,
 def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
                                        planning_area_dict: Mapping[int, PlanningArea],
                                        station_dict: Mapping[int, WeatherStation]):
-    """ Marshals HFI result into structure that jinja can easily
-        iterate over for generating the prep cycle PDF sheet
-     """
+    """
+    Marshals HFI result into structure that jinja can easily
+    iterate over for generating the prep cycle PDF sheet
+    """
     prep_cycle_pdf_data: List[PlanningAreaPDFData] = []
     for area_result in result.planning_area_hfi_results:
 
@@ -58,6 +59,9 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
 
 
 def get_formatted_dates(dates: Set[datetime]):
+    """
+    Returns the dates formatted as readable weekday strings
+    """
     formatted_dates = []
     for date in dates:
         date_obj = datetime.strptime(str(date), '%Y-%m-%d %H:%M:%S%z')
@@ -68,25 +72,34 @@ def get_formatted_dates(dates: Set[datetime]):
 
 
 def get_fire_start_labels(result: HFIResultResponse, area_result: PlanningAreaResult):
+    """
+    Returns the fire start labels for each planning area on each date
+    """
     fire_starts = result.planning_area_fire_starts[area_result.planning_area_id]
     labels = list(map(lambda fs: fs.label, fire_starts))
     return labels
 
 
 def get_prep_levels(daily_results: List[DailyResult]):
+    """
+    Returns the prep levels from the daily results
+    """
     return list(map(lambda daily_result: daily_result.prep_level, daily_results))
 
 
 def get_mean_intensity_groups(daily_results: List[DailyResult]):
+    """
+    Returns the mean intensity groups from the daily results
+    """
     return list(map(lambda daily_result: daily_result.mean_intensity_group, daily_results))
 
 
 def get_station_pdf_data(area_dailies: List[StationDaily],
                          station_dict: Mapping[int, WeatherStation]) -> Mapping[int, List[StationPDFData]]:
     """
-        Merges and sorts station dailies and weather station properties
-        expected in prep cycle PDF template order
-     """
+    Merges and sorts station dailies and weather station properties
+    expected in prep cycle PDF template order
+    """
 
     # group dailies by station code
     get_attr = operator.attrgetter('code')
@@ -118,9 +131,10 @@ def get_station_pdf_data(area_dailies: List[StationDaily],
 def response_2_daily_jinja_format(result: HFIResultResponse,
                                   planning_area_dict: Mapping[int, PlanningArea],
                                   station_dict: Mapping[int, WeatherStation]):
-    """ Marshals HFI result into structure that jinja can easily
-        iterate over for generating the daily PDF sheets
-     """
+    """
+    Marshals HFI result into structure that jinja can easily
+    iterate over for generating the daily PDF sheets
+    """
 
     daily_pdf_data: List[DailyPDFData] = []
     for area_result in result.planning_area_hfi_results:
