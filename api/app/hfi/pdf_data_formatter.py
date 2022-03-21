@@ -7,7 +7,7 @@ from itertools import groupby
 import operator
 from typing import List, Mapping, Set
 from app.hfi.hfi_calc import validate_station_daily
-from app.schemas.hfi_calc import (DailyPDFData,
+from app.schemas.hfi_calc import (DailyPDFData, DailyResult,
                                   HFIResultResponse,
                                   PlanningArea, PlanningAreaResult,
                                   PlanningAreaPDFData,
@@ -32,15 +32,19 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
         area_dailies: List[StationDaily] = list(map(lambda x: x.daily, area_validated_dailies))
 
         sorted_dates = {daily.date for daily in sorted(area_dailies, key=operator.attrgetter('date'))}
+
         formatted_dates: List[str] = get_formatted_dates(sorted_dates)
         station_pdf_data = get_station_pdf_data(area_dailies, station_dict)
+        fire_starts_labels = get_fire_start_labels(result, area_result)
+        mean_intensity_groups = get_mean_intensity_groups(area_result.daily_results)
 
         planning_area_name = planning_area_dict[area_result.planning_area_id].name
         order = planning_area_dict[area_result.planning_area_id].order_of_appearance_in_list
-        fire_starts = result.planning_area_fire_starts[area_result.planning_area_id]
 
         area_pdf_data = PlanningAreaPDFData(planning_area_name=planning_area_name,
                                             order=order,
+                                            mean_intensity_groups=mean_intensity_groups,
+                                            fire_starts_labels=fire_starts_labels,
                                             dailies=station_pdf_data)
         prep_cycle_pdf_data.append(area_pdf_data)
 
@@ -55,6 +59,16 @@ def get_formatted_dates(dates: Set[datetime]):
         formatted_dates.append(formatted_date_string)
 
     return formatted_dates
+
+
+def get_fire_start_labels(result: HFIResultResponse, area_result: PlanningAreaResult):
+    fire_starts = result.planning_area_fire_starts[area_result.planning_area_id]
+    labels = list(map(lambda fs: fs.label, fire_starts))
+    return labels
+
+
+def get_mean_intensity_groups(daily_results: List[DailyResult]):
+    return list(map(lambda daily_result: daily_result.mean_intensity_group, daily_results))
 
 
 def get_station_pdf_data(area_dailies: List[StationDaily],
