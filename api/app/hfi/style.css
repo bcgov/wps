@@ -18,34 +18,9 @@ th {
 p {
   page-break-before: always;
 }
-.leftBorder {
-  border-left: 1px solid black;
-  border-collapse: collapse;
-}
-
-.rightBorder {
-  border-right: 1px solid black;
-  border-collapse: collapse;
-}
-
-.boldRightBorder {
-  border-right: 2px solid black;
-  border-collapse: collapse;
-}
-
-.boldLeftBorder {
-  border-left: 2px solid black;
-  border-collapse: collapse;
-}
-
 .planningArea {
   border-top: black 2px solid;
   background-color: #e9ecf5;
-  border-collapse: collapse;
-  padding: 0;
-}
-.station {
-  border-bottom: black 2px solid;
   border-collapse: collapse;
   padding: 0;
 }
