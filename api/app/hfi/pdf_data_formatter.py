@@ -74,8 +74,10 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
     daily_pdf_data: List[DailyPDFData] = []
     for area_result in result.planning_area_hfi_results:
         fire_starts_range = result.planning_area_fire_starts[area_result.planning_area_id]
-        days_total = len(area_result.daily_results)
+        days_total = len(area_result.daily_results) - 1
         for j, daily_result in enumerate(area_result.daily_results):
+            if(j >= days_total):
+                break
             dailies: List[StationDaily] = list(map(lambda x: x.daily, daily_result.dailies))
             full_dailies: List[StationPDFData] = []
             for daily in dailies:
