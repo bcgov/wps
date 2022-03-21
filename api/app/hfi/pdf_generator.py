@@ -10,7 +10,7 @@ from app.hfi.pdf_data_formatter import response_2_daily_jinja_format, response_2
 
 def generate_pdf(result: HFIResultResponse,
                  fire_centres: List[FireCentre],
-                 username: str,
+                 idir: str,
                  datetime_generated: datetime,
                  jinja_env: Environment) -> bytes:
     """Generates the full PDF based on the HFIResultResponse"""
@@ -18,11 +18,15 @@ def generate_pdf(result: HFIResultResponse,
     fire_centre_name = fire_centre_dict[result.selected_fire_center_id].name
 
     rendered_output = generate_prep(result,
+                                    idir,
+                                    datetime_generated,
                                     planning_area_dict,
                                     station_dict,
                                     fire_centre_name,
                                     jinja_env)
     rendered_output += generate_daily(result,
+                                      idir,
+                                      datetime_generated,
                                       planning_area_dict,
                                       station_dict,
                                       fire_centre_name,
@@ -33,22 +37,30 @@ def generate_pdf(result: HFIResultResponse,
     }
 
     pdf_bytes: bytes = pdfkit.from_string(input=rendered_output, options=options, css=CSS_PATH)
-    pdf_filename = get_pdf_filename(fire_centre_name, datetime_generated.date(), username)
+    pdf_filename = get_pdf_filename(fire_centre_name, datetime_generated.date(), idir)
 
     return pdf_bytes, pdf_filename
 
 
 def generate_prep(result: HFIResultResponse,
+                  idir: str,
+                  datetime_generated: datetime,
                   planning_area_dict: Mapping[int, PlanningArea],
                   station_dict: Mapping[int, WeatherStation],
                   fire_centre_name: str,
                   jinja_env: Environment):
     """Generates the prep cycle portion of the PDF"""
     prep_pdf_data, dates, date_range = response_2_prep_cycle_jinja_format(
-        result, planning_area_dict, station_dict)
+        result,
+        idir,
+        datetime_generated,
+        planning_area_dict,
+        station_dict)
     template = jinja_env.get_template(PDFTemplateName.PREP.value)
 
     return template.render(
+        idir=idir,
+        datetime_generated=datetime_generated.isoformat(),
         planning_areas=prep_pdf_data,
         prep_days=dates,
         fire_centre_name=fire_centre_name,
@@ -56,6 +68,8 @@ def generate_prep(result: HFIResultResponse,
 
 
 def generate_daily(result: HFIResultResponse,
+                   idir: str,
+                   datetime_generated: datetime,
                    planning_area_dict: Mapping[int, PlanningArea],
                    station_dict: Mapping[int, WeatherStation],
                    fire_centre_name: str,
@@ -64,9 +78,13 @@ def generate_daily(result: HFIResultResponse,
     template = jinja_env.get_template(PDFTemplateName.DAILY.value)
     daily_pdf_data_by_date = response_2_daily_jinja_format(
         result,
+        idir,
+        datetime_generated,
         planning_area_dict,
         station_dict)
     return template.render(
+        idir=idir,
+        datetime_generated=datetime_generated.isoformat(),
         daily_pdf_data_by_date=daily_pdf_data_by_date,
         fire_centre_name=fire_centre_name)
 

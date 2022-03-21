@@ -17,6 +17,8 @@ from app.schemas.hfi_calc import (DailyPDFData, DailyResult,
 
 
 def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
+                                       idir: str,
+                                       datetime_generated: datetime,
                                        planning_area_dict: Mapping[int, PlanningArea],
                                        station_dict: Mapping[int, WeatherStation]):
     """
@@ -149,6 +151,8 @@ def get_station_pdf_data(area_dailies: List[StationDaily],
 
 
 def response_2_daily_jinja_format(result: HFIResultResponse,
+                                  idir: str,
+                                  datetime_generated: datetime,
                                   planning_area_dict: Mapping[int, PlanningArea],
                                   station_dict: Mapping[int, WeatherStation]):
     """
@@ -156,11 +160,13 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
     iterate over for generating the daily PDF sheets
     """
 
+    initial_page_index = 2  # to 1-based counting and skipping assumed prep cycle page
+
     daily_pdf_data: List[DailyPDFData] = []
     for area_result in result.planning_area_hfi_results:
         fire_starts_range = result.planning_area_fire_starts[area_result.planning_area_id]
         days_total = len(area_result.daily_results)
-        for j, daily_result in enumerate(area_result.daily_results):
+        for idx, daily_result in enumerate(area_result.daily_results):
             dailies: List[StationDaily] = list(map(lambda x: x.daily, daily_result.dailies))
             full_dailies: List[StationPDFData] = []
             for daily in dailies:
@@ -169,14 +175,14 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
                 merged.update(station_data)
                 full_daily = StationPDFData(**merged)
                 full_dailies.append(full_daily)
-            fire_starts = fire_starts_range[j]
+            fire_starts = fire_starts_range[idx]
             planning_area_name = planning_area_dict[area_result.planning_area_id].name
             daily_data = DailyPDFData(planning_area_name=planning_area_name,
                                       highest_daily_intensity_group=area_result.highest_daily_intensity_group,
                                       mean_prep_level=area_result.mean_prep_level,
                                       fire_starts=fire_starts.label,
                                       days_total=days_total,
-                                      day=j,
+                                      day=initial_page_index + idx,
                                       date=daily_result.date.isoformat(),
                                       dailies=full_dailies)
             daily_pdf_data.append(daily_data)
