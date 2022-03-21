@@ -5,7 +5,7 @@ from datetime import datetime
 from functools import reduce
 from itertools import groupby
 import operator
-from typing import List, Mapping, Set
+from typing import List, Mapping
 from app.hfi.hfi_calc import validate_station_daily
 from app.schemas.hfi_calc import (DailyPDFData, DailyResult,
                                   HFIResultResponse,
@@ -17,8 +17,6 @@ from app.schemas.hfi_calc import (DailyPDFData, DailyResult,
 
 
 def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
-                                       idir: str,
-                                       datetime_generated: datetime,
                                        planning_area_dict: Mapping[int, PlanningArea],
                                        station_dict: Mapping[int, WeatherStation]):
     """
@@ -62,6 +60,9 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
 
 
 def get_sorted_dates(area_dailies: List[StationDaily]):
+    """
+    Returns the unique dates in sorted order
+    """
     unique_dates = list({daily.date for daily in area_dailies})
     return sorted(unique_dates)
 
@@ -151,8 +152,6 @@ def get_station_pdf_data(area_dailies: List[StationDaily],
 
 
 def response_2_daily_jinja_format(result: HFIResultResponse,
-                                  idir: str,
-                                  datetime_generated: datetime,
                                   planning_area_dict: Mapping[int, PlanningArea],
                                   station_dict: Mapping[int, WeatherStation]):
     """

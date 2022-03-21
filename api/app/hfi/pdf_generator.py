@@ -1,6 +1,6 @@
 """Generate a daily PDF"""
 from datetime import date, datetime
-from typing import List, Mapping
+from typing import List, Mapping, Tuple
 import pdfkit
 from jinja2 import Environment
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
@@ -12,7 +12,7 @@ def generate_pdf(result: HFIResultResponse,
                  fire_centres: List[FireCentre],
                  idir: str,
                  datetime_generated: datetime,
-                 jinja_env: Environment) -> bytes:
+                 jinja_env: Environment) -> Tuple[bytes, str]:
     """Generates the full PDF based on the HFIResultResponse"""
     fire_centre_dict, planning_area_dict, station_dict = build_mappings(fire_centres)
     fire_centre_name = fire_centre_dict[result.selected_fire_center_id].name
@@ -52,8 +52,6 @@ def generate_prep(result: HFIResultResponse,
     """Generates the prep cycle portion of the PDF"""
     prep_pdf_data, dates, date_range = response_2_prep_cycle_jinja_format(
         result,
-        idir,
-        datetime_generated,
         planning_area_dict,
         station_dict)
     template = jinja_env.get_template(PDFTemplateName.PREP.value)
@@ -78,8 +76,6 @@ def generate_daily(result: HFIResultResponse,
     template = jinja_env.get_template(PDFTemplateName.DAILY.value)
     daily_pdf_data_by_date = response_2_daily_jinja_format(
         result,
-        idir,
-        datetime_generated,
         planning_area_dict,
         station_dict)
     return template.render(
@@ -104,6 +100,7 @@ def build_mappings(fire_centres: List[FireCentre]):
 
 
 def get_pdf_filename(fire_centre_name: str, date_generated: date, idir: str) -> str:
+    """ Returns the formatted pdf filename """
     return fire_centre_name.replace(" ", "").upper() + \
         "_HFICALCULATOR_" + \
         date_generated.isoformat() + \
