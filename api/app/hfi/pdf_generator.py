@@ -55,7 +55,6 @@ def generate_daily(result: HFIResultResponse,
                    fire_centre_name: str,
                    jinja_env: Environment) -> str:
     """Generates the daily portion of the PDF"""
-    # Shift hydrated fire centres into dicts keyed by ids
     template = jinja_env.get_template(PDFTemplateName.DAILY.value)
     daily_pdf_data_by_date = response_2_daily_jinja_format(
         result,
