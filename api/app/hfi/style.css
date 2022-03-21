@@ -24,3 +24,18 @@ p {
   border-collapse: collapse;
   padding: 0;
 }
+
+.column {
+  float: left;
+}
+
+.left {
+  width: 50%;
+}
+.right {
+  width: 5%;
+}
+
+.middle {
+  width: 45%;
+}
