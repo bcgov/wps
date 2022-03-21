@@ -197,15 +197,13 @@ class PlanningAreaPDFData(BaseModel):
     """ Data needed for prep cycle PDF sheet """
     planning_area_name: str
     order: int
+    highest_daily_intensity_group: Optional[float]
+    mean_prep_level: Optional[float]
     mean_intensity_groups: List[float]
     fire_starts_labels: List[str]
+    prep_levels: List[int]
     # Station dailies grouped by station code containing the dailies for each day in the prep cycle
     dailies: Mapping[int, List[StationPDFData]]
-
-
-class PrepCyclePDFData(BaseModel):
-    formatted_dates: List[str]
-    planning_areas: List[PlanningAreaPDFData]
 
 
 class DailyPDFData(BaseModel):

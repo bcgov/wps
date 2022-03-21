@@ -39,7 +39,8 @@ p {
 }
 
 .planningArea {
-  border-bottom: black 2px solid;
+  border-top: black 2px solid;
+  background-color: #e9ecf5;
   border-collapse: collapse;
   padding: 0;
 }

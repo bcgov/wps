@@ -37,14 +37,20 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
         station_pdf_data = get_station_pdf_data(area_dailies, station_dict)
         fire_starts_labels = get_fire_start_labels(result, area_result)
         mean_intensity_groups = get_mean_intensity_groups(area_result.daily_results)
+        prep_levels = get_prep_levels(area_result.daily_results)
 
         planning_area_name = planning_area_dict[area_result.planning_area_id].name
         order = planning_area_dict[area_result.planning_area_id].order_of_appearance_in_list
+        highest_daily_intensity_group = area_result.highest_daily_intensity_group
+        mean_prep_level = area_result.mean_prep_level
 
         area_pdf_data = PlanningAreaPDFData(planning_area_name=planning_area_name,
                                             order=order,
+                                            highest_daily_intensity_group=highest_daily_intensity_group,
+                                            mean_prep_level=mean_prep_level,
                                             mean_intensity_groups=mean_intensity_groups,
                                             fire_starts_labels=fire_starts_labels,
+                                            prep_levels=prep_levels,
                                             dailies=station_pdf_data)
         prep_cycle_pdf_data.append(area_pdf_data)
 
@@ -65,6 +71,10 @@ def get_fire_start_labels(result: HFIResultResponse, area_result: PlanningAreaRe
     fire_starts = result.planning_area_fire_starts[area_result.planning_area_id]
     labels = list(map(lambda fs: fs.label, fire_starts))
     return labels
+
+
+def get_prep_levels(daily_results: List[DailyResult]):
+    return list(map(lambda daily_result: daily_result.prep_level, daily_results))
 
 
 def get_mean_intensity_groups(daily_results: List[DailyResult]):
@@ -103,20 +113,6 @@ def get_station_pdf_data(area_dailies: List[StationDaily],
     dailies_by_code = dict((k, list(map(lambda x: x, values)))
                            for k, values in groupby(sorted(data, key=key), key))
     return dailies_by_code
-
-
-def get_planning_area_pdf_data(result: HFIResultResponse,
-                               area_result: PlanningAreaResult):
-    """
-        Merges and sorts station dailies and weather station properties
-        expected in prep cycle PDF template order
-     """
-    sorted_dates = {daily.date for daily in sorted(
-        area_result.daily_results, key=operator.attrgetter('date'))}
-
-    for idx, date in enumerate(sorted_dates):
-        mean_intensity_group = area_result.daily_results[date]
-        fire_starts = result.planning_area_fire_starts[area_result.planning_area_id]
 
 
 def response_2_daily_jinja_format(result: HFIResultResponse,
