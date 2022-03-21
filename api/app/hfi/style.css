@@ -41,7 +41,6 @@ p {
 .planningArea {
   border-bottom: black 2px solid;
   border-collapse: collapse;
-  height: 20px;
   padding: 0;
 }
 .station {

@@ -15,6 +15,9 @@ def generate_pdf(result: HFIResultResponse,
     fire_centre_name = fire_centre_dict[result.selected_fire_center_id].name
 
     rendered_output = generate_prep(result,
+                                    planning_area_dict,
+                                    station_dict,
+                                    fire_centre_name,
                                     jinja_env)
     rendered_output += generate_daily(result,
                                       planning_area_dict,
@@ -32,20 +35,24 @@ def generate_pdf(result: HFIResultResponse,
 
 
 def generate_prep(result: HFIResultResponse,
+                  planning_area_dict: Mapping[int, PlanningArea],
+                  station_dict: Mapping[int, WeatherStation],
+                  fire_centre_name: str,
                   jinja_env: Environment):
     """Generates the prep cycle portion of the PDF"""
-    prep_pdf_data, dates = response_2_prep_cycle_jinja_format(result)
+    prep_pdf_data, dates = response_2_prep_cycle_jinja_format(result, planning_area_dict, station_dict)
     template = jinja_env.get_template(PDFTemplateName.PREP.value)
 
     return template.render(
         planning_areas=prep_pdf_data,
-        prep_days=dates)
+        prep_days=dates,
+        fire_centre_name=fire_centre_name)
 
 
 def generate_daily(result: HFIResultResponse,
-                   planning_area_dict,
-                   station_dict,
-                   fire_centre_name,
+                   planning_area_dict: Mapping[int, PlanningArea],
+                   station_dict: Mapping[int, WeatherStation],
+                   fire_centre_name: str,
                    jinja_env: Environment) -> str:
     """Generates the daily portion of the PDF"""
     # Shift hydrated fire centres into dicts keyed by ids

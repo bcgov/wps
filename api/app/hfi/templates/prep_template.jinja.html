@@ -6,7 +6,7 @@
 
   <body>
     <h1>BC Wildfire Services - HFI Calculator</h1>
-    <h2>Fire Centre ID: TODO</h2>
+    <h2>Fire Centre: {{ fire_centre_name }}</h2>
     <table>
       <caption>
         HFI Prep Cycle Table
@@ -44,7 +44,8 @@
       {% for area in planning_areas %}
       <tr class="planningArea leftBorder rightBorder">
         <td>
-          {{area['planningAreaName'] if area['planningAreaName'] is not none}}
+          {{ area['planning_area_name'] if area['planning_area_name'] is not
+          none }}
         </td>
         <td></td>
         <td></td>
@@ -97,5 +98,6 @@
       </tr>
       {% endfor %} {% endfor %}
     </table>
+    <p></p>
   </body>
 </html>

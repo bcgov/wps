@@ -16,7 +16,9 @@ from app.schemas.hfi_calc import (DailyPDFData,
                                   WeatherStation)
 
 
-def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
+def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
+                                       planning_area_dict: Mapping[int, PlanningArea],
+                                       station_dict: Mapping[int, WeatherStation]):
     """ Marshals HFI result into structure that jinja can easily
         iterate over for generating the prep cycle PDF sheet
      """
@@ -39,15 +41,23 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
 
         # Flat list of station daily grouped by code and ordered by date
         # e.g. [{code: 1, date: 1, code: 1, date: 2, ..., code: 2, date: 1, code: 2, date: 2, ...}]
-        areas_by_code_and_date = reduce(list.__add__, area_dailies_by_code, [])
+        dailies_by_code_and_date: List[StationDaily] = reduce(list.__add__, area_dailies_by_code, [])
+
+        station_pdf_data: List[StationPDFData] = []
+        for daily in dailies_by_code_and_date:
+            station_data = station_dict[daily.code]
+            merged = daily.dict()
+            merged.update(station_data)
+            full_daily = StationPDFData(**merged)
+            station_pdf_data.append(full_daily)
 
         # Sorting dailies into dict keyed by station code
         key = operator.attrgetter('code')
         dailies_by_code = dict((k, list(map(lambda x: x, values)))
-                               for k, values in groupby(sorted(areas_by_code_and_date, key=key), key))
+                               for k, values in groupby(sorted(station_pdf_data, key=key), key))
 
-        # TODO: Get planning area name, not just id
-        area_pdf_data = PrepCyclePDFData(planningAreaName=area_result.planning_area_id,
+        planning_area_name = planning_area_dict[area_result.planning_area_id].name
+        area_pdf_data = PrepCyclePDFData(planning_area_name=planning_area_name,
                                          dailies=dailies_by_code)
         prep_cycle_pdf_data.append(area_pdf_data)
 
@@ -67,7 +77,7 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse):
 
 def response_2_daily_jinja_format(result: HFIResultResponse,
                                   planning_area_dict: Mapping[int, PlanningArea],
-                                  station_dict: Mapping[int, WeatherStation]):  # pylint: disable=line-too-long
+                                  station_dict: Mapping[int, WeatherStation]):
     """ Marshals HFI result into structure that jinja can easily
         iterate over for generating the daily PDF sheets
      """
