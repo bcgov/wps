@@ -5,6 +5,8 @@
   </head>
 
   <body>
+    <h1>BC Wildfire Services - HFI Calculator</h1>
+    <h2>Fire Centre ID: TODO</h2>
     <table>
       <caption>
         HFI Prep Cycle Table
@@ -12,7 +14,7 @@
       <tr class="leftBorder">
         <td></td>
         <td></td>
-        {% for day in prepDays %}
+        {% for day in prep_days %}
         <td></td>
         <td class="boldRightBorder"></td>
         <td></td>
@@ -29,7 +31,7 @@
         <td>Elev</td>
         <td>Fuel Type</td>
         <td>Grass Cure</td>
-        {% for day in prepDays %}
+        {% for day in prep_days %}
         <td class="boldLeftBorder">ROS</td>
         <td>HFI</td>
         <td>M/FIG</td>
@@ -39,7 +41,7 @@
         <td>Highest FIG</td>
         <td>Prep Level</td>
       </tr>
-      {% for area in planningAreas %}
+      {% for area in planning_areas %}
       <tr class="planningArea leftBorder rightBorder">
         <td>
           {{area['planningAreaName'] if area['planningAreaName'] is not none}}

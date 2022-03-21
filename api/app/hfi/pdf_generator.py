@@ -11,9 +11,19 @@ def generate_pdf(result: HFIResultResponse,
                  fire_centres: List[FireCentre],
                  jinja_env: Environment) -> bytes:
     """Generates the full PDF based on the HFIResultResponse"""
+    fire_centre_dict, planning_area_dict, station_dict = build_mappings(fire_centres)
+    fire_centre_name = fire_centre_dict[result.selected_fire_center_id].name
 
-    rendered_output = generate_prep(result, jinja_env)
-    rendered_output += generate_daily(result, fire_centres, jinja_env)
+    rendered_output = generate_prep(result,
+                                    planning_area_dict,
+                                    station_dict,
+                                    fire_centre_name,
+                                    jinja_env)
+    rendered_output += generate_daily(result,
+                                      planning_area_dict,
+                                      station_dict,
+                                      fire_centre_name,
+                                      jinja_env)
 
     options = {
         'page-size': 'Tabloid'
@@ -25,21 +35,38 @@ def generate_pdf(result: HFIResultResponse,
 
 
 def generate_prep(result: HFIResultResponse,
+                  planning_area_dict,
+                  station_dict,
+                  fire_centre_name,
                   jinja_env: Environment):
     """Generates the prep cycle portion of the PDF"""
     prep_pdf_data, dates = response_2_prep_cycle_jinja_format(result)
     template = jinja_env.get_template(PDFTemplateName.PREP.value)
 
     return template.render(
-        planningAreas=prep_pdf_data,
-        prepDays=dates)
+        planning_areas=prep_pdf_data,
+        prep_days=dates)
 
 
 def generate_daily(result: HFIResultResponse,
-                   fire_centres: List[FireCentre],
+                   planning_area_dict,
+                   station_dict,
+                   fire_centre_name,
                    jinja_env: Environment) -> str:
     """Generates the daily portion of the PDF"""
     # Shift hydrated fire centres into dicts keyed by ids
+    template = jinja_env.get_template(PDFTemplateName.DAILY.value)
+    daily_pdf_data_by_date = response_2_daily_jinja_format(
+        result,
+        planning_area_dict,
+        station_dict)
+    return template.render(
+        daily_pdf_data_by_date=daily_pdf_data_by_date,
+        fire_centre_name=fire_centre_name)
+
+
+def build_mappings(fire_centres: List[FireCentre]):
+    # Marshall hydrated fire centres into dicts keyed by id
     fire_centre_dict: Mapping[int, FireCentre] = {}
     planning_area_dict: Mapping[int, PlanningArea] = {}
     station_dict: Mapping[int, WeatherStation] = {}
@@ -49,14 +76,4 @@ def generate_daily(result: HFIResultResponse,
             planning_area_dict[planning_area.id] = planning_area
             for station in planning_area.stations:
                 station_dict[station.code] = station
-
-    fire_centre_name = fire_centre_dict[result.selected_fire_center_id].name
-
-    template = jinja_env.get_template(PDFTemplateName.DAILY.value)
-    daily_pdf_data_by_date = response_2_daily_jinja_format(
-        result,
-        planning_area_dict,
-        station_dict)
-    return template.render(
-        daily_pdf_data_by_date=daily_pdf_data_by_date,
-        fire_centre_name=fire_centre_name)
+    return fire_centre_dict, planning_area_dict, station_dict
