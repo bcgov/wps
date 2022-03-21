@@ -1,11 +1,11 @@
 """ Marshals HFI result into structure that jinja can easily
         iterate over for generating the daily PDF sheets
 """
-import datetime
+from datetime import datetime
 from functools import reduce
 from itertools import groupby
 import operator
-from typing import List, Mapping
+from typing import List, Mapping, Set
 from app.hfi.hfi_calc import validate_station_daily
 from app.schemas.hfi_calc import (DailyPDFData,
                                   HFIResultResponse,
@@ -25,39 +25,44 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
     prep_cycle_pdf_data: List[PlanningAreaPDFData] = []
     for area_result in result.planning_area_hfi_results:
 
-        station_pdf_data: Mapping[int, List[StationPDFData]] = get_station_pdf_data(area_result, station_dict)
+        area_validated_dailies: List[validate_station_daily] = reduce(list.__add__, list(
+            map(lambda x: x.dailies, area_result.daily_results)))
+
+        # extract just the station daily
+        area_dailies: List[StationDaily] = list(map(lambda x: x.daily, area_validated_dailies))
+
+        sorted_dates = {daily.date for daily in sorted(area_dailies, key=operator.attrgetter('date'))}
+        formatted_dates: List[str] = get_formatted_dates(sorted_dates)
+        station_pdf_data = get_station_pdf_data(area_dailies, station_dict)
 
         planning_area_name = planning_area_dict[area_result.planning_area_id].name
+        order = planning_area_dict[area_result.planning_area_id].order_of_appearance_in_list
+        fire_starts = result.planning_area_fire_starts[area_result.planning_area_id]
 
         area_pdf_data = PlanningAreaPDFData(planning_area_name=planning_area_name,
+                                            order=order,
                                             dailies=station_pdf_data)
         prep_cycle_pdf_data.append(area_pdf_data)
 
-        # List of dates for prep period
-        dates = []
-        for area in prep_cycle_pdf_data:
-            for dailies in area.dailies.values():
-                for daily in dailies:
-                    date_obj = datetime.datetime.strptime(str(daily.date), '%Y-%m-%d %H:%M:%S%z')
-                    formatted_date_string = str(date_obj.strftime("%A %B, %d, %Y"))
-                    dates.append(formatted_date_string)
-                break
-            break
-
-    return prep_cycle_pdf_data, dates
+    return sorted(prep_cycle_pdf_data, key=operator.attrgetter('order')), formatted_dates
 
 
-def get_station_pdf_data(area_result: PlanningAreaResult,
+def get_formatted_dates(dates: Set[datetime]):
+    formatted_dates = []
+    for date in dates:
+        date_obj = datetime.strptime(str(date), '%Y-%m-%d %H:%M:%S%z')
+        formatted_date_string = str(date_obj.strftime("%A %B, %d, %Y"))
+        formatted_dates.append(formatted_date_string)
+
+    return formatted_dates
+
+
+def get_station_pdf_data(area_dailies: List[StationDaily],
                          station_dict: Mapping[int, WeatherStation]) -> Mapping[int, List[StationPDFData]]:
     """
         Merges and sorts station dailies and weather station properties
         expected in prep cycle PDF template order
      """
-    area_validated_dailies: List[validate_station_daily] = reduce(list.__add__, list(
-        map(lambda x: x.dailies, area_result.daily_results)))
-
-    # extract just the station daily
-    area_dailies: List[StationDaily] = list(map(lambda x: x.daily, area_validated_dailies))
 
     # group dailies by station code
     get_attr = operator.attrgetter('code')
@@ -92,12 +97,12 @@ def get_planning_area_pdf_data(result: HFIResultResponse,
         Merges and sorts station dailies and weather station properties
         expected in prep cycle PDF template order
      """
-    prep_cycle_dates = {daily.date for daily in sorted(
+    sorted_dates = {daily.date for daily in sorted(
         area_result.daily_results, key=operator.attrgetter('date'))}
 
-    for idx, date in enumerate(prep_cycle_dates):
+    for idx, date in enumerate(sorted_dates):
         mean_intensity_group = area_result.daily_results[date]
-        fire_starts = result.planning_area_fire_starts[area_result.planning_area_id][idx]
+        fire_starts = result.planning_area_fire_starts[area_result.planning_area_id]
 
 
 def response_2_daily_jinja_format(result: HFIResultResponse,
