@@ -158,6 +158,8 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
     Marshals HFI result into structure that jinja can easily
     iterate over for generating the daily PDF sheets
     """
+    # pylint: disable=too-many-locals
+    # TODO: refactor to simplify
 
     initial_page_index = 2  # to 1-based counting and skipping assumed prep cycle page
 
