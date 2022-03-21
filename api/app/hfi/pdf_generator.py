@@ -44,13 +44,15 @@ def generate_prep(result: HFIResultResponse,
                   fire_centre_name: str,
                   jinja_env: Environment):
     """Generates the prep cycle portion of the PDF"""
-    prep_pdf_data, dates = response_2_prep_cycle_jinja_format(result, planning_area_dict, station_dict)
+    prep_pdf_data, dates, date_range = response_2_prep_cycle_jinja_format(
+        result, planning_area_dict, station_dict)
     template = jinja_env.get_template(PDFTemplateName.PREP.value)
 
     return template.render(
         planning_areas=prep_pdf_data,
         prep_days=dates,
-        fire_centre_name=fire_centre_name)
+        fire_centre_name=fire_centre_name,
+        date_range=date_range)
 
 
 def generate_daily(result: HFIResultResponse,

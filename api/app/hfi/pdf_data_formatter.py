@@ -32,9 +32,10 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
         # extract just the station daily
         area_dailies: List[StationDaily] = list(map(lambda x: x.daily, area_validated_dailies))
 
-        sorted_dates = {daily.date for daily in sorted(area_dailies, key=operator.attrgetter('date'))}
+        sorted_dates = get_sorted_dates(area_dailies)
 
         formatted_dates: List[str] = get_formatted_dates(sorted_dates)
+        date_range: str = get_date_range_string(sorted_dates)
         station_pdf_data = get_station_pdf_data(area_dailies, station_dict)
         fire_starts_labels = get_fire_start_labels(result, area_result)
         mean_intensity_groups = get_mean_intensity_groups(area_result.daily_results)
@@ -55,10 +56,15 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
                                             dailies=station_pdf_data)
         prep_cycle_pdf_data.append(area_pdf_data)
 
-    return sorted(prep_cycle_pdf_data, key=operator.attrgetter('order')), formatted_dates
+    return sorted(prep_cycle_pdf_data, key=operator.attrgetter('order')), formatted_dates, date_range
 
 
-def get_formatted_dates(dates: Set[datetime]):
+def get_sorted_dates(area_dailies: List[StationDaily]):
+    unique_dates = list({daily.date for daily in area_dailies})
+    return sorted(unique_dates)
+
+
+def get_formatted_dates(dates: List[datetime]):
     """
     Returns the dates formatted as readable weekday strings
     """
@@ -69,6 +75,20 @@ def get_formatted_dates(dates: Set[datetime]):
         formatted_dates.append(formatted_date_string)
 
     return formatted_dates
+
+
+def get_date_range_string(dates: List[datetime]):
+    """
+    Returns a formatted date range string of form "<start iso> to <end iso>
+    Assumes input is sorted in desired order
+    """
+    if len(dates) == 0:
+        return ''
+
+    if len(dates) == 1:
+        return dates[0].date().isoformat()
+
+    return f'{dates[0].date().isoformat()} to {dates[-1].date().isoformat()}'
 
 
 def get_fire_start_labels(result: HFIResultResponse, area_result: PlanningAreaResult):
