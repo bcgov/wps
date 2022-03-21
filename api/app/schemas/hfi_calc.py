@@ -193,11 +193,18 @@ class StationPDFData(StationDaily, WeatherStation):
     """ All the details we have about stations """
 
 
-class PrepCyclePDFData(BaseModel):
+class PlanningAreaPDFData(BaseModel):
     """ Data needed for prep cycle PDF sheet """
     planning_area_name: str
+    # mean_intensity_group: float
+    # fire_starts_label: str
     # Station dailies grouped by station code containing the dailies for each day in the prep cycle
     dailies: Mapping[int, List[StationPDFData]]
+
+
+class PrepCyclePDFData(BaseModel):
+    formatted_dates: List[str]
+    planning_areas: List[PlanningAreaPDFData]
 
 
 class DailyPDFData(BaseModel):
