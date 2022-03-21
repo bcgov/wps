@@ -15,9 +15,6 @@ def generate_pdf(result: HFIResultResponse,
     fire_centre_name = fire_centre_dict[result.selected_fire_center_id].name
 
     rendered_output = generate_prep(result,
-                                    planning_area_dict,
-                                    station_dict,
-                                    fire_centre_name,
                                     jinja_env)
     rendered_output += generate_daily(result,
                                       planning_area_dict,
@@ -35,9 +32,6 @@ def generate_pdf(result: HFIResultResponse,
 
 
 def generate_prep(result: HFIResultResponse,
-                  planning_area_dict,
-                  station_dict,
-                  fire_centre_name,
                   jinja_env: Environment):
     """Generates the prep cycle portion of the PDF"""
     prep_pdf_data, dates = response_2_prep_cycle_jinja_format(result)
@@ -66,7 +60,7 @@ def generate_daily(result: HFIResultResponse,
 
 
 def build_mappings(fire_centres: List[FireCentre]):
-    # Marshall hydrated fire centres into dicts keyed by id
+    """ Marshall hydrated fire centres into dicts keyed by id """
     fire_centre_dict: Mapping[int, FireCentre] = {}
     planning_area_dict: Mapping[int, PlanningArea] = {}
     station_dict: Mapping[int, WeatherStation] = {}
