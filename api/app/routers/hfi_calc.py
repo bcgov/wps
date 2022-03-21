@@ -1,4 +1,5 @@
 """ Routers for HFI Calculator """
+from datetime import date
 import logging
 import json
 from typing import List, Optional
@@ -208,7 +209,7 @@ def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int
 
 @router.post('/download-pdf')
 async def download_result_pdf(request: HFIResultRequest,
-                              _=Depends(authentication_required)):
+                              token=Depends(authentication_required)):
     """ Assembles and returns PDF byte representation of HFI result. """
     try:
         logger.info('/hfi-calc/download-pdf')
@@ -230,9 +231,16 @@ async def download_result_pdf(request: HFIResultRequest,
         # See: https://jinja.palletsprojects.com/en/3.0.x/api/?highlight=functionloader#jinja2.FunctionLoader
         jinja_env = Environment(loader=FunctionLoader(get_template), autoescape=True)
 
-        pdf_bytes = generate_pdf(response, fire_centres_list, jinja_env)
+        username = token.get('preferred_username', None)
 
-        return Response(pdf_bytes)
+        pdf_bytes, pdf_filename = generate_pdf(response,
+                                               fire_centres_list,
+                                               username,
+                                               date.today(),
+                                               jinja_env)
+
+        return Response(pdf_bytes, headers={'Content-Disposition': f"attachment; filename={pdf_filename}",
+                                            "Access-Control-Expose-Headers": "Content-Disposition"})
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise
