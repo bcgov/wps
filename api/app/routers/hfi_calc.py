@@ -1,10 +1,10 @@
 """ Routers for HFI Calculator """
-from datetime import date
 import logging
 import json
 from typing import List, Optional
 from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, Response, Depends
+from app.utils.time import get_pst_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
 from app.hfi.pdf_template import get_template
@@ -236,7 +236,7 @@ async def download_result_pdf(request: HFIResultRequest,
         pdf_bytes, pdf_filename = generate_pdf(response,
                                                fire_centres_list,
                                                username,
-                                               date.today(),
+                                               get_pst_now(),
                                                jinja_env)
 
         return Response(pdf_bytes, headers={'Content-Disposition': f"attachment; filename={pdf_filename}",

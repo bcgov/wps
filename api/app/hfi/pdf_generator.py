@@ -1,5 +1,5 @@
 """Generate a daily PDF"""
-from datetime import date
+from datetime import date, datetime
 from typing import List, Mapping
 import pdfkit
 from jinja2 import Environment
@@ -11,7 +11,7 @@ from app.hfi.pdf_data_formatter import response_2_daily_jinja_format, response_2
 def generate_pdf(result: HFIResultResponse,
                  fire_centres: List[FireCentre],
                  username: str,
-                 date_generated: date,
+                 datetime_generated: datetime,
                  jinja_env: Environment) -> bytes:
     """Generates the full PDF based on the HFIResultResponse"""
     fire_centre_dict, planning_area_dict, station_dict = build_mappings(fire_centres)
@@ -33,7 +33,7 @@ def generate_pdf(result: HFIResultResponse,
     }
 
     pdf_bytes: bytes = pdfkit.from_string(input=rendered_output, options=options, css=CSS_PATH)
-    pdf_filename = get_pdf_filename(fire_centre_name, date_generated, username)
+    pdf_filename = get_pdf_filename(fire_centre_name, datetime_generated.date(), username)
 
     return pdf_bytes, pdf_filename
 
