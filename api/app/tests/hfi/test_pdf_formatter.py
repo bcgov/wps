@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 from typing import List
 from jinja2 import Environment, FunctionLoader
-from pandas import merge
 from app.hfi.pdf_data_formatter import (get_date_range_string,
                                         get_fire_start_labels,
                                         get_formatted_dates,
