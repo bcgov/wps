@@ -7,10 +7,13 @@ from pandas import merge
 from app.hfi.pdf_data_formatter import (get_date_range_string,
                                         get_fire_start_labels,
                                         get_formatted_dates,
-                                        get_mean_intensity_groups, get_merged_station_data,
+                                        get_mean_intensity_groups,
+                                        get_merged_station_data,
                                         get_prep_levels,
                                         get_sorted_dates,
-                                        get_station_dailies, response_2_prep_cycle_jinja_format)
+                                        get_station_dailies,
+                                        response_2_daily_jinja_format,
+                                        response_2_prep_cycle_jinja_format)
 from app.hfi.pdf_generator import build_mappings
 from app.hfi.pdf_template import get_template
 from app.schemas.hfi_calc import (DailyResult,
@@ -209,3 +212,37 @@ def test_response_2_prep_cycle_jinja_format():
         assert formatted_dates == ['Monday August, 02, 2021', 'Tuesday August, 03, 2021',
                                    'Wednesday August, 04, 2021', 'Thursday August, 05, 2021']
         assert date_range == '2021-08-02 to 2021-08-05'
+
+
+def test_response_2_daily_jinja_format():
+    with open(test_hfi_result, 'r') as hfi_result, open(test_fcs, 'r') as fcs:
+        result = json.load(hfi_result)
+        fc_dict = json.load(fcs)
+        fire_centres = []
+        for fc_json in fc_dict['fire_centres']:
+            fc = FireCentre(**fc_json)
+            fire_centres.append(fc)
+
+        _, planning_area_dict, station_dict = build_mappings(fire_centres)
+        daily_pdf_data_by_date = response_2_daily_jinja_format(
+            HFIResultResponse(**result), planning_area_dict, station_dict)
+
+        # 4 daily results
+        day_dates = list(daily_pdf_data_by_date.keys())
+        assert len(day_dates) == 4
+        assert day_dates[0] == '2021-08-02'
+        assert day_dates[1] == '2021-08-03'
+        assert day_dates[2] == '2021-08-04'
+        assert day_dates[3] == '2021-08-05'
+
+        for daily_planning_area_data in daily_pdf_data_by_date.values():
+            # 7 planning areas in coastal
+            assert len(daily_planning_area_data) == 7
+            # assert correct order for each day
+            assert daily_planning_area_data[0].planning_area_name == 'Fraser Zone'
+            assert daily_planning_area_data[1].planning_area_name == 'Pemberton Zone'
+            assert daily_planning_area_data[2].planning_area_name == 'Sunshine Coast'
+            assert daily_planning_area_data[3].planning_area_name == 'South Island'
+            assert daily_planning_area_data[4].planning_area_name == 'Mid Island'
+            assert daily_planning_area_data[5].planning_area_name == 'North Island'
+            assert daily_planning_area_data[6].planning_area_name == 'Mid-Coast'
