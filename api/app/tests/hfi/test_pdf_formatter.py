@@ -3,7 +3,15 @@ import os
 from datetime import datetime
 from typing import List
 from jinja2 import Environment, FunctionLoader
-from app.hfi.pdf_data_formatter import get_date_range_string, get_fire_start_labels, get_prep_levels, get_sorted_dates
+from app.hfi.pdf_data_formatter import (get_date_range_string,
+                                        get_fire_start_labels,
+                                        get_formatted_dates,
+                                        get_mean_intensity_groups,
+                                        get_prep_levels,
+                                        get_sorted_dates,
+                                        get_station_dailies,
+                                        get_station_pdf_data)
+from app.hfi.pdf_generator import build_mappings
 from app.hfi.pdf_template import get_template
 from app.schemas.hfi_calc import DailyResult, HFIResultResponse, StationDaily, lowest_fire_starts
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse
@@ -91,3 +99,33 @@ def test_get_prep_levels():
     ]
     result = get_prep_levels(daily_results)
     assert result == [1, 2]
+
+
+def test_all_array_functions():
+    with open(test_hfi_result, 'r') as hfi_result, open(test_fcs, 'r') as fcs:
+        result_json = json.load(hfi_result)
+        result = HFIResultResponse(**result_json)
+
+        fc_dict = json.load(fcs)
+        fire_centres = []
+        for fc_json in fc_dict['fire_centres']:
+            fc = FireCentre(**fc_json)
+            fire_centres.append(fc)
+        _, _, station_dict = build_mappings(fire_centres)
+
+        for area_result in result.planning_area_hfi_results:
+            area_dailies = get_station_dailies(area_result)
+
+            # dates test
+            sorted_dates = get_sorted_dates(area_dailies)
+            formatted_dates: List[str] = get_formatted_dates(sorted_dates)
+            assert len(sorted_dates) == len(formatted_dates)
+
+            # # of migs and prep levels should equal # of dates
+            mean_intensity_groups = get_mean_intensity_groups(area_result.daily_results)
+            prep_levels = get_prep_levels(area_result.daily_results)
+
+            assert len(sorted_dates) == len(mean_intensity_groups)
+            assert len(formatted_dates) == len(mean_intensity_groups)
+            assert len(sorted_dates) == len(prep_levels)
+            assert len(formatted_dates) == len(prep_levels)

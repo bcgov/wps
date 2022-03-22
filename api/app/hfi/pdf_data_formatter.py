@@ -12,7 +12,7 @@ from app.schemas.hfi_calc import (DailyPDFData, DailyResult,
                                   PlanningArea, PlanningAreaResult,
                                   PlanningAreaPDFData,
                                   StationDaily,
-                                  StationPDFData,
+                                  StationPDFData, ValidatedStationDaily,
                                   WeatherStation)
 
 
@@ -26,14 +26,8 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
     prep_cycle_pdf_data: List[PlanningAreaPDFData] = []
     for area_result in result.planning_area_hfi_results:
 
-        area_validated_dailies: List[validate_station_daily] = reduce(list.__add__, list(
-            map(lambda x: x.dailies, area_result.daily_results)))
-
-        # extract just the station daily
-        area_dailies: List[StationDaily] = list(map(lambda x: x.daily, area_validated_dailies))
-
+        area_dailies: List[StationDaily] = get_station_dailies(area_result)
         sorted_dates = get_sorted_dates(area_dailies)
-
         formatted_dates: List[str] = get_formatted_dates(sorted_dates)
         date_range: str = get_date_range_string(sorted_dates)
         station_pdf_data = get_station_pdf_data(area_dailies, station_dict)
@@ -57,6 +51,18 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
         prep_cycle_pdf_data.append(area_pdf_data)
 
     return sorted(prep_cycle_pdf_data, key=operator.attrgetter('order')), formatted_dates, date_range
+
+
+def get_station_dailies(area_result: PlanningAreaResult):
+    """
+    Returns the station dailies from the planning area result
+    """
+    area_validated_dailies: List[ValidatedStationDaily] = reduce(list.__add__, list(
+        map(lambda x: x.dailies, area_result.daily_results)))
+
+    # extract just the station daily
+    area_dailies: List[StationDaily] = list(map(lambda x: x.daily, area_validated_dailies))
+    return area_dailies
 
 
 def get_sorted_dates(area_dailies: List[StationDaily]) -> List[datetime]:
