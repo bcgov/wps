@@ -45,16 +45,16 @@
         <td><!-- ros space --></td>
         <td><!-- hfi space --></td>
         <td>
-          {{ area['mean_intensity_groups'][loop.index] if
-          area['mean_intensity_groups'][loop.index] is not none }}
+          {{ area['mean_intensity_groups'][loop.index0] if
+          area['mean_intensity_groups'][loop.index0] is not none }}
         </td>
         <td>
-          {{ area['fire_starts_labels'][loop.index] if
-          area['fire_starts_labels'][loop.index] is not none }}
+          {{ area['fire_starts_labels'][loop.index0] if
+          area['fire_starts_labels'][loop.index0] is not none }}
         </td>
         <td>
-          {{ area['prep_levels'][loop.index] if area['prep_levels'][loop.index]
-          is not none }}
+          {{ area['prep_levels'][loop.index0] if
+          area['prep_levels'][loop.index0] is not none }}
         </td>
         {% endfor %}
         <td>
@@ -67,7 +67,7 @@
       </tr>
       {% for code, dailies in area['dailies'].items() %}
       <tr>
-        {% for daily in dailies %} {% if loop.index <= 1 %}
+        {% for daily in dailies %} {% if loop.index0 < 1 %}
         <td>
           {{daily['station_props']['name'] if daily['station_props']['name'] is
           not none}}
