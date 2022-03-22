@@ -102,6 +102,26 @@ def test_get_prep_levels():
     assert result == [1, 2]
 
 
+def test_get_mean_intensity_groups():
+    """ Returns the prep levels from a list of daily results"""
+    daily_results: List[DailyResult] = [
+        DailyResult(
+            date=datetime.fromisocalendar(2022, 2, 2),
+            dailies=[],
+            fire_starts=lowest_fire_starts,
+            mean_intensity_group=1
+        ),
+        DailyResult(
+            date=datetime.fromisocalendar(2022, 2, 2),
+            dailies=[],
+            fire_starts=lowest_fire_starts,
+            mean_intensity_group=2
+        )
+    ]
+    result = get_mean_intensity_groups(daily_results)
+    assert result == [1, 2]
+
+
 def test_all_array_functions():
     """ Per day metrics, ordered by date, shoud be the same length """
     with open(test_hfi_result, 'r') as hfi_result:
