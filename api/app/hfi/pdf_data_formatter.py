@@ -59,7 +59,7 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
     return sorted(prep_cycle_pdf_data, key=operator.attrgetter('order')), formatted_dates, date_range
 
 
-def get_sorted_dates(area_dailies: List[StationDaily]):
+def get_sorted_dates(area_dailies: List[StationDaily]) -> List[datetime]:
     """
     Returns the unique dates in sorted order
     """
