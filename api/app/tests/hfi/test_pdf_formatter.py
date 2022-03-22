@@ -10,10 +10,17 @@ from app.hfi.pdf_data_formatter import (get_date_range_string,
                                         get_mean_intensity_groups, get_merged_station_data,
                                         get_prep_levels,
                                         get_sorted_dates,
-                                        get_station_dailies)
+                                        get_station_dailies, response_2_prep_cycle_jinja_format)
 from app.hfi.pdf_generator import build_mappings
 from app.hfi.pdf_template import get_template
-from app.schemas.hfi_calc import DailyResult, FireCentre, HFIResultResponse, StationDaily, StationPDFData, WeatherStation, WeatherStationProperties, lowest_fire_starts
+from app.schemas.hfi_calc import (DailyResult,
+                                  FireCentre,
+                                  HFIResultResponse,
+                                  StationDaily,
+                                  StationPDFData,
+                                  WeatherStation,
+                                  WeatherStationProperties,
+                                  lowest_fire_starts)
 from app.schemas.hfi_calc import HFIResultResponse
 from app.schemas.shared import FuelType
 
@@ -79,7 +86,7 @@ def test_get_fire_start_labels():
         result_json = json.load(hfi_result)
         result = HFIResultResponse(**result_json)
         fire_labels = get_fire_start_labels(result, result.planning_area_hfi_results[0])
-        assert fire_labels == ['0-1', '0-1', '0-1', '0-1', '0-1', '0-1']
+        assert fire_labels == ['0-1', '0-1', '0-1', '0-1', '0-1']
 
 
 def test_get_prep_levels():
@@ -174,3 +181,31 @@ def test_get_merged_station_data():
     assert merged_station_data[0].station_props == weather_station_1.station_props
     assert merged_station_data[1].code == 2
     assert merged_station_data[1].station_props == weather_station_2.station_props
+
+
+def test_response_2_prep_cycle_jinja_format():
+    with open(test_hfi_result, 'r') as hfi_result, open(test_fcs, 'r') as fcs:
+        result = json.load(hfi_result)
+        fc_dict = json.load(fcs)
+        fire_centres = []
+        for fc_json in fc_dict['fire_centres']:
+            fc = FireCentre(**fc_json)
+            fire_centres.append(fc)
+
+        _, planning_area_dict, station_dict = build_mappings(fire_centres)
+        area_pdf_data, formatted_dates, date_range = response_2_prep_cycle_jinja_format(
+            HFIResultResponse(**result), planning_area_dict, station_dict)
+
+        # 7 planning areas in coastal
+        assert len(area_pdf_data) == 7
+        # assert correct order
+        assert area_pdf_data[0].planning_area_name == 'Fraser Zone'
+        assert area_pdf_data[1].planning_area_name == 'Pemberton Zone'
+        assert area_pdf_data[2].planning_area_name == 'Sunshine Coast'
+        assert area_pdf_data[3].planning_area_name == 'South Island'
+        assert area_pdf_data[4].planning_area_name == 'Mid Island'
+        assert area_pdf_data[5].planning_area_name == 'North Island'
+        assert area_pdf_data[6].planning_area_name == 'Mid-Coast'
+        assert formatted_dates == ['Monday August, 02, 2021', 'Tuesday August, 03, 2021',
+                                   'Wednesday August, 04, 2021', 'Thursday August, 05, 2021']
+        assert date_range == '2021-08-02 to 2021-08-05'
