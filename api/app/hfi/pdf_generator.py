@@ -32,8 +32,11 @@ def generate_pdf(result: HFIResultResponse,
                                       fire_centre_name,
                                       jinja_env)
 
+    left_footer = f'Exported on {datetime_generated.isoformat()} by {idir}'
     options = {
-        'page-size': 'Tabloid'
+        'page-size': 'Tabloid',
+        'footer-left': left_footer,
+        'footer-right': '[page] of [topage]',
     }
 
     pdf_bytes: bytes = pdfkit.from_string(input=rendered_output, options=options, css=CSS_PATH)
