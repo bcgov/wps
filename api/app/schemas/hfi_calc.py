@@ -199,9 +199,9 @@ class PrepTablePlanningAreaPDFData(BaseModel):
     order: int
     highest_daily_intensity_group: Optional[float]
     mean_prep_level: Optional[float]
-    mean_intensity_groups: List[float]
+    mean_intensity_groups: List[Optional[float]]
     fire_starts_labels: List[str]
-    prep_levels: List[int]
+    prep_levels: List[Optional[int]]
     # Station dailies grouped by station code containing the dailies for each day in the prep cycle
     dailies: Mapping[int, List[StationPDFData]]
 
