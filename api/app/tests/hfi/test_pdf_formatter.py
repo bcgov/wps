@@ -3,18 +3,19 @@ import os
 from datetime import datetime
 from typing import List
 from jinja2 import Environment, FunctionLoader
+from pandas import merge
 from app.hfi.pdf_data_formatter import (get_date_range_string,
                                         get_fire_start_labels,
                                         get_formatted_dates,
-                                        get_mean_intensity_groups,
+                                        get_mean_intensity_groups, get_merged_station_data,
                                         get_prep_levels,
                                         get_sorted_dates,
-                                        get_station_dailies,
-                                        get_station_pdf_data)
+                                        get_station_dailies)
 from app.hfi.pdf_generator import build_mappings
 from app.hfi.pdf_template import get_template
-from app.schemas.hfi_calc import DailyResult, HFIResultResponse, StationDaily, lowest_fire_starts
-from app.schemas.hfi_calc import FireCentre, HFIResultResponse
+from app.schemas.hfi_calc import DailyResult, FireCentre, HFIResultResponse, StationDaily, StationPDFData, WeatherStation, WeatherStationProperties, lowest_fire_starts
+from app.schemas.hfi_calc import HFIResultResponse
+from app.schemas.shared import FuelType
 
 test_hfi_result = os.path.join(os.path.dirname(__file__), 'test_hfi_result.json')
 test_fcs = os.path.join(os.path.dirname(__file__), 'test_fire_centres.json')
@@ -103,7 +104,7 @@ def test_get_prep_levels():
 
 def test_all_array_functions():
     """ Per day metrics, ordered by date, shoud be the same length """
-    with open(test_hfi_result, 'r') as hfi_result, open(test_fcs, 'r') as fcs:
+    with open(test_hfi_result, 'r') as hfi_result:
         result_json = json.load(hfi_result)
         result = HFIResultResponse(**result_json)
 
@@ -123,3 +124,33 @@ def test_all_array_functions():
             assert len(formatted_dates) == len(mean_intensity_groups)
             assert len(sorted_dates) == len(prep_levels)
             assert len(formatted_dates) == len(prep_levels)
+
+
+def test_get_merged_station_data():
+
+    weather_station_1 = WeatherStation(
+        code=1,
+        station_props=WeatherStationProperties(name='s1',
+                                               wfwx_station_uuid='1',
+                                               elevation=1,
+                                               fuel_type=FuelType(abbrev='f1',
+                                                                  fuel_type_code='fc1',
+                                                                  description='f1-desc')))
+    weather_station_2 = WeatherStation(
+        code=2,
+        station_props=WeatherStationProperties(name='s2',
+                                               wfwx_station_uuid='2',
+                                               elevation=1,
+                                               fuel_type=FuelType(abbrev='f2',
+                                                                  fuel_type_code='fc2',
+                                                                  description='f2-desc')))
+    station_dict = {1: weather_station_1, 2: weather_station_2}
+    station_daily1 = StationDaily(code=1, date=datetime.fromisocalendar(2022, 2, 2))
+    station_daily2 = StationDaily(code=2, date=datetime.fromisocalendar(2022, 2, 2))
+    merged_station_data: List[StationPDFData] = get_merged_station_data(
+        station_dict, [station_daily1, station_daily2])
+    assert len(merged_station_data) == 2
+    assert merged_station_data[0].code == 1
+    assert merged_station_data[0].station_props == weather_station_1.station_props
+    assert merged_station_data[1].code == 2
+    assert merged_station_data[1].station_props == weather_station_2.station_props
