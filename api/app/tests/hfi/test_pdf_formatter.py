@@ -102,16 +102,10 @@ def test_get_prep_levels():
 
 
 def test_all_array_functions():
+    """ Per day metrics, ordered by date, shoud be the same length """
     with open(test_hfi_result, 'r') as hfi_result, open(test_fcs, 'r') as fcs:
         result_json = json.load(hfi_result)
         result = HFIResultResponse(**result_json)
-
-        fc_dict = json.load(fcs)
-        fire_centres = []
-        for fc_json in fc_dict['fire_centres']:
-            fc = FireCentre(**fc_json)
-            fire_centres.append(fc)
-        _, _, station_dict = build_mappings(fire_centres)
 
         for area_result in result.planning_area_hfi_results:
             area_dailies = get_station_dailies(area_result)
