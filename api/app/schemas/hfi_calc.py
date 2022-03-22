@@ -193,7 +193,7 @@ class StationPDFData(StationDaily, WeatherStation):
     """ All the details we have about stations """
 
 
-class PlanningAreaPDFData(BaseModel):
+class PrepTablePlanningAreaPDFData(BaseModel):
     """ Data needed for prep cycle PDF sheet """
     planning_area_name: str
     order: int
@@ -206,11 +206,11 @@ class PlanningAreaPDFData(BaseModel):
     dailies: Mapping[int, List[StationPDFData]]
 
 
-class DailyPDFData(BaseModel):
+class DailyTablePlanningAreaPDFData(BaseModel):
     """ Data needed for daily PDF sheet """
     planning_area_name: str
-    highest_daily_intensity_group: Optional[float]
-    mean_prep_level: Optional[float]
+    mean_intensity_group: Optional[float]
+    prep_level: Optional[float]
     fire_starts: str
     date: str
     # Every station daily in the above planning area for the specific day

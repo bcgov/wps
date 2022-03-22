@@ -33,8 +33,8 @@ def test_get_sorted_dates_all_unique():
 
 def test_get_sorted_dates_same():
     """ Only one date of each date is returned in order """
-    dailies: List[StationDaily] = [StationDaily(date=datetime.fromisocalendar(2022, 3, 3)),
-                                   StationDaily(date=datetime.fromisocalendar(2022, 3, 3)),
+    dailies: List[StationDaily] = [StationDaily(date=datetime.fromisocalendar(2022, 2, 2)),
+                                   StationDaily(date=datetime.fromisocalendar(2022, 2, 2)),
                                    StationDaily(date=datetime.fromisocalendar(2022, 3, 3)),
                                    StationDaily(date=datetime.fromisocalendar(2022, 3, 3))]
 
@@ -78,7 +78,7 @@ def test_get_fire_start_labels():
         result_json = json.load(hfi_result)
         result = HFIResultResponse(**result_json)
         fire_labels = get_fire_start_labels(result, result.planning_area_hfi_results[0])
-        assert fire_labels == ['0-1', '0-1', '0-1', '0-1', '0-1']
+        assert fire_labels == ['0-1', '0-1', '0-1', '0-1', '0-1', '0-1']
 
 
 def test_get_prep_levels():

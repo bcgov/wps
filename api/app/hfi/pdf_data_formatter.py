@@ -6,10 +6,10 @@ from functools import reduce
 from itertools import groupby
 import operator
 from typing import List, Mapping
-from app.schemas.hfi_calc import (DailyPDFData, DailyResult,
+from app.schemas.hfi_calc import (DailyTablePlanningAreaPDFData, DailyResult,
                                   HFIResultResponse,
                                   PlanningArea, PlanningAreaResult,
-                                  PlanningAreaPDFData,
+                                  PrepTablePlanningAreaPDFData,
                                   StationDaily,
                                   StationPDFData, ValidatedStationDaily,
                                   WeatherStation)
@@ -22,7 +22,7 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
     Marshals HFI result into structure that jinja can easily
     iterate over for generating the prep cycle PDF sheet
     """
-    prep_cycle_pdf_data: List[PlanningAreaPDFData] = []
+    prep_cycle_pdf_data: List[PrepTablePlanningAreaPDFData] = []
     for area_result in result.planning_area_hfi_results:
 
         area_dailies: List[StationDaily] = get_station_dailies(area_result)
@@ -39,14 +39,14 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
         highest_daily_intensity_group = area_result.highest_daily_intensity_group
         mean_prep_level = area_result.mean_prep_level
 
-        area_pdf_data = PlanningAreaPDFData(planning_area_name=planning_area_name,
-                                            order=order,
-                                            highest_daily_intensity_group=highest_daily_intensity_group,
-                                            mean_prep_level=mean_prep_level,
-                                            mean_intensity_groups=mean_intensity_groups,
-                                            fire_starts_labels=fire_starts_labels,
-                                            prep_levels=prep_levels,
-                                            dailies=station_pdf_data)
+        area_pdf_data = PrepTablePlanningAreaPDFData(planning_area_name=planning_area_name,
+                                                     order=order,
+                                                     highest_daily_intensity_group=highest_daily_intensity_group,
+                                                     mean_prep_level=mean_prep_level,
+                                                     mean_intensity_groups=mean_intensity_groups,
+                                                     fire_starts_labels=fire_starts_labels,
+                                                     prep_levels=prep_levels,
+                                                     dailies=station_pdf_data)
         prep_cycle_pdf_data.append(area_pdf_data)
 
     return sorted(prep_cycle_pdf_data, key=operator.attrgetter('order')), formatted_dates, date_range
@@ -166,7 +166,7 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
     # pylint: disable=too-many-locals
     # TODO: refactor to simplify
 
-    daily_pdf_data: List[DailyPDFData] = []
+    daily_pdf_data: List[DailyTablePlanningAreaPDFData] = []
     for area_result in result.planning_area_hfi_results:
         fire_starts_range = result.planning_area_fire_starts[area_result.planning_area_id]
         for idx, daily_result in enumerate(area_result.daily_results):
@@ -180,12 +180,12 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
                 full_dailies.append(full_daily)
             fire_starts = fire_starts_range[idx]
             planning_area_name = planning_area_dict[area_result.planning_area_id].name
-            daily_data = DailyPDFData(planning_area_name=planning_area_name,
-                                      highest_daily_intensity_group=area_result.highest_daily_intensity_group,
-                                      mean_prep_level=area_result.mean_prep_level,
-                                      fire_starts=fire_starts.label,
-                                      date=daily_result.date.isoformat(),
-                                      dailies=full_dailies)
+            daily_data = DailyTablePlanningAreaPDFData(planning_area_name=planning_area_name,
+                                                       mean_intensity_group=daily_result.mean_intensity_group,
+                                                       prep_level=daily_result.prep_level,
+                                                       fire_starts=fire_starts.label,
+                                                       date=daily_result.date.isoformat(),
+                                                       dailies=full_dailies)
             daily_pdf_data.append(daily_data)
 
     key = operator.attrgetter('date')
