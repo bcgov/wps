@@ -212,8 +212,6 @@ class DailyPDFData(BaseModel):
     highest_daily_intensity_group: Optional[float]
     mean_prep_level: Optional[float]
     fire_starts: str
-    day: int
-    days_total: int
     date: str
     # Every station daily in the above planning area for the specific day
     dailies: List[StationPDFData]
