@@ -1,0 +1,279 @@
+{
+  "_embedded": {
+    "stations": [
+      {
+        "id": "bfe0a6e2-e27e-0210-e053-259e228e58c7",
+        "displayLabel": "HORSEFLY",
+        "createdBy": "LEGACY_DATA_LOAD",
+        "lastModifiedBy": "WFWX_WEATHER_API",
+        "lastEntityUpdateTimestamp": 1648079161262,
+        "updateDate": "2022-03-23T23:46:01.000+0000",
+        "stationCode": 230,
+        "stationAcronym": "FHR",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000"
+        },
+        "dataSource": {
+          "id": "AUTO_CALLR",
+          "displayLabel": "Auto-Caller",
+          "displayOrder": 1,
+          "effectiveDate": "1950-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "createdDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD",
+          "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+        },
+        "dataLoggerType": {
+          "id": "FWS12S",
+          "displayLabel": "FWS12S",
+          "displayOrder": 6,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "createdDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD",
+          "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+        },
+        "siteType": {
+          "id": "WXSTN_GOES",
+          "displayLabel": "Weather Station - GOES",
+          "displayOrder": 5,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "createdDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD",
+          "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+        },
+        "weatherZone": {
+          "id": 17,
+          "displayLabel": "Zone 17",
+          "dangerRegion": 2,
+          "displayOrder": 17
+        },
+        "stationAccessTypeCode": null,
+        "hourly": true,
+        "pluvioSnowGuage": true,
+        "latitude": 52.33,
+        "longitude": -121.3966667,
+        "geometry": {
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "EPSG:4326"
+            }
+          },
+          "coordinates": [-121.3966667, 52.33],
+          "type": "Point"
+        },
+        "elevation": 701,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedHeight": {
+          "id": "9.0_11.9",
+          "displayLabel": "9.0 - 11.9 (m)",
+          "displayOrder": 7,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "createdDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD",
+          "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+        },
+        "surfaceType": null,
+        "overWinterPrecipAdj": true,
+        "influencingSlope": 0,
+        "installationDate": 643442400000,
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "owner": {
+          "id": "a9843bb7-0f44-4a80-8a62-79cca2a5c758",
+          "displayLabel": "BC Wildfire Service",
+          "displayOrder": 2,
+          "ownerName": "BCWS",
+          "ownerDisplayName": "BC Wildfire Service",
+          "ownerComment": null,
+          "createdBy": "DATA_LOAD",
+          "lastModifiedBy": "DATAFIX - WFWX-891",
+          "effectiveDate": "1950-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000"
+        },
+        "fireCentre": {
+          "id": 2,
+          "displayLabel": "Cariboo Fire Centre",
+          "alias": 7,
+          "expiryDate": "9999-12-31T08:00:00.000+0000"
+        },
+        "zone": {
+          "id": 5,
+          "displayLabel": "Central Cariboo Zone (Horsefly)",
+          "alias": 3,
+          "fireCentre": "Cariboo Fire Centre",
+          "fireCentreAlias": 7,
+          "expiryDate": "9999-12-31T08:00:00.000+0000"
+        },
+        "comments": "1st Daily 19710503;  Converted to GOES December 9th 2021",
+        "ecccFileBaseUrlTemplate": null,
+        "lastProcessedSourceTime": "2022-03-23T16:46:01",
+        "crdStationName": null,
+        "stationAccessDescription": "Horsefly. WX 52 19.749 /121 23.756  From 100 Mile House travel north on Hwy 97 for 79 kms turn right onto the Horsefly Likely Rd,.  Continue for 4.6 kms  at intersection stay right, follow the Horsefly rd for 46 km, when you\ufffdre in Horsefly turn right, cross the bridge continue on for 1.8km turn right go 800 m.  The Wx station is on your right, beside the gravel pit.  1.5 hrs from 100 Mile",
+        "_links": {
+          "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/bfe0a6e2-e27e-0210-e053-259e228e58c7"
+          }
+        }
+      },
+      {
+        "id": "bfe0a6e2-e286-0210-e053-259e228e58c7",
+        "displayLabel": "CLEARWATER HUB",
+        "createdBy": "LEGACY_DATA_LOAD",
+        "lastModifiedBy": "WFWX_WEATHER_API",
+        "lastEntityUpdateTimestamp": 1648079160213,
+        "updateDate": "2022-03-23T23:46:00.000+0000",
+        "stationCode": 239,
+        "stationAcronym": "FCL",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000"
+        },
+        "dataSource": {
+          "id": "AUTO_CALLR",
+          "displayLabel": "Auto-Caller",
+          "displayOrder": 1,
+          "effectiveDate": "1950-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "createdDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD",
+          "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+        },
+        "dataLoggerType": {
+          "id": "FWS12S",
+          "displayLabel": "FWS12S",
+          "displayOrder": 6,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "createdDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD",
+          "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+        },
+        "siteType": {
+          "id": "HUB_STN",
+          "displayLabel": "Hub Station",
+          "displayOrder": 3,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "createdDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD",
+          "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+        },
+        "weatherZone": {
+          "id": 18,
+          "displayLabel": "Zone 18",
+          "dangerRegion": 1,
+          "displayOrder": 18
+        },
+        "stationAccessTypeCode": {
+          "id": "4WD",
+          "displayLabel": "4 Wheel Drive",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "createdDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD",
+          "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+        },
+        "hourly": true,
+        "pluvioSnowGuage": false,
+        "latitude": 51.6289,
+        "longitude": -120.094567,
+        "geometry": {
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "EPSG:4326"
+            }
+          },
+          "coordinates": [-120.094567, 51.6289],
+          "type": "Point"
+        },
+        "elevation": 440,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedHeight": {
+          "id": "9.0_11.9",
+          "displayLabel": "9.0 - 11.9 (m)",
+          "displayOrder": 7,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "createdDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD",
+          "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+        },
+        "surfaceType": null,
+        "overWinterPrecipAdj": true,
+        "influencingSlope": 5,
+        "installationDate": 650268000000,
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "owner": {
+          "id": "a9843bb7-0f44-4a80-8a62-79cca2a5c758",
+          "displayLabel": "BC Wildfire Service",
+          "displayOrder": 2,
+          "ownerName": "BCWS",
+          "ownerDisplayName": "BC Wildfire Service",
+          "ownerComment": null,
+          "createdBy": "DATA_LOAD",
+          "lastModifiedBy": "DATAFIX - WFWX-891",
+          "effectiveDate": "1950-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000"
+        },
+        "fireCentre": {
+          "id": 25,
+          "displayLabel": "Kamloops Fire Centre",
+          "alias": 5,
+          "expiryDate": "9999-12-31T08:00:00.000+0000"
+        },
+        "zone": {
+          "id": 27,
+          "displayLabel": "Kamloops Zone (Kamloops)",
+          "alias": 2,
+          "fireCentre": "Kamloops Fire Centre",
+          "fireCentreAlias": 5,
+          "expiryDate": "9999-12-31T08:00:00.000+0000"
+        },
+        "comments": "1st Daily 19760501; Clearwater (P2)",
+        "ecccFileBaseUrlTemplate": null,
+        "lastProcessedSourceTime": "2022-03-23T16:46:00",
+        "crdStationName": null,
+        "stationAccessDescription": "South of Clearwater, turn West off Hwy at Headwaters Forest District Office.  Follow service road along Hwy 50m to site.",
+        "_links": {
+          "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/bfe0a6e2-e286-0210-e053-259e228e58c7"
+          }
+        }
+      }
+    ]
+  },
+  "_links": {
+    "self": {
+      "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1stations/rsql?query=stationCode%3D%3D230%20or%20stationCode%3D%3D239"
+    }
+  },
+  "page": {
+    "size": 1000,
+    "totalElements": 2,
+    "totalPages": 1,
+    "number": 0
+  }
+}
