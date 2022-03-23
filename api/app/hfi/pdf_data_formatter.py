@@ -54,7 +54,7 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
 
 def get_station_dailies(area_result: PlanningAreaResult):
     """
-    Returns the station dailies from the planning area result
+    Flatten the lists of dailies from area daily results then return them all
     """
     area_validated_dailies: List[ValidatedStationDaily] = reduce(list.__add__, list(
         map(lambda x: x.dailies, area_result.daily_results)))
