@@ -2,11 +2,13 @@
 import logging
 import json
 from typing import List, Optional, Mapping, Tuple
+from jinja2 import Environment, FunctionLoader
 from datetime import date
 from fastapi import APIRouter, Response, Depends
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
-from app.hfi.daily_pdf_gen import generate_daily_pdf
+from app.hfi.pdf_generator import generate_pdf
+from app.hfi.pdf_template import get_template
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
@@ -346,7 +348,12 @@ async def download_result_pdf(request: HFIResultRequest,
             fire_start_ranges=fire_start_ranges)
 
         fire_centres_list = await hydrate_fire_centres()
-        pdf_bytes = generate_daily_pdf(response, fire_centres_list)
+
+        # Loads template as string from a function
+        # See: https://jinja.palletsprojects.com/en/3.0.x/api/?highlight=functionloader#jinja2.FunctionLoader
+        jinja_env = Environment(loader=FunctionLoader(get_template), autoescape=True)
+
+        pdf_bytes = generate_pdf(response, fire_centres_list, jinja_env)
 
         return Response(pdf_bytes)
     except Exception as exc:
