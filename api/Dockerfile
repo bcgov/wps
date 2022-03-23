@@ -28,8 +28,6 @@ RUN apt-get -y install openjdk-11-jdk
 RUN apt-get update --fix-missing && apt-get -y install xfonts-75dpi xfonts-base
 RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb -P /tmp && \
     dpkg -i /tmp/wkhtmltox_0.12.6-1.buster_amd64.deb
-# RUN cp /usr/local/bin/wkhtmltopdf /usr/bin/
-# RUN cp /usr/local/bin/wkhtmltoimage /usr/bin/
 
 # Update pip
 RUN python -m pip install --upgrade pip
