@@ -40,7 +40,7 @@
                 </tr>
                 <tr colspan="21">
                     {% for planning_area_data in planning_areas %}
-                        <td colspan="21">{{planning_area_data['planning_area_name']}}</td>
+                        <td colspan="21"><strong>{{planning_area_data['planning_area_name']}}</strong></td>
                         <td>{{planning_area_data['mean_intensity_group'] if planning_area_data['mean_intensity_group'] is not none}}</td>
                         <td rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['fire_starts'] if planning_area_data['fire_starts'] is not none}}</td>
                         <td rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['prep_level'] if planning_area_data['prep_level'] is not none}}</td>
