@@ -1,10 +1,15 @@
+@font-face {
+  font-family: "OpenSans";
+  src: url("api/app/hfi/templates/fonts/BCSans-Regular_1.woff") format("woff"),
+    url("api/app/hfi/templates/fonts/BCSans-Regular_1.ttf") format("truetype");
+}
 body {
+  font-family: "BC Sans", sans-serif;
 }
 table {
   border-collapse: collapse;
   border: 1px solid #000000;
 }
-
 td {
   padding: 5px;
   border: 1px solid #000000;
@@ -24,18 +29,15 @@ p {
   border-collapse: collapse;
   padding: 0;
 }
-
 .column {
   float: left;
 }
-
 .left {
   width: 50%;
 }
 .right {
   width: 5%;
 }
-
 .middle {
   width: 45%;
 }
