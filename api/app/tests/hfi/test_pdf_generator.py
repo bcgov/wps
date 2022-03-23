@@ -30,4 +30,4 @@ def test_generate_pdf():
 
 def test_pdf_filename():
     res = get_pdf_filename('Kamloops', date.fromisocalendar(2022, 2, 2), 'wps')
-    assert res == 'Kamloops_HFICalculator_2022-01-11_Wps.pdf'
+    assert res == 'Kamloops_HFICalculator_2022-01-11_WPS.pdf'
