@@ -4,7 +4,7 @@
     url("api/app/hfi/templates/fonts/BCSans-Regular_1.ttf") format("truetype");
 }
 body {
-  font-family: "BC Sans", sans-serif;
+  font-family: "BC Sans", "Noto Sans", "Verdana", "Arial", "sans-serif";
 }
 table {
   border-collapse: collapse;
