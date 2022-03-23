@@ -22,8 +22,14 @@ RUN R -e "install.packages('cffdrs')"
 # Install JDK
 RUN apt-get -y install openjdk-11-jdk
 
-# Install pdf-kit for PDF generation on HFI
-RUN apt-get -y install wkhtmltopdf
+# Install pdf-kit for PDF generation on HFI (with qt support!)
+# As of writing, 0.12.6 (the most recent) is the version currently being installed by 3.8.12-buster,
+# but without qt. We do a manual instllation of 0.12.6 in order to get qt support.
+RUN apt-get update --fix-missing && apt-get -y install xfonts-75dpi xfonts-base
+RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb -P /tmp && \
+    dpkg -i /tmp/wkhtmltox_0.12.6-1.buster_amd64.deb
+# RUN cp /usr/local/bin/wkhtmltopdf /usr/bin/
+# RUN cp /usr/local/bin/wkhtmltoimage /usr/bin/
 
 # Update pip
 RUN python -m pip install --upgrade pip
