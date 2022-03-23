@@ -36,8 +36,10 @@
       {% for area in planning_areas %}
       <tr>
         <td class="planningArea" colspan="4">
-          {{ area['planning_area_name'] if area['planning_area_name'] is not
-          none }}
+          <strong>
+            {{ area['planning_area_name'] if area['planning_area_name'] is not
+            none }}
+          </strong>
         </td>
         {% for day in prep_days %}
         <td><!-- ros space --></td>
