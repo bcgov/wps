@@ -104,9 +104,9 @@ def build_mappings(fire_centres: List[FireCentre]):
 
 def get_pdf_filename(fire_centre_name: str, date_generated: date, idir: str) -> str:
     """ Returns the formatted pdf filename """
-    return fire_centre_name.replace(" ", "").upper() + \
-        "_HFICALCULATOR_" + \
+    return fire_centre_name.replace(" ", "").capitalize() + \
+        "_HFICalculator_" + \
         date_generated.isoformat() + \
         "_" + \
-        idir.upper() + \
+        idir.capitalize() + \
         ".pdf"
