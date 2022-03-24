@@ -19,7 +19,7 @@ import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
 from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request,
-                                  get_fire_centre_stations, get_fire_start_range)
+                                  get_fire_centre_stations)
 
 
 logger = logging.getLogger(__name__)
@@ -163,7 +163,8 @@ async def set_fire_start_range(fire_centre_id: int,
         # We set the fire start range in the planning area for the provided prep day.
         if prep_day_date <= request.end_date:
             delta = prep_day_date - request.start_date
-            fire_start_range = get_fire_start_range(session, fire_start_range_id)
+            fire_start_range = next(item for
+                                    item in fire_centre_fire_start_ranges if item.id == fire_start_range_id)
             request.planning_area_fire_starts[planning_area_id][delta.days] = FireStartRange(
                 id=fire_start_range.id, label=fire_start_range.label)
         else:

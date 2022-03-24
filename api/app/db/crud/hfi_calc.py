@@ -67,11 +67,6 @@ def get_fire_centre_fire_start_ranges(session: Session, fire_centre_id: id) -> C
         .order_by(FireCentreFireStartRange.order)
 
 
-def get_fire_start_range(session, fire_start_range_id: int) -> CursorResult:
-    """ Get the fire start range for a given id """
-    return session.query(FireStartRange).filter(FireStartRange.id == fire_start_range_id).first()
-
-
 def get_fire_start_lookup(session: Session) -> CursorResult:
     """ Get the fire start lookup table """
     return session.query(FireStartLookup)
