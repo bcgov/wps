@@ -62,15 +62,6 @@ export const pstFormatter = (fromDate: DateTime): string => {
   ).toISO()
 }
 
-export const getPrepDailyDateRange = (
-  dateOfInterest: string
-): { start: DateTime; end: DateTime } => {
-  const start = DateTime.fromISO(dateOfInterest).startOf('day')
-  const end = DateTime.fromISO(dateOfInterest).endOf('day')
-
-  return { start, end }
-}
-
 export const getDaysBetween = (startDate: string, endDate: string): DateTime[] => {
   const start = DateTime.fromISO(startDate)
   const end = DateTime.fromISO(endDate)
