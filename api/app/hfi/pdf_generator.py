@@ -32,6 +32,7 @@ def generate_pdf(result: HFIResultResponse,
                                       fire_centre_name,
                                       jinja_env)
 
+    # pylint: disable=line-too-long
     left_footer = f'Exported on {datetime_generated.isoformat()} by {idir} | https://psu.nrs.gov.bc.ca/hfi-calculator'
     options = {
         'page-size': 'A4',
