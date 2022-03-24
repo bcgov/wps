@@ -40,12 +40,6 @@ const useStyles = makeStyles({
         borderColor: 'white'
       }
     }
-  },
-  dateRangePicker: {
-    zIndex: 3200
-  },
-  minWidth210: {
-    minWidth: 210
   }
 })
 
@@ -70,7 +64,7 @@ const PrepDateRangeSelector = ({
   return (
     <React.Fragment>
       <TextField
-        className={`${classes.dateRangeTextField} ${classes.minWidth210}`}
+        className={`${classes.dateRangeTextField}`}
         size="small"
         id="outlined-basic"
         variant="outlined"
@@ -99,7 +93,7 @@ const PrepDateRangeSelector = ({
           )
         }}
       />
-      <FormControl className={classes.dateRangePicker}>
+      <FormControl>
         <Dialog open={dateRangePickerOpen} onClose={toggleDateRangePicker}>
           <DateRangePicker
             initialDateRange={{ startDate, endDate }}
