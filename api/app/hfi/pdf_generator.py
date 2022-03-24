@@ -32,11 +32,14 @@ def generate_pdf(result: HFIResultResponse,
                                       fire_centre_name,
                                       jinja_env)
 
-    left_footer = f'Exported on {datetime_generated.isoformat()} by {idir}'
+    left_footer = f'Exported on {datetime_generated.isoformat()} by {idir} | https://psu.nrs.gov.bc.ca/hfi-calculator'
     options = {
-        'page-size': 'Tabloid',
+        'page-size': 'A4',
+        'orientation': 'Landscape',
         'footer-left': left_footer,
         'footer-right': '[page] of [topage]',
+        'footer-font-name': 'BCSans',
+        'footer-font-size': '6'
     }
 
     pdf_bytes: bytes = pdfkit.from_string(input=rendered_output, options=options, css=CSS_PATH)

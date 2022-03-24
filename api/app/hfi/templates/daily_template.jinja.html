@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>HFI Daily</title>
+        <title>BC Wildfire Services - HFI Calculator - {{fire_centre_name}} - Date: {{date}}</title>
     </head>
         <body>
             {% for date, planning_areas in daily_pdf_data_by_date.items() %}
             <h1>BC Wildfire Services - HFI Calculator</h1>
             <h2>{{fire_centre_name}} - Date: {{date}}</h2>
             <table>
-                <caption>HFI Daily Table</caption>
                 <tr>
                     <th colspan="24">{{date}}</th>
                 </tr>
@@ -76,15 +75,6 @@
                     {% endfor %}
                 </tr>
             </table>
-            <div class="row">
-                <div class="column middle">
-                  <h2>
-                    <a href="https://psu.nrs.gov.bc.ca/hfi-calculator"
-                      >psu.nrs.gov.bc.ca/hfi-calculator</a
-                    >
-                  </h2>
-                </div>
-              </div>
         <p></p>
         {% endfor %}
     </body>

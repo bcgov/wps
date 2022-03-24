@@ -5,6 +5,7 @@
 }
 body {
   font-family: BC Sans, Noto Sans, Verdana, Arial, sans-serif;
+  font-size: smaller;
 }
 table {
   border-collapse: collapse;

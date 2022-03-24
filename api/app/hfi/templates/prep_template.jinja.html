@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Prep Cycle Template</title>
+    <title>
+      BC Wildfire Services - HFI Calculator - {{ fire_centre_name }} - Prep
+      Period for: {{date_range}}
+    </title>
   </head>
 
   <body>
     <h1>BC Wildfire Services - HFI Calculator</h1>
     <h2>{{ fire_centre_name }} - Prep Period for: {{date_range}}</h2>
     <table>
-      <caption>
-        HFI Prep Cycle Table
-      </caption>
       <tr>
         <td colspan="4"><!-- spacing --></td>
         {% for day in prep_days %}
@@ -109,15 +109,6 @@
       </tr>
       {% endfor %} {% endfor %}
     </table>
-    <div class="row">
-      <div class="column middle">
-        <h2>
-          <a href="https://psu.nrs.gov.bc.ca/hfi-calculator"
-            >psu.nrs.gov.bc.ca/hfi-calculator</a
-          >
-        </h2>
-      </div>
-    </div>
     <p></p>
   </body>
 </html>
