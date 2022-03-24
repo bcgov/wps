@@ -222,11 +222,10 @@ async def download_result_pdf(request: HFIResultRequest,
     """ Assembles and returns PDF byte representation of HFI result. """
     try:
         logger.info('/hfi-calc/download-pdf')
-        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
+        results, valid_date_range = await calculate_latest_hfi_results(request)
 
         response = HFIResultResponse(
-            start_date=start_timestamp,
-            end_date=end_timestamp,
+            date_range=valid_date_range,
             selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,

@@ -228,7 +228,7 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
                                         request.selected_station_code_ids,
                                         area_station_map,
                                         valid_date_range.start_date)
-        return results, start_timestamp, end_timestamp
+        return results, valid_date_range
 
 
 def calculate_hfi_results(planning_area_fire_starts: Mapping[int, FireStartRange],  # pylint: disable=too-many-locals
