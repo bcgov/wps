@@ -1,5 +1,4 @@
-from app.schemas.shared import FuelType
-from app.db.models.hfi_calc import PlanningWeatherStation, FireStartRange, FireStartLookup
+from app.db.models.hfi_calc import PlanningWeatherStation, FireStartRange, FireStartLookup, FuelType
 import app.hfi.hfi_calc
 
 

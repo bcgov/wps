@@ -6,7 +6,6 @@ from aiohttp import ClientSession
 import app.main
 from app.tests.common import default_mock_client_get
 from app.tests import load_json_file_with_name
-from app.db.models.hfi_calc import PlanningWeatherStation, FuelType
 from app.tests.hfi import mock_station_crud
 
 
@@ -17,10 +16,11 @@ def test_fire_behaviour_calculator_scenario_no_request_stored():
     pass
 
 
-@given(parsers.parse("I received a hfi-calc {url} {request_json}"),
+@given(parsers.parse("I received a hfi-calc {url} {request_json} with {verb}"),
        target_fixture='response',
        converters={'request_json': load_json_file_with_name(__file__), 'url': str})
-def given_request_none_stored(monkeypatch: pytest.MonkeyPatch, url: str, request_json: Tuple[dict, str]):
+def given_request_none_stored(
+        monkeypatch: pytest.MonkeyPatch, url: str, request_json: Tuple[dict, str], verb: str):
     """ Handle request
     """
     # mock anything that uses aiohttp.ClientSession::get
@@ -32,7 +32,11 @@ def given_request_none_stored(monkeypatch: pytest.MonkeyPatch, url: str, request
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
+    if verb == 'get':
+        response = client.get(url, headers=headers)
+    else:
+        response = client.post(url, headers=headers, json=request_json[0])
     return {
-        'response': client.post(url, headers=headers, json=request_json[0]),
+        'response': response,
         'filename': request_json[1]
     }
