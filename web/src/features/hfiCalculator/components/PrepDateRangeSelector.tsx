@@ -1,4 +1,5 @@
 import {
+  Dialog,
   FormControl,
   IconButton,
   InputAdornment,
@@ -99,13 +100,15 @@ const PrepDateRangeSelector = ({
         }}
       />
       <FormControl className={classes.dateRangePicker}>
-        <DateRangePicker
-          initialDateRange={{ startDate, endDate }}
-          open={dateRangePickerOpen}
-          toggle={toggleDateRangePicker}
-          onChange={range => setDateRange(range)}
-          definedRanges={[]}
-        />
+        <Dialog open={dateRangePickerOpen} onClose={toggleDateRangePicker}>
+          <DateRangePicker
+            initialDateRange={{ startDate, endDate }}
+            open={dateRangePickerOpen}
+            toggle={toggleDateRangePicker}
+            onChange={range => setDateRange(range)}
+            definedRanges={[]}
+          />
+        </Dialog>
       </FormControl>
     </React.Fragment>
   )
