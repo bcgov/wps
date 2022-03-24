@@ -1,28 +1,17 @@
 import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 
-import {
-  Button,
-  FormControl,
-  Grid,
-  IconButton,
-  InputAdornment,
-  TextField
-} from '@material-ui/core'
+import { Button, FormControl, Grid } from '@material-ui/core'
 import FireCentreDropdown from 'features/hfiCalculator/components/FireCentreDropdown'
 import { isUndefined } from 'lodash'
 import { FireCentre } from 'api/hfiCalcAPI'
 import AboutDataModal from 'features/hfiCalculator/components/AboutDataModal'
 import { HelpOutlineOutlined } from '@material-ui/icons'
-import { DateRange, DateRangePicker } from 'materialui-daterange-picker'
-import * as materialIcons from '@material-ui/icons'
+import { DateRange } from 'materialui-daterange-picker'
 import { formControlStyles } from 'app/theme'
-import { DateTime } from 'luxon'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
-import {
-  HFIResultResponse,
-  PrepDateRange
-} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import PrepDateRangeSelector from 'features/hfiCalculator/components/PrepDateRangeSelector'
 
 const useStyles = makeStyles(theme => ({
   ...formControlStyles,
@@ -51,32 +40,6 @@ const useStyles = makeStyles(theme => ({
     fontWeight: 'bold',
     justifyContent: 'flex-end'
   },
-  dateRangePicker: {
-    zIndex: 3200
-  },
-  dateRangeTextField: {
-    marginLeft: '8px',
-    '& .MuiOutlinedInput-input': {
-      color: 'white'
-    },
-    '& .MuiIconButton-root': {
-      color: 'white'
-    },
-    '& .MuiInputLabel-root': {
-      color: 'white'
-    },
-    '& .MuiOutlinedInput-root': {
-      '& fieldset': {
-        borderColor: 'white'
-      },
-      '&:hover fieldset': {
-        borderColor: 'white'
-      },
-      '&.Mui-focused fieldset': {
-        borderColor: 'white'
-      }
-    }
-  },
   aboutButtonGridItem: {
     marginLeft: 'auto',
     minWidth: 210,
@@ -90,7 +53,6 @@ const useStyles = makeStyles(theme => ({
 interface Props {
   padding?: string
   fireCentres: FireCentre[]
-  dateRange?: PrepDateRange
   setDateRange: (newDateRange: DateRange) => void
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
@@ -101,14 +63,10 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
   const classes = useStyles(props)
 
   const [modalOpen, setModalOpen] = useState<boolean>(false)
-  const [dateRangePickerOpen, setDateRangePickerOpen] = useState<boolean>(false)
-
-  const dateDisplayFormat = 'MMMM dd'
 
   const openAboutModal = () => {
     setModalOpen(true)
   }
-  const toggleDateRangePicker = () => setDateRangePickerOpen(!dateRangePickerOpen)
 
   return (
     <div className={classes.root}>
@@ -133,44 +91,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
           </FormControl>
         </Grid>
         <Grid item md={3} lg={2}>
-          <TextField
-            className={`${classes.dateRangeTextField} ${classes.minWidth210}`}
-            size="small"
-            id="outlined-basic"
-            variant="outlined"
-            disabled={true}
-            label={'Set prep period'}
-            onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
-            value={
-              isUndefined(props.dateRange) ||
-              isUndefined(props.dateRange.start_date) ||
-              isUndefined(props.dateRange.end_date)
-                ? ''
-                : `${DateTime.fromISO(props.dateRange.start_date)
-                    .toFormat(dateDisplayFormat)
-                    .trim()} - ${DateTime.fromISO(props.dateRange.end_date)
-                    .toFormat(dateDisplayFormat)
-                    .trim()}
-                      `
-            }
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <IconButton edge="end">
-                    <materialIcons.DateRange />
-                  </IconButton>
-                </InputAdornment>
-              )
-            }}
-          />
-          <FormControl className={classes.dateRangePicker}>
-            <DateRangePicker
-              open={dateRangePickerOpen}
-              toggle={toggleDateRangePicker}
-              onChange={range => props.setDateRange(range)}
-              definedRanges={[]}
-            />
-          </FormControl>
+          <PrepDateRangeSelector setDateRange={props.setDateRange} />
         </Grid>
         <Grid item md={3}>
           <LastUpdatedHeader

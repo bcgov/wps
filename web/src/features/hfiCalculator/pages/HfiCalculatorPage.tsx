@@ -7,8 +7,7 @@ import {
   fetchHFIResult,
   fetchLoadHFIResult,
   setSaved,
-  fetchPDFDownload,
-  setPrepDateRange
+  fetchPDFDownload
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -119,19 +118,17 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       !isUndefined(result)
     ) {
       dispatch(
-        setPrepDateRange({
-          start_date: newDateRange.startDate?.toISOString().split('T')[0],
-          end_date: newDateRange.endDate?.toISOString().split('T')[0]
+        fetchHFIResult({
+          selected_station_code_ids: result.selected_station_code_ids,
+          selected_fire_center_id: result.selected_fire_center_id,
+          planning_area_fire_starts: result.planning_area_fire_starts,
+          date_range: {
+            start_date: newDateRange.startDate?.toISOString().split('T')[0],
+            end_date: newDateRange.endDate?.toISOString().split('T')[0]
+          }
         })
       )
       dispatch(setSaved(false))
-      dispatch(
-        fetchLoadHFIResult({
-          start_date: dateRange?.start_date,
-          end_date: dateRange?.end_date,
-          selected_fire_center_id: selectedFireCentre.id
-        })
-      )
     }
   }
 
@@ -173,19 +170,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireCentres])
 
-  useEffect(() => {
-    if (!isUndefined(dateRange) && !isUndefined(selectedFireCentre)) {
-      dispatch(
-        fetchLoadHFIResult({
-          selected_fire_center_id: selectedFireCentre.id,
-          start_date: dateRange.start_date,
-          end_date: dateRange.end_date
-        })
-      )
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateRange])
-
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))
   }
@@ -218,7 +202,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   const buildHFIContent = () => {
-    if (isUndefined(selectedFireCentre)) {
+    if (isUndefined(selectedFireCentre) || isUndefined(dateRange)) {
       return (
         <Table>
           <TableBody>
@@ -280,7 +264,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       />
       <HFIPageSubHeader
         fireCentres={fireCentres}
-        dateRange={dateRange}
         setDateRange={updatePrepDateRange}
         result={result}
         selectedFireCentre={selectedFireCentre}

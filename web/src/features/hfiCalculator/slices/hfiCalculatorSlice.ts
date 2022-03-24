@@ -189,17 +189,12 @@ const dailiesSlice = createSlice({
     ) => {
       state.selectedFireCentre = action.payload
     },
-    setPrepDateRange: (
-      state: HFICalculatorState,
-      action: PayloadAction<PrepDateRange | undefined>
-    ) => {
-      state.dateRange = action.payload
-    },
     setResult: (
       state: HFICalculatorState,
       action: PayloadAction<HFIResultResponse | undefined>
     ) => {
       state.result = action.payload
+      state.dateRange = action.payload?.date_range
 
       if (action.payload) {
         state.saved = action.payload.request_persist_success
@@ -222,7 +217,6 @@ export const {
   loadHFIResultFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
-  setPrepDateRange,
   setResult,
   setSaved
 } = dailiesSlice.actions

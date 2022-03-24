@@ -174,6 +174,9 @@ def validate_date_range(date_range: Optional[DateRange]) -> DateRange:
     delta = date_range.end_date - date_range.start_date
     if delta.days > 7:
         date_range.end_date = date_range.start_date + timedelta(days=7)
+        # check if the span is less than 2, if it is, push it up to 2.
+    if delta.days < 2:
+        date_range.end_date = date_range.start_date + timedelta(days=2)
     return date_range
 
 
