@@ -32,16 +32,18 @@ export const calculateNumPrepDays = (dateRange: PrepDateRange | undefined): numb
   ) {
     const start = DateTime.fromISO(dateRange.start_date)
     const end = DateTime.fromISO(dateRange.end_date)
-    console.log('calculateNumPrepDays() called')
     return end.diff(start, 'days').days
   }
   return 0
 }
 
 export const getDailiesByStationCode = (
-  result: HFIResultResponse,
+  result: HFIResultResponse | undefined,
   stationCode: number
 ): StationDaily[] => {
+  if (isUndefined(result)) {
+    return []
+  }
   const dailies = result.planning_area_hfi_results.flatMap(areaResult =>
     areaResult.daily_results.flatMap(dr =>
       dr.dailies.flatMap(validatedDaily => validatedDaily.daily)

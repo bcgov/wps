@@ -40,7 +40,6 @@ import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentr
 
 export interface Props {
   fireCentre: FireCentre | undefined
-  result: HFIResultResponse
   setSelected: (selected: number[]) => void
   testId?: string
 }
@@ -82,7 +81,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   const { selectedPrepDate, result } = useSelector(selectHFICalculatorState)
 
   const getDailyForDay = (stationCode: number): StationDaily | undefined => {
-    const dailiesForStation = getDailiesByStationCode(props.result, stationCode)
+    const dailiesForStation = getDailiesByStationCode(result, stationCode)
     if (selectedPrepDate != '') {
       const selectedPrepDateObject = DateTime.fromISO(selectedPrepDate)
       return dailiesForStation.filter(daily => {

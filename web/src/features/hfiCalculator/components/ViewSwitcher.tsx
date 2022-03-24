@@ -25,7 +25,6 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
         <WeeklyViewTable
           testId="hfi-calc-weekly-table"
           fireCentre={props.selectedFireCentre}
-          result={props.result}
           dateRange={props.dateRange}
           setSelected={props.setSelected}
           setNewFireStarts={props.setNewFireStarts}
@@ -34,7 +33,6 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
         <DailyViewTable
           testId="hfi-calc-daily-table"
           fireCentre={props.selectedFireCentre}
-          result={props.result}
           setSelected={props.setSelected}
         ></DailyViewTable>
       )}

@@ -32,7 +32,6 @@ import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentr
 export interface Props {
   fireCentre: FireCentre | undefined
   testId?: string
-  result: HFIResultResponse
   dateRange?: PrepDateRange
   setSelected: (selected: number[]) => void
   setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
@@ -251,7 +250,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                       station => station.order_of_appearance_in_planning_area_list
                     ).map(station => {
                       const dailiesForStation = getDailiesByStationCode(
-                        props.result,
+                        result,
                         station.code
                       )
                       const isRowSelected = stationCodeInSelected(station.code)
