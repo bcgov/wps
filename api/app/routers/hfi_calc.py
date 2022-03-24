@@ -52,7 +52,9 @@ def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
     Returns:
         True if the request was saved, False otherwise.
     """
-    if request.date_range.start_date is not None and request.date_range.end_date is not None:
+    if request.date_range is not None and \
+            request.date_range.start_date is not None and \
+            request.date_range.end_date is not None:
         with app.db.database.get_write_session_scope() as session:
             store_hfi_request(session, request, username)
             return True

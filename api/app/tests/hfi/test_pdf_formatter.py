@@ -88,7 +88,7 @@ def test_get_fire_start_labels():
         result_json = json.load(hfi_result)
         result = HFIResultResponse(**result_json)
         fire_labels = get_fire_start_labels(result, result.planning_area_hfi_results[0])
-        assert fire_labels == ['0-1', '0-1', '0-1', '0-1', '0-1']
+        assert fire_labels == ['0-1', '0-1', '0-1']
 
 
 def test_get_prep_levels():

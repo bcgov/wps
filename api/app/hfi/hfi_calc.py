@@ -160,24 +160,22 @@ def validate_date_range(date_range: Optional[DateRange]) -> DateRange:
     """ Sets the start_date to today if it is None.
     Set the end_date to start_date + 7 days, if it is None."""
     # we don't have a start date, default to now.
-    if date_range is None:
+    start_date = date_range.start_date if date_range is not None else None
+    end_date = date_range.end_date if date_range is not None else None
+    if start_date is None:
         now = app.utils.time.get_pst_now()
-        seven_days_later = now + timedelta(days=7)
-        date_range = DateRange(start_date=date(year=now.year,
-                                               month=now.month,
-                                               day=now.day),
-                               end_date=date(year=seven_days_later.year,
-                                             month=seven_days_later.month,
-                                             day=seven_days_later.day))
-
+        start_date = date(year=now.year, month=now.month, day=now.day)
+    # don't have an end date, default to start date + 5 days.
+    if end_date is None:
+        end_date = start_date + timedelta(days=5)
     # check if the span exceeds 7, if it does clamp it down to 7 days.
-    delta = date_range.end_date - date_range.start_date
+    delta = end_date - start_date
     if delta.days > 7:
-        date_range.end_date = date_range.start_date + timedelta(days=7)
-        # check if the span is less than 2, if it is, push it up to 2.
+        end_date = start_date + timedelta(days=5)
+    # check if the span is less than 2, if it is, push it up to 2.
     if delta.days < 2:
-        date_range.end_date = date_range.start_date + timedelta(days=2)
-    return date_range
+        end_date = start_date + timedelta(days=2)
+    return DateRange(start_date=start_date, end_date=end_date)
 
 
 async def calculate_latest_hfi_results(request: HFIResultRequest):
