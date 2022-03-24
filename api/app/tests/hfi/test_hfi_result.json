@@ -2,8 +2,30 @@
   "start_date": "2021-08-02",
   "end_date": "2021-08-06",
   "selected_station_code_ids": [
-    37, 59, 1383, 19, 1093, 21, 904, 233, 934, 45, 317, 1339, 1144, 93, 316,
-    1283, 292, 1375, 1083, 83, 1218, 82, 1016, 75
+    37,
+    59,
+    1383,
+    19,
+    1093,
+    21,
+    904,
+    233,
+    934,
+    45,
+    317,
+    1339,
+    1144,
+    93,
+    316,
+    1283,
+    292,
+    1375,
+    1083,
+    83,
+    1218,
+    82,
+    1016,
+    75
   ],
   "planning_area_station_info": null,
   "selected_fire_center_id": 2,
@@ -175,8 +197,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 1.0,
           "prep_level": 1.0
@@ -342,8 +363,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -509,8 +529,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -676,8 +695,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 4.0,
           "prep_level": 3.0
@@ -851,8 +869,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -1018,8 +1035,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 4.0,
           "prep_level": 3.0
@@ -1185,8 +1201,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 4.0,
           "prep_level": 3.0
@@ -1352,8 +1367,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 4.0,
           "prep_level": 3.0
@@ -1496,8 +1510,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -1632,8 +1645,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -1768,8 +1780,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -1904,8 +1915,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -1986,8 +1996,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -2060,8 +2069,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -2134,8 +2142,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -2208,8 +2215,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -2321,8 +2327,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -2426,8 +2431,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -2531,8 +2535,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -2636,8 +2639,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -2749,8 +2751,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -2854,8 +2855,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -2959,8 +2959,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -3064,8 +3063,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 1.0,
           "prep_level": 1.0
@@ -3146,8 +3144,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -3220,8 +3217,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -3294,8 +3290,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -3368,8 +3363,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 1.0,
           "prep_level": 1.0
@@ -3377,196 +3371,27 @@
       ]
     }
   ],
-  "planning_area_fire_starts": {
-    "36": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "37": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "38": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "39": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "40": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "41": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "42": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ]
-  },
+  "fire_start_ranges": [
+    {
+      "label": "0-1",
+      "id": 1
+    },
+    {
+      "label": "1-2",
+      "id": 2
+    },
+    {
+      "label": "2-3",
+      "id": 3
+    },
+    {
+      "label": "3-6",
+      "id": 4
+    },
+    {
+      "label": "6+",
+      "id": 5
+    }
+  ],
   "request_persist_success": false
 }
