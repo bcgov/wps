@@ -112,8 +112,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
-  // const [prepDateRange, setPrepDateRange] = useState<PrepDateRange>()
-
   const updatePrepDateRange = (newDateRange: DateRange) => {
     if (
       newDateRange !== dateRange &&
@@ -122,7 +120,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     ) {
       dispatch(
         setPrepDateRange({
-          // This is so annoying that I have to do this to make the network call work
           start_date: newDateRange.startDate?.toISOString().split('T')[0],
           end_date: newDateRange.endDate?.toISOString().split('T')[0]
         })
@@ -188,13 +185,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange])
-
-  // useEffect(() => {
-  //   if (!isUndefined(result) && dateRange !== result.date_range) {
-  //     dispatch(setPrepDateRange(result.date_range))
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [result, result?.date_range])
 
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))
