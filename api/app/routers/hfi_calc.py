@@ -123,11 +123,9 @@ async def load_hfi_result(request: HFILoadResultRequest,
                     save_request_in_database(result_request, token.get('preferred_username', None))
                     request_persist_success = True
 
-        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(result_request)
-        start_date = date.fromtimestamp(start_timestamp / 1000)
-        end_date = date.fromtimestamp(end_timestamp / 1000)
+        results, valid_date_range = await calculate_latest_hfi_results(result_request)
         response = HFIResultResponse(
-            date_range=DateRange(start_date=start_date, end_date=end_date),
+            date_range=valid_date_range,
             selected_station_code_ids=result_request.selected_station_code_ids,
             planning_area_station_info=result_request.planning_area_station_info,
             selected_fire_center_id=result_request.selected_fire_center_id,
