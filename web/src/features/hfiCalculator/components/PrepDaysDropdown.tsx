@@ -6,7 +6,7 @@ import React from 'react'
 export const MIN_PREP_DAYS = 2
 export const MAX_PREP_DAYS = 7
 
-const prepDayNumberOptions: string[] = ['2', '3', '4', '5', '7']
+const prepDayNumberOptions: string[] = ['2', '3', '4', '5', '6', '7']
 
 export interface PrepDaySelectProps {
   days: number
