@@ -249,7 +249,7 @@ def build_fire_start_prep_level_lookup(orm_session) -> Dict[int, Dict[int, int]]
     return fire_start_lookup
 
 
-def load_fire_start_ranges(orm_session, fire_centre_id: int) -> Generator[FireStartRange, None, None]:
+def load_fire_start_ranges(orm_session, fire_centre_id: int) -> List[FireStartRange]:
     """ Fetch the fire start ranges for a fire centre from the database, and return them as a list of
     schema objects.
     """

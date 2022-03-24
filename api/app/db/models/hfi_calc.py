@@ -7,6 +7,9 @@ from app.db.database import Base
 from app.db.models.common import TZTimeStamp
 
 
+FIRE_CENTRES_ID = 'fire_centres.id'
+
+
 class FireCentre(Base):
     """ BC Wildfire Service Fire Centre """
     __tablename__ = 'fire_centres'
@@ -29,7 +32,7 @@ class PlanningArea(Base):
     id = Column(Integer, Sequence('planning_areas_id_seq'),
                 primary_key=True, nullable=False, index=True)
     name = Column(String, nullable=False, index=True)
-    fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
+    fire_centre_id = Column(Integer, ForeignKey(FIRE_CENTRES_ID), nullable=False, index=True)
     order_of_appearance_in_list = Column(Integer, nullable=False)
 
     def __str__(self):
@@ -89,7 +92,7 @@ class HFIRequest(Base):
         {'comment': 'Identifies the unique code used to identify the station'}
     )
     id = Column(Integer, primary_key=True)
-    fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
+    fire_centre_id = Column(Integer, ForeignKey(FIRE_CENTRES_ID), nullable=False, index=True)
     # We use prep start and end date to load a planning area.
     prep_start_day = Column(Date, nullable=False, index=True)
     prep_end_day = Column(Date, nullable=False, index=True)
@@ -142,5 +145,5 @@ class FireCentreFireStartRange(Base):
     )
     id = Column(Integer, primary_key=True)
     fire_start_range_id = Column(Integer, ForeignKey('hfi_fire_start_range.id'), nullable=False, index=True)
-    fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
+    fire_centre_id = Column(Integer, ForeignKey(FIRE_CENTRES_ID), nullable=False, index=True)
     order = Column(Integer, nullable=False)

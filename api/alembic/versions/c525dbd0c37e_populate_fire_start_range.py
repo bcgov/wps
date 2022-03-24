@@ -79,7 +79,7 @@ def upgrade():
 
     id_count = 1
     for result in results:
-        id = result[0]
+        fire_centre_id = result[0]
         name = result[1]
         order_count = 0
         if name == 'Kamloops Fire Centre':
@@ -90,7 +90,7 @@ def upgrade():
             fire_centre_ranges.append(
                 {'id': id_count,
                  'fire_start_range_id': fire_start_range['id'],
-                 'fire_centre_id': id,
+                 'fire_centre_id': fire_centre_id,
                  'order': order_count})
             order_count += 1
             id_count += 1
