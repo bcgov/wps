@@ -4,6 +4,7 @@ See README.md for details on how to run.
 """
 import logging
 from time import perf_counter
+from urllib.request import Request
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
@@ -79,6 +80,16 @@ app.mount('/api', app=api)
 app.mount('/', app=frontend)
 
 ORIGINS = config.get('ORIGINS')
+
+
+async def catch_exception_middleware(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        logger.debug(exc, exc_info=True)
+        raise
+
+app.middleware('http')(catch_exception_middleware)
 
 api.add_middleware(
     CORSMiddleware,
