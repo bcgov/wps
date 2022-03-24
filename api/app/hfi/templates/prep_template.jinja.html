@@ -42,26 +42,26 @@
           </strong>
         </td>
         {% for day in prep_days %}
-        <td><!-- ros space --></td>
-        <td><!-- hfi space --></td>
-        <td>
+        <td class="planningArea"><!-- ros space --></td>
+        <td class="planningArea"><!-- hfi space --></td>
+        <td class="planningArea">
           {{ area['mean_intensity_groups'][loop.index0] if
           area['mean_intensity_groups'][loop.index0] is not none }}
         </td>
-        <td>
+        <td class="planningArea">
           {{ area['fire_starts_labels'][loop.index0] if
           area['fire_starts_labels'][loop.index0] is not none }}
         </td>
-        <td>
+        <td class="planningArea">
           {{ area['prep_levels'][loop.index0] if
           area['prep_levels'][loop.index0] is not none }}
         </td>
         {% endfor %}
-        <td>
+        <td class="planningArea">
           {{ area['highest_daily_intensity_group'] if
           area['highest_daily_intensity_group'] is not none }}
         </td>
-        <td>
+        <td class="planningArea">
           {{ area['mean_prep_level'] if area['mean_prep_level'] is not none }}
         </td>
       </tr>
