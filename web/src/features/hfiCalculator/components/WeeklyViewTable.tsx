@@ -23,7 +23,6 @@ import { selectHFICalculatorState } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
 import {
   FireStarts,
-  HFIResultResponse,
   PlanningAreaResult,
   PrepDateRange
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'

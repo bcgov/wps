@@ -128,7 +128,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           end_date: newDateRange.endDate?.toISOString().split('T')[0]
         })
       )
-      console.log(dateRange)
       dispatch(setSaved(false))
       dispatch(
         fetchLoadHFIResult({

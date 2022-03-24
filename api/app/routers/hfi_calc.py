@@ -150,8 +150,6 @@ async def get_hfi_results(request: HFIResultRequest,
     # pylint: disable=too-many-locals
 
     try:
-        logger.info('/hfi-calc/')
-        logger.info('\n\n\n get_hfi_results\n\n\n')
         response.headers["Cache-Control"] = no_cache
 
         stored_request = load_request_from_database(request)

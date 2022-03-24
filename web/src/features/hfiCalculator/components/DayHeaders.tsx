@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { calculateNumPrepDays } from 'features/hfiCalculator/util'
 import { isUndefined, range } from 'lodash'
 import { DateTime } from 'luxon'
 import React from 'react'
@@ -27,11 +28,7 @@ const DayHeaders = (props: DayHeadersProps) => {
     isUndefined(props.dateRange) || isUndefined(props.dateRange.start_date)
       ? DateTime.now()
       : DateTime.fromISO(props.dateRange.start_date)
-  const end =
-    isUndefined(props.dateRange) || isUndefined(props.dateRange.end_date)
-      ? DateTime.now()
-      : DateTime.fromISO(props.dateRange.end_date)
-  const numPrepDays = end.diff(start, 'days').days
+  const numPrepDays = calculateNumPrepDays(props.dateRange)
 
   const classes = useStyles()
   return (
