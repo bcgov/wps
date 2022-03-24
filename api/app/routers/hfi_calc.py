@@ -53,30 +53,6 @@ def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
     return False
 
 
-def validate_date_range(date_range: DateRange) -> DateRange:
-    """ Sets the start_date to today if it is None.
-    Set the end_date to start_date + 7 days, if it is None."""
-    # we don't have a start date, default to now.
-    if date_range is None or date_range.start_date is None:
-        now = app.utils.time.get_pst_now()
-        start_date = date(year=now.year, month=now.month, day=now.day)
-    else:
-        start_date = date_range.start_date
-    # don't have an end date, default to start date + 5 days.
-    if date_range is None or date_range.end_date is None:
-        end_date = start_date + timedelta(days=5)
-    else:
-        end_date = date_range.end_date
-    # check if the span exceeds 7, if it does clamp it down to 7 days.
-    delta = end_date - start_date
-    if delta.days > 7:
-        end_date = start_date + timedelta(days=5)
-    # check if the span is less than 2, if it is, push it up to 2.
-    if delta.days < 2:
-        end_date = start_date + timedelta(days=2)
-    return DateRange(start_date=start_date, end_date=end_date)
-
-
 def extract_selected_stations(request: HFIResultRequest) -> List[int]:
     """ Extract a list of the selected station codes - we use this to get the daily data from wfwx. """
     stations_codes = []
@@ -127,20 +103,24 @@ async def load_hfi_result(request: HFILoadResultRequest,
                         ))
 
                 result_request = HFIResultRequest(
-                    start_date=request.start_date,
                     selected_fire_center_id=request.selected_fire_center_id,
                     selected_station_code_ids=list(selected_station_code_ids),
                     planning_area_station_info=planning_area_station_info,
                     planning_area_fire_starts={})
                 if request.start_date:
+                    result_request.date_range = DateRange(start_date=request.start_date)
+                    if request.end_date:
+                        result_request.date_range = DateRange(
+                            start_date=request.start_date, end_date=request.end_date)
                     # If a start date was specified, we go ahead and save this request.
                     save_request_in_database(result_request, token.get('preferred_username', None))
                     request_persist_success = True
 
         results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(result_request)
+        start_date = date.fromtimestamp(start_timestamp / 1000)
+        end_date = date.fromtimestamp(end_timestamp / 1000)
         response = HFIResultResponse(
-            start_date=start_timestamp,
-            end_date=end_timestamp,
+            date_range=DateRange(start_date=start_date, end_date=end_date),
             selected_station_code_ids=result_request.selected_station_code_ids,
             planning_area_station_info=result_request.planning_area_station_info,
             selected_fire_center_id=result_request.selected_fire_center_id,

@@ -19,9 +19,6 @@ export interface ViewSwitcherProps {
 }
 
 const ViewSwitcher = (props: ViewSwitcherProps) => {
-  console.log('in ViewSwitcher')
-  console.log(props.dateRange)
-
   return (
     <React.Fragment>
       {props.selectedPrepDay == '' ? (

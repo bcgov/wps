@@ -143,14 +143,17 @@ class StationInfo(BaseModel):
     # fuel_type_id matches to table fuel_types.id
     fuel_type_id: int
 
+
 class DateRange(BaseModel):
     """ A Pythonic implementation of the DateRange construct we use on the front-end in Typescript. """
-    start_date: date
-    end_date: date
+    start_date: Optional[date]
+    end_date: Optional[date]
+
 
 class HFILoadResultRequest(BaseModel):
     """ Request to load the HFI Calculator. """
     start_date: Optional[date]
+    end_date: Optional[date]
     selected_fire_center_id: int
 
 

@@ -31,7 +31,7 @@ const DayHeaders = (props: DayHeadersProps) => {
     isUndefined(props.dateRange) || isUndefined(props.dateRange.end_date)
       ? DateTime.now()
       : DateTime.fromISO(props.dateRange.end_date)
-  const numPrepDays = end.diff(start, 'days').valueOf()
+  const numPrepDays = end.diff(start, 'days').days
 
   const classes = useStyles()
   return (

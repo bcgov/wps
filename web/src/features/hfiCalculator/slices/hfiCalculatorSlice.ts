@@ -95,6 +95,7 @@ export interface HFIResultRequest {
 
 export interface HFILoadResultRequest {
   start_date?: string
+  end_date?: string
   selected_fire_center_id: number
 }
 
@@ -188,6 +189,12 @@ const dailiesSlice = createSlice({
     ) => {
       state.selectedFireCentre = action.payload
     },
+    setPrepDateRange: (
+      state: HFICalculatorState,
+      action: PayloadAction<PrepDateRange | undefined>
+    ) => {
+      state.dateRange = action.payload
+    },
     setResult: (
       state: HFICalculatorState,
       action: PayloadAction<HFIResultResponse | undefined>
@@ -215,6 +222,7 @@ export const {
   loadHFIResultFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
+  setPrepDateRange,
   setResult,
   setSaved
 } = dailiesSlice.actions

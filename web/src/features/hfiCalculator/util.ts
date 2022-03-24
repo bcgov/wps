@@ -32,7 +32,8 @@ export const calculateNumPrepDays = (dateRange: PrepDateRange | undefined): numb
   ) {
     const start = DateTime.fromISO(dateRange.start_date)
     const end = DateTime.fromISO(dateRange.end_date)
-    return end.diff(start, 'days').valueOf()
+    console.log('calculateNumPrepDays() called')
+    return end.diff(start, 'days').days
   }
   return 0
 }
