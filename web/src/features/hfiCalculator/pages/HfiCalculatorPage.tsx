@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Container, ErrorBoundary, GeneralHeader } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
@@ -8,7 +8,6 @@ import {
   fetchLoadHFIResult,
   setSaved,
   fetchPDFDownload,
-  PrepDateRange,
   setPrepDateRange
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'

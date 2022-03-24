@@ -31,7 +31,6 @@ import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import {
   DailyResult,
-  HFIResultResponse,
   PlanningAreaResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredDataCell'
