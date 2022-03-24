@@ -86,7 +86,7 @@ async def catch_exception_middleware(request: Request, call_next):
     try:
         return await call_next(request)
     except Exception as exc:
-        logger.debug(exc, exc_info=True)
+        logger.error(exc, exc_info=True)
         raise
 
 app.middleware('http')(catch_exception_middleware)
