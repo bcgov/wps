@@ -91,7 +91,10 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
           </FormControl>
         </Grid>
         <Grid item md={3} lg={2}>
-          <PrepDateRangeSelector setDateRange={props.setDateRange} />
+          <PrepDateRangeSelector
+            dateRange={props.result ? props.result.date_range : undefined}
+            setDateRange={props.setDateRange}
+          />
         </Grid>
         <Grid item md={3}>
           <LastUpdatedHeader

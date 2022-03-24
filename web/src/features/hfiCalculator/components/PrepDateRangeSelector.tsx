@@ -6,20 +6,19 @@ import {
   TextField
 } from '@material-ui/core'
 import * as materialIcons from '@material-ui/icons'
-import { selectHFICalculatorState } from 'app/rootReducer'
+import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { DateRangePicker, DateRange } from 'materialui-daterange-picker'
 import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
 
 export interface PrepDateRangeSelectorProps {
+  dateRange?: PrepDateRange
   setDateRange: (newDateRange: DateRange) => void
 }
 
 const useStyles = makeStyles({
   dateRangeTextField: {
-    marginLeft: '8px',
     '& .MuiOutlinedInput-input': {
       color: 'white'
     },
@@ -49,11 +48,12 @@ const useStyles = makeStyles({
   }
 })
 
-const PrepDateRangeSelector = (props: PrepDateRangeSelectorProps) => {
+const PrepDateRangeSelector = ({
+  dateRange,
+  setDateRange
+}: PrepDateRangeSelectorProps) => {
   const classes = useStyles()
   const dateDisplayFormat = 'MMMM dd'
-  const { result } = useSelector(selectHFICalculatorState)
-  const dateRange = result?.date_range
   const startDate =
     dateRange && dateRange.start_date
       ? DateTime.fromISO(dateRange.start_date).toJSDate()
@@ -103,7 +103,7 @@ const PrepDateRangeSelector = (props: PrepDateRangeSelectorProps) => {
           initialDateRange={{ startDate, endDate }}
           open={dateRangePickerOpen}
           toggle={toggleDateRangePicker}
-          onChange={range => props.setDateRange(range)}
+          onChange={range => setDateRange(range)}
           definedRanges={[]}
         />
       </FormControl>
