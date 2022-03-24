@@ -19,21 +19,20 @@
 # When building local, you can reference the docker image:
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9
 
-# Install old (2.4.*; current debian) version of gdal and R
-RUN apt-get -y update
-RUN apt-get -y install libgdal-dev
-
-# Install R
-RUN apt-get update --fix-missing && apt-get -y install r-base
+# Install pre-requisites
+# - old (2.4.*; current debian) version of gdal
+# - R (for cffdrs)
+# - JDK (for red-app)
+# - xfonts-75dpi xfonts-base (for wkhtmltopdf)
+RUN apt-get update --fix-missing && apt-get -y install libgdal-dev r-base openjdk-11-jdk xfonts-75dpi xfonts-base
 
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
 
-# Install JDK
-RUN apt-get -y install openjdk-11-jdk
-
-# Install pdf-kit for PDF generation on HFI
-RUN apt-get -y install wkhtmltopdf
+# Install pdf-kit for PDF generation on HFI (with qt support!)
+# We can't just run apt-get -y install wkhtmltopdf, because we don't get qt support.
+RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb -P /tmp && \
+    dpkg -i /tmp/wkhtmltox_0.12.6-1.buster_amd64.deb
 
 # Update pip  
 RUN python -m pip install --upgrade pip
