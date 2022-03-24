@@ -478,5 +478,5 @@
       }
     ]
   },
-  "request_persist_success": false
+  "request_persist_success": true
 }
