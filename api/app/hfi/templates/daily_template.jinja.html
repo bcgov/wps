@@ -1,19 +1,14 @@
-"""String representations of templates for in memory loading"""
-import os
-
-CSS_PATH = os.path.join(os.path.dirname(__file__), "style.css")
-
-DAILY_TEMPLATE_HTML = """
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <title>HFI Daily</title>
-</head>
-<body>
+    <head>
+        <title>HFI Daily</title>
+    </head>
+        <body>
             {% for date, planning_areas in daily_pdf_data_by_date.items() %}
             <h1>BC Wildfire Services - HFI Calculator</h1>
-            <h2>Fire Centre ID: {{fire_centre_name}} - Date: {{date}}</h2>
+            <h2>{{fire_centre_name}} - Date: {{date}}</h2>
             <table>
+                <caption>HFI Daily Table</caption>
                 <tr>
                     <th colspan="24">{{date}}</th>
                 </tr>
@@ -45,10 +40,10 @@ DAILY_TEMPLATE_HTML = """
                 </tr>
                 <tr colspan="21">
                     {% for planning_area_data in planning_areas %}
-                        <td colspan="21">{{planning_area_data['planning_area_name']}}</td>
-                        <td>{{planning_area_data['highest_daily_intensity_group'] if planning_area_data['highest_daily_intensity_group'] is not none}}</td>
+                        <td colspan="21"><strong>{{planning_area_data['planning_area_name']}}</strong></td>
+                        <td>{{planning_area_data['mean_intensity_group'] if planning_area_data['mean_intensity_group'] is not none}}</td>
                         <td rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['fire_starts'] if planning_area_data['fire_starts'] is not none}}</td>
-                        <td rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['mean_prep_level'] if planning_area_data['mean_prep_level'] is not none}}</td>
+                        <td rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['prep_level'] if planning_area_data['prep_level'] is not none}}</td>
                             {% if planning_area_data['dailies']|length < 1 %}
                                 <tr />
                             {% endif %}
@@ -81,13 +76,16 @@ DAILY_TEMPLATE_HTML = """
                     {% endfor %}
                 </tr>
             </table>
+            <div class="row">
+                <div class="column middle">
+                  <h2>
+                    <a href="https://psu.nrs.gov.bc.ca/hfi-calculator"
+                      >psu.nrs.gov.bc.ca/hfi-calculator</a
+                    >
+                  </h2>
+                </div>
+              </div>
         <p></p>
         {% endfor %}
     </body>
 </html>
-"""
-
-
-def str_daily_template(template_name: str):    # pylint: disable=unused-argument
-    """ Returns the only (currently) template, arg above will be used for switching """
-    return DAILY_TEMPLATE_HTML
