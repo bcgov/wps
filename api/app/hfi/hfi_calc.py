@@ -162,9 +162,13 @@ def validate_date_range(date_range: Optional[DateRange]) -> DateRange:
     # we don't have a start date, default to now.
     if date_range is None:
         now = app.utils.time.get_pst_now()
-        five_days_later = now + timedelta(days=7)
-        date_range = DateRange(start_date=date(year=now.year, month=now.month, day=now.day),
-                               end_date=date(year=five_days_later.year, month=five_days_later.month, day=five_days_later.day))
+        seven_days_later = now + timedelta(days=7)
+        date_range = DateRange(start_date=date(year=now.year,
+                                               month=now.month,
+                                               day=now.day),
+                               end_date=date(year=seven_days_later.year,
+                                             month=seven_days_later.month,
+                                             day=seven_days_later.day))
 
     # check if the span exceeds 7, if it does clamp it down to 7 days.
     delta = date_range.end_date - date_range.start_date
