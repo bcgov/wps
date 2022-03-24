@@ -1,10 +1,15 @@
+@font-face {
+  font-family: "OpenSans";
+  src: url("api/app/hfi/templates/fonts/BCSans-Regular_1.woff") format("woff"),
+    url("api/app/hfi/templates/fonts/BCSans-Regular_1.ttf") format("truetype");
+}
 body {
+  font-family: BC Sans, Noto Sans, Verdana, Arial, sans-serif;
 }
 table {
   border-collapse: collapse;
   border: 1px solid #000000;
 }
-
 td {
   padding: 5px;
   border: 1px solid #000000;
@@ -18,35 +23,21 @@ th {
 p {
   page-break-before: always;
 }
-.leftBorder {
-  border-left: 1px solid black;
-  border-collapse: collapse;
-}
-
-.rightBorder {
-  border-right: 1px solid black;
-  border-collapse: collapse;
-}
-
-.boldRightBorder {
-  border-right: 2px solid black;
-  border-collapse: collapse;
-}
-
-.boldLeftBorder {
-  border-left: 2px solid black;
-  border-collapse: collapse;
-}
-
 .planningArea {
-  background-color: cornflowerblue;
-  border-bottom: black 2px solid;
+  border-top: black 2px solid;
+  background-color: #e9ecf5;
   border-collapse: collapse;
-  height: 20px;
   padding: 0;
 }
-.station {
-  border-bottom: black 2px solid;
-  border-collapse: collapse;
-  padding: 0;
+.column {
+  float: left;
+}
+.left {
+  width: 50%;
+}
+.right {
+  width: 5%;
+}
+.middle {
+  width: 45%;
 }
