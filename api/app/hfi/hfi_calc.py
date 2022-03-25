@@ -155,7 +155,7 @@ async def hydrate_fire_centres():
     return fire_centres_list
 
 
-def validate_date_range(start_date: date, end_date: date):
+def validate_date_range(start_date: Optional[date], end_date: Optional[date]):
     """ Sets the start_date to today if it is None.
     Set the end_date to start_date + 7 days, if it is None."""
     # we don't have a start date, default to now.
@@ -393,8 +393,8 @@ def calculate_mean_intensity(dailies: List[StationDaily]):
 def calculate_prep_level(
         mean_intensity_group: Optional[float],
         fire_starts: FireStartRange,
-        fire_start_lookup: Dict[int, Dict[int, int]]) -> int:
-    """ Returns the prep level based on the MIG and fire starts range """
+        fire_start_lookup: Dict[int, Dict[int, int]]) -> Optional[int]:
+    """ Returns the prep level based on the MIG and fire starts range. """
     if mean_intensity_group is None:
         return None
 

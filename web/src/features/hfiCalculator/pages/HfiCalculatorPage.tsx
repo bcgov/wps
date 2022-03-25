@@ -12,7 +12,7 @@ import {
   setSaved,
   fetchPDFDownload
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { SmartDate } from 'utils/date'
+import { SmartDate, getDateRange, pstFormatter } from 'utils/date'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
 import {
@@ -27,7 +27,6 @@ import {
   Table,
   TableBody
 } from '@material-ui/core'
-import { getDateRange, pstFormatter } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import SaveButton from 'features/hfiCalculator/components/SaveButton'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'

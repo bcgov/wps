@@ -105,7 +105,7 @@ def upgrade():
                                   )
 
     # Populate lookup values for each fire start range.
-    id = populate_hfi_fire_start_lookup(op, 1, hfi_fire_start_lookup, kamloops_fire_start_ranges, [
+    start_id = populate_hfi_fire_start_lookup(op, 1, hfi_fire_start_lookup, kamloops_fire_start_ranges, [
         # 0-1
         [[1, 1], [2, 1], [3, 2], [4, 3], [5, 4]],
         # 1-2
@@ -118,7 +118,7 @@ def upgrade():
         [[1, 4], [2, 5], [3, 6], [4, 6], [5, 6]],
     ])
 
-    populate_hfi_fire_start_lookup(op, id, hfi_fire_start_lookup, other_fire_start_ranges, [
+    populate_hfi_fire_start_lookup(op, start_id, hfi_fire_start_lookup, other_fire_start_ranges, [
         # 0-2
         [[1, 1], [2, 1], [3, 2], [4, 3], [5, 4]],
         # 3-5
