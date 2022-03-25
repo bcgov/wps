@@ -8,7 +8,6 @@ on:
 jobs:
   set-description:
     name: Set pull request description
-    permissions: write-all
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
