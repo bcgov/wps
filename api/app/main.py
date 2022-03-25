@@ -83,6 +83,7 @@ ORIGINS = config.get('ORIGINS')
 
 
 async def catch_exception_middleware(request: Request, call_next):
+    """ Basic middleware to catch all unhandled exceptions and log them to the terminal """
     try:
         return await call_next(request)
     except Exception as exc:
