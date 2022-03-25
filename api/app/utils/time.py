@@ -7,12 +7,12 @@ PST_UTC_OFFSET: Final[int] = -8
 PDT_UTC_OFFSET: Final[int] = -7
 
 
-def _get_pst_tz() -> datetime:
+def _get_pst_tz() -> timezone:
     """ Easily mockable Pacific Standard Timezone (PST) : UTC-8 function"""
     return timezone(timedelta(hours=PST_UTC_OFFSET), name="PST")
 
 
-def get_pst_tz() -> datetime:
+def get_pst_tz() -> timezone:
     """ Get the Pacific Standard Timezone (PST) : UTC-8"""
     return _get_pst_tz()
 
