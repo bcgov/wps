@@ -305,6 +305,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
     """ Returns list of fire centres and planning area for each fire centre,
     and weather stations within each planning area. Also returns the assigned fuel type
     for each weather station. """
+
     try:
         logger.info('/hfi-calc/fire-centres')
         # we can safely cache the fire centres, as they don't change them very often.
