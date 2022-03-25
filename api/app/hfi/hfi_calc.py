@@ -331,7 +331,7 @@ def validate_station_daily(daily: StationDaily):
 
 
 def validate_date_range(date_range: Optional[DateRange]) -> DateRange:
-    """ 
+    """
     Date ranges are start inclusive, end exclusive: [start, end)
     No range or start_date sets range to 5 days
     Clamps range to 7 days if over 7 days
