@@ -136,6 +136,41 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
 
 
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/planning_area/{planning_area_id}"
+             "/station/{station_code}/enable/{enable}")
+async def toggle_planning_area_station(
+    fire_centre_id: int, start_date: date,
+    planning_area_id: int, station_code: int,
+    enable: bool,
+    response: Response,  # pylint-disable=unused-argument
+    token=Depends(authentication_required)  # pylint-disable=unused-argument
+):
+    """ Enable / disable a station withing a planning area """
+    # TODO: stub - implement!
+    logger.info('/fire_centre/%s/%s/planning_area/%s/station/%s/enable/%s',
+                fire_centre_id, start_date, planning_area_id, station_code, enable)
+    raise NotImplementedError('This function is not yet implemented.')
+
+
+@router.post("/fire_centre/{fire_centre_id}/{start_date}/planning_area/{planning_area_id}"
+             "/station/{station_code}/fuel_type/{fuel_type_id}")
+async def set_planning_area_station_fuel_type(
+    fire_centre_id: int,
+    start_date: date,
+    planning_area_id: int,
+    station_code: int,
+    fuel_type_id: int,
+    response: Response,  # pylint-disable=unused-argument
+    token=Depends(authentication_required)  # pylint-disable=unused-argument
+):
+    """ Set the fuel type for a station in a planning area. """
+    # TODO: stub - implement!
+    logger.info("/fire_centre/%s/%s/planning_area/%s/station/%s/fuel_type/%s",
+                fire_centre_id, start_date,
+                planning_area_id, station_code, fuel_type_id)
+    raise NotImplementedError('This function is not implemented yet.')
+
+
+@router.post("/fire_centre/{fire_centre_id}/{start_date}/planning_area/{planning_area_id}"
              "/fire_starts/{prep_day_date}/fire_start_range/{fire_start_range_id}",
              response_model=HFIResultResponse)
 async def set_fire_start_range(fire_centre_id: int,
@@ -194,6 +229,19 @@ async def set_fire_start_range(fire_centre_id: int,
     return response
 
 
+@router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}")
+async def set_prep_period(fire_centre_id: int,
+                          start_date: date,
+                          end_date: date,
+                          response: Response,  # pylint-disable=unused-argument
+                          token=Depends(authentication_required)  # pylint-disable=unused-argument
+                          ):
+    """ Set the prep period """
+    # TODO: stub - implement!
+    logger.info('/fire_centre/%s/%s/%s', fire_centre_id, start_date, end_date)
+    raise NotImplementedError('not yet implemented!')
+
+
 @router.get("/fire_centre/{fire_centre_id}", response_model=HFIResultResponse)
 async def load_hfi_result(fire_centre_id: int,
                           response: Response,
@@ -201,7 +249,7 @@ async def load_hfi_result(fire_centre_id: int,
     """ Given a fire centre id, load the most recent HFIResultRequest.
     If there isn't a stored request, one will be created.
     """
-    logger.info('/hfi-calc/load/{fire_centre_id}')
+    logger.info('/hfi-calc/load/%s', fire_centre_id)
     return await load_hfi_result_with_date(fire_centre_id, None, response, token)
 
 
@@ -328,11 +376,24 @@ def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int
     return None
 
 
+@router.get('/fire_centre/{fire_centre_id}/{start_date}/pdf')
+async def download_pdf(
+    fire_centre_id: int, start_date: date,
+    response: Response,  # pylint: disable=unused-argument
+    token=Depends(authentication_required)  # pylint: disable=unused-argument
+):
+    """ Returns a PDF of the HFI results for the supplied fire centre and start date. """
+    # TODO: stub - implement!
+    logger.info('/hfi-calc/fire_centre/%s/%s/pdf', fire_centre_id, start_date)
+    raise NotImplementedError('Not implemented')
+
+
 @router.post('/download-pdf')
 async def download_result_pdf(request: HFIResultRequest,
                               token=Depends(authentication_required)):
     """ Assembles and returns PDF byte representation of HFI result. """
-    # TODO: This has to eventually change to load from database entirely, and not have the request passed in.
+    # TODO: Replace this method with @router.get('/fire_centre/{fire_centre_id}/{start_date}/pdf')
+    # THIS FUNCTION IS DEPRECATED.
     try:
         logger.info('/hfi-calc/download-pdf')
         with app.db.database.get_read_session_scope() as session:
