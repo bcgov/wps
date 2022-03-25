@@ -174,6 +174,6 @@ export class SmartDate {
     There is no time, or zone information - you asked for a date, and that's what you get.
     You get what you get and you don't get upset!
     */
-    return `${this._date.year}-${this._date.month}-${this._date.day}`
+    return this._date.toISODate()
   }
 }
