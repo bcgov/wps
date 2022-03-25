@@ -257,40 +257,40 @@ def test_valid_daily():
 
 
 def test_valid_date_range_none():
-    """ Today to today+5 days is default range when input range is None """
+    """ Today to today+5 days is default range when input range is None (start inclusive, end exclusive) """
     result = validate_date_range(None)
     assert result.start_date.isoformat() == '2020-05-21'
-    assert result.end_date.isoformat() == '2020-05-26'
+    assert result.end_date.isoformat() == '2020-05-25'
 
 
 def test_valid_date_range_only_start():
-    """ Today without end date is today + 5 days """
+    """ Today without end date is today + 5 days (start inclusive, end exclusive) """
     start_date = get_pst_now()
     result = validate_date_range(DateRange(start_date=start_date))
     assert result.start_date.isoformat() == '2020-05-21'
-    assert result.end_date.isoformat() == '2020-05-26'
+    assert result.end_date.isoformat() == '2020-05-25'
 
 
 def test_valid_date_range_7_days():
-    """ 7 day range is acceptable """
+    """ 7 day range is acceptable (start inclusive, end exclusive) """
     start_date = get_pst_now()
     end_date = start_date + timedelta(days=7)
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
     assert result.start_date.isoformat() == '2020-05-21'
-    assert result.end_date.isoformat() == '2020-05-28'
+    assert result.end_date.isoformat() == '2020-05-27'
 
 
 def test_valid_date_range_over_7_days():
-    """ Over 7 days is clamped to 5 days """
+    """ Over 7 days is clamped to 5 days (start inclusive, end exclusive) """
     start_date = get_pst_now()
     end_date = start_date + timedelta(days=8)
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
     assert result.start_date.isoformat() == '2020-05-21'
-    assert result.end_date.isoformat() == '2020-05-26'
+    assert result.end_date.isoformat() == '2020-05-27'
 
 
 def test_valid_date_range_over_at_least_one_day():
-    """ 1 day range is acceptable """
+    """ 1 day range is acceptable (start inclusive, end exclusive) """
     start_date = get_pst_now()
     end_date = start_date
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
@@ -299,7 +299,7 @@ def test_valid_date_range_over_at_least_one_day():
 
 
 def test_valid_date_range_default_for_end_date_before():
-    """ If end date is before start date, set it to same day as start date """
+    """ If end date is before start date, set it to same day as start date (start inclusive, end exclusive) """
     start_date = get_pst_now()
     end_date = start_date - timedelta(days=1)
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))

@@ -331,8 +331,12 @@ def validate_station_daily(daily: StationDaily):
 
 
 def validate_date_range(date_range: Optional[DateRange]) -> DateRange:
-    """ Sets the start_date to today if it is None.
-    Set the end_date to start_date + 7 days, if it is None."""
+    """ 
+    Date ranges are start inclusive, end exclusive: [start, end)
+    No range or start_date sets range to 5 days
+    Clamps range to 7 days if over 7 days
+    Clamps range to 1 day if under 1 day
+    """
     # we don't have a start date, default to now.
     start_date = date_range.start_date if date_range is not None else None
     end_date = date_range.end_date if date_range is not None else None
@@ -341,11 +345,11 @@ def validate_date_range(date_range: Optional[DateRange]) -> DateRange:
         start_date = date(year=now.year, month=now.month, day=now.day)
     # don't have an end date, default to start date + 5 days.
     if end_date is None:
-        end_date = start_date + timedelta(days=5)
+        end_date = start_date + timedelta(days=4)
     # check if the span exceeds 7, if it does clamp it down to 7 days.
     delta = end_date - start_date
-    if delta.days > 7:
-        end_date = start_date + timedelta(days=5)
+    if delta.days > 6:
+        end_date = start_date + timedelta(days=6)
     # guarantee at least one day is selected.
     if delta.days < 1:
         end_date = start_date
