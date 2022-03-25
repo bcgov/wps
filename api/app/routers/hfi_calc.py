@@ -185,6 +185,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
     """ Returns list of fire centres and planning area for each fire centre,
     and weather stations within each planning area. Also returns the assigned fuel type
     for each weather station. """
+
     try:
         logger.info('/hfi-calc/fire-centres')
         # we can safely cache the fire centres, as they don't change them very often.
@@ -211,6 +212,7 @@ def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int
 async def download_result_pdf(request: HFIResultRequest,
                               token=Depends(authentication_required)):
     """ Assembles and returns PDF byte representation of HFI result. """
+
     try:
         logger.info('/hfi-calc/download-pdf')
         results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
