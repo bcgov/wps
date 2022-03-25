@@ -6,7 +6,7 @@ from functools import reduce
 from itertools import groupby
 import operator
 from typing import List, Mapping
-from app.schemas.hfi_calc import (DailyTablePlanningAreaPDFData, DailyResult, FireStartRange,
+from app.schemas.hfi_calc import (DailyTablePlanningAreaPDFData, DailyResult,
                                   HFIResultResponse,
                                   PlanningArea, PlanningAreaResult,
                                   PrepTablePlanningAreaPDFData,
