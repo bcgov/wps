@@ -172,7 +172,7 @@ def test_max_mean_intensity_with_none():
 
 def test_calculate_prep_level_empty():
     """ Calculates prep level of empty case """
-    assert calculate_prep_level(None, None, None) == None
+    assert calculate_prep_level(None, FireStartRange(id=1, label='blah'), None) == None
 
 
 def test_valid_daily():
