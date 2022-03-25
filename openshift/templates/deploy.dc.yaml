@@ -71,6 +71,9 @@ parameters:
     value: "False"
   - name: VANITY_DOMAIN
     requests: True
+  - name: WORKERS_PER_CORE
+    description: "Number of workers per core. e.g. openshift pods report having 32 cores, so 0.125 would give you 4 workers total."
+    value: "0.125"
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -103,7 +106,7 @@ objects:
                 - name: PORT # The port that the API will run on (used by fastapi docker image)
                   value: "8080"
                 - name: WORKERS_PER_CORE # The number of worker per code (used by fastapi docker image)
-                  value: "0.125"
+                  value: ${WORKERS_PER_CORE}
                 - name: "TIMEOUT" # https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout
                   valueFrom:
                     configMapKeyRef:
