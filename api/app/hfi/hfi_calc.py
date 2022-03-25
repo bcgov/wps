@@ -2,7 +2,7 @@
 import math
 import logging
 from time import perf_counter
-from typing import Mapping, Optional, List, AsyncGenerator, Dict, Generator, Tuple
+from typing import Mapping, Optional, List, AsyncGenerator, Dict, Tuple
 from datetime import date, timedelta
 from statistics import mean
 from aiohttp.client import ClientSession

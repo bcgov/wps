@@ -88,7 +88,7 @@ def test_get_fire_start_labels():
     with open(test_hfi_result, 'r') as hfi_result:
         result_json = json.load(hfi_result)
         result = HFIResultResponse(**result_json)
-        fire_labels = get_fire_start_labels(result.planning_area_hfi_results[0])
+        fire_labels = get_fire_start_labels(result.planning_area_hfi_results[0].daily_results)
         assert fire_labels == ['0-1', '0-1', '0-1', '0-1']
 
 
