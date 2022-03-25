@@ -342,10 +342,10 @@ def validate_date_range(date_range: Optional[DateRange]) -> DateRange:
     if start_date is None:
         now = get_pst_now()
         start_date = date(year=now.year, month=now.month, day=now.day)
-    # don't have an end date, default to start date + 5 days.
+    # don't have an end date, default to start date + 4 days.
     if end_date is None:
         end_date = start_date + timedelta(days=4)
-    # check if the span exceeds 7, if it does clamp it down to 7 days.
+    # check if the span exceeds 6, if it does clamp it down to 6 days.
     delta = end_date - start_date
     if delta.days > 6:
         end_date = start_date + timedelta(days=6)
