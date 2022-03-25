@@ -7,14 +7,34 @@ PST_UTC_OFFSET: Final[int] = -8
 PDT_UTC_OFFSET: Final[int] = -7
 
 
-def get_pst_tz():
-    """ Get the Pacific Standard Timezone (PST) : UTC-8"""
+def _get_pst_tz() -> datetime:
+    """ Easily mockable Pacific Standard Timezone (PST) : UTC-8 function"""
     return timezone(timedelta(hours=PST_UTC_OFFSET), name="PST")
 
 
-def get_utc_now():
-    """ Helper function to get the current UTC time (easy function to mock out in testing) """
+def get_pst_tz() -> datetime:
+    """ Get the Pacific Standard Timezone (PST) : UTC-8"""
+    return _get_pst_tz()
+
+
+def _get_utc_now() -> datetime:
+    """ Easily mockable utc function """
     return datetime.now(tz=timezone.utc)
+
+
+def get_utc_now() -> datetime:
+    """ Helper function to get the current UTC time"""
+    return _get_utc_now()
+
+
+def _get_pst_now() -> datetime:
+    """ Easily mockable pst function """
+    return datetime.now(tz=get_pst_tz())
+
+
+def get_pst_now() -> datetime:
+    """ Helper function to get the current PST time """
+    return _get_pst_now()
 
 
 def get_pst_today_start_and_end():
@@ -24,11 +44,6 @@ def get_pst_today_start_and_end():
     end = start + timedelta(days=1)
 
     return start, end
-
-
-def get_pst_now():
-    """ Helper function to get the current PST time (easy function to mock out in testing) """
-    return datetime.now(tz=get_pst_tz())
 
 
 def get_hour_20_from_date(date_of_interest: date) -> datetime:

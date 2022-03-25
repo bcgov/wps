@@ -1,13 +1,13 @@
 """ Unit testing for hfi logic """
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pytest_mock import MockerFixture
 from app.hfi.hfi_calc import (calculate_hfi_results,
                               calculate_mean_intensity,
                               calculate_max_intensity_group,
-                              calculate_prep_level, validate_station_daily)
+                              calculate_prep_level, validate_date_range, validate_station_daily)
 import app.db.models.hfi_calc as hfi_calc_models
-from app.schemas.hfi_calc import (FireCentre,
+from app.schemas.hfi_calc import (DateRange, FireCentre,
                                   PlanningArea,
                                   StationDaily,
                                   WeatherStation,
@@ -20,6 +20,7 @@ from app.schemas.hfi_calc import (FireCentre,
                                   highest_fire_starts,
                                   all_ranges)
 from app.schemas.shared import FuelType
+from app.utils.time import get_pst_now
 
 # Kamloops FC fixture
 kamloops_fc = FireCentre(
@@ -253,3 +254,54 @@ def test_valid_daily():
         setattr(daily, field, None)
         result = validate_station_daily(daily)
         assert result.valid == False
+
+
+def test_valid_date_range_none():
+    """ Today to today+5 days is default range when input range is None """
+    result = validate_date_range(None)
+    assert result.start_date.isoformat() == '2020-05-21'
+    assert result.end_date.isoformat() == '2020-05-26'
+
+
+def test_valid_date_range_only_start():
+    """ Today without end date is today + 5 days """
+    start_date = get_pst_now()
+    result = validate_date_range(DateRange(start_date=start_date))
+    assert result.start_date.isoformat() == '2020-05-21'
+    assert result.end_date.isoformat() == '2020-05-26'
+
+
+def test_valid_date_range_7_days():
+    """ 7 day range is acceptable """
+    start_date = get_pst_now()
+    end_date = start_date + timedelta(days=7)
+    result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
+    assert result.start_date.isoformat() == '2020-05-21'
+    assert result.end_date.isoformat() == '2020-05-28'
+
+
+def test_valid_date_range_over_7_days():
+    """ Over 7 days is clamped to 5 days """
+    start_date = get_pst_now()
+    end_date = start_date + timedelta(days=8)
+    result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
+    assert result.start_date.isoformat() == '2020-05-21'
+    assert result.end_date.isoformat() == '2020-05-26'
+
+
+def test_valid_date_range_over_at_least_one_day():
+    """ 1 day range is acceptable """
+    start_date = get_pst_now()
+    end_date = start_date
+    result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
+    assert result.start_date.isoformat() == '2020-05-21'
+    assert result.end_date.isoformat() == '2020-05-21'
+
+
+def test_valid_date_range_default_for_end_date_before():
+    """ If end date is before start date, set it to same day as start date """
+    start_date = get_pst_now()
+    end_date = start_date - timedelta(days=1)
+    result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
+    assert result.start_date.isoformat() == '2020-05-21'
+    assert result.end_date.isoformat() == '2020-05-21'
