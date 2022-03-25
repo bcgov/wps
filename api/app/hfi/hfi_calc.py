@@ -160,7 +160,6 @@ async def calculate_latest_hfi_results(request: HFIResultRequest):
     "Set up time range and fire centre data for calculating HFI results"
 
     # pylint: disable=too-many-locals
-    logger.info(request)
     # ensure we have valid start and end dates
     valid_date_range = validate_date_range(request.date_range)
     # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
