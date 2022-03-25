@@ -9,6 +9,8 @@ jobs:
   set-description:
     name: Set pull request description
     runs-on: ubuntu-20.04
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions/checkout@v3
       - name: Set description
