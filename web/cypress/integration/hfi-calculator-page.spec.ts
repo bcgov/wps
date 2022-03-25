@@ -13,7 +13,7 @@ function interceptDaily(fixturePath: string) {
 }
 
 function interceptLoad() {
-  cy.intercept('POST', 'api/hfi-calc/load', {
+  cy.intercept('GET', 'api/hfi-calc/fire_centre/1', {
     fixture: 'hfi-calc/dailies-saved.json'
   }).as('loadHFIResults')
 }
@@ -70,7 +70,7 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('daily-toggle-0').click({ force: true })
     })
 
-    it('save button should be enabled', () => {
+    it.only('save button should be enabled', () => {
       // cypress/fixtures/hfi-calc/dailies.json does not have "request_persist_success": true, save button should be looking at that.
       cy.getByTestId('save-button').should('be.enabled')
     })

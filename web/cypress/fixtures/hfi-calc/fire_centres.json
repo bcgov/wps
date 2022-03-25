@@ -1,6 +1,7 @@
 {
     "fire_centres": [
         {
+            "id": 1,
             "name": "Kamloops Fire Centre",
             "planning_areas": [
                 {
@@ -70,7 +71,7 @@
                     ]
                 },
                 {
-                    "id": 2, 
+                    "id": 2,
                     "name": "Merritt (K6)",
                     "stations": [
                         {
