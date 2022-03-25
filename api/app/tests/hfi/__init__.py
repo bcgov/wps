@@ -11,7 +11,7 @@ def mock_station_crud(monkeypatch):
         """ Returns mocked WFWXWeatherStations codes. """
         return all_station_codes
 
-    def mock_get_fire_centre_stations(_, fire_centre_id: int):
+    def mock_get_fire_centre_stations(_, __: int):
         """ Returns mocked WFWXWeatherStation with fuel types. """
         def get_fuel_type_code_by_station_code(code: int):
             if code == 230:

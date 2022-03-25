@@ -5,95 +5,119 @@
   </head>
 
   <body>
+    <h1>BC Wildfire Services - HFI Calculator</h1>
+    <h2>{{ fire_centre_name }} - Prep Period for: {{date_range}}</h2>
     <table>
       <caption>
         HFI Prep Cycle Table
       </caption>
-      <tr class="leftBorder">
-        <td></td>
-        <td></td>
-        {% for day in prepDays %}
-        <td></td>
-        <td class="boldRightBorder"></td>
-        <td></td>
-        <td></td>
-        <th id="weekday">{{ day }}</th>
+      <tr>
+        <td colspan="4"><!-- spacing --></td>
+        {% for day in prep_days %}
+        <th id="weekday" colspan="5">{{ day }}</th>
         {% endfor %}
-        <td></td>
-        <td></td>
-        <td class="boldLeftBorder"></td>
-        <th id="prep-header-label">Prep</th>
+        <td colspan="2"><!-- spacing --></td>
       </tr>
       <tr>
         <td></td>
         <td>Elev</td>
         <td>Fuel Type</td>
         <td>Grass Cure</td>
-        {% for day in prepDays %}
-        <td class="boldLeftBorder">ROS</td>
+        {% for day in prep_days %}
+        <td>ROS</td>
         <td>HFI</td>
         <td>M/FIG</td>
         <td>Fire Starts</td>
-        <td class="boldRightBorder">Prep</td>
+        <td>Prep</td>
         {% endfor %}
         <td>Highest FIG</td>
         <td>Prep Level</td>
       </tr>
-      {% for area in planningAreas %}
-      <tr class="planningArea leftBorder rightBorder">
-        <td>
-          {{area['planningAreaName'] if area['planningAreaName'] is not none}}
+      {% for area in planning_areas %}
+      <tr>
+        <td class="planningArea" colspan="4">
+          <strong>
+            {{ area['planning_area_name'] if area['planning_area_name'] is not
+            none }}
+          </strong>
         </td>
-        <td></td>
-        <td></td>
-        <td class="boldRightBorder"></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td class="boldRightBorder"></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td class="boldRightBorder"></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td class="boldRightBorder"></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td class="boldRightBorder"></td>
-        <td class="boldRightBorder"></td>
-        <td></td>
+        {% for day in prep_days %}
+        <td><!-- ros space --></td>
+        <td><!-- hfi space --></td>
+        <td>
+          {{ area['mean_intensity_groups'][loop.index0] if
+          area['mean_intensity_groups'][loop.index0] is not none }}
+        </td>
+        <td>
+          {{ area['fire_starts_labels'][loop.index0] if
+          area['fire_starts_labels'][loop.index0] is not none }}
+        </td>
+        <td>
+          {{ area['prep_levels'][loop.index0] if
+          area['prep_levels'][loop.index0] is not none }}
+        </td>
+        {% endfor %}
+        <td>
+          {{ area['highest_daily_intensity_group'] if
+          area['highest_daily_intensity_group'] is not none }}
+        </td>
+        <td>
+          {{ area['mean_prep_level'] if area['mean_prep_level'] is not none }}
+        </td>
       </tr>
       {% for code, dailies in area['dailies'].items() %}
-      <tr class="station">
-        <td class="rightBorder">{{code}}</td>
-        <td class="rightBorder">X</td>
-        <td class="rightBorder">X</td>
-        <td class="rightBorder">X</td>
-        {% for daily in dailies %}
-        <td class="boldLeftBorder rightBorder">
+      <tr>
+        {% for daily in dailies %} {% if loop.index0 < 1 %}
+        <td>
+          {{daily['station_props']['name'] if daily['station_props']['name'] is
+          not none}}
+        </td>
+        <td>
+          {{daily['station_props']['elevation'] if
+          daily['station_props']['elevation'] is not none}}
+        </td>
+        <td>
+          {{daily['station_props']['fuel_type']['abbrev'] if
+          daily['station_props']['fuel_type']['abbrev'] is not none}}
+        </td>
+        <td>
+          {{daily['grass_cure_percentage'] if daily['grass_cure_percentage'] is
+          not none}}
+        </td>
+        {% endif %}
+        <td>
           {{daily['rate_of_spread'] | round(1) if daily['rate_of_spread'] is not
           none}}
         </td>
-        <td class="leftBorder rightBorder">
-          {{daily['hfi'] | round(1) if daily['hfi'] is not none}}
-        </td>
-        <td class="leftBorder rightBorder">
+        <td>{{daily['hfi'] | round(1) if daily['hfi'] is not none}}</td>
+        <td>
           {{daily['intensity_group'] if daily['intensity_group'] is not none }}
         </td>
-        <td class="leftBorder rightBorder">X</td>
-        <td class="leftBorder boldRightBorder">X</td>
+        <td>
+          <!-- fire starts space -->
+        </td>
+        <td>
+          <!-- prep level space -->
+        </td>
         {% endfor %}
-        <td class="boldRightBorder">X</td>
-        <td></td>
+        <td>
+          <!-- highest fig space -->
+        </td>
+        <td>
+          <!-- prep level space -->
+        </td>
       </tr>
       {% endfor %} {% endfor %}
     </table>
+    <div class="row">
+      <div class="column middle">
+        <h2>
+          <a href="https://psu.nrs.gov.bc.ca/hfi-calculator"
+            >psu.nrs.gov.bc.ca/hfi-calculator</a
+          >
+        </h2>
+      </div>
+    </div>
+    <p></p>
   </body>
 </html>
