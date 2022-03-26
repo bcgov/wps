@@ -141,8 +141,8 @@ async def toggle_planning_area_station(
     fire_centre_id: int, start_date: date,
     planning_area_id: int, station_code: int,
     enable: bool,
-    response: Response,  # pylint-disable=unused-argument
-    token=Depends(authentication_required)  # pylint-disable=unused-argument
+    response: Response,  # pylint: disable=unused-argument
+    token=Depends(authentication_required)  # pylint: disable=unused-argument
 ):
     """ Enable / disable a station withing a planning area """
     # TODO: stub - implement!
@@ -159,8 +159,8 @@ async def set_planning_area_station_fuel_type(
     planning_area_id: int,
     station_code: int,
     fuel_type_id: int,
-    response: Response,  # pylint-disable=unused-argument
-    token=Depends(authentication_required)  # pylint-disable=unused-argument
+    response: Response,  # pylint: disable=unused-argument
+    token=Depends(authentication_required)  # pylint: disable=unused-argument
 ):
     """ Set the fuel type for a station in a planning area. """
     # TODO: stub - implement!
@@ -233,8 +233,8 @@ async def set_fire_start_range(fire_centre_id: int,
 async def set_prep_period(fire_centre_id: int,
                           start_date: date,
                           end_date: date,
-                          response: Response,  # pylint-disable=unused-argument
-                          token=Depends(authentication_required)  # pylint-disable=unused-argument
+                          response: Response,  # pylint: disable=unused-argument
+                          token=Depends(authentication_required)  # pylint: disable=unused-argument
                           ):
     """ Set the prep period """
     # TODO: stub - implement!
