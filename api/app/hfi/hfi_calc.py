@@ -206,13 +206,10 @@ async def calculate_latest_hfi_results(
         async for station_daily in dailies_generator:
             dailies.append(station_daily)
 
-        prep_delta = valid_date_range.end_date - valid_date_range.start_date
-        prep_days = prep_delta.days + 1  # num prep days is inclusive
-
         results = calculate_hfi_results(fire_centre_fire_start_ranges,
                                         request.planning_area_fire_starts,
                                         fire_start_lookup,
-                                        dailies, prep_days,
+                                        dailies, valid_date_range.num_prep_days(),
                                         request.selected_station_code_ids,
                                         area_station_map,
                                         valid_date_range.start_date)
@@ -271,10 +268,9 @@ def calculate_daily_results(num_prep_days: int,
         daily_fire_starts: FireStartRange = planning_area_fire_starts[area_id][index]
         mean_intensity_group = calculate_mean_intensity(prep_day_dailies)
         prep_level = calculate_prep_level(mean_intensity_group, daily_fire_starts, fire_start_lookup)
-        validated_dailies: List[ValidatedStationDaily] = list(
-            map(validate_station_daily, prep_day_dailies))
-        all_dailies_valid = all(map(lambda validated_daily: (
-            validated_daily.valid), validated_dailies))
+        validated_dailies: List[ValidatedStationDaily] = list(map(validate_station_daily, prep_day_dailies))
+        # check if all validated_dailies are valid.
+        all_dailies_valid = all(map(lambda validated_daily: (validated_daily.valid), validated_dailies))
         daily_result = DailyResult(
             date=dailies_date,
             dailies=validated_dailies,

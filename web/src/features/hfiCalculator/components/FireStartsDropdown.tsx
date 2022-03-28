@@ -17,7 +17,7 @@ export interface FireStartsDropdownProps {
 }
 
 const useStyles = makeStyles({
-  thing: {
+  dropdownClass: {
     width: '96px'
   }
 })
@@ -33,7 +33,7 @@ const FireStartsDropdown = ({
   return (
     <Autocomplete
       data-testid={`fire-starts-dropdown`}
-      className={classes.thing}
+      className={classes.dropdownClass}
       disableClearable
       autoHighlight
       autoSelect
