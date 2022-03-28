@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Prep Cycle Template</title>
+    <title>
+      BC Wildfire Service - HFI Calculator - {{ fire_centre_name }} - Prep
+      Period for: {{date_range}}
+    </title>
   </head>
 
   <body>
-    <h1>BC Wildfire Services - HFI Calculator</h1>
+    <h1>BC Wildfire Service - HFI Calculator</h1>
     <h2>{{ fire_centre_name }} - Prep Period for: {{date_range}}</h2>
     <table>
-      <caption>
-        HFI Prep Cycle Table
-      </caption>
       <tr>
         <td colspan="4"><!-- spacing --></td>
         {% for day in prep_days %}
@@ -42,26 +42,26 @@
           </strong>
         </td>
         {% for day in prep_days %}
-        <td><!-- ros space --></td>
-        <td><!-- hfi space --></td>
-        <td>
+        <td class="planningArea"><!-- ros space --></td>
+        <td class="planningArea"><!-- hfi space --></td>
+        <td class="planningArea">
           {{ area['mean_intensity_groups'][loop.index0] if
           area['mean_intensity_groups'][loop.index0] is not none }}
         </td>
-        <td>
+        <td class="planningArea">
           {{ area['fire_starts_labels'][loop.index0] if
           area['fire_starts_labels'][loop.index0] is not none }}
         </td>
-        <td>
+        <td class="planningArea">
           {{ area['prep_levels'][loop.index0] if
           area['prep_levels'][loop.index0] is not none }}
         </td>
         {% endfor %}
-        <td>
+        <td class="planningArea">
           {{ area['highest_daily_intensity_group'] if
           area['highest_daily_intensity_group'] is not none }}
         </td>
-        <td>
+        <td class="planningArea">
           {{ area['mean_prep_level'] if area['mean_prep_level'] is not none }}
         </td>
       </tr>
@@ -109,15 +109,6 @@
       </tr>
       {% endfor %} {% endfor %}
     </table>
-    <div class="row">
-      <div class="column middle">
-        <h2>
-          <a href="https://psu.nrs.gov.bc.ca/hfi-calculator"
-            >psu.nrs.gov.bc.ca/hfi-calculator</a
-          >
-        </h2>
-      </div>
-    </div>
     <p></p>
   </body>
 </html>
