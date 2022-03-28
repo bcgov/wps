@@ -1,11 +1,8 @@
-import { DateTime } from 'luxon'
 import {
   isNoonInPST,
   formatDatetimeInPST,
   formatMonthAndDay,
   formatDateInUTC00Suffix,
-  getPrepWeeklyDateRange,
-  getPrepDailyDateRange,
   formatISODateInPST
 } from 'utils/date'
 
@@ -72,76 +69,6 @@ describe('Date util functions', () => {
       expect(formatDateInUTC00Suffix('2021-04-26T23:37:00-08:00')).toEqual(
         '2021-04-26T20:00:00+00:00'
       )
-    })
-  })
-
-  describe('Prep start and end days', () => {
-    const monday = DateTime.fromISO('2021-10-04T06:30:00') //=> Mon, Oct 4, 2021 at 6:30
-    const tuesday = DateTime.fromISO('2021-10-05T06:30:00') //=> Tue, Oct 5, 2021 at 6:30
-    const wednesday = DateTime.fromISO('2021-10-06T06:30:00') //=> Wed, Oct 6, 2021 at 6:30
-    const thursday = DateTime.fromISO('2021-10-07T06:30:00') //=> Thu, Oct 7, 2021 at 6:30
-    const friday = DateTime.fromISO('2021-10-08T06:30:00') //=> Fri, Oct 8, 2021 at 6:30
-    const saturday = DateTime.fromISO('2021-10-09T06:30:00') //=> Sat, Oct 9, 2021 at 6:30
-    const sunday = DateTime.fromISO('2021-10-10T06:30:00') //=> Sun, Oct 10, 2021 at 6:30
-
-    it('should return start, end of given day for daily range', () => {
-      const expected = {
-        start: monday.startOf('day'),
-        end: monday.endOf('day')
-      }
-      expect(getPrepDailyDateRange(monday.toISO())).toEqual(expected)
-    })
-
-    describe('weekly prep days', () => {
-      it('should return date of interest + 4 days when date of interest is Monday', () => {
-        const expected = {
-          start: monday.startOf('day'),
-          end: monday.startOf('day').plus({ days: 5 }).minus({ milliseconds: 1 })
-        }
-        expect(getPrepWeeklyDateRange(monday.toISO())).toEqual(expected)
-      })
-      it('should return Mon-Tue and date of interest + 3 days, when date of interest is Tuesday', () => {
-        const expected = {
-          start: monday.startOf('day'),
-          end: monday.startOf('day').plus({ days: 5 }).minus({ milliseconds: 1 })
-        }
-        expect(getPrepWeeklyDateRange(tuesday.toISO())).toEqual(expected)
-      })
-      it('should return Mon-Wed and date of interest + 2 days, when date of interest is Wed', () => {
-        const expected = {
-          start: monday.startOf('day'),
-          end: monday.startOf('day').plus({ days: 5 }).minus({ milliseconds: 1 })
-        }
-        expect(getPrepWeeklyDateRange(wednesday.toISO())).toEqual(expected)
-      })
-      it('should return Thu (prep day) and date of interest + 4 days when date of interest is Thu', () => {
-        const expected = {
-          start: thursday.startOf('day'),
-          end: thursday.startOf('day').plus({ days: 5 }).minus({ milliseconds: 1 })
-        }
-        expect(getPrepWeeklyDateRange(thursday.toISO())).toEqual(expected)
-      })
-      it('should return Thu-Fri and date of interest + 3 days when date of interest is Fri', () => {
-        const expected = {
-          start: thursday.startOf('day'),
-          end: thursday.startOf('day').plus({ days: 5 }).minus({ milliseconds: 1 })
-        }
-        expect(getPrepWeeklyDateRange(friday.toISO())).toEqual(expected)
-      })
-      it('should return Thu-Sat and date of interest + 2 days when date of interest is Sat', () => {
-        const expected = {
-          start: thursday.startOf('day'),
-          end: thursday.startOf('day').plus({ days: 5 }).minus({ milliseconds: 1 })
-        }
-        expect(getPrepWeeklyDateRange(saturday.toISO())).toEqual(expected)
-      })
-      it('should return Thu-Sun and date of interest + 1 days when date of interest is Sun', () => {
-        const expected = {
-          start: thursday.startOf('day'),
-          end: thursday.startOf('day').plus({ days: 5 }).minus({ milliseconds: 1 })
-        }
-        expect(getPrepWeeklyDateRange(sunday.toISO())).toEqual(expected)
-      })
     })
   })
 })
