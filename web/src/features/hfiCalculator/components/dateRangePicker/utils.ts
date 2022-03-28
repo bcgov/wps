@@ -23,8 +23,9 @@ export const chunks = <T>(array: ReadonlyArray<T>, size: number): T[][] =>
     array.slice(i * size, i * size + size)
   )
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const combine = (...args: any[]): string => args.filter(identity).join(' ')
+export const combineCSSClassNames = (
+  ...args: Array<string | false | undefined>
+): string => args.filter(identity).join(' ')
 
 // Date
 export const getDaysInMonth = (date: Date): Date[] => {

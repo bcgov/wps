@@ -9,9 +9,10 @@ import {
   inDateRange,
   isRangeSameDay
 } from 'features/hfiCalculator/components/dateRangePicker/utils'
-
-// eslint-disable-next-line no-unused-vars
-import { NavigationAction, DateRange } from './types'
+import {
+  NavigationAction,
+  DateRange
+} from 'features/hfiCalculator/components/dateRangePicker/types'
 import Header from 'features/hfiCalculator/components/dateRangePicker/Header'
 import Day from 'features/hfiCalculator/components/dateRangePicker/Day'
 

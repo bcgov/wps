@@ -1,9 +1,10 @@
 import React from 'react'
 import { List, ListItem, ListItemText } from '@material-ui/core'
 import { isSameDay } from 'date-fns'
-
-// eslint-disable-next-line no-unused-vars
-import { DefinedRange, DateRange } from './types'
+import {
+  DefinedRange,
+  DateRange
+} from 'features/hfiCalculator/components/dateRangePicker/types'
 
 type DefinedRangesProps = {
   setRange: (range: DateRange) => void
@@ -27,7 +28,6 @@ const DefinedRanges: React.FunctionComponent<DefinedRangesProps> = ({
 }: DefinedRangesProps) => (
   <List>
     {ranges.map((range, idx) => (
-      // eslint-disable-next-line react/no-array-index-key
       <ListItem button key={idx} onClick={() => setRange(range)}>
         <ListItemText
           primaryTypographyProps={{

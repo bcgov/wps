@@ -1,12 +1,6 @@
 import * as React from 'react'
-import {
-  IconButton,
-  Typography,
-  makeStyles,
-  // eslint-disable-next-line no-unused-vars
-  Theme
-} from '@material-ui/core'
-import { combine } from 'features/hfiCalculator/components/dateRangePicker/utils'
+import { IconButton, Typography, makeStyles, Theme } from '@material-ui/core'
+import { combineCSSClassNames } from 'features/hfiCalculator/components/dateRangePicker/utils'
 
 const useStyles = makeStyles((theme: Theme) => ({
   leftBorderRadius: {
@@ -70,7 +64,7 @@ const Day: React.FunctionComponent<DayProps> = ({
 
   return (
     <div
-      className={combine(
+      className={combineCSSClassNames(
         classes.buttonContainer,
         startOfRange && classes.leftBorderRadius,
         endOfRange && classes.rightBorderRadius,
@@ -78,7 +72,7 @@ const Day: React.FunctionComponent<DayProps> = ({
       )}
     >
       <IconButton
-        className={combine(
+        className={combineCSSClassNames(
           classes.button,
           !disabled && outlined && classes.outlined,
           !disabled && filled && classes.filled
@@ -89,7 +83,10 @@ const Day: React.FunctionComponent<DayProps> = ({
       >
         <Typography
           color={!disabled ? 'textPrimary' : 'textSecondary'}
-          className={combine(classes.buttonText, !disabled && filled && classes.contrast)}
+          className={combineCSSClassNames(
+            classes.buttonText,
+            !disabled && filled && classes.contrast
+          )}
           variant="body2"
         >
           {value}
