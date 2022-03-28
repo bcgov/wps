@@ -65,8 +65,8 @@ const PrepDateRangeSelector = ({
   const toggleDateRangePicker = () => setDateRangePickerOpen(!dateRangePickerOpen)
 
   return (
-    <ThemeProvider theme={dateRangePickerTheme}>
-      <React.Fragment>
+    <React.Fragment>
+      <ThemeProvider theme={dateRangePickerTheme}>
         <TextField
           size="small"
           id="outlined-basic"
@@ -96,19 +96,20 @@ const PrepDateRangeSelector = ({
             )
           }}
         />
-        <FormControl>
-          <Dialog open={dateRangePickerOpen} onClose={toggleDateRangePicker}>
-            <DateRangePicker
-              initialDateRange={{ startDate, endDate }}
-              open={dateRangePickerOpen}
-              toggle={toggleDateRangePicker}
-              onChange={range => setDateRange(range)}
-              definedRanges={[]}
-            />
-          </Dialog>
-        </FormControl>
-      </React.Fragment>
-    </ThemeProvider>
+      </ThemeProvider>
+
+      <FormControl>
+        <Dialog open={dateRangePickerOpen} onClose={toggleDateRangePicker}>
+          <DateRangePicker
+            initialDateRange={{ startDate, endDate }}
+            open={dateRangePickerOpen}
+            toggle={toggleDateRangePicker}
+            onChange={range => setDateRange(range)}
+            definedRanges={[]}
+          />
+        </Dialog>
+      </FormControl>
+    </React.Fragment>
   )
 }
 
