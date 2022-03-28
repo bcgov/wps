@@ -12,21 +12,10 @@ function interceptDaily(fixturePath: string) {
   })
 }
 
-function interceptLoad(fixturePath?: string) {
-  if (!fixturePath) {
-    cy.intercept('GET', 'api/hfi-calc/fire_centre/1', {
-      fixture: 'hfi-calc/dailies-saved.json'
-    }).as('loadHFIResults')
-  } else {
-    cy.readFile(fixturePath).then(hfiRequest => {
-      cy.intercept('GET', 'api/hfi-calc/fire_centre/1/2021-08-02', req => {
-        hfiRequest['selected_prep_date'] = '2021-08-02'
-        hfiRequest['start_date'] = '2021-08-02'
-        hfiRequest['end_date'] = '2021-08-06'
-        req.reply(hfiRequest)
-      }).as('loadHFIResults')
-    })
-  }
+function interceptLoad(fixturePath = 'hfi-calc/dailies-saved.json') {
+  cy.intercept('GET', 'api/hfi-calc/fire_centre/*', {
+    fixture: fixturePath
+  }).as('loadHFIResults')
 }
 
 function interceptSetFireStarts() {
@@ -122,7 +111,7 @@ describe('HFI Calculator Page', () => {
   })
   describe('dailies data are missing', () => {
     beforeEach(() => {
-      interceptLoad('cypress/fixtures/hfi-calc/dailies-missing.json')
+      interceptLoad('hfi-calc/dailies-missing.json')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-grass.json'
       }).as('getFireCentres')
@@ -142,7 +131,7 @@ describe('HFI Calculator Page', () => {
   })
   describe('high intensity', () => {
     beforeEach(() => {
-      interceptLoad('cypress/fixtures/hfi-calc/dailies-high-intensity.json')
+      interceptLoad('hfi-calc/dailies-high-intensity.json')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-minimal.json'
       }).as('getFireCentres')
