@@ -16,8 +16,6 @@ import {
   // eslint-disable-next-line no-unused-vars
   DateRange,
   // eslint-disable-next-line no-unused-vars
-  DefinedRange,
-  // eslint-disable-next-line no-unused-vars
   Setter,
   // eslint-disable-next-line no-unused-vars
   NavigationAction
@@ -40,7 +38,6 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 interface MenuProps {
   dateRange: DateRange
-  ranges: DefinedRange[]
   minDate: Date
   maxDate: Date
   firstMonth: Date
@@ -62,7 +59,6 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
   const classes = useStyles()
 
   const {
-    ranges,
     dateRange,
     minDate,
     maxDate,
@@ -124,11 +120,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
         </Grid>
         <div className={classes.divider} />
         <Grid>
-          <DefinedRanges
-            selectedRange={dateRange}
-            ranges={ranges}
-            setRange={setDateRange}
-          />
+          <DefinedRanges selectedRange={dateRange} ranges={[]} setRange={setDateRange} />
         </Grid>
       </Grid>
     </Paper>

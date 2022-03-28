@@ -18,8 +18,6 @@ import {
 import { DateRange, NavigationAction, DefinedRange } from './types'
 import { getValidatedMonths, parseOptionalDate } from './utils'
 
-import { defaultRanges } from './defaults'
-
 import Menu from './Menu'
 import { DateTime } from 'luxon'
 
@@ -44,13 +42,7 @@ const DateRangePickerMod: React.FunctionComponent<DateRangePickerModProps> = (
 ) => {
   const today = new Date()
 
-  const {
-    open,
-    onChange,
-    initialDateRange,
-    maxDate,
-    definedRanges = defaultRanges
-  } = props
+  const { open, onChange, initialDateRange, maxDate } = props
 
   const minDateValid = addYears(today, -10)
   const maxDateValid = parseOptionalDate(maxDate, addYears(today, 10))
@@ -159,7 +151,6 @@ const DateRangePickerMod: React.FunctionComponent<DateRangePickerModProps> = (
       dateRange={dateRange}
       minDate={minDateValid}
       maxDate={currentMaxDate}
-      ranges={definedRanges}
       firstMonth={firstMonth}
       secondMonth={secondMonth}
       setFirstMonth={setFirstMonthValidated}
