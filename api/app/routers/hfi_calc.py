@@ -46,7 +46,7 @@ def get_prepared_request(
     """ Attempt to load the most recent request from the database, failing that creates a new request all
     set up with default values.
 
-    TODO: request_loaded should become redudant once all requests have been changed.
+    TODO: request_loaded should become redundant once all requests have been changed.
     """
     date_range = DateRange(start_date=start_date, end_date=None)
     stored_request = get_most_recent_updated_hfi_request(session,

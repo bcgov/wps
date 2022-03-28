@@ -176,8 +176,8 @@ async def calculate_latest_hfi_results(
         # TODO: Enable when fuel type config implemented
         # selected_station_codes = extract_selected_stations(request)
 
-        # Fetching dailies is an expensive operation. When a user is clicking an unclicking stations
-        # in the front end, we'd prefer to not change the the call that's going to wfwx so that we can
+        # Fetching dailies is an expensive operation. When a user is clicking and unclicking stations
+        # in the front end, we'd prefer to not change the call that's going to wfwx so that we can
         # use cached values. So we don't actually filter out the "selected" stations, but rather go
         # get all the stations for this fire centre.
         fire_centre_stations = get_fire_centre_stations(
