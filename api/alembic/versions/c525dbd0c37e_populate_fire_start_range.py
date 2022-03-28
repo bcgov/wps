@@ -35,6 +35,9 @@ def upgrade():
     """ Populate fire start range data for fire centres.
     """
 
+    # The hfi_request structure has changed, so we need to remove existing records!
+    op.execute('DELETE FROM hfi_request')
+
     # Create an ad-hoc table to use for the insert statement.
     hfi_fire_start_range = table('hfi_fire_start_range',
                                  column('id', Integer),
