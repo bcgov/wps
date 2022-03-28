@@ -37,6 +37,8 @@ def generate_pdf(result: HFIResultResponse,
     options = {
         'page-size': 'Letter',
         'orientation': 'Landscape',
+        'margin-left': '7mm',
+        'margin-right': '7mm',
         'footer-left': left_footer,
         'footer-right': '[page] of [topage]',
         'footer-font-name': 'BCSans',
