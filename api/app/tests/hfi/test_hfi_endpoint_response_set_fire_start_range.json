@@ -1,6 +1,8 @@
 {
-    "start_date": "2020-05-21",
-    "end_date": "2020-05-26",
+    "date_range": {
+        "start_date": "2020-05-21",
+        "end_date": "2020-05-25"
+    },
     "selected_station_code_ids": [
         230,
         239
@@ -146,16 +148,6 @@
                     },
                     "mean_intensity_group": null,
                     "prep_level": null
-                },
-                {
-                    "date": "2020-05-26",
-                    "dailies": [],
-                    "fire_starts": {
-                        "label": "0-1",
-                        "id": 1
-                    },
-                    "mean_intensity_group": null,
-                    "prep_level": null
                 }
             ]
         },
@@ -239,16 +231,6 @@
                 },
                 {
                     "date": "2020-05-25",
-                    "dailies": [],
-                    "fire_starts": {
-                        "label": "0-1",
-                        "id": 1
-                    },
-                    "mean_intensity_group": null,
-                    "prep_level": null
-                },
-                {
-                    "date": "2020-05-26",
                     "dailies": [],
                     "fire_starts": {
                         "label": "0-1",

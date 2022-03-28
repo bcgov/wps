@@ -18,7 +18,8 @@ import app.utils.time
 from app.schemas.hfi_calc import (HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange,
-                                  StationInfo)
+                                  StationInfo,
+                                  DateRange)
 import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
@@ -47,10 +48,10 @@ def get_prepared_request(
 
     TODO: request_loaded should become redudant once all requests have been changed.
     """
-
+    date_range = DateRange(start_date=start_date, end_date=None)
     stored_request = get_most_recent_updated_hfi_request(session,
                                                          fire_centre_id,
-                                                         start_date)
+                                                         date_range.start_date)
     request_loaded = False
     if stored_request:
         try:
@@ -59,6 +60,7 @@ def get_prepared_request(
         except ValidationError as validation_error:
             # This can happen when we change the schema! It's rare - but it happens.
             logger.error(validation_error)
+
     if not request_loaded:
         # No stored request, so we need to create one.
         # TODO: selected_station_code_ids make it impossible to have a station selected in one area,
@@ -66,8 +68,8 @@ def get_prepared_request(
         selected_station_code_ids = set()
         planning_area_station_info: Mapping[int, List[StationInfo]] = {}
         planning_area_fire_starts: Mapping[int, FireStartRange] = {}
-        start_date, end_date = validate_date_range(start_date, None)
-        num_prep_days = (end_date - start_date).days
+        date_range = validate_date_range(date_range)
+        num_prep_days = (date_range.end_date - date_range.start_date).days
         fire_centre_stations = get_fire_centre_stations(session, fire_centre_id)
         lowest_fire_starts = fire_centre_fire_start_ranges[0]
         for station, fuel_type in fire_centre_stations:
@@ -88,8 +90,7 @@ def get_prepared_request(
             )
 
         result_request = HFIResultRequest(
-            start_date=start_date,
-            end_date=end_date,
+            date_range=date_range,
             selected_fire_center_id=fire_centre_id,
             selected_station_code_ids=list(selected_station_code_ids),
             planning_area_fire_starts=planning_area_fire_starts,
@@ -202,8 +203,8 @@ async def set_fire_start_range(fire_centre_id: int,
                                           fire_centre_fire_start_ranges)
 
         # We set the fire start range in the planning area for the provided prep day.
-        if prep_day_date <= request.end_date:
-            delta = prep_day_date - request.start_date
+        if prep_day_date <= request.date_range.end_date:
+            delta = prep_day_date - request.date_range.start_date
             fire_start_range = next(item for
                                     item in fire_centre_fire_start_ranges if item.id == fire_start_range_id)
             request.planning_area_fire_starts[planning_area_id][delta.days] = FireStartRange(
@@ -213,12 +214,10 @@ async def set_fire_start_range(fire_centre_id: int,
 
         # We calculate the new result.
         (results,
-         start_date,
-         end_date) = await calculate_latest_hfi_results(session, request, fire_centre_fire_start_ranges)
+         date_range) = await calculate_latest_hfi_results(session, request, fire_centre_fire_start_ranges)
         # We prepare the response.
         response = HFIResultResponse(
-            start_date=start_date,
-            end_date=end_date,
+            date_range=date_range,
             selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,

@@ -63,7 +63,7 @@ async def hydrate_fire_centres():
     """Get detailed fire_centres from db and WFWX"""
 
     # pylint: disable=too-many-locals
-    with app.db.database.get_read_session_scope() as session:
+    with get_read_session_scope() as session:
         # Fetch all fire weather stations from the database.
         station_query = get_fire_weather_stations(session)
         # Prepare a dictionary for storing station info in.
@@ -159,7 +159,7 @@ async def hydrate_fire_centres():
 async def calculate_latest_hfi_results(
         orm_session,
         request: HFIResultRequest,
-        fire_centre_fire_start_ranges: List[FireStartRange]) -> Tuple[List[PlanningAreaResult], date, date]:
+        fire_centre_fire_start_ranges: List[FireStartRange]) -> Tuple[List[PlanningAreaResult], DateRange]:
     "Set up time range and fire centre data for calculating HFI results"
 
     # pylint: disable=too-many-locals
