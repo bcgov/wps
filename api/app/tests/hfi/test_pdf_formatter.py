@@ -89,7 +89,7 @@ def test_get_fire_start_labels():
         result_json = json.load(hfi_result)
         result = HFIResultResponse(**result_json)
         fire_labels = get_fire_start_labels(result.planning_area_hfi_results[0].daily_results)
-        assert fire_labels == ['0-1', '0-1', '0-1', '0-1']
+        assert fire_labels == ['0-1', '0-1', '0-1']
 
 
 def test_get_prep_levels():
@@ -210,8 +210,8 @@ def test_response_2_prep_cycle_jinja_format():
         assert area_pdf_data[5].planning_area_name == 'North Island'
         assert area_pdf_data[6].planning_area_name == 'Mid-Coast'
         assert formatted_dates == ['Monday August, 02, 2021', 'Tuesday August, 03, 2021',
-                                   'Wednesday August, 04, 2021', 'Thursday August, 05, 2021']
-        assert date_range == '2021-08-02 to 2021-08-05'
+                                   'Wednesday August, 04, 2021']
+        assert date_range == '2021-08-02 to 2021-08-04'
 
 
 def test_response_2_daily_jinja_format():
@@ -229,11 +229,10 @@ def test_response_2_daily_jinja_format():
 
         # 4 daily results
         day_dates = list(daily_pdf_data_by_date.keys())
-        assert len(day_dates) == 4
+        assert len(day_dates) == 3
         assert day_dates[0] == '2021-08-02'
         assert day_dates[1] == '2021-08-03'
         assert day_dates[2] == '2021-08-04'
-        assert day_dates[3] == '2021-08-05'
 
         for daily_planning_area_data in daily_pdf_data_by_date.values():
             # 7 planning areas in coastal

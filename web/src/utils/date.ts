@@ -62,53 +62,6 @@ export const pstFormatter = (fromDate: DateTime): string => {
   ).toISO()
 }
 
-export const getPrepWeeklyDateRange = (
-  dateOfInterest: string
-): { start: DateTime; end: DateTime } => {
-  const day = DateTime.fromISO(dateOfInterest).weekday
-  let dayOffset = 0
-  switch (day) {
-    case 2: // Tuesday
-      dayOffset = 1
-      break
-    case 3: // Wednesday
-      dayOffset = 2
-      break
-    case 5: // Friday
-      dayOffset = 1
-      break
-    case 6: // Saturday
-      dayOffset = 2
-      break
-    case 7: // Sunday
-      dayOffset = 3
-  }
-  const start = DateTime.fromISO(dateOfInterest).minus({ days: dayOffset }).startOf('day')
-  const end = DateTime.fromISO(dateOfInterest)
-    .minus({ days: dayOffset })
-    .endOf('day')
-    .plus({ days: 4 })
-  return { start, end }
-}
-
-export const getPrepDailyDateRange = (
-  dateOfInterest: string
-): { start: DateTime; end: DateTime } => {
-  const start = DateTime.fromISO(dateOfInterest).startOf('day')
-  const end = DateTime.fromISO(dateOfInterest).endOf('day')
-
-  return { start, end }
-}
-
-export const getDateRange = (
-  isWeeklyView: boolean,
-  dateOfInterest: string
-): { start: DateTime; end: DateTime } => {
-  return isWeeklyView
-    ? getPrepWeeklyDateRange(dateOfInterest)
-    : getPrepDailyDateRange(dateOfInterest)
-}
-
 export const getDaysBetween = (startDate: string, endDate: string): DateTime[] => {
   const start = DateTime.fromISO(startDate)
   const end = DateTime.fromISO(endDate)

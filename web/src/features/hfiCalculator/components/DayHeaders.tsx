@@ -2,14 +2,15 @@ import { Table, TableBody, TableCell, TableRow } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
-import { range } from 'lodash'
+import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { calculateNumPrepDays } from 'features/hfiCalculator/util'
+import { isUndefined, range } from 'lodash'
+import { DateTime } from 'luxon'
 import React from 'react'
-import { getPrepWeeklyDateRange } from 'utils/date'
 
 export interface DayHeadersProps {
   testId?: string
-  isoDate: string
-  numPrepDays: number
+  dateRange?: PrepDateRange
 }
 
 const useStyles = makeStyles({
@@ -23,7 +24,11 @@ const useStyles = makeStyles({
   }
 })
 const DayHeaders = (props: DayHeadersProps) => {
-  const { start } = getPrepWeeklyDateRange(props.isoDate)
+  const start =
+    isUndefined(props.dateRange) || isUndefined(props.dateRange.start_date)
+      ? DateTime.now()
+      : DateTime.fromISO(props.dateRange.start_date)
+  const numPrepDays = calculateNumPrepDays(props.dateRange)
 
   const classes = useStyles()
   return (
@@ -60,7 +65,7 @@ const DayHeaders = (props: DayHeadersProps) => {
           </TableBody>
         </Table>
       </StickyCell>
-      {range(props.numPrepDays).map(i => (
+      {range(numPrepDays).map(i => (
         <TableCell
           data-testid={`day-${i}`}
           colSpan={5}

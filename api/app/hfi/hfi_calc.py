@@ -7,7 +7,8 @@ from datetime import date, timedelta
 from statistics import mean
 from aiohttp.client import ClientSession
 import app
-from app.schemas.hfi_calc import (DailyResult,
+from app.db.database import get_read_session_scope
+from app.schemas.hfi_calc import (DailyResult, DateRange,
                                   FireStartRange, HFIResultRequest,
                                   PlanningAreaResult,
                                   StationDaily,
@@ -15,7 +16,7 @@ from app.schemas.hfi_calc import (DailyResult,
                                   required_daily_fields)
 from app.schemas.hfi_calc import (WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
-from app.utils.time import get_hour_20_from_date
+from app.utils.time import get_hour_20_from_date, get_pst_now
 from app.wildfire_one.wfwx_api import (get_auth_header, get_stations_by_codes,
                                        get_wfwx_stations_from_station_codes,
                                        get_raw_dailies_in_range_generator)
@@ -155,26 +156,6 @@ async def hydrate_fire_centres():
     return fire_centres_list
 
 
-def validate_date_range(start_date: Optional[date], end_date: Optional[date]):
-    """ Sets the start_date to today if it is None.
-    Set the end_date to start_date + 7 days, if it is None."""
-    # we don't have a start date, default to now.
-    if start_date is None:
-        now = app.utils.time.get_pst_now()
-        start_date = date(year=now.year, month=now.month, day=now.day)
-    # don't have an end date, default to start date + 5 days.
-    if end_date is None:
-        end_date = start_date + timedelta(days=5)
-    # check if the span exceeds 7, if it does clamp it down to 7 days.
-    delta = end_date - start_date
-    if delta.days > 7:
-        end_date = start_date + timedelta(days=5)
-    # check if the span is less than 2, if it is, push it up to 2.
-    if delta.days < 2:
-        end_date = start_date + timedelta(days=2)
-    return start_date, end_date
-
-
 async def calculate_latest_hfi_results(
         orm_session,
         request: HFIResultRequest,
@@ -182,12 +163,12 @@ async def calculate_latest_hfi_results(
     "Set up time range and fire centre data for calculating HFI results"
 
     # pylint: disable=too-many-locals
-
     # ensure we have valid start and end dates
-    valid_start_date, valid_end_date = validate_date_range(request.start_date, request.end_date)
+    valid_date_range = validate_date_range(request.date_range)
     # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
-    start_timestamp = int(app.utils.time.get_hour_20_from_date(valid_start_date).timestamp() * 1000)
-    end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_end_date).timestamp() * 1000)
+    start_timestamp = int(app.utils.time.get_hour_20_from_date(
+        valid_date_range.start_date).timestamp() * 1000)
+    end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_date_range.end_date).timestamp() * 1000)
 
     # pylint: disable=too-many-locals
     async with ClientSession() as session:
@@ -225,7 +206,7 @@ async def calculate_latest_hfi_results(
         async for station_daily in dailies_generator:
             dailies.append(station_daily)
 
-        prep_delta = valid_end_date - valid_start_date
+        prep_delta = valid_date_range.end_date - valid_date_range.start_date
         prep_days = prep_delta.days + 1  # num prep days is inclusive
 
         results = calculate_hfi_results(fire_centre_fire_start_ranges,
@@ -234,8 +215,8 @@ async def calculate_latest_hfi_results(
                                         dailies, prep_days,
                                         request.selected_station_code_ids,
                                         area_station_map,
-                                        valid_start_date)
-        return results, valid_start_date, valid_end_date
+                                        valid_date_range.start_date)
+        return results, valid_date_range
 
 
 def build_fire_start_prep_level_lookup(orm_session) -> Dict[int, Dict[int, int]]:
@@ -412,3 +393,29 @@ def validate_station_daily(daily: StationDaily):
             valids.append(value is not None)
     valid = all(valids)
     return ValidatedStationDaily(daily=daily, valid=valid)
+
+
+def validate_date_range(date_range: Optional[DateRange]) -> DateRange:
+    """
+    Date ranges are inclusive: [start, end]
+    No range or start_date sets range to 5 days
+    Clamps range to 7 days if over 7 days
+    Clamps range to 1 day if under 1 day
+    """
+    # we don't have a start date, default to now.
+    start_date = date_range.start_date if date_range is not None else None
+    end_date = date_range.end_date if date_range is not None else None
+    if start_date is None:
+        now = get_pst_now()
+        start_date = date(year=now.year, month=now.month, day=now.day)
+    # don't have an end date, default to start date + 4 days.
+    if end_date is None:
+        end_date = start_date + timedelta(days=4)
+    # check if the span exceeds 6, if it does clamp it down to 6 days.
+    delta = end_date - start_date
+    if delta.days > 6:
+        end_date = start_date + timedelta(days=6)
+    # guarantee at least one day is selected.
+    if delta.days < 1:
+        end_date = start_date
+    return DateRange(start_date=start_date, end_date=end_date)

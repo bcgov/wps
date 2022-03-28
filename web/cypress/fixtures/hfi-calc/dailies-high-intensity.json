@@ -1,7 +1,8 @@
 {
-  "selected_prep_date": "2021-08-02",
-  "start_date": "2021-08-02",
-  "end_date": "2021-08-06",
+  "date_range": {
+    "start_date": "2021-08-02",
+    "end_date": "2021-08-06"
+  },
   "selected_station_code_ids": [
     1029,
     306,

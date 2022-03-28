@@ -1,6 +1,8 @@
 {
-  "start_date": "2020-05-14",
-  "end_date": "2020-05-16",
+  "date_range": {
+    "start_date": "2020-05-14",
+    "end_date": "2020-05-16"
+  },
   "selected_station_code_ids": [
     230,
     239
@@ -169,7 +171,7 @@
                 "rate_of_spread": 0.016251491463702528,
                 "hfi": 0.48964862244025137,
                 "intensity_group": 1,
-                "sixty_minute_fire_size": 4.874001890658782e-05,
+                "sixty_minute_fire_size": 4.874001890658782e-5,
                 "fire_type": "SUR",
                 "error": true,
                 "error_message": null,
@@ -302,7 +304,7 @@
                 "rate_of_spread": 0.016251491463702528,
                 "hfi": 0.48964862244025137,
                 "intensity_group": 1,
-                "sixty_minute_fire_size": 4.874001890658782e-05,
+                "sixty_minute_fire_size": 4.874001890658782e-5,
                 "fire_type": "SUR",
                 "error": true,
                 "error_message": null,

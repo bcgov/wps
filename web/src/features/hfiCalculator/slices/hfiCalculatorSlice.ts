@@ -10,7 +10,6 @@ import {
   RawDaily,
   StationDaily
 } from 'api/hfiCalculatorAPI'
-import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
 import { SmartDate } from 'utils/date'
@@ -18,6 +17,11 @@ import { SmartDate } from 'utils/date'
 export interface FireStartRange {
   label: string
   id: number
+}
+
+export interface PrepDateRange {
+  start_date?: string
+  end_date?: string
 }
 
 export interface DailyResult {
@@ -55,9 +59,8 @@ export interface RawPlanningAreaResult {
 export interface HFICalculatorState {
   loading: boolean
   error: string | null
-  numPrepDays: number
+  dateRange: PrepDateRange | undefined
   selectedPrepDate: string
-  startDate: string
   planningAreaFireStarts: { [key: string]: FireStartRange[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
@@ -66,9 +69,7 @@ export interface HFICalculatorState {
 }
 
 export interface HFIResultResponse {
-  // TODO: Change from string to SmartDate
-  start_date: string
-  end_date: string
+  date_range: PrepDateRange
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: PlanningAreaResult[]
@@ -77,8 +78,7 @@ export interface HFIResultResponse {
 }
 
 export interface RawHFIResultResponse {
-  start_date: string
-  end_date: string
+  date_range: PrepDateRange
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: RawPlanningAreaResult[]
@@ -87,12 +87,17 @@ export interface RawHFIResultResponse {
 }
 
 export interface HFIResultRequest {
-  start_date?: string
-  end_date?: string
+  date_range?: PrepDateRange
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_fire_starts: { [key: number]: FireStartRange[] }
   persist_request?: boolean
+}
+
+export interface HFILoadResultRequest {
+  start_date?: string
+  end_date?: string
+  selected_fire_center_id: number
 }
 
 export interface ValidatedStationDaily {
@@ -108,9 +113,8 @@ export interface RawValidatedStationDaily {
 const initialState: HFICalculatorState = {
   loading: false,
   error: null,
-  numPrepDays: NUM_WEEK_DAYS,
+  dateRange: { start_date: undefined, end_date: undefined },
   selectedPrepDate: '',
-  startDate: '',
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
   selectedFireCentre: undefined,
@@ -149,13 +153,9 @@ const dailiesSlice = createSlice({
       action: PayloadAction<HFIResultResponse | undefined>
     ) => {
       state.result = action.payload
+      state.dateRange = action.payload?.date_range
 
       if (action.payload) {
-        const start = DateTime.fromISO(action.payload.start_date)
-        const end = DateTime.fromISO(action.payload.end_date)
-        const diff = end.diff(start, ['days']).days
-        state.numPrepDays = diff > 0 ? diff : NUM_WEEK_DAYS
-        state.startDate = action.payload.start_date
         state.saved = action.payload.request_persist_success
       }
 

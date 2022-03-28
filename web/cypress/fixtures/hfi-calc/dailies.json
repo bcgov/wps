@@ -1,6 +1,8 @@
 {
-  "start_date": "2021-08-02",
-  "end_date": "2021-08-06",
+  "date_range": {
+    "start_date": "2021-08-02",
+    "end_date": "2021-08-06"
+  },
   "selected_station_code_ids": [
     388,
     1029,
