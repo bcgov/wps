@@ -12,7 +12,6 @@ import {
 } from 'api/hfiCalculatorAPI'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
-import { SmartDate } from 'utils/date'
 
 export interface FireStartRange {
   label: string
@@ -196,9 +195,9 @@ export const fetchLoadHFIResult =
 export const fetchSetNewFireStarts =
   (
     fire_center_id: number,
-    start_date: SmartDate,
+    start_date: string,
     planning_area_id: number,
-    prep_day_date: SmartDate,
+    prep_day_date: string,
     fire_start_range_id: number
   ): AppThunk =>
   async dispatch => {

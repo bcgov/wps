@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { DateTime } from 'luxon'
 import { Container, ErrorBoundary, GeneralHeader } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
@@ -11,7 +12,6 @@ import {
   setSaved,
   fetchPDFDownload
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { SmartDate } from 'utils/date'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   selectHFIStations,
@@ -116,16 +116,17 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     newFireStarts: FireStartRange
   ) => {
     if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
-      // TODO: Move the smart date higher up
-      const startDate = SmartDate.fromISODateString(result.date_range.start_date)
-      const prepDayDate = startDate.plus({ days: dayOffset })
       dispatch(setSaved(false))
       dispatch(
         fetchSetNewFireStarts(
           result.selected_fire_center_id,
-          startDate,
+          result.date_range.start_date,
           areaId,
-          prepDayDate,
+          DateTime.fromISO(result.date_range.start_date + 'T00:00+00:00', {
+            setZone: true
+          })
+            .plus({ days: dayOffset })
+            .toISODate(),
           newFireStarts.id
         )
       )

@@ -8,7 +8,7 @@ import {
 import { DateTime } from 'luxon'
 import 'qs'
 import { stringify } from 'querystring'
-import { formatISODateInPST, SmartDate } from 'utils/date'
+import { formatISODateInPST } from 'utils/date'
 
 export interface StationDaily {
   code: number
@@ -93,9 +93,9 @@ export async function loadHFIResult(
 
 export async function setNewFireStarts(
   fire_center_id: number,
-  start_date: SmartDate,
+  start_date: string,
   planning_area_id: number,
-  prep_day_date: SmartDate,
+  prep_day_date: string,
   fire_start_range_id: number
 ): Promise<HFIResultResponse> {
   // At the API boundary, we convert from our internal date structure to the API's date format
@@ -104,11 +104,11 @@ export async function setNewFireStarts(
     'fire_centre/' +
     fire_center_id +
     '/' +
-    start_date.toISODateString() +
+    start_date +
     '/planning_area/' +
     planning_area_id +
     '/fire_starts/' +
-    prep_day_date.toISODateString() +
+    prep_day_date +
     '/fire_start_range/' +
     fire_start_range_id
 
