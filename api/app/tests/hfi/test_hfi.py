@@ -265,6 +265,7 @@ def test_valid_date_range_default_for_end_date_before():
 def test_inclusive_date_math():
     """ Test the the number of days in a date range is calculated correctly. """
     assert DateRange(start_date=datetime(2020, 5, 21), end_date=datetime(2020, 5, 25)).days_in_range() == 5
+    assert DateRange(start_date=datetime(2020, 5, 21), end_date=datetime(2020, 5, 21)).days_in_range() == 1
 
 
 def test_inclusive_date_math_bad_end_date():
