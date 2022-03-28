@@ -71,7 +71,7 @@ def get_prepared_request(
         planning_area_fire_starts: Mapping[int, FireStartRange] = {}
         date_range = validate_date_range(date_range)
 
-        num_prep_days = date_range.num_prep_days()
+        num_prep_days = date_range.num_days()
 
         fire_centre_stations = get_fire_centre_stations(session, fire_centre_id)
         lowest_fire_starts = fire_centre_fire_start_ranges[0]

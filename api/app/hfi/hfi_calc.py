@@ -209,7 +209,7 @@ async def calculate_latest_hfi_results(
         results = calculate_hfi_results(fire_centre_fire_start_ranges,
                                         request.planning_area_fire_starts,
                                         fire_start_lookup,
-                                        dailies, valid_date_range.num_prep_days(),
+                                        dailies, valid_date_range.num_days(),
                                         request.selected_station_code_ids,
                                         area_station_map,
                                         valid_date_range.start_date)
