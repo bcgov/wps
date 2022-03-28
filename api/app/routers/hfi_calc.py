@@ -47,6 +47,7 @@ def get_prepared_request(
     set up with default values.
 
     TODO: request_loaded should become redundant once all requests have been changed.
+    TODO: give this function a better name.
     """
     date_range = DateRange(start_date=start_date, end_date=None)
     stored_request = get_most_recent_updated_hfi_request(session,

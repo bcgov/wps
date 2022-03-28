@@ -40,6 +40,7 @@ import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentr
 function constructPlanningAreaFireStarts(
   planning_area_hfi_results: PlanningAreaResult[]
 ) {
+  // TODO: delete this function when it's redundant!
   const fireStarts = {} as { [key: number]: FireStartRange[] }
   planning_area_hfi_results.forEach(planningAreaResult => {
     fireStarts[planningAreaResult.planning_area_id] = []

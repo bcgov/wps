@@ -50,7 +50,7 @@ describe('HFI Calculator Page', () => {
       // cypress/fixtures/hfi-calc/dailies-saved.json has "request_persist_success": true, save button should be looking at that.
       cy.getByTestId('save-button').should('be.disabled')
     })
-    it('fire start dropdown triggers hfi set state request', () => {
+    it('should send a new request to the server, that persists the change and sets the save button to disabled, when selecting a new fire start', () => {
       // Selecting a new fire start, should result in a new request to the server, that comes back with "request_persist_success": true, or
       // which should cause the save button to become disabled.
       interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
