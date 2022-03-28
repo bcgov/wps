@@ -1,12 +1,10 @@
 import * as React from 'react'
 
-import DateRangePickerMod from './DateRangePickerMod'
-
-// eslint-disable-next-line no-unused-vars
 import { DateRange } from './types'
 import { DateTime } from 'luxon'
+import DateRangePicker from 'components/dateRangePicker/DateRangePicker'
 
-export interface DateRangePickerWrapperModProps {
+export interface DateRangePickerWrapperProps {
   open: boolean
   toggle: () => void
   initialDateRange: DateRange
@@ -16,8 +14,8 @@ export interface DateRangePickerWrapperModProps {
   closeOnClickOutside?: boolean
 }
 
-const DateRangePickerWrapper: React.FunctionComponent<DateRangePickerWrapperModProps> = (
-  props: DateRangePickerWrapperModProps
+const DateRangePickerWrapper: React.FunctionComponent<DateRangePickerWrapperProps> = (
+  props: DateRangePickerWrapperProps
 ) => {
   const { closeOnClickOutside, initialDateRange, toggle, open } = props
 
@@ -40,10 +38,10 @@ const DateRangePickerWrapper: React.FunctionComponent<DateRangePickerWrapperModP
       {open && <div onKeyPress={handleKeyPress} onClick={handleToggle} />}
 
       <div>
-        <DateRangePickerMod {...props} minDate={minDate} maxDate={maxDate} />
+        <DateRangePicker {...props} minDate={minDate} maxDate={maxDate} />
       </div>
     </div>
   )
 }
 
-export default DateRangePickerWrapper
+export default React.memo(DateRangePickerWrapper)

@@ -3,7 +3,7 @@ import { Dialog } from '@material-ui/core'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
-import DateRangePickerWrapperMod from 'components/dateRangePicker/DateRangePickerWrapperMod'
+import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
 import { DateRange } from 'components/dateRangePicker/types'
 
 export interface FWIDateRangeProps {
@@ -55,7 +55,7 @@ const FWIDateRange = ({
 
   return (
     <Dialog open={open} onClose={toggle}>
-      <DateRangePickerWrapperMod
+      <DateRangePickerWrapper
         initialDateRange={{ startDate, endDate }}
         open={open}
         toggle={toggle}

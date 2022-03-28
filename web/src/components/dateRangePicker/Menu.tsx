@@ -3,7 +3,7 @@ import { Paper, Grid, Typography, Divider, makeStyles, Theme } from '@material-u
 import { format, differenceInCalendarMonths } from 'date-fns'
 import ArrowRightAlt from '@material-ui/icons/ArrowRightAlt'
 import DefinedRanges from 'components/dateRangePicker/DefinedRanges'
-import { MARKERS } from 'components/dateRangePicker/DateRangePickerMod'
+import { MARKERS } from 'components/dateRangePicker/DateRangePicker'
 import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/types'
 import Month from 'components/dateRangePicker/Month'
 

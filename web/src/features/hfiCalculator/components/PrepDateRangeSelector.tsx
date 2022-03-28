@@ -7,7 +7,7 @@ import {
   ThemeProvider
 } from '@material-ui/core'
 import * as materialIcons from '@material-ui/icons'
-import DateRangePickerWrapperMod from 'components/dateRangePicker/DateRangePickerWrapperMod'
+import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
 import { DateRange } from 'components/dateRangePicker/types'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isUndefined } from 'lodash'
@@ -98,7 +98,7 @@ const PrepDateRangeSelector = ({
         />
       </ThemeProvider>
       <Dialog open={dateRangePickerOpen} onClose={toggleDateRangePicker}>
-        <DateRangePickerWrapperMod
+        <DateRangePickerWrapper
           initialDateRange={{ startDate, endDate }}
           open={dateRangePickerOpen}
           toggle={toggleDateRangePicker}

@@ -1,6 +1,3 @@
-/* eslint-disable no-multi-assign */
-/* eslint-disable no-param-reassign */
-
 import * as React from 'react'
 import {
   addMonths,
@@ -13,8 +10,6 @@ import {
   max,
   min
 } from 'date-fns'
-
-// eslint-disable-next-line no-unused-vars
 import { DateRange, NavigationAction, DefinedRange } from './types'
 import { getValidatedMonths, parseOptionalDate } from './utils'
 
@@ -28,7 +23,7 @@ export const MARKERS: { [key: string]: Marker } = {
   SECOND_MONTH: Symbol('secondMonth')
 }
 
-export interface DateRangePickerModProps {
+export interface DateRangePickerProps {
   open: boolean
   initialDateRange?: DateRange
   definedRanges?: DefinedRange[]
@@ -37,8 +32,8 @@ export interface DateRangePickerModProps {
   onChange: (dateRange: DateRange) => void
 }
 
-const DateRangePickerMod: React.FunctionComponent<DateRangePickerModProps> = (
-  props: DateRangePickerModProps
+const DateRangePicker: React.FunctionComponent<DateRangePickerProps> = (
+  props: DateRangePickerProps
 ) => {
   const today = new Date()
 
@@ -162,4 +157,4 @@ const DateRangePickerMod: React.FunctionComponent<DateRangePickerModProps> = (
   ) : null
 }
 
-export default DateRangePickerMod
+export default React.memo(DateRangePicker)
