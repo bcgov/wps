@@ -8,12 +8,12 @@ import {
   isEndOfRange,
   inDateRange,
   isRangeSameDay
-} from './utils'
-import Header from './Header'
-import Day from './Day'
+} from 'features/hfiCalculator/components/dateRangePicker/utils'
 
 // eslint-disable-next-line no-unused-vars
 import { NavigationAction, DateRange } from './types'
+import Header from 'features/hfiCalculator/components/dateRangePicker/Header'
+import Day from 'features/hfiCalculator/components/dateRangePicker/Day'
 
 const WEEK_DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 

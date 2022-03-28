@@ -6,7 +6,7 @@ import {
   // eslint-disable-next-line no-unused-vars
   Theme
 } from '@material-ui/core'
-import { combine } from './utils'
+import { combine } from 'features/hfiCalculator/components/dateRangePicker/utils'
 
 const useStyles = makeStyles((theme: Theme) => ({
   leftBorderRadius: {

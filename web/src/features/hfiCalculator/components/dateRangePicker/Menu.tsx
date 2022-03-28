@@ -1,26 +1,15 @@
 import React from 'react'
-import {
-  Paper,
-  Grid,
-  Typography,
-  Divider,
-  makeStyles,
-  // eslint-disable-next-line no-unused-vars
-  Theme
-} from '@material-ui/core'
+import { Paper, Grid, Typography, Divider, makeStyles, Theme } from '@material-ui/core'
 import { format, differenceInCalendarMonths } from 'date-fns'
 import ArrowRightAlt from '@material-ui/icons/ArrowRightAlt'
-import Month from './Month'
-import DefinedRanges from './DefinedRanges'
+import DefinedRanges from 'features/hfiCalculator/components/dateRangePicker/DefinedRanges'
+import { MARKERS } from 'features/hfiCalculator/components/dateRangePicker/DateRangePickerMod'
 import {
-  // eslint-disable-next-line no-unused-vars
   DateRange,
-  // eslint-disable-next-line no-unused-vars
-  Setter,
-  // eslint-disable-next-line no-unused-vars
-  NavigationAction
-} from './types'
-import { MARKERS } from './DateRangePickerMod'
+  NavigationAction,
+  Setter
+} from 'features/hfiCalculator/components/dateRangePicker/types'
+import Month from 'features/hfiCalculator/components/dateRangePicker/Month'
 
 const useStyles = makeStyles((theme: Theme) => ({
   header: {

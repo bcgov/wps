@@ -14,9 +14,7 @@ import {
   min,
   max
 } from 'date-fns'
-
-// eslint-disable-next-line no-unused-vars
-import { DateRange } from './types'
+import { DateRange } from 'features/hfiCalculator/components/dateRangePicker/types'
 
 export const identity = <T>(x: T): T => x
 
