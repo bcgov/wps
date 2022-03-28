@@ -5,6 +5,7 @@
 }
 body {
   font-family: BC Sans, Noto Sans, Verdana, Arial, sans-serif;
+  font-size: smaller;
 }
 table {
   border-collapse: collapse;
@@ -28,16 +29,4 @@ p {
   background-color: #e9ecf5;
   border-collapse: collapse;
   padding: 0;
-}
-.column {
-  float: left;
-}
-.left {
-  width: 50%;
-}
-.right {
-  width: 5%;
-}
-.middle {
-  width: 45%;
 }
