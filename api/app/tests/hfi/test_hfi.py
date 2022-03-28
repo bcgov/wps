@@ -260,3 +260,18 @@ def test_valid_date_range_default_for_end_date_before():
     result = validate_date_range(DateRange(start_date=start_date, end_date=end_date))
     assert result.start_date.isoformat() == '2020-05-21'
     assert result.end_date.isoformat() == '2020-05-21'
+
+
+def test_inclusive_date_math():
+    """ Test the the number of days in a date range is calculated correctly. """
+    assert DateRange(start_date=datetime(2020, 5, 21), end_date=datetime(2020, 5, 25)).days_in_range() == 5
+
+
+def test_inclusive_date_math_bad_end_date():
+    """ Test that range calculation doesn't raise exception with invalid end date. """
+    assert DateRange(start_date=datetime(2020, 5, 21), end_date=None).days_in_range() is None
+
+
+def test_inclusive_date_math_bad_start_date():
+    """ Test that range calculation doesn't raise exception with invalid end date. """
+    assert DateRange(start_date=None, end_date=datetime(2020, 5, 25)).days_in_range() is None

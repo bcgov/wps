@@ -139,7 +139,7 @@ class DateRange(BaseModel):
     start_date: Optional[date]
     end_date: Optional[date]
 
-    def num_days(self) -> Optional[int]:
+    def days_in_range(self) -> Optional[int]:
         """ Calculate the number of days (inclusive) in the date range. """
         if self.start_date and self.end_date:
             # num prep days is inclusive, so we need to add 1
