@@ -115,7 +115,7 @@ const Month: React.FunctionComponent<MonthProps> = (props: MonthProps) => {
 
                   return (
                     <Day
-                      testId={`${day.toISOString()} - ${week}`}
+                      testId={`day-${day.toISOString()}`}
                       key={format(day, 'MM-dd-yyyy')}
                       filled={isStart || isEnd}
                       outlined={isToday(day)}
