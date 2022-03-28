@@ -14,6 +14,7 @@ import {
   max
 } from 'date-fns'
 import { DateRange } from 'components/dateRangePicker/types'
+import { isUndefined } from 'lodash'
 
 export const identity = <T>(x: T): T => x
 
@@ -39,10 +40,10 @@ export const getDaysInMonth = (date: Date): Date[] => {
 }
 
 export const isStartOfRange = ({ startDate }: DateRange, day: Date): boolean =>
-  (startDate && isSameDay(day, startDate)) as boolean
+  (!isUndefined(startDate) && isSameDay(day, startDate)) as boolean
 
 export const isEndOfRange = ({ endDate }: DateRange, day: Date): boolean =>
-  (endDate && isSameDay(day, endDate)) as boolean
+  (!isUndefined(endDate) && isSameDay(day, endDate)) as boolean
 
 export const inDateRange = ({ startDate, endDate }: DateRange, day: Date): boolean =>
   (startDate &&
@@ -60,12 +61,9 @@ export const isRangeSameDay = ({ startDate, endDate }: DateRange): boolean => {
 
 type Falsy = false | null | undefined | 0 | ''
 
-export const parseOptionalDate = (
-  date: Date | string | Falsy,
-  defaultValue: Date
-): Date => {
-  if (date) {
-    if (isValid(date)) return new Date(date)
+export const parseOptionalDate = (date: Date | Falsy, defaultValue: Date): Date => {
+  if (date && isValid(date)) {
+    return new Date(date)
   }
   return defaultValue
 }
