@@ -1,17 +1,20 @@
 import { makeStyles } from '@material-ui/core'
 import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab'
-import { range } from 'lodash'
+import { isUndefined, range } from 'lodash'
 import { theme } from 'app/theme'
 import React from 'react'
-import { getPrepWeeklyDateRange, pstFormatter } from 'utils/date'
-import { useDispatch, useSelector } from 'react-redux'
-import { selectHFICalculatorState } from 'app/rootReducer'
-import { setSelectedPrepDate } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { pstFormatter } from 'utils/date'
+import { useDispatch } from 'react-redux'
+import {
+  PrepDateRange,
+  setSelectedPrepDate
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
 
 export interface ViewSwitcherTogglesProps {
+  dateRange?: PrepDateRange
+  selectedPrepDate: string
   testId?: string
-  dateOfInterest: string // TODO: change this to a DateTime object.
 }
 
 const useStyles = makeStyles(() => ({
@@ -31,7 +34,6 @@ const useStyles = makeStyles(() => ({
 }))
 
 const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
-  const { numPrepDays, selectedPrepDate } = useSelector(selectHFICalculatorState)
   const classes = useStyles()
   const dispatch = useDispatch()
 
@@ -42,7 +44,18 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
     dispatch(setSelectedPrepDate(prepDate))
   }
 
-  const { start } = getPrepWeeklyDateRange(props.dateOfInterest)
+  let daysInDateRange = 0
+  let start: DateTime = DateTime.now()
+
+  if (
+    !isUndefined(props.dateRange) &&
+    !isUndefined(props.dateRange.start_date) &&
+    !isUndefined(props.dateRange.end_date)
+  ) {
+    start = DateTime.fromISO(props.dateRange.start_date)
+    const end = DateTime.fromISO(props.dateRange.end_date)
+    daysInDateRange = end.diff(start, 'days').days + 1
+  }
 
   const formatDateString = (dateString: string): string => {
     // Dates get really gross. We don't know what kind of format the date string is coming in as,
@@ -57,43 +70,46 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
 
   return (
     <React.Fragment>
-      <ToggleButtonGroup
-        exclusive
-        onChange={handleToggle}
-        aria-label="view toggles"
-        value={formatDateString(selectedPrepDate)}
-        className={classes.toggleGroup}
-      >
-        <ToggleButton
-          data-testid="prep-period-toggle"
-          value={''}
-          aria-label="prep toggle"
+      <div data-testid={props.testId}>
+        <ToggleButtonGroup
+          exclusive
+          onChange={handleToggle}
+          aria-label="view toggles"
+          value={formatDateString(props.selectedPrepDate)}
+          className={classes.toggleGroup}
         >
-          Prep Period
-        </ToggleButton>
-        {/* Create a button for each day of the prep period. */}
-        {range(numPrepDays).map(i => {
-          const day = start.plus({ days: i })
-          const rowA = `Day ${i + 1}`
-          const rowB = day.toLocaleString({
-            weekday: 'short',
-            month: 'short',
-            day: '2-digit'
-          })
-          return (
-            <ToggleButton
-              key={i}
-              value={pstFormatter(day)}
-              aria-label={`${rowA}. ${rowB}.`}
-              data-testid={`daily-toggle-${i}`}
-            >
-              {rowA}
-              <br />
-              {rowB}
-            </ToggleButton>
-          )
-        })}
-      </ToggleButtonGroup>
+          <ToggleButton
+            data-testid="prep-period-toggle"
+            value={''}
+            aria-label="prep toggle"
+          >
+            Prep Period
+          </ToggleButton>
+          {/* Create a button for each day of the prep period. */}
+
+          {range(daysInDateRange).map(i => {
+            const day = start.plus({ days: i })
+            const rowA = `Day ${i + 1}`
+            const rowB = day.toLocaleString({
+              weekday: 'short',
+              month: 'short',
+              day: '2-digit'
+            })
+            return (
+              <ToggleButton
+                key={i}
+                value={pstFormatter(day)}
+                aria-label={`${rowA}. ${rowB}.`}
+                data-testid={`daily-toggle-${i}`}
+              >
+                {rowA}
+                <br />
+                {rowB}
+              </ToggleButton>
+            )
+          })}
+        </ToggleButtonGroup>
+      </div>
     </React.Fragment>
   )
 }

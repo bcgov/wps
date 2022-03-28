@@ -1,10 +1,6 @@
 {
-  "start_date": "2020-05-21",
-  "end_date": "2020-05-26",
-  "selected_station_code_ids": [
-    230,
-    239
-  ],
+  "date_range": { "start_date": "2020-05-21", "end_date": "2020-05-25" },
+  "selected_station_code_ids": [230, 239],
   "planning_area_station_info": {
     "1": [
       {
@@ -181,23 +177,6 @@
           },
           "mean_intensity_group": null,
           "prep_level": null
-        },
-        {
-          "date": "2020-05-26",
-          "dailies": [],
-          "fire_starts": {
-            "label": "0-1",
-            "value": 1,
-            "lookup_table": {
-              "1": 1,
-              "2": 1,
-              "3": 2,
-              "4": 3,
-              "5": 4
-            }
-          },
-          "mean_intensity_group": null,
-          "prep_level": null
         }
       ]
     },
@@ -323,23 +302,6 @@
           },
           "mean_intensity_group": null,
           "prep_level": null
-        },
-        {
-          "date": "2020-05-26",
-          "dailies": [],
-          "fire_starts": {
-            "label": "0-1",
-            "value": 1,
-            "lookup_table": {
-              "1": 1,
-              "2": 1,
-              "3": 2,
-              "4": 3,
-              "5": 4
-            }
-          },
-          "mean_intensity_group": null,
-          "prep_level": null
         }
       ]
     }
@@ -400,31 +362,9 @@
           "4": 3,
           "5": 4
         }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": {
-          "1": 1,
-          "2": 1,
-          "3": 2,
-          "4": 3,
-          "5": 4
-        }
       }
     ],
     "2": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": {
-          "1": 1,
-          "2": 1,
-          "3": 2,
-          "4": 3,
-          "5": 4
-        }
-      },
       {
         "label": "0-1",
         "value": 1,

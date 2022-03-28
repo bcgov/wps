@@ -118,6 +118,12 @@
       },
       "{'size': '1000', 'page': 0, 'startingTimestamp': 1625428800000, 'endingTimestamp': 1625428800000, 'stationIds': ['bfe0a6e2-e2df-0210-e053-259e228e58c7']}": {
         "None": "wfwx/v1/dailies/search__no_match_for_station.json"
+      },
+      "{'size': '1000', 'page': 0, 'startingTimestamp': 1590091200000, 'endingTimestamp': 1590696000000, 'stationIds': ['bfe0a6e2-e27e-0210-e053-259e228e58c7', 'bfe0a6e2-e286-0210-e053-259e228e58c7']}": {
+        "None": "wfwx/v1/dailies/search__startingTimestamp_1590091200000_endingTimestamp_1590523200000_station_230_239_page_0_size_1000.json"
+      },
+      "{'size': '1000', 'page': 0, 'startingTimestamp': 1590091200000, 'endingTimestamp': 1590436800000, 'stationIds': ['bfe0a6e2-e27e-0210-e053-259e228e58c7', 'bfe0a6e2-e286-0210-e053-259e228e58c7']}": {
+        "None": "wfwx/v1/dailies/search__startingTimestamp_1590091200000_endingTimestamp_1590523200000_station_230_239_page_0_size_1000.json"
       }
     }
   }
