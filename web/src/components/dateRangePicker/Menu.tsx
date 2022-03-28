@@ -2,14 +2,10 @@ import React from 'react'
 import { Paper, Grid, Typography, Divider, makeStyles, Theme } from '@material-ui/core'
 import { format, differenceInCalendarMonths } from 'date-fns'
 import ArrowRightAlt from '@material-ui/icons/ArrowRightAlt'
-import DefinedRanges from 'features/hfiCalculator/components/dateRangePicker/DefinedRanges'
-import { MARKERS } from 'features/hfiCalculator/components/dateRangePicker/DateRangePickerMod'
-import {
-  DateRange,
-  NavigationAction,
-  Setter
-} from 'features/hfiCalculator/components/dateRangePicker/types'
-import Month from 'features/hfiCalculator/components/dateRangePicker/Month'
+import DefinedRanges from 'components/dateRangePicker/DefinedRanges'
+import { MARKERS } from 'components/dateRangePicker/DateRangePickerMod'
+import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/types'
+import Month from 'components/dateRangePicker/Month'
 
 const useStyles = makeStyles((theme: Theme) => ({
   header: {
@@ -76,7 +72,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
           <Grid container className={classes.header} alignItems="center">
             <Grid item className={classes.headerItem}>
               <Typography variant="subtitle1">
-                {startDate ? format(startDate, 'MMMM DD, YYYY') : 'Start Date'}
+                {startDate ? format(startDate, 'MMMM dd, yyyy') : 'Start Date'}
               </Typography>
             </Grid>
             <Grid item className={classes.headerItem}>
@@ -84,7 +80,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
             </Grid>
             <Grid item className={classes.headerItem}>
               <Typography variant="subtitle1">
-                {endDate ? format(endDate, 'MMMM DD, YYYY') : 'End Date'}
+                {endDate ? format(endDate, 'MMMM dd, yyyy') : 'End Date'}
               </Typography>
             </Grid>
           </Grid>

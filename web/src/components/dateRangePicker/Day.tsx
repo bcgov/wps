@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { IconButton, Typography, makeStyles, Theme } from '@material-ui/core'
-import { combineCSSClassNames } from 'features/hfiCalculator/components/dateRangePicker/utils'
+import { combineCSSClassNames } from 'components/dateRangePicker/utils'
 
 const useStyles = makeStyles((theme: Theme) => ({
   leftBorderRadius: {

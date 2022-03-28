@@ -5,7 +5,7 @@ import * as React from 'react'
 import {
   addMonths,
   isSameDay,
-  isWithinRange,
+  isWithinInterval,
   isAfter,
   isBefore,
   isSameMonth,
@@ -78,8 +78,8 @@ const DateRangePickerMod: React.FunctionComponent<DateRangePickerModProps> = (
     let { startDate: newStart, endDate: newEnd } = range
 
     if (newStart && newEnd) {
-      range.startDate = newStart = max(newStart, minDateValid)
-      range.endDate = newEnd = min(newEnd, maxDateValid)
+      range.startDate = newStart = max([newStart, minDateValid])
+      range.endDate = newEnd = min([newEnd, maxDateValid])
 
       setDateRange(range)
       onChange(range)
@@ -134,7 +134,7 @@ const DateRangePickerMod: React.FunctionComponent<DateRangePickerModProps> = (
       !endDate &&
       hoverDay &&
       isAfter(hoverDay, startDate) &&
-      isWithinRange(day, startDate, hoverDay)) as boolean
+      isWithinInterval(day, { start: startDate, end: hoverDay })) as boolean
 
   const helpers = {
     inHoverRange

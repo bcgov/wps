@@ -7,8 +7,8 @@ import {
   ThemeProvider
 } from '@material-ui/core'
 import * as materialIcons from '@material-ui/icons'
-import DateRangePickerWrapperMod from 'features/hfiCalculator/components/dateRangePicker/DateRangePickerWrapperMod'
-import { DateRange } from 'features/hfiCalculator/components/dateRangePicker/types'
+import DateRangePickerWrapperMod from 'components/dateRangePicker/DateRangePickerWrapperMod'
+import { DateRange } from 'components/dateRangePicker/types'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Paper, Grid, Typography, makeStyles } from '@material-ui/core'
-import { getDate, isSameMonth, isToday, format, isWithinRange } from 'date-fns'
+import { getDate, isSameMonth, isToday, format, isWithinInterval } from 'date-fns'
 import {
   chunks,
   getDaysInMonth,
@@ -8,13 +8,10 @@ import {
   isEndOfRange,
   inDateRange,
   isRangeSameDay
-} from 'features/hfiCalculator/components/dateRangePicker/utils'
-import {
-  NavigationAction,
-  DateRange
-} from 'features/hfiCalculator/components/dateRangePicker/types'
-import Header from 'features/hfiCalculator/components/dateRangePicker/Header'
-import Day from 'features/hfiCalculator/components/dateRangePicker/Day'
+} from 'components/dateRangePicker/utils'
+import { NavigationAction, DateRange } from 'components/dateRangePicker/types'
+import Header from 'components/dateRangePicker/Header'
+import Day from 'components/dateRangePicker/Day'
 
 const WEEK_DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
@@ -67,7 +64,6 @@ const Month: React.FunctionComponent<MonthProps> = (props: MonthProps) => {
     maxDate
   } = props
 
-  // eslint-disable-next-line react/destructuring-assignment
   const [back, forward] = props.navState
 
   return (
@@ -106,7 +102,6 @@ const Month: React.FunctionComponent<MonthProps> = (props: MonthProps) => {
           className={classes.daysContainer}
         >
           {chunks(getDaysInMonth(date), 7).map((week, idx) => (
-            // eslint-disable-next-line react/no-array-index-key
             <Grid key={idx} container direction="row" justifyContent="center">
               {week.map(day => {
                 const isStart = isStartOfRange(dateRange, day)
@@ -117,12 +112,13 @@ const Month: React.FunctionComponent<MonthProps> = (props: MonthProps) => {
 
                 return (
                   <Day
-                    key={format(day, 'MM-DD-YYYY')}
+                    key={format(day, 'MM-dd-yyyy')}
                     filled={isStart || isEnd}
                     outlined={isToday(day)}
                     highlighted={highlighted && !isRangeOneDay}
                     disabled={
-                      !isSameMonth(date, day) || !isWithinRange(day, minDate, maxDate)
+                      !isSameMonth(date, day) ||
+                      !isWithinInterval(day, { start: minDate, end: maxDate })
                     }
                     startOfRange={isStart && !isRangeOneDay}
                     endOfRange={isEnd && !isRangeOneDay}

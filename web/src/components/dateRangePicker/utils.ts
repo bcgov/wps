@@ -6,15 +6,14 @@ import {
   isBefore,
   addDays,
   isSameDay,
-  isWithinRange,
+  isWithinInterval,
   isSameMonth,
   addMonths,
-  parse,
   isValid,
   min,
   max
 } from 'date-fns'
-import { DateRange } from 'features/hfiCalculator/components/dateRangePicker/types'
+import { DateRange } from 'components/dateRangePicker/types'
 
 export const identity = <T>(x: T): T => x
 
@@ -48,7 +47,7 @@ export const isEndOfRange = ({ endDate }: DateRange, day: Date): boolean =>
 export const inDateRange = ({ startDate, endDate }: DateRange, day: Date): boolean =>
   (startDate &&
     endDate &&
-    (isWithinRange(day, startDate, endDate) ||
+    (isWithinInterval(day, { start: startDate, end: endDate }) ||
       isSameDay(day, startDate) ||
       isSameDay(day, endDate))) as boolean
 
@@ -66,8 +65,7 @@ export const parseOptionalDate = (
   defaultValue: Date
 ): Date => {
   if (date) {
-    const parsed = parse(date)
-    if (isValid(parsed)) return parsed
+    if (isValid(date)) return new Date(date)
   }
   return defaultValue
 }
@@ -79,8 +77,8 @@ export const getValidatedMonths = (
 ): Array<Date | undefined> => {
   const { startDate, endDate } = range
   if (startDate && endDate) {
-    const newStart = max(startDate, minDate)
-    const newEnd = min(endDate, maxDate)
+    const newStart = max([startDate, minDate])
+    const newEnd = min([endDate, maxDate])
 
     return [newStart, isSameMonth(newStart, newEnd) ? addMonths(newStart, 1) : newEnd]
   }

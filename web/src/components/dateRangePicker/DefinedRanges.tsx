@@ -1,10 +1,7 @@
 import React from 'react'
 import { List, ListItem, ListItemText } from '@material-ui/core'
 import { isSameDay } from 'date-fns'
-import {
-  DefinedRange,
-  DateRange
-} from 'features/hfiCalculator/components/dateRangePicker/types'
+import { DefinedRange, DateRange } from 'components/dateRangePicker/types'
 
 type DefinedRangesProps = {
   setRange: (range: DateRange) => void
