@@ -27,7 +27,6 @@ export const combineCSSClassNames = (
   ...args: Array<string | false | undefined>
 ): string => args.filter(identity).join(' ')
 
-// Date
 export const getDaysInMonth = (date: Date): Date[] => {
   const startWeek = startOfWeek(startOfMonth(date))
   const endWeek = endOfWeek(endOfMonth(date))

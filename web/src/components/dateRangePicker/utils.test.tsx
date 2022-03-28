@@ -1,4 +1,5 @@
 import {
+  combineCSSClassNames,
   isEndOfRange,
   isRangeSameDay,
   isStartOfRange,
@@ -84,6 +85,23 @@ describe('DateRangePicker - utils', () => {
       const endDate = new Date('2021/11/30')
       const result = isEndOfRange({}, endDate)
       expect(result).toEqual(false)
+    })
+  })
+  describe('combineCSSClassNames', () => {
+    it('should join css class names', () => {
+      const class1 = 'class1'
+      const class2 = 'class2'
+      const result = combineCSSClassNames(class1, class2)
+      expect(result).toEqual('class1 class2')
+    })
+    it('should return empty string if no class names', () => {
+      const result = combineCSSClassNames()
+      expect(result).toEqual('')
+    })
+    it('should return single class name if only one class', () => {
+      const class1 = 'class1'
+      const result = combineCSSClassNames(class1)
+      expect(result).toEqual(class1)
     })
   })
 })

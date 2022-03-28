@@ -38,6 +38,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 interface DayProps {
+  testId?: string
   filled?: boolean
   outlined?: boolean
   highlighted?: boolean
@@ -50,6 +51,7 @@ interface DayProps {
 }
 
 const Day: React.FunctionComponent<DayProps> = ({
+  testId,
   startOfRange,
   endOfRange,
   disabled,
@@ -64,6 +66,7 @@ const Day: React.FunctionComponent<DayProps> = ({
 
   return (
     <div
+      data-testid={testId}
       className={combineCSSClassNames(
         classes.buttonContainer,
         startOfRange && classes.leftBorderRadius,
