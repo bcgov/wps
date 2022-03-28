@@ -1,4 +1,4 @@
-import { DateTime, DurationLike, Interval } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 
 import { PST_ISO_TIMEZONE, PST_UTC_OFFSET } from './constants'
 
