@@ -114,7 +114,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
         </Grid>
         <div className={classes.divider} />
       </Grid>
-      <Grid justify="space-between" container className={classes.footer}>
+      <Grid justifyContent="space-between" container className={classes.footer}>
         <Grid item></Grid>
 
         <Grid item>
