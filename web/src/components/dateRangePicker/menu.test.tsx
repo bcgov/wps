@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import Menu from 'components/dateRangePicker/Menu'
 import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/types'
 import React from 'react'
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 const setup = (
   dateRange: DateRange,
