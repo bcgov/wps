@@ -2,6 +2,7 @@ import {
   combineCSSClassNames,
   isEndOfRange,
   isRangeSameDay,
+  isSameRange,
   isStartOfRange,
   parseOptionalDate
 } from 'components/dateRangePicker/utils'
@@ -102,6 +103,28 @@ describe('DateRangePicker - utils', () => {
       const class1 = 'class1'
       const result = combineCSSClassNames(class1)
       expect(result).toEqual(class1)
+    })
+  })
+  describe('isSameRange', () => {
+    it('should return true for a same range', () => {
+      const startDate = new Date('2021/11/28')
+      const endDate = new Date('2021/11/29')
+      const result = isSameRange({ startDate, endDate }, { startDate, endDate })
+      expect(result).toEqual(true)
+    })
+    it('should return false for different ranges', () => {
+      const startDate = new Date('2021/11/28')
+      const endDate = new Date('2021/11/29')
+      const differentEndDate = new Date('2021/11/30')
+      const result = isSameRange(
+        { startDate, endDate },
+        { startDate, endDate: differentEndDate }
+      )
+      expect(result).toEqual(false)
+    })
+    it('should return false for empty ranges', () => {
+      const result = isSameRange({}, {})
+      expect(result).toEqual(false)
     })
   })
 })

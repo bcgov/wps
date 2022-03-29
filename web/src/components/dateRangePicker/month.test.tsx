@@ -1,9 +1,42 @@
-import { fireEvent, prettyDOM, render, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, waitFor, within } from '@testing-library/react'
 import { MARKERS } from 'components/dateRangePicker/DateRangePicker'
 import Month from 'components/dateRangePicker/Month'
 import { DateRange, NavigationAction } from 'components/dateRangePicker/types'
 import React from 'react'
 
+const setup = (
+  value: Date,
+  setValueStub: (date: Date) => void,
+  dateRange: DateRange,
+  minDate: Date,
+  maxDate: Date,
+  inHoverRangeStub: (date: Date) => boolean,
+  onDayClickStub: (date: Date) => void,
+  onDayHoverStub: (date: Date) => void,
+  onMonthNavigateStub: (marker: symbol, action: NavigationAction) => void
+) => {
+  const { getByTestId, getByRole } = render(
+    <Month
+      testId="testMonth"
+      value={value}
+      marker={MARKERS.FIRST_MONTH}
+      dateRange={dateRange}
+      minDate={minDate}
+      maxDate={maxDate}
+      navState={[true, true]}
+      setValue={setValueStub}
+      helpers={{
+        inHoverRange: inHoverRangeStub
+      }}
+      handlers={{
+        onDayClick: onDayClickStub,
+        onDayHover: onDayHoverStub,
+        onMonthNavigate: onMonthNavigateStub
+      }}
+    />
+  )
+  return { getByTestId, getByRole }
+}
 describe('Month', () => {
   const startDate = new Date('2021/2/21')
   const endDate = new Date('2021/2/25')
@@ -23,39 +56,6 @@ describe('Month', () => {
     /** no op */
   })
 
-  const setup = (
-    value: Date,
-    setValueStub: (date: Date) => void,
-    dateRange: DateRange,
-    minDate: Date,
-    maxDate: Date,
-    inHoverRangeStub: (date: Date) => boolean,
-    onDayClickStub: (date: Date) => void,
-    onDayHoverStub: (date: Date) => void,
-    onMonthNavigateStub: (marker: symbol, action: NavigationAction) => void
-  ) => {
-    const { getByTestId, getByRole } = render(
-      <Month
-        testId="testMonth"
-        value={value}
-        marker={MARKERS.FIRST_MONTH}
-        dateRange={dateRange}
-        minDate={minDate}
-        maxDate={maxDate}
-        navState={[true, true]}
-        setValue={setValueStub}
-        helpers={{
-          inHoverRange: inHoverRangeStub
-        }}
-        handlers={{
-          onDayClick: onDayClickStub,
-          onDayHover: onDayHoverStub,
-          onMonthNavigate: onMonthNavigateStub
-        }}
-      />
-    )
-    return { getByTestId, getByRole }
-  }
   it('should render the month', () => {
     const dateRange = { startDate, endDate }
     const { getByTestId } = setup(
