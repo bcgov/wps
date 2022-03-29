@@ -1,17 +1,17 @@
 import {
   createTheme,
   Dialog,
-  FormControl,
   IconButton,
   InputAdornment,
   TextField,
   ThemeProvider
 } from '@material-ui/core'
 import * as materialIcons from '@material-ui/icons'
+import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
+import { DateRange } from 'components/dateRangePicker/types'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
-import { DateRangePicker, DateRange } from 'materialui-daterange-picker'
 import React, { useState } from 'react'
 
 export interface PrepDateRangeSelectorProps {
@@ -97,18 +97,14 @@ const PrepDateRangeSelector = ({
           }}
         />
       </ThemeProvider>
-
-      <FormControl>
-        <Dialog open={dateRangePickerOpen} onClose={toggleDateRangePicker}>
-          <DateRangePicker
-            initialDateRange={{ startDate, endDate }}
-            open={dateRangePickerOpen}
-            toggle={toggleDateRangePicker}
-            onChange={range => setDateRange(range)}
-            definedRanges={[]}
-          />
-        </Dialog>
-      </FormControl>
+      <Dialog open={dateRangePickerOpen} onClose={toggleDateRangePicker}>
+        <DateRangePickerWrapper
+          initialDateRange={{ startDate, endDate }}
+          open={dateRangePickerOpen}
+          toggle={toggleDateRangePicker}
+          onChange={range => setDateRange(range)}
+        />
+      </Dialog>
     </React.Fragment>
   )
 }

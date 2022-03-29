@@ -157,7 +157,7 @@ export class RowManager {
   }
   public static updateRows<T extends { id: number }>(
     existingRows: Array<T>,
-    updatedCalculatedRows: FBAStation[]
+    updatedCalculatedRows: Partial<FBAStation>[]
   ): Array<T> {
     const rows = [...existingRows]
     const updatedRowById = new Map(updatedCalculatedRows.map(row => [row.id, row]))
