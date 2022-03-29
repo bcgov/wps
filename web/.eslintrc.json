@@ -7,7 +7,7 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended"
   ],
-  "plugins": ["react", "@typescript-eslint", "eslint-plugin-prettier"],
+  "plugins": ["@typescript-eslint", "eslint-plugin-prettier"],
   "env": {
     "browser": true,
     "jasmine": true,
@@ -26,12 +26,6 @@
     "@typescript-eslint/ban-ts-comment": "warn",
     "@typescript-eslint/camelcase": "off",
     "@typescript-eslint/explicit-function-return-type": "off"
-  },
-  "settings": {
-    "react": {
-      "pragma": "React",
-      "version": "detect"
-    }
   },
   "parser": "@typescript-eslint/parser"
 }
