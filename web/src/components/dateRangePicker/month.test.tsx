@@ -77,27 +77,6 @@ describe('Month', () => {
     expect(onDayHover).toBeCalledTimes(0)
     expect(onMonthNavigate).toBeCalledTimes(0)
   })
-  it('should render the month', () => {
-    const dateRange = { startDate, endDate }
-    const { getByTestId } = setup(
-      startDate,
-      setValueStub,
-      dateRange,
-      startDate,
-      endDate,
-      inHoverRangeStub,
-      onDayClickStub,
-      onDayHover,
-      onMonthNavigate
-    )
-    const month = getByTestId('testMonth')
-
-    expect(month).toBeDefined()
-    expect(setValueStub).toBeCalledTimes(0)
-    expect(onDayClickStub).toBeCalledTimes(0)
-    expect(onDayHover).toBeCalledTimes(0)
-    expect(onMonthNavigate).toBeCalledTimes(0)
-  })
   it('should handle day clicks', async () => {
     const dateRange = { startDate, endDate }
     const { getByTestId } = setup(
