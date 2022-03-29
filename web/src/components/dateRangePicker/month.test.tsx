@@ -3,6 +3,7 @@ import { MARKERS } from 'components/dateRangePicker/DateRangePicker'
 import Month from 'components/dateRangePicker/Month'
 import { DateRange, NavigationAction } from 'components/dateRangePicker/types'
 import React from 'react'
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 const setup = (
   value: Date,

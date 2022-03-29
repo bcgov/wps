@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import Menu from 'components/dateRangePicker/Menu'
 import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/types'
 import React from 'react'
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 const setup = (
   dateRange: DateRange,
@@ -15,7 +16,8 @@ const setup = (
   firstMonth: Date,
   setFirstMonthMock: Setter<Date>,
   secondMonth: Date,
-  setSecondMonthMock: Setter<Date>
+  setSecondMonthMock: Setter<Date>,
+  resetDateRangeMock: () => void
 ) => {
   const { getByTestId, getByRole } = render(
     <Menu
@@ -28,7 +30,8 @@ const setup = (
       handlers={{
         onDayClick: onDayClickMock,
         onDayHover: onDayHoverMock,
-        onMonthNavigate: onMonthNavigateMock
+        onMonthNavigate: onMonthNavigateMock,
+        resetDateRange: resetDateRangeMock
       }}
       firstMonth={firstMonth}
       secondMonth={secondMonth}
@@ -65,6 +68,10 @@ describe('Menu', () => {
     /** no op */
   })
 
+  const resetDateRangeMock = jest.fn((): void => {
+    /** no op */
+  })
+
   beforeEach(() => {
     // Reset all stubs
     inHoverRangeMock.mockReset()
@@ -73,6 +80,7 @@ describe('Menu', () => {
     onMonthNavigateMock.mockReset()
     setFirstMonthMock.mockReset()
     setSecondMonthMock.mockReset()
+    resetDateRangeMock.mockReset()
   })
 
   it('should render the start and end dates', () => {
@@ -88,7 +96,8 @@ describe('Menu', () => {
       firstMonth,
       setFirstMonthMock,
       secondMonth,
-      setSecondMonthMock
+      setSecondMonthMock,
+      resetDateRangeMock
     )
     const startDateLabel = getByTestId('menu-start-date')
     const endDateLabel = getByTestId('menu-end-date')
@@ -118,7 +127,8 @@ describe('Menu', () => {
       firstMonth,
       setFirstMonthMock,
       secondMonth,
-      setSecondMonthMock
+      setSecondMonthMock,
+      resetDateRangeMock
     )
     const startDateLabel = getByTestId('menu-start-date')
     const endDateLabel = getByTestId('menu-end-date')

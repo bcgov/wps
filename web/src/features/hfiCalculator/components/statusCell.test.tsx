@@ -1,11 +1,12 @@
 import { TableContainer, Table, TableRow, TableBody } from '@material-ui/core'
 import { render } from '@testing-library/react'
+import { StationDaily } from 'api/hfiCalculatorAPI'
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { ValidatedStationDaily } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
 import React from 'react'
 describe('StatusCell', () => {
-  const validDaily: ValidatedStationDaily = {
+  const daily: StationDaily = {
     code: 1,
     status: 'ACTUAL',
     temperature: 1,
@@ -29,21 +30,24 @@ describe('StatusCell', () => {
     sixty_minute_fire_size: 1,
     fire_type: '',
     date: DateTime.fromObject({ year: 2021, month: 1, day: 1 }),
+    last_updated: DateTime.fromObject({ year: 2021, month: 1, day: 1 })
+  }
+  const validDaily: ValidatedStationDaily = {
+    daily: daily,
     valid: true
   }
 
   const invalidDaily: ValidatedStationDaily = {
-    ...validDaily,
-    observation_valid: false,
+    daily: { ...daily, observation_valid: false },
     valid: false
   }
-  const renderStatusCell = (daily: ValidatedStationDaily | undefined) => {
+  const renderStatusCell = (validatedDaily: ValidatedStationDaily | undefined) => {
     return render(
       <TableContainer>
         <Table>
           <TableBody>
             <TableRow>
-              <StatusCell daily={daily} className={''} />
+              <StatusCell daily={validatedDaily?.daily} className={''} />
             </TableRow>
           </TableBody>
         </Table>
@@ -53,7 +57,7 @@ describe('StatusCell', () => {
 
   it('should render the status if it is defined', () => {
     const { getByTestId } = renderStatusCell(validDaily)
-    expect(getByTestId('status-cell').innerHTML).toBe(validDaily.status)
+    expect(getByTestId('status-cell').innerHTML).toBe(validDaily.daily.status)
   })
   it('should render error with tooltip if daily is undefined', () => {
     const { getByTestId } = renderStatusCell(undefined)
