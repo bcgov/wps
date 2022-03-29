@@ -4,7 +4,7 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import {
   getHFIResult,
-  loadHFIResult,
+  loadDefaultHFIResult,
   setNewFireStarts,
   getPDF,
   RawDaily,
@@ -179,12 +179,12 @@ export const {
 
 export default dailiesSlice.reducer
 
-export const fetchLoadHFIResult =
-  (fire_center_id: number, start_date?: string): AppThunk =>
+export const fetchLoadDefaultHFIResult =
+  (fire_center_id: number): AppThunk =>
   async dispatch => {
     try {
       dispatch(loadHFIResultStart())
-      const result = await loadHFIResult(fire_center_id, start_date)
+      const result = await loadDefaultHFIResult(fire_center_id)
       dispatch(setResult(result))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))

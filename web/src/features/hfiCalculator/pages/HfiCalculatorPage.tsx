@@ -7,7 +7,7 @@ import {
   PlanningAreaResult,
   setSelectedFireCentre,
   fetchHFIResult,
-  fetchLoadHFIResult,
+  fetchLoadDefaultHFIResult,
   fetchSetNewFireStarts,
   setSaved,
   fetchPDFDownload
@@ -182,7 +182,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
     if (!isUndefined(selectedFireCentre)) {
-      dispatch(fetchLoadHFIResult(selectedFireCentre.id))
+      dispatch(fetchLoadDefaultHFIResult(selectedFireCentre.id))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre])

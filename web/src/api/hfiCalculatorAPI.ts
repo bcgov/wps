@@ -52,15 +52,12 @@ export interface StationDailyResponse {
 
 const baseUrl = '/hfi-calc/'
 
-export async function loadHFIResult(
-  fire_center_id: number,
-  start_date?: string
+export async function loadDefaultHFIResult(
+  fire_center_id: number
 ): Promise<HFIResultResponse> {
-  let url = baseUrl + 'fire_centre/' + fire_center_id
-  if (start_date) {
-    url += '/' + start_date
-  }
-  const { data } = await axios.get<RawHFIResultResponse>(url)
+  const { data } = await axios.get<RawHFIResultResponse>(
+    baseUrl + 'fire_centre/' + fire_center_id
+  )
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 
