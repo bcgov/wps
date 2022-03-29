@@ -10,10 +10,10 @@ const setup = (
   dateRange: DateRange,
   minDate: Date,
   maxDate: Date,
-  inHoverRangeStub: (date: Date) => boolean,
-  onDayClickStub: (date: Date) => void,
-  onDayHoverStub: (date: Date) => void,
-  onMonthNavigateStub: (marker: symbol, action: NavigationAction) => void
+  inHoverRangeMock: (date: Date) => boolean,
+  onDayClickMock: (date: Date) => void,
+  onDayHoverMock: (date: Date) => void,
+  onMonthNavigateMock: (marker: symbol, action: NavigationAction) => void
 ) => {
   const { getByTestId, getByRole } = render(
     <Month
@@ -26,12 +26,12 @@ const setup = (
       navState={[true, true]}
       setValue={setValueStub}
       helpers={{
-        inHoverRange: inHoverRangeStub
+        inHoverRange: inHoverRangeMock
       }}
       handlers={{
-        onDayClick: onDayClickStub,
-        onDayHover: onDayHoverStub,
-        onMonthNavigate: onMonthNavigateStub
+        onDayClick: onDayClickMock,
+        onDayHover: onDayHoverMock,
+        onMonthNavigate: onMonthNavigateMock
       }}
     />
   )
@@ -40,55 +40,66 @@ const setup = (
 describe('Month', () => {
   const startDate = new Date('2021/2/21')
   const endDate = new Date('2021/2/25')
-  const setValueStub = jest.fn((date: Date): void => {
+  const setValueMock = jest.fn((date: Date): void => {
     /** no op */
   })
-  const inHoverRangeStub = jest.fn((date: Date): boolean => {
+  const inHoverRangeMock = jest.fn((date: Date): boolean => {
     return false
   })
-  const onDayClickStub = jest.fn((date: Date): void => {
+  const onDayClickMock = jest.fn((date: Date): void => {
     /** no op */
   })
-  const onDayHover = jest.fn((date: Date): void => {
+  const onDayHoverMock = jest.fn((date: Date): void => {
     /** no op */
   })
-  const onMonthNavigate = jest.fn((marker: symbol, action: NavigationAction): void => {
-    /** no op */
+  const onMonthNavigateMock = jest.fn(
+    (marker: symbol, action: NavigationAction): void => {
+      /** no op */
+    }
+  )
+
+  beforeEach(() => {
+    // Reset all stubs
+    setValueMock.mockReset()
+    inHoverRangeMock.mockReset()
+    onDayClickMock.mockReset()
+    onDayHoverMock.mockReset()
+    onMonthNavigateMock.mockReset()
   })
 
   it('should render the month', () => {
     const dateRange = { startDate, endDate }
     const { getByTestId } = setup(
       startDate,
-      setValueStub,
+      setValueMock,
       dateRange,
       startDate,
       endDate,
-      inHoverRangeStub,
-      onDayClickStub,
-      onDayHover,
-      onMonthNavigate
+      inHoverRangeMock,
+      onDayClickMock,
+      onDayHoverMock,
+      onMonthNavigateMock
     )
     const month = getByTestId('testMonth')
 
     expect(month).toBeDefined()
-    expect(setValueStub).toBeCalledTimes(0)
-    expect(onDayClickStub).toBeCalledTimes(0)
-    expect(onDayHover).toBeCalledTimes(0)
-    expect(onMonthNavigate).toBeCalledTimes(0)
+    expect(setValueMock).toBeCalledTimes(0)
+    expect(onDayClickMock).toBeCalledTimes(0)
+    expect(onDayHoverMock).toBeCalledTimes(0)
+    expect(onMonthNavigateMock).toBeCalledTimes(0)
   })
   it('should handle day clicks', async () => {
     const dateRange = { startDate, endDate }
     const { getByTestId } = setup(
       startDate,
-      setValueStub,
+      setValueMock,
       dateRange,
       startDate,
       endDate,
-      inHoverRangeStub,
-      onDayClickStub,
-      onDayHover,
-      onMonthNavigate
+      inHoverRangeMock,
+      onDayClickMock,
+      onDayHoverMock,
+      onMonthNavigateMock
     )
     const startDay = getByTestId(`day-${startDate.toISOString()}`)
 
@@ -97,7 +108,7 @@ describe('Month', () => {
 
     startDayButton.focus()
     fireEvent.click(startDayButton)
-    await waitFor(() => expect(onDayClickStub).toBeCalledTimes(1))
+    await waitFor(() => expect(onDayClickMock).toBeCalledTimes(1))
 
     const endDay = getByTestId(`day-${endDate.toISOString()}`)
 
@@ -105,24 +116,24 @@ describe('Month', () => {
     endDayButton.focus()
 
     fireEvent.click(endDayButton)
-    await waitFor(() => expect(onDayClickStub).toBeCalledTimes(2))
+    await waitFor(() => expect(onDayClickMock).toBeCalledTimes(2))
 
-    expect(onDayHover).toBeCalledTimes(0)
-    expect(onMonthNavigate).toBeCalledTimes(0)
+    expect(onDayHoverMock).toBeCalledTimes(0)
+    expect(onMonthNavigateMock).toBeCalledTimes(0)
   })
   it('should disable day buttons outside of 7 day range', async () => {
     const dateRange = { startDate: new Date('2021/2/1'), endDate: new Date('2021/2/7') }
     const dateOutOfRange = new Date('2021/2/8')
     const { getByTestId } = setup(
       startDate,
-      setValueStub,
+      setValueMock,
       dateRange,
       dateRange.startDate,
       dateRange.endDate,
-      inHoverRangeStub,
-      onDayClickStub,
-      onDayHover,
-      onMonthNavigate
+      inHoverRangeMock,
+      onDayClickMock,
+      onDayHoverMock,
+      onMonthNavigateMock
     )
     const dayOutOfRange = getByTestId(`day-${dateOutOfRange.toISOString()}`)
     const outOfRangeButton = within(dayOutOfRange).getByRole('button') as HTMLInputElement

@@ -2,7 +2,6 @@ import React from 'react'
 import { Paper, Grid, Typography, Divider, makeStyles, Theme } from '@material-ui/core'
 import { format, differenceInCalendarMonths } from 'date-fns'
 import ArrowRightAlt from '@material-ui/icons/ArrowRightAlt'
-import DefinedRanges from 'components/dateRangePicker/DefinedRanges'
 import { MARKERS } from 'components/dateRangePicker/DateRangePicker'
 import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/types'
 import Month from 'components/dateRangePicker/Month'
@@ -29,7 +28,6 @@ interface MenuProps {
   secondMonth: Date
   setFirstMonth: Setter<Date>
   setSecondMonth: Setter<Date>
-  setDateRange: Setter<DateRange>
   helpers: {
     inHoverRange: (day: Date) => boolean
   }
@@ -51,7 +49,6 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
     setFirstMonth,
     secondMonth,
     setSecondMonth,
-    setDateRange,
     helpers,
     handlers
   } = props
@@ -66,12 +63,12 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
     handlers
   }
   return (
-    <Paper elevation={5} square>
+    <Paper elevation={5} square data-testid="date-range-picker-menu">
       <Grid container direction="row" wrap="nowrap">
         <Grid>
           <Grid container className={classes.header} alignItems="center">
             <Grid item className={classes.headerItem}>
-              <Typography variant="subtitle1">
+              <Typography variant="subtitle1" data-testid="menu-start-date">
                 {startDate ? format(startDate, 'MMMM dd, yyyy') : 'Start Date'}
               </Typography>
             </Grid>
@@ -79,7 +76,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
               <ArrowRightAlt color="action" />
             </Grid>
             <Grid item className={classes.headerItem}>
-              <Typography variant="subtitle1">
+              <Typography variant="subtitle1" data-testid="menu-end-date">
                 {endDate ? format(endDate, 'MMMM dd, yyyy') : 'End Date'}
               </Typography>
             </Grid>
@@ -104,9 +101,6 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
           </Grid>
         </Grid>
         <div className={classes.divider} />
-        <Grid>
-          <DefinedRanges selectedRange={dateRange} ranges={[]} setRange={setDateRange} />
-        </Grid>
       </Grid>
     </Paper>
   )

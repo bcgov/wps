@@ -82,7 +82,7 @@ export const getValidatedMonths = (
   return [startDate, endDate]
 }
 
-export const isSameRange = (first: DateRange, second: DateRange) => {
+export const isSameRange = (first: DateRange, second: DateRange): boolean => {
   const { startDate: fStart, endDate: fEnd } = first
   const { startDate: sStart, endDate: sEnd } = second
   if (fStart && sStart && fEnd && sEnd) {

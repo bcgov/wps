@@ -23,7 +23,6 @@ const DateRangePickerWrapper: React.FunctionComponent<DateRangePickerWrapperProp
     if (closeOnClickOutside === false) {
       return
     }
-
     toggle()
   }
 
