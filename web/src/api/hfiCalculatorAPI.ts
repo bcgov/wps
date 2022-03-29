@@ -7,7 +7,6 @@ import {
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
 import 'qs'
-import { stringify } from 'querystring'
 import { formatISODateInPST } from 'utils/date'
 
 export interface StationDaily {
@@ -52,32 +51,6 @@ export interface StationDailyResponse {
 }
 
 const baseUrl = '/hfi-calc/'
-
-export async function getDailies(
-  startTime: number,
-  endTime: number,
-  stationCodes: number[]
-): Promise<StationDaily[]> {
-  const { data } = await axios.get<StationDailyResponse>(baseUrl + 'daily', {
-    params: {
-      start_time_stamp: startTime,
-      end_time_stamp: endTime,
-      station_codes: stationCodes
-    },
-    // have to add a paramsSerializer to axios get request and stringify (using querystring library) the params in order
-    // for the stationCodes array to be formatted correctly, per
-    // https://stackoverflow.com/a/51444749
-    paramsSerializer: params => {
-      return stringify(params)
-    }
-  })
-
-  return data.dailies.map(daily => ({
-    ...daily,
-    date: DateTime.fromISO(daily.date),
-    last_updated: DateTime.fromISO(daily.last_updated)
-  }))
-}
 
 export async function loadHFIResult(
   fire_center_id: number,
