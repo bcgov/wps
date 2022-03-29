@@ -22,7 +22,6 @@ import {
   Table,
   TableBody
 } from '@material-ui/core'
-import { DateRange } from 'materialui-daterange-picker'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import SaveButton from 'features/hfiCalculator/components/SaveButton'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
@@ -33,6 +32,7 @@ import { cloneDeep, isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
+import { DateRange } from 'components/dateRangePicker/types'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
