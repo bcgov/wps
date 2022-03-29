@@ -4,6 +4,7 @@ See README.md for details on how to run.
 """
 import logging
 from time import perf_counter
+from urllib.request import Request
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
@@ -14,6 +15,7 @@ from app import config
 from app import health
 from app import hourlies
 from app.frontend import frontend
+from app.rocketchat_notifications import send_rocketchat_notification
 from app.routers import fba, forecasts, fwi_calc, weather_models, c_haines, stations, hfi_calc, fba_calc
 from app.utils.cffdrs import CFFDRS
 
@@ -79,6 +81,19 @@ app.mount('/api', app=api)
 app.mount('/', app=frontend)
 
 ORIGINS = config.get('ORIGINS')
+
+
+async def catch_exception_middleware(request: Request, call_next):
+    """ Basic middleware to catch all unhandled exceptions and log them to the terminal """
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        logger.error(exc, exc_info=True)
+        rc_message = "An exception has been caught and logged"
+        send_rocketchat_notification(rc_message, exc)
+        raise
+
+app.middleware('http')(catch_exception_middleware)
 
 api.add_middleware(
     CORSMiddleware,

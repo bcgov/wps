@@ -12,6 +12,7 @@ import app.utils.time
 from app.schemas.hfi_calc import (HFIResultRequest,
                                   HFIResultResponse,
                                   HFILoadResultRequest,
+                                  DateRange,
                                   StationInfo)
 import app
 from app.auth import authentication_required, audit
@@ -37,7 +38,7 @@ def load_request_from_database(request: HFIResultRequest) -> Optional[HFIResultR
     Returns:
         The request object if saved, otherwise None.
     """
-    if request.start_date is None:
+    if request.date_range is None or request.date_range.start_date is None:
         with app.db.database.get_read_session_scope() as session:
             stored_request = get_most_recent_updated_hfi_request(session, request.selected_fire_center_id)
             if stored_request:
@@ -51,7 +52,9 @@ def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
     Returns:
         True if the request was saved, False otherwise.
     """
-    if request.start_date is not None and request.end_date is not None:
+    if request.date_range is not None and \
+            request.date_range.start_date is not None and \
+            request.date_range.end_date is not None:
         with app.db.database.get_write_session_scope() as session:
             store_hfi_request(session, request, username)
             return True
@@ -108,20 +111,22 @@ async def load_hfi_result(request: HFILoadResultRequest,
                         ))
 
                 result_request = HFIResultRequest(
-                    start_date=request.start_date,
                     selected_fire_center_id=request.selected_fire_center_id,
                     selected_station_code_ids=list(selected_station_code_ids),
                     planning_area_station_info=planning_area_station_info,
                     planning_area_fire_starts={})
                 if request.start_date:
+                    result_request.date_range = DateRange(start_date=request.start_date)
+                    if request.end_date:
+                        result_request.date_range = DateRange(
+                            start_date=request.start_date, end_date=request.end_date)
                     # If a start date was specified, we go ahead and save this request.
                     save_request_in_database(result_request, token.get('preferred_username', None))
                     request_persist_success = True
 
-        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(result_request)
+        results, valid_date_range = await calculate_latest_hfi_results(result_request)
         response = HFIResultResponse(
-            start_date=start_timestamp,
-            end_date=end_timestamp,
+            date_range=valid_date_range,
             selected_station_code_ids=result_request.selected_station_code_ids,
             planning_area_station_info=result_request.planning_area_station_info,
             selected_fire_center_id=result_request.selected_fire_center_id,
@@ -144,7 +149,6 @@ async def get_hfi_results(request: HFIResultRequest,
     # pylint: disable=too-many-locals
 
     try:
-        logger.info('/hfi-calc/')
         response.headers["Cache-Control"] = no_cache
 
         stored_request = load_request_from_database(request)
@@ -153,10 +157,9 @@ async def get_hfi_results(request: HFIResultRequest,
             request = stored_request
             request_loaded = True
 
-        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
+        results, valid_date_range = await calculate_latest_hfi_results(request)
         response = HFIResultResponse(
-            start_date=start_timestamp,
-            end_date=end_timestamp,
+            date_range=valid_date_range,
             selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
@@ -185,6 +188,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
     """ Returns list of fire centres and planning area for each fire centre,
     and weather stations within each planning area. Also returns the assigned fuel type
     for each weather station. """
+
     try:
         logger.info('/hfi-calc/fire-centres')
         # we can safely cache the fire centres, as they don't change them very often.
@@ -211,13 +215,13 @@ def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int
 async def download_result_pdf(request: HFIResultRequest,
                               token=Depends(authentication_required)):
     """ Assembles and returns PDF byte representation of HFI result. """
+
     try:
         logger.info('/hfi-calc/download-pdf')
-        results, start_timestamp, end_timestamp = await calculate_latest_hfi_results(request)
+        results, valid_date_range = await calculate_latest_hfi_results(request)
 
         response = HFIResultResponse(
-            start_date=start_timestamp,
-            end_date=end_timestamp,
+            date_range=valid_date_range,
             selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,

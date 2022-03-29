@@ -7,10 +7,11 @@ import { isUndefined } from 'lodash'
 import { FireCentre } from 'api/hfiCalcAPI'
 import AboutDataModal from 'features/hfiCalculator/components/AboutDataModal'
 import { HelpOutlineOutlined } from '@material-ui/icons'
-import DatePicker from 'components/DatePicker'
 import { formControlStyles } from 'app/theme'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { DateRange } from 'components/dateRangePicker/types'
+import PrepDateRangeSelector from 'features/hfiCalculator/components/PrepDateRangeSelector'
 
 const useStyles = makeStyles(theme => ({
   ...formControlStyles,
@@ -39,29 +40,6 @@ const useStyles = makeStyles(theme => ({
     fontWeight: 'bold',
     justifyContent: 'flex-end'
   },
-  dateOfInterestPicker: {
-    marginLeft: 7,
-    '& .MuiOutlinedInput-input': {
-      color: 'white'
-    },
-    '& .MuiIconButton-root': {
-      color: 'white'
-    },
-    '& .MuiInputLabel-root': {
-      color: 'white'
-    },
-    '& .MuiOutlinedInput-root': {
-      '& fieldset': {
-        borderColor: 'white'
-      },
-      '&:hover fieldset': {
-        borderColor: 'white'
-      },
-      '&.Mui-focused fieldset': {
-        borderColor: 'white'
-      }
-    }
-  },
   aboutButtonGridItem: {
     marginLeft: 'auto',
     minWidth: 210,
@@ -75,8 +53,7 @@ const useStyles = makeStyles(theme => ({
 interface Props {
   padding?: string
   fireCentres: FireCentre[]
-  dateOfInterest: string
-  updateDate: (newDate: string) => void
+  setDateRange: (newDateRange: DateRange) => void
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
   selectNewFireCentre: (newSelection: FireCentre | undefined) => void
@@ -100,17 +77,6 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
         direction="row"
         className={classes.gridContainer}
       >
-        <Grid item md={3} lg={2}>
-          <FormControl
-            className={`${classes.dateOfInterestPicker} ${classes.minWidth210}`}
-          >
-            <DatePicker
-              date={props.dateOfInterest}
-              updateDate={props.updateDate}
-              size={'small'}
-            />
-          </FormControl>
-        </Grid>
         <Grid item md={3}>
           <FormControl className={classes.minWidth210}>
             <FireCentreDropdown
@@ -123,6 +89,12 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
               onChange={props.selectNewFireCentre}
             />
           </FormControl>
+        </Grid>
+        <Grid item md={3} lg={2}>
+          <PrepDateRangeSelector
+            dateRange={props.result ? props.result.date_range : undefined}
+            setDateRange={props.setDateRange}
+          />
         </Grid>
         <Grid item md={3}>
           <LastUpdatedHeader
