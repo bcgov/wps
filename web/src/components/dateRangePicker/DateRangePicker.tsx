@@ -97,6 +97,11 @@ const DateRangePicker: React.FunctionComponent<DateRangePickerProps> = (
     }
   }
 
+  const resetDateRange = () => {
+    setDateRange({})
+    setCurrentMaxDate(addYears(today, 10))
+  }
+
   // helpers
   const inHoverRange = (day: Date) =>
     (startDate &&
@@ -112,7 +117,8 @@ const DateRangePicker: React.FunctionComponent<DateRangePickerProps> = (
   const handlers = {
     onDayClick,
     onDayHover,
-    onMonthNavigate
+    onMonthNavigate,
+    resetDateRange
   }
 
   return open ? (

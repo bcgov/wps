@@ -1,5 +1,13 @@
 import React from 'react'
-import { Paper, Grid, Typography, Divider, makeStyles, Theme } from '@material-ui/core'
+import {
+  Paper,
+  Grid,
+  Typography,
+  Divider,
+  makeStyles,
+  Theme,
+  Button
+} from '@material-ui/core'
 import { format, differenceInCalendarMonths } from 'date-fns'
 import ArrowRightAlt from '@material-ui/icons/ArrowRightAlt'
 import { MARKERS } from 'components/dateRangePicker/DateRangePicker'
@@ -9,6 +17,9 @@ import Month from 'components/dateRangePicker/Month'
 const useStyles = makeStyles((theme: Theme) => ({
   header: {
     padding: '20px 70px'
+  },
+  footer: {
+    padding: '10px 10px'
   },
   headerItem: {
     flex: 1,
@@ -35,6 +46,7 @@ interface MenuProps {
     onDayClick: (day: Date) => void
     onDayHover: (day: Date) => void
     onMonthNavigate: (marker: symbol, action: NavigationAction) => void
+    resetDateRange: () => void
   }
 }
 
@@ -101,6 +113,15 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
           </Grid>
         </Grid>
         <div className={classes.divider} />
+      </Grid>
+      <Grid justify="space-between" container className={classes.footer}>
+        <Grid item></Grid>
+
+        <Grid item>
+          <Button variant="outlined" onClick={handlers.resetDateRange}>
+            Reset
+          </Button>
+        </Grid>
       </Grid>
     </Paper>
   )
