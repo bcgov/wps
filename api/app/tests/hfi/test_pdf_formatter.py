@@ -22,13 +22,14 @@ from app.schemas.hfi_calc import (DailyResult,
                                   StationPDFData,
                                   WeatherStation,
                                   WeatherStationProperties,
-                                  lowest_fire_starts)
+                                  FireStartRange)
 from app.schemas.hfi_calc import HFIResultResponse
 from app.schemas.shared import FuelType
 
 test_hfi_result = os.path.join(os.path.dirname(__file__), 'test_hfi_result.json')
 test_fcs = os.path.join(os.path.dirname(__file__), 'test_fire_centres.json')
 jinja_env = Environment(loader=FunctionLoader(get_template), autoescape=True)
+lowest_fire_starts = (FireStartRange(id=1, label='0-1', ))
 
 
 def test_get_sorted_dates_all_unique():
@@ -87,7 +88,7 @@ def test_get_fire_start_labels():
     with open(test_hfi_result, 'r') as hfi_result:
         result_json = json.load(hfi_result)
         result = HFIResultResponse(**result_json)
-        fire_labels = get_fire_start_labels(result, result.planning_area_hfi_results[0])
+        fire_labels = get_fire_start_labels(result.planning_area_hfi_results[0].daily_results)
         assert fire_labels == ['0-1', '0-1', '0-1']
 
 

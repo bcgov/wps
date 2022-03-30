@@ -22,7 +22,7 @@ import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
 import {
-  FireStarts,
+  FireStartRange,
   PlanningAreaResult,
   PrepDateRange
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -33,7 +33,11 @@ export interface Props {
   testId?: string
   dateRange?: PrepDateRange
   setSelected: (selected: number[]) => void
-  setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
+  setNewFireStarts: (
+    areaId: number,
+    dayOffset: number,
+    newFireStarts: FireStartRange
+  ) => void
 }
 
 export const columnLabelsForEachDayInWeek: string[] = [
@@ -242,6 +246,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         setNewFireStarts={props.setNewFireStarts}
                         planningAreaClass={classes.planningArea}
                         numPrepDays={numPrepDays}
+                        fireStartRanges={result ? result.fire_start_ranges : []}
                       />
                     </TableRow>
                     {sortBy(

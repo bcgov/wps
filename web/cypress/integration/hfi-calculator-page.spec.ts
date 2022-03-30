@@ -1,20 +1,37 @@
 import { HFI_CALC_ROUTE } from '../../src/utils/constants'
 
-function interceptLoad(fixturePath?: string) {
-  if (!fixturePath) {
-    cy.intercept('POST', 'api/hfi-calc/load', {
+function interceptDaily(fixturePath: string) {
+  // Inject an appropriate date into our mock data.
+  cy.readFile(fixturePath).then(hfiRequest => {
+    cy.intercept('POST', 'api/hfi-calc/', req => {
+      hfiRequest['selected_prep_date'] = '2021-08-02'
+      hfiRequest['start_date'] = '2021-08-02'
+      hfiRequest['end_date'] = '2021-08-06'
+      req.reply(hfiRequest)
+    }).as('getHFIResults')
+  })
+}
+
+function interceptLoad(fixturePath: string) {
+  cy.intercept('GET', 'api/hfi-calc/fire_centre/*', {
+    fixture: fixturePath
+  }).as('loadHFIResults')
+}
+
+function interceptSetFireStarts() {
+  cy.intercept(
+    'POST',
+    'api/hfi-calc/fire_centre/1/2021-08-02/planning_area/70/fire_starts/2021-08-02/fire_start_range/4',
+    {
       fixture: 'hfi-calc/dailies-saved.json'
-    }).as('loadHFIResults')
-  } else {
-    cy.readFile(fixturePath).then(hfiRequest => {
-      cy.intercept('POST', 'api/hfi-calc/load', req => {
-        hfiRequest['selected_prep_date'] = '2021-08-02'
-        hfiRequest['start_date'] = '2021-08-02'
-        hfiRequest['end_date'] = '2021-08-06'
-        req.reply(hfiRequest)
-      }).as('loadHFIResults')
-    })
-  }
+    }
+  ).as('setFireStarts')
+}
+
+function interceptDownload() {
+  cy.intercept('POST', 'api/hfi-calc/download-pdf', {
+    fixture: 'hfi-calc/dailies-saved.json'
+  }).as('downloadPDF')
 }
 
 describe('HFI Calculator Page', () => {
@@ -26,45 +43,43 @@ describe('HFI Calculator Page', () => {
   })
   describe('prep period - saved', () => {
     beforeEach(() => {
-      interceptLoad()
+      interceptLoad('hfi-calc/dailies-saved.json')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
       cy.visit(HFI_CALC_ROUTE)
-      cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@getFireCentres')
+      cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
     })
     it('save button should be disable', () => {
       // cypress/fixtures/hfi-calc/dailies-saved.json has "request_persist_success": true, save button should be looking at that.
       cy.getByTestId('save-button').should('be.disabled')
     })
-    it('fire start dropdown triggers hfi request', () => {
-      // Selecting a new fire start, should result in a new request to the server, that comes back with "request_persist_success": false, or
-      // no request_save, which should cause the save button to become enabled.
-      // interceptLoad('cypress/fixtures/hfi-calc/dailies.json')
-      cy.intercept('POST', 'api/hfi-calc/', {
-        fixture: 'hfi-calc/dailies.json'
-      }).as('changedFireStarts')
+    it('should send a new request to the server, that persists the change and sets the save button to disabled, when selecting a new fire start', () => {
+      // Selecting a new fire start, should result in a new request to the server, that comes back with "request_persist_success": true, or
+      // which should cause the save button to become disabled.
+      interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
+      interceptSetFireStarts()
       cy.getByTestId('fire-starts-dropdown')
         .first()
         .find('input')
         .type('{downarrow}')
         .type('{downarrow}')
         .type('{enter}')
-      cy.wait('@changedFireStarts')
-      cy.getByTestId('save-button').should('be.enabled')
+      cy.wait('@setFireStarts')
+      cy.getByTestId('save-button').should('be.disabled')
     })
   })
   describe('all data exists', () => {
     beforeEach(() => {
-      interceptLoad()
+      interceptLoad('hfi-calc/dailies.json')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
       cy.visit(HFI_CALC_ROUTE)
-      cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@getFireCentres')
+      cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
       cy.getByTestId('daily-toggle-0').click({ force: true })
     })
@@ -83,27 +98,32 @@ describe('HFI Calculator Page', () => {
     })
 
     it('should display weather results, intensity groups, & prep levels in Daily View Table', () => {
-      cy.getByTestId('239-hfi').contains(2655.5)
-      cy.getByTestId('280-ros').contains(1.7)
-      cy.getByTestId('239-1-hr-size').contains(0.5)
+      cy.getByTestId('239-hfi').contains(25.8)
+      cy.getByTestId('239-ros').contains(0.0)
+      cy.getByTestId('239-1-hr-size').contains(0.0)
       cy.getByTestId('239-fire-type').contains('SUR')
-      cy.getByTestId('280-fire-type').contains('IC')
-      cy.getByTestId('280-intensity-group').contains(3)
-      cy.getByTestId('zone-1-mean-intensity').contains(2.4)
-      cy.getByTestId('daily-prep-level-1').contains(1)
-      cy.getByTestId('daily-prep-level-1').should($td => {
+      cy.getByTestId('239-intensity-group').contains(1)
+      cy.getByTestId('zone-70-mean-intensity').contains(1)
+      cy.getByTestId('daily-prep-level-70').contains(1)
+      cy.getByTestId('daily-prep-level-70').should($td => {
         const className = $td[0].className
         expect(className).to.match(/makeStyles-prepLevel1-/)
       })
-      cy.getByTestId('daily-prep-level-2').contains(3)
-      cy.getByTestId('daily-prep-level-2').should($td => {
+      cy.getByTestId('daily-prep-level-71').contains(3)
+      cy.getByTestId('daily-prep-level-71').should($td => {
         expect($td[0].className).to.match(/makeStyles-prepLevel3-/)
       })
+    })
+
+    it('download should hit pdf download url', () => {
+      interceptDownload()
+      cy.getByTestId('download-pdf-button').click({ force: true })
+      cy.wait('@downloadPDF')
     })
   })
   describe('dailies data are missing', () => {
     beforeEach(() => {
-      interceptLoad('cypress/fixtures/hfi-calc/dailies-missing.json')
+      interceptLoad('hfi-calc/dailies-missing.json')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-grass.json'
       }).as('getFireCentres')
@@ -118,12 +138,12 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('306-hfi').should('have.value', '')
       cy.getByTestId('306-1-hr-size').should('have.value', '')
       cy.getByTestId('306-intensity-group').should('have.value', '')
-      cy.getByTestId('zone-1-mig-error').scrollIntoView().should('be.visible')
+      cy.getByTestId('zone-74-mig-error').scrollIntoView().should('be.visible')
     })
   })
   describe('high intensity', () => {
     beforeEach(() => {
-      interceptLoad('cypress/fixtures/hfi-calc/dailies-high-intensity.json')
+      interceptLoad('hfi-calc/dailies-high-intensity.json')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-minimal.json'
       }).as('getFireCentres')
@@ -135,7 +155,7 @@ describe('HFI Calculator Page', () => {
     })
     it('should show highest intensity values for mean intensity group in Daily View Table', () => {
       cy.getByTestId('306-intensity-group').contains(5)
-      cy.getByTestId('zone-1-mean-intensity').contains(5)
+      cy.getByTestId('zone-74-mean-intensity').contains(5)
     })
   })
 })

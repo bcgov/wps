@@ -1,13 +1,13 @@
 import { render, fireEvent, within, waitFor } from '@testing-library/react'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
-import {
-  highestFireStarts,
-  lowestFireStarts
-} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import React from 'react'
 describe('FireStartsDropdown', () => {
   const testAreaId = 1
   const dayOffset = 0
+  const lowestFireStarts = { id: 1, label: '1' }
+  const highestFireStarts = { id: 2, label: '2' }
+  const fireStartRanges = [lowestFireStarts, highestFireStarts]
+
   it('should render with the default value', async () => {
     const setFireStartsMock = jest.fn()
     const { getByTestId } = render(
@@ -16,6 +16,7 @@ describe('FireStartsDropdown', () => {
         areaId={testAreaId}
         dayOffset={dayOffset}
         setFireStarts={setFireStartsMock}
+        fireStartRanges={fireStartRanges}
       />
     )
     const autocomplete = getByTestId('fire-starts-dropdown')
@@ -32,6 +33,7 @@ describe('FireStartsDropdown', () => {
         areaId={testAreaId}
         dayOffset={dayOffset}
         setFireStarts={setFireStartsMock}
+        fireStartRanges={fireStartRanges}
       />
     )
     const autocomplete = getByTestId('fire-starts-dropdown')
@@ -39,11 +41,11 @@ describe('FireStartsDropdown', () => {
 
     autocomplete.focus()
     // assign value to input field
-    fireEvent.change(input, { target: { value: '6+' } })
+    fireEvent.change(input, { target: { value: '2' } })
     fireEvent.keyDown(autocomplete, { key: 'ArrowDown' })
     fireEvent.keyDown(autocomplete, { key: 'Enter' })
 
-    await waitFor(() => expect(input.value).toBe('6+'))
+    await waitFor(() => expect(input.value).toBe('2'))
     await waitFor(() => expect(setFireStartsMock).toBeCalledTimes(1))
     await waitFor(() =>
       expect(setFireStartsMock).toBeCalledWith(testAreaId, dayOffset, highestFireStarts)
