@@ -28,6 +28,12 @@ function interceptSetFireStarts() {
   ).as('setFireStarts')
 }
 
+function interceptDownload() {
+  cy.intercept('POST', 'api/hfi-calc/download-pdf', {
+    fixture: 'hfi-calc/dailies-saved.json'
+  }).as('downloadPDF')
+}
+
 describe('HFI Calculator Page', () => {
   describe('first visit - no selected fire centre', () => {
     it('should show the select fire centre instructions', () => {
@@ -45,6 +51,11 @@ describe('HFI Calculator Page', () => {
       cy.wait('@getFireCentres')
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
+    })
+    it('download should hit pdf download url', () => {
+      interceptDownload()
+      cy.getByTestId('download-pdf-button').click({ force: true })
+      cy.wait('@downloadPDF')
     })
     it('save button should be disable', () => {
       // cypress/fixtures/hfi-calc/dailies-saved.json has "request_persist_success": true, save button should be looking at that.
