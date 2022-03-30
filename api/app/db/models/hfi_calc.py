@@ -7,6 +7,9 @@ from app.db.database import Base
 from app.db.models.common import TZTimeStamp
 
 
+FIRE_CENTRES_ID = 'fire_centres.id'
+
+
 class FireCentre(Base):
     """ BC Wildfire Service Fire Centre """
     __tablename__ = 'fire_centres'
@@ -29,7 +32,7 @@ class PlanningArea(Base):
     id = Column(Integer, Sequence('planning_areas_id_seq'),
                 primary_key=True, nullable=False, index=True)
     name = Column(String, nullable=False, index=True)
-    fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
+    fire_centre_id = Column(Integer, ForeignKey(FIRE_CENTRES_ID), nullable=False, index=True)
     order_of_appearance_in_list = Column(Integer, nullable=False)
 
     def __str__(self):
@@ -81,7 +84,7 @@ class PlanningWeatherStation(Base):
 
 
 class HFIRequest(Base):
-    """ """
+    """ HFI Request Record """
     __tablename__ = 'hfi_request'
     __table_args__ = (
         UniqueConstraint('fire_centre_id', 'prep_start_day', 'prep_end_day', 'create_timestamp',
@@ -89,7 +92,7 @@ class HFIRequest(Base):
         {'comment': 'Identifies the unique code used to identify the station'}
     )
     id = Column(Integer, primary_key=True)
-    fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
+    fire_centre_id = Column(Integer, ForeignKey(FIRE_CENTRES_ID), nullable=False, index=True)
     # We use prep start and end date to load a planning area.
     prep_start_day = Column(Date, nullable=False, index=True)
     prep_end_day = Column(Date, nullable=False, index=True)
@@ -99,3 +102,48 @@ class HFIRequest(Base):
     create_user = Column(String, nullable=False)
     # NOTE: If the structure of the request changes, the stored request may not longer remain compatible.
     request = Column(JSON)
+
+
+class FireStartRange(Base):
+    """ A range of fire starts, described by a label. E.g. "3-5" or "15+"
+    The range need not be stored in terms of "start" and "end" - a label is sufficient, as the lower
+    and upper bound aren't used in calculations.
+
+    The fire start range is associated with a fire centre, and a mean intensity -> prep level lookup.
+    """
+    __tablename__ = 'hfi_fire_start_range'
+    __table_args__ = (
+        {'comment': 'Fire start range'}
+    )
+    id = Column(Integer, primary_key=True)
+    label = Column(String, nullable=False)
+
+
+class FireStartLookup(Base):
+    """ Map mean intensity group to prep level for a fire start range.
+
+    Given a fire start range, the mean intensity group can be used to find the prep level.
+    """
+    __tablename__ = 'hfi_fire_start_lookup'
+    __table_args__ = (
+        {'comment': 'Fire start mean intensity group prep level lookup'}
+    )
+    id = Column(Integer, primary_key=True)
+    fire_start_range_id = Column(Integer, ForeignKey('hfi_fire_start_range.id'), nullable=False, index=True)
+    mean_intensity_group = Column(Integer, nullable=False)
+    prep_level = Column(Integer, nullable=False)
+
+
+class FireCentreFireStartRange(Base):
+    """ Associate a fire centre with n fire start ranges, in some sort order.
+    """
+    __tablename__ = 'hfi_fire_centre_fire_start_range'
+    __table_args__ = (
+        UniqueConstraint('fire_start_range_id', 'fire_centre_id',
+                         name='unique_fire_start_range_for_fire_centre'),
+        {'comment': 'Link table for fire centre fire start ranges'}
+    )
+    id = Column(Integer, primary_key=True)
+    fire_start_range_id = Column(Integer, ForeignKey('hfi_fire_start_range.id'), nullable=False, index=True)
+    fire_centre_id = Column(Integer, ForeignKey(FIRE_CENTRES_ID), nullable=False, index=True)
+    order = Column(Integer, nullable=False)

@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react'
+import { DateTime } from 'luxon'
 import { Container, ErrorBoundary, GeneralHeader } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
-  FireStarts,
+  FireStartRange,
+  PlanningAreaResult,
   setSelectedFireCentre,
   fetchHFIResult,
-  fetchLoadHFIResult,
+  fetchLoadDefaultHFIResult,
+  fetchSetNewFireStarts,
   setSaved,
   fetchPDFDownload
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -28,11 +31,25 @@ import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherT
 import { formControlStyles, theme } from 'app/theme'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
-import { cloneDeep, isNull, isUndefined } from 'lodash'
+import { isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DateRange } from 'components/dateRangePicker/types'
+
+function constructPlanningAreaFireStarts(
+  planning_area_hfi_results: PlanningAreaResult[]
+) {
+  // TODO: delete this function when it's redundant!
+  const fireStarts = {} as { [key: number]: FireStartRange[] }
+  planning_area_hfi_results.forEach(planningAreaResult => {
+    fireStarts[planningAreaResult.planning_area_id] = []
+    planningAreaResult.daily_results.forEach(dailyResult => {
+      fireStarts[planningAreaResult.planning_area_id].push(dailyResult.fire_starts)
+    })
+  })
+  return fireStarts
+}
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -84,7 +101,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchHFIResult({
           selected_station_code_ids: newSelected,
           selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: result.planning_area_fire_starts,
+          planning_area_fire_starts: constructPlanningAreaFireStarts(
+            result.planning_area_hfi_results
+          ),
           date_range: result.date_range
         })
       )
@@ -94,19 +113,22 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const setNewFireStarts = (
     areaId: number,
     dayOffset: number,
-    newFireStarts: FireStarts
+    newFireStarts: FireStartRange
   ) => {
-    if (!isUndefined(result)) {
-      const newPlanningAreaFireStarts = cloneDeep(result.planning_area_fire_starts)
-      newPlanningAreaFireStarts[areaId][dayOffset] = { ...newFireStarts }
+    if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
       dispatch(setSaved(false))
       dispatch(
-        fetchHFIResult({
-          selected_station_code_ids: result.selected_station_code_ids,
-          selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: newPlanningAreaFireStarts,
-          date_range: result.date_range
-        })
+        fetchSetNewFireStarts(
+          result.selected_fire_center_id,
+          result.date_range.start_date,
+          areaId,
+          DateTime.fromISO(result.date_range.start_date + 'T00:00+00:00', {
+            setZone: true
+          })
+            .plus({ days: dayOffset })
+            .toISODate(),
+          newFireStarts.id
+        )
       )
     }
   }
@@ -121,7 +143,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: result.planning_area_fire_starts,
+          planning_area_fire_starts: constructPlanningAreaFireStarts(
+            result.planning_area_hfi_results
+          ),
           date_range: {
             start_date: newDateRange.startDate?.toISOString().split('T')[0],
             end_date: newDateRange.endDate?.toISOString().split('T')[0]
@@ -158,7 +182,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
     if (!isUndefined(selectedFireCentre)) {
-      dispatch(fetchLoadHFIResult({ selected_fire_center_id: selectedFireCentre.id }))
+      dispatch(fetchLoadDefaultHFIResult(selectedFireCentre.id))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre])
@@ -180,7 +204,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchHFIResult({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: result.planning_area_fire_starts,
+          planning_area_fire_starts: constructPlanningAreaFireStarts(
+            result.planning_area_hfi_results
+          ),
           date_range: result.date_range,
           persist_request: true
         })
@@ -194,7 +220,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchPDFDownload({
           selected_station_code_ids: result.selected_station_code_ids,
           selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: result.planning_area_fire_starts,
+          planning_area_fire_starts: constructPlanningAreaFireStarts(
+            result.planning_area_hfi_results
+          ),
           date_range: result.date_range
         })
       )
