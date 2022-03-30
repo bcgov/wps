@@ -62,17 +62,7 @@ class FireStartRange(BaseModel):
     User facing label, value and lookup table of fire starts to prep level
     """
     label: str
-    value: int
-    lookup_table: Mapping[int, int]
-
-
-lowest_fire_starts = FireStartRange(label='0-1', value=1, lookup_table={1: 1, 2: 1, 3: 2, 4: 3, 5: 4})
-one_2_two_starts = FireStartRange(label='1-2', value=2, lookup_table={1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
-two_2_three_starts = FireStartRange(label='2-3', value=3, lookup_table={1: 2, 2: 3, 3: 4, 4: 5, 5: 6})
-three_2_six_starts = FireStartRange(label='3-6', value=6, lookup_table={1: 3, 2: 4, 3: 5, 4: 6, 5: 6})
-highest_fire_starts = FireStartRange(label='6+', value=7, lookup_table={1: 4, 2: 5, 3: 6, 4: 6, 5: 6})
-all_ranges = [lowest_fire_starts, one_2_two_starts,
-              two_2_three_starts, three_2_six_starts, highest_fire_starts]
+    id: int
 
 
 class DailyResult(BaseModel):
@@ -149,12 +139,12 @@ class DateRange(BaseModel):
     start_date: Optional[date]
     end_date: Optional[date]
 
-
-class HFILoadResultRequest(BaseModel):
-    """ Request to load the HFI Calculator. """
-    start_date: Optional[date]
-    end_date: Optional[date]
-    selected_fire_center_id: int
+    def days_in_range(self) -> Optional[int]:
+        """ Calculate the number of days (inclusive) in the date range. """
+        if self.start_date and self.end_date:
+            # num prep days is inclusive, so we need to add 1
+            return (self.end_date - self.start_date).days + 1
+        return None
 
 
 class HFIResultRequest(BaseModel):
@@ -166,14 +156,16 @@ class HFIResultRequest(BaseModel):
     a ISO date string in PST, then grab the YYYY-MM-DD part.
     The PST part is critical, so that the date doesn't change due to timezone switches.
     """
+    # TODO: Change all fields to required!
+    selected_fire_center_id: int
     date_range: Optional[DateRange]
     # TODO: Remove when fuel type config implemented
     selected_station_code_ids: List[int]
     # Each planning area has a list of stations
     planning_area_station_info: Optional[Mapping[int, List[StationInfo]]]
-    selected_fire_center_id: int
     # Mapping from planning area id to a map of FireStartRanges.
     planning_area_fire_starts: Mapping[int, List[FireStartRange]]
+    # TODO: Remove - since we're going to get rid of the save button.
     persist_request: Optional[bool]  # Indicate whether to save the request to the database.
 
 
@@ -188,10 +180,12 @@ class HFIResultResponse(BaseModel):
     planning_area_station_info: Optional[Mapping[int, List[StationInfo]]]
     selected_fire_center_id: int
     planning_area_hfi_results: List[PlanningAreaResult]
-    # Mapping from planning area id to a map of FireStartRanges
-    planning_area_fire_starts: Mapping[int, List[FireStartRange]]
     # Indicate whether the request used to generate this response  was saved to the database.
     request_persist_success: bool
+    # Each planning area may have it's own custom fire starts information - so we include it in
+    # the response for convenience. (We could require the front end to make a seperate call to load
+    # fire start ranges for a fire centre, instead of sending it up on every response.)
+    fire_start_ranges: List[FireStartRange]
 
 
 class StationPDFData(StationDaily, WeatherStation):
