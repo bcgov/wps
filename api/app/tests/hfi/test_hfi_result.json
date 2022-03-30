@@ -1,48 +1,173 @@
 {
-  "date_range": { "start_date": "2021-08-02", "end_date": "2021-08-04" },
+  "date_range": {
+    "start_date": "2021-08-02",
+    "end_date": "2021-08-04"
+  },
   "selected_station_code_ids": [
-    1283, 904, 19, 21, 292, 37, 934, 165, 45, 1083, 59, 317, 1339, 316, 1218,
-    1093, 75, 82, 83, 1016, 93, 1375, 1383, 233, 1144
+    37,
+    59,
+    1383,
+    19,
+    1093,
+    21,
+    904,
+    233,
+    934,
+    45,
+    317,
+    1339,
+    1144,
+    93,
+    316,
+    1283,
+    292,
+    1375,
+    1083,
+    83,
+    1218,
+    82,
+    1016,
+    75
   ],
   "planning_area_station_info": {
     "36": [
-      { "station_code": 317, "selected": true, "fuel_type_id": 22 },
-      { "station_code": 1339, "selected": true, "fuel_type_id": 26 },
-      { "station_code": 316, "selected": true, "fuel_type_id": 24 },
-      { "station_code": 1144, "selected": true, "fuel_type_id": 24 },
-      { "station_code": 93, "selected": true, "fuel_type_id": 24 }
+      {
+        "station_code": 317,
+        "selected": true,
+        "fuel_type_id": 22
+      },
+      {
+        "station_code": 1339,
+        "selected": true,
+        "fuel_type_id": 26
+      },
+      {
+        "station_code": 316,
+        "selected": true,
+        "fuel_type_id": 24
+      },
+      {
+        "station_code": 1144,
+        "selected": true,
+        "fuel_type_id": 24
+      },
+      {
+        "station_code": 93,
+        "selected": true,
+        "fuel_type_id": 24
+      }
     ],
     "37": [
-      { "station_code": 292, "selected": true, "fuel_type_id": 26 },
-      { "station_code": 1283, "selected": true, "fuel_type_id": 24 },
-      { "station_code": 1375, "selected": true, "fuel_type_id": 34 },
-      { "station_code": 1083, "selected": true, "fuel_type_id": 24 },
-      { "station_code": 83, "selected": true, "fuel_type_id": 24 }
+      {
+        "station_code": 292,
+        "selected": true,
+        "fuel_type_id": 26
+      },
+      {
+        "station_code": 1283,
+        "selected": true,
+        "fuel_type_id": 24
+      },
+      {
+        "station_code": 1375,
+        "selected": true,
+        "fuel_type_id": 34
+      },
+      {
+        "station_code": 1083,
+        "selected": true,
+        "fuel_type_id": 24
+      },
+      {
+        "station_code": 83,
+        "selected": true,
+        "fuel_type_id": 24
+      }
     ],
     "38": [
-      { "station_code": 1016, "selected": true, "fuel_type_id": 24 },
-      { "station_code": 1218, "selected": true, "fuel_type_id": 24 },
-      { "station_code": 75, "selected": true, "fuel_type_id": 24 },
-      { "station_code": 82, "selected": true, "fuel_type_id": 24 }
+      {
+        "station_code": 1016,
+        "selected": true,
+        "fuel_type_id": 24
+      },
+      {
+        "station_code": 1218,
+        "selected": true,
+        "fuel_type_id": 24
+      },
+      {
+        "station_code": 75,
+        "selected": true,
+        "fuel_type_id": 24
+      },
+      {
+        "station_code": 82,
+        "selected": true,
+        "fuel_type_id": 24
+      }
     ],
     "39": [
-      { "station_code": 45, "selected": true, "fuel_type_id": 26 },
-      { "station_code": 934, "selected": true, "fuel_type_id": 24 }
+      {
+        "station_code": 45,
+        "selected": true,
+        "fuel_type_id": 26
+      },
+      {
+        "station_code": 934,
+        "selected": true,
+        "fuel_type_id": 24
+      }
     ],
     "40": [
-      { "station_code": 59, "selected": true, "fuel_type_id": 34 },
-      { "station_code": 37, "selected": true, "fuel_type_id": 24 },
-      { "station_code": 1383, "selected": true, "fuel_type_id": 26 }
+      {
+        "station_code": 59,
+        "selected": true,
+        "fuel_type_id": 34
+      },
+      {
+        "station_code": 37,
+        "selected": true,
+        "fuel_type_id": 24
+      },
+      {
+        "station_code": 1383,
+        "selected": true,
+        "fuel_type_id": 26
+      }
     ],
     "41": [
-      { "station_code": 1093, "selected": true, "fuel_type_id": 24 },
-      { "station_code": 19, "selected": true, "fuel_type_id": 34 },
-      { "station_code": 21, "selected": true, "fuel_type_id": 24 }
+      {
+        "station_code": 1093,
+        "selected": true,
+        "fuel_type_id": 24
+      },
+      {
+        "station_code": 19,
+        "selected": true,
+        "fuel_type_id": 34
+      },
+      {
+        "station_code": 21,
+        "selected": true,
+        "fuel_type_id": 24
+      }
     ],
     "42": [
-      { "station_code": 904, "selected": true, "fuel_type_id": 24 },
-      { "station_code": 233, "selected": true, "fuel_type_id": 22 },
-      { "station_code": 165, "selected": true, "fuel_type_id": 22 }
+      {
+        "station_code": 904,
+        "selected": true,
+        "fuel_type_id": 24
+      },
+      {
+        "station_code": 233,
+        "selected": true,
+        "fuel_type_id": 22
+      },
+      {
+        "station_code": 165,
+        "selected": true,
+        "fuel_type_id": 22
+      }
     ]
   },
   "selected_fire_center_id": 2,
@@ -214,8 +339,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 1.0,
           "prep_level": 1.0
@@ -381,8 +505,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -548,8 +671,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -692,8 +814,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -828,8 +949,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 5.0,
           "prep_level": 4.0
@@ -964,8 +1084,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 5.0,
           "prep_level": 4.0
@@ -1077,8 +1196,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -1182,8 +1300,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -1287,8 +1404,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 4.0,
           "prep_level": 3.0
@@ -1369,8 +1485,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -1443,8 +1558,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -1517,8 +1631,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -1630,8 +1743,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -1735,8 +1847,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -1840,8 +1951,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -1953,8 +2063,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -2058,8 +2167,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -2163,8 +2271,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -2276,8 +2383,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -2381,8 +2487,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 2.0,
           "prep_level": 1.0
@@ -2486,8 +2591,7 @@
           ],
           "fire_starts": {
             "label": "0-1",
-            "value": 1,
-            "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
+            "id": 1
           },
           "mean_intensity_group": 3.0,
           "prep_level": 2.0
@@ -2495,126 +2599,27 @@
       ]
     }
   ],
-  "planning_area_fire_starts": {
-    "36": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "37": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "38": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "39": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "40": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "41": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ],
-    "42": [
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      },
-      {
-        "label": "0-1",
-        "value": 1,
-        "lookup_table": { "1": 1, "2": 1, "3": 2, "4": 3, "5": 4 }
-      }
-    ]
-  },
-  "request_persist_success": true
+  "fire_start_ranges": [
+    {
+      "label": "0-1",
+      "id": 1
+    },
+    {
+      "label": "1-2",
+      "id": 2
+    },
+    {
+      "label": "2-3",
+      "id": 3
+    },
+    {
+      "label": "3-6",
+      "id": 4
+    },
+    {
+      "label": "6+",
+      "id": 5
+    }
+  ],
+  "request_persist_success": false
 }

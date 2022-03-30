@@ -210,5 +210,4 @@ def then_response(response, response_json: dict):
         # actual_filename = get_complete_filename(__file__, 'actual.json')
         # with open(actual_filename, 'w', encoding="utf-8") as file_pointer:
         #     json.dump(actual, file_pointer, indent=2)
-        #     # file_pointer.write(json.dumps(actual, indent=2))
         assert response['response'].json() == response_json, response['filename']
