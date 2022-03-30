@@ -12,7 +12,7 @@ function interceptDaily(fixturePath: string) {
   })
 }
 
-function interceptLoad(fixturePath = 'hfi-calc/dailies-saved.json') {
+function interceptLoad(fixturePath: string) {
   cy.intercept('GET', 'api/hfi-calc/fire_centre/*', {
     fixture: fixturePath
   }).as('loadHFIResults')
@@ -43,7 +43,7 @@ describe('HFI Calculator Page', () => {
   })
   describe('prep period - saved', () => {
     beforeEach(() => {
-      interceptLoad()
+      interceptLoad('hfi-calc/dailies-saved.json')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
@@ -51,11 +51,6 @@ describe('HFI Calculator Page', () => {
       cy.wait('@getFireCentres')
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
-    })
-    it('download should hit pdf download url', () => {
-      interceptDownload()
-      cy.getByTestId('download-pdf-button').click({ force: true })
-      cy.wait('@downloadPDF')
     })
     it('save button should be disable', () => {
       // cypress/fixtures/hfi-calc/dailies-saved.json has "request_persist_success": true, save button should be looking at that.
@@ -78,7 +73,7 @@ describe('HFI Calculator Page', () => {
   })
   describe('all data exists', () => {
     beforeEach(() => {
-      interceptLoad()
+      interceptLoad('hfi-calc/dailies.json')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
@@ -118,6 +113,12 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('daily-prep-level-71').should($td => {
         expect($td[0].className).to.match(/makeStyles-prepLevel3-/)
       })
+    })
+
+    it('download should hit pdf download url', () => {
+      interceptDownload()
+      cy.getByTestId('download-pdf-button').click({ force: true })
+      cy.wait('@downloadPDF')
     })
   })
   describe('dailies data are missing', () => {
