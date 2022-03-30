@@ -12,7 +12,7 @@ const DownloadPDFButton = (props: SaveButtonProps) => {
         variant="contained"
         color="primary"
         onClick={props.onClick}
-        data-testid={'save-button'}
+        data-testid={'download-pdf-button'}
       >
         Download PDF
       </Button>

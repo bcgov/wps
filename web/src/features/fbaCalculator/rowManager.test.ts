@@ -45,6 +45,7 @@ describe('RowManager', () => {
 
   const secondInputRow = {
     id: 1,
+    station_code: 2,
     weatherStation: { value: '209', label: 'ALEXIS CREEK' },
     fuelType: { value: 'c2', label: 'C2' },
     grassCure: 2,
@@ -95,7 +96,7 @@ describe('RowManager', () => {
 
   const emptyCalculatedRow: Partial<FBAStation> = {
     id: 2,
-    station_code: undefined,
+    station_code: 1,
     station_name: undefined,
     zone_code: undefined,
     elevation: undefined,

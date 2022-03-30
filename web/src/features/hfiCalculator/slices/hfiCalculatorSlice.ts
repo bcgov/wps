@@ -4,19 +4,23 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import {
   getHFIResult,
-  loadHFIResult,
+  loadDefaultHFIResult,
+  setNewFireStarts,
   getPDF,
   RawDaily,
   StationDaily
 } from 'api/hfiCalculatorAPI'
-import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
 
-export interface FireStarts {
+export interface FireStartRange {
   label: string
-  value: number
-  lookup_table: { [mig: number]: number }
+  id: number
+}
+
+export interface PrepDateRange {
+  start_date?: string
+  end_date?: string
 }
 
 export interface DailyResult {
@@ -24,7 +28,7 @@ export interface DailyResult {
   dailies: ValidatedStationDaily[]
   mean_intensity_group: number | undefined
   prep_level: number | undefined
-  fire_starts: FireStarts | undefined
+  fire_starts: FireStartRange
 }
 
 export interface RawDailyResult {
@@ -32,7 +36,7 @@ export interface RawDailyResult {
   dailies: RawValidatedStationDaily[]
   mean_intensity_group: number | undefined
   prep_level: number | undefined
-  fire_starts: FireStarts | undefined
+  fire_starts: FireStartRange
 }
 
 export interface PlanningAreaResult {
@@ -54,10 +58,9 @@ export interface RawPlanningAreaResult {
 export interface HFICalculatorState {
   loading: boolean
   error: string | null
-  numPrepDays: number
+  dateRange: PrepDateRange | undefined
   selectedPrepDate: string
-  startDate: string
-  planningAreaFireStarts: { [key: string]: FireStarts[] }
+  planningAreaFireStarts: { [key: string]: FireStartRange[] }
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
@@ -65,36 +68,34 @@ export interface HFICalculatorState {
 }
 
 export interface HFIResultResponse {
-  start_date: string
-  end_date: string
+  date_range: PrepDateRange
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: PlanningAreaResult[]
-  planning_area_fire_starts: { [key: number]: FireStarts[] }
   request_persist_success: boolean
+  fire_start_ranges: FireStartRange[]
 }
 
 export interface RawHFIResultResponse {
-  start_date: string
-  end_date: string
+  date_range: PrepDateRange
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: RawPlanningAreaResult[]
-  planning_area_fire_starts: { [key: number]: FireStarts[] }
   request_persist_success: boolean
+  fire_start_ranges: FireStartRange[]
 }
 
 export interface HFIResultRequest {
-  start_date?: string
-  end_date?: string
+  date_range?: PrepDateRange
   selected_station_code_ids: number[]
   selected_fire_center_id: number
-  planning_area_fire_starts: { [key: number]: FireStarts[] }
+  planning_area_fire_starts: { [key: number]: FireStartRange[] }
   persist_request?: boolean
 }
 
 export interface HFILoadResultRequest {
   start_date?: string
+  end_date?: string
   selected_fire_center_id: number
 }
 
@@ -108,47 +109,11 @@ export interface RawValidatedStationDaily {
   valid: boolean
 }
 
-// Encodes lookup tables for each fire starts range from workbook
-export const lowestFireStarts: FireStarts = {
-  label: '0-1',
-  value: 1,
-  lookup_table: { 1: 1, 2: 1, 3: 2, 4: 3, 5: 4 }
-}
-export const one2TwoStarts: FireStarts = {
-  label: '1-2',
-  value: 2,
-  lookup_table: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
-}
-export const two2ThreeStarts: FireStarts = {
-  label: '2-3',
-  value: 3,
-  lookup_table: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 }
-}
-export const three2SixStarts: FireStarts = {
-  label: '3-6',
-  value: 6,
-  lookup_table: { 1: 3, 2: 4, 3: 5, 4: 6, 5: 6 }
-}
-export const highestFireStarts: FireStarts = {
-  label: '6+',
-  value: 7,
-  lookup_table: { 1: 4, 2: 5, 3: 6, 4: 6, 5: 6 }
-}
-
-export const FIRE_STARTS_SET: FireStarts[] = [
-  lowestFireStarts,
-  one2TwoStarts,
-  two2ThreeStarts,
-  three2SixStarts,
-  highestFireStarts
-]
-
 const initialState: HFICalculatorState = {
   loading: false,
   error: null,
-  numPrepDays: NUM_WEEK_DAYS,
+  dateRange: { start_date: undefined, end_date: undefined },
   selectedPrepDate: '',
-  startDate: '',
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
   selectedFireCentre: undefined,
@@ -163,9 +128,6 @@ const dailiesSlice = createSlice({
     loadHFIResultStart(state: HFICalculatorState) {
       state.loading = true
     },
-    getHFIResultStart(state: HFICalculatorState) {
-      state.loading = true
-    },
     pdfDownloadStart(state: HFICalculatorState) {
       state.loading = true
     },
@@ -173,10 +135,6 @@ const dailiesSlice = createSlice({
       state.loading = false
     },
     getHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
-      state.error = action.payload
-      state.loading = false
-    },
-    loadHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
@@ -194,13 +152,9 @@ const dailiesSlice = createSlice({
       action: PayloadAction<HFIResultResponse | undefined>
     ) => {
       state.result = action.payload
+      state.dateRange = action.payload?.date_range
 
       if (action.payload) {
-        const start = DateTime.fromISO(action.payload.start_date)
-        const end = DateTime.fromISO(action.payload.end_date)
-        const diff = end.diff(start, ['days']).days
-        state.numPrepDays = diff > 0 ? diff : NUM_WEEK_DAYS
-        state.startDate = action.payload.start_date
         state.saved = action.payload.request_persist_success
       }
 
@@ -213,12 +167,10 @@ const dailiesSlice = createSlice({
 })
 
 export const {
-  getHFIResultStart,
   loadHFIResultStart,
   pdfDownloadStart,
   pdfDownloadEnd,
   getHFIResultFailed,
-  loadHFIResultFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
   setResult,
@@ -227,15 +179,40 @@ export const {
 
 export default dailiesSlice.reducer
 
-export const fetchLoadHFIResult =
-  (request: HFILoadResultRequest): AppThunk =>
+export const fetchLoadDefaultHFIResult =
+  (fire_center_id: number): AppThunk =>
   async dispatch => {
     try {
       dispatch(loadHFIResultStart())
-      const result = await loadHFIResult(request)
+      const result = await loadDefaultHFIResult(fire_center_id)
       dispatch(setResult(result))
     } catch (err) {
-      dispatch(loadHFIResultFailed((err as Error).toString()))
+      dispatch(getHFIResultFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
+export const fetchSetNewFireStarts =
+  (
+    fire_center_id: number,
+    start_date: string,
+    planning_area_id: number,
+    prep_day_date: string,
+    fire_start_range_id: number
+  ): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(loadHFIResultStart())
+      const result = await setNewFireStarts(
+        fire_center_id,
+        start_date,
+        planning_area_id,
+        prep_day_date,
+        fire_start_range_id
+      )
+      dispatch(setResult(result))
+    } catch (err) {
+      dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)
     }
   }
@@ -244,7 +221,7 @@ export const fetchHFIResult =
   (request: HFIResultRequest): AppThunk =>
   async dispatch => {
     try {
-      dispatch(getHFIResultStart())
+      dispatch(loadHFIResultStart())
       const result = await getHFIResult(request)
       dispatch(setResult(result))
     } catch (err) {

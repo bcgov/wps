@@ -31,7 +31,6 @@ import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import {
   DailyResult,
-  HFIResultResponse,
   PlanningAreaResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredDataCell'
@@ -40,7 +39,6 @@ import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentr
 
 export interface Props {
   fireCentre: FireCentre | undefined
-  result: HFIResultResponse
   setSelected: (selected: number[]) => void
   testId?: string
 }
@@ -79,14 +77,10 @@ const useStyles = makeStyles({
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const { numPrepDays, selectedPrepDate, result } = useSelector(selectHFICalculatorState)
+  const { selectedPrepDate, result } = useSelector(selectHFICalculatorState)
 
   const getDailyForDay = (stationCode: number): StationDaily | undefined => {
-    const dailiesForStation = getDailiesByStationCode(
-      numPrepDays,
-      props.result,
-      stationCode
-    )
+    const dailiesForStation = getDailiesByStationCode(result, stationCode)
     if (selectedPrepDate != '') {
       const selectedPrepDateObject = DateTime.fromISO(selectedPrepDate)
       return dailiesForStation.filter(daily => {

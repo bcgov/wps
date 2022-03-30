@@ -1,14 +1,12 @@
 import axios from 'api/axios'
 import {
   HFIResultRequest,
-  HFILoadResultRequest,
   HFIResultResponse,
   PlanningAreaResult,
   RawHFIResultResponse
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
 import 'qs'
-import { stringify } from 'querystring'
 import { formatISODateInPST } from 'utils/date'
 
 export interface StationDaily {
@@ -54,39 +52,37 @@ export interface StationDailyResponse {
 
 const baseUrl = '/hfi-calc/'
 
-export async function getDailies(
-  startTime: number,
-  endTime: number,
-  stationCodes: number[]
-): Promise<StationDaily[]> {
-  const { data } = await axios.get<StationDailyResponse>(baseUrl + 'daily', {
-    params: {
-      start_time_stamp: startTime,
-      end_time_stamp: endTime,
-      station_codes: stationCodes
-    },
-    // have to add a paramsSerializer to axios get request and stringify (using querystring library) the params in order
-    // for the stationCodes array to be formatted correctly, per
-    // https://stackoverflow.com/a/51444749
-    paramsSerializer: params => {
-      return stringify(params)
-    }
-  })
-
-  return data.dailies.map(daily => ({
-    ...daily,
-    date: DateTime.fromISO(daily.date),
-    last_updated: DateTime.fromISO(daily.last_updated)
-  }))
+export async function loadDefaultHFIResult(
+  fire_center_id: number
+): Promise<HFIResultResponse> {
+  const { data } = await axios.get<RawHFIResultResponse>(
+    baseUrl + 'fire_centre/' + fire_center_id
+  )
+  return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 
-export async function loadHFIResult(
-  request: HFILoadResultRequest
+export async function setNewFireStarts(
+  fire_center_id: number,
+  start_date: string,
+  planning_area_id: number,
+  prep_day_date: string,
+  fire_start_range_id: number
 ): Promise<HFIResultResponse> {
-  const { data } = await axios.post<RawHFIResultResponse>(baseUrl + 'load', {
-    ...request
-  })
+  // At the API boundary, we convert from our internal date structure to the API's date format
+  const url =
+    baseUrl +
+    'fire_centre/' +
+    fire_center_id +
+    '/' +
+    start_date +
+    '/planning_area/' +
+    planning_area_id +
+    '/fire_starts/' +
+    prep_day_date +
+    '/fire_start_range/' +
+    fire_start_range_id
 
+  const { data } = await axios.post<RawHFIResultResponse>(url)
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 

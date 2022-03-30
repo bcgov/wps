@@ -2,17 +2,22 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { DailyViewTable } from 'features/hfiCalculator/components/DailyViewTable'
 import WeeklyViewTable from 'features/hfiCalculator/components/WeeklyViewTable'
 import {
-  FireStarts,
-  HFIResultResponse
+  FireStartRange,
+  HFIResultResponse,
+  PrepDateRange
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import React from 'react'
 
 export interface ViewSwitcherProps {
   testId?: string
-  dateOfInterest: string
   result: HFIResultResponse
+  dateRange?: PrepDateRange
   setSelected: (selected: number[]) => void
-  setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
+  setNewFireStarts: (
+    areaId: number,
+    dayOffset: number,
+    newFireStarts: FireStartRange
+  ) => void
   selectedPrepDay: string
   selectedFireCentre: FireCentre | undefined
 }
@@ -24,8 +29,7 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
         <WeeklyViewTable
           testId="hfi-calc-weekly-table"
           fireCentre={props.selectedFireCentre}
-          result={props.result}
-          currentDay={props.dateOfInterest}
+          dateRange={props.dateRange}
           setSelected={props.setSelected}
           setNewFireStarts={props.setNewFireStarts}
         />
@@ -33,7 +37,6 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
         <DailyViewTable
           testId="hfi-calc-daily-table"
           fireCentre={props.selectedFireCentre}
-          result={props.result}
           setSelected={props.setSelected}
         ></DailyViewTable>
       )}

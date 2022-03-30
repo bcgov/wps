@@ -28,6 +28,8 @@ def _load_json_file(module_path: str, filename: str) -> Optional[dict]:
 
 def _load_json_file_with_name(module_path: str, filename: str) -> Tuple[Optional[dict], str]:
     """ Load json file given a module path and a filename """
+    if filename == 'None':  # Not the best solution...
+        return None, filename
     if filename:
         with open(get_complete_filename(module_path, filename), encoding="utf-8") as file_pointer:
             return json.load(file_pointer), filename

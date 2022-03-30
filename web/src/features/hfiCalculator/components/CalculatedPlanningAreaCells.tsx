@@ -6,7 +6,7 @@ import { range } from 'lodash'
 import React from 'react'
 import MeanPrepLevelCell from './MeanPrepLevelCell'
 import {
-  FireStarts,
+  FireStartRange,
   PlanningAreaResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
@@ -17,9 +17,14 @@ export interface CalculatedCellsProps {
   areaName: string
   planningAreaResult: PlanningAreaResult
   selectedStationCodes: number[]
-  setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
+  setNewFireStarts: (
+    areaId: number,
+    dayOffset: number,
+    newFireStarts: FireStartRange
+  ) => void
   planningAreaClass: string
   numPrepDays: number
+  fireStartRanges: FireStartRange[]
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
@@ -46,6 +51,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
             <TableCell>
               <FireStartsDropdown
                 fireStarts={fireStarts}
+                fireStartRanges={props.fireStartRanges}
                 areaId={props.planningAreaResult.planning_area_id}
                 dayOffset={day}
                 setFireStarts={props.setNewFireStarts}

@@ -4,40 +4,10 @@ from pytest_bdd import scenario, given, parsers
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
 import app.main
+from app.db.models.hfi_calc import PlanningWeatherStation, FuelType, FireCentre, PlanningArea
 from app.tests.common import default_mock_client_get
 from app.tests import load_json_file_with_name
-from app.db.models.hfi_calc import PlanningWeatherStation, FuelType, FireCentre, PlanningArea
-
-
-def mock_station_crud(monkeypatch):
-    code1 = 230
-    code2 = 239
-    all_station_codes = [{'station_code': code1}, {'station_code': code2}]
-
-    def mock_get_all_stations(__):
-        """ Returns mocked WFWXWeatherStations codes. """
-        return all_station_codes
-
-    def mock_get_fire_centre_stations(_, fire_centre_id: int):
-        """ Returns mocked WFWXWeatherStation with fuel types. """
-        def get_fuel_type_code_by_station_code(code: int):
-            if code == 230:
-                return 'C3'
-            return 'C7B'
-        result = []
-        for station_code, planning_area_id in [(230, 1), (239, 1), (230, 2)]:
-            planning_station = PlanningWeatherStation(
-                station_code=station_code, planning_area_id=planning_area_id)
-            fuel_type_code = get_fuel_type_code_by_station_code(station_code)
-            fuel_type = FuelType(id=1, abbrev=fuel_type_code, fuel_type_code=fuel_type_code,
-                                 description=fuel_type_code,
-                                 percentage_conifer=100, percentage_dead_fir=0)
-            result.append((planning_station, fuel_type))
-        return result
-
-    monkeypatch.setattr(app.utils.hfi_calculator, 'get_all_stations', mock_get_all_stations)
-    monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
-    monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
+from app.tests.hfi import mock_station_crud
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
@@ -47,10 +17,11 @@ def test_fire_behaviour_calculator_scenario_no_request_stored():
     pass
 
 
-@given(parsers.parse("I received a hfi-calc {url} {request_json}"),
+@given(parsers.parse("I received a hfi-calc {url} {request_json} with {verb}"),
        target_fixture='response',
        converters={'request_json': load_json_file_with_name(__file__), 'url': str})
-def given_request_none_stored(monkeypatch: pytest.MonkeyPatch, url: str, request_json: Tuple[dict, str]):
+def given_request_none_stored(
+        monkeypatch: pytest.MonkeyPatch, url: str, request_json: Tuple[dict, str], verb: str):
     """ Handle request
     """
     # mock anything that uses aiohttp.ClientSession::get
@@ -81,8 +52,12 @@ def given_request_none_stored(monkeypatch: pytest.MonkeyPatch, url: str, request
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
+    if verb == 'get':
+        response = client.get(url, headers=headers)
+    else:
+        response = client.post(url, headers=headers, json=request_json[0])
     return {
-        'response': client.post(url, headers=headers, json=request_json[0]),
+        'response': response,
         'filename': request_json[1]
     }
 

@@ -24,13 +24,12 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
     """
     prep_cycle_pdf_data: List[PrepTablePlanningAreaPDFData] = []
     for area_result in result.planning_area_hfi_results:
-
         area_dailies: List[StationDaily] = get_station_dailies(area_result)
         sorted_dates = get_sorted_dates(area_dailies)
         formatted_dates: List[str] = get_formatted_dates(sorted_dates)
         date_range: str = get_date_range_string(sorted_dates)
         station_pdf_data = get_station_pdf_data(area_dailies, station_dict)
-        fire_starts_labels = get_fire_start_labels(result, area_result)
+        fire_starts_labels = get_fire_start_labels(area_result.daily_results)
         mean_intensity_groups = get_mean_intensity_groups(area_result.daily_results)
         prep_levels = get_prep_levels(area_result.daily_results)
 
@@ -99,13 +98,11 @@ def get_date_range_string(dates: List[datetime]):
     return f'{dates[0].date().isoformat()} to {dates[-1].date().isoformat()}'
 
 
-def get_fire_start_labels(result: HFIResultResponse, area_result: PlanningAreaResult):
+def get_fire_start_labels(daily_results: List[DailyResult]):
     """
     Returns the fire start labels for each planning area on each date
     """
-    fire_starts = result.planning_area_fire_starts[area_result.planning_area_id]
-    labels = list(map(lambda fs: fs.label, fire_starts))
-    return labels
+    return list(map(lambda daily_result: daily_result.fire_starts.label, daily_results))
 
 
 def get_prep_levels(daily_results: List[DailyResult]):
@@ -171,18 +168,16 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
     Marshals HFI result into structure that jinja can easily
     iterate over for generating the daily PDF sheets
     """
-
     daily_pdf_data: List[DailyTablePlanningAreaPDFData] = []
     for area_result in result.planning_area_hfi_results:
-        fire_starts_range = result.planning_area_fire_starts[area_result.planning_area_id]
-        for idx, daily_result in enumerate(area_result.daily_results):
+        for daily_result in area_result.daily_results:
             dailies: List[StationDaily] = list(map(lambda x: x.daily, daily_result.dailies))
             station_daily_pdf_data: List[StationPDFData] = get_merged_station_data(station_dict, dailies)
             planning_area_name = planning_area_dict[area_result.planning_area_id].name
             daily_data = DailyTablePlanningAreaPDFData(planning_area_name=planning_area_name,
                                                        mean_intensity_group=daily_result.mean_intensity_group,
                                                        prep_level=daily_result.prep_level,
-                                                       fire_starts=fire_starts_range[idx].label,
+                                                       fire_starts=daily_result.fire_starts.label,
                                                        date=daily_result.date.isoformat(),
                                                        dailies=station_daily_pdf_data)
             daily_pdf_data.append(daily_data)

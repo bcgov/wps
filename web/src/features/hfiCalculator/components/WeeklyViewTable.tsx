@@ -13,25 +13,31 @@ import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { isEmpty, isUndefined, sortBy } from 'lodash'
-import { getDailiesByStationCode } from 'features/hfiCalculator/util'
+import {
+  calculateNumPrepDays,
+  getDailiesByStationCode
+} from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
 import {
-  FireStarts,
-  HFIResultResponse,
-  PlanningAreaResult
+  FireStartRange,
+  PlanningAreaResult,
+  PrepDateRange
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 
 export interface Props {
   fireCentre: FireCentre | undefined
   testId?: string
-  currentDay: string
-  result: HFIResultResponse
+  dateRange?: PrepDateRange
   setSelected: (selected: number[]) => void
-  setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStarts) => void
+  setNewFireStarts: (
+    areaId: number,
+    dayOffset: number,
+    newFireStarts: FireStartRange
+  ) => void
 }
 
 export const columnLabelsForEachDayInWeek: string[] = [
@@ -59,7 +65,7 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const { numPrepDays, result } = useSelector(selectHFICalculatorState)
+  const { result } = useSelector(selectHFICalculatorState)
 
   const stationCodeInSelected = (code: number) => {
     return result ? result.selected_station_code_ids.includes(code) : false
@@ -76,6 +82,8 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
     props.setSelected(Array.from(selectedSet))
   }
 
+  const numPrepDays = calculateNumPrepDays(props.dateRange)
+
   return (
     <FireTable
       maxHeight={700}
@@ -84,7 +92,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
     >
       <TableHead>
         <TableRow>
-          <DayHeaders isoDate={props.currentDay} numPrepDays={numPrepDays} />
+          <DayHeaders dateRange={props.dateRange} />
           <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>
@@ -238,6 +246,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         setNewFireStarts={props.setNewFireStarts}
                         planningAreaClass={classes.planningArea}
                         numPrepDays={numPrepDays}
+                        fireStartRanges={result ? result.fire_start_ranges : []}
                       />
                     </TableRow>
                     {sortBy(
@@ -245,8 +254,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                       station => station.order_of_appearance_in_planning_area_list
                     ).map(station => {
                       const dailiesForStation = getDailiesByStationCode(
-                        numPrepDays,
-                        props.result,
+                        result,
                         station.code
                       )
                       const isRowSelected = stationCodeInSelected(station.code)

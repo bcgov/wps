@@ -97,6 +97,7 @@ def mock_redis(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_get_now(monkeypatch):
     """ Patch all calls to app.util.time: get_utc_now and get_pst_now  """
+    # May 21, 2020
     timestamp = 1590076213962 / 1000
 
     # The default value for WeatherDataRequest cannot be mocked out, as it
@@ -111,8 +112,8 @@ def mock_get_now(monkeypatch):
     def mock_pst_now():
         return datetime.fromtimestamp(timestamp, tz=get_pst_tz())
 
-    monkeypatch.setattr(app.utils.time, 'get_utc_now', mock_utc_now)
-    monkeypatch.setattr(app.utils.time, 'get_pst_now', mock_pst_now)
+    monkeypatch.setattr(app.utils.time, '_get_utc_now', mock_utc_now)
+    monkeypatch.setattr(app.utils.time, '_get_pst_now', mock_pst_now)
 
 
 @pytest.fixture(autouse=True)
@@ -209,5 +210,4 @@ def then_response(response, response_json: dict):
         # actual_filename = get_complete_filename(__file__, 'actual.json')
         # with open(actual_filename, 'w', encoding="utf-8") as file_pointer:
         #     json.dump(actual, file_pointer, indent=2)
-        #     # file_pointer.write(json.dumps(actual, indent=2))
         assert response['response'].json() == response_json, response['filename']
