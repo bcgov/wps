@@ -1,4 +1,4 @@
-#!/bin/sh -l set -ex
+#!/bin/sh -l
 #
 source "$(dirname ${0})/common/common"
 
@@ -25,6 +25,7 @@ RUN_TYPE=$2
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
+set -ex
 echo Promote
 bash oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 bash oc_promote_ubuntu.sh ${SUFFIX} ${RUN_TYPE}
