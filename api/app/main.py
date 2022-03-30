@@ -133,7 +133,10 @@ async def get_health():
         cffdrs_start = perf_counter()
         CFFDRS.instance()  # pylint: disable=no-member
         cffdrs_end = perf_counter()
-        logger.info('%f seconds added by CFFDRS startup', cffdrs_end - cffdrs_start)
+        delta = cffdrs_end - cffdrs_start
+        # Any delta below 100 milliseconds is just noise in the logs.
+        if delta > 0.1:
+            logger.info('%f seconds added by CFFDRS startup', delta)
 
         return health_check
     except Exception as exception:
