@@ -360,7 +360,11 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           isDailyTable={true}
                         />
 
-                        <StatusCell daily={daily} className={classNameForRow} />
+                        <StatusCell
+                          daily={daily}
+                          className={classNameForRow}
+                          isRowSelected={isRowSelected}
+                        />
                         <RequiredDataCell
                           classNameForRow={classNameForRow}
                           dailyKey={'temperature'}
