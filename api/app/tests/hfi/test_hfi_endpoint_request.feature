@@ -5,6 +5,7 @@ Feature: /hfi/
         Given I received a hfi-calc <url> <request_json> with <verb>
         Then the response status code is <status_code>
         And the response is <response_json>
+        And the response isn't cached
 
         Examples:
             # TODO: These test currently exposes a "bug" in the code where removing a station from one area, means it's removed from all.
@@ -27,6 +28,7 @@ Feature: /hfi/
     Scenario: HFI - pdf download
         Given I received a hfi-calc <url> <request_json> with <verb>
         Then the response status code is <status_code>
+        And the response isn't cached
 
         Examples:
             # TODO: These test currently exposes a "bug" in the code where removing a station from one area, means it's removed from all.
