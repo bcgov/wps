@@ -63,7 +63,7 @@ OC_CANCEL_ALL_PREV_DEPLOY="oc -n ${PROJ_TARGET} rollout cancel dc/${NAME_OBJ} ||
 # Deploy and follow the progress
 #
 OC_DEPLOY="oc -n ${PROJ_TARGET} rollout latest dc/${NAME_OBJ}"
-OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=1m dc/${NAME_OBJ}"
+OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=2m dc/${NAME_OBJ}"
 if [ ! "${APPLY}" ]; then
   OC_CANCEL_ALL_PREV_DEPLOY=""
   OC_DEPLOY="${OC_DEPLOY} --dry-run || true" # in case there is no previous rollout
