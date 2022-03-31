@@ -25,6 +25,10 @@ install.packages("renv")
 renv::install("cffdrs", dependencies = TRUE)
 # update the DESCRIPTION to list cffdrs as an import
 usethis::use_package("cffdrs")
+# install plumber
+renv::install("plumber", dependencies = TRUE)
+# update DESCRIPTION to list plumber as an import
+usethis::use_package("plumber")
 # create the lockfile
 renv::snapshot()
 ```

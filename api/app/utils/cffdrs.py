@@ -29,7 +29,7 @@ class CFFDRS():
 
     def __init__(self):
         # pylint: disable=too-many-function-args
-        self.cffdrs = app.utils.r_importer.import_cffsdrs()
+        self.cffdrs = app.utils.r_importer.import_cffdrs()
 
 
 class CFFDRSException(Exception):
