@@ -6,7 +6,6 @@ import {
   RawHFIResultResponse
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
-import 'qs'
 import { formatISODateInPST } from 'utils/date'
 
 export interface StationDaily {
