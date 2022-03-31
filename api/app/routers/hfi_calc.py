@@ -14,13 +14,11 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-import app.utils.time
 from app.schemas.hfi_calc import (HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange,
                                   StationInfo,
                                   DateRange)
-import app
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
 from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request,
