@@ -7,6 +7,7 @@ import React from 'react'
 export interface StatusCellProps {
   daily: StationDaily | undefined
   className: string | undefined
+  isRowSelected: boolean
 }
 
 const noForecastText =
@@ -18,6 +19,9 @@ const observationValidCommentElement = (daily: StationDaily) => (
 )
 
 const StatusCell = (props: StatusCellProps) => {
+  if (!props.isRowSelected) {
+    return <TableCell data-testid={'status-cell'} className={props.className} />
+  }
   if (isUndefined(props.daily)) {
     return (
       <TableCell data-testid={'status-cell'}>
