@@ -45,12 +45,17 @@ done
 if [ "${APPLY}" ]; then
 	eval "${OC_IMG_IMPORT}"
 	eval "${OC_IMG_RETAG}"
-
-	for PRUNE in "${OC_IMG_PRUNE[@]}"; do
-		eval "${PRUNE}"
-	done
+	if ! [ -z ${OC_IMG_PRUNE+x} ]; then
+		for PRUNE in "${OC_IMG_PRUNE[@]}"; do
+			eval "${PRUNE}"
+		done
+	fi
 fi
 
 # Provide oc command instruction
 #
-display_helper "${OC_IMG_IMPORT}" "${OC_IMG_RETAG}" "${OC_IMG_PRUNE[@]}"
+if ! [ -z ${OC_IMG_PRUNE+x} ]; then
+	display_helper "${OC_IMG_IMPORT}" "${OC_IMG_RETAG}" "${OC_IMG_PRUNE[@]}"
+else
+	display_helper "${OC_IMG_IMPORT}" "${OC_IMG_RETAG}"
+fi
