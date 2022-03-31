@@ -2,6 +2,6 @@
 from rpy2.robjects.packages import importr
 
 
-def import_cffsdrs():
+def import_cffdrs():
     """ Import cffdrs """
     return importr('cffdrs')
