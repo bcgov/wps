@@ -213,7 +213,8 @@ export const fetchSetStationSelected =
       )
       dispatch(setResult(result))
     } catch (err) {
-      console.log('something')
+      dispatch(getHFIResultFailed((err as Error).toString()))
+      logError(err)
     }
   }
 

@@ -72,7 +72,7 @@ describe('HFI Calculator Page', () => {
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
     })
-    it.only('toggle station works', () => {
+    it('toggle station works', () => {
       // Click on a station, check that it's not checked. Click it again
       // check that it's checked.
       interceptSelectStationFalse(70, 239)

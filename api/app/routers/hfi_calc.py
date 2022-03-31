@@ -107,7 +107,6 @@ async def calculate_and_create_response(
         fire_centre_fire_start_ranges: List[FireStartRange]) -> HFIResultResponse:
     """ Calculate the HFI results and create a response object. """
 
-    # Calculate the HFI results.
     (results,
      valid_date_range) = await calculate_latest_hfi_results(
         session,
@@ -169,7 +168,7 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
 
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/planning_area/{planning_area_id}"
              "/station/{station_code}/selected/{enable}")
-async def toggle_planning_area_station(
+async def select_planning_area_station(
     fire_centre_id: int, start_date: date,
     planning_area_id: int, station_code: int,
     enable: bool,
