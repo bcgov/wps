@@ -102,6 +102,7 @@ api.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+api.middleware('http')(catch_exception_middleware)
 
 api.include_router(forecasts.router)
 api.include_router(weather_models.router)

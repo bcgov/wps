@@ -173,7 +173,7 @@ async def toggle_planning_area_station(
     fire_centre_id: int, start_date: date,
     planning_area_id: int, station_code: int,
     enable: bool,
-    response: Response,  # pylint: disable=unused-argument
+    response: Response,
     token=Depends(authentication_required)  # pylint: disable=unused-argument
 ):
     """ Enable / disable a station withing a planning area """
@@ -196,15 +196,14 @@ async def toggle_planning_area_station(
             request.selected_station_code_ids.remove(station_code)
 
         # Get the response.
-        response = await calculate_and_create_response(session, request, fire_centre_fire_start_ranges)
+        request_response = await calculate_and_create_response(session, request, fire_centre_fire_start_ranges)
 
     # We save the request in the database. (We do this right at the end, so that we don't
     # save a broken request by accident.)
     saved = save_request_in_database(request, token.get('preferred_username', None))
     # TODO: we'll get rid of the request_persist_success param soon.
-    response.request_persist_success = saved
-
-    return response
+    request_response.request_persist_success = saved
+    return request_response
 
 
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/planning_area/{planning_area_id}"
@@ -262,21 +261,21 @@ async def set_fire_start_range(fire_centre_id: int,
             logger.info('prep date falls outside of the prep period')
 
         # Get the response.
-        response = await calculate_and_create_response(session, request, fire_centre_fire_start_ranges)
+        request_response = await calculate_and_create_response(session, request, fire_centre_fire_start_ranges)
 
     # We save the request in the database.
     saved = save_request_in_database(request, token.get('preferred_username', None))
     # TODO: we'll get rid of the request_persist_success param soon.
-    response.request_persist_success = saved
+    request_response.request_persist_success = saved
 
-    return response
+    return request_response
 
 
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}")
 async def set_prep_period(fire_centre_id: int,
                           start_date: date,
                           end_date: date,
-                          response: Response,  # pylint: disable=unused-argument
+                          response: Response,
                           token=Depends(authentication_required)  # pylint: disable=unused-argument
                           ):
     """ Set the prep period """
@@ -317,7 +316,7 @@ async def load_hfi_result_with_date(fire_centre_id: int,
                                                                                           start_date)
 
             # Get the response.
-            response = await calculate_and_create_response(session, request, fire_centre_fire_start_ranges)
+            request_response = await calculate_and_create_response(session, request, fire_centre_fire_start_ranges)
 
         if not request_loaded:
             # If a start date was specified, we go ahead and save this request.
@@ -325,9 +324,8 @@ async def load_hfi_result_with_date(fire_centre_id: int,
             request_persist_success = True
 
         # TODO: we'll get rid of the request_persist_success param soon.
-        response.request_persist_success = request_persist_success or request_loaded
-
-        return response
+        request_response.request_persist_success = request_persist_success or request_loaded
+        return request_response
 
     except Exception as exc:
         logger.critical(exc, exc_info=True)
@@ -345,7 +343,6 @@ async def get_hfi_results(request: HFIResultRequest,
 
     try:
         response.headers["Cache-Control"] = no_cache
-
         stored_request = load_request_from_database(request)
         request_loaded = False
         if stored_request:
@@ -356,7 +353,7 @@ async def get_hfi_results(request: HFIResultRequest,
             fire_start_ranges = list(load_fire_start_ranges(session, request.selected_fire_center_id))
             (results,
              valid_date_range) = await calculate_latest_hfi_results(session, request, fire_start_ranges)
-        response = HFIResultResponse(
+        request_response = HFIResultResponse(
             date_range=valid_date_range,
             selected_station_code_ids=request.selected_station_code_ids,
             planning_area_station_info=request.planning_area_station_info,
@@ -374,8 +371,8 @@ async def get_hfi_results(request: HFIResultRequest,
             save_request_in_database(request, token.get('preferred_username', None))
             request_persist_success = True
         # Indicate in the response if this request is saved in the database.
-        response.request_persist_success = request_persist_success or request_loaded
-        return response
+        request_response.request_persist_success = request_persist_success or request_loaded
+        return request_response
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise
@@ -412,7 +409,7 @@ def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/pdf')
 async def download_pdf(
     fire_centre_id: int, start_date: date,
-    response: Response,  # pylint: disable=unused-argument
+    response: Response,
     token=Depends(authentication_required)  # pylint: disable=unused-argument
 ):
     """ Returns a PDF of the HFI results for the supplied fire centre and start date. """
@@ -430,7 +427,6 @@ async def download_result_pdf(request: HFIResultRequest,
     # THIS FUNCTION IS DEPRECATED.
     try:
         logger.info('/hfi-calc/download-pdf')
-        response.headers["Cache-Control"] = no_cache
         with get_read_session_scope() as session:
             fire_start_ranges = list(load_fire_start_ranges(session, request.selected_fire_center_id))
             (results,
@@ -459,8 +455,9 @@ async def download_result_pdf(request: HFIResultRequest,
                                                get_pst_now(),
                                                jinja_env)
 
-        return Response(pdf_bytes, headers={'Content-Disposition': f"attachment; filename={pdf_filename}",
-                                            "Access-Control-Expose-Headers": "Content-Disposition"})
+        return Response(pdf_bytes, headers={'Content-Disposition': f'attachment; filename={pdf_filename}',
+                                            'Access-Control-Expose-Headers': 'Content-Disposition',
+                                            'Cache-Control': no_cache})
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise
