@@ -11,14 +11,18 @@ Feature: /hfi/
             | url                                                                                              | verb | request_json                                            | status_code | response_json                                                |
             # Test perfect scenario, we have 2 stations, they're both selected, and they have data for all days.
             | /api/hfi-calc/                                                                                   | post | test_hfi_endpoint_request.json                          | 200         | hfi/test_hfi_endpoint_response.json                          |
-            # # Test scenario where we have 1 station selected, one station deselected, and data for all days.
+            # Test scenario where we have 1 station selected, one station deselected, and data for all days.
             | /api/hfi-calc/                                                                                   | post | test_hfi_endpoint_request_1_of_2_stations_selected.json | 200         | hfi/test_hfi_endpoint_response_1_of_2_stations_selected.json |
-            # # Test less than ideal scenario, we have 2 stations, they're both selected, one of them is missing data for one day.
+            # Test less than ideal scenario, we have 2 stations, they're both selected, one of them is missing data for one day.
             | /api/hfi-calc/                                                                                   | post | test_hfi_endpoint_request_missing_data.json             | 200         | hfi/test_hfi_endpoint_response_missing_data.json             |
-            # # Test load request scenario
+            # Test load request scenario
             | /api/hfi-calc/fire_centre/1/2020-05-21                                                           | get  | None                                                    | 200         | hfi/test_hfi_endpoint_load_response.json                     |
             # Test set fire start range
             | /api/hfi-calc/fire_centre/1/2020-05-21/planning_area/1/fire_starts/2020-05-21/fire_start_range/2 | post | None                                                    | 200         | hfi/test_hfi_endpoint_response_set_fire_start_range.json     |
+            # Test the station selection.
+            | /api/hfi-calc/fire_centre/1/2020-05-21/planning_area/1/station/230/selected/false                | post | None                                                    | 200         | hfi/test_hfi_endpoint_response_deselect_station.json         |
+            | /api/hfi-calc/fire_centre/1/2020-05-21/planning_area/1/station/230/selected/true                 | post | None                                                    | 200         | hfi/test_hfi_endpoint_response_select_station.json           |
+
 
     Scenario: HFI - pdf download
         Given I received a hfi-calc <url> <request_json> with <verb>

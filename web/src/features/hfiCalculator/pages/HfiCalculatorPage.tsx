@@ -111,16 +111,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected
         )
       )
-      // dispatch(
-      //   fetchHFIResult({
-      //     selected_station_code_ids: newSelected,
-      //     selected_fire_center_id: result.selected_fire_center_id,
-      //     planning_area_fire_starts: constructPlanningAreaFireStarts(
-      //       result.planning_area_hfi_results
-      //     ),
-      //     date_range: result.date_range
-      //   })
-      // )
     }
   }
 
