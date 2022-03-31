@@ -8,9 +8,10 @@ import React from 'react'
 export interface BaseStationAttributeCellsProps {
   testid?: string
   station: WeatherStation
+  planningAreaId: number
   className: string | undefined
   stationCodeInSelected: (code: number) => boolean
-  toggleSelectedStation: (code: number) => void
+  toggleSelectedStation: (planningAreaId: number, code: number) => void
   isDailyTable?: boolean
 }
 
@@ -20,6 +21,7 @@ const useStyles = makeStyles({
 
 const BaseStationAttributeCells = ({
   station,
+  planningAreaId,
   className,
   stationCodeInSelected,
   toggleSelectedStation,
@@ -36,7 +38,7 @@ const BaseStationAttributeCells = ({
               <TableCell className={`${className} ${classes.noBottomBorder}`}>
                 <Checkbox
                   checked={stationCodeInSelected(station.code)}
-                  onClick={() => toggleSelectedStation(station.code)}
+                  onClick={() => toggleSelectedStation(planningAreaId, station.code)}
                   data-testid={`select-station-${station.code}`}
                   color="primary"
                 ></Checkbox>
