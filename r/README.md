@@ -31,6 +31,25 @@ For the R `usethis` dependency:
 For the R `cffdrs` dependency:
 `brew install libsodium`
 
+## Linux
+
+For the above (macOS) OS dependencies for linux
+
+For the R `usethis` dependency:
+
+```
+deb: libgit2-dev (Debian, Ubuntu, etc)
+rpm: libgit2-devel (Fedora, CentOS, RHEL)
+```
+
+For the R `cffdrs` dependency:
+
+```
+ deb: libsodium-dev (Debian, Ubuntu, etc)
+ rpm: libsodium-devel (Fedora, EPEL)
+ csw: libsodium_dev (Solaris)
+```
+
 ## Installing from lockfile
 
 ```R
