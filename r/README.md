@@ -3,6 +3,34 @@
 The CFFDRS R package is used by wps.
 renv is used to speed installing cffdrs for running github tests.
 
+## macOSX
+
+Instructions written for the following R version, please keep updated:
+
+```
+R version:
+platform       x86_64-apple-darwin21.3.0
+arch           x86_64
+os             darwin21.3.0
+system         x86_64, darwin21.3.0
+status
+major          4
+minor          1.3
+year           2022
+month          03
+day            10
+svn rev        81868
+language       R
+version.string R version 4.1.3 (2022-03-10)
+nickname       One Push-Up
+```
+
+For the R `usethis` dependency:
+`brew install libgit2`
+
+For the R `cffdrs` dependency:
+`brew install libsodium`
+
 ## Installing from lockfile
 
 ```R
