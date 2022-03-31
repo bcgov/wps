@@ -196,7 +196,8 @@ async def toggle_planning_area_station(
             request.selected_station_code_ids.remove(station_code)
 
         # Get the response.
-        request_response = await calculate_and_create_response(session, request, fire_centre_fire_start_ranges)
+        request_response = await calculate_and_create_response(
+            session, request, fire_centre_fire_start_ranges)
 
     # We save the request in the database. (We do this right at the end, so that we don't
     # save a broken request by accident.)
@@ -261,7 +262,8 @@ async def set_fire_start_range(fire_centre_id: int,
             logger.info('prep date falls outside of the prep period')
 
         # Get the response.
-        request_response = await calculate_and_create_response(session, request, fire_centre_fire_start_ranges)
+        request_response = await calculate_and_create_response(
+            session, request, fire_centre_fire_start_ranges)
 
     # We save the request in the database.
     saved = save_request_in_database(request, token.get('preferred_username', None))
@@ -316,7 +318,8 @@ async def load_hfi_result_with_date(fire_centre_id: int,
                                                                                           start_date)
 
             # Get the response.
-            request_response = await calculate_and_create_response(session, request, fire_centre_fire_start_ranges)
+            request_response = await calculate_and_create_response(
+                session, request, fire_centre_fire_start_ranges)
 
         if not request_loaded:
             # If a start date was specified, we go ahead and save this request.
