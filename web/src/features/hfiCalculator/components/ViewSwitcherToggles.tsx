@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/core'
 import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab'
-import { isUndefined, range } from 'lodash'
+import { isNull, isUndefined, range } from 'lodash'
 import { theme } from 'app/theme'
 import React from 'react'
 import { pstFormatter } from 'utils/date'
@@ -41,7 +41,9 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
     _: React.MouseEvent<HTMLElement, MouseEvent>,
     prepDate: string
   ) => {
-    dispatch(setSelectedPrepDate(prepDate))
+    if (!isNull(prepDate)) {
+      dispatch(setSelectedPrepDate(prepDate))
+    }
   }
 
   let daysInDateRange = 0
