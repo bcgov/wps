@@ -5,6 +5,7 @@ Feature: /hfi/
         Given I received a <request_json>, and have one stored <stored_request_json>
         Then the response status code is <status_code>
         And the response is <response_json>
+        And the response isn't cached
 
         Examples:
             | request_json                                          | status_code | response_json                              | stored_request_json |
