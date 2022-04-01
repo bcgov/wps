@@ -9,6 +9,7 @@ import {
   fetchHFIResult,
   fetchLoadDefaultHFIResult,
   fetchSetNewFireStarts,
+  fetchSetStationSelected,
   setSaved,
   fetchPDFDownload
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -94,18 +95,21 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { selectedPrepDate, result, selectedFireCentre, loading, saved, dateRange } =
     useSelector(selectHFICalculatorState)
 
-  const setSelected = (newSelected: number[]) => {
-    if (!isUndefined(result)) {
+  const setSelectedStation = (
+    planningAreaId: number,
+    code: number,
+    selected: boolean
+  ) => {
+    if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
       dispatch(setSaved(false))
       dispatch(
-        fetchHFIResult({
-          selected_station_code_ids: newSelected,
-          selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: constructPlanningAreaFireStarts(
-            result.planning_area_hfi_results
-          ),
-          date_range: result.date_range
-        })
+        fetchSetStationSelected(
+          result.selected_fire_center_id,
+          result.date_range.start_date,
+          planningAreaId,
+          code,
+          selected
+        )
       )
     }
   }
@@ -272,7 +276,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               selectedFireCentre={selectedFireCentre}
               result={result}
               dateRange={dateRange}
-              setSelected={setSelected}
+              setSelected={setSelectedStation}
               setNewFireStarts={setNewFireStarts}
               selectedPrepDay={selectedPrepDate}
             />
