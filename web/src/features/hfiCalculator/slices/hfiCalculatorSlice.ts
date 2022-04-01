@@ -6,6 +6,7 @@ import {
   getHFIResult,
   loadDefaultHFIResult,
   setNewFireStarts,
+  setStationSelected,
   getPDF,
   RawDaily,
   StationDaily
@@ -185,6 +186,31 @@ export const fetchLoadDefaultHFIResult =
     try {
       dispatch(loadHFIResultStart())
       const result = await loadDefaultHFIResult(fire_center_id)
+      dispatch(setResult(result))
+    } catch (err) {
+      dispatch(getHFIResultFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
+export const fetchSetStationSelected =
+  (
+    fire_center_id: number,
+    start_date: string,
+    planning_area_id: number,
+    station_code: number,
+    selected: boolean
+  ): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(loadHFIResultStart())
+      const result = await setStationSelected(
+        fire_center_id,
+        start_date,
+        planning_area_id,
+        station_code,
+        selected
+      )
       dispatch(setResult(result))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
