@@ -32,7 +32,7 @@ export interface Props {
   fireCentre: FireCentre | undefined
   testId?: string
   dateRange?: PrepDateRange
-  setSelected: (selected: number[]) => void
+  setSelected: (planningAreaId: number, code: number, selected: boolean) => void
   setNewFireStarts: (
     areaId: number,
     dayOffset: number,
@@ -70,16 +70,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   const stationCodeInSelected = (code: number) => {
     return result ? result.selected_station_code_ids.includes(code) : false
   }
-  const toggleSelectedStation = (code: number) => {
-    const selectedSet = new Set(result?.selected_station_code_ids)
-    if (stationCodeInSelected(code)) {
-      // remove station from selected
-      selectedSet.delete(code)
-    } else {
-      // add station to selected
-      selectedSet.add(code)
-    }
-    props.setSelected(Array.from(selectedSet))
+  const toggleSelectedStation = (planningAreaId: number, code: number) => {
+    const selected = stationCodeInSelected(code)
+    props.setSelected(planningAreaId, code, !selected)
   }
 
   const numPrepDays = calculateNumPrepDays(props.dateRange)
@@ -269,6 +262,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         >
                           <BaseStationAttributeCells
                             station={station}
+                            planningAreaId={area.id}
                             className={classNameForRow}
                             stationCodeInSelected={stationCodeInSelected}
                             toggleSelectedStation={toggleSelectedStation}

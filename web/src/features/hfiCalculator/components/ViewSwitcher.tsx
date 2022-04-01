@@ -12,7 +12,7 @@ export interface ViewSwitcherProps {
   testId?: string
   result: HFIResultResponse
   dateRange?: PrepDateRange
-  setSelected: (selected: number[]) => void
+  setSelected: (planningAreaId: number, code: number, selected: boolean) => void
   setNewFireStarts: (
     areaId: number,
     dayOffset: number,

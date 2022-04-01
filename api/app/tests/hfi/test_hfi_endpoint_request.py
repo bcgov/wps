@@ -1,6 +1,6 @@
 from typing import Tuple
 import pytest
-from pytest_bdd import scenario, given, parsers
+from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
 import app.main
@@ -60,6 +60,12 @@ def given_request_none_stored(
         'response': response,
         'filename': request_json[1]
     }
+
+
+@then("the response isn't cached")
+def then_response_not_cached(response):
+    """ Check that the response isn't being cached """
+    assert response['response'].headers['cache-control'] == 'max-age=0'
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')

@@ -12,6 +12,26 @@ function interceptDaily(fixturePath: string) {
   })
 }
 
+function interceptSelectStationTrue(planning_area: number, code: number) {
+  cy.intercept(
+    'POST',
+    `api/hfi-calc/fire_centre/1/2021-08-02/planning_area/${planning_area}/station/${code}/selected/true`,
+    {
+      fixture: 'hfi-calc/dailies-saved.json'
+    }
+  ).as('selectStationTrue')
+}
+
+function interceptSelectStationFalse(planning_area: number, code: number) {
+  cy.intercept(
+    'POST',
+    `api/hfi-calc/fire_centre/1/2021-08-02/planning_area/${planning_area}/station/${code}/selected/false`,
+    {
+      fixture: 'hfi-calc/dailies-disable-station.json'
+    }
+  ).as('selectStationFalse')
+}
+
 function interceptLoad(fixturePath: string) {
   cy.intercept('GET', 'api/hfi-calc/fire_centre/*', {
     fixture: fixturePath
@@ -51,6 +71,18 @@ describe('HFI Calculator Page', () => {
       cy.wait('@getFireCentres')
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
+    })
+    it('toggle station works', () => {
+      // Click on a station, check that it's not checked. Click it again
+      // check that it's checked.
+      interceptSelectStationFalse(70, 239)
+      cy.getByTestId('select-station-239').click({ force: true })
+      cy.wait('@selectStationFalse')
+      cy.getByTestId('select-station-239').find('input').should('be.not.checked')
+      interceptSelectStationTrue(70, 239)
+      cy.getByTestId('select-station-239').click({ force: true })
+      cy.wait('@selectStationTrue')
+      cy.getByTestId('select-station-239').find('input').should('be.checked')
     })
     it('save button should be disable', () => {
       // cypress/fixtures/hfi-calc/dailies-saved.json has "request_persist_success": true, save button should be looking at that.

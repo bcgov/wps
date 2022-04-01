@@ -6,6 +6,7 @@ Feature: /hfi/
         Then the response status code is <status_code>
         And the response is <response_json>
         And request == saved = <request_saved>
+        And the response isn't cached
 
         Examples:
             | request_json                                          | status_code | response_json                                     | request_saved |

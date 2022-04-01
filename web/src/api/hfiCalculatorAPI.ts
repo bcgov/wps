@@ -6,7 +6,6 @@ import {
   RawHFIResultResponse
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
-import 'qs'
 import { formatISODateInPST } from 'utils/date'
 
 export interface StationDaily {
@@ -61,6 +60,30 @@ export async function loadDefaultHFIResult(
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 
+export async function setStationSelected(
+  fire_center_id: number,
+  start_date: string,
+  planning_area_id: number,
+  station_code: number,
+  selected: boolean
+): Promise<HFIResultResponse> {
+  const url =
+    baseUrl +
+    'fire_centre/' +
+    fire_center_id +
+    '/' +
+    start_date +
+    '/planning_area/' +
+    planning_area_id +
+    '/station/' +
+    station_code +
+    '/selected/' +
+    selected
+
+  const { data } = await axios.post<RawHFIResultResponse>(url)
+  return { ...data, planning_area_hfi_results: buildResult(data) }
+}
+
 export async function setNewFireStarts(
   fire_center_id: number,
   start_date: string,
@@ -68,7 +91,6 @@ export async function setNewFireStarts(
   prep_day_date: string,
   fire_start_range_id: number
 ): Promise<HFIResultResponse> {
-  // At the API boundary, we convert from our internal date structure to the API's date format
   const url =
     baseUrl +
     'fire_centre/' +

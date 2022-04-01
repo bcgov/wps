@@ -41,13 +41,20 @@ describe('StatusCell', () => {
     daily: { ...daily, observation_valid: false },
     valid: false
   }
-  const renderStatusCell = (validatedDaily: ValidatedStationDaily | undefined) => {
+  const renderStatusCell = (
+    validatedDaily: ValidatedStationDaily | undefined,
+    isRowSelected = true
+  ) => {
     return render(
       <TableContainer>
         <Table>
           <TableBody>
             <TableRow>
-              <StatusCell daily={validatedDaily?.daily} className={''} />
+              <StatusCell
+                daily={validatedDaily?.daily}
+                className={''}
+                isRowSelected={isRowSelected}
+              />
             </TableRow>
           </TableBody>
         </Table>
@@ -58,6 +65,10 @@ describe('StatusCell', () => {
   it('should render the status if it is defined', () => {
     const { getByTestId } = renderStatusCell(validDaily)
     expect(getByTestId('status-cell').innerHTML).toBe(validDaily.daily.status)
+  })
+  it('should not render the status or an error if it is defined but not selected', () => {
+    const { getByTestId } = renderStatusCell(validDaily, false)
+    expect(getByTestId('status-cell').innerHTML).toBe('')
   })
   it('should render error with tooltip if daily is undefined', () => {
     const { getByTestId } = renderStatusCell(undefined)
