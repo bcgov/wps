@@ -49,9 +49,11 @@ const HFICell = (props: HFICellProps) => {
     return classes.dataRow
   }
 
-  const HFIStyle = getHFIStyle(props.value)
+  const hfiStyle = getHFIStyle(props.value)
 
-  return <FixedDecimalNumberCell className={HFIStyle} value={props.value} />
+  return (
+    <FixedDecimalNumberCell testId="hfi-cell" className={hfiStyle} value={props.value} />
+  )
 }
 
 export default React.memo(HFICell)
