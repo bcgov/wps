@@ -1,7 +1,7 @@
 import { TableCell } from '@material-ui/core'
 import { WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import HFICell from 'features/fbaCalculator/components/HFICell'
+import HFICell from 'components/HFICell'
 import EmptyStaticCells from 'features/hfiCalculator/components/EmptyStaticCells'
 import HighestDailyFIGCell from 'features/hfiCalculator/components/HighestDailyFIGCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
