@@ -73,13 +73,11 @@ const MeanPrepLevelCell = (props: MeanPrepLevelCellProps) => {
   }
 
   const prepLevelError = () => {
-    if (
+    return (
       isUndefined(props.meanPrepLevel) ||
       isNaN(props.meanPrepLevel) ||
       props.emptyOrIncompleteForecast === true
-    ) {
-      return true
-    }
+    )
   }
 
   const prepLevelTooltipText =
