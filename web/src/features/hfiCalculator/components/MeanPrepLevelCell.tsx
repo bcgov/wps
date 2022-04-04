@@ -92,6 +92,7 @@ const MeanPrepLevelCell = (props: MeanPrepLevelCellProps) => {
     >
       {prepLevelError() ? (
         <ErrorIconWithTooltip
+          testId="prep-level-error"
           tooltipElement={prepLevelErrorTooltipElement}
           tooltipAriaText={[prepLevelTooltipText]}
         />
