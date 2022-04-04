@@ -72,17 +72,27 @@ const MeanPrepLevelCell = (props: MeanPrepLevelCellProps) => {
     }
   }
 
+  const prepLevelError = () => {
+    return (
+      isUndefined(props.meanPrepLevel) ||
+      isNaN(props.meanPrepLevel) ||
+      props.emptyOrIncompleteForecast === true
+    )
+  }
+
   const prepLevelTooltipText =
     'Cannot calculate prep level. Please check the daily forecast using the tabs above.'
 
   const prepLevelErrorTooltipElement = <div>{prepLevelTooltipText}</div>
 
   return (
-    <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
-      {isUndefined(props.meanPrepLevel) ||
-      isNaN(props.meanPrepLevel) ||
-      props.emptyOrIncompleteForecast === true ? (
+    <TableCell
+      className={prepLevelError() ? classes.defaultBackground : formatPrepLevelByValue()}
+      data-testid={props.testid}
+    >
+      {prepLevelError() ? (
         <ErrorIconWithTooltip
+          testId="prep-level-error"
           tooltipElement={prepLevelErrorTooltipElement}
           tooltipAriaText={[prepLevelTooltipText]}
         />
