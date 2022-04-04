@@ -11,7 +11,8 @@ import {
   fetchSetNewFireStarts,
   fetchSetStationSelected,
   setSaved,
-  fetchPDFDownload
+  fetchPDFDownload,
+  setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -187,6 +188,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
     if (!isUndefined(selectedFireCentre)) {
       dispatch(fetchLoadDefaultHFIResult(selectedFireCentre.id))
+      dispatch(setSelectedPrepDate(''))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre])
