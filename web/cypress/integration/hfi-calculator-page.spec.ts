@@ -84,7 +84,7 @@ describe('HFI Calculator Page', () => {
       cy.wait('@selectStationTrue')
       cy.getByTestId('select-station-239').find('input').should('be.checked')
     })
-    it('save button should be disable', () => {
+    it('save button should be disabled', () => {
       // cypress/fixtures/hfi-calc/dailies-saved.json has "request_persist_success": true, save button should be looking at that.
       cy.getByTestId('save-button').should('be.disabled')
     })
@@ -101,6 +101,13 @@ describe('HFI Calculator Page', () => {
         .type('{enter}')
       cy.wait('@setFireStarts')
       cy.getByTestId('save-button').should('be.disabled')
+    })
+    it('changing the fire centre when in a daily tab should set the the tab to prep period', () => {
+      cy.getByTestId('daily-toggle-1').click({ force: true })
+      cy.getByTestId('hfi-calc-daily-table').should('be.visible')
+      cy.selectFireCentreInDropdown('Coastal')
+      cy.getByTestId('hfi-calc-daily-table').should('not.exist')
+      cy.getByTestId('hfi-calc-weekly-table').should('be.visible')
     })
   })
   describe('all data exists', () => {
