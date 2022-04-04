@@ -26,7 +26,7 @@ describe('HFICell', () => {
           <Table>
             <TableBody>
               <TableRow>
-                <HFICell value={3000} />
+                <HFICell testId="hfi-cell" value={3000} />
               </TableRow>
             </TableBody>
           </Table>
@@ -41,7 +41,7 @@ describe('HFICell', () => {
           <Table>
             <TableBody>
               <TableRow>
-                <HFICell value={3999} />
+                <HFICell testId="hfi-cell" value={3999} />
               </TableRow>
             </TableBody>
           </Table>
@@ -58,7 +58,7 @@ describe('HFICell', () => {
           <Table>
             <TableBody>
               <TableRow>
-                <HFICell value={4000} />
+                <HFICell testId="hfi-cell" value={4000} />
               </TableRow>
             </TableBody>
           </Table>
@@ -73,7 +73,7 @@ describe('HFICell', () => {
           <Table>
             <TableBody>
               <TableRow>
-                <HFICell value={9999} />
+                <HFICell testId="hfi-cell" value={9999} />
               </TableRow>
             </TableBody>
           </Table>
@@ -90,7 +90,7 @@ describe('HFICell', () => {
           <Table>
             <TableBody>
               <TableRow>
-                <HFICell value={10000} />
+                <HFICell testId="hfi-cell" value={10000} />
               </TableRow>
             </TableBody>
           </Table>
