@@ -1,11 +1,11 @@
 import { TableCell } from '@material-ui/core'
 import { WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import HFICell from 'features/fbaCalculator/components/HFICell'
 import EmptyStaticCells from 'features/hfiCalculator/components/EmptyStaticCells'
 import HighestDailyFIGCell from 'features/hfiCalculator/components/HighestDailyFIGCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
-import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { isUndefined, range } from 'lodash'
 import React, { ReactElement } from 'react'
@@ -28,7 +28,6 @@ export const StaticCells = ({
   const staticCells = range(numPrepDays).map(dailyIndex => {
     const daily = dailies?.at(dailyIndex)
     const error = !isValidGrassCure(daily, station.station_props)
-    const hfiValue = error ? undefined : daily?.hfi?.toFixed(DECIMAL_PLACES)
     return isUndefined(daily) ? (
       <EmptyStaticCells
         key={`empty-${station.code}-${dailyIndex}`}
@@ -44,9 +43,7 @@ export const StaticCells = ({
           error={error}
           isRowSelected={isRowSelected}
         />
-        <TableCell data-testid={`${daily.code}-hfi`} className={classNameForRow}>
-          {hfiValue}
-        </TableCell>
+        <HFICell value={daily?.hfi} />
         <IntensityGroupCell
           testid={`${daily.code}-intensity-group`}
           value={daily.intensity_group}
