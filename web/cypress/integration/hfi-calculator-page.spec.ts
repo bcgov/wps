@@ -102,7 +102,7 @@ describe('HFI Calculator Page', () => {
       cy.wait('@setFireStarts')
       cy.getByTestId('save-button').should('be.disabled')
     })
-    it('changing the fire centre when in a daily tab should set the the tab to prep period', () => {
+    it('should switch the tab to prep period from a daily tab when a different fire centre is selected', () => {
       cy.getByTestId('daily-toggle-1').click({ force: true })
       cy.getByTestId('hfi-calc-daily-table').should('be.visible')
       cy.selectFireCentreInDropdown('Coastal')
