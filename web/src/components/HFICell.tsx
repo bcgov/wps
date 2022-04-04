@@ -1,9 +1,11 @@
-import { makeStyles } from '@material-ui/core'
+import { makeStyles, TableCell } from '@material-ui/core'
 import React from 'react'
 import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
+import { isUndefined } from 'lodash'
 
 interface HFICellProps {
   value: number | undefined
+  testId?: string
   className?: string
 }
 
@@ -49,9 +51,24 @@ const HFICell = (props: HFICellProps) => {
     return classes.dataRow
   }
 
-  const HFIStyle = getHFIStyle(props.value)
+  const hfiStyle = getHFIStyle(props.value)
 
-  return <FixedDecimalNumberCell className={HFIStyle} value={props.value} />
+  if (isUndefined(props.value) || isNaN(props.value)) {
+    return (
+      <TableCell
+        data-testid={props.testId}
+        className={props.className ? props.className : classes.dataRow}
+      ></TableCell>
+    )
+  }
+
+  return (
+    <FixedDecimalNumberCell
+      testId={props.testId}
+      className={hfiStyle}
+      value={props.value}
+    />
+  )
 }
 
 export default React.memo(HFICell)

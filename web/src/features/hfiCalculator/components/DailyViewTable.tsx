@@ -36,6 +36,7 @@ import {
 import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredDataCell'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
+import { DailyHFICell } from 'features/hfiCalculator/components/DailyHFICell'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -433,12 +434,12 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           error={grassCureError}
                           className={classNameForRow}
                         ></CalculatedCell>
-                        <CalculatedCell
+                        <DailyHFICell
                           testid={`${daily?.code}-hfi`}
                           value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
                           error={grassCureError}
                           className={classNameForRow}
-                        ></CalculatedCell>
+                        ></DailyHFICell>
                         <CalculatedCell
                           testid={`${daily?.code}-1-hr-size`}
                           value={daily?.sixty_minute_fire_size?.toFixed(DECIMAL_PLACES)}
