@@ -79,3 +79,16 @@ usethis::use_package("plumber")
 # create the lockfile
 renv::snapshot()
 ```
+
+## Running R API with Plumber
+
+From `/r` directory:
+
+Start R, and either restore/update the lockfile as necessary:
+
+```R
+renv::activate()
+library(plumber)
+pr = pr("cffdrs_api.r")
+pr_run(pr)
+```
