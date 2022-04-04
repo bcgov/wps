@@ -10,7 +10,6 @@ export interface DailyHFICellProps {
 }
 
 export const DailyHFICell = (props: DailyHFICellProps) => {
-  /** */
   if (props.error) {
     return <CalculatedCell {...props} />
   }
