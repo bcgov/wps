@@ -48,13 +48,13 @@ export const dailyTableColumnLabels = [
   'Location',
   'Elev. (m)',
   'FBP Fuel Type',
+  'Grass Cure (%)',
   'Status',
   'Temp (°C)',
   'RH (%)',
   'Wind Dir (°)',
   'Wind Speed (km/h)',
   'Precip (mm)',
-  'Grass Cure (%)',
   'FFMC',
   'DMC',
   'DC',
@@ -175,6 +175,13 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                     <br />
                     Type
                   </TableCell>
+                  <TableCell>
+                    Grass
+                    <br />
+                    Cure
+                    <br />
+                    (%)
+                  </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -208,13 +215,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             Precip
             <br />
             (mm)
-          </TableCell>
-          <TableCell>
-            Grass
-            <br />
-            Cure
-            <br />
-            (%)
           </TableCell>
           <TableCell>FFMC</TableCell>
           <TableCell>DMC</TableCell>
@@ -361,6 +361,13 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           isDailyTable={true}
                         />
 
+                        <GrassCureCell
+                          value={daily?.grass_cure_percentage}
+                          isGrassFuelType={isGrassFuelType(station.station_props)}
+                          className={classNameForRow}
+                          selected={isRowSelected}
+                        ></GrassCureCell>
+
                         <StatusCell
                           daily={daily}
                           className={classNameForRow}
@@ -401,12 +408,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             'Precipitation cannot be null. Impacts DC, BUI, ROS, HFI, FIG, Prep calculations.'
                           }
                         />
-                        <GrassCureCell
-                          value={daily?.grass_cure_percentage}
-                          isGrassFuelType={isGrassFuelType(station.station_props)}
-                          className={classNameForRow}
-                          selected={isRowSelected}
-                        ></GrassCureCell>
                         <TableCell className={classNameForRow}>
                           {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                         </TableCell>
