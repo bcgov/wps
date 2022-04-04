@@ -10,7 +10,7 @@ describe('HFICell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <HFICell value={undefined} />
+              <HFICell testId="hfi-cell" value={undefined} />
             </TableRow>
           </TableBody>
         </Table>

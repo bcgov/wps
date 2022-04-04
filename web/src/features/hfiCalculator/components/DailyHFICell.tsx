@@ -13,5 +13,5 @@ export const DailyHFICell = (props: DailyHFICellProps) => {
   if (props.error) {
     return <CalculatedCell {...props} />
   }
-  return <HFICell value={Number(props.value)} />
+  return <HFICell testId={props.testid} value={Number(props.value)} />
 }

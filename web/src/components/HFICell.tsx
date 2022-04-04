@@ -5,6 +5,7 @@ import { isUndefined } from 'lodash'
 
 interface HFICellProps {
   value: number | undefined
+  testId?: string
   className?: string
 }
 
@@ -36,7 +37,6 @@ const useStyles = makeStyles({
 
 const HFICell = (props: HFICellProps) => {
   const classes = useStyles()
-  const testId = 'hfi-cell'
 
   const getHFIStyle = (value: number | undefined): string => {
     if (value !== undefined) {
@@ -56,14 +56,18 @@ const HFICell = (props: HFICellProps) => {
   if (isUndefined(props.value) || isNaN(props.value)) {
     return (
       <TableCell
-        data-testid={testId}
+        data-testid={props.testId}
         className={props.className ? props.className : classes.dataRow}
       ></TableCell>
     )
   }
 
   return (
-    <FixedDecimalNumberCell testId={testId} className={hfiStyle} value={props.value} />
+    <FixedDecimalNumberCell
+      testId={props.testId}
+      className={hfiStyle}
+      value={props.value}
+    />
   )
 }
 
