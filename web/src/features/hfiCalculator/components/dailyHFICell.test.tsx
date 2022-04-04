@@ -27,7 +27,7 @@ describe('DailyHFICell', () => {
     expect(cell.className).toMatch(/MuiTableCell-root MuiTableCell-body/)
   })
 
-  it.only('should render an HFI cell if there is no error', () => {
+  it('should render an HFI cell if there is no error', () => {
     const { getByTestId } = render(
       <TableContainer>
         <Table>
@@ -36,7 +36,7 @@ describe('DailyHFICell', () => {
               <DailyHFICell
                 value={undefined}
                 error={false}
-                testid={undefined}
+                testid={'hfi-cell'}
                 className={undefined}
               />
             </TableRow>
