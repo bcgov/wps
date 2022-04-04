@@ -64,8 +64,8 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
             iterator = fetch_paged_response_generator(session,
                                                       header,
                                                       BuildQueryByStationCode(station_codes), 'stations',
-                                                      use_cache=True,
-                                                      cache_expiry_seconds=redis_station_cache_expiry)
+                                                      use_cache=False,  # TODO: switch this back to True
+                                                      cache_expiry_seconds=0)  # TODO: switch this back to use redis_station_cache_expiry
             async for raw_station in iterator:
                 # If the station is valid, add it to our list of stations.
                 if is_station_valid(raw_station):
