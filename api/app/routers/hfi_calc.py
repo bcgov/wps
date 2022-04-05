@@ -20,7 +20,7 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   StationInfo,
                                   DateRange)
 from app.auth import authentication_required, audit
-from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStation)
+from app.schemas.hfi_calc import HFIWeatherStationsResponse
 from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request,
                                   get_fire_centre_stations)
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -45,7 +45,6 @@ def get_prepared_request(
     """ Attempt to load the most recent request from the database, failing that creates a new request all
     set up with default values.
 
-    TODO: request_loaded should become redundant once all requests have been changed.
     TODO: give this function a better name.
     """
     fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
@@ -122,22 +121,6 @@ async def calculate_and_create_response(
         selected_fire_center_id=result_request.selected_fire_center_id,
         planning_area_hfi_results=results,
         fire_start_ranges=fire_centre_fire_start_ranges)
-
-
-def load_request_from_database(request: HFIResultRequest) -> Optional[HFIResultRequest]:
-    """
-    THIS FUNCTION DEPRECATED! Will be removed along with get_hfi_results when all requests have been changed.
-    If we need to load the request from the database, we do so.
-
-    Returns:
-        The request object if saved, otherwise None.
-    """
-    if request.date_range is None or request.date_range.start_date is None:
-        with get_read_session_scope() as session:
-            stored_request = get_most_recent_updated_hfi_request(session, request.selected_fire_center_id)
-            if stored_request:
-                return HFIResultRequest.parse_obj(json.loads(stored_request.request))
-    return None
 
 
 def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
@@ -362,47 +345,6 @@ async def load_hfi_result_with_date(fire_centre_id: int,
         raise
 
 
-@router.post('/', response_model=HFIResultResponse)
-async def get_hfi_results(request: HFIResultRequest,
-                          response: Response,
-                          token=Depends(authentication_required)):
-    """ Returns calculated HFI results for the supplied details in the POST body """
-    # THIS FUNCTION IS DEPRECATED.
-    # Yes. There are a lot of locals!
-    # pylint: disable=too-many-locals
-
-    try:
-        response.headers["Cache-Control"] = no_cache
-        stored_request = load_request_from_database(request)
-        request_loaded = False
-        if stored_request:
-            request = stored_request
-            request_loaded = True
-
-        with get_read_session_scope() as session:
-            fire_start_ranges = list(load_fire_start_ranges(session, request.selected_fire_center_id))
-            (results,
-             valid_date_range) = await calculate_latest_hfi_results(session, request, fire_start_ranges)
-        request_response = HFIResultResponse(
-            date_range=valid_date_range,
-            selected_station_code_ids=request.selected_station_code_ids,
-            planning_area_station_info=request.planning_area_station_info,
-            selected_fire_center_id=request.selected_fire_center_id,
-            planning_area_hfi_results=results,
-            fire_start_ranges=fire_start_ranges)
-
-        # TODO: move this to own function, as part of refactor app.hfi
-        if request.persist_request is True and request_loaded is False:
-            # We save the request if we've been asked to, and if we didn't just load it.
-            # It's important to do that load check, otherwise we end up saving the request every time
-            # we load it!
-            save_request_in_database(request, token.get('preferred_username', None))
-        return request_response
-    except Exception as exc:
-        logger.critical(exc, exc_info=True)
-        raise
-
-
 @router.get('/fire-centres', response_model=HFIWeatherStationsResponse)
 async def get_fire_centres(response: Response):  # pylint: disable=too-many-locals
     """ Returns list of fire centres and planning area for each fire centre,
@@ -420,15 +362,6 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
     except Exception as exc:
         logger.critical(exc, exc_info=True)
         raise
-
-
-def get_wfwx_station(wfwx_stations_data: List[WeatherStation], station_code: int):
-    """ Helper function to find station corresponding to station_code from the list of
-    weather stations returned from WFWX. """
-    for station in wfwx_stations_data:
-        if station.code == station_code:
-            return station
-    return None
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/pdf')
