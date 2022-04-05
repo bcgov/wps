@@ -27,6 +27,7 @@ import {
   PrepDateRange
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
+import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -168,8 +169,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           <React.Fragment key={`fire-centre-${props.fireCentre.name}`}>
             <TableRow key={`fire-centre-${props.fireCentre.name}`}>
               <FireCentreCell centre={props.fireCentre}></FireCentreCell>
-
-              <TableCell className={classes.fireCentre} colSpan={28}></TableCell>
+              <HeaderRowCell className={classes.fireCentre} />
             </TableRow>
             {sortBy(
               props.fireCentre.planning_areas,
@@ -184,10 +184,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                 areaHFIResult && (
                   <React.Fragment key={`zone-${area.name}`}>
                     <TableRow>
-                      <TableCell
-                        colSpan={42}
-                        className={classes.planningAreaBorder}
-                      ></TableCell>
+                      <HeaderRowCell className={classes.planningAreaBorder} />
                     </TableRow>
                     <TableRow
                       className={classes.planningArea}
