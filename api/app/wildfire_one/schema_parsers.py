@@ -395,6 +395,12 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         dmc=raw_daily.get('duffMoistureCode', None),
         dc=raw_daily.get('droughtCode', None),
         fwi=raw_daily.get('fireWeatherIndex', None),
+        # Danger class possible values: 1, 2, 3, 4, and 5. Where 1 is the lowest, and 5 is the highest
+        # This is the same for the dangerGrassland and dangerScrub,
+        # but those values aren’t really used anywhere,
+        # just calculated and stored along with the forest danger rating
+        # You can see current stations/rating on this page here:
+        # https://wfapps.nrs.gov.bc.ca/pub/wfwx-danger-summary-war/dangerSummary
         danger_class=raw_daily.get('dangerForest', None),
         isi=isi,
         bui=bui,
