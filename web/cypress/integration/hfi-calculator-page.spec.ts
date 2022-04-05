@@ -222,7 +222,7 @@ describe('HFI Calculator Page', () => {
       cy.selectFireCentreInDropdown('Kamloops')
       cy.getByTestId('hfi-error-alert').should('be.visible')
     })
-    it('should notify user if endpoint request fails with 401', () => {
+    it('should notify user if endpoint request fails with 404', () => {
       cy.intercept('GET', 'api/hfi-calc/fire_centre/*', {
         statusCode: 404
       }).as('failedLoadHFI')
