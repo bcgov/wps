@@ -13,8 +13,6 @@ const useStyles = makeStyles({
     color: 'white'
   },
   wrapper: {
-    display: 'flex',
-    alignItems: 'center',
     minWidth: 300
   },
   fireCentreTextField: {
