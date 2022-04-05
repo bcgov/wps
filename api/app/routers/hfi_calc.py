@@ -122,7 +122,6 @@ async def calculate_and_create_response(
         planning_area_station_info=result_request.planning_area_station_info,
         selected_fire_center_id=result_request.selected_fire_center_id,
         planning_area_hfi_results=results,
-        request_persist_success=False,
         fire_start_ranges=fire_centre_fire_start_ranges)
 
 
@@ -202,9 +201,7 @@ async def select_planning_area_station(
 
     # We save the request in the database. (We do this right at the end, so that we don't
     # save a broken request by accident.)
-    saved = save_request_in_database(request, token.get('preferred_username', None))
-    # TODO: we'll get rid of the request_persist_success param soon.
-    request_response.request_persist_success = saved
+    save_request_in_database(request, token.get('preferred_username', None))
     return request_response
 
 
@@ -267,10 +264,7 @@ async def set_fire_start_range(fire_centre_id: int,
             session, request, fire_centre_fire_start_ranges)
 
     # We save the request in the database.
-    saved = save_request_in_database(request, token.get('preferred_username', None))
-    # TODO: we'll get rid of the request_persist_success param soon.
-    request_response.request_persist_success = saved
-
+    save_request_in_database(request, token.get('preferred_username', None))
     return request_response
 
 
@@ -285,12 +279,12 @@ async def set_prep_period(fire_centre_id: int,
     logger.info('/fire_centre/%s/%s/%s', fire_centre_id, start_date, end_date)
     response.headers["Cache-Control"] = no_cache
 
-    request_persist_success = False
     persist_request = False
     with get_read_session_scope() as session:
         request, request_loaded, fire_centre_fire_start_ranges = get_prepared_request(session,
                                                                                       fire_centre_id,
-                                                                                      start_date, end_date)
+                                                                                      start_date,
+                                                                                      end_date)
         if request_loaded and request.date_range.end_date != end_date:
             # We loaded the request from the database, but the end date in the database doesn't match the
             # end date we've been given. That means we have to modify the store request accordingly,
@@ -321,10 +315,7 @@ async def set_prep_period(fire_centre_id: int,
 
     if not persist_request:
         save_request_in_database(request, token.get('preferred_username', None))
-        request_persist_success = True
 
-    # TODO: we'll get rid of the request_persist_success param soon.
-    request_response.request_persist_success = request_persist_success or request_loaded
     return request_response
 
 
@@ -352,7 +343,6 @@ async def load_hfi_result_with_date(fire_centre_id: int,
         logger.info('/hfi-calc/load/{fire_centre_id}/{start_date}')
         response.headers["Cache-Control"] = no_cache
 
-        request_persist_success = False
         with get_read_session_scope() as session:
             request, request_loaded, fire_centre_fire_start_ranges = get_prepared_request(session,
                                                                                           fire_centre_id,
@@ -365,10 +355,7 @@ async def load_hfi_result_with_date(fire_centre_id: int,
         if not request_loaded:
             # If a start date was specified, we go ahead and save this request.
             save_request_in_database(request, token.get('preferred_username', None))
-            request_persist_success = True
 
-        # TODO: we'll get rid of the request_persist_success param soon.
-        request_response.request_persist_success = request_persist_success or request_loaded
         return request_response
 
     except Exception as exc:
@@ -403,19 +390,14 @@ async def get_hfi_results(request: HFIResultRequest,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
             planning_area_hfi_results=results,
-            request_persist_success=False,
             fire_start_ranges=fire_start_ranges)
 
         # TODO: move this to own function, as part of refactor app.hfi
-        request_persist_success = False
         if request.persist_request is True and request_loaded is False:
             # We save the request if we've been asked to, and if we didn't just load it.
             # It's important to do that load check, otherwise we end up saving the request every time
             # we load it!
             save_request_in_database(request, token.get('preferred_username', None))
-            request_persist_success = True
-        # Indicate in the response if this request is saved in the database.
-        request_response.request_persist_success = request_persist_success or request_loaded
         return request_response
     except Exception as exc:
         logger.critical(exc, exc_info=True)
@@ -482,7 +464,6 @@ async def download_result_pdf(request: HFIResultRequest,
             planning_area_station_info=request.planning_area_station_info,
             selected_fire_center_id=request.selected_fire_center_id,
             planning_area_hfi_results=results,
-            request_persist_success=False,
             fire_start_ranges=fire_start_ranges)
 
         fire_centres_list = await hydrate_fire_centres()

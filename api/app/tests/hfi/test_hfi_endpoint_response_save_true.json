@@ -3,7 +3,9 @@
     "start_date": "2020-05-21",
     "end_date": "2020-05-26"
   },
-  "selected_station_code_ids": [230],
+  "selected_station_code_ids": [
+    230
+  ],
   "planning_area_station_info": {
     "1": [
       {
@@ -216,7 +218,6 @@
       ]
     }
   ],
-  "request_persist_success": true,
   "fire_start_ranges": [
     {
       "label": "0-1",

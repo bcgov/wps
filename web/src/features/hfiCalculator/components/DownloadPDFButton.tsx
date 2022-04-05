@@ -1,11 +1,11 @@
 import React from 'react'
 import { Button } from '@material-ui/core'
 
-export interface SaveButtonProps {
+export interface DownloadPDFButtonProps {
   onClick: () => void
 }
 
-const DownloadPDFButton = (props: SaveButtonProps) => {
+const DownloadPDFButton = (props: DownloadPDFButtonProps) => {
   return (
     <React.Fragment>
       <Button

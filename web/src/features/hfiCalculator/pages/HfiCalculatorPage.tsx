@@ -11,7 +11,6 @@ import {
   fetchSetNewFireStarts,
   fetchSetNewPrepDateRange,
   fetchSetStationSelected,
-  setSaved,
   fetchPDFDownload,
   setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -29,7 +28,6 @@ import {
   TableBody
 } from '@material-ui/core'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
-import SaveButton from 'features/hfiCalculator/components/SaveButton'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles, theme } from 'app/theme'
 import { FireCentre } from 'api/hfiCalcAPI'
@@ -82,7 +80,7 @@ const useStyles = makeStyles(() => ({
     margin: theme.spacing(1),
     minWidth: 100
   },
-  saveButton: {
+  pdfButton: {
     margin: theme.spacing(1),
     float: 'right'
   }
@@ -94,7 +92,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const dispatch = useDispatch()
   const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const { selectedPrepDate, result, selectedFireCentre, loading, saved, dateRange } =
+  const { selectedPrepDate, result, selectedFireCentre, loading, dateRange } =
     useSelector(selectHFICalculatorState)
 
   const setSelectedStation = (
@@ -103,7 +101,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     selected: boolean
   ) => {
     if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
-      dispatch(setSaved(false))
       dispatch(
         fetchSetStationSelected(
           result.selected_fire_center_id,
@@ -122,7 +119,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     newFireStarts: FireStartRange
   ) => {
     if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
-      dispatch(setSaved(false))
       dispatch(
         fetchSetNewFireStarts(
           result.selected_fire_center_id,
@@ -155,7 +151,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           newDateRange.endDate
         )
       )
-      dispatch(setSaved(false))
     }
   }
 
@@ -263,12 +258,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             />
           </FormControl>
 
-          <FormControl className={classes.saveButton}>
+          <FormControl className={classes.pdfButton}>
             <DownloadPDFButton onClick={handleDownloadClicked} />
-          </FormControl>
-
-          <FormControl className={classes.saveButton}>
-            <SaveButton saved={saved} onClick={handleSaveClicked} />
           </FormControl>
 
           <ErrorBoundary>

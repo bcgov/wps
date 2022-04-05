@@ -66,7 +66,6 @@ export interface HFICalculatorState {
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
-  saved: boolean
 }
 
 export interface HFIResultResponse {
@@ -74,7 +73,6 @@ export interface HFIResultResponse {
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: PlanningAreaResult[]
-  request_persist_success: boolean
   fire_start_ranges: FireStartRange[]
 }
 
@@ -83,7 +81,6 @@ export interface RawHFIResultResponse {
   selected_station_code_ids: number[]
   selected_fire_center_id: number
   planning_area_hfi_results: RawPlanningAreaResult[]
-  request_persist_success: boolean
   fire_start_ranges: FireStartRange[]
 }
 
@@ -119,8 +116,7 @@ const initialState: HFICalculatorState = {
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
   selectedFireCentre: undefined,
-  result: undefined,
-  saved: true
+  result: undefined
 }
 
 const dailiesSlice = createSlice({
@@ -155,15 +151,7 @@ const dailiesSlice = createSlice({
     ) => {
       state.result = action.payload
       state.dateRange = action.payload?.date_range
-
-      if (action.payload) {
-        state.saved = action.payload.request_persist_success
-      }
-
       state.loading = false
-    },
-    setSaved: (state: HFICalculatorState, action: PayloadAction<boolean>) => {
-      state.saved = action.payload
     }
   }
 })
@@ -175,8 +163,7 @@ export const {
   getHFIResultFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
-  setResult,
-  setSaved
+  setResult
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer
