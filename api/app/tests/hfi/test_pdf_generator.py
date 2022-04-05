@@ -28,7 +28,8 @@ def test_generate_html():
                                        datetime.fromisocalendar(2022, 2, 2), jinja_env)
         # The hash should only change if an intentinonal change has been made to the pdf,
         # in which case the hash value we're checking here may be updated by the developer.
-        assert hashlib.md5(html_string.encode()).hexdigest() == 'f24171714d871973585292d3896a7d1a'
+        assert hashlib.sha256(html_string.encode()).hexdigest(
+        ) == 'c484e196661bf2519f9649f60c24cc3748b49ed237fe3b1f27cc3298567d1af5'
 
 
 def test_generate_pdf():

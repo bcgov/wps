@@ -295,7 +295,7 @@ async def set_prep_period(fire_centre_id: int,
         request_response = await calculate_and_create_response(
             session, request, fire_centre_fire_start_ranges)
 
-    if not persist_request:
+    if persist_request:
         save_request_in_database(request, token.get('preferred_username', None))
 
     return request_response
@@ -334,6 +334,7 @@ async def load_hfi_result_with_date(fire_centre_id: int,
             request_response = await calculate_and_create_response(
                 session, request, fire_centre_fire_start_ranges)
 
+        # TODO: change this! once we've changed how pdf works, we no longer need to save here!
         if not request_loaded:
             # If a start date was specified, we go ahead and save this request.
             save_request_in_database(request, token.get('preferred_username', None))
