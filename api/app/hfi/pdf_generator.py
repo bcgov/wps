@@ -8,12 +8,12 @@ from app.hfi.pdf_template import PDFTemplateName, CSS_PATH
 from app.hfi.pdf_data_formatter import response_2_daily_jinja_format, response_2_prep_cycle_jinja_format
 
 
-def generate_pdf(result: HFIResultResponse,
-                 fire_centres: List[FireCentre],
-                 idir: str,
-                 datetime_generated: datetime,
-                 jinja_env: Environment) -> Tuple[bytes, str]:
-    """Generates the full PDF based on the HFIResultResponse"""
+def generate_html(result: HFIResultResponse,
+                  fire_centres: List[FireCentre],
+                  idir: str,
+                  datetime_generated: datetime,
+                  jinja_env: Environment) -> Tuple[str, str]:
+    """Generates the full HTML based on the HFIResultResponse"""
     fire_centre_dict, planning_area_dict, station_dict = build_mappings(fire_centres)
     fire_centre_name = fire_centre_dict[result.selected_fire_center_id].name
 
@@ -31,6 +31,21 @@ def generate_pdf(result: HFIResultResponse,
                                       station_dict,
                                       fire_centre_name,
                                       jinja_env)
+
+    return rendered_output, fire_centre_name
+
+
+def generate_pdf(result: HFIResultResponse,
+                 fire_centres: List[FireCentre],
+                 idir: str,
+                 datetime_generated: datetime,
+                 jinja_env: Environment) -> Tuple[bytes, str]:
+    """Generates the full PDF based on the HFIResultResponse"""
+    rendered_output, fire_centre_name = generate_html(result,
+                                                      fire_centres,
+                                                      idir,
+                                                      datetime_generated,
+                                                      jinja_env)
 
     # pylint: disable=line-too-long
     left_footer = f'Exported on {datetime_generated.isoformat()} by {idir} | https://psu.nrs.gov.bc.ca/hfi-calculator'
