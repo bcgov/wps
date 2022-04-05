@@ -91,8 +91,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const dispatch = useDispatch()
   const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const { selectedPrepDate, result, selectedFireCentre, loading, dateRange } =
-    useSelector(selectHFICalculatorState)
+  const {
+    selectedPrepDate,
+    result,
+    selectedFireCentre,
+    loading,
+    dateRange,
+    error: hfiError
+  } = useSelector(selectHFICalculatorState)
 
   const setSelectedStation = (
     planningAreaId: number,
@@ -211,18 +217,40 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
+  const buildErrorNotification = () => {
+    if (!isNull(fireCentresError) || !isNull(hfiError)) {
+      return (
+        <HFIErrorAlert hfiDailiesError={hfiError} fireCentresError={fireCentresError} />
+      )
+    }
+    return <React.Fragment></React.Fragment>
+  }
+
+  const isLoadingWithoutError = () => {
+    return (
+      (loading || stationDataLoading || isUndefined(result)) &&
+      isNull(fireCentresError) &&
+      isNull(hfiError)
+    )
+  }
+
   const buildHFIContent = () => {
+    const errorNotification = buildErrorNotification()
     if (isUndefined(selectedFireCentre) || isUndefined(dateRange)) {
       return (
-        <Table>
-          <TableBody>
-            <EmptyFireCentreRow />
-          </TableBody>
-        </Table>
+        <React.Fragment>
+          {errorNotification}
+          <Table>
+            <TableBody>
+              <EmptyFireCentreRow />
+            </TableBody>
+          </Table>
+        </React.Fragment>
       )
-    } else if (loading || stationDataLoading || isUndefined(result)) {
+    } else if (isLoadingWithoutError()) {
       return (
         <Container className={classes.container}>
+          {errorNotification}
           <CircularProgress />
         </Container>
       )
@@ -230,10 +258,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     return (
       <React.Fragment>
         <Container maxWidth={'xl'}>
-          {!isNull(fireCentresError) && (
-            <HFIErrorAlert hfiDailiesError={null} fireCentresError={fireCentresError} />
-          )}
-
+          {errorNotification}
           <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
               dateRange={dateRange}
@@ -248,7 +273,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           <ErrorBoundary>
             <ViewSwitcher
               selectedFireCentre={selectedFireCentre}
-              result={result}
               dateRange={dateRange}
               setSelected={setSelectedStation}
               setNewFireStarts={setNewFireStarts}

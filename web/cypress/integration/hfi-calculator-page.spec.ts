@@ -174,4 +174,63 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('zone-74-mean-intensity').contains(5)
     })
   })
+  describe('hfi api endpoint error handling', () => {
+    beforeEach(() => {
+      interceptLoad('hfi-calc/dailies.json')
+      cy.intercept('GET', 'api/hfi-calc/fire-centres', {
+        fixture: 'hfi-calc/fire_centres.json'
+      }).as('getFireCentres')
+      cy.visit(HFI_CALC_ROUTE)
+      cy.wait('@getFireCentres')
+      cy.selectFireCentreInDropdown('Kamloops')
+      cy.wait('@loadHFIResults')
+    })
+    it('should notify user if endpoint request fails with 500', () => {
+      cy.intercept('GET', 'api/hfi-calc/fire_centre/*', {
+        statusCode: 500
+      }).as('failedLoadHFI')
+      cy.selectFireCentreInDropdown('Kamloops')
+      cy.getByTestId('hfi-error-alert').should('be.visible')
+    })
+    it('should notify user if endpoint request fails with 401', () => {
+      cy.intercept('GET', 'api/hfi-calc/fire_centre/*', {
+        statusCode: 401
+      }).as('failedLoadHFI')
+      cy.selectFireCentreInDropdown('Kamloops')
+      cy.getByTestId('hfi-error-alert').should('be.visible')
+    })
+    it('should notify user if endpoint request fails with 404', () => {
+      cy.intercept('GET', 'api/hfi-calc/fire_centre/*', {
+        statusCode: 404
+      }).as('failedLoadHFI')
+      cy.selectFireCentreInDropdown('Kamloops')
+      cy.getByTestId('hfi-error-alert').should('be.visible')
+    })
+  })
+  describe('fire centres api endpoint error handling', () => {
+    it('should notify user if endpoint request fails with 500', () => {
+      cy.intercept('GET', 'api/hfi-calc/fire-centres', {
+        statusCode: 500
+      }).as('failedFireCentres')
+      cy.visit(HFI_CALC_ROUTE)
+      cy.selectFireCentreInDropdown('Kamloops')
+      cy.getByTestId('hfi-error-alert').should('be.visible')
+    })
+    it('should notify user if endpoint request fails with 401', () => {
+      cy.intercept('GET', 'api/hfi-calc/fire-centres', {
+        statusCode: 401
+      }).as('failedFireCentres')
+      cy.visit(HFI_CALC_ROUTE)
+      cy.selectFireCentreInDropdown('Kamloops')
+      cy.getByTestId('hfi-error-alert').should('be.visible')
+    })
+    it('should notify user if endpoint request fails with 404', () => {
+      cy.intercept('GET', 'api/hfi-calc/fire-centres', {
+        statusCode: 404
+      }).as('failedFireCentres')
+      cy.visit(HFI_CALC_ROUTE)
+      cy.selectFireCentreInDropdown('Kamloops')
+      cy.getByTestId('hfi-error-alert').should('be.visible')
+    })
+  })
 })
