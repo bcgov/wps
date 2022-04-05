@@ -68,6 +68,8 @@ Start R:
 install.packages('usethis')
 # renv will be used to create the lockfile
 install.packages("renv")
+renv::install('rgdal', depedencies = TRUE)
+usethis::use_package('rgdal')
 # instal cffdrs
 renv::install("cffdrs", dependencies = TRUE)
 # update the DESCRIPTION to list cffdrs as an import
