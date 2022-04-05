@@ -11,8 +11,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { useSelector } from 'react-redux'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import { FireCentre } from 'api/hfiCalcAPI'
-import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
-import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
+import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import FireTable from 'components/FireTable'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
@@ -152,7 +151,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             <Table>
               <TableBody>
                 <TableRow>
-                  <TableCell key="header-location" className={classes.noBottomBorder}>
+                  <TableCell
+                    key="header-location"
+                    className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}
+                  >
                     Location
                   </TableCell>
                 </TableRow>
@@ -164,18 +166,31 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             <br />
             (m)
           </TableCell>
-          <StickyCell left={230} zIndexOffset={12} className={classes.rightBorder}>
+          <StickyCell left={230} zIndexOffset={12}>
             <Table>
               <TableBody>
                 <TableRow>
-                  <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
+                  <TableCell
+                    key="header-fuel-type"
+                    className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}
+                  >
                     FBP
                     <br />
                     Fuel
                     <br />
                     Type
                   </TableCell>
-                  <TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </StickyCell>
+          <StickyCell left={275} zIndexOffset={12} className={classes.rightBorder}>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell
+                    className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}
+                  >
                     Grass
                     <br />
                     Cure
@@ -359,14 +374,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           stationCodeInSelected={stationCodeInSelected}
                           toggleSelectedStation={toggleSelectedStation}
                           isDailyTable={true}
+                          grassCurePercentage={daily?.grass_cure_percentage}
                         />
-
-                        <GrassCureCell
-                          value={daily?.grass_cure_percentage}
-                          isGrassFuelType={isGrassFuelType(station.station_props)}
-                          className={classNameForRow}
-                          selected={isRowSelected}
-                        ></GrassCureCell>
 
                         <StatusCell
                           daily={daily}
