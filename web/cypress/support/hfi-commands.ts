@@ -13,6 +13,7 @@ Cypress.Commands.add('selectFireCentreInDropdown', (name: string) => {
   return cy
     .getByTestId(`fire-centre-dropdown`)
     .find('input')
+    .clear()
     .type(name)
     .type('{downarrow}')
     .type('{enter}')
