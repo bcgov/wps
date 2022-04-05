@@ -3,9 +3,7 @@
     "start_date": "2020-05-21",
     "end_date": "2020-05-26"
   },
-  "selected_station_code_ids": [
-    239
-  ],
+  "selected_station_code_ids": [239],
   "planning_area_station_info": {
     "1": [
       {
@@ -62,7 +60,7 @@
                 "isi": 2.724,
                 "bui": 111.71,
                 "fwi": 12.966,
-                "danger_class": null,
+                "danger_class": 1,
                 "observation_valid": true,
                 "observation_valid_comment": null,
                 "rate_of_spread": null,
