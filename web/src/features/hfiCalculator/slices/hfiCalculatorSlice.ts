@@ -6,6 +6,7 @@ import {
   getHFIResult,
   loadDefaultHFIResult,
   setNewFireStarts,
+  setNewPrepDateRange,
   setStationSelected,
   getPDF,
   RawDaily,
@@ -211,6 +212,19 @@ export const fetchSetStationSelected =
         station_code,
         selected
       )
+      dispatch(setResult(result))
+    } catch (err) {
+      dispatch(getHFIResultFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
+export const fetchSetNewPrepDateRange =
+  (fire_center_id: number, start_date: Date, end_date: Date): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(loadHFIResultStart())
+      const result = await setNewPrepDateRange(fire_center_id, start_date, end_date)
       dispatch(setResult(result))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))

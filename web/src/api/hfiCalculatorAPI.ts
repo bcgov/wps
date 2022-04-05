@@ -84,6 +84,24 @@ export async function setStationSelected(
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 
+export async function setNewPrepDateRange(
+  fire_centre_id: number,
+  start_date: Date,
+  end_date: Date
+): Promise<HFIResultResponse> {
+  const url =
+    baseUrl +
+    'fire_centre/' +
+    fire_centre_id +
+    '/' +
+    start_date.toISOString().split('T')[0] +
+    '/' +
+    end_date.toISOString().split('T')[0]
+
+  const { data } = await axios.post<RawHFIResultResponse>(url)
+  return { ...data, planning_area_hfi_results: buildResult(data) }
+}
+
 export async function setNewFireStarts(
   fire_center_id: number,
   start_date: string,

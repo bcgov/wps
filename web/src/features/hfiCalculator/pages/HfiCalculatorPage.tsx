@@ -9,6 +9,7 @@ import {
   fetchHFIResult,
   fetchLoadDefaultHFIResult,
   fetchSetNewFireStarts,
+  fetchSetNewPrepDateRange,
   fetchSetStationSelected,
   setSaved,
   fetchPDFDownload,
@@ -142,20 +143,17 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     if (
       newDateRange !== dateRange &&
       !isUndefined(selectedFireCentre) &&
-      !isUndefined(result)
+      !isUndefined(result) &&
+      !isUndefined(newDateRange) &&
+      !isUndefined(newDateRange.startDate) &&
+      !isUndefined(newDateRange.endDate)
     ) {
       dispatch(
-        fetchHFIResult({
-          selected_station_code_ids: result.selected_station_code_ids,
-          selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: constructPlanningAreaFireStarts(
-            result.planning_area_hfi_results
-          ),
-          date_range: {
-            start_date: newDateRange.startDate?.toISOString().split('T')[0],
-            end_date: newDateRange.endDate?.toISOString().split('T')[0]
-          }
-        })
+        fetchSetNewPrepDateRange(
+          result.selected_fire_center_id,
+          newDateRange.startDate,
+          newDateRange.endDate
+        )
       )
       dispatch(setSaved(false))
     }

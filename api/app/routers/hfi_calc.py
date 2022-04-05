@@ -1,4 +1,5 @@
 """ Routers for HFI Calculator """
+from lib2to3.pgen2.token import OP
 import logging
 import json
 from typing import List, Optional, Mapping, Tuple
@@ -40,7 +41,8 @@ router = APIRouter(
 def get_prepared_request(
         session: Session,
         fire_centre_id: int,
-        start_date: Optional[date]) -> Tuple[HFIResultRequest, bool, List[FireStartRange]]:
+        start_date: Optional[date],
+        end_date: Optional[date] = None) -> Tuple[HFIResultRequest, bool, List[FireStartRange]]:
     """ Attempt to load the most recent request from the database, failing that creates a new request all
     set up with default values.
 
@@ -48,7 +50,7 @@ def get_prepared_request(
     TODO: give this function a better name.
     """
     fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
-    date_range = DateRange(start_date=start_date, end_date=None)
+    date_range = DateRange(start_date=start_date, end_date=end_date)
     stored_request = get_most_recent_updated_hfi_request(session,
                                                          fire_centre_id,
                                                          date_range.start_date)
@@ -280,10 +282,50 @@ async def set_prep_period(fire_centre_id: int,
                           token=Depends(authentication_required)  # pylint: disable=unused-argument
                           ):
     """ Set the prep period """
-    # TODO: stub - implement!
     logger.info('/fire_centre/%s/%s/%s', fire_centre_id, start_date, end_date)
     response.headers["Cache-Control"] = no_cache
-    raise NotImplementedError('not yet implemented!')
+
+    request_persist_success = False
+    persist_request = False
+    with get_read_session_scope() as session:
+        request, request_loaded, fire_centre_fire_start_ranges = get_prepared_request(session,
+                                                                                      fire_centre_id,
+                                                                                      start_date, end_date)
+        if request_loaded and request.date_range.end_date != end_date:
+            # We loaded the request from the database, but the end date in the database doesn't match the
+            # end date we've been given. That means we have to modify the store request accordingly,
+            # then save it in the database.
+            persist_request = True
+            date_range = DateRange(start_date=start_date, end_date=end_date)
+            date_range = validate_date_range(date_range)
+            request.date_range = date_range
+
+            num_prep_days = date_range.days_in_range()
+            lowest_fire_starts = fire_centre_fire_start_ranges[0]
+
+            fire_centre_stations = get_fire_centre_stations(session, fire_centre_id)
+            for station, _ in fire_centre_stations:
+                initialize_planning_area_fire_starts(
+                    request.planning_area_fire_starts,
+                    station.planning_area_id,
+                    num_prep_days,
+                    lowest_fire_starts
+                )
+        elif not request_loaded:
+            # There is no request in the database, so we create one.
+            persist_request = True
+
+        # Get the response.
+        request_response = await calculate_and_create_response(
+            session, request, fire_centre_fire_start_ranges)
+
+    if not persist_request:
+        save_request_in_database(request, token.get('preferred_username', None))
+        request_persist_success = True
+
+    # TODO: we'll get rid of the request_persist_success param soon.
+    request_response.request_persist_success = request_persist_success or request_loaded
+    return request_response
 
 
 @router.get("/fire_centre/{fire_centre_id}", response_model=HFIResultResponse)
