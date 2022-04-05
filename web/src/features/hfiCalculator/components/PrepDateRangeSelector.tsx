@@ -43,6 +43,17 @@ export const dateRangePickerTheme = createTheme({
       root: {
         fill: 'white'
       }
+    },
+    MuiIconButton: {
+      root: {
+        paddingLeft: 0,
+        paddingRight: 12
+      }
+    },
+    MuiTextField: {
+      root: {
+        minWidth: 270
+      }
     }
   }
 })
