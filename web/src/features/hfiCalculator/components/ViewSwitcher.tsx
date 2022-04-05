@@ -3,14 +3,12 @@ import { DailyViewTable } from 'features/hfiCalculator/components/DailyViewTable
 import WeeklyViewTable from 'features/hfiCalculator/components/WeeklyViewTable'
 import {
   FireStartRange,
-  HFIResultResponse,
   PrepDateRange
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import React from 'react'
 
 export interface ViewSwitcherProps {
   testId?: string
-  result: HFIResultResponse
   dateRange?: PrepDateRange
   setSelected: (planningAreaId: number, code: number, selected: boolean) => void
   setNewFireStarts: (
