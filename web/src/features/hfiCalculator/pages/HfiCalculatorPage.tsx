@@ -6,7 +6,6 @@ import {
   FireStartRange,
   PlanningAreaResult,
   setSelectedFireCentre,
-  fetchHFIResult,
   fetchLoadDefaultHFIResult,
   fetchSetNewFireStarts,
   fetchSetNewPrepDateRange,
@@ -195,22 +194,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))
-  }
-
-  const handleSaveClicked = () => {
-    if (!isUndefined(result)) {
-      dispatch(
-        fetchHFIResult({
-          selected_station_code_ids: result.selected_station_code_ids,
-          selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: constructPlanningAreaFireStarts(
-            result.planning_area_hfi_results
-          ),
-          date_range: result.date_range,
-          persist_request: true
-        })
-      )
-    }
   }
 
   const handleDownloadClicked = () => {

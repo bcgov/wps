@@ -126,19 +126,6 @@ export async function setNewFireStarts(
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 
-export async function getHFIResult(
-  request: HFIResultRequest
-): Promise<HFIResultResponse> {
-  const { data } = await axios.post<RawHFIResultResponse>(baseUrl, {
-    ...request
-  })
-
-  return {
-    ...data,
-    planning_area_hfi_results: buildResult(data)
-  }
-}
-
 function buildResult(data: RawHFIResultResponse) {
   const planningAreaResultsWithDates: PlanningAreaResult[] =
     data.planning_area_hfi_results.map(areaResult => ({

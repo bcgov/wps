@@ -1,5 +1,4 @@
 """ Routers for HFI Calculator """
-from lib2to3.pgen2.token import OP
 import logging
 import json
 from typing import List, Optional, Mapping, Tuple

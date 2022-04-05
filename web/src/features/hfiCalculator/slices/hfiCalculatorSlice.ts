@@ -3,7 +3,6 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import {
-  getHFIResult,
   loadDefaultHFIResult,
   setNewFireStarts,
   setNewPrepDateRange,
@@ -237,19 +236,6 @@ export const fetchSetNewFireStarts =
         prep_day_date,
         fire_start_range_id
       )
-      dispatch(setResult(result))
-    } catch (err) {
-      dispatch(getHFIResultFailed((err as Error).toString()))
-      logError(err)
-    }
-  }
-
-export const fetchHFIResult =
-  (request: HFIResultRequest): AppThunk =>
-  async dispatch => {
-    try {
-      dispatch(loadHFIResultStart())
-      const result = await getHFIResult(request)
       dispatch(setResult(result))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
