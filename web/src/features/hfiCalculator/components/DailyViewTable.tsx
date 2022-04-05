@@ -36,6 +36,7 @@ import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredData
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DailyHFICell } from 'features/hfiCalculator/components/DailyHFICell'
+import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -147,60 +148,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               </TableBody>
             </Table>
           </StickyCell>
-          <StickyCell left={50} zIndexOffset={12} className={classes.stationLocation}>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell
-                    key="header-location"
-                    className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}
-                  >
-                    Location
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </StickyCell>
-          <TableCell key="header-elevation" className={classes.nonstickyHeaderCell}>
-            Elev.
-            <br />
-            (m)
-          </TableCell>
-          <StickyCell left={230} zIndexOffset={12}>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell
-                    key="header-fuel-type"
-                    className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}
-                  >
-                    FBP
-                    <br />
-                    Fuel
-                    <br />
-                    Type
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </StickyCell>
-          <StickyCell left={275} zIndexOffset={12} className={classes.rightBorder}>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell
-                    className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}
-                  >
-                    Grass
-                    <br />
-                    Cure
-                    <br />
-                    (%)
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </StickyCell>
+          <StationDataHeaderCells />
           <TableCell>Status</TableCell>
           <TableCell>
             Temp
