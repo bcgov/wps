@@ -4,12 +4,15 @@ import { WeatherStation } from 'api/hfiCalcAPI'
 import StickyCell from 'components/StickyCell'
 import { fireTableStyles } from 'app/theme'
 import React from 'react'
+import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
+import { isGrassFuelType } from 'features/hfiCalculator/validation'
 
 export interface BaseStationAttributeCellsProps {
   testid?: string
   station: WeatherStation
   planningAreaId: number
   className: string | undefined
+  grassCurePercentage: number | undefined
   stationCodeInSelected: (code: number) => boolean
   toggleSelectedStation: (planningAreaId: number, code: number) => void
   isDailyTable?: boolean
@@ -23,9 +26,9 @@ const BaseStationAttributeCells = ({
   station,
   planningAreaId,
   className,
+  grassCurePercentage,
   stationCodeInSelected,
-  toggleSelectedStation,
-  isDailyTable
+  toggleSelectedStation
 }: BaseStationAttributeCellsProps) => {
   const classes = useStyles()
 
@@ -64,12 +67,7 @@ const BaseStationAttributeCells = ({
       <TableCell key={`station-${station.code}-elevation`} className={className}>
         {station.station_props.elevation}
       </TableCell>
-      <StickyCell
-        left={230}
-        zIndexOffset={11}
-        backgroundColor={'#ffffff'}
-        className={`${isDailyTable ? classes.rightBorder : undefined}`}
-      >
+      <StickyCell left={230} zIndexOffset={11} backgroundColor={'#ffffff'}>
         <Table>
           <TableBody>
             <TableRow>
@@ -79,6 +77,25 @@ const BaseStationAttributeCells = ({
               >
                 {station.station_props.fuel_type.abbrev}
               </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </StickyCell>
+      <StickyCell
+        left={275}
+        zIndexOffset={11}
+        backgroundColor={'#ffffff'}
+        className={classes.rightBorder}
+      >
+        <Table>
+          <TableBody>
+            <TableRow>
+              <GrassCureCell
+                value={grassCurePercentage}
+                isGrassFuelType={isGrassFuelType(station.station_props)}
+                selected={stationCodeInSelected(station.code)}
+                className={classes.noBottomBorder}
+              ></GrassCureCell>
             </TableRow>
           </TableBody>
         </Table>

@@ -11,8 +11,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { useSelector } from 'react-redux'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import { FireCentre } from 'api/hfiCalcAPI'
-import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
-import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
+import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import FireTable from 'components/FireTable'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
@@ -37,6 +36,7 @@ import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredData
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DailyHFICell } from 'features/hfiCalculator/components/DailyHFICell'
+import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -48,13 +48,13 @@ export const dailyTableColumnLabels = [
   'Location',
   'Elev. (m)',
   'FBP Fuel Type',
+  'Grass Cure (%)',
   'Status',
   'Temp (°C)',
   'RH (%)',
   'Wind Dir (°)',
   'Wind Speed (km/h)',
   'Precip (mm)',
-  'Grass Cure (%)',
   'FFMC',
   'DMC',
   'DC',
@@ -148,37 +148,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               </TableBody>
             </Table>
           </StickyCell>
-          <StickyCell left={50} zIndexOffset={12} className={classes.stationLocation}>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell key="header-location" className={classes.noBottomBorder}>
-                    Location
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </StickyCell>
-          <TableCell key="header-elevation" className={classes.nonstickyHeaderCell}>
-            Elev.
-            <br />
-            (m)
-          </TableCell>
-          <StickyCell left={230} zIndexOffset={12} className={classes.rightBorder}>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
-                    FBP
-                    <br />
-                    Fuel
-                    <br />
-                    Type
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </StickyCell>
+          <StationDataHeaderCells />
           <TableCell>Status</TableCell>
           <TableCell>
             Temp
@@ -208,13 +178,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             Precip
             <br />
             (mm)
-          </TableCell>
-          <TableCell>
-            Grass
-            <br />
-            Cure
-            <br />
-            (%)
           </TableCell>
           <TableCell>FFMC</TableCell>
           <TableCell>DMC</TableCell>
@@ -359,6 +322,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           stationCodeInSelected={stationCodeInSelected}
                           toggleSelectedStation={toggleSelectedStation}
                           isDailyTable={true}
+                          grassCurePercentage={daily?.grass_cure_percentage}
                         />
 
                         <StatusCell
@@ -401,12 +365,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             'Precipitation cannot be null. Impacts DC, BUI, ROS, HFI, FIG, Prep calculations.'
                           }
                         />
-                        <GrassCureCell
-                          value={daily?.grass_cure_percentage}
-                          isGrassFuelType={isGrassFuelType(station.station_props)}
-                          className={classNameForRow}
-                          selected={isRowSelected}
-                        ></GrassCureCell>
                         <TableCell className={classNameForRow}>
                           {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                         </TableCell>
