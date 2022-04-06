@@ -22,6 +22,12 @@ function interceptSelectStationTrue(planning_area: number, code: number) {
   ).as('selectStationTrue')
 }
 
+function interceptSetPrepPeriod(fire_centre: number, start_date: string, end_date: string) {
+  cy.intercept('POST', `api/hfi-calc/fire_centre/${fire_centre}/${start_date}/${end_date}`, {
+    fixture: 'hfi-calc/dailies-saved.json'
+  }).as('setPrepPeriod')
+}
+
 function interceptSelectStationFalse(planning_area: number, code: number) {
   cy.intercept(
     'POST',
@@ -85,8 +91,10 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('select-station-239').find('input').should('be.checked')
     })
     it.only('prep period should send a new request to the server', () => {
+      interceptSetPrepPeriod(1, '2021-08-02', '2021-08-06')
       // cy.getByTestId('fire-starts-dropdown')
-      // CONOR HERE
+
+      cy.wait('@setPrepPeriod')
     }),
       it('new fire starts should send a new request to the server', () => {
         // Selecting a new fire start, should result in a new request to the server, that comes back with "request_persist_success": true, or
