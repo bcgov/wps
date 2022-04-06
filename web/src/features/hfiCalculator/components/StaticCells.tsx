@@ -28,10 +28,6 @@ export const StaticCells = ({
   const staticCells = range(numPrepDays).map(dailyIndex => {
     const daily = dailies?.at(dailyIndex)
     const error = !isValidGrassCure(daily, station.station_props)
-    let isFirstDayOfPrep = false
-    if (dailyIndex === 0) {
-      isFirstDayOfPrep = true
-    }
     return isUndefined(daily) ? (
       <EmptyStaticCells
         key={`empty-${station.code}-${dailyIndex}`}
@@ -46,7 +42,7 @@ export const StaticCells = ({
           testId={`${station.code}-ros`}
           error={error}
           isRowSelected={isRowSelected}
-          isFirstDayOfPrepPeriod={isFirstDayOfPrep}
+          isFirstDayOfPrepPeriod={dailyIndex === 0}
         />
         <HFICell value={daily?.hfi} />
         <IntensityGroupCell
