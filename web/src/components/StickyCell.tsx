@@ -1,5 +1,6 @@
 import { TableCell } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { theme } from 'app/theme'
 import React from 'react'
 
 interface StickyCellProps {
@@ -13,7 +14,7 @@ interface StickyCellProps {
 }
 
 const StickyCell = (props: StickyCellProps) => {
-  const useStyles = makeStyles(theme => ({
+  const useStyles = makeStyles(() => ({
     sticky: {
       left: props.left,
       position: 'sticky',

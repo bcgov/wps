@@ -1,9 +1,10 @@
 import * as React from 'react'
-import { IconButton, Typography, Theme } from '@mui/material'
+import { IconButton, Typography } from '@mui/material'
+import { theme } from 'app/theme'
 import makeStyles from '@mui/styles/makeStyles'
 import { combineCSSClassNames } from 'components/dateRangePicker/utils'
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles(() => ({
   leftBorderRadius: {
     borderRadius: '50% 0 0 50%'
   },

@@ -12,8 +12,9 @@ import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHead
 import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateRange } from 'components/dateRangePicker/types'
 import PrepDateRangeSelector from 'features/hfiCalculator/components/PrepDateRangeSelector'
+import { theme } from 'app/theme'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   ...formControlStyles,
   root: {
     background: theme.palette.primary.light,

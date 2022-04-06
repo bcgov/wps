@@ -1,13 +1,14 @@
 import React from 'react'
-import { Paper, Grid, Typography, Divider, Theme, Button } from '@mui/material'
+import { Paper, Grid, Typography, Divider, Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { format, differenceInCalendarMonths } from 'date-fns'
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt'
 import { MARKERS } from 'components/dateRangePicker/DateRangePicker'
 import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/types'
 import Month from 'components/dateRangePicker/Month'
+import { theme } from 'app/theme'
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles(() => ({
   header: {
     padding: '20px 70px'
   },

@@ -1,8 +1,7 @@
 import { Collapse, IconButton, Alert } from '@mui/material'
-import { Theme } from '@mui/material/styles'
-import createStyles from '@mui/styles/createStyles'
-import makeStyles from '@mui/styles/makeStyles'
+import { createStyles, makeStyles } from '@mui/styles'
 import CloseIcon from '@mui/icons-material/Close'
+import { theme } from 'app/theme'
 import React from 'react'
 
 export interface HFIErrorAlertProps {
@@ -10,7 +9,7 @@ export interface HFIErrorAlertProps {
   fireCentresError: string | null
 }
 
-const useStyles = makeStyles((theme: Theme) =>
+const useStyles = makeStyles(() =>
   createStyles({
     root: {
       width: '100%',

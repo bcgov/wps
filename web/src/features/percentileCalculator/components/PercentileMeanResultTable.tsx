@@ -12,12 +12,13 @@ import makeStyles from '@mui/styles/makeStyles'
 import { MeanValues } from 'api/percentileAPI'
 import { FWI_VALUES_DECIMAL } from 'utils/constants'
 import { NOT_AVAILABLE } from 'utils/strings'
+import { theme } from 'app/theme'
 
 interface Props {
   meanValues: MeanValues
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   tableHeader: {
     backgroundColor: theme.palette.primary.light,
     color: theme.palette.primary.contrastText
