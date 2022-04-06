@@ -121,6 +121,9 @@ export const fireTableStyles = createStyles({
   },
   leftBorder: {
     borderLeft: '1px solid #C4C4C4'
+  },
+  tableColumnHeader: {
+    fontWeight: 'bold'
   }
 })
 
