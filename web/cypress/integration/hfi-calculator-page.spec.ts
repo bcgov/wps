@@ -96,20 +96,20 @@ describe('HFI Calculator Page', () => {
       // cy.getByTestId('fire-starts-dropdown')
 
       cy.wait('@setPrepPeriod')
-    }),
-      it('new fire starts should send a new request to the server', () => {
-        // Selecting a new fire start, should result in a new request to the server, that comes back with "request_persist_success": true, or
-        // which should cause the save button to become disabled.
-        interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
-        interceptSetFireStarts()
-        cy.getByTestId('fire-starts-dropdown')
-          .first()
-          .find('input')
-          .type('{downarrow}')
-          .type('{downarrow}')
-          .type('{enter}')
-        cy.wait('@setFireStarts')
-      })
+    })
+    it('new fire starts should send a new request to the server', () => {
+      // Selecting a new fire start, should result in a new request to the server, that comes back with "request_persist_success": true, or
+      // which should cause the save button to become disabled.
+      interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
+      interceptSetFireStarts()
+      cy.getByTestId('fire-starts-dropdown')
+        .first()
+        .find('input')
+        .type('{downarrow}')
+        .type('{downarrow}')
+        .type('{enter}')
+      cy.wait('@setFireStarts')
+    })
     it('should switch the tab to prep period from a daily tab when a different fire centre is selected', () => {
       cy.getByTestId('daily-toggle-1').click({ force: true })
       cy.getByTestId('hfi-calc-daily-table').should('be.visible')
