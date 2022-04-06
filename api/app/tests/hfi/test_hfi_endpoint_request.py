@@ -16,6 +16,8 @@ from app.tests.hfi import mock_station_crud
 
 
 def _setup_mock(monkeypatch: pytest.MonkeyPatch):
+    """ Prepare all our mocked out calls.
+    """
     # mock anything that uses aiohttp.ClientSession::get
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
 
