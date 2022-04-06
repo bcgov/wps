@@ -1,15 +1,8 @@
 import React from 'react'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Tooltip
-} from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { useSelector } from 'react-redux'
-import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { FireCentre } from 'api/hfiCalcAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'

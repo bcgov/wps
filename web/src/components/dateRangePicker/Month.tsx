@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Paper, Grid, Typography, makeStyles } from '@material-ui/core'
+import { Paper, Grid, Typography } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { getDate, isSameMonth, isToday, format, isWithinInterval } from 'date-fns'
 import {
   chunks,

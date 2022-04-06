@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Grid } from '@material-ui/core'
+import { Grid } from '@mui/material'
 import BasicFWIInput from 'features/fwiCalculator/components/BasicFWIInput'
 import BasicFWIOutput from 'features/fwiCalculator/components/BasicFWIOutput'
 import { useDispatch, useSelector } from 'react-redux'

@@ -1,5 +1,5 @@
-import { TableCell } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { fireTableStyles, UNSELECTED_STATION_COLOR } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'

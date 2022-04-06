@@ -1,4 +1,4 @@
-import { TableCell } from '@material-ui/core'
+import { TableCell } from '@mui/material'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'

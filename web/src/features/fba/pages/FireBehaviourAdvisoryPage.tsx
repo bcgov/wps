@@ -1,4 +1,5 @@
-import { FormControl, Grid, makeStyles } from '@material-ui/core'
+import { FormControl, Grid } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/FBAMap'

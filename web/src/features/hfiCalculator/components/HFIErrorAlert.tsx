@@ -1,7 +1,9 @@
-import { Collapse, IconButton } from '@material-ui/core'
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles'
-import { Alert } from '@material-ui/lab'
-import CloseIcon from '@material-ui/icons/Close'
+import { Collapse, IconButton } from '@mui/material'
+import { Theme } from '@mui/material/styles'
+import createStyles from '@mui/styles/createStyles'
+import makeStyles from '@mui/styles/makeStyles'
+import { Alert } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
 import React from 'react'
 
 export interface HFIErrorAlertProps {

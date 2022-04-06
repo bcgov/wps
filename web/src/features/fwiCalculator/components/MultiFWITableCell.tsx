@@ -1,5 +1,5 @@
 import { Table } from '@devexpress/dx-react-grid-material-ui'
-import { makeStyles } from '@material-ui/core'
+import makeStyles from '@mui/styles/makeStyles'
 import { inputColumns } from 'features/fwiCalculator/components/dataModel'
 import React from 'react'
 

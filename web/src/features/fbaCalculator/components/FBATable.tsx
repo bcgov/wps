@@ -1,14 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { difference, filter, findIndex, isEmpty, isUndefined } from 'lodash'
-import {
-  FormControl,
-  makeStyles,
-  TableBody,
-  TableCell,
-  TableRow
-} from '@material-ui/core'
-import GetAppIcon from '@material-ui/icons/GetApp'
-import ViewColumnOutlinedIcon from '@material-ui/icons/ViewColumnOutlined'
+import { FormControl, TableBody, TableCell, TableRow } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import GetAppIcon from '@mui/icons-material/GetApp'
+import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
 import { CsvBuilder } from 'filefy'
 import { Button, ErrorBoundary } from 'components'
 import { FBAStation } from 'api/fbaCalcAPI'
@@ -640,7 +635,6 @@ const FBATable = (props: FBATableProps) => {
         <FormControl className={classes.formControl}>
           <Button
             data-testid="export"
-            color="default"
             disabled={selected.length === 0}
             onClick={exportSelectedRows}
           >
@@ -651,7 +645,6 @@ const FBATable = (props: FBATableProps) => {
         <FormControl className={classes.formControl}>
           <Button
             data-testid="filter-columns-btn"
-            color="default"
             disabled={fireBehaviourResultStations.length === 0}
             onClick={openColumnsModal}
           >

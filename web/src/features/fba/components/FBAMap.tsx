@@ -12,7 +12,7 @@ import GeoJSON from 'ol/format/GeoJSON'
 
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { monochromeSource as baseMapSource } from 'features/fireWeather/components/maps/constants'

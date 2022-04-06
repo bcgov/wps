@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 
 import { NoonForecastValue } from 'api/forecastAPI'
 import { formatDatetimeInPST, formatDateInUTC00Suffix } from 'utils/date'
@@ -16,10 +16,10 @@ import {
   TableRow,
   TableSortLabel,
   Typography
-} from '@material-ui/core'
+} from '@mui/material'
 import { ObservedValue } from 'api/observationAPI'
 import { getDatetimeComparator, Order, calculateAccumulatedPrecip } from 'utils/table'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ComparisonTableRow, { DataSource, WeatherVariable } from './ComparisonTableRow'
 
 interface NoonForecastTableProps {

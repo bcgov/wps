@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { tiledMapLayer } from 'esri-leaflet'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 import { FeatureCollection } from 'geojson'
 import {
   fetchModelRuns,

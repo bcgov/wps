@@ -1,7 +1,7 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { Modal, Card, Button } from '@material-ui/core'
-import InfoIcon from '@material-ui/icons/Info'
+import makeStyles from '@mui/styles/makeStyles'
+import { Modal, Card, Button } from '@mui/material'
+import InfoIcon from '@mui/icons-material/Info'
 
 import PercentileCalculatorPage from 'features/percentileCalculator/pages/PercentileCalculatorPage'
 

@@ -1,4 +1,4 @@
-import { TableCell } from '@material-ui/core'
+import { TableCell } from '@mui/material'
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import React, { ReactElement } from 'react'
 

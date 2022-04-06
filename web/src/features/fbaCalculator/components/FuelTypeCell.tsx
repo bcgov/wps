@@ -1,6 +1,6 @@
-import { TextField } from '@material-ui/core'
-import { ClassNameMap } from '@material-ui/core/styles/withStyles'
-import { Autocomplete } from '@material-ui/lab'
+import { TextField } from '@mui/material'
+import { ClassNameMap } from '@mui/styles'
+import { Autocomplete } from '@mui/material'
 import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
@@ -51,7 +51,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
       autoSelect={true}
       options={props.fuelTypeOptions}
       className={props.classNameMap.fuelType}
-      getOptionSelected={(option, value) => isEqual(option, value)}
+      isOptionEqualToValue={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
       renderInput={params => (
         <TextField

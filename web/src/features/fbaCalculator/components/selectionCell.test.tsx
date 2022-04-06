@@ -1,4 +1,4 @@
-import { TableContainer, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
+import { TableContainer, Table, TableBody, TableRow, TableCell } from '@mui/material'
 import { render, screen } from '@testing-library/react'
 import React from 'react'
 import SelectionCell from 'features/fbaCalculator/components/SelectionCell'

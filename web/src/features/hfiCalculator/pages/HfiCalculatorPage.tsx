@@ -20,13 +20,8 @@ import {
   selectHFIStationsLoading,
   selectHFICalculatorState
 } from 'app/rootReducer'
-import {
-  CircularProgress,
-  FormControl,
-  makeStyles,
-  Table,
-  TableBody
-} from '@material-ui/core'
+import { CircularProgress, FormControl, Table, TableBody } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import SaveButton from 'features/hfiCalculator/components/SaveButton'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'

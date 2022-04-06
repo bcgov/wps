@@ -15,8 +15,8 @@ import {
   TableSelection,
   Toolbar
 } from '@devexpress/dx-react-grid-material-ui'
-import { Paper, IconButton, LinearProgress } from '@material-ui/core'
-import { Add, Refresh } from '@material-ui/icons'
+import { Paper, IconButton, LinearProgress } from '@mui/material'
+import { Add, Refresh } from '@mui/icons-material'
 import { selectMultiFWIOutputs, selectMultiFWIOutputsLoading } from 'app/rootReducer'
 import {
   defaultColumns,
@@ -156,10 +156,10 @@ export const MultiDayFWITable = ({
           <Toolbar />
           <Template name="toolbarContent">
             <TemplatePlaceholder />
-            <IconButton onClick={resetFromRange}>
+            <IconButton onClick={resetFromRange} size="large">
               <Refresh />
             </IconButton>
-            <IconButton onClick={addRow}>
+            <IconButton onClick={addRow} size="large">
               <Add />
             </IconButton>
           </Template>

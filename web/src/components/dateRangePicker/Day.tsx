@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { IconButton, Typography, makeStyles, Theme } from '@material-ui/core'
+import { IconButton, Typography, Theme } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { combineCSSClassNames } from 'components/dateRangePicker/utils'
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -83,6 +84,7 @@ const Day: React.FunctionComponent<DayProps> = ({
         disabled={disabled}
         onClick={onClick}
         onMouseOver={onHover}
+        size="large"
       >
         <Typography
           color={!disabled ? 'textPrimary' : 'textSecondary'}

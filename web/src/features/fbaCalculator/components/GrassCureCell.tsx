@@ -1,5 +1,5 @@
-import { TextField, Tooltip } from '@material-ui/core'
-import { ClassNameMap } from '@material-ui/core/styles/withStyles'
+import { TextField, Tooltip } from '@mui/material'
+import { ClassNameMap } from '@mui/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'

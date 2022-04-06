@@ -1,15 +1,8 @@
 import React from 'react'
-import {
-  Paper,
-  Grid,
-  Typography,
-  Divider,
-  makeStyles,
-  Theme,
-  Button
-} from '@material-ui/core'
+import { Paper, Grid, Typography, Divider, Theme, Button } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { format, differenceInCalendarMonths } from 'date-fns'
-import ArrowRightAlt from '@material-ui/icons/ArrowRightAlt'
+import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt'
 import { MARKERS } from 'components/dateRangePicker/DateRangePicker'
 import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/types'
 import Month from 'components/dateRangePicker/Month'

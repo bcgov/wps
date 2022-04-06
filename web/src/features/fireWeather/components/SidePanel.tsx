@@ -1,6 +1,6 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab'
+import makeStyles from '@mui/styles/makeStyles'
+import { ToggleButton, ToggleButtonGroup } from '@mui/material'
 
 const useStyles = makeStyles({
   root: {

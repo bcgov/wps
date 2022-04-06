@@ -1,5 +1,6 @@
-import { Grid, makeStyles, Tooltip } from '@material-ui/core'
-import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
+import { Grid, Tooltip } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'

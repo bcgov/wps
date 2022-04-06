@@ -1,5 +1,7 @@
 import React from 'react'
-import { InputLabel, makeStyles } from '@material-ui/core'
+import { InputLabel } from '@mui/material'
+
+import makeStyles from '@mui/styles/makeStyles'
 
 import Slider from 'components/Slider'
 

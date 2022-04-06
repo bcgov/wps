@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { TextField, IconButton, InputAdornment } from '@material-ui/core'
+import { TextField, IconButton, InputAdornment } from '@mui/material'
 import FWIDateRange from 'features/fwiCalculator/components/FWIDateRange'
-import { DateRange } from '@material-ui/icons'
+import { DateRange } from '@mui/icons-material'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import DatePicker from 'components/DatePicker'
@@ -63,7 +63,11 @@ const FWIDatePicker = ({
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <IconButton aria-label="toggle password visibility" edge="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    edge="end"
+                    size="large"
+                  >
                     <DateRange />
                   </IconButton>
                 </InputAdornment>
