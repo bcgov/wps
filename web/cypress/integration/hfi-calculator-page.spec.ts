@@ -91,6 +91,7 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('select-station-239').find('input').should('be.checked')
     })
     it.only('prep period should send a new request to the server', () => {
+      // TODO: double check input for interceptSetPrepPeriod when conor is done implementing the actions to select date.
       interceptSetPrepPeriod(1, '2021-08-02', '2021-08-06')
       // cy.getByTestId('fire-starts-dropdown')
 
