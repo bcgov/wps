@@ -4,7 +4,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import FormGroup from '@mui/material/FormGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import FormControl from '@mui/material/FormControl'
-import Select from '@mui/material/Select'
+import Select, { SelectChangeEvent } from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Switch from '@mui/material/Switch'
 
@@ -12,7 +12,6 @@ import {
   ToggleValues,
   SetToggleValues
 } from 'features/fireWeather/components/graphs/useGraphToggles'
-import { SelectChangeEvent } from '@mui/material/Select'
 
 const useStyles = makeStyles({
   root: {

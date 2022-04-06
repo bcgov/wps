@@ -1,6 +1,5 @@
-import { TextField } from '@mui/material'
+import { TextField, Autocomplete } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { Autocomplete } from '@mui/material'
 import { FireStartRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isEqual, isNull } from 'lodash'
 import React from 'react'

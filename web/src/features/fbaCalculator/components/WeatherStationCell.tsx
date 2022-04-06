@@ -1,6 +1,5 @@
-import { TextField } from '@mui/material'
+import { TextField, Autocomplete } from '@mui/material'
 import { ClassNameMap } from '@mui/styles'
-import { Autocomplete } from '@mui/material'
 import { isEqual } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'

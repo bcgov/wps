@@ -84,6 +84,7 @@ const Header: React.FunctionComponent<HeaderProps> = ({
       </Grid>
       <Grid item>
         <Select
+          variant="standard"
           value={getMonth(date)}
           onChange={handleMonthChange}
           MenuProps={{ disablePortal: true }}
@@ -98,6 +99,7 @@ const Header: React.FunctionComponent<HeaderProps> = ({
 
       <Grid item>
         <Select
+          variant="standard"
           value={getYear(date)}
           onChange={handleYearChange}
           MenuProps={{ disablePortal: true }}

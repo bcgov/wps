@@ -1,6 +1,5 @@
-import { TextField } from '@mui/material'
+import { TextField, Autocomplete } from '@mui/material'
 import { ClassNameMap } from '@mui/styles'
-import { Autocomplete } from '@mui/material'
 import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'

@@ -1,5 +1,4 @@
-import { TableCell } from '@mui/material'
-import { Skeleton } from '@mui/material'
+import { TableCell, Skeleton } from '@mui/material'
 import React from 'react'
 
 export interface LoadingIndicatorCellProps {
