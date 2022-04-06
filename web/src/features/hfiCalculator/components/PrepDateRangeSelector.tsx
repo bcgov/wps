@@ -79,6 +79,7 @@ const PrepDateRangeSelector = ({
     <React.Fragment>
       <ThemeProvider theme={dateRangePickerTheme}>
         <TextField
+          data-testid="date-range-picker-text-field"
           size="small"
           id="outlined-basic"
           variant="outlined"
