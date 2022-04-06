@@ -180,8 +180,6 @@ class HFIResultResponse(BaseModel):
     planning_area_station_info: Optional[Mapping[int, List[StationInfo]]]
     selected_fire_center_id: int
     planning_area_hfi_results: List[PlanningAreaResult]
-    # Indicate whether the request used to generate this response  was saved to the database.
-    request_persist_success: bool
     # Each planning area may have it's own custom fire starts information - so we include it in
     # the response for convenience. (We could require the front end to make a seperate call to load
     # fire start ranges for a fire centre, instead of sending it up on every response.)

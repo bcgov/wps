@@ -33,7 +33,7 @@ const DateRangePickerWrapper: React.FunctionComponent<DateRangePickerWrapperProp
   const maxDate = DateTime.fromJSDate(minDate).plus({ days: 6 }).toJSDate()
 
   return (
-    <div>
+    <div data-testid="date-range-picker-wrapper">
       {open && <div onKeyPress={handleKeyPress} onClick={handleToggle} />}
 
       <div>

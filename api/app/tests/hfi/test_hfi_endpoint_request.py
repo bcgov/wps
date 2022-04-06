@@ -1,28 +1,22 @@
 from typing import Tuple
+from distutils.util import strtobool
+from unittest.mock import MagicMock
 import pytest
+import json
 from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
+from pytest_mock import MockerFixture
 import app.main
-from app.db.models.hfi_calc import PlanningWeatherStation, FuelType, FireCentre, PlanningArea
+import app.routers.hfi_calc
+from app.db.models.hfi_calc import PlanningWeatherStation, FuelType, FireCentre, PlanningArea, HFIRequest
 from app.tests.common import default_mock_client_get
-from app.tests import load_json_file_with_name
+from app.tests import load_json_file_with_name, load_json_file
 from app.tests.hfi import mock_station_crud
 
 
-@pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_hfi_endpoint_request.feature', 'HFI - request')
-def test_fire_behaviour_calculator_scenario_no_request_stored():
-    """ BDD Scenario. """
-    pass
-
-
-@given(parsers.parse("I received a hfi-calc {url} {request_json} with {verb}"),
-       target_fixture='response',
-       converters={'request_json': load_json_file_with_name(__file__), 'url': str})
-def given_request_none_stored(
-        monkeypatch: pytest.MonkeyPatch, url: str, request_json: Tuple[dict, str], verb: str):
-    """ Handle request
+def _setup_mock(monkeypatch: pytest.MonkeyPatch):
+    """ Prepare all our mocked out calls.
     """
     # mock anything that uses aiohttp.ClientSession::get
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
@@ -49,6 +43,59 @@ def given_request_none_stored(
     # mock out database calls:
     mock_station_crud(monkeypatch)
 
+
+@pytest.mark.usefixtures('mock_jwt_decode')
+@scenario('test_hfi_endpoint_request.feature', 'HFI - request')
+def test_fire_behaviour_calculator_scenario_no_request_stored():
+    """ BDD Scenario. """
+    pass
+
+
+@given('I spy on store_hfi_request', target_fixture='spy_store_hfi_request')
+def spy_on_store_hfi_request(mocker: MockerFixture):
+    return mocker.spy(app.routers.hfi_calc, 'store_hfi_request')
+
+
+@given(parsers.parse("I have a stored request {stored_request_json}"),
+       converters={'stored_request_json': load_json_file(__file__)})
+def given_stored_request(monkeypatch, stored_request_json: Tuple[dict, str]):
+    def mock_get_most_recent_updated_hfi_request(*_, **__):
+        """ Returns mocked WFWXWeatherStation with fuel types. """
+        return HFIRequest(request=json.dumps(stored_request_json))
+
+    monkeypatch.setattr(app.routers.hfi_calc, 'get_most_recent_updated_hfi_request',
+                        mock_get_most_recent_updated_hfi_request)
+
+
+@given(parsers.parse("I received a hfi-calc {url} with {verb}"),
+       target_fixture='response',
+       converters={'url': str, 'verb': str})
+def given_hfi_calc_url(monkeypatch: pytest.MonkeyPatch, url: str, verb: str):
+    """ Handle request
+    """
+    _setup_mock(monkeypatch)
+
+    client = TestClient(app.main.app)
+    headers = {'Content-Type': 'application/json',
+               'Authorization': 'Bearer token'}
+    if verb == 'get':
+        response = client.get(url, headers=headers)
+    else:
+        response = client.post(url, headers=headers)
+    return {
+        'response': response
+    }
+
+
+@given(parsers.parse("I received a hfi-calc request url:{url} verb:{verb} request:{request_json}"),
+       target_fixture='response',
+       converters={'request_json': load_json_file_with_name(__file__), 'url': str})
+def given_hfi_calc_url_with_request(
+        monkeypatch: pytest.MonkeyPatch, url: str, request_json: Tuple[dict, str], verb: str):
+    """ Handle request
+    """
+    _setup_mock(monkeypatch)
+
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
@@ -60,6 +107,11 @@ def given_request_none_stored(
         'response': response,
         'filename': request_json[1]
     }
+
+
+@then(parsers.parse("request == saved = {request_saved}"), converters={'request_saved': strtobool})
+def then_request_saved(spy_store_hfi_request: MagicMock, request_saved: bool):
+    assert spy_store_hfi_request.called == request_saved
 
 
 @then("the response isn't cached")
