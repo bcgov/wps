@@ -99,10 +99,10 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('date-range-reset-button').click({ force: true })
 
       // Click to set a new start date
-      cy.getByTestId('day-2021-08-03T07\\:00\\:00\\.000Z').click()
+      cy.getByTestId('day-2021-08-03').click()
 
       // Click to set a new end date
-      cy.getByTestId('day-2021-08-07T07\\:00\\:00\\.000Z').click()
+      cy.getByTestId('day-2021-08-07').click()
 
       // Close modal
       cy.getByTestId('date-range-picker-wrapper').type('{esc}')
