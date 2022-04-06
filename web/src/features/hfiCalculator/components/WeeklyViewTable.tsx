@@ -9,8 +9,6 @@ import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
 import CalculatedPlanningAreaCells from 'features/hfiCalculator/components/CalculatedPlanningAreaCells'
 import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
-import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
-import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { isEmpty, isUndefined, sortBy } from 'lodash'
 import {
@@ -28,6 +26,7 @@ import {
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
+import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -101,52 +100,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               </TableBody>
             </Table>
           </StickyCell>
-          <StickyCell left={50} zIndexOffset={12}>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell key="header-location" className={classes.noBottomBorder}>
-                    Location
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </StickyCell>
-          <TableCell key="header-elevation" className={classes.nonstickyHeaderCell}>
-            Elev.
-            <br />
-            (m)
-          </TableCell>
-          <StickyCell left={234} zIndexOffset={12}>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
-                    FBP
-                    <br />
-                    Fuel
-                    <br />
-                    Type
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </StickyCell>
-          <StickyCell left={284} zIndexOffset={12} className={classes.rightBorder}>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell className={classes.noBottomBorder}>
-                    Grass
-                    <br />
-                    Cure
-                    <br />
-                    (%)
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </StickyCell>
+          <StationDataHeaderCells />
           <DayIndexHeaders numPrepDays={numPrepDays} />
           <TableCell className={classes.sectionSeparatorBorder}>
             Highest
@@ -211,7 +165,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         className={`${classes.planningArea} ${classes.nonstickyHeaderCell}`}
                       ></TableCell>
                       <StickyCell
-                        left={230}
+                        left={227}
                         zIndexOffset={10}
                         className={`${classes.rightBorder} ${classes.defaultBackground}`}
                         colSpan={2}
@@ -263,39 +217,12 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             className={classNameForRow}
                             stationCodeInSelected={stationCodeInSelected}
                             toggleSelectedStation={toggleSelectedStation}
+                            grassCurePercentage={
+                              !isEmpty(dailiesForStation)
+                                ? dailiesForStation[0].grass_cure_percentage
+                                : undefined
+                            }
                           />
-                          <StickyCell
-                            left={284}
-                            zIndexOffset={11}
-                            backgroundColor={'#ffffff'}
-                            className={classes.rightBorder}
-                          >
-                            <Table>
-                              <TableBody>
-                                <TableRow>
-                                  <GrassCureCell
-                                    value={
-                                      !isEmpty(dailiesForStation)
-                                        ? dailiesForStation[0].grass_cure_percentage
-                                        : undefined
-                                    }
-                                    isGrassFuelType={isGrassFuelType(
-                                      station.station_props
-                                    )}
-                                    className={`${classes.noBottomBorder}
-                                    ${
-                                      isRowSelected
-                                        ? classes.stationCellPlainStyling
-                                        : classes.unselectedStation
-                                    }
-                                  `}
-                                    selected={isRowSelected}
-                                  />
-                                </TableRow>
-                              </TableBody>
-                            </Table>
-                          </StickyCell>
-
                           <StaticCells
                             numPrepDays={numPrepDays}
                             dailies={dailiesForStation}

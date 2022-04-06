@@ -102,7 +102,7 @@ describe('Month', () => {
       onDayHoverMock,
       onMonthNavigateMock
     )
-    const startDay = getByTestId(`day-${startDate.toISOString()}`)
+    const startDay = getByTestId(`day-${startDate.toISOString().split('T')[0]}`)
 
     expect(startDay.className).toMatch(/makeStyles-buttonContainer-/)
     const startDayButton = within(startDay).getByRole('button') as HTMLInputElement
@@ -111,7 +111,7 @@ describe('Month', () => {
     fireEvent.click(startDayButton)
     await waitFor(() => expect(onDayClickMock).toBeCalledTimes(1))
 
-    const endDay = getByTestId(`day-${endDate.toISOString()}`)
+    const endDay = getByTestId(`day-${endDate.toISOString().split('T')[0]}`)
 
     const endDayButton = within(endDay).getByRole('button') as HTMLInputElement
     endDayButton.focus()
@@ -136,7 +136,7 @@ describe('Month', () => {
       onDayHoverMock,
       onMonthNavigateMock
     )
-    const dayOutOfRange = getByTestId(`day-${dateOutOfRange.toISOString()}`)
+    const dayOutOfRange = getByTestId(`day-${dateOutOfRange.toISOString().split('T')[0]}`)
     const outOfRangeButton = within(dayOutOfRange).getByRole('button') as HTMLInputElement
 
     expect(outOfRangeButton).toBeDisabled()

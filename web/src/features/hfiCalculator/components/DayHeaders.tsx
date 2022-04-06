@@ -52,7 +52,7 @@ const DayHeaders = (props: DayHeadersProps) => {
       </StickyCell>
       <TableCell className={classes.spaceHeader}></TableCell>
       <StickyCell
-        left={230}
+        left={227}
         colSpan={2}
         zIndexOffset={11}
         className={`${classes.rightBorder} ${classes.noBottomBorder}`}

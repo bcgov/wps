@@ -22,6 +22,12 @@ function interceptSelectStationTrue(planning_area: number, code: number) {
   ).as('selectStationTrue')
 }
 
+function interceptSetPrepPeriod(fire_centre: number, start_date: string, end_date: string) {
+  cy.intercept('POST', `api/hfi-calc/fire_centre/${fire_centre}/${start_date}/${end_date}`, {
+    fixture: 'hfi-calc/dailies-saved.json'
+  }).as('setPrepPeriod')
+}
+
 function interceptSelectStationFalse(planning_area: number, code: number) {
   cy.intercept(
     'POST',
@@ -84,11 +90,26 @@ describe('HFI Calculator Page', () => {
       cy.wait('@selectStationTrue')
       cy.getByTestId('select-station-239').find('input').should('be.checked')
     })
-    it('save button should be disabled', () => {
-      // cypress/fixtures/hfi-calc/dailies-saved.json has "request_persist_success": true, save button should be looking at that.
-      cy.getByTestId('save-button').should('be.disabled')
+    it('prep period should send a new request to the server', () => {
+      interceptSetPrepPeriod(1, '2021-08-03', '2021-08-07')
+      // Open date range picker modal
+      cy.getByTestId('date-range-picker-text-field').click({ force: true })
+
+      // Reset date range
+      cy.getByTestId('date-range-reset-button').click({ force: true })
+
+      // Click to set a new start date
+      cy.getByTestId('day-2021-08-03').click()
+
+      // Click to set a new end date
+      cy.getByTestId('day-2021-08-07').click()
+
+      // Close modal
+      cy.getByTestId('date-range-picker-wrapper').type('{esc}')
+
+      cy.wait('@setPrepPeriod')
     })
-    it('should send a new request to the server, that persists the change and sets the save button to disabled, when selecting a new fire start', () => {
+    it('new fire starts should send a new request to the server', () => {
       // Selecting a new fire start, should result in a new request to the server, that comes back with "request_persist_success": true, or
       // which should cause the save button to become disabled.
       interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
@@ -100,7 +121,6 @@ describe('HFI Calculator Page', () => {
         .type('{downarrow}')
         .type('{enter}')
       cy.wait('@setFireStarts')
-      cy.getByTestId('save-button').should('be.disabled')
     })
     it('should switch the tab to prep period from a daily tab when a different fire centre is selected', () => {
       cy.getByTestId('daily-toggle-1').click({ force: true })
@@ -121,11 +141,6 @@ describe('HFI Calculator Page', () => {
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
       cy.getByTestId('daily-toggle-0').click({ force: true })
-    })
-
-    it('save button should be enabled', () => {
-      // cypress/fixtures/hfi-calc/dailies.json does not have "request_persist_success": true, save button should be looking at that.
-      cy.getByTestId('save-button').should('be.enabled')
     })
 
     it('should display Daily View Table after clicking on daily button', () => {

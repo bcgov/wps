@@ -19,6 +19,7 @@ export const EmptyStaticCells = ({
         data-testid={`empty-ros-${rowId}`}
         isRowSelected={isRowSelected}
         error={true}
+        isFirstDayOfPrepPeriod={true}
       />
       <TableCell data-testid={`empty-hfi-${rowId}`} className={classNameForRow} />
       <TableCell

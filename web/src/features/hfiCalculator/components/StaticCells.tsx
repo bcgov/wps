@@ -42,6 +42,7 @@ export const StaticCells = ({
           testId={`${station.code}-ros`}
           error={error}
           isRowSelected={isRowSelected}
+          isFirstDayOfPrepPeriod={dailyIndex === 0}
         />
         <HFICell value={daily?.hfi} />
         <IntensityGroupCell

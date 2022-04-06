@@ -111,7 +111,11 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
         <Grid item></Grid>
 
         <Grid item>
-          <Button variant="outlined" onClick={handlers.resetDateRange}>
+          <Button
+            data-testid="date-range-reset-button"
+            variant="outlined"
+            onClick={handlers.resetDateRange}
+          >
             Reset
           </Button>
         </Grid>

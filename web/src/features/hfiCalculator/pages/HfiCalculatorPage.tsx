@@ -6,11 +6,10 @@ import {
   FireStartRange,
   PlanningAreaResult,
   setSelectedFireCentre,
-  fetchHFIResult,
   fetchLoadDefaultHFIResult,
   fetchSetNewFireStarts,
+  fetchSetNewPrepDateRange,
   fetchSetStationSelected,
-  setSaved,
   fetchPDFDownload,
   setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -23,7 +22,6 @@ import {
 import { CircularProgress, FormControl, Table, TableBody } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
-import SaveButton from 'features/hfiCalculator/components/SaveButton'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles, theme } from 'app/theme'
 import { FireCentre } from 'api/hfiCalcAPI'
@@ -76,7 +74,7 @@ const useStyles = makeStyles(() => ({
     margin: theme.spacing(1),
     minWidth: 100
   },
-  saveButton: {
+  pdfButton: {
     margin: theme.spacing(1),
     float: 'right'
   }
@@ -93,7 +91,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     result,
     selectedFireCentre,
     loading,
-    saved,
     dateRange,
     error: hfiError
   } = useSelector(selectHFICalculatorState)
@@ -104,7 +101,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     selected: boolean
   ) => {
     if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
-      dispatch(setSaved(false))
       dispatch(
         fetchSetStationSelected(
           result.selected_fire_center_id,
@@ -123,7 +119,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     newFireStarts: FireStartRange
   ) => {
     if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
-      dispatch(setSaved(false))
       dispatch(
         fetchSetNewFireStarts(
           result.selected_fire_center_id,
@@ -144,22 +139,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     if (
       newDateRange !== dateRange &&
       !isUndefined(selectedFireCentre) &&
-      !isUndefined(result)
+      !isUndefined(result) &&
+      !isUndefined(newDateRange) &&
+      !isUndefined(newDateRange.startDate) &&
+      !isUndefined(newDateRange.endDate)
     ) {
       dispatch(
-        fetchHFIResult({
-          selected_station_code_ids: result.selected_station_code_ids,
-          selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: constructPlanningAreaFireStarts(
-            result.planning_area_hfi_results
-          ),
-          date_range: {
-            start_date: newDateRange.startDate?.toISOString().split('T')[0],
-            end_date: newDateRange.endDate?.toISOString().split('T')[0]
-          }
-        })
+        fetchSetNewPrepDateRange(
+          result.selected_fire_center_id,
+          newDateRange.startDate,
+          newDateRange.endDate
+        )
       )
-      dispatch(setSaved(false))
     }
   }
 
@@ -204,22 +195,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))
-  }
-
-  const handleSaveClicked = () => {
-    if (!isUndefined(result)) {
-      dispatch(
-        fetchHFIResult({
-          selected_station_code_ids: result.selected_station_code_ids,
-          selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: constructPlanningAreaFireStarts(
-            result.planning_area_hfi_results
-          ),
-          date_range: result.date_range,
-          persist_request: true
-        })
-      )
-    }
   }
 
   const handleDownloadClicked = () => {
@@ -286,12 +261,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             />
           </FormControl>
 
-          <FormControl className={classes.saveButton}>
+          <FormControl className={classes.pdfButton}>
             <DownloadPDFButton onClick={handleDownloadClicked} />
-          </FormControl>
-
-          <FormControl className={classes.saveButton}>
-            <SaveButton saved={saved} onClick={handleSaveClicked} />
           </FormControl>
 
           <ErrorBoundary>
