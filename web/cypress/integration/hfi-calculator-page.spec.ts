@@ -90,10 +90,22 @@ describe('HFI Calculator Page', () => {
       cy.wait('@selectStationTrue')
       cy.getByTestId('select-station-239').find('input').should('be.checked')
     })
-    it.only('prep period should send a new request to the server', () => {
-      // TODO: double check input for interceptSetPrepPeriod when conor is done implementing the actions to select date.
-      interceptSetPrepPeriod(1, '2021-08-02', '2021-08-06')
-      // cy.getByTestId('fire-starts-dropdown')
+    it('prep period should send a new request to the server', () => {
+      interceptSetPrepPeriod(1, '2021-08-03', '2021-08-07')
+      // Open date range picker modal
+      cy.getByTestId('date-range-picker-text-field').click({ force: true })
+
+      // Reset date range
+      cy.getByTestId('date-range-reset-button').click({ force: true })
+
+      // Click to set a new start date
+      cy.getByTestId('day-2021-08-03T07\\:00\\:00\\.000Z').click()
+
+      // Click to set a new end date
+      cy.getByTestId('day-2021-08-07T07\\:00\\:00\\.000Z').click()
+
+      // Close modal
+      cy.getByTestId('date-range-picker-wrapper').type('{esc}')
 
       cy.wait('@setPrepPeriod')
     })
