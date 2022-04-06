@@ -52,7 +52,7 @@ export const dateRangePickerTheme = createTheme({
     },
     MuiTextField: {
       root: {
-        minWidth: 270
+        minWidth: 300
       }
     }
   }

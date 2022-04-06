@@ -21,6 +21,7 @@ const renderWeeklyRos = (
               daily={daily}
               error={error}
               isRowSelected={isRowSelected}
+              isFirstDayOfPrepPeriod={false}
             ></WeeklyROSCell>
           </TableRow>
         </TableBody>
