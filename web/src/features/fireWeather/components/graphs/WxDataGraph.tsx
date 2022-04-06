@@ -13,6 +13,7 @@ import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
 import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
 import { formatDatetimeInPST } from 'utils/date'
 import { RedrawCommand } from 'features/map/Map'
+import { SelectChangeEvent } from '@mui/material/Select'
 
 const useStyles = makeStyles({
   display: {
@@ -84,9 +85,7 @@ const WxDataGraph = ({
 
   const [hoverMode, setHoverMode] = useState<'closest' | 'x' | 'x unified'>('closest')
 
-  const handleHoverModeChange = (
-    event: React.ChangeEvent<{ name?: string; value: unknown }>
-  ) => {
+  const handleHoverModeChange = (event: SelectChangeEvent<string>) => {
     switch (event.target.value) {
       case 'closest':
       case 'x':

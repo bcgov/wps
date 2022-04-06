@@ -12,6 +12,7 @@ import {
   ToggleValues,
   SetToggleValues
 } from 'features/fireWeather/components/graphs/useGraphToggles'
+import { SelectChangeEvent } from '@mui/material/Select'
 
 const useStyles = makeStyles({
   root: {
@@ -38,7 +39,7 @@ interface Props {
   hasBiasAdjModels: boolean
   hasHighResModels: boolean
   hasRegionalModels: boolean
-  handleHoverModeChange: (event: any) => void
+  handleHoverModeChange: (event: SelectChangeEvent<string>) => void
   hoverMode: 'closest' | 'x' | 'x unified'
 }
 
