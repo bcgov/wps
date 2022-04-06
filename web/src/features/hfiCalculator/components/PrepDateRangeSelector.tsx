@@ -31,10 +31,11 @@ export const dateRangePickerTheme = createTheme(
   adaptV4Theme({
     overrides: {
       MuiOutlinedInput: {
-        root: {
+        input: {
           '&.Mui-disabled': {
             color: 'white',
             borderColor: 'white',
+            WebkitTextFillColor: 'white',
             '& $notchedOutline': {
               borderColor: 'white'
             }
@@ -61,7 +62,7 @@ export const dateRangePickerTheme = createTheme(
       },
       MuiTextField: {
         root: {
-          minWidth: 270
+          minWidth: 300
         }
       }
     }
