@@ -102,7 +102,7 @@ describe('Month', () => {
       onDayHoverMock,
       onMonthNavigateMock
     )
-    const startDay = getByTestId(`day-${startDate.toISOString()}`)
+    const startDay = getByTestId(`day-${startDate.toISOString().split('T')[0]}`)
 
     expect(startDay.className).toMatch(/makeStyles-buttonContainer-/)
     const startDayButton = within(startDay).getByRole('button') as HTMLInputElement
