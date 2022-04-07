@@ -156,7 +156,7 @@ async def select_planning_area_station(
     planning_area_id: int, station_code: int,
     enable: bool,
     response: Response,
-    token=Depends(authentication_required)  # pylint: disable=unused-argument
+    token=Depends(authentication_required)
 ):
     """ Enable / disable a station withing a planning area """
     logger.info('/fire_centre/%s/%s/planning_area/%s/station/%s/selected/%s',
@@ -195,7 +195,7 @@ async def set_planning_area_station_fuel_type(
     planning_area_id: int,
     station_code: int,
     fuel_type_id: int,
-    response: Response,  # pylint: disable=unused-argument
+    response: Response,
     token=Depends(authentication_required)  # pylint: disable=unused-argument
 ):
     """ Set the fuel type for a station in a planning area. """
@@ -255,7 +255,7 @@ async def set_prep_period(fire_centre_id: int,
                           start_date: date,
                           end_date: date,
                           response: Response,
-                          token=Depends(authentication_required)  # pylint: disable=unused-argument
+                          token=Depends(authentication_required)
                           ):
     """ Set the prep period """
     logger.info('/fire_centre/%s/%s/%s', fire_centre_id, start_date, end_date)
@@ -317,7 +317,7 @@ async def load_hfi_result(fire_centre_id: int,
 async def load_hfi_result_with_date(fire_centre_id: int,
                                     start_date: Optional[date],
                                     response: Response,
-                                    token=Depends(authentication_required)):
+                                    _=Depends(authentication_required)):
     """ Given a fire centre id (and optionally a start date), load the most recent HFIResultRequest.
     If there isn't a stored request, one will be created.
     """
@@ -326,18 +326,13 @@ async def load_hfi_result_with_date(fire_centre_id: int,
         response.headers["Cache-Control"] = no_cache
 
         with get_read_session_scope() as session:
-            request, request_loaded, fire_centre_fire_start_ranges = get_prepared_request(session,
-                                                                                          fire_centre_id,
-                                                                                          start_date)
+            request, _, fire_centre_fire_start_ranges = get_prepared_request(session,
+                                                                             fire_centre_id,
+                                                                             start_date)
 
             # Get the response.
             request_response = await calculate_and_create_response(
                 session, request, fire_centre_fire_start_ranges)
-
-        # TODO: change this! once we've changed how pdf works, we no longer need to save here!
-        if not request_loaded:
-            # If a start date was specified, we go ahead and save this request.
-            save_request_in_database(request, token.get('preferred_username', None))
 
         return request_response
 
@@ -347,7 +342,7 @@ async def load_hfi_result_with_date(fire_centre_id: int,
 
 
 @router.get('/fire-centres', response_model=HFIWeatherStationsResponse)
-async def get_fire_centres(response: Response):  # pylint: disable=too-many-locals
+async def get_fire_centres(response: Response):
     """ Returns list of fire centres and planning area for each fire centre,
     and weather stations within each planning area. Also returns the assigned fuel type
     for each weather station. """
@@ -368,54 +363,37 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/pdf')
 async def download_pdf(
     fire_centre_id: int, start_date: date,
-    response: Response,
-    token=Depends(authentication_required)  # pylint: disable=unused-argument
+    _: Response,
+    token=Depends(authentication_required)
 ):
     """ Returns a PDF of the HFI results for the supplied fire centre and start date. """
-    # TODO: stub - implement!
     logger.info('/hfi-calc/fire_centre/%s/%s/pdf', fire_centre_id, start_date)
-    response.headers["Cache-Control"] = no_cache
-    raise NotImplementedError('Not implemented')
 
+    with get_read_session_scope() as session:
+        (request,
+         _,
+         fire_centre_fire_start_ranges) = get_prepared_request(session,
+                                                               fire_centre_id,
+                                                               start_date)
 
-@router.post('/download-pdf')
-async def download_result_pdf(request: HFIResultRequest,
-                              token=Depends(authentication_required)):
-    """ Assembles and returns PDF byte representation of HFI result. """
-    # TODO: Replace this method with @router.get('/fire_centre/{fire_centre_id}/{start_date}/pdf')
-    # THIS FUNCTION IS DEPRECATED.
-    try:
-        logger.info('/hfi-calc/download-pdf')
-        with get_read_session_scope() as session:
-            fire_start_ranges = list(load_fire_start_ranges(session, request.selected_fire_center_id))
-            (results,
-             valid_date_range) = await calculate_latest_hfi_results(session, request, fire_start_ranges)
+        # Get the response.
+        request_response = await calculate_and_create_response(
+            session, request, fire_centre_fire_start_ranges)
 
-        response = HFIResultResponse(
-            date_range=valid_date_range,
-            selected_station_code_ids=request.selected_station_code_ids,
-            planning_area_station_info=request.planning_area_station_info,
-            selected_fire_center_id=request.selected_fire_center_id,
-            planning_area_hfi_results=results,
-            fire_start_ranges=fire_start_ranges)
+    fire_centres_list = await hydrate_fire_centres()
 
-        fire_centres_list = await hydrate_fire_centres()
+    # Loads template as string from a function
+    # See: https://jinja.palletsprojects.com/en/3.0.x/api/?highlight=functionloader#jinja2.FunctionLoader
+    jinja_env = Environment(loader=FunctionLoader(get_template), autoescape=True)
 
-        # Loads template as string from a function
-        # See: https://jinja.palletsprojects.com/en/3.0.x/api/?highlight=functionloader#jinja2.FunctionLoader
-        jinja_env = Environment(loader=FunctionLoader(get_template), autoescape=True)
+    username = token.get('preferred_username', None)
 
-        username = token.get('preferred_username', None)
+    pdf_bytes, pdf_filename = generate_pdf(request_response,
+                                           fire_centres_list,
+                                           username,
+                                           get_pst_now(),
+                                           jinja_env)
 
-        pdf_bytes, pdf_filename = generate_pdf(response,
-                                               fire_centres_list,
-                                               username,
-                                               get_pst_now(),
-                                               jinja_env)
-
-        return Response(pdf_bytes, headers={'Content-Disposition': f'attachment; filename={pdf_filename}',
-                                            'Access-Control-Expose-Headers': 'Content-Disposition',
-                                            'Cache-Control': no_cache})
-    except Exception as exc:
-        logger.critical(exc, exc_info=True)
-        raise
+    return Response(pdf_bytes, headers={'Content-Disposition': f'attachment; filename={pdf_filename}',
+                                        'Access-Control-Expose-Headers': 'Content-Disposition',
+                                        'Cache-Control': no_cache})

@@ -4,7 +4,6 @@ import { Container, ErrorBoundary, GeneralHeader } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   FireStartRange,
-  PlanningAreaResult,
   setSelectedFireCentre,
   fetchLoadDefaultHFIResult,
   fetchSetNewFireStarts,
@@ -37,20 +36,6 @@ import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButt
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DateRange } from 'components/dateRangePicker/types'
 import LiveChangesAlert from 'features/hfiCalculator/components/LiveChangesAlert'
-
-function constructPlanningAreaFireStarts(
-  planning_area_hfi_results: PlanningAreaResult[]
-) {
-  // TODO: delete this function when it's redundant!
-  const fireStarts = {} as { [key: number]: FireStartRange[] }
-  planning_area_hfi_results.forEach(planningAreaResult => {
-    fireStarts[planningAreaResult.planning_area_id] = []
-    planningAreaResult.daily_results.forEach(dailyResult => {
-      fireStarts[planningAreaResult.planning_area_id].push(dailyResult.fire_starts)
-    })
-  })
-  return fireStarts
-}
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -205,16 +190,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const handleDownloadClicked = () => {
     if (!isUndefined(result)) {
-      dispatch(
-        fetchPDFDownload({
-          selected_station_code_ids: result.selected_station_code_ids,
-          selected_fire_center_id: result.selected_fire_center_id,
-          planning_area_fire_starts: constructPlanningAreaFireStarts(
-            result.planning_area_hfi_results
-          ),
-          date_range: result.date_range
-        })
-      )
+      if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
+        dispatch(
+          fetchPDFDownload(result.selected_fire_center_id, result.date_range.start_date)
+        )
+      }
     }
   }
 

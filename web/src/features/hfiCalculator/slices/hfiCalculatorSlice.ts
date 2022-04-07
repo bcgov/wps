@@ -83,14 +83,6 @@ export interface RawHFIResultResponse {
   fire_start_ranges: FireStartRange[]
 }
 
-export interface HFIResultRequest {
-  date_range?: PrepDateRange
-  selected_station_code_ids: number[]
-  selected_fire_center_id: number
-  planning_area_fire_starts: { [key: number]: FireStartRange[] }
-  persist_request?: boolean
-}
-
 export interface HFILoadResultRequest {
   start_date?: string
   end_date?: string
@@ -244,11 +236,11 @@ export const fetchSetNewFireStarts =
   }
 
 export const fetchPDFDownload =
-  (request: HFIResultRequest): AppThunk =>
+  (fire_center_id: number, start_date: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(pdfDownloadStart())
-      await getPDF(request)
+      await getPDF(fire_center_id, start_date)
       dispatch(pdfDownloadEnd())
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))

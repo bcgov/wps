@@ -1,6 +1,5 @@
 import axios from 'api/axios'
 import {
-  HFIResultRequest,
   HFIResultResponse,
   PlanningAreaResult,
   RawHFIResultResponse
@@ -146,12 +145,9 @@ function buildResult(data: RawHFIResultResponse) {
   return planningAreaResultsWithDates
 }
 
-export async function getPDF(request: HFIResultRequest): Promise<void> {
-  const response = await axios.post(
-    baseUrl + 'download-pdf',
-    {
-      ...request
-    },
+export async function getPDF(fire_center_id: number, start_date: string): Promise<void> {
+  const response = await axios.get(
+    baseUrl + 'fire_centre/' + fire_center_id + '/' + start_date + '/pdf',
     {
       responseType: 'blob'
     }

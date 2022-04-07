@@ -1,7 +1,6 @@
 Feature: /hfi/
 
     Scenario: HFI - request
-        # In this scenario, we expect a request to be loaded from the database - but there isn't one.
         Given I have a stored request <stored_request_json>
         And I spy on store_hfi_request
         And I received a hfi-calc <url> with <verb>
@@ -12,11 +11,9 @@ Feature: /hfi/
 
         Examples:
             | url                                                                                              | verb | status_code | response_json                                            | request_saved | stored_request_json                   |
-            # TODO: change code so request_saved == False for get requests (we need it right now for pdf download to work, but that's getting fixed soon)
-            | /api/hfi-calc/fire_centre/1                                                                      | get  | 200         | hfi/test_hfi_endpoint_load_response.json                 | True          | None                                  |
+            | /api/hfi-calc/fire_centre/1                                                                      | get  | 200         | hfi/test_hfi_endpoint_load_response.json                 | False         | None                                  |
             | /api/hfi-calc/fire_centre/1                                                                      | get  | 200         | hfi/test_hfi_endpoint_load_response.json                 | False         | test_hfi_endpoint_stored_request.json |
-            # TODO: change code so request_saved == False for get requests (we need it right now for pdf download to work, but that's getting fixed soon)
-            | /api/hfi-calc/fire_centre/1/2020-05-21                                                           | get  | 200         | hfi/test_hfi_endpoint_load_response.json                 | True          | None                                  |
+            | /api/hfi-calc/fire_centre/1/2020-05-21                                                           | get  | 200         | hfi/test_hfi_endpoint_load_response.json                 | False         | None                                  |
             | /api/hfi-calc/fire_centre/1/2020-05-21                                                           | get  | 200         | hfi/test_hfi_endpoint_load_response.json                 | False         | test_hfi_endpoint_stored_request.json |
             # Test set fire start range
             | /api/hfi-calc/fire_centre/1/2020-05-21/planning_area/1/fire_starts/2020-05-21/fire_start_range/2 | post | 200         | hfi/test_hfi_endpoint_response_set_fire_start_range.json | True          | None                                  |
@@ -29,15 +26,22 @@ Feature: /hfi/
             # Test start + end date
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-26                                                | post | 200         | hfi/test_hfi_endpoint_set_date_range_response.json       | True          | None                                  |
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-26                                                | post | 200         | hfi/test_hfi_endpoint_set_date_range_response.json       | True          | test_hfi_endpoint_stored_request.json |
+            # pdf
+            | api/hfi-calc/fire_centre/1/2020-05-21/pdf                                                        | get  | 200         | None                                                     | False         | None                                  |
+            | api/hfi-calc/fire_centre/1/2020-05-21/pdf                                                        | get  | 200         | None                                                     | False         | test_hfi_endpoint_stored_request.json |
+
 
 
     Scenario: HFI - pdf download
-        Given I received a hfi-calc request url:<url> verb:<verb> request:<request_json>
+        # Very similar to the scenario above, except we don't bother with checking the response content.
+        Given I have a stored request <stored_request_json>
+        And I spy on store_hfi_request
+        And I received a hfi-calc <url> with <verb>
         Then the response status code is <status_code>
         And the response isn't cached
+        And request == saved = <request_saved>
 
         Examples:
-            # TODO: These test currently exposes a "bug" in the code where removing a station from one area, means it's removed from all.
-            | url                        | verb | request_json                   | status_code |
-            # Test perfect scenario, we have 2 stations, they're both selected, and they have data for all days.
-            | /api/hfi-calc/download-pdf | post | test_hfi_endpoint_request.json | 200         |
+            | url                                       | verb | status_code | request_saved | stored_request_json                   |
+            | api/hfi-calc/fire_centre/1/2020-05-21/pdf | get  | 200         | False         | None                                  |
+            | api/hfi-calc/fire_centre/1/2020-05-21/pdf | get  | 200         | False         | test_hfi_endpoint_stored_request.json |
