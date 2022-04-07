@@ -55,9 +55,7 @@ function interceptSetFireStarts() {
 }
 
 function interceptDownload() {
-  cy.intercept('POST', 'api/hfi-calc/download-pdf', {
-    fixture: 'hfi-calc/dailies-saved.json'
-  }).as('downloadPDF')
+  cy.intercept('GET', 'api/hfi-calc/fire_centre/1/2021-08-02/pdf').as('downloadPDF')
 }
 
 describe('HFI Calculator Page', () => {
