@@ -48,4 +48,4 @@ PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=1000m CPU_LIMIT=2000m bash $(dirname ${0}
 PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=50m CPU_LIMIT=500m BACKUP_VOLUME_SIZE=3Gi bash $(dirname ${0})/oc_provision_backup_mariadb.sh prod ${RUN_TYPE}
 PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=50m CPU_LIMIT=500m bash $(dirname ${0})/oc_provision_backup_mariadb_cronjob.sh prod ${RUN_TYPE}
 echo Configure
-PROJ_TARGET=${PROJ_TARGET} CERTBOT_STAGING=false DRYRUN=false bash $(dirname ${0})/oc_provision_certbot_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} CERTBOT_STAGING=false DRYRUN=false DEBUG=true bash $(dirname ${0})/oc_provision_certbot_cronjob.sh prod ${RUN_TYPE}
