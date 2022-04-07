@@ -24,7 +24,6 @@ const LiveChangesAlert = () => {
     <div className={classes.root}>
       <Collapse in={open}>
         <Alert
-          data-testid="hfi-error-alert"
           severity="warning"
           action={
             <IconButton
