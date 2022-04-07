@@ -55,10 +55,7 @@ function interceptSetFireStarts() {
 }
 
 function interceptDownload() {
-  cy.intercept('GET', 'api/hfi-calc/fire_centre/1/2021-08-02/pdf', {
-    // In reality the server returns a pdf file, not a json file - but for this test it really doesn't matter.
-    fixture: 'hfi-calc/dailies-saved.json'
-  }).as('downloadPDF')
+  cy.intercept('GET', 'api/hfi-calc/fire_centre/1/2021-08-02/pdf').as('downloadPDF')
 }
 
 describe('HFI Calculator Page', () => {
