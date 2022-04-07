@@ -12,11 +12,9 @@ Feature: /hfi/
 
         Examples:
             | url                                                                                              | verb | status_code | response_json                                            | request_saved | stored_request_json                   |
-            # TODO: change code so request_saved == False for get requests (we need it right now for pdf download to work, but that's getting fixed soon)
-            | /api/hfi-calc/fire_centre/1                                                                      | get  | 200         | hfi/test_hfi_endpoint_load_response.json                 | True          | None                                  |
+            | /api/hfi-calc/fire_centre/1                                                                      | get  | 200         | hfi/test_hfi_endpoint_load_response.json                 | False         | None                                  |
             | /api/hfi-calc/fire_centre/1                                                                      | get  | 200         | hfi/test_hfi_endpoint_load_response.json                 | False         | test_hfi_endpoint_stored_request.json |
-            # TODO: change code so request_saved == False for get requests (we need it right now for pdf download to work, but that's getting fixed soon)
-            | /api/hfi-calc/fire_centre/1/2020-05-21                                                           | get  | 200         | hfi/test_hfi_endpoint_load_response.json                 | True          | None                                  |
+            | /api/hfi-calc/fire_centre/1/2020-05-21                                                           | get  | 200         | hfi/test_hfi_endpoint_load_response.json                 | False         | None                                  |
             | /api/hfi-calc/fire_centre/1/2020-05-21                                                           | get  | 200         | hfi/test_hfi_endpoint_load_response.json                 | False         | test_hfi_endpoint_stored_request.json |
             # Test set fire start range
             | /api/hfi-calc/fire_centre/1/2020-05-21/planning_area/1/fire_starts/2020-05-21/fire_start_range/2 | post | 200         | hfi/test_hfi_endpoint_response_set_fire_start_range.json | True          | None                                  |
@@ -29,6 +27,7 @@ Feature: /hfi/
             # Test start + end date
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-26                                                | post | 200         | hfi/test_hfi_endpoint_set_date_range_response.json       | True          | None                                  |
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-26                                                | post | 200         | hfi/test_hfi_endpoint_set_date_range_response.json       | True          | test_hfi_endpoint_stored_request.json |
+    # pdf
 
 
     Scenario: HFI - pdf download

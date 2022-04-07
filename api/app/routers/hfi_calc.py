@@ -317,7 +317,7 @@ async def load_hfi_result(fire_centre_id: int,
 async def load_hfi_result_with_date(fire_centre_id: int,
                                     start_date: Optional[date],
                                     response: Response,
-                                    token=Depends(authentication_required)):
+                                    _=Depends(authentication_required)):
     """ Given a fire centre id (and optionally a start date), load the most recent HFIResultRequest.
     If there isn't a stored request, one will be created.
     """

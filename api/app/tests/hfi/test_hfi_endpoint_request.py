@@ -87,28 +87,6 @@ def given_hfi_calc_url(monkeypatch: pytest.MonkeyPatch, url: str, verb: str):
     }
 
 
-@given(parsers.parse("I received a hfi-calc request url:{url} verb:{verb} request:{request_json}"),
-       target_fixture='response',
-       converters={'request_json': load_json_file_with_name(__file__), 'url': str})
-def given_hfi_calc_url_with_request(
-        monkeypatch: pytest.MonkeyPatch, url: str, request_json: Tuple[dict, str], verb: str):
-    """ Handle request
-    """
-    _setup_mock(monkeypatch)
-
-    client = TestClient(app.main.app)
-    headers = {'Content-Type': 'application/json',
-               'Authorization': 'Bearer token'}
-    if verb == 'get':
-        response = client.get(url, headers=headers)
-    else:
-        response = client.post(url, headers=headers, json=request_json[0])
-    return {
-        'response': response,
-        'filename': request_json[1]
-    }
-
-
 @then(parsers.parse("request == saved = {request_saved}"), converters={'request_saved': strtobool})
 def then_request_saved(spy_store_hfi_request: MagicMock, request_saved: bool):
     assert spy_store_hfi_request.called == request_saved
@@ -118,10 +96,3 @@ def then_request_saved(spy_store_hfi_request: MagicMock, request_saved: bool):
 def then_response_not_cached(response):
     """ Check that the response isn't being cached """
     assert response['response'].headers['cache-control'] == 'max-age=0'
-
-
-@pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_hfi_endpoint_request.feature', 'HFI - pdf download')
-def test_fire_behaviour_calculator_scenario_pdf_download():
-    """ BDD Scenario. """
-    pass
