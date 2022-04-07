@@ -46,7 +46,14 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_hfi_endpoint_request.feature', 'HFI - request')
-def test_fire_behaviour_calculator_scenario_no_request_stored():
+def test_fire_behaviour_calculator_scenario():
+    """ BDD Scenario. """
+    pass
+
+
+@pytest.mark.usefixtures('mock_jwt_decode')
+@scenario('test_hfi_endpoint_request.feature', 'HFI - pdf download')
+def test_fire_behaviour_calculator_pdf_scenario():
     """ BDD Scenario. """
     pass
 
