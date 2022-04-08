@@ -55,3 +55,36 @@ async def authentication_required(token=Depends(authenticate)):
             headers={'WWW-Authenticate': 'Bearer'}
         )
     return token
+
+
+async def auth_with_select_station_permission_required(token=Depends(authentication_required)):
+    """ Only return requests that have select/deselect station permission """
+    roles = token.get('resource_access', None).get('wps-web', None).get('roles', None)
+    if 'hfi_select_station' not in roles:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            headers={'WWW-Authenticate': 'Bearer'}
+        )
+    return token
+
+
+async def auth_with_set_fire_starts_permission_required(token=Depends(authentication_required)):
+    """ Only return requests that have set fire starts permission """
+    roles = token.get('resource_access', None).get('wps-web', None).get('roles', None)
+    if 'hfi_set_fire_starts' not in roles:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            headers={'WWW-Authenticate': 'Bearer'}
+        )
+    return token
+
+
+async def auth_with_set_fuel_types_permission_required(token=Depends(authentication_required)):
+    """ Only return requests that have set fire starts permission """
+    roles = token.get('resource_access', None).get('wps-web', None).get('roles', None)
+    if 'hfi_set_fuel_type' not in roles:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            headers={'WWW-Authenticate': 'Bearer'}
+        )
+    return token
