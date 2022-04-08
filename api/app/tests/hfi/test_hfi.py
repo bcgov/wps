@@ -264,21 +264,3 @@ def test_inclusive_date_math_bad_start_date():
     """ Test that range calculation doesn't raise exception with invalid end date. """
     with pytest.raises(InvalidDateRangeError):
         DateRange(start_date=date(2020, 5, 26), end_date=date(2020, 5, 25)).days_in_range()
-
-
-def test_exception_if_start_date_null():
-    """ Test that we get an exception if there's no start date. """
-    with pytest.raises(InvalidDateRangeError):
-        DateRange(start_date=None, end_date=date(2020, 5, 25)).days_in_range()
-
-
-def test_exception_if_end_date_null():
-    """ Test that we get an exception if there's no end date. """
-    with pytest.raises(InvalidDateRangeError):
-        DateRange(start_date=date(2020, 5, 25), end_date=None).days_in_range()
-
-
-def test_exception_if_start_and_end_null():
-    """ Test that we get an exception if there's no start or end date. """
-    with pytest.raises(InvalidDateRangeError):
-        DateRange(start_date=None, end_date=None).days_in_range()
