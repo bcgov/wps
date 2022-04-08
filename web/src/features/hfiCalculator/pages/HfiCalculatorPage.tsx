@@ -30,6 +30,7 @@ import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DateRange } from 'components/dateRangePicker/types'
+import LiveChangesAlert from 'features/hfiCalculator/components/LiveChangesAlert'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -233,6 +234,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     return (
       <React.Fragment>
         <Container maxWidth={'xl'}>
+          <LiveChangesAlert />
           {errorNotification}
           <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
