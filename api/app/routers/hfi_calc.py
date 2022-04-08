@@ -261,57 +261,6 @@ async def set_fire_start_range(fire_centre_id: int,
     return request_response
 
 
-# @router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}")
-# async def set_prep_period(fire_centre_id: int,
-#                           start_date: date,
-#                           end_date: date,
-#                           response: Response,
-#                           token=Depends(authentication_required)
-#                           ):
-#     """ Set the prep period """
-#     logger.info('/fire_centre/%s/%s/%s', fire_centre_id, start_date, end_date)
-#     response.headers["Cache-Control"] = no_cache
-
-#     persist_request = False
-#     with get_read_session_scope() as session:
-#         request, request_loaded, fire_centre_fire_start_ranges = get_prepared_request(session,
-#                                                                                       fire_centre_id,
-#                                                                                       start_date,
-#                                                                                       end_date)
-#         if request_loaded and request.date_range.end_date != end_date:
-#             # We loaded the request from the database, but the end date in the database doesn't match the
-#             # end date we've been given. That means we have to modify the store request accordingly,
-#             # then save it in the database.
-#             persist_request = True
-#             date_range = DateRange(start_date=start_date, end_date=end_date)
-#             date_range = validate_date_range(date_range)
-#             request.date_range = date_range
-
-#             num_prep_days = date_range.days_in_range()
-#             lowest_fire_starts = fire_centre_fire_start_ranges[0]
-
-#             fire_centre_stations = get_fire_centre_stations(session, fire_centre_id)
-#             for station, _ in fire_centre_stations:
-#                 initialize_planning_area_fire_starts(
-#                     request.planning_area_fire_starts,
-#                     station.planning_area_id,
-#                     num_prep_days,
-#                     lowest_fire_starts
-#                 )
-#         elif not request_loaded:
-#             # There is no request in the database, so we create one.
-#             persist_request = True
-
-#         # Get the response.
-#         request_response = await calculate_and_create_response(
-#             session, request, fire_centre_fire_start_ranges)
-
-#     if persist_request:
-#         save_request_in_database(request, token.get('preferred_username', None))
-
-#     return request_response
-
-
 @router.get("/fire_centre/{fire_centre_id}", response_model=HFIResultResponse)
 async def get_hfi_result(fire_centre_id: int,
                          response: Response,

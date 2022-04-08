@@ -1,13 +1,13 @@
 """ Unit testing for hfi logic """
-from datetime import datetime, timedelta
-
+from datetime import date, datetime, timedelta
+import pytest
 from pytest_mock import MockerFixture
 from app.hfi.hfi_calc import (calculate_hfi_results,
                               calculate_mean_intensity,
                               calculate_max_intensity_group,
                               calculate_prep_level, validate_date_range, validate_station_daily)
 import app.db.models.hfi_calc as hfi_calc_models
-from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange,
+from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, InvalidDateRangeError,
                                   PlanningArea,
                                   StationDaily,
                                   WeatherStation,
@@ -218,14 +218,6 @@ def test_valid_date_range_none():
     assert result.end_date.isoformat() == '2020-05-25'
 
 
-def test_valid_date_range_only_start():
-    """ Today without end date is today + 5 days (start inclusive, end exclusive) """
-    start_date = get_pst_now()
-    result = validate_date_range(DateRange(start_date=start_date))
-    assert result.start_date.isoformat() == '2020-05-21'
-    assert result.end_date.isoformat() == '2020-05-25'
-
-
 def test_valid_date_range_7_days():
     """ 7 day range is acceptable (start inclusive, end exclusive) """
     start_date = get_pst_now()
@@ -264,15 +256,11 @@ def test_valid_date_range_default_for_end_date_before():
 
 def test_inclusive_date_math():
     """ Test the the number of days in a date range is calculated correctly. """
-    assert DateRange(start_date=datetime(2020, 5, 21), end_date=datetime(2020, 5, 25)).days_in_range() == 5
-    assert DateRange(start_date=datetime(2020, 5, 21), end_date=datetime(2020, 5, 21)).days_in_range() == 1
-
-
-def test_inclusive_date_math_bad_end_date():
-    """ Test that range calculation doesn't raise exception with invalid end date. """
-    assert DateRange(start_date=datetime(2020, 5, 21), end_date=None).days_in_range() is None
+    assert DateRange(start_date=date(2020, 5, 21), end_date=date(2020, 5, 25)).days_in_range() == 5
+    assert DateRange(start_date=date(2020, 5, 21), end_date=date(2020, 5, 21)).days_in_range() == 1
 
 
 def test_inclusive_date_math_bad_start_date():
     """ Test that range calculation doesn't raise exception with invalid end date. """
-    assert DateRange(start_date=None, end_date=datetime(2020, 5, 25)).days_in_range() is None
+    with pytest.raises(InvalidDateRangeError):
+        assert DateRange(start_date=date(2020, 5, 26), end_date=date(2020, 5, 25)).days_in_range() is None
