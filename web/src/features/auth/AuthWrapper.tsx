@@ -10,7 +10,7 @@ interface Props {
   children: React.ReactElement
 }
 
-export const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
+const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
   // Use axios interceptors to intercept any requests and add authorization headers.
   axios.interceptors.request.use(config => {
     const token = selectToken(getState())

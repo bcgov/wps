@@ -5,6 +5,7 @@ import kcInstance, { kcInitOption } from 'features/auth/keycloak'
 import jwt_decode from 'jwt-decode'
 import { logError } from 'utils/error'
 import { isUndefined } from 'lodash'
+import { KC_CLIENT } from 'utils/env'
 
 interface State {
   authenticating: boolean
@@ -78,7 +79,7 @@ export const decodeRoles = (token: string | undefined) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const decodedToken: any = jwt_decode(token)
   try {
-    return decodedToken.resource_access['wps-web'].roles
+    return decodedToken.resource_access[KC_CLIENT].roles
   } catch (e) {
     // User has no roles
     return []
