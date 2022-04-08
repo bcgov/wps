@@ -19,7 +19,11 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   FireStartRange,
                                   StationInfo,
                                   DateRange)
-from app.auth import auth_with_set_fire_starts_permission_required, auth_with_select_station_permission_required, auth_with_set_fuel_types_permission_required, authentication_required, audit
+from app.auth import (auth_with_set_fire_starts_permission_required,
+                      auth_with_select_station_permission_required,
+                      auth_with_set_fuel_types_permission_required,
+                      authentication_required,
+                      audit)
 from app.schemas.hfi_calc import HFIWeatherStationsResponse
 from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request,
                                   get_fire_centre_stations)
