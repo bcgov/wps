@@ -22,7 +22,7 @@ from app.schemas.hfi_calc import (HFIResultRequest,
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import HFIWeatherStationsResponse
 from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request,
-                                  get_more_recent_updated_hfi_request_for_now,
+                                  get_more_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
                                   get_fire_centre_stations)
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -56,7 +56,7 @@ def get_prepared_request(
         # NOTE: We could be real nice here, and look for a prep period that intercepts, and grab data there.
     else:
         # No date range specified!
-        stored_request = get_more_recent_updated_hfi_request_for_now(session, fire_centre_id)
+        stored_request = get_more_recent_updated_hfi_request_for_current_date(session, fire_centre_id)
     request_loaded = False
     if stored_request:
         try:
