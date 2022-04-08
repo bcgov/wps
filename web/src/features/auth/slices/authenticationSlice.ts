@@ -78,8 +78,7 @@ export const decodeRoles = (token: string | undefined) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const decodedToken: any = jwt_decode(token)
   try {
-    const roles = decodedToken.resource_access['wps-web'].roles
-    return roles
+    return decodedToken.resource_access['wps-web'].roles
   } catch (e) {
     // User has no roles
     return []

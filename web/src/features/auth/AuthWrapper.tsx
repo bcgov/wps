@@ -1,11 +1,9 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-
-import { selectAuthentication } from 'app/rootReducer'
 import { authenticate } from 'features/auth/slices/authenticationSlice'
 import axios from 'api/axios'
 import { AppThunk } from 'app/store'
-import { selectToken } from 'app/rootReducer'
+import { selectToken, selectAuthentication } from 'app/rootReducer'
 
 interface Props {
   shouldAuthenticate: boolean
