@@ -139,7 +139,7 @@ class StationInfo(BaseModel):
 
 
 class InvalidDateRangeError(Exception):
-    pass
+    """ Exception thrown when an invalid date range is encounted."""
 
 
 class DateRange(BaseModel):
@@ -154,9 +154,7 @@ class DateRange(BaseModel):
                 raise InvalidDateRangeError(f"Start date {self.start_date} is after end date {self.end_date}")
             # num prep days is inclusive, so we need to add 1
             return (self.end_date - self.start_date).days + 1
-        else:
-            logger.warning("DateRange has no start or end date.")
-        return None
+        raise InvalidDateRangeError("Start date or end date is None")
 
 
 class HFIResultRequest(BaseModel):
