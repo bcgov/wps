@@ -1,7 +1,7 @@
 """ Routers for HFI Calculator """
 import logging
 import json
-from typing import List, Optional, Mapping, Tuple
+from typing import List, Optional, Dict, Tuple
 from datetime import date
 from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, Response, Depends
@@ -66,8 +66,8 @@ def get_prepared_request(
         # TODO: selected_station_code_ids make it impossible to have a station selected in one area,
         # and de-selected in another area. This has to be fixed!
         selected_station_code_ids = set()
-        planning_area_station_info: Mapping[int, List[StationInfo]] = {}
-        planning_area_fire_starts: Mapping[int, FireStartRange] = {}
+        planning_area_station_info: Dict[int, List[StationInfo]] = {}
+        planning_area_fire_starts: Dict[int, FireStartRange] = {}
         date_range = validate_date_range(date_range)
 
         num_prep_days = date_range.days_in_range()

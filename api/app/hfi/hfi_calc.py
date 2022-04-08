@@ -2,7 +2,7 @@
 import math
 import logging
 from time import perf_counter
-from typing import Mapping, Optional, List, AsyncGenerator, Dict, Tuple
+from typing import Optional, List, AsyncGenerator, Dict, Tuple
 from datetime import date, timedelta
 from statistics import mean
 from aiohttp.client import ClientSession
@@ -238,7 +238,7 @@ def load_fire_start_ranges(orm_session, fire_centre_id: int) -> List[FireStartRa
 
 
 def initialize_planning_area_fire_starts(
-        planning_area_fire_starts: Mapping[int, FireStartRange],
+        planning_area_fire_starts: Dict[int, FireStartRange],
         planning_area_id: int,
         num_prep_days: int,
         lowest_fire_starts: FireStartRange):
@@ -257,7 +257,7 @@ def initialize_planning_area_fire_starts(
 def calculate_daily_results(num_prep_days: int,
                             start_date: date,
                             area_dailies: List[StationDaily],
-                            planning_area_fire_starts: Mapping[int, FireStartRange],
+                            planning_area_fire_starts: Dict[int, FireStartRange],
                             area_id: int,
                             fire_start_lookup: Dict[int, Dict[int, int]]) -> Tuple[List[DailyResult], bool]:
     """ Calculate the daily results for a planning area."""
@@ -282,7 +282,7 @@ def calculate_daily_results(num_prep_days: int,
 
 
 def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
-                          planning_area_fire_starts: Mapping[int, FireStartRange],  # pylint: disable=too-many-locals
+                          planning_area_fire_starts: Dict[int, FireStartRange],  # pylint: disable=too-many-locals
                           fire_start_lookup: Dict[int, Dict[int, int]],
                           dailies: list,
                           num_prep_days: int,
