@@ -21,7 +21,9 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   DateRange)
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import HFIWeatherStationsResponse
-from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request,
+from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request,
+                                  get_more_recent_updated_hfi_request_in_range,
+                                  store_hfi_request,
                                   get_fire_centre_stations)
 from app.db.database import get_read_session_scope, get_write_session_scope
 
@@ -40,18 +42,21 @@ router = APIRouter(
 def get_prepared_request(
         session: Session,
         fire_centre_id: int,
-        start_date: Optional[date],
-        end_date: Optional[date] = None) -> Tuple[HFIResultRequest, bool, List[FireStartRange]]:
+        date_range: Optional[DateRange]) -> Tuple[HFIResultRequest, bool, List[FireStartRange]]:
     """ Attempt to load the most recent request from the database, failing that creates a new request all
     set up with default values.
 
     TODO: give this function a better name.
     """
     fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
-    date_range = DateRange(start_date=start_date, end_date=end_date)
-    stored_request = get_most_recent_updated_hfi_request(session,
-                                                         fire_centre_id,
-                                                         date_range.start_date)
+    if date_range:
+        stored_request = get_most_recent_updated_hfi_request(session,
+                                                             fire_centre_id,
+                                                             date_range)
+        # NOTE: We could be real nice here, and look for a prep period that intercepts, and grab data there.
+    else:
+        # No date range specified!
+        stored_request = get_more_recent_updated_hfi_request_in_range(session, fire_centre_id)
     request_loaded = False
     if stored_request:
         try:
@@ -149,18 +154,18 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
     return stations_codes
 
 
-@router.post("/fire_centre/{fire_centre_id}/{start_date}/planning_area/{planning_area_id}"
+@router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
              "/station/{station_code}/selected/{enable}")
-async def select_planning_area_station(
-    fire_centre_id: int, start_date: date,
+async def set_planning_area_station(
+    fire_centre_id: int, start_date: date, end_date: date,
     planning_area_id: int, station_code: int,
     enable: bool,
     response: Response,
     token=Depends(authentication_required)
 ):
     """ Enable / disable a station withing a planning area """
-    logger.info('/fire_centre/%s/%s/planning_area/%s/station/%s/selected/%s',
-                fire_centre_id, start_date, planning_area_id, station_code, enable)
+    logger.info('/fire_centre/%s/%s/%s/planning_area/%s/station/%s/selected/%s',
+                fire_centre_id, start_date, end_date, planning_area_id, station_code, enable)
     response.headers["Cache-Control"] = no_cache
 
     with get_read_session_scope() as session:
@@ -168,7 +173,9 @@ async def select_planning_area_station(
         # from scratch if it doesn't exist).
         request, _, fire_centre_fire_start_ranges = get_prepared_request(session,
                                                                          fire_centre_id,
-                                                                         start_date)
+                                                                         DateRange(
+                                                                             start_date=start_date,
+                                                                             end_date=end_date))
 
         # Add station if it's not there, otherwise remove it.
         if enable:
@@ -187,11 +194,12 @@ async def select_planning_area_station(
     return request_response
 
 
-@router.post("/fire_centre/{fire_centre_id}/{start_date}/planning_area/{planning_area_id}"
+@router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
              "/station/{station_code}/fuel_type/{fuel_type_id}")
 async def set_planning_area_station_fuel_type(
     fire_centre_id: int,
     start_date: date,
+    end_date: date,
     planning_area_id: int,
     station_code: int,
     fuel_type_id: int,
@@ -200,27 +208,29 @@ async def set_planning_area_station_fuel_type(
 ):
     """ Set the fuel type for a station in a planning area. """
     # TODO: stub - implement!
-    logger.info("/fire_centre/%s/%s/planning_area/%s/station/%s/fuel_type/%s",
-                fire_centre_id, start_date,
+    logger.info("/fire_centre/%s/%s/%s/planning_area/%s/station/%s/fuel_type/%s",
+                fire_centre_id, start_date, end_date,
                 planning_area_id, station_code, fuel_type_id)
     response.headers["Cache-Control"] = no_cache
     raise NotImplementedError('This function is not implemented yet.')
 
 
-@router.post("/fire_centre/{fire_centre_id}/{start_date}/planning_area/{planning_area_id}"
+@router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
              "/fire_starts/{prep_day_date}/fire_start_range/{fire_start_range_id}",
              response_model=HFIResultResponse)
 async def set_fire_start_range(fire_centre_id: int,
                                start_date: date,
+                               end_date: date,
                                planning_area_id: int,
                                prep_day_date: date,
                                fire_start_range_id: int,
                                response: Response,
                                token=Depends(authentication_required)):
     """ Set the fire start range, by id."""
-    logger.info("/fire_centre/%s/%s/planning_area/%s"
+    logger.info("/fire_centre/%s/%s/%s/planning_area/%s"
                 "/fire_starts/%s/fire_start_range/%s",
-                fire_centre_id, start_date, planning_area_id,
+                fire_centre_id, start_date, end_date,
+                planning_area_id,
                 prep_day_date, fire_start_range_id)
     response.headers["Cache-Control"] = no_cache
 
@@ -229,7 +239,8 @@ async def set_fire_start_range(fire_centre_id: int,
         # from scratch if it doesn't exist).
         request, _, fire_centre_fire_start_ranges = get_prepared_request(session,
                                                                          fire_centre_id,
-                                                                         start_date)
+                                                                         DateRange(start_date=start_date,
+                                                                                   end_date=end_date))
 
         # We set the fire start range in the planning area for the provided prep day.
         if prep_day_date <= request.date_range.end_date:
@@ -250,85 +261,90 @@ async def set_fire_start_range(fire_centre_id: int,
     return request_response
 
 
-@router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}")
-async def set_prep_period(fire_centre_id: int,
-                          start_date: date,
-                          end_date: date,
-                          response: Response,
-                          token=Depends(authentication_required)
-                          ):
-    """ Set the prep period """
-    logger.info('/fire_centre/%s/%s/%s', fire_centre_id, start_date, end_date)
-    response.headers["Cache-Control"] = no_cache
+# @router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}")
+# async def set_prep_period(fire_centre_id: int,
+#                           start_date: date,
+#                           end_date: date,
+#                           response: Response,
+#                           token=Depends(authentication_required)
+#                           ):
+#     """ Set the prep period """
+#     logger.info('/fire_centre/%s/%s/%s', fire_centre_id, start_date, end_date)
+#     response.headers["Cache-Control"] = no_cache
 
-    persist_request = False
-    with get_read_session_scope() as session:
-        request, request_loaded, fire_centre_fire_start_ranges = get_prepared_request(session,
-                                                                                      fire_centre_id,
-                                                                                      start_date,
-                                                                                      end_date)
-        if request_loaded and request.date_range.end_date != end_date:
-            # We loaded the request from the database, but the end date in the database doesn't match the
-            # end date we've been given. That means we have to modify the store request accordingly,
-            # then save it in the database.
-            persist_request = True
-            date_range = DateRange(start_date=start_date, end_date=end_date)
-            date_range = validate_date_range(date_range)
-            request.date_range = date_range
+#     persist_request = False
+#     with get_read_session_scope() as session:
+#         request, request_loaded, fire_centre_fire_start_ranges = get_prepared_request(session,
+#                                                                                       fire_centre_id,
+#                                                                                       start_date,
+#                                                                                       end_date)
+#         if request_loaded and request.date_range.end_date != end_date:
+#             # We loaded the request from the database, but the end date in the database doesn't match the
+#             # end date we've been given. That means we have to modify the store request accordingly,
+#             # then save it in the database.
+#             persist_request = True
+#             date_range = DateRange(start_date=start_date, end_date=end_date)
+#             date_range = validate_date_range(date_range)
+#             request.date_range = date_range
 
-            num_prep_days = date_range.days_in_range()
-            lowest_fire_starts = fire_centre_fire_start_ranges[0]
+#             num_prep_days = date_range.days_in_range()
+#             lowest_fire_starts = fire_centre_fire_start_ranges[0]
 
-            fire_centre_stations = get_fire_centre_stations(session, fire_centre_id)
-            for station, _ in fire_centre_stations:
-                initialize_planning_area_fire_starts(
-                    request.planning_area_fire_starts,
-                    station.planning_area_id,
-                    num_prep_days,
-                    lowest_fire_starts
-                )
-        elif not request_loaded:
-            # There is no request in the database, so we create one.
-            persist_request = True
+#             fire_centre_stations = get_fire_centre_stations(session, fire_centre_id)
+#             for station, _ in fire_centre_stations:
+#                 initialize_planning_area_fire_starts(
+#                     request.planning_area_fire_starts,
+#                     station.planning_area_id,
+#                     num_prep_days,
+#                     lowest_fire_starts
+#                 )
+#         elif not request_loaded:
+#             # There is no request in the database, so we create one.
+#             persist_request = True
 
-        # Get the response.
-        request_response = await calculate_and_create_response(
-            session, request, fire_centre_fire_start_ranges)
+#         # Get the response.
+#         request_response = await calculate_and_create_response(
+#             session, request, fire_centre_fire_start_ranges)
 
-    if persist_request:
-        save_request_in_database(request, token.get('preferred_username', None))
+#     if persist_request:
+#         save_request_in_database(request, token.get('preferred_username', None))
 
-    return request_response
+#     return request_response
 
 
 @router.get("/fire_centre/{fire_centre_id}", response_model=HFIResultResponse)
-async def load_hfi_result(fire_centre_id: int,
-                          response: Response,
-                          token=Depends(authentication_required)):
+async def get_hfi_result(fire_centre_id: int,
+                         response: Response,
+                         token=Depends(authentication_required)):
     """ Given a fire centre id, load the most recent HFIResultRequest.
     If there isn't a stored request, one will be created.
     """
     logger.info('/hfi-calc/load/%s', fire_centre_id)
     response.headers["Cache-Control"] = no_cache
-    return await load_hfi_result_with_date(fire_centre_id, None, response, token)
+    return await get_hfi_result_with_date(fire_centre_id, None, None, response, token)
 
 
-@router.get("/fire_centre/{fire_centre_id}/{start_date}", response_model=HFIResultResponse)
-async def load_hfi_result_with_date(fire_centre_id: int,
-                                    start_date: Optional[date],
-                                    response: Response,
-                                    _=Depends(authentication_required)):
+@router.get("/fire_centre/{fire_centre_id}/{start_date}/{end_date}", response_model=HFIResultResponse)
+async def get_hfi_result_with_date(fire_centre_id: int,
+                                   start_date: Optional[date],
+                                   end_date: Optional[date],
+                                   response: Response,
+                                   _=Depends(authentication_required)):
     """ Given a fire centre id (and optionally a start date), load the most recent HFIResultRequest.
     If there isn't a stored request, one will be created.
     """
     try:
-        logger.info('/hfi-calc/load/{fire_centre_id}/{start_date}')
+        logger.info('/hfi-calc/load/%s/%s/%s', fire_centre_id, start_date, end_date)
         response.headers["Cache-Control"] = no_cache
 
         with get_read_session_scope() as session:
+            if start_date and end_date:
+                date_range = DateRange(start_date=start_date, end_date=end_date)
+            else:
+                date_range = None
             request, _, fire_centre_fire_start_ranges = get_prepared_request(session,
                                                                              fire_centre_id,
-                                                                             start_date)
+                                                                             date_range)
 
             # Get the response.
             request_response = await calculate_and_create_response(
@@ -360,21 +376,24 @@ async def get_fire_centres(response: Response):
         raise
 
 
-@router.get('/fire_centre/{fire_centre_id}/{start_date}/pdf')
-async def download_pdf(
-    fire_centre_id: int, start_date: date,
+@router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')
+async def get_pdf(
+    fire_centre_id: int,
+    start_date: date,
+    end_date: date,
     _: Response,
     token=Depends(authentication_required)
 ):
     """ Returns a PDF of the HFI results for the supplied fire centre and start date. """
-    logger.info('/hfi-calc/fire_centre/%s/%s/pdf', fire_centre_id, start_date)
+    logger.info('/hfi-calc/fire_centre/%s/%s/%s/pdf', fire_centre_id, start_date, end_date)
 
     with get_read_session_scope() as session:
         (request,
          _,
          fire_centre_fire_start_ranges) = get_prepared_request(session,
                                                                fire_centre_id,
-                                                               start_date)
+                                                               DateRange(start_date=start_date,
+                                                                         end_date=end_date))
 
         # Get the response.
         request_response = await calculate_and_create_response(

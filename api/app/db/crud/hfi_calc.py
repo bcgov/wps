@@ -4,10 +4,10 @@ from typing import List
 from datetime import date
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
-from app.schemas.hfi_calc import HFIResultRequest
+from app.schemas.hfi_calc import DateRange, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, PlanningArea, PlanningWeatherStation, HFIRequest,
                                     FireStartRange, FireCentreFireStartRange, FireStartLookup)
-from app.utils.time import get_utc_now
+from app.utils.time import get_pst_now, get_utc_now
 
 
 def get_fire_weather_stations(session: Session) -> CursorResult:
@@ -35,15 +35,23 @@ def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
 
 def get_most_recent_updated_hfi_request(session: Session,
                                         fire_centre_id: int,
-                                        prep_start_day: date = None,
-                                        prep_end_day: date = None) -> HFIRequest:
+                                        date_range: DateRange) -> HFIRequest:
     """ Get the most recently updated hfi request for a fire centre """
     query = session.query(HFIRequest)\
-        .filter(HFIRequest.fire_centre_id == fire_centre_id)
-    if prep_start_day is not None:
-        query = query.filter(HFIRequest.prep_start_day == prep_start_day)
-    if prep_end_day is not None:
-        query = query.filter(HFIRequest.prep_end_day == prep_end_day)
+        .filter(HFIRequest.fire_centre_id == fire_centre_id)\
+        .filter(HFIRequest.prep_start_day == date_range.start_date)\
+        .filter(HFIRequest.prep_end_day == date_range.end_date)
+    return query.order_by(HFIRequest.create_timestamp.desc()).first()
+
+
+def get_more_recent_updated_hfi_request_in_range(session: Session,
+                                                 fire_centre_id: int) -> HFIRequest:
+    """ Get the most recently updated hfi request within some date range, for a fire centre """
+    now = get_pst_now()
+    query = session.query(HFIRequest)\
+        .filter(HFIRequest.fire_centre_id == fire_centre_id)\
+        .filter(HFIRequest.prep_start_day <= now)\
+        .filter(HFIRequest.prep_end_day >= now)
     return query.order_by(HFIRequest.create_timestamp.desc()).first()
 
 

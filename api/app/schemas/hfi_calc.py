@@ -136,8 +136,8 @@ class StationInfo(BaseModel):
 
 class DateRange(BaseModel):
     """ A Pythonic implementation of the DateRange construct we use on the front-end in Typescript. """
-    start_date: Optional[date]
-    end_date: Optional[date]
+    start_date: date
+    end_date: date
 
     def days_in_range(self) -> Optional[int]:
         """ Calculate the number of days (inclusive) in the date range. """
