@@ -149,12 +149,10 @@ class DateRange(BaseModel):
 
     def days_in_range(self) -> Optional[int]:
         """ Calculate the number of days (inclusive) in the date range. """
-        if self.start_date and self.end_date:
-            if self.start_date > self.end_date:
-                raise InvalidDateRangeError(f"Start date {self.start_date} is after end date {self.end_date}")
-            # num prep days is inclusive, so we need to add 1
-            return (self.end_date - self.start_date).days + 1
-        raise InvalidDateRangeError("Start date or end date is None")
+        if self.start_date > self.end_date:
+            raise InvalidDateRangeError(f"Start date {self.start_date} is after end date {self.end_date}")
+        # num prep days is inclusive, so we need to add 1
+        return (self.end_date - self.start_date).days + 1
 
 
 class HFIResultRequest(BaseModel):
