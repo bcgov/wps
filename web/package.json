@@ -64,7 +64,7 @@
     "start:cypress": "export $(cat .env.cypress | xargs) && react-scripts --max_old_space_size=4096 -r @cypress/instrument-cra start",
     "build": "react-scripts --max_old_space_size=4096 build",
     "test": "react-scripts test --transformIgnorePatterns \"node_modules/(?!ol)/\"",
-    "test:ci": "CI=true npm test",
+    "test:ci": "CI=true REACT_APP_KEYCLOAK_CLIENT=wps-web npm test",
     "coverage": "npm test -- --coverage --watchAll=false",
     "coverage:ci": "CI=true npm test -- --coverage --watchAll=false",
     "cy:open": "cypress open",
