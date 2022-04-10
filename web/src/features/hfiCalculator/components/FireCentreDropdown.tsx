@@ -8,8 +8,6 @@ import { isNull } from 'lodash'
 const useStyles = makeStyles({
   autocomplete: {
     width: '100%',
-    hasPopupIcon: 'true',
-    hasClearIcon: 'true',
     color: 'white'
   },
   wrapper: {
@@ -22,6 +20,10 @@ const useStyles = makeStyles({
     },
     '& .MuiAutocomplete-popupIndicator': {
       color: 'white'
+    },
+    '& .MuiAutocomplete-endAdornment': {
+      right: -3,
+      top: -3
     },
     '& .MuiInputLabel-root': {
       color: 'white'

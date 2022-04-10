@@ -16,6 +16,7 @@ import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
+import { makeStyles } from '@mui/styles'
 
 declare module '@mui/styles/defaultTheme' {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -26,6 +27,44 @@ export interface PrepDateRangeSelectorProps {
   dateRange?: PrepDateRange
   setDateRange: (newDateRange: DateRange) => void
 }
+
+const useStyles = makeStyles({
+  autocomplete: {
+    width: '100%',
+    hasPopupIcon: 'true',
+    hasClearIcon: 'true',
+    color: 'white'
+  },
+  wrapper: {
+    minWidth: 300
+  },
+  fireCentreTextField: {
+    color: 'white',
+    '& .MuiAutocomplete-clearIndicator': {
+      color: 'white'
+    },
+    '& .MuiAutocomplete-popupIndicator': {
+      color: 'white'
+    },
+    '& .MuiInputLabel-root': {
+      color: 'white'
+    },
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': {
+        borderColor: 'white'
+      },
+      '&:hover fieldset': {
+        borderColor: 'white'
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: 'white'
+      }
+    }
+  },
+  textFieldInput: {
+    color: 'white'
+  }
+})
 
 export const dateRangePickerTheme = createTheme(
   adaptV4Theme({
@@ -73,6 +112,7 @@ const PrepDateRangeSelector = ({
   dateRange,
   setDateRange
 }: PrepDateRangeSelectorProps) => {
+  const classes = useStyles()
   const dateDisplayFormat = 'MMMM dd'
   const startDate =
     dateRange && dateRange.start_date
@@ -96,6 +136,7 @@ const PrepDateRangeSelector = ({
             id="outlined-basic"
             variant="outlined"
             disabled={true}
+            className={classes.textFieldInput}
             label={'Set prep period'}
             onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
             value={
