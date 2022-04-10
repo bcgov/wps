@@ -232,32 +232,30 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       )
     }
     return (
-      <React.Fragment>
-        <Container maxWidth={'xl'}>
-          <LiveChangesAlert />
-          {errorNotification}
-          <FormControl className={classes.formControl}>
-            <ViewSwitcherToggles
-              dateRange={dateRange}
-              selectedPrepDate={selectedPrepDate}
-            />
-          </FormControl>
+      <Container maxWidth={'xl'}>
+        <LiveChangesAlert />
+        {errorNotification}
+        <FormControl className={classes.formControl}>
+          <ViewSwitcherToggles
+            dateRange={dateRange}
+            selectedPrepDate={selectedPrepDate}
+          />
+        </FormControl>
 
-          <FormControl className={classes.pdfButton}>
-            <DownloadPDFButton onClick={handleDownloadClicked} />
-          </FormControl>
+        <FormControl className={classes.pdfButton}>
+          <DownloadPDFButton onClick={handleDownloadClicked} />
+        </FormControl>
 
-          <ErrorBoundary>
-            <ViewSwitcher
-              selectedFireCentre={selectedFireCentre}
-              dateRange={dateRange}
-              setSelected={setSelectedStation}
-              setNewFireStarts={setNewFireStarts}
-              selectedPrepDay={selectedPrepDate}
-            />
-          </ErrorBoundary>
-        </Container>
-      </React.Fragment>
+        <ErrorBoundary>
+          <ViewSwitcher
+            selectedFireCentre={selectedFireCentre}
+            dateRange={dateRange}
+            setSelected={setSelectedStation}
+            setNewFireStarts={setNewFireStarts}
+            selectedPrepDay={selectedPrepDate}
+          />
+        </ErrorBoundary>
+      </Container>
     )
   }
 

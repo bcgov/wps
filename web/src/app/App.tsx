@@ -13,8 +13,8 @@ declare module '@mui/styles/defaultTheme' {
 const App: React.FunctionComponent = () => {
   return (
     <React.StrictMode>
-      <CssBaseline />
       <StyledEngineProvider injectFirst>
+        <CssBaseline />
         <ThemeProvider theme={theme}>
           <WPSRoutes />
         </ThemeProvider>
