@@ -12,7 +12,7 @@ interface State {
   isAuthenticated: boolean
   tokenRefreshed: boolean
   token: string | undefined
-  roles: string[]
+  shouldEnableFireStarts: boolean
   error: string | null
 }
 
@@ -21,7 +21,7 @@ export const initialState: State = {
   isAuthenticated: false,
   tokenRefreshed: false,
   token: undefined,
-  roles: [],
+  shouldEnableFireStarts: false,
   error: null
 }
 
@@ -42,12 +42,16 @@ const authSlice = createSlice({
       state.authenticating = false
       state.isAuthenticated = action.payload.isAuthenticated
       state.token = action.payload.token
-      state.roles = decodeRoles(action.payload.token)
+      state.shouldEnableFireStarts = fireStartsEnabled(
+        action.payload.isAuthenticated,
+        decodeRoles(action.payload.token)
+      )
     },
     authenticateError(state: State, action: PayloadAction<string>) {
       state.authenticating = false
       state.isAuthenticated = false
       state.error = action.payload
+      state.shouldEnableFireStarts = false
     },
     refreshTokenFinished(
       state: State,
@@ -57,8 +61,11 @@ const authSlice = createSlice({
       }>
     ) {
       state.token = action.payload.token
-      state.roles = decodeRoles(action.payload.token)
       state.tokenRefreshed = action.payload.tokenRefreshed
+      state.shouldEnableFireStarts = fireStartsEnabled(
+        state.isAuthenticated,
+        decodeRoles(action.payload.token)
+      )
     }
   }
 })
@@ -84,6 +91,10 @@ export const decodeRoles = (token: string | undefined) => {
     // User has no roles
     return []
   }
+}
+
+export const fireStartsEnabled = (isAuthenticated: boolean, roles: string[]) => {
+  return isAuthenticated && roles.includes('hfi_set_fire_starts')
 }
 
 export const authenticate = (): AppThunk => dispatch => {
