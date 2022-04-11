@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { authenticate } from 'features/auth/slices/authenticationSlice'
+import {
+  authenticate,
+  cypressAuthFinished
+} from 'features/auth/slices/authenticationSlice'
 import axios from 'api/axios'
 import { AppThunk } from 'app/store'
 import { selectToken, selectAuthentication } from 'app/rootReducer'
@@ -30,6 +33,8 @@ const AuthWrapper = ({ children, shouldAuthenticate }: Props) => {
     if (shouldAuthenticate) {
       dispatch(authenticate())
       dispatch(setAxiosRequestInterceptors())
+    } else {
+      dispatch(cypressAuthFinished())
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
