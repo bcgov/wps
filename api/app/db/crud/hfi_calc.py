@@ -44,10 +44,10 @@ def get_most_recent_updated_hfi_request(session: Session,
     return query.order_by(HFIRequest.create_timestamp.desc()).first()
 
 
-def get_more_recent_updated_hfi_request_for_current_date(session: Session,
+def get_most_recent_updated_hfi_request_for_current_date(session: Session,
                                                          fire_centre_id: int) -> HFIRequest:
     """ Get the most recently updated hfi request within some date range, for a fire centre """
-    now = get_pst_now()
+    now = get_utc_now().date()
     query = session.query(HFIRequest)\
         .filter(HFIRequest.fire_centre_id == fire_centre_id)\
         .filter(HFIRequest.prep_start_day <= now)\
