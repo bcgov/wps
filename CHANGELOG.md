@@ -1,4 +1,4 @@
-## 2022-04-11 Prep Period
+## 2022-04-11 HFI Calc [#1634](https://github.com/bcgov/wps/issues/1634)
 
 ### Features
 
