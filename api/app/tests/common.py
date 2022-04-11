@@ -117,7 +117,7 @@ class DefaultMockAioSession:
     """ Mock aiobotocore.session.AioSession """
     # pylint: disable=unused-argument, no-self-use
 
-    @ asynccontextmanager
+    @asynccontextmanager
     async def create_client(self, *args, **kwargs):
         """ Mock create client """
         yield DefaultMockAioBaseClient()
