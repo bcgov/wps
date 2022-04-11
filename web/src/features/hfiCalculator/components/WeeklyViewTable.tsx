@@ -17,7 +17,7 @@ import {
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
-import { selectHFICalculatorState } from 'app/rootReducer'
+import { selectAuthentication, selectHFICalculatorState } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
 import {
   FireStartRange,
@@ -66,6 +66,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
   const { result } = useSelector(selectHFICalculatorState)
+  const { shouldEnableFireStarts } = useSelector(selectAuthentication)
 
   const stationCodeInSelected = (code: number) => {
     return result ? result.selected_station_code_ids.includes(code) : false
@@ -187,6 +188,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         selectedStationCodes={
                           result ? result.selected_station_code_ids : []
                         }
+                        fireStartsEnabled={shouldEnableFireStarts}
                         setNewFireStarts={props.setNewFireStarts}
                         planningAreaClass={classes.planningArea}
                         numPrepDays={numPrepDays}
