@@ -28,6 +28,32 @@ class MockJWTDecode:
         return self.decoded_token
 
 
+class MockJWTDecodeSetFireStarts:
+    """ Mock pyjwt module with set fire starts permissions """
+
+    def __init__(self):
+        self.decoded_token = {
+            "preferred_username": "test_username",
+            "resource_access": {
+                "wps-web": {
+                    "roles": [
+                        "hfi_set_fire_starts"
+                    ]
+                }
+            }}
+
+    def __getitem__(self, key):
+        return self.decoded_token[key]
+
+    def get(self, key, _):
+        "Returns the mock decoded token"
+        return self.decoded_token[key]
+
+    def decode(self):
+        "Returns the mock decoded token"
+        return self.decoded_token
+
+
 class MockClientSession:
     """ Stubbed asyncronous context manager. """
 
@@ -91,7 +117,7 @@ class DefaultMockAioSession:
     """ Mock aiobotocore.session.AioSession """
     # pylint: disable=unused-argument, no-self-use
 
-    @asynccontextmanager
+    @ asynccontextmanager
     async def create_client(self, *args, **kwargs):
         """ Mock create client """
         yield DefaultMockAioBaseClient()

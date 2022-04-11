@@ -51,6 +51,20 @@ def test_fire_behaviour_calculator_scenario():
     pass
 
 
+@pytest.mark.usefixtures('mock_jwt_with_fire_starts_decode')
+@scenario('test_hfi_endpoint_request.feature', 'HFI - request set fire starts with role')
+def test_fire_behaviour_calculator_scenario_set_fire_starts_role():
+    """ BDD Scenario. """
+    pass
+
+
+@pytest.mark.usefixtures('mock_jwt_decode')
+@scenario('test_hfi_endpoint_request.feature', 'HFI - request set fire starts without role')
+def test_fire_behaviour_calculator_scenario_set_fire_starts_no_role():
+    """ BDD Scenario. """
+    pass
+
+
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_hfi_endpoint_request.feature', 'HFI - pdf download')
 def test_fire_behaviour_calculator_pdf_scenario():

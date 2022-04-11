@@ -11,7 +11,7 @@ import app.utils.s3
 from app.utils.time import get_pst_tz
 from app import auth
 from app.tests.common import (
-    MockJWTDecode, default_aiobotocore_get_session, default_mock_requests_get,
+    MockJWTDecode, MockJWTDecodeSetFireStarts, default_aiobotocore_get_session, default_mock_requests_get,
     default_mock_requests_post, default_mock_requests_session_get,
     default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
@@ -172,6 +172,17 @@ def mock_jwt_decode(monkeypatch):
     # pylint: disable=unused-argument
     def mock_function(*args, **kwargs):
         return MockJWTDecode()
+
+    monkeypatch.setattr("jwt.decode", mock_function)
+
+
+@pytest.fixture()
+def mock_jwt_with_fire_starts_decode(monkeypatch):
+    """ Mock pyjwt's decode method """
+
+    # pylint: disable=unused-argument
+    def mock_function(*args, **kwargs):
+        return MockJWTDecodeSetFireStarts()
 
     monkeypatch.setattr("jwt.decode", mock_function)
 

@@ -19,7 +19,7 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   FireStartRange,
                                   StationInfo,
                                   DateRange)
-from app.auth import authentication_required, audit
+from app.auth import auth_with_set_fire_starts_permission_required, authentication_required, audit
 from app.schemas.hfi_calc import HFIWeatherStationsResponse
 from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request,
                                   get_fire_centre_stations)
@@ -216,7 +216,7 @@ async def set_fire_start_range(fire_centre_id: int,
                                prep_day_date: date,
                                fire_start_range_id: int,
                                response: Response,
-                               token=Depends(authentication_required)):
+                               token=Depends(auth_with_set_fire_starts_permission_required)):
     """ Set the fire start range, by id."""
     logger.info("/fire_centre/%s/%s/planning_area/%s"
                 "/fire_starts/%s/fire_start_range/%s",
