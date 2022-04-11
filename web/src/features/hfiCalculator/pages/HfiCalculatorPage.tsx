@@ -32,6 +32,7 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
 import { isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
+import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DateRange } from 'components/dateRangePicker/types'
@@ -83,7 +84,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     selectedFireCentre,
     loading,
     dateRange,
-    error: hfiError
+    error: hfiError,
+    changeSaved
   } = useSelector(selectHFICalculatorState)
 
   const setSelectedStation = (
@@ -207,6 +209,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     return <React.Fragment></React.Fragment>
   }
 
+  const buildSuccessNotification = () => {
+    if (changeSaved) {
+      return <HFISuccessAlert message="Changes saved!" />
+    }
+    return <React.Fragment></React.Fragment>
+  }
+
   const isLoadingWithoutError = () => {
     return (
       (loading || stationDataLoading || isUndefined(result)) &&
@@ -239,6 +248,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     return (
       <React.Fragment>
         <Container maxWidth={'xl'}>
+          {buildSuccessNotification()}
           <LiveChangesAlert />
           {errorNotification}
           <FormControl className={classes.formControl}>
