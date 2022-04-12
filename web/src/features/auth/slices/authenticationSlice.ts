@@ -64,7 +64,7 @@ const authSlice = createSlice({
   }
 })
 
-const {
+export const {
   authenticateStart,
   authenticateFinished,
   authenticateError,
