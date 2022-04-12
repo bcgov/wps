@@ -31,12 +31,15 @@ Feature: /hfi/
 
         Examples:
             | url                                                                                                         | role                | status_code | response_json                                            | request_saved | stored_request_json                   |
-            # Test set fire start range with permission
+            # Test set fire start range with correct role
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/fire_starts/2020-05-21/fire_start_range/2 | hfi_set_fire_starts | 200         | hfi/test_hfi_endpoint_response_set_fire_start_range.json | True          | None                                  |
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/fire_starts/2020-05-21/fire_start_range/2 | hfi_set_fire_starts | 200         | hfi/test_hfi_endpoint_response_set_fire_start_range.json | True          | test_hfi_endpoint_stored_request.json |
-            # Test set fire start range without permission
+            # Test set fire start range without roles
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/fire_starts/2020-05-21/fire_start_range/2 | None                | 401         | hfi/test_unauthorized.json                               | False         | None                                  |
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/fire_starts/2020-05-21/fire_start_range/2 | None                | 401         | hfi/test_unauthorized.json                               | False         | test_hfi_endpoint_stored_request.json |
+            # Test set fire start range without correct role
+            | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/fire_starts/2020-05-21/fire_start_range/2 | hfi_select_station  | 401         | hfi/test_unauthorized.json                               | False         | None                                  |
+            | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/fire_starts/2020-05-21/fire_start_range/2 | hfi_select_station  | 401         | hfi/test_unauthorized.json                               | False         | test_hfi_endpoint_stored_request.json |
             # Test the station selection (no permission yet)
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/selected/false                | None                | 200         | hfi/test_hfi_endpoint_response_deselect_station.json     | True          | None                                  |
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/selected/false                | None                | 200         | hfi/test_hfi_endpoint_response_deselect_station.json     | True          | test_hfi_endpoint_stored_request.json |
