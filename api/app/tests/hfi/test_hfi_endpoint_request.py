@@ -11,7 +11,7 @@ import app.main
 import app.routers.hfi_calc
 from app.db.models.hfi_calc import PlanningWeatherStation, FuelType, FireCentre, PlanningArea, HFIRequest
 from app.tests.common import default_mock_client_get
-from app.tests import load_json_file_with_name, load_json_file
+from app.tests import load_json_file
 from app.tests.hfi import mock_station_crud
 
 
@@ -44,7 +44,7 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
     mock_station_crud(monkeypatch)
 
 
-def _setup_mock_with_permissions(monkeypatch: pytest.MonkeyPatch, permission: str):
+def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):
     """ Prepare jwt decode to be mocked with permission
     """
     _setup_mock(monkeypatch)
@@ -77,7 +77,7 @@ def _setup_mock_with_permissions(monkeypatch: pytest.MonkeyPatch, permission: st
     def mock_fire_start_permission_function(*args, **kwargs):  # pylint: disable=unused-argument
         return MockJWTDecodeSetFireStarts()
 
-    if(permission == 'hfi_set_fire_starts'):
+    if(role == 'hfi_set_fire_starts'):
         monkeypatch.setattr("jwt.decode", mock_fire_start_permission_function)
 
 
@@ -128,13 +128,13 @@ def given_hfi_calc_url_get(monkeypatch: pytest.MonkeyPatch, url: str):
     }
 
 
-@given(parsers.parse("I received a POST request for hfi-calc {url} with {permission}"),
+@given(parsers.parse("I received a POST request for hfi-calc {url} with {role}"),
        target_fixture='response',
-       converters={'url': str, 'permission': str})
-def given_hfi_calc_url_post(monkeypatch: pytest.MonkeyPatch, url: str, permission: str):
+       converters={'url': str, 'role': str})
+def given_hfi_calc_url_post(monkeypatch: pytest.MonkeyPatch, url: str, role: str):
     """ Handle request
     """
-    _setup_mock_with_permissions(monkeypatch, permission)
+    _setup_mock_with_role(monkeypatch, role)
 
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',

@@ -23,14 +23,14 @@ Feature: /hfi/
     Scenario: HFI - POST request
         Given I have a stored request <stored_request_json>
         And I spy on store_hfi_request
-        And I received a POST request for hfi-calc <url> with <permission>
+        And I received a POST request for hfi-calc <url> with <role>
         Then the response status code is <status_code>
         And the response is <response_json>
         And the response isn't cached
         And request == saved = <request_saved>
 
         Examples:
-            | url                                                                                                         | permission          | status_code | response_json                                            | request_saved | stored_request_json                   |
+            | url                                                                                                         | role                | status_code | response_json                                            | request_saved | stored_request_json                   |
             # Test set fire start range with permission
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/fire_starts/2020-05-21/fire_start_range/2 | hfi_set_fire_starts | 200         | hfi/test_hfi_endpoint_response_set_fire_start_range.json | True          | None                                  |
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/fire_starts/2020-05-21/fire_start_range/2 | hfi_set_fire_starts | 200         | hfi/test_hfi_endpoint_response_set_fire_start_range.json | True          | test_hfi_endpoint_stored_request.json |
