@@ -1,28 +1,24 @@
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles'
+import { makeStyles } from '@material-ui/core/styles'
 import { Alert } from '@material-ui/lab'
-import { Snackbar } from '@material-ui/core'
+import { Collapse } from '@material-ui/core'
 import React from 'react'
 
 export interface HFISuccessAlertProps {
   message: string | null
 }
 
-const useStyles = makeStyles(
-  { root: {} }
-  // (theme: Theme) => {
-
-  // }
-  // createStyles({
-  //   root: {
-  //     marginTop: '200px'
-  //     // width: '100%',
-  //     // '& > * + *': {
-  //     //   marginTop: theme.spacing(2)
-  //     // },
-  //     // marginBottom: theme.spacing(2)
-  //   }
-  // })
-)
+const useStyles = makeStyles({
+  alert: {
+    width: '220px',
+    margin: 'auto',
+    backgroundColor: '#2E8540',
+    color: 'white',
+    '& .MuiAlert-icon': {
+      color: 'white'
+    }
+  },
+  '@global': {}
+})
 
 const HFISuccessAlert = ({ message }: HFISuccessAlertProps) => {
   const classes = useStyles()
@@ -33,17 +29,21 @@ const HFISuccessAlert = ({ message }: HFISuccessAlertProps) => {
   }
 
   return (
-    <div className={classes.root}>
-      <Snackbar
+    <div>
+      {/* Ideally we should be using Snackbar (@material-ui/core) here, but with the warning message always being present it
+      doesn't really work */}
+      {/* <Snackbar
         open={open}
-        // autoHideDuration={6000}
+        autoHideDuration={6000}
         onClose={handleClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={handleClose} severity="success">
+      > */}
+      <Collapse in={open}>
+        <Alert className={classes.alert} onClose={handleClose} severity="success">
           {message}
         </Alert>
-      </Snackbar>
+      </Collapse>
+      {/* </Snackbar> */}
     </div>
   )
 }

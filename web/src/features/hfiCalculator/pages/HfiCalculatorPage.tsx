@@ -248,9 +248,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     return (
       <React.Fragment>
         <Container maxWidth={'xl'}>
-          {buildSuccessNotification()}
           <LiveChangesAlert />
           {errorNotification}
+          {buildSuccessNotification()}
           <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
               dateRange={dateRange}
