@@ -1,9 +1,13 @@
 """ This module contains pydandict schemas the HFI Calculator.
 """
+import logging
 from typing import List, Dict, Optional
 from datetime import datetime, date
 from pydantic import BaseModel
 from app.schemas.shared import FuelType
+
+
+logger = logging.getLogger(__name__)
 
 
 class StationDaily(BaseModel):
@@ -134,17 +138,21 @@ class StationInfo(BaseModel):
     fuel_type_id: int
 
 
+class InvalidDateRangeError(Exception):
+    """ Exception thrown when an invalid date range is encounted."""
+
+
 class DateRange(BaseModel):
     """ A Pythonic implementation of the DateRange construct we use on the front-end in Typescript. """
-    start_date: Optional[date]
-    end_date: Optional[date]
+    start_date: date
+    end_date: date
 
     def days_in_range(self) -> Optional[int]:
         """ Calculate the number of days (inclusive) in the date range. """
-        if self.start_date and self.end_date:
-            # num prep days is inclusive, so we need to add 1
-            return (self.end_date - self.start_date).days + 1
-        return None
+        if self.start_date > self.end_date:
+            raise InvalidDateRangeError(f"Start date {self.start_date} is after end date {self.end_date}")
+        # num prep days is inclusive, so we need to add 1
+        return (self.end_date - self.start_date).days + 1
 
 
 class HFIResultRequest(BaseModel):
