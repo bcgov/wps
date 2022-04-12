@@ -62,6 +62,7 @@ export async function loadDefaultHFIResult(
 export async function setStationSelected(
   fire_center_id: number,
   start_date: string,
+  end_date: string,
   planning_area_id: number,
   station_code: number,
   selected: boolean
@@ -72,6 +73,8 @@ export async function setStationSelected(
     fire_center_id +
     '/' +
     start_date +
+    '/' +
+    end_date +
     '/planning_area/' +
     planning_area_id +
     '/station/' +
@@ -83,7 +86,7 @@ export async function setStationSelected(
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 
-export async function setNewPrepDateRange(
+export async function getPrepDateRange(
   fire_centre_id: number,
   start_date: Date,
   end_date: Date
@@ -97,13 +100,14 @@ export async function setNewPrepDateRange(
     '/' +
     end_date.toISOString().split('T')[0]
 
-  const { data } = await axios.post<RawHFIResultResponse>(url)
+  const { data } = await axios.get<RawHFIResultResponse>(url)
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 
 export async function setNewFireStarts(
   fire_center_id: number,
   start_date: string,
+  end_date: string,
   planning_area_id: number,
   prep_day_date: string,
   fire_start_range_id: number
@@ -114,6 +118,8 @@ export async function setNewFireStarts(
     fire_center_id +
     '/' +
     start_date +
+    '/' +
+    end_date +
     '/planning_area/' +
     planning_area_id +
     '/fire_starts/' +
@@ -145,9 +151,20 @@ function buildResult(data: RawHFIResultResponse) {
   return planningAreaResultsWithDates
 }
 
-export async function getPDF(fire_center_id: number, start_date: string): Promise<void> {
+export async function getPDF(
+  fire_center_id: number,
+  start_date: string,
+  end_date: string
+): Promise<void> {
   const response = await axios.get(
-    baseUrl + 'fire_centre/' + fire_center_id + '/' + start_date + '/pdf',
+    baseUrl +
+      'fire_centre/' +
+      fire_center_id +
+      '/' +
+      start_date +
+      '/' +
+      end_date +
+      '/pdf',
     {
       responseType: 'blob'
     }
