@@ -4,6 +4,15 @@
     "end_date": "2021-08-06"
   },
   "selected_fire_center_id": 1,
+  "planning_area_station_info": {
+    "1": [
+      {
+        "station_code": 1029,
+        "selected": true,
+        "fuel_type_id": 1
+      }
+    ]
+  },
   "planning_area_hfi_results": [
     {
       "planning_area_id": 74,

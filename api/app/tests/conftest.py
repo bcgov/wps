@@ -210,10 +210,10 @@ def then_response(response, response_json: dict):
     """ Check entire response """
     if response_json is not None:
         # it's very useful having this code hang around:
-        # import json
-        # from app.tests import get_complete_filename
-        # actual = response['response'].json()
-        # actual_filename = get_complete_filename(__file__, 'actual.json')
-        # with open(actual_filename, 'w', encoding="utf-8") as file_pointer:
-        #     json.dump(actual, file_pointer, indent=2)
+        import json
+        from app.tests import get_complete_filename
+        actual = response['response'].json()
+        actual_filename = get_complete_filename(__file__, 'actual.json')
+        with open(actual_filename, 'w', encoding="utf-8") as file_pointer:
+            json.dump(actual, file_pointer, indent=2)
         assert response['response'].json() == response_json
