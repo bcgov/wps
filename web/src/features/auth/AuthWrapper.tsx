@@ -29,13 +29,12 @@ const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
 const AuthWrapper = ({ children }: Props) => {
   const dispatch = useDispatch()
   const { isAuthenticated, authenticating, error } = useSelector(selectAuthentication)
-  const shouldAuthenticate =
-    process.env.NODE_ENV === 'production' || window.Cypress === undefined
+  const shouldAuthenticate = window.Cypress === undefined
 
   useEffect(() => {
     if (TEST_AUTH || window.Cypress) {
       dispatch(testAuthenticate(true, testToken))
-    } else if (shouldAuthenticate) {
+    } else {
       dispatch(authenticate())
       dispatch(setAxiosRequestInterceptors())
     }
