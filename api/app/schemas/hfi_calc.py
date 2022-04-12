@@ -132,10 +132,9 @@ class HFIWeatherStationsResponse(BaseModel):
 
 class StationInfo(BaseModel):
     """ Information about a station, including its code, name, and elevation. """
-    station_code: int
+    station_code: int  # technically redundant because the key to StationInfo is the station code.
     selected: bool
-    # fuel_type_id matches to table fuel_types.id
-    fuel_type_id: int
+    fuel_type_id: int  # fuel_type_id matches to table fuel_types.id
 
 
 class InvalidDateRangeError(Exception):
