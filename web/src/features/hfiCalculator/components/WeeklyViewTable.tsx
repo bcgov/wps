@@ -27,6 +27,7 @@ import {
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
+import { ROLES } from 'features/auth/roles'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -66,7 +67,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
   const { result } = useSelector(selectHFICalculatorState)
-  const { shouldEnableFireStarts } = useSelector(selectAuthentication)
+  const { roles, isAuthenticated } = useSelector(selectAuthentication)
 
   const stationCodeInSelected = (code: number) => {
     return result ? result.selected_station_code_ids.includes(code) : false
@@ -188,7 +189,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         selectedStationCodes={
                           result ? result.selected_station_code_ids : []
                         }
-                        fireStartsEnabled={shouldEnableFireStarts}
+                        fireStartsEnabled={
+                          roles.includes(ROLES.HFI.SET_FIRE_STARTS) && isAuthenticated
+                        }
                         setNewFireStarts={props.setNewFireStarts}
                         planningAreaClass={classes.planningArea}
                         numPrepDays={numPrepDays}

@@ -1,4 +1,4 @@
-import { decodeRoles, fireStartsEnabled } from 'features/auth/slices/authenticationSlice'
+import { decodeRoles } from 'features/auth/slices/authenticationSlice'
 
 describe('authenticationSlice', () => {
   it('should return all roles of a user from a token', () => {
@@ -14,16 +14,5 @@ describe('authenticationSlice', () => {
       'eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJQZUlFYlpQUm5xaTk2ZDl6RFJZT3B5RFBqVHdkei1tcF9kRHJPYmJ4Uko0In0.eyJleHAiOjE2NDk0NjEwMzAsImlhdCI6MTY0OTQ1OTIzMCwiYXV0aF90aW1lIjoxNjQ5NDQ3Njg4LCJqdGkiOiI2Y2IyYTE3Yi1kZTFiLTQ0ZGMtYTFiYy1jODkxM2RiZDYyYmEiLCJpc3MiOiJodHRwczovL2Rldi5vaWRjLmdvdi5iYy5jYS9hdXRoL3JlYWxtcy84d2w2eDRjcCIsInN1YiI6ImQ4MWI3MTkwLTUzMmItNDNhYi05Y2ZmLWZlOThjMGJlNjNhZSIsInR5cCI6IkJlYXJlciIsImF6cCI6Indwcy13ZWIiLCJub25jZSI6ImZmNWI2MjZkLWU3NDktNGM2Yi1iYjk3LWQzOTY0M2MwYzlkYiIsInNlc3Npb25fc3RhdGUiOiIwMGJmNTQ0Mi0yNjliLTQ5MTYtOTAyOS1iMTllMmUyNDM0MmUiLCJhY3IiOiIwIiwiYWxsb3dlZC1vcmlnaW5zIjpbIioiXSwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwibmFtZSI6IkNvbm9yIEJyYWR5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiY2JyYWR5QGlkaXIiLCJnaXZlbl9uYW1lIjoiQ29ub3IiLCJmYW1pbHlfbmFtZSI6IkJyYWR5IiwiZW1haWwiOiJjb25vci5icmFkeUBnb3YuYmMuY2EifQ.eZulBMmLH1QC7p3OOfurV9g0Y1smy29OqULT_JIAx7zeUydaOBIFrsRUbIdZJXqsgtgxlrvFML3sATUfpUj-ujwMTQDE9EZkwT6N_XCrSFD7-jY_-CsiyxofudH_JVEqe98etmSYFFjDf7mxX2smD8s_a7k5exuUJR9Ub9DWIkRXFFsfXKJzJdwpLLmC7ffC2V71PYP9GMRjx4JR2bBdPUyjTP4xQ-dicxAV9w5-EOOPMI79lUQjALi9hlvCWhmBaAmcP5WSlJFvpPvECz3yAON-B_qUJprGATWAbcUEqnxVvyS8I38KfVbkm8WOUPR6FRVhx7s0q_Rq3qwmDDlsXw'
     const roles = decodeRoles(token)
     expect(roles).toEqual([])
-  })
-  describe('shouldEnableFireStarts', () => {
-    it('should return true if authenticated and role is set', () => {
-      expect(fireStartsEnabled(true, ['hfi_set_fire_starts'])).toBe(true)
-    })
-    it('should return false if authenticated and role is not set', () => {
-      expect(fireStartsEnabled(true, [])).toBe(false)
-    })
-    it('should return false if not authenticated and role is set', () => {
-      expect(fireStartsEnabled(false, ['hfi_set_fire_starts'])).toBe(false)
-    })
   })
 })
