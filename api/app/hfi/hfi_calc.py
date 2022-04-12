@@ -174,9 +174,6 @@ async def calculate_latest_hfi_results(
     # pylint: disable=too-many-locals
     async with ClientSession() as session:
         header = await get_auth_header(session)
-        # TODO: Enable when fuel type config implemented
-        # selected_station_codes = extract_selected_stations(request)
-
         # Fetching dailies is an expensive operation. When a user is clicking and unclicking stations
         # in the front end, we'd prefer to not change the call that's going to wfwx so that we can
         # use cached values. So we don't actually filter out the "selected" stations, but rather go
@@ -297,7 +294,7 @@ def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
         stations = area_station_map[area_id]
         area_station_codes = list(map(lambda station: (station.station_code), stations))
         selected_stations = filter(lambda station: (station.selected),
-                                   planning_area_station_info[area_id])
+                                   planning_area_station_info[area_id].values())
         selected_station_codes = list(map(lambda station: (station.station_code), selected_stations))
 
         # Filter list of dailies to include only those for the selected stations and area.

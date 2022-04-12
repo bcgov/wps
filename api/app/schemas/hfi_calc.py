@@ -167,7 +167,7 @@ class HFIResultRequest(BaseModel):
     date_range: DateRange
     selected_fire_center_id: int
     # Each planning area has a list of stations
-    planning_area_station_info: Dict[int, List[StationInfo]]
+    planning_area_station_info: Dict[int, Dict[int, StationInfo]]
     # Mapping from planning area id to a map of FireStartRanges.
     planning_area_fire_starts: Dict[int, List[FireStartRange]]
 
@@ -179,7 +179,7 @@ class HFIResultResponse(BaseModel):
     """
     date_range: DateRange
     selected_fire_center_id: int
-    planning_area_station_info: Dict[int, List[StationInfo]]
+    planning_area_station_info: Dict[int, Dict[int, StationInfo]]
     planning_area_hfi_results: List[PlanningAreaResult]
     # Each planning area may have it's own custom fire starts information - so we include it in
     # the response for convenience. (We could require the front end to make a seperate call to load

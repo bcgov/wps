@@ -71,7 +71,7 @@ def get_prepared_request(
         # TODO: selected_station_code_ids make it impossible to have a station selected in one area,
         # and de-selected in another area. This has to be fixed!
         selected_station_code_ids = set()
-        planning_area_station_info: Dict[int, List[StationInfo]] = {}
+        planning_area_station_info: Dict[int, Dict[int, StationInfo]] = {}
         planning_area_fire_starts: Dict[int, FireStartRange] = {}
         date_range = validate_date_range(date_range)
 
@@ -82,13 +82,12 @@ def get_prepared_request(
         for station, fuel_type in fire_centre_stations:
             selected_station_code_ids.add(station.station_code)
             if station.planning_area_id not in planning_area_station_info:
-                planning_area_station_info[station.planning_area_id] = []
-            planning_area_station_info[station.planning_area_id].append(
-                StationInfo(
-                    station_code=station.station_code,
-                    selected=True,
-                    fuel_type_id=fuel_type.id
-                ))
+                planning_area_station_info[station.planning_area_id] = {}
+            planning_area_station_info[station.planning_area_id][station.station_code] = StationInfo(
+                station_code=station.station_code,
+                selected=True,
+                fuel_type_id=fuel_type.id
+            )
             initialize_planning_area_fire_starts(
                 planning_area_fire_starts,
                 station.planning_area_id,
@@ -142,17 +141,6 @@ def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
     return False
 
 
-def extract_selected_stations(request: HFIResultRequest) -> List[int]:
-    """ Extract a list of the selected station codes - we use this to get the daily data from wfwx. """
-    stations_codes = []
-    for _, value in request.planning_area_station_info.items():
-        for station_info in value:
-            if station_info.selected:
-                if not station_info.station_code in stations_codes:
-                    stations_codes.append(station_info.station_code)
-    return stations_codes
-
-
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
              "/station/{station_code}/selected/{enable}")
 async def set_planning_area_station(
@@ -177,9 +165,7 @@ async def set_planning_area_station(
                                                                              end_date=end_date))
 
         # Set the station selected or not.
-        station_list: List[StationInfo] = request.planning_area_station_info[planning_area_id]
-        station_info = next(info for info in station_list if info.station_code == station_code)
-        station_info.selected = enable
+        request.planning_area_station_info[planning_area_id][station_code].selected = enable
 
         # Get the response.
         request_response = await calculate_and_create_response(

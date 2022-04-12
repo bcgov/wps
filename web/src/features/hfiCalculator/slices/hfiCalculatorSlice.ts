@@ -76,7 +76,7 @@ export interface StationInfo {
 export interface HFIResultResponse {
   date_range: PrepDateRange
   selected_fire_center_id: number
-  planning_area_station_info: { [key: number]: StationInfo[] }
+  planning_area_station_info: { [key: number]: { [key: number]: StationInfo } }
   planning_area_hfi_results: PlanningAreaResult[]
   fire_start_ranges: FireStartRange[]
 }
@@ -84,7 +84,7 @@ export interface HFIResultResponse {
 export interface RawHFIResultResponse {
   date_range: PrepDateRange
   selected_fire_center_id: number
-  planning_area_station_info: { [key: number]: StationInfo[] }
+  planning_area_station_info: { [key: number]: { [key: number]: StationInfo } }
   planning_area_hfi_results: RawPlanningAreaResult[]
   fire_start_ranges: FireStartRange[]
 }
