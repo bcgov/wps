@@ -44,9 +44,53 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
     mock_station_crud(monkeypatch)
 
 
+def _setup_mock_with_permissions(monkeypatch: pytest.MonkeyPatch, permission: str):
+    """ Prepare jwt decode to be mocked with permission
+    """
+    _setup_mock(monkeypatch)
+
+    class MockJWTDecodeSetFireStarts:
+        """ Mock pyjwt module with set fire starts permissions """
+
+        def __init__(self):
+            self.decoded_token = {
+                "preferred_username": "test_username",
+                "resource_access": {
+                    "wps-web": {
+                        "roles": [
+                            "hfi_set_fire_starts"
+                        ]
+                    }
+                }}
+
+        def __getitem__(self, key):
+            return self.decoded_token[key]
+
+        def get(self, key, _):
+            "Returns the mock decoded token"
+            return self.decoded_token[key]
+
+        def decode(self):
+            "Returns the mock decoded token"
+            return self.decoded_token
+
+    def mock_fire_start_permission_function(*args, **kwargs):  # pylint: disable=unused-argument
+        return MockJWTDecodeSetFireStarts()
+
+    if(permission == 'hfi_set_fire_starts'):
+        monkeypatch.setattr("jwt.decode", mock_fire_start_permission_function)
+
+
 @pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_hfi_endpoint_request.feature', 'HFI - request')
-def test_fire_behaviour_calculator_scenario():
+@scenario('test_hfi_endpoint_request.feature', 'HFI - GET request')
+def test_fire_behaviour_calculator_get_scenario():
+    """ BDD Scenario. """
+    pass
+
+
+@pytest.mark.usefixtures('mock_jwt_decode')
+@scenario('test_hfi_endpoint_request.feature', 'HFI - POST request')
+def test_fire_behaviour_calculator_post_scenario():
     """ BDD Scenario. """
     pass
 
@@ -67,10 +111,10 @@ def given_stored_request(monkeypatch, stored_request_json: Tuple[dict, str]):
                         mock_get_most_recent_updated_hfi_request)
 
 
-@given(parsers.parse("I received a hfi-calc {url} with {verb}"),
+@given(parsers.parse("I received a GET request for hfi-calc {url}"),
        target_fixture='response',
-       converters={'url': str, 'verb': str})
-def given_hfi_calc_url(monkeypatch: pytest.MonkeyPatch, url: str, verb: str):
+       converters={'url': str})
+def given_hfi_calc_url_get(monkeypatch: pytest.MonkeyPatch, url: str):
     """ Handle request
     """
     _setup_mock(monkeypatch)
@@ -78,10 +122,25 @@ def given_hfi_calc_url(monkeypatch: pytest.MonkeyPatch, url: str, verb: str):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    if verb == 'get':
-        response = client.get(url, headers=headers)
-    else:
-        response = client.post(url, headers=headers)
+    response = client.get(url, headers=headers)
+    return {
+        'response': response
+    }
+
+
+@given(parsers.parse("I received a POST request for hfi-calc {url} with {permission}"),
+       target_fixture='response',
+       converters={'url': str, 'permission': str})
+def given_hfi_calc_url_post(monkeypatch: pytest.MonkeyPatch, url: str, permission: str):
+    """ Handle request
+    """
+    _setup_mock_with_permissions(monkeypatch, permission)
+
+    client = TestClient(app.main.app)
+    headers = {'Content-Type': 'application/json',
+               'Authorization': 'Bearer token'}
+
+    response = client.post(url, headers=headers)
     return {
         'response': response
     }
@@ -95,4 +154,7 @@ def then_request_saved(spy_store_hfi_request: MagicMock, request_saved: bool):
 @then("the response isn't cached")
 def then_response_not_cached(response):
     """ Check that the response isn't being cached """
-    assert response['response'].headers['cache-control'] == 'max-age=0'
+
+    # Unauthorized responses do not have cache-control set
+    if 'cache-control' in response['response'].headers:
+        assert response['response'].headers['cache-control'] == 'max-age=0'
