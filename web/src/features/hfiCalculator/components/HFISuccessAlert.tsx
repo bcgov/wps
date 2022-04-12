@@ -14,7 +14,7 @@ const useStyles = makeStyles({
     '& .MuiAlert-icon': {
       color: 'white'
     },
-    marginTop: '120px'
+    marginTop: 120
   }
 })
 
