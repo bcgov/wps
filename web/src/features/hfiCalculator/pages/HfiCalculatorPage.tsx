@@ -7,7 +7,7 @@ import {
   setSelectedFireCentre,
   fetchLoadDefaultHFIResult,
   fetchSetNewFireStarts,
-  fetchSetNewPrepDateRange,
+  fetchGetPrepDateRange,
   fetchSetStationSelected,
   fetchPDFDownload,
   setSelectedPrepDate
@@ -98,6 +98,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchSetStationSelected(
           result.selected_fire_center_id,
           result.date_range.start_date,
+          result.date_range.end_date,
           planningAreaId,
           code,
           selected
@@ -111,11 +112,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     dayOffset: number,
     newFireStarts: FireStartRange
   ) => {
-    if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
+    if (!isUndefined(result) && !isUndefined(result.date_range)) {
       dispatch(
         fetchSetNewFireStarts(
           result.selected_fire_center_id,
           result.date_range.start_date,
+          result.date_range.end_date,
           areaId,
           DateTime.fromISO(result.date_range.start_date + 'T00:00+00:00', {
             setZone: true
@@ -138,7 +140,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       !isUndefined(newDateRange.endDate)
     ) {
       dispatch(
-        fetchSetNewPrepDateRange(
+        fetchGetPrepDateRange(
           result.selected_fire_center_id,
           newDateRange.startDate,
           newDateRange.endDate
@@ -194,7 +196,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     if (!isUndefined(result)) {
       if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
         dispatch(
-          fetchPDFDownload(result.selected_fire_center_id, result.date_range.start_date)
+          fetchPDFDownload(
+            result.selected_fire_center_id,
+            result.date_range.start_date,
+            result.date_range.start_date
+          )
         )
       }
     }

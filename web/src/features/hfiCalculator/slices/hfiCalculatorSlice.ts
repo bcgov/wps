@@ -5,7 +5,7 @@ import { logError } from 'utils/error'
 import {
   loadDefaultHFIResult,
   setNewFireStarts,
-  setNewPrepDateRange,
+  getPrepDateRange,
   setStationSelected,
   getPDF,
   RawDaily,
@@ -20,8 +20,8 @@ export interface FireStartRange {
 }
 
 export interface PrepDateRange {
-  start_date?: string
-  end_date?: string
+  start_date: string
+  end_date: string
 }
 
 export interface DailyResult {
@@ -103,7 +103,7 @@ export interface RawValidatedStationDaily {
 const initialState: HFICalculatorState = {
   loading: false,
   error: null,
-  dateRange: { start_date: undefined, end_date: undefined },
+  dateRange: undefined,
   selectedPrepDate: '',
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
@@ -184,6 +184,7 @@ export const fetchSetStationSelected =
   (
     fire_center_id: number,
     start_date: string,
+    end_date: string,
     planning_area_id: number,
     station_code: number,
     selected: boolean
@@ -194,6 +195,7 @@ export const fetchSetStationSelected =
       const result = await setStationSelected(
         fire_center_id,
         start_date,
+        end_date,
         planning_area_id,
         station_code,
         selected
@@ -206,12 +208,12 @@ export const fetchSetStationSelected =
     }
   }
 
-export const fetchSetNewPrepDateRange =
+export const fetchGetPrepDateRange =
   (fire_center_id: number, start_date: Date, end_date: Date): AppThunk =>
   async dispatch => {
     try {
       dispatch(loadHFIResultStart())
-      const result = await setNewPrepDateRange(fire_center_id, start_date, end_date)
+      const result = await getPrepDateRange(fire_center_id, start_date, end_date)
       dispatch(setResult(result))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
@@ -223,6 +225,7 @@ export const fetchSetNewFireStarts =
   (
     fire_center_id: number,
     start_date: string,
+    end_date: string,
     planning_area_id: number,
     prep_day_date: string,
     fire_start_range_id: number
@@ -233,6 +236,7 @@ export const fetchSetNewFireStarts =
       const result = await setNewFireStarts(
         fire_center_id,
         start_date,
+        end_date,
         planning_area_id,
         prep_day_date,
         fire_start_range_id
@@ -246,11 +250,11 @@ export const fetchSetNewFireStarts =
   }
 
 export const fetchPDFDownload =
-  (fire_center_id: number, start_date: string): AppThunk =>
+  (fire_center_id: number, start_date: string, end_date: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(pdfDownloadStart())
-      await getPDF(fire_center_id, start_date)
+      await getPDF(fire_center_id, start_date, end_date)
       dispatch(pdfDownloadEnd())
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
