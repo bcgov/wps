@@ -49,16 +49,16 @@ def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):
     """
     _setup_mock(monkeypatch)
 
-    class MockJWTDecodeSetFireStarts:
-        """ Mock pyjwt module with set fire starts permissions """
+    class MockJWTDecodeWithRole:
+        """ Mock pyjwt module with role """
 
-        def __init__(self):
+        def __init__(self, role):
             self.decoded_token = {
                 "preferred_username": "test_username",
                 "resource_access": {
                     "wps-web": {
                         "roles": [
-                            "hfi_set_fire_starts"
+                            role
                         ]
                     }
                 }}
@@ -74,11 +74,11 @@ def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):
             "Returns the mock decoded token"
             return self.decoded_token
 
-    def mock_fire_start_permission_function(*args, **kwargs):  # pylint: disable=unused-argument
-        return MockJWTDecodeSetFireStarts()
+    def mock_fire_start_role_function(*args, **kwargs):  # pylint: disable=unused-argument
+        return MockJWTDecodeWithRole(role)
 
-    if(role == 'hfi_set_fire_starts'):
-        monkeypatch.setattr("jwt.decode", mock_fire_start_permission_function)
+    if(role != 'None'):
+        monkeypatch.setattr("jwt.decode", mock_fire_start_role_function)
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
