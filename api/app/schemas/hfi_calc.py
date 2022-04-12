@@ -132,7 +132,7 @@ class HFIWeatherStationsResponse(BaseModel):
 
 class StationInfo(BaseModel):
     """ Information about a station, including its code, name, and elevation. """
-    station_code: int  # technically redundant because the key to StationInfo is the station code.
+    station_code: int
     selected: bool
     fuel_type_id: int  # fuel_type_id matches to table fuel_types.id
 
@@ -166,7 +166,7 @@ class HFIResultRequest(BaseModel):
     date_range: DateRange
     selected_fire_center_id: int
     # Each planning area has a list of stations
-    planning_area_station_info: Dict[int, Dict[int, StationInfo]]
+    planning_area_station_info: Dict[int, List[StationInfo]]
     # Mapping from planning area id to a map of FireStartRanges.
     planning_area_fire_starts: Dict[int, List[FireStartRange]]
 
@@ -178,7 +178,7 @@ class HFIResultResponse(BaseModel):
     """
     date_range: DateRange
     selected_fire_center_id: int
-    planning_area_station_info: Dict[int, Dict[int, StationInfo]]
+    planning_area_station_info: Dict[int, List[StationInfo]]
     planning_area_hfi_results: List[PlanningAreaResult]
     # Each planning area may have it's own custom fire starts information - so we include it in
     # the response for convenience. (We could require the front end to make a seperate call to load

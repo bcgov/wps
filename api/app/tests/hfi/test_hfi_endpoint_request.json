@@ -4,13 +4,13 @@
     "end_date": "2020-05-23"
   },
   "planning_area_station_info": {
-    "1": [
-      {
+    "1": {
+      "230": {
         "station_code": 230,
         "selected": true,
         "fuel_type_id": 1
       }
-    ],
+    },
     "2": [
       {
         "station_code": 239,

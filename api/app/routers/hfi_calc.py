@@ -68,10 +68,8 @@ def get_prepared_request(
 
     if not request_loaded:
         # No stored request, so we need to create one.
-        # TODO: selected_station_code_ids make it impossible to have a station selected in one area,
-        # and de-selected in another area. This has to be fixed!
         selected_station_code_ids = set()
-        planning_area_station_info: Dict[int, Dict[int, StationInfo]] = {}
+        planning_area_station_info: Dict[int, List[StationInfo]] = {}
         planning_area_fire_starts: Dict[int, FireStartRange] = {}
         date_range = validate_date_range(date_range)
 
@@ -82,12 +80,12 @@ def get_prepared_request(
         for station, fuel_type in fire_centre_stations:
             selected_station_code_ids.add(station.station_code)
             if station.planning_area_id not in planning_area_station_info:
-                planning_area_station_info[station.planning_area_id] = {}
-            planning_area_station_info[station.planning_area_id][station.station_code] = StationInfo(
+                planning_area_station_info[station.planning_area_id] = []
+            planning_area_station_info[station.planning_area_id][station.station_code].append(StationInfo(
                 station_code=station.station_code,
                 selected=True,
                 fuel_type_id=fuel_type.id
-            )
+            ))
             initialize_planning_area_fire_starts(
                 planning_area_fire_starts,
                 station.planning_area_id,
@@ -165,7 +163,9 @@ async def set_planning_area_station(
                                                                              end_date=end_date))
 
         # Set the station selected or not.
-        request.planning_area_station_info[planning_area_id][station_code].selected = enable
+        station_info_list = request.planning_area_station_info[planning_area_id]
+        station_info = next(info for info in station_info_list if info.station_code == station_code)
+        station_info.selected = enable
 
         # Get the response.
         request_response = await calculate_and_create_response(
