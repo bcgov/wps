@@ -301,7 +301,9 @@ def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
         # No need to sort by date, we can't trust that the list doesn't have dates missing - so we
         # have a bit of code that snatches from this list filtering by date.
         area_dailies: List[StationDaily] = list(
-            filter(lambda daily, area_station_codes=area_station_codes:
+            filter(lambda daily,
+                   area_station_codes=area_station_codes,
+                   selected_station_codes=selected_station_codes:
                    (daily.code in area_station_codes and daily.code in selected_station_codes),
                    dailies))
 

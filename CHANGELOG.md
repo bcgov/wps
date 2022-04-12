@@ -1,3 +1,9 @@
+## 2022-04-12 HFI Calc - Refactor Request & Response Structure [#1555](https://github.com/bcgov/wps/issues/1555)
+
+### Refactor
+
+- **hfi calculator** Changed HFI request and result structure, remove selected_station_code_ids and made request/response structure more strict.
+
 ## 2022-04-11 HFI Calc [#1634](https://github.com/bcgov/wps/issues/1634)
 
 ### Features
