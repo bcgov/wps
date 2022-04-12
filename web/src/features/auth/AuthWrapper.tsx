@@ -7,7 +7,6 @@ import { selectToken, selectAuthentication } from 'app/rootReducer'
 import { TEST_AUTH } from 'utils/env'
 
 interface Props {
-  shouldAuthenticate: boolean
   children: React.ReactElement
 }
 
