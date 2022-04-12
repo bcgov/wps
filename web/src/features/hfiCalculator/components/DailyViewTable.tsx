@@ -110,11 +110,19 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     })
   }
 
-  const stationCodeInSelected = (code: number) => {
-    return result ? result.selected_station_code_ids.includes(code) : false
+  const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
+    if (
+      !isUndefined(result) &&
+      !isUndefined(result.planning_area_station_info[planningAreaId])
+    ) {
+      result.planning_area_station_info[planningAreaId].find(
+        station_info => station_info.station_code === code
+      )?.selected
+    }
+    return false
   }
   const toggleSelectedStation = (planningAreaId: number, code: number) => {
-    const selected = stationCodeInSelected(code)
+    const selected = stationCodeInSelected(planningAreaId, code)
     props.setSelected(planningAreaId, code, !selected)
   }
 
@@ -285,9 +293,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             )
                           : []
                       }
-                      selectedStationCodes={
-                        result ? result.selected_station_code_ids : []
-                      }
                       meanIntensityGroup={dailyResult?.mean_intensity_group}
                     ></MeanIntensityGroupRollup>
                     <FireStartsCell
@@ -306,7 +311,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   ).map(station => {
                     const daily = getDailyForDay(station.code)
                     const grassCureError = !isValidGrassCure(daily, station.station_props)
-                    const isRowSelected = stationCodeInSelected(station.code)
+                    const isRowSelected =
+                      !isUndefined(area) && stationCodeInSelected(area.id, station.code)
                     const classNameForRow = !isRowSelected
                       ? classes.unselectedStation
                       : undefined

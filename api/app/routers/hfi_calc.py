@@ -116,7 +116,6 @@ async def calculate_and_create_response(
     # Construct the response object.
     return HFIResultResponse(
         date_range=valid_date_range,
-        selected_station_code_ids=result_request.selected_station_code_ids,
         planning_area_station_info=result_request.planning_area_station_info,
         selected_fire_center_id=result_request.selected_fire_center_id,
         planning_area_hfi_results=results,
@@ -170,12 +169,10 @@ async def select_planning_area_station(
                                                                          fire_centre_id,
                                                                          start_date)
 
-        # Add station if it's not there, otherwise remove it.
-        if enable:
-            if station_code not in request.selected_station_code_ids:
-                request.selected_station_code_ids.append(station_code)
-        else:
-            request.selected_station_code_ids.remove(station_code)
+        # Set the station selected or not.
+        station_list: List[StationInfo] = request.planning_area_station_info[planning_area_id]
+        station_info = next(info for info in station_list if info.station_code == station_code)
+        station_info.selected = enable
 
         # Get the response.
         request_response = await calculate_and_create_response(

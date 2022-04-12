@@ -3,27 +3,6 @@
     "start_date": "2021-08-02",
     "end_date": "2021-08-06"
   },
-  "selected_station_code_ids": [
-    1029,
-    306,
-    309,
-    280,
-    1055,
-    322,
-    239,
-    1082,
-    305,
-    266,
-    836,
-    1399,
-    334,
-    328,
-    298,
-    388,
-    346,
-    344,
-    286
-  ],
   "selected_fire_center_id": 1,
   "planning_area_hfi_results": [
     {

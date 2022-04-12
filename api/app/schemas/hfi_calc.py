@@ -156,8 +156,8 @@ class HFIResultRequest(BaseModel):
     a ISO date string in PST, then grab the YYYY-MM-DD part.
     The PST part is critical, so that the date doesn't change due to timezone switches.
     """
-    selected_fire_center_id: int
     date_range: DateRange
+    selected_fire_center_id: int
     # Each planning area has a list of stations
     planning_area_station_info: Dict[int, List[StationInfo]]
     # Mapping from planning area id to a map of FireStartRanges.
@@ -170,8 +170,8 @@ class HFIResultResponse(BaseModel):
     selected fire centre, fire starts, HFI results.
     """
     date_range: DateRange
-    planning_area_station_info: Dict[int, List[StationInfo]]
     selected_fire_center_id: int
+    planning_area_station_info: Dict[int, List[StationInfo]]
     planning_area_hfi_results: List[PlanningAreaResult]
     # Each planning area may have it's own custom fire starts information - so we include it in
     # the response for convenience. (We could require the front end to make a seperate call to load

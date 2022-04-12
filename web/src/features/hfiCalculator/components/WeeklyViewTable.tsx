@@ -67,11 +67,20 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
 
   const { result } = useSelector(selectHFICalculatorState)
 
-  const stationCodeInSelected = (code: number) => {
-    return result ? result.selected_station_code_ids.includes(code) : false
+  const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
+    if (
+      !isUndefined(result) &&
+      !isUndefined(result.planning_area_station_info[planningAreaId])
+    ) {
+      const station_info = result.planning_area_station_info[planningAreaId].find(
+        station_info => station_info.station_code === code
+      )
+      return station_info?.selected ?? false
+    }
+    return false
   }
   const toggleSelectedStation = (planningAreaId: number, code: number) => {
-    const selected = stationCodeInSelected(code)
+    const selected = stationCodeInSelected(planningAreaId, code)
     props.setSelected(planningAreaId, code, !selected)
   }
 
@@ -184,9 +193,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         area={area}
                         areaName={area.name}
                         planningAreaResult={areaHFIResult}
-                        selectedStationCodes={
-                          result ? result.selected_station_code_ids : []
-                        }
                         setNewFireStarts={props.setNewFireStarts}
                         planningAreaClass={classes.planningArea}
                         numPrepDays={numPrepDays}
@@ -201,7 +207,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         result,
                         station.code
                       )
-                      const isRowSelected = stationCodeInSelected(station.code)
+                      const isRowSelected = stationCodeInSelected(area.id, station.code)
                       const classNameForRow = !isRowSelected
                         ? classes.unselectedStation
                         : classes.stationCellPlainStyling

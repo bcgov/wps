@@ -287,7 +287,7 @@ def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
                           fire_start_lookup: Dict[int, Dict[int, int]],
                           dailies: List[StationDaily],
                           num_prep_days: int,
-                          planning_area_station_info: Dict[int, List[StationInfo]],
+                          planning_area_station_info: Dict[int, Dict[int, StationInfo]],
                           area_station_map: Dict[int, List[PlanningWeatherStation]],
                           start_date: date) -> List[PlanningAreaResult]:
     """ Computes HFI results based on parameter inputs """
