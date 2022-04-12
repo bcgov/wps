@@ -1,12 +1,21 @@
-import { WeatherStation, WeatherStationProperties } from 'api/hfiCalcAPI'
-import { StationDaily } from 'api/hfiCalculatorAPI'
+import {
+  StationDaily,
+  WeatherStation,
+  WeatherStationProperties
+} from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
 
 const defaultProps: WeatherStationProperties = {
   name: 'name',
   uuid: 'uuid',
   elevation: null,
-  fuel_type: { abbrev: 'abbrev', description: 'desc' }
+  fuel_type: {
+    abbrev: 'abbrev',
+    description: 'desc',
+    fuel_type_code: 'FTC',
+    percentage_conifer: 100,
+    percentage_dead_fir: 0
+  }
 }
 
 export const buildStation = (code: number): WeatherStation => {

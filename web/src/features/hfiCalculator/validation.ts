@@ -1,4 +1,4 @@
-import { WeatherStationProperties } from 'api/hfiCalcAPI'
+import { WeatherStationProperties } from 'api/hfiCalculatorAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { isEqual, isNull, isUndefined } from 'lodash'
 

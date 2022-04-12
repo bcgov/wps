@@ -9,8 +9,10 @@ import {
   fetchSetNewFireStarts,
   fetchSetNewPrepDateRange,
   fetchSetStationSelected,
+  fetchFuelTypes,
   fetchPDFDownload,
-  setSelectedPrepDate
+  setSelectedPrepDate,
+  setFuelTypes
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -28,7 +30,7 @@ import {
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles, theme } from 'app/theme'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { FireCentre } from 'api/hfiCalculatorAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
 import { isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
@@ -83,6 +85,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     selectedFireCentre,
     loading,
     dateRange,
+    fuelTypes,
     error: hfiError
   } = useSelector(selectHFICalculatorState)
 
@@ -160,6 +163,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchHFIStations())
+    dispatch(fetchFuelTypes())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

@@ -10,7 +10,7 @@ import {
 import { makeStyles } from '@material-ui/core/styles'
 import { useSelector } from 'react-redux'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { FireCentre } from 'api/hfiCalculatorAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import FireTable from 'components/FireTable'

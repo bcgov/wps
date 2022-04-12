@@ -70,3 +70,8 @@ def get_fire_centre_fire_start_ranges(session: Session, fire_centre_id: id) -> C
 def get_fire_start_lookup(session: Session) -> CursorResult:
     """ Get the fire start lookup table """
     return session.query(FireStartLookup)
+
+
+def get_fuel_types(session: Session) -> CursorResult:
+    """ Get the fuel types table  """
+    return session.query(FuelType)

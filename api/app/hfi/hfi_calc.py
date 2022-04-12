@@ -187,7 +187,7 @@ async def calculate_latest_hfi_results(
         station_fuel_type_map = {}
         for station, fuel_type in fire_centre_stations:
             fire_centre_station_code_ids.add(station.station_code)
-            if not station.planning_area_id in area_station_map:
+            if station.planning_area_id not in area_station_map:
                 area_station_map[station.planning_area_id] = []
             area_station_map[station.planning_area_id].append(station)
             station_fuel_type_map[station.station_code] = fuel_type

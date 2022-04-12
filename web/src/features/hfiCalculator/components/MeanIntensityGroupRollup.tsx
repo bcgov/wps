@@ -2,10 +2,9 @@ import { TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { isUndefined } from 'lodash'
 import React from 'react'
-import { PlanningArea } from 'api/hfiCalcAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
-import { StationDaily } from 'api/hfiCalculatorAPI'
+import { StationDaily, PlanningArea } from 'api/hfiCalculatorAPI'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 
 export interface MeanIntensityGroupRollupProps {

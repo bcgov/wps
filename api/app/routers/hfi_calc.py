@@ -23,7 +23,7 @@ from app.schemas.hfi_calc import (HFIResultRequest,
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import HFIWeatherStationsResponse
 from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request,
-                                  get_fire_centre_stations)
+                                  get_fire_centre_stations, get_fuel_types)
 from app.db.database import get_read_session_scope, get_write_session_scope
 
 
@@ -145,7 +145,7 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
     for _, value in request.planning_area_station_info.items():
         for station_info in value:
             if station_info.selected:
-                if not station_info.station_code in stations_codes:
+                if station_info.station_code not in stations_codes:
                     stations_codes.append(station_info.station_code)
     return stations_codes
 
@@ -154,10 +154,9 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
 async def get_fuel_types(response: Response, token=Depends(authentication_required)):
     logger.info('/fuel_types/')
     # allow browser to cache fuel_types for 1 week because they won't change often (or possibly ever)
-    response.headers["Cache-Control"] = "max-age=604800"
+    response.headers["Cache-Control"] = "max-age=0"  # TODO change back to 604800
 
-    with get_read_session_scope() as session:
-        return session.query(FuelType)
+    get_fuel_types()
 
 
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/planning_area/{planning_area_id}"

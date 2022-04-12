@@ -11,9 +11,9 @@ import {
   RawDaily,
   StationDaily,
   getFuelTypes,
-  FuelType
+  FuelType,
+  FireCentre
 } from 'api/hfiCalculatorAPI'
-import { FireCentre } from 'api/hfiCalcAPI'
 import { DateTime } from 'luxon'
 
 export interface FireStartRange {

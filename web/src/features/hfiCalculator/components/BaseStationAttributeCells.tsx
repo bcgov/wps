@@ -1,6 +1,6 @@
 import { Table, TableBody, TableRow, Checkbox, TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import { WeatherStation } from 'api/hfiCalcAPI'
+import { WeatherStation } from 'api/hfiCalculatorAPI'
 import StickyCell from 'components/StickyCell'
 import { fireTableStyles } from 'app/theme'
 import React from 'react'

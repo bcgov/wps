@@ -1,5 +1,4 @@
-import { PlanningArea } from 'api/hfiCalcAPI'
-import { StationDaily } from 'api/hfiCalculatorAPI'
+import { StationDaily, PlanningArea } from 'api/hfiCalculatorAPI'
 import {
   HFIResultResponse,
   PrepDateRange

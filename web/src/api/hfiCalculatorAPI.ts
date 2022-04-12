@@ -104,8 +104,8 @@ export async function loadDefaultHFIResult(
 }
 
 export async function getFuelTypes(): Promise<FuelType[]> {
-  const { data } = await axios.get<FuelType[]>(baseUrl + 'fuel_types/')
-
+  const data = await axios.get<FuelType[]>(baseUrl + 'fuel_types')
+  console.log(data)
   return data
 }
 
