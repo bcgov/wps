@@ -29,7 +29,6 @@ const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
 const AuthWrapper = ({ children }: Props) => {
   const dispatch = useDispatch()
   const { isAuthenticated, authenticating, error } = useSelector(selectAuthentication)
-  const shouldAuthenticate = window.Cypress === undefined
 
   useEffect(() => {
     if (TEST_AUTH || window.Cypress) {
@@ -39,10 +38,6 @@ const AuthWrapper = ({ children }: Props) => {
       dispatch(setAxiosRequestInterceptors())
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (!shouldAuthenticate) {
-    return children
-  }
 
   if (error) {
     return <div>{error}</div>
