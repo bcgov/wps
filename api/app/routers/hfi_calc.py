@@ -7,6 +7,7 @@ from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, Response, Depends
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
+from app.db.models.hfi_calc import FuelType
 from app.utils.time import get_pst_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
@@ -147,6 +148,16 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
                 if not station_info.station_code in stations_codes:
                     stations_codes.append(station_info.station_code)
     return stations_codes
+
+
+@router.get("/fuel_types")
+async def get_fuel_types(response: Response, token=Depends(authentication_required)):
+    logger.info('/fuel_types/')
+    # allow browser to cache fuel_types for 1 week because they won't change often (or possibly ever)
+    response.headers["Cache-Control"] = "max-age=604800"
+
+    with get_read_session_scope() as session:
+        return session.query(FuelType)
 
 
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/planning_area/{planning_area_id}"
