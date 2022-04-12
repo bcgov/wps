@@ -27,18 +27,17 @@ const HFISuccessAlert = ({ message }: HFISuccessAlertProps) => {
   }
 
   return (
-    <div>
-      <Snackbar
-        open={open}
-        autoHideDuration={6000}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert className={classes.alert} onClose={handleClose} severity="success">
-          {message}
-        </Alert>
-      </Snackbar>
-    </div>
+    <Snackbar
+      data-testid="hfi-success-alert"
+      open={open}
+      autoHideDuration={6000}
+      onClose={handleClose}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+    >
+      <Alert className={classes.alert} onClose={handleClose} severity="success">
+        {message}
+      </Alert>
+    </Snackbar>
   )
 }
 

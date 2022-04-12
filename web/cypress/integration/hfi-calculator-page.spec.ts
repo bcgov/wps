@@ -75,6 +75,7 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('select-station-239').click({ force: true })
       cy.wait('@selectStationTrue')
       cy.getByTestId('select-station-239').find('input').should('be.checked')
+      cy.getByTestId('hfi-success-alert').should('exist')
     })
     it('prep period should send a new request to the server', () => {
       interceptGetPrepPeriod(1, '2021-08-03', '2021-08-07')
@@ -94,10 +95,11 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('date-range-picker-wrapper').type('{esc}')
 
       cy.wait('@getPrepPeriod')
+
+      cy.getByTestId('hfi-success-alert').should('not.exist')
     })
     it('new fire starts should send a new request to the server', () => {
-      // Selecting a new fire start, should result in a new request to the server, that comes back with "request_persist_success": true, or
-      // which should cause the save button to become disabled.
+      // Selecting a new fire start, should result in a new request to the server.
       interceptSetFireStarts()
       cy.getByTestId('fire-starts-dropdown')
         .first()
@@ -106,6 +108,7 @@ describe('HFI Calculator Page', () => {
         .type('{downarrow}')
         .type('{enter}')
       cy.wait('@setFireStarts')
+      cy.getByTestId('hfi-success-alert').should('exist')
     })
     it('should switch the tab to prep period from a daily tab when a different fire centre is selected', () => {
       cy.getByTestId('daily-toggle-1').click({ force: true })
