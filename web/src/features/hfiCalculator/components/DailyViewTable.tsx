@@ -115,7 +115,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       !isUndefined(result) &&
       !isUndefined(result.planning_area_station_info[planningAreaId])
     ) {
-      return result.planning_area_station_info[planningAreaId][code].selected
+      const station_info = result.planning_area_station_info[planningAreaId].find(
+        station_info => station_info.station_code === code
+      )
+      return station_info?.selected ?? false
     }
     return false
   }
