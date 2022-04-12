@@ -72,7 +72,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
       !isUndefined(result) &&
       !isUndefined(result.planning_area_station_info[planningAreaId])
     ) {
-      return result.planning_area_station_info[planningAreaId][code]?.selected ?? false
+      return result.planning_area_station_info[planningAreaId][code].selected
     }
     return false
   }
