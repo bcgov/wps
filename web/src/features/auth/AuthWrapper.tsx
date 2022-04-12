@@ -1,15 +1,25 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-
-import { selectAuthentication } from 'app/rootReducer'
-import {
-  authenticate,
-  setAxiosRequestInterceptors
-} from 'features/auth/slices/authenticationSlice'
+import { authenticate } from 'features/auth/slices/authenticationSlice'
+import axios from 'api/axios'
+import { AppThunk } from 'app/store'
+import { selectToken, selectAuthentication } from 'app/rootReducer'
 
 interface Props {
   shouldAuthenticate: boolean
   children: React.ReactElement
+}
+
+const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
+  // Use axios interceptors to intercept any requests and add authorization headers.
+  axios.interceptors.request.use(config => {
+    const token = selectToken(getState())
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+
+    return config
+  })
 }
 
 const AuthWrapper = ({ children, shouldAuthenticate }: Props) => {
