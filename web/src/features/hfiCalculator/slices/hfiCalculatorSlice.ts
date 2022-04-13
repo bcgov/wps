@@ -65,6 +65,7 @@ export interface HFICalculatorState {
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
+  changeSaved: boolean
 }
 
 export interface StationInfo {
@@ -113,7 +114,8 @@ const initialState: HFICalculatorState = {
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
   selectedFireCentre: undefined,
-  result: undefined
+  result: undefined,
+  changeSaved: false
 }
 
 const dailiesSlice = createSlice({
@@ -122,6 +124,7 @@ const dailiesSlice = createSlice({
   reducers: {
     loadHFIResultStart(state: HFICalculatorState) {
       state.loading = true
+      state.changeSaved = false
     },
     pdfDownloadStart(state: HFICalculatorState) {
       state.loading = true
@@ -132,6 +135,7 @@ const dailiesSlice = createSlice({
     getHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
+      state.changeSaved = false
     },
     setSelectedPrepDate: (state: HFICalculatorState, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
@@ -141,6 +145,9 @@ const dailiesSlice = createSlice({
       action: PayloadAction<FireCentre | undefined>
     ) => {
       state.selectedFireCentre = action.payload
+    },
+    setChangeSaved: (state: HFICalculatorState, action: PayloadAction<boolean>) => {
+      state.changeSaved = action.payload
     },
     setResult: (
       state: HFICalculatorState,
@@ -160,7 +167,8 @@ export const {
   getHFIResultFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
-  setResult
+  setResult,
+  setChangeSaved
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer
@@ -199,6 +207,7 @@ export const fetchSetStationSelected =
         selected
       )
       dispatch(setResult(result))
+      dispatch(setChangeSaved(true))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)
@@ -239,6 +248,7 @@ export const fetchSetNewFireStarts =
         fire_start_range_id
       )
       dispatch(setResult(result))
+      dispatch(setChangeSaved(true))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)
