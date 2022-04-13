@@ -21,7 +21,6 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   DateRange, FuelTypesResponse, HFIWeatherStationsResponse)
 from app.schemas.shared import (FuelType)
 from app.auth import authentication_required, audit
-from app.schemas.hfi_calc import HFIWeatherStationsResponse
 from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
@@ -154,7 +153,8 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
 
 
 @router.get("/fuel_types")
-async def get_fuel_types(response: Response, token=Depends(authentication_required)) -> FuelTypesResponse:
+async def get_fuel_types(response: Response) -> FuelTypesResponse:
+    """ Return list of fuel type records pulled from database. """
     logger.info('/fuel_types/')
     # allow browser to cache fuel_types for 1 week because they won't change often (or possibly ever)
     response.headers["Cache-Control"] = "max-age=604800"
@@ -162,9 +162,12 @@ async def get_fuel_types(response: Response, token=Depends(authentication_requir
     with get_read_session_scope() as session:
         result = get_fuel_types_from_db(session)
     fuel_types = []
-    for (fuel_type_record) in result:
-        fuel_types.append(FuelType(id=fuel_type_record.id, description=fuel_type_record.description, abbrev=fuel_type_record.abbrev, fuel_type_code=fuel_type_record.fuel_type_code,
-                          percentage_conifer=fuel_type_record.percentage_conifer, percentage_dead_fir=fuel_type_record.percentage_dead_fir))
+    for fuel_type_record in result:
+        fuel_types.append(FuelType(id=fuel_type_record.id, description=fuel_type_record.description,
+                                   abbrev=fuel_type_record.abbrev,
+                                   fuel_type_code=fuel_type_record.fuel_type_code,
+                          percentage_conifer=fuel_type_record.percentage_conifer,
+                          percentage_dead_fir=fuel_type_record.percentage_dead_fir))
     return FuelTypesResponse(fuel_types=fuel_types)
 
 
