@@ -16,6 +16,7 @@ describe('FireStartsDropdown', () => {
         areaId={testAreaId}
         dayOffset={dayOffset}
         setFireStarts={setFireStartsMock}
+        fireStartsEnabled={true}
         fireStartRanges={fireStartRanges}
       />
     )
@@ -33,6 +34,7 @@ describe('FireStartsDropdown', () => {
         areaId={testAreaId}
         dayOffset={dayOffset}
         setFireStarts={setFireStartsMock}
+        fireStartsEnabled={true}
         fireStartRanges={fireStartRanges}
       />
     )
@@ -50,5 +52,21 @@ describe('FireStartsDropdown', () => {
     await waitFor(() =>
       expect(setFireStartsMock).toBeCalledWith(testAreaId, dayOffset, highestFireStarts)
     )
+  })
+  it('should be disabled when fire starts are not enabled', async () => {
+    const setFireStartsMock = jest.fn()
+    const { getByTestId } = render(
+      <FireStartsDropdown
+        fireStarts={lowestFireStarts}
+        areaId={testAreaId}
+        dayOffset={dayOffset}
+        setFireStarts={setFireStartsMock}
+        fireStartsEnabled={false}
+        fireStartRanges={fireStartRanges}
+      />
+    )
+    const autocomplete = getByTestId('fire-starts-dropdown')
+    const input = within(autocomplete).getByRole('textbox') as HTMLInputElement
+    expect(input).toHaveAttribute('disabled')
   })
 })

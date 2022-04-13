@@ -17,7 +17,7 @@ import {
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
-import { selectHFICalculatorState } from 'app/rootReducer'
+import { selectAuthentication, selectHFICalculatorState } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
 import {
   FireStartRange,
@@ -27,6 +27,7 @@ import {
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
+import { ROLES } from 'features/auth/roles'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -66,6 +67,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
   const { result } = useSelector(selectHFICalculatorState)
+  const { roles, isAuthenticated } = useSelector(selectAuthentication)
 
   const stationCodeInSelected = (code: number) => {
     return result ? result.selected_station_code_ids.includes(code) : false
@@ -186,6 +188,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         planningAreaResult={areaHFIResult}
                         selectedStationCodes={
                           result ? result.selected_station_code_ids : []
+                        }
+                        fireStartsEnabled={
+                          roles.includes(ROLES.HFI.SET_FIRE_STARTS) && isAuthenticated
                         }
                         setNewFireStarts={props.setNewFireStarts}
                         planningAreaClass={classes.planningArea}
