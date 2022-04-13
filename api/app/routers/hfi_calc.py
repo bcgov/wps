@@ -81,11 +81,12 @@ def get_prepared_request(
             selected_station_code_ids.add(station.station_code)
             if station.planning_area_id not in planning_area_station_info:
                 planning_area_station_info[station.planning_area_id] = []
-            planning_area_station_info[station.planning_area_id].append(StationInfo(
-                station_code=station.station_code,
-                selected=True,
-                fuel_type_id=fuel_type.id
-            ))
+            planning_area_station_info[station.planning_area_id].append(
+                StationInfo(
+                    station_code=station.station_code,
+                    selected=True,
+                    fuel_type_id=fuel_type.id
+                ))
             initialize_planning_area_fire_starts(
                 planning_area_fire_starts,
                 station.planning_area_id,
