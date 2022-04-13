@@ -57,10 +57,21 @@ async def authentication_required(token=Depends(authenticate)):
     return token
 
 
-async def auth_with_set_fire_starts_permission_required(token=Depends(authentication_required)):
+async def auth_with_set_fire_starts_role_required(token=Depends(authentication_required)):
     """ Only return requests that have set fire starts permission """
     roles = token.get('resource_access', {}).get('wps-web', {}).get('roles', {})
     if 'hfi_set_fire_starts' not in roles:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            headers={'WWW-Authenticate': 'Bearer'}
+        )
+    return token
+
+
+async def auth_with_select_station_role_required(token=Depends(authentication_required)):
+    """ Only return requests that have set fire starts permission """
+    roles = token.get('resource_access', {}).get('wps-web', {}).get('roles', {})
+    if 'hfi_select_station' not in roles:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             headers={'WWW-Authenticate': 'Bearer'}
