@@ -16,7 +16,6 @@ export interface CalculatedCellsProps {
   area: PlanningArea
   areaName: string
   planningAreaResult: PlanningAreaResult
-  selectedStationCodes: number[]
   setNewFireStarts: (
     areaId: number,
     dayOffset: number,
@@ -45,7 +44,6 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
             <MeanIntensityGroupRollup
               area={props.area}
               dailies={allPlanningAreaDailies ? allPlanningAreaDailies : []}
-              selectedStationCodes={props.selectedStationCodes}
               meanIntensityGroup={meanIntensityGroup}
             />
             <TableCell>
@@ -70,7 +68,6 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
       <MeanIntensityGroupRollup
         area={props.area}
         dailies={allPlanningAreaDailies}
-        selectedStationCodes={props.selectedStationCodes}
         meanIntensityGroup={props.planningAreaResult.highest_daily_intensity_group}
       ></MeanIntensityGroupRollup>
       <MeanPrepLevelCell

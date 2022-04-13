@@ -1,7 +1,7 @@
 """ This module contains pydandict schemas the HFI Calculator.
 """
 import logging
-from typing import List, Mapping, Optional
+from typing import List, Dict, Optional
 from datetime import datetime, date
 from pydantic import BaseModel
 from app.schemas.shared import FuelType
@@ -134,8 +134,7 @@ class StationInfo(BaseModel):
     """ Information about a station, including its code, name, and elevation. """
     station_code: int
     selected: bool
-    # fuel_type_id matches to table fuel_types.id
-    fuel_type_id: int
+    fuel_type_id: int  # fuel_type_id matches to table fuel_types.id
 
 
 class InvalidDateRangeError(Exception):
@@ -164,17 +163,12 @@ class HFIResultRequest(BaseModel):
     a ISO date string in PST, then grab the YYYY-MM-DD part.
     The PST part is critical, so that the date doesn't change due to timezone switches.
     """
-    # TODO: Change all fields to required!
+    date_range: DateRange
     selected_fire_center_id: int
-    date_range: Optional[DateRange]
-    # TODO: Remove when fuel type config implemented
-    selected_station_code_ids: List[int]
     # Each planning area has a list of stations
-    planning_area_station_info: Optional[Mapping[int, List[StationInfo]]]
+    planning_area_station_info: Dict[int, List[StationInfo]]
     # Mapping from planning area id to a map of FireStartRanges.
-    planning_area_fire_starts: Mapping[int, List[FireStartRange]]
-    # TODO: Remove - since we're going to get rid of the save button.
-    persist_request: Optional[bool]  # Indicate whether to save the request to the database.
+    planning_area_fire_starts: Dict[int, List[FireStartRange]]
 
 
 class HFIResultResponse(BaseModel):
@@ -183,10 +177,8 @@ class HFIResultResponse(BaseModel):
     selected fire centre, fire starts, HFI results.
     """
     date_range: DateRange
-    # TODO: Remove when fuel type config implemented
-    selected_station_code_ids: List[int]
-    planning_area_station_info: Optional[Mapping[int, List[StationInfo]]]
     selected_fire_center_id: int
+    planning_area_station_info: Dict[int, List[StationInfo]]
     planning_area_hfi_results: List[PlanningAreaResult]
     # Each planning area may have it's own custom fire starts information - so we include it in
     # the response for convenience. (We could require the front end to make a seperate call to load
@@ -208,7 +200,7 @@ class PrepTablePlanningAreaPDFData(BaseModel):
     fire_starts_labels: List[str]
     prep_levels: List[Optional[int]]
     # Station dailies grouped by station code containing the dailies for each day in the prep cycle
-    dailies: Mapping[int, List[StationPDFData]]
+    dailies: Dict[int, List[StationPDFData]]
 
 
 class DailyTablePlanningAreaPDFData(BaseModel):
