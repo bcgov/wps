@@ -13,7 +13,8 @@ import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { isEmpty, isUndefined, sortBy } from 'lodash'
 import {
   calculateNumPrepDays,
-  getDailiesByStationCode
+  getDailiesByStationCode,
+  stationCodeSelected
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
@@ -68,16 +69,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   const { result } = useSelector(selectHFICalculatorState)
 
   const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
-    if (
-      !isUndefined(result) &&
-      !isUndefined(result.planning_area_station_info[planningAreaId])
-    ) {
-      const station_info = result.planning_area_station_info[planningAreaId].find(
-        station_info => station_info.station_code === code
-      )
-      return station_info?.selected ?? false
-    }
-    return false
+    return stationCodeSelected(result, planningAreaId, code)
   }
   const toggleSelectedStation = (planningAreaId: number, code: number) => {
     const selected = stationCodeInSelected(planningAreaId, code)

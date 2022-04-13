@@ -20,7 +20,7 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
-import { getDailiesByStationCode } from 'features/hfiCalculator/util'
+import { getDailiesByStationCode, stationCodeSelected } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
@@ -111,16 +111,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   }
 
   const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
-    if (
-      !isUndefined(result) &&
-      !isUndefined(result.planning_area_station_info[planningAreaId])
-    ) {
-      const station_info = result.planning_area_station_info[planningAreaId].find(
-        station_info => station_info.station_code === code
-      )
-      return station_info?.selected ?? false
-    }
-    return false
+    return stationCodeSelected(result, planningAreaId, code)
   }
   const toggleSelectedStation = (planningAreaId: number, code: number) => {
     const selected = stationCodeInSelected(planningAreaId, code)
