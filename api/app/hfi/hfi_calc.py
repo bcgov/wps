@@ -77,6 +77,7 @@ async def hydrate_fire_centres():
         for (station_record, fuel_type_record, planning_area_record, fire_centre_record) in station_query:
             station_info_dict[station_record.station_code] = {
                 'fuel_type': FuelType(
+                    id=fuel_type_record.id,
                     abbrev=fuel_type_record.abbrev,
                     fuel_type_code=fuel_type_record.fuel_type_code,
                     description=fuel_type_record.description,

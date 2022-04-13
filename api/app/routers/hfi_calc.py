@@ -7,7 +7,7 @@ from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, Response, Depends
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
-from app.db.models.hfi_calc import FuelType
+# from app.db.models.hfi_calc import FuelType
 from app.utils.time import get_pst_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
@@ -19,11 +19,11 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange,
                                   StationInfo,
-                                  DateRange)
+                                  DateRange, FuelTypesResponse, HFIWeatherStationsResponse)
+from app.schemas.shared import (FuelType)
 from app.auth import authentication_required, audit
-from app.schemas.hfi_calc import HFIWeatherStationsResponse
-from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request, store_hfi_request,
-                                  get_fire_centre_stations, get_fuel_types)
+from app.db.crud.hfi_calc import (get_fuel_types_from_db, get_most_recent_updated_hfi_request, store_hfi_request,
+                                  get_fire_centre_stations)
 from app.db.database import get_read_session_scope, get_write_session_scope
 
 
@@ -151,12 +151,18 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
 
 
 @router.get("/fuel_types")
-async def get_fuel_types(response: Response, token=Depends(authentication_required)):
+async def get_fuel_types(response: Response, token=Depends(authentication_required)) -> FuelTypesResponse:
     logger.info('/fuel_types/')
     # allow browser to cache fuel_types for 1 week because they won't change often (or possibly ever)
     response.headers["Cache-Control"] = "max-age=0"  # TODO change back to 604800
 
-    get_fuel_types()
+    with get_read_session_scope() as session:
+        result = get_fuel_types_from_db(session)
+    fuel_types = []
+    for (fuel_type_record) in result:
+        fuel_types.append(FuelType(id=fuel_type_record.id, description=fuel_type_record.description, abbrev=fuel_type_record.abbrev, fuel_type_code=fuel_type_record.fuel_type_code,
+                          percentage_conifer=fuel_type_record.percentage_conifer, percentage_dead_fir=fuel_type_record.percentage_dead_fir))
+    return FuelTypesResponse(fuel_types=fuel_types)
 
 
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/planning_area/{planning_area_id}"

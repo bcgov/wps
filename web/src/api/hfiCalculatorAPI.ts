@@ -15,6 +15,10 @@ export interface FuelType {
   percentage_dead_fir: number
 }
 
+export interface FuelTypesResponse {
+  fuel_types: FuelType[]
+}
+
 export interface WeatherStationProperties {
   name: string
   elevation: number | null
@@ -103,10 +107,10 @@ export async function loadDefaultHFIResult(
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 
-export async function getFuelTypes(): Promise<FuelType[]> {
-  const data = await axios.get<FuelType[]>(baseUrl + 'fuel_types')
+export async function getFuelTypes(): Promise<FuelTypesResponse> {
+  const data = await axios.get<FuelTypesResponse>(baseUrl + 'fuel_types')
   console.log(data)
-  return data
+  return data.data
 }
 
 export async function setStationSelected(

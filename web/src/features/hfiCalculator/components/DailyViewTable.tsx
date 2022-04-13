@@ -10,7 +10,7 @@ import {
 import { makeStyles } from '@material-ui/core/styles'
 import { useSelector } from 'react-redux'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
-import { FireCentre } from 'api/hfiCalculatorAPI'
+import { FireCentre, StationDaily } from 'api/hfiCalculatorAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import FireTable from 'components/FireTable'
@@ -33,7 +33,6 @@ import {
   PlanningAreaResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredDataCell'
-import { StationDaily } from 'api/hfiCalculatorAPI'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DailyHFICell } from 'features/hfiCalculator/components/DailyHFICell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'

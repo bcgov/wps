@@ -12,7 +12,8 @@ import {
   StationDaily,
   getFuelTypes,
   FuelType,
-  FireCentre
+  FireCentre,
+  FuelTypesResponse
 } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
 
@@ -155,8 +156,11 @@ const dailiesSlice = createSlice({
       state.dateRange = action.payload?.date_range
       state.loading = false
     },
-    setFuelTypes: (state: HFICalculatorState, action: PayloadAction<FuelType[]>) => {
-      state.fuelTypes = action.payload
+    setFuelTypes: (
+      state: HFICalculatorState,
+      action: PayloadAction<FuelTypesResponse>
+    ) => {
+      state.fuelTypes = action.payload.fuel_types
       state.loading = false
     }
   }

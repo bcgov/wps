@@ -214,5 +214,6 @@ class DailyTablePlanningAreaPDFData(BaseModel):
     dailies: List[StationPDFData]
 
 
-class FuelTypeResponse(BaseModel):
+class FuelTypesResponse(BaseModel):
+    """ List of FuelType objects """
     fuel_types: List[FuelType]
