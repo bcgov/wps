@@ -157,7 +157,7 @@ def extract_selected_stations(request: HFIResultRequest) -> List[int]:
 async def get_fuel_types(response: Response, token=Depends(authentication_required)) -> FuelTypesResponse:
     logger.info('/fuel_types/')
     # allow browser to cache fuel_types for 1 week because they won't change often (or possibly ever)
-    response.headers["Cache-Control"] = "max-age=0"  # TODO change back to 604800
+    response.headers["Cache-Control"] = "max-age=604800"
 
     with get_read_session_scope() as session:
         result = get_fuel_types_from_db(session)
