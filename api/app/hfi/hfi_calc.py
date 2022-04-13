@@ -2,16 +2,17 @@
 import math
 import logging
 from time import perf_counter
-from typing import Mapping, Optional, List, AsyncGenerator, Dict, Tuple
+from typing import Optional, List, AsyncGenerator, Dict, Tuple
 from datetime import date, timedelta
 from statistics import mean
 from aiohttp.client import ClientSession
 import app
 from app.db.database import get_read_session_scope
+from app.db.models.hfi_calc import PlanningWeatherStation
 from app.schemas.hfi_calc import (DailyResult, DateRange,
                                   FireStartRange, HFIResultRequest,
                                   PlanningAreaResult,
-                                  StationDaily,
+                                  StationDaily, StationInfo,
                                   ValidatedStationDaily,
                                   required_daily_fields)
 from app.schemas.hfi_calc import (WeatherStationProperties,
@@ -50,7 +51,7 @@ async def station_daily_generator(raw_daily_generator,
         start = perf_counter()
         wfwx_station = station_lookup.get(raw_daily.get('stationId'))
         fuel_type = station_fuel_type_map.get(wfwx_station.code)
-        result = generate_station_daily(raw_daily, wfwx_station, fuel_type)
+        result: StationDaily = generate_station_daily(raw_daily, wfwx_station, fuel_type)
         delta = perf_counter() - start
         cumulative = cumulative + delta
         yield result
@@ -174,9 +175,6 @@ async def calculate_latest_hfi_results(
     # pylint: disable=too-many-locals
     async with ClientSession() as session:
         header = await get_auth_header(session)
-        # TODO: Enable when fuel type config implemented
-        # selected_station_codes = extract_selected_stations(request)
-
         # Fetching dailies is an expensive operation. When a user is clicking and unclicking stations
         # in the front end, we'd prefer to not change the call that's going to wfwx so that we can
         # use cached values. So we don't actually filter out the "selected" stations, but rather go
@@ -184,7 +182,7 @@ async def calculate_latest_hfi_results(
         fire_centre_stations = get_fire_centre_stations(
             orm_session, request.selected_fire_center_id)
         fire_centre_station_code_ids = set()
-        area_station_map = {}
+        area_station_map: Dict[int, List[PlanningWeatherStation]] = {}
         station_fuel_type_map = {}
         for station, fuel_type in fire_centre_stations:
             fire_centre_station_code_ids.add(station.station_code)
@@ -203,7 +201,7 @@ async def calculate_latest_hfi_results(
             session, header, wfwx_station_ids, start_timestamp, end_timestamp)
         dailies_generator = station_daily_generator(
             raw_dailies_generator, wfwx_stations, station_fuel_type_map)
-        dailies = []
+        dailies: List[StationDaily] = []
         async for station_daily in dailies_generator:
             dailies.append(station_daily)
 
@@ -211,7 +209,7 @@ async def calculate_latest_hfi_results(
                                         request.planning_area_fire_starts,
                                         fire_start_lookup,
                                         dailies, valid_date_range.days_in_range(),
-                                        request.selected_station_code_ids,
+                                        request.planning_area_station_info,
                                         area_station_map,
                                         valid_date_range.start_date)
         return results, valid_date_range
@@ -239,7 +237,7 @@ def load_fire_start_ranges(orm_session, fire_centre_id: int) -> List[FireStartRa
 
 
 def initialize_planning_area_fire_starts(
-        planning_area_fire_starts: Mapping[int, FireStartRange],
+        planning_area_fire_starts: Dict[int, FireStartRange],
         planning_area_id: int,
         num_prep_days: int,
         lowest_fire_starts: FireStartRange):
@@ -258,7 +256,7 @@ def initialize_planning_area_fire_starts(
 def calculate_daily_results(num_prep_days: int,
                             start_date: date,
                             area_dailies: List[StationDaily],
-                            planning_area_fire_starts: Mapping[int, FireStartRange],
+                            planning_area_fire_starts: Dict[int, FireStartRange],
                             area_id: int,
                             fire_start_lookup: Dict[int, Dict[int, int]]) -> Tuple[List[DailyResult], bool]:
     """ Calculate the daily results for a planning area."""
@@ -283,12 +281,12 @@ def calculate_daily_results(num_prep_days: int,
 
 
 def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
-                          planning_area_fire_starts: Mapping[int, FireStartRange],  # pylint: disable=too-many-locals
+                          planning_area_fire_starts: Dict[int, FireStartRange],
                           fire_start_lookup: Dict[int, Dict[int, int]],
-                          dailies: list,
+                          dailies: List[StationDaily],
                           num_prep_days: int,
-                          selected_station_codes: List[int],
-                          area_station_map: dict,
+                          planning_area_station_info: Dict[int, List[StationInfo]],
+                          area_station_map: Dict[int, List[PlanningWeatherStation]],
                           start_date: date) -> List[PlanningAreaResult]:
     """ Computes HFI results based on parameter inputs """
     planning_area_to_dailies: List[PlanningAreaResult] = []
@@ -296,12 +294,17 @@ def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
     for area_id in area_station_map.keys():
         stations = area_station_map[area_id]
         area_station_codes = list(map(lambda station: (station.station_code), stations))
+        selected_stations = filter(lambda station: (station.selected),
+                                   planning_area_station_info[area_id])
+        selected_station_codes = list(map(lambda station: (station.station_code), selected_stations))
 
         # Filter list of dailies to include only those for the selected stations and area.
         # No need to sort by date, we can't trust that the list doesn't have dates missing - so we
         # have a bit of code that snatches from this list filtering by date.
         area_dailies: List[StationDaily] = list(
-            filter(lambda daily, area_station_codes=area_station_codes:
+            filter(lambda daily,
+                   area_station_codes=area_station_codes,
+                   selected_station_codes=selected_station_codes:
                    (daily.code in area_station_codes and daily.code in selected_station_codes),
                    dailies))
 

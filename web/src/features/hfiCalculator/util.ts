@@ -62,3 +62,20 @@ export const getDailiesByStationCode = (
 
   return dailiesForCode ? dailiesForCode : []
 }
+
+export const stationCodeSelected = (
+  result: HFIResultResponse | undefined,
+  planningAreaId: number,
+  code: number
+): boolean => {
+  if (
+    !isUndefined(result) &&
+    !isUndefined(result.planning_area_station_info[planningAreaId])
+  ) {
+    const station_info = result.planning_area_station_info[planningAreaId].find(
+      info => info.station_code === code
+    )
+    return station_info?.selected ?? false
+  }
+  return false
+}

@@ -7,12 +7,11 @@ import {
   setSelectedFireCentre,
   fetchLoadDefaultHFIResult,
   fetchSetNewFireStarts,
-  fetchSetNewPrepDateRange,
+  fetchGetPrepDateRange,
   fetchSetStationSelected,
   fetchFuelTypes,
   fetchPDFDownload,
-  setSelectedPrepDate,
-  setFuelTypes
+  setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -34,6 +33,7 @@ import { FireCentre } from 'api/hfiCalculatorAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
 import { isNull, isUndefined } from 'lodash'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
+import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DateRange } from 'components/dateRangePicker/types'
@@ -85,8 +85,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     selectedFireCentre,
     loading,
     dateRange,
-    fuelTypes,
-    error: hfiError
+    error: hfiError,
+    changeSaved
   } = useSelector(selectHFICalculatorState)
 
   const setSelectedStation = (
@@ -99,6 +99,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchSetStationSelected(
           result.selected_fire_center_id,
           result.date_range.start_date,
+          result.date_range.end_date,
           planningAreaId,
           code,
           selected
@@ -112,11 +113,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     dayOffset: number,
     newFireStarts: FireStartRange
   ) => {
-    if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
+    if (!isUndefined(result) && !isUndefined(result.date_range)) {
       dispatch(
         fetchSetNewFireStarts(
           result.selected_fire_center_id,
           result.date_range.start_date,
+          result.date_range.end_date,
           areaId,
           DateTime.fromISO(result.date_range.start_date + 'T00:00+00:00', {
             setZone: true
@@ -139,7 +141,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       !isUndefined(newDateRange.endDate)
     ) {
       dispatch(
-        fetchSetNewPrepDateRange(
+        fetchGetPrepDateRange(
           result.selected_fire_center_id,
           newDateRange.startDate,
           newDateRange.endDate
@@ -196,7 +198,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     if (!isUndefined(result)) {
       if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
         dispatch(
-          fetchPDFDownload(result.selected_fire_center_id, result.date_range.start_date)
+          fetchPDFDownload(
+            result.selected_fire_center_id,
+            result.date_range.start_date,
+            result.date_range.start_date
+          )
         )
       }
     }
@@ -207,6 +213,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       return (
         <HFIErrorAlert hfiDailiesError={hfiError} fireCentresError={fireCentresError} />
       )
+    }
+    return <React.Fragment></React.Fragment>
+  }
+
+  const buildSuccessNotification = () => {
+    if (changeSaved) {
+      return <HFISuccessAlert message="Changes saved!" />
     }
     return <React.Fragment></React.Fragment>
   }
@@ -245,6 +258,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         <Container maxWidth={'xl'}>
           <LiveChangesAlert />
           {errorNotification}
+          {buildSuccessNotification()}
           <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
               dateRange={dateRange}

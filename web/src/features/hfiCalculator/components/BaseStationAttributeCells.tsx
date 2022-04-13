@@ -13,7 +13,7 @@ export interface BaseStationAttributeCellsProps {
   planningAreaId: number
   className: string | undefined
   grassCurePercentage: number | undefined
-  stationCodeInSelected: (code: number) => boolean
+  stationCodeInSelected: (planningAreaId: number, code: number) => boolean
   toggleSelectedStation: (planningAreaId: number, code: number) => void
   isDailyTable?: boolean
 }
@@ -40,7 +40,7 @@ const BaseStationAttributeCells = ({
             <TableRow>
               <TableCell className={`${className} ${classes.noBottomBorder}`}>
                 <Checkbox
-                  checked={stationCodeInSelected(station.code)}
+                  checked={stationCodeInSelected(planningAreaId, station.code)}
                   onClick={() => toggleSelectedStation(planningAreaId, station.code)}
                   data-testid={`select-station-${station.code}`}
                   color="primary"
@@ -93,7 +93,7 @@ const BaseStationAttributeCells = ({
               <GrassCureCell
                 value={grassCurePercentage}
                 isGrassFuelType={isGrassFuelType(station.station_props)}
-                selected={stationCodeInSelected(station.code)}
+                selected={stationCodeInSelected(planningAreaId, station.code)}
                 className={classes.noBottomBorder}
               ></GrassCureCell>
             </TableRow>

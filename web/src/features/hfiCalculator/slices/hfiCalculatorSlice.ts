@@ -5,7 +5,7 @@ import { logError } from 'utils/error'
 import {
   loadDefaultHFIResult,
   setNewFireStarts,
-  setNewPrepDateRange,
+  getPrepDateRange,
   setStationSelected,
   getPDF,
   RawDaily,
@@ -23,8 +23,8 @@ export interface FireStartRange {
 }
 
 export interface PrepDateRange {
-  start_date?: string
-  end_date?: string
+  start_date: string
+  end_date: string
 }
 
 export interface DailyResult {
@@ -69,20 +69,27 @@ export interface HFICalculatorState {
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
   fuelTypes: FuelType[]
+  changeSaved: boolean
+}
+
+export interface StationInfo {
+  station_code: number
+  selected: boolean
+  fuel_type_id: number
 }
 
 export interface HFIResultResponse {
   date_range: PrepDateRange
-  selected_station_code_ids: number[]
   selected_fire_center_id: number
+  planning_area_station_info: { [key: number]: StationInfo[] }
   planning_area_hfi_results: PlanningAreaResult[]
   fire_start_ranges: FireStartRange[]
 }
 
 export interface RawHFIResultResponse {
   date_range: PrepDateRange
-  selected_station_code_ids: number[]
   selected_fire_center_id: number
+  planning_area_station_info: { [key: number]: StationInfo[] }
   planning_area_hfi_results: RawPlanningAreaResult[]
   fire_start_ranges: FireStartRange[]
 }
@@ -106,13 +113,14 @@ export interface RawValidatedStationDaily {
 const initialState: HFICalculatorState = {
   loading: false,
   error: null,
-  dateRange: { start_date: undefined, end_date: undefined },
+  dateRange: undefined,
   selectedPrepDate: '',
   planningAreaFireStarts: {},
   planningAreaHFIResults: {},
   selectedFireCentre: undefined,
   result: undefined,
-  fuelTypes: []
+  fuelTypes: [],
+  changeSaved: false
 }
 
 const dailiesSlice = createSlice({
@@ -121,6 +129,7 @@ const dailiesSlice = createSlice({
   reducers: {
     loadHFIResultStart(state: HFICalculatorState) {
       state.loading = true
+      state.changeSaved = false
     },
     fetchFuelTypesStart(state: HFICalculatorState) {
       state.loading = true
@@ -134,6 +143,7 @@ const dailiesSlice = createSlice({
     getHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
+      state.changeSaved = false
     },
     fetchFuelTypesFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
@@ -147,6 +157,9 @@ const dailiesSlice = createSlice({
       action: PayloadAction<FireCentre | undefined>
     ) => {
       state.selectedFireCentre = action.payload
+    },
+    setChangeSaved: (state: HFICalculatorState, action: PayloadAction<boolean>) => {
+      state.changeSaved = action.payload
     },
     setResult: (
       state: HFICalculatorState,
@@ -176,7 +189,8 @@ export const {
   setSelectedPrepDate,
   setSelectedFireCentre,
   setFuelTypes,
-  setResult
+  setResult,
+  setChangeSaved
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer
@@ -198,6 +212,7 @@ export const fetchSetStationSelected =
   (
     fire_center_id: number,
     start_date: string,
+    end_date: string,
     planning_area_id: number,
     station_code: number,
     selected: boolean
@@ -208,23 +223,25 @@ export const fetchSetStationSelected =
       const result = await setStationSelected(
         fire_center_id,
         start_date,
+        end_date,
         planning_area_id,
         station_code,
         selected
       )
       dispatch(setResult(result))
+      dispatch(setChangeSaved(true))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)
     }
   }
 
-export const fetchSetNewPrepDateRange =
+export const fetchGetPrepDateRange =
   (fire_center_id: number, start_date: Date, end_date: Date): AppThunk =>
   async dispatch => {
     try {
       dispatch(loadHFIResultStart())
-      const result = await setNewPrepDateRange(fire_center_id, start_date, end_date)
+      const result = await getPrepDateRange(fire_center_id, start_date, end_date)
       dispatch(setResult(result))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
@@ -247,6 +264,7 @@ export const fetchSetNewFireStarts =
   (
     fire_center_id: number,
     start_date: string,
+    end_date: string,
     planning_area_id: number,
     prep_day_date: string,
     fire_start_range_id: number
@@ -257,11 +275,13 @@ export const fetchSetNewFireStarts =
       const result = await setNewFireStarts(
         fire_center_id,
         start_date,
+        end_date,
         planning_area_id,
         prep_day_date,
         fire_start_range_id
       )
       dispatch(setResult(result))
+      dispatch(setChangeSaved(true))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)
@@ -269,11 +289,11 @@ export const fetchSetNewFireStarts =
   }
 
 export const fetchPDFDownload =
-  (fire_center_id: number, start_date: string): AppThunk =>
+  (fire_center_id: number, start_date: string, end_date: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(pdfDownloadStart())
-      await getPDF(fire_center_id, start_date)
+      await getPDF(fire_center_id, start_date, end_date)
       dispatch(pdfDownloadEnd())
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))

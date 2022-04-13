@@ -1,37 +1,25 @@
 import { HFI_CALC_ROUTE } from '../../src/utils/constants'
 
-function interceptDaily(fixturePath: string) {
-  // Inject an appropriate date into our mock data.
-  cy.readFile(fixturePath).then(hfiRequest => {
-    cy.intercept('POST', 'api/hfi-calc/', req => {
-      hfiRequest['selected_prep_date'] = '2021-08-02'
-      hfiRequest['start_date'] = '2021-08-02'
-      hfiRequest['end_date'] = '2021-08-06'
-      req.reply(hfiRequest)
-    }).as('getHFIResults')
-  })
-}
-
 function interceptSelectStationTrue(planning_area: number, code: number) {
   cy.intercept(
     'POST',
-    `api/hfi-calc/fire_centre/1/2021-08-02/planning_area/${planning_area}/station/${code}/selected/true`,
+    `api/hfi-calc/fire_centre/1/2021-08-02/2021-08-06/planning_area/${planning_area}/station/${code}/selected/true`,
     {
       fixture: 'hfi-calc/dailies-saved.json'
     }
   ).as('selectStationTrue')
 }
 
-function interceptSetPrepPeriod(fire_centre: number, start_date: string, end_date: string) {
-  cy.intercept('POST', `api/hfi-calc/fire_centre/${fire_centre}/${start_date}/${end_date}`, {
+function interceptGetPrepPeriod(fire_centre: number, start_date: string, end_date: string) {
+  cy.intercept('GET', `api/hfi-calc/fire_centre/${fire_centre}/${start_date}/${end_date}`, {
     fixture: 'hfi-calc/dailies-saved.json'
-  }).as('setPrepPeriod')
+  }).as('getPrepPeriod')
 }
 
 function interceptSelectStationFalse(planning_area: number, code: number) {
   cy.intercept(
     'POST',
-    `api/hfi-calc/fire_centre/1/2021-08-02/planning_area/${planning_area}/station/${code}/selected/false`,
+    `api/hfi-calc/fire_centre/1/2021-08-02/2021-08-06/planning_area/${planning_area}/station/${code}/selected/false`,
     {
       fixture: 'hfi-calc/dailies-disable-station.json'
     }
@@ -47,7 +35,7 @@ function interceptLoad(fixturePath: string) {
 function interceptSetFireStarts() {
   cy.intercept(
     'POST',
-    'api/hfi-calc/fire_centre/1/2021-08-02/planning_area/70/fire_starts/2021-08-02/fire_start_range/4',
+    'api/hfi-calc/fire_centre/1/2021-08-02/2021-08-06/planning_area/70/fire_starts/2021-08-02/fire_start_range/4',
     {
       fixture: 'hfi-calc/dailies-saved.json'
     }
@@ -55,7 +43,7 @@ function interceptSetFireStarts() {
 }
 
 function interceptDownload() {
-  cy.intercept('GET', 'api/hfi-calc/fire_centre/1/2021-08-02/pdf').as('downloadPDF')
+  cy.intercept('GET', 'api/hfi-calc/fire_centre/1/2021-08-02/2021-08-02/pdf').as('downloadPDF')
 }
 
 describe('HFI Calculator Page', () => {
@@ -87,9 +75,10 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('select-station-239').click({ force: true })
       cy.wait('@selectStationTrue')
       cy.getByTestId('select-station-239').find('input').should('be.checked')
+      cy.getByTestId('hfi-success-alert').should('exist')
     })
     it('prep period should send a new request to the server', () => {
-      interceptSetPrepPeriod(1, '2021-08-03', '2021-08-07')
+      interceptGetPrepPeriod(1, '2021-08-03', '2021-08-07')
       // Open date range picker modal
       cy.getByTestId('date-range-picker-text-field').click({ force: true })
 
@@ -105,12 +94,12 @@ describe('HFI Calculator Page', () => {
       // Close modal
       cy.getByTestId('date-range-picker-wrapper').type('{esc}')
 
-      cy.wait('@setPrepPeriod')
+      cy.wait('@getPrepPeriod')
+
+      cy.getByTestId('hfi-success-alert').should('not.exist')
     })
     it('new fire starts should send a new request to the server', () => {
-      // Selecting a new fire start, should result in a new request to the server, that comes back with "request_persist_success": true, or
-      // which should cause the save button to become disabled.
-      interceptDaily('cypress/fixtures/hfi-calc/dailies.json')
+      // Selecting a new fire start, should result in a new request to the server.
       interceptSetFireStarts()
       cy.getByTestId('fire-starts-dropdown')
         .first()
@@ -119,6 +108,7 @@ describe('HFI Calculator Page', () => {
         .type('{downarrow}')
         .type('{enter}')
       cy.wait('@setFireStarts')
+      cy.getByTestId('hfi-success-alert').should('exist')
     })
     it('should switch the tab to prep period from a daily tab when a different fire centre is selected', () => {
       cy.getByTestId('daily-toggle-1').click({ force: true })

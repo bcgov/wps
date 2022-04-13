@@ -44,10 +44,10 @@ def calculate_c_haines_index(t700: float, t850: float, d850: float) -> float:
 
     # Temperature depression term (this indicates atmospheric instability).
     # Temperature at 850mb - Temperature at 700mb.
-    ca = (t850-t700)/2-2
+    ca = (t850 - t700) / 2 - 2
     # Dew point depression term (this indicates how dry the air is).
     # NOTE: In the original work, the delta is capped at 30 degrees, thus: if d850 > 30, then d850 = 30
-    cb = d850/3-1
+    cb = d850 / 3 - 1
 
     # This part limits the extent to which dry air is able to affect the overall index.
     # If there is very dry air (big difference between dew point temperature and temperature),
@@ -57,7 +57,7 @@ def calculate_c_haines_index(t700: float, t850: float, d850: float) -> float:
         # NOTE: This step is NOT in the original work from Graham A. Mills and Lachlan McCaw (2010).
         cb = 9
     elif cb > 5:
-        cb = 5 + (cb-5)/2
+        cb = 5 + (cb - 5) / 2
 
     # Combine the two terms for the index.
     ch = ca + cb

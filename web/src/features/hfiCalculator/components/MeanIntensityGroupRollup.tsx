@@ -10,7 +10,6 @@ import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWit
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
   dailies: StationDaily[]
-  selectedStationCodes: number[]
   meanIntensityGroup: number | undefined
 }
 
