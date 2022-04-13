@@ -209,8 +209,8 @@ async def set_planning_area_station(
     return request_response
 
 
-@ router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
-              "/station/{station_code}/fuel_type/{fuel_type_id}")
+@router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
+             "/station/{station_code}/fuel_type/{fuel_type_id}")
 async def set_planning_area_station_fuel_type(
     fire_centre_id: int,
     start_date: date,
@@ -230,9 +230,9 @@ async def set_planning_area_station_fuel_type(
     raise NotImplementedError('This function is not implemented yet.')
 
 
-@ router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
-              "/fire_starts/{prep_day_date}/fire_start_range/{fire_start_range_id}",
-              response_model=HFIResultResponse)
+@router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
+             "/fire_starts/{prep_day_date}/fire_start_range/{fire_start_range_id}",
+             response_model=HFIResultResponse)
 async def set_fire_start_range(fire_centre_id: int,
                                start_date: date,
                                end_date: date,
@@ -276,7 +276,7 @@ async def set_fire_start_range(fire_centre_id: int,
     return request_response
 
 
-@ router.get("/fire_centre/{fire_centre_id}", response_model=HFIResultResponse)
+@router.get("/fire_centre/{fire_centre_id}", response_model=HFIResultResponse)
 async def get_hfi_result(fire_centre_id: int,
                          response: Response,
                          token=Depends(authentication_required)):
@@ -288,7 +288,7 @@ async def get_hfi_result(fire_centre_id: int,
     return await get_hfi_result_with_date(fire_centre_id, None, None, response, token)
 
 
-@ router.get("/fire_centre/{fire_centre_id}/{start_date}/{end_date}", response_model=HFIResultResponse)
+@router.get("/fire_centre/{fire_centre_id}/{start_date}/{end_date}", response_model=HFIResultResponse)
 async def get_hfi_result_with_date(fire_centre_id: int,
                                    start_date: Optional[date],
                                    end_date: Optional[date],
@@ -321,7 +321,7 @@ async def get_hfi_result_with_date(fire_centre_id: int,
         raise
 
 
-@ router.get('/fire-centres', response_model=HFIWeatherStationsResponse)
+@router.get('/fire-centres', response_model=HFIWeatherStationsResponse)
 async def get_fire_centres(response: Response):
     """ Returns list of fire centres and planning area for each fire centre,
     and weather stations within each planning area. Also returns the assigned fuel type
@@ -340,7 +340,7 @@ async def get_fire_centres(response: Response):
         raise
 
 
-@ router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')
+@router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')
 async def get_pdf(
     fire_centre_id: int,
     start_date: date,
