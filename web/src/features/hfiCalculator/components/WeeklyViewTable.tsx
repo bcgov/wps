@@ -13,7 +13,8 @@ import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { isEmpty, isUndefined, sortBy } from 'lodash'
 import {
   calculateNumPrepDays,
-  getDailiesByStationCode
+  getDailiesByStationCode,
+  stationCodeSelected
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
@@ -67,11 +68,11 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
 
   const { result } = useSelector(selectHFICalculatorState)
 
-  const stationCodeInSelected = (code: number) => {
-    return result ? result.selected_station_code_ids.includes(code) : false
+  const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
+    return stationCodeSelected(result, planningAreaId, code)
   }
   const toggleSelectedStation = (planningAreaId: number, code: number) => {
-    const selected = stationCodeInSelected(code)
+    const selected = stationCodeInSelected(planningAreaId, code)
     props.setSelected(planningAreaId, code, !selected)
   }
 
@@ -184,9 +185,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         area={area}
                         areaName={area.name}
                         planningAreaResult={areaHFIResult}
-                        selectedStationCodes={
-                          result ? result.selected_station_code_ids : []
-                        }
                         setNewFireStarts={props.setNewFireStarts}
                         planningAreaClass={classes.planningArea}
                         numPrepDays={numPrepDays}
@@ -201,7 +199,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         result,
                         station.code
                       )
-                      const isRowSelected = stationCodeInSelected(station.code)
+                      const isRowSelected = stationCodeInSelected(area.id, station.code)
                       const classNameForRow = !isRowSelected
                         ? classes.unselectedStation
                         : classes.stationCellPlainStyling
