@@ -48,6 +48,7 @@ const authSlice = createSlice({
       state.authenticating = false
       state.isAuthenticated = false
       state.error = action.payload
+      state.roles = []
     },
     refreshTokenFinished(
       state: State,
@@ -57,13 +58,13 @@ const authSlice = createSlice({
       }>
     ) {
       state.token = action.payload.token
-      state.roles = decodeRoles(action.payload.token)
       state.tokenRefreshed = action.payload.tokenRefreshed
+      state.roles = decodeRoles(action.payload.token)
     }
   }
 })
 
-const {
+export const {
   authenticateStart,
   authenticateFinished,
   authenticateError,
@@ -85,6 +86,12 @@ export const decodeRoles = (token: string | undefined) => {
     return []
   }
 }
+
+export const testAuthenticate =
+  (isAuthenticated: boolean, token: string): AppThunk =>
+  dispatch => {
+    dispatch(authenticateFinished({ isAuthenticated, token }))
+  }
 
 export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())

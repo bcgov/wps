@@ -1,3 +1,9 @@
+## 2022-04-13 HFI Calc [#1869](https://github.com/bcgov/wps/issues/1869)
+
+### Features
+
+- **hfi calculator:** Introduce role permission for editing HFI prep fire starts.
+
 ## 2022-04-12 HFI Calc : Success Snackbar [#1634](https://github.com/bcgov/wps/issues/1634)
 
 ### Features
