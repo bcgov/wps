@@ -9,7 +9,7 @@ from app.hfi.hfi_calc import (calculate_hfi_results,
 import app.db.models.hfi_calc as hfi_calc_models
 from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, InvalidDateRangeError,
                                   PlanningArea,
-                                  StationDaily,
+                                  StationDaily, StationInfo,
                                   WeatherStation,
                                   WeatherStationProperties,
                                   required_daily_fields)
@@ -48,6 +48,11 @@ kamloops_fc = FireCentre(
 fire_start_ranges = [FireStartRange(label='moo', id=1), FireStartRange(label='moo', id=2)]
 fire_start_lookup = {1: {1: 1}, 2: {1: 1}}
 
+planning_area_station_info = {kamloops_fc.planning_areas[0].id: [
+    StationInfo(station_code=1, selected=True, fuel_type_id=1),
+    StationInfo(station_code=2, selected=True, fuel_type_id=1)
+]}
+
 
 def test_no_dailies_handled():
     """ No dailies are handled """
@@ -56,7 +61,7 @@ def test_no_dailies_handled():
                                    fire_start_lookup=fire_start_lookup,
                                    dailies=[],
                                    num_prep_days=5,
-                                   selected_station_codes=[1, 2],
+                                   planning_area_station_info=planning_area_station_info,
                                    area_station_map={},
                                    start_date=datetime.now())
 
@@ -81,7 +86,7 @@ def test_requested_fire_starts_unaltered(mocker: MockerFixture):
                                    fire_start_lookup=fire_start_lookup,
                                    dailies=[daily],
                                    num_prep_days=5,
-                                   selected_station_codes=[1, 2],
+                                   planning_area_station_info=planning_area_station_info,
                                    area_station_map={kamloops_fc.planning_areas[0].id: [station]},
                                    start_date=start_date)
     assert result[0].daily_results[0].fire_starts == fire_start_ranges[-1]

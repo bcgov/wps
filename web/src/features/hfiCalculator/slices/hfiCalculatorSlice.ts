@@ -68,18 +68,24 @@ export interface HFICalculatorState {
   changeSaved: boolean
 }
 
+export interface StationInfo {
+  station_code: number
+  selected: boolean
+  fuel_type_id: number
+}
+
 export interface HFIResultResponse {
   date_range: PrepDateRange
-  selected_station_code_ids: number[]
   selected_fire_center_id: number
+  planning_area_station_info: { [key: number]: StationInfo[] }
   planning_area_hfi_results: PlanningAreaResult[]
   fire_start_ranges: FireStartRange[]
 }
 
 export interface RawHFIResultResponse {
   date_range: PrepDateRange
-  selected_station_code_ids: number[]
   selected_fire_center_id: number
+  planning_area_station_info: { [key: number]: StationInfo[] }
   planning_area_hfi_results: RawPlanningAreaResult[]
   fire_start_ranges: FireStartRange[]
 }
