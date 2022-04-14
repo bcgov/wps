@@ -48,12 +48,13 @@ function interceptSetFireStarts(
   fire_centre: number,
   start_date: string,
   end_date: string,
+  planning_area: number,
   prep_date: string,
   fire_start_range_id: number
 ) {
   cy.intercept(
     'POST',
-    `api/hfi-calc/fire_centre/${fire_centre}/${start_date}/${end_date}/planning_area/70/fire_starts/${prep_date}/fire_start_range/${fire_start_range_id}`,
+    `api/hfi-calc/fire_centre/${fire_centre}/${start_date}/${end_date}/planning_area/${planning_area}/fire_starts/${prep_date}/fire_start_range/${fire_start_range_id}`,
     {
       fixture: 'hfi-calc/dailies-saved.json'
     }
@@ -120,7 +121,7 @@ describe('HFI Calculator Page', () => {
     })
     it('new fire starts should send a new request to the server', () => {
       // Selecting a new fire start, should result in a new request to the server.
-      interceptSetFireStarts(1, '2021-08-02', '2021-08-06', '2021-08-02', 4)
+      interceptSetFireStarts(1, '2021-08-02', '2021-08-06', 70, '2021-08-02', 4)
       cy.getByTestId('fire-starts-dropdown')
         .first()
         .find('input')
