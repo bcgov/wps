@@ -194,12 +194,16 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const handleDownloadClicked = () => {
     if (!isUndefined(result)) {
-      if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
+      if (
+        !isUndefined(result) &&
+        !isUndefined(result.date_range.start_date) &&
+        !isUndefined(result.date_range.end_date)
+      ) {
         dispatch(
           fetchPDFDownload(
             result.selected_fire_center_id,
             result.date_range.start_date,
-            result.date_range.start_date
+            result.date_range.end_date
           )
         )
       }
