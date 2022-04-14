@@ -1,4 +1,4 @@
-import { Table, TableBody, TableRow, Checkbox, TableCell } from '@material-ui/core'
+import { Table, TableBody, TableRow, TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { WeatherStation } from 'api/hfiCalcAPI'
 import StickyCell from 'components/StickyCell'
@@ -6,6 +6,7 @@ import { fireTableStyles } from 'app/theme'
 import React from 'react'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
+import StationSelectCell from 'features/hfiCalculator/components/StationSelectCell'
 
 export interface BaseStationAttributeCellsProps {
   testid?: string
@@ -13,6 +14,7 @@ export interface BaseStationAttributeCellsProps {
   planningAreaId: number
   className: string | undefined
   grassCurePercentage: number | undefined
+  selectStationEnabled: boolean
   stationCodeInSelected: (planningAreaId: number, code: number) => boolean
   toggleSelectedStation: (planningAreaId: number, code: number) => void
   isDailyTable?: boolean
@@ -27,6 +29,7 @@ const BaseStationAttributeCells = ({
   planningAreaId,
   className,
   grassCurePercentage,
+  selectStationEnabled,
   stationCodeInSelected,
   toggleSelectedStation
 }: BaseStationAttributeCellsProps) => {
@@ -38,14 +41,14 @@ const BaseStationAttributeCells = ({
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell className={`${className} ${classes.noBottomBorder}`}>
-                <Checkbox
-                  checked={stationCodeInSelected(planningAreaId, station.code)}
-                  onClick={() => toggleSelectedStation(planningAreaId, station.code)}
-                  data-testid={`select-station-${station.code}`}
-                  color="primary"
-                ></Checkbox>
-              </TableCell>
+              <StationSelectCell
+                className={className}
+                station={station}
+                planningAreaId={planningAreaId}
+                selectStationEnabled={selectStationEnabled}
+                stationCodeInSelected={stationCodeInSelected}
+                toggleSelectedStation={toggleSelectedStation}
+              />
             </TableRow>
           </TableBody>
         </Table>

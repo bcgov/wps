@@ -218,6 +218,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             station={station}
                             planningAreaId={area.id}
                             className={classNameForRow}
+                            selectStationEnabled={
+                              roles.includes(ROLES.HFI.SELECT_STATION) && isAuthenticated
+                            }
                             stationCodeInSelected={stationCodeInSelected}
                             toggleSelectedStation={toggleSelectedStation}
                             grassCurePercentage={
