@@ -191,12 +191,30 @@ async def set_planning_area_station_fuel_type(
     token=Depends(authentication_required)  # pylint: disable=unused-argument
 ):
     """ Set the fuel type for a station in a planning area. """
-    # TODO: stub - implement!
     logger.info("/fire_centre/%s/%s/%s/planning_area/%s/station/%s/fuel_type/%s",
                 fire_centre_id, start_date, end_date,
                 planning_area_id, station_code, fuel_type_id)
     response.headers["Cache-Control"] = no_cache
-    raise NotImplementedError('This function is not implemented yet.')
+
+    with get_read_session_scope() as session:
+        # We get an existing request object (it will load from the DB or create it
+        # from scratch if it doesn't exist).
+        request, _, fire_centre_fire_start_ranges = get_prepared_request(
+            session,
+            fire_centre_id,
+            DateRange(start_date=start_date,
+                      end_date=end_date))
+
+        # Set the fuel type for the station.
+        station_info_list = request.planning_area_station_info[planning_area_id]
+        station_info = next(info for info in station_info_list if info.station_code == station_code)
+        station_info.fuel_type_id = fuel_type_id
+
+        request_response = await calculate_and_create_response(
+            session, request, fire_centre_fire_start_ranges)
+
+    save_request_in_database(request, token.get('preferred_username', None))
+    return request_response
 
 
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
