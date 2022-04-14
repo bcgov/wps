@@ -101,7 +101,7 @@ class BoundingBoxChecker():
         self.padf_transform = padf_transform
         self.raster_to_geo_transformer = raster_to_geo_transformer
 
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=None)  # pylint: disable=cache-max-size-none
     def is_inside(self, raster_x, raster_y):
         """ Check if raster coordinate is inside the geographic bounding box """
         # Calculate lat/long and check bounds.
