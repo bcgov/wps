@@ -82,4 +82,4 @@ def get_fire_start_lookup(session: Session) -> CursorResult:
 
 def get_fuel_types_from_db(session: Session) -> CursorResult:
     """ Get the fuel types table  """
-    return session.query(FuelType)
+    return session.query(FuelType).order_by(FuelType.abbrev)

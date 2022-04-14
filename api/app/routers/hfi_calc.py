@@ -141,17 +141,6 @@ def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
     return False
 
 
-def extract_selected_stations(request: HFIResultRequest) -> List[int]:
-    """ Extract a list of the selected station codes - we use this to get the daily data from wfwx. """
-    stations_codes = []
-    for _, value in request.planning_area_station_info.items():
-        for station_info in value:
-            if station_info.selected:
-                if station_info.station_code not in stations_codes:
-                    stations_codes.append(station_info.station_code)
-    return stations_codes
-
-
 @router.get("/fuel_types")
 async def get_fuel_types(response: Response) -> FuelTypesResponse:
     """ Return list of fuel type records pulled from database. """

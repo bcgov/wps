@@ -27,9 +27,9 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
                                        order_of_appearance_in_list=1)
         planning_area_2 = PlanningArea(id=2, name='Vernon (K4)', fire_centre_id=1,
                                        order_of_appearance_in_list=2)
-        fuel_type_1 = FuelType(abbrev='O1B', description='neigh', fuel_type_code="O1B",
+        fuel_type_1 = FuelType(id=1, abbrev='O1B', description='neigh', fuel_type_code="O1B",
                                percentage_conifer=0, percentage_dead_fir=0)
-        fuel_type_2 = FuelType(abbrev='C7B', description='moo', fuel_type_code='C7',
+        fuel_type_2 = FuelType(id=2, abbrev='C7B', description='moo', fuel_type_code='C7',
                                percentage_conifer=100, percentage_dead_fir=0)
         return (
             (PlanningWeatherStation(station_code=230, fuel_type_id=1,
