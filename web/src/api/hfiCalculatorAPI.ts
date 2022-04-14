@@ -8,6 +8,7 @@ import { DateTime } from 'luxon'
 import { formatISODateInPST } from 'utils/date'
 
 export interface FuelType {
+  id: number
   abbrev: string
   description: string
   fuel_type_code: string
@@ -109,7 +110,6 @@ export async function loadDefaultHFIResult(
 
 export async function getFuelTypes(): Promise<FuelTypesResponse> {
   const data = await axios.get<FuelTypesResponse>(baseUrl + 'fuel_types')
-  console.log(data)
   return data.data
 }
 
