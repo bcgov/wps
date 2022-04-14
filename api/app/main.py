@@ -88,7 +88,7 @@ async def catch_exception_middleware(request: Request, call_next):
     try:
         return await call_next(request)
     except Exception as exc:
-        logger.error(exc, exc_info=True)
+        logger.error('%s %s %s', request.method, request.url.path, exc, exc_info=True)
         rc_message = "An exception has been caught and logged"
         send_rocketchat_notification(rc_message, exc)
         raise

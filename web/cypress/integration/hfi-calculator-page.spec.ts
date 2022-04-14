@@ -43,7 +43,7 @@ function interceptSetFireStarts() {
 }
 
 function interceptDownload() {
-  cy.intercept('GET', 'api/hfi-calc/fire_centre/1/2021-08-02/2021-08-02/pdf').as('downloadPDF')
+  cy.intercept('GET', 'api/hfi-calc/fire_centre/1/2021-08-02/2021-08-06/pdf').as('downloadPDF')
 }
 
 describe('HFI Calculator Page', () => {
