@@ -60,7 +60,9 @@ export interface RawPlanningAreaResult {
 }
 
 export interface HFICalculatorState {
-  loading: boolean
+  pdfLoading: boolean
+  fireCentresLoading: boolean
+  fuelTypesLoading: boolean
   error: string | null
   dateRange: PrepDateRange | undefined
   selectedPrepDate: string
@@ -111,7 +113,9 @@ export interface RawValidatedStationDaily {
 }
 
 const initialState: HFICalculatorState = {
-  loading: false,
+  pdfLoading: false,
+  fireCentresLoading: false,
+  fuelTypesLoading: false,
   error: null,
   dateRange: undefined,
   selectedPrepDate: '',
@@ -128,26 +132,26 @@ const dailiesSlice = createSlice({
   initialState,
   reducers: {
     loadHFIResultStart(state: HFICalculatorState) {
-      state.loading = true
+      state.fireCentresLoading = true
       state.changeSaved = false
     },
     fetchFuelTypesStart(state: HFICalculatorState) {
-      state.loading = true
+      state.fuelTypesLoading = true
     },
     pdfDownloadStart(state: HFICalculatorState) {
-      state.loading = true
+      state.pdfLoading = true
     },
     pdfDownloadEnd(state: HFICalculatorState) {
-      state.loading = false
+      state.pdfLoading = false
     },
     getHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
-      state.loading = false
+      state.fireCentresLoading = false
       state.changeSaved = false
     },
     fetchFuelTypesFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
-      state.loading = false
+      state.fuelTypesLoading = false
     },
     setSelectedPrepDate: (state: HFICalculatorState, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
@@ -167,14 +171,14 @@ const dailiesSlice = createSlice({
     ) => {
       state.result = action.payload
       state.dateRange = action.payload?.date_range
-      state.loading = false
+      state.fireCentresLoading = false
     },
     setFuelTypes: (
       state: HFICalculatorState,
       action: PayloadAction<FuelTypesResponse>
     ) => {
       state.fuelTypes = action.payload.fuel_types
-      state.loading = false
+      state.fuelTypesLoading = false
     }
   }
 })

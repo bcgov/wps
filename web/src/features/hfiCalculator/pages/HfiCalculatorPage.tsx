@@ -83,7 +83,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     selectedPrepDate,
     result,
     selectedFireCentre,
-    loading,
+    pdfLoading,
+    fuelTypesLoading,
+    fireCentresLoading,
     dateRange,
     error: hfiError,
     changeSaved
@@ -230,7 +232,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const isLoadingWithoutError = () => {
     return (
-      (loading || stationDataLoading || isUndefined(result)) &&
+      (fireCentresLoading ||
+        fuelTypesLoading ||
+        stationDataLoading ||
+        pdfLoading ||
+        isUndefined(result)) &&
       isNull(fireCentresError) &&
       isNull(hfiError)
     )
