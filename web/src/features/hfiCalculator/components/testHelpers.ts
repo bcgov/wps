@@ -10,6 +10,7 @@ const defaultProps: WeatherStationProperties = {
   uuid: 'uuid',
   elevation: null,
   fuel_type: {
+    id: 1,
     abbrev: 'abbrev',
     description: 'desc',
     fuel_type_code: 'FTC',
