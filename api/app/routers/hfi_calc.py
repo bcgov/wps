@@ -4,7 +4,7 @@ import json
 from typing import List, Optional, Dict, Tuple
 from datetime import date
 from jinja2 import Environment, FunctionLoader
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, HTTPException, Response, Depends
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
 from app.utils.time import get_pst_now
@@ -21,7 +21,7 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   DateRange)
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import HFIWeatherStationsResponse
-from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request,
+from app.db.crud.hfi_calc import (get_fuel_type, get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
                                   get_fire_centre_stations)
@@ -204,6 +204,11 @@ async def set_planning_area_station_fuel_type(
             fire_centre_id,
             DateRange(start_date=start_date,
                       end_date=end_date))
+
+        # Validate the fuel type id.
+        fuel_type = get_fuel_type(session, fuel_type_id)
+        if fuel_type is None:
+            raise HTTPException(status_code=500, detail="Fuel type not found")
 
         # Set the fuel type for the station.
         station_info_list = request.planning_area_station_info[planning_area_id]

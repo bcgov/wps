@@ -66,9 +66,20 @@ def mock_station_crud(monkeypatch):
                                 prep_level=prep_level) for
                 id, fire_start_range_id, mean_intensity_group, prep_level in data]
 
+    def mock_get_fuel_type(_, fuel_type_id: int):
+        """ Returns mocked FuelType """
+        if fuel_type_id == 1:
+            return FuelType(id=1, abbrev='O1B', fuel_type_code='O1B', description='O1B',
+                            percentage_conifer=0, percentage_dead_fir=0)
+        if fuel_type_id == 2:
+            return FuelType(id=1, abbrev='C7B', fuel_type_code='C7B', description='C7B',
+                            percentage_conifer=100, percentage_dead_fir=0)
+        return None
+
     monkeypatch.setattr(app.utils.hfi_calculator, 'get_all_stations', mock_get_all_stations)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_centre_fire_start_ranges',
                         mock_get_fire_centre_fire_start_ranges)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_start_lookup', mock_get_fire_start_lookup)
+    monkeypatch.setattr(app.routers.hfi_calc, 'get_fuel_type', mock_get_fuel_type)

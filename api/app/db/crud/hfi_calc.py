@@ -1,13 +1,11 @@
 """ CRUD operations relating to HFI Calculator
 """
-from typing import List
-from datetime import date
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
 from app.schemas.hfi_calc import DateRange, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, PlanningArea, PlanningWeatherStation, HFIRequest,
                                     FireStartRange, FireCentreFireStartRange, FireStartLookup)
-from app.utils.time import get_pst_now, get_utc_now
+from app.utils.time import get_utc_now
 
 
 def get_fire_weather_stations(session: Session) -> CursorResult:
@@ -78,3 +76,8 @@ def get_fire_centre_fire_start_ranges(session: Session, fire_centre_id: id) -> C
 def get_fire_start_lookup(session: Session) -> CursorResult:
     """ Get the fire start lookup table """
     return session.query(FireStartLookup)
+
+
+def get_fuel_type(session: Session, fuel_type_id: int) -> FuelType:
+    """ Get the fuel type for the supplied fuel type id """
+    return session.query(FuelType).filter(FuelType.id == fuel_type_id).first()
