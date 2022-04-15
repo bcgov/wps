@@ -5,18 +5,17 @@ from datetime import date, datetime, timedelta
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
+from app.fire_behaviour.fba import FBACalculatorWeatherStation, FireBehaviourAdvisory, calculate_fire_behaviour_advisory
 from app.hourlies import get_hourly_readings_in_time_interval
 from app.schemas.fba_calc import (StationListRequest, StationRequest,
                                   StationsListResponse, StationResponse)
-from app.utils import cffdrs
+from app.fire_behaviour import cffdrs
 from app.utils.time import get_hour_20_from_date
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies,
                                        get_wfwx_stations_from_station_codes)
-from app.fba_calculator import (FBACalculatorWeatherStation,
-                                FireBehaviourAdvisory, build_hourly_rh_dict,
-                                calculate_fire_behaviour_advisory)
+from app.fire_behaviour.prediction import build_hourly_rh_dict
 
 
 router = APIRouter(

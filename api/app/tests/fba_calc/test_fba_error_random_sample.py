@@ -10,9 +10,9 @@ from pytest_bdd import scenario, given, then, parsers
 from app import configure_logging
 from app.schemas.fba_calc import FuelTypeEnum
 from app.utils.time import get_hour_20_from_date
-from app.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
+from app.fbp.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
-from app.utils.cffdrs import initial_spread_index, bui_calc
+from app.fbp.cffdrs import initial_spread_index, bui_calc
 from app.tests.fba_calc import check_metric, fire_size_acceptable_margin_of_error
 from app.tests.common import str2float
 import pytest

@@ -261,9 +261,10 @@ async def get_hourly_actuals_all_stations(
     return hourly_actuals
 
 
-async def get_wfwx_stations_from_station_codes(session: ClientSession,
-                                               header,
-                                               station_codes: Optional[List[int]]) -> list:
+async def get_wfwx_stations_from_station_codes(
+        session: ClientSession,
+        header,
+        station_codes: Optional[List[int]]) -> List[WFWXWeatherStation]:
     """ Return the WFWX station ids from WFWX API given a list of station codes. """
 
     # All WFWX stations are requested because WFWX returns a malformed JSON response when too
@@ -277,7 +278,7 @@ async def get_wfwx_stations_from_station_codes(session: ClientSession,
     if station_codes is None:
         return list(filter(lambda x: (x.code in fire_centre_station_codes),
                            wfwx_stations))
-    requested_stations = []
+    requested_stations: List[WFWXWeatherStation] = []
     station_code_dict = {station.code: station for station in wfwx_stations}
     for station_code in station_codes:
         wfwx_station = station_code_dict.get(station_code)
