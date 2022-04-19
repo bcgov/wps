@@ -51,6 +51,7 @@ import FilterColumnsModal from 'components/FilterColumnsModal'
 import { formControlStyles } from 'app/theme'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { pstFormatter } from 'utils/date'
+import { AppDispatch } from 'app/store'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -125,7 +126,7 @@ const FBATable = (props: FBATableProps) => {
   const classes = useStyles()
   const navigate = useNavigate()
   const location = useLocation()
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
   const [dateOfInterest, setDateOfInterest] = useState(

@@ -24,6 +24,7 @@ import {
   getCHainesKMLModelRunURI,
   getCHainesModelKMLURI
 } from 'api/cHainesAPI'
+import { AppDispatch } from 'app/store'
 
 const useStyles = makeStyles({
   map: {
@@ -76,7 +77,7 @@ const useStyles = makeStyles({
 
 const CHainesPage = () => {
   const classes = useStyles()
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
   const mapRef = useRef<L.Map | null>(null)
   const layersRef = useRef<Record<string, L.GeoJSON>>({})
   const mapTitleRef = useRef<L.Control | null>(null)

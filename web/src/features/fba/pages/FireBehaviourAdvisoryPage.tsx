@@ -15,6 +15,7 @@ import { getStations, StationSource } from 'api/stationAPI'
 import { FireCenter } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { pstFormatter } from 'utils/date'
+import { AppDispatch } from 'app/store'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -37,7 +38,7 @@ const useStyles = makeStyles(() => ({
 
 export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
 
   const emptyInstructions = (
