@@ -201,7 +201,8 @@ def assert_status_code(response, status: int):
 @then("the response isn't cached")
 def then_response_not_cached(response):
     """ Check that the response isn't being cached """
-    assert response['response'].headers['cache-control'] == 'max-age=0'
+    if response['response'].status_code == 200:
+        assert response['response'].headers.get('cache-control', None) == 'max-age=0'
 
 
 @then(parsers.parse("the response is {response_json}"),
