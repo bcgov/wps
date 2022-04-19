@@ -114,26 +114,6 @@ describe('HFILoadingDataView', () => {
     expect(emptyRow).toBeDefined()
     expect(renderedChild).not.toBeInTheDocument()
   })
-  it('should render error notification when there is a fire centres error', () => {
-    const { queryByText } = render(
-      <HFILoadingDataView
-        loading={false}
-        stationDataLoading={false}
-        fireCentresLoading={false}
-        fireCentresError={null}
-        hfiError={null}
-        errorNotification={errorNotification}
-        selectedFireCentre={selectedFireCentre}
-        dateRange={dateRange}
-        result={result}
-      >
-        {child}
-      </HFILoadingDataView>
-    )
-
-    const renderedChild = queryByText('child-text')
-    expect(renderedChild).toBeDefined()
-  })
   it('should render children when not loading, no errors and fire centre is selected', () => {
     const { queryByText } = render(
       <HFILoadingDataView
