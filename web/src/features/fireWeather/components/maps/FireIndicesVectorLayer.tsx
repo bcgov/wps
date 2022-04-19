@@ -17,6 +17,7 @@ import {
 } from 'features/fireWeather/components/maps/stationAccuracy'
 import { Style, Fill } from 'ol/style'
 import CircleStyle from 'ol/style/Circle'
+import { AppDispatch } from 'app/store'
 
 interface Props {
   toiFromQuery: string
@@ -48,7 +49,7 @@ const tempPointStyleFunction = (feature: any) => {
 }
 
 const FireIndicesVectorLayer = ({ toiFromQuery, selectedWxVariable }: Props) => {
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
   const { stations } = useSelector(selectFireWeatherStations)
 
   const styleFunction =
