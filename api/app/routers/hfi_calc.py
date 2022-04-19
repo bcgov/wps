@@ -4,7 +4,7 @@ import json
 from typing import List, Optional, Dict, Tuple
 from datetime import date
 from jinja2 import Environment, FunctionLoader
-from fastapi import APIRouter, HTTPException, Response, Depends
+from fastapi import APIRouter, Response, Depends
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
 from app.utils.time import get_pst_now
@@ -18,10 +18,10 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange,
                                   StationInfo,
-                                  DateRange)
+                                  DateRange,
+                                  HFIWeatherStationsResponse)
 from app.auth import authentication_required, audit
-from app.schemas.hfi_calc import HFIWeatherStationsResponse
-from app.db.crud.hfi_calc import (get_fuel_type, get_most_recent_updated_hfi_request,
+from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
                                   get_fire_centre_stations)
