@@ -36,7 +36,6 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
                            fuel_type: FuelType) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
-    raise Exception('this totally will not work')
     # pylint: disable=invalid-name
     # we use the fuel type lookup to get default values.
     pc = fuel_type.percentage_conifer if fuel_type.percentage_conifer is not None\
@@ -45,7 +44,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         else FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["PDF"]
     cbh = FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["CBH"]
     cfl = FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["CFL"]
-    date = raw_daily.get('weatherTimestamp', None)
+    timestamp: Optional[int] = raw_daily.get('weatherTimestamp', None)
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
@@ -69,6 +68,9 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
             cfl=cfl)
     # pylint: disable=broad-except
     except Exception as exc:
+        # TODO: Remove this exception - it can hide away bugs in code. Catch more specific exceptions.
+        #   e.g.: for c7b, if cc is null, we can't calculate - so let's throw a specific exception and
+        #   catch that.
         logger.error('Encountered error while generating StationDaily for station %s', station.code)
         logger.error(exc, exc_info=True)
         # prediction calculation failed, so we set the values to None
@@ -76,7 +78,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
 
     return StationDaily(
         code=station.code,
-        date=date,
+        date=timestamp,  # TODO: passing a timestamp into a date object!
         status=raw_daily.get('recordType', '').get('id', None),
         temperature=raw_daily.get('temperature', None),
         relative_humidity=raw_daily.get('relativeHumidity', None),
@@ -118,22 +120,22 @@ def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -
     return list(filter(lambda daily: (daily.date == dailies_date_time), area_dailies))
 
 
-async def station_daily_generator(
-        raw_daily_generator,
-        wfwx_stations: List[WFWXWeatherStation]) -> AsyncGenerator[StationDaily, None]:
+async def station_daily_generator(raw_daily_generator,
+                                  wfwx_stations,
+                                  station_fuel_type_map) -> AsyncGenerator[StationDaily, None]:
     """ Generator that yields the daily data for each station.
 
     We give this function all the puzzle pieces. The raw_daily_generator (reading dailies from
-    wfwx and giving us dictionaries) + wfwx_stations (from wfwx) + station_fuel_type_map (from our input
-    request).
+    wfwx and giving us dictionaries) + wfwx_stations (from wfwx) + station_fuel_type_map (from our db).
 
     The puzzle pieces are mangled together, and the generator then yields a StationDaily object."""
-    raise Exception('this totally will not work')
     station_lookup = {station.wfwx_id: station for station in wfwx_stations}
+    fuel_type = None
     cumulative = 0
     async for raw_daily in raw_daily_generator:
         start = perf_counter()
         wfwx_station = station_lookup.get(raw_daily.get('stationId'))
+        fuel_type = station_fuel_type_map.get(wfwx_station.code)
         result: StationDaily = generate_station_daily(raw_daily, wfwx_station, fuel_type)
         delta = perf_counter() - start
         cumulative = cumulative + delta
@@ -254,16 +256,6 @@ async def calculate_latest_hfi_results(
         valid_date_range.start_date).timestamp() * 1000)
     end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_date_range.end_date).timestamp() * 1000)
 
-    # SYBRAND - YOU ARE ARE
-    # So here's the thing:
-    # - There are default fuel types for each station in a planning area.
-    # - A request contains a fuel type for each station in each planning area, which would override the default.
-    # - You need a map of the planning area station codes -> fuel types
-    # - You need a map of the fuel type id's -> fuel types
-    # - You need to create a big fat array of input for the FBP calculation.
-    # - You then calculate all the FBP values
-    # - You then tie up the FBP results.
-
     # pylint: disable=too-many-locals
     async with ClientSession() as session:
         header = await get_auth_header(session)
@@ -275,29 +267,32 @@ async def calculate_latest_hfi_results(
             orm_session, request.selected_fire_center_id)
         fire_centre_station_code_ids = set()
         area_station_map: Dict[int, List[PlanningWeatherStation]] = {}
-        # station_fuel_type_map = {}
-        for station, default_fuel_type in fire_centre_stations:
+        station_fuel_type_map = {}
+        for station, fuel_type in fire_centre_stations:
             fire_centre_station_code_ids.add(station.station_code)
             if not station.planning_area_id in area_station_map:
                 area_station_map[station.planning_area_id] = []
             area_station_map[station.planning_area_id].append(station)
-            # station_fuel_type_map[station.station_code] = fuel_type
+            station_fuel_type_map[station.station_code] = fuel_type
 
         fire_start_lookup = build_fire_start_prep_level_lookup(orm_session)
 
-        wfwx_stations: List[WFWXWeatherStation] = await get_wfwx_stations_from_station_codes(
+        wfwx_stations = await get_wfwx_stations_from_station_codes(
             session, header, list(fire_centre_station_code_ids))
 
         wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
         raw_dailies_generator = await get_raw_dailies_in_range_generator(
             session, header, wfwx_station_ids, start_timestamp, end_timestamp)
-        raw_dailes: List[dict] = list([raw_daily async for raw_daily in raw_dailies_generator])
+        dailies_generator = station_daily_generator(
+            raw_dailies_generator, wfwx_stations, station_fuel_type_map)
+        dailies: List[StationDaily] = []
+        async for station_daily in dailies_generator:
+            dailies.append(station_daily)
 
         results = calculate_hfi_results(fire_centre_fire_start_ranges,
                                         request.planning_area_fire_starts,
                                         fire_start_lookup,
-                                        raw_dailes,
-                                        valid_date_range.days_in_range(),
+                                        dailies, valid_date_range.days_in_range(),
                                         request.planning_area_station_info,
                                         area_station_map,
                                         valid_date_range.start_date)

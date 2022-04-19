@@ -10,9 +10,9 @@ from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.observations import WeatherReading
 from app.schemas.fba_calc import CriticalHoursHFI
 from app.utils.singleton import Singleton
-from app.fire_behaviour import cffdrs
+from app.fire_behaviour import cffdrs, c7b
 from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS
-from app.utils.time import convert_utc_to_pdt
+from app.utils.time import convert_utc_to_pdt, get_julian_date_now
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class DiurnalFFMCLookupTable():
 
     def __init__(self):
         afternoon_filename = os.path.join(os.path.dirname(__file__),
-                                          './data/diurnal_ffmc_lookups/afternoon_overnight.csv')
+                                          '../data/diurnal_ffmc_lookups/afternoon_overnight.csv')
         with open(afternoon_filename, 'rb') as afternoon_file:
             afternoon_df = pd.read_csv(afternoon_file)
         # Pylint thinks that afternoon_df's type is TextFileReader. It isn't - it's a pandas dataframe.
@@ -46,7 +46,7 @@ class DiurnalFFMCLookupTable():
         afternoon_df.set_index(17, inplace=True)
 
         morning_filename = os.path.join(os.path.dirname(__file__),
-                                        './data/diurnal_ffmc_lookups/morning.csv')
+                                        '../data/diurnal_ffmc_lookups/morning.csv')
         with open(morning_filename, 'rb') as morning_file:
             morning_df = pd.read_csv(morning_file, header=[0, 1])
         prev_days_daily_ffmc_keys = morning_df.iloc[:, 0].values

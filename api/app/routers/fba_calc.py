@@ -5,7 +5,8 @@ from datetime import date, datetime, timedelta
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
-from app.fire_behaviour.fba import FBACalculatorWeatherStation, FireBehaviourAdvisory, calculate_fire_behaviour_advisory
+from app.fire_behaviour.advisory import (FBACalculatorWeatherStation, FireBehaviourAdvisory,
+                                         calculate_fire_behaviour_advisory)
 from app.hourlies import get_hourly_readings_in_time_interval
 from app.schemas.fba_calc import (StationListRequest, StationRequest,
                                   StationsListResponse, StationResponse)

@@ -76,10 +76,11 @@ def mock_station_crud(monkeypatch):
                             percentage_conifer=100, percentage_dead_fir=0)
         return None
 
-    monkeypatch.setattr(app.utils.hfi_calculator, 'get_all_stations', mock_get_all_stations)
+    monkeypatch.setattr(app.db.crud.hfi_calc, 'get_all_stations', mock_get_all_stations)
+    # TODO: this is problematic, why are we calling get_fire_centre_stations twice?
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
-    monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_centre_fire_start_ranges',
                         mock_get_fire_centre_fire_start_ranges)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_start_lookup', mock_get_fire_start_lookup)
+    monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fuel_type', mock_get_fuel_type)

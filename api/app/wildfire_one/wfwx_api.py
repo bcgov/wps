@@ -7,8 +7,8 @@ import logging
 import asyncio
 from aiohttp import ClientSession, TCPConnector
 from app import config
-from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.data.ecodivision_seasons import EcodivisionSeasons
+from app.db.crud.hfi_calc import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
 from app.db.models.forecasts import NoonForecast
 from app.schemas.observations import WeatherStationHourlyReadings
@@ -272,6 +272,7 @@ async def get_wfwx_stations_from_station_codes(
     # IMPORTANT - the two calls below, cannot be made from within the lambda, as they will be
     # be called multiple times!
     wfwx_stations = await get_station_data(session, header, mapper=wfwx_station_list_mapper)
+    # TODO: this is not good. Code in wfwx api shouldn't be filtering on stations codes in hfi....
     fire_centre_station_codes = get_fire_centre_station_codes()
 
     # Default to all known WFWX station ids if no station codes are specified

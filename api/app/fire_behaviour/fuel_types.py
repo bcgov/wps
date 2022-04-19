@@ -1,3 +1,4 @@
+""" Code relating to fuel types. """
 from enum import Enum
 
 
