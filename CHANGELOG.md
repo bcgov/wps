@@ -2,7 +2,7 @@
 
 ### Features
 
-- **hfi calculator:** Added West Kelowna (1277) station with fuel type C7 to Pentiction planning area as 2nd station in list. Added Station Bay 2 (1359) station with fuel type C5 to Vernon planning area as 3rd station in list
+- **hfi calculator:** Added West Kelowna (1277) station with fuel type C7 to Penticton planning area as 2nd station in list. Added Station Bay 2 (1359) station with fuel type C5 to Vernon planning area as 3rd station in list
 
 ## 2022-04-14 HFI Calc - Bug Fix - PDF Download
 
