@@ -36,6 +36,7 @@ import { getDaysBetween } from 'utils/date'
 import { Template, TemplatePlaceholder } from '@devexpress/dx-react-core'
 import { last, pick } from 'lodash'
 import { MultiFWITableCell } from 'features/fwiCalculator/components/MultiFWITableCell'
+import { AppDispatch } from 'app/store'
 export interface Option {
   name: string
   code: number
@@ -52,7 +53,7 @@ export const MultiDayFWITable = ({
   startDate,
   endDate
 }: MultiDayFWITableProps): JSX.Element => {
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
   const { multiFWIOutputs } = useSelector(selectMultiFWIOutputs)
   const isLoading = useSelector(selectMultiFWIOutputsLoading)
   const [columns] = useState(defaultColumns)
