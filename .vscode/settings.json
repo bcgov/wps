@@ -13,7 +13,8 @@
         "**/.pytest_cache": true,
         "**/__pycache__**": true,
         "web/node_modules": true,
-        "api/python_cache": true
+        "api/python_cache": true,
+        "api/.venv": true
     },
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
