@@ -18,12 +18,13 @@ import {
 } from 'features/percentileCalculator/components/TimeRangeSlider'
 import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 import { getStations, StationSource } from 'api/stationAPI'
+import { AppDispatch } from 'app/store'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
 
 const PercentileCalculatorPage = () => {
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
   const location = useLocation()
   const navigate = useNavigate()
 
