@@ -83,4 +83,4 @@ def mock_station_crud(monkeypatch):
                         mock_get_fire_centre_fire_start_ranges)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_start_lookup', mock_get_fire_start_lookup)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
-    monkeypatch.setattr(app.routers.hfi_calc, 'get_fuel_type_by_id', mock_get_fuel_type_by_id)
+    # monkeypatch.setattr(app.routers.hfi_calc, 'get_fuel_type_by_id', mock_get_fuel_type_by_id)
