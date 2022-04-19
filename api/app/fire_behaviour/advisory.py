@@ -68,12 +68,9 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
                  cfb_t: Optional[float],
                  sixty_minute_fire_size_t: Optional[float]):
         self.hfi = hfi
-        self.hfi_t = None
         self.ros = ros
-        self.ros_t = None
         self.fire_type = fire_type
         self.cfb = cfb
-        self.cfb_t = None
         self.flame_length = flame_length
         self.sixty_minute_fire_size = sixty_minute_fire_size
         self.sixty_minute_fire_size_t = None
