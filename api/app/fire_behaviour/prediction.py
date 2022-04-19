@@ -89,7 +89,7 @@ def calculate_cfb(fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: float, c
     return cfb
 
 
-def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, ellapsed_minutes: int, cfb: float,
+def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, elapsed_minutes: int, cfb: float,
                   lb_ratio: float):
     """
     Fire size based on Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical
@@ -98,14 +98,14 @@ def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, ellapsed_min
     if fuel_type is None or ros is None or bros is None or lb_ratio is None:
         raise cffdrs.CFFDRSException()
     # Using acceleration:
-    fire_spread_distance = cffdrs.fire_distance(fuel_type, ros + bros, ellapsed_minutes, cfb)
-    length_to_breadth_at_time = cffdrs.length_to_breadth_ratio_t(fuel_type, lb_ratio, ellapsed_minutes, cfb)
+    fire_spread_distance = cffdrs.fire_distance(fuel_type, ros + bros, elapsed_minutes, cfb)
+    length_to_breadth_at_time = cffdrs.length_to_breadth_ratio_t(fuel_type, lb_ratio, elapsed_minutes, cfb)
     # Not using acceleration:
     # fros = cffdrs.flank_rate_of_spread(ros, bros, lb_ratio)
     # # Flank Fire Spread Distance a.k.a. DF in R/FBPcalc.r
     # flank_fire_spread_distance = (ros + bros) / (2.0 * fros)
     # length_to_breadth_at_time = flank_fire_spread_distance
-    # fire_spread_distance = (ros + bros) * ellapsed_minutes
+    # fire_spread_distance = (ros + bros) * elapsed_minutes
 
     # Essentially using Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical
     # forest fire patterns.) - but feeding it L/B and ROS from CFFDRS.
