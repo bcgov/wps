@@ -1,7 +1,7 @@
 """ Unit testing for CFFDRS functions """
 import pytest
 from app.schemas.fba_calc import FuelTypeEnum
-from app.utils import cffdrs
+from app.fire_behaviour import cffdrs
 
 
 def test_ros():
