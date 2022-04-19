@@ -1,4 +1,4 @@
-from app.utils import c7b
+from app.fire_behaviour import c7b
 
 
 def test_ros():
