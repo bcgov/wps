@@ -92,6 +92,6 @@ def get_fire_start_lookup(session: Session) -> CursorResult:
     return session.query(FireStartLookup)
 
 
-def get_fuel_type(session: Session, fuel_type_id: int) -> FuelType:
+def get_fuel_type_by_id(session: Session, fuel_type_id: int) -> FuelType:
     """ Get the fuel type for the supplied fuel type id """
     return session.query(FuelType).filter(FuelType.id == fuel_type_id).first()
