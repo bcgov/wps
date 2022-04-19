@@ -5,7 +5,7 @@ Revises: c525dbd0c37e
 Create Date: 2022-04-14 13:30:21.139779
 
 """
-from typing import Optional
+from typing import List, Optional
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.orm.session import Session
@@ -16,11 +16,19 @@ down_revision = 'c525dbd0c37e'
 branch_labels = None
 depends_on = None
 
+# New station, pentiction
 west_kelowna_station_code = 1277
+
+# New station, vernon
 station_bay_2_station_code = 1359
 
-pentiction_rs_station_code = 328
+# Pentiction station, order to be adjusted
 mccuddy_station_code = 334
+
+# Vernon stations, order to be adjusted
+seymour_arm = 344
+salmon_arm = 346
+kettle_2 = 388
 
 # Ad-hoc tables to use for adding/updating rows for our current schema.
 
@@ -70,13 +78,12 @@ def get_planning_area_id_for_fire_centre(session: Session, fc_id: int, planning_
     return int(res.first().id)
 
 
-def update_order_to(station_code: int, order: Optional[int]):
+def update_order_to(station_codes: List[int], order: Optional[int]):
     """ Add the optional ordering value from station """
     return planning_weather_stations_table\
         .update()\
         .values(order_of_appearance_in_planning_area_list=order)\
-        .where(planning_weather_stations_table.c.station_code ==
-               station_code)
+        .where(planning_weather_stations_table.c.station_code.in_(station_codes))
 
 
 def upgrade():
@@ -84,9 +91,12 @@ def upgrade():
     session = Session(bind=op.get_bind())
     kfc_id = get_fire_centre_id(session, 'Kamloops Fire Centre')
     penticton_id = get_planning_area_id_for_fire_centre(session, kfc_id, 'Penticton')
+    vernon_id = get_planning_area_id_for_fire_centre(session, kfc_id, 'Vernon')
 
-    remove_order_mccuddy_station_stmt = update_order_to(mccuddy_station_code, None)
-    session.execute(remove_order_mccuddy_station_stmt)
+    # Remove order until new stations are added
+    remove_existing_orders_stmt = update_order_to(
+        [mccuddy_station_code, seymour_arm, salmon_arm, kettle_2], None)
+    session.execute(remove_existing_orders_stmt)
 
     # Now add the new station with orders
     c7_id = get_fuel_type_id(session, 'c7')
@@ -99,12 +109,23 @@ def upgrade():
     },
         {'station_code': station_bay_2_station_code,
          'fuel_type_id': c5_id,
-         'planning_area_id': penticton_id,
+         'planning_area_id': vernon_id,
          'order_of_appearance_in_planning_area_list': 3}
     ])
 
-    update_mccuddy_station_stmt = update_order_to(mccuddy_station_code, 4)
+    # Pentiction order update
+    update_mccuddy_station_stmt = update_order_to([mccuddy_station_code], 4)
+
+    # Vernon order update
+    update_seymour_arm_station_stmt = update_order_to([seymour_arm], 4)
+    update_salmon_arm_station_stmt = update_order_to([salmon_arm], 5)
+    update_kettle_2_station_stmt = update_order_to([kettle_2], 6)
+
     session.execute(update_mccuddy_station_stmt)
+    session.execute(update_seymour_arm_station_stmt)
+    session.execute(update_salmon_arm_station_stmt)
+    session.execute(update_kettle_2_station_stmt)
+
     # ### end Alembic commands ###
 
 
@@ -117,7 +138,19 @@ def downgrade():
         .where(planning_weather_stations_table.c.station_code.in_([west_kelowna_station_code, station_bay_2_station_code]))
     session.execute(delete_stmt)
 
-    update_mccuddy_station_stmt = update_order_to(mccuddy_station_code, 2)
+    # Pentiction order update
+    update_mccuddy_station_stmt = update_order_to([mccuddy_station_code], 2)
+
+    # Vernon order update
+    update_seymour_arm_station_stmt = update_order_to([seymour_arm], 3)
+    update_salmon_arm_station_stmt = update_order_to([salmon_arm], 4)
+    update_kettle_2_station_stmt = update_order_to([kettle_2], 5)
+
+    session.execute(update_mccuddy_station_stmt)
+    session.execute(update_seymour_arm_station_stmt)
+    session.execute(update_salmon_arm_station_stmt)
+    session.execute(update_kettle_2_station_stmt)
+
     session.execute(update_mccuddy_station_stmt)
 
     # ### end Alembic commands ###
