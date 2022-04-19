@@ -15,6 +15,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts'
+import { AppDispatch } from 'app/store'
 export interface Option {
   name: string
   code: number
@@ -47,7 +48,7 @@ export interface BasicFWIGridProps {
 }
 
 const BasicFWIGrid = ({ selectedStation, dateOfInterest }: BasicFWIGridProps) => {
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
 
   const [input, setInput] = useState<FWIInputParameters>({
     ...defaultInput,

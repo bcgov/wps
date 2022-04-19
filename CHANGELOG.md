@@ -1,8 +1,14 @@
-## 2022-04-13 HFI Calc [#1869](https://github.com/bcgov/wps/issues/1869)
+## 2022-04-19 HFI Calc [#1869](https://github.com/bcgov/wps/issues/1869)
 
 ### Features
 
 - **hfi calculator:** Introduce role permission for editing HFI prep fire starts.
+
+## 2022-04-14 HFI Calc - Bug Fix - PDF Download
+
+### Bug
+
+- Fixed: PDF request was returning PDF for start date only, and would not honour station selected & fire starts for prep periods in excess of one day.
 
 ## 2022-04-13 HFI Calc - Refactor Request & Response Structure [#1555](https://github.com/bcgov/wps/issues/1555)
 
