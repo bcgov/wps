@@ -1,19 +1,15 @@
 import { render } from '@testing-library/react'
 import { FireCentre } from 'api/hfiCalcAPI'
 import HFILoadingDataView from 'features/hfiCalculator/components/HFILoadingDataView'
-import {
-  HFIResultResponse,
-  PrepDateRange
-} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import React from 'react'
 
-describe('HFILoadingDataView', () => {
+describe.only('HFILoadingDataView', () => {
   const child = (
     <div>
       <p>child-text</p>
     </div>
   )
-  const errorNotification = <React.Fragment></React.Fragment>
   const selectedFireCentre: FireCentre = {
     id: 1,
     name: 'test',
@@ -23,13 +19,6 @@ describe('HFILoadingDataView', () => {
     start_date: '',
     end_date: ''
   }
-  const result: HFIResultResponse = {
-    date_range: dateRange,
-    selected_fire_center_id: 1,
-    planning_area_station_info: {},
-    planning_area_hfi_results: [],
-    fire_start_ranges: []
-  }
   it('should render spinner when fire centres loading', () => {
     const { getByTestId, queryByText } = render(
       <HFILoadingDataView
@@ -38,10 +27,8 @@ describe('HFILoadingDataView', () => {
         fireCentresLoading={true}
         fireCentresError={null}
         hfiError={null}
-        errorNotification={errorNotification}
         selectedFireCentre={selectedFireCentre}
         dateRange={dateRange}
-        result={result}
       >
         {child}
       </HFILoadingDataView>
@@ -59,10 +46,8 @@ describe('HFILoadingDataView', () => {
         fireCentresLoading={false}
         fireCentresError={null}
         hfiError={null}
-        errorNotification={errorNotification}
         selectedFireCentre={selectedFireCentre}
         dateRange={dateRange}
-        result={result}
       >
         {child}
       </HFILoadingDataView>
@@ -80,10 +65,8 @@ describe('HFILoadingDataView', () => {
         fireCentresLoading={false}
         fireCentresError={null}
         hfiError={null}
-        errorNotification={errorNotification}
         selectedFireCentre={selectedFireCentre}
         dateRange={dateRange}
-        result={result}
       >
         {child}
       </HFILoadingDataView>
@@ -101,10 +84,8 @@ describe('HFILoadingDataView', () => {
         fireCentresLoading={false}
         fireCentresError={null}
         hfiError={null}
-        errorNotification={errorNotification}
         selectedFireCentre={undefined}
         dateRange={dateRange}
-        result={result}
       >
         {child}
       </HFILoadingDataView>
@@ -122,15 +103,53 @@ describe('HFILoadingDataView', () => {
         fireCentresLoading={false}
         fireCentresError={null}
         hfiError={null}
-        errorNotification={errorNotification}
         selectedFireCentre={selectedFireCentre}
         dateRange={dateRange}
-        result={result}
       >
         {child}
       </HFILoadingDataView>
     )
 
+    const renderedChild = queryByText('child-text')
+    expect(renderedChild).toBeDefined()
+  })
+  it('should render error alert when this is a fire centres error, and the child', () => {
+    const { getByTestId, queryByText } = render(
+      <HFILoadingDataView
+        loading={false}
+        stationDataLoading={false}
+        fireCentresLoading={false}
+        fireCentresError={'fc-error'}
+        hfiError={null}
+        selectedFireCentre={selectedFireCentre}
+        dateRange={dateRange}
+      >
+        {child}
+      </HFILoadingDataView>
+    )
+
+    const renderedError = getByTestId('hfi-error-alert')
+    expect(renderedError).toBeDefined()
+    const renderedChild = queryByText('child-text')
+    expect(renderedChild).toBeDefined()
+  })
+  it('should render error alert when this is an hfi error, and the child', () => {
+    const { getByTestId, queryByText } = render(
+      <HFILoadingDataView
+        loading={false}
+        stationDataLoading={false}
+        fireCentresLoading={false}
+        fireCentresError={null}
+        hfiError={'hfi-error'}
+        selectedFireCentre={selectedFireCentre}
+        dateRange={dateRange}
+      >
+        {child}
+      </HFILoadingDataView>
+    )
+
+    const renderedError = getByTestId('hfi-error-alert')
+    expect(renderedError).toBeDefined()
     const renderedChild = queryByText('child-text')
     expect(renderedChild).toBeDefined()
   })

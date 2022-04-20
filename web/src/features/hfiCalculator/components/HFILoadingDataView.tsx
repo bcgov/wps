@@ -6,13 +6,11 @@ import {
   makeStyles
 } from '@material-ui/core'
 import { FireCentre } from 'api/hfiCalcAPI'
-import {
-  HFIResultResponse,
-  PrepDateRange
-} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { isUndefined, isNull } from 'lodash'
 import React from 'react'
+import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 
 export interface HFILoadingDataViewProps {
   loading: boolean
@@ -20,11 +18,9 @@ export interface HFILoadingDataViewProps {
   fireCentresLoading: boolean
   fireCentresError: string | null
   hfiError: string | null
-  errorNotification: JSX.Element
   children: JSX.Element
   dateRange?: PrepDateRange
   selectedFireCentre?: FireCentre
-  result?: HFIResultResponse
 }
 
 const useStyles = makeStyles(() => ({
@@ -39,16 +35,23 @@ const HFILoadingDataView = ({
   fireCentresLoading,
   fireCentresError,
   hfiError,
-  errorNotification,
   children,
   dateRange,
-  selectedFireCentre,
-  result
+  selectedFireCentre
 }: HFILoadingDataViewProps) => {
   const classes = useStyles()
 
+  const buildErrorNotification = () => {
+    if (!isNull(fireCentresError) || !isNull(hfiError)) {
+      return (
+        <HFIErrorAlert hfiDailiesError={hfiError} fireCentresError={fireCentresError} />
+      )
+    }
+    return <React.Fragment></React.Fragment>
+  }
+
   const isLoading = () => {
-    return loading || stationDataLoading || fireCentresLoading || isUndefined(result)
+    return loading || stationDataLoading || fireCentresLoading
   }
 
   const isLoadingWithoutError = () =>
@@ -56,6 +59,9 @@ const HFILoadingDataView = ({
 
   const isFireCentreUnselected = () =>
     (isUndefined(selectedFireCentre) || isUndefined(dateRange)) && !isLoading()
+
+  const errorNotification = buildErrorNotification()
+
   if (isFireCentreUnselected()) {
     return (
       <React.Fragment>
@@ -75,7 +81,13 @@ const HFILoadingDataView = ({
       </Container>
     )
   }
-  return children
+
+  return (
+    <React.Fragment>
+      {errorNotification}
+      {children}
+    </React.Fragment>
+  )
 }
 
 export default HFILoadingDataView

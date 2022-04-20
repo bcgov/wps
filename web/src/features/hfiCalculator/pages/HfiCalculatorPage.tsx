@@ -24,8 +24,7 @@ import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherT
 import { formControlStyles, theme } from 'app/theme'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
-import { isNull, isUndefined } from 'lodash'
-import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
+import { isUndefined } from 'lodash'
 import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
 import { DateRange } from 'components/dateRangePicker/types'
@@ -209,23 +208,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
-  const buildErrorNotification = () => {
-    if (!isNull(fireCentresError) || !isNull(hfiError)) {
-      return (
-        <HFIErrorAlert hfiDailiesError={hfiError} fireCentresError={fireCentresError} />
-      )
-    }
-    return <React.Fragment></React.Fragment>
-  }
-
   const buildSuccessNotification = () => {
     if (changeSaved) {
       return <HFISuccessAlert message="Changes saved!" />
     }
     return <React.Fragment></React.Fragment>
   }
-
-  const errorNotification = buildErrorNotification()
 
   return (
     <main data-testid="hfi-calculator-page">
@@ -243,22 +231,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         selectNewFireCentre={selectNewFireCentre}
         padding="1rem"
       />
-      (
-      <HFILoadingDataView
-        loading={loading}
-        stationDataLoading={stationDataLoading}
-        fireCentresLoading={fireCentresLoading}
-        fireCentresError={fireCentresError}
-        hfiError={hfiError}
-        errorNotification={errorNotification}
-        selectedFireCentre={selectedFireCentre}
-        dateRange={dateRange}
-        result={result}
-      >
-        <React.Fragment>
-          <Container maxWidth={'xl'}>
+      <Container maxWidth={'xl'}>
+        <HFILoadingDataView
+          loading={loading}
+          stationDataLoading={stationDataLoading}
+          fireCentresLoading={fireCentresLoading}
+          fireCentresError={fireCentresError}
+          hfiError={hfiError}
+          selectedFireCentre={selectedFireCentre}
+          dateRange={dateRange}
+        >
+          <React.Fragment>
             <LiveChangesAlert />
-            {errorNotification}
             {buildSuccessNotification()}
             <FormControl className={classes.formControl}>
               <ViewSwitcherToggles
@@ -280,10 +264,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                 selectedPrepDay={selectedPrepDate}
               />
             </ErrorBoundary>
-          </Container>
-        </React.Fragment>
-      </HFILoadingDataView>
-      )
+          </React.Fragment>
+        </HFILoadingDataView>
+      </Container>
     </main>
   )
 }
