@@ -21,7 +21,7 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   DateRange,
                                   HFIWeatherStationsResponse)
 from app.auth import authentication_required, audit
-from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request,
+from app.db.crud.hfi_calc import (get_fuel_type_by_id, get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
                                   get_fire_centre_stations)
@@ -206,10 +206,9 @@ async def set_planning_area_station_fuel_type(
                       end_date=end_date))
 
         # Validate the fuel type id.
-        # TODO: waiting for this in crud
-        # fuel_type = get_fuel_type(session, fuel_type_id)
-        # if fuel_type is None:
-        #     raise HTTPException(status_code=500, detail="Fuel type not found")
+        fuel_type = get_fuel_type_by_id(session, fuel_type_id)
+        if fuel_type is None:
+            raise HTTPException(status_code=500, detail="Fuel type not found")
 
         # Set the fuel type for the station.
         station_info_list = request.planning_area_station_info[planning_area_id]
