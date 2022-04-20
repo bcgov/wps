@@ -26,3 +26,12 @@ Feature: /hfi/
             # pdf
             | api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/pdf                                                        | get  | 200         | None                                                     | False         | None                                  |
             | api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/pdf                                                        | get  | 200         | None                                                     | False         | test_hfi_endpoint_stored_request.json |
+
+    Scenario: HFI - request fuel types
+        Given I have authenticated into HFI Calc
+        Then the response status code is <status_code>
+        And the response json <response_json> has a length of <num_fuel_types> fuel types
+
+        Examples:
+            | status_code | response_json                         | num_fuel_types |
+            | 200         | hfi/test_hfi_fuel_types_response.json | 28             |

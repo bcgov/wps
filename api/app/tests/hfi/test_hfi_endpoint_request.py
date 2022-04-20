@@ -10,8 +10,9 @@ from pytest_mock import MockerFixture
 import app.main
 import app.routers.hfi_calc
 from app.db.models.hfi_calc import PlanningWeatherStation, FuelType, FireCentre, PlanningArea, HFIRequest
+from app.schemas.hfi_calc import FuelTypesResponse
 from app.tests.common import default_mock_client_get
-from app.tests import load_json_file_with_name, load_json_file
+from app.tests import load_json_file
 from app.tests.hfi import mock_station_crud
 
 
@@ -38,7 +39,11 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
              planning_area_id=2), fuel_type_2, planning_area_2, fire_centre)
         )
 
+    def mock_get_fuel_types(_):
+        return FuelTypesResponse(fuel_types=json.dumps())
+
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_weather_stations', mock_get_fire_weather_stations)
+    monkeypatch.setattr(app.hfi.hfi_calc, 'get_fuel_types', mock_get_fuel_types)
 
     # mock out database calls:
     mock_station_crud(monkeypatch)
@@ -96,3 +101,28 @@ def then_request_saved(spy_store_hfi_request: MagicMock, request_saved: bool):
 def then_response_not_cached(response):
     """ Check that the response isn't being cached """
     assert response['response'].headers['cache-control'] == 'max-age=0'
+
+
+@scenario('test_hfi_endpoint_request.feature', 'HFI - request fuel types')
+def test_fire_behaviour_calculator_fuel_types_scenario():
+    """ BDD Scenario """
+    pass
+
+
+@pytest.mark.usefixtures('mock_jwt_decode')
+@given('I have authenticated into HFI Calc')
+def given():
+    pass
+
+
+@then(parsers.parse("the response status code is {status_code}"), converters={'status_code': int})
+def then_response_status_code_is(response, status_code):
+    """ Check that the response status code matches the expected value """
+    assert response['status'] == status_code
+
+
+@then(parsers.parse("the response json {response_json} has a length of {num_fuel_types} fuel types"),
+      converters={'response_json': load_json_file(__file__), 'num_fuel_types': int})
+def then_number_of_fuel_types_is(response, num_fuel_types):
+    """ Check that the data in the response has a specific length """
+    assert len(response[]) == num_fuel_types
