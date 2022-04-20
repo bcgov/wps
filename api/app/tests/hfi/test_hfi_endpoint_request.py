@@ -21,16 +21,19 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
     # mock anything that uses aiohttp.ClientSession::get
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
 
+    fuel_type_1 = FuelType(id=1, abbrev='O1B', fuel_type_code='O1B', description='O1B',
+                           percentage_conifer=0, percentage_dead_fir=0)
+    fuel_type_2 = FuelType(id=2, abbrev='C7B', fuel_type_code='C7B', description='C7B',
+                           percentage_conifer=100, percentage_dead_fir=0)
+    fuel_type_3 = FuelType(id=3, abbrev='C3', fuel_type_code='C3', description='C3',
+                           percentage_conifer=100, percentage_dead_fir=0)
+
     def mock_get_fire_weather_stations(_):
         fire_centre = FireCentre(id=1, name='Kamloops Fire Centre')
         planning_area_1 = PlanningArea(id=1, name='Kamloops (K2)', fire_centre_id=1,
                                        order_of_appearance_in_list=1)
         planning_area_2 = PlanningArea(id=2, name='Vernon (K4)', fire_centre_id=1,
                                        order_of_appearance_in_list=2)
-        fuel_type_1 = FuelType(id=1, abbrev='O1B', description='neigh', fuel_type_code="O1B",
-                               percentage_conifer=0, percentage_dead_fir=0)
-        fuel_type_2 = FuelType(id=2, abbrev='C7B', description='moo', fuel_type_code='C7',
-                               percentage_conifer=100, percentage_dead_fir=0)
         return (
             (PlanningWeatherStation(station_code=230, fuel_type_id=1,
                                     planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
@@ -48,18 +51,15 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
 
     def mock_get_fire_centre_stations(_, __: int):
         """ Returns mocked WFWXWeatherStation with fuel types. """
-        def get_fuel_type_code_by_station_code(code: int):
-            if code == 230:
-                return 'C3'
-            return 'C7B'
+        def get_fuel_type_by_station_code(code: int):
+            if code == code1:
+                return fuel_type_3
+            return fuel_type_2
         result = []
-        for station_code, planning_area_id in [(230, 1), (239, 1), (230, 2)]:
+        for station_code, planning_area_id in [(code1, 1), (code2, 1), (code1, 2)]:
             planning_station = PlanningWeatherStation(
                 station_code=station_code, planning_area_id=planning_area_id)
-            fuel_type_code = get_fuel_type_code_by_station_code(station_code)
-            fuel_type = FuelType(id=1, abbrev=fuel_type_code, fuel_type_code=fuel_type_code,
-                                 description=fuel_type_code,
-                                 percentage_conifer=100, percentage_dead_fir=0)
+            fuel_type = get_fuel_type_by_station_code(station_code)
             result.append((planning_station, fuel_type))
         return result
 
@@ -102,10 +102,9 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
                 id, fire_start_range_id, mean_intensity_group, prep_level in data]
 
     fuel_types = [
-        FuelType(id=1, abbrev='O1B', fuel_type_code='O1B', description='O1B',
-                 percentage_conifer=0, percentage_dead_fir=0),
-        FuelType(id=1, abbrev='C7B', fuel_type_code='C7B', description='C7B',
-                 percentage_conifer=100, percentage_dead_fir=0)
+        fuel_type_1,
+        fuel_type_2,
+        fuel_type_3
     ]
 
     def mock_get_fuel_type_by_id(_, fuel_type_id: int):
