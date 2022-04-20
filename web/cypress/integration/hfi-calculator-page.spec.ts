@@ -78,8 +78,12 @@ describe('HFI Calculator Page', () => {
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
+      cy.intercept('GET', 'api/hfi-calc/fuel_types', {
+        fixture: 'hfi-calc/fuel_types.json'
+      }).as('getFuelTypes')
       cy.visit(HFI_CALC_ROUTE)
       cy.wait('@getFireCentres')
+      cy.wait('@getFuelTypes')
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
     })
@@ -145,8 +149,12 @@ describe('HFI Calculator Page', () => {
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
+      cy.intercept('GET', 'api/hfi-calc/fuel_types', {
+        fixture: 'hfi-calc/fuel_types.json'
+      }).as('getFuelTypes')
       cy.visit(HFI_CALC_ROUTE)
       cy.wait('@getFireCentres')
+      cy.wait('@getFuelTypes')
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
       cy.getByTestId('daily-toggle-0').click({ force: true })
@@ -190,9 +198,13 @@ describe('HFI Calculator Page', () => {
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-grass.json'
       }).as('getFireCentres')
+      cy.intercept('GET', 'api/hfi-calc/fuel_types', {
+        fixture: 'hfi-calc/fuel_types.json'
+      }).as('getFuelTypes')
       cy.visit(HFI_CALC_ROUTE)
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@getFireCentres')
+      cy.wait('@getFuelTypes')
       cy.wait('@loadHFIResults')
       cy.getByTestId('daily-toggle-0').click({ force: true })
     })
@@ -210,9 +222,13 @@ describe('HFI Calculator Page', () => {
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-minimal.json'
       }).as('getFireCentres')
+      cy.intercept('GET', 'api/hfi-calc/fuel_types', {
+        fixture: 'hfi-calc/fuel_types.json'
+      }).as('getFuelTypes')
       cy.visit(HFI_CALC_ROUTE)
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@getFireCentres')
+      cy.wait('@getFuelTypes')
       cy.wait('@loadHFIResults')
       cy.getByTestId('daily-toggle-0').click({ force: true })
     })
@@ -227,8 +243,12 @@ describe('HFI Calculator Page', () => {
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
+      cy.intercept('GET', 'api/hfi-calc/fuel_types', {
+        fixture: 'hfi-calc/fuel_types.json'
+      }).as('getFuelTypes')
       cy.visit(HFI_CALC_ROUTE)
       cy.wait('@getFireCentres')
+      cy.wait('@getFuelTypes')
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
     })
