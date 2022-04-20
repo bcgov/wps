@@ -3,12 +3,13 @@ import math
 import logging
 from time import perf_counter
 from typing import Optional, List, AsyncGenerator, Dict, Tuple
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from statistics import mean
 from aiohttp.client import ClientSession
 import app
 from app.db.database import get_read_session_scope
 from app.db.models.hfi_calc import PlanningWeatherStation
+from app.fire_behaviour.prediction import calculate_fire_behaviour_prediction, FireBehaviourPrediction
 from app.schemas.hfi_calc import (DailyResult, DateRange,
                                   FireStartRange, HFIResultRequest,
                                   PlanningAreaResult,
@@ -17,16 +18,100 @@ from app.schemas.hfi_calc import (DailyResult, DateRange,
                                   required_daily_fields)
 from app.schemas.hfi_calc import (WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
+from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from app.utils.time import get_hour_20_from_date, get_pst_now
+from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import (get_auth_header, get_stations_by_codes,
                                        get_wfwx_stations_from_station_codes,
                                        get_raw_dailies_in_range_generator)
-from app.wildfire_one.schema_parsers import generate_station_daily
 from app.db.crud.hfi_calc import (get_fire_centre_stations,
                                   get_fire_weather_stations, get_fire_centre_fire_start_ranges,
                                   get_fire_start_lookup)
 
 logger = logging.getLogger(__name__)
+
+
+def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
+                           station: WFWXWeatherStation,
+                           fuel_type: FuelType) -> StationDaily:
+    """ Transform from the raw daily json object returned by wf1, to our daily object.
+    """
+    # pylint: disable=invalid-name
+    # we use the fuel type lookup to get default values.
+    pc = fuel_type.percentage_conifer if fuel_type.percentage_conifer is not None\
+        else FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["PC"]
+    pdf = fuel_type.percentage_dead_fir if fuel_type.percentage_dead_fir is not None\
+        else FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["PDF"]
+    cbh = FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["CBH"]
+    cfl = FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["CFL"]
+    timestamp: Optional[int] = raw_daily.get('weatherTimestamp', None)
+    isi = raw_daily.get('initialSpreadIndex', None)
+    bui = raw_daily.get('buildUpIndex', None)
+    ffmc = raw_daily.get('fineFuelMoistureCode', None)
+    cc = raw_daily.get('grasslandCuring', None)
+    wind_speed = raw_daily.get('windSpeed', None)
+
+    try:
+        fire_behaviour_prediction = calculate_fire_behaviour_prediction(
+            latitude=station.lat,
+            longitude=station.long,
+            elevation=station.elevation,
+            fuel_type=FuelTypeEnum[fuel_type.fuel_type_code],
+            bui=bui,
+            ffmc=ffmc,
+            wind_speed=wind_speed,
+            cc=cc,
+            pc=pc,
+            isi=isi,
+            pdf=pdf,
+            cbh=cbh,
+            cfl=cfl)
+    # pylint: disable=broad-except
+    except Exception as exc:
+        # TODO: Remove this exception - it can hide away bugs in code. Catch more specific exceptions.
+        #   e.g.: for c7b, if cc is null, we can't calculate - so let's throw a specific exception and
+        #   catch that.
+        logger.error('Encountered error while generating StationDaily for station %s', station.code)
+        logger.error(exc, exc_info=True)
+        # prediction calculation failed, so we set the values to None
+        fire_behaviour_prediction = FireBehaviourPrediction(None, None, None, None, None)
+
+    return StationDaily(
+        code=station.code,
+        date=timestamp,  # TODO: passing a timestamp into a date object!
+        status=raw_daily.get('recordType', '').get('id', None),
+        temperature=raw_daily.get('temperature', None),
+        relative_humidity=raw_daily.get('relativeHumidity', None),
+        wind_speed=raw_daily.get('windSpeed', None),
+        wind_direction=raw_daily.get('windDirection', None),
+        precipitation=raw_daily.get('precipitation', None),
+        grass_cure_percentage=raw_daily.get('grasslandCuring', None),
+        ffmc=ffmc,
+        dmc=raw_daily.get('duffMoistureCode', None),
+        dc=raw_daily.get('droughtCode', None),
+        fwi=raw_daily.get('fireWeatherIndex', None),
+        # Danger class possible values: 1, 2, 3, 4, and 5. Where 1 is the lowest, and 5 is the highest
+        # This is the same for the dangerGrassland and dangerScrub,
+        # but those values aren’t really used anywhere,
+        # just calculated and stored along with the forest danger rating
+        # You can see current stations/rating on this page here:
+        # https://wfapps.nrs.gov.bc.ca/pub/wfwx-danger-summary-war/dangerSummary
+        danger_class=raw_daily.get('dangerForest', None),
+        isi=isi,
+        bui=bui,
+        rate_of_spread=fire_behaviour_prediction.ros,
+        hfi=fire_behaviour_prediction.hfi,
+        observation_valid=raw_daily.get('observationValidInd', None),
+        observation_valid_comment=raw_daily.get(
+            'observationValidComment', None),
+        intensity_group=fire_behaviour_prediction.intensity_group,
+        sixty_minute_fire_size=fire_behaviour_prediction.sixty_minute_fire_size,
+        fire_type=fire_behaviour_prediction.fire_type,
+        error=raw_daily.get('observationValidInd', None),
+        error_message=raw_daily.get('observationValidComment', None),
+        last_updated=datetime.fromtimestamp(raw_daily.get(
+            'lastEntityUpdateTimestamp') / 1000, tz=timezone.utc)
+    )
 
 
 def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -> List[StationDaily]:

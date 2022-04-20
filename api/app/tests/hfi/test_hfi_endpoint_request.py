@@ -34,9 +34,9 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
                                percentage_conifer=100, percentage_dead_fir=0)
         return (
             (PlanningWeatherStation(station_code=230, fuel_type_id=1,
-             planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
+                                    planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
             (PlanningWeatherStation(station_code=239, fuel_type_id=2,
-             planning_area_id=2), fuel_type_2, planning_area_2, fire_centre)
+                                    planning_area_id=2), fuel_type_2, planning_area_2, fire_centre)
         )
 
     def mock_get_fuel_types(_):
@@ -95,12 +95,6 @@ def given_hfi_calc_url(monkeypatch: pytest.MonkeyPatch, url: str, verb: str):
 @then(parsers.parse("request == saved = {request_saved}"), converters={'request_saved': strtobool})
 def then_request_saved(spy_store_hfi_request: MagicMock, request_saved: bool):
     assert spy_store_hfi_request.called == request_saved
-
-
-@then("the response isn't cached")
-def then_response_not_cached(response):
-    """ Check that the response isn't being cached """
-    assert response['response'].headers['cache-control'] == 'max-age=0'
 
 
 @scenario('test_hfi_endpoint_request.feature', 'HFI - request fuel types')

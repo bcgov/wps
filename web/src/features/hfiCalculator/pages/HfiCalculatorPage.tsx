@@ -38,6 +38,7 @@ import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButt
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DateRange } from 'components/dateRangePicker/types'
 import LiveChangesAlert from 'features/hfiCalculator/components/LiveChangesAlert'
+import { AppDispatch } from 'app/store'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -76,7 +77,7 @@ const useStyles = makeStyles(() => ({
 const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
   const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const {

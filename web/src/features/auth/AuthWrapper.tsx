@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { authenticate } from 'features/auth/slices/authenticationSlice'
 import axios from 'api/axios'
-import { AppThunk } from 'app/store'
+import { AppDispatch, AppThunk } from 'app/store'
 import { selectToken, selectAuthentication } from 'app/rootReducer'
 
 interface Props {
@@ -23,7 +23,7 @@ const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
 }
 
 const AuthWrapper = ({ children, shouldAuthenticate }: Props) => {
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
   const { isAuthenticated, authenticating, error } = useSelector(selectAuthentication)
 
   useEffect(() => {

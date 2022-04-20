@@ -17,7 +17,7 @@ from app import hourlies
 from app.frontend import frontend
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.routers import fba, forecasts, fwi_calc, weather_models, c_haines, stations, hfi_calc, fba_calc
-from app.utils.cffdrs import CFFDRS
+from app.fire_behaviour.cffdrs import CFFDRS
 
 
 configure_logging()
@@ -89,7 +89,7 @@ async def catch_exception_middleware(request: Request, call_next):
         return await call_next(request)
     except Exception as exc:
         logger.error('%s %s %s', request.method, request.url.path, exc, exc_info=True)
-        rc_message = "An exception has been caught and logged"
+        rc_message = f"Exception occurred {request.method} {request.url.path}"
         send_rocketchat_notification(rc_message, exc)
         raise
 

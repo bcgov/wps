@@ -14,6 +14,7 @@ import { selectFireWeatherStations } from 'app/rootReducer'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import FWIDatePicker from 'features/fwiCalculator/components/FWIDatePicker'
 import { isEqual } from 'lodash'
+import { AppDispatch } from 'app/store'
 export interface Option {
   name: string
   code: number
@@ -35,7 +36,7 @@ const prototypeWarning = `This is an experimental tool that is not well-tested a
 export const FWICalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
