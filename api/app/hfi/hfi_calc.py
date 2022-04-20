@@ -106,7 +106,7 @@ def generate_station_daily(raw_daily: dict,  # pylint: disable=too-many-locals
         error=raw_daily.get('observationValidInd', None),
         error_message=raw_daily.get('observationValidComment', None),
         last_updated=datetime.fromtimestamp(raw_daily.get(
-            'lastEntityUpdateTimestamp') / 1000, tz=timezone.utc)
+            'lastEntityUpdateTimestamp', 0) / 1000, tz=timezone.utc)
     )
 
 
@@ -280,13 +280,9 @@ async def calculate_latest_hfi_results(
         raw_dailies_generator = await get_raw_dailies_in_range_generator(
             session, header, wfwx_station_ids, start_timestamp, end_timestamp)
         raw_dailies: List[dict] = [raw_daily async for raw_daily in raw_dailies_generator]
-        # dailies_generator = station_daily_generator(
-        #     raw_dailies_generator, wfwx_stations, station_fuel_type_map)
-        # dailies: List[StationDaily] = []
-        # async for station_daily in dailies_generator:
-        #     dailies.append(station_daily)
+        fuel_type_lookup: Dict[int, FuelTypeModel] = generate_fuel_type_lookup(orm_session)
 
-        results = calculate_hfi_results(orm_session,
+        results = calculate_hfi_results(fuel_type_lookup,
                                         fire_centre_fire_start_ranges,
                                         request.planning_area_fire_starts,
                                         fire_start_lookup,
@@ -370,7 +366,7 @@ def generate_fuel_type_lookup(orm_session: Session) -> Dict[int, FuelTypeModel]:
     return {fuel_type.id: fuel_type for fuel_type in fuel_types}
 
 
-def calculate_hfi_results(orm_session: Session,
+def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
                           fire_start_ranges: List[FireStartRange],
                           planning_area_fire_starts: Dict[int, FireStartRange],
                           fire_start_lookup: Dict[int, Dict[int, int]],
@@ -384,15 +380,12 @@ def calculate_hfi_results(orm_session: Session,
     planning_area_to_dailies: List[PlanningAreaResult] = []
 
     station_lookup: Dict[str, WFWXWeatherStation] = {station.wfwx_id: station for station in wfwx_stations}
-    fuel_type_lookup: Dict[int, FuelTypeModel] = generate_fuel_type_lookup(orm_session)
 
     for area_id in area_station_map.keys():
         stations = area_station_map[area_id]
-        # area_station_codes = list(map(lambda station: (station.station_code), stations))
         area_station_codes = [station.station_code for station in stations]
         selected_stations = filter(lambda station: (station.selected),
                                    planning_area_station_info[area_id])
-        # selected_station_codes = list(map(lambda station: (station.station_code), selected_stations))
         selected_station_codes = [station.station_code for station in selected_stations]
         station_info_lookup = {
             station.station_code: station for station in planning_area_station_info[area_id]}
