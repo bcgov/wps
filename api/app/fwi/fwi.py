@@ -1,7 +1,7 @@
 """ CFFDRS proxy for FWI calculations. """
 
 from typing import Optional
-from app.utils import cffdrs
+from app.fire_behaviour import cffdrs
 
 
 def fwi_bui(dmc: Optional[float], dc: Optional[float]):  # pylint: disable=invalid-name

@@ -18,9 +18,9 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange,
                                   StationInfo,
-                                  DateRange)
+                                  DateRange,
+                                  HFIWeatherStationsResponse)
 from app.auth import authentication_required, audit
-from app.schemas.hfi_calc import HFIWeatherStationsResponse
 from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
