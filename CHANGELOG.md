@@ -1,12 +1,14 @@
+## 2022-04-20 HFI Calc
+
+### Bug
+
+- Fixed [#1904](https://github.com/bcgov/wps/issues/1904): Initial load of the page would not render loading spinner
+
 ## 2022-04-19 HFI Calc
 
 ### Features
 
 - **hfi calculator [#1849](https://github.com/bcgov/wps/issues/1849):** Added West Kelowna (1277) station with fuel type C7 to Penticton planning area as 2nd station in list. Added Station Bay 2 (1359) station with fuel type C5 to Vernon planning area as 3rd station in list
-
-### Bug
-
-- Fixed [#1904](https://github.com/bcgov/wps/issues/1904): Initial load of the page would not render loading spinner
 
 ## 2022-04-14 HFI Calc - Bug Fix - PDF Download
 
