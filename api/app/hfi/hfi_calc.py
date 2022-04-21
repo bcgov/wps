@@ -63,7 +63,7 @@ def generate_station_daily(raw_daily: dict,  # pylint: disable=too-many-locals
             pdf=pdf,
             cbh=cbh,
             cfl=cfl)
-    except Exception as exc:
+    except Exception as exc:  # pytype: disable=broad-except
         # TODO: Remove this exception - it can hide away bugs in code. Catch more specific exceptions.
         #   e.g.: for c7b, if cc is null, we can't calculate - so let's throw a specific exception and
         #   catch that.
@@ -366,6 +366,32 @@ def generate_fuel_type_lookup(orm_session: Session) -> Dict[int, FuelTypeModel]:
     return {fuel_type.id: fuel_type for fuel_type in fuel_types}
 
 
+def calculate_station_dailies(
+        raw_dailies: List[dict],
+        station_info_list: List[StationInfo],
+        station_lookup: Dict[str, WFWXWeatherStation],
+        fuel_type_lookup: Dict[int, FuelTypeModel]) -> List[StationDaily]:
+    """ Build a list of dailies with results from the fire behaviour calculations. """
+    area_dailies: List[StationDaily] = []
+
+    selected_station_codes = [
+        station.station_code for station in filter(
+            lambda station: (station.selected), station_info_list)]
+    station_info_lookup = {station.station_code: station for station in station_info_list}
+
+    for raw_daily in raw_dailies:
+        wfwx_station_id = raw_daily['stationId']
+        wfwx_station = station_lookup[wfwx_station_id]
+        # Filter list of dailies to include only those for the selected stations and area.
+        # No need to sort by date, we can't trust that the list doesn't have dates missing - so we
+        # have a bit of code that snatches from this list filtering by date.
+        if wfwx_station.code in selected_station_codes:
+            station_info: StationInfo = station_info_lookup[wfwx_station.code]
+            fuel_type = fuel_type_lookup[station_info.fuel_type_id]
+            area_dailies.append(generate_station_daily(raw_daily, wfwx_station, fuel_type))
+    return area_dailies
+
+
 def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
                           fire_start_ranges: List[FireStartRange],
                           planning_area_fire_starts: Dict[int, FireStartRange],
@@ -382,25 +408,11 @@ def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
     station_lookup: Dict[str, WFWXWeatherStation] = {station.wfwx_id: station for station in wfwx_stations}
 
     for area_id in area_station_map.keys():
-        stations = area_station_map[area_id]
-        area_station_codes = [station.station_code for station in stations]
-        selected_stations = filter(lambda station: (station.selected),
-                                   planning_area_station_info[area_id])
-        selected_station_codes = [station.station_code for station in selected_stations]
-        station_info_lookup = {
-            station.station_code: station for station in planning_area_station_info[area_id]}
 
-        area_dailies: List[StationDaily] = []
-        for raw_daily in raw_dailies:
-            wfwx_station_id = raw_daily['stationId']
-            wfwx_station = station_lookup[wfwx_station_id]
-            # Filter list of dailies to include only those for the selected stations and area.
-            # No need to sort by date, we can't trust that the list doesn't have dates missing - so we
-            # have a bit of code that snatches from this list filtering by date.
-            if wfwx_station.code in area_station_codes and wfwx_station.code in selected_station_codes:
-                station_info: StationInfo = station_info_lookup[wfwx_station.code]
-                fuel_type = fuel_type_lookup[station_info.fuel_type_id]
-                area_dailies.append(generate_station_daily(raw_daily, wfwx_station, fuel_type))
+        area_dailies = calculate_station_dailies(raw_dailies,
+                                                 planning_area_station_info[area_id],
+                                                 station_lookup,
+                                                 fuel_type_lookup)
 
         # Initialize with defaults if empty/wrong length
         # TODO: Sometimes initialize_planning_area_fire_starts is called twice. Look into this once
