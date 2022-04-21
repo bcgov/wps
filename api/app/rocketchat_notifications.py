@@ -5,6 +5,7 @@ Notification content can be customized based on requestor.
 from datetime import datetime, timezone
 import traceback
 import logging
+import threading
 import requests
 from app import config
 
@@ -22,7 +23,7 @@ def send_rocketchat_notification(text: str, exc_info: Exception) -> dict:
     the response.
     """
     full_message = f"{datetime.now(tz=timezone.utc).isoformat()}\n{text}\n\
-        {config.get('HOSTNAME')}: {exc_info}\n\
+        {config.get('HOSTNAME')} ({threading.get_native_id()}): {exc_info}\n\
         {traceback.format_exception(etype=type(exc_info),value=exc_info,tb=exc_info.__traceback__)}"
     result = None
     try:
