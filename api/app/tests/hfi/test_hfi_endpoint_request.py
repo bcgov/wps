@@ -43,7 +43,7 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
         return FuelTypesResponse(fuel_types=json.dumps())
 
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_weather_stations', mock_get_fire_weather_stations)
-    monkeypatch.setattr(app.hfi.hfi_calc, 'get_fuel_types', mock_get_fuel_types)
+    monkeypatch.setattr(app.db.crud.hfi_calc, 'get_fuel_types', mock_get_fuel_types)
 
     # mock out database calls:
     mock_station_crud(monkeypatch)
