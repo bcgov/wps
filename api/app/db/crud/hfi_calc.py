@@ -100,3 +100,8 @@ def get_fuel_types(session: Session) -> CursorResult:
 def get_fuel_type_by_id(session: Session, fuel_type_id: int) -> FuelType:
     """ Get the fuel type for the supplied fuel type id """
     return session.query(FuelType).filter(FuelType.id == fuel_type_id).first()
+
+
+def get_fuel_types(session: Session) -> CursorResult:
+    """ Get the fuel types table  """
+    return session.query(FuelType).order_by(FuelType.abbrev)
