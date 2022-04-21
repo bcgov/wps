@@ -63,7 +63,8 @@ def generate_station_daily(raw_daily: dict,  # pylint: disable=too-many-locals
             pdf=pdf,
             cbh=cbh,
             cfl=cfl)
-    except Exception as exc:  # pytype: disable=broad-except
+    # pylint: disable=broad-except
+    except Exception as exc:
         # TODO: Remove this exception - it can hide away bugs in code. Catch more specific exceptions.
         #   e.g.: for c7b, if cc is null, we can't calculate - so let's throw a specific exception and
         #   catch that.
