@@ -1,13 +1,14 @@
 """ Unit testing for hfi logic """
 from datetime import date, datetime, timedelta
 import pytest
+import json
 from pytest_mock import MockerFixture
 from app.hfi.hfi_calc import (calculate_hfi_results,
                               calculate_mean_intensity,
                               calculate_max_intensity_group,
                               calculate_prep_level, validate_date_range, validate_station_daily)
 import app.db.models.hfi_calc as hfi_calc_models
-from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, InvalidDateRangeError,
+from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, FuelTypesResponse, InvalidDateRangeError,
                                   PlanningArea,
                                   StationDaily, StationInfo,
                                   WeatherStation,
@@ -216,6 +217,27 @@ def test_valid_daily():
         setattr(daily, field, None)
         result = validate_station_daily(daily)
         assert result.valid == False
+
+
+def test_valid_fuel_types_response():
+    """ Assert that list of FuelType objects is converted to FuelTypesResponse object correctly,
+    and that the FuelTypesResponse object can be converted to/from JSON """
+    fuel_type_1 = FuelType(id=1, abbrev="T1", fuel_type_code="T1", description="blah",
+                           percentage_conifer=0, percentage_dead_fir=0)
+    fuel_type_2 = FuelType(id=2, abbrev="T2", fuel_type_code="T2", description="bleep",
+                           percentage_conifer=0, percentage_dead_fir=0)
+    fuel_type_3 = FuelType(id=3, abbrev="T3", fuel_type_code="T3", description="bloop",
+                           percentage_conifer=0, percentage_dead_fir=0)
+    response = FuelTypesResponse(fuel_types=[fuel_type_1, fuel_type_2, fuel_type_3])
+    assert len(response.fuel_types) == 3
+    json_the_response = '{['
+    for fuel_type in response.fuel_types:
+        json_the_response += json.dumps(fuel_type.__dict__) + ','
+    json_the_response += ']}'
+    print(json_the_response)
+    back_to_response = json.loads(json_the_response)
+    print(back_to_response)
+    assert len(back_to_response.fuel_types) == 3
 
 
 def test_valid_date_range_none():

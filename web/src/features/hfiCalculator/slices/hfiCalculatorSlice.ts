@@ -112,7 +112,7 @@ export interface RawValidatedStationDaily {
   valid: boolean
 }
 
-const initialState: HFICalculatorState = {
+export const initialState: HFICalculatorState = {
   pdfLoading: false,
   fireCentresLoading: false,
   fuelTypesLoading: false,
