@@ -117,31 +117,6 @@ def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -
     return list(filter(lambda daily: (daily.date == dailies_date_time), area_dailies))
 
 
-# async def station_daily_generator(raw_daily_generator,
-#                                   wfwx_stations,
-#                                   station_fuel_type_map) -> AsyncGenerator[StationDaily, None]:
-#     """ Generator that yields the daily data for each station.
-
-#     We give this function all the puzzle pieces. The raw_daily_generator (reading dailies from
-#     wfwx and giving us dictionaries) + wfwx_stations (from wfwx) + station_fuel_type_map (from our db).
-
-#     The puzzle pieces are mangled together, and the generator then yields a StationDaily object."""
-#     station_lookup = {station.wfwx_id: station for station in wfwx_stations}
-#     fuel_type = None
-#     cumulative = 0
-#     async for raw_daily in raw_daily_generator:
-#         start = perf_counter()
-#         wfwx_station = station_lookup.get(raw_daily.get('stationId'))
-#         fuel_type = station_fuel_type_map.get(wfwx_station.code)
-#         result: StationDaily = generate_station_daily(raw_daily, wfwx_station, fuel_type)
-#         delta = perf_counter() - start
-#         cumulative = cumulative + delta
-#         yield result
-#     # NOTE: Keeping track of the cumulative time here is informative for optimizing code.
-#     # Calling out to the CFFDRS R library takes a lot of time. Especially if the R engine is starting up.
-#     logger.info('station_daily_generator cumulative time %f', cumulative)
-
-
 async def hydrate_fire_centres():
     """Get detailed fire_centres from db and WFWX"""
 
