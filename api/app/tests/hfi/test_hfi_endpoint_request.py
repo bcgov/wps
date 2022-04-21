@@ -95,28 +95,3 @@ def given_hfi_calc_url(monkeypatch: pytest.MonkeyPatch, url: str, verb: str):
 @then(parsers.parse("request == saved = {request_saved}"), converters={'request_saved': strtobool})
 def then_request_saved(spy_store_hfi_request: MagicMock, request_saved: bool):
     assert spy_store_hfi_request.called == request_saved
-
-
-@scenario('test_hfi_endpoint_request.feature', 'HFI - request fuel types')
-def test_fire_behaviour_calculator_fuel_types_scenario():
-    """ BDD Scenario """
-    pass
-
-
-@pytest.mark.usefixtures('mock_jwt_decode')
-@given('I have authenticated into HFI Calc')
-def given():
-    pass
-
-
-@then(parsers.parse("the response status code is {status_code}"), converters={'status_code': int})
-def then_response_status_code_is(response, status_code):
-    """ Check that the response status code matches the expected value """
-    assert response['status'] == status_code
-
-
-@then(parsers.parse("the response json {response_json} has a length of {num_fuel_types} fuel types"),
-      converters={'response_json': load_json_file(__file__), 'num_fuel_types': int})
-def then_number_of_fuel_types_is(response, num_fuel_types):
-    """ Check that the data in the response has a specific length """
-    assert len(response[]) == num_fuel_types
