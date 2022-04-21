@@ -85,7 +85,11 @@ def test_requested_fire_starts_unaltered(mocker: MockerFixture):
     wfwx_station = WFWXWeatherStation(
         wfwx_id=1, code=1, name='station1', latitude=12.1,
         longitude=12.1, elevation=123, zone_code=1)
-    raw_daily = {'stationId': 1, 'weatherTimestamp': get_utc_now().timestamp() * 1000}
+    raw_daily = {
+        'stationId': 1,
+        'weatherTimestamp': get_utc_now().timestamp() * 1000,
+        'lastEntityUpdateTimestamp': get_utc_now().timestamp() * 1000
+    }
 
     result = calculate_hfi_results(fuel_type_lookup,
                                    fire_start_ranges,
