@@ -24,8 +24,8 @@ from app.auth import authentication_required, audit
 from app.db.crud.hfi_calc import (get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
-                                  get_fire_centre_stations,
-                                  get_fuel_types_from_db)
+                                  get_fire_centre_stations)
+from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 from app.db.database import get_read_session_scope, get_write_session_scope
 
 
@@ -149,7 +149,7 @@ async def get_fuel_types(response: Response) -> FuelTypesResponse:
     response.headers["Cache-Control"] = "max-age=604800"
 
     with get_read_session_scope() as session:
-        result = get_fuel_types_from_db(session)
+        result = crud_get_fuel_types(session)
     fuel_types = []
     for fuel_type_record in result:
         fuel_types.append(FuelType(id=fuel_type_record.id, description=fuel_type_record.description,
