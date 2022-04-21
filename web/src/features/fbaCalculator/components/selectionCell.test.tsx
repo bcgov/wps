@@ -5,7 +5,7 @@ import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
 
 xdescribe('SelectionCell', () => {
   it('should be checked', () => {
-    const { getByTestId, findByRole } = render(
+    const { getByTestId } = render(
       <TableContainer>
         <Table>
           <TableBody>

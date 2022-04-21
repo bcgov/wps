@@ -7,12 +7,11 @@ import { isUndefined } from 'lodash'
 import { FireCentre } from 'api/hfiCalcAPI'
 import AboutDataModal from 'features/hfiCalculator/components/AboutDataModal'
 import { HelpOutlineOutlined } from '@mui/icons-material'
-import { formControlStyles } from 'app/theme'
+import { formControlStyles, theme } from 'app/theme'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateRange } from 'components/dateRangePicker/types'
 import PrepDateRangeSelector from 'features/hfiCalculator/components/PrepDateRangeSelector'
-import { theme } from 'app/theme'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
