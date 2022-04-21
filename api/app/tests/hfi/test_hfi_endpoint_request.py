@@ -109,7 +109,10 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
 
     def mock_get_fuel_type_by_id(_, fuel_type_id: int):
         """ Returns mocked FuelType """
-        return next(fuel_type for fuel_type in fuel_types if fuel_type.id == fuel_type_id)
+        try:
+            return next(fuel_type for fuel_type in fuel_types if fuel_type.id == fuel_type_id)
+        except StopIteration:
+            return None
 
     def mock_get_fuel_types(_):
         return fuel_types
