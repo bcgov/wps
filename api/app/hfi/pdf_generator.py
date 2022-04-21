@@ -1,6 +1,6 @@
 """Generate a daily PDF"""
 from datetime import date, datetime
-from typing import List, Mapping, Tuple
+from typing import List, Dict, Tuple
 import pdfkit
 from jinja2 import Environment
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
@@ -69,8 +69,8 @@ def generate_pdf(result: HFIResultResponse,
 def generate_prep(result: HFIResultResponse,
                   idir: str,
                   datetime_generated: datetime,
-                  planning_area_dict: Mapping[int, PlanningArea],
-                  station_dict: Mapping[int, WeatherStation],
+                  planning_area_dict: Dict[int, PlanningArea],
+                  station_dict: Dict[int, WeatherStation],
                   fire_centre_name: str,
                   jinja_env: Environment):
     """Generates the prep cycle portion of the PDF"""
@@ -92,8 +92,8 @@ def generate_prep(result: HFIResultResponse,
 def generate_daily(result: HFIResultResponse,
                    idir: str,
                    datetime_generated: datetime,
-                   planning_area_dict: Mapping[int, PlanningArea],
-                   station_dict: Mapping[int, WeatherStation],
+                   planning_area_dict: Dict[int, PlanningArea],
+                   station_dict: Dict[int, WeatherStation],
                    fire_centre_name: str,
                    jinja_env: Environment) -> str:
     """Generates the daily portion of the PDF"""
@@ -111,9 +111,9 @@ def generate_daily(result: HFIResultResponse,
 
 def build_mappings(fire_centres: List[FireCentre]):
     """ Marshall hydrated fire centres into dicts keyed by id """
-    fire_centre_dict: Mapping[int, FireCentre] = {}
-    planning_area_dict: Mapping[int, PlanningArea] = {}
-    station_dict: Mapping[int, WeatherStation] = {}
+    fire_centre_dict: Dict[int, FireCentre] = {}
+    planning_area_dict: Dict[int, PlanningArea] = {}
+    station_dict: Dict[int, WeatherStation] = {}
     for fire_centre in fire_centres:
         fire_centre_dict[fire_centre.id] = fire_centre
         for planning_area in fire_centre.planning_areas:

@@ -1,6 +1,29 @@
-""" Percentage conifer (PC), percentage dead fir (PDF), crown closure (CC), crown base height (CBH),
-and crown fuel load (CFL) constants for each fuel type from CFFDRS. """
-from app.schemas.fba_calc import FuelTypeEnum
+""" Code relating to fuel types. """
+from enum import Enum
+
+
+class FuelTypeEnum(str, Enum):
+    """ Enumerator for all valid fuel types. """
+    C1 = 'C1'
+    C2 = 'C2'
+    C3 = 'C3'
+    C4 = 'C4'
+    C5 = 'C5'
+    C6 = 'C6'
+    C7 = 'C7'
+    C7B = 'C7B'
+    D1 = 'D1'
+    D2 = 'D2'
+    M1 = 'M1'
+    M2 = 'M2'
+    M3 = 'M3'
+    M4 = 'M4'
+    O1A = 'O1A'
+    O1B = 'O1B'
+    S1 = 'S1'
+    S2 = 'S2'
+    S3 = 'S3'
+
 
 # TODO: Move these constants (as columns) into fuel_types table in our database once all CFL
 # values have been confirmed.
@@ -13,6 +36,8 @@ from app.schemas.fba_calc import FuelTypeEnum
 # NOTE: For any given fuel types, there are a large number of possible permutations, e.g.
 #   M3 can have some range 0 to 100% of dead fir in it. These values merely represent the most common
 #   default set of configurations we're likely to encounter.
+# NOTE: Percentage conifer (PC), percentage dead fir (PDF), crown closure (CC), crown base height (CBH),
+# and crown fuel load (CFL) constants for each fuel type from CFFDRS.
 FUEL_TYPE_DEFAULTS = {
     FuelTypeEnum.C1: {"PC": 100, "PDF": 0, "CC": None, "CBH": 2, "CFL": 0.75},
     FuelTypeEnum.C2: {"PC": 100, "PDF": 0, "CC": None, "CBH": 3, "CFL": 0.8},

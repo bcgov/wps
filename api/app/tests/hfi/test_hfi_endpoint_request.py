@@ -27,15 +27,15 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
                                        order_of_appearance_in_list=1)
         planning_area_2 = PlanningArea(id=2, name='Vernon (K4)', fire_centre_id=1,
                                        order_of_appearance_in_list=2)
-        fuel_type_1 = FuelType(abbrev='O1B', description='neigh', fuel_type_code="O1B",
+        fuel_type_1 = FuelType(id=1, abbrev='O1B', description='neigh', fuel_type_code="O1B",
                                percentage_conifer=0, percentage_dead_fir=0)
-        fuel_type_2 = FuelType(abbrev='C7B', description='moo', fuel_type_code='C7',
+        fuel_type_2 = FuelType(id=2, abbrev='C7B', description='moo', fuel_type_code='C7',
                                percentage_conifer=100, percentage_dead_fir=0)
         return (
             (PlanningWeatherStation(station_code=230, fuel_type_id=1,
-             planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
+                                    planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
             (PlanningWeatherStation(station_code=239, fuel_type_id=2,
-             planning_area_id=2), fuel_type_2, planning_area_2, fire_centre)
+                                    planning_area_id=2), fuel_type_2, planning_area_2, fire_centre)
         )
 
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_weather_stations', mock_get_fire_weather_stations)
@@ -47,13 +47,6 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_hfi_endpoint_request.feature', 'HFI - request')
 def test_fire_behaviour_calculator_scenario():
-    """ BDD Scenario. """
-    pass
-
-
-@pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_hfi_endpoint_request.feature', 'HFI - pdf download')
-def test_fire_behaviour_calculator_pdf_scenario():
     """ BDD Scenario. """
     pass
 
@@ -97,9 +90,3 @@ def given_hfi_calc_url(monkeypatch: pytest.MonkeyPatch, url: str, verb: str):
 @then(parsers.parse("request == saved = {request_saved}"), converters={'request_saved': strtobool})
 def then_request_saved(spy_store_hfi_request: MagicMock, request_saved: bool):
     assert spy_store_hfi_request.called == request_saved
-
-
-@then("the response isn't cached")
-def then_response_not_cached(response):
-    """ Check that the response isn't being cached """
-    assert response['response'].headers['cache-control'] == 'max-age=0'

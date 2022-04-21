@@ -13,7 +13,7 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
-import { getDailiesByStationCode } from 'features/hfiCalculator/util'
+import { getDailiesByStationCode, stationCodeSelected } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectHFICalculatorState } from 'app/rootReducer'
@@ -103,11 +103,11 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     })
   }
 
-  const stationCodeInSelected = (code: number) => {
-    return result ? result.selected_station_code_ids.includes(code) : false
+  const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
+    return stationCodeSelected(result, planningAreaId, code)
   }
   const toggleSelectedStation = (planningAreaId: number, code: number) => {
-    const selected = stationCodeInSelected(code)
+    const selected = stationCodeInSelected(planningAreaId, code)
     props.setSelected(planningAreaId, code, !selected)
   }
 
@@ -278,9 +278,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             )
                           : []
                       }
-                      selectedStationCodes={
-                        result ? result.selected_station_code_ids : []
-                      }
                       meanIntensityGroup={dailyResult?.mean_intensity_group}
                     ></MeanIntensityGroupRollup>
                     <FireStartsCell
@@ -299,7 +296,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   ).map(station => {
                     const daily = getDailyForDay(station.code)
                     const grassCureError = !isValidGrassCure(daily, station.station_props)
-                    const isRowSelected = stationCodeInSelected(station.code)
+                    const isRowSelected =
+                      !isUndefined(area) && stationCodeInSelected(area.id, station.code)
                     const classNameForRow = !isRowSelected
                       ? classes.unselectedStation
                       : undefined

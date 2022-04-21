@@ -29,6 +29,7 @@ import StationAccuracyForDate from 'features/fireWeather/components/StationAccur
 import AccuracyVariablePicker, {
   AccuracyWeatherVariableEnum
 } from 'features/fireWeather/components/AccuracyVariablePicker'
+import { AppDispatch } from 'app/store'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -131,7 +132,7 @@ const MoreCastPage = () => {
     }
   }
 
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
   useEffect(() => {
     const codesFromQuery = getStationCodesFromUrl(location.search)
     const toiFromQuery = getTimeOfInterestFromUrl(location.search)

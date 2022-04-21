@@ -1,16 +1,18 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import axios from 'api/axios'
 import { AppThunk } from 'app/store'
-import { selectToken } from 'app/rootReducer'
 import kcInstance, { kcInitOption } from 'features/auth/keycloak'
+import jwt_decode from 'jwt-decode'
 import { logError } from 'utils/error'
+import { isUndefined } from 'lodash'
+import { KC_CLIENT } from 'utils/env'
 
 interface State {
   authenticating: boolean
   isAuthenticated: boolean
   tokenRefreshed: boolean
   token: string | undefined
+  roles: string[]
   error: string | null
 }
 
@@ -19,6 +21,7 @@ export const initialState: State = {
   isAuthenticated: false,
   tokenRefreshed: false,
   token: undefined,
+  roles: [],
   error: null
 }
 
@@ -39,6 +42,7 @@ const authSlice = createSlice({
       state.authenticating = false
       state.isAuthenticated = action.payload.isAuthenticated
       state.token = action.payload.token
+      state.roles = decodeRoles(action.payload.token)
     },
     authenticateError(state: State, action: PayloadAction<string>) {
       state.authenticating = false
@@ -53,6 +57,7 @@ const authSlice = createSlice({
       }>
     ) {
       state.token = action.payload.token
+      state.roles = decodeRoles(action.payload.token)
       state.tokenRefreshed = action.payload.tokenRefreshed
     }
   }
@@ -66,6 +71,20 @@ const {
 } = authSlice.actions
 
 export default authSlice.reducer
+
+export const decodeRoles = (token: string | undefined) => {
+  if (isUndefined(token)) {
+    return []
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const decodedToken: any = jwt_decode(token)
+  try {
+    return decodedToken.resource_access[KC_CLIENT].roles
+  } catch (e) {
+    // User has no roles
+    return []
+  }
+}
 
 export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
@@ -97,16 +116,4 @@ export const authenticate = (): AppThunk => dispatch => {
         dispatch(authenticate())
       })
   }
-}
-
-export const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
-  // Use axios interceptors to intercept any requests and add authorization headers.
-  axios.interceptors.request.use(config => {
-    const token = selectToken(getState())
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-
-    return config
-  })
 }

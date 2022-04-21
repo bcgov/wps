@@ -1,10 +1,10 @@
 """ CRUD operations relating to HFI Calculator
 """
 from typing import List
-from datetime import date
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
-from app.schemas.hfi_calc import HFIResultRequest
+from app.db.database import get_read_session_scope
+from app.schemas.hfi_calc import DateRange, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, PlanningArea, PlanningWeatherStation, HFIRequest,
                                     FireStartRange, FireCentreFireStartRange, FireStartLookup)
 from app.utils.time import get_utc_now
@@ -25,8 +25,20 @@ def get_all_stations(session: Session) -> CursorResult:
     return session.query(PlanningWeatherStation.station_code).all()
 
 
+def get_fire_centre_station_codes() -> List[int]:
+    """ Retrieves station codes for fire centers
+    """
+    station_codes = []
+    with get_read_session_scope() as session:
+        station_query = get_all_stations(session)
+        for station in station_query:
+            station_codes.append(int(station['station_code']))
+
+    return station_codes
+
+
 def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
-    """ Get all the stations, along with fuel type for a fire centre. """
+    """ Get all the stations, along with default fuel type for a fire centre. """
     return session.query(PlanningWeatherStation, FuelType)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
         .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)\
@@ -35,15 +47,23 @@ def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
 
 def get_most_recent_updated_hfi_request(session: Session,
                                         fire_centre_id: int,
-                                        prep_start_day: date = None,
-                                        prep_end_day: date = None) -> HFIRequest:
+                                        date_range: DateRange) -> HFIRequest:
     """ Get the most recently updated hfi request for a fire centre """
     query = session.query(HFIRequest)\
-        .filter(HFIRequest.fire_centre_id == fire_centre_id)
-    if prep_start_day is not None:
-        query = query.filter(HFIRequest.prep_start_day == prep_start_day)
-    if prep_end_day is not None:
-        query = query.filter(HFIRequest.prep_end_day == prep_end_day)
+        .filter(HFIRequest.fire_centre_id == fire_centre_id)\
+        .filter(HFIRequest.prep_start_day == date_range.start_date)\
+        .filter(HFIRequest.prep_end_day == date_range.end_date)
+    return query.order_by(HFIRequest.create_timestamp.desc()).first()
+
+
+def get_most_recent_updated_hfi_request_for_current_date(session: Session,
+                                                         fire_centre_id: int) -> HFIRequest:
+    """ Get the most recently updated hfi request within some date range, for a fire centre """
+    now = get_utc_now().date()
+    query = session.query(HFIRequest)\
+        .filter(HFIRequest.fire_centre_id == fire_centre_id)\
+        .filter(HFIRequest.prep_start_day <= now)\
+        .filter(HFIRequest.prep_end_day >= now)
     return query.order_by(HFIRequest.create_timestamp.desc()).first()
 
 
@@ -70,3 +90,8 @@ def get_fire_centre_fire_start_ranges(session: Session, fire_centre_id: id) -> C
 def get_fire_start_lookup(session: Session) -> CursorResult:
     """ Get the fire start lookup table """
     return session.query(FireStartLookup)
+
+
+def get_fuel_type_by_id(session: Session, fuel_type_id: int) -> FuelType:
+    """ Get the fuel type for the supplied fuel type id """
+    return session.query(FuelType).filter(FuelType.id == fuel_type_id).first()
