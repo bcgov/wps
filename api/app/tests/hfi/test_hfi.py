@@ -230,14 +230,9 @@ def test_valid_fuel_types_response():
                            percentage_conifer=0, percentage_dead_fir=0)
     response = FuelTypesResponse(fuel_types=[fuel_type_1, fuel_type_2, fuel_type_3])
     assert len(response.fuel_types) == 3
-    json_the_response = '{['
-    for fuel_type in response.fuel_types:
-        json_the_response += json.dumps(fuel_type.__dict__) + ','
-    json_the_response += ']}'
-    print(json_the_response)
-    back_to_response = json.loads(json_the_response)
-    print(back_to_response)
-    assert len(back_to_response.fuel_types) == 3
+    response_as_json = response.json()
+    back_to_response = json.loads(response_as_json)
+    assert len(back_to_response['fuel_types']) == 3
 
 
 def test_valid_date_range_none():

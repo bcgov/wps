@@ -59,27 +59,6 @@ describe.only('HFILoadingDataView', () => {
     expect(loadingContainer).toBeDefined()
     expect(renderedChild).not.toBeInTheDocument()
   })
-  // it('should render spinner when hfi result data is loading', () => {
-  //   const { getByTestId, queryByText } = render(
-  //     <HFILoadingDataView
-  //       loading={true}
-  //       pdfLoading={false}
-  //       fuelTypesLoading={false}
-  //       stationDataLoading={false}
-  //       fireCentresLoading={false}
-  //       fireCentresError={null}
-  //       hfiError={null}
-  //       selectedFireCentre={selectedFireCentre}
-  //       dateRange={dateRange}
-  //     >
-  //       {child}
-  //     </HFILoadingDataView>
-  //   )
-  //   const loadingContainer = getByTestId('loading-container')
-  //   const renderedChild = queryByText('child-text')
-  //   expect(loadingContainer).toBeDefined()
-  //   expect(renderedChild).not.toBeInTheDocument()
-  // })
   it('should render spinner when fuel types are loading', () => {
     const { getByTestId, queryByText } = render(
       <HFILoadingDataView
