@@ -99,15 +99,13 @@ def generate_station_daily(raw_daily: dict,  # pylint: disable=too-many-locals
         rate_of_spread=fire_behaviour_prediction.ros,
         hfi=fire_behaviour_prediction.hfi,
         observation_valid=raw_daily.get('observationValidInd', None),
-        observation_valid_comment=raw_daily.get(
-            'observationValidComment', None),
+        observation_valid_comment=raw_daily.get('observationValidComment', None),
         intensity_group=fire_behaviour_prediction.intensity_group,
         sixty_minute_fire_size=fire_behaviour_prediction.sixty_minute_fire_size,
         fire_type=fire_behaviour_prediction.fire_type,
         error=raw_daily.get('observationValidInd', None),
         error_message=raw_daily.get('observationValidComment', None),
-        last_updated=datetime.fromtimestamp(raw_daily.get(
-            'lastEntityUpdateTimestamp', 0) / 1000, tz=timezone.utc)
+        last_updated=datetime.fromtimestamp(raw_daily['lastEntityUpdateTimestamp'] / 1000, tz=timezone.utc)
     )
 
 
