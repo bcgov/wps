@@ -1,4 +1,5 @@
-import { Grid, makeStyles, Tooltip } from '@material-ui/core'
+import { Grid, Tooltip } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'

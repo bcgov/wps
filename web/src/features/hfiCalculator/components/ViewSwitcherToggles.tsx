@@ -19,7 +19,7 @@ export interface ViewSwitcherTogglesProps {
 
 const useStyles = makeStyles(() => ({
   toggleGroup: {
-    '& .MuiToggleButton-root': {
+    '& .MuiToggleButtonGroup-root': {
       color: theme.palette.primary.main
     },
     '& .MuiToggleButton-root.Mui-selected': {

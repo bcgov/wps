@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { TextField, IconButton, InputAdornment } from '@material-ui/core'
+import { TextField, IconButton, InputAdornment } from '@mui/material'
 import FWIDateRange from 'features/fwiCalculator/components/FWIDateRange'
 import DateRange from '@mui/icons-material/DateRange'
 import { DateTime } from 'luxon'

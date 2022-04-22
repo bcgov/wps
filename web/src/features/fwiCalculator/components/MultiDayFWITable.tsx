@@ -15,7 +15,7 @@ import {
   TableSelection,
   Toolbar
 } from '@devexpress/dx-react-grid-material-ui'
-import { Paper, IconButton, LinearProgress } from '@material-ui/core'
+import { Paper, IconButton, LinearProgress } from '@mui/material'
 import { Add, Refresh } from '@mui/icons-material'
 import { selectMultiFWIOutputs, selectMultiFWIOutputsLoading } from 'app/rootReducer'
 import {

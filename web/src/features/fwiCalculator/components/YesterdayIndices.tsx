@@ -1,4 +1,4 @@
-import { TableCell, TableRow } from '@material-ui/core'
+import { TableCell, TableRow } from '@mui/material'
 import { Skeleton } from '@mui/material'
 import { YesterdayIndices } from 'api/fwiAPI'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'

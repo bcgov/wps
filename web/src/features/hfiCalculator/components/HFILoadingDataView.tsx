@@ -1,10 +1,5 @@
-import {
-  Table,
-  TableBody,
-  Container,
-  CircularProgress,
-  makeStyles
-} from '@material-ui/core'
+import { Table, TableBody, Container, CircularProgress } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'

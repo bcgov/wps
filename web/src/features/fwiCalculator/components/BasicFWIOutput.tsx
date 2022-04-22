@@ -6,7 +6,7 @@ import {
   TableCell,
   TableBody,
   TableHead
-} from '@material-ui/core'
+} from '@mui/material'
 import { Skeleton } from '@mui/material'
 import { FWIOutput } from 'api/fwiAPI'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
