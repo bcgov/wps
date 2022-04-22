@@ -14,7 +14,8 @@ from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, Invalid
                                   WeatherStationProperties,
                                   required_daily_fields)
 from app.schemas.shared import FuelType
-from app.utils.time import get_pst_now
+from app.utils.time import get_pst_now, get_utc_now
+from app.wildfire_one.schema_parsers import WFWXWeatherStation
 
 # Kamloops FC fixture
 kamloops_fc = FireCentre(
@@ -56,10 +57,12 @@ planning_area_station_info = {kamloops_fc.planning_areas[0].id: [
 
 def test_no_dailies_handled():
     """ No dailies are handled """
-    result = calculate_hfi_results(fire_start_ranges,
+    result = calculate_hfi_results({},
+                                   fire_start_ranges,
                                    planning_area_fire_starts={},
                                    fire_start_lookup=fire_start_lookup,
-                                   dailies=[],
+                                   wfwx_stations=[],
+                                   raw_dailies=[],
                                    num_prep_days=5,
                                    planning_area_station_info=planning_area_station_info,
                                    area_station_map={},
@@ -72,19 +75,29 @@ def test_requested_fire_starts_unaltered(mocker: MockerFixture):
     """ Fire starts from user request remain unchanged """
 
     start_date = datetime.now()
-    daily = StationDaily(
-        code=1,
-        date=start_date,
-        intensity_group=1
-    )
-
     station = hfi_calc_models.PlanningWeatherStation(id=1, planning_area_id=1, station_code=1)
+    fuel_type_lookup = {
+        1: hfi_calc_models.FuelType(
+            id=1, abbrev='C1', description='C1', fuel_type_code='C1',
+            percentage_conifer=100, percentage_dead_fir=0)}
+    planning_area_fire_starts = {
+        kamloops_fc.planning_areas[0].id: [fire_start_ranges[-1]]}
+    wfwx_station = WFWXWeatherStation(
+        wfwx_id=1, code=1, name='station1', latitude=12.1,
+        longitude=12.1, elevation=123, zone_code=1)
+    raw_daily = {
+        'stationId': 1,
+        'weatherTimestamp': get_utc_now().timestamp() * 1000,
+        'lastEntityUpdateTimestamp': get_utc_now().timestamp() * 1000
+    }
 
-    result = calculate_hfi_results(fire_start_ranges,
-                                   planning_area_fire_starts={
-                                       kamloops_fc.planning_areas[0].id: [fire_start_ranges[-1]]},
+    result = calculate_hfi_results(fuel_type_lookup,
+                                   fire_start_ranges,
+                                   planning_area_fire_starts=planning_area_fire_starts,
                                    fire_start_lookup=fire_start_lookup,
-                                   dailies=[daily],
+                                   wfwx_stations=[wfwx_station],
+                                   raw_dailies=[
+                                       raw_daily],
                                    num_prep_days=5,
                                    planning_area_station_info=planning_area_station_info,
                                    area_station_map={kamloops_fc.planning_areas[0].id: [station]},

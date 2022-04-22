@@ -9,19 +9,19 @@
       {
         "station_code": 230,
         "selected": false,
-        "fuel_type_id": 1
+        "fuel_type_id": 3
       },
       {
         "station_code": 239,
         "selected": true,
-        "fuel_type_id": 1
+        "fuel_type_id": 2
       }
     ],
     "2": [
       {
         "station_code": 230,
         "selected": true,
-        "fuel_type_id": 1
+        "fuel_type_id": 3
       }
     ]
   },

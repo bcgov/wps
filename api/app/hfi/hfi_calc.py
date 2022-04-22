@@ -1,14 +1,14 @@
 """ HFI calculation logic """
 import math
 import logging
-from time import perf_counter
-from typing import Optional, List, AsyncGenerator, Dict, Tuple
+from typing import Optional, List, Dict, Tuple
 from datetime import date, datetime, timedelta, timezone
 from statistics import mean
 from aiohttp.client import ClientSession
+from sqlalchemy.orm import Session
 import app
 from app.db.database import get_read_session_scope
-from app.db.models.hfi_calc import PlanningWeatherStation
+from app.db.models.hfi_calc import PlanningWeatherStation, FuelType as FuelTypeModel
 from app.fire_behaviour.prediction import calculate_fire_behaviour_prediction, FireBehaviourPrediction
 from app.schemas.hfi_calc import (DailyResult, DateRange,
                                   FireStartRange, HFIResultRequest,
@@ -17,7 +17,7 @@ from app.schemas.hfi_calc import (DailyResult, DateRange,
                                   ValidatedStationDaily,
                                   required_daily_fields)
 from app.schemas.hfi_calc import (WeatherStationProperties,
-                                  FuelType, FireCentre, PlanningArea, WeatherStation)
+                                  FuelType as FuelTypeSchema, FireCentre, PlanningArea, WeatherStation)
 from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from app.utils.time import get_hour_20_from_date, get_pst_now
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
@@ -26,25 +26,22 @@ from app.wildfire_one.wfwx_api import (get_auth_header, get_stations_by_codes,
                                        get_raw_dailies_in_range_generator)
 from app.db.crud.hfi_calc import (get_fire_centre_stations,
                                   get_fire_weather_stations, get_fire_centre_fire_start_ranges,
-                                  get_fire_start_lookup)
+                                  get_fire_start_lookup, get_fuel_types)
 
 logger = logging.getLogger(__name__)
 
 
-def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
+def generate_station_daily(raw_daily: dict,  # pylint: disable=too-many-locals
                            station: WFWXWeatherStation,
-                           fuel_type: FuelType) -> StationDaily:
+                           fuel_type: FuelTypeModel) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
     # pylint: disable=invalid-name
+    pc = fuel_type.percentage_conifer
+    pdf = fuel_type.percentage_dead_fir
     # we use the fuel type lookup to get default values.
-    pc = fuel_type.percentage_conifer if fuel_type.percentage_conifer is not None\
-        else FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["PC"]
-    pdf = fuel_type.percentage_dead_fir if fuel_type.percentage_dead_fir is not None\
-        else FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["PDF"]
     cbh = FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["CBH"]
     cfl = FUEL_TYPE_DEFAULTS[fuel_type.fuel_type_code]["CFL"]
-    timestamp: Optional[int] = raw_daily.get('weatherTimestamp', None)
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
@@ -78,8 +75,8 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
 
     return StationDaily(
         code=station.code,
-        date=timestamp,  # TODO: passing a timestamp into a date object!
-        status=raw_daily.get('recordType', '').get('id', None),
+        date=datetime.fromtimestamp(raw_daily['weatherTimestamp'] / 1000, tz=timezone.utc),
+        status=raw_daily.get('recordType', {}).get('id', None),
         temperature=raw_daily.get('temperature', None),
         relative_humidity=raw_daily.get('relativeHumidity', None),
         wind_speed=raw_daily.get('windSpeed', None),
@@ -102,15 +99,13 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         rate_of_spread=fire_behaviour_prediction.ros,
         hfi=fire_behaviour_prediction.hfi,
         observation_valid=raw_daily.get('observationValidInd', None),
-        observation_valid_comment=raw_daily.get(
-            'observationValidComment', None),
+        observation_valid_comment=raw_daily.get('observationValidComment', None),
         intensity_group=fire_behaviour_prediction.intensity_group,
         sixty_minute_fire_size=fire_behaviour_prediction.sixty_minute_fire_size,
         fire_type=fire_behaviour_prediction.fire_type,
         error=raw_daily.get('observationValidInd', None),
         error_message=raw_daily.get('observationValidComment', None),
-        last_updated=datetime.fromtimestamp(raw_daily.get(
-            'lastEntityUpdateTimestamp') / 1000, tz=timezone.utc)
+        last_updated=datetime.fromtimestamp(raw_daily['lastEntityUpdateTimestamp'] / 1000, tz=timezone.utc)
     )
 
 
@@ -118,31 +113,6 @@ def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -
     """ Return all the dailies (that's noon, or 20 hours UTC) for a given date """
     dailies_date_time = get_hour_20_from_date(dailies_date)
     return list(filter(lambda daily: (daily.date == dailies_date_time), area_dailies))
-
-
-async def station_daily_generator(raw_daily_generator,
-                                  wfwx_stations,
-                                  station_fuel_type_map) -> AsyncGenerator[StationDaily, None]:
-    """ Generator that yields the daily data for each station.
-
-    We give this function all the puzzle pieces. The raw_daily_generator (reading dailies from
-    wfwx and giving us dictionaries) + wfwx_stations (from wfwx) + station_fuel_type_map (from our db).
-
-    The puzzle pieces are mangled together, and the generator then yields a StationDaily object."""
-    station_lookup = {station.wfwx_id: station for station in wfwx_stations}
-    fuel_type = None
-    cumulative = 0
-    async for raw_daily in raw_daily_generator:
-        start = perf_counter()
-        wfwx_station = station_lookup.get(raw_daily.get('stationId'))
-        fuel_type = station_fuel_type_map.get(wfwx_station.code)
-        result: StationDaily = generate_station_daily(raw_daily, wfwx_station, fuel_type)
-        delta = perf_counter() - start
-        cumulative = cumulative + delta
-        yield result
-    # NOTE: Keeping track of the cumulative time here is informative for optimizing code.
-    # Calling out to the CFFDRS R library takes a lot of time. Especially if the R engine is starting up.
-    logger.info('station_daily_generator cumulative time %f', cumulative)
 
 
 async def hydrate_fire_centres():
@@ -162,7 +132,7 @@ async def hydrate_fire_centres():
         # Iterate through all the database records, collecting all the data we need.
         for (station_record, fuel_type_record, planning_area_record, fire_centre_record) in station_query:
             station_info_dict[station_record.station_code] = {
-                'fuel_type': FuelType(
+                'fuel_type': FuelTypeSchema(
                     abbrev=fuel_type_record.abbrev,
                     fuel_type_code=fuel_type_record.fuel_type_code,
                     description=fuel_type_record.description,
@@ -243,7 +213,7 @@ async def hydrate_fire_centres():
 
 
 async def calculate_latest_hfi_results(
-        orm_session,
+        orm_session: Session,
         request: HFIResultRequest,
         fire_centre_fire_start_ranges: List[FireStartRange]) -> Tuple[List[PlanningAreaResult], DateRange]:
     "Set up time range and fire centre data for calculating HFI results"
@@ -277,22 +247,22 @@ async def calculate_latest_hfi_results(
 
         fire_start_lookup = build_fire_start_prep_level_lookup(orm_session)
 
-        wfwx_stations = await get_wfwx_stations_from_station_codes(
+        wfwx_stations: List[WFWXWeatherStation] = await get_wfwx_stations_from_station_codes(
             session, header, list(fire_centre_station_code_ids))
 
         wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
         raw_dailies_generator = await get_raw_dailies_in_range_generator(
             session, header, wfwx_station_ids, start_timestamp, end_timestamp)
-        dailies_generator = station_daily_generator(
-            raw_dailies_generator, wfwx_stations, station_fuel_type_map)
-        dailies: List[StationDaily] = []
-        async for station_daily in dailies_generator:
-            dailies.append(station_daily)
+        raw_dailies: List[dict] = [raw_daily async for raw_daily in raw_dailies_generator]
+        fuel_type_lookup: Dict[int, FuelTypeModel] = generate_fuel_type_lookup(orm_session)
 
-        results = calculate_hfi_results(fire_centre_fire_start_ranges,
+        results = calculate_hfi_results(fuel_type_lookup,
+                                        fire_centre_fire_start_ranges,
                                         request.planning_area_fire_starts,
                                         fire_start_lookup,
-                                        dailies, valid_date_range.days_in_range(),
+                                        wfwx_stations,
+                                        raw_dailies,
+                                        valid_date_range.days_in_range(),
                                         request.planning_area_station_info,
                                         area_station_map,
                                         valid_date_range.start_date)
@@ -364,10 +334,44 @@ def calculate_daily_results(num_prep_days: int,
     return daily_results, all_dailies_valid
 
 
-def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
+def generate_fuel_type_lookup(orm_session: Session) -> Dict[int, FuelTypeModel]:
+    """ Generate a lookup table for fuel types. """
+    fuel_types = get_fuel_types(orm_session)
+    return {fuel_type.id: fuel_type for fuel_type in fuel_types}
+
+
+def calculate_station_dailies(
+        raw_dailies: List[dict],
+        station_info_list: List[StationInfo],
+        station_lookup: Dict[str, WFWXWeatherStation],
+        fuel_type_lookup: Dict[int, FuelTypeModel]) -> List[StationDaily]:
+    """ Build a list of dailies with results from the fire behaviour calculations. """
+    area_dailies: List[StationDaily] = []
+
+    selected_station_codes = [
+        station.station_code for station in filter(
+            lambda station: (station.selected), station_info_list)]
+    station_info_lookup = {station.station_code: station for station in station_info_list}
+
+    for raw_daily in raw_dailies:
+        wfwx_station_id = raw_daily['stationId']
+        wfwx_station = station_lookup[wfwx_station_id]
+        # Filter list of dailies to include only those for the selected stations and area.
+        # No need to sort by date, we can't trust that the list doesn't have dates missing - so we
+        # have a bit of code that snatches from this list filtering by date.
+        if wfwx_station.code in selected_station_codes:
+            station_info: StationInfo = station_info_lookup[wfwx_station.code]
+            fuel_type = fuel_type_lookup[station_info.fuel_type_id]
+            area_dailies.append(generate_station_daily(raw_daily, wfwx_station, fuel_type))
+    return area_dailies
+
+
+def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
+                          fire_start_ranges: List[FireStartRange],
                           planning_area_fire_starts: Dict[int, FireStartRange],
                           fire_start_lookup: Dict[int, Dict[int, int]],
-                          dailies: List[StationDaily],
+                          wfwx_stations: List[WFWXWeatherStation],
+                          raw_dailies: List[dict],
                           num_prep_days: int,
                           planning_area_station_info: Dict[int, List[StationInfo]],
                           area_station_map: Dict[int, List[PlanningWeatherStation]],
@@ -375,22 +379,14 @@ def calculate_hfi_results(fire_start_ranges: List[FireStartRange],
     """ Computes HFI results based on parameter inputs """
     planning_area_to_dailies: List[PlanningAreaResult] = []
 
-    for area_id in area_station_map.keys():
-        stations = area_station_map[area_id]
-        area_station_codes = list(map(lambda station: (station.station_code), stations))
-        selected_stations = filter(lambda station: (station.selected),
-                                   planning_area_station_info[area_id])
-        selected_station_codes = list(map(lambda station: (station.station_code), selected_stations))
+    station_lookup: Dict[str, WFWXWeatherStation] = {station.wfwx_id: station for station in wfwx_stations}
 
-        # Filter list of dailies to include only those for the selected stations and area.
-        # No need to sort by date, we can't trust that the list doesn't have dates missing - so we
-        # have a bit of code that snatches from this list filtering by date.
-        area_dailies: List[StationDaily] = list(
-            filter(lambda daily,
-                   area_station_codes=area_station_codes,
-                   selected_station_codes=selected_station_codes:
-                   (daily.code in area_station_codes and daily.code in selected_station_codes),
-                   dailies))
+    for area_id in area_station_map.keys():
+
+        area_dailies = calculate_station_dailies(raw_dailies,
+                                                 planning_area_station_info[area_id],
+                                                 station_lookup,
+                                                 fuel_type_lookup)
 
         # Initialize with defaults if empty/wrong length
         # TODO: Sometimes initialize_planning_area_fire_starts is called twice. Look into this once
