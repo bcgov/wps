@@ -73,10 +73,12 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
         self.cfb = cfb
         self.flame_length = flame_length
         self.sixty_minute_fire_size = sixty_minute_fire_size
-        self.sixty_minute_fire_size_t = None
         self.thirty_minute_fire_size = thirty_minute_fire_size
         self.critical_hours_hfi_4000 = critical_hours_hfi_4000
         self.critical_hours_hfi_10000 = critical_hours_hfi_10000
+        # hfi vs. hfi_t ?
+        # *_t is calculated using ros_t, which is rate of spread since time of ignition.
+        # * is calculated using a rate of spread calculation that does not assume an ignition time.
         self.hfi_t = hfi_t
         self.ros_t = ros_t
         self.cfb_t = cfb_t
