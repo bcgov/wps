@@ -5,6 +5,7 @@ import StickyCell from 'components/StickyCell'
 import { fireTableStyles } from 'app/theme'
 import React from 'react'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
+import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
 
 export interface BaseStationAttributeCellsProps {
@@ -75,7 +76,7 @@ const BaseStationAttributeCells = ({
                 key={`station-${station.code}-fuel-type`}
                 className={`${className} ${classes.noBottomBorder}`}
               >
-                {station.station_props.fuel_type.abbrev}
+                <FuelTypeDropdown station={station}></FuelTypeDropdown>
               </TableCell>
             </TableRow>
           </TableBody>
