@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 import app
 from app.db.database import get_read_session_scope
 from app.db.models.hfi_calc import PlanningWeatherStation, FuelType as FuelTypeModel
-from app.fire_behaviour.prediction import FireBehaviourPredictionInputError, calculate_fire_behaviour_prediction, FireBehaviourPrediction
+from app.fire_behaviour.prediction import (
+    FireBehaviourPredictionInputError, calculate_fire_behaviour_prediction, FireBehaviourPrediction)
 from app.schemas.hfi_calc import (DailyResult, DateRange,
                                   FireStartRange, HFIResultRequest,
                                   PlanningAreaResult,
@@ -64,10 +65,9 @@ def generate_station_daily(raw_daily: dict,  # pylint: disable=too-many-locals
             cbh=cbh,
             cfl=cfl)
     except FireBehaviourPredictionInputError as error:
-        logger.info(f"Error calculating fire behaviour prediction for station {station.code}: {error}")
+        logger.info("Error calculating fire behaviour prediction for station %s : %s", station.code, error)
         fire_behaviour_prediction = FireBehaviourPrediction(None, None, None, None, None)
-    # pylint: disable=broad-except
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-except
         # TODO: Remove this exception - it can hide away bugs in code. Catch more specific exceptions.
         #   e.g.: for c7b, if cc is null, we can't calculate - so let's throw a specific exception and
         #   catch that.
