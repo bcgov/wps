@@ -1,7 +1,6 @@
 import makeStyles from '@mui/styles/makeStyles'
-import { Snackbar } from '@mui/material'
+import { Alert, Snackbar } from '@mui/material'
 import React from 'react'
-import { Alert } from '@mui/material'
 
 export interface HFISuccessAlertProps {
   message: string | null
