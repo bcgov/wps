@@ -31,7 +31,7 @@ const AccuracyVariablePicker = (props: Props) => {
 
   return (
     <div>
-      <FormControl className={classes.variableDropdown}>
+      <FormControl variant="standard" className={classes.variableDropdown}>
         <InputLabel id="variable-dropdown-label" className={classes.select}>
           View accuracy map for
         </InputLabel>
