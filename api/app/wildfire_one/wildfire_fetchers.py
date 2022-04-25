@@ -199,8 +199,7 @@ async def fetch_hourlies(
 
     url, params = prepare_fetch_hourlies_query(raw_station, start_timestamp, end_timestamp)
 
-    cache_expiry_seconds = cache_expiry_seconds = config.get(
-        'REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY', 300)
+    cache_expiry_seconds: Final = int(config.get('REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY', 300))
 
     # Get hourlies
     if use_cache and cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True':
