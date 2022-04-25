@@ -1,9 +1,9 @@
 import { TableContainer, Table, TableBody, TableRow, TableCell } from '@mui/material'
-import { render, screen, prettyDOM } from '@testing-library/react'
+import { render, within } from '@testing-library/react'
 import React from 'react'
 import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
 
-xdescribe('SelectionCell', () => {
+describe('SelectionCell', () => {
   it('should be checked', () => {
     const { getByTestId } = render(
       <TableContainer>
@@ -26,14 +26,14 @@ xdescribe('SelectionCell', () => {
         </Table>
       </TableContainer>
     )
-    const testCell = getByTestId('selection-checkbox-fba')
-    console.log(prettyDOM(testCell))
-    const selectionCell = getByTestId('selection-checkbox-fba').firstChild?.firstChild
+    const selectionCell = within(getByTestId('selection-checkbox-fba')).getByRole(
+      'checkbox'
+    ) as HTMLInputElement
     expect(selectionCell).toBeChecked()
     expect(selectionCell).not.toBeDisabled()
   })
   it('should be unchecked', () => {
-    render(
+    const { getByTestId } = render(
       <TableContainer>
         <Table>
           <TableBody>
@@ -54,13 +54,14 @@ xdescribe('SelectionCell', () => {
         </Table>
       </TableContainer>
     )
-    const selectionCell = screen.getByTestId('selection-checkbox-fba').firstChild
-      ?.firstChild
+    const selectionCell = within(getByTestId('selection-checkbox-fba')).getByRole(
+      'checkbox'
+    ) as HTMLInputElement
     expect(selectionCell).not.toBeChecked()
     expect(selectionCell).not.toBeDisabled()
   })
   it('should be disabled', () => {
-    render(
+    const { getByTestId } = render(
       <TableContainer>
         <Table>
           <TableBody>
@@ -81,8 +82,9 @@ xdescribe('SelectionCell', () => {
         </Table>
       </TableContainer>
     )
-    const selectionCell = screen.getByTestId('selection-checkbox-fba').firstChild
-      ?.firstChild
+    const selectionCell = within(getByTestId('selection-checkbox-fba')).getByRole(
+      'checkbox'
+    ) as HTMLInputElement
     expect(selectionCell).toBeDisabled()
   })
 })
