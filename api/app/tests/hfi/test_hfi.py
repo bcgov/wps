@@ -2,6 +2,7 @@
 from datetime import date, datetime, timedelta
 import pytest
 import os
+import json
 from pytest_mock import MockerFixture
 from app.hfi.hfi_calc import (calculate_hfi_results,
                               calculate_mean_intensity,
@@ -256,9 +257,7 @@ def test_valid_fuel_types_response(monkeypatch):
     assert response.status_code == 200
     assert response.headers['content-type'] == 'application/json'
     with open(correct_response_file) as file_reader:
-        correct_response = file_reader.read()
-        correct_response = correct_response.replace('\n', '').replace(' ', '')
-        assert response.text == correct_response
+        assert json.loads(response.text) == json.loads(file_reader.read())
 
 
 def test_valid_date_range_none():
