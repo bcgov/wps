@@ -7,10 +7,12 @@ import React from 'react'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
+import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface BaseStationAttributeCellsProps {
   testid?: string
   station: WeatherStation
+  stationInfo?: StationInfo
   planningAreaId: number
   className: string | undefined
   grassCurePercentage: number | undefined
@@ -25,6 +27,7 @@ const useStyles = makeStyles({
 
 const BaseStationAttributeCells = ({
   station,
+  stationInfo,
   planningAreaId,
   className,
   grassCurePercentage,
@@ -76,7 +79,13 @@ const BaseStationAttributeCells = ({
                 key={`station-${station.code}-fuel-type`}
                 className={`${className} ${classes.noBottomBorder}`}
               >
-                <FuelTypeDropdown station={station}></FuelTypeDropdown>
+                <FuelTypeDropdown
+                  setFuelType={(code: number, fuelTypeId: number) => {
+                    console.log(code)
+                  }}
+                  station={station}
+                  stationInfo={stationInfo}
+                ></FuelTypeDropdown>
               </TableCell>
             </TableRow>
           </TableBody>

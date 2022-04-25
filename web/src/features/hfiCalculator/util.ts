@@ -2,7 +2,8 @@ import { PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import {
   HFIResultResponse,
-  PrepDateRange
+  PrepDateRange,
+  StationInfo
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { groupBy, isUndefined, sortBy, take } from 'lodash'
 import { DateTime } from 'luxon'
@@ -64,19 +65,27 @@ export const getDailiesByStationCode = (
   return dailiesForCode ? dailiesForCode : []
 }
 
+export const getPlanningAreaStationInfo = (
+  result: HFIResultResponse | undefined,
+  planningAreaId: number,
+  code: number
+): StationInfo | undefined => {
+  if (
+    !isUndefined(result) &&
+    !isUndefined(result.planning_area_station_info[planningAreaId])
+  ) {
+    return result.planning_area_station_info[planningAreaId].find(
+      info => info.station_code === code
+    )
+  }
+  return undefined
+}
+
 export const stationCodeSelected = (
   result: HFIResultResponse | undefined,
   planningAreaId: number,
   code: number
 ): boolean => {
-  if (
-    !isUndefined(result) &&
-    !isUndefined(result.planning_area_station_info[planningAreaId])
-  ) {
-    const station_info = result.planning_area_station_info[planningAreaId].find(
-      info => info.station_code === code
-    )
-    return station_info?.selected ?? false
-  }
-  return false
+  const stationInfo = getPlanningAreaStationInfo(result, planningAreaId, code)
+  return stationInfo?.selected ?? false
 }

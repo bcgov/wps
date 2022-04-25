@@ -14,7 +14,8 @@ import { isEmpty, isUndefined, sortBy } from 'lodash'
 import {
   calculateNumPrepDays,
   getDailiesByStationCode,
-  stationCodeSelected
+  stationCodeSelected,
+  getPlanningAreaStationInfo
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
@@ -204,12 +205,18 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         ? classes.unselectedStation
                         : classes.stationCellPlainStyling
                       const stationCode = station.code
+                      const stationInfo = getPlanningAreaStationInfo(
+                        result,
+                        area.id,
+                        stationCode
+                      )
                       return (
                         <TableRow
                           className={classNameForRow}
                           key={`station-${stationCode}`}
                         >
                           <BaseStationAttributeCells
+                            stationInfo={stationInfo}
                             station={station}
                             planningAreaId={area.id}
                             className={classNameForRow}
