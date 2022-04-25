@@ -71,11 +71,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
-  const {
-    fireCentres,
-    error: fireCentresError
-    // loading: fireCentresLoading
-  } = useSelector(selectHFIStations)
+  const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const {
     selectedPrepDate,

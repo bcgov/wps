@@ -9,7 +9,6 @@ from aiohttp import ClientSession
 from pytest_mock import MockerFixture
 import app.main
 import app.routers.hfi_calc
-from app.schemas.hfi_calc import FuelTypesResponse
 from app.tests.common import default_mock_client_get
 from app.tests import load_json_file
 from app.db.models.hfi_calc import (PlanningWeatherStation, FuelType, FireCentre, PlanningArea,

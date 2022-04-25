@@ -15,8 +15,12 @@ from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, FuelTyp
                                   WeatherStationProperties,
                                   required_daily_fields)
 from app.schemas.shared import FuelType
+from app.tests import load_json_file, load_json_file_with_name
 from app.utils.time import get_pst_now, get_utc_now
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
+from starlette.testclient import TestClient
+from app.main import app as starlette_app
+import app.routers.hfi_calc
 
 # Kamloops FC fixture
 kamloops_fc = FireCentre(
@@ -232,20 +236,28 @@ def test_valid_daily():
         assert result.valid == False
 
 
-def test_valid_fuel_types_response():
-    """ Assert that list of FuelType objects is converted to FuelTypesResponse object correctly,
-    and that the FuelTypesResponse object can be converted to/from JSON """
-    fuel_type_1 = FuelType(id=1, abbrev="T1", fuel_type_code="T1", description="blah",
-                           percentage_conifer=0, percentage_dead_fir=0)
-    fuel_type_2 = FuelType(id=2, abbrev="T2", fuel_type_code="T2", description="bleep",
-                           percentage_conifer=0, percentage_dead_fir=0)
-    fuel_type_3 = FuelType(id=3, abbrev="T3", fuel_type_code="T3", description="bloop",
-                           percentage_conifer=0, percentage_dead_fir=0)
-    response = FuelTypesResponse(fuel_types=[fuel_type_1, fuel_type_2, fuel_type_3])
-    assert len(response.fuel_types) == 3
-    response_as_json = response.json()
-    back_to_response = json.loads(response_as_json)
-    assert len(back_to_response['fuel_types']) == 3
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_valid_fuel_types_response(monkeypatch):
+    """ Assert that list of FuelType objects is converted to FuelTypesResponse object correctly """
+    def mock_get_fuel_types(*args, **kwargs):
+        fuel_type_1 = FuelType(id=1, abbrev="T1", fuel_type_code="T1", description="blah",
+                               percentage_conifer=0, percentage_dead_fir=0)
+        fuel_type_2 = FuelType(id=2, abbrev="T2", fuel_type_code="T2", description="bleep",
+                               percentage_conifer=0, percentage_dead_fir=0)
+        fuel_type_3 = FuelType(id=3, abbrev="T3", fuel_type_code="T3", description="bloop",
+                               percentage_conifer=0, percentage_dead_fir=0)
+        return [fuel_type_1, fuel_type_2, fuel_type_3]
+
+    monkeypatch.setattr(app.routers.hfi_calc, 'crud_get_fuel_types', mock_get_fuel_types)
+
+    client = TestClient(starlette_app)
+    response = client.get('/api/hfi-calc/fuel_types')
+    assert response.status_code == 200
+    assert response.headers['content-type'] == 'application/json'
+    with open('api/app/tests/hfi/test_valid_fuel_types_response.json') as correct_response_file:
+        correct_response = correct_response_file.read()
+    correct_response = correct_response.replace('\n', '').replace(' ', '')
+    assert response.text == correct_response
 
 
 def test_valid_date_range_none():
