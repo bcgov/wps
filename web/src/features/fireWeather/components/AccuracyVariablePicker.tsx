@@ -11,12 +11,12 @@ const useStyles = makeStyles({
   variableDropdown: {
     minWidth: 250,
     margin: '8px',
-    marginLeft: '20px'
+    marginLeft: '20px',
+    '& label': {
+      color: 'white !important'
+    }
   },
   select: {
-    color: 'white'
-  },
-  '& .MuiFormLabel-root.Mui-focused': {
     color: 'white'
   }
 })
