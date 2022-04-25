@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { difference, filter, findIndex, isEmpty, isUndefined } from 'lodash'
+import { difference, filter, findIndex, isEmpty, isEqual, isUndefined } from 'lodash'
 import { FormControl, TableBody, TableCell, TableRow } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import GetAppIcon from '@mui/icons-material/GetApp'
@@ -310,7 +310,7 @@ const FBATable = (props: FBATableProps) => {
   }
 
   const updateDate = (newDate: DateTime) => {
-    if (newDate !== dateOfInterest) {
+    if (!isEqual(newDate, dateOfInterest)) {
       dispatch(fetchFireBehaviourStations(newDate, rows))
       setDateOfInterest(newDate)
     }
