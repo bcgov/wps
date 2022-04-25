@@ -73,9 +73,16 @@ export const dateRangePickerTheme = createTheme(
         input: {
           '&.Mui-disabled': {
             color: 'white',
-            borderColor: 'white',
-            WebkitTextFillColor: 'white',
-            '& $notchedOutline': {
+            WebkitTextFillColor: 'white'
+          }
+        }
+      },
+      MuiTextField: {
+        root: {
+          color: 'white',
+          minWidth: 300,
+          '& .MuiOutlinedInput-root': {
+            '&.Mui-disabled fieldset': {
               borderColor: 'white'
             }
           }
@@ -97,11 +104,6 @@ export const dateRangePickerTheme = createTheme(
         root: {
           paddingLeft: 0,
           paddingRight: 12
-        }
-      },
-      MuiTextField: {
-        root: {
-          minWidth: 300
         }
       }
     }
