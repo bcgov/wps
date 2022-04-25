@@ -318,7 +318,7 @@ async def get_dailies(
     # for local dev, we can use redis to reduce load in prod, and generally just makes development faster.
     # for production, it's more tricky - we don't want to put too much load on the wf1 api, but we don't
     # want stale values either. We default to 5 minutes, or 300 seconds.
-    cache_expiry_seconds = config.get('REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY', 300)
+    cache_expiry_seconds: Final = int(config.get('REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY', 300))
     use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
 
     dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailiesByStationCode(
