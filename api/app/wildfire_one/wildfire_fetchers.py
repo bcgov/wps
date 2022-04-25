@@ -7,6 +7,7 @@ import json
 from urllib.parse import urlencode
 from aiohttp.client import ClientSession, BasicAuth
 from app.data.ecodivision_seasons import EcodivisionSeasons
+from app.rocketchat_notifications import send_rocketchat_notification
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.stations import (DetailedWeatherStationProperties,
                                   GeoJsonDetailedWeatherStation,
@@ -29,19 +30,25 @@ async def _fetch_cached_response(session: ClientSession, headers: dict, url: str
         cached_json = cache.get(key)
     except Exception as error:  # pylint: disable=broad-except
         cached_json = None
-        logger.error(error)
+        logger.error(error, exc_info=error)
     if cached_json:
         logger.info('redis cache hit %s', key)
         response_json = json.loads(cached_json.decode())
     else:
         logger.info('redis cache miss %s', key)
         async with session.get(url, headers=headers, params=params) as response:
-            response_json = await response.json()
+            try:
+                response_json = await response.json()
+            except json.decoder.JSONDecodeError as error:
+                logger.error(error, exc_info=error)
+                text = await response.text()
+                logger.error('response.text() = %s', text)
+                send_rocketchat_notification(f'JSONDecodeError, response.text() = {text}', error)
         try:
             if response.status == 200:
                 cache.set(key, json.dumps(response_json).encode(), ex=cache_expiry_seconds)
         except Exception as error:  # pylint: disable=broad-except
-            logger.error(error)
+            logger.error(error, exc_info=error)
     return response_json
 
 
@@ -231,7 +238,7 @@ async def fetch_access_token(session: ClientSession) -> dict:
         cached_json = cache.get(key)
     except Exception as error:  # pylint: disable=broad-except
         cached_json = None
-        logger.error(error)
+        logger.error(error, exc_info=error)
     if cached_json:
         logger.info('redis cache hit %s', auth_url)
         response_json = json.loads(cached_json.decode())
@@ -248,5 +255,5 @@ async def fetch_access_token(session: ClientSession) -> dict:
                     expires = min(response_json['expires_in'], redis_auth_cache_expiry)
                     cache.set(key, json.dumps(response_json).encode(), ex=expires)
             except Exception as error:  # pylint: disable=broad-except
-                logger.error(error)
+                logger.error(error, exc_info=error)
     return response_json
