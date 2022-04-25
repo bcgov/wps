@@ -19,16 +19,15 @@ export interface ViewSwitcherTogglesProps {
 
 const useStyles = makeStyles(() => ({
   toggleGroup: {
-    '& .MuiToggleButtonGroup-root': {
+    '& .MuiToggleButton-root': {
+      height: 56,
+      lineHeight: '16px',
       color: theme.palette.primary.main
     },
     '& .MuiToggleButton-root.Mui-selected': {
       backgroundColor: theme.palette.primary.main,
       color: 'white',
       fontWeight: 'bold'
-    },
-    '& .MuiToggleButton-label': {
-      lineHeight: '16px'
     }
   }
 }))
