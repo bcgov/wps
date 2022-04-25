@@ -44,6 +44,7 @@ async def _fetch_cached_response(session: ClientSession, headers: dict, url: str
                 text = await response.text()
                 logger.error('response.text() = %s', text)
                 send_rocketchat_notification(f'JSONDecodeError, response.text() = {text}', error)
+                raise
         try:
             if response.status == 200:
                 cache.set(key, json.dumps(response_json).encode(), ex=cache_expiry_seconds)
