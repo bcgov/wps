@@ -257,7 +257,7 @@ def test_valid_fuel_types_response(monkeypatch):
     assert response.status_code == 200
     assert response.headers['content-type'] == 'application/json'
     with open(correct_response_file) as file_reader:
-        assert json.loads(response.text) == json.loads(file_reader.read())
+        assert response.json() == json.loads(file_reader.read())
 
 
 def test_valid_date_range_none():
