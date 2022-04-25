@@ -12,11 +12,13 @@ const useStyles = makeStyles(theme => ({
     padding: '5px'
   },
   title: {
+    fontSize: '0.875rem',
     height: '20px',
     width: '205px',
     color: 'white'
   },
   time: {
+    fontSize: '0.875rem',
     height: '20px',
     width: '205px',
     color: 'white',

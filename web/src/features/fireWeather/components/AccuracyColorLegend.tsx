@@ -26,6 +26,7 @@ const useStyles = makeStyles({
   },
   title: {
     height: '20px',
+    fontSize: '0.875rem',
     width: '260px',
     color: 'white',
     textAlign: 'center'
