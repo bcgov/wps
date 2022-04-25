@@ -18,6 +18,7 @@ export interface BaseStationAttributeCellsProps {
   grassCurePercentage: number | undefined
   stationCodeInSelected: (planningAreaId: number, code: number) => boolean
   toggleSelectedStation: (planningAreaId: number, code: number) => void
+  setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
   isDailyTable?: boolean
 }
 
@@ -32,7 +33,8 @@ const BaseStationAttributeCells = ({
   className,
   grassCurePercentage,
   stationCodeInSelected,
-  toggleSelectedStation
+  toggleSelectedStation,
+  setFuelType
 }: BaseStationAttributeCellsProps) => {
   const classes = useStyles()
 
@@ -81,7 +83,7 @@ const BaseStationAttributeCells = ({
               >
                 <FuelTypeDropdown
                   setFuelType={(code: number, fuelTypeId: number) => {
-                    console.log(code)
+                    setFuelType(planningAreaId, code, fuelTypeId)
                   }}
                   station={station}
                   stationInfo={stationInfo}

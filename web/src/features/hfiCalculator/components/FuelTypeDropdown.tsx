@@ -24,8 +24,10 @@ const FuelTypeDropDown = ({
 }: FuelTypeDropDownProps) => {
   const classes = useStyles()
   // TODO: Wire up fuel type list
-  const fuelTypes = [1, 2, stationInfo?.fuel_type_id]
-  // TODO: Wire up "setfueltype"
+  const fuelTypes = []
+  for (let i = 0; i < 100; i++) {
+    fuelTypes.push(i)
+  }
   // TODO: Wire up permissions
   if (stationInfo) {
     return (

@@ -277,6 +277,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                 dateRange={dateRange}
                 setSelected={setSelectedStation}
                 setNewFireStarts={setNewFireStarts}
+                setFuelType={setFuelType}
                 selectedPrepDay={selectedPrepDate}
               />
             </ErrorBoundary>

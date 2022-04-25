@@ -40,6 +40,7 @@ export interface Props {
     dayOffset: number,
     newFireStarts: FireStartRange
   ) => void
+  setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
 }
 
 export const columnLabelsForEachDayInWeek: string[] = [
@@ -227,6 +228,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 ? dailiesForStation[0].grass_cure_percentage
                                 : undefined
                             }
+                            setFuelType={props.setFuelType}
                           />
                           <StaticCells
                             numPrepDays={numPrepDays}

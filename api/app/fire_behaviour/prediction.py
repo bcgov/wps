@@ -28,6 +28,11 @@ class CannotCalculateFireTypeError(Exception):
     """ Exception thrown when fire type cannot be established """
 
 
+class FireBehaviourPredictionInputError(Exception):
+    """ Exception thrown when there something wrong with the input required to calculate a fire behaviour
+    prediction. """
+
+
 @Singleton
 class DiurnalFFMCLookupTable():
     """ Singleton that loads diurnal FFMC lookup tables from Red Book once, for reuse.
@@ -474,6 +479,10 @@ def calculate_fire_behaviour_prediction(latitude: float,  # pylint: disable=too-
                                         pc: float,  # pylint: disable=invalid-name
                                         isi: float, pdf: float, cbh: float, cfl: float):
     """ Calculate the fire behaviour prediction. """
+    if bui is None:
+        raise FireBehaviourPredictionInputError('BUI is required')
+    if ffmc is None:
+        raise FireBehaviourPredictionInputError('FFMC is required')
     if fuel_type == FuelTypeEnum.C7B:
         return calculate_fire_behaviour_prediction_using_c7b(
             latitude=latitude,
