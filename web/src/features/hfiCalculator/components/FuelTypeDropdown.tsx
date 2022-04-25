@@ -32,6 +32,7 @@ const FuelTypeDropDown = ({
   if (stationInfo) {
     return (
       <Autocomplete
+        data-testid={`fuel-type-dropdown`}
         className={classes.dropdownClass}
         disableClearable
         autoHighlight
