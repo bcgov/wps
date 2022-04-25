@@ -1,7 +1,7 @@
 """ Unit testing for hfi logic """
 from datetime import date, datetime, timedelta
 import pytest
-import json
+import os
 from pytest_mock import MockerFixture
 from app.hfi.hfi_calc import (calculate_hfi_results,
                               calculate_mean_intensity,
@@ -249,15 +249,16 @@ def test_valid_fuel_types_response(monkeypatch):
         return [fuel_type_1, fuel_type_2, fuel_type_3]
 
     monkeypatch.setattr(app.routers.hfi_calc, 'crud_get_fuel_types', mock_get_fuel_types)
+    correct_response_file = os.path.join(os.path.dirname(__file__), 'test_valid_fuel_types_response.json')
 
     client = TestClient(starlette_app)
     response = client.get('/api/hfi-calc/fuel_types')
     assert response.status_code == 200
     assert response.headers['content-type'] == 'application/json'
-    with open('api/app/tests/hfi/test_valid_fuel_types_response.json') as correct_response_file:
-        correct_response = correct_response_file.read()
-    correct_response = correct_response.replace('\n', '').replace(' ', '')
-    assert response.text == correct_response
+    with open(correct_response_file) as file_reader:
+        correct_response = file_reader.read()
+        correct_response = correct_response.replace('\n', '').replace(' ', '')
+        assert response.text == correct_response
 
 
 def test_valid_date_range_none():
