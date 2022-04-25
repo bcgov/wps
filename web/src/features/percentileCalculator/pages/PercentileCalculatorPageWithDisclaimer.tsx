@@ -13,7 +13,7 @@ const useStyles = makeStyles({
     alignItems: 'center'
   },
   card: {
-    maxWidth: 600,
+    maxWidth: 800,
     maxHeight: 'calc(100% - 32px)',
     margin: 16,
     overflowY: 'auto',

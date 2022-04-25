@@ -5,7 +5,7 @@ const useStyles = makeStyles({
   contact: {
     color: 'white',
     fontStyle: 'bold',
-    fontSize: '1.2em',
+    fontSize: '1.1em',
     textDecoration: 'none',
     cursor: 'pointer',
 
