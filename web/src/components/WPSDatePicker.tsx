@@ -18,6 +18,8 @@ const WPSDatePicker = (props: WPSDatePickerProps) => {
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <DatePicker
+        label="Date of Interest (PST-08:00)"
+        inputFormat="yyyy/MM/dd"
         value={props.date}
         onChange={newValue => {
           if (!isNull(newValue)) {

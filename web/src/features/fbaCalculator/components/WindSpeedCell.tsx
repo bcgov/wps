@@ -37,7 +37,8 @@ const adjustedTheme = createTheme(
     overrides: {
       MuiInputBase: {
         root: {
-          border: '2px solid #460270'
+          border: '2px solid #460270',
+          fontSize: '0.875rem'
         }
       }
     }
