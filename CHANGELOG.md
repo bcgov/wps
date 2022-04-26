@@ -1,8 +1,14 @@
-## 2022-04-26 HFI Calc [#1869](https://github.com/bcgov/wps/issues/1869)
+## 2022-04-27 HFI Calc [#1869](https://github.com/bcgov/wps/issues/1869)
 
 ### Features
 
 - **hfi calculator:** Introduce role permission for editing HFI prep fire starts.
+
+## 2022-04-26 HFI Calc - Migrate Material UI from v4 to v5, Part1 [#1896](https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5bbe203b8/issues/bcgov/wps/1896)
+
+### Refactor
+
+- **all products** Added the new libraries, updated component imports and ran the codemod while keeping the existing CSS in JSS libraries in place. Eventually (part 2) we will remove the CSS in JS build library in favor of the direction MaterialUI is going with the emotion CSS engine.
 
 ## 2022-04-21 HFI Calc
 
