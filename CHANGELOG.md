@@ -2,7 +2,7 @@
 
 ### Refactor
 
-- **all products** Added the new libraries, updated component imports and running the codemod while keeping the existing CSS in JSS libraries in place. Eventually (part 2) we will remove the CSS in JS build library in favor of the direction MaterialUI is going with the emotion CSS engine.
+- **all products** Added the new libraries, updated component imports and ran the codemod while keeping the existing CSS in JSS libraries in place. Eventually (part 2) we will remove the CSS in JS build library in favor of the direction MaterialUI is going with the emotion CSS engine.
 
 ## 2022-04-21 HFI Calc
 
