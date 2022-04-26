@@ -1,5 +1,4 @@
-import { WeatherStationProperties } from 'api/hfiCalcAPI'
-import { StationDaily } from 'api/hfiCalculatorAPI'
+import { WeatherStationProperties, StationDaily } from 'api/hfiCalculatorAPI'
 import { isEqual, isNull, isUndefined } from 'lodash'
 
 export const isValidGrassCure = (

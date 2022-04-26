@@ -212,3 +212,8 @@ class DailyTablePlanningAreaPDFData(BaseModel):
     date: str
     # Every station daily in the above planning area for the specific day
     dailies: List[StationPDFData]
+
+
+class FuelTypesResponse(BaseModel):
+    """ List of FuelType objects """
+    fuel_types: List[FuelType]
