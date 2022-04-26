@@ -1,6 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { FireCentre, getHFIStations, HFIWeatherStationsResponse } from 'api/hfiCalcAPI'
+import {
+  FireCentre,
+  getHFIStations,
+  HFIWeatherStationsResponse
+} from 'api/hfiCalculatorAPI'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 

@@ -2,7 +2,7 @@ import React from 'react'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import { TextField } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { FireCentre } from 'api/hfiCalculatorAPI'
 import { isNull } from 'lodash'
 
 const useStyles = makeStyles({

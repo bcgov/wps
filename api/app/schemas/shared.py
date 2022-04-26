@@ -15,6 +15,7 @@ class WeatherDataRequest(BaseModel):
 
 class FuelType(BaseModel):
     """ Fuel type assigned to a station. """
+    id: int
     abbrev: str
     fuel_type_code: str
     description: str

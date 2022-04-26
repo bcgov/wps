@@ -64,6 +64,12 @@ Ensure that the CLASSPATH environment variable points to the jar files in api/li
 brew install gdal
 ```
 
+##### wkhtmltopdf
+
+```bash
+brew install --cask wkhtmltopdf
+```
+
 ##### Poetry
 
 Try to match the latest version of python in our production environment (as of writing, API is on 3.9.7 and C-Haines is on 3.8.10)
