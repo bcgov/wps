@@ -1,7 +1,7 @@
 import 'ol/ol.css'
 
 import React, { useRef, useState, useEffect, useCallback } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 import * as ol from 'ol'
 import { toLonLat } from 'ol/proj'
 import { FeatureLike } from 'ol/Feature'

@@ -1,4 +1,4 @@
-import { Table, TableBody, TableCell, TableContainer, TableRow } from '@material-ui/core'
+import { Table, TableBody, TableCell, TableContainer, TableRow } from '@mui/material'
 import { FireCenter } from 'api/fbaAPI'
 import { sortBy } from 'lodash'
 import React from 'react'

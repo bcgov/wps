@@ -6,12 +6,12 @@ import {
   DialogActions,
   IconButton,
   Paper,
-  makeStyles,
   Fab,
   Checkbox,
   Button
-} from '@material-ui/core'
-import { Clear } from '@material-ui/icons'
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { Clear } from '@mui/icons-material'
 
 export interface ColumnSelectionState {
   label: string
@@ -84,7 +84,7 @@ export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
         <Paper>
           <DialogTitle>
             Show Columns
-            <IconButton className={classes.closeIcon} onClick={handleClose}>
+            <IconButton className={classes.closeIcon} onClick={handleClose} size="large">
               <Clear />
             </IconButton>
           </DialogTitle>

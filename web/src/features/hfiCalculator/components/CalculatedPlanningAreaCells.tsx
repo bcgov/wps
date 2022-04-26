@@ -1,4 +1,4 @@
-import { TableCell } from '@material-ui/core'
+import { TableCell } from '@mui/material'
 import { PlanningArea } from 'api/hfiCalculatorAPI'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'

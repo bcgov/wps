@@ -1,5 +1,5 @@
-import { TableCell } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import React from 'react'
 import { isNull } from 'lodash'
 import { fireTableStyles } from 'app/theme'

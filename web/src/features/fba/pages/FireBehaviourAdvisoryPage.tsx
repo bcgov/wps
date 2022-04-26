@@ -1,10 +1,10 @@
-import { FormControl, Grid, makeStyles } from '@material-ui/core'
+import { FormControl, Grid } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import FormalFBATable from 'features/fba/components/FormalFBATable'
-import DatePicker from 'components/DatePicker'
 import { DateTime } from 'luxon'
 import { selectFireCenters } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
@@ -14,7 +14,7 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { FireCenter } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
-import { pstFormatter } from 'utils/date'
+import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 
 const useStyles = makeStyles(() => ({
@@ -64,10 +64,10 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [fireCenter])
 
   const [dateOfInterest, setDateOfInterest] = useState(
-    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
   )
 
-  const updateDate = (newDate: string) => {
+  const updateDate = (newDate: DateTime) => {
     if (newDate !== dateOfInterest) {
       setDateOfInterest(newDate)
     }
@@ -94,7 +94,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid container spacing={2}>
             <Grid item>
               <FormControl className={classes.formControl}>
-                <DatePicker date={dateOfInterest} updateDate={updateDate} />
+                <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
               </FormControl>
             </Grid>
             <Grid item xs={2}>

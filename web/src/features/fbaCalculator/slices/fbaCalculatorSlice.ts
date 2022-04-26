@@ -8,6 +8,7 @@ import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
+import { pstFormatter } from 'utils/date'
 
 interface State {
   loading: boolean
@@ -61,7 +62,7 @@ export const {
 export default fireBehaviourStationsSlice.reducer
 
 export const fetchFireBehaviourStations =
-  (date: string, fbcInputRows: FBATableRow[]): AppThunk =>
+  (date: DateTime, fbcInputRows: FBATableRow[]): AppThunk =>
   async dispatch => {
     const fetchableFireStations = fbcInputRows.flatMap(row => {
       const fuelTypeDetails = FuelTypes.lookup(row.fuelType?.value)
@@ -87,7 +88,10 @@ export const fetchFireBehaviourStations =
     try {
       if (!isEmpty(fetchableFireStations)) {
         dispatch(getFireBehaviourStationsStart())
-        const fireBehaviourStations = await postFBAStations(date, fetchableFireStations)
+        const fireBehaviourStations = await postFBAStations(
+          pstFormatter(date),
+          fetchableFireStations
+        )
         dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
       }
     } catch (err) {

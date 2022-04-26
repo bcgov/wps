@@ -1,4 +1,4 @@
-import { TableContainer, Table, TableRow, TableBody } from '@material-ui/core'
+import { TableContainer, Table, TableRow, TableBody } from '@mui/material'
 import { render } from '@testing-library/react'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import StatusCell from 'features/hfiCalculator/components/StatusCell'

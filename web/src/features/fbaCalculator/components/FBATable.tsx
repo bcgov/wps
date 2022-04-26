@@ -1,14 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { difference, filter, findIndex, isEmpty, isUndefined } from 'lodash'
-import {
-  FormControl,
-  makeStyles,
-  TableBody,
-  TableCell,
-  TableRow
-} from '@material-ui/core'
-import GetAppIcon from '@material-ui/icons/GetApp'
-import ViewColumnOutlinedIcon from '@material-ui/icons/ViewColumnOutlined'
+import { difference, filter, findIndex, isEmpty, isEqual, isUndefined } from 'lodash'
+import { FormControl, TableBody, TableCell, TableRow } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import GetAppIcon from '@mui/icons-material/GetApp'
+import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
 import { CsvBuilder } from 'filefy'
 import { Button, ErrorBoundary } from 'components'
 import { FBAStation } from 'api/fbaCalcAPI'
@@ -31,7 +26,6 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
-import DatePicker from 'components/DatePicker'
 import assert from 'assert'
 import { rowShouldUpdate, isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import TextDisplayCell from 'features/fbaCalculator/components/TextDisplayCell'
@@ -50,7 +44,7 @@ import FBATableInstructions from 'features/fbaCalculator/components/FBATableInst
 import FilterColumnsModal from 'components/FilterColumnsModal'
 import { formControlStyles } from 'app/theme'
 import { PST_UTC_OFFSET } from 'utils/constants'
-import { pstFormatter } from 'utils/date'
+import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 export interface FBATableProps {
   maxWidth?: number
@@ -130,7 +124,7 @@ const FBATable = (props: FBATableProps) => {
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
   const [dateOfInterest, setDateOfInterest] = useState(
-    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
   )
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
@@ -315,8 +309,8 @@ const FBATable = (props: FBATableProps) => {
     })
   }
 
-  const updateDate = (newDate: string) => {
-    if (newDate !== dateOfInterest) {
+  const updateDate = (newDate: DateTime) => {
+    if (!isEqual(newDate, dateOfInterest)) {
       dispatch(fetchFireBehaviourStations(newDate, rows))
       setDateOfInterest(newDate)
     }
@@ -613,7 +607,7 @@ const FBATable = (props: FBATableProps) => {
         ))}
       <ErrorBoundary>
         <FormControl className={classes.formControl}>
-          <DatePicker date={dateOfInterest} updateDate={updateDate} />
+          <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
         </FormControl>
         <FormControl className={classes.formControl}>
           <Button
@@ -641,7 +635,6 @@ const FBATable = (props: FBATableProps) => {
         <FormControl className={classes.formControl}>
           <Button
             data-testid="export"
-            color="default"
             disabled={selected.length === 0}
             onClick={exportSelectedRows}
           >
@@ -652,7 +645,6 @@ const FBATable = (props: FBATableProps) => {
         <FormControl className={classes.formControl}>
           <Button
             data-testid="filter-columns-btn"
-            color="default"
             disabled={fireBehaviourResultStations.length === 0}
             onClick={openColumnsModal}
           >

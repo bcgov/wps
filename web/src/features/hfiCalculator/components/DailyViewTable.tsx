@@ -1,15 +1,8 @@
 import React from 'react'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Tooltip
-} from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { useSelector } from 'react-redux'
-import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { FireCentre, StationDaily } from 'api/hfiCalculatorAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'

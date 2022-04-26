@@ -1,4 +1,5 @@
-import { makeStyles, Table, TableBody, TableCell, TableRow } from '@material-ui/core'
+import { Table, TableBody, TableCell, TableRow } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
 import React, { ReactElement } from 'react'

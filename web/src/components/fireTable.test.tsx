@@ -1,4 +1,4 @@
-import { TableHead, TableRow } from '@material-ui/core'
+import { TableHead, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
 import FireTable from 'components/FireTable'
 import React from 'react'
