@@ -66,7 +66,7 @@ describe('FireStartsDropdown', () => {
       />
     )
     const autocomplete = getByTestId('fire-starts-dropdown')
-    const input = within(autocomplete).getByRole('textbox') as HTMLInputElement
+    const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
     expect(input).toHaveAttribute('disabled')
   })
 })
