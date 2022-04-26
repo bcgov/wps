@@ -1,6 +1,7 @@
-import { render, fireEvent, within, waitFor } from '@testing-library/react'
+import { render, fireEvent, within, waitFor, prettyDOM } from '@testing-library/react'
 import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
 import { FuelType } from 'api/hfiCalculatorAPI'
+import userEvent from '@testing-library/user-event'
 import React from 'react'
 
 describe('FuelTypeDropdown', () => {
@@ -49,8 +50,9 @@ describe('FuelTypeDropdown', () => {
     )
     await waitFor(() => expect(input.value).toBe(fuelType?.abbrev))
   })
-  it.only('should change value on change and call parent callback', async () => {
+  it('should change value on change and call parent callback', async () => {
     const setFuelTypeMock = jest.fn()
+    const user = userEvent.setup()
     const { getByTestId } = render(
       <FuelTypeDropdown
         station={testStation}
@@ -63,10 +65,8 @@ describe('FuelTypeDropdown', () => {
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
     autocomplete.focus()
-    // assign value to input field
-    fireEvent.change(input, { target: { value: fuelTypes[5].abbrev } })
-    fireEvent.keyDown(autocomplete, { key: 'ArrowDown' })
-    fireEvent.keyDown(autocomplete, { key: 'Enter' })
+    await user.type(input, fuelTypes[5].abbrev)
+    await user.type(input, '{enter}')
 
     await waitFor(() => expect(input.value).toBe(fuelTypes[5].abbrev))
     await waitFor(() => expect(setFuelTypeMock).toBeCalledTimes(1))

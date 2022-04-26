@@ -1,4 +1,4 @@
-import { render, fireEvent, within, waitFor } from '@testing-library/react'
+import { render, fireEvent, within, waitFor, prettyDOM } from '@testing-library/react'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
 import React from 'react'
 describe('FireStartsDropdown', () => {

@@ -143,6 +143,7 @@ def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
 
 
 def fuel_type_model_to_schema(fuel_type_record: FuelTypeModel) -> FuelType:
+    """ Parse a database model record into a schema record. """
     return FuelType(id=fuel_type_record.id, description=fuel_type_record.description,
                     abbrev=fuel_type_record.abbrev,
                     fuel_type_code=fuel_type_record.fuel_type_code,

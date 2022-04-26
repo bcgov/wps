@@ -35,7 +35,10 @@ def generate_html(result: HFIResultResponse,
     return rendered_output, fire_centre_name
 
 
-def override_fuel_types(fire_centres: List[FireCentre], result: HFIResultResponse, fuel_types: Dict[int, StationInfo]):
+def override_fuel_types(
+        fire_centres: List[FireCentre],
+        result: HFIResultResponse,
+        fuel_types: Dict[int, StationInfo]):
     """ Override the fuel types in the fire centre with the fuel types from the result """
     fire_centre: FireCentre = next(
         fire_centre for fire_centre in fire_centres if fire_centre.id == result.selected_fire_center_id)
@@ -43,7 +46,8 @@ def override_fuel_types(fire_centres: List[FireCentre], result: HFIResultRespons
         station_info_list: List[StationInfo] = result.planning_area_station_info[planning_area.id]
         for station in planning_area.stations:
             station_info: StationInfo = next(
-                station_info for station_info in station_info_list if station_info.station_code == station.code)
+                station_info for station_info in
+                station_info_list if station_info.station_code == station.code)
             station.station_props.fuel_type = fuel_types[station_info.fuel_type_id]
 
 
