@@ -41,7 +41,7 @@ def test_generate_html():
     html_string, _ = generate_html(HFIResultResponse(**result), fire_centres, 'wps',
                                    datetime.fromisocalendar(2022, 2, 2), jinja_env,
                                    fuel_types)
-    # The hash should only change if an intentinonal change has been made to the pdf,
+    # The hash should only change if an intentional change has been made to the pdf,
     # in which case the hash value we're checking here may be updated by the developer.
     assert hashlib.sha256(html_string.encode()).hexdigest(
     ) == '3ae6afe40e9b477a158816f9e055d66691c2a51c5bc86acf228fd3c1e669b47f'

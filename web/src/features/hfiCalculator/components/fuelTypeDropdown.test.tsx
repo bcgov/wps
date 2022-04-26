@@ -1,4 +1,4 @@
-import { render, fireEvent, within, waitFor, prettyDOM } from '@testing-library/react'
+import { render, within, waitFor } from '@testing-library/react'
 import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
 import { FuelType } from 'api/hfiCalculatorAPI'
 import userEvent from '@testing-library/user-event'

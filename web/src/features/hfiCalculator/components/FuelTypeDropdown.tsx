@@ -5,7 +5,7 @@ import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isEqual, isNull } from 'lodash'
 import React from 'react'
 
-export interface FuelTypeDropDownProps {
+export interface FuelTypeDropdownProps {
   station: WeatherStation
   stationInfo?: StationInfo
   fuelTypes: FuelType[]
@@ -18,12 +18,12 @@ const useStyles = makeStyles({
   }
 })
 
-const FuelTypeDropDown = ({
+const FuelTypeDropdown = ({
   station,
   stationInfo,
   fuelTypes,
   setFuelType
-}: FuelTypeDropDownProps) => {
+}: FuelTypeDropdownProps) => {
   const classes = useStyles()
   if (stationInfo) {
     const selectedFuelType = fuelTypes.find(
@@ -54,4 +54,4 @@ const FuelTypeDropDown = ({
   return <div></div>
 }
 
-export default React.memo(FuelTypeDropDown)
+export default React.memo(FuelTypeDropdown)
