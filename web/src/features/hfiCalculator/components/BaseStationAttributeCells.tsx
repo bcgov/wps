@@ -1,5 +1,5 @@
-import { Table, TableBody, TableRow, Checkbox, TableCell } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { Table, TableBody, TableRow, Checkbox, TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { FuelType, WeatherStation } from 'api/hfiCalculatorAPI'
 import StickyCell from 'components/StickyCell'
 import { fireTableStyles } from 'app/theme'

@@ -1,4 +1,4 @@
-import { Table, TableBody } from '@material-ui/core'
+import { Table, TableBody } from '@mui/material'
 import { render, waitFor } from '@testing-library/react'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import React from 'react'

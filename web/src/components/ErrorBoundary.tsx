@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import React, { Component } from 'react'
-import WarningSharp from '@material-ui/icons/WarningSharp'
+import WarningSharp from '@mui/icons-material/WarningSharp'
 
 interface Props {
   children: React.ReactNode

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Grid, GridProps } from '@material-ui/core'
+import { Grid, GridProps } from '@mui/material'
 
 export const GridContainer: React.FunctionComponent<GridProps> = (props: GridProps) => (
   <Grid container spacing={2} {...props} />

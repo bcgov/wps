@@ -28,7 +28,7 @@ describe('FuelTypeDropdown', () => {
   const testStationInfo = {
     station_code: 123,
     selected: true,
-    fuel_type_id: 3
+    fuel_type_id: fuelTypes[2].id
   }
 
   it('should render with the default value', async () => {
@@ -42,14 +42,14 @@ describe('FuelTypeDropdown', () => {
       />
     )
     const autocomplete = getByTestId('fuel-type-dropdown')
-    const input = within(autocomplete).getByRole('textbox') as HTMLInputElement
+    const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
     const fuelType = fuelTypes.find(
       instance => instance.id == testStationInfo.fuel_type_id
     )
     await waitFor(() => expect(input.value).toBe(fuelType?.abbrev))
   })
-  it('should change value on change and call parent callback', async () => {
+  it.only('should change value on change and call parent callback', async () => {
     const setFuelTypeMock = jest.fn()
     const { getByTestId } = render(
       <FuelTypeDropdown
@@ -60,7 +60,7 @@ describe('FuelTypeDropdown', () => {
       />
     )
     const autocomplete = getByTestId('fuel-type-dropdown')
-    const input = within(autocomplete).getByRole('textbox') as HTMLInputElement
+    const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
     autocomplete.focus()
     // assign value to input field

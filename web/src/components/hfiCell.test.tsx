@@ -1,4 +1,4 @@
-import { TableContainer, Table, TableBody, TableRow } from '@material-ui/core'
+import { TableContainer, Table, TableBody, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
 import HFICell from 'components/HFICell'
 import React from 'react'

@@ -1,4 +1,4 @@
-import { TableCell } from '@material-ui/core'
+import { TableCell } from '@mui/material'
 import { StationDaily, WeatherStation } from 'api/hfiCalculatorAPI'
 import HFICell from 'components/HFICell'
 import EmptyStaticCells from 'features/hfiCalculator/components/EmptyStaticCells'

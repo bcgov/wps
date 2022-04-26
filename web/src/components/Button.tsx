@@ -1,7 +1,8 @@
 import React, { forwardRef } from 'react'
 import clsx from 'clsx'
-import { Button as B, ButtonProps, CircularProgress } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { Button as B, ButtonProps, CircularProgress } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { theme } from 'app/theme'
 
 interface CustomProps {
   loading?: boolean
@@ -11,7 +12,7 @@ interface CustomProps {
 
 type Props = CustomProps & ButtonProps
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   root: {
     position: 'relative'
   },

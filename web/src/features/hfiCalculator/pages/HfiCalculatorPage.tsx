@@ -20,10 +20,11 @@ import {
   selectHFIStationsLoading,
   selectHFICalculatorState
 } from 'app/rootReducer'
-import { FormControl, makeStyles } from '@material-ui/core'
+import { FormControl } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
-import { formControlStyles, theme } from 'app/theme'
+import { formControlStyles } from 'app/theme'
 import { FireCentre } from 'api/hfiCalculatorAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
 import { isUndefined } from 'lodash'
@@ -34,7 +35,7 @@ import LiveChangesAlert from 'features/hfiCalculator/components/LiveChangesAlert
 import { AppDispatch } from 'app/store'
 import HFILoadingDataView from 'features/hfiCalculator/components/HFILoadingDataView'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   ...formControlStyles,
   container: {
     display: 'flex',

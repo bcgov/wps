@@ -1,5 +1,5 @@
-import { makeStyles, TextField } from '@material-ui/core'
-import { Autocomplete } from '@material-ui/lab'
+import makeStyles from '@mui/styles/makeStyles'
+import { TextField, Autocomplete } from '@mui/material'
 import { FuelType, WeatherStation } from 'api/hfiCalculatorAPI'
 import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isEqual, isNull } from 'lodash'
@@ -37,7 +37,7 @@ const FuelTypeDropDown = ({
         autoHighlight
         autoSelect
         options={fuelTypes}
-        getOptionSelected={(option, value) => isEqual(option.id, value.id)}
+        isOptionEqualToValue={(option, value) => isEqual(option.id, value.id)}
         getOptionLabel={option => option.abbrev}
         renderInput={params => (
           <TextField {...params} variant="outlined" value={selectedFuelType} />
