@@ -3,19 +3,13 @@ import {
   Box,
   Dialog,
   DialogContent,
-  Divider,
   IconButton,
   List,
   ListItem,
-  ListItemButton,
-  ListItemIcon,
   ListItemText,
-  ListSubheader,
   Paper,
   Typography
 } from '@mui/material'
-import InboxIcon from '@mui/icons-material/Inbox'
-import DraftsIcon from '@mui/icons-material/Drafts'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
