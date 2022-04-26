@@ -1,5 +1,4 @@
-import { TextField } from '@material-ui/core'
-import { Autocomplete } from '@material-ui/lab'
+import { TextField, Autocomplete } from '@mui/material'
 import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGrid'
 import { Option } from 'features/fwiCalculator/components/BasicFWIInput'
 import { isEqual } from 'lodash'
@@ -39,7 +38,7 @@ const FWIStationCell = ({
       disabled={isLoading}
       options={stationOptions}
       getOptionLabel={option => `${option.name} (${option.code})`}
-      getOptionSelected={(option, value) => isEqual(option, value)}
+      isOptionEqualToValue={(option, value) => isEqual(option, value)}
       renderInput={params => (
         <TextField
           {...params}

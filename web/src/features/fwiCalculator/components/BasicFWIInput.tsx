@@ -6,7 +6,7 @@ import {
   TableCell,
   TableBody,
   InputAdornment
-} from '@material-ui/core'
+} from '@mui/material'
 import { YesterdayIndices } from 'api/fwiAPI'
 import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGrid'
 import FWINumberCell from 'features/fwiCalculator/components/FWINumberCell'

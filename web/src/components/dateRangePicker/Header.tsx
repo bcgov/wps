@@ -1,9 +1,10 @@
 /* eslint-disable radix */
 
-import { Grid, makeStyles, IconButton, Select, MenuItem } from '@material-ui/core'
+import { Grid, IconButton, Select, MenuItem } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import React from 'react'
-import ChevronLeft from '@material-ui/icons/ChevronLeft'
-import ChevronRight from '@material-ui/icons/ChevronRight'
+import ChevronLeft from '@mui/icons-material/ChevronLeft'
+import ChevronRight from '@mui/icons-material/ChevronRight'
 import { setMonth, getMonth, setYear, getYear } from 'date-fns'
 
 const useStyles = makeStyles(() => ({
@@ -76,12 +77,14 @@ const Header: React.FunctionComponent<HeaderProps> = ({
           className={classes.icon}
           disabled={prevDisabled}
           onClick={onClickPrevious}
+          size="large"
         >
           <ChevronLeft color={prevDisabled ? 'disabled' : 'action'} />
         </IconButton>
       </Grid>
       <Grid item>
         <Select
+          variant="standard"
           value={getMonth(date)}
           onChange={handleMonthChange}
           MenuProps={{ disablePortal: true }}
@@ -96,6 +99,7 @@ const Header: React.FunctionComponent<HeaderProps> = ({
 
       <Grid item>
         <Select
+          variant="standard"
           value={getYear(date)}
           onChange={handleYearChange}
           MenuProps={{ disablePortal: true }}
@@ -112,6 +116,7 @@ const Header: React.FunctionComponent<HeaderProps> = ({
           className={classes.icon}
           disabled={nextDisabled}
           onClick={onClickNext}
+          size="large"
         >
           <ChevronRight color={nextDisabled ? 'disabled' : 'action'} />
         </IconButton>

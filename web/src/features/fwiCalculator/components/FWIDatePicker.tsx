@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
-import { TextField, IconButton, InputAdornment } from '@material-ui/core'
+import { TextField, IconButton, InputAdornment } from '@mui/material'
 import FWIDateRange from 'features/fwiCalculator/components/FWIDateRange'
-import { DateRange } from '@material-ui/icons'
+import DateRange from '@mui/icons-material/DateRange'
 import { DateTime } from 'luxon'
-import { PST_UTC_OFFSET } from 'utils/constants'
-import DatePicker from 'components/DatePicker'
+import WPSDatePicker from 'components/WPSDatePicker'
 
 export interface FWIDateRangeProps {
   isBasic: boolean
@@ -24,26 +23,21 @@ const FWIDatePicker = ({
   const [open, setOpen] = useState(false)
   const displayFormat = 'dd/MM/yyyy'
 
-  const updateStartDateWrapper = (startDateString: string) => {
-    const newDate = DateTime.fromISO(startDateString)
-      .startOf('day')
-      .setZone(`UTC${PST_UTC_OFFSET}`)
-      .toJSDate()
-    updateStartDate(newDate)
+  const updateStartDateWrapper = (newStartDate: DateTime) => {
+    updateStartDate(newStartDate.toJSDate())
     /**
      * We update end to the same date
      * so that date range is always valid
      * if user switches to  multi day calculator
      */
-    updateEndDate(newDate)
+    updateEndDate(newStartDate.toJSDate())
   }
 
   return (
     <React.Fragment>
       {isBasic ? (
-        <DatePicker
-          label={'Date of Interest (PST-08:00)'}
-          date={startDate.toISOString()}
+        <WPSDatePicker
+          date={DateTime.fromJSDate(startDate)}
           updateDate={updateStartDateWrapper}
         />
       ) : (

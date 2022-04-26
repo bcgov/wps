@@ -1,5 +1,5 @@
-import { makeStyles } from '@material-ui/core'
-import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab'
+import makeStyles from '@mui/styles/makeStyles'
+import { ToggleButtonGroup, ToggleButton } from '@mui/material'
 import { theme } from 'app/theme'
 import { isNull } from 'lodash'
 import React from 'react'
@@ -10,7 +10,7 @@ export interface ViewSwitcherTogglesProps {
   toggleView: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles({
   toggleGroup: {
     '& .MuiToggleButton-root': {
       color: theme.palette.primary.main
@@ -21,7 +21,7 @@ const useStyles = makeStyles(() => ({
       fontWeight: 'bold'
     }
   }
-}))
+})
 
 const FWIToggle = (props: ViewSwitcherTogglesProps) => {
   const classes = useStyles()

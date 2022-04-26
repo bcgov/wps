@@ -1,13 +1,7 @@
 import React from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Paper,
-  makeStyles
-} from '@material-ui/core'
-import { Clear } from '@material-ui/icons'
+import { Dialog, DialogContent, DialogTitle, IconButton, Paper } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { Clear } from '@mui/icons-material'
 
 export interface ColumnSelectionState {
   label: string
@@ -47,7 +41,7 @@ export const AboutDataModal = (props: ModalProps): JSX.Element => {
       >
         <Paper>
           <DialogTitle>
-            <IconButton className={classes.closeIcon} onClick={handleClose}>
+            <IconButton className={classes.closeIcon} onClick={handleClose} size="large">
               <Clear />
             </IconButton>
           </DialogTitle>

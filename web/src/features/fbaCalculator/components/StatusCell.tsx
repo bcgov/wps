@@ -1,4 +1,5 @@
-import { makeStyles, TableCell } from '@material-ui/core'
+import { TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { isUndefined } from 'lodash'
 import React from 'react'
 

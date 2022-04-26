@@ -1,8 +1,21 @@
-import { createTheme, makeStyles, ThemeProvider, Tooltip } from '@material-ui/core'
-import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
+import {
+  createTheme,
+  ThemeProvider,
+  Theme,
+  StyledEngineProvider,
+  Tooltip,
+  adaptV4Theme
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { fireTableStyles } from 'app/theme'
 import { isUndefined } from 'lodash'
 import React from 'react'
+
+declare module '@mui/styles/defaultTheme' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface DefaultTheme extends Theme {}
+}
 
 export interface ErrorIconWithTooltipProps {
   testId?: string
@@ -23,40 +36,44 @@ const useStyles = makeStyles({
   }
 })
 
-const errorIconTheme = createTheme({
-  overrides: {
-    MuiSvgIcon: {
-      root: {
-        fill: '#D8292F'
-      }
-    },
-    MuiTooltip: {
-      tooltip: {
-        fontSize: 14
+const errorIconTheme = createTheme(
+  adaptV4Theme({
+    overrides: {
+      MuiSvgIcon: {
+        root: {
+          fill: '#D8292F'
+        }
+      },
+      MuiTooltip: {
+        tooltip: {
+          fontSize: 14
+        }
       }
     }
-  }
-})
+  })
+)
 
 const ErrorIconWithTooltip = (props: ErrorIconWithTooltipProps) => {
   const classes = useStyles()
   return (
-    <ThemeProvider theme={errorIconTheme}>
-      <Tooltip
-        title={props.tooltipElement}
-        aria-label={`${props.tooltipAriaText.join('\n')}`}
-      >
-        <div
-          className={
-            !props.isDataCell || isUndefined(props.isDataCell)
-              ? classes.planningAreaIcon
-              : classes.dataCellIcon
-          }
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={errorIconTheme}>
+        <Tooltip
+          title={props.tooltipElement}
+          aria-label={`${props.tooltipAriaText.join('\n')}`}
         >
-          <ErrorOutlineIcon data-testid={props.testId}></ErrorOutlineIcon>
-        </div>
-      </Tooltip>
-    </ThemeProvider>
+          <div
+            className={
+              !props.isDataCell || isUndefined(props.isDataCell)
+                ? classes.planningAreaIcon
+                : classes.dataCellIcon
+            }
+          >
+            <ErrorOutlineIcon data-testid={props.testId}></ErrorOutlineIcon>
+          </div>
+        </Tooltip>
+      </ThemeProvider>
+    </StyledEngineProvider>
   )
 }
 

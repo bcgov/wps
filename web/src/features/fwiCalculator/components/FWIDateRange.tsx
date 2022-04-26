@@ -1,5 +1,5 @@
 import React from 'react'
-import { Dialog } from '@material-ui/core'
+import { Dialog } from '@mui/material'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
