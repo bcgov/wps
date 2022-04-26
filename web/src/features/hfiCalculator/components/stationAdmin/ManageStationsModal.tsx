@@ -57,6 +57,7 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
         className={classes.modalWindow}
         open={props.modalOpen}
         onClose={handleClose}
+        data-testid="manage-stations-modal"
       >
         <Paper>
           <IconButton className={classes.closeIcon} onClick={handleClose}>
