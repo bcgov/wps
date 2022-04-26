@@ -110,7 +110,7 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
                   <ListItemText primary="Salmon Arm" />
                 </ListItem>
                 <ListItem>
-                  <ListItemText primary="Kettle 2" />
+                  <ListItemText primary="Kettle 21" />
                 </ListItem>
               </List>
             </Box>
