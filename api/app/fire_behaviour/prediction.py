@@ -3,17 +3,16 @@
 from enum import Enum
 import math
 import os
-from datetime import date
-from typing import List, Optional
+from typing import List
 import logging
 import pandas as pd
 from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.observations import WeatherReading
 from app.schemas.fba_calc import CriticalHoursHFI
 from app.utils.singleton import Singleton
-from app.utils import cffdrs
-from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
-from app.utils.time import convert_utc_to_pdt, get_hour_20_from_date, get_julian_date
+from app.fire_behaviour import cffdrs, c7b
+from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS
+from app.utils.time import convert_utc_to_pdt, get_julian_date_now
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +37,7 @@ class DiurnalFFMCLookupTable():
 
     def __init__(self):
         afternoon_filename = os.path.join(os.path.dirname(__file__),
-                                          './data/diurnal_ffmc_lookups/afternoon_overnight.csv')
+                                          '../data/diurnal_ffmc_lookups/afternoon_overnight.csv')
         with open(afternoon_filename, 'rb') as afternoon_file:
             afternoon_df = pd.read_csv(afternoon_file)
         # Pylint thinks that afternoon_df's type is TextFileReader. It isn't - it's a pandas dataframe.
@@ -47,7 +46,7 @@ class DiurnalFFMCLookupTable():
         afternoon_df.set_index(17, inplace=True)
 
         morning_filename = os.path.join(os.path.dirname(__file__),
-                                        './data/diurnal_ffmc_lookups/morning.csv')
+                                        '../data/diurnal_ffmc_lookups/morning.csv')
         with open(morning_filename, 'rb') as morning_file:
             morning_df = pd.read_csv(morning_file, header=[0, 1])
         prev_days_daily_ffmc_keys = morning_df.iloc[:, 0].values
@@ -75,82 +74,6 @@ class DiurnalFFMCLookupTable():
         self.morning_df = morning_df
 
 
-class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attributes
-    """ Inputs for Fire Behaviour Advisory Calculator """
-
-    def __init__(self,  # pylint: disable=too-many-arguments, too-many-locals
-                 elevation: int, fuel_type: FuelTypeEnum,
-                 time_of_interest: date, percentage_conifer: float,
-                 percentage_dead_balsam_fir: float, grass_cure: float,
-                 crown_base_height: int, crown_fuel_load: Optional[float], lat: float, long: float,
-                 bui: float, ffmc: float, isi: float, wind_speed: float, wind_direction: float,
-                 temperature: float, relative_humidity: float, precipitation: float, status: str,
-                 prev_day_daily_ffmc: float, last_observed_morning_rh_values: dict):
-        self.elevation = elevation
-        self.fuel_type = fuel_type
-        self.time_of_interest = time_of_interest
-        self.percentage_conifer = percentage_conifer
-        self.percentage_dead_balsam_fir = percentage_dead_balsam_fir
-        self.grass_cure = grass_cure
-        self.crown_base_height = crown_base_height
-        # not many people know/care about the crown fuel load, so we can fill this out with default
-        # values if set to None.
-        self.crown_fuel_load = crown_fuel_load
-        self.lat = lat
-        self.long = long
-        self.bui = bui
-        self.ffmc = ffmc
-        self.isi = isi
-        self.wind_speed = wind_speed
-        self.wind_direction = wind_direction
-        self.temperature = temperature
-        self.relative_humidity = relative_humidity
-        self.precipitation = precipitation
-        self.status = status
-        self.prev_day_daily_ffmc = prev_day_daily_ffmc
-        self.last_observed_morning_rh_values = last_observed_morning_rh_values
-
-    def __str__(self) -> str:
-        return f"lat {self.lat}, long {self.long}, elevation {self.elevation}, fuel_type {self.fuel_type}, \
-            time_of_interest {self.time_of_interest}, percentage_conifer {self.percentage_conifer},\
-            percentage_dead_balsam_fir {self.percentage_dead_balsam_fir}, grass_cure {self.grass_cure},\
-            crown_base_height {self.crown_base_height}, crown_fuel_load {self.crown_fuel_load}, bui {self.bui},\
-            ffmc {self.ffmc}, isi {self.isi}, prev_day_daily_ffmc {self.prev_day_daily_ffmc}, wind_speed {self.wind_speed},\
-            temperature {self.temperature}, relative_humidity {self.relative_humidity}, \
-            precipitation {self.precipitation}, status {self.status}"
-
-
-class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
-    """ Class containing the results of the fire behaviour advisory calculation. """
-
-    def __init__(self,  # pylint: disable=too-many-arguments
-                 hfi: float, ros: float, fire_type: FireTypeEnum, cfb: float, flame_length: float,
-                 sixty_minute_fire_size: float, thirty_minute_fire_size: float,
-                 critical_hours_hfi_4000: Optional[CriticalHoursHFI],
-                 critical_hours_hfi_10000: Optional[CriticalHoursHFI],
-                 hfi_t: Optional[float],
-                 ros_t: Optional[float],
-                 cfb_t: Optional[float],
-                 sixty_minute_fire_size_t: Optional[float]):
-        self.hfi = hfi
-        self.hfi_t = None
-        self.ros = ros
-        self.ros_t = None
-        self.fire_type = fire_type
-        self.cfb = cfb
-        self.cfb_t = None
-        self.flame_length = flame_length
-        self.sixty_minute_fire_size = sixty_minute_fire_size
-        self.sixty_minute_fire_size_t = None
-        self.thirty_minute_fire_size = thirty_minute_fire_size
-        self.critical_hours_hfi_4000 = critical_hours_hfi_4000
-        self.critical_hours_hfi_10000 = critical_hours_hfi_10000
-        self.hfi_t = hfi_t
-        self.ros_t = ros_t
-        self.cfb_t = cfb_t
-        self.sixty_minute_fire_size_t = sixty_minute_fire_size_t
-
-
 def calculate_cfb(fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: float, cbh: float):
     """ Calculate the crown fraction burned  (returning 0 for fuel types without crowns to burn) """
     if fuel_type in [FuelTypeEnum.D1, FuelTypeEnum.O1A, FuelTypeEnum.O1B,
@@ -166,94 +89,7 @@ def calculate_cfb(fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: float, c
     return cfb
 
 
-def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> FireBehaviourAdvisory:
-    """ Transform from the raw daily json object returned by wf1, to our fba_calc.StationResponse object.
-    """
-    # pylint: disable=too-many-locals
-    # time of interest will be the same for all stations.
-    time_of_interest = get_hour_20_from_date(station.time_of_interest)
-
-    fmc = cffdrs.foliar_moisture_content(station.lat, station.long, station.elevation,
-                                         get_julian_date(time_of_interest))
-    sfc = cffdrs.surface_fuel_consumption(station.fuel_type, station.bui,
-                                          station.ffmc, station.percentage_conifer)
-    lb_ratio = cffdrs.length_to_breadth_ratio(station.fuel_type, station.wind_speed)
-    ros = cffdrs.rate_of_spread(station.fuel_type, isi=station.isi, bui=station.bui, fmc=fmc, sfc=sfc,
-                                pc=station.percentage_conifer,
-                                cc=station.grass_cure,
-                                pdf=station.percentage_dead_balsam_fir,
-                                cbh=station.crown_base_height)
-    cfb = calculate_cfb(station.fuel_type, fmc, sfc, ros, station.crown_base_height)
-
-    # Calculate rate of spread assuming 60 minutes since ignition.
-    ros_t = cffdrs.rate_of_spread_t(
-        fuel_type=station.fuel_type,
-        ros_eq=ros,
-        minutes_since_ignition=60,
-        cfb=cfb)
-    cfb_t = calculate_cfb(station.fuel_type, fmc, sfc, ros_t, station.crown_base_height)
-
-    # Get the default crown fuel load, if none specified.
-    if station.crown_fuel_load is None:
-        cfl = FUEL_TYPE_DEFAULTS[station.fuel_type].get('CFL', None)
-    else:
-        cfl = station.crown_fuel_load
-
-    hfi = cffdrs.head_fire_intensity(fuel_type=station.fuel_type,
-                                     percentage_conifer=station.percentage_conifer,
-                                     percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
-                                     ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
-    hfi_t = cffdrs.head_fire_intensity(fuel_type=station.fuel_type,
-                                       percentage_conifer=station.percentage_conifer,
-                                       percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
-                                       ros=ros_t, cfb=cfb_t, cfl=cfl, sfc=sfc)
-    critical_hours_4000 = get_critical_hours(4000, station.fuel_type, station.percentage_conifer,
-                                             station.percentage_dead_balsam_fir, station.bui,
-                                             station.grass_cure,
-                                             station.crown_base_height, station.ffmc, fmc, cfb, cfl,
-                                             station.wind_speed, station.prev_day_daily_ffmc,
-                                             station.last_observed_morning_rh_values)
-    critical_hours_10000 = get_critical_hours(10000, station.fuel_type, station.percentage_conifer,
-                                              station.percentage_dead_balsam_fir, station.bui,
-                                              station.grass_cure,
-                                              station.crown_base_height, station.ffmc, fmc, cfb, cfl,
-                                              station.wind_speed, station.prev_day_daily_ffmc,
-                                              station.last_observed_morning_rh_values)
-
-    fire_type = get_fire_type(fuel_type=station.fuel_type, crown_fraction_burned=cfb)
-    flame_length = get_approx_flame_length(hfi)
-
-    wsv = cffdrs.calculate_wind_speed(fuel_type=station.fuel_type, ffmc=station.ffmc,
-                                      bui=station.bui, ws=station.wind_speed,
-                                      fmc=fmc, sfc=sfc,
-                                      pc=station.percentage_conifer,
-                                      cc=station.grass_cure,
-                                      pdf=station.percentage_dead_balsam_fir,
-                                      cbh=station.crown_base_height,
-                                      isi=station.isi)
-
-    bros = cffdrs.back_rate_of_spread(fuel_type=station.fuel_type, ffmc=station.ffmc, bui=station.bui,
-                                      wsv=wsv,
-                                      fmc=fmc, sfc=sfc,
-                                      pc=station.percentage_conifer,
-                                      cc=station.grass_cure,
-                                      pdf=station.percentage_dead_balsam_fir,
-                                      cbh=station.crown_base_height)
-
-    sixty_minute_fire_size = get_fire_size(station.fuel_type, ros, bros, 60, cfb, lb_ratio)
-    sixty_minute_fire_size_t = get_fire_size(station.fuel_type, ros_t, bros, 60, cfb_t, lb_ratio)
-    thirty_minute_fire_size = get_fire_size(station.fuel_type, ros, bros, 30, cfb, lb_ratio)
-
-    return FireBehaviourAdvisory(
-        hfi=hfi, ros=ros, fire_type=fire_type, cfb=cfb, flame_length=flame_length,
-        sixty_minute_fire_size=sixty_minute_fire_size,
-        thirty_minute_fire_size=thirty_minute_fire_size,
-        critical_hours_hfi_4000=critical_hours_4000,
-        critical_hours_hfi_10000=critical_hours_10000,
-        hfi_t=hfi_t, ros_t=ros_t, cfb_t=cfb_t, sixty_minute_fire_size_t=sixty_minute_fire_size_t)
-
-
-def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, ellapsed_minutes: int, cfb: float,
+def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, elapsed_minutes: int, cfb: float,
                   lb_ratio: float):
     """
     Fire size based on Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical
@@ -262,14 +98,14 @@ def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, ellapsed_min
     if fuel_type is None or ros is None or bros is None or lb_ratio is None:
         raise cffdrs.CFFDRSException()
     # Using acceleration:
-    fire_spread_distance = cffdrs.fire_distance(fuel_type, ros+bros, ellapsed_minutes, cfb)
-    length_to_breadth_at_time = cffdrs.length_to_breadth_ratio_t(fuel_type, lb_ratio, ellapsed_minutes, cfb)
+    fire_spread_distance = cffdrs.fire_distance(fuel_type, ros + bros, elapsed_minutes, cfb)
+    length_to_breadth_at_time = cffdrs.length_to_breadth_ratio_t(fuel_type, lb_ratio, elapsed_minutes, cfb)
     # Not using acceleration:
     # fros = cffdrs.flank_rate_of_spread(ros, bros, lb_ratio)
     # # Flank Fire Spread Distance a.k.a. DF in R/FBPcalc.r
     # flank_fire_spread_distance = (ros + bros) / (2.0 * fros)
     # length_to_breadth_at_time = flank_fire_spread_distance
-    # fire_spread_distance = (ros + bros) * ellapsed_minutes
+    # fire_spread_distance = (ros + bros) * elapsed_minutes
 
     # Essentially using Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical
     # forest fire patterns.) - but feeding it L/B and ROS from CFFDRS.
@@ -479,3 +315,187 @@ def build_hourly_rh_dict(hourly_observations: List[WeatherReading]):
             relevant_hours.remove(obs.datetime.hour)
 
     return rh_dict
+
+
+class FireBehaviourPrediction:
+    """ Structure for storing fire behaviour prediction data. """
+
+    def __init__(self, ros: float,
+                 hfi: float, intensity_group,
+                 sixty_minute_fire_size: float,
+                 fire_type) -> None:
+        self.ros = ros
+        self.hfi = hfi
+        self.intensity_group = intensity_group
+        self.sixty_minute_fire_size = sixty_minute_fire_size
+        self.fire_type = fire_type
+
+
+def calculate_intensity_group(hfi: float) -> int:
+    """ Returns a 1-5 integer value indicating Intensity Group based on HFI.
+    Intensity groupings are:
+
+    HFI             IG
+    0-499            1
+    500-999          2
+    1000-1999        3
+    2000-3999        4
+    4000+            5
+    """
+    if hfi < 500:
+        return 1
+    if hfi < 1000:
+        return 2
+    if hfi < 2000:
+        return 3
+    if hfi < 4000:
+        return 4
+    return 5
+
+
+def calculate_fire_behaviour_prediction_using_cffdrs(  # pylint: disable=too-many-arguments
+        latitude: float,
+        longitude: float,
+        elevation: float,
+        fuel_type: FuelTypeEnum,
+        bui: float,
+        ffmc: float,
+        cc: float,  # pylint: disable=invalid-name
+        pc: float,  # pylint: disable=invalid-name
+        wind_speed: float,
+        isi: float,
+        pdf: float,
+        cbh: float,
+        cfl: float):
+    """ Calculates fire behaviour prediction using CFFDRS. """
+    # pylint: disable=too-many-locals
+
+    # set default values in case the calculation fails (likely due to missing data)
+    fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, get_julian_date_now())
+    sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
+    if cc is None:
+        cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
+
+    ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
+                                cc=cc,
+                                pdf=pdf,
+                                cbh=cbh)
+    if sfc is not None:
+        cfb = calculate_cfb(FuelTypeEnum[fuel_type], fmc, sfc, ros, cbh)
+
+    if ros is not None and cfb is not None and cfl is not None:
+        hfi = cffdrs.head_fire_intensity(fuel_type=FuelTypeEnum[fuel_type],
+                                         percentage_conifer=pc,
+                                         percentage_dead_balsam_fir=pdf,
+                                         ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
+
+    lb_ratio = cffdrs.length_to_breadth_ratio(FuelTypeEnum[fuel_type], wind_speed)
+    wsv = cffdrs.calculate_wind_speed(FuelTypeEnum[fuel_type],
+                                      ffmc=ffmc,
+                                      bui=bui,
+                                      ws=wind_speed,
+                                      fmc=fmc,
+                                      sfc=sfc,
+                                      pc=pc,
+                                      cc=cc,
+                                      pdf=pdf,
+                                      cbh=cbh,
+                                      isi=isi)
+
+    bros = cffdrs.back_rate_of_spread(FuelTypeEnum[fuel_type],
+                                      ffmc=ffmc,
+                                      bui=bui,
+                                      wsv=wsv,
+                                      fmc=fmc, sfc=sfc,
+                                      pc=pc,
+                                      cc=cc,
+                                      pdf=pdf,
+                                      cbh=cbh)
+
+    sixty_minute_fire_size = get_fire_size(FuelTypeEnum[fuel_type], ros, bros, 60, cfb, lb_ratio)
+
+    fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
+
+    if hfi is not None:
+        intensity_group = calculate_intensity_group(hfi)
+
+    fire_behaviour_prediction = FireBehaviourPrediction(ros=ros, hfi=hfi, intensity_group=intensity_group,
+                                                        sixty_minute_fire_size=sixty_minute_fire_size,
+                                                        fire_type=fire_type)
+    return fire_behaviour_prediction
+
+
+def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
+                                                  longitude: float,
+                                                  elevation: float,
+                                                  ffmc: float,
+                                                  bui: float,
+                                                  wind_speed: float,
+                                                  cc: float,  # pylint: disable=invalid-name
+                                                  cbh: float,
+                                                  cfl: float):
+    """ Calculates fire behaviour prediction using C7B. """
+
+    ros = c7b.rate_of_spread(ffmc=ffmc, bui=bui, wind_speed=wind_speed, percentage_slope=0.0, cc=cc)
+
+    fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, get_julian_date_now())
+
+    sfc = cffdrs.surface_fuel_consumption(fuel_type=FuelTypeEnum.C7, bui=bui, ffmc=ffmc, pc=None)
+    cfb = cffdrs.crown_fraction_burned(fuel_type=FuelTypeEnum.C7, fmc=fmc,
+                                       sfc=sfc, ros=ros, cbh=cbh)
+
+    hfi = cffdrs.head_fire_intensity(fuel_type=FuelTypeEnum.C7,
+                                     percentage_conifer=None,
+                                     percentage_dead_balsam_fir=None,
+                                     ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
+
+    fire_type = get_fire_type(FuelTypeEnum.C7B, cfb)
+
+    intensity_group = calculate_intensity_group(hfi)
+
+    # TODO: not required for HFI, but for FireBat - we need to calculate 60 minute fire size, which
+    # will take a fair amount of peeking at the math.
+    # Some of the math in the c7b.rate_of_spread can be extracted, and the standard cffdrs math used.
+    fire_behaviour_prediction = FireBehaviourPrediction(
+        ros=ros,
+        hfi=hfi,
+        intensity_group=intensity_group,
+        sixty_minute_fire_size=None,
+        fire_type=fire_type)
+
+    return fire_behaviour_prediction
+
+
+def calculate_fire_behaviour_prediction(latitude: float,  # pylint: disable=too-many-arguments
+                                        longitude: float, elevation: float,
+                                        fuel_type: FuelTypeEnum,
+                                        bui: float, ffmc: float, wind_speed: float,
+                                        cc: float,  # pylint: disable=invalid-name
+                                        pc: float,  # pylint: disable=invalid-name
+                                        isi: float, pdf: float, cbh: float, cfl: float):
+    """ Calculate the fire behaviour prediction. """
+    if fuel_type == FuelTypeEnum.C7B:
+        return calculate_fire_behaviour_prediction_using_c7b(
+            latitude=latitude,
+            longitude=longitude,
+            elevation=elevation,
+            ffmc=ffmc,
+            bui=bui,
+            wind_speed=wind_speed,
+            cc=cc,
+            cbh=cbh,
+            cfl=cfl)
+    return calculate_fire_behaviour_prediction_using_cffdrs(
+        latitude=latitude,
+        longitude=longitude,
+        elevation=elevation,
+        fuel_type=fuel_type,
+        bui=bui,
+        ffmc=ffmc,
+        cc=cc,
+        pc=pc,
+        wind_speed=wind_speed,
+        isi=isi,
+        pdf=pdf,
+        cbh=cbh,
+        cfl=cfl)

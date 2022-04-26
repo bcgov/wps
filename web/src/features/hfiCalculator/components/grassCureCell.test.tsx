@@ -1,4 +1,4 @@
-import { TableContainer, Table, TableRow, TableBody } from '@material-ui/core'
+import { TableContainer, Table, TableRow, TableBody } from '@mui/material'
 import { render } from '@testing-library/react'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import React from 'react'
@@ -83,6 +83,6 @@ describe('HFI - GrassCureCell', () => {
     )
     expect(getByTestId('grass-cure')).toBeDefined()
     expect(queryAllByTestId('grass-cure-error').length === 0)
-    expect(getByTestId('grass-cure')).toHaveStyle(`color: rgba(0,0,0,0.87)`)
+    expect(getByTestId('grass-cure')).toHaveStyle(`color: rgba(0,0,0,0.54)`)
   })
 })

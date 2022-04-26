@@ -9,6 +9,7 @@ import {
   fetchSetNewFireStarts,
   fetchGetPrepDateRange,
   fetchSetStationSelected,
+  fetchFuelTypes,
   fetchPDFDownload,
   setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -18,28 +19,22 @@ import {
   selectHFIStationsLoading,
   selectHFICalculatorState
 } from 'app/rootReducer'
-import {
-  CircularProgress,
-  FormControl,
-  makeStyles,
-  Table,
-  TableBody
-} from '@material-ui/core'
+import { FormControl } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
-import { formControlStyles, theme } from 'app/theme'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { formControlStyles } from 'app/theme'
+import { FireCentre } from 'api/hfiCalculatorAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
-import { isNull, isUndefined } from 'lodash'
-import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
+import { isUndefined } from 'lodash'
 import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
-import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DateRange } from 'components/dateRangePicker/types'
 import LiveChangesAlert from 'features/hfiCalculator/components/LiveChangesAlert'
 import { AppDispatch } from 'app/store'
+import HFILoadingDataView from 'features/hfiCalculator/components/HFILoadingDataView'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   ...formControlStyles,
   container: {
     display: 'flex',
@@ -83,7 +78,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     selectedPrepDate,
     result,
     selectedFireCentre,
-    loading,
+    pdfLoading,
+    fuelTypesLoading,
+    fireCentresLoading,
     dateRange,
     error: hfiError,
     changeSaved
@@ -165,6 +162,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchHFIStations())
+    dispatch(fetchFuelTypes())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -211,80 +209,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
-  const buildErrorNotification = () => {
-    if (!isNull(fireCentresError) || !isNull(hfiError)) {
-      return (
-        <HFIErrorAlert hfiDailiesError={hfiError} fireCentresError={fireCentresError} />
-      )
-    }
-    return <React.Fragment></React.Fragment>
-  }
-
   const buildSuccessNotification = () => {
     if (changeSaved) {
       return <HFISuccessAlert message="Changes saved!" />
     }
     return <React.Fragment></React.Fragment>
-  }
-
-  const isLoadingWithoutError = () => {
-    return (
-      (loading || stationDataLoading || isUndefined(result)) &&
-      isNull(fireCentresError) &&
-      isNull(hfiError)
-    )
-  }
-
-  const buildHFIContent = () => {
-    const errorNotification = buildErrorNotification()
-    if (isUndefined(selectedFireCentre) || isUndefined(dateRange)) {
-      return (
-        <React.Fragment>
-          {errorNotification}
-          <Table>
-            <TableBody>
-              <EmptyFireCentreRow />
-            </TableBody>
-          </Table>
-        </React.Fragment>
-      )
-    } else if (isLoadingWithoutError()) {
-      return (
-        <Container className={classes.container}>
-          {errorNotification}
-          <CircularProgress />
-        </Container>
-      )
-    }
-    return (
-      <React.Fragment>
-        <Container maxWidth={'xl'}>
-          <LiveChangesAlert />
-          {errorNotification}
-          {buildSuccessNotification()}
-          <FormControl className={classes.formControl}>
-            <ViewSwitcherToggles
-              dateRange={dateRange}
-              selectedPrepDate={selectedPrepDate}
-            />
-          </FormControl>
-
-          <FormControl className={classes.pdfButton}>
-            <DownloadPDFButton onClick={handleDownloadClicked} />
-          </FormControl>
-
-          <ErrorBoundary>
-            <ViewSwitcher
-              selectedFireCentre={selectedFireCentre}
-              dateRange={dateRange}
-              setSelected={setSelectedStation}
-              setNewFireStarts={setNewFireStarts}
-              selectedPrepDay={selectedPrepDate}
-            />
-          </ErrorBoundary>
-        </Container>
-      </React.Fragment>
-    )
   }
 
   return (
@@ -303,7 +232,43 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         selectNewFireCentre={selectNewFireCentre}
         padding="1rem"
       />
-      {buildHFIContent()}
+      <Container maxWidth={'xl'}>
+        <HFILoadingDataView
+          pdfLoading={pdfLoading}
+          fuelTypesLoading={fuelTypesLoading}
+          stationDataLoading={stationDataLoading}
+          fireCentresLoading={fireCentresLoading}
+          fireCentresError={fireCentresError}
+          hfiError={hfiError}
+          selectedFireCentre={selectedFireCentre}
+          dateRange={dateRange}
+        >
+          <React.Fragment>
+            <LiveChangesAlert />
+            {buildSuccessNotification()}
+            <FormControl className={classes.formControl}>
+              <ViewSwitcherToggles
+                dateRange={dateRange}
+                selectedPrepDate={selectedPrepDate}
+              />
+            </FormControl>
+
+            <FormControl className={classes.pdfButton}>
+              <DownloadPDFButton onClick={handleDownloadClicked} />
+            </FormControl>
+
+            <ErrorBoundary>
+              <ViewSwitcher
+                selectedFireCentre={selectedFireCentre}
+                dateRange={dateRange}
+                setSelected={setSelectedStation}
+                setNewFireStarts={setNewFireStarts}
+                selectedPrepDay={selectedPrepDate}
+              />
+            </ErrorBoundary>
+          </React.Fragment>
+        </HFILoadingDataView>
+      </Container>
     </main>
   )
 }

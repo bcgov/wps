@@ -16,9 +16,11 @@ Feature: /hfi/
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25 | 200         | hfi/test_hfi_endpoint_load_response.json | False         | None                                  |
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25 | 200         | hfi/test_hfi_endpoint_load_response.json | False         | test_hfi_endpoint_stored_request.json |
 
+
             # pdf
             | api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/pdf | 200 | None | False | None                                  |
             | api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/pdf | 200 | None | False | test_hfi_endpoint_stored_request.json |
+
 
     Scenario: HFI - POST request
         Given I have a stored request <stored_request_json>
@@ -55,3 +57,8 @@ Feature: /hfi/
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/selected/false                | hfi_set_fire_starts | 401         | None                                                     | False         | test_hfi_endpoint_stored_request.json |
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/selected/true                 | hfi_set_fire_starts | 401         | None                                                     | False         | None                                  |
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/selected/true                 | hfi_set_fire_starts | 401         | None                                                     | False         | test_hfi_endpoint_stored_request.json |
+            # Test set the station fuel type.
+            | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/fuel_type/2                   | None                | 200         | hfi/test_hfi_endpoint_response_set_fuel_type.json        | True          | None                                  |
+            | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/fuel_type/2                   | None                | 200         | hfi/test_hfi_endpoint_response_set_fuel_type.json        | True          | test_hfi_endpoint_stored_request.json |
+            # Invalid fuel type should return 500 error, and not be saved.
+            | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/fuel_type/-1                  | None                | 500         | None                                                     | False         | None                                  |

@@ -1,12 +1,12 @@
 import React from 'react'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
-import FormGroup from '@material-ui/core/FormGroup'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import FormControl from '@material-ui/core/FormControl'
-import Select from '@material-ui/core/Select'
-import MenuItem from '@material-ui/core/MenuItem'
-import Switch from '@material-ui/core/Switch'
+import Typography from '@mui/material/Typography'
+import makeStyles from '@mui/styles/makeStyles'
+import FormGroup from '@mui/material/FormGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormControl from '@mui/material/FormControl'
+import Select, { SelectChangeEvent } from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import Switch from '@mui/material/Switch'
 
 import {
   ToggleValues,
@@ -38,9 +38,7 @@ interface Props {
   hasBiasAdjModels: boolean
   hasHighResModels: boolean
   hasRegionalModels: boolean
-  handleHoverModeChange: (
-    event: React.ChangeEvent<{ name?: string; value: unknown }>
-  ) => void
+  handleHoverModeChange: (event: SelectChangeEvent<string>) => void
   hoverMode: 'closest' | 'x' | 'x unified'
 }
 

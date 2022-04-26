@@ -1,5 +1,5 @@
-import { TableCell } from '@material-ui/core'
-import { PlanningArea } from 'api/hfiCalcAPI'
+import { TableCell } from '@mui/material'
+import { PlanningArea } from 'api/hfiCalculatorAPI'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { range } from 'lodash'

@@ -1,6 +1,6 @@
-import { Table, TableBody, TableRow } from '@material-ui/core'
+import { Table, TableBody, TableRow } from '@mui/material'
 import { render, waitFor, screen, within } from '@testing-library/react'
-import { WeatherStation } from 'api/hfiCalcAPI'
+import { WeatherStation } from 'api/hfiCalculatorAPI'
 import StationSelectCell from 'features/hfiCalculator/components/StationSelectCell'
 import React from 'react'
 describe('StationSelectCell', () => {
@@ -11,8 +11,12 @@ describe('StationSelectCell', () => {
       elevation: 1,
       uuid: '1',
       fuel_type: {
+        id: 1,
         abbrev: 'C5',
-        description: 'C5'
+        description: 'C5',
+        fuel_type_code: 'C5',
+        percentage_conifer: 0,
+        percentage_dead_fir: 0
       }
     },
     order_of_appearance_in_planning_area_list: 1

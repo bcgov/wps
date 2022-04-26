@@ -1,6 +1,5 @@
-import { TextField } from '@material-ui/core'
-import { ClassNameMap } from '@material-ui/core/styles/withStyles'
-import { Autocomplete } from '@material-ui/lab'
+import { TextField, Autocomplete } from '@mui/material'
+import { ClassNameMap } from '@mui/styles'
 import { isEqual } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
@@ -44,7 +43,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
       autoSelect={true}
       options={props.stationOptions}
       className={props.classNameMap.weatherStation}
-      getOptionSelected={(option, value) => isEqual(option, value)}
+      isOptionEqualToValue={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
       renderInput={params => (
         <TextField

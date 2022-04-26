@@ -1,5 +1,5 @@
-import { Table, TableBody, TableCell, TableRow } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { Table, TableBody, TableCell, TableRow } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'

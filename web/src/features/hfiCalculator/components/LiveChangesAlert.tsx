@@ -1,10 +1,11 @@
-import { Collapse, IconButton } from '@material-ui/core'
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles'
-import { Alert, AlertTitle } from '@material-ui/lab'
-import CloseIcon from '@material-ui/icons/Close'
+import { Collapse, IconButton } from '@mui/material'
+import { createStyles, makeStyles } from '@mui/styles'
+import CloseIcon from '@mui/icons-material/Close'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 import React from 'react'
 
-const useStyles = makeStyles((theme: Theme) =>
+const useStyles = makeStyles(theme =>
   createStyles({
     root: {
       width: '100%',

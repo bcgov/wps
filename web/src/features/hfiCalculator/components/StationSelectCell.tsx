@@ -1,5 +1,6 @@
-import { Checkbox, makeStyles, TableCell } from '@material-ui/core'
-import { WeatherStation } from 'api/hfiCalcAPI'
+import { Checkbox, TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { WeatherStation } from 'api/hfiCalculatorAPI'
 import { fireTableStyles } from 'app/theme'
 import React from 'react'
 

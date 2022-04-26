@@ -15,6 +15,7 @@
                 "name": "ALEXIS CREEK",
                 "elevation": 791,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -31,6 +32,7 @@
                 "name": "ANAHIM LAKE",
                 "elevation": 1096,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -47,6 +49,7 @@
                 "name": "GASPARD",
                 "elevation": 1675,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -63,6 +66,7 @@
                 "name": "MIDDLE LAKE",
                 "elevation": 915,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -79,6 +83,7 @@
                 "name": "NEMIAH",
                 "elevation": 1220,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -95,6 +100,7 @@
                 "name": "PUNTZI MOUNTAIN (EC)",
                 "elevation": 910,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -111,6 +117,7 @@
                 "name": "TATLA LAKE",
                 "elevation": 945,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -134,6 +141,7 @@
                 "name": "BENSON",
                 "elevation": 1006,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -150,6 +158,7 @@
                 "name": "BIG VALLEY",
                 "elevation": 1355,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -166,6 +175,7 @@
                 "name": "DECEPTION",
                 "elevation": 1170,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -182,6 +192,7 @@
                 "name": "GAVIN",
                 "elevation": 1081,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -198,6 +209,7 @@
                 "name": "HORSEFLY",
                 "elevation": 701,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -214,6 +226,7 @@
                 "name": "LIKELY RS",
                 "elevation": 1046,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -230,6 +243,7 @@
                 "name": "MATHEW",
                 "elevation": 1108,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -246,6 +260,7 @@
                 "name": "PRAIRIE CREEK",
                 "elevation": 1015,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -262,6 +277,7 @@
                 "name": "TIMOTHY",
                 "elevation": 1161,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -278,6 +294,7 @@
                 "name": "WINDY MOUNTAIN",
                 "elevation": 1580,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -301,6 +318,7 @@
                 "name": "BALDFACE",
                 "elevation": 1666,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -317,6 +335,7 @@
                 "name": "KLUSKUS",
                 "elevation": 1137,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -333,6 +352,7 @@
                 "name": "NAZKO",
                 "elevation": 910,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -349,6 +369,7 @@
                 "name": "QUESNEL (EC)",
                 "elevation": 545,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -365,6 +386,7 @@
                 "name": "TAUTRI",
                 "elevation": 1085,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -388,6 +410,7 @@
                 "name": "CHURN CREEK",
                 "elevation": 1100,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -404,6 +427,7 @@
                 "name": "KNIFE",
                 "elevation": 821,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -420,6 +444,7 @@
                 "name": "LONE BUTTE",
                 "elevation": 1158,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -436,6 +461,7 @@
                 "name": "MEADOW LAKE",
                 "elevation": 1070,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -452,6 +478,7 @@
                 "name": "PLACE LAKE",
                 "elevation": 1065,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -468,6 +495,7 @@
                 "name": "RISKE CREEK",
                 "elevation": 929,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -484,6 +512,7 @@
                 "name": "WILLIAMS LAKE (NC)",
                 "elevation": 940,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -500,6 +529,7 @@
                 "name": "YOUNG LAKE",
                 "elevation": 1170,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -529,6 +559,7 @@
                 "name": "HAGENSBORG 2",
                 "elevation": 47,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -545,6 +576,7 @@
                 "name": "TALCHAKO",
                 "elevation": 270,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -568,6 +600,7 @@
                 "name": "ALLISON PASS",
                 "elevation": 1215,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -584,6 +617,7 @@
                 "name": "BOOTHROYD",
                 "elevation": 19,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -600,6 +634,7 @@
                 "name": "FORD MOUNTAIN",
                 "elevation": 247,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -616,6 +651,7 @@
                 "name": "HONNA",
                 "elevation": 21,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -632,6 +668,7 @@
                 "name": "NAHATLATCH",
                 "elevation": 552,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -655,6 +692,7 @@
                 "name": "POWELL RIVER WEST LAKE",
                 "elevation": 100,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -671,6 +709,7 @@
                 "name": "SCAR CREEK",
                 "elevation": 116,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -687,6 +726,7 @@
                 "name": "SECHELT (EC)",
                 "elevation": 86,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -703,6 +743,7 @@
                 "name": "TOBA CAMP",
                 "elevation": 43,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -726,6 +767,7 @@
                 "name": "CHEAKAMUS",
                 "elevation": 595,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -742,6 +784,7 @@
                 "name": "DARCY",
                 "elevation": 330,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -758,6 +801,7 @@
                 "name": "FRANK CREEK",
                 "elevation": 305,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "BL",
                   "fuel_type_code": "M2",
                   "description": "Boreal mixedwood - green - 25% conifer",
@@ -774,6 +818,7 @@
                 "name": "MEAGER CREEK",
                 "elevation": 545,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -790,6 +835,7 @@
                 "name": "SQUAMISH AP (EC)",
                 "elevation": 60,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -813,6 +859,7 @@
                 "name": "BEAVER CREEK",
                 "elevation": 121,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -829,6 +876,7 @@
                 "name": "CEDAR",
                 "elevation": 30,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "BL",
                   "fuel_type_code": "M2",
                   "description": "Boreal mixedwood - green - 25% conifer",
@@ -845,6 +893,7 @@
                 "name": "CHEF CREEK TEST",
                 "elevation": 456,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -868,6 +917,7 @@
                 "name": "MENZIES CAMP",
                 "elevation": 438,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "BL",
                   "fuel_type_code": "M2",
                   "description": "Boreal mixedwood - green - 25% conifer",
@@ -884,6 +934,7 @@
                 "name": "QUINSAM BASE FWX",
                 "elevation": 78,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -900,6 +951,7 @@
                 "name": "WOSS CAMP",
                 "elevation": 156,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -923,6 +975,7 @@
                 "name": "MESACHIE 2",
                 "elevation": 183,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -939,6 +992,7 @@
                 "name": "SALTSPRING 2",
                 "elevation": 18,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -968,6 +1022,7 @@
                 "name": "FINTRY",
                 "elevation": 670,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -984,6 +1039,7 @@
                 "name": "KETTLE 2",
                 "elevation": 1389,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -1000,6 +1056,7 @@
                 "name": "SALMON ARM",
                 "elevation": 527,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -1016,6 +1073,7 @@
                 "name": "SEYMOUR ARM",
                 "elevation": 511,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -1032,6 +1090,7 @@
                 "name": "TURTLE",
                 "elevation": 640,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -1055,6 +1114,7 @@
                 "name": "MCCUDDY",
                 "elevation": 1067,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -1071,6 +1131,7 @@
                 "name": "PENTICTON RS",
                 "elevation": 427,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -1094,6 +1155,7 @@
                 "name": "AFTON",
                 "elevation": 780,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "O1B",
                   "fuel_type_code": "O1B",
                   "description": "Standing grass",
@@ -1110,6 +1172,7 @@
                 "name": "CLEARWATER HUB",
                 "elevation": 440,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -1126,6 +1189,7 @@
                 "name": "MAYSON",
                 "elevation": 1315,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1142,6 +1206,7 @@
                 "name": "SPARKS LAKE",
                 "elevation": 972,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -1158,6 +1223,7 @@
                 "name": "WELLS GRAY",
                 "elevation": 968,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -1181,6 +1247,7 @@
                 "name": "FIVE MILE",
                 "elevation": 865,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -1197,6 +1264,7 @@
                 "name": "FRENCH BAR",
                 "elevation": 1320,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -1213,6 +1281,7 @@
                 "name": "GWYNETH LAKE",
                 "elevation": 1205,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -1229,6 +1298,7 @@
                 "name": "LILLOOET",
                 "elevation": 408,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -1245,6 +1315,7 @@
                 "name": "SPLINTLUM",
                 "elevation": 424,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -1268,6 +1339,7 @@
                 "name": "AUGUST LAKE",
                 "elevation": 855,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -1284,6 +1356,7 @@
                 "name": "MERRITT 2 HUB",
                 "elevation": 640,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7B",
                   "fuel_type_code": "C7",
                   "description": "Proposed C7 model with curing: C7B",
@@ -1313,6 +1386,7 @@
                 "name": "ATLIN",
                 "elevation": 729,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1329,6 +1403,7 @@
                 "name": "BOYA LAKE",
                 "elevation": 730,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C1",
                   "fuel_type_code": "C1",
                   "description": "Spruce-lichen woodland",
@@ -1345,6 +1420,7 @@
                 "name": "DEASE LAKE FS",
                 "elevation": 800,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C2",
                   "fuel_type_code": "C2",
                   "description": "Boreal spruce",
@@ -1361,6 +1437,7 @@
                 "name": "FIRESIDE",
                 "elevation": 731,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C2",
                   "fuel_type_code": "C2",
                   "description": "Boreal spruce",
@@ -1377,6 +1454,7 @@
                 "name": "ISKUT",
                 "elevation": 890,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C4",
                   "fuel_type_code": "C4",
                   "description": "Immature jack or lodgepole pine",
@@ -1393,6 +1471,7 @@
                 "name": "KETCHIKA",
                 "elevation": 687,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C2",
                   "fuel_type_code": "C2",
                   "description": "Boreal spruce",
@@ -1409,6 +1488,7 @@
                 "name": "SWIFT RIVER (YFS)",
                 "elevation": 878,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C2",
                   "fuel_type_code": "C2",
                   "description": "Boreal spruce",
@@ -1425,6 +1505,7 @@
                 "name": "TELEGRAPH CREEK",
                 "elevation": 382,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1448,6 +1529,7 @@
                 "name": "BELL-IRVING",
                 "elevation": 388,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -1464,6 +1546,7 @@
                 "name": "BOB QUINN LAKE",
                 "elevation": 609,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -1480,6 +1563,7 @@
                 "name": "KITPARK",
                 "elevation": 75,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -1496,6 +1580,7 @@
                 "name": "NASS CAMP",
                 "elevation": 191,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -1512,6 +1597,7 @@
                 "name": "ROSSWOOD",
                 "elevation": 239,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1528,6 +1614,7 @@
                 "name": "TERRACE (EC)",
                 "elevation": 217,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1544,6 +1631,7 @@
                 "name": "VAN DYKE",
                 "elevation": 296,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1567,6 +1655,7 @@
                 "name": "CEDARVALE",
                 "elevation": 274,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1583,6 +1672,7 @@
                 "name": "CRANBERRY",
                 "elevation": 500,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -1599,6 +1689,7 @@
                 "name": "GANOKWA",
                 "elevation": 844,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1615,6 +1706,7 @@
                 "name": "KISPIOX HUB",
                 "elevation": 335,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1631,6 +1723,7 @@
                 "name": "NILKITKWA",
                 "elevation": 978,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1647,6 +1740,7 @@
                 "name": "SMITHERS AP (EC)",
                 "elevation": 522,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1663,6 +1757,7 @@
                 "name": "UPPER FULTON",
                 "elevation": 900,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1679,6 +1774,7 @@
                 "name": "UPPER KISPIOX",
                 "elevation": 410,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1702,6 +1798,7 @@
                 "name": "AUGIER LAKE",
                 "elevation": 918,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1718,6 +1815,7 @@
                 "name": "BURNS LAKE 850M",
                 "elevation": 830,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1734,6 +1832,7 @@
                 "name": "EAST OOTSA",
                 "elevation": 1089,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1750,6 +1849,7 @@
                 "name": "GRASSY PLAINS HUB",
                 "elevation": 944,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1766,6 +1866,7 @@
                 "name": "HOUSTON",
                 "elevation": 608,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1782,6 +1883,7 @@
                 "name": "MCBRIDE LAKE",
                 "elevation": 810,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1798,6 +1900,7 @@
                 "name": "NADINA",
                 "elevation": 954,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1814,6 +1917,7 @@
                 "name": "NORTH BABINE",
                 "elevation": 951,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1830,6 +1934,7 @@
                 "name": "PEDEN",
                 "elevation": 747,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1859,6 +1964,7 @@
                 "name": "FORT NELSON FS",
                 "elevation": 384,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C2",
                   "fuel_type_code": "C2",
                   "description": "Boreal spruce",
@@ -1875,6 +1981,7 @@
                 "name": "HELMUT",
                 "elevation": 598,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C2",
                   "fuel_type_code": "C2",
                   "description": "Boreal spruce",
@@ -1891,6 +1998,7 @@
                 "name": "NELSON FORKS",
                 "elevation": 604,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C2",
                   "fuel_type_code": "C2",
                   "description": "Boreal spruce",
@@ -1907,6 +2015,7 @@
                 "name": "SIERRA",
                 "elevation": 584,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C2",
                   "fuel_type_code": "C2",
                   "description": "Boreal spruce",
@@ -1923,6 +2032,7 @@
                 "name": "TOAD RIVER",
                 "elevation": 711,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C2",
                   "fuel_type_code": "C2",
                   "description": "Boreal spruce",
@@ -1946,6 +2056,7 @@
                 "name": "BEAR LAKE",
                 "elevation": 739,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1962,6 +2073,7 @@
                 "name": "BEDNESTI",
                 "elevation": 858,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1978,6 +2090,7 @@
                 "name": "CHILAKO",
                 "elevation": 814,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -1994,6 +2107,7 @@
                 "name": "HIXON",
                 "elevation": 615,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2017,6 +2131,7 @@
                 "name": "BLUE RIVER 2",
                 "elevation": 695,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2033,6 +2148,7 @@
                 "name": "MCBRIDE",
                 "elevation": 716,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2049,6 +2165,7 @@
                 "name": "VALEMOUNT 2",
                 "elevation": 1195,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2065,6 +2182,7 @@
                 "name": "VALEMOUNT AIRPORT",
                 "elevation": 788,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2088,6 +2206,7 @@
                 "name": "FORT ST JAMES",
                 "elevation": 750,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2104,6 +2223,7 @@
                 "name": "LOVELL COVE",
                 "elevation": 990,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2120,6 +2240,7 @@
                 "name": "MOOSE LAKE",
                 "elevation": 1109,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2136,6 +2257,7 @@
                 "name": "VANDERHOOF HUB",
                 "elevation": 678,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2159,6 +2281,7 @@
                 "name": "INGENIKA POINT",
                 "elevation": 680,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2175,6 +2298,7 @@
                 "name": "MACKENZIE FS",
                 "elevation": 690,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2191,6 +2315,7 @@
                 "name": "MANSON",
                 "elevation": 1047,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2214,6 +2339,7 @@
                 "name": "OSBORN",
                 "elevation": 700,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2230,6 +2356,7 @@
                 "name": "SILVER",
                 "elevation": 835,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C2",
                   "fuel_type_code": "C2",
                   "description": "Boreal spruce",
@@ -2246,6 +2373,7 @@
                 "name": "WONOWON",
                 "elevation": 967,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2269,6 +2397,7 @@
                 "name": "CHETWYND (EC)",
                 "elevation": 610,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2285,6 +2414,7 @@
                 "name": "HUDSON HOPE",
                 "elevation": 704,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2301,6 +2431,7 @@
                 "name": "NOEL",
                 "elevation": 988,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2317,6 +2448,7 @@
                 "name": "TUMBLER HUB",
                 "elevation": 942,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C3",
                   "fuel_type_code": "C3",
                   "description": "Mature jack or lodgepole pine",
@@ -2346,6 +2478,7 @@
                 "name": "BLAEBERRY",
                 "elevation": 861,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2362,6 +2495,7 @@
                 "name": "CRAWFORD",
                 "elevation": 887,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2378,6 +2512,7 @@
                 "name": "GOLDSTREAM 2",
                 "elevation": 1333,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2394,6 +2529,7 @@
                 "name": "MARION",
                 "elevation": 1300,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2410,6 +2546,7 @@
                 "name": "REVELSTOKE",
                 "elevation": 680,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2426,6 +2563,7 @@
                 "name": "SUCCOUR CREEK",
                 "elevation": 1000,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2449,6 +2587,7 @@
                 "name": "BEAVERDELL",
                 "elevation": 807,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -2465,6 +2604,7 @@
                 "name": "EIGHT MILE",
                 "elevation": 1338,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2481,6 +2621,7 @@
                 "name": "GRAND FORKS",
                 "elevation": 630,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -2504,6 +2645,7 @@
                 "name": "BRISCO",
                 "elevation": 930,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2520,6 +2662,7 @@
                 "name": "ELKO",
                 "elevation": 775,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -2536,6 +2679,7 @@
                 "name": "EMILY CREEK",
                 "elevation": 1190,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -2552,6 +2696,7 @@
                 "name": "JOHNSON LAKE",
                 "elevation": 853,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -2568,6 +2713,7 @@
                 "name": "NEGRO CREEK",
                 "elevation": 1572,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2584,6 +2730,7 @@
                 "name": "ROUND PRAIRIE",
                 "elevation": 1647,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2600,6 +2747,7 @@
                 "name": "TOBY HUB",
                 "elevation": 894,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -2623,6 +2771,7 @@
                 "name": "GOATFELL",
                 "elevation": 1098,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2639,6 +2788,7 @@
                 "name": "NANCY GREEN",
                 "elevation": 1397,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2655,6 +2805,7 @@
                 "name": "OCTOPUS CREEK",
                 "elevation": 1432,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2671,6 +2822,7 @@
                 "name": "PENDOREILLE",
                 "elevation": 725,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C7",
                   "fuel_type_code": "C7",
                   "description": "Ponderosa pine/Douglas fir",
@@ -2687,6 +2839,7 @@
                 "name": "POWDER CREEK",
                 "elevation": 1019,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2703,6 +2856,7 @@
                 "name": "SMALLWOOD",
                 "elevation": 997,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",
@@ -2719,6 +2873,7 @@
                 "name": "TROUT LAKE",
                 "elevation": 991,
                 "fuel_type": {
+                  "id": 1,
                   "abbrev": "C5",
                   "fuel_type_code": "C5",
                   "description": "Red and white pine",

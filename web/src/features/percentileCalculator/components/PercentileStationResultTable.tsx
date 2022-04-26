@@ -7,7 +7,7 @@ import {
   TableRow,
   TableCell,
   TableBody
-} from '@material-ui/core'
+} from '@mui/material'
 
 import { StationSummaryResponse } from 'api/percentileAPI'
 import { FWI_VALUES_DECIMAL } from 'utils/constants'

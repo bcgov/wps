@@ -1,5 +1,5 @@
-import { makeStyles } from '@material-ui/core'
-import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab'
+import makeStyles from '@mui/styles/makeStyles'
+import { ToggleButtonGroup, ToggleButton } from '@mui/material'
 import { isNull, isUndefined, range } from 'lodash'
 import { theme } from 'app/theme'
 import React from 'react'
@@ -20,15 +20,14 @@ export interface ViewSwitcherTogglesProps {
 const useStyles = makeStyles(() => ({
   toggleGroup: {
     '& .MuiToggleButton-root': {
+      height: 56,
+      lineHeight: '16px',
       color: theme.palette.primary.main
     },
     '& .MuiToggleButton-root.Mui-selected': {
       backgroundColor: theme.palette.primary.main,
       color: 'white',
       fontWeight: 'bold'
-    },
-    '& .MuiToggleButton-label': {
-      lineHeight: '16px'
     }
   }
 }))

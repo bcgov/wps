@@ -1,20 +1,27 @@
 """ Unit testing for hfi logic """
 from datetime import date, datetime, timedelta
 import pytest
+import os
+import json
 from pytest_mock import MockerFixture
 from app.hfi.hfi_calc import (calculate_hfi_results,
                               calculate_mean_intensity,
                               calculate_max_intensity_group,
                               calculate_prep_level, validate_date_range, validate_station_daily)
 import app.db.models.hfi_calc as hfi_calc_models
-from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, InvalidDateRangeError,
+from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, FuelTypesResponse, InvalidDateRangeError,
                                   PlanningArea,
                                   StationDaily, StationInfo,
                                   WeatherStation,
                                   WeatherStationProperties,
                                   required_daily_fields)
 from app.schemas.shared import FuelType
-from app.utils.time import get_pst_now
+from app.tests import load_json_file, load_json_file_with_name
+from app.utils.time import get_pst_now, get_utc_now
+from app.wildfire_one.schema_parsers import WFWXWeatherStation
+from starlette.testclient import TestClient
+from app.main import app as starlette_app
+import app.routers.hfi_calc
 
 # Kamloops FC fixture
 kamloops_fc = FireCentre(
@@ -31,14 +38,16 @@ kamloops_fc = FireCentre(
                         wfwx_station_uuid='1',
                         name="station1",
                         elevation=1,
-                        fuel_type=FuelType(abbrev="C1", description="", fuel_type_code="C1", percentage_conifer=100, percentage_dead_fir=0))),
+                        fuel_type=FuelType(id=1, abbrev="C1", description="", fuel_type_code="C1",
+                                           percentage_conifer=100, percentage_dead_fir=0))),
             WeatherStation(
                 code=2,
                 station_props=WeatherStationProperties(
                     wfwx_station_uuid='2',
                     name="station2",
                     elevation=1,
-                    fuel_type=FuelType(abbrev="C1", description="", fuel_type_code="C1", percentage_conifer=100, percentage_dead_fir=0)))
+                    fuel_type=FuelType(id=1, abbrev="C1", description="", fuel_type_code="C1",
+                                       percentage_conifer=100, percentage_dead_fir=0)))
         ]
     )
     ]
@@ -56,10 +65,12 @@ planning_area_station_info = {kamloops_fc.planning_areas[0].id: [
 
 def test_no_dailies_handled():
     """ No dailies are handled """
-    result = calculate_hfi_results(fire_start_ranges,
+    result = calculate_hfi_results({},
+                                   fire_start_ranges,
                                    planning_area_fire_starts={},
                                    fire_start_lookup=fire_start_lookup,
-                                   dailies=[],
+                                   wfwx_stations=[],
+                                   raw_dailies=[],
                                    num_prep_days=5,
                                    planning_area_station_info=planning_area_station_info,
                                    area_station_map={},
@@ -72,19 +83,29 @@ def test_requested_fire_starts_unaltered(mocker: MockerFixture):
     """ Fire starts from user request remain unchanged """
 
     start_date = datetime.now()
-    daily = StationDaily(
-        code=1,
-        date=start_date,
-        intensity_group=1
-    )
-
     station = hfi_calc_models.PlanningWeatherStation(id=1, planning_area_id=1, station_code=1)
+    fuel_type_lookup = {
+        1: hfi_calc_models.FuelType(
+            id=1, abbrev='C1', description='C1', fuel_type_code='C1',
+            percentage_conifer=100, percentage_dead_fir=0)}
+    planning_area_fire_starts = {
+        kamloops_fc.planning_areas[0].id: [fire_start_ranges[-1]]}
+    wfwx_station = WFWXWeatherStation(
+        wfwx_id=1, code=1, name='station1', latitude=12.1,
+        longitude=12.1, elevation=123, zone_code=1)
+    raw_daily = {
+        'stationId': 1,
+        'weatherTimestamp': get_utc_now().timestamp() * 1000,
+        'lastEntityUpdateTimestamp': get_utc_now().timestamp() * 1000
+    }
 
-    result = calculate_hfi_results(fire_start_ranges,
-                                   planning_area_fire_starts={
-                                       kamloops_fc.planning_areas[0].id: [fire_start_ranges[-1]]},
+    result = calculate_hfi_results(fuel_type_lookup,
+                                   fire_start_ranges,
+                                   planning_area_fire_starts=planning_area_fire_starts,
                                    fire_start_lookup=fire_start_lookup,
-                                   dailies=[daily],
+                                   wfwx_stations=[wfwx_station],
+                                   raw_dailies=[
+                                       raw_daily],
                                    num_prep_days=5,
                                    planning_area_station_info=planning_area_station_info,
                                    area_station_map={kamloops_fc.planning_areas[0].id: [station]},
@@ -214,6 +235,29 @@ def test_valid_daily():
         setattr(daily, field, None)
         result = validate_station_daily(daily)
         assert result.valid == False
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_valid_fuel_types_response(monkeypatch):
+    """ Assert that list of FuelType objects is converted to FuelTypesResponse object correctly """
+    def mock_get_fuel_types(*args, **kwargs):
+        fuel_type_1 = FuelType(id=1, abbrev="T1", fuel_type_code="T1", description="blah",
+                               percentage_conifer=0, percentage_dead_fir=0)
+        fuel_type_2 = FuelType(id=2, abbrev="T2", fuel_type_code="T2", description="bleep",
+                               percentage_conifer=0, percentage_dead_fir=0)
+        fuel_type_3 = FuelType(id=3, abbrev="T3", fuel_type_code="T3", description="bloop",
+                               percentage_conifer=0, percentage_dead_fir=0)
+        return [fuel_type_1, fuel_type_2, fuel_type_3]
+
+    monkeypatch.setattr(app.routers.hfi_calc, 'crud_get_fuel_types', mock_get_fuel_types)
+    correct_response_file = os.path.join(os.path.dirname(__file__), 'test_valid_fuel_types_response.json')
+
+    client = TestClient(starlette_app)
+    response = client.get('/api/hfi-calc/fuel_types')
+    assert response.status_code == 200
+    assert response.headers['content-type'] == 'application/json'
+    with open(correct_response_file) as file_reader:
+        assert response.json() == json.loads(file_reader.read())
 
 
 def test_valid_date_range_none():

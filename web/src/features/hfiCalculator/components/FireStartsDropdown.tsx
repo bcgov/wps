@@ -1,5 +1,5 @@
-import { makeStyles, TextField } from '@material-ui/core'
-import { Autocomplete } from '@material-ui/lab'
+import { TextField, Autocomplete } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { FireStartRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isEqual, isNull } from 'lodash'
 import React from 'react'
@@ -41,7 +41,7 @@ const FireStartsDropdown = ({
       autoHighlight
       autoSelect
       options={fireStartRanges}
-      getOptionSelected={(option, value) => isEqual(option, value)}
+      isOptionEqualToValue={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
       renderInput={params => <TextField {...params} variant="outlined" />}
       value={fireStarts ? fireStarts : fireStartRanges[0]}
