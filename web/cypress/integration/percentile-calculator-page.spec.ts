@@ -77,10 +77,8 @@ describe('Percentile Calculator Page', () => {
       cy.getByTestId('disclaimer-accept-button').click()
     })
 
-    it('Time range slider can select the range between 10 and 50', () => {
-      cy.getByTestId('time-range-slider')
-        .find('[type=hidden]')
-        .should('have.value', 10) // default value
+    xit('Time range slider can select the range between 10 and 50', () => {
+      cy.getByTestId('time-range-slider').find('[type=hidden]').should('have.value', 10) // default value
 
       // Select 20 year and check if reflected
       cy.selectYearInTimeRangeSlider(20, 20)
@@ -139,7 +137,9 @@ describe('Percentile Calculator Page', () => {
 
     it('Successful with one station', () => {
       const stationCode = 838
-      cy.intercept('POST', 'api/percentiles/', { fixture: 'percentiles/percentile-result.json' }).as('getPercentiles')
+      cy.intercept('POST', 'api/percentiles/', {
+        fixture: 'percentiles/percentile-result.json'
+      }).as('getPercentiles')
 
       // Select a station
       cy.selectStationInDropdown(stationCode)
@@ -165,9 +165,9 @@ describe('Percentile Calculator Page', () => {
 
     it('Successful with two stations', () => {
       const stationCodes = [322, 1275]
-      cy.intercept('POST', 'api/percentiles/', { fixture: 'percentiles/two-percentiles-result.json' }).as(
-        'getPercentiles'
-      )
+      cy.intercept('POST', 'api/percentiles/', {
+        fixture: 'percentiles/two-percentiles-result.json'
+      }).as('getPercentiles')
 
       // Select two weather stations
       cy.selectStationInDropdown(stationCodes[0])

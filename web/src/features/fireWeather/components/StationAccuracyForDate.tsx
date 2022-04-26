@@ -1,6 +1,6 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { CircularProgress } from '@material-ui/core'
+import makeStyles from '@mui/styles/makeStyles'
+import { CircularProgress } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { selectFireWeatherStationsLoading } from 'app/rootReducer'
 
@@ -12,11 +12,13 @@ const useStyles = makeStyles(theme => ({
     padding: '5px'
   },
   title: {
+    fontSize: '0.875rem',
     height: '20px',
     width: '205px',
     color: 'white'
   },
   time: {
+    fontSize: '0.875rem',
     height: '20px',
     width: '205px',
     color: 'white',

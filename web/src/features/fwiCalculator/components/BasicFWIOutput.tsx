@@ -5,9 +5,9 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  TableHead
-} from '@material-ui/core'
-import { Skeleton } from '@material-ui/lab'
+  TableHead,
+  Skeleton
+} from '@mui/material'
 import { FWIOutput } from 'api/fwiAPI'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import React from 'react'

@@ -1,4 +1,4 @@
-import { TableRow, TableCell } from '@material-ui/core'
+import { TableRow, TableCell } from '@mui/material'
 import React from 'react'
 export interface EmptyFireCentreProps {
   colSpan?: number

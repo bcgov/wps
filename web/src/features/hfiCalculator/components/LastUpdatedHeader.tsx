@@ -1,6 +1,6 @@
 import React from 'react'
-import UpdateIcon from '@material-ui/icons/Update'
-import { makeStyles } from '@material-ui/core'
+import UpdateIcon from '@mui/icons-material/Update'
+import makeStyles from '@mui/styles/makeStyles'
 import { maxBy } from 'lodash'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'

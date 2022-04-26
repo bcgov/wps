@@ -1,4 +1,5 @@
-import { makeStyles, TableCell } from '@material-ui/core'
+import { TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { fireTableStyles, BACKGROUND_COLOR } from 'app/theme'
 import { FireStartRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import React from 'react'

@@ -1,4 +1,4 @@
-import { TableContainer, Table, TableRow, TableBody } from '@material-ui/core'
+import { TableContainer, Table, TableRow, TableBody } from '@mui/material'
 import { render } from '@testing-library/react'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import React from 'react'
@@ -126,6 +126,6 @@ describe('IntensityGroupCell', () => {
         </Table>
       </TableContainer>
     )
-    expect(getByTestId('not-selected')).toHaveStyle({ color: 'rgba(0,0,0,0.87)' })
+    expect(getByTestId('not-selected')).toHaveStyle({ color: 'rgba(0,0,0,0.54)' })
   })
 })

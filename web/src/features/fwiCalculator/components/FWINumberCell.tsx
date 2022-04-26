@@ -1,4 +1,4 @@
-import { OutlinedTextFieldProps, TableCell, TextField } from '@material-ui/core'
+import { OutlinedTextFieldProps, TableCell, TextField } from '@mui/material'
 import { FWIInputParameters } from 'features/fwiCalculator/components/BasicFWIGrid'
 import { isEqual, isNull, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState } from 'react'

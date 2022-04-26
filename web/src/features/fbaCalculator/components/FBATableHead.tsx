@@ -1,13 +1,13 @@
 import {
   Checkbox,
-  makeStyles,
   TableCell,
   TableRow,
   TableSortLabel,
   Tooltip,
   TableHead
-} from '@material-ui/core'
-import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import FBAProgressRow from 'features/fbaCalculator/components/FBAProgressRow'
 import TableHeader from 'features/fbaCalculator/components/TableHeader'
 import StickyCell from 'components/StickyCell'

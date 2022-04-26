@@ -1,9 +1,9 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import Autocomplete from '@material-ui/lab/Autocomplete'
-import { TextField, Link } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
-import LaunchIcon from '@material-ui/icons/Launch'
+import Autocomplete from '@mui/material/Autocomplete'
+import { TextField, Link } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import LaunchIcon from '@mui/icons-material/Launch'
 
 import { selectPercentileStations } from 'app/rootReducer'
 import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
