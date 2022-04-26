@@ -1,5 +1,21 @@
 import React from 'react'
-import { Dialog, DialogContent, IconButton, Paper, Typography } from '@mui/material'
+import {
+  Box,
+  Dialog,
+  DialogContent,
+  Divider,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  ListSubheader,
+  Paper,
+  Typography
+} from '@mui/material'
+import InboxIcon from '@mui/icons-material/Inbox'
+import DraftsIcon from '@mui/icons-material/Drafts'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
@@ -70,6 +86,51 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
               <AddCircleOutlineIcon />
               Add Station
             </Button>
+            <Box sx={{ marginTop: 5 }}>
+              <List>
+                <Typography>Kamloops</Typography>
+
+                <ListItem>
+                  <ListItemText primary="Clearwater Hub" />
+                </ListItem>
+                <ListItem>
+                  <ListItemText primary="Wells Gray" />
+                </ListItem>
+                <ListItem>
+                  <ListItemText primary="Sparks Lake" />
+                </ListItem>
+                <ListItem>
+                  <ListItemText primary="Afton" />
+                </ListItem>
+                <ListItem>
+                  <ListItemText primary="Mayson" />
+                </ListItem>
+                <ListItem>
+                  <ListItemText primary="Blue River 2" />
+                </ListItem>
+              </List>
+              <List>
+                <Typography>Vernon</Typography>
+                <ListItem>
+                  <ListItemText primary="Turtle" />
+                </ListItem>
+                <ListItem>
+                  <ListItemText primary="Fintry" />
+                </ListItem>
+                <ListItem>
+                  <ListItemText primary="Station Bay 2" />
+                </ListItem>
+                <ListItem>
+                  <ListItemText primary="Seymour Arm" />
+                </ListItem>
+                <ListItem>
+                  <ListItemText primary="Salmon Arm" />
+                </ListItem>
+                <ListItem>
+                  <ListItemText primary="Kettle 2" />
+                </ListItem>
+              </List>
+            </Box>
           </DialogContent>
         </Paper>
       </Dialog>
