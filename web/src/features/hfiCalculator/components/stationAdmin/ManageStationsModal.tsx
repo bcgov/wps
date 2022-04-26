@@ -1,24 +1,11 @@
 import React from 'react'
-import {
-  Box,
-  Dialog,
-  DialogContent,
-  IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Typography
-} from '@mui/material'
+import { Dialog, DialogContent, IconButton, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
+import { Button } from '@mui/material'
 import ClearIcon from '@mui/icons-material/Clear'
 import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
-
-export interface ColumnSelectionState {
-  label: string
-  selected: boolean
-}
+import StationsList from 'features/hfiCalculator/components/stationAdmin/StationsList'
 
 export interface ModalProps {
   testId?: string
@@ -37,7 +24,8 @@ const useStyles = makeStyles(() => ({
   title: {
     textAlign: 'center'
   },
-  addStation: {
+  actionButton: {
+    minWidth: 100,
     margin: theme.spacing(1),
     float: 'right'
   }
@@ -69,52 +57,28 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
               Manage Weather Stations
             </Typography>
             <AddStationButton />
-            <Box sx={{ marginTop: 5 }}>
-              <List dense>
-                <Typography>Kamloops</Typography>
-
-                <ListItem>
-                  <ListItemText primary="Clearwater Hub" />
-                </ListItem>
-                <ListItem>
-                  <ListItemText primary="Wells Gray" />
-                </ListItem>
-                <ListItem>
-                  <ListItemText primary="Sparks Lake" />
-                </ListItem>
-                <ListItem>
-                  <ListItemText primary="Afton" />
-                </ListItem>
-                <ListItem>
-                  <ListItemText primary="Mayson" />
-                </ListItem>
-                <ListItem>
-                  <ListItemText primary="Blue River 2" />
-                </ListItem>
-              </List>
-              <List dense>
-                <Typography>Vernon</Typography>
-                <ListItem>
-                  <ListItemText primary="Turtle" />
-                </ListItem>
-                <ListItem>
-                  <ListItemText primary="Fintry" />
-                </ListItem>
-                <ListItem>
-                  <ListItemText primary="Station Bay 2" />
-                </ListItem>
-                <ListItem>
-                  <ListItemText primary="Seymour Arm" />
-                </ListItem>
-                <ListItem>
-                  <ListItemText primary="Salmon Arm" />
-                </ListItem>
-                <ListItem>
-                  <ListItemText primary="Kettle 21" />
-                </ListItem>
-              </List>
-            </Box>
+            <StationsList />
           </DialogContent>
+          <Button
+            variant="contained"
+            color="primary"
+            className={classes.actionButton}
+            onClick={() => {
+              /** no op */
+            }}
+            data-testid={'cancel-hfi-admin-button'}
+          >
+            Save
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            className={classes.actionButton}
+            onClick={handleClose}
+            data-testid={'cancel-hfi-admin-button'}
+          >
+            Cancel
+          </Button>
         </Paper>
       </Dialog>
     </React.Fragment>

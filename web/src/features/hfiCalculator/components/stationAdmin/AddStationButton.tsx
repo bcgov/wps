@@ -23,7 +23,7 @@ const AddStationButton = () => {
       data-testid={'add-station-button'}
     >
       <AddCircleOutlineIcon />
-      Add Station
+      Add weather station
     </Button>
   )
 }
