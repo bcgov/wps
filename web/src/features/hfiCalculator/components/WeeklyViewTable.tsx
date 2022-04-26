@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import { FireCentre } from 'api/hfiCalculatorAPI'
+import { FireCentre, FuelType } from 'api/hfiCalculatorAPI'
 import FireTable from 'components/FireTable'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
@@ -41,6 +41,7 @@ export interface Props {
     newFireStarts: FireStartRange
   ) => void
   setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
+  fuelTypes: FuelType[]
 }
 
 export const columnLabelsForEachDayInWeek: string[] = [
@@ -229,6 +230,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 : undefined
                             }
                             setFuelType={props.setFuelType}
+                            fuelTypes={props.fuelTypes}
                           />
                           <StaticCells
                             numPrepDays={numPrepDays}

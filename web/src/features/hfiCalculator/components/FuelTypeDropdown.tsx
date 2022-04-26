@@ -1,6 +1,6 @@
 import { makeStyles, TextField } from '@material-ui/core'
-import { WeatherStation } from 'api/hfiCalcAPI'
 import { Autocomplete } from '@material-ui/lab'
+import { FuelType, WeatherStation } from 'api/hfiCalculatorAPI'
 import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isEqual, isNull } from 'lodash'
 import React from 'react'
@@ -8,28 +8,27 @@ import React from 'react'
 export interface FuelTypeDropDownProps {
   station: WeatherStation
   stationInfo?: StationInfo
+  fuelTypes: FuelType[]
   setFuelType: (code: number, fuelTypeId: number) => void
 }
 
 const useStyles = makeStyles({
   dropdownClass: {
-    width: '96px'
+    width: '120px'
   }
 })
 
 const FuelTypeDropDown = ({
   station,
   stationInfo,
+  fuelTypes,
   setFuelType
 }: FuelTypeDropDownProps) => {
   const classes = useStyles()
-  // TODO: Wire up fuel type list
-  const fuelTypes = []
-  for (let i = 0; i < 100; i++) {
-    fuelTypes.push(i)
-  }
-  // TODO: Wire up permissions
   if (stationInfo) {
+    const selectedFuelType = fuelTypes.find(
+      instance => instance.id == stationInfo.fuel_type_id
+    )
     return (
       <Autocomplete
         data-testid={`fuel-type-dropdown`}
@@ -38,15 +37,15 @@ const FuelTypeDropDown = ({
         autoHighlight
         autoSelect
         options={fuelTypes}
-        getOptionSelected={(option, value) => isEqual(option, value)}
-        getOptionLabel={option => String(option)}
+        getOptionSelected={(option, value) => isEqual(option.id, value.id)}
+        getOptionLabel={option => option.abbrev}
         renderInput={params => (
-          <TextField {...params} variant="outlined" value={stationInfo.fuel_type_id} />
+          <TextField {...params} variant="outlined" value={selectedFuelType} />
         )}
-        value={stationInfo.fuel_type_id}
+        value={selectedFuelType}
         onChange={(_, value) => {
           if (!isNull(value)) {
-            setFuelType(station.code, value)
+            setFuelType(station.code, value.id)
           }
         }}
       />

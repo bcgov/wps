@@ -10,7 +10,7 @@ import {
 import { makeStyles } from '@material-ui/core/styles'
 import { useSelector } from 'react-redux'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
-import { FireCentre, StationDaily } from 'api/hfiCalculatorAPI'
+import { FireCentre, FuelType, StationDaily } from 'api/hfiCalculatorAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import FireTable from 'components/FireTable'
@@ -46,6 +46,7 @@ export interface Props {
   setSelected: (planningAreaId: number, code: number, selected: boolean) => void
   setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
   testId?: string
+  fuelTypes: FuelType[]
 }
 
 export const dailyTableColumnLabels = [
@@ -332,6 +333,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           isDailyTable={true}
                           grassCurePercentage={daily?.grass_cure_percentage}
                           setFuelType={props.setFuelType}
+                          fuelTypes={props.fuelTypes}
                         />
 
                         <StatusCell

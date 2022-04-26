@@ -83,7 +83,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     fireCentresLoading,
     dateRange,
     error: hfiError,
-    changeSaved
+    changeSaved,
+    fuelTypes
   } = useSelector(selectHFICalculatorState)
 
   const setSelectedStation = (
@@ -280,6 +281,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                 setNewFireStarts={setNewFireStarts}
                 setFuelType={setFuelType}
                 selectedPrepDay={selectedPrepDate}
+                fuelTypes={fuelTypes}
               />
             </ErrorBoundary>
           </React.Fragment>

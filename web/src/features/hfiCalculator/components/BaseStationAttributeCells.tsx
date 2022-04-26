@@ -1,6 +1,6 @@
 import { Table, TableBody, TableRow, Checkbox, TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import { WeatherStation } from 'api/hfiCalculatorAPI'
+import { FuelType, WeatherStation } from 'api/hfiCalculatorAPI'
 import StickyCell from 'components/StickyCell'
 import { fireTableStyles } from 'app/theme'
 import React from 'react'
@@ -19,6 +19,7 @@ export interface BaseStationAttributeCellsProps {
   stationCodeInSelected: (planningAreaId: number, code: number) => boolean
   toggleSelectedStation: (planningAreaId: number, code: number) => void
   setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
+  fuelTypes: FuelType[]
   isDailyTable?: boolean
 }
 
@@ -34,7 +35,8 @@ const BaseStationAttributeCells = ({
   grassCurePercentage,
   stationCodeInSelected,
   toggleSelectedStation,
-  setFuelType
+  setFuelType,
+  fuelTypes
 }: BaseStationAttributeCellsProps) => {
   const classes = useStyles()
 
@@ -87,6 +89,7 @@ const BaseStationAttributeCells = ({
                   }}
                   station={station}
                   stationInfo={stationInfo}
+                  fuelTypes={fuelTypes}
                 ></FuelTypeDropdown>
               </TableCell>
             </TableRow>
