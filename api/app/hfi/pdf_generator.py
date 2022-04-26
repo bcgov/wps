@@ -3,7 +3,7 @@ from datetime import date, datetime
 from typing import List, Dict, Tuple
 import pdfkit
 from jinja2 import Environment
-from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
+from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, StationInfo, WeatherStation
 from app.hfi.pdf_template import PDFTemplateName, CSS_PATH
 from app.hfi.pdf_data_formatter import response_2_daily_jinja_format, response_2_prep_cycle_jinja_format
 
@@ -35,12 +35,27 @@ def generate_html(result: HFIResultResponse,
     return rendered_output, fire_centre_name
 
 
+def override_fuel_types(fire_centres: List[FireCentre], result: HFIResultResponse, fuel_types: Dict[int, StationInfo]):
+    """ Override the fuel types in the fire centre with the fuel types from the result """
+    fire_centre: FireCentre = next(
+        fire_centre for fire_centre in fire_centres if fire_centre.id == result.selected_fire_center_id)
+    for planning_area in fire_centre.planning_areas:
+        station_info_list: List[StationInfo] = result.planning_area_station_info[planning_area.id]
+        for station in planning_area.stations:
+            station_info: StationInfo = next(
+                station_info for station_info in station_info_list if station_info.station_code == station.code)
+            station.station_props.fuel_type = fuel_types[station_info.fuel_type_id]
+
+
 def generate_pdf(result: HFIResultResponse,
                  fire_centres: List[FireCentre],
                  idir: str,
                  datetime_generated: datetime,
-                 jinja_env: Environment) -> Tuple[bytes, str]:
+                 jinja_env: Environment,
+                 fuel_types: Dict[int, StationInfo]) -> Tuple[bytes, str]:
     """Generates the full PDF based on the HFIResultResponse"""
+    override_fuel_types(fire_centres, result, fuel_types)
+
     rendered_output, fire_centre_name = generate_html(result,
                                                       fire_centres,
                                                       idir,
