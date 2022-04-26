@@ -26,7 +26,7 @@ from app.db.crud.hfi_calc import (get_fuel_type_by_id, get_most_recent_updated_h
                                   store_hfi_request,
                                   get_fire_centre_stations)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
-from app.db.models.hfi_calc import FuelType as FuelTypeModel
+import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
 
 
@@ -142,7 +142,7 @@ def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
     return False
 
 
-def fuel_type_model_to_schema(fuel_type_record: FuelTypeModel) -> FuelType:
+def fuel_type_model_to_schema(fuel_type_record: app.db.models.hfi_calc.FuelType) -> FuelType:
     """ Parse a database model record into a schema record. """
     return FuelType(id=fuel_type_record.id, description=fuel_type_record.description,
                     abbrev=fuel_type_record.abbrev,

@@ -29,7 +29,7 @@ class CannotCalculateFireTypeError(Exception):
 
 
 class FireBehaviourPredictionInputError(Exception):
-    """ Exception thrown when there something wrong with the input required to calculate a fire behaviour
+    """ Exception thrown when there is something wrong with the input required to calculate a fire behaviour
     prediction. """
 
 
