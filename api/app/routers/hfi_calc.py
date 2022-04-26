@@ -18,13 +18,14 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange,
                                   StationInfo,
-                                  DateRange,
-                                  HFIWeatherStationsResponse)
+                                  DateRange, FuelTypesResponse, HFIWeatherStationsResponse)
+from app.schemas.shared import (FuelType)
 from app.auth import authentication_required, audit
 from app.db.crud.hfi_calc import (get_fuel_type_by_id, get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
                                   get_fire_centre_stations)
+from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 from app.db.database import get_read_session_scope, get_write_session_scope
 
 
@@ -138,6 +139,25 @@ def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
             store_hfi_request(session, request, username)
             return True
     return False
+
+
+@router.get("/fuel_types")
+async def get_fuel_types(response: Response) -> FuelTypesResponse:
+    """ Return list of fuel type records pulled from database. """
+    logger.info('/fuel_types/')
+    # allow browser to cache fuel_types for 1 week because they won't change often (or possibly ever)
+    response.headers["Cache-Control"] = "max-age=604800"
+
+    with get_read_session_scope() as session:
+        result = crud_get_fuel_types(session)
+    fuel_types = []
+    for fuel_type_record in result:
+        fuel_types.append(FuelType(id=fuel_type_record.id, description=fuel_type_record.description,
+                                   abbrev=fuel_type_record.abbrev,
+                                   fuel_type_code=fuel_type_record.fuel_type_code,
+                          percentage_conifer=fuel_type_record.percentage_conifer,
+                          percentage_dead_fir=fuel_type_record.percentage_dead_fir))
+    return FuelTypesResponse(fuel_types=fuel_types)
 
 
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"

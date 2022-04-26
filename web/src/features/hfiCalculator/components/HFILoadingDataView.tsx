@@ -1,6 +1,6 @@
 import { Table, TableBody, Container, CircularProgress } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { FireCentre } from 'api/hfiCalculatorAPI'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { isUndefined, isNull } from 'lodash'
@@ -8,7 +8,8 @@ import React from 'react'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 
 export interface HFILoadingDataViewProps {
-  loading: boolean
+  pdfLoading: boolean
+  fuelTypesLoading: boolean
   stationDataLoading: boolean
   fireCentresLoading: boolean
   fireCentresError: string | null
@@ -25,7 +26,8 @@ const useStyles = makeStyles(() => ({
   }
 }))
 const HFILoadingDataView = ({
-  loading,
+  pdfLoading,
+  fuelTypesLoading,
   stationDataLoading,
   fireCentresLoading,
   fireCentresError,
@@ -46,7 +48,7 @@ const HFILoadingDataView = ({
   }
 
   const isLoading = () => {
-    return loading || stationDataLoading || fireCentresLoading
+    return pdfLoading || fuelTypesLoading || stationDataLoading || fireCentresLoading
   }
 
   const isLoadingWithoutError = () =>

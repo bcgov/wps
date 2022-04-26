@@ -92,7 +92,7 @@ export const selectWxDataLoading = (state: RootState): boolean =>
 export const selectFireWeatherStationsLoading = (state: RootState): boolean =>
   state.fireWeatherStations.loading
 export const selectHFIDailiesLoading = (state: RootState): boolean =>
-  state.hfiCalculatorDailies.loading
+  state.hfiCalculatorDailies.fireCentresLoading
 export const selectHFICalculatorState = (state: RootState): HFICalculatorState =>
   state.hfiCalculatorDailies
 export const selectHFIStationsLoading = (state: RootState): boolean =>

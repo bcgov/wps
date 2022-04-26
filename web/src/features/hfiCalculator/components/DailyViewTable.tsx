@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/
 import makeStyles from '@mui/styles/makeStyles'
 import { useSelector } from 'react-redux'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { FireCentre, StationDaily } from 'api/hfiCalculatorAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import FireTable from 'components/FireTable'
@@ -26,7 +26,6 @@ import {
   PlanningAreaResult
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredDataCell'
-import { StationDaily } from 'api/hfiCalculatorAPI'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DailyHFICell } from 'features/hfiCalculator/components/DailyHFICell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'

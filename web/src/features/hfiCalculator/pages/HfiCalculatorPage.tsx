@@ -9,6 +9,7 @@ import {
   fetchSetNewFireStarts,
   fetchGetPrepDateRange,
   fetchSetStationSelected,
+  fetchFuelTypes,
   fetchPDFDownload,
   setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -23,7 +24,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles } from 'app/theme'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { FireCentre } from 'api/hfiCalculatorAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
 import { isUndefined } from 'lodash'
 import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
@@ -71,17 +72,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
-  const {
-    fireCentres,
-    error: fireCentresError,
-    loading: fireCentresLoading
-  } = useSelector(selectHFIStations)
+  const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const {
     selectedPrepDate,
     result,
     selectedFireCentre,
-    loading,
+    pdfLoading,
+    fuelTypesLoading,
+    fireCentresLoading,
     dateRange,
     error: hfiError,
     changeSaved
@@ -163,6 +162,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchHFIStations())
+    dispatch(fetchFuelTypes())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -234,7 +234,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       />
       <Container maxWidth={'xl'}>
         <HFILoadingDataView
-          loading={loading}
+          pdfLoading={pdfLoading}
+          fuelTypesLoading={fuelTypesLoading}
           stationDataLoading={stationDataLoading}
           fireCentresLoading={fireCentresLoading}
           fireCentresError={fireCentresError}
