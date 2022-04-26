@@ -1,8 +1,14 @@
 import React from 'react'
-import { Dialog, DialogContent, IconButton, Paper, Typography } from '@mui/material'
+import {
+  Dialog,
+  DialogContent,
+  IconButton,
+  Paper,
+  Typography,
+  Button
+} from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
-import { Button } from '@mui/material'
 import ClearIcon from '@mui/icons-material/Clear'
 import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
 import StationsList from 'features/hfiCalculator/components/stationAdmin/StationsList'
