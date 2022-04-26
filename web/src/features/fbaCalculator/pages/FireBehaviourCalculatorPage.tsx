@@ -1,4 +1,5 @@
-import { makeStyles, Paper } from '@material-ui/core'
+import { Paper } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { Container, GeneralHeader } from 'components'
 import React from 'react'
 import FBATable from 'features/fbaCalculator/components/FBATable'

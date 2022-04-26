@@ -1,7 +1,7 @@
 import React from 'react'
-import { Card, CardContent, Typography } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
-import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf'
+import { Card, CardContent, Typography } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 
 import PDF from 'documents/90th_percentile_calculator_rationale.pdf'
 

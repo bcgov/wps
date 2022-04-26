@@ -1,15 +1,13 @@
 import React from 'react'
-import Autocomplete from '@material-ui/lab/Autocomplete'
-import { TextField } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
-import { FireCentre } from 'api/hfiCalcAPI'
+import Autocomplete from '@mui/material/Autocomplete'
+import { TextField } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { FireCentre } from 'api/hfiCalculatorAPI'
 import { isNull } from 'lodash'
 
 const useStyles = makeStyles({
   autocomplete: {
     width: '100%',
-    hasPopupIcon: 'true',
-    hasClearIcon: 'true',
     color: 'white'
   },
   wrapper: {
@@ -22,6 +20,10 @@ const useStyles = makeStyles({
     },
     '& .MuiAutocomplete-popupIndicator': {
       color: 'white'
+    },
+    '& .MuiAutocomplete-endAdornment': {
+      right: -3,
+      top: -3
     },
     '& .MuiInputLabel-root': {
       color: 'white'
@@ -72,7 +74,7 @@ const FireCentreDropdown = (props: Props) => {
           options={allFireCentreOptions}
           value={props.selectedValue}
           getOptionLabel={option => `${option.name}`}
-          getOptionSelected={(option, value) => option.name === value.name}
+          isOptionEqualToValue={(option, value) => option.name === value.name}
           onChange={(_, option) => {
             if (isNull(option)) {
               props.onChange(undefined)

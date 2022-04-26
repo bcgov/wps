@@ -1,19 +1,19 @@
 import React, { useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 
-import { Button, FormControl } from '@material-ui/core'
+import { Button, FormControl } from '@mui/material'
 import FireCentreDropdown from 'features/hfiCalculator/components/FireCentreDropdown'
 import { isUndefined } from 'lodash'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { FireCentre } from 'api/hfiCalculatorAPI'
 import AboutDataModal from 'features/hfiCalculator/components/AboutDataModal'
-import { HelpOutlineOutlined } from '@material-ui/icons'
-import { formControlStyles } from 'app/theme'
+import { HelpOutlineOutlined } from '@mui/icons-material'
+import { formControlStyles, theme } from 'app/theme'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateRange } from 'components/dateRangePicker/types'
 import PrepDateRangeSelector from 'features/hfiCalculator/components/PrepDateRangeSelector'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   ...formControlStyles,
   root: {
     background: theme.palette.primary.light,

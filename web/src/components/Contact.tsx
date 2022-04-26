@@ -1,11 +1,11 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 
 const useStyles = makeStyles({
   contact: {
     color: 'white',
     fontStyle: 'bold',
-    fontSize: '1.2em',
+    fontSize: '1.1em',
     textDecoration: 'none',
     cursor: 'pointer',
 

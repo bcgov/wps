@@ -1,6 +1,6 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { FormControl, InputLabel, Select, MenuItem } from '@material-ui/core'
+import makeStyles from '@mui/styles/makeStyles'
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 export enum AccuracyWeatherVariableEnum {
   'Relative Humidity' = 1,
@@ -11,12 +11,12 @@ const useStyles = makeStyles({
   variableDropdown: {
     minWidth: 250,
     margin: '8px',
-    marginLeft: '20px'
+    marginLeft: '20px',
+    '& label': {
+      color: 'white !important'
+    }
   },
   select: {
-    color: 'white'
-  },
-  '& .MuiFormLabel-root.Mui-focused': {
     color: 'white'
   }
 })
@@ -31,7 +31,7 @@ const AccuracyVariablePicker = (props: Props) => {
 
   return (
     <div>
-      <FormControl className={classes.variableDropdown}>
+      <FormControl variant="standard" className={classes.variableDropdown}>
         <InputLabel id="variable-dropdown-label" className={classes.select}>
           View accuracy map for
         </InputLabel>

@@ -7,6 +7,48 @@ import {
 import { DateTime } from 'luxon'
 import { formatISODateInPST } from 'utils/date'
 
+export interface FuelType {
+  id: number
+  abbrev: string
+  description: string
+  fuel_type_code: string
+  percentage_conifer: number
+  percentage_dead_fir: number
+}
+
+export interface FuelTypesResponse {
+  fuel_types: FuelType[]
+}
+
+export interface WeatherStationProperties {
+  name: string
+  elevation: number | null
+  uuid: string
+  fuel_type: FuelType
+}
+
+export interface FireCentre {
+  id: number
+  name: string
+  planning_areas: PlanningArea[]
+}
+
+export interface PlanningArea {
+  id: number
+  name: string
+  order_of_appearance_in_list: number
+  stations: WeatherStation[]
+}
+
+export interface WeatherStation {
+  code: number
+  station_props: WeatherStationProperties
+  order_of_appearance_in_planning_area_list?: number
+}
+
+export interface HFIWeatherStationsResponse {
+  fire_centres: FireCentre[]
+}
 export interface StationDaily {
   code: number
   status: string
@@ -50,6 +92,13 @@ export interface StationDailyResponse {
 
 const baseUrl = '/hfi-calc/'
 
+export async function getHFIStations(): Promise<HFIWeatherStationsResponse> {
+  const url = '/hfi-calc/fire-centres'
+  const { data } = await axios.get(url)
+
+  return data
+}
+
 export async function loadDefaultHFIResult(
   fire_center_id: number
 ): Promise<HFIResultResponse> {
@@ -57,6 +106,11 @@ export async function loadDefaultHFIResult(
     baseUrl + 'fire_centre/' + fire_center_id
   )
   return { ...data, planning_area_hfi_results: buildResult(data) }
+}
+
+export async function getFuelTypes(): Promise<FuelTypesResponse> {
+  const data = await axios.get<FuelTypesResponse>(baseUrl + 'fuel_types')
+  return data.data
 }
 
 export async function setStationSelected(

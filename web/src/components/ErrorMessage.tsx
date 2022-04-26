@@ -1,5 +1,6 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
+import { theme } from 'app/theme'
 
 interface Props {
   error: string
@@ -9,7 +10,7 @@ interface Props {
   marginBottom?: number
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   root: {
     color: theme.palette.error.main,
     marginTop: (props: Props) => props.marginTop,
