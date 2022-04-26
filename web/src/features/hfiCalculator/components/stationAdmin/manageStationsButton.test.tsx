@@ -2,7 +2,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react'
 import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin/ManageStationsButton'
 import React from 'react'
 
-describe.only('ManageStationsButton', () => {
+describe('ManageStationsButton', () => {
   it('should render the button without the modal showing', () => {
     const { getByTestId, queryByText } = render(<ManageStationsButton />)
 
