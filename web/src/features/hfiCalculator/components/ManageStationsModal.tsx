@@ -87,7 +87,7 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
               Add Station
             </Button>
             <Box sx={{ marginTop: 5 }}>
-              <List>
+              <List dense>
                 <Typography>Kamloops</Typography>
 
                 <ListItem>
@@ -109,7 +109,7 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
                   <ListItemText primary="Blue River 2" />
                 </ListItem>
               </List>
-              <List>
+              <List dense>
                 <Typography>Vernon</Typography>
                 <ListItem>
                   <ListItemText primary="Turtle" />
