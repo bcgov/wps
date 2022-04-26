@@ -33,6 +33,7 @@ import { DateRange } from 'components/dateRangePicker/types'
 import LiveChangesAlert from 'features/hfiCalculator/components/LiveChangesAlert'
 import { AppDispatch } from 'app/store'
 import HFILoadingDataView from 'features/hfiCalculator/components/HFILoadingDataView'
+import ManageStationsButton from 'features/hfiCalculator/components/ManageStationsButton'
 
 const useStyles = makeStyles(theme => ({
   ...formControlStyles,
@@ -62,7 +63,7 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(1),
     minWidth: 100
   },
-  pdfButton: {
+  actionButton: {
     margin: theme.spacing(1),
     float: 'right'
   }
@@ -253,8 +254,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               />
             </FormControl>
 
-            <FormControl className={classes.pdfButton}>
+            <FormControl className={classes.actionButton}>
               <DownloadPDFButton onClick={handleDownloadClicked} />
+            </FormControl>
+
+            <FormControl className={classes.actionButton}>
+              <ManageStationsButton />
             </FormControl>
 
             <ErrorBoundary>
