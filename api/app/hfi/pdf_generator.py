@@ -45,7 +45,7 @@ def override_fuel_types(
         fire_centres: List[FireCentre],
         result: HFIResultResponse,
         fuel_types: Dict[int, StationInfo]):
-    """ Override the fuel types in the fire centre with the fuel types from the result """
+    """ Override the default fuel types in the fire centre with the fuel types from the result """
     fire_centre: FireCentre = next(
         fire_centre for fire_centre in fire_centres if fire_centre.id == result.selected_fire_center_id)
     for planning_area in fire_centre.planning_areas:
