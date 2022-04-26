@@ -1,4 +1,5 @@
-import { render, fireEvent, within, waitFor } from '@testing-library/react'
+import { render, within, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
 import React from 'react'
 describe('FireStartsDropdown', () => {
@@ -26,7 +27,7 @@ describe('FireStartsDropdown', () => {
     await waitFor(() => expect(input.value).toBe(lowestFireStarts.label))
     await waitFor(() => expect(setFireStartsMock).toBeCalledTimes(0))
   })
-  xit('should change value on change and call parent callback', async () => {
+  it('should change value on change and call parent callback', async () => {
     const setFireStartsMock = jest.fn()
     const { getByTestId } = render(
       <FireStartsDropdown
@@ -42,12 +43,11 @@ describe('FireStartsDropdown', () => {
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
     autocomplete.focus()
-    // assign value to input field
-    fireEvent.change(input, { target: { value: '2' } })
-    fireEvent.keyDown(autocomplete, { key: 'ArrowDown' })
-    fireEvent.keyDown(autocomplete, { key: 'Enter' })
+    userEvent.type(autocomplete, '2')
 
     await waitFor(() => expect(input.value).toBe('2'))
+
+    userEvent.type(autocomplete, '{enter}')
     await waitFor(() => expect(setFireStartsMock).toBeCalledTimes(1))
     await waitFor(() =>
       expect(setFireStartsMock).toBeCalledWith(testAreaId, dayOffset, highestFireStarts)
