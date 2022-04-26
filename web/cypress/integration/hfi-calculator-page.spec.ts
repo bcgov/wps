@@ -152,7 +152,7 @@ describe('HFI Calculator Page', () => {
       cy.wait('@setFireStarts')
       cy.getByTestId('hfi-success-alert').should('exist')
     })
-    it.only('set fuel type shold send a request to the server', () => {
+    it('set fuel type should send a request to the server', () => {
       interceptSetFuelType(1, '2021-08-02', '2021-08-06', 70, 239, 3)
       cy.getByTestId('fuel-type-dropdown')
         .first()

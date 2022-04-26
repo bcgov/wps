@@ -14,7 +14,7 @@ export interface FuelTypeDropDownProps {
 
 const useStyles = makeStyles({
   dropdownClass: {
-    width: '120px'
+    width: 120
   }
 })
 
