@@ -1,5 +1,5 @@
 import { makeStyles, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { FireCentre } from 'api/hfiCalculatorAPI'
 import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
 import React from 'react'

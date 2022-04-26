@@ -1,21 +1,27 @@
 """ Unit testing for hfi logic """
 from datetime import date, datetime, timedelta
 import pytest
+import os
+import json
 from pytest_mock import MockerFixture
 from app.hfi.hfi_calc import (calculate_hfi_results,
                               calculate_mean_intensity,
                               calculate_max_intensity_group,
                               calculate_prep_level, validate_date_range, validate_station_daily)
 import app.db.models.hfi_calc as hfi_calc_models
-from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, InvalidDateRangeError,
+from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, FuelTypesResponse, InvalidDateRangeError,
                                   PlanningArea,
                                   StationDaily, StationInfo,
                                   WeatherStation,
                                   WeatherStationProperties,
                                   required_daily_fields)
 from app.schemas.shared import FuelType
+from app.tests import load_json_file, load_json_file_with_name
 from app.utils.time import get_pst_now, get_utc_now
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
+from starlette.testclient import TestClient
+from app.main import app as starlette_app
+import app.routers.hfi_calc
 
 # Kamloops FC fixture
 kamloops_fc = FireCentre(
@@ -32,14 +38,16 @@ kamloops_fc = FireCentre(
                         wfwx_station_uuid='1',
                         name="station1",
                         elevation=1,
-                        fuel_type=FuelType(abbrev="C1", description="", fuel_type_code="C1", percentage_conifer=100, percentage_dead_fir=0))),
+                        fuel_type=FuelType(id=1, abbrev="C1", description="", fuel_type_code="C1",
+                                           percentage_conifer=100, percentage_dead_fir=0))),
             WeatherStation(
                 code=2,
                 station_props=WeatherStationProperties(
                     wfwx_station_uuid='2',
                     name="station2",
                     elevation=1,
-                    fuel_type=FuelType(abbrev="C1", description="", fuel_type_code="C1", percentage_conifer=100, percentage_dead_fir=0)))
+                    fuel_type=FuelType(id=1, abbrev="C1", description="", fuel_type_code="C1",
+                                       percentage_conifer=100, percentage_dead_fir=0)))
         ]
     )
     ]
@@ -227,6 +235,29 @@ def test_valid_daily():
         setattr(daily, field, None)
         result = validate_station_daily(daily)
         assert result.valid == False
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_valid_fuel_types_response(monkeypatch):
+    """ Assert that list of FuelType objects is converted to FuelTypesResponse object correctly """
+    def mock_get_fuel_types(*args, **kwargs):
+        fuel_type_1 = FuelType(id=1, abbrev="T1", fuel_type_code="T1", description="blah",
+                               percentage_conifer=0, percentage_dead_fir=0)
+        fuel_type_2 = FuelType(id=2, abbrev="T2", fuel_type_code="T2", description="bleep",
+                               percentage_conifer=0, percentage_dead_fir=0)
+        fuel_type_3 = FuelType(id=3, abbrev="T3", fuel_type_code="T3", description="bloop",
+                               percentage_conifer=0, percentage_dead_fir=0)
+        return [fuel_type_1, fuel_type_2, fuel_type_3]
+
+    monkeypatch.setattr(app.routers.hfi_calc, 'crud_get_fuel_types', mock_get_fuel_types)
+    correct_response_file = os.path.join(os.path.dirname(__file__), 'test_valid_fuel_types_response.json')
+
+    client = TestClient(starlette_app)
+    response = client.get('/api/hfi-calc/fuel_types')
+    assert response.status_code == 200
+    assert response.headers['content-type'] == 'application/json'
+    with open(correct_response_file) as file_reader:
+        assert response.json() == json.loads(file_reader.read())
 
 
 def test_valid_date_range_none():
