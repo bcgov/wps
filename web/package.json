@@ -93,8 +93,10 @@
   "devDependencies": {
     "@cypress/code-coverage": "^3.9.12",
     "@cypress/instrument-cra": "^1.4.0",
+    "@testing-library/dom": "^8.13.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.0",
+    "@testing-library/user-event": "^14.1.1",
     "@types/jest": "^27.0.2",
     "@types/recharts": "^1.8.23",
     "cypress": "^9.5.4",
