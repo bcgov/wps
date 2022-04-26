@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import SettingsIcon from '@mui/icons-material/Settings'
 import { Button } from '@mui/material'
-import ManageStationsModal from 'features/hfiCalculator/components/ManageStationsModal'
+import ManageStationsModal from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 
 const ManageStationsButton = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false)

@@ -13,8 +13,7 @@ import {
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
-import { Button } from '@mui/material'
+import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
 
 export interface ColumnSelectionState {
   label: string
@@ -68,18 +67,7 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
             <Typography variant="h5" align="center">
               Manage Weather Stations
             </Typography>
-            <Button
-              variant="text"
-              color="primary"
-              className={classes.addStation}
-              onClick={() => {
-                /** no op */
-              }}
-              data-testid={'add-station-button'}
-            >
-              <AddCircleOutlineIcon />
-              Add Station
-            </Button>
+            <AddStationButton />
             <Box sx={{ marginTop: 5 }}>
               <List dense>
                 <Typography>Kamloops</Typography>
