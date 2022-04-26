@@ -1,3 +1,9 @@
+## 2022-04-26 HFI Calc - Set fuel type
+
+### Features
+
+- **hfi calculator [#1555](https://github.com/bcgov/wps/issues/1555):** Change fuel type for weather stations in HFI calculation.
+
 ## 2022-04-26 HFI Calc - Migrate Material UI from v4 to v5, Part1 [#1896](https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5bbe203b8/issues/bcgov/wps/1896)
 
 ### Refactor
