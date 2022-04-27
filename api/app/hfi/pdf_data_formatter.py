@@ -184,10 +184,9 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
                                                        dailies=station_daily_pdf_data)
             daily_pdf_data.append(daily_data)
 
-    order_by_date_key = operator.attrgetter('date')
     daily_pdf_data.sort(key=lambda k: (k.date, k.order))
     daily_pdf_data_by_date = dict((k, list(map(lambda x: x, values)))
                                   for k, values in groupby(
                                       daily_pdf_data,
-                                      order_by_date_key))
+                                      operator.attrgetter('date')))
     return daily_pdf_data_by_date
