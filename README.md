@@ -51,7 +51,7 @@ graph LR
     sso["Red Hat SSO / Keycloak</br>[Idendity Provider]</br>https://oidc.gov.bc.ca"]
 
     subgraph Wildfire Predictive Services Unit Web Application
-        FrontEnd["PSY Single Page Application</br>[Container: Javscript, React]"]
+        FrontEnd["PSU Single Page Application</br>[Container: Javascript, React]"]
 
         subgraph PSU API's
             API["API</br>[Container: Python, FastAPI]"]
