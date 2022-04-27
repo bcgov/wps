@@ -41,7 +41,53 @@ A glossary of terms relating to Wildfire that are relevant to Predictive Service
 
 ## Architecture
 
-![FWI calculator container diagram](./architecture/container_diagram.png)
+```mermaid
+graph LR
+
+    subgraph OCIO OBJECT STORAGE SERVICE
+        s3[("Object Storage</br>[Container: S3 Compliant]")]
+    end
+
+    datamart["Environment Canada MSC Datamart"]
+
+    wf1["WFWX Fire Weather API</br>[Software System]"]
+
+    sso["Red Hat SSO / Keycloak</br>[Idendity Provider]</br>https://oidc.gov.bc.ca"]
+
+    subgraph Wildfire Predictive Services Unit Web Application
+        FrontEnd["PSY Single Page Application</br>[Container: Javscript, React]"]
+        API["API</br>[Container: Python, FastAPI]"]
+        Database[("Database</br>[Container: PostgreSQL, Patroni]</br></br>Weather model data, audit logs,</br>HFI calculator data")]
+        CFFDRS_API["CFFDRS API</br>[Container: Python, FastAPI, R]"]
+        Files[("Files</br>[Container: json files, shp files, html files]</br></br>Percentile data, diurnal data, jinja templates")]
+        pg_tileserv
+        redis
+        matomo
+        c-haines
+        env-canada
+        backup
+    end
+
+    API-. "Read</br>[S3/HTTPS]" .->s3
+    API-.->|"Read</br>[psycopg]"|Database
+    API-.->|"Read</br>[JSON/HTTPS]"|CFFDRS_API
+    API-.->|"Uses</br>[Reads from disk]"|Files
+    API-.->redis
+    API-.->wf1
+    API-.->sso
+    pg_tileserv-.->Database
+    FrontEnd-.->|"Uses</br>[JSON/HTTPS]"|API
+    FrontEnd-.->|"Uses</br>[HTTPS]"|pg_tileserv
+    FrontEnd-.->matomo
+    FrontEnd-.->sso
+    c-haines-.->s3
+    c-haines-.->redis
+    c-haines-.->datamart
+    env-canada-.->Database
+    env-canada-.->redis
+    env-canada-.->datamart
+    backup-.->Database
+```
 
 ### Imagestream flow
 
