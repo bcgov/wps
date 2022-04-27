@@ -44,10 +44,6 @@ A glossary of terms relating to Wildfire that are relevant to Predictive Service
 ```mermaid
 graph LR
 
-    subgraph OCIO OBJECT STORAGE SERVICE
-        s3[("Object Storage</br>[Container: S3 Compliant]")]
-    end
-
     datamart["Environment Canada MSC Datamart"]
 
     wf1["WFWX Fire Weather API</br>[Software System]"]
@@ -60,33 +56,39 @@ graph LR
         Database[("Database</br>[Container: PostgreSQL, Patroni]</br></br>Weather model data, audit logs,</br>HFI calculator data")]
         CFFDRS_API["CFFDRS API</br>[Container: Python, FastAPI, R]"]
         Files[("Files</br>[Container: json files, shp files, html files]</br></br>Percentile data, diurnal data, jinja templates")]
-        pg_tileserv
-        redis
+        pg_tileserv["pg_tileserv</br>[Software System]"]
+        redis["REDIS</br>[Software System]"]
         matomo
-        c-haines
-        env-canada
-        backup
+        c-haines["C-Haines Openshift cronjob</br>[Container: Python]</br>Periodically fetch weather data, process and store relevant subset."]
+        env-canada["Env. Canada Weather Openshift Cronjob</br>[Container: Python]</br> Periodically fetch weather data, process and store relevant subset."]
+        backup["Backup process Openshift cronjob</br>[Container: Python]"]
+    end
+
+    subgraph "S3 Compliant, OCIO Object Storage Service"
+        s3[("Object Storage</br>[Container: S3 Compliant]")]
     end
 
     API-. "Read</br>[S3/HTTPS]" .->s3
     API-.->|"Read</br>[psycopg]"|Database
     API-.->|"Read</br>[JSON/HTTPS]"|CFFDRS_API
     API-.->|"Uses</br>[Reads from disk]"|Files
-    API-.->redis
-    API-.->wf1
-    API-.->sso
-    pg_tileserv-.->Database
+    API-. "Fetch fire weather data</br>[JSON/HTTPS]" .->wf1
+    API-. "Cache WFWX responses" .->redis
+    pg_tileserv-. "Read geometries" .->Database
     FrontEnd-.->|"Uses</br>[JSON/HTTPS]"|API
     FrontEnd-.->|"Uses</br>[HTTPS]"|pg_tileserv
-    FrontEnd-.->matomo
-    FrontEnd-.->sso
-    c-haines-.->s3
-    c-haines-.->redis
-    c-haines-.->datamart
-    env-canada-.->Database
-    env-canada-.->redis
-    env-canada-.->datamart
-    backup-.->Database
+    FrontEnd-. "Analytics</br>[HTTPS]" .->matomo
+    FrontEnd-. "Authenticate</br>[HTTPS]" .->sso
+    FrontEnd-. "Read</br>[HTTPS]" .->s3
+    c-haines-. "[S3/HTTPS]" .->s3
+    c-haines-. "Cache Env. Canada GRIB files" .->redis
+    c-haines-. "Download files</br>[GRIB2/HTTPS]" .->datamart
+    env-canada-. "Store weather data</br>[psycopg]" .->Database
+    env-canada-. "Cache Env. Canada GRIB files" .->redis
+    env-canada-. "Download files</br>[GRIB2/HTTPS]" .->datamart
+    Database-. "Read</br>[psycopg]" .->backup
+    backup-. "[S3/HTTPS]" .->s3
+
 ```
 
 ### Imagestream flow
