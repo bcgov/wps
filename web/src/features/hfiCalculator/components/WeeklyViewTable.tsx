@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { FireCentre } from 'api/hfiCalculatorAPI'
+import { FireCentre, FuelType } from 'api/hfiCalculatorAPI'
 import FireTable from 'components/FireTable'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
@@ -14,7 +14,8 @@ import { isEmpty, isUndefined, sortBy } from 'lodash'
 import {
   calculateNumPrepDays,
   getDailiesByStationCode,
-  stationCodeSelected
+  stationCodeSelected,
+  getPlanningAreaStationInfo
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
@@ -39,6 +40,8 @@ export interface Props {
     dayOffset: number,
     newFireStarts: FireStartRange
   ) => void
+  setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
+  fuelTypes: FuelType[]
 }
 
 export const columnLabelsForEachDayInWeek: string[] = [
@@ -204,12 +207,18 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         ? classes.unselectedStation
                         : classes.stationCellPlainStyling
                       const stationCode = station.code
+                      const stationInfo = getPlanningAreaStationInfo(
+                        result,
+                        area.id,
+                        stationCode
+                      )
                       return (
                         <TableRow
                           className={classNameForRow}
                           key={`station-${stationCode}`}
                         >
                           <BaseStationAttributeCells
+                            stationInfo={stationInfo}
                             station={station}
                             planningAreaId={area.id}
                             className={classNameForRow}
@@ -220,6 +229,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 ? dailiesForStation[0].grass_cure_percentage
                                 : undefined
                             }
+                            setFuelType={props.setFuelType}
+                            fuelTypes={props.fuelTypes}
+                            isRowSelected={isRowSelected}
                           />
                           <StaticCells
                             numPrepDays={numPrepDays}
