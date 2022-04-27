@@ -11,12 +11,13 @@ import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
 import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
-import AddStationsList from 'features/hfiCalculator/components/stationAdmin/StationsList'
+import StationList from 'features/hfiCalculator/components/stationAdmin/StationsList'
 import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { setChangeSaved } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
+import { isEmpty, isUndefined, some } from 'lodash'
 
 export interface AdminStation {
   planningArea?: {
@@ -55,6 +56,15 @@ const useStyles = makeStyles(() => ({
     float: 'right'
   }
 }))
+
+export const someEmptyStations = (newStations: AdminStation[]) =>
+  some(
+    newStations,
+    newStation =>
+      isUndefined(newStation.planningArea) ||
+      isUndefined(newStation.station) ||
+      isUndefined(newStation.fuelType)
+  )
 
 export const ManageStationsModal = (props: ModalProps): JSX.Element => {
   const classes = useStyles()
@@ -111,11 +121,15 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
               New weather station(s) will be included in the default list moving forward
             </Typography>
             <AddStationButton clickHandler={handleAddStation} />
-            <AddStationsList newStations={newStations} />
+            <StationList
+              newStations={newStations}
+              someStationsEmpty={someEmptyStations(newStations)}
+            />
           </DialogContent>
           <Button
             variant="contained"
             color="primary"
+            disabled={isEmpty(newStations) || someEmptyStations(newStations)}
             className={classes.actionButton}
             onClick={handleSave}
             data-testid={'cancel-hfi-admin-button'}

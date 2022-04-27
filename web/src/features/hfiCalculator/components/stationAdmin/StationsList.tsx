@@ -1,12 +1,15 @@
 import React from 'react'
 import { Box, Autocomplete, TextField, Grid, Typography, Tooltip } from '@mui/material'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import makeStyles from '@mui/styles/makeStyles'
+import { isUndefined } from 'lodash'
 
-export interface AddStationsList {
+export interface StationListProps {
   testId?: string
   newStations: AdminStation[]
+  someStationsEmpty: boolean
 }
 
 const useStyles = makeStyles({
@@ -18,7 +21,10 @@ const useStyles = makeStyles({
   }
 })
 
-export const AddStationsList = ({ newStations }: AddStationsList): JSX.Element => {
+export const StationList = ({
+  newStations,
+  someStationsEmpty
+}: StationListProps): JSX.Element => {
   const classes = useStyles()
 
   return (
@@ -35,12 +41,14 @@ export const AddStationsList = ({ newStations }: AddStationsList): JSX.Element =
                 )}
                 <Autocomplete
                   className={classes.autocomplete}
+                  value={newStation.planningArea?.name}
                   key={index}
                   renderInput={params => (
                     <TextField
                       {...params}
                       label="Select Planning Area"
                       variant="outlined"
+                      error={isUndefined(newStation.planningArea)}
                     />
                   )}
                   options={[]}
@@ -57,7 +65,12 @@ export const AddStationsList = ({ newStations }: AddStationsList): JSX.Element =
                   className={classes.autocomplete}
                   key={index}
                   renderInput={params => (
-                    <TextField {...params} label="Select Station" variant="outlined" />
+                    <TextField
+                      {...params}
+                      label="Select Station"
+                      variant="outlined"
+                      error={isUndefined(newStation.station)}
+                    />
                   )}
                   options={[]}
                 />
@@ -80,7 +93,12 @@ export const AddStationsList = ({ newStations }: AddStationsList): JSX.Element =
                   className={classes.autocomplete}
                   key={index}
                   renderInput={params => (
-                    <TextField {...params} label="Select Fuel Type" variant="outlined" />
+                    <TextField
+                      {...params}
+                      label="Select Fuel Type"
+                      variant="outlined"
+                      error={isUndefined(newStation.fuelType)}
+                    />
                   )}
                   options={[]}
                 />
@@ -88,9 +106,27 @@ export const AddStationsList = ({ newStations }: AddStationsList): JSX.Element =
             </Grid>
           </Grid>
         ))}
+        {someStationsEmpty && (
+          <Grid
+            container
+            direction="row"
+            justifyContent="center"
+            spacing={1}
+            marginTop={5}
+          >
+            <Grid item spacing={1}>
+              <ErrorOutlineIcon color="error" />
+            </Grid>
+            <Grid item spacing={1}>
+              <Typography variant="body1">
+                Please complete empty fields to continue
+              </Typography>
+            </Grid>
+          </Grid>
+        )}
       </Grid>
     </Box>
   )
 }
 
-export default React.memo(AddStationsList)
+export default React.memo(StationList)
