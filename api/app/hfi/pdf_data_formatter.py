@@ -174,7 +174,9 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
             dailies: List[StationDaily] = list(map(lambda x: x.daily, daily_result.dailies))
             station_daily_pdf_data: List[StationPDFData] = get_merged_station_data(station_dict, dailies)
             planning_area_name = planning_area_dict[area_result.planning_area_id].name
+            order = planning_area_dict[area_result.planning_area_id].order_of_appearance_in_list
             daily_data = DailyTablePlanningAreaPDFData(planning_area_name=planning_area_name,
+                                                       order=order,
                                                        mean_intensity_group=daily_result.mean_intensity_group,
                                                        prep_level=daily_result.prep_level,
                                                        fire_starts=daily_result.fire_starts.label,
@@ -182,7 +184,9 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
                                                        dailies=station_daily_pdf_data)
             daily_pdf_data.append(daily_data)
 
-    key = operator.attrgetter('date')
+    daily_pdf_data.sort(key=lambda k: (k.date, k.order))
     daily_pdf_data_by_date = dict((k, list(map(lambda x: x, values)))
-                                  for k, values in groupby(sorted(daily_pdf_data, key=key), key))
+                                  for k, values in groupby(
+                                      daily_pdf_data,
+                                      operator.attrgetter('date')))
     return daily_pdf_data_by_date
