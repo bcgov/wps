@@ -238,10 +238,5 @@ def test_response_2_daily_jinja_format():
             # 7 planning areas in coastal
             assert len(daily_planning_area_data) == 7
             # assert correct order for each day
-            assert daily_planning_area_data[0].planning_area_name == 'Fraser Zone'
-            assert daily_planning_area_data[1].planning_area_name == 'Pemberton Zone'
-            assert daily_planning_area_data[2].planning_area_name == 'Sunshine Coast'
-            assert daily_planning_area_data[3].planning_area_name == 'South Island'
-            assert daily_planning_area_data[4].planning_area_name == 'Mid Island'
-            assert daily_planning_area_data[5].planning_area_name == 'North Island'
-            assert daily_planning_area_data[6].planning_area_name == 'Mid-Coast'
+            for index in range(len(daily_planning_area_data)):
+                assert daily_planning_area_data[index].order == index + 1
