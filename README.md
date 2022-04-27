@@ -42,7 +42,7 @@ A glossary of terms relating to Wildfire that are relevant to Predictive Service
 ## Architecture
 
 ```mermaid
-graph TB
+graph LR
 
     datamart["Environment Canada MSC Datamart"]
 
@@ -52,16 +52,25 @@ graph TB
 
     subgraph Wildfire Predictive Services Unit Web Application
         FrontEnd["PSY Single Page Application</br>[Container: Javscript, React]"]
-        API["API</br>[Container: Python, FastAPI]"]
-        Database[("Database</br>[Container: PostgreSQL, Patroni]</br></br>Weather model data, audit logs,</br>HFI calculator data")]
-        CFFDRS_API["CFFDRS API</br>[Container: Python, FastAPI, R]"]
-        Files[("Files</br>[Container: json files, shp files, html files]</br></br>Percentile data, diurnal data, jinja templates")]
+
+        subgraph PSU API's
+            API["API</br>[Container: Python, FastAPI]"]
+            CFFDRS_API["CFFDRS API</br>[Container: Python, FastAPI, R]"]
+        end
+
         pg_tileserv["pg_tileserv</br>[Software System]"]
         redis["REDIS</br>[Software System]"]
         matomo["Matomo</br>[Software System]"]
-        c-haines["C-Haines Openshift cronjob</br>[Container: Python]</br>Periodically fetch weather data, process and store relevant subset."]
-        env-canada["Env. Canada Weather Openshift Cronjob</br>[Container: Python]</br> Periodically fetch weather data, process and store relevant subset."]
-        backup["Backup process Openshift cronjob</br>[Container: Python]"]
+
+        subgraph Openshift Cronjobs
+            c-haines["C-Haines</br>[Container: Python]</br>Periodically fetch weather data, process and store relevant subset."]
+            env-canada["Env. Canada Weather</br>[Container: Python]</br> Periodically fetch weather data, process and store relevant subset."]
+            backup["Backup process</br>[Container: Python]"]
+        end
+
+        Database[("Database</br>[Container: PostgreSQL, Patroni]</br></br>Weather model data, audit logs,</br>HFI calculator data")]
+        Files[("Files</br>[Container: json files, shp files, html files]</br></br>Percentile data, diurnal data, jinja templates")]
+
     end
 
     subgraph "S3 Compliant, OCIO Object Storage Service"
@@ -81,12 +90,12 @@ graph TB
     FrontEnd-. "Authenticate</br>[HTTPS]" .->sso
     FrontEnd-. "Read</br>[HTTPS]" .->s3
     c-haines-. "[S3/HTTPS]" .->s3
-    redis<-. "Cache Env. Canada GRIB files" .-c-haines
+    c-haines-. "Cache Env. Canada GRIB files" .->redis
     c-haines-. "Download files</br>[GRIB2/HTTPS]" .->datamart
     env-canada-. "Store weather data</br>[psycopg]" .->Database
-    redis<-. "Cache Env. Canada GRIB files" .-env-canada
+    env-canada-. "Cache Env. Canada GRIB files" .->redis
     env-canada-. "Download files</br>[GRIB2/HTTPS]" .->datamart
-    Database<-. "Read</br>[psycopg]" .-backup
+    backup-. "Read</br>[psycopg]" .->Database
     backup-. "[S3/HTTPS] " .->s3
 
 ```
