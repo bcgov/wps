@@ -26,6 +26,7 @@ from app.db.crud.hfi_calc import (get_fuel_type_by_id, get_most_recent_updated_h
                                   store_hfi_request,
                                   get_fire_centre_stations)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
+import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
 
 
@@ -141,6 +142,15 @@ def save_request_in_database(request: HFIResultRequest, username: str) -> bool:
     return False
 
 
+def fuel_type_model_to_schema(fuel_type_record: app.db.models.hfi_calc.FuelType) -> FuelType:
+    """ Parse a database model record into a schema record. """
+    return FuelType(id=fuel_type_record.id, description=fuel_type_record.description,
+                    abbrev=fuel_type_record.abbrev,
+                    fuel_type_code=fuel_type_record.fuel_type_code,
+                    percentage_conifer=fuel_type_record.percentage_conifer,
+                    percentage_dead_fir=fuel_type_record.percentage_dead_fir)
+
+
 @router.get("/fuel_types")
 async def get_fuel_types(response: Response) -> FuelTypesResponse:
     """ Return list of fuel type records pulled from database. """
@@ -152,11 +162,7 @@ async def get_fuel_types(response: Response) -> FuelTypesResponse:
         result = crud_get_fuel_types(session)
     fuel_types = []
     for fuel_type_record in result:
-        fuel_types.append(FuelType(id=fuel_type_record.id, description=fuel_type_record.description,
-                                   abbrev=fuel_type_record.abbrev,
-                                   fuel_type_code=fuel_type_record.fuel_type_code,
-                          percentage_conifer=fuel_type_record.percentage_conifer,
-                          percentage_dead_fir=fuel_type_record.percentage_dead_fir))
+        fuel_types.append(fuel_type_model_to_schema(fuel_type_record))
     return FuelTypesResponse(fuel_types=fuel_types)
 
 
@@ -375,6 +381,10 @@ async def get_pdf(
         request_response = await calculate_and_create_response(
             session, request, fire_centre_fire_start_ranges)
 
+        fuel_types_result = crud_get_fuel_types(session)
+        fuel_types = {fuel_type_record.id: fuel_type_model_to_schema(
+            fuel_type_record) for fuel_type_record in fuel_types_result}
+
     fire_centres_list = await hydrate_fire_centres()
 
     # Loads template as string from a function
@@ -387,7 +397,8 @@ async def get_pdf(
                                            fire_centres_list,
                                            username,
                                            get_pst_now(),
-                                           jinja_env)
+                                           jinja_env,
+                                           fuel_types)
 
     return Response(pdf_bytes, headers={'Content-Disposition': f'attachment; filename={pdf_filename}',
                                         'Access-Control-Expose-Headers': 'Content-Disposition',

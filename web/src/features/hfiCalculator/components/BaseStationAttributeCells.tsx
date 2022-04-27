@@ -1,21 +1,27 @@
 import { Table, TableBody, TableRow, Checkbox, TableCell } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { WeatherStation } from 'api/hfiCalculatorAPI'
+import { FuelType, WeatherStation } from 'api/hfiCalculatorAPI'
 import StickyCell from 'components/StickyCell'
 import { fireTableStyles } from 'app/theme'
 import React from 'react'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
+import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
+import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface BaseStationAttributeCellsProps {
   testid?: string
   station: WeatherStation
+  stationInfo?: StationInfo
   planningAreaId: number
   className: string | undefined
   grassCurePercentage: number | undefined
   stationCodeInSelected: (planningAreaId: number, code: number) => boolean
   toggleSelectedStation: (planningAreaId: number, code: number) => void
+  setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
+  fuelTypes: FuelType[]
   isDailyTable?: boolean
+  isRowSelected: boolean
 }
 
 const useStyles = makeStyles({
@@ -24,11 +30,15 @@ const useStyles = makeStyles({
 
 const BaseStationAttributeCells = ({
   station,
+  stationInfo,
   planningAreaId,
   className,
   grassCurePercentage,
   stationCodeInSelected,
-  toggleSelectedStation
+  toggleSelectedStation,
+  setFuelType,
+  fuelTypes,
+  isRowSelected
 }: BaseStationAttributeCellsProps) => {
   const classes = useStyles()
 
@@ -75,7 +85,15 @@ const BaseStationAttributeCells = ({
                 key={`station-${station.code}-fuel-type`}
                 className={`${className} ${classes.noBottomBorder}`}
               >
-                {station.station_props.fuel_type.abbrev}
+                <FuelTypeDropdown
+                  setFuelType={(code: number, fuelTypeId: number) => {
+                    setFuelType(planningAreaId, code, fuelTypeId)
+                  }}
+                  station={station}
+                  stationInfo={stationInfo}
+                  fuelTypes={fuelTypes}
+                  isRowSelected={isRowSelected}
+                ></FuelTypeDropdown>
               </TableCell>
             </TableRow>
           </TableBody>
