@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -11,8 +11,27 @@ import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
 import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
-import StationsList from 'features/hfiCalculator/components/stationAdmin/StationsList'
+import AddStationsList from 'features/hfiCalculator/components/stationAdmin/StationsList'
+import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectHFICalculatorState } from 'app/rootReducer'
+import { setChangeSaved } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { AppDispatch } from 'app/store'
 
+export interface AdminStation {
+  planningArea?: {
+    id: number
+    name: string
+  }
+  station?: {
+    code: number
+    name: string
+  }
+  fuelType?: {
+    id: number
+    name: string
+  }
+}
 export interface ModalProps {
   testId?: string
   modalOpen: boolean
@@ -21,7 +40,7 @@ export interface ModalProps {
 
 const useStyles = makeStyles(() => ({
   modalWindow: {
-    maxWidth: 'lg'
+    maxWidth: 'xl'
   },
   closeIcon: {
     position: 'absolute',
@@ -40,15 +59,41 @@ const useStyles = makeStyles(() => ({
 export const ManageStationsModal = (props: ModalProps): JSX.Element => {
   const classes = useStyles()
 
+  const dispatch: AppDispatch = useDispatch()
+
+  const { changeSaved } = useSelector(selectHFICalculatorState)
+
+  const [newStations, setNewStations] = useState<AdminStation[]>([])
+
   const handleClose = () => {
     props.setModalOpen(false)
+    setNewStations([])
+  }
+
+  const handleSave = () => {
+    // TODO: temporary, this will be dispatched by POST request with new stations
+    dispatch(setChangeSaved(true))
+  }
+
+  const handleAddStation = () => {
+    console.log(newStations)
+    setNewStations([...newStations, {}])
+  }
+
+  const buildSuccessNotification = () => {
+    if (changeSaved) {
+      return <HFISuccessAlert message="Changes saved!" />
+    }
+    return <React.Fragment></React.Fragment>
   }
 
   return (
     <React.Fragment>
+      {buildSuccessNotification()}
+
       <Dialog
         fullWidth
-        className={classes.modalWindow}
+        maxWidth="lg"
         open={props.modalOpen}
         onClose={handleClose}
         data-testid="manage-stations-modal"
@@ -62,16 +107,14 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
             <Typography variant="h5" align="center">
               Manage Weather Stations
             </Typography>
-            <AddStationButton />
-            <StationsList />
+            <AddStationButton clickHandler={handleAddStation} />
+            <AddStationsList newStations={newStations} />
           </DialogContent>
           <Button
             variant="contained"
             color="primary"
             className={classes.actionButton}
-            onClick={() => {
-              /** no op */
-            }}
+            onClick={handleSave}
             data-testid={'cancel-hfi-admin-button'}
           >
             Save
