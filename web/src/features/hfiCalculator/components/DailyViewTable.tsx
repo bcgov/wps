@@ -327,6 +327,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           grassCurePercentage={daily?.grass_cure_percentage}
                           setFuelType={props.setFuelType}
                           fuelTypes={props.fuelTypes}
+                          isRowSelected={isRowSelected}
                         />
 
                         <StatusCell

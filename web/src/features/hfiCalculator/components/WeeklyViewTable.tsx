@@ -231,6 +231,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             }
                             setFuelType={props.setFuelType}
                             fuelTypes={props.fuelTypes}
+                            isRowSelected={isRowSelected}
                           />
                           <StaticCells
                             numPrepDays={numPrepDays}

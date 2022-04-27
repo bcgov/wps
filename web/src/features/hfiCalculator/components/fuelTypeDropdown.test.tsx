@@ -40,6 +40,7 @@ describe('FuelTypeDropdown', () => {
         stationInfo={testStationInfo}
         setFuelType={setFuelTypeMock}
         fuelTypes={fuelTypes}
+        isRowSelected={true}
       />
     )
     const autocomplete = getByTestId('fuel-type-dropdown')
@@ -59,6 +60,7 @@ describe('FuelTypeDropdown', () => {
         stationInfo={testStationInfo}
         setFuelType={setFuelTypeMock}
         fuelTypes={fuelTypes}
+        isRowSelected={true}
       />
     )
     const autocomplete = getByTestId('fuel-type-dropdown')

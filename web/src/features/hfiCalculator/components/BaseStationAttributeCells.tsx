@@ -21,6 +21,7 @@ export interface BaseStationAttributeCellsProps {
   setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
   fuelTypes: FuelType[]
   isDailyTable?: boolean
+  isRowSelected: boolean
 }
 
 const useStyles = makeStyles({
@@ -36,7 +37,8 @@ const BaseStationAttributeCells = ({
   stationCodeInSelected,
   toggleSelectedStation,
   setFuelType,
-  fuelTypes
+  fuelTypes,
+  isRowSelected
 }: BaseStationAttributeCellsProps) => {
   const classes = useStyles()
 
@@ -90,6 +92,7 @@ const BaseStationAttributeCells = ({
                   station={station}
                   stationInfo={stationInfo}
                   fuelTypes={fuelTypes}
+                  isRowSelected={isRowSelected}
                 ></FuelTypeDropdown>
               </TableCell>
             </TableRow>

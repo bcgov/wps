@@ -10,6 +10,7 @@ export interface FuelTypeDropdownProps {
   stationInfo?: StationInfo
   fuelTypes: FuelType[]
   setFuelType: (code: number, fuelTypeId: number) => void
+  isRowSelected: boolean
 }
 
 const useStyles = makeStyles({
@@ -22,7 +23,8 @@ const FuelTypeDropdown = ({
   station,
   stationInfo,
   fuelTypes,
-  setFuelType
+  setFuelType,
+  isRowSelected
 }: FuelTypeDropdownProps) => {
   const classes = useStyles()
   if (stationInfo) {
@@ -32,6 +34,7 @@ const FuelTypeDropdown = ({
     return (
       <Autocomplete
         data-testid={`fuel-type-dropdown`}
+        disabled={!isRowSelected}
         className={classes.dropdownClass}
         disableClearable
         autoHighlight
