@@ -42,7 +42,7 @@ A glossary of terms relating to Wildfire that are relevant to Predictive Service
 ## Architecture
 
 ```mermaid
-graph LR
+graph TB
 
     datamart["Environment Canada MSC Datamart"]
 
@@ -58,7 +58,7 @@ graph LR
         Files[("Files</br>[Container: json files, shp files, html files]</br></br>Percentile data, diurnal data, jinja templates")]
         pg_tileserv["pg_tileserv</br>[Software System]"]
         redis["REDIS</br>[Software System]"]
-        matomo
+        matomo["Matomo</br>[Software System]"]
         c-haines["C-Haines Openshift cronjob</br>[Container: Python]</br>Periodically fetch weather data, process and store relevant subset."]
         env-canada["Env. Canada Weather Openshift Cronjob</br>[Container: Python]</br> Periodically fetch weather data, process and store relevant subset."]
         backup["Backup process Openshift cronjob</br>[Container: Python]"]
@@ -81,13 +81,13 @@ graph LR
     FrontEnd-. "Authenticate</br>[HTTPS]" .->sso
     FrontEnd-. "Read</br>[HTTPS]" .->s3
     c-haines-. "[S3/HTTPS]" .->s3
-    c-haines-. "Cache Env. Canada GRIB files" .->redis
+    redis<-. "Cache Env. Canada GRIB files" .-c-haines
     c-haines-. "Download files</br>[GRIB2/HTTPS]" .->datamart
     env-canada-. "Store weather data</br>[psycopg]" .->Database
-    env-canada-. "Cache Env. Canada GRIB files" .->redis
+    redis<-. "Cache Env. Canada GRIB files" .-env-canada
     env-canada-. "Download files</br>[GRIB2/HTTPS]" .->datamart
-    Database-. "Read</br>[psycopg]" .->backup
-    backup-. "[S3/HTTPS]" .->s3
+    Database<-. "Read</br>[psycopg]" .-backup
+    backup-. "[S3/HTTPS] " .->s3
 
 ```
 
