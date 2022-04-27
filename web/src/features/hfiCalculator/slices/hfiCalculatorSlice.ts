@@ -5,6 +5,7 @@ import { logError } from 'utils/error'
 import {
   loadDefaultHFIResult,
   setNewFireStarts,
+  setFuelType,
   getPrepDateRange,
   setStationSelected,
   getPDF,
@@ -231,6 +232,34 @@ export const fetchSetStationSelected =
         planning_area_id,
         station_code,
         selected
+      )
+      dispatch(setResult(result))
+      dispatch(setChangeSaved(true))
+    } catch (err) {
+      dispatch(getHFIResultFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
+export const fetchSetFuelType =
+  (
+    fire_center_id: number,
+    start_date: string,
+    end_date: string,
+    planning_area_id: number,
+    station_code: number,
+    fuel_type_id: number
+  ): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(loadHFIResultStart())
+      const result = await setFuelType(
+        fire_center_id,
+        start_date,
+        end_date,
+        planning_area_id,
+        station_code,
+        fuel_type_id
       )
       dispatch(setResult(result))
       dispatch(setChangeSaved(true))
