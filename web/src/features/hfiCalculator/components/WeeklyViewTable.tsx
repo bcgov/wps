@@ -72,7 +72,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   const { result } = useSelector(selectHFICalculatorState)
 
   const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
-    return stationCodeSelected(result, planningAreaId, code)
+    if (isUndefined(result) || isUndefined(result?.planning_area_station_info)) {
+      return false
+    }
+    return stationCodeSelected(result.planning_area_station_info, planningAreaId, code)
   }
   const toggleSelectedStation = (planningAreaId: number, code: number) => {
     const selected = stationCodeInSelected(planningAreaId, code)
@@ -192,6 +195,8 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         planningAreaClass={classes.planningArea}
                         numPrepDays={numPrepDays}
                         fireStartRanges={result ? result.fire_start_ranges : []}
+                        fuelTypes={props.fuelTypes}
+                        planningAreaStationInfo={result?.planning_area_station_info}
                       />
                     </TableRow>
                     {sortBy(
@@ -207,18 +212,26 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         ? classes.unselectedStation
                         : classes.stationCellPlainStyling
                       const stationCode = station.code
-                      const stationInfo = getPlanningAreaStationInfo(
-                        result,
-                        area.id,
-                        stationCode
-                      )
+                      const stationInfo =
+                        isUndefined(result) ||
+                        isUndefined(result.planning_area_hfi_results)
+                          ? undefined
+                          : getPlanningAreaStationInfo(
+                              result.planning_area_station_info,
+                              area.id,
+                              stationCode
+                            )
+                      const selectedFuelType = isUndefined(stationInfo)
+                        ? undefined
+                        : props.fuelTypes.find(
+                            instance => instance.id == stationInfo.fuel_type_id
+                          )
                       return (
                         <TableRow
                           className={classNameForRow}
                           key={`station-${stationCode}`}
                         >
                           <BaseStationAttributeCells
-                            stationInfo={stationInfo}
                             station={station}
                             planningAreaId={area.id}
                             className={classNameForRow}
@@ -231,6 +244,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             }
                             setFuelType={props.setFuelType}
                             fuelTypes={props.fuelTypes}
+                            selectedFuelType={selectedFuelType}
                             isRowSelected={isRowSelected}
                           />
                           <StaticCells
@@ -239,6 +253,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             station={station}
                             classNameForRow={classNameForRow}
                             isRowSelected={isRowSelected}
+                            selectedFuelType={selectedFuelType}
                           />
                         </TableRow>
                       )

@@ -67,14 +67,6 @@ def generate_station_daily(raw_daily: dict,  # pylint: disable=too-many-locals
     except FireBehaviourPredictionInputError as error:
         logger.info("Error calculating fire behaviour prediction for station %s : %s", station.code, error)
         fire_behaviour_prediction = FireBehaviourPrediction(None, None, None, None, None)
-    except Exception as exc:  # pylint: disable=broad-except
-        # TODO: Remove this exception - it can hide away bugs in code. Catch more specific exceptions.
-        #   e.g.: for c7b, if cc is null, we can't calculate - so let's throw a specific exception and
-        #   catch that.
-        logger.error('Encountered error while generating StationDaily for station %s', station.code)
-        logger.error(exc, exc_info=True)
-        # prediction calculation failed, so we set the values to None
-        fire_behaviour_prediction = FireBehaviourPrediction(None, None, None, None, None)
 
     return StationDaily(
         code=station.code,
@@ -180,7 +172,6 @@ async def hydrate_fire_centres():
             # Combine everything.
             station_properties = WeatherStationProperties(
                 name=wfwx_station.name,
-                fuel_type=station_info['fuel_type'],
                 elevation=wfwx_station.elevation,
                 wfwx_station_uuid=wfwx_station.wfwx_station_uuid)
 

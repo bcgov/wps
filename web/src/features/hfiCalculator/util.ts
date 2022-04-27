@@ -65,15 +65,15 @@ export const getDailiesByStationCode = (
 }
 
 export const getPlanningAreaStationInfo = (
-  result: HFIResultResponse | undefined,
+  planning_area_station_info: { [key: number]: StationInfo[] } | undefined,
   planningAreaId: number,
   code: number
 ): StationInfo | undefined => {
   if (
-    !isUndefined(result) &&
-    !isUndefined(result.planning_area_station_info[planningAreaId])
+    !isUndefined(planning_area_station_info) &&
+    !isUndefined(planning_area_station_info[planningAreaId])
   ) {
-    return result.planning_area_station_info[planningAreaId].find(
+    return planning_area_station_info[planningAreaId].find(
       info => info.station_code === code
     )
   }
@@ -81,10 +81,14 @@ export const getPlanningAreaStationInfo = (
 }
 
 export const stationCodeSelected = (
-  result: HFIResultResponse | undefined,
+  planning_area_station_info: { [key: number]: StationInfo[] },
   planningAreaId: number,
   code: number
 ): boolean => {
-  const stationInfo = getPlanningAreaStationInfo(result, planningAreaId, code)
+  const stationInfo = getPlanningAreaStationInfo(
+    planning_area_station_info,
+    planningAreaId,
+    code
+  )
   return stationInfo?.selected ?? false
 }

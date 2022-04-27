@@ -8,15 +8,7 @@ import { DateTime } from 'luxon'
 const defaultProps: WeatherStationProperties = {
   name: 'name',
   uuid: 'uuid',
-  elevation: null,
-  fuel_type: {
-    id: 1,
-    abbrev: 'abbrev',
-    description: 'desc',
-    fuel_type_code: 'FTC',
-    percentage_conifer: 100,
-    percentage_dead_fir: 0
-  }
+  elevation: null
 }
 
 export const buildStation = (code: number): WeatherStation => {

@@ -24,7 +24,6 @@ export interface WeatherStationProperties {
   name: string
   elevation: number | null
   uuid: string
-  fuel_type: FuelType
 }
 
 export interface FireCentre {

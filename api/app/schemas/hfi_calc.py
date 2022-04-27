@@ -96,7 +96,6 @@ class WeatherStationProperties(BaseModel):
     """ HFI-relevant weather station properties """
     name: str
     elevation: int
-    fuel_type: FuelType
     wfwx_station_uuid: str
 
 

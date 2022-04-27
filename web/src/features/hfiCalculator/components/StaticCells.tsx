@@ -1,5 +1,5 @@
 import { TableCell } from '@mui/material'
-import { StationDaily, WeatherStation } from 'api/hfiCalculatorAPI'
+import { FuelType, StationDaily, WeatherStation } from 'api/hfiCalculatorAPI'
 import HFICell from 'components/HFICell'
 import EmptyStaticCells from 'features/hfiCalculator/components/EmptyStaticCells'
 import HighestDailyFIGCell from 'features/hfiCalculator/components/HighestDailyFIGCell'
@@ -15,6 +15,7 @@ export interface StaticCellsProps {
   station: WeatherStation
   classNameForRow: string | undefined
   isRowSelected: boolean
+  selectedFuelType: FuelType | undefined
 }
 
 export const StaticCells = ({
@@ -22,11 +23,12 @@ export const StaticCells = ({
   dailies,
   station,
   classNameForRow,
-  isRowSelected
+  isRowSelected,
+  selectedFuelType
 }: StaticCellsProps): ReactElement => {
   const staticCells = range(numPrepDays).map(dailyIndex => {
     const daily = dailies?.at(dailyIndex)
-    const error = !isValidGrassCure(daily, station.station_props)
+    const error = !isValidGrassCure(daily, selectedFuelType)
     return isUndefined(daily) ? (
       <EmptyStaticCells
         key={`empty-${station.code}-${dailyIndex}`}

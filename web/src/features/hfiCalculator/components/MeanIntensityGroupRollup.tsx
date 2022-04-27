@@ -4,13 +4,17 @@ import { isUndefined } from 'lodash'
 import React from 'react'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
-import { StationDaily, PlanningArea } from 'api/hfiCalculatorAPI'
+import { StationDaily, PlanningArea, FuelType } from 'api/hfiCalculatorAPI'
+import { getPlanningAreaStationInfo } from 'features/hfiCalculator/util'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
+import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
   dailies: StationDaily[]
   meanIntensityGroup: number | undefined
+  planningAreaStationInfo: { [key: number]: StationInfo[] } | undefined
+  fuelTypes: FuelType[]
 }
 
 const useStyles = makeStyles({
@@ -41,15 +45,17 @@ const genericErrorToolTipElement = (
 
 const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   const classes = useStyles()
-  const stationMap = new Map(
-    Object.entries(props.area.stations).map(([, station]) => [station.code, station])
-  )
 
   const grassCureError = props.dailies.reduce((prev, stationDaily) => {
-    return (
-      prev ||
-      !isValidGrassCure(stationDaily, stationMap.get(stationDaily.code)?.station_props)
+    const stationInfo = getPlanningAreaStationInfo(
+      props.planningAreaStationInfo,
+      props.area.id,
+      stationDaily.code
     )
+    const selectedFuelType: FuelType | undefined = isUndefined(stationInfo)
+      ? undefined
+      : props.fuelTypes.find(instance => instance.id == stationInfo.fuel_type_id)
+    return prev || !isValidGrassCure(stationDaily, selectedFuelType)
   }, false)
 
   const genericError = props.dailies.reduce((prev, stationDaily) => {

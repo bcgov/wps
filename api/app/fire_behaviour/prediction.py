@@ -440,6 +440,8 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
                                                   cbh: float,
                                                   cfl: float):
     """ Calculates fire behaviour prediction using C7B. """
+    if cc is None:
+        raise FireBehaviourPredictionInputError("CC is required for C7B calculation.")
 
     ros = c7b.rate_of_spread(ffmc=ffmc, bui=bui, wind_speed=wind_speed, percentage_slope=0.0, cc=cc)
 

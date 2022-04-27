@@ -162,18 +162,13 @@ def test_get_merged_station_data():
         code=1,
         station_props=WeatherStationProperties(name='s1',
                                                wfwx_station_uuid='1',
-                                               elevation=1,
-                                               fuel_type=FuelType(id=1, abbrev='f1',
-                                                                  fuel_type_code='fc1',
-                                                                  description='f1-desc')))
+                                               elevation=1))
     weather_station_2 = WeatherStation(
         code=2,
         station_props=WeatherStationProperties(name='s2',
                                                wfwx_station_uuid='2',
                                                elevation=1,
-                                               fuel_type=FuelType(id=2, abbrev='f2',
-                                                                  fuel_type_code='fc2',
-                                                                  description='f2-desc')))
+                                               ))
     station_dict = {1: weather_station_1, 2: weather_station_2}
     station_daily1 = StationDaily(code=1, date=datetime.fromisocalendar(2022, 2, 2))
     station_daily2 = StationDaily(code=2, date=datetime.fromisocalendar(2022, 2, 2))
