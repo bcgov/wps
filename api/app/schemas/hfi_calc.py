@@ -206,6 +206,7 @@ class PrepTablePlanningAreaPDFData(BaseModel):
 class DailyTablePlanningAreaPDFData(BaseModel):
     """ Data needed for daily PDF sheet """
     planning_area_name: str
+    order: int
     mean_intensity_group: Optional[float]
     prep_level: Optional[float]
     fire_starts: str
