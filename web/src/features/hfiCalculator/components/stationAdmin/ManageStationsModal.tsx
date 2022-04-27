@@ -105,7 +105,10 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
 
           <DialogContent>
             <Typography variant="h5" align="center">
-              Manage Weather Stations
+              Add New Weather Station
+            </Typography>
+            <Typography variant="body1" align="center">
+              New weather station(s) will be included in the default list moving forward
             </Typography>
             <AddStationButton clickHandler={handleAddStation} />
             <AddStationsList newStations={newStations} />
