@@ -5,7 +5,7 @@ import React from 'react'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
 import { StationDaily, PlanningArea, FuelType } from 'api/hfiCalculatorAPI'
-import { getPlanningAreaStationInfo } from 'features/hfiCalculator/util'
+import { getSelectedFuelType } from 'features/hfiCalculator/util'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
@@ -47,14 +47,12 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   const classes = useStyles()
 
   const grassCureError = props.dailies.reduce((prev, stationDaily) => {
-    const stationInfo = getPlanningAreaStationInfo(
+    const selectedFuelType = getSelectedFuelType(
       props.planningAreaStationInfo,
       props.area.id,
-      stationDaily.code
+      stationDaily.code,
+      props.fuelTypes
     )
-    const selectedFuelType: FuelType | undefined = isUndefined(stationInfo)
-      ? undefined
-      : props.fuelTypes.find(instance => instance.id == stationInfo.fuel_type_id)
     return prev || !isValidGrassCure(stationDaily, selectedFuelType)
   }, false)
 

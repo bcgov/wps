@@ -1,4 +1,4 @@
-import { StationDaily, PlanningArea } from 'api/hfiCalculatorAPI'
+import { StationDaily, PlanningArea, FuelType } from 'api/hfiCalculatorAPI'
 import {
   HFIResultResponse,
   PrepDateRange,
@@ -91,4 +91,20 @@ export const stationCodeSelected = (
     code
   )
   return stationInfo?.selected ?? false
+}
+
+export const getSelectedFuelType = (
+  planningAreaStationInfo: { [key: number]: StationInfo[] } | undefined,
+  planningAreaId: number,
+  stationCode: number,
+  fuelTypes: FuelType[]
+) => {
+  const stationInfo = getPlanningAreaStationInfo(
+    planningAreaStationInfo,
+    planningAreaId,
+    stationCode
+  )
+  return isUndefined(stationInfo)
+    ? undefined
+    : fuelTypes.find(instance => instance.id == stationInfo.fuel_type_id)
 }

@@ -15,7 +15,7 @@ import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import {
   getDailiesByStationCode,
-  getPlanningAreaStationInfo,
+  getSelectedFuelType,
   stationCodeSelected
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
@@ -307,19 +307,12 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                     station => station.order_of_appearance_in_planning_area_list
                   ).map(station => {
                     const daily = getDailyForDay(station.code)
-                    // TODO: write a get selected fuel type function
-                    const stationInfo = isUndefined(result)
-                      ? undefined
-                      : getPlanningAreaStationInfo(
-                          result.planning_area_station_info,
-                          area.id,
-                          station.code
-                        )
-                    const selectedFuelType = isUndefined(stationInfo)
-                      ? undefined
-                      : props.fuelTypes.find(
-                          instance => instance.id == stationInfo.fuel_type_id
-                        )
+                    const selectedFuelType = getSelectedFuelType(
+                      result?.planning_area_station_info,
+                      area.id,
+                      station.code,
+                      props.fuelTypes
+                    )
                     const grassCureError = !isValidGrassCure(daily, selectedFuelType)
                     const isRowSelected =
                       !isUndefined(area) && stationCodeInSelected(area.id, station.code)

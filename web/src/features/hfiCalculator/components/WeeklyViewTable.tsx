@@ -15,7 +15,7 @@ import {
   calculateNumPrepDays,
   getDailiesByStationCode,
   stationCodeSelected,
-  getPlanningAreaStationInfo
+  getSelectedFuelType
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
@@ -212,20 +212,12 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         ? classes.unselectedStation
                         : classes.stationCellPlainStyling
                       const stationCode = station.code
-                      const stationInfo =
-                        isUndefined(result) ||
-                        isUndefined(result.planning_area_hfi_results)
-                          ? undefined
-                          : getPlanningAreaStationInfo(
-                              result.planning_area_station_info,
-                              area.id,
-                              stationCode
-                            )
-                      const selectedFuelType = isUndefined(stationInfo)
-                        ? undefined
-                        : props.fuelTypes.find(
-                            instance => instance.id == stationInfo.fuel_type_id
-                          )
+                      const selectedFuelType = getSelectedFuelType(
+                        result?.planning_area_station_info,
+                        area.id,
+                        stationCode,
+                        props.fuelTypes
+                      )
                       return (
                         <TableRow
                           className={classNameForRow}
