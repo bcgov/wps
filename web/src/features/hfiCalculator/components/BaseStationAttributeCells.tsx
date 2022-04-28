@@ -1,10 +1,11 @@
 import { Table, TableBody, TableRow, TableCell } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { WeatherStation } from 'api/hfiCalculatorAPI'
+import { FuelType, WeatherStation } from 'api/hfiCalculatorAPI'
 import StickyCell from 'components/StickyCell'
 import { fireTableStyles } from 'app/theme'
 import React from 'react'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
+import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import StationSelectCell from 'features/hfiCalculator/components/StationSelectCell'
 
@@ -17,7 +18,11 @@ export interface BaseStationAttributeCellsProps {
   selectStationEnabled: boolean
   stationCodeInSelected: (planningAreaId: number, code: number) => boolean
   toggleSelectedStation: (planningAreaId: number, code: number) => void
+  setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
+  fuelTypes: FuelType[]
+  selectedFuelType: FuelType | undefined
   isDailyTable?: boolean
+  isRowSelected: boolean
 }
 
 const useStyles = makeStyles({
@@ -31,7 +36,11 @@ const BaseStationAttributeCells = ({
   grassCurePercentage,
   selectStationEnabled,
   stationCodeInSelected,
-  toggleSelectedStation
+  toggleSelectedStation,
+  setFuelType,
+  fuelTypes,
+  selectedFuelType,
+  isRowSelected
 }: BaseStationAttributeCellsProps) => {
   const classes = useStyles()
 
@@ -78,7 +87,15 @@ const BaseStationAttributeCells = ({
                 key={`station-${station.code}-fuel-type`}
                 className={`${className} ${classes.noBottomBorder}`}
               >
-                {station.station_props.fuel_type.abbrev}
+                <FuelTypeDropdown
+                  setFuelType={(code: number, fuelTypeId: number) => {
+                    setFuelType(planningAreaId, code, fuelTypeId)
+                  }}
+                  station={station}
+                  selectedFuelType={selectedFuelType}
+                  fuelTypes={fuelTypes}
+                  isRowSelected={isRowSelected}
+                ></FuelTypeDropdown>
               </TableCell>
             </TableRow>
           </TableBody>
@@ -95,7 +112,7 @@ const BaseStationAttributeCells = ({
             <TableRow>
               <GrassCureCell
                 value={grassCurePercentage}
-                isGrassFuelType={isGrassFuelType(station.station_props)}
+                isGrassFuelType={isGrassFuelType(selectedFuelType)}
                 selected={stationCodeInSelected(planningAreaId, station.code)}
                 className={classes.noBottomBorder}
               ></GrassCureCell>

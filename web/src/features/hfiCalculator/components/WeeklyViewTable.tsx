@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { FireCentre } from 'api/hfiCalculatorAPI'
+import { FireCentre, FuelType } from 'api/hfiCalculatorAPI'
 import FireTable from 'components/FireTable'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
@@ -14,7 +14,8 @@ import { isEmpty, isUndefined, sortBy } from 'lodash'
 import {
   calculateNumPrepDays,
   getDailiesByStationCode,
-  stationCodeSelected
+  stationCodeSelected,
+  getSelectedFuelType
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
@@ -40,6 +41,8 @@ export interface Props {
     dayOffset: number,
     newFireStarts: FireStartRange
   ) => void
+  setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
+  fuelTypes: FuelType[]
 }
 
 export const columnLabelsForEachDayInWeek: string[] = [
@@ -71,7 +74,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
 
   const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
-    return stationCodeSelected(result, planningAreaId, code)
+    if (isUndefined(result) || isUndefined(result?.planning_area_station_info)) {
+      return false
+    }
+    return stationCodeSelected(result.planning_area_station_info, planningAreaId, code)
   }
   const toggleSelectedStation = (planningAreaId: number, code: number) => {
     const selected = stationCodeInSelected(planningAreaId, code)
@@ -194,6 +200,8 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         planningAreaClass={classes.planningArea}
                         numPrepDays={numPrepDays}
                         fireStartRanges={result ? result.fire_start_ranges : []}
+                        fuelTypes={props.fuelTypes}
+                        planningAreaStationInfo={result?.planning_area_station_info}
                       />
                     </TableRow>
                     {sortBy(
@@ -209,6 +217,12 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         ? classes.unselectedStation
                         : classes.stationCellPlainStyling
                       const stationCode = station.code
+                      const selectedFuelType = getSelectedFuelType(
+                        result?.planning_area_station_info,
+                        area.id,
+                        stationCode,
+                        props.fuelTypes
+                      )
                       return (
                         <TableRow
                           className={classNameForRow}
@@ -228,6 +242,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 ? dailiesForStation[0].grass_cure_percentage
                                 : undefined
                             }
+                            setFuelType={props.setFuelType}
+                            fuelTypes={props.fuelTypes}
+                            selectedFuelType={selectedFuelType}
+                            isRowSelected={isRowSelected}
                           />
                           <StaticCells
                             numPrepDays={numPrepDays}
@@ -235,6 +253,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             station={station}
                             classNameForRow={classNameForRow}
                             isRowSelected={isRowSelected}
+                            selectedFuelType={selectedFuelType}
                           />
                         </TableRow>
                       )

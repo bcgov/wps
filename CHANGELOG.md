@@ -1,8 +1,26 @@
-## 2022-04-27 HFI Calc [#1869](https://github.com/bcgov/wps/issues/1869)
+
+## 2022-05-1 HFI Calc [#1869](https://github.com/bcgov/wps/issues/1869)
 
 ### Features
 
 - **hfi calculator:** Introduce role permission for editing HFI prep fire starts.
+
+## 2022-04-28 HFI Calc - Refactor + Grass Cure Display Bug
+
+### Bug
+
+- Fixed: Warning that grass cure is not set was using default fuel type, instead of selected fuel type.
+
+### Refactor
+
+- Refactoring code.
+
+## 2022-04-27 HFI Calc - Set fuel type
+
+### Features
+
+- **hfi calculator [#1555](https://github.com/bcgov/wps/issues/1555):** Change fuel type for weather stations in HFI calculation.
+
 
 ## 2022-04-26 HFI Calc - Migrate Material UI from v4 to v5, Part1 [#1896](https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5bbe203b8/issues/bcgov/wps/1896)
 

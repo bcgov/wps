@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/
 import makeStyles from '@mui/styles/makeStyles'
 import { useSelector } from 'react-redux'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import { FireCentre, StationDaily } from 'api/hfiCalculatorAPI'
+import { FireCentre, FuelType, StationDaily } from 'api/hfiCalculatorAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import FireTable from 'components/FireTable'
@@ -13,7 +13,11 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
-import { getDailiesByStationCode, stationCodeSelected } from 'features/hfiCalculator/util'
+import {
+  getDailiesByStationCode,
+  getSelectedFuelType,
+  stationCodeSelected
+} from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectAuthentication, selectHFICalculatorState } from 'app/rootReducer'
@@ -23,7 +27,8 @@ import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import {
   DailyResult,
-  PlanningAreaResult
+  PlanningAreaResult,
+  StationInfo
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredDataCell'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
@@ -34,7 +39,10 @@ import { ROLES } from 'features/auth/roles'
 export interface Props {
   fireCentre: FireCentre | undefined
   setSelected: (planningAreaId: number, code: number, selected: boolean) => void
+  setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
   testId?: string
+  fuelTypes: FuelType[]
+  planningAreaStationInfo: { [key: number]: StationInfo[] } | undefined
 }
 
 export const dailyTableColumnLabels = [
@@ -105,7 +113,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   }
 
   const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
-    return stationCodeSelected(result, planningAreaId, code)
+    if (isUndefined(result) || isUndefined(result?.planning_area_station_info)) {
+      return false
+    }
+    return stationCodeSelected(result.planning_area_station_info, planningAreaId, code)
   }
   const toggleSelectedStation = (planningAreaId: number, code: number) => {
     const selected = stationCodeInSelected(planningAreaId, code)
@@ -280,6 +291,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           : []
                       }
                       meanIntensityGroup={dailyResult?.mean_intensity_group}
+                      fuelTypes={props.fuelTypes}
+                      planningAreaStationInfo={props.planningAreaStationInfo}
                     ></MeanIntensityGroupRollup>
                     <FireStartsCell
                       areaName={area.name}
@@ -296,7 +309,13 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                     station => station.order_of_appearance_in_planning_area_list
                   ).map(station => {
                     const daily = getDailyForDay(station.code)
-                    const grassCureError = !isValidGrassCure(daily, station.station_props)
+                    const selectedFuelType = getSelectedFuelType(
+                      result?.planning_area_station_info,
+                      area.id,
+                      station.code,
+                      props.fuelTypes
+                    )
+                    const grassCureError = !isValidGrassCure(daily, selectedFuelType)
                     const isRowSelected =
                       !isUndefined(area) && stationCodeInSelected(area.id, station.code)
                     const classNameForRow = !isRowSelected
@@ -318,6 +337,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           toggleSelectedStation={toggleSelectedStation}
                           isDailyTable={true}
                           grassCurePercentage={daily?.grass_cure_percentage}
+                          setFuelType={props.setFuelType}
+                          fuelTypes={props.fuelTypes}
+                          selectedFuelType={selectedFuelType}
+                          isRowSelected={isRowSelected}
                         />
 
                         <StatusCell
