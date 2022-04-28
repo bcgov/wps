@@ -42,13 +42,8 @@ def test_generate_html():
                                    datetime.fromisocalendar(2022, 2, 2), jinja_env,
                                    fuel_types)
 
-    with open('test_hfi_calc_html.html', 'r') as f:
-        expected_html_string = f.read()
-    assert expected_html_string == html_string
-    # The hash should only change if an intentional change has been made to the pdf,
-    # in which case the hash value we're checking here may be updated by the developer.
-    # assert hashlib.sha256(html_string.encode()).hexdigest(
-    # ) == '3ae6afe40e9b477a158816f9e055d66691c2a51c5bc86acf228fd3c1e669b47f'
+    assert hashlib.sha256(html_string.encode()).hexdigest(
+    ) == 'c5659e86bd97b679346eec9ecbbf1f81db58a68390135e05cb6118dfa971d74f'
 
 
 def test_generate_pdf():
