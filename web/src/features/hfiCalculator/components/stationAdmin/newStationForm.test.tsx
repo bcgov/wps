@@ -49,14 +49,14 @@ describe('NewStationForm', () => {
     it('should not render error outline for station dropdown when missing but unedited', () => {
       const { getByTestId } = renderNewStationForm({ dirty: false }, false)
 
-      const planningAreaSelect = getByTestId('select-station')
-      expect(planningAreaSelect.getElementsByClassName('Mui-error').length).toBe(0)
+      const stationSelect = getByTestId('select-station')
+      expect(stationSelect.getElementsByClassName('Mui-error').length).toBe(0)
     })
     it('should not render error outline for fuel type dropdown when missing but unedited', () => {
       const { getByTestId } = renderNewStationForm({ dirty: false }, false)
 
-      const planningAreaSelect = getByTestId('select-fuel-type')
-      expect(planningAreaSelect.getElementsByClassName('Mui-error').length).toBe(0)
+      const fuelTypeSelect = getByTestId('select-fuel-type')
+      expect(fuelTypeSelect.getElementsByClassName('Mui-error').length).toBe(0)
     })
   })
   describe('invalid states', () => {
