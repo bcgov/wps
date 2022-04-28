@@ -627,7 +627,7 @@ def crown_fraction_burned(fuel_type: FuelTypeEnum, fmc: float, sfc: float,
                                                ROS=ros, CBH=cbh)
     if isinstance(result[0], float):
         return result[0]
-    raise CFFDRSException("Failed to calculate FCB")
+    raise CFFDRSException("Failed to calculate CFB")
 
 
 def total_fuel_consumption(  # pylint: disable=invalid-name
