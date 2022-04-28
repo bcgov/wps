@@ -107,7 +107,7 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
 
       <Dialog
         fullWidth
-        maxWidth="lg"
+        maxWidth="md"
         open={props.modalOpen}
         onClose={handleClose}
         data-testid="manage-stations-modal"
