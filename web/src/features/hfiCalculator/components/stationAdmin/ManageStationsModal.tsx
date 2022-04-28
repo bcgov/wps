@@ -73,7 +73,7 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
 
   const { changeSaved } = useSelector(selectHFICalculatorState)
 
-  const [newStations, setNewStations] = useState<AdminStation[]>([])
+  const [newStations, setNewStations] = useState<AdminStation[]>([{}])
 
   const handleClose = () => {
     props.setModalOpen(false)
