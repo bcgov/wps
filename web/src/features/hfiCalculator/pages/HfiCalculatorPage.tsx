@@ -18,7 +18,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import {
   selectHFIStations,
   selectHFIStationsLoading,
-  selectHFICalculatorState
+  selectHFICalculatorState,
+  selectAuthentication
 } from 'app/rootReducer'
 import { FormControl } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -35,6 +36,7 @@ import LiveChangesAlert from 'features/hfiCalculator/components/LiveChangesAlert
 import { AppDispatch } from 'app/store'
 import HFILoadingDataView from 'features/hfiCalculator/components/HFILoadingDataView'
 import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin/ManageStationsButton'
+import { ROLES } from 'features/auth/roles'
 
 const useStyles = makeStyles(theme => ({
   ...formControlStyles,
@@ -74,6 +76,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
+  const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const {
@@ -275,9 +278,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               <DownloadPDFButton onClick={handleDownloadClicked} />
             </FormControl>
 
-            <FormControl className={classes.actionButton}>
-              <ManageStationsButton />
-            </FormControl>
+            {roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && (
+              <FormControl className={classes.actionButton}>
+                <ManageStationsButton />
+              </FormControl>
+            )}
 
             <ErrorBoundary>
               <ViewSwitcher
