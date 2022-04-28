@@ -7,7 +7,7 @@ describe('SaveNewStationButton', () => {
   const station = { code: 1, name: 'test' }
   const fuelType = { id: 1, name: 'test' }
 
-  it('should not render button enabled when all fields set and  ', () => {
+  it('should render button enabled when all fields set', () => {
     const handleSaveMock = jest.fn()
 
     const { getByTestId } = render(
