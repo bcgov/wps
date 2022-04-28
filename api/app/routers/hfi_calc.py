@@ -382,7 +382,7 @@ async def get_pdf(
             session, request, fire_centre_fire_start_ranges)
 
         fuel_types_result = crud_get_fuel_types(session)
-        fuel_types = {fuel_type_record.id: fuel_type_model_to_schema(
+        fuel_types: Dict[int, FuelType] = {fuel_type_record.id: fuel_type_model_to_schema(
             fuel_type_record) for fuel_type_record in fuel_types_result}
 
     fire_centres_list = await hydrate_fire_centres()

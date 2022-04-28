@@ -1,4 +1,14 @@
-## 2022-04-26 HFI Calc - Set fuel type
+## 2022-04-28 HFI Calc - Refactor + Grass Cure Display Bug
+
+### Bug
+
+- Fixed: Warning that grass cure is not set was using default fuel type, instead of selected fuel type.
+
+### Refactor
+
+- Refactoring code.
+
+## 2022-04-27 HFI Calc - Set fuel type
 
 ### Features
 

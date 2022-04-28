@@ -7,12 +7,10 @@ import React from 'react'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
-import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface BaseStationAttributeCellsProps {
   testid?: string
   station: WeatherStation
-  stationInfo?: StationInfo
   planningAreaId: number
   className: string | undefined
   grassCurePercentage: number | undefined
@@ -20,6 +18,7 @@ export interface BaseStationAttributeCellsProps {
   toggleSelectedStation: (planningAreaId: number, code: number) => void
   setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
   fuelTypes: FuelType[]
+  selectedFuelType: FuelType | undefined
   isDailyTable?: boolean
   isRowSelected: boolean
 }
@@ -30,7 +29,6 @@ const useStyles = makeStyles({
 
 const BaseStationAttributeCells = ({
   station,
-  stationInfo,
   planningAreaId,
   className,
   grassCurePercentage,
@@ -38,6 +36,7 @@ const BaseStationAttributeCells = ({
   toggleSelectedStation,
   setFuelType,
   fuelTypes,
+  selectedFuelType,
   isRowSelected
 }: BaseStationAttributeCellsProps) => {
   const classes = useStyles()
@@ -90,7 +89,7 @@ const BaseStationAttributeCells = ({
                     setFuelType(planningAreaId, code, fuelTypeId)
                   }}
                   station={station}
-                  stationInfo={stationInfo}
+                  selectedFuelType={selectedFuelType}
                   fuelTypes={fuelTypes}
                   isRowSelected={isRowSelected}
                 ></FuelTypeDropdown>
@@ -110,7 +109,7 @@ const BaseStationAttributeCells = ({
             <TableRow>
               <GrassCureCell
                 value={grassCurePercentage}
-                isGrassFuelType={isGrassFuelType(station.station_props)}
+                isGrassFuelType={isGrassFuelType(selectedFuelType)}
                 selected={stationCodeInSelected(planningAreaId, station.code)}
                 className={classes.noBottomBorder}
               ></GrassCureCell>

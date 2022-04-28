@@ -15,7 +15,7 @@ import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import {
   getDailiesByStationCode,
-  getPlanningAreaStationInfo,
+  getSelectedFuelType,
   stationCodeSelected
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
@@ -27,7 +27,8 @@ import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import {
   DailyResult,
-  PlanningAreaResult
+  PlanningAreaResult,
+  StationInfo
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredDataCell'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
@@ -40,6 +41,7 @@ export interface Props {
   setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
   testId?: string
   fuelTypes: FuelType[]
+  planningAreaStationInfo: { [key: number]: StationInfo[] } | undefined
 }
 
 export const dailyTableColumnLabels = [
@@ -109,7 +111,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   }
 
   const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
-    return stationCodeSelected(result, planningAreaId, code)
+    if (isUndefined(result) || isUndefined(result?.planning_area_station_info)) {
+      return false
+    }
+    return stationCodeSelected(result.planning_area_station_info, planningAreaId, code)
   }
   const toggleSelectedStation = (planningAreaId: number, code: number) => {
     const selected = stationCodeInSelected(planningAreaId, code)
@@ -284,6 +289,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           : []
                       }
                       meanIntensityGroup={dailyResult?.mean_intensity_group}
+                      fuelTypes={props.fuelTypes}
+                      planningAreaStationInfo={props.planningAreaStationInfo}
                     ></MeanIntensityGroupRollup>
                     <FireStartsCell
                       areaName={area.name}
@@ -300,12 +307,13 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                     station => station.order_of_appearance_in_planning_area_list
                   ).map(station => {
                     const daily = getDailyForDay(station.code)
-                    const stationInfo = getPlanningAreaStationInfo(
-                      result,
+                    const selectedFuelType = getSelectedFuelType(
+                      result?.planning_area_station_info,
                       area.id,
-                      station.code
+                      station.code,
+                      props.fuelTypes
                     )
-                    const grassCureError = !isValidGrassCure(daily, station.station_props)
+                    const grassCureError = !isValidGrassCure(daily, selectedFuelType)
                     const isRowSelected =
                       !isUndefined(area) && stationCodeInSelected(area.id, station.code)
                     const classNameForRow = !isRowSelected
@@ -318,7 +326,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       >
                         <BaseStationAttributeCells
                           station={station}
-                          stationInfo={stationInfo}
                           planningAreaId={area.id}
                           className={classNameForRow}
                           stationCodeInSelected={stationCodeInSelected}
@@ -327,6 +334,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           grassCurePercentage={daily?.grass_cure_percentage}
                           setFuelType={props.setFuelType}
                           fuelTypes={props.fuelTypes}
+                          selectedFuelType={selectedFuelType}
                           isRowSelected={isRowSelected}
                         />
 
