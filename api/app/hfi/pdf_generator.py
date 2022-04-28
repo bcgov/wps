@@ -4,6 +4,7 @@ from datetime import date, datetime
 from typing import List, Dict, Tuple
 import pdfkit
 from jinja2 import Environment
+from app.db.models.hfi_calc import FuelType
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, StationInfo, WeatherStation
 from app.hfi.pdf_template import PDFTemplateName, CSS_PATH
 from app.hfi.pdf_data_formatter import response_2_daily_jinja_format, response_2_prep_cycle_jinja_format
@@ -17,9 +18,8 @@ def generate_html(result: HFIResultResponse,
                   idir: str,
                   datetime_generated: datetime,
                   jinja_env: Environment,
-                  fuel_types: Dict[int, StationInfo]) -> Tuple[str, str]:
+                  fuel_types: Dict[int, FuelType]) -> Tuple[str, str]:
     """Generates the full HTML based on the HFIResultResponse"""
-    override_fuel_types(fire_centres, result, fuel_types)
     fire_centre_dict, planning_area_dict, station_dict = build_mappings(fire_centres)
     fire_centre_name = fire_centre_dict[result.selected_fire_center_id].name
 
@@ -29,38 +29,18 @@ def generate_html(result: HFIResultResponse,
                                     planning_area_dict,
                                     station_dict,
                                     fire_centre_name,
-                                    jinja_env)
+                                    jinja_env,
+                                    fuel_types)
     rendered_output += generate_daily(result,
                                       idir,
                                       datetime_generated,
                                       planning_area_dict,
                                       station_dict,
                                       fire_centre_name,
-                                      jinja_env)
+                                      jinja_env,
+                                      fuel_types)
 
     return rendered_output, fire_centre_name
-
-
-def override_fuel_types(
-        fire_centres: List[FireCentre],
-        result: HFIResultResponse,
-        fuel_types: Dict[int, StationInfo]):
-    """ Override the default fuel types in the fire centre with the fuel types from the result """
-    fire_centre: FireCentre = next(
-        fire_centre for fire_centre in fire_centres if fire_centre.id == result.selected_fire_center_id)
-    for planning_area in fire_centre.planning_areas:
-        station_info_list: List[StationInfo] = result.planning_area_station_info[planning_area.id]
-        for station in planning_area.stations:
-            try:
-                station_info: StationInfo = next(
-                    station_info for station_info in
-                    station_info_list if station_info.station_code == station.code)
-            except StopIteration:
-                # This shouldn't happen, and we don't bother writing a test case to re-produce.
-                logger.error('Could no find station info for station code %s in planning area %s',
-                             station.code, planning_area.id)
-                raise
-            station.station_props.fuel_type = fuel_types[station_info.fuel_type_id]
 
 
 def generate_pdf(result: HFIResultResponse,
@@ -68,7 +48,7 @@ def generate_pdf(result: HFIResultResponse,
                  idir: str,
                  datetime_generated: datetime,
                  jinja_env: Environment,
-                 fuel_types: Dict[int, StationInfo]) -> Tuple[bytes, str]:
+                 fuel_types: Dict[int, FuelType]) -> Tuple[bytes, str]:
     """Generates the full PDF based on the HFIResultResponse"""
     rendered_output, fire_centre_name = generate_html(result,
                                                       fire_centres,
@@ -102,12 +82,14 @@ def generate_prep(result: HFIResultResponse,
                   planning_area_dict: Dict[int, PlanningArea],
                   station_dict: Dict[int, WeatherStation],
                   fire_centre_name: str,
-                  jinja_env: Environment):
+                  jinja_env: Environment,
+                  fuel_types: Dict[int, FuelType]):
     """Generates the prep cycle portion of the PDF"""
     prep_pdf_data, dates, date_range = response_2_prep_cycle_jinja_format(
         result,
         planning_area_dict,
-        station_dict)
+        station_dict,
+        fuel_types)
     template = jinja_env.get_template(PDFTemplateName.PREP.value)
 
     return template.render(
@@ -125,13 +107,15 @@ def generate_daily(result: HFIResultResponse,
                    planning_area_dict: Dict[int, PlanningArea],
                    station_dict: Dict[int, WeatherStation],
                    fire_centre_name: str,
-                   jinja_env: Environment) -> str:
+                   jinja_env: Environment,
+                   fuel_types: Dict[int, FuelType]) -> str:
     """Generates the daily portion of the PDF"""
     template = jinja_env.get_template(PDFTemplateName.DAILY.value)
     daily_pdf_data_by_date = response_2_daily_jinja_format(
         result,
         planning_area_dict,
-        station_dict)
+        station_dict,
+        fuel_types)
     return template.render(
         idir=idir,
         datetime_generated=datetime_generated.isoformat(),

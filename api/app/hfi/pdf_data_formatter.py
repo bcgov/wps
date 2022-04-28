@@ -6,18 +6,22 @@ from functools import reduce
 from itertools import groupby
 import operator
 from typing import List, Dict
+
+from sqlalchemy import desc
 from app.schemas.hfi_calc import (DailyTablePlanningAreaPDFData, DailyResult,
                                   HFIResultResponse,
                                   PlanningArea, PlanningAreaResult,
                                   PrepTablePlanningAreaPDFData,
-                                  StationDaily,
+                                  StationDaily, StationInfo,
                                   StationPDFData, ValidatedStationDaily,
                                   WeatherStation)
+from app.schemas.shared import FuelType
 
 
 def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
                                        planning_area_dict: Dict[int, PlanningArea],
-                                       station_dict: Dict[int, WeatherStation]):
+                                       station_dict: Dict[int, WeatherStation],
+                                       fuel_types: Dict[int, FuelType]):
     """
     Marshals HFI result into structure that jinja can easily
     iterate over for generating the prep cycle PDF sheet
@@ -28,7 +32,9 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
         sorted_dates = get_sorted_dates(area_dailies)
         formatted_dates: List[str] = get_formatted_dates(sorted_dates)
         date_range: str = get_date_range_string(sorted_dates)
-        station_pdf_data = get_station_pdf_data(area_dailies, station_dict)
+        planning_area_station_info = result.planning_area_station_info[area_result.planning_area_id]
+        station_pdf_data = get_station_pdf_data(
+            area_dailies, station_dict, fuel_types, planning_area_station_info)
         fire_starts_labels = get_fire_start_labels(area_result.daily_results)
         mean_intensity_groups = get_mean_intensity_groups(area_result.daily_results)
         prep_levels = get_prep_levels(area_result.daily_results)
@@ -119,7 +125,11 @@ def get_mean_intensity_groups(daily_results: List[DailyResult]):
     return list(map(lambda daily_result: daily_result.mean_intensity_group, daily_results))
 
 
-def get_merged_station_data(station_dict: Dict[int, WeatherStation], dailies: List[StationDaily]):
+def get_merged_station_data(
+        station_dict: Dict[int, WeatherStation],
+        dailies: List[StationDaily],
+        fuel_types: Dict[int, FuelType],
+        planning_area_station_info: List[StationInfo]):
     """
     Returns all the weather station and daily data we have for a station
     """
@@ -128,13 +138,18 @@ def get_merged_station_data(station_dict: Dict[int, WeatherStation], dailies: Li
         station_data = station_dict[daily.code]
         daily_dict = daily.dict()
         daily_dict.update(station_data)
+        station_info: StationInfo = next(
+            station_info for station_info in planning_area_station_info if station_info.station_code == daily.code)
+        daily_dict['fuel_type'] = fuel_types[station_info.fuel_type_id]
         station_pdf_data = StationPDFData(**daily_dict)
         all_station_pdf_data.append(station_pdf_data)
     return all_station_pdf_data
 
 
 def get_station_pdf_data(area_dailies: List[StationDaily],
-                         station_dict: Dict[int, WeatherStation]) -> Dict[int, List[StationPDFData]]:
+                         station_dict: Dict[int, WeatherStation],
+                         fuel_types: Dict[int, FuelType],
+                         planning_area_station_info: List[StationInfo]) -> Dict[int, List[StationPDFData]]:
     """
     Merges and sorts station dailies and weather station properties
     expected in prep cycle PDF template order
@@ -152,7 +167,8 @@ def get_station_pdf_data(area_dailies: List[StationDaily],
     # e.g. [{code: 1, date: 1, code: 1, date: 2, ..., code: 2, date: 1, code: 2, date: 2, ...}]
     dailies_by_code_and_date: List[StationDaily] = reduce(list.__add__, area_dailies_by_code, [])
 
-    station_daily_pdf_data = get_merged_station_data(station_dict, dailies_by_code_and_date)
+    station_daily_pdf_data = get_merged_station_data(
+        station_dict, dailies_by_code_and_date, fuel_types, planning_area_station_info)
 
     # Sorting dailies into dict keyed by station code
     key = operator.attrgetter('code')
@@ -163,7 +179,8 @@ def get_station_pdf_data(area_dailies: List[StationDaily],
 
 def response_2_daily_jinja_format(result: HFIResultResponse,
                                   planning_area_dict: Dict[int, PlanningArea],
-                                  station_dict: Dict[int, WeatherStation]):
+                                  station_dict: Dict[int, WeatherStation],
+                                  fuel_types: Dict[int, FuelType]):
     """
     Marshals HFI result into structure that jinja can easily
     iterate over for generating the daily PDF sheets
@@ -172,7 +189,8 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
     for area_result in result.planning_area_hfi_results:
         for daily_result in area_result.daily_results:
             dailies: List[StationDaily] = list(map(lambda x: x.daily, daily_result.dailies))
-            station_daily_pdf_data: List[StationPDFData] = get_merged_station_data(station_dict, dailies)
+            station_daily_pdf_data: List[StationPDFData] = get_merged_station_data(
+                station_dict, dailies, fuel_types, result.planning_area_station_info[area_result.planning_area_id])
             planning_area_name = planning_area_dict[area_result.planning_area_id].name
             order = planning_area_dict[area_result.planning_area_id].order_of_appearance_in_list
             daily_data = DailyTablePlanningAreaPDFData(planning_area_name=planning_area_name,

@@ -187,6 +187,7 @@ class HFIResultResponse(BaseModel):
 
 class StationPDFData(StationDaily, WeatherStation):
     """ All the details we have about stations """
+    fuel_type: FuelType
 
 
 class PrepTablePlanningAreaPDFData(BaseModel):
