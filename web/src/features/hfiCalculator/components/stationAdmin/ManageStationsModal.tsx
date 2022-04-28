@@ -10,14 +10,13 @@ import {
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
-import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
-import StationList from 'features/hfiCalculator/components/stationAdmin/StationsList'
+import NewStationForm from 'features/hfiCalculator/components/stationAdmin/NewStationForm'
 import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { setChangeSaved } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
-import { isEmpty, isUndefined, some } from 'lodash'
+import { isUndefined } from 'lodash'
 
 export interface AdminStation {
   dirty: boolean
@@ -58,15 +57,11 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const someEmptyStations = (newStations: AdminStation[]) =>
-  some(
-    newStations,
-    newStation =>
-      (isUndefined(newStation.planningArea) ||
-        isUndefined(newStation.station) ||
-        isUndefined(newStation.fuelType)) &&
-      newStation.dirty
-  )
+export const invalidNewStation = (newStation: AdminStation) =>
+  (isUndefined(newStation.planningArea) ||
+    isUndefined(newStation.station) ||
+    isUndefined(newStation.fuelType)) &&
+  newStation.dirty
 
 export const ManageStationsModal = (props: ModalProps): JSX.Element => {
   const classes = useStyles()
@@ -76,22 +71,16 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
   const { changeSaved } = useSelector(selectHFICalculatorState)
 
   const newEmptyStation = { dirty: false }
-  const initialState = [newEmptyStation]
-  const [newStations, setNewStations] = useState<AdminStation[]>(initialState)
+  const [newStation, setNewStations] = useState<AdminStation>(newEmptyStation)
 
   const handleClose = () => {
     props.setModalOpen(false)
-    setNewStations(initialState)
+    setNewStations(newEmptyStation)
   }
 
   const handleSave = () => {
     // TODO: temporary, this will be dispatched by POST request with new stations
     dispatch(setChangeSaved(true))
-  }
-
-  const handleAddStation = () => {
-    console.log(newStations)
-    setNewStations([...newStations, newEmptyStation])
   }
 
   const buildSuccessNotification = () => {
@@ -124,16 +113,12 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
             <Typography variant="body1" align="center">
               New weather station(s) will be included in the default list moving forward
             </Typography>
-            <AddStationButton clickHandler={handleAddStation} />
-            <StationList
-              newStations={newStations}
-              someStationsEmpty={someEmptyStations(newStations)}
-            />
+            <NewStationForm newStation={newStation} />
           </DialogContent>
           <Button
             variant="contained"
             color="primary"
-            disabled={isEmpty(newStations) || someEmptyStations(newStations)}
+            disabled={invalidNewStation(newStation)}
             className={classes.actionButton}
             onClick={handleSave}
             data-testid={'cancel-hfi-admin-button'}
