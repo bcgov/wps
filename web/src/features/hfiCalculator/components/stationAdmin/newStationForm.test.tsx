@@ -17,13 +17,6 @@ describe('NewStationForm', () => {
       const errorMessage = queryByText('Please complete empty fields to continue')
       expect(errorMessage).not.toBeInTheDocument()
     })
-
-    it('should render error message when new station is edited with empty fields', () => {
-      const { queryByText } = renderNewStationForm({ dirty: true }, true)
-
-      const errorMessage = queryByText('Please complete empty fields to continue')
-      expect(errorMessage).toBeInTheDocument()
-    })
     it('should not render error outline for planning area dropdown when it exists', () => {
       const planningArea = { id: 1, name: 'test' }
       const { getByTestId } = renderNewStationForm({ dirty: true, planningArea }, false)
