@@ -283,6 +283,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                 setFuelType={setFuelType}
                 selectedPrepDay={selectedPrepDate}
                 fuelTypes={fuelTypes}
+                planningAreaStationInfo={result?.planning_area_station_info}
               />
             </ErrorBoundary>
           </React.Fragment>

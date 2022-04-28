@@ -96,7 +96,6 @@ class WeatherStationProperties(BaseModel):
     """ HFI-relevant weather station properties """
     name: str
     elevation: int
-    fuel_type: FuelType
     wfwx_station_uuid: str
 
 
@@ -188,6 +187,7 @@ class HFIResultResponse(BaseModel):
 
 class StationPDFData(StationDaily, WeatherStation):
     """ All the details we have about stations """
+    fuel_type: FuelType
 
 
 class PrepTablePlanningAreaPDFData(BaseModel):

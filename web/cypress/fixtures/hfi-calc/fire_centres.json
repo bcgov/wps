@@ -14,13 +14,6 @@
               "station_props": {
                 "name": "FINTRY",
                 "elevation": 670,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3b8-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 2
@@ -30,13 +23,6 @@
               "station_props": {
                 "name": "KETTLE 2",
                 "elevation": 1389,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e412-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 5
@@ -46,13 +32,6 @@
               "station_props": {
                 "name": "SALMON ARM",
                 "elevation": 527,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3e8-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 4
@@ -62,13 +41,6 @@
               "station_props": {
                 "name": "SEYMOUR ARM",
                 "elevation": 511,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3e6-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 3
@@ -78,13 +50,6 @@
               "station_props": {
                 "name": "TURTLE",
                 "elevation": 640,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3ac-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 1
@@ -101,13 +66,6 @@
               "station_props": {
                 "name": "AUGUST LAKE",
                 "elevation": 855,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e2df-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 1
@@ -117,13 +75,6 @@
               "station_props": {
                 "name": "MERRITT 2 HUB",
                 "elevation": 640,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e23c-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 2
@@ -140,13 +91,6 @@
               "station_props": {
                 "name": "AFTON",
                 "elevation": 780,
-                "fuel_type": {
-                  "abbrev": "O1B",
-                  "fuel_type_code": "O1B",
-                  "description": "Standing grass",
-                  "percentage_conifer": 0,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3d0-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 4
@@ -156,13 +100,6 @@
               "station_props": {
                 "name": "CLEARWATER HUB",
                 "elevation": 440,
-                "fuel_type": {
-                  "abbrev": "C7",
-                  "fuel_type_code": "C7",
-                  "description": "Ponderosa pine/Douglas fir",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e286-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 1
@@ -172,13 +109,6 @@
               "station_props": {
                 "name": "MAYSON",
                 "elevation": 1315,
-                "fuel_type": {
-                  "abbrev": "C3",
-                  "fuel_type_code": "C3",
-                  "description": "Mature jack or lodgepole pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e15b-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 5
@@ -188,13 +118,6 @@
               "station_props": {
                 "name": "SPARKS LAKE",
                 "elevation": 972,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3bf-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 3
@@ -204,13 +127,6 @@
               "station_props": {
                 "name": "WELLS GRAY",
                 "elevation": 968,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e2a0-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 2
@@ -227,13 +143,6 @@
               "station_props": {
                 "name": "MCCUDDY",
                 "elevation": 1067,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3dc-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 2
@@ -243,13 +152,6 @@
               "station_props": {
                 "name": "PENTICTON RS",
                 "elevation": 427,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3d6-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 1
@@ -266,13 +168,6 @@
               "station_props": {
                 "name": "FIVE MILE",
                 "elevation": 865,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e137-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 4
@@ -282,13 +177,6 @@
               "station_props": {
                 "name": "FRENCH BAR",
                 "elevation": 1320,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3c0-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 2
@@ -298,13 +186,6 @@
               "station_props": {
                 "name": "GWYNETH LAKE",
                 "elevation": 1205,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3c3-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 3
@@ -314,13 +195,6 @@
               "station_props": {
                 "name": "LILLOOET",
                 "elevation": 408,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e2ae-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 1
@@ -330,13 +204,6 @@
               "station_props": {
                 "name": "SPLINTLUM",
                 "elevation": 424,
-                "fuel_type": {
-                  "abbrev": "C7B",
-                  "fuel_type_code": "C7",
-                  "description": "Proposed C7 model with curing: C7B",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e14c-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 5
@@ -359,13 +226,6 @@
               "station_props": {
                 "name": "CHEAKAMUS",
                 "elevation": 595,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e1f2-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 2
@@ -375,13 +235,6 @@
               "station_props": {
                 "name": "DARCY",
                 "elevation": 330,
-                "fuel_type": {
-                  "abbrev": "C7",
-                  "fuel_type_code": "C7",
-                  "description": "Ponderosa pine/Douglas fir",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3b2-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 1
@@ -391,13 +244,6 @@
               "station_props": {
                 "name": "FRANK CREEK",
                 "elevation": 305,
-                "fuel_type": {
-                  "abbrev": "BL",
-                  "fuel_type_code": "M2",
-                  "description": "Boreal mixedwood - green - 25% conifer",
-                  "percentage_conifer": 25,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e22c-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 3
@@ -407,13 +253,6 @@
               "station_props": {
                 "name": "MEAGER CREEK",
                 "elevation": 545,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e15c-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 4
@@ -423,13 +262,6 @@
               "station_props": {
                 "name": "SQUAMISH AP (EC)",
                 "elevation": 60,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e55d-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 5
@@ -446,13 +278,6 @@
               "station_props": {
                 "name": "BEAVER CREEK",
                 "elevation": 121,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e530-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 2
@@ -462,13 +287,6 @@
               "station_props": {
                 "name": "CEDAR",
                 "elevation": 30,
-                "fuel_type": {
-                  "abbrev": "BL",
-                  "fuel_type_code": "M2",
-                  "description": "Boreal mixedwood - green - 25% conifer",
-                  "percentage_conifer": 25,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e545-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 1
@@ -478,13 +296,6 @@
               "station_props": {
                 "name": "CHEF CREEK TEST",
                 "elevation": 456,
-                "fuel_type": {
-                  "abbrev": "C7",
-                  "fuel_type_code": "C7",
-                  "description": "Ponderosa pine/Douglas fir",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e231-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 3
@@ -501,13 +312,6 @@
               "station_props": {
                 "name": "MESACHIE 2",
                 "elevation": 183,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e31e-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 2
@@ -517,13 +321,6 @@
               "station_props": {
                 "name": "SALTSPRING 2",
                 "elevation": 18,
-                "fuel_type": {
-                  "abbrev": "C7",
-                  "fuel_type_code": "C7",
-                  "description": "Ponderosa pine/Douglas fir",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e537-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 1
@@ -540,13 +337,6 @@
               "station_props": {
                 "name": "MENZIES CAMP",
                 "elevation": 438,
-                "fuel_type": {
-                  "abbrev": "BL",
-                  "fuel_type_code": "M2",
-                  "description": "Boreal mixedwood - green - 25% conifer",
-                  "percentage_conifer": 25,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e51e-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 2
@@ -556,13 +346,6 @@
               "station_props": {
                 "name": "QUINSAM BASE FWX",
                 "elevation": 78,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e165-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 1
@@ -572,13 +355,6 @@
               "station_props": {
                 "name": "WOSS CAMP",
                 "elevation": 156,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e520-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 3
@@ -595,13 +371,6 @@
               "station_props": {
                 "name": "POWELL RIVER WEST LAKE",
                 "elevation": 100,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e1bf-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 2
@@ -611,13 +380,6 @@
               "station_props": {
                 "name": "SCAR CREEK",
                 "elevation": 116,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e55c-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 4
@@ -627,13 +389,6 @@
               "station_props": {
                 "name": "SECHELT (EC)",
                 "elevation": 86,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e12c-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 1
@@ -643,13 +398,6 @@
               "station_props": {
                 "name": "TOBA CAMP",
                 "elevation": 43,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e555-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 3
@@ -666,13 +414,6 @@
               "station_props": {
                 "name": "HAGENSBORG 2",
                 "elevation": 47,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e30b-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 1
@@ -682,13 +423,6 @@
               "station_props": {
                 "name": "TALCHAKO",
                 "elevation": 270,
-                "fuel_type": {
-                  "abbrev": "C3",
-                  "fuel_type_code": "C3",
-                  "description": "Mature jack or lodgepole pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e281-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 2
@@ -705,13 +439,6 @@
               "station_props": {
                 "name": "ALLISON PASS",
                 "elevation": 1215,
-                "fuel_type": {
-                  "abbrev": "C3",
-                  "fuel_type_code": "C3",
-                  "description": "Mature jack or lodgepole pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3cb-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 1
@@ -721,13 +448,6 @@
               "station_props": {
                 "name": "BOOTHROYD",
                 "elevation": 19,
-                "fuel_type": {
-                  "abbrev": "C7",
-                  "fuel_type_code": "C7",
-                  "description": "Ponderosa pine/Douglas fir",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e21b-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 2
@@ -737,13 +457,6 @@
               "station_props": {
                 "name": "FORD MOUNTAIN",
                 "elevation": 247,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e188-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 4
@@ -753,13 +466,6 @@
               "station_props": {
                 "name": "HONNA",
                 "elevation": 21,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e567-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 5
@@ -769,13 +475,6 @@
               "station_props": {
                 "name": "NAHATLATCH",
                 "elevation": 552,
-                "fuel_type": {
-                  "abbrev": "C5",
-                  "fuel_type_code": "C5",
-                  "description": "Red and white pine",
-                  "percentage_conifer": 100,
-                  "percentage_dead_fir": 0
-                },
                 "wfwx_station_uuid": "bfe0a6e2-e3ca-0210-e053-259e228e58c7"
               },
               "order_of_appearance_in_planning_area_list": 3

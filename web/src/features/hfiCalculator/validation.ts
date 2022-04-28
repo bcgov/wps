@@ -1,11 +1,11 @@
-import { WeatherStationProperties, StationDaily } from 'api/hfiCalculatorAPI'
+import { StationDaily, FuelType } from 'api/hfiCalculatorAPI'
 import { isEqual, isNull, isUndefined } from 'lodash'
 
 export const isValidGrassCure = (
   daily: StationDaily | undefined,
-  stationProperties: WeatherStationProperties | undefined
+  fuelType: FuelType | undefined
 ): boolean => {
-  if (!isGrassFuelType(stationProperties)) {
+  if (!isGrassFuelType(fuelType)) {
     return true
   }
   return (
@@ -16,15 +16,13 @@ export const isValidGrassCure = (
   )
 }
 
-export const isGrassFuelType = (
-  stationProperties: WeatherStationProperties | undefined
-): boolean => {
-  if (isUndefined(stationProperties)) {
+export const isGrassFuelType = (fuelType: FuelType | undefined): boolean => {
+  if (isUndefined(fuelType)) {
     return false
   }
   return (
-    isEqual(stationProperties.fuel_type.abbrev.toLowerCase(), 'o1a') ||
-    isEqual(stationProperties.fuel_type.abbrev.toLowerCase(), 'o1b') ||
-    isEqual(stationProperties.fuel_type.abbrev.toLowerCase(), 'c7b')
+    isEqual(fuelType.abbrev.toLowerCase(), 'o1a') ||
+    isEqual(fuelType.abbrev.toLowerCase(), 'o1b') ||
+    isEqual(fuelType.abbrev.toLowerCase(), 'c7b')
   )
 }

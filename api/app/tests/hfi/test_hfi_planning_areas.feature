@@ -6,7 +6,6 @@ Feature: /hfi-calc/fire-centres
         And there are at least <num_fire_centres> fire centres
         And each fire centre has at least 1 planning area
         And each planning area has at least 1 weather station
-        And each weather station has a fuel_type assigned to it
 
         Examples:
             | status | num_fire_centres |
