@@ -7,7 +7,6 @@ from itertools import groupby
 import operator
 from typing import List, Dict
 
-from sqlalchemy import desc
 from app.schemas.hfi_calc import (DailyTablePlanningAreaPDFData, DailyResult,
                                   HFIResultResponse,
                                   PlanningArea, PlanningAreaResult,
@@ -139,7 +138,8 @@ def get_merged_station_data(
         daily_dict = daily.dict()
         daily_dict.update(station_data)
         station_info: StationInfo = next(
-            station_info for station_info in planning_area_station_info if station_info.station_code == daily.code)
+            station_info for
+            station_info in planning_area_station_info if station_info.station_code == daily.code)
         daily_dict['fuel_type'] = fuel_types[station_info.fuel_type_id]
         station_pdf_data = StationPDFData(**daily_dict)
         all_station_pdf_data.append(station_pdf_data)
@@ -190,7 +190,8 @@ def response_2_daily_jinja_format(result: HFIResultResponse,
         for daily_result in area_result.daily_results:
             dailies: List[StationDaily] = list(map(lambda x: x.daily, daily_result.dailies))
             station_daily_pdf_data: List[StationPDFData] = get_merged_station_data(
-                station_dict, dailies, fuel_types, result.planning_area_station_info[area_result.planning_area_id])
+                station_dict, dailies, fuel_types,
+                result.planning_area_station_info[area_result.planning_area_id])
             planning_area_name = planning_area_dict[area_result.planning_area_id].name
             order = planning_area_dict[area_result.planning_area_id].order_of_appearance_in_list
             daily_data = DailyTablePlanningAreaPDFData(planning_area_name=planning_area_name,
