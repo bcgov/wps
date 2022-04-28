@@ -162,7 +162,9 @@ def calculate_net_effective_windspeed(fuel_type: FuelTypeEnum,  # pylint: disabl
                                                      CBH=cbh,
                                                      ISI=isi,
                                                      output="WSV")
-        return result[0]
+        if isinstance(result[0], float):
+            return result[0]
+        raise CFFDRSException("Failed to calculate Slope")
     return ws
 
 
@@ -188,7 +190,9 @@ def flank_rate_of_spread(ros: float, bros: float, lb: float):  # pylint: disable
     """
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._FROScalc(ROS=ros, BROS=bros, LB=lb)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate FROS")
 
 
 def back_rate_of_spread(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-arguments, disable=invalid-name
@@ -251,7 +255,9 @@ def back_rate_of_spread(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-arg
                                                 PDF=pdf,
                                                 CC=cc,
                                                 CBH=cbh)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate BROS")
 
 
 def bui_calc(dmc: float, dc: float):  # pylint: disable=invalid-name
@@ -282,7 +288,9 @@ def bui_calc(dmc: float, dc: float):  # pylint: disable=invalid-name
     """
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._buiCalc(dmc=dmc, dc=dc)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate bui")
 
 
 def rate_of_spread_t(fuel_type: FuelTypeEnum,
@@ -316,7 +324,9 @@ def rate_of_spread_t(fuel_type: FuelTypeEnum,
                                                 ROSeq=ros_eq,
                                                 HR=minutes_since_ignition,
                                                 CFB=cfb)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate ROSt")
 
 
 def rate_of_spread(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-arguments, disable=invalid-name
@@ -374,7 +384,9 @@ def rate_of_spread(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-argument
                                                PDF=pdf,
                                                CC=cc,
                                                CBH=cbh)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate ROS")
 
 
 def surface_fuel_consumption(  # pylint: disable=invalid-name
@@ -406,7 +418,9 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
                                                FFMC=ffmc,
                                                PC=pc,
                                                GFL=0.35)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate SFC")
 
 
 def fire_distance(fuel_type: FuelTypeEnum, ros_eq: float, hr: int, cfb: float):  # pylint: disable=invalid-name
@@ -431,7 +445,9 @@ def fire_distance(fuel_type: FuelTypeEnum, ros_eq: float, hr: int, cfb: float): 
     """
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._DISTtcalc(fuel_type.value, ros_eq, hr, cfb)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate DISTt")
 
 
 def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int,
@@ -459,7 +475,9 @@ def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int,
         long = -long
     result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv,
                                                DJ=day_of_year, D0=date_of_minimum_foliar_moisture_content)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate FMC")
 
 
 def length_to_breadth_ratio(fuel_type: FuelTypeEnum, wind_speed: float):
@@ -475,7 +493,9 @@ def length_to_breadth_ratio(fuel_type: FuelTypeEnum, wind_speed: float):
         return CFFDRSException()
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._LBcalc(FUELTYPE=fuel_type.value, WSV=wind_speed)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate LB")
 
 
 def length_to_breadth_ratio_t(fuel_type: FuelTypeEnum,  # pylint: disable=invalid-name
@@ -511,7 +531,9 @@ def length_to_breadth_ratio_t(fuel_type: FuelTypeEnum,  # pylint: disable=invali
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._LBtcalc(FUELTYPE=fuel_type.value, LB=lb,
                                                HR=time_since_ignition, CFB=cfb)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate LBt")
 
 
 def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: float,
@@ -535,7 +557,9 @@ def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: 
         ffmc = NULL
     result = CFFDRS.instance().cffdrs._ffmcCalc(ffmc_yda=ffmc, temp=temperature, rh=relative_humidity,
                                                 prec=precipitation, ws=wind_speed)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate ffmc")
 
 
 def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False):  # pylint: disable=invalid-name
@@ -555,7 +579,9 @@ def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False): 
     if ffmc is None:
         ffmc = NULL
     result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed, fbpMod=fbpMod)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate ISI")
 
 
 def fire_weather_index(isi: float, bui: float):
@@ -569,7 +595,9 @@ def fire_weather_index(isi: float, bui: float):
 
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._fwiCalc(isi=isi, bui=bui)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate fwi")
 
 
 def crown_fraction_burned(fuel_type: FuelTypeEnum, fmc: float, sfc: float,
@@ -597,7 +625,9 @@ def crown_fraction_burned(fuel_type: FuelTypeEnum, fmc: float, sfc: float,
         raise CFFDRSException(message)
     result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=fuel_type.value, FMC=fmc, SFC=sfc,
                                                ROS=ros, CBH=cbh)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate FCB")
 
 
 def total_fuel_consumption(  # pylint: disable=invalid-name
@@ -632,7 +662,9 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
     result = CFFDRS.instance().cffdrs._TFCcalc(FUELTYPE=fuel_type.value, CFL=cfl, CFB=cfb, SFC=sfc,
                                                PC=pc,
                                                PDF=pdf)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate TFC")
 
 
 def head_fire_intensity(fuel_type: FuelTypeEnum,
@@ -658,7 +690,9 @@ def head_fire_intensity(fuel_type: FuelTypeEnum,
 
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate FI")
 
 
 def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
@@ -717,7 +751,9 @@ def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs.hffmc(weatherstream=weather_data,
                                             ffmc_old=ffmc_solar_noon, time_step=time_offset)
-    return result[0]
+    if isinstance(result[0], float):
+        return result[0]
+    raise CFFDRSException("Failed to calculate hffmc")
 
 
 def get_ffmc_for_target_hfi(    # pylint: disable=too-many-arguments

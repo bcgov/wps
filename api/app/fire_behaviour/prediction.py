@@ -11,7 +11,6 @@ from app.schemas.observations import WeatherReading
 from app.schemas.fba_calc import CriticalHoursHFI
 from app.utils.singleton import Singleton
 from app.fire_behaviour import cffdrs, c7b
-from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS
 from app.utils.time import convert_utc_to_pdt, get_julian_date_now
 
 logger = logging.getLogger(__name__)
@@ -378,8 +377,6 @@ def calculate_fire_behaviour_prediction_using_cffdrs(  # pylint: disable=too-man
     # set default values in case the calculation fails (likely due to missing data)
     fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, get_julian_date_now())
     sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
-    if cc is None:
-        cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
 
     ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
                                 cc=cc,
