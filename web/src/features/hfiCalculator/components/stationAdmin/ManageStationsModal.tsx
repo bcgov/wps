@@ -20,6 +20,7 @@ import { AppDispatch } from 'app/store'
 import { isEmpty, isUndefined, some } from 'lodash'
 
 export interface AdminStation {
+  dirty: boolean
   planningArea?: {
     id: number
     name: string
@@ -61,9 +62,10 @@ export const someEmptyStations = (newStations: AdminStation[]) =>
   some(
     newStations,
     newStation =>
-      isUndefined(newStation.planningArea) ||
-      isUndefined(newStation.station) ||
-      isUndefined(newStation.fuelType)
+      (isUndefined(newStation.planningArea) ||
+        isUndefined(newStation.station) ||
+        isUndefined(newStation.fuelType)) &&
+      newStation.dirty
   )
 
 export const ManageStationsModal = (props: ModalProps): JSX.Element => {
@@ -73,7 +75,7 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
 
   const { changeSaved } = useSelector(selectHFICalculatorState)
 
-  const [newStations, setNewStations] = useState<AdminStation[]>([{}])
+  const [newStations, setNewStations] = useState<AdminStation[]>([{ dirty: false }])
 
   const handleClose = () => {
     props.setModalOpen(false)
@@ -87,7 +89,7 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
 
   const handleAddStation = () => {
     console.log(newStations)
-    setNewStations([...newStations, {}])
+    setNewStations([...newStations, { dirty: false }])
   }
 
   const buildSuccessNotification = () => {

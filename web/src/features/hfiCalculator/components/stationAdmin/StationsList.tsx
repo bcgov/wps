@@ -48,7 +48,7 @@ export const StationList = ({
                       {...params}
                       label="Select Planning Area"
                       variant="outlined"
-                      error={isUndefined(newStation.planningArea)}
+                      error={newStation.dirty && isUndefined(newStation.planningArea)}
                     />
                   )}
                   options={[]}
@@ -69,7 +69,7 @@ export const StationList = ({
                       {...params}
                       label="Select Station"
                       variant="outlined"
-                      error={isUndefined(newStation.station)}
+                      error={newStation.dirty && isUndefined(newStation.station)}
                     />
                   )}
                   options={[]}
@@ -97,7 +97,7 @@ export const StationList = ({
                       {...params}
                       label="Select Fuel Type"
                       variant="outlined"
-                      error={isUndefined(newStation.fuelType)}
+                      error={newStation.dirty && isUndefined(newStation.fuelType)}
                     />
                   )}
                   options={[]}
