@@ -10,6 +10,13 @@
         "selected": true,
         "fuel_type_id": 1
       }
+    ],
+    "74": [
+      {
+        "station_code": 306,
+        "selected": true,
+        "fuel_type_id": 264
+      }
     ]
   },
   "selected_fire_center_id": 1,

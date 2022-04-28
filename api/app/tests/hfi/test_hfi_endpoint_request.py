@@ -37,7 +37,9 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
         return (
             (PlanningWeatherStation(station_code=230, fuel_type_id=1,
                                     planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
-            (PlanningWeatherStation(station_code=239, fuel_type_id=2,
+            (PlanningWeatherStation(station_code=239, fuel_type_id=1,
+                                    planning_area_id=1), fuel_type_1, planning_area_1, fire_centre),
+            (PlanningWeatherStation(station_code=230, fuel_type_id=2,
                                     planning_area_id=2), fuel_type_2, planning_area_2, fire_centre)
         )
 
@@ -127,6 +129,7 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_start_lookup', mock_get_fire_start_lookup)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fuel_type_by_id', mock_get_fuel_type_by_id)
+    monkeypatch.setattr(app.routers.hfi_calc, 'crud_get_fuel_types', mock_get_fuel_types)
 
 
 def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):

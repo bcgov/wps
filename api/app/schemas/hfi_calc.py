@@ -96,7 +96,6 @@ class WeatherStationProperties(BaseModel):
     """ HFI-relevant weather station properties """
     name: str
     elevation: int
-    fuel_type: FuelType
     wfwx_station_uuid: str
 
 
@@ -188,6 +187,7 @@ class HFIResultResponse(BaseModel):
 
 class StationPDFData(StationDaily, WeatherStation):
     """ All the details we have about stations """
+    fuel_type: FuelType
 
 
 class PrepTablePlanningAreaPDFData(BaseModel):
@@ -206,6 +206,7 @@ class PrepTablePlanningAreaPDFData(BaseModel):
 class DailyTablePlanningAreaPDFData(BaseModel):
     """ Data needed for daily PDF sheet """
     planning_area_name: str
+    order: int
     mean_intensity_group: Optional[float]
     prep_level: Optional[float]
     fire_starts: str

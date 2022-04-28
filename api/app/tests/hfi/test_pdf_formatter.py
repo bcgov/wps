@@ -18,7 +18,7 @@ from app.hfi.pdf_template import get_template
 from app.schemas.hfi_calc import (DailyResult,
                                   FireCentre,
                                   HFIResultResponse,
-                                  StationDaily,
+                                  StationDaily, StationInfo,
                                   StationPDFData,
                                   WeatherStation,
                                   WeatherStationProperties,
@@ -162,28 +162,28 @@ def test_get_merged_station_data():
         code=1,
         station_props=WeatherStationProperties(name='s1',
                                                wfwx_station_uuid='1',
-                                               elevation=1,
-                                               fuel_type=FuelType(id=1, abbrev='f1',
-                                                                  fuel_type_code='fc1',
-                                                                  description='f1-desc')))
+                                               elevation=1))
     weather_station_2 = WeatherStation(
         code=2,
         station_props=WeatherStationProperties(name='s2',
                                                wfwx_station_uuid='2',
                                                elevation=1,
-                                               fuel_type=FuelType(id=2, abbrev='f2',
-                                                                  fuel_type_code='fc2',
-                                                                  description='f2-desc')))
+                                               ))
     station_dict = {1: weather_station_1, 2: weather_station_2}
     station_daily1 = StationDaily(code=1, date=datetime.fromisocalendar(2022, 2, 2))
     station_daily2 = StationDaily(code=2, date=datetime.fromisocalendar(2022, 2, 2))
+    fuel_types = {1: FuelType(id=1, abbrev='A', fuel_type_code='A', description='A')}
+    planning_area_station_info = [StationInfo(station_code=1, selected=True, fuel_type_id=1),
+                                  StationInfo(station_code=2, selected=True, fuel_type_id=1)]
     merged_station_data: List[StationPDFData] = get_merged_station_data(
-        station_dict, [station_daily1, station_daily2])
+        station_dict, [station_daily1, station_daily2], fuel_types, planning_area_station_info)
     assert len(merged_station_data) == 2
     assert merged_station_data[0].code == 1
     assert merged_station_data[0].station_props == weather_station_1.station_props
+    assert merged_station_data[0].fuel_type == fuel_types[1]
     assert merged_station_data[1].code == 2
     assert merged_station_data[1].station_props == weather_station_2.station_props
+    assert merged_station_data[1].fuel_type == fuel_types[1]
 
 
 def test_response_2_prep_cycle_jinja_format():
@@ -195,9 +195,11 @@ def test_response_2_prep_cycle_jinja_format():
             fc = FireCentre(**fc_json)
             fire_centres.append(fc)
 
+        fuel_types = {id: FuelType(id=id, abbrev='A', fuel_type_code='A', description='A')
+                      for id in [22, 24, 26, 34]}
         _, planning_area_dict, station_dict = build_mappings(fire_centres)
         area_pdf_data, formatted_dates, date_range = response_2_prep_cycle_jinja_format(
-            HFIResultResponse(**result), planning_area_dict, station_dict)
+            HFIResultResponse(**result), planning_area_dict, station_dict, fuel_types=fuel_types)
 
         # 7 planning areas in coastal
         assert len(area_pdf_data) == 7
@@ -224,8 +226,11 @@ def test_response_2_daily_jinja_format():
             fire_centres.append(fc)
 
         _, planning_area_dict, station_dict = build_mappings(fire_centres)
+        fuel_types = {id: FuelType(id=id, abbrev='A', fuel_type_code='A', description='A')
+                      for id in [22, 24, 26, 34]}
         daily_pdf_data_by_date = response_2_daily_jinja_format(
-            HFIResultResponse(**result), planning_area_dict, station_dict)
+            HFIResultResponse(**result), planning_area_dict, station_dict,
+            fuel_types=fuel_types)
 
         # 4 daily results
         day_dates = list(daily_pdf_data_by_date.keys())
@@ -238,10 +243,5 @@ def test_response_2_daily_jinja_format():
             # 7 planning areas in coastal
             assert len(daily_planning_area_data) == 7
             # assert correct order for each day
-            assert daily_planning_area_data[0].planning_area_name == 'Fraser Zone'
-            assert daily_planning_area_data[1].planning_area_name == 'Pemberton Zone'
-            assert daily_planning_area_data[2].planning_area_name == 'Sunshine Coast'
-            assert daily_planning_area_data[3].planning_area_name == 'South Island'
-            assert daily_planning_area_data[4].planning_area_name == 'Mid Island'
-            assert daily_planning_area_data[5].planning_area_name == 'North Island'
-            assert daily_planning_area_data[6].planning_area_name == 'Mid-Coast'
+            for index in range(len(daily_planning_area_data)):
+                assert daily_planning_area_data[index].order == index + 1

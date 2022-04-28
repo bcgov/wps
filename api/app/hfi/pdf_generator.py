@@ -1,18 +1,24 @@
 """Generate a daily PDF"""
+import logging
 from datetime import date, datetime
 from typing import List, Dict, Tuple
 import pdfkit
 from jinja2 import Environment
+from app.db.models.hfi_calc import FuelType
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
 from app.hfi.pdf_template import PDFTemplateName, CSS_PATH
 from app.hfi.pdf_data_formatter import response_2_daily_jinja_format, response_2_prep_cycle_jinja_format
+
+
+logger = logging.getLogger(__name__)
 
 
 def generate_html(result: HFIResultResponse,
                   fire_centres: List[FireCentre],
                   idir: str,
                   datetime_generated: datetime,
-                  jinja_env: Environment) -> Tuple[str, str]:
+                  jinja_env: Environment,
+                  fuel_types: Dict[int, FuelType]) -> Tuple[str, str]:
     """Generates the full HTML based on the HFIResultResponse"""
     fire_centre_dict, planning_area_dict, station_dict = build_mappings(fire_centres)
     fire_centre_name = fire_centre_dict[result.selected_fire_center_id].name
@@ -23,14 +29,16 @@ def generate_html(result: HFIResultResponse,
                                     planning_area_dict,
                                     station_dict,
                                     fire_centre_name,
-                                    jinja_env)
+                                    jinja_env,
+                                    fuel_types)
     rendered_output += generate_daily(result,
                                       idir,
                                       datetime_generated,
                                       planning_area_dict,
                                       station_dict,
                                       fire_centre_name,
-                                      jinja_env)
+                                      jinja_env,
+                                      fuel_types)
 
     return rendered_output, fire_centre_name
 
@@ -39,13 +47,15 @@ def generate_pdf(result: HFIResultResponse,
                  fire_centres: List[FireCentre],
                  idir: str,
                  datetime_generated: datetime,
-                 jinja_env: Environment) -> Tuple[bytes, str]:
+                 jinja_env: Environment,
+                 fuel_types: Dict[int, FuelType]) -> Tuple[bytes, str]:
     """Generates the full PDF based on the HFIResultResponse"""
     rendered_output, fire_centre_name = generate_html(result,
                                                       fire_centres,
                                                       idir,
                                                       datetime_generated,
-                                                      jinja_env)
+                                                      jinja_env,
+                                                      fuel_types)
 
     # pylint: disable=line-too-long
     left_footer = f'Exported on {datetime_generated.isoformat()} by {idir} | https://psu.nrs.gov.bc.ca/hfi-calculator'
@@ -72,12 +82,14 @@ def generate_prep(result: HFIResultResponse,
                   planning_area_dict: Dict[int, PlanningArea],
                   station_dict: Dict[int, WeatherStation],
                   fire_centre_name: str,
-                  jinja_env: Environment):
+                  jinja_env: Environment,
+                  fuel_types: Dict[int, FuelType]):
     """Generates the prep cycle portion of the PDF"""
     prep_pdf_data, dates, date_range = response_2_prep_cycle_jinja_format(
         result,
         planning_area_dict,
-        station_dict)
+        station_dict,
+        fuel_types)
     template = jinja_env.get_template(PDFTemplateName.PREP.value)
 
     return template.render(
@@ -95,13 +107,15 @@ def generate_daily(result: HFIResultResponse,
                    planning_area_dict: Dict[int, PlanningArea],
                    station_dict: Dict[int, WeatherStation],
                    fire_centre_name: str,
-                   jinja_env: Environment) -> str:
+                   jinja_env: Environment,
+                   fuel_types: Dict[int, FuelType]) -> str:
     """Generates the daily portion of the PDF"""
     template = jinja_env.get_template(PDFTemplateName.DAILY.value)
     daily_pdf_data_by_date = response_2_daily_jinja_format(
         result,
         planning_area_dict,
-        station_dict)
+        station_dict,
+        fuel_types)
     return template.render(
         idir=idir,
         datetime_generated=datetime_generated.isoformat(),
