@@ -11,7 +11,8 @@ import {
   fetchSetStationSelected,
   fetchFuelTypes,
   fetchPDFDownload,
-  setSelectedPrepDate
+  setSelectedPrepDate,
+  fetchSetFuelType
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -84,7 +85,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     fireCentresLoading,
     dateRange,
     error: hfiError,
-    changeSaved
+    changeSaved,
+    fuelTypes
   } = useSelector(selectHFICalculatorState)
 
   const setSelectedStation = (
@@ -101,6 +103,21 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           planningAreaId,
           code,
           selected
+        )
+      )
+    }
+  }
+
+  const setFuelType = (planningAreaId: number, code: number, fuel_type_id: number) => {
+    if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
+      dispatch(
+        fetchSetFuelType(
+          result.selected_fire_center_id,
+          result.date_range.start_date,
+          result.date_range.end_date,
+          planningAreaId,
+          code,
+          fuel_type_id
         )
       )
     }
@@ -268,7 +285,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                 dateRange={dateRange}
                 setSelected={setSelectedStation}
                 setNewFireStarts={setNewFireStarts}
+                setFuelType={setFuelType}
                 selectedPrepDay={selectedPrepDate}
+                fuelTypes={fuelTypes}
+                planningAreaStationInfo={result?.planning_area_station_info}
               />
             </ErrorBoundary>
           </React.Fragment>

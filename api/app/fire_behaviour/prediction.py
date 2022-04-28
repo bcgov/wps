@@ -11,7 +11,6 @@ from app.schemas.observations import WeatherReading
 from app.schemas.fba_calc import CriticalHoursHFI
 from app.utils.singleton import Singleton
 from app.fire_behaviour import cffdrs, c7b
-from app.fire_behaviour.fuel_types import FUEL_TYPE_DEFAULTS
 from app.utils.time import convert_utc_to_pdt, get_julian_date_now
 
 logger = logging.getLogger(__name__)
@@ -26,6 +25,11 @@ class FireTypeEnum(str, Enum):
 
 class CannotCalculateFireTypeError(Exception):
     """ Exception thrown when fire type cannot be established """
+
+
+class FireBehaviourPredictionInputError(Exception):
+    """ Exception thrown when there is something wrong with the input required to calculate a fire behaviour
+    prediction. """
 
 
 @Singleton
@@ -373,8 +377,6 @@ def calculate_fire_behaviour_prediction_using_cffdrs(  # pylint: disable=too-man
     # set default values in case the calculation fails (likely due to missing data)
     fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, get_julian_date_now())
     sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
-    if cc is None:
-        cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
 
     ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
                                 cc=cc,
@@ -435,6 +437,8 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
                                                   cbh: float,
                                                   cfl: float):
     """ Calculates fire behaviour prediction using C7B. """
+    if cc is None:
+        raise FireBehaviourPredictionInputError("CC is required for C7B calculation.")
 
     ros = c7b.rate_of_spread(ffmc=ffmc, bui=bui, wind_speed=wind_speed, percentage_slope=0.0, cc=cc)
 
@@ -474,6 +478,10 @@ def calculate_fire_behaviour_prediction(latitude: float,  # pylint: disable=too-
                                         pc: float,  # pylint: disable=invalid-name
                                         isi: float, pdf: float, cbh: float, cfl: float):
     """ Calculate the fire behaviour prediction. """
+    if bui is None:
+        raise FireBehaviourPredictionInputError('BUI is required')
+    if ffmc is None:
+        raise FireBehaviourPredictionInputError('FFMC is required')
     if fuel_type == FuelTypeEnum.C7B:
         return calculate_fire_behaviour_prediction_using_c7b(
             latitude=latitude,

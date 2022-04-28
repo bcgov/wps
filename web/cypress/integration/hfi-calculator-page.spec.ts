@@ -22,6 +22,23 @@ function interceptGetPrepPeriod(fire_centre: number, start_date: string, end_dat
   }).as('getPrepPeriod')
 }
 
+function interceptSetFuelType(
+  fire_centre: number,
+  start_date: string,
+  end_date: string,
+  planning_area: number,
+  code: number,
+  fuel_type_id: number
+) {
+  cy.intercept(
+    'POST',
+    `api/hfi-calc/fire_centre/${fire_centre}/${start_date}/${end_date}/planning_area/${planning_area}/station/${code}/fuel_type/${fuel_type_id}`,
+    {
+      fixture: 'hfi-calc/dailies-saved.json'
+    }
+  ).as('setFuelType')
+}
+
 function interceptSelectStationFalse(
   fire_centre: number,
   start_date: string,
@@ -133,6 +150,17 @@ describe('HFI Calculator Page', () => {
         .type('{downarrow}')
         .type('{enter}')
       cy.wait('@setFireStarts')
+      cy.getByTestId('hfi-success-alert').should('exist')
+    })
+    it('set fuel type should send a request to the server', () => {
+      interceptSetFuelType(1, '2021-08-02', '2021-08-06', 70, 239, 3)
+      cy.getByTestId('fuel-type-dropdown')
+        .first()
+        .find('input')
+        .type('{downarrow}', { force: true })
+        .type('{downarrow}', { force: true })
+        .type('{enter}', { force: true })
+      cy.wait('@setFuelType')
       cy.getByTestId('hfi-success-alert').should('exist')
     })
     it('should switch the tab to prep period from a daily tab when a different fire centre is selected', () => {
