@@ -31,9 +31,14 @@ export const StationList = ({
     <Box sx={{ marginTop: 5 }}>
       <Grid container justifyContent="center" spacing={1}>
         {newStations.map((newStation, index) => (
-          <Grid item key={index}>
-            <Grid container direction="row" key={index} spacing={1}>
-              <Grid item key={index}>
+          <Grid item key={`add-station-row-${index}`}>
+            <Grid
+              container
+              direction="row"
+              key={`add-station-row-container-${index}`}
+              spacing={1}
+            >
+              <Grid item key={`planning-area-${index}`}>
                 {index === 0 && (
                   <Typography>
                     <strong>Planning Area</strong>
@@ -42,7 +47,7 @@ export const StationList = ({
                 <Autocomplete
                   className={classes.autocomplete}
                   value={newStation.planningArea?.name}
-                  key={index}
+                  key={`autocomplete-planning-area-${index}`}
                   renderInput={params => (
                     <TextField
                       {...params}
@@ -54,7 +59,7 @@ export const StationList = ({
                   options={[]}
                 />
               </Grid>
-              <Grid item key={index}>
+              <Grid item key={`station-${index}`}>
                 {index === 0 && (
                   <Typography>
                     <strong>Station</strong>
@@ -63,7 +68,7 @@ export const StationList = ({
 
                 <Autocomplete
                   className={classes.autocomplete}
-                  key={index}
+                  key={`autocomplete-station-type-${index}`}
                   renderInput={params => (
                     <TextField
                       {...params}
@@ -75,7 +80,7 @@ export const StationList = ({
                   options={[]}
                 />
               </Grid>
-              <Grid item key={index}>
+              <Grid item key={`fuel-type-${index}`}>
                 {index === 0 && (
                   <Typography>
                     <strong>Fuel Type</strong>
@@ -91,7 +96,7 @@ export const StationList = ({
 
                 <Autocomplete
                   className={classes.autocomplete}
-                  key={index}
+                  key={`autocomplete-fuel-type-${index}`}
                   renderInput={params => (
                     <TextField
                       {...params}
