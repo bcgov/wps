@@ -17,6 +17,7 @@ import { selectHFICalculatorState } from 'app/rootReducer'
 import { setChangeSaved } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import { isEmpty, values } from 'lodash'
+import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
 
 export interface AdminStation {
   dirty: boolean
@@ -57,7 +58,7 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const invalidNewStation = (newStation: AdminStation) =>
+const invalidNewStation = (newStation: AdminStation) =>
   values(newStation).some(isEmpty) && newStation.dirty
 
 export const ManageStationsModal = (props: ModalProps): JSX.Element => {
@@ -115,22 +116,17 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
               invalid={invalidNewStation(newStation)}
             />
           </DialogContent>
-          <Button
-            variant="contained"
-            color="primary"
-            disabled={invalidNewStation(newStation)}
-            className={classes.actionButton}
-            onClick={handleSave}
-            data-testid={'cancel-hfi-admin-button'}
-          >
-            Save
-          </Button>
+          <SaveNewStationButton
+            newStation={newStation}
+            invalidNewStation={invalidNewStation(newStation)}
+            handleSave={handleSave}
+          />
           <Button
             variant="outlined"
             color="primary"
             className={classes.actionButton}
             onClick={handleClose}
-            data-testid={'cancel-hfi-admin-button'}
+            data-testid={'cancel-new-station-button'}
           >
             Cancel
           </Button>
