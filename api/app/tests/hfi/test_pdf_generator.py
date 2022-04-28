@@ -3,12 +3,12 @@ import os
 from datetime import date, datetime
 import hashlib
 from jinja2 import Environment, FunctionLoader
-from app.db.models.hfi_calc import FuelType
 from app.hfi.pdf_generator import generate_pdf, get_pdf_filename, generate_html
 from app.hfi.pdf_template import get_template
 from app.schemas.hfi_calc import (FireCentre,
                                   HFIResultResponse)
 from app.schemas.hfi_calc import HFIResultResponse
+from app.schemas.shared import FuelType
 
 test_hfi_result = os.path.join(os.path.dirname(__file__), 'test_hfi_result.json')
 test_fcs = os.path.join(os.path.dirname(__file__), 'test_fire_centres.json')
@@ -41,10 +41,9 @@ def test_generate_html():
     html_string, _ = generate_html(HFIResultResponse(**result), fire_centres, 'wps',
                                    datetime.fromisocalendar(2022, 2, 2), jinja_env,
                                    fuel_types)
-    # The hash should only change if an intentional change has been made to the pdf,
-    # in which case the hash value we're checking here may be updated by the developer.
+
     assert hashlib.sha256(html_string.encode()).hexdigest(
-    ) == '3ae6afe40e9b477a158816f9e055d66691c2a51c5bc86acf228fd3c1e669b47f'
+    ) == 'c5659e86bd97b679346eec9ecbbf1f81db58a68390135e05cb6118dfa971d74f'
 
 
 def test_generate_pdf():

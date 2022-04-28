@@ -1,4 +1,4 @@
-import { StationDaily, PlanningArea } from 'api/hfiCalculatorAPI'
+import { StationDaily, PlanningArea, FuelType } from 'api/hfiCalculatorAPI'
 import {
   HFIResultResponse,
   PrepDateRange,
@@ -65,15 +65,15 @@ export const getDailiesByStationCode = (
 }
 
 export const getPlanningAreaStationInfo = (
-  result: HFIResultResponse | undefined,
+  planning_area_station_info: { [key: number]: StationInfo[] } | undefined,
   planningAreaId: number,
   code: number
 ): StationInfo | undefined => {
   if (
-    !isUndefined(result) &&
-    !isUndefined(result.planning_area_station_info[planningAreaId])
+    !isUndefined(planning_area_station_info) &&
+    !isUndefined(planning_area_station_info[planningAreaId])
   ) {
-    return result.planning_area_station_info[planningAreaId].find(
+    return planning_area_station_info[planningAreaId].find(
       info => info.station_code === code
     )
   }
@@ -81,10 +81,30 @@ export const getPlanningAreaStationInfo = (
 }
 
 export const stationCodeSelected = (
-  result: HFIResultResponse | undefined,
+  planning_area_station_info: { [key: number]: StationInfo[] },
   planningAreaId: number,
   code: number
 ): boolean => {
-  const stationInfo = getPlanningAreaStationInfo(result, planningAreaId, code)
+  const stationInfo = getPlanningAreaStationInfo(
+    planning_area_station_info,
+    planningAreaId,
+    code
+  )
   return stationInfo?.selected ?? false
+}
+
+export const getSelectedFuelType = (
+  planningAreaStationInfo: { [key: number]: StationInfo[] } | undefined,
+  planningAreaId: number,
+  stationCode: number,
+  fuelTypes: FuelType[]
+) => {
+  const stationInfo = getPlanningAreaStationInfo(
+    planningAreaStationInfo,
+    planningAreaId,
+    stationCode
+  )
+  return isUndefined(stationInfo)
+    ? undefined
+    : fuelTypes.find(instance => instance.id == stationInfo.fuel_type_id)
 }

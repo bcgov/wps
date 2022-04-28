@@ -1,5 +1,5 @@
 import { TableCell } from '@mui/material'
-import { PlanningArea } from 'api/hfiCalculatorAPI'
+import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { range } from 'lodash'
@@ -7,7 +7,8 @@ import React from 'react'
 import MeanPrepLevelCell from './MeanPrepLevelCell'
 import {
   FireStartRange,
-  PlanningAreaResult
+  PlanningAreaResult,
+  StationInfo
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
 
@@ -24,6 +25,8 @@ export interface CalculatedCellsProps {
   planningAreaClass: string
   numPrepDays: number
   fireStartRanges: FireStartRange[]
+  fuelTypes: FuelType[]
+  planningAreaStationInfo: { [key: number]: StationInfo[] } | undefined
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
@@ -45,6 +48,8 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
               area={props.area}
               dailies={allPlanningAreaDailies ? allPlanningAreaDailies : []}
               meanIntensityGroup={meanIntensityGroup}
+              planningAreaStationInfo={props.planningAreaStationInfo}
+              fuelTypes={props.fuelTypes}
             />
             <TableCell>
               <FireStartsDropdown
@@ -69,6 +74,8 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
         area={props.area}
         dailies={allPlanningAreaDailies}
         meanIntensityGroup={props.planningAreaResult.highest_daily_intensity_group}
+        planningAreaStationInfo={props.planningAreaStationInfo}
+        fuelTypes={props.fuelTypes}
       ></MeanIntensityGroupRollup>
       <MeanPrepLevelCell
         areaName={props.areaName}

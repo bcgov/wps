@@ -26,19 +26,13 @@ describe('FuelTypeDropdown', () => {
     },
     order_of_appearance_in_planning_area_list: 1
   }
-  const testStationInfo = {
-    station_code: 123,
-    selected: true,
-    fuel_type_id: fuelTypes[2].id
-  }
-
   it('should render with the default value', async () => {
     const setFuelTypeMock = jest.fn()
     const { getByTestId } = render(
       <FuelTypeDropdown
         station={testStation}
-        stationInfo={testStationInfo}
         setFuelType={setFuelTypeMock}
+        selectedFuelType={fuelTypes[2]}
         fuelTypes={fuelTypes}
         isRowSelected={true}
       />
@@ -46,9 +40,7 @@ describe('FuelTypeDropdown', () => {
     const autocomplete = getByTestId('fuel-type-dropdown')
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
-    const fuelType = fuelTypes.find(
-      instance => instance.id == testStationInfo.fuel_type_id
-    )
+    const fuelType = fuelTypes.find(instance => instance.id == fuelTypes[2].id)
     await waitFor(() => expect(input.value).toBe(fuelType?.abbrev))
   })
   it('should change value on change and call parent callback', async () => {
@@ -57,8 +49,8 @@ describe('FuelTypeDropdown', () => {
     const { getByTestId } = render(
       <FuelTypeDropdown
         station={testStation}
-        stationInfo={testStationInfo}
         setFuelType={setFuelTypeMock}
+        selectedFuelType={fuelTypes[2]}
         fuelTypes={fuelTypes}
         isRowSelected={true}
       />

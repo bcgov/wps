@@ -1,14 +1,13 @@
 import makeStyles from '@mui/styles/makeStyles'
 import { TextField, Autocomplete } from '@mui/material'
 import { FuelType, WeatherStation } from 'api/hfiCalculatorAPI'
-import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isEqual, isNull } from 'lodash'
 import React from 'react'
 
 export interface FuelTypeDropdownProps {
   station: WeatherStation
-  stationInfo?: StationInfo
   fuelTypes: FuelType[]
+  selectedFuelType: FuelType | undefined
   setFuelType: (code: number, fuelTypeId: number) => void
   isRowSelected: boolean
 }
@@ -21,16 +20,13 @@ const useStyles = makeStyles({
 
 const FuelTypeDropdown = ({
   station,
-  stationInfo,
   fuelTypes,
+  selectedFuelType,
   setFuelType,
   isRowSelected
 }: FuelTypeDropdownProps) => {
   const classes = useStyles()
-  if (stationInfo) {
-    const selectedFuelType = fuelTypes.find(
-      instance => instance.id == stationInfo.fuel_type_id
-    )
+  if (selectedFuelType) {
     return (
       <Autocomplete
         data-testid={`fuel-type-dropdown`}

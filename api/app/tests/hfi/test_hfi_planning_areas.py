@@ -69,12 +69,3 @@ def assert_min_num_stations_in_planning_area(response):
     for fire_centre in response['response'].json()['fire_centres']:
         for planning_area in fire_centre['planning_areas']:
             assert len(planning_area['stations']) >= 1
-
-
-@then('each weather station has a fuel_type assigned to it')
-def assert_station_has_fuel_type(response):
-    """ Assert that each weather station has one assigned fuel type """
-    for fire_centre in response['response'].json()['fire_centres']:
-        for planning_area in fire_centre['planning_areas']:
-            for wx_station in planning_area['stations']:
-                assert wx_station['station_props']['fuel_type'] is not None
