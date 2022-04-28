@@ -1,3 +1,9 @@
+## 2022-04-26 Fire Behaviour Calc - 422 bug caused by missing station
+
+### Bug
+
+- Fixed [#1964](https://github.com/bcgov/wps/issues/1964): Request failed with status code 422" due to missing station
+
 ## 2022-04-26 HFI Calc - Set fuel type
 
 ### Features
