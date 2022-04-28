@@ -9,6 +9,7 @@ import { isUndefined } from 'lodash'
 export interface NewStationFormProps {
   testId?: string
   newStation: AdminStation
+  invalid: boolean
 }
 
 const useStyles = makeStyles({
@@ -20,7 +21,10 @@ const useStyles = makeStyles({
   }
 })
 
-export const NewStationForm = ({ newStation }: NewStationFormProps): JSX.Element => {
+export const NewStationForm = ({
+  newStation,
+  invalid
+}: NewStationFormProps): JSX.Element => {
   const classes = useStyles()
 
   return (
@@ -90,7 +94,7 @@ export const NewStationForm = ({ newStation }: NewStationFormProps): JSX.Element
             </Grid>
           </Grid>
         </Grid>
-        {true && (
+        {invalid && (
           <Grid
             container
             direction="row"

@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import { setChangeSaved } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
-import { isUndefined } from 'lodash'
+import { isEmpty, values } from 'lodash'
 
 export interface AdminStation {
   dirty: boolean
@@ -58,10 +58,7 @@ const useStyles = makeStyles(() => ({
 }))
 
 export const invalidNewStation = (newStation: AdminStation) =>
-  (isUndefined(newStation.planningArea) ||
-    isUndefined(newStation.station) ||
-    isUndefined(newStation.fuelType)) &&
-  newStation.dirty
+  values(newStation).some(isEmpty) && newStation.dirty
 
 export const ManageStationsModal = (props: ModalProps): JSX.Element => {
   const classes = useStyles()
@@ -113,7 +110,10 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
             <Typography variant="body1" align="center">
               New weather station(s) will be included in the default list moving forward
             </Typography>
-            <NewStationForm newStation={newStation} />
+            <NewStationForm
+              newStation={newStation}
+              invalid={invalidNewStation(newStation)}
+            />
           </DialogContent>
           <Button
             variant="contained"
