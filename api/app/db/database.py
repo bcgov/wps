@@ -1,9 +1,10 @@
 """ Setup database to perform CRUD transactions
 """
 import logging
-from typing import Generator
-from contextlib import contextmanager
+from typing import Generator, AsyncGenerator
+from contextlib import contextmanager, asynccontextmanager
 from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine, AsyncSession
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from .. import config
@@ -19,10 +20,10 @@ postgres_port = config.get('POSTGRES_PORT', '5432')
 postgres_database = config.get('POSTGRES_DATABASE', 'wps')
 
 # pylint: disable=line-too-long
-DB_WRITE_STRING = f'postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
+DB_WRITE_STRING = f'postgresql+asyncpg://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
 
 # pylint: disable=line-too-long
-DB_READ_STRING = f'postgresql://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}'
+DB_READ_STRING = f'postgresql+asyncpg://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}'
 
 # connect to database - defaulting to always use utc timezone
 _write_engine = create_engine(DB_WRITE_STRING, connect_args={
@@ -30,10 +31,11 @@ _write_engine = create_engine(DB_WRITE_STRING, connect_args={
 # use pre-ping on read, as connections are quite often stale due to how few users we have at the moment.
 _read_engine = create_engine(
     DB_READ_STRING,
-    pool_size=int(config.get('POSTGRES_POOL_SIZE', 5)),
-    max_overflow=int(config.get('POSTGRES_MAX_OVERFLOW', 10)),
-    pool_pre_ping=True, connect_args={
-        'options': '-c timezone=utc'})
+    # pool_size=int(config.get('POSTGRES_POOL_SIZE', 5)),
+    # max_overflow=int(config.get('POSTGRES_MAX_OVERFLOW', 10)),
+    # pool_pre_ping=True, connect_args={
+    # 'options': '-c timezone=utc'}
+)
 
 # bind session to database
 # avoid using these variables anywhere outside of context manager - if
@@ -56,6 +58,30 @@ def _get_write_session() -> sessionmaker:
 def _get_read_session() -> sessionmaker:
     """ abstraction used for mocking out a read session """
     return _read_session()
+
+
+@asynccontextmanager
+async def get_async_read_session_scope() -> AsyncGenerator[AsyncSession, None]:
+    """Provide a transactional scope around a series of operations."""
+    # engine: AsyncEngine = create_async_engine(DB_READ_STRING,
+    #                                           pool_size=int(config.get('POSTGRES_POOL_SIZE', 5)),
+    #                                           max_overflow=int(config.get('POSTGRES_MAX_OVERFLOW', 10)),
+    #                                           pool_pre_ping=True, connect_args={
+    #                                               'options': '-c timezone=utc'})
+    engine: AsyncEngine = create_async_engine(DB_READ_STRING)
+
+    async_session = sessionmaker(
+        engine, expire_on_commit=False, class_=AsyncSession
+    )
+
+    session: AsyncSession = async_session()
+    try:
+        session.begin()
+        yield session
+    finally:
+        logger.info('session closed by context manager')
+        await session.close()
+        await engine.dispose()
 
 
 @contextmanager

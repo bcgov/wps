@@ -21,13 +21,12 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   DateRange, FuelTypesResponse, HFIWeatherStationsResponse)
 from app.schemas.shared import (FuelType)
 from app.auth import authentication_required, audit
-from app.db.crud.hfi_calc import (get_fuel_type_by_id, get_most_recent_updated_hfi_request,
+from app.db.crud.hfi_calc import (get_fuel_type_by_id, get_fuel_types_async, get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
                                   get_fire_centre_stations)
-from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
-from app.db.database import get_read_session_scope, get_write_session_scope
+from app.db.database import get_async_read_session_scope, get_read_session_scope, get_write_session_scope
 
 
 logger = logging.getLogger(__name__)
@@ -37,7 +36,7 @@ no_cache = "max-age=0"  # don't let the browser cache this
 
 router = APIRouter(
     prefix="/hfi-calc",
-    dependencies=[Depends(authentication_required), Depends(audit)]
+    # dependencies=[Depends(authentication_required), Depends(audit)]
 )
 
 
@@ -158,11 +157,11 @@ async def get_fuel_types(response: Response) -> FuelTypesResponse:
     # allow browser to cache fuel_types for 1 week because they won't change often (or possibly ever)
     response.headers["Cache-Control"] = "max-age=604800"
 
-    with get_read_session_scope() as session:
-        result = crud_get_fuel_types(session)
-    fuel_types = []
-    for fuel_type_record in result:
-        fuel_types.append(fuel_type_model_to_schema(fuel_type_record))
+    async with get_async_read_session_scope() as session:
+        result = await get_fuel_types_async(session)
+        fuel_types = []
+        for fuel_type_record in result.scalars():
+            fuel_types.append(fuel_type_model_to_schema(fuel_type_record))
     return FuelTypesResponse(fuel_types=fuel_types)
 
 

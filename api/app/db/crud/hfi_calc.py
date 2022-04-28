@@ -3,6 +3,8 @@
 from typing import List
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from app.db.database import get_read_session_scope
 from app.schemas.hfi_calc import DateRange, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, PlanningArea, PlanningWeatherStation, HFIRequest,
@@ -102,6 +104,6 @@ def get_fuel_type_by_id(session: Session, fuel_type_id: int) -> FuelType:
     return session.query(FuelType).filter(FuelType.id == fuel_type_id).first()
 
 
-def get_fuel_types(session: Session) -> CursorResult:
+async def get_fuel_types_async(session: AsyncSession) -> CursorResult:
     """ Get the fuel types table  """
-    return session.query(FuelType).order_by(FuelType.abbrev)
+    return await session.execute(select(FuelType).order_by(FuelType.abbrev))
