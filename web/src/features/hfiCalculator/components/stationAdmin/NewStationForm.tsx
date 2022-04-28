@@ -38,6 +38,7 @@ export const NewStationForm = ({
               </Typography>
               <Autocomplete
                 className={classes.autocomplete}
+                data-testid={'select-planning-area'}
                 value={newStation.planningArea?.name}
                 renderInput={params => (
                   <TextField
@@ -57,6 +58,7 @@ export const NewStationForm = ({
 
               <Autocomplete
                 className={classes.autocomplete}
+                data-testid={'select-station'}
                 renderInput={params => (
                   <TextField
                     {...params}
@@ -80,6 +82,7 @@ export const NewStationForm = ({
                 </Tooltip>
               </Typography>
               <Autocomplete
+                data-testid={'select-fuel-type'}
                 className={classes.autocomplete}
                 renderInput={params => (
                   <TextField
@@ -102,10 +105,10 @@ export const NewStationForm = ({
             spacing={1}
             marginTop={5}
           >
-            <Grid item spacing={1}>
+            <Grid item>
               <ErrorOutlineIcon color="error" />
             </Grid>
-            <Grid item spacing={1}>
+            <Grid item>
               <Typography variant="body1">
                 Please complete empty fields to continue
               </Typography>
