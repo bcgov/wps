@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import SettingsIcon from '@mui/icons-material/Settings'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import { Button } from '@mui/material'
 import ManageStationsModal from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 
@@ -17,8 +17,8 @@ const ManageStationsButton = () => {
         onClick={openAboutModal}
         data-testid={'manage-stations-button'}
       >
-        <SettingsIcon />
-        Manage Stations
+        <AddCircleOutlineIcon />
+        Add weather station
       </Button>
       <ManageStationsModal modalOpen={modalOpen} setModalOpen={setModalOpen} />
     </React.Fragment>

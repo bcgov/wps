@@ -18,6 +18,9 @@ const useStyles = makeStyles({
   },
   tooltip: {
     maxHeight: '0.8em'
+  },
+  toolTipText: {
+    fontSize: 14
   }
 })
 
@@ -26,6 +29,10 @@ export const NewStationForm = ({
   invalid
 }: NewStationFormProps): JSX.Element => {
   const classes = useStyles()
+
+  const toolTipText = (
+    <div className={classes.toolTipText}>Grass curing is set in WFWX</div>
+  )
 
   return (
     <Box sx={{ marginTop: 5 }}>
@@ -75,7 +82,7 @@ export const NewStationForm = ({
                 <strong>Fuel Type</strong>
                 <Tooltip
                   className={classes.tooltip}
-                  title="Grass curing is set in WFWX"
+                  title={toolTipText}
                   aria-label="grass-curing-is-set-in-wfwx"
                 >
                   <InfoOutlinedIcon></InfoOutlinedIcon>
