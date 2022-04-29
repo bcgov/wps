@@ -17,7 +17,7 @@ const useStyles = makeStyles({
     minWidth: 300
   },
   tooltip: {
-    maxHeight: '0.7em'
+    maxHeight: '0.75em'
   },
   toolTipText: {
     fontSize: 14
