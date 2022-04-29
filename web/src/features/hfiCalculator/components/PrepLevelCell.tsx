@@ -2,7 +2,7 @@ import { TableCell } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { fireTableStyles } from 'app/theme'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
-import { isUndefined } from 'lodash'
+import { isNull } from 'lodash'
 import React from 'react'
 
 export interface PrepLevelCellProps {
@@ -82,7 +82,7 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
 
   return (
     <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
-      {isUndefined(props.prepLevel) ? (
+      {isNull(props.prepLevel) ? (
         <ErrorIconWithTooltip
           testId="prep-level-error"
           tooltipElement={prepLevelErrorTooltipElement(props.toolTipText)}

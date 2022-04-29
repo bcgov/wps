@@ -439,7 +439,8 @@ def calculate_mean_intensity(dailies: List[StationDaily]):
     """ Returns the mean intensity group from a list of values """
     intensity_groups = list(map(lambda daily: (daily.intensity_group), dailies))
     valid_intensity_groups = list(filter(None, intensity_groups))
-    if len(valid_intensity_groups) == 0:
+    # If some intensity groups are invalid, can't calculate mean intensity group. Should display error
+    if len(valid_intensity_groups) != len(dailies) or len(valid_intensity_groups) == 0:
         return None
     mean_intensity_group = mean(valid_intensity_groups)
     if round(mean_intensity_group % 1, 1) < 0.8:
