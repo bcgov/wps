@@ -311,15 +311,17 @@ def calculate_daily_results(num_prep_days: int,
                             fire_start_lookup: Dict[int, Dict[int, int]]) -> Tuple[List[DailyResult], bool]:
     """ Calculate the daily results for a planning area."""
     daily_results: List[DailyResult] = []
+    unique_station_codes = list(set([s.code for s in area_dailies]))
     for index in range(num_prep_days):
         dailies_date = start_date + timedelta(days=index)
         prep_day_dailies = get_prep_day_dailies(dailies_date, area_dailies)
         daily_fire_starts: FireStartRange = planning_area_fire_starts[area_id][index]
-        mean_intensity_group = calculate_mean_intensity(prep_day_dailies)
+        mean_intensity_group = calculate_mean_intensity(prep_day_dailies, unique_station_codes)
         prep_level = calculate_prep_level(mean_intensity_group, daily_fire_starts, fire_start_lookup)
         validated_dailies: List[ValidatedStationDaily] = list(map(validate_station_daily, prep_day_dailies))
         # check if all validated_dailies are valid.
-        all_dailies_valid = all(map(lambda validated_daily: (validated_daily.valid), validated_dailies))
+        valids = [v.valid for v in validated_dailies]
+        all_dailies_valid = all(valids)
         daily_result = DailyResult(
             date=dailies_date,
             dailies=validated_dailies,
@@ -435,8 +437,13 @@ def calculate_mean_prep_level(prep_levels: List[Optional[float]], num_prep_days:
     return round(mean(valid_prep_levels))
 
 
-def calculate_mean_intensity(dailies: List[StationDaily]):
+def calculate_mean_intensity(dailies: List[StationDaily], station_codes: List[int]):
     """ Returns the mean intensity group from a list of values """
+    # If there are less dailies than there are unique station codes in the planning area,
+    # it means that some stations are entirely missing data for the day, so MIG can't
+    # be calculated.
+    if len(dailies) != len(station_codes):
+        return None
     intensity_groups = list(map(lambda daily: (daily.intensity_group), dailies))
     valid_intensity_groups = list(filter(None, intensity_groups))
     # If some intensity groups are invalid, can't calculate mean intensity group. Should display error

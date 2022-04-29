@@ -45,6 +45,12 @@ required_daily_fields = ['temperature',
                          'wind_speed',
                          'wind_direction',
                          'precipitation',
+                         'bui',
+                         'ffmc',
+                         'dmc',
+                         'dc',
+                         'isi',
+                         'fwi',
                          'intensity_group']
 
 
