@@ -378,7 +378,7 @@ async def get_add_station_options(fire_centre_id: int, response: Response, _=Dep
         response.headers["Cache-Control"] = "max-age=86400"
         with get_read_session_scope() as db_read_session:
             planning_areas_list_query = get_fire_centre_planning_areas(db_read_session, fire_centre_id)
-            planning_areas: BasicPlanningArea = []
+            planning_areas: List[BasicPlanningArea] = []
             for planning_area in planning_areas_list_query:
                 planning_areas.append(BasicPlanningArea(id=planning_area.id, name=planning_area.name))
 
