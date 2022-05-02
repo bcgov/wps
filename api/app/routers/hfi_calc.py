@@ -370,58 +370,45 @@ async def get_fire_centres(response: Response):
         raise
 
 
-@router.get('/add-station/{fire_centre_id}', response_model=HFIAddStationOptionsResponse)
+@router.get('/admin/add-station/{fire_centre_id}', response_model=HFIAddStationOptionsResponse)
 async def get_add_station_options(fire_centre_id: int,
                                   response: Response,
                                   _=Depends(authentication_required)):
     """ Returns lists of planning areas, stations and fuel types for adding a station. """
 
-    try:
-        logger.info('/hfi-calc/add-station')
-        # we can safely cache the options, as they don't change them very often.
-        response.headers["Cache-Control"] = "max-age=86400"
-        with get_read_session_scope() as db_read_session:
-            planning_areas_list_query = get_fire_centre_planning_areas(db_read_session, fire_centre_id)
-            planning_areas: List[BasicPlanningArea] = []
-            for planning_area in planning_areas_list_query:
-                planning_areas.append(BasicPlanningArea(id=planning_area.id, name=planning_area.name))
+    logger.info('/hfi-calc/admin/add-station')
+    with get_read_session_scope() as db_read_session:
+        planning_areas_list_query = get_fire_centre_planning_areas(db_read_session, fire_centre_id)
+        planning_areas: List[BasicPlanningArea] = []
+        for planning_area in planning_areas_list_query:
+            planning_areas.append(BasicPlanningArea(id=planning_area.id, name=planning_area.name))
 
-            fuel_types_list_query = crud_get_fuel_types(db_read_session)
-            fuel_types: List[FuelType] = []
-            for fuel_type_record in fuel_types_list_query:
-                fuel_types.append(fuel_type_model_to_schema(fuel_type_record))
+        fuel_types_list_query = crud_get_fuel_types(db_read_session)
+        fuel_types: List[FuelType] = []
+        for fuel_type_record in fuel_types_list_query:
+            fuel_types.append(fuel_type_model_to_schema(fuel_type_record))
 
-        async with ClientSession() as session:
-            header = await get_auth_header(session)
-            wfwx_stations: List[WFWXWeatherStation] = await get_wfwx_all_active_stations(session, header)
-            stations: List[BasicWFWXStation] = []
-            for wfwx_station in wfwx_stations:
-                stations.append(BasicWFWXStation(wfwx_station_uuid=wfwx_station.wfwx_id,
-                                code=wfwx_station.code, name=wfwx_station.name))
+    async with ClientSession() as session:
+        header = await get_auth_header(session)
+        wfwx_stations: List[WFWXWeatherStation] = await get_wfwx_all_active_stations(session, header)
+        stations: List[BasicWFWXStation] = []
+        for wfwx_station in wfwx_stations:
+            stations.append(BasicWFWXStation(wfwx_station_uuid=wfwx_station.wfwx_id,
+                            code=wfwx_station.code, name=wfwx_station.name))
 
-            return HFIAddStationOptionsResponse(planning_areas=planning_areas,
-                                                stations=stations,
-                                                fuel_types=fuel_types)
-
-    except Exception as exc:
-        logger.critical(exc, exc_info=True)
-        raise
+        return HFIAddStationOptionsResponse(planning_areas=planning_areas,
+                                            stations=stations,
+                                            fuel_types=fuel_types)
 
 
-@router.post('/add-station/{fire_centre_id}', status_code=201)
+@router.post('/admin/add-station/{fire_centre_id}', status_code=201)
 async def add_station(fire_centre_id: int,
                       request: HFIAddStationRequest,
                       _=Depends(authentication_required)):
     """ Adds a station. """
-
-    try:
-        logger.info('/hfi-calc/add-station/')
-        logger.info('request is: %s', request)
-        logger.info('fire centre is: %s', fire_centre_id)
-
-    except Exception as exc:
-        logger.critical(exc, exc_info=True)
-        raise
+    logger.info('/hfi-calc/admin/add-station/')
+    logger.info('request is: %s', request)
+    logger.info('fire centre is: %s', fire_centre_id)
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')

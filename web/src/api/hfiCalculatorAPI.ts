@@ -140,7 +140,9 @@ export async function getFuelTypes(): Promise<FuelTypesResponse> {
 export async function getAddStationOptions(
   fireCentreId: number
 ): Promise<AddStationOptions> {
-  const data = await axios.get<AddStationOptions>(baseUrl + 'add-station/' + fireCentreId)
+  const data = await axios.get<AddStationOptions>(
+    baseUrl + 'admin/add-station/' + fireCentreId
+  )
   return data.data
 }
 
@@ -154,7 +156,7 @@ export async function addNewStation(
     wfwx_station_uuid: newStation.station.wfwx_station_uuid,
     fuel_type_id: newStation.fuelType.id
   }
-  await axios.post<void>(baseUrl + 'add-station/' + fireCentreId, requestBody)
+  await axios.post<void>(baseUrl + 'admin/add-station/' + fireCentreId, requestBody)
 }
 
 export async function setStationSelected(
