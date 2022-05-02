@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react'
-import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
+import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import NewStationForm from 'features/hfiCalculator/components/stationAdmin/NewStationForm'
 import React from 'react'
 
