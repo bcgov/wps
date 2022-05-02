@@ -19,23 +19,14 @@ import {
   setChangeSaved
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
-import { isEmpty, values } from 'lodash'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
+import { BasicPlanningArea, BasicWFWXStation, FuelType } from 'api/hfiCalculatorAPI'
 
 export interface AdminStation {
   dirty: boolean
-  planningArea?: {
-    id: number
-    name: string
-  }
-  station?: {
-    code: number
-    name: string
-  }
-  fuelType?: {
-    id: number
-    name: string
-  }
+  planningArea?: BasicPlanningArea
+  station?: BasicWFWXStation
+  fuelType?: FuelType
 }
 export interface AddStationModalProps {
   testId?: string
@@ -62,9 +53,6 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-const invalidNewStation = (newStation: AdminStation) =>
-  values(newStation).some(isEmpty) && newStation.dirty
-
 export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
   const classes = useStyles()
 
@@ -73,7 +61,8 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
   const { changeSaved, addStationOptions } = useSelector(selectHFICalculatorState)
 
   const newEmptyStation = { dirty: false }
-  const [newStation, setNewStations] = useState<AdminStation>(newEmptyStation)
+  const [newStation, setNewStation] = useState<AdminStation>(newEmptyStation)
+  const [invalid, setInvalid] = useState<boolean>(false)
 
   useEffect(() => {
     dispatch(fetchAddStationOptions(props.fireCentreId))
@@ -82,7 +71,7 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
 
   const handleClose = () => {
     props.setModalOpen(false)
-    setNewStations(newEmptyStation)
+    setNewStation(newEmptyStation)
   }
 
   const handleSave = () => {
@@ -122,13 +111,15 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
             </Typography>
             <NewStationForm
               newStation={newStation}
+              setNewStation={setNewStation}
+              invalid={invalid}
+              setInvalid={setInvalid}
               addStationOptions={addStationOptions}
-              invalid={invalidNewStation(newStation)}
             />
           </DialogContent>
           <SaveNewStationButton
             newStation={newStation}
-            invalidNewStation={invalidNewStation(newStation)}
+            invalidNewStation={invalid}
             handleSave={handleSave}
           />
           <Button

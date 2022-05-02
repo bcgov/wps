@@ -1,17 +1,19 @@
-import React from 'react'
+import React, { Dispatch, SetStateAction } from 'react'
 import { Box, Autocomplete, TextField, Grid, Typography, Tooltip } from '@mui/material'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import makeStyles from '@mui/styles/makeStyles'
-import { isUndefined } from 'lodash'
+import { isNull, isUndefined, values, isEmpty } from 'lodash'
 import { AddStationOptions } from 'api/hfiCalculatorAPI'
 
 export interface NewStationFormProps {
   testId?: string
   addStationOptions?: AddStationOptions
   newStation: AdminStation
+  setNewStation: Dispatch<SetStateAction<AdminStation>>
   invalid: boolean
+  setInvalid: Dispatch<SetStateAction<boolean>>
 }
 
 const useStyles = makeStyles({
@@ -29,9 +31,19 @@ const useStyles = makeStyles({
 export const NewStationForm = ({
   addStationOptions,
   newStation,
-  invalid
+  setNewStation,
+  invalid,
+  setInvalid
 }: NewStationFormProps): JSX.Element => {
   const classes = useStyles()
+
+  const invalidNewStation = (newStation: AdminStation) => {
+    const missingFields =
+      isUndefined(newStation.planningArea) ||
+      isUndefined(newStation.station) ||
+      isUndefined(newStation.fuelType)
+    setInvalid(missingFields && newStation.dirty)
+  }
 
   const toolTipText = (
     <div className={classes.toolTipText}>Grass curing is set in WFWX</div>
@@ -59,6 +71,17 @@ export const NewStationForm = ({
                     error={newStation.dirty && isUndefined(newStation.planningArea)}
                   />
                 )}
+                onChange={(_, value) => {
+                  if (!isNull(value)) {
+                    const changedNewStation = {
+                      ...newStation,
+                      dirty: true,
+                      planningArea: value
+                    }
+                    setNewStation(changedNewStation)
+                    invalidNewStation(changedNewStation)
+                  }
+                }}
               />
             </Grid>
             <Grid item>
@@ -79,6 +102,17 @@ export const NewStationForm = ({
                     error={newStation.dirty && isUndefined(newStation.station)}
                   />
                 )}
+                onChange={(_, value) => {
+                  if (!isNull(value)) {
+                    const changedNewStation = {
+                      ...newStation,
+                      dirty: true,
+                      station: value
+                    }
+                    setNewStation(changedNewStation)
+                    invalidNewStation(changedNewStation)
+                  }
+                }}
               />
             </Grid>
             <Grid item>
@@ -105,6 +139,17 @@ export const NewStationForm = ({
                     error={newStation.dirty && isUndefined(newStation.fuelType)}
                   />
                 )}
+                onChange={(_, value) => {
+                  if (!isNull(value)) {
+                    const changedNewStation = {
+                      ...newStation,
+                      dirty: true,
+                      fuelType: value
+                    }
+                    setNewStation(changedNewStation)
+                    invalidNewStation(changedNewStation)
+                  }
+                }}
               />
             </Grid>
           </Grid>

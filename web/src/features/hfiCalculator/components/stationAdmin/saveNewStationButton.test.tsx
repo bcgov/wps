@@ -1,11 +1,23 @@
 import { render } from '@testing-library/react'
+import { BasicPlanningArea, BasicWFWXStation, FuelType } from 'api/hfiCalculatorAPI'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
 import React from 'react'
 
 describe('SaveNewStationButton', () => {
-  const planningArea = { id: 1, name: 'test' }
-  const station = { code: 1, name: 'test' }
-  const fuelType = { id: 1, name: 'test' }
+  const planningArea: BasicPlanningArea = { id: 1, name: 'test' }
+  const station: BasicWFWXStation = {
+    code: 1,
+    name: 'test',
+    wfwx_station_uuid: 'test'
+  }
+  const fuelType: FuelType = {
+    id: 1,
+    abbrev: 'c1',
+    description: 'c1',
+    fuel_type_code: 'c1',
+    percentage_conifer: 0,
+    percentage_dead_fir: 0
+  }
 
   it('should render button enabled when all fields set', () => {
     const handleSaveMock = jest.fn()

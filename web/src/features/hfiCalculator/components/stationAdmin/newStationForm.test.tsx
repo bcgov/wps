@@ -1,12 +1,23 @@
 import { render } from '@testing-library/react'
+import { BasicWFWXStation, FuelType } from 'api/hfiCalculatorAPI'
 import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import NewStationForm from 'features/hfiCalculator/components/stationAdmin/NewStationForm'
 import React from 'react'
 
 describe('NewStationForm', () => {
+  const setNewStationMock = jest.fn()
+
+  beforeEach(() => {
+    setNewStationMock.mockReset()
+  })
+
   const renderNewStationForm = (newStation: AdminStation, invalid: boolean) => {
     const { getByTestId, queryByText } = render(
-      <NewStationForm newStation={newStation} invalid={invalid} />
+      <NewStationForm
+        newStation={newStation}
+        invalid={invalid}
+        setNewStation={setNewStationMock}
+      />
     )
     return { getByTestId, queryByText }
   }
@@ -25,7 +36,11 @@ describe('NewStationForm', () => {
       expect(planningAreaSelect.getElementsByClassName('Mui-error').length).toBe(0)
     })
     it('should not render error outline for station dropdown when it exists', () => {
-      const station = { code: 1, name: 'test' }
+      const station: BasicWFWXStation = {
+        code: 1,
+        name: 'test',
+        wfwx_station_uuid: 'test'
+      }
 
       const { getByTestId } = renderNewStationForm({ dirty: true, station }, false)
 
@@ -33,7 +48,14 @@ describe('NewStationForm', () => {
       expect(planningAreaSelect.getElementsByClassName('Mui-error').length).toBe(0)
     })
     it('should not render error outline for fuel type dropdown when it exists', () => {
-      const fuelType = { id: 1, name: 'test' }
+      const fuelType: FuelType = {
+        id: 1,
+        abbrev: 'c1',
+        description: 'c1',
+        fuel_type_code: 'c1',
+        percentage_conifer: 0,
+        percentage_dead_fir: 0
+      }
 
       const { getByTestId } = renderNewStationForm({ dirty: true, fuelType }, false)
 
