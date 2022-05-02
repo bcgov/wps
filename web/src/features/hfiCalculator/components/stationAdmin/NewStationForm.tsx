@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Autocomplete, TextField, Grid, Typography, Tooltip } from '@mui/material'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
-import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
+import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import makeStyles from '@mui/styles/makeStyles'
 import { isUndefined } from 'lodash'
 
