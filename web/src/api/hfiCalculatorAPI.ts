@@ -20,6 +20,17 @@ export interface FuelTypesResponse {
   fuel_types: FuelType[]
 }
 
+export interface BasicWFWXStation {
+  wfwx_station_uuid: string
+  code: number
+  name: string
+}
+
+export interface BasicPlanningArea {
+  id: number
+  name: string
+}
+
 export interface WeatherStationProperties {
   name: string
   elevation: number | null
@@ -43,6 +54,12 @@ export interface WeatherStation {
   code: number
   station_props: WeatherStationProperties
   order_of_appearance_in_planning_area_list?: number
+}
+
+export interface AddStationOptions {
+  planning_areas: BasicPlanningArea[]
+  stations: BasicWFWXStation[]
+  fuel_types: FuelType[]
 }
 
 export interface HFIWeatherStationsResponse {
@@ -109,6 +126,13 @@ export async function loadDefaultHFIResult(
 
 export async function getFuelTypes(): Promise<FuelTypesResponse> {
   const data = await axios.get<FuelTypesResponse>(baseUrl + 'fuel_types')
+  return data.data
+}
+
+export async function getAddStationOptions(
+  fireCentreId: number
+): Promise<AddStationOptions> {
+  const data = await axios.get<AddStationOptions>(baseUrl + 'add-station/' + fireCentreId)
   return data.data
 }
 

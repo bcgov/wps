@@ -123,6 +123,12 @@ class PlanningArea(BaseModel):
     stations: List[WeatherStation]
 
 
+class BasicPlanningArea(BaseModel):
+    """ Minimal indentifiable planning area. """
+    id: int
+    name: str
+
+
 class FireCentre(BaseModel):
     """ The highest-level organizational unit for wildfire planning. Each fire centre
     has 1 or more planning areas within it. """
@@ -139,7 +145,7 @@ class HFIWeatherStationsResponse(BaseModel):
 
 class HFIAddStationOptionsResponse(BaseModel):
     """ A list of planning areas, stations and fuel types for adding a station. """
-    planning_areas: List[PlanningArea]
+    planning_areas: List[BasicPlanningArea]
     stations: List[BasicWFWXStation]
     fuel_types: List[FuelType]
 

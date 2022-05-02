@@ -237,6 +237,20 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     return <React.Fragment></React.Fragment>
   }
 
+  const buildAddStationButton = () => {
+    if (
+      !isUndefined(selectedFireCentre) &&
+      roles.includes(ROLES.HFI.STATION_ADMIN) &&
+      isAuthenticated
+    ) {
+      return (
+        <FormControl className={classes.actionButton}>
+          <AddStationButton fireCentreId={selectedFireCentre.id} />
+        </FormControl>
+      )
+    }
+  }
+
   return (
     <main data-testid="hfi-calculator-page">
       <GeneralHeader
@@ -278,11 +292,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               <DownloadPDFButton onClick={handleDownloadClicked} />
             </FormControl>
 
-            {roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && (
-              <FormControl className={classes.actionButton}>
-                <AddStationButton />
-              </FormControl>
-            )}
+            {buildAddStationButton()}
 
             <ErrorBoundary>
               <ViewSwitcher

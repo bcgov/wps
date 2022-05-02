@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,10 @@ import NewStationForm from 'features/hfiCalculator/components/stationAdmin/NewSt
 import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectHFICalculatorState } from 'app/rootReducer'
-import { setChangeSaved } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import {
+  fetchAddStationOptions,
+  setChangeSaved
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import { isEmpty, values } from 'lodash'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
@@ -34,8 +37,9 @@ export interface AdminStation {
     name: string
   }
 }
-export interface ModalProps {
+export interface AddStationModalProps {
   testId?: string
+  fireCentreId: number
   modalOpen: boolean
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -61,15 +65,20 @@ const useStyles = makeStyles(() => ({
 const invalidNewStation = (newStation: AdminStation) =>
   values(newStation).some(isEmpty) && newStation.dirty
 
-export const AddStationModal = (props: ModalProps): JSX.Element => {
+export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
 
-  const { changeSaved } = useSelector(selectHFICalculatorState)
+  const { changeSaved, addStationOptions } = useSelector(selectHFICalculatorState)
 
   const newEmptyStation = { dirty: false }
   const [newStation, setNewStations] = useState<AdminStation>(newEmptyStation)
+
+  useEffect(() => {
+    dispatch(fetchAddStationOptions(props.fireCentreId))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleClose = () => {
     props.setModalOpen(false)
@@ -109,10 +118,11 @@ export const AddStationModal = (props: ModalProps): JSX.Element => {
               Add New Weather Station
             </Typography>
             <Typography variant="body1" align="center">
-              New weather station(s) will be included in the default list moving forward
+              New weather station will be included in the default list moving forward
             </Typography>
             <NewStationForm
               newStation={newStation}
+              addStationOptions={addStationOptions}
               invalid={invalidNewStation(newStation)}
             />
           </DialogContent>

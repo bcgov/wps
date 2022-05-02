@@ -48,7 +48,7 @@ def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
 def get_fire_centre_planning_areas(session, fire_centre_id: int) -> CursorResult:
     """ Get all the planning areas for a fire centre. """
     return session.query(PlanningArea)\
-        .join(PlanningArea.fire_centre_id == fire_centre_id)
+        .filter(PlanningArea.fire_centre_id == fire_centre_id)
 
 
 def get_most_recent_updated_hfi_request(session: Session,

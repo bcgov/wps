@@ -12,9 +12,11 @@ import {
   RawDaily,
   StationDaily,
   getFuelTypes,
+  getAddStationOptions,
   FuelType,
   FireCentre,
-  FuelTypesResponse
+  FuelTypesResponse,
+  AddStationOptions
 } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
 
@@ -64,6 +66,7 @@ export interface HFICalculatorState {
   pdfLoading: boolean
   fireCentresLoading: boolean
   fuelTypesLoading: boolean
+  addStationOptionsLoading: boolean
   error: string | null
   dateRange: PrepDateRange | undefined
   selectedPrepDate: string
@@ -71,6 +74,7 @@ export interface HFICalculatorState {
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
+  addStationOptions: AddStationOptions | undefined
   fuelTypes: FuelType[]
   changeSaved: boolean
 }
@@ -116,6 +120,7 @@ export interface RawValidatedStationDaily {
 export const initialState: HFICalculatorState = {
   pdfLoading: false,
   fireCentresLoading: false,
+  addStationOptionsLoading: false,
   fuelTypesLoading: false,
   error: null,
   dateRange: undefined,
@@ -125,6 +130,7 @@ export const initialState: HFICalculatorState = {
   selectedFireCentre: undefined,
   result: undefined,
   fuelTypes: [],
+  addStationOptions: undefined,
   changeSaved: false
 }
 
@@ -138,6 +144,9 @@ const dailiesSlice = createSlice({
     },
     fetchFuelTypesStart(state: HFICalculatorState) {
       state.fuelTypesLoading = true
+    },
+    fetchAddStationOptionsStart(state: HFICalculatorState) {
+      state.addStationOptionsLoading = true
     },
     pdfDownloadStart(state: HFICalculatorState) {
       state.pdfLoading = true
@@ -153,6 +162,13 @@ const dailiesSlice = createSlice({
     fetchFuelTypesFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
       state.fuelTypesLoading = false
+    },
+    fetchAddStationOptionsFailed(
+      state: HFICalculatorState,
+      action: PayloadAction<string>
+    ) {
+      state.error = action.payload
+      state.addStationOptionsLoading = false
     },
     setSelectedPrepDate: (state: HFICalculatorState, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
@@ -180,6 +196,13 @@ const dailiesSlice = createSlice({
     ) => {
       state.fuelTypes = action.payload.fuel_types
       state.fuelTypesLoading = false
+    },
+    setAddStationOptions: (
+      state: HFICalculatorState,
+      action: PayloadAction<AddStationOptions>
+    ) => {
+      state.addStationOptions = action.payload
+      state.addStationOptionsLoading = false
     }
   }
 })
@@ -187,13 +210,16 @@ const dailiesSlice = createSlice({
 export const {
   loadHFIResultStart,
   fetchFuelTypesStart,
+  fetchAddStationOptionsStart,
   pdfDownloadStart,
   pdfDownloadEnd,
   getHFIResultFailed,
   fetchFuelTypesFailed,
+  fetchAddStationOptionsFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
   setFuelTypes,
+  setAddStationOptions,
   setResult,
   setChangeSaved
 } = dailiesSlice.actions
@@ -292,6 +318,19 @@ export const fetchFuelTypes = (): AppThunk => async dispatch => {
     logError(err)
   }
 }
+
+export const fetchAddStationOptions =
+  (fireCentreId: number): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(fetchAddStationOptionsStart())
+      const addStationOptions = await getAddStationOptions(fireCentreId)
+      dispatch(setAddStationOptions(addStationOptions))
+    } catch (err) {
+      dispatch(fetchAddStationOptionsFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
 
 export const fetchSetNewFireStarts =
   (

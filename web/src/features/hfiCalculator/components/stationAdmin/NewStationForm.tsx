@@ -5,9 +5,11 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import makeStyles from '@mui/styles/makeStyles'
 import { isUndefined } from 'lodash'
+import { AddStationOptions } from 'api/hfiCalculatorAPI'
 
 export interface NewStationFormProps {
   testId?: string
+  addStationOptions?: AddStationOptions
   newStation: AdminStation
   invalid: boolean
 }
@@ -25,6 +27,7 @@ const useStyles = makeStyles({
 })
 
 export const NewStationForm = ({
+  addStationOptions,
   newStation,
   invalid
 }: NewStationFormProps): JSX.Element => {
@@ -46,7 +49,8 @@ export const NewStationForm = ({
               <Autocomplete
                 className={classes.autocomplete}
                 data-testid={'select-planning-area'}
-                value={newStation.planningArea?.name}
+                options={addStationOptions ? addStationOptions.planning_areas : []}
+                getOptionLabel={option => option?.name}
                 renderInput={params => (
                   <TextField
                     {...params}
@@ -55,7 +59,6 @@ export const NewStationForm = ({
                     error={newStation.dirty && isUndefined(newStation.planningArea)}
                   />
                 )}
-                options={[]}
               />
             </Grid>
             <Grid item>
@@ -66,6 +69,8 @@ export const NewStationForm = ({
               <Autocomplete
                 className={classes.autocomplete}
                 data-testid={'select-station'}
+                options={addStationOptions ? addStationOptions.stations : []}
+                getOptionLabel={option => option?.name}
                 renderInput={params => (
                   <TextField
                     {...params}
@@ -74,7 +79,6 @@ export const NewStationForm = ({
                     error={newStation.dirty && isUndefined(newStation.station)}
                   />
                 )}
-                options={[]}
               />
             </Grid>
             <Grid item>
@@ -91,6 +95,8 @@ export const NewStationForm = ({
               <Autocomplete
                 data-testid={'select-fuel-type'}
                 className={classes.autocomplete}
+                options={addStationOptions ? addStationOptions.fuel_types : []}
+                getOptionLabel={option => option?.abbrev}
                 renderInput={params => (
                   <TextField
                     {...params}
@@ -99,7 +105,6 @@ export const NewStationForm = ({
                     error={newStation.dirty && isUndefined(newStation.fuelType)}
                   />
                 )}
-                options={[]}
               />
             </Grid>
           </Grid>

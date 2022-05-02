@@ -15,7 +15,7 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (BasicWFWXStation, HFIAddStationOptionsResponse,
+from app.schemas.hfi_calc import (BasicPlanningArea, BasicWFWXStation, HFIAddStationOptionsResponse,
                                   HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange,
@@ -368,10 +368,8 @@ async def get_fire_centres(response: Response):
         raise
 
 
-@router.get('/add-station', response_model=HFIAddStationOptionsResponse)
-async def get_add_station_options(fire_centre_id: int,
-                                  response: Response,
-                                  _=Depends(authentication_required)):
+@router.get('/add-station/{fire_centre_id}', response_model=HFIAddStationOptionsResponse)
+async def get_add_station_options(fire_centre_id: int, response: Response, _=Depends(authentication_required)):
     """ Returns lists of planning areas, stations and fuel types for adding a station. """
 
     try:
@@ -380,9 +378,9 @@ async def get_add_station_options(fire_centre_id: int,
         response.headers["Cache-Control"] = "max-age=86400"
         with get_read_session_scope() as db_read_session:
             planning_areas_list_query = get_fire_centre_planning_areas(db_read_session, fire_centre_id)
-            planning_areas: PlanningArea = []
+            planning_areas: BasicPlanningArea = []
             for planning_area in planning_areas_list_query:
-                planning_areas.append(planning_area)
+                planning_areas.append(BasicPlanningArea(id=planning_area.id, name=planning_area.name))
 
             fuel_types_list_query = crud_get_fuel_types(db_read_session)
             fuel_types: List[FuelType] = []
@@ -397,9 +395,9 @@ async def get_add_station_options(fire_centre_id: int,
                 stations.append(BasicWFWXStation(wfwx_station_uuid=wfwx_station.wfwx_id,
                                 code=wfwx_station.code, name=wfwx_station.name))
 
-        return HFIAddStationOptionsResponse(planning_areas=planning_areas,
-                                            stations=wfwx_stations,
-                                            fuel_types=fuel_types)
+            return HFIAddStationOptionsResponse(planning_areas=planning_areas,
+                                                stations=stations,
+                                                fuel_types=fuel_types)
 
     except Exception as exc:
         logger.critical(exc, exc_info=True)
