@@ -2,9 +2,11 @@
 import asyncio
 import pytest
 from pytest_mock import MockFixture
-from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart, BuildQueryAllHourliesByRange,
+from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
+                                             BuildQueryAllHourliesByRange,
                                              BuildQueryDailiesByStationCode)
 from app.wildfire_one.wfwx_api import (WFWXWeatherStation,
+                                       get_wfwx_all_active_stations,
                                        get_wfwx_stations_from_station_codes)
 
 
@@ -92,6 +94,18 @@ def test_get_ids_from_station_codes(mock_responses):
         """ Async function to run test and assert result """
         result = await get_wfwx_stations_from_station_codes(None, {}, [code1])
         assert result == [station_1]
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(run_test())
+
+
+def test_get_all_active_stations(mock_responses):
+    """ Verifies the query builder returns the correct url and parameters for dailies by station code """
+    async def run_test():
+        """ Async function to run test and assert result """
+        result = await get_wfwx_all_active_stations(None, {})
+        assert len(result) == 2
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
