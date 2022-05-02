@@ -4,6 +4,7 @@ import logging
 from typing import List, Dict, Optional
 from datetime import datetime, date
 from pydantic import BaseModel
+from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.schemas.shared import FuelType
 
 
@@ -127,6 +128,13 @@ class HFIWeatherStationsResponse(BaseModel):
     """ A list of WeatherStations, where each WeatherStation has nested within it all relevant information
     specific to BCWS planning operations. """
     fire_centres: List[FireCentre]
+
+
+class HFIAddStationOptionsResponse(BaseModel):
+    """ A list of planning areas, stations and fuel types for adding a station. """
+    planning_areas: List[PlanningArea]
+    stations: List[WFWXWeatherStation]
+    fuel_types: List[FuelType]
 
 
 class StationInfo(BaseModel):

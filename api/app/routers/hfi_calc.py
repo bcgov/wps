@@ -7,6 +7,7 @@ from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, HTTPException, Response, Depends
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
+from aiohttp import ClientSession
 from app.utils.time import get_pst_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
@@ -14,23 +15,29 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (HFIResultRequest,
+from app.schemas.hfi_calc import (HFIAddStationOptionsResponse,
+                                  HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange,
+                                  PlanningArea,
                                   StationInfo,
-                                  DateRange, FuelTypesResponse, HFIWeatherStationsResponse)
+                                  DateRange, FuelTypesResponse,
+                                  HFIWeatherStationsResponse)
 from app.auth import (auth_with_select_station_role_required,
                       auth_with_set_fire_starts_role_required,
                       authentication_required,
                       audit)
 from app.schemas.shared import (FuelType)
-from app.db.crud.hfi_calc import (get_fuel_type_by_id, get_most_recent_updated_hfi_request,
+from app.db.crud.hfi_calc import (get_fire_centre_planning_areas, get_fuel_type_by_id,
+                                  get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
                                   get_fire_centre_stations)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
+from app.wildfire_one.schema_parsers import WFWXWeatherStation
+from app.wildfire_one.wfwx_api import get_wfwx_all_active_stations, get_auth_header
 
 
 logger = logging.getLogger(__name__)
@@ -355,6 +362,40 @@ async def get_fire_centres(response: Response):
         response.headers["Cache-Control"] = "max-age=86400"
         fire_centres_list = await hydrate_fire_centres()
         return HFIWeatherStationsResponse(fire_centres=fire_centres_list)
+
+    except Exception as exc:
+        logger.critical(exc, exc_info=True)
+        raise
+
+
+@router.get('/add-station', response_model=HFIAddStationOptionsResponse)
+async def get_add_station_options(fire_centre_id: int,
+                                  response: Response,
+                                  _=Depends(authentication_required)):
+    """ Returns lists of planning areas, stations and fuel types for adding a station. """
+
+    try:
+        logger.info('/hfi-calc/add-station')
+        # we can safely cache the options, as they don't change them very often.
+        response.headers["Cache-Control"] = "max-age=86400"
+        with get_read_session_scope() as db_read_session:
+            planning_areas_list_query = get_fire_centre_planning_areas(db_read_session, fire_centre_id)
+            planning_areas: PlanningArea = []
+            for planning_area in planning_areas_list_query:
+                planning_areas.append(planning_area)
+
+            fuel_types_list_query = crud_get_fuel_types(db_read_session)
+            fuel_types: List[FuelType] = []
+            for fuel_type_record in fuel_types_list_query:
+                fuel_types.append(fuel_type_model_to_schema(fuel_type_record))
+
+        async with ClientSession() as session:
+            header = await get_auth_header(session)
+            wfwx_stations: List[WFWXWeatherStation] = await get_wfwx_all_active_stations(session, header)
+
+        return HFIAddStationOptionsResponse(planning_areas=planning_areas,
+                                            stations=wfwx_stations,
+                                            fuel_types=fuel_types)
 
     except Exception as exc:
         logger.critical(exc, exc_info=True)
