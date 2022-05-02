@@ -35,7 +35,7 @@ import { DateRange } from 'components/dateRangePicker/types'
 import LiveChangesAlert from 'features/hfiCalculator/components/LiveChangesAlert'
 import { AppDispatch } from 'app/store'
 import HFILoadingDataView from 'features/hfiCalculator/components/HFILoadingDataView'
-import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin/ManageStationsButton'
+import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
 import { ROLES } from 'features/auth/roles'
 
 const useStyles = makeStyles(theme => ({
@@ -280,7 +280,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
             {roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && (
               <FormControl className={classes.actionButton}>
-                <ManageStationsButton />
+                <AddStationButton />
               </FormControl>
             )}
 

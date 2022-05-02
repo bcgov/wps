@@ -61,7 +61,7 @@ const useStyles = makeStyles(() => ({
 const invalidNewStation = (newStation: AdminStation) =>
   values(newStation).some(isEmpty) && newStation.dirty
 
-export const ManageStationsModal = (props: ModalProps): JSX.Element => {
+export const AddStationModal = (props: ModalProps): JSX.Element => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
@@ -136,4 +136,4 @@ export const ManageStationsModal = (props: ModalProps): JSX.Element => {
   )
 }
 
-export default React.memo(ManageStationsModal)
+export default React.memo(AddStationModal)
