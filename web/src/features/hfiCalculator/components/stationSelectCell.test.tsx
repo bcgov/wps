@@ -9,15 +9,7 @@ describe('StationSelectCell', () => {
     station_props: {
       name: 'test',
       elevation: 1,
-      uuid: '1',
-      fuel_type: {
-        id: 1,
-        abbrev: 'C5',
-        description: 'C5',
-        fuel_type_code: 'C5',
-        percentage_conifer: 0,
-        percentage_dead_fir: 0
-      }
+      uuid: '1'
     },
     order_of_appearance_in_planning_area_list: 1
   }
