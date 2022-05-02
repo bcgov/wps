@@ -66,6 +66,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
 
   const numPrepDays = calculateNumPrepDays(props.dateRange)
 
+  if (isUndefined(result)) {
+    return <React.Fragment></React.Fragment>
+  }
+
   return (
     <FireTable
       maxHeight={700}
@@ -178,13 +182,16 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         numPrepDays={numPrepDays}
                         fireStartRanges={result ? result.fire_start_ranges : []}
                         fuelTypes={props.fuelTypes}
-                        planningAreaStationInfo={result?.planning_area_station_info}
+                        planningAreaStationInfo={result.planning_area_station_info}
                       />
                     </TableRow>
                     {sortBy(
                       area.stations,
                       station => station.order_of_appearance_in_planning_area_list
                     ).map(station => {
+                      if (isUndefined(result)) {
+                        return null
+                      }
                       const dailiesForStation = getDailiesByStationCode(
                         result,
                         station.code
@@ -195,11 +202,14 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         : classes.stationCellPlainStyling
                       const stationCode = station.code
                       const selectedFuelType = getSelectedFuelType(
-                        result?.planning_area_station_info,
+                        result.planning_area_station_info,
                         area.id,
                         stationCode,
                         props.fuelTypes
                       )
+                      if (isUndefined(selectedFuelType)) {
+                        return null
+                      }
                       return (
                         <TableRow
                           className={classNameForRow}

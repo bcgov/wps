@@ -233,6 +233,24 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     return <React.Fragment></React.Fragment>
   }
 
+  const buildViewSwitcher = () => {
+    if (isUndefined(result)) {
+      return <React.Fragment></React.Fragment>
+    }
+    return (
+      <ViewSwitcher
+        selectedFireCentre={selectedFireCentre}
+        dateRange={dateRange}
+        setSelected={setSelectedStation}
+        setNewFireStarts={setNewFireStarts}
+        setFuelType={setFuelType}
+        selectedPrepDay={selectedPrepDate}
+        fuelTypes={fuelTypes}
+        planningAreaStationInfo={result.planning_area_station_info}
+      />
+    )
+  }
+
   return (
     <main data-testid="hfi-calculator-page">
       <GeneralHeader
@@ -274,18 +292,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               <DownloadPDFButton onClick={handleDownloadClicked} />
             </FormControl>
 
-            <ErrorBoundary>
-              <ViewSwitcher
-                selectedFireCentre={selectedFireCentre}
-                dateRange={dateRange}
-                setSelected={setSelectedStation}
-                setNewFireStarts={setNewFireStarts}
-                setFuelType={setFuelType}
-                selectedPrepDay={selectedPrepDate}
-                fuelTypes={fuelTypes}
-                planningAreaStationInfo={result?.planning_area_station_info}
-              />
-            </ErrorBoundary>
+            <ErrorBoundary>{buildViewSwitcher()}</ErrorBoundary>
           </React.Fragment>
         </HFILoadingDataView>
       </Container>
