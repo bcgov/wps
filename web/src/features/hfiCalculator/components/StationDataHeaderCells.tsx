@@ -40,17 +40,13 @@ export const StationDataHeaderCells = (): ReactElement => {
                 key="header-fuel-type"
                 className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}
               >
-                FBP
-                <br />
-                Fuel
-                <br />
-                Type
+                FBP Fuel Type
               </TableCell>
             </TableRow>
           </TableBody>
         </Table>
       </StickyCell>
-      <StickyCell left={275} zIndexOffset={12} className={classes.rightBorder}>
+      <StickyCell left={355} zIndexOffset={12} className={classes.rightBorder}>
         <Table>
           <TableBody>
             <TableRow>

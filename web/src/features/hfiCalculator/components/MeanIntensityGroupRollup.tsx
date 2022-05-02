@@ -13,7 +13,7 @@ export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
   dailies: StationDaily[]
   meanIntensityGroup: number | undefined
-  planningAreaStationInfo: { [key: number]: StationInfo[] } | undefined
+  planningAreaStationInfo: { [key: number]: StationInfo[] }
   fuelTypes: FuelType[]
 }
 
