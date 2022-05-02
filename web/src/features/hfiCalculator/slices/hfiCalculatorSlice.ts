@@ -16,9 +16,11 @@ import {
   FuelType,
   FireCentre,
   FuelTypesResponse,
-  AddStationOptions
+  AddStationOptions,
+  addNewStation
 } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
+import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 
 export interface FireStartRange {
   label: string
@@ -326,6 +328,18 @@ export const fetchAddStationOptions =
       dispatch(fetchAddStationOptionsStart())
       const addStationOptions = await getAddStationOptions(fireCentreId)
       dispatch(setAddStationOptions(addStationOptions))
+    } catch (err) {
+      dispatch(fetchAddStationOptionsFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
+export const fetchAddStation =
+  (fireCentreId: number, newStation: Required<Omit<AdminStation, 'dirty'>>): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(fetchAddStationOptionsStart())
+      await addNewStation(fireCentreId, newStation)
     } catch (err) {
       dispatch(fetchAddStationOptionsFailed((err as Error).toString()))
       logError(err)

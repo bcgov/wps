@@ -1,4 +1,5 @@
 import axios from 'api/axios'
+import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import {
   HFIResultResponse,
   PlanningAreaResult,
@@ -60,6 +61,13 @@ export interface AddStationOptions {
   planning_areas: BasicPlanningArea[]
   stations: BasicWFWXStation[]
   fuel_types: FuelType[]
+}
+
+export interface AddStationRequest {
+  planning_area_id: number
+  station_code: number
+  wfwx_station_uuid: string
+  fuel_type_id: number
 }
 
 export interface HFIWeatherStationsResponse {
@@ -134,6 +142,19 @@ export async function getAddStationOptions(
 ): Promise<AddStationOptions> {
   const data = await axios.get<AddStationOptions>(baseUrl + 'add-station/' + fireCentreId)
   return data.data
+}
+
+export async function addNewStation(
+  fireCentreId: number,
+  newStation: Required<Omit<AdminStation, 'dirty'>>
+): Promise<void> {
+  const requestBody: AddStationRequest = {
+    planning_area_id: newStation.planningArea.id,
+    station_code: newStation.station.code,
+    wfwx_station_uuid: newStation.station.wfwx_station_uuid,
+    fuel_type_id: newStation.fuelType.id
+  }
+  await axios.post<void>(baseUrl + 'add-station/' + fireCentreId, requestBody)
 }
 
 export async function setStationSelected(

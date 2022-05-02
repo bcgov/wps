@@ -4,7 +4,6 @@ import logging
 from typing import List, Dict, Optional
 from datetime import datetime, date
 from pydantic import BaseModel
-from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.schemas.shared import FuelType
 
 
@@ -189,6 +188,14 @@ class HFIResultRequest(BaseModel):
     planning_area_station_info: Dict[int, List[StationInfo]]
     # Mapping from planning area id to a map of FireStartRanges.
     planning_area_fire_starts: Dict[int, List[FireStartRange]]
+
+
+class HFIAddStationRequest(BaseModel):
+    """ Request input for adding a station """
+    planning_area_id: int
+    station_code: int
+    wfwx_station_uuid: str
+    fuel_type_id: int
 
 
 class HFIResultResponse(BaseModel):

@@ -15,11 +15,13 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (BasicPlanningArea, BasicWFWXStation, HFIAddStationOptionsResponse,
+from app.schemas.hfi_calc import (BasicPlanningArea,
+                                  BasicWFWXStation,
+                                  HFIAddStationOptionsResponse,
+                                  HFIAddStationRequest,
                                   HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange,
-                                  PlanningArea,
                                   StationInfo,
                                   DateRange, FuelTypesResponse,
                                   HFIWeatherStationsResponse)
@@ -369,7 +371,9 @@ async def get_fire_centres(response: Response):
 
 
 @router.get('/add-station/{fire_centre_id}', response_model=HFIAddStationOptionsResponse)
-async def get_add_station_options(fire_centre_id: int, response: Response, _=Depends(authentication_required)):
+async def get_add_station_options(fire_centre_id: int,
+                                  response: Response,
+                                  _=Depends(authentication_required)):
     """ Returns lists of planning areas, stations and fuel types for adding a station. """
 
     try:
@@ -398,6 +402,22 @@ async def get_add_station_options(fire_centre_id: int, response: Response, _=Dep
             return HFIAddStationOptionsResponse(planning_areas=planning_areas,
                                                 stations=stations,
                                                 fuel_types=fuel_types)
+
+    except Exception as exc:
+        logger.critical(exc, exc_info=True)
+        raise
+
+
+@router.post('/add-station/{fire_centre_id}', status_code=201)
+async def add_station(fire_centre_id: int,
+                      request: HFIAddStationRequest,
+                      _=Depends(authentication_required)):
+    """ Adds a station. """
+
+    try:
+        logger.info('/hfi-calc/add-station/')
+        logger.info('request is: %s', request)
+        logger.info('fire centre is: %s', fire_centre_id)
 
     except Exception as exc:
         logger.critical(exc, exc_info=True)

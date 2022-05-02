@@ -15,18 +15,25 @@ import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectHFICalculatorState } from 'app/rootReducer'
 import {
-  fetchAddStationOptions,
-  setChangeSaved
+  fetchAddStation,
+  fetchAddStationOptions
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
 import { BasicPlanningArea, BasicWFWXStation, FuelType } from 'api/hfiCalculatorAPI'
+import { isUndefined } from 'lodash'
 
 export interface AdminStation {
   dirty: boolean
   planningArea?: BasicPlanningArea
   station?: BasicWFWXStation
   fuelType?: FuelType
+}
+
+export interface ValidAdminStation {
+  planningArea: BasicPlanningArea
+  station: BasicWFWXStation
+  fuelType: FuelType
 }
 export interface AddStationModalProps {
   testId?: string
@@ -60,7 +67,7 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
 
   const { changeSaved, addStationOptions } = useSelector(selectHFICalculatorState)
 
-  const newEmptyStation = { dirty: false }
+  const newEmptyStation: AdminStation = { dirty: false }
   const [newStation, setNewStation] = useState<AdminStation>(newEmptyStation)
   const [invalid, setInvalid] = useState<boolean>(false)
 
@@ -75,8 +82,19 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
   }
 
   const handleSave = () => {
-    // TODO: temporary, this will be dispatched by POST request with new stations
-    dispatch(setChangeSaved(true))
+    if (
+      !isUndefined(newStation.planningArea) &&
+      !isUndefined(newStation.station) &&
+      !isUndefined(newStation.fuelType)
+    ) {
+      dispatch(
+        fetchAddStation(props.fireCentreId, {
+          planningArea: newStation.planningArea,
+          station: newStation.station,
+          fuelType: newStation.fuelType
+        })
+      )
+    }
   }
 
   const buildSuccessNotification = () => {
