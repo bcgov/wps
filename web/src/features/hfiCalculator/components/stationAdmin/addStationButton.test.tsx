@@ -1,6 +1,4 @@
-import { createStore } from '@reduxjs/toolkit'
 import { fireEvent, render, waitFor } from '@testing-library/react'
-import rootReducer from 'app/rootReducer'
 import store from 'app/store'
 import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
 import React from 'react'
