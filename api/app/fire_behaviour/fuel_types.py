@@ -25,9 +25,9 @@ class FuelTypeEnum(str, Enum):
     S3 = 'S3'
 
 
-def is_grass_fuel_type(FuelType: FuelTypeEnum):
+def is_grass_fuel_type(fuel_type: FuelTypeEnum):
     """ Returns True if the fuel type has grass (e.g. 01A, 01B, C7B) """
-    return FuelType in [FuelTypeEnum.O1A, FuelTypeEnum.O1B, FuelTypeEnum.C7B]
+    return fuel_type in [FuelTypeEnum.O1A, FuelTypeEnum.O1B, FuelTypeEnum.C7B]
 
 
 # TODO: Move these constants (as columns) into fuel_types table in our database once all CFL
