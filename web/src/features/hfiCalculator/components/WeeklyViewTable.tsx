@@ -123,7 +123,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               planningArea => planningArea.order_of_appearance_in_list
             ).map(area => {
               const areaHFIResult: PlanningAreaResult | undefined =
-                result?.planning_area_hfi_results.find(
+                result.planning_area_hfi_results.find(
                   planningAreaResult => planningAreaResult.planning_area_id === area.id
                 )
 
@@ -180,7 +180,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         setNewFireStarts={props.setNewFireStarts}
                         planningAreaClass={classes.planningArea}
                         numPrepDays={numPrepDays}
-                        fireStartRanges={result ? result.fire_start_ranges : []}
+                        fireStartRanges={result.fire_start_ranges}
                         fuelTypes={props.fuelTypes}
                         planningAreaStationInfo={result.planning_area_station_info}
                       />
@@ -189,9 +189,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                       area.stations,
                       station => station.order_of_appearance_in_planning_area_list
                     ).map(station => {
-                      if (isUndefined(result)) {
-                        return null
-                      }
                       const dailiesForStation = getDailiesByStationCode(
                         result,
                         station.code
@@ -208,7 +205,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         props.fuelTypes
                       )
                       if (isUndefined(selectedFuelType)) {
-                        return null
+                        return <React.Fragment></React.Fragment>
                       }
                       return (
                         <TableRow

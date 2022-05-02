@@ -307,7 +307,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                     station => station.order_of_appearance_in_planning_area_list
                   ).map(station => {
                     if (isUndefined(result)) {
-                      return null
+                      return <React.Fragment></React.Fragment>
                     }
                     const daily = getDailyForDay(station.code)
                     const selectedFuelType = getSelectedFuelType(
@@ -317,7 +317,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       props.fuelTypes
                     )
                     if (isUndefined(selectedFuelType)) {
-                      return null
+                      return <React.Fragment></React.Fragment>
                     }
                     const grassCureError = !isValidGrassCure(daily, selectedFuelType)
                     const isRowSelected =
