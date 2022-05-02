@@ -15,7 +15,7 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (HFIAddStationOptionsResponse,
+from app.schemas.hfi_calc import (BasicWFWXStation, HFIAddStationOptionsResponse,
                                   HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange,
@@ -392,6 +392,10 @@ async def get_add_station_options(fire_centre_id: int,
         async with ClientSession() as session:
             header = await get_auth_header(session)
             wfwx_stations: List[WFWXWeatherStation] = await get_wfwx_all_active_stations(session, header)
+            stations: List[BasicWFWXStation] = []
+            for wfwx_station in wfwx_stations:
+                stations.append(BasicWFWXStation(wfwx_station_uuid=wfwx_station.wfwx_id,
+                                code=wfwx_station.code, name=wfwx_station.name))
 
         return HFIAddStationOptionsResponse(planning_areas=planning_areas,
                                             stations=wfwx_stations,
