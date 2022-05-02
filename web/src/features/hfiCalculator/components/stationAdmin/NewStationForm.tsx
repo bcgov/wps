@@ -4,7 +4,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import makeStyles from '@mui/styles/makeStyles'
-import { isNull, isUndefined, values, isEmpty } from 'lodash'
+import { isNull, isUndefined } from 'lodash'
 import { AddStationOptions } from 'api/hfiCalculatorAPI'
 
 export interface NewStationFormProps {

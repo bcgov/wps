@@ -6,9 +6,11 @@ import React from 'react'
 
 describe('NewStationForm', () => {
   const setNewStationMock = jest.fn()
+  const setInvalidMock = jest.fn()
 
   beforeEach(() => {
     setNewStationMock.mockReset()
+    setInvalidMock.mockReset()
   })
 
   const renderNewStationForm = (newStation: AdminStation, invalid: boolean) => {
@@ -17,6 +19,7 @@ describe('NewStationForm', () => {
         newStation={newStation}
         invalid={invalid}
         setNewStation={setNewStationMock}
+        setInvalid={setInvalidMock}
       />
     )
     return { getByTestId, queryByText }
