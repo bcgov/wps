@@ -44,24 +44,6 @@ export interface Props {
   fuelTypes: FuelType[]
 }
 
-export const columnLabelsForEachDayInWeek: string[] = [
-  'ROS (m/min)',
-  'HFI',
-  'M / FIG',
-  'Fire Starts',
-  'Prep Level'
-]
-
-export const weeklyTableColumnLabels = (numPrepDays: number): string[] => [
-  'Location',
-  'Elev. (m)',
-  'FBP Fuel Type',
-  'Grass Cure (%)',
-  ...Array(numPrepDays).fill(columnLabelsForEachDayInWeek).flat(),
-  'Highest Daily FIG',
-  'Calc. Prep'
-]
-
 const useStyles = makeStyles({
   ...fireTableStyles
 })

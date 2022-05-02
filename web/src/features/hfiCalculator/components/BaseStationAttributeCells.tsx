@@ -99,7 +99,7 @@ const BaseStationAttributeCells = ({
         </Table>
       </StickyCell>
       <StickyCell
-        left={275}
+        left={355}
         zIndexOffset={11}
         backgroundColor={'#ffffff'}
         className={classes.rightBorder}
