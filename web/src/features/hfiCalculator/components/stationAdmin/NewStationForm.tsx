@@ -37,12 +37,12 @@ export const NewStationForm = ({
 }: NewStationFormProps): JSX.Element => {
   const classes = useStyles()
 
-  const invalidNewStation = (newStation: AdminStation) => {
+  const invalidNewStation = (station: AdminStation) => {
     const missingFields =
-      isUndefined(newStation.planningArea) ||
-      isUndefined(newStation.station) ||
-      isUndefined(newStation.fuelType)
-    setInvalid(missingFields && newStation.dirty)
+      isUndefined(station.planningArea) ||
+      isUndefined(station.station) ||
+      isUndefined(station.fuelType)
+    setInvalid(missingFields && station.dirty)
   }
 
   const toolTipText = (
