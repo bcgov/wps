@@ -122,13 +122,17 @@ export async function getFuelTypes(): Promise<FuelTypesResponse> {
 export async function addNewStation(
   fireCentreId: number,
   newStation: Required<Omit<AdminStation, 'dirty'>>
-): Promise<void> {
+): Promise<number> {
   const requestBody: AddStationRequest = {
     planning_area_id: newStation.planningArea.id,
     station_code: newStation.station.code,
     fuel_type_id: newStation.fuelType.id
   }
-  await axios.post<void>(baseUrl + 'admin/add-station/' + fireCentreId, requestBody)
+  const { status } = await axios.post<number>(
+    baseUrl + 'admin/add-station/' + fireCentreId,
+    requestBody
+  )
+  return status
 }
 
 export async function setStationSelected(

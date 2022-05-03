@@ -11,16 +11,19 @@ import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
 import NewStationForm from 'features/hfiCalculator/components/stationAdmin/NewStationForm'
-import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
-import { fetchAddStation } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import {
+  fetchAddStation,
+  setStationAdded
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
 import { FuelType } from 'api/hfiCalculatorAPI'
 import { isUndefined } from 'lodash'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
+import { useNavigate } from 'react-router-dom'
 
 export interface AdminStation {
   dirty: boolean
@@ -72,8 +75,9 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
+  const navigate = useNavigate()
 
-  const { changeSaved, fuelTypes, selectedFireCentre } = useSelector(
+  const { fuelTypes, selectedFireCentre, stationAdded } = useSelector(
     selectHFICalculatorState
   )
   const { stations: wfwxStations } = useSelector(selectFireWeatherStations)
@@ -105,6 +109,15 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
     setNewStation(newEmptyStation)
   }
 
+  useEffect(() => {
+    handleClose()
+    if (stationAdded) {
+      dispatch(setStationAdded(false))
+      navigate(0)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stationAdded])
+
   const handleSave = () => {
     if (
       !isUndefined(selectedFireCentre) &&
@@ -122,17 +135,8 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
     }
   }
 
-  const buildSuccessNotification = () => {
-    if (changeSaved) {
-      return <HFISuccessAlert message="Changes saved!" />
-    }
-    return <React.Fragment></React.Fragment>
-  }
-
   return (
     <React.Fragment>
-      {buildSuccessNotification()}
-
       <Dialog
         fullWidth
         maxWidth="md"
