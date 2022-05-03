@@ -108,7 +108,6 @@ class WeatherStation(BaseModel):
 
 class BasicWFWXStation(BaseModel):
     """ Minimal indentifiable WFWX station. """
-    wfwx_station_uuid: str
     code: int
     name: str
 
@@ -194,7 +193,6 @@ class HFIAddStationRequest(BaseModel):
     """ Request input for adding a station """
     planning_area_id: int
     station_code: int
-    wfwx_station_uuid: str
     fuel_type_id: int
 
 

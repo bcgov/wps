@@ -393,8 +393,7 @@ async def get_add_station_options(fire_centre_id: int,
         wfwx_stations: List[WFWXWeatherStation] = await get_wfwx_all_active_stations(session, header)
         stations: List[BasicWFWXStation] = []
         for wfwx_station in wfwx_stations:
-            stations.append(BasicWFWXStation(wfwx_station_uuid=wfwx_station.wfwx_id,
-                            code=wfwx_station.code, name=wfwx_station.name))
+            stations.append(BasicWFWXStation(code=wfwx_station.code, name=wfwx_station.name))
 
         return HFIAddStationOptionsResponse(planning_areas=planning_areas,
                                             stations=stations,
