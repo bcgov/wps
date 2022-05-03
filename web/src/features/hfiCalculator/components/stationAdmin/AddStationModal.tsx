@@ -76,7 +76,7 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
 
   const dispatch: AppDispatch = useDispatch()
 
-  const { fuelTypes, selectedFireCentre, stationAdded } = useSelector(
+  const { fuelTypes, selectedFireCentre, stationAdded, error } = useSelector(
     selectHFICalculatorState
   )
   const { stations: wfwxStations } = useSelector(selectFireWeatherStations)
@@ -116,6 +116,13 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stationAdded])
+
+  useEffect(() => {
+    if (error) {
+      handleClose()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error])
 
   const handleSave = () => {
     if (
