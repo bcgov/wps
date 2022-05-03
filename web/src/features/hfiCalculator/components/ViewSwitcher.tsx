@@ -21,7 +21,7 @@ export interface ViewSwitcherProps {
   selectedPrepDay: string
   selectedFireCentre: FireCentre | undefined
   fuelTypes: FuelType[]
-  planningAreaStationInfo: { [key: number]: StationInfo[] } | undefined
+  planningAreaStationInfo: { [key: number]: StationInfo[] }
 }
 
 const ViewSwitcher = (props: ViewSwitcherProps) => {
