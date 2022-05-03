@@ -148,9 +148,6 @@ const dailiesSlice = createSlice({
     fetchFuelTypesStart(state: HFICalculatorState) {
       state.fuelTypesLoading = true
     },
-    fetchAddStationOptionsStart(state: HFICalculatorState) {
-      state.addStationOptionsLoading = true
-    },
     pdfDownloadStart(state: HFICalculatorState) {
       state.pdfLoading = true
     },
@@ -165,13 +162,6 @@ const dailiesSlice = createSlice({
     fetchFuelTypesFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
       state.fuelTypesLoading = false
-    },
-    fetchAddStationOptionsFailed(
-      state: HFICalculatorState,
-      action: PayloadAction<string>
-    ) {
-      state.error = action.payload
-      state.addStationOptionsLoading = false
     },
     setSelectedPrepDate: (state: HFICalculatorState, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
@@ -199,13 +189,6 @@ const dailiesSlice = createSlice({
     ) => {
       state.fuelTypes = action.payload.fuel_types
       state.fuelTypesLoading = false
-    },
-    setAddStationOptions: (
-      state: HFICalculatorState,
-      action: PayloadAction<AddStationOptions>
-    ) => {
-      state.addStationOptions = action.payload
-      state.addStationOptionsLoading = false
     }
   }
 })
@@ -213,16 +196,13 @@ const dailiesSlice = createSlice({
 export const {
   loadHFIResultStart,
   fetchFuelTypesStart,
-  fetchAddStationOptionsStart,
   pdfDownloadStart,
   pdfDownloadEnd,
   getHFIResultFailed,
   fetchFuelTypesFailed,
-  fetchAddStationOptionsFailed,
   setSelectedPrepDate,
   setSelectedFireCentre,
   setFuelTypes,
-  setAddStationOptions,
   setResult,
   setChangeSaved
 } = dailiesSlice.actions
@@ -326,10 +306,9 @@ export const fetchAddStation =
   (fireCentreId: number, newStation: Required<Omit<AdminStation, 'dirty'>>): AppThunk =>
   async dispatch => {
     try {
-      dispatch(fetchAddStationOptionsStart())
       await addNewStation(fireCentreId, newStation)
     } catch (err) {
-      dispatch(fetchAddStationOptionsFailed((err as Error).toString()))
+      dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)
     }
   }
