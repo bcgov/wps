@@ -123,11 +123,6 @@ class FireCentre(BaseModel):
     planning_areas: List[PlanningArea]
 
 
-class CachedFireCentres(BaseModel):
-    """ Model for storing cached fire centres. """
-    fire_centres: List[FireCentre]
-
-
 class HFIWeatherStationsResponse(BaseModel):
     """ A list of WeatherStations, where each WeatherStation has nested within it all relevant information
     specific to BCWS planning operations. """

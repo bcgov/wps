@@ -7,7 +7,9 @@ from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, HTTPException, Response, Depends
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
-from app.hfi.fire_centre_cache import clear_fire_centre_namespace
+from app.hfi.fire_centre_cache import (clear_fire_centre_namespace,
+                                       get_cached_hydrated_fire_centres,
+                                       put_cached_hydrated_fire_centres)
 from app.utils.time import get_pst_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
@@ -354,16 +356,17 @@ async def get_fire_centres(response: Response):
     """ Returns list of fire centres and planning area for each fire centre,
     and weather stations within each planning area. Also returns the assigned fuel type
     for each weather station. """
+    logger.info('/hfi-calc/fire-centres')
+    response.headers["Cache-Control"] = "max-age=0"
 
-    try:
-        logger.info('/hfi-calc/fire-centres')
-        response.headers["Cache-Control"] = "max-age=0"
-        fire_centres_list = await hydrate_fire_centres()
-        return HFIWeatherStationsResponse(fire_centres=fire_centres_list)
-
-    except Exception as exc:
-        logger.critical(exc, exc_info=True)
-        raise
+    # Attempt to retrieve from cache
+    cached_response = await get_cached_hydrated_fire_centres()
+    if cached_response is not None:
+        return cached_response
+    fire_centres_list = await hydrate_fire_centres()
+    response = HFIWeatherStationsResponse(fire_centres=fire_centres_list)
+    await put_cached_hydrated_fire_centres(response)
+    return response
 
 
 @router.post('/admin/add-station/{fire_centre_id}', status_code=201)

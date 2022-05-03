@@ -12,7 +12,6 @@ from app.db.models.hfi_calc import PlanningWeatherStation, FuelType as FuelTypeM
 from app.fire_behaviour.cffdrs import CFFDRSException
 from app.fire_behaviour.prediction import (
     FireBehaviourPredictionInputError, calculate_fire_behaviour_prediction, FireBehaviourPrediction)
-from app.hfi.fire_centre_cache import get_cached_hydrated_fire_centres, put_cached_hydrated_fire_centres
 from app.schemas.hfi_calc import (DailyResult, DateRange,
                                   FireStartRange, HFIResultRequest,
                                   PlanningAreaResult,
@@ -189,11 +188,6 @@ async def hydrate_fire_centres():
             planning_areas_dict[station_info_dict[wfwx_station.code]
                                 ['planning_area'].id]['station_objects'].append(weather_station)
 
-    # Attempt to retrieve from cache
-    cached_fire_centres = await get_cached_hydrated_fire_centres(station_codes)
-    if cached_fire_centres is not None:
-        return cached_fire_centres
-
     # create PlanningArea objects containing all corresponding WeatherStation objects
     for key, val in planning_areas_dict.items():
         planning_area = PlanningArea(
@@ -213,8 +207,6 @@ async def hydrate_fire_centres():
             id=key, name=val['fire_centre_record'].name, planning_areas=planning_area_objects_list)
         fire_centres_list.append(fire_centre)
 
-    # Cache for next time
-    await put_cached_hydrated_fire_centres(fire_centres_list)
     return fire_centres_list
 
 
