@@ -27,6 +27,7 @@ from app.schemas.hfi_calc import (BasicPlanningArea,
                                   HFIWeatherStationsResponse)
 from app.auth import (auth_with_select_station_role_required,
                       auth_with_set_fire_starts_role_required,
+                      auth_with_admin_role_required,
                       authentication_required,
                       audit)
 from app.schemas.shared import (FuelType)
@@ -372,8 +373,7 @@ async def get_fire_centres(response: Response):
 
 @router.get('/admin/add-station/{fire_centre_id}', response_model=HFIAddStationOptionsResponse)
 async def get_add_station_options(fire_centre_id: int,
-                                  response: Response,
-                                  _=Depends(authentication_required)):
+                                  _=Depends(auth_with_admin_role_required)):
     """ Returns lists of planning areas, stations and fuel types for adding a station. """
 
     logger.info('/hfi-calc/admin/add-station')
@@ -401,10 +401,10 @@ async def get_add_station_options(fire_centre_id: int,
                                             fuel_types=fuel_types)
 
 
-@router.post('/admin/add-station/{fire_centre_id}', status_code=201)
+@ router.post('/admin/add-station/{fire_centre_id}', status_code=201)
 async def add_station(fire_centre_id: int,
                       request: HFIAddStationRequest,
-                      _=Depends(authentication_required)):
+                      _=Depends(auth_with_admin_role_required)):
     """ Adds a station. """
     logger.info('/hfi-calc/admin/add-station/')
     logger.info('request is: %s', request)
