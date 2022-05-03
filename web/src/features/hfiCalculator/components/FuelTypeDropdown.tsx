@@ -7,7 +7,7 @@ import React from 'react'
 export interface FuelTypeDropdownProps {
   station: WeatherStation
   fuelTypes: FuelType[]
-  selectedFuelType: FuelType | undefined
+  selectedFuelType: FuelType
   setFuelType: (code: number, fuelTypeId: number) => void
   isRowSelected: boolean
 }
@@ -26,31 +26,29 @@ const FuelTypeDropdown = ({
   isRowSelected
 }: FuelTypeDropdownProps) => {
   const classes = useStyles()
-  if (selectedFuelType) {
-    return (
-      <Autocomplete
-        data-testid={`fuel-type-dropdown`}
-        disabled={!isRowSelected}
-        className={classes.dropdownClass}
-        disableClearable
-        autoHighlight
-        autoSelect
-        options={fuelTypes}
-        isOptionEqualToValue={(option, value) => isEqual(option.id, value.id)}
-        getOptionLabel={option => option.abbrev}
-        renderInput={params => (
-          <TextField {...params} variant="outlined" value={selectedFuelType} />
-        )}
-        value={selectedFuelType}
-        onChange={(_, value) => {
-          if (!isNull(value)) {
-            setFuelType(station.code, value.id)
-          }
-        }}
-      />
-    )
-  }
-  return <div></div>
+
+  return (
+    <Autocomplete
+      data-testid={`fuel-type-dropdown`}
+      disabled={!isRowSelected}
+      className={classes.dropdownClass}
+      disableClearable
+      autoHighlight
+      autoSelect
+      options={fuelTypes}
+      isOptionEqualToValue={(option, value) => isEqual(option.id, value.id)}
+      getOptionLabel={option => option.abbrev}
+      renderInput={params => (
+        <TextField {...params} variant="outlined" value={selectedFuelType} />
+      )}
+      value={selectedFuelType}
+      onChange={(_, value) => {
+        if (!isNull(value)) {
+          setFuelType(station.code, value.id)
+        }
+      }}
+    />
+  )
 }
 
 export default React.memo(FuelTypeDropdown)
