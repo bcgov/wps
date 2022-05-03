@@ -291,15 +291,6 @@ async def get_wfwx_stations_from_station_codes(
     return requested_stations
 
 
-async def get_wfwx_all_active_stations(
-        session: ClientSession,
-        header) -> List[WFWXWeatherStation]:
-    """ Return the WFWX station ids and codes that are active from WFWX API. """
-
-    wfwx_stations = await get_station_data(session, header, mapper=wfwx_station_list_mapper)
-    return wfwx_stations
-
-
 async def get_raw_dailies_in_range_generator(session: ClientSession,
                                              header: dict,
                                              wfwx_station_ids: List[str],

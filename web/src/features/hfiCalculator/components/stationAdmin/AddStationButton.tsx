@@ -3,10 +3,6 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import { Button } from '@mui/material'
 import AddStationModal from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 
-export interface AddStationButtonProps {
-  testId?: string
-}
-
 const AddStationButton = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const openAddStationModal = () => {
