@@ -90,6 +90,7 @@ def store_hfi_station(session: Session, station_code: int, fuel_type_id: int, pl
 
 
 def get_last_station_in_planning_area(session: Session, planning_area_id: int) -> PlanningWeatherStation:
+    """ Get the last station in a planning area """
     return session.query(PlanningWeatherStation)\
         .filter(PlanningWeatherStation.planning_area_id == planning_area_id)\
         .order_by(desc(PlanningWeatherStation.order_of_appearance_in_planning_area_list))\

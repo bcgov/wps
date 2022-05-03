@@ -373,9 +373,7 @@ async def add_station(fire_centre_id: int,
                       request: HFIAddStationRequest,
                       _=Depends(auth_with_station_admin_role_required)):
     """ Adds a station. """
-    logger.info('/hfi-calc/admin/add-station/')
-    logger.info('request is: %s', request)
-    logger.info('fire centre is: %s', fire_centre_id)
+    logger.info('/hfi-calc/admin/add-station/%s', fire_centre_id)
     with get_write_session_scope() as db_session:
         last_weather_station = get_last_station_in_planning_area(
             session=db_session, planning_area_id=request.planning_area_id)
