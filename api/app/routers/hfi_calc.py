@@ -28,10 +28,11 @@ from app.auth import (auth_with_select_station_role_required,
                       audit)
 from app.schemas.shared import (FuelType)
 from app.db.crud.hfi_calc import (get_fuel_type_by_id,
+                                  get_last_station_in_planning_area,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
-                                  get_fire_centre_stations)
+                                  get_fire_centre_stations, store_hfi_station)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -356,7 +357,7 @@ async def get_fire_centres(response: Response):
         logger.info('/hfi-calc/fire-centres')
         # we can safely cache the fire centres, as they don't change them very often.
         # the eco-division logic is very slow, and chomps up 2 seconds!
-        response.headers["Cache-Control"] = "max-age=86400"
+        response.headers["Cache-Control"] = "max-age=0"
         fire_centres_list = await hydrate_fire_centres()
         return HFIWeatherStationsResponse(fire_centres=fire_centres_list)
 
@@ -373,6 +374,15 @@ async def add_station(fire_centre_id: int,
     logger.info('/hfi-calc/admin/add-station/')
     logger.info('request is: %s', request)
     logger.info('fire centre is: %s', fire_centre_id)
+    with get_write_session_scope() as db_session:
+        last_weather_station = get_last_station_in_planning_area(
+            session=db_session, planning_area_id=request.planning_area_id)
+        order = last_weather_station.order_of_appearance_in_planning_area_list + 1
+        store_hfi_station(db_session,
+                          station_code=request.station_code,
+                          fuel_type_id=request.fuel_type_id,
+                          planning_area_id=request.planning_area_id,
+                          order=order)
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')
