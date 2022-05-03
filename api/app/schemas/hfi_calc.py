@@ -106,12 +106,6 @@ class WeatherStation(BaseModel):
     order_of_appearance_in_planning_area_list: Optional[int]
 
 
-class BasicWFWXStation(BaseModel):
-    """ Minimal indentifiable WFWX station. """
-    code: int
-    name: str
-
-
 class PlanningArea(BaseModel):
     """ A planning area (a.k.a. zone) is a small group of stations selected to represent a particular
     zone within a fire centre. """
@@ -119,12 +113,6 @@ class PlanningArea(BaseModel):
     name: str
     order_of_appearance_in_list: Optional[int]
     stations: List[WeatherStation]
-
-
-class BasicPlanningArea(BaseModel):
-    """ Minimal indentifiable planning area. """
-    id: int
-    name: str
 
 
 class FireCentre(BaseModel):
@@ -139,13 +127,6 @@ class HFIWeatherStationsResponse(BaseModel):
     """ A list of WeatherStations, where each WeatherStation has nested within it all relevant information
     specific to BCWS planning operations. """
     fire_centres: List[FireCentre]
-
-
-class HFIAddStationOptionsResponse(BaseModel):
-    """ A list of planning areas, stations and fuel types for adding a station. """
-    planning_areas: List[BasicPlanningArea]
-    stations: List[BasicWFWXStation]
-    fuel_types: List[FuelType]
 
 
 class StationInfo(BaseModel):

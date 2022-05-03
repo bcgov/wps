@@ -45,12 +45,6 @@ def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
         .filter(PlanningArea.fire_centre_id == fire_centre_id)
 
 
-def get_fire_centre_planning_areas(session, fire_centre_id: int) -> CursorResult:
-    """ Get all the planning areas for a fire centre. """
-    return session.query(PlanningArea)\
-        .filter(PlanningArea.fire_centre_id == fire_centre_id)
-
-
 def get_most_recent_updated_hfi_request(session: Session,
                                         fire_centre_id: int,
                                         date_range: DateRange) -> HFIRequest:

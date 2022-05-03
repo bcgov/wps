@@ -7,7 +7,6 @@ from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, HTTPException, Response, Depends
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
-from aiohttp import ClientSession
 from app.utils.time import get_pst_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
@@ -15,10 +14,7 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (BasicPlanningArea,
-                                  BasicWFWXStation,
-                                  HFIAddStationOptionsResponse,
-                                  HFIAddStationRequest,
+from app.schemas.hfi_calc import (HFIAddStationRequest,
                                   HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange,
@@ -31,7 +27,7 @@ from app.auth import (auth_with_select_station_role_required,
                       authentication_required,
                       audit)
 from app.schemas.shared import (FuelType)
-from app.db.crud.hfi_calc import (get_fire_centre_planning_areas, get_fuel_type_by_id,
+from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
@@ -39,8 +35,6 @@ from app.db.crud.hfi_calc import (get_fire_centre_planning_areas, get_fuel_type_
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
-from app.wildfire_one.schema_parsers import WFWXWeatherStation
-from app.wildfire_one.wfwx_api import get_wfwx_all_active_stations, get_auth_header
 
 
 logger = logging.getLogger(__name__)
