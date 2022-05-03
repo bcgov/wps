@@ -365,7 +365,7 @@ async def get_fire_centres(response: Response):
         raise
 
 
-@ router.post('/admin/add-station/{fire_centre_id}', status_code=201)
+@router.post('/admin/add-station/{fire_centre_id}', status_code=201)
 async def add_station(fire_centre_id: int,
                       request: HFIAddStationRequest,
                       _=Depends(auth_with_admin_role_required)):

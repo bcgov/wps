@@ -62,3 +62,19 @@ Feature: /hfi/
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/fuel_type/2                   | None                | 200         | hfi/test_hfi_endpoint_response_set_fuel_type.json        | True          | test_hfi_endpoint_stored_request.json |
             # Invalid fuel type should return 500 error, and not be saved.
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/fuel_type/-1                  | None                | 500         | None                                                     | False         | None                                  |
+
+    Scenario: HFI - Admin POST add station
+        Given I received a POST request for hfi-calc <url> with <role>
+        And it has a <request_body>
+        Then the response status code is <status_code>
+        Examples:
+            | url                               | role               | request_body                        | status_code |
+            # Test add station with correct role
+            | /api/hfi-calc/admin/add-station/1 | hfi_station_admin  | test_admin_add_station_request.json | 201         |
+            | /api/hfi-calc/admin/add-station/1 | hfi_station_admin  | test_admin_add_station_request.json | 201         |
+            # Test add station without roles
+            | /api/hfi-calc/admin/add-station/1 | None               | test_admin_add_station_request.json | 401         |
+            | /api/hfi-calc/admin/add-station/1 | None               | test_admin_add_station_request.json | 401         |
+            # Test add station without correct role
+            | /api/hfi-calc/admin/add-station/1 | hfi_select_station | test_admin_add_station_request.json | 401         |
+            | /api/hfi-calc/admin/add-station/1 | hfi_select_station | test_admin_add_station_request.json | 401         |

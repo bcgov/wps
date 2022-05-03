@@ -237,3 +237,33 @@ def given_hfi_calc_url_post(monkeypatch: pytest.MonkeyPatch, url: str, role: str
 @then(parsers.parse("request == saved = {request_saved}"), converters={'request_saved': strtobool})
 def then_request_saved(spy_store_hfi_request: MagicMock, request_saved: bool):
     assert spy_store_hfi_request.called == request_saved
+
+
+@pytest.mark.usefixtures('mock_jwt_decode')
+@scenario('test_hfi_endpoint_request.feature', 'HFI - Admin POST add station')
+def test_fire_behaviour_calculator_admin_post_scenario():
+    """ BDD Scenario. """
+    pass
+
+
+@given(parsers.parse("I received a POST request for hfi-calc {url} with {role}"),
+       target_fixture='input',
+       converters={'url': str, 'role': str})
+def given_post_with_request_body(monkeypatch: pytest.MonkeyPatch, url: str, role: str):
+    _setup_mock_with_role(monkeypatch, role)
+    input = {'url': url, 'role': role}
+    return input
+
+
+@given(parsers.parse('it has a {request_body}'),
+       target_fixture='response',
+       converters={'request_body': load_json_file(__file__)})
+def has_a_request_body(input: dict[str, str], request_body):
+    client = TestClient(app.main.app)
+    headers = {'Content-Type': 'application/json',
+               'Authorization': 'Bearer token'}
+
+    response = client.post(input['url'], headers=headers, json=request_body)
+    return {
+        'response': response
+    }
