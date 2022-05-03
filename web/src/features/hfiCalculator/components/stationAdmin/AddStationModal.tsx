@@ -23,7 +23,7 @@ import { FuelType } from 'api/hfiCalculatorAPI'
 import { isUndefined } from 'lodash'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
-import { useNavigate } from 'react-router-dom'
+import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 
 export interface AdminStation {
   dirty: boolean
@@ -75,7 +75,6 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
-  const navigate = useNavigate()
 
   const { fuelTypes, selectedFireCentre, stationAdded } = useSelector(
     selectHFICalculatorState
@@ -112,8 +111,8 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
   useEffect(() => {
     handleClose()
     if (stationAdded) {
+      dispatch(fetchHFIStations())
       dispatch(setStationAdded(false))
-      navigate(0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stationAdded])
