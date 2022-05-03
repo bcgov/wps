@@ -131,7 +131,7 @@ describe('FireBAT Calculator Page', () => {
     })
   })
   describe('Row management', () => {
-    it.only('Removes invalid stations', () => {
+    it('Removes invalid stations', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       cy.intercept('POST', 'api/fba-calc/stations', req => {
         // One of our stations (9999) is invalid, so we expect it to be excluded from the request.
