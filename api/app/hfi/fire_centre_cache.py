@@ -4,7 +4,7 @@ from functools import reduce
 import hashlib
 import json
 import logging
-from typing import List
+from typing import List, Optional
 from app.schemas.hfi_calc import CachedFireCentres, FireCentre
 from app.utils.redis import create_redis
 
@@ -13,7 +13,7 @@ cache_expiry_seconds = 86400
 namespace_prefix = "fire_centres"
 
 
-async def get_cached_hydrated_fire_centres(station_codes: List[int]) -> List[FireCentre]:
+async def get_cached_hydrated_fire_centres(station_codes: List[int]) -> Optional[List[FireCentre]]:
     """ Optionally returns cached fire centres if they exist. """
     key = key_from_station_codes(station_codes)
     cache = create_redis()
