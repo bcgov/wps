@@ -20,7 +20,7 @@ export interface BaseStationAttributeCellsProps {
   toggleSelectedStation: (planningAreaId: number, code: number) => void
   setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
   fuelTypes: FuelType[]
-  selectedFuelType: FuelType | undefined
+  selectedFuelType: FuelType
   isDailyTable?: boolean
   isRowSelected: boolean
 }
@@ -102,7 +102,7 @@ const BaseStationAttributeCells = ({
         </Table>
       </StickyCell>
       <StickyCell
-        left={275}
+        left={355}
         zIndexOffset={11}
         backgroundColor={'#ffffff'}
         className={classes.rightBorder}
