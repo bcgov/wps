@@ -21,17 +21,6 @@ export interface FuelTypesResponse {
   fuel_types: FuelType[]
 }
 
-export interface BasicWFWXStation {
-  wfwx_station_uuid: string
-  code: number
-  name: string
-}
-
-export interface BasicPlanningArea {
-  id: number
-  name: string
-}
-
 export interface WeatherStationProperties {
   name: string
   elevation: number | null
@@ -57,16 +46,9 @@ export interface WeatherStation {
   order_of_appearance_in_planning_area_list?: number
 }
 
-export interface AddStationOptions {
-  planning_areas: BasicPlanningArea[]
-  stations: BasicWFWXStation[]
-  fuel_types: FuelType[]
-}
-
 export interface AddStationRequest {
   planning_area_id: number
   station_code: number
-  wfwx_station_uuid: string
   fuel_type_id: number
 }
 
@@ -137,15 +119,6 @@ export async function getFuelTypes(): Promise<FuelTypesResponse> {
   return data.data
 }
 
-export async function getAddStationOptions(
-  fireCentreId: number
-): Promise<AddStationOptions> {
-  const data = await axios.get<AddStationOptions>(
-    baseUrl + 'admin/add-station/' + fireCentreId
-  )
-  return data.data
-}
-
 export async function addNewStation(
   fireCentreId: number,
   newStation: Required<Omit<AdminStation, 'dirty'>>
@@ -153,7 +126,6 @@ export async function addNewStation(
   const requestBody: AddStationRequest = {
     planning_area_id: newStation.planningArea.id,
     station_code: newStation.station.code,
-    wfwx_station_uuid: newStation.station.wfwx_station_uuid,
     fuel_type_id: newStation.fuelType.id
   }
   await axios.post<void>(baseUrl + 'admin/add-station/' + fireCentreId, requestBody)

@@ -1,6 +1,9 @@
 import { render } from '@testing-library/react'
-import { BasicWFWXStation, FuelType } from 'api/hfiCalculatorAPI'
-import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { FuelType } from 'api/hfiCalculatorAPI'
+import {
+  AdminStation,
+  BasicWFWXStation
+} from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import NewStationForm from 'features/hfiCalculator/components/stationAdmin/NewStationForm'
 import React from 'react'
 
@@ -41,8 +44,7 @@ describe('NewStationForm', () => {
     it('should not render error outline for station dropdown when it exists', () => {
       const station: BasicWFWXStation = {
         code: 1,
-        name: 'test',
-        wfwx_station_uuid: 'test'
+        name: 'test'
       }
 
       const { getByTestId } = renderNewStationForm({ dirty: true, station }, false)

@@ -13,15 +13,14 @@ import ClearIcon from '@mui/icons-material/Clear'
 import NewStationForm from 'features/hfiCalculator/components/stationAdmin/NewStationForm'
 import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectHFICalculatorState } from 'app/rootReducer'
-import {
-  fetchAddStation,
-  fetchAddStationOptions
-} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
+import { fetchAddStation } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
-import { BasicPlanningArea, BasicWFWXStation, FuelType } from 'api/hfiCalculatorAPI'
+import { FuelType } from 'api/hfiCalculatorAPI'
 import { isUndefined } from 'lodash'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { getStations, StationSource } from 'api/stationAPI'
 
 export interface AdminStation {
   dirty: boolean
@@ -30,14 +29,23 @@ export interface AdminStation {
   fuelType?: FuelType
 }
 
-export interface ValidAdminStation {
-  planningArea: BasicPlanningArea
-  station: BasicWFWXStation
-  fuelType: FuelType
+export interface BasicPlanningArea {
+  id: number
+  name: string
 }
+export interface BasicWFWXStation {
+  code: number
+  name: string
+}
+
+export interface AddStationOptions {
+  planning_areas: BasicPlanningArea[]
+  stations: BasicWFWXStation[]
+  fuel_types: FuelType[]
+}
+
 export interface AddStationModalProps {
   testId?: string
-  fireCentreId: number
   modalOpen: boolean
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -65,14 +73,30 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
 
   const dispatch: AppDispatch = useDispatch()
 
-  const { changeSaved, addStationOptions } = useSelector(selectHFICalculatorState)
+  const { changeSaved, fuelTypes, selectedFireCentre } = useSelector(
+    selectHFICalculatorState
+  )
+  const { stations: wfwxStations } = useSelector(selectFireWeatherStations)
 
   const newEmptyStation: AdminStation = { dirty: false }
   const [newStation, setNewStation] = useState<AdminStation>(newEmptyStation)
   const [invalid, setInvalid] = useState<boolean>(false)
+  const planning_areas: BasicPlanningArea[] = selectedFireCentre
+    ? selectedFireCentre.planning_areas.map(planningArea => ({
+        id: planningArea.id,
+        name: planningArea.name
+      }))
+    : []
+  const stations: BasicWFWXStation[] = wfwxStations.map(station => ({
+    wfwx_station_uuid: station.properties.name,
+    code: station.properties.code,
+    name: station.properties.name
+  }))
 
   useEffect(() => {
-    dispatch(fetchAddStationOptions(props.fireCentreId))
+    if (!isUndefined(selectedFireCentre)) {
+      dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -83,12 +107,13 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
 
   const handleSave = () => {
     if (
+      !isUndefined(selectedFireCentre) &&
       !isUndefined(newStation.planningArea) &&
       !isUndefined(newStation.station) &&
       !isUndefined(newStation.fuelType)
     ) {
       dispatch(
-        fetchAddStation(props.fireCentreId, {
+        fetchAddStation(selectedFireCentre.id, {
           planningArea: newStation.planningArea,
           station: newStation.station,
           fuelType: newStation.fuelType
@@ -132,7 +157,7 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
               setNewStation={setNewStation}
               invalid={invalid}
               setInvalid={setInvalid}
-              addStationOptions={addStationOptions}
+              addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
             />
           </DialogContent>
           <SaveNewStationButton

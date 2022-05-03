@@ -5,10 +5,9 @@ import AddStationModal from 'features/hfiCalculator/components/stationAdmin/AddS
 
 export interface AddStationButtonProps {
   testId?: string
-  fireCentreId: number
 }
 
-const AddStationButton = ({ fireCentreId }: AddStationButtonProps) => {
+const AddStationButton = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const openAddStationModal = () => {
     setModalOpen(true)
@@ -25,11 +24,7 @@ const AddStationButton = ({ fireCentreId }: AddStationButtonProps) => {
         <AddCircleOutlineIcon />
         Add weather station
       </Button>
-      <AddStationModal
-        fireCentreId={fireCentreId}
-        modalOpen={modalOpen}
-        setModalOpen={setModalOpen}
-      />
+      <AddStationModal modalOpen={modalOpen} setModalOpen={setModalOpen} />
     </React.Fragment>
   )
 }

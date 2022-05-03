@@ -245,7 +245,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     ) {
       return (
         <FormControl className={classes.actionButton}>
-          <AddStationButton fireCentreId={selectedFireCentre.id} />
+          <AddStationButton />
         </FormControl>
       )
     }

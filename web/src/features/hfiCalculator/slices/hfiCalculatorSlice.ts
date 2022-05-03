@@ -12,15 +12,16 @@ import {
   RawDaily,
   StationDaily,
   getFuelTypes,
-  getAddStationOptions,
   FuelType,
   FireCentre,
   FuelTypesResponse,
-  AddStationOptions,
   addNewStation
 } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
-import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import {
+  AddStationOptions,
+  AdminStation
+} from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 
 export interface FireStartRange {
   label: string
@@ -320,19 +321,6 @@ export const fetchFuelTypes = (): AppThunk => async dispatch => {
     logError(err)
   }
 }
-
-export const fetchAddStationOptions =
-  (fireCentreId: number): AppThunk =>
-  async dispatch => {
-    try {
-      dispatch(fetchAddStationOptionsStart())
-      const addStationOptions = await getAddStationOptions(fireCentreId)
-      dispatch(setAddStationOptions(addStationOptions))
-    } catch (err) {
-      dispatch(fetchAddStationOptionsFailed((err as Error).toString()))
-      logError(err)
-    }
-  }
 
 export const fetchAddStation =
   (fireCentreId: number, newStation: Required<Omit<AdminStation, 'dirty'>>): AppThunk =>

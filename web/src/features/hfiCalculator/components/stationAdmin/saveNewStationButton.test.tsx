@@ -1,5 +1,9 @@
 import { render } from '@testing-library/react'
-import { BasicPlanningArea, BasicWFWXStation, FuelType } from 'api/hfiCalculatorAPI'
+import { FuelType } from 'api/hfiCalculatorAPI'
+import {
+  BasicPlanningArea,
+  BasicWFWXStation
+} from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
 import React from 'react'
 
@@ -7,8 +11,7 @@ describe('SaveNewStationButton', () => {
   const planningArea: BasicPlanningArea = { id: 1, name: 'test' }
   const station: BasicWFWXStation = {
     code: 1,
-    name: 'test',
-    wfwx_station_uuid: 'test'
+    name: 'test'
   }
   const fuelType: FuelType = {
     id: 1,
