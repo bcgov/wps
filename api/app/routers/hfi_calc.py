@@ -357,8 +357,6 @@ async def get_fire_centres(response: Response):
 
     try:
         logger.info('/hfi-calc/fire-centres')
-        # we can safely cache the fire centres, as they don't change them very often.
-        # the eco-division logic is very slow, and chomps up 2 seconds!
         response.headers["Cache-Control"] = "max-age=0"
         fire_centres_list = await hydrate_fire_centres()
         return HFIWeatherStationsResponse(fire_centres=fire_centres_list)

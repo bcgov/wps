@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 cache_expiry_seconds = 86400
 namespace_prefix = "fire_centres"
 
+# we can safely cache the fire centres, as they don't change them very often.
+# the eco-division logic is very slow, and chomps up 2 seconds!
+
 
 async def get_cached_hydrated_fire_centres(station_codes: List[int]) -> Optional[List[FireCentre]]:
     """ Optionally returns cached fire centres if they exist. """
