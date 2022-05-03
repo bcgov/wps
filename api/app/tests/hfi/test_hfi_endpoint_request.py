@@ -169,6 +169,10 @@ def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):
         monkeypatch.setattr("jwt.decode", mock_fire_start_role_function)
 
 
+headers = {'Content-Type': 'application/json',
+           'Authorization': 'Bearer token'}
+
+
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_hfi_endpoint_request.feature', 'HFI - GET request')
 def test_fire_behaviour_calculator_get_scenario():
@@ -208,8 +212,6 @@ def given_hfi_calc_url_get(monkeypatch: pytest.MonkeyPatch, url: str):
     _setup_mock(monkeypatch)
 
     client = TestClient(app.main.app)
-    headers = {'Content-Type': 'application/json',
-               'Authorization': 'Bearer token'}
     response = client.get(url, headers=headers)
     return {
         'response': response
@@ -225,9 +227,6 @@ def given_hfi_calc_url_post(monkeypatch: pytest.MonkeyPatch, url: str, role: str
     _setup_mock_with_role(monkeypatch, role)
 
     client = TestClient(app.main.app)
-    headers = {'Content-Type': 'application/json',
-               'Authorization': 'Bearer token'}
-
     response = client.post(url, headers=headers)
     return {
         'response': response
@@ -246,24 +245,21 @@ def test_fire_behaviour_calculator_admin_post_scenario():
     pass
 
 
-@given(parsers.parse("I received a POST request for hfi-calc {url} with {role}"),
-       target_fixture='input',
+@given(parsers.parse("I received a POST request for hfi-calc admin {url} with {role}"),
+       target_fixture='request_details',
        converters={'url': str, 'role': str})
 def given_post_with_request_body(monkeypatch: pytest.MonkeyPatch, url: str, role: str):
     _setup_mock_with_role(monkeypatch, role)
-    input = {'url': url, 'role': role}
-    return input
+    request_details = {'url': url, 'role': role}
+    return request_details
 
 
 @given(parsers.parse('it has a {request_body}'),
        target_fixture='response',
        converters={'request_body': load_json_file(__file__)})
-def has_a_request_body(input: dict[str, str], request_body):
+def has_a_request_body(request_details: dict[str, str], request_body):
     client = TestClient(app.main.app)
-    headers = {'Content-Type': 'application/json',
-               'Authorization': 'Bearer token'}
-
-    response = client.post(input['url'], headers=headers, json=request_body)
+    response = client.post(request_details['url'], headers=headers, json=request_body)
     return {
         'response': response
     }

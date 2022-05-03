@@ -64,7 +64,7 @@ Feature: /hfi/
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/fuel_type/-1                  | None                | 500         | None                                                     | False         | None                                  |
 
     Scenario: HFI - Admin POST add station
-        Given I received a POST request for hfi-calc <url> with <role>
+        Given I received a POST request for hfi-calc admin <url> with <role>
         And it has a <request_body>
         Then the response status code is <status_code>
         Examples:
