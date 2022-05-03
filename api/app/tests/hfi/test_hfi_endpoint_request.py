@@ -65,6 +65,15 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
             result.append((planning_station, fuel_type))
         return result
 
+    def mock_get_last_station_in_planning_area(*args, **kwargs):
+        """ Returns mocked PlanningWeatherStation. """
+        planning_station = PlanningWeatherStation(
+            station_code=1,
+            planning_area_id=1,
+            fuel_type_id=1,
+            order_of_appearance_in_planning_area_list=1)
+        return planning_station
+
     def mock_get_fire_centre_fire_start_ranges(_, __: int):
         """ Returns mocked FireStartRange """
         data = ((1, '0-1'), (2, '1-2'), (3, '2-3'), (4, '3-6'), (5, '6+'))
@@ -127,6 +136,8 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
                         mock_get_fire_centre_fire_start_ranges)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fuel_types', mock_get_fuel_types)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_start_lookup', mock_get_fire_start_lookup)
+    monkeypatch.setattr(app.routers.hfi_calc, 'get_last_station_in_planning_area',
+                        mock_get_last_station_in_planning_area)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fuel_type_by_id', mock_get_fuel_type_by_id)
     monkeypatch.setattr(app.routers.hfi_calc, 'crud_get_fuel_types', mock_get_fuel_types)
@@ -250,16 +261,15 @@ def test_fire_behaviour_calculator_admin_post_scenario():
        converters={'url': str, 'role': str})
 def given_post_with_request_body(monkeypatch: pytest.MonkeyPatch, url: str, role: str):
     _setup_mock_with_role(monkeypatch, role)
-    request_details = {'url': url, 'role': role}
-    return request_details
+    return url
 
 
 @given(parsers.parse('it has a {request_body}'),
        target_fixture='response',
        converters={'request_body': load_json_file(__file__)})
-def has_a_request_body(request_details: dict[str, str], request_body):
+def has_a_request_body(url: str, request_body):
     client = TestClient(app.main.app)
-    response = client.post(request_details['url'], headers=headers, json=request_body)
+    response = client.post(url, headers=headers, json=request_body)
     return {
         'response': response
     }
