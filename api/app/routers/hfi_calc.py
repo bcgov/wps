@@ -371,35 +371,6 @@ async def get_fire_centres(response: Response):
         raise
 
 
-@router.get('/admin/add-station/{fire_centre_id}', response_model=HFIAddStationOptionsResponse)
-async def get_add_station_options(fire_centre_id: int,
-                                  _=Depends(auth_with_admin_role_required)):
-    """ Returns lists of planning areas, stations and fuel types for adding a station. """
-
-    logger.info('/hfi-calc/admin/add-station')
-    with get_read_session_scope() as db_read_session:
-        planning_areas_list_query = get_fire_centre_planning_areas(db_read_session, fire_centre_id)
-        planning_areas: List[BasicPlanningArea] = []
-        for planning_area in planning_areas_list_query:
-            planning_areas.append(BasicPlanningArea(id=planning_area.id, name=planning_area.name))
-
-        fuel_types_list_query = crud_get_fuel_types(db_read_session)
-        fuel_types: List[FuelType] = []
-        for fuel_type_record in fuel_types_list_query:
-            fuel_types.append(fuel_type_model_to_schema(fuel_type_record))
-
-    async with ClientSession() as session:
-        header = await get_auth_header(session)
-        wfwx_stations: List[WFWXWeatherStation] = await get_wfwx_all_active_stations(session, header)
-        stations: List[BasicWFWXStation] = []
-        for wfwx_station in wfwx_stations:
-            stations.append(BasicWFWXStation(code=wfwx_station.code, name=wfwx_station.name))
-
-        return HFIAddStationOptionsResponse(planning_areas=planning_areas,
-                                            stations=stations,
-                                            fuel_types=fuel_types)
-
-
 @ router.post('/admin/add-station/{fire_centre_id}', status_code=201)
 async def add_station(fire_centre_id: int,
                       request: HFIAddStationRequest,
