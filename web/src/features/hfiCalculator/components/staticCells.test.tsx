@@ -1,5 +1,5 @@
 import React from 'react'
-import StaticCells, { isError } from 'features/hfiCalculator/components/StaticCells'
+import { isError } from 'features/hfiCalculator/components/StaticCells'
 import { FuelType, StationDaily } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
 
