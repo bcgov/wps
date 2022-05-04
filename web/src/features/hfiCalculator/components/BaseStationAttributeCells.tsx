@@ -23,6 +23,7 @@ export interface BaseStationAttributeCellsProps {
   selectedFuelType: FuelType
   isDailyTable?: boolean
   isRowSelected: boolean
+  isSetFuelTypeEnabled: boolean
 }
 
 const useStyles = makeStyles({
@@ -40,7 +41,8 @@ const BaseStationAttributeCells = ({
   setFuelType,
   fuelTypes,
   selectedFuelType,
-  isRowSelected
+  isRowSelected,
+  isSetFuelTypeEnabled
 }: BaseStationAttributeCellsProps) => {
   const classes = useStyles()
 
@@ -95,6 +97,7 @@ const BaseStationAttributeCells = ({
                   selectedFuelType={selectedFuelType}
                   fuelTypes={fuelTypes}
                   isRowSelected={isRowSelected}
+                  isSetFuelTypeEnabled={isSetFuelTypeEnabled}
                 ></FuelTypeDropdown>
               </TableCell>
             </TableRow>
