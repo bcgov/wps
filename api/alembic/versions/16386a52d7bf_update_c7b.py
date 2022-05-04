@@ -22,4 +22,5 @@ def upgrade():
 
 
 def downgrade():
+    # Change fuel type code back to C7 where abbrev is C7B
     op.execute('UPDATE fuel_types SET fuel_type_code = \'C7\' WHERE abbrev LIKE \'C7B\'')
