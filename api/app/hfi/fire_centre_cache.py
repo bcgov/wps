@@ -1,4 +1,4 @@
-""" Redis cache wrapper for hydrates fire centres 
+""" Redis cache wrapper for hydrates fire centres
     We can safely cache the fire centres, as they don't change them very often.
     the eco-division logic is very slow, and chomps up 2 seconds!
 """
