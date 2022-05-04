@@ -131,6 +131,15 @@ describe('FireBAT Calculator Page', () => {
     })
   })
   describe('Row management', () => {
+    it('Removes invalid stations', () => {
+      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
+      cy.intercept('POST', 'api/fba-calc/stations', req => {
+        // One of our stations (9999) is invalid, so we expect it to be excluded from the request.
+        expect(req.body.stations.length).to.eq(1)
+      }).as('calculateResults')
+      cy.visit(FIRE_BEHAVIOR_CALC_ROUTE + '?s=322&f=c1&c=1&w=2,s=9999&f=c1&c=1&w=2')
+      cy.wait('@calculateResults')
+    })
     it('Disables remove row(s) button when table is empty', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
