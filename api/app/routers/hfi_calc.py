@@ -373,7 +373,6 @@ async def get_fire_centres(response: Response):
 @router.post('/admin/add-station/{fire_centre_id}', status_code=status.HTTP_201_CREATED)
 async def add_station(fire_centre_id: int,
                       request: HFIAddStationRequest,
-                      response: Response,
                       _=Depends(auth_with_station_admin_role_required)):
     """ Adds a station. """
     logger.info('/hfi-calc/admin/add-station/%s', fire_centre_id)
@@ -392,7 +391,8 @@ async def add_station(fire_centre_id: int,
             logger.info('Attempt to add existing station code %s to planning area id %s',
                         request.station_code, request.planning_area_id, exc_info=exception)
             db_session.rollback()
-            response.status_code = status.HTTP_409_CONFLICT
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail="Station already exists in planning area")
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')

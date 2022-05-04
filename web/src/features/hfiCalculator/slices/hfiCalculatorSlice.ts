@@ -22,6 +22,7 @@ import {
   AddStationOptions,
   AdminStation
 } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { AxiosError } from 'axios'
 
 export interface FireStartRange {
   label: string
@@ -315,7 +316,8 @@ export const fetchAddStation =
       const status = await addNewStation(fireCentreId, newStation)
       dispatch(setStationAdded(status === 201))
     } catch (err) {
-      dispatch(getHFIResultFailed((err as Error).toString()))
+      const { response } = err as AxiosError
+      dispatch(getHFIResultFailed(response?.data.detail))
       logError(err)
     }
   }
