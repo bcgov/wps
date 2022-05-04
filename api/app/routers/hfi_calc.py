@@ -4,9 +4,10 @@ import json
 from typing import List, Optional, Dict, Tuple
 from datetime import date
 from jinja2 import Environment, FunctionLoader
-from fastapi import APIRouter, HTTPException, Response, Depends
-from pydantic.error_wrappers import ValidationError
+from fastapi import APIRouter, HTTPException, Response, Depends, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from pydantic.error_wrappers import ValidationError
 from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
                                        get_cached_hydrated_fire_centres,
                                        put_cached_hydrated_fire_centres)
@@ -369,9 +370,10 @@ async def get_fire_centres(response: Response):
     return response
 
 
-@router.post('/admin/add-station/{fire_centre_id}', status_code=201)
+@router.post('/admin/add-station/{fire_centre_id}', status_code=status.HTTP_201_CREATED)
 async def add_station(fire_centre_id: int,
                       request: HFIAddStationRequest,
+                      response: Response,
                       _=Depends(auth_with_station_admin_role_required)):
     """ Adds a station. """
     logger.info('/hfi-calc/admin/add-station/%s', fire_centre_id)
@@ -379,13 +381,18 @@ async def add_station(fire_centre_id: int,
         last_weather_station = get_last_station_in_planning_area(
             session=db_session, planning_area_id=request.planning_area_id)
         order = last_weather_station.order_of_appearance_in_planning_area_list + 1
-        store_hfi_station(db_session,
-                          station_code=request.station_code,
-                          fuel_type_id=request.fuel_type_id,
-                          planning_area_id=request.planning_area_id,
-                          order=order)
-
-    clear_cached_hydrated_fire_centres()
+        try:
+            store_hfi_station(db_session,
+                              station_code=request.station_code,
+                              fuel_type_id=request.fuel_type_id,
+                              planning_area_id=request.planning_area_id,
+                              order=order)
+            clear_cached_hydrated_fire_centres()
+        except IntegrityError as exception:
+            logger.info('Attempt to add existing station code %s to planning area id %s',
+                        request.station_code, request.planning_area_id, exc_info=exception)
+            db_session.rollback()
+            response.status_code = status.HTTP_409_CONFLICT
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')

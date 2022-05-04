@@ -93,6 +93,7 @@ def store_hfi_station(session: Session, station_code: int, fuel_type_id: int, pl
                                                       planning_area_id=planning_area_id,
                                                       order_of_appearance_in_planning_area_list=order)
     session.add(planning_weather_station)
+    session.commit()
 
 
 def get_last_station_in_planning_area(session: Session, planning_area_id: int) -> PlanningWeatherStation:
