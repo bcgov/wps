@@ -18,7 +18,7 @@ export interface StaticCellsProps {
   selectedFuelType: FuelType | undefined
 }
 
-const isError = (
+export const isError = (
   daily: StationDaily | undefined,
   selectedFuelType: FuelType | undefined
 ): boolean => {
@@ -33,9 +33,9 @@ const isError = (
     isNull(daily?.isi) ||
     isNull(daily?.fwi)
   ) {
-    return false
+    return true
   }
-  return true
+  return false
 }
 
 export const StaticCells = ({
