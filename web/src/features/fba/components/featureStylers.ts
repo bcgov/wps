@@ -114,7 +114,7 @@ const hfiColors = [
 export const thessianPolygonStyler = (
   feature: RenderFeature | ol.Feature<Geometry>
 ): Style => {
-  const colorIdx = Math.floor(feature.get('station_co') % (hfiColors.length - 1))
+  const colorIdx = Math.floor(feature.get('code') % (hfiColors.length - 1))
   thessianPolygonStyle.setFill(hfiColors[colorIdx])
   return thessianPolygonStyle
 }
