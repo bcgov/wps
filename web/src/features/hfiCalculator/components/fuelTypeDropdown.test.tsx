@@ -35,6 +35,7 @@ describe('FuelTypeDropdown', () => {
         selectedFuelType={fuelTypes[2]}
         fuelTypes={fuelTypes}
         isRowSelected={true}
+        isSetFuelTypeEnabled={true}
       />
     )
     const autocomplete = getByTestId('fuel-type-dropdown')
@@ -53,6 +54,7 @@ describe('FuelTypeDropdown', () => {
         selectedFuelType={fuelTypes[2]}
         fuelTypes={fuelTypes}
         isRowSelected={true}
+        isSetFuelTypeEnabled={true}
       />
     )
     const autocomplete = getByTestId('fuel-type-dropdown')
@@ -67,5 +69,21 @@ describe('FuelTypeDropdown', () => {
     await waitFor(() =>
       expect(setFuelTypeMock).toBeCalledWith(testStation.code, fuelTypes[5].id)
     )
+  })
+  it('should be disabled when set fuel type is disabled', async () => {
+    const setFuelTypeMock = jest.fn()
+    const { getByTestId } = render(
+      <FuelTypeDropdown
+        station={testStation}
+        setFuelType={setFuelTypeMock}
+        selectedFuelType={fuelTypes[2]}
+        fuelTypes={fuelTypes}
+        isRowSelected={true}
+        isSetFuelTypeEnabled={false}
+      />
+    )
+    const autocomplete = getByTestId('fuel-type-dropdown')
+    const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
+    expect(input).toHaveAttribute('disabled')
   })
 })
