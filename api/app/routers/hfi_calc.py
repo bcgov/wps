@@ -392,7 +392,7 @@ async def add_station(fire_centre_id: int,
                         request.station_code, request.planning_area_id, exc_info=exception)
             db_session.rollback()
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                                detail="Station already exists in planning area")
+                                detail="Station already exists in planning area") from exception
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')
