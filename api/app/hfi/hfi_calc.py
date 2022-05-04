@@ -114,7 +114,7 @@ def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -
 async def hydrate_fire_centres():
     """Get detailed fire_centres from db and WFWX"""
 
-    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-locals, too-many-branches
     with get_read_session_scope() as session:
         # Fetch all fire weather stations from the database.
         station_query = get_fire_weather_stations(session)
@@ -127,7 +127,7 @@ async def hydrate_fire_centres():
 
         # Iterate through all the database records, collecting all the data we need.
         for (station_record, fuel_type_record, planning_area_record, fire_centre_record) in station_query:
-            station_info_dict[station_record.station_code] = {
+            station_info = {
                 'fuel_type': FuelTypeSchema(
                     id=fuel_type_record.id,
                     abbrev=fuel_type_record.abbrev,
@@ -140,6 +140,10 @@ async def hydrate_fire_centres():
                 'planning_area': planning_area_record,
                 'fire_centre': fire_centre_record
             }
+            if station_info_dict.get(station_record.station_code) is None:
+                station_info_dict[station_record.station_code] = [station_info]
+            else:
+                station_info_dict[station_record.station_code].append(station_info)
 
             if fire_centres_dict.get(fire_centre_record.id) is None:
                 fire_centres_dict[fire_centre_record.id] = {
@@ -169,22 +173,25 @@ async def hydrate_fire_centres():
         # Iterate through all the stations from wildfire one.
 
         for wfwx_station in wfwx_stations_data:
-            station_info = station_info_dict[wfwx_station.code]
             # Combine everything.
             station_properties = WeatherStationProperties(
                 name=wfwx_station.name,
                 elevation=wfwx_station.elevation,
                 wfwx_station_uuid=wfwx_station.wfwx_station_uuid)
 
-            weather_station = WeatherStation(code=wfwx_station.code,
-                                             order_of_appearance_in_planning_area_list=station_info[
-                                                 'order_of_appearance_in_planning_area_list'],
-                                             station_props=station_properties)
+            for station_info in station_info_dict[wfwx_station.code]:
+                weather_station = WeatherStation(code=wfwx_station.code,
+                                                 order_of_appearance_in_planning_area_list=station_info[
+                                                     'order_of_appearance_in_planning_area_list'],
+                                                 station_props=station_properties)
+                station_info['station'] = weather_station
+                for planning_station in station_info_dict[wfwx_station.code]:
+                    existing_station_codes = [
+                        s.code for s in planning_areas_dict[planning_station['planning_area'].id]['station_objects']]  # pylint: disable=line-too-long
 
-            station_info_dict[wfwx_station.code]['station'] = weather_station
-
-            planning_areas_dict[station_info_dict[wfwx_station.code]
-                                ['planning_area'].id]['station_objects'].append(weather_station)
+                    if weather_station.code not in existing_station_codes:
+                        planning_areas_dict[planning_station['planning_area'].id]['station_objects'].append(
+                            weather_station)
 
     # create PlanningArea objects containing all corresponding WeatherStation objects
     for key, val in planning_areas_dict.items():
