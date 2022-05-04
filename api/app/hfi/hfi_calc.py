@@ -168,9 +168,7 @@ async def hydrate_fire_centres():
         wfwx_stations_data = await get_stations_by_codes(list(station_info_dict.keys()))
         # Iterate through all the stations from wildfire one.
 
-        station_codes = []
         for wfwx_station in wfwx_stations_data:
-            station_codes.append(wfwx_station.code)
             station_info = station_info_dict[wfwx_station.code]
             # Combine everything.
             station_properties = WeatherStationProperties(

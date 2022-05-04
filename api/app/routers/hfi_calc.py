@@ -7,7 +7,7 @@ from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, HTTPException, Response, Depends
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
-from app.hfi.fire_centre_cache import (clear_fire_centre_namespace,
+from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
                                        get_cached_hydrated_fire_centres,
                                        put_cached_hydrated_fire_centres)
 from app.utils.time import get_pst_now
@@ -385,7 +385,7 @@ async def add_station(fire_centre_id: int,
                           planning_area_id=request.planning_area_id,
                           order=order)
 
-    clear_fire_centre_namespace()
+    clear_cached_hydrated_fire_centres()
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')

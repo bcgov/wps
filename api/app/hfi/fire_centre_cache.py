@@ -1,4 +1,7 @@
-""" Redis cache wrapper for hydrates fire centres """
+""" Redis cache wrapper for hydrates fire centres 
+    We can safely cache the fire centres, as they don't change them very often.
+    the eco-division logic is very slow, and chomps up 2 seconds!
+"""
 
 import json
 import logging
@@ -9,9 +12,6 @@ from app.utils.redis import create_redis
 logger = logging.getLogger(__name__)
 cache_expiry_seconds = 86400
 key = "fire_centres"
-
-# we can safely cache the fire centres, as they don't change them very often.
-# the eco-division logic is very slow, and chomps up 2 seconds!
 
 
 async def get_cached_hydrated_fire_centres() -> Optional[HFIWeatherStationsResponse]:
@@ -41,7 +41,7 @@ async def put_cached_hydrated_fire_centres(response: HFIWeatherStationsResponse)
         logger.error(error, exc_info=error)
 
 
-def clear_fire_centre_namespace():
+def clear_cached_hydrated_fire_centres():
     """ Delete the cached value. """
     cache = create_redis()
     cache.delete(key)
