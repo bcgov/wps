@@ -44,7 +44,7 @@ export interface Props {
   planningAreaStationInfo: { [key: number]: StationInfo[] }
 }
 
-type KeyTooltipPair = [keyof StationDaily, string]
+type KeyTooltipDecimalPlacesTuple = [keyof StationDaily, string, number?]
 
 export const dailyTableColumnLabels = [
   'Location',
@@ -355,12 +355,13 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           [
                             'temperature' as keyof StationDaily,
                             'Temperature cannot be null. Impacts DMC, BUI, ROS, HFI, FIG, Prep calculations.'
-                          ] as KeyTooltipPair,
+                          ] as KeyTooltipDecimalPlacesTuple,
                           [
                             'relative_humidity' as keyof StationDaily,
-                            'RH cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.'
-                          ] as KeyTooltipPair
-                        ].map(([key, tooltip]) => {
+                            'RH cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.',
+                            0
+                          ] as KeyTooltipDecimalPlacesTuple
+                        ].map(([key, tooltip, _decimalPlaces]) => {
                           return (
                             <RequiredDataCell
                               key={key.toString()}
@@ -368,6 +369,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               dailyKey={key}
                               daily={daily}
                               errorToolTipText={tooltip}
+                              decimalPlaces={_decimalPlaces}
                             />
                           )
                         })}
@@ -375,70 +377,59 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         <TableCell className={classNameForRow}>
                           {daily?.wind_direction?.toFixed(0).padStart(3, '0')}
                         </TableCell>
-                        <RequiredDataCell
-                          classNameForRow={classNameForRow}
-                          dailyKey={'wind_speed'}
-                          daily={daily}
-                          errorToolTipText={
+
+                        {[
+                          [
+                            'wind_speed' as keyof StationDaily,
                             'Wind speed cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.'
-                          }
-                        />
-                        <RequiredDataCell
-                          classNameForRow={classNameForRow}
-                          dailyKey={'precipitation'}
-                          daily={daily}
-                          errorToolTipText={
+                          ] as KeyTooltipDecimalPlacesTuple,
+                          [
+                            'precipitation' as keyof StationDaily,
                             'Precipitation cannot be null. Impacts DC, BUI, ROS, HFI, FIG, Prep calculations.'
-                          }
-                        />
-                        <RequiredDataCell
-                          classNameForRow={classNameForRow}
-                          dailyKey={'ffmc'}
-                          daily={daily}
-                          errorToolTipText={
-                            'FFMC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
-                          }
-                        />
-                        <RequiredDataCell
-                          classNameForRow={classNameForRow}
-                          dailyKey={'dmc'}
-                          daily={daily}
-                          errorToolTipText={
-                            'DMC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
-                          }
-                        />
-                        <RequiredDataCell
-                          classNameForRow={classNameForRow}
-                          dailyKey={'dc'}
-                          daily={daily}
-                          errorToolTipText={
-                            'DC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
-                          }
-                        />
-                        <RequiredDataCell
-                          classNameForRow={classNameForRow}
-                          dailyKey={'isi'}
-                          daily={daily}
-                          errorToolTipText={
-                            'ISI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
-                          }
-                        />
-                        <RequiredDataCell
-                          classNameForRow={classNameForRow}
-                          dailyKey={'bui'}
-                          daily={daily}
-                          errorToolTipText={
-                            'BUI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
-                          }
-                        />
-                        <RequiredDataCell
-                          classNameForRow={classNameForRow}
-                          dailyKey={'fwi'}
-                          daily={daily}
-                          errorToolTipText={
-                            'FWI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
-                          }
-                        />
+                          ] as KeyTooltipDecimalPlacesTuple,
+                          [
+                            'ffmc' as keyof StationDaily,
+                            'FFMC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.',
+                            0
+                          ] as KeyTooltipDecimalPlacesTuple,
+                          [
+                            'dmc' as keyof StationDaily,
+                            'DMC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.',
+                            0
+                          ] as KeyTooltipDecimalPlacesTuple,
+                          [
+                            'dc' as keyof StationDaily,
+                            'DC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.',
+                            0
+                          ] as KeyTooltipDecimalPlacesTuple,
+                          [
+                            'isi' as keyof StationDaily,
+                            'ISI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.',
+                            0
+                          ] as KeyTooltipDecimalPlacesTuple,
+                          [
+                            'bui' as keyof StationDaily,
+                            'BUI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.',
+                            0
+                          ] as KeyTooltipDecimalPlacesTuple,
+                          [
+                            'fwi' as keyof StationDaily,
+                            'FWI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.',
+                            0
+                          ] as KeyTooltipDecimalPlacesTuple
+                        ].map(([key, tooltip, _decimalPlaces]) => {
+                          return (
+                            <RequiredDataCell
+                              key={key.toString()}
+                              classNameForRow={classNameForRow}
+                              dailyKey={key}
+                              daily={daily}
+                              errorToolTipText={tooltip}
+                              decimalPlaces={_decimalPlaces}
+                            />
+                          )
+                        })}
+
                         <TableCell className={classNameForRow}>
                           {daily?.danger_class}
                         </TableCell>
