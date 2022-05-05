@@ -44,6 +44,8 @@ export interface Props {
   planningAreaStationInfo: { [key: number]: StationInfo[] }
 }
 
+type KeyTooltipPair = [keyof StationDaily, string]
+
 export const dailyTableColumnLabels = [
   'Location',
   'Elev. (m)',
@@ -349,22 +351,27 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           className={classNameForRow}
                           isRowSelected={isRowSelected}
                         />
-                        <RequiredDataCell
-                          classNameForRow={classNameForRow}
-                          dailyKey={'temperature'}
-                          daily={daily}
-                          errorToolTipText={
+                        {[
+                          [
+                            'temperature' as keyof StationDaily,
                             'Temperature cannot be null. Impacts DMC, BUI, ROS, HFI, FIG, Prep calculations.'
-                          }
-                        />
-                        <RequiredDataCell
-                          classNameForRow={classNameForRow}
-                          dailyKey={'relative_humidity'}
-                          daily={daily}
-                          errorToolTipText={
+                          ] as KeyTooltipPair,
+                          [
+                            'relative_humidity' as keyof StationDaily,
                             'RH cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.'
-                          }
-                        />
+                          ] as KeyTooltipPair
+                        ].map(([key, tooltip]) => {
+                          return (
+                            <RequiredDataCell
+                              key={key.toString()}
+                              classNameForRow={classNameForRow}
+                              dailyKey={key}
+                              daily={daily}
+                              errorToolTipText={tooltip}
+                            />
+                          )
+                        })}
+
                         <TableCell className={classNameForRow}>
                           {daily?.wind_direction?.toFixed(0).padStart(3, '0')}
                         </TableCell>
