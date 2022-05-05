@@ -21,7 +21,7 @@ from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_map
                                              station_list_mapper,
                                              wfwx_station_list_mapper)
 from app.wildfire_one.query_builders import (BuildQueryAllActiveStations, BuildQueryAllForecastsByAfterStart,
-                                             BuildQueryAllHourliesByRange,
+                                             BuildQueryAllHourliesByRange, BuildQueryAllStations,
                                              BuildQueryByStationCode,
                                              BuildQueryDailiesByStationCode)
 from app.wildfire_one.util import is_station_valid
@@ -76,7 +76,8 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
 
 async def get_station_data(session: ClientSession,
                            header: dict,
-                           mapper=station_list_mapper):
+                           mapper=station_list_mapper,
+                           query_builder=BuildQueryAllActiveStations()):
     """ Get list of stations from WFWX Fireweather API.
     """
     logger.info('Using WFWX to retrieve station list')
@@ -85,7 +86,7 @@ async def get_station_data(session: ClientSession,
     # Iterate through "raw" station data.
     raw_stations = fetch_paged_response_generator(session,
                                                   header,
-                                                  BuildQueryAllActiveStations(),
+                                                  query_builder,
                                                   'stations',
                                                   use_cache=True,
                                                   cache_expiry_seconds=redis_station_cache_expiry)
@@ -264,14 +265,20 @@ async def get_hourly_actuals_all_stations(
 async def get_wfwx_stations_from_station_codes(
         session: ClientSession,
         header,
-        station_codes: Optional[List[int]]) -> List[WFWXWeatherStation]:
+        station_codes: Optional[List[int]],
+        return_all: bool = False) -> List[WFWXWeatherStation]:
     """ Return the WFWX station ids from WFWX API given a list of station codes. """
 
     # All WFWX stations are requested because WFWX returns a malformed JSON response when too
     # many station codes are added as query parameters.
     # IMPORTANT - the two calls below, cannot be made from within the lambda, as they will be
     # be called multiple times!
-    wfwx_stations = await get_station_data(session, header, mapper=wfwx_station_list_mapper)
+    if return_all:
+        query_builder = BuildQueryAllStations()
+    else:
+        query_builder = BuildQueryAllActiveStations()
+    wfwx_stations = await get_station_data(session, header, mapper=wfwx_station_list_mapper,
+                                           query_builder=query_builder)
     # TODO: this is not good. Code in wfwx api shouldn't be filtering on stations codes in hfi....
     fire_centre_station_codes = get_fire_centre_station_codes()
 

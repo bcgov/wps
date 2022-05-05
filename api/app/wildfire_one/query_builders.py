@@ -30,6 +30,18 @@ class BuildQueryAllActiveStations(BuildQuery):
         return url, params
 
 
+class BuildQueryAllStations(BuildQuery):
+    """ Class for building a url and RSQL params to request all stations. """
+
+    def query(self, page) -> Tuple[str, dict]:
+        """ Return query url and params with rsql query for all weather stations. """
+        # NOTE: Currently the filter on stationStatus.id doesn't work.
+        params = {'size': self.max_page_size, 'sort': 'displayLabel',
+                  'page': page}
+        url = f'{self.base_url}/v1/stations'
+        return url, params
+
+
 class BuildQueryByStationCode(BuildQuery):
     """ Class for building a url and params to request a list of stations by code """
 

@@ -57,7 +57,8 @@ export interface DetailedStationsResponse {
 export enum StationSource {
   unspecified = 'unspecified',
   local_storage = 'local_storage',
-  wildfire_one = 'wildfire_one'
+  wildfire_one = 'wildfire_one',
+  wildfire_one_all = 'wildfire_one_all'
 }
 
 const url = '/stations/'

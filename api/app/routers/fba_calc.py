@@ -204,7 +204,10 @@ async def get_stations_data(  # pylint:disable=too-many-locals
             # authenticate against wfwx api
             header = await get_auth_header(session)
             # get station information from the wfwx api
-            wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
+            wfwx_stations = await get_wfwx_stations_from_station_codes(session,
+                                                                       header,
+                                                                       unique_station_codes,
+                                                                       True)
             # get the dailies for all the stations
             dailies = await get_dailies(session, header, wfwx_stations, time_of_interest)
             # turn it into a dictionary so we can easily get at data using a station id

@@ -161,7 +161,7 @@ const FBATable = (props: FBATableProps) => {
   )
 
   useEffect(() => {
-    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one_all))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
