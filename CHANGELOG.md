@@ -1,3 +1,9 @@
+## 2022-05-04 HFI Calc - C7B bug (C7B was being calculated as C7)
+
+### Bug
+
+- Fixed [#1981](https://github.com/bcgov/wps/issues/1981): C7B fuel type lookup looking was wrong, causing C7 calculations.
+
 ## 2022-04-28 Fire Behaviour Calc - 422 bug caused by missing station
 
 ### Bug
