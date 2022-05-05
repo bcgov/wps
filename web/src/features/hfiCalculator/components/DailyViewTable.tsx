@@ -384,24 +384,54 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             'Precipitation cannot be null. Impacts DC, BUI, ROS, HFI, FIG, Prep calculations.'
                           }
                         />
-                        <TableCell className={classNameForRow}>
-                          {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classNameForRow}>
-                          {daily?.dmc?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classNameForRow}>
-                          {daily?.dc?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classNameForRow}>
-                          {daily?.isi?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classNameForRow}>
-                          {daily?.bui?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classNameForRow}>
-                          {daily?.fwi?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
+                        <RequiredDataCell
+                          classNameForRow={classNameForRow}
+                          dailyKey={'ffmc'}
+                          daily={daily}
+                          errorToolTipText={
+                            'FFMC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
+                          }
+                        />
+                        <RequiredDataCell
+                          classNameForRow={classNameForRow}
+                          dailyKey={'dmc'}
+                          daily={daily}
+                          errorToolTipText={
+                            'DMC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
+                          }
+                        />
+                        <RequiredDataCell
+                          classNameForRow={classNameForRow}
+                          dailyKey={'dc'}
+                          daily={daily}
+                          errorToolTipText={
+                            'DC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
+                          }
+                        />
+                        <RequiredDataCell
+                          classNameForRow={classNameForRow}
+                          dailyKey={'isi'}
+                          daily={daily}
+                          errorToolTipText={
+                            'ISI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
+                          }
+                        />
+                        <RequiredDataCell
+                          classNameForRow={classNameForRow}
+                          dailyKey={'bui'}
+                          daily={daily}
+                          errorToolTipText={
+                            'BUI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
+                          }
+                        />
+                        <RequiredDataCell
+                          classNameForRow={classNameForRow}
+                          dailyKey={'fwi'}
+                          daily={daily}
+                          errorToolTipText={
+                            'FWI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
+                          }
+                        />
                         <TableCell className={classNameForRow}>
                           {daily?.danger_class}
                         </TableCell>

@@ -43,7 +43,6 @@ class StationDaily(BaseModel):
 required_daily_fields = ['temperature',
                          'relative_humidity',
                          'wind_speed',
-                         'wind_direction',
                          'precipitation',
                          'bui',
                          'ffmc',
