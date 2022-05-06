@@ -1,8 +1,7 @@
 import React from 'react'
-import LockIcon from '@mui/icons-material/Lock'
-import LockOpenIcon from '@mui/icons-material/LockOpen'
 import makeStyles from '@mui/styles/makeStyles'
 import { isEmpty } from 'lodash'
+import { LockOutlined, LockOpenOutlined } from '@mui/icons-material'
 
 export interface LoggedInStatusProps {
   isAuthenticated: boolean
@@ -26,7 +25,7 @@ const LoggedInStatus = ({ isAuthenticated, roles, idir }: LoggedInStatusProps) =
   if (isAuthenticated && isEmpty(roles)) {
     return (
       <div data-testid="logged-in-status" className={classes.root}>
-        <LockIcon></LockIcon>
+        <LockOutlined />
         {idir}
       </div>
     )
@@ -34,7 +33,7 @@ const LoggedInStatus = ({ isAuthenticated, roles, idir }: LoggedInStatusProps) =
 
   return (
     <div data-testid="logged-in-status" className={classes.root}>
-      <LockOpenIcon></LockOpenIcon>
+      <LockOpenOutlined />
       {idir}
     </div>
   )

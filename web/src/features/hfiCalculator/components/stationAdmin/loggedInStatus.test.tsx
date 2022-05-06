@@ -14,7 +14,7 @@ describe('LoggedInStatus', () => {
     const { getByTestId, container } = render(
       <LoggedInStatus isAuthenticated={true} roles={[]} idir={idir} />
     )
-    const loggedInIcon = getByTestId('LockIcon')
+    const loggedInIcon = getByTestId('LockOutlinedIcon')
     expect(loggedInIcon).toBeDefined()
 
     expect(container).toHaveTextContent(idir)
@@ -23,7 +23,7 @@ describe('LoggedInStatus', () => {
     const { getByTestId, container } = render(
       <LoggedInStatus isAuthenticated={true} roles={['test-role']} idir={idir} />
     )
-    const loggedInIcon = getByTestId('LockOpenIcon')
+    const loggedInIcon = getByTestId('LockOpenOutlinedIcon')
     expect(loggedInIcon).toBeDefined()
 
     expect(container).toHaveTextContent(idir)
