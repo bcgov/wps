@@ -76,10 +76,7 @@ Feature: /hfi/
             | url                               | role               | request_body                        | status_code |
             # Test add station with correct role
             | /api/hfi-calc/admin/add-station/1 | hfi_station_admin  | test_admin_add_station_request.json | 201         |
-            | /api/hfi-calc/admin/add-station/1 | hfi_station_admin  | test_admin_add_station_request.json | 201         |
             # Test add station without roles
             | /api/hfi-calc/admin/add-station/1 | None               | test_admin_add_station_request.json | 401         |
-            | /api/hfi-calc/admin/add-station/1 | None               | test_admin_add_station_request.json | 401         |
             # Test add station without correct role
-            | /api/hfi-calc/admin/add-station/1 | hfi_select_station | test_admin_add_station_request.json | 401         |
             | /api/hfi-calc/admin/add-station/1 | hfi_select_station | test_admin_add_station_request.json | 401         |
