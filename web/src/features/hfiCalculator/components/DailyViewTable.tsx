@@ -358,8 +358,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           ] as KeyTooltipDecimalPlacesTuple,
                           [
                             'relative_humidity' as keyof StationDaily,
-                            'RH cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.',
-                            0
+                            'RH cannot be null. Impacts FFMC, ISI, ROS, HFI, FIG, Prep calculations.'
                           ] as KeyTooltipDecimalPlacesTuple
                         ].map(([key, tooltip, _decimalPlaces]) => {
                           return (
@@ -389,33 +388,27 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           ] as KeyTooltipDecimalPlacesTuple,
                           [
                             'ffmc' as keyof StationDaily,
-                            'FFMC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.',
-                            0
+                            'FFMC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
                           ] as KeyTooltipDecimalPlacesTuple,
                           [
                             'dmc' as keyof StationDaily,
-                            'DMC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.',
-                            0
+                            'DMC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
                           ] as KeyTooltipDecimalPlacesTuple,
                           [
                             'dc' as keyof StationDaily,
-                            'DC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.',
-                            0
+                            'DC cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
                           ] as KeyTooltipDecimalPlacesTuple,
                           [
                             'isi' as keyof StationDaily,
-                            'ISI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.',
-                            0
+                            'ISI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
                           ] as KeyTooltipDecimalPlacesTuple,
                           [
                             'bui' as keyof StationDaily,
-                            'BUI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.',
-                            0
+                            'BUI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
                           ] as KeyTooltipDecimalPlacesTuple,
                           [
                             'fwi' as keyof StationDaily,
-                            'FWI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.',
-                            0
+                            'FWI cannot be null. Impacts ROS, HFI, Fire Type, FIG, Prep calculations.'
                           ] as KeyTooltipDecimalPlacesTuple
                         ].map(([key, tooltip, _decimalPlaces]) => {
                           return (
