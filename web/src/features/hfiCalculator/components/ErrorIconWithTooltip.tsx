@@ -37,13 +37,6 @@ const useStyles = makeStyles({
 
 const errorIconTheme = createTheme({
   components: {
-    MuiIcon: {
-      styleOverrides: {
-        root: {
-          fill: '#D8292F'
-        }
-      }
-    },
     MuiSvgIcon: {
       styleOverrides: {
         root: {
