@@ -18,6 +18,7 @@ describe('LoggedInStatus', () => {
     expect(loggedInIcon).toBeDefined()
 
     expect(container).toHaveTextContent(idir)
+    expect(container).toHaveTextContent('Read only')
   })
   it('should render unlocked lock and idir username if authenticated with any role(s)', () => {
     const { getByTestId, container } = render(
@@ -27,5 +28,6 @@ describe('LoggedInStatus', () => {
     expect(loggedInIcon).toBeDefined()
 
     expect(container).toHaveTextContent(idir)
+    expect(container).toHaveTextContent('Editing')
   })
 })

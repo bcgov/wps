@@ -26,7 +26,7 @@ const LoggedInStatus = ({ isAuthenticated, roles, idir }: LoggedInStatusProps) =
     return (
       <div data-testid="logged-in-status" className={classes.root}>
         <LockOutlined />
-        {idir}
+        Read only: {idir}
       </div>
     )
   }
@@ -34,7 +34,7 @@ const LoggedInStatus = ({ isAuthenticated, roles, idir }: LoggedInStatusProps) =
   return (
     <div data-testid="logged-in-status" className={classes.root}>
       <LockOpenOutlined />
-      {idir}
+      Editing: {idir}
     </div>
   )
 }
