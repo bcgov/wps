@@ -40,7 +40,7 @@ const FBAProgressRow = (props: FBAProgressRowProps) => {
     <React.Fragment>
       {props.loading && (
         <StyledEngineProvider injectFirst>
-          <ThemeProvider theme={mainTheme => ({ ...mainTheme, ...adjustedTheme })}>
+          <ThemeProvider theme={adjustedTheme}>
             <TableRow data-testid="progress-row-fba">
               <TableCell colSpan={21} padding="none" data-testid="progress-row-cell-fba">
                 <LinearProgress />

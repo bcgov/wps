@@ -109,9 +109,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
 
   return props.inputValue && !hasError ? (
     <StyledEngineProvider injectFirst>
-      <ThemeProvider theme={mainTheme => ({ ...mainTheme, ...adjustedTheme })}>
-        {buildTextField()}
-      </ThemeProvider>
+      <ThemeProvider theme={adjustedTheme}>{buildTextField()}</ThemeProvider>
     </StyledEngineProvider>
   ) : (
     buildTextField()

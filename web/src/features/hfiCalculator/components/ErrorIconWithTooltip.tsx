@@ -37,6 +37,13 @@ const useStyles = makeStyles({
 
 const errorIconTheme = createTheme({
   components: {
+    MuiIcon: {
+      styleOverrides: {
+        root: {
+          fill: '#D8292F'
+        }
+      }
+    },
     MuiSvgIcon: {
       styleOverrides: {
         root: {
@@ -58,7 +65,7 @@ const ErrorIconWithTooltip = (props: ErrorIconWithTooltipProps) => {
   const classes = useStyles()
   return (
     <StyledEngineProvider injectFirst>
-      <ThemeProvider theme={mainTheme => ({ ...mainTheme, ...errorIconTheme })}>
+      <ThemeProvider theme={errorIconTheme}>
         <Tooltip
           title={props.tooltipElement}
           aria-label={`${props.tooltipAriaText.join('\n')}`}

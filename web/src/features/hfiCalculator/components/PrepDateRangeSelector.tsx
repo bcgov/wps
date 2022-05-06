@@ -138,7 +138,7 @@ const PrepDateRangeSelector = ({
   return (
     <React.Fragment>
       <StyledEngineProvider injectFirst>
-        <ThemeProvider theme={mainTheme => ({ ...mainTheme, ...dateRangePickerTheme })}>
+        <ThemeProvider theme={dateRangePickerTheme}>
           <TextField
             data-testid="date-range-picker-text-field"
             size="small"
