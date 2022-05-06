@@ -12,7 +12,7 @@ import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHead
 import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateRange } from 'components/dateRangePicker/types'
 import PrepDateRangeSelector from 'features/hfiCalculator/components/PrepDateRangeSelector'
-import SignoutButton from 'features/hfiCalculator/components/stationAdmin/SignoutButton'
+import SignoutButton from 'features/auth/components/SignoutButton'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
