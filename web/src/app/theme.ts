@@ -34,15 +34,6 @@ export const theme = createTheme({
       lg: 1280,
       xl: 1920
     }
-  },
-  components: {
-    MuiTooltip: {
-      styleOverrides: {
-        tooltip: {
-          fontSize: 14
-        }
-      }
-    }
   }
 })
 
