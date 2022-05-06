@@ -224,6 +224,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             selectStationEnabled={
                               roles.includes(ROLES.HFI.SELECT_STATION) && isAuthenticated
                             }
+                            isSetFuelTypeEnabled={
+                              roles.includes(ROLES.HFI.SET_FUEL_TYPE) && isAuthenticated
+                            }
                             stationCodeInSelected={stationCodeInSelected}
                             toggleSelectedStation={toggleSelectedStation}
                             grassCurePercentage={

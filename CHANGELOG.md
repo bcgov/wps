@@ -2,7 +2,7 @@
 
 ### Features
 
-- **hfi calculator:** Introduce role permission for editing HFI prep fire starts, fuel types, selected stations and available stations.
+- **hfi calculator:** Introduce role permission for editing HFI prep fire starts, fuel types, station selection and station creation.
 
 ## 2022-05-04 HFI Calc - C7B bug (C7B was being calculated as C7)
 

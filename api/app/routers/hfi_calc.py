@@ -29,6 +29,7 @@ from app.schemas.hfi_calc import (HFIAddStationRequest,
 from app.auth import (auth_with_select_station_role_required,
                       auth_with_set_fire_starts_role_required,
                       auth_with_station_admin_role_required,
+                      auth_with_set_fuel_type_role_required,
                       authentication_required,
                       audit)
 from app.schemas.shared import (FuelType)
@@ -227,7 +228,7 @@ async def set_planning_area_station_fuel_type(
     station_code: int,
     fuel_type_id: int,
     response: Response,
-    token=Depends(authentication_required)  # pylint: disable=unused-argument
+    token=Depends(auth_with_set_fuel_type_role_required)
 ):
     """ Set the fuel type for a station in a planning area. """
     logger.info("/fire_centre/%s/%s/%s/planning_area/%s/station/%s/fuel_type/%s",

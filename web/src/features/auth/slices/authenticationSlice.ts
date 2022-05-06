@@ -5,7 +5,8 @@ import kcInstance, { kcInitOption } from 'features/auth/keycloak'
 import jwt_decode from 'jwt-decode'
 import { logError } from 'utils/error'
 import { isUndefined } from 'lodash'
-import { KC_CLIENT } from 'utils/env'
+import { KC_CLIENT, TEST_AUTH } from 'utils/env'
+import { ROLES } from 'features/auth/roles'
 
 interface State {
   authenticating: boolean
@@ -76,6 +77,9 @@ export default authSlice.reducer
 export const decodeRoles = (token: string | undefined) => {
   if (isUndefined(token)) {
     return []
+  }
+  if (TEST_AUTH || window.Cypress) {
+    return Object.values(ROLES.HFI)
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const decodedToken: any = jwt_decode(token)
