@@ -1,8 +1,13 @@
 import React from 'react'
 import { Button } from '@mui/material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { signout } from 'features/auth/slices/authenticationSlice'
+import { AppDispatch } from 'app/store'
+import { useDispatch } from 'react-redux'
 
 const SignoutButton = () => {
+  const dispatch: AppDispatch = useDispatch()
+
   const theme = createTheme({
     components: {
       MuiButton: {
@@ -24,9 +29,12 @@ const SignoutButton = () => {
           variant="outlined"
           color="primary"
           onClick={() => {
-            /**noop */
+            try {
+              dispatch(signout())
+            } catch (err) {
+              console.log('Error logging out: ', err)
+            }
           }}
-          data-testid={'sign-out-button'}
         >
           Sign out
         </Button>
