@@ -3,8 +3,7 @@ import {
   ThemeProvider,
   Theme,
   StyledEngineProvider,
-  Tooltip,
-  adaptV4Theme
+  Tooltip
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
@@ -36,22 +35,31 @@ const useStyles = makeStyles({
   }
 })
 
-const errorIconTheme = createTheme(
-  adaptV4Theme({
-    overrides: {
-      MuiSvgIcon: {
+const errorIconTheme = createTheme({
+  components: {
+    MuiIcon: {
+      styleOverrides: {
         root: {
           fill: '#D8292F'
         }
-      },
-      MuiTooltip: {
+      }
+    },
+    MuiSvgIcon: {
+      styleOverrides: {
+        root: {
+          fill: '#D8292F'
+        }
+      }
+    },
+    MuiTooltip: {
+      styleOverrides: {
         tooltip: {
           fontSize: 14
         }
       }
     }
-  })
-)
+  }
+})
 
 const ErrorIconWithTooltip = (props: ErrorIconWithTooltipProps) => {
   const classes = useStyles()
