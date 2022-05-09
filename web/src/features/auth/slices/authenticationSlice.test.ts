@@ -104,7 +104,7 @@ describe('authenticationSlice', () => {
       })
     })
     describe('signout', () => {
-      it('should unset isAuthenticted, roles and token states when signout is dispatched ', () => {
+      it('should unset isAuthenticated, roles and token states when signout is dispatched ', () => {
         const signedInState = {
           authenticating: false,
           isAuthenticated: true,
