@@ -57,15 +57,15 @@ export interface StationDaily {
   wind_direction: number
   grass_cure_percentage: number
   precipitation: number
-  ffmc: number
-  dmc: number
-  dc: number
-  isi: number
-  bui: number
-  fwi: number
+  ffmc: number | null
+  dmc: number | null
+  dc: number | null
+  isi: number | null
+  bui: number | null
+  fwi: number | null
   danger_class: number
   rate_of_spread: number
-  hfi: number
+  hfi: number | null
   observation_valid: boolean
   observation_valid_comment: string
   intensity_group: number
