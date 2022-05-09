@@ -2,10 +2,10 @@ import { TableCell } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import React from 'react'
 import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
-import { isUndefined } from 'lodash'
+import { isNull, isUndefined } from 'lodash'
 
 interface HFICellProps {
-  value: number | undefined
+  value?: number | null
   testId?: string
   className?: string
 }
@@ -39,8 +39,8 @@ const useStyles = makeStyles({
 const HFICell = (props: HFICellProps) => {
   const classes = useStyles()
 
-  const getHFIStyle = (value: number | undefined): string => {
-    if (value !== undefined) {
+  const getHFIStyle = (value: number | undefined | null): string => {
+    if (!isUndefined(value) && !isNull(value)) {
       if (value >= 3000 && value <= 3999) {
         return classes.orangeBorder
       } else if (value > 3999 && value <= 9999) {
@@ -54,7 +54,7 @@ const HFICell = (props: HFICellProps) => {
 
   const hfiStyle = getHFIStyle(props.value)
 
-  if (isUndefined(props.value) || isNaN(props.value)) {
+  if (isUndefined(props.value) || isNull(props.value) || isNaN(props.value)) {
     return (
       <TableCell
         data-testid={props.testId}

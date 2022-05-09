@@ -1,6 +1,6 @@
 import { TableCell } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { isUndefined } from 'lodash'
+import { isUndefined, isNull } from 'lodash'
 import React from 'react'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
@@ -71,7 +71,15 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
       </TableCell>
     )
   }
-  if (genericError) {
+  const validatedMig =
+    isUndefined(props.meanIntensityGroup) ||
+    isNull(props.meanIntensityGroup) ||
+    isNaN(props.meanIntensityGroup) ||
+    props.meanIntensityGroup === Infinity ||
+    props.meanIntensityGroup === -Infinity
+      ? ''
+      : props.meanIntensityGroup
+  if (genericError || validatedMig === '') {
     return (
       <TableCell>
         <ErrorIconWithTooltip
@@ -82,13 +90,6 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
       </TableCell>
     )
   }
-  const validatedMig =
-    isUndefined(props.meanIntensityGroup) ||
-    isNaN(props.meanIntensityGroup) ||
-    props.meanIntensityGroup === Infinity ||
-    props.meanIntensityGroup === -Infinity
-      ? ''
-      : props.meanIntensityGroup
   return (
     <TableCell
       className={classes.intensityGroup}
