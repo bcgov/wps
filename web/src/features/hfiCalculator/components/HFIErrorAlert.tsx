@@ -5,8 +5,7 @@ import { theme } from 'app/theme'
 import React from 'react'
 
 export interface HFIErrorAlertProps {
-  hfiDailiesError: string | null
-  fireCentresError: string | null
+  errors: Array<string | null>
 }
 
 const useStyles = makeStyles(() =>
@@ -21,9 +20,17 @@ const useStyles = makeStyles(() =>
   })
 )
 
-const HFIErrorAlert = ({ hfiDailiesError, fireCentresError }: HFIErrorAlertProps) => {
+const HFIErrorAlert = ({ errors }: HFIErrorAlertProps) => {
   const classes = useStyles()
   const [open, setOpen] = React.useState(true)
+
+  const formatErrorMessages = () => {
+    return (
+      <>
+        <p> {errors.map(err => (err ? ` - ${err}` : '')).join('</p><p>')} </p>
+      </>
+    )
+  }
 
   return (
     <div className={classes.root}>
@@ -53,8 +60,7 @@ const HFIErrorAlert = ({ hfiDailiesError, fireCentresError }: HFIErrorAlertProps
           </a>
           :
           <br />
-          {hfiDailiesError ? ` - ${hfiDailiesError}` : ''}
-          {fireCentresError ? <br /> + ` - ${fireCentresError}` : ''}
+          {formatErrorMessages()}
         </Alert>
       </Collapse>
     </div>

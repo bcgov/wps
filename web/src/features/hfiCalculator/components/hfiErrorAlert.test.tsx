@@ -5,10 +5,7 @@ import React from 'react'
 describe('HFIErrorAlert', () => {
   it('should render an alert', () => {
     const { getByRole } = render(
-      <HFIErrorAlert
-        hfiDailiesError={'500 - no dailies'}
-        fireCentresError={'500 - no fire centres'}
-      />
+      <HFIErrorAlert errors={['500 - no dailies', '500 - no fire centres']} />
     )
     const alertLink = getByRole('link')
     expect(alertLink).toBeDefined()

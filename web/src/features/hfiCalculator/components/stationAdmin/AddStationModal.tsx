@@ -24,7 +24,7 @@ import { isNull, isUndefined } from 'lodash'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
-import AddStationErrorAlert from 'features/hfiCalculator/components/stationAdmin/AddStationErrorAlert'
+import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 
 export interface AdminStation {
   dirty: boolean
@@ -138,7 +138,7 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
 
   const buildErrorNotification = () => {
     if (!isNull(stationAddedError)) {
-      return <AddStationErrorAlert stationAddedError={stationAddedError} />
+      return <HFIErrorAlert errors={[stationAddedError]} />
     }
     return <React.Fragment></React.Fragment>
   }
