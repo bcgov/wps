@@ -15,6 +15,7 @@ import PrepDateRangeSelector from 'features/hfiCalculator/components/PrepDateRan
 import LoggedInStatus from 'features/hfiCalculator/components/stationAdmin/LoggedInStatus'
 import { selectAuthentication } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
+import SignoutButton from 'features/auth/components/SignoutButton'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -88,6 +89,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
         )}
       />
       <LoggedInStatus isAuthenticated={isAuthenticated} roles={roles} idir={idir} />
+      <SignoutButton />
       <div className={classes.aboutButtonGridItem}>
         <FormControl className={classes.minWidth210}>
           <Button onClick={openAboutModal} size="small">

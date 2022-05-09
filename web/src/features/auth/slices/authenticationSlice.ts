@@ -65,6 +65,19 @@ const authSlice = createSlice({
       state.tokenRefreshed = action.payload.tokenRefreshed
       state.roles = decodeRoles(action.payload.token)
       state.idir = decodeIdir(action.payload.token)
+    },
+    signoutFinished(state: State) {
+      state.authenticating = false
+      state.isAuthenticated = false
+      state.token = undefined
+      state.roles = []
+    },
+    signoutError(state: State, action: PayloadAction<string>) {
+      state.authenticating = false
+      state.isAuthenticated = false
+      state.error = action.payload
+      state.token = undefined
+      state.roles = []
     }
   }
 })
@@ -73,7 +86,9 @@ export const {
   authenticateStart,
   authenticateFinished,
   authenticateError,
-  refreshTokenFinished
+  refreshTokenFinished,
+  signoutFinished,
+  signoutError
 } = authSlice.actions
 
 export default authSlice.reducer
@@ -147,5 +162,17 @@ export const authenticate = (): AppThunk => dispatch => {
         // Restart the authentication flow
         dispatch(authenticate())
       })
+  }
+}
+
+export const signout = (): AppThunk => async dispatch => {
+  if (!kcInstance) {
+    return dispatch(signoutError('Failed to authenticate (Unable to fetch keycloak-js).'))
+  }
+
+  try {
+    await kcInstance.logout()
+  } catch (e) {
+    return dispatch(signoutError(`Failed to signout: ${e}`))
   }
 }
