@@ -427,7 +427,7 @@ def calculate_fire_behaviour_prediction_using_cffdrs(  # pylint: disable=too-man
     return fire_behaviour_prediction
 
 
-def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
+def calculate_fire_behaviour_prediction_using_c7b(latitude: float,  # pylint: disable=too-many-arguments
                                                   longitude: float,
                                                   elevation: float,
                                                   ffmc: float,
