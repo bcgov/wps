@@ -2,7 +2,7 @@
   "name": "wps-web",
   "version": "0.1.0",
   "engines": {
-    "node": "~16.15.0",
+    "node": ">=16.13.1",
     "npm": "~8.1.0"
   },
   "license": "Apache-2.0",
