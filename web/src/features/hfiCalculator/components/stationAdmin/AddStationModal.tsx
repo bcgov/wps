@@ -20,10 +20,11 @@ import {
 import { AppDispatch } from 'app/store'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
 import { FuelType } from 'api/hfiCalculatorAPI'
-import { isUndefined } from 'lodash'
+import { isNull, isUndefined } from 'lodash'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
+import AddStationErrorAlert from 'features/hfiCalculator/components/stationAdmin/AddStationErrorAlert'
 
 export interface AdminStation {
   dirty: boolean
@@ -58,6 +59,7 @@ const useStyles = makeStyles(() => ({
     maxWidth: 'xl'
   },
   closeIcon: {
+    padding: 5,
     position: 'absolute',
     right: '0px'
   },
@@ -76,7 +78,7 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
 
   const dispatch: AppDispatch = useDispatch()
 
-  const { fuelTypes, selectedFireCentre, stationAdded, error } = useSelector(
+  const { fuelTypes, selectedFireCentre, stationAdded, stationAddedError } = useSelector(
     selectHFICalculatorState
   )
   const { stations: wfwxStations } = useSelector(selectFireWeatherStations)
@@ -117,13 +119,6 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stationAdded])
 
-  useEffect(() => {
-    if (error) {
-      handleClose()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error])
-
   const handleSave = () => {
     if (
       !isUndefined(selectedFireCentre) &&
@@ -141,6 +136,13 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
     }
   }
 
+  const buildErrorNotification = () => {
+    if (!isNull(stationAddedError)) {
+      return <AddStationErrorAlert stationAddedError={stationAddedError} />
+    }
+    return <React.Fragment></React.Fragment>
+  }
+
   return (
     <React.Fragment>
       <Dialog
@@ -154,8 +156,9 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
           <IconButton className={classes.closeIcon} onClick={handleClose}>
             <ClearIcon />
           </IconButton>
-
           <DialogContent>
+            {buildErrorNotification()}
+
             <Typography variant="h5" align="center">
               Add New Weather Station
             </Typography>

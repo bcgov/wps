@@ -82,6 +82,7 @@ export interface HFICalculatorState {
   fuelTypes: FuelType[]
   changeSaved: boolean
   stationAdded: boolean
+  stationAddedError: string | null
 }
 
 export interface StationInfo {
@@ -137,7 +138,8 @@ export const initialState: HFICalculatorState = {
   fuelTypes: [],
   addStationOptions: undefined,
   changeSaved: false,
-  stationAdded: false
+  stationAdded: false,
+  stationAddedError: null
 }
 
 const dailiesSlice = createSlice({
@@ -159,6 +161,9 @@ const dailiesSlice = createSlice({
     },
     setStationAdded(state: HFICalculatorState, action: PayloadAction<boolean>) {
       state.stationAdded = action.payload
+    },
+    setAddedStationFailed(state: HFICalculatorState, action: PayloadAction<string>) {
+      state.stationAddedError = action.payload
     },
     getHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
@@ -205,6 +210,7 @@ export const {
   pdfDownloadStart,
   pdfDownloadEnd,
   setStationAdded,
+  setAddedStationFailed,
   getHFIResultFailed,
   fetchFuelTypesFailed,
   setSelectedPrepDate,
@@ -317,7 +323,7 @@ export const fetchAddStation =
       dispatch(setStationAdded(status === 201))
     } catch (err) {
       const { response } = err as AxiosError
-      dispatch(getHFIResultFailed(response?.data.detail))
+      dispatch(setAddedStationFailed(response?.data.detail))
       logError(err)
     }
   }
