@@ -6,8 +6,7 @@ import {
   TextField,
   ThemeProvider,
   Theme,
-  StyledEngineProvider,
-  adaptV4Theme
+  StyledEngineProvider
 } from '@mui/material'
 import * as materialIcons from '@mui/icons-material'
 import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
@@ -66,18 +65,20 @@ const useStyles = makeStyles({
   }
 })
 
-export const dateRangePickerTheme = createTheme(
-  adaptV4Theme({
-    overrides: {
-      MuiOutlinedInput: {
+export const dateRangePickerTheme = createTheme({
+  components: {
+    MuiOutlinedInput: {
+      styleOverrides: {
         input: {
           '&.Mui-disabled': {
             color: 'white',
             WebkitTextFillColor: 'white'
           }
         }
-      },
-      MuiTextField: {
+      }
+    },
+    MuiTextField: {
+      styleOverrides: {
         root: {
           color: 'white',
           minWidth: 300,
@@ -87,28 +88,34 @@ export const dateRangePickerTheme = createTheme(
             }
           }
         }
-      },
-      MuiFormLabel: {
+      }
+    },
+    MuiFormLabel: {
+      styleOverrides: {
         root: {
           '&.Mui-disabled': {
             color: 'white'
           }
         }
-      },
-      MuiSvgIcon: {
+      }
+    },
+    MuiSvgIcon: {
+      styleOverrides: {
         root: {
           fill: 'white'
         }
-      },
-      MuiIconButton: {
+      }
+    },
+    MuiIconButton: {
+      styleOverrides: {
         root: {
           paddingLeft: 0,
           paddingRight: 12
         }
       }
     }
-  })
-)
+  }
+})
 
 const PrepDateRangeSelector = ({
   dateRange,
