@@ -9,7 +9,7 @@ const LoadingBackdrop = ({ isLoadingWithoutError }: LoadingBackdropProps) => {
   return (
     <Backdrop
       data-testid="loading-backdrop"
-      sx={{ zIndex: theme => theme.zIndex.drawer + 1 }}
+      sx={{ zIndex: theme => theme.zIndex.drawer + 101 }}
       open={isLoadingWithoutError}
     >
       <CircularProgress />
