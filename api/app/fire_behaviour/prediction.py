@@ -481,9 +481,6 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
 
     intensity_group = calculate_intensity_group(hfi)
 
-    # TODO: not required for HFI, but for FireBat - we need to calculate 60 minute fire size, which
-    # will take a fair amount of peeking at the math.
-    # Some of the math in the c7b.rate_of_spread can be extracted, and the standard cffdrs math used.
     fire_behaviour_prediction = FireBehaviourPrediction(
         ros=ros,
         hfi=hfi,
