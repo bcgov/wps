@@ -4,6 +4,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import { theme } from 'app/theme'
 import os from 'os'
 import React from 'react'
+import { isNull } from 'lodash'
 
 export interface HFIErrorAlertProps {
   errors: Array<string | null>
@@ -26,7 +27,14 @@ const HFIErrorAlert = ({ errors }: HFIErrorAlertProps) => {
   const [open, setOpen] = React.useState(true)
 
   const formatErrorMessages = () => {
-    return <>{errors.map(err => (err ? ` - ${err}` : '')).join('\n')}</>
+    return (
+      <>
+        {errors
+          .filter(err => !isNull(err))
+          .map(err => `- ${err}`)
+          .join('\n')}
+      </>
+    )
   }
 
   return (
