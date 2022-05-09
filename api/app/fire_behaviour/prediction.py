@@ -433,6 +433,7 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
                                                   ffmc: float,
                                                   bui: float,
                                                   wind_speed: float,
+                                                  isi: float,
                                                   cc: float,  # pylint: disable=invalid-name
                                                   cbh: float,
                                                   cfl: float):
@@ -454,14 +455,25 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
                                      ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
 
     lb_ratio = cffdrs.length_to_breadth_ratio(FuelTypeEnum.O1A, wind_speed)
+    wsv = cffdrs.calculate_wind_speed(FuelTypeEnum.O1A,
+                                      ffmc=ffmc,
+                                      bui=bui,
+                                      ws=wind_speed,
+                                      fmc=fmc,
+                                      sfc=sfc,
+                                      pc=None,
+                                      cc=cc,
+                                      pdf=None,
+                                      cbh=cbh,
+                                      isi=isi)
     bros = cffdrs.back_rate_of_spread(FuelTypeEnum.O1A,
                                       ffmc=ffmc,
                                       bui=bui,
                                       wsv=wsv,
                                       fmc=fmc, sfc=sfc,
-                                      pc=pc,
+                                      pc=None,
                                       cc=cc,
-                                      pdf=pdf,
+                                      pdf=None,
                                       cbh=cbh)
     sixty_minute_fire_size = get_fire_size(FuelTypeEnum.O1A, ros, bros, 60, cfb, lb_ratio)
 
@@ -476,7 +488,7 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
         ros=ros,
         hfi=hfi,
         intensity_group=intensity_group,
-        sixty_minute_fire_size=None,
+        sixty_minute_fire_size=sixty_minute_fire_size,
         fire_type=fire_type)
 
     return fire_behaviour_prediction
@@ -504,6 +516,7 @@ def calculate_fire_behaviour_prediction(latitude: float,  # pylint: disable=too-
             ffmc=ffmc,
             bui=bui,
             wind_speed=wind_speed,
+            isi=isi,
             cc=cc,
             cbh=cbh,
             cfl=cfl)
