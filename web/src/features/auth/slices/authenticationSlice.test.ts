@@ -114,6 +114,7 @@ describe('authenticationSlice', () => {
           isAuthenticated: true,
           tokenRefreshed: false,
           token: tokenWithRoles,
+          idir: 'cbrady@idir',
           roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts'],
           error: null
         }
@@ -132,6 +133,7 @@ describe('authenticationSlice', () => {
           isAuthenticated: true,
           tokenRefreshed: false,
           token: tokenWithRoles,
+          idir: 'cbrady@idir',
           roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts'],
           error: null
         }
