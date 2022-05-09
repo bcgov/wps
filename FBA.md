@@ -25,6 +25,10 @@ graph
         BUI
     end
 
+    WF1API-->Latitude
+    WF1API-->Longitude
+    WF1API-->Elevation
+
     subgraph Inputs
         FuelType
         PC["PC</br>Percentage Conifer"]
