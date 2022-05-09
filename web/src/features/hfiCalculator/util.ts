@@ -65,11 +65,14 @@ export const getDailiesByStationCode = (
 }
 
 export const getPlanningAreaStationInfo = (
-  planning_area_station_info: { [key: number]: StationInfo[] },
+  planning_area_station_info: { [key: number]: StationInfo[] } | undefined,
   planningAreaId: number,
   code: number
 ): StationInfo | undefined => {
-  if (!isUndefined(planning_area_station_info[planningAreaId])) {
+  if (
+    !isUndefined(planning_area_station_info) &&
+    !isUndefined(planning_area_station_info[planningAreaId])
+  ) {
     return planning_area_station_info[planningAreaId].find(
       info => info.station_code === code
     )
@@ -91,7 +94,7 @@ export const stationCodeSelected = (
 }
 
 export const getSelectedFuelType = (
-  planningAreaStationInfo: { [key: number]: StationInfo[] },
+  planningAreaStationInfo: { [key: number]: StationInfo[] } | undefined,
   planningAreaId: number,
   stationCode: number,
   fuelTypes: FuelType[]

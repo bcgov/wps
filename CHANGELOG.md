@@ -1,4 +1,4 @@
-## 2022-05-9 HFI Calc [#1869](https://github.com/bcgov/wps/issues/1869)
+## 2022-05-3 HFI Calc [#1869](https://github.com/bcgov/wps/issues/1869)
 
 ### Features
 

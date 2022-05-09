@@ -42,7 +42,7 @@ export interface Props {
   setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
   testId?: string
   fuelTypes: FuelType[]
-  planningAreaStationInfo: { [key: number]: StationInfo[] }
+  planningAreaStationInfo: { [key: number]: StationInfo[] } | undefined
 }
 
 export const dailyTableColumnLabels = [
@@ -308,19 +308,13 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                     area.stations,
                     station => station.order_of_appearance_in_planning_area_list
                   ).map(station => {
-                    if (isUndefined(result)) {
-                      return <React.Fragment></React.Fragment>
-                    }
                     const daily = getDailyForDay(station.code)
                     const selectedFuelType = getSelectedFuelType(
-                      result.planning_area_station_info,
+                      result?.planning_area_station_info,
                       area.id,
                       station.code,
                       props.fuelTypes
                     )
-                    if (isUndefined(selectedFuelType)) {
-                      return <React.Fragment></React.Fragment>
-                    }
                     const grassCureError = !isValidGrassCure(daily, selectedFuelType)
                     const isRowSelected =
                       !isUndefined(area) && stationCodeInSelected(area.id, station.code)

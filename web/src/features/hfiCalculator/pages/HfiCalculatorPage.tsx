@@ -295,20 +295,16 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             {buildAddStationButton()}
 
             <ErrorBoundary>
-              {isUndefined(result) ? (
-                <React.Fragment></React.Fragment>
-              ) : (
-                <ViewSwitcher
-                  selectedFireCentre={selectedFireCentre}
-                  dateRange={dateRange}
-                  setSelected={setSelectedStation}
-                  setNewFireStarts={setNewFireStarts}
-                  setFuelType={setFuelType}
-                  selectedPrepDay={selectedPrepDate}
-                  fuelTypes={fuelTypes}
-                  planningAreaStationInfo={result.planning_area_station_info}
-                />
-              )}
+              <ViewSwitcher
+                selectedFireCentre={selectedFireCentre}
+                dateRange={dateRange}
+                setSelected={setSelectedStation}
+                setNewFireStarts={setNewFireStarts}
+                setFuelType={setFuelType}
+                selectedPrepDay={selectedPrepDate}
+                fuelTypes={fuelTypes}
+                planningAreaStationInfo={result?.planning_area_station_info}
+              />
             </ErrorBoundary>
           </React.Fragment>
         </HFILoadingDataView>

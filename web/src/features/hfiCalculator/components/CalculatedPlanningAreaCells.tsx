@@ -27,7 +27,7 @@ export interface CalculatedCellsProps {
   numPrepDays: number
   fireStartRanges: FireStartRange[]
   fuelTypes: FuelType[]
-  planningAreaStationInfo: { [key: number]: StationInfo[] }
+  planningAreaStationInfo: { [key: number]: StationInfo[] } | undefined
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {

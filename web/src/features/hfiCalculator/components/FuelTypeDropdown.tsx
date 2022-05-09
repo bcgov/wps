@@ -7,7 +7,7 @@ import React from 'react'
 export interface FuelTypeDropdownProps {
   station: WeatherStation
   fuelTypes: FuelType[]
-  selectedFuelType: FuelType
+  selectedFuelType: FuelType | undefined
   setFuelType: (code: number, fuelTypeId: number) => void
   isRowSelected: boolean
   isSetFuelTypeEnabled: boolean

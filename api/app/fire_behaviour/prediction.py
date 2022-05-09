@@ -6,7 +6,6 @@ import os
 from typing import List
 import logging
 import pandas as pd
-from app.fire_behaviour.fuel_types import is_grass_fuel_type
 from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.observations import WeatherReading
 from app.schemas.fba_calc import CriticalHoursHFI
@@ -374,7 +373,8 @@ def calculate_fire_behaviour_prediction_using_cffdrs(  # pylint: disable=too-man
         cfl: float):
     """ Calculates fire behaviour prediction using CFFDRS. """
     # pylint: disable=too-many-locals
-    # Set default values in case the calculation fails (likely due to missing data)
+
+    # set default values in case the calculation fails (likely due to missing data)
     fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, get_julian_date_now())
     sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
 
@@ -482,8 +482,6 @@ def calculate_fire_behaviour_prediction(latitude: float,  # pylint: disable=too-
         raise FireBehaviourPredictionInputError('BUI is required')
     if ffmc is None:
         raise FireBehaviourPredictionInputError('FFMC is required')
-    if cc is None and is_grass_fuel_type(fuel_type):
-        raise FireBehaviourPredictionInputError('Grass Cure must be specified for grass fuel types')
     if fuel_type == FuelTypeEnum.C7B:
         return calculate_fire_behaviour_prediction_using_c7b(
             latitude=latitude,

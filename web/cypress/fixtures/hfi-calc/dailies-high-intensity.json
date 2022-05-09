@@ -5,16 +5,11 @@
   },
   "selected_fire_center_id": 1,
   "planning_area_station_info": {
-    "74": [
+    "1": [
       {
         "station_code": 1029,
         "selected": true,
-        "fuel_type_id": 252
-      },
-      {
-        "station_code": 306,
-        "selected": true,
-        "fuel_type_id": 252
+        "fuel_type_id": 1
       }
     ]
   },
