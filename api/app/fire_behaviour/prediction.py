@@ -453,6 +453,18 @@ def calculate_fire_behaviour_prediction_using_c7b(latitude: float,
                                      percentage_dead_balsam_fir=None,
                                      ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
 
+    lb_ratio = cffdrs.length_to_breadth_ratio(FuelTypeEnum.O1A, wind_speed)
+    bros = cffdrs.back_rate_of_spread(FuelTypeEnum.O1A,
+                                      ffmc=ffmc,
+                                      bui=bui,
+                                      wsv=wsv,
+                                      fmc=fmc, sfc=sfc,
+                                      pc=pc,
+                                      cc=cc,
+                                      pdf=pdf,
+                                      cbh=cbh)
+    sixty_minute_fire_size = get_fire_size(FuelTypeEnum.O1A, ros, bros, 60, cfb, lb_ratio)
+
     fire_type = get_fire_type(FuelTypeEnum.C7B, cfb)
 
     intensity_group = calculate_intensity_group(hfi)
