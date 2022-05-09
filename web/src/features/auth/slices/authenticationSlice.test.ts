@@ -122,7 +122,7 @@ describe('authenticationSlice', () => {
           roles: []
         })
       })
-      it('should unset isAuthenticted, roles, token and set error states when signout is dispatched and fails ', () => {
+      it('should unset isAuthenticated, roles, token and set error states when signout is dispatched and fails ', () => {
         const signedInState = {
           authenticating: false,
           isAuthenticated: true,
