@@ -17,7 +17,6 @@ from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, FuelTyp
                                   WeatherStationProperties,
                                   required_daily_fields)
 from app.schemas.shared import FuelType
-from app.tests import load_json_file, load_json_file_with_name
 from app.utils.time import get_pst_now, get_utc_now
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from starlette.testclient import TestClient
