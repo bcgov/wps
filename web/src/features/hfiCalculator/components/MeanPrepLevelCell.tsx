@@ -2,7 +2,7 @@ import { TableCell } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { fireTableStyles } from 'app/theme'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
-import { isUndefined } from 'lodash'
+import { isUndefined, isNull } from 'lodash'
 import React from 'react'
 
 export interface MeanPrepLevelCellProps {
@@ -76,6 +76,7 @@ const MeanPrepLevelCell = (props: MeanPrepLevelCellProps) => {
   const prepLevelError = () => {
     return (
       isUndefined(props.meanPrepLevel) ||
+      isNull(props.meanPrepLevel) ||
       isNaN(props.meanPrepLevel) ||
       props.emptyOrIncompleteForecast === true
     )
