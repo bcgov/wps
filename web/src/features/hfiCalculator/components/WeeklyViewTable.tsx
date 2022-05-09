@@ -45,24 +45,6 @@ export interface Props {
   fuelTypes: FuelType[]
 }
 
-export const columnLabelsForEachDayInWeek: string[] = [
-  'ROS (m/min)',
-  'HFI',
-  'M / FIG',
-  'Fire Starts',
-  'Prep Level'
-]
-
-export const weeklyTableColumnLabels = (numPrepDays: number): string[] => [
-  'Location',
-  'Elev. (m)',
-  'FBP Fuel Type',
-  'Grass Cure (%)',
-  ...Array(numPrepDays).fill(columnLabelsForEachDayInWeek).flat(),
-  'Highest Daily FIG',
-  'Calc. Prep'
-]
-
 const useStyles = makeStyles({
   ...fireTableStyles
 })
@@ -85,6 +67,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   }
 
   const numPrepDays = calculateNumPrepDays(props.dateRange)
+
+  if (isUndefined(result)) {
+    return <React.Fragment></React.Fragment>
+  }
 
   return (
     <FireTable
@@ -139,7 +125,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               planningArea => planningArea.order_of_appearance_in_list
             ).map(area => {
               const areaHFIResult: PlanningAreaResult | undefined =
-                result?.planning_area_hfi_results.find(
+                result.planning_area_hfi_results.find(
                   planningAreaResult => planningAreaResult.planning_area_id === area.id
                 )
 
@@ -199,9 +185,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         setNewFireStarts={props.setNewFireStarts}
                         planningAreaClass={classes.planningArea}
                         numPrepDays={numPrepDays}
-                        fireStartRanges={result ? result.fire_start_ranges : []}
+                        fireStartRanges={result.fire_start_ranges}
                         fuelTypes={props.fuelTypes}
-                        planningAreaStationInfo={result?.planning_area_station_info}
+                        planningAreaStationInfo={result.planning_area_station_info}
                       />
                     </TableRow>
                     {sortBy(
@@ -218,11 +204,14 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         : classes.stationCellPlainStyling
                       const stationCode = station.code
                       const selectedFuelType = getSelectedFuelType(
-                        result?.planning_area_station_info,
+                        result.planning_area_station_info,
                         area.id,
                         stationCode,
                         props.fuelTypes
                       )
+                      if (isUndefined(selectedFuelType)) {
+                        return <React.Fragment></React.Fragment>
+                      }
                       return (
                         <TableRow
                           className={classNameForRow}
