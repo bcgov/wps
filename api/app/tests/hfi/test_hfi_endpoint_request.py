@@ -134,7 +134,7 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_hfi_endpoint_request.feature', 'HFI - request')
-def test_fire_behaviour_calculator_scenario():
+def test_hfi_calculator_scenario():
     """ BDD Scenario. """
     pass
 
