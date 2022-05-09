@@ -70,13 +70,16 @@ Feature: /hfi/
 
     Scenario: HFI - Admin POST add station
         Given I received a POST request for hfi-calc admin <url> with <role>
-        And it has a <request_body>
+        And it has a <request_body> for a station that is <already_added>
         Then the response status code is <status_code>
         Examples:
-            | url                               | role               | request_body                        | status_code |
+            | url                               | role               | request_body                        | status_code | already_added |
             # Test add station with correct role
-            | /api/hfi-calc/admin/add-station/1 | hfi_station_admin  | test_admin_add_station_request.json | 201         |
+            | /api/hfi-calc/admin/add-station/1 | hfi_station_admin  | test_admin_add_station_request.json | 201         | False         |
             # Test add station without roles
-            | /api/hfi-calc/admin/add-station/1 | None               | test_admin_add_station_request.json | 401         |
+            | /api/hfi-calc/admin/add-station/1 | None               | test_admin_add_station_request.json | 401         | False         |
             # Test add station without correct role
-            | /api/hfi-calc/admin/add-station/1 | hfi_select_station | test_admin_add_station_request.json | 401         |
+            | /api/hfi-calc/admin/add-station/1 | hfi_select_station | test_admin_add_station_request.json | 401         | False         |
+            # Test add station with correct role but station already exists
+            | /api/hfi-calc/admin/add-station/1 | hfi_station_admin  | test_admin_add_station_request.json | 409         | True          |
+

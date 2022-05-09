@@ -5,6 +5,7 @@ import pytest
 import json
 from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
 from aiohttp import ClientSession
 from pytest_mock import MockerFixture
 import app.main
@@ -264,10 +265,16 @@ def given_post_with_request_body(monkeypatch: pytest.MonkeyPatch, url: str, role
     return url
 
 
-@given(parsers.parse('it has a {request_body}'),
+@given(parsers.parse('it has a {request_body} for a station that is {already_added}'),
        target_fixture='response',
-       converters={'request_body': load_json_file(__file__)})
-def has_a_request_body(url: str, request_body):
+       converters={'request_body': load_json_file(__file__), 'already_added': str})
+def has_a_request_body(monkeypatch: pytest.MonkeyPatch, url: str, request_body, already_added):
+    if already_added == "True":
+        def mock_store_hfi_station(*args, **kwargs):
+            raise IntegrityError(MagicMock(), MagicMock(), MagicMock())
+
+        monkeypatch.setattr(app.routers.hfi_calc, 'store_hfi_station', mock_store_hfi_station)
+
     client = TestClient(app.main.app)
     response = client.post(url, headers=headers, json=request_body)
     return {
