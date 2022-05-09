@@ -1,6 +1,5 @@
 """ Unit testing for hfi logic """
 from datetime import date, datetime, timedelta
-from re import M
 import pytest
 import os
 import json
