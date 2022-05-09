@@ -2,6 +2,7 @@ import { Collapse, IconButton, Alert } from '@mui/material'
 import { createStyles, makeStyles } from '@mui/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import { theme } from 'app/theme'
+import os from 'os'
 import React from 'react'
 
 export interface HFIErrorAlertProps {
@@ -25,11 +26,7 @@ const HFIErrorAlert = ({ errors }: HFIErrorAlertProps) => {
   const [open, setOpen] = React.useState(true)
 
   const formatErrorMessages = () => {
-    return (
-      <>
-        <p> {errors.map(err => (err ? ` - ${err}` : '')).join('</p><p>')} </p>
-      </>
-    )
+    return <>{errors.map(err => (err ? ` - ${err}` : '')).join('\n')}</>
   }
 
   return (
