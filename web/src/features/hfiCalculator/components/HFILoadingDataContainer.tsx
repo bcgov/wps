@@ -1,13 +1,13 @@
-import { Table, TableBody, Container, CircularProgress } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { Table, TableBody } from '@mui/material'
 import { FireCentre } from 'api/hfiCalculatorAPI'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { isUndefined, isNull } from 'lodash'
 import React from 'react'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
+import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 
-export interface HFILoadingDataViewProps {
+export interface HFILoadingDataContainerProps {
   pdfLoading: boolean
   fuelTypesLoading: boolean
   stationDataLoading: boolean
@@ -19,13 +19,7 @@ export interface HFILoadingDataViewProps {
   selectedFireCentre?: FireCentre
 }
 
-const useStyles = makeStyles(() => ({
-  container: {
-    display: 'flex',
-    justifyContent: 'center'
-  }
-}))
-const HFILoadingDataView = ({
+const HFILoadingDataContainer = ({
   pdfLoading,
   fuelTypesLoading,
   stationDataLoading,
@@ -35,9 +29,7 @@ const HFILoadingDataView = ({
   children,
   dateRange,
   selectedFireCentre
-}: HFILoadingDataViewProps) => {
-  const classes = useStyles()
-
+}: HFILoadingDataContainerProps) => {
   const buildErrorNotification = () => {
     if (!isNull(fireCentresError) || !isNull(hfiError)) {
       return (
@@ -70,21 +62,15 @@ const HFILoadingDataView = ({
         </Table>
       </React.Fragment>
     )
-  } else if (isLoadingWithoutError()) {
-    return (
-      <Container className={classes.container} data-testid="loading-container">
-        {errorNotification}
-        <CircularProgress />
-      </Container>
-    )
   }
 
   return (
     <React.Fragment>
       {errorNotification}
       {children}
+      <LoadingBackdrop isLoadingWithoutError={isLoadingWithoutError()} />
     </React.Fragment>
   )
 }
 
-export default HFILoadingDataView
+export default React.memo(HFILoadingDataContainer)
