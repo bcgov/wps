@@ -47,6 +47,7 @@ describe('authenticationSlice', () => {
         ...initialState,
         authenticating: false,
         isAuthenticated: true,
+        idir: 'cbrady@idir',
         token: tokenWithRoles,
         roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts']
       })
@@ -61,6 +62,7 @@ describe('authenticationSlice', () => {
         ...initialState,
         authenticating: false,
         isAuthenticated: true,
+        idir: 'cbrady@idir',
         token: tokenWithoutRoles,
         roles: []
       })
@@ -86,6 +88,7 @@ describe('authenticationSlice', () => {
         authenticating: false,
         tokenRefreshed: true,
         token: tokenWithRoles,
+        idir: 'cbrady@idir',
         roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts']
       })
     })
@@ -100,6 +103,7 @@ describe('authenticationSlice', () => {
         authenticating: false,
         tokenRefreshed: true,
         token: tokenWithoutRoles,
+        idir: 'cbrady@idir',
         roles: []
       })
     })
@@ -110,6 +114,7 @@ describe('authenticationSlice', () => {
           isAuthenticated: true,
           tokenRefreshed: false,
           token: tokenWithRoles,
+          idir: 'cbrady@idir',
           roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts'],
           error: null
         }
@@ -128,6 +133,7 @@ describe('authenticationSlice', () => {
           isAuthenticated: true,
           tokenRefreshed: false,
           token: tokenWithRoles,
+          idir: 'cbrady@idir',
           roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts'],
           error: null
         }

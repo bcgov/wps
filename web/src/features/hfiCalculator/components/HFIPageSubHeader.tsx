@@ -12,6 +12,9 @@ import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHead
 import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateRange } from 'components/dateRangePicker/types'
 import PrepDateRangeSelector from 'features/hfiCalculator/components/PrepDateRangeSelector'
+import LoggedInStatus from 'features/hfiCalculator/components/stationAdmin/LoggedInStatus'
+import { selectAuthentication } from 'app/rootReducer'
+import { useSelector } from 'react-redux'
 import SignoutButton from 'features/auth/components/SignoutButton'
 
 const useStyles = makeStyles(() => ({
@@ -56,7 +59,7 @@ interface Props {
 
 export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) => {
   const classes = useStyles(props)
-
+  const { isAuthenticated, roles, idir } = useSelector(selectAuthentication)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
 
   const openAboutModal = () => {
@@ -85,6 +88,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
           )
         )}
       />
+      <LoggedInStatus isAuthenticated={isAuthenticated} roles={roles} idir={idir} />
       <SignoutButton />
       <div className={classes.aboutButtonGridItem}>
         <FormControl className={classes.minWidth210}>
