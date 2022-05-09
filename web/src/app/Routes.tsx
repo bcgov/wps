@@ -2,7 +2,7 @@ import React from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 
 import { HIDE_DISCLAIMER } from 'utils/env'
-import AuthWrapper from 'features/auth/AuthWrapper'
+import AuthWrapper from 'features/auth/components/AuthWrapper'
 import PercentileCalculatorPageWithDisclaimer from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
 import HfiCalculatorPage from 'features/hfiCalculator/pages/HfiCalculatorPage'
 import CHainesPage from 'features/cHaines/pages/CHainesPage'
