@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
 import {
   fetchAddStation,
+  setAddedStationFailed,
   setStationAdded
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
@@ -73,7 +74,10 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
+export const AddStationModal = ({
+  modalOpen,
+  setModalOpen
+}: AddStationModalProps): JSX.Element => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
@@ -106,8 +110,11 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
   }, [])
 
   const handleClose = () => {
-    props.setModalOpen(false)
+    setModalOpen(false)
     setNewStation(newEmptyStation)
+    if (!isNull(stationAddedError)) {
+      dispatch(setAddedStationFailed(null))
+    }
   }
 
   useEffect(() => {
@@ -138,7 +145,7 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
 
   const buildErrorNotification = () => {
     if (!isNull(stationAddedError)) {
-      return <HFIErrorAlert errors={[stationAddedError]} />
+      return <HFIErrorAlert errors={[stationAddedError]} disableGeneralInstructions />
     }
     return <React.Fragment></React.Fragment>
   }
@@ -148,7 +155,7 @@ export const AddStationModal = (props: AddStationModalProps): JSX.Element => {
       <Dialog
         fullWidth
         maxWidth="md"
-        open={props.modalOpen}
+        open={modalOpen}
         onClose={handleClose}
         data-testid="manage-stations-modal"
       >

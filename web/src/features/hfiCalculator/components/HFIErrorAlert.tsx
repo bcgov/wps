@@ -7,6 +7,7 @@ import { isNull } from 'lodash'
 
 export interface HFIErrorAlertProps {
   errors: Array<string | null>
+  disableGeneralInstructions?: boolean
 }
 
 const useStyles = makeStyles(() =>
@@ -21,7 +22,7 @@ const useStyles = makeStyles(() =>
   })
 )
 
-const HFIErrorAlert = ({ errors }: HFIErrorAlertProps) => {
+const HFIErrorAlert = ({ errors, disableGeneralInstructions }: HFIErrorAlertProps) => {
   const classes = useStyles()
   const [open, setOpen] = React.useState(true)
 
@@ -30,8 +31,28 @@ const HFIErrorAlert = ({ errors }: HFIErrorAlertProps) => {
       <>
         {errors
           .filter(err => !isNull(err))
-          .map(err => `- ${err}`)
+          .map(err => `${err}`)
           .join('\n')}
+      </>
+    )
+  }
+
+  const generalInstructions = () => {
+    if (disableGeneralInstructions) {
+      return <></>
+    }
+    return (
+      <>
+        The following errors have occurred. Please refresh the page. If the problem
+        persists, please&nbsp;
+        <a
+          id="contact-hfi-error"
+          href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - HFI Error`}
+        >
+          contact us
+        </a>
+        :
+        <br />
       </>
     )
   }
@@ -54,16 +75,7 @@ const HFIErrorAlert = ({ errors }: HFIErrorAlertProps) => {
             </IconButton>
           }
         >
-          The following errors have occurred. Please refresh the page. If the problem
-          persists, please&nbsp;
-          <a
-            id="contact-hfi-error"
-            href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - HFI Error`}
-          >
-            contact us
-          </a>
-          :
-          <br />
+          {generalInstructions()}
           {formatErrorMessages()}
         </Alert>
       </Collapse>
