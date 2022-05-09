@@ -47,7 +47,7 @@ describe('authenticationSlice', () => {
         ...initialState,
         authenticating: false,
         isAuthenticated: true,
-        idir: 'test@idir',
+        idir: 'cbrady@idir',
         token: tokenWithRoles,
         roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts']
       })
