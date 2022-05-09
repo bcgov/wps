@@ -1,9 +1,11 @@
 """ Unit testing for hfi logic """
 from datetime import date, datetime, timedelta
+from re import M
 import pytest
 import os
 import json
 from pytest_mock import MockerFixture
+from app.fire_behaviour.prediction import calculate_fire_behaviour_prediction_using_c7b
 from app.hfi.hfi_calc import (calculate_hfi_results,
                               calculate_mean_intensity,
                               calculate_max_intensity_group,
@@ -311,3 +313,20 @@ def test_inclusive_date_math_bad_start_date():
     """ Test that range calculation doesn't raise exception with invalid end date. """
     with pytest.raises(InvalidDateRangeError):
         DateRange(start_date=date(2020, 5, 26), end_date=date(2020, 5, 25)).days_in_range()
+
+
+def test_calculate_fbp_fire_size_using_c7b():
+    """ Test that fire behaviour prediction is calculated correctly. """
+    fbp = calculate_fire_behaviour_prediction_using_c7b(
+        latitude=45.0,
+        longitude=-90.0,
+        elevation=1000,
+        ffmc=30,
+        bui=30,
+        wind_speed=10,
+        isi=30,
+        cc=30,
+        cbh=7,
+        cfl=30
+    )
+    assert fbp.sixty_minute_fire_size == 2.984466862962549e-12
