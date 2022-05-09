@@ -1,4 +1,4 @@
-import { TextField, Tooltip, adaptV4Theme } from '@mui/material'
+import { TextField, Tooltip } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   createTheme,
@@ -32,18 +32,18 @@ const useStyles = makeStyles({
   }
 })
 
-const adjustedTheme = createTheme(
-  adaptV4Theme({
-    overrides: {
-      MuiInputBase: {
+const adjustedTheme = createTheme({
+  components: {
+    MuiInputBase: {
+      styleOverrides: {
         root: {
           border: '2px solid #460270',
           fontSize: '0.875rem'
         }
       }
     }
-  })
-)
+  }
+})
 
 const WindSpeedCell = (props: WindSpeedCellProps) => {
   const classes = useStyles()

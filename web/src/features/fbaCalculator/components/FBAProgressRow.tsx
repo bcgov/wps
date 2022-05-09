@@ -5,8 +5,7 @@ import {
   TableRow,
   ThemeProvider,
   Theme,
-  StyledEngineProvider,
-  adaptV4Theme
+  StyledEngineProvider
 } from '@mui/material'
 import { theme } from 'app/theme'
 
@@ -23,10 +22,10 @@ interface FBAProgressRowProps {
 }
 
 const FBAProgressRow = (props: FBAProgressRowProps) => {
-  const adjustedTheme = createTheme(
-    adaptV4Theme({
-      overrides: {
-        MuiTableRow: {
+  const adjustedTheme = createTheme({
+    components: {
+      MuiTableRow: {
+        styleOverrides: {
           root: {
             position: 'sticky',
             left: 0,
@@ -34,8 +33,9 @@ const FBAProgressRow = (props: FBAProgressRowProps) => {
           }
         }
       }
-    })
-  )
+    }
+  })
+
   return (
     <React.Fragment>
       {props.loading && (
