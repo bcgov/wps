@@ -2,7 +2,6 @@ import { Collapse, IconButton, Alert } from '@mui/material'
 import { createStyles, makeStyles } from '@mui/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import { theme } from 'app/theme'
-import os from 'os'
 import React from 'react'
 import { isNull } from 'lodash'
 
