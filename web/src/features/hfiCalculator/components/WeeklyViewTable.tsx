@@ -30,6 +30,7 @@ import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentr
 import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
 import { ROLES } from 'features/auth/roles'
+import PlanningAreaReadyToggle from 'features/hfiCalculator/components/PlanningAreaReadyToggle'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -151,6 +152,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             <TableRow>
                               <TableCell className={classes.noBottomBorder}>
                                 {area.name}
+                              </TableCell>
+                              <TableCell>
+                                <PlanningAreaReadyToggle disabled={false} />
                               </TableCell>
                             </TableRow>
                           </TableBody>
