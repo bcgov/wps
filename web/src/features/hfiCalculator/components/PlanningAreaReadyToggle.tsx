@@ -1,4 +1,4 @@
-import { ToggleButton } from '@mui/material'
+import { IconButton } from '@mui/material'
 import ToggleOffOutlinedIcon from '@mui/icons-material/ToggleOffOutlined'
 import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined'
 import React from 'react'
@@ -11,16 +11,17 @@ const PlanningAreaReadyToggle = ({ disabled }: PlanningAreaReadyToggleProps) => 
   const [ready, setReady] = React.useState(false)
 
   return (
-    <ToggleButton
+    <IconButton
+      aria-label="hfi-toggle-ready"
+      data-testid="hfi-toggle-ready"
+      size="large"
       disabled={disabled}
-      value="ready"
-      selected={ready}
-      onChange={() => {
+      onClick={() => {
         setReady(!ready)
       }}
     >
       {ready ? <ToggleOnOutlinedIcon color="success" /> : <ToggleOffOutlinedIcon />}
-    </ToggleButton>
+    </IconButton>
   )
 }
 

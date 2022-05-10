@@ -151,10 +151,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           <TableBody>
                             <TableRow>
                               <TableCell className={classes.noBottomBorder}>
-                                {area.name}
-                              </TableCell>
-                              <TableCell>
-                                <PlanningAreaReadyToggle disabled={false} />
+                                {area.name} <PlanningAreaReadyToggle disabled={false} />
                               </TableCell>
                             </TableRow>
                           </TableBody>
