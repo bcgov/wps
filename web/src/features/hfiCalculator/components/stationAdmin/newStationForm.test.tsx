@@ -21,7 +21,7 @@ describe('NewStationForm', () => {
     invalid: boolean,
     stationAddedError: string | null
   ) => {
-    const { getByTestId, queryByText } = render(
+    return render(
       <NewStationForm
         newStation={newStation}
         invalid={invalid}
@@ -30,7 +30,6 @@ describe('NewStationForm', () => {
         stationAddedError={stationAddedError}
       />
     )
-    return { getByTestId, queryByText }
   }
   describe('valid states', () => {
     it('should not render error message when new station has not been edited', () => {
@@ -113,29 +112,32 @@ describe('NewStationForm', () => {
       const errorMessage = queryByText(alreadyExistsMessage)
       expect(errorMessage).toBeInTheDocument()
     })
-    it('should render error outline for planning area dropdown when missing and station is edited', () => {
-      const { getByTestId } = renderNewStationForm({ dirty: true }, true, null)
+    describe('dropdown error outlines', () => {
+      const renderIncompleteForm = () => renderNewStationForm({ dirty: true }, true, null)
+      it('should render error outline for planning area dropdown when missing and station is edited', () => {
+        const { getByTestId } = renderIncompleteForm()
 
-      const planningAreaSelect = getByTestId('select-planning-area')
-      expect(
-        planningAreaSelect.getElementsByClassName('Mui-error').length
-      ).toBeGreaterThanOrEqual(1)
-    })
-    it('should render error outline for station dropdown when missing and station is edited', () => {
-      const { getByTestId } = renderNewStationForm({ dirty: true }, true, null)
+        const planningAreaSelect = getByTestId('select-planning-area')
+        expect(
+          planningAreaSelect.getElementsByClassName('Mui-error').length
+        ).toBeGreaterThanOrEqual(1)
+      })
+      it('should render error outline for station dropdown when missing and station is edited', () => {
+        const { getByTestId } = renderIncompleteForm()
 
-      const planningAreaSelect = getByTestId('select-station')
-      expect(
-        planningAreaSelect.getElementsByClassName('Mui-error').length
-      ).toBeGreaterThanOrEqual(1)
-    })
-    it('should render error outline for fuel type dropdown when missing and station is edited', () => {
-      const { getByTestId } = renderNewStationForm({ dirty: true }, true, null)
+        const planningAreaSelect = getByTestId('select-station')
+        expect(
+          planningAreaSelect.getElementsByClassName('Mui-error').length
+        ).toBeGreaterThanOrEqual(1)
+      })
+      it('should render error outline for fuel type dropdown when missing and station is edited', () => {
+        const { getByTestId } = renderIncompleteForm()
 
-      const planningAreaSelect = getByTestId('select-fuel-type')
-      expect(
-        planningAreaSelect.getElementsByClassName('Mui-error').length
-      ).toBeGreaterThanOrEqual(1)
+        const planningAreaSelect = getByTestId('select-fuel-type')
+        expect(
+          planningAreaSelect.getElementsByClassName('Mui-error').length
+        ).toBeGreaterThanOrEqual(1)
+      })
     })
   })
 })
