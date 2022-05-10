@@ -8,7 +8,6 @@ import { FireCentre } from 'api/hfiCalculatorAPI'
 import AboutDataModal from 'features/hfiCalculator/components/AboutDataModal'
 import { HelpOutlineOutlined } from '@mui/icons-material'
 import { formControlStyles, theme } from 'app/theme'
-import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateRange } from 'components/dateRangePicker/types'
 import PrepDateRangeSelector from 'features/hfiCalculator/components/PrepDateRangeSelector'
@@ -80,13 +79,6 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
       <PrepDateRangeSelector
         dateRange={props.result ? props.result.date_range : undefined}
         setDateRange={props.setDateRange}
-      />
-      <LastUpdatedHeader
-        dailies={props.result?.planning_area_hfi_results.flatMap(areaResult =>
-          areaResult.daily_results.flatMap(dailyResult =>
-            dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
-          )
-        )}
       />
       <LoggedInStatus isAuthenticated={isAuthenticated} roles={roles} idir={idir} />
       <SignoutButton />
