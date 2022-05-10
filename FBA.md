@@ -5,7 +5,7 @@
 - [x] ROScalc
 - [x] C6calc
 - [x] BEcalc
-- [ ] Slopecalc
+- [x] Slopecalc
 
 ## CFFDRS
 
@@ -25,9 +25,9 @@ graph
         BUI
     end
 
-    WF1API-->Latitude
-    WF1API-->Longitude
-    WF1API-->Elevation
+    WF1API-->LAT
+    WF1API-->LONG
+    WF1API-->ELV
 
     subgraph Inputs
         FuelType
@@ -43,6 +43,8 @@ graph
 
     ROScalc["Rate Of Spread</br>ROS</br>CFFDRS::.ROScalc</br>C1 only takes ISI and BUI as input"]
     Slopecalc["Calculate the net effective windspeed (WSV),</br> the net effective wind direction (RAZ)</br> or the wind azimuth (WAZ).</br>CFFDRS::.Slopecalc"]
+    C6calc["Calculate c6 (Conifer plantation) Fire Spread.</br>CFFDRS::.C6calc"]
+    BEcalc["CFFDRS::.BEcalc"]
 
     Wind-->WS
     Wind-->WAZ
@@ -109,5 +111,10 @@ graph
     Slopecalc-->ISIcalc
     Slopecalc-->ROScalc
 
-
+    LAT-->FMCcalc
+    LONG-->FMCcalc
+    ELV-->FMCcalc
+    DJ-->FMCcalc
+    D0-->FMCcalc
+    FMCcalc-->FMC
 ```
