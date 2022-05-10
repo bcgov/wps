@@ -1,18 +1,14 @@
 """ CRUD operations relating to HFI Calculator
 """
-import logging
 from typing import List
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
-from sqlalchemy.dialects import postgresql
 from app.db.database import get_read_session_scope
 from app.schemas.hfi_calc import DateRange, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, PlanningArea, PlanningWeatherStation, HFIRequest,
                                     FireStartRange, FireCentreFireStartRange, FireStartLookup)
 from app.utils.time import get_utc_now
-
-logger = logging.getLogger(__name__)
 
 
 def get_fire_weather_stations(session: Session) -> CursorResult:
