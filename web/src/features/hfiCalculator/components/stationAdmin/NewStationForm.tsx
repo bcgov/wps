@@ -16,6 +16,7 @@ export interface NewStationFormProps {
   setNewStation: Dispatch<SetStateAction<AdminStation>>
   invalid: boolean
   setInvalid: Dispatch<SetStateAction<boolean>>
+  stationAddedError: string | null
 }
 
 const useStyles = makeStyles({
@@ -35,7 +36,8 @@ export const NewStationForm = ({
   newStation,
   setNewStation,
   invalid,
-  setInvalid
+  setInvalid,
+  stationAddedError
 }: NewStationFormProps): JSX.Element => {
   const classes = useStyles()
 
@@ -46,6 +48,16 @@ export const NewStationForm = ({
       isUndefined(station.fuelType)
     setInvalid(missingFields && station.dirty)
   }
+
+  const planningAreaError =
+    (newStation.dirty && isUndefined(newStation.planningArea)) ||
+    !isNull(stationAddedError)
+
+  const stationError =
+    (newStation.dirty && isUndefined(newStation.station)) || !isNull(stationAddedError)
+
+  const fuelTypeError =
+    (newStation.dirty && isUndefined(newStation.fuelType)) || !isNull(stationAddedError)
 
   const toolTipText = (
     <div className={classes.toolTipText}>Grass curing is set in WFWX</div>
@@ -70,19 +82,17 @@ export const NewStationForm = ({
                     {...params}
                     label="Select Planning Area"
                     variant="outlined"
-                    error={newStation.dirty && isUndefined(newStation.planningArea)}
+                    error={planningAreaError}
                   />
                 )}
                 onChange={(_, value) => {
-                  if (!isNull(value)) {
-                    const changedNewStation = {
-                      ...newStation,
-                      dirty: true,
-                      planningArea: value
-                    }
-                    setNewStation(changedNewStation)
-                    invalidNewStation(changedNewStation)
+                  const changedNewStation = {
+                    ...newStation,
+                    dirty: true,
+                    planningArea: isNull(value) ? undefined : value
                   }
+                  setNewStation(changedNewStation)
+                  invalidNewStation(changedNewStation)
                 }}
               />
             </Grid>
@@ -101,19 +111,17 @@ export const NewStationForm = ({
                     {...params}
                     label="Select Station"
                     variant="outlined"
-                    error={newStation.dirty && isUndefined(newStation.station)}
+                    error={stationError}
                   />
                 )}
                 onChange={(_, value) => {
-                  if (!isNull(value)) {
-                    const changedNewStation = {
-                      ...newStation,
-                      dirty: true,
-                      station: value
-                    }
-                    setNewStation(changedNewStation)
-                    invalidNewStation(changedNewStation)
+                  const changedNewStation = {
+                    ...newStation,
+                    dirty: true,
+                    station: isNull(value) ? undefined : value
                   }
+                  setNewStation(changedNewStation)
+                  invalidNewStation(changedNewStation)
                 }}
               />
             </Grid>
@@ -138,19 +146,17 @@ export const NewStationForm = ({
                     {...params}
                     label="Select Fuel Type"
                     variant="outlined"
-                    error={newStation.dirty && isUndefined(newStation.fuelType)}
+                    error={fuelTypeError}
                   />
                 )}
                 onChange={(_, value) => {
-                  if (!isNull(value)) {
-                    const changedNewStation = {
-                      ...newStation,
-                      dirty: true,
-                      fuelType: value
-                    }
-                    setNewStation(changedNewStation)
-                    invalidNewStation(changedNewStation)
+                  const changedNewStation = {
+                    ...newStation,
+                    dirty: true,
+                    fuelType: isNull(value) ? undefined : value
                   }
+                  setNewStation(changedNewStation)
+                  invalidNewStation(changedNewStation)
                 }}
               />
             </Grid>
@@ -171,6 +177,22 @@ export const NewStationForm = ({
               <Typography variant="body1">
                 Please complete empty fields to continue
               </Typography>
+            </Grid>
+          </Grid>
+        )}
+        {!isNull(stationAddedError) && (
+          <Grid
+            container
+            direction="row"
+            justifyContent="center"
+            spacing={1}
+            marginTop={5}
+          >
+            <Grid item>
+              <ErrorOutlineIcon color="error" />
+            </Grid>
+            <Grid item>
+              <Typography variant="body1">Station already exists</Typography>
             </Grid>
           </Grid>
         )}

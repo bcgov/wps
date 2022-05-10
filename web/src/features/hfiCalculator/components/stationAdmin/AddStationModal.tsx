@@ -25,7 +25,6 @@ import { isNull, isUndefined } from 'lodash'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
-import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 
 export interface AdminStation {
   dirty: boolean
@@ -143,13 +142,6 @@ export const AddStationModal = ({
     }
   }
 
-  const buildErrorNotification = () => {
-    if (!isNull(stationAddedError)) {
-      return <HFIErrorAlert errors={[stationAddedError]} disableGeneralInstructions />
-    }
-    return <React.Fragment></React.Fragment>
-  }
-
   return (
     <React.Fragment>
       <Dialog
@@ -164,8 +156,6 @@ export const AddStationModal = ({
             <ClearIcon />
           </IconButton>
           <DialogContent>
-            {buildErrorNotification()}
-
             <Typography variant="h5" align="center">
               Add New Weather Station
             </Typography>
@@ -178,6 +168,7 @@ export const AddStationModal = ({
               invalid={invalid}
               setInvalid={setInvalid}
               addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
+              stationAddedError={stationAddedError}
             />
           </DialogContent>
           <SaveNewStationButton
