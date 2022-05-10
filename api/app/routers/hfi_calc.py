@@ -11,7 +11,7 @@ from pydantic.error_wrappers import ValidationError
 from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
                                        get_cached_hydrated_fire_centres,
                                        put_cached_hydrated_fire_centres)
-from app.hfi.hfi_request import update_stored_request
+from app.hfi.hfi_request import update_result_request
 from app.utils.time import get_pst_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
@@ -81,7 +81,7 @@ def get_prepared_request(
     if stored_request:
         try:
             latest_stations = get_planning_weather_stations(session, fire_centre_id)
-            result_request = update_stored_request(
+            result_request = update_result_request(
                 HFIResultRequest.parse_obj(json.loads(stored_request.request)),
                 latest_stations)
             request_loaded = True
