@@ -1,4 +1,6 @@
 """ Routers for HFI Calculator """
+from itertools import groupby
+import operator
 import logging
 import json
 from typing import List, Optional, Dict, Tuple
@@ -37,8 +39,10 @@ from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_last_station_in_planning_area,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
+                                  get_planning_weather_stations,
                                   store_hfi_request,
-                                  get_fire_centre_stations, store_hfi_station)
+                                  get_fire_centre_stations,
+                                  store_hfi_station)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -64,6 +68,7 @@ def get_prepared_request(
 
     TODO: give this function a better name.
     """
+    # pylint: disable=too-many-locals
     fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
     if date_range:
         stored_request = get_most_recent_updated_hfi_request(session,
@@ -77,6 +82,18 @@ def get_prepared_request(
     if stored_request:
         try:
             result_request = HFIResultRequest.parse_obj(json.loads(stored_request.request))
+            latest_stations = get_planning_weather_stations(session, fire_centre_id)
+            get_attr = operator.attrgetter('planning_area_id')
+            stations_by_planning_area = dict((k, list(map(lambda x: x, values)))
+                                             for k, values in groupby(latest_stations, get_attr))
+            for planning_area_id in result_request.planning_area_station_info:
+                planning_area_stations = stations_by_planning_area.get(planning_area_id)
+                station_info: List[StationInfo] = [StationInfo(
+                    station_code=station.station_code,
+                    selected=True,
+                    fuel_type_id=station.fuel_type_id) for station in planning_area_stations]
+                result_request.planning_area_station_info[planning_area_id] = station_info
+
             request_loaded = True
         except ValidationError as validation_error:
             # This can happen when we change the schema! It's rare - but it happens.

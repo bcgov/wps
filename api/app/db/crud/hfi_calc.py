@@ -50,6 +50,13 @@ def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
         .filter(PlanningArea.fire_centre_id == fire_centre_id)
 
 
+def get_planning_weather_stations(session, fire_centre_id: int) -> List[PlanningWeatherStation]:
+    """ Get all the stations for a fire centre. """
+    return session.query(PlanningWeatherStation)\
+        .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
+        .filter(PlanningArea.fire_centre_id == fire_centre_id).all()
+
+
 def get_most_recent_updated_hfi_request(session: Session,
                                         fire_centre_id: int,
                                         date_range: DateRange) -> HFIRequest:
