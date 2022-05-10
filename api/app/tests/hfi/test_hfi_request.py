@@ -21,15 +21,25 @@ def test_no_new_stations(result_request):
     result = update_result_request(result_request, [])
     assert len(result.planning_area_station_info[1]) == 1
     assert result.planning_area_station_info[1][0].station_code == 230
-    assert result.planning_area_station_info[1][0].selected == True
+    assert result.planning_area_station_info[1][0].selected == False
     assert result.planning_area_station_info[1][0].fuel_type_id == 1
 
 
 def test_new_stations(result_request):
     """ New stations should overwrite existing """
-    new_stations = [PlanningWeatherStation(station_code=1, fuel_type_id=1, planning_area_id=1),
-                    PlanningWeatherStation(station_code=2, fuel_type_id=1, planning_area_id=1)]
-    result = update_result_request(result_request, new_stations)
+    latest_stations = [PlanningWeatherStation(station_code=1, fuel_type_id=1, planning_area_id=1),
+                       PlanningWeatherStation(station_code=2, fuel_type_id=1, planning_area_id=1)]
+    result = update_result_request(result_request, latest_stations)
     assert len(result.planning_area_station_info[1]) == 2
     assert result.planning_area_station_info[1][0].station_code == 1
     assert result.planning_area_station_info[1][1].station_code == 2
+
+
+def test_existing_stations(result_request):
+    """ Existing station state should remain """
+    latest_stations = [PlanningWeatherStation(station_code=230, fuel_type_id=1, planning_area_id=1)]
+    result = update_result_request(result_request, latest_stations)
+    assert len(result.planning_area_station_info[1]) == 1
+    assert result.planning_area_station_info[1][0].station_code == 230
+    assert result.planning_area_station_info[1][0].selected == False
+    assert result.planning_area_station_info[1][0].fuel_type_id == 1
