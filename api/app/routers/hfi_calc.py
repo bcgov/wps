@@ -1,6 +1,4 @@
 """ Routers for HFI Calculator """
-from itertools import groupby
-import operator
 import logging
 import json
 from typing import List, Optional, Dict, Tuple
@@ -13,6 +11,7 @@ from pydantic.error_wrappers import ValidationError
 from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
                                        get_cached_hydrated_fire_centres,
                                        put_cached_hydrated_fire_centres)
+from app.hfi.hfi_request import update_stored_request
 from app.utils.time import get_pst_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
@@ -81,19 +80,10 @@ def get_prepared_request(
     request_loaded = False
     if stored_request:
         try:
-            result_request = HFIResultRequest.parse_obj(json.loads(stored_request.request))
             latest_stations = get_planning_weather_stations(session, fire_centre_id)
-            get_attr = operator.attrgetter('planning_area_id')
-            stations_by_planning_area = dict((k, list(map(lambda x: x, values)))
-                                             for k, values in groupby(latest_stations, get_attr))
-            for planning_area_id in result_request.planning_area_station_info:
-                planning_area_stations = stations_by_planning_area.get(planning_area_id)
-                station_info: List[StationInfo] = [StationInfo(
-                    station_code=station.station_code,
-                    selected=True,
-                    fuel_type_id=station.fuel_type_id) for station in planning_area_stations]
-                result_request.planning_area_station_info[planning_area_id] = station_info
-
+            result_request = update_stored_request(
+                HFIResultRequest.parse_obj(json.loads(stored_request.request)),
+                latest_stations)
             request_loaded = True
         except ValidationError as validation_error:
             # This can happen when we change the schema! It's rare - but it happens.
