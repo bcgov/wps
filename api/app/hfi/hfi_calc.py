@@ -315,18 +315,20 @@ def calculate_daily_results(num_prep_days: int,
                             area_dailies: List[StationDaily],
                             planning_area_fire_starts: Dict[int, FireStartRange],
                             area_id: int,
-                            fire_start_lookup: Dict[int, Dict[int, int]]) -> Tuple[List[DailyResult], bool]:
+                            fire_start_lookup: Dict[int, Dict[int, int]],
+                            num_unique_station_codes: int) -> Tuple[List[DailyResult], bool]:
     """ Calculate the daily results for a planning area."""
     daily_results: List[DailyResult] = []
     for index in range(num_prep_days):
         dailies_date = start_date + timedelta(days=index)
         prep_day_dailies = get_prep_day_dailies(dailies_date, area_dailies)
         daily_fire_starts: FireStartRange = planning_area_fire_starts[area_id][index]
-        mean_intensity_group = calculate_mean_intensity(prep_day_dailies)
+        mean_intensity_group = calculate_mean_intensity(prep_day_dailies, num_unique_station_codes)
         prep_level = calculate_prep_level(mean_intensity_group, daily_fire_starts, fire_start_lookup)
         validated_dailies: List[ValidatedStationDaily] = list(map(validate_station_daily, prep_day_dailies))
         # check if all validated_dailies are valid.
-        all_dailies_valid = all(map(lambda validated_daily: (validated_daily.valid), validated_dailies))
+        valids = [v.valid for v in validated_dailies]
+        all_dailies_valid = all(valids)
         daily_result = DailyResult(
             date=dailies_date,
             dailies=validated_dailies,
@@ -402,6 +404,9 @@ def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
             lowest_fire_starts)
 
         all_dailies_valid: bool = True
+        num_unique_station_codes = len([
+            station.station_code for station in filter(
+                lambda station: (station.selected), planning_area_station_info[area_id])])
 
         (daily_results,
          all_dailies_valid) = calculate_daily_results(num_prep_days,
@@ -409,7 +414,8 @@ def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
                                                       area_dailies,
                                                       planning_area_fire_starts,
                                                       area_id,
-                                                      fire_start_lookup)
+                                                      fire_start_lookup,
+                                                      num_unique_station_codes)
 
         highest_daily_intensity_group = calculate_max_intensity_group(
             list(map(lambda daily_result: (daily_result.mean_intensity_group), daily_results)))
@@ -442,11 +448,17 @@ def calculate_mean_prep_level(prep_levels: List[Optional[float]], num_prep_days:
     return round(mean(valid_prep_levels))
 
 
-def calculate_mean_intensity(dailies: List[StationDaily]):
+def calculate_mean_intensity(dailies: List[StationDaily], num_of_station_codes: int):
     """ Returns the mean intensity group from a list of values """
+    # If there are less dailies than there are unique station codes in the planning area,
+    # it means that some stations are entirely missing data for the day, so MIG can't
+    # be calculated.
+    if len(dailies) != num_of_station_codes:
+        return None
     intensity_groups = list(map(lambda daily: (daily.intensity_group), dailies))
     valid_intensity_groups = list(filter(None, intensity_groups))
-    if len(valid_intensity_groups) == 0:
+    # If some intensity groups are invalid, can't calculate mean intensity group. Should display error
+    if len(valid_intensity_groups) != len(dailies) or len(valid_intensity_groups) == 0:
         return None
     mean_intensity_group = mean(valid_intensity_groups)
     if round(mean_intensity_group % 1, 1) < 0.8:

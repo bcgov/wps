@@ -37,12 +37,26 @@ import { AppDispatch } from 'app/store'
 import HFILoadingDataView from 'features/hfiCalculator/components/HFILoadingDataView'
 import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
 import { ROLES } from 'features/auth/roles'
+import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 
 const useStyles = makeStyles(theme => ({
   ...formControlStyles,
   container: {
     display: 'flex',
     justifyContent: 'center'
+  },
+  controlContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'row',
+    margin: theme.spacing(1),
+    minWidth: 210
+  },
+  actionButtonContainer: {
+    marginLeft: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'row'
   },
   helpIcon: {
     fill: theme.palette.primary.main
@@ -65,10 +79,6 @@ const useStyles = makeStyles(theme => ({
   prepDays: {
     margin: theme.spacing(1),
     minWidth: 100
-  },
-  actionButton: {
-    margin: theme.spacing(1),
-    float: 'right'
   }
 }))
 
@@ -237,20 +247,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     return <React.Fragment></React.Fragment>
   }
 
-  const buildAddStationButton = () => {
-    if (
-      !isUndefined(selectedFireCentre) &&
-      roles.includes(ROLES.HFI.STATION_ADMIN) &&
-      isAuthenticated
-    ) {
-      return (
-        <FormControl className={classes.actionButton}>
-          <AddStationButton />
-        </FormControl>
-      )
-    }
-  }
-
   return (
     <main data-testid="hfi-calculator-page">
       <GeneralHeader
@@ -281,18 +277,25 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           <React.Fragment>
             <LiveChangesAlert />
             {buildSuccessNotification()}
-            <FormControl className={classes.formControl}>
+            <FormControl className={classes.controlContainer}>
               <ViewSwitcherToggles
                 dateRange={dateRange}
                 selectedPrepDate={selectedPrepDate}
               />
+              <LastUpdatedHeader
+                dailies={result?.planning_area_hfi_results.flatMap(areaResult =>
+                  areaResult.daily_results.flatMap(dailyResult =>
+                    dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
+                  )
+                )}
+              />
+              <FormControl className={classes.actionButtonContainer}>
+                {roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && (
+                  <AddStationButton />
+                )}
+                <DownloadPDFButton onClick={handleDownloadClicked} />
+              </FormControl>
             </FormControl>
-
-            <FormControl className={classes.actionButton}>
-              <DownloadPDFButton onClick={handleDownloadClicked} />
-            </FormControl>
-
-            {buildAddStationButton()}
 
             <ErrorBoundary>
               {isUndefined(result) ? (

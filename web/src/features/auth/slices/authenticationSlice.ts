@@ -13,6 +13,7 @@ interface State {
   isAuthenticated: boolean
   tokenRefreshed: boolean
   token: string | undefined
+  idir: string | undefined
   roles: string[]
   error: string | null
 }
@@ -22,6 +23,7 @@ export const initialState: State = {
   isAuthenticated: false,
   tokenRefreshed: false,
   token: undefined,
+  idir: undefined,
   roles: [],
   error: null
 }
@@ -44,6 +46,7 @@ const authSlice = createSlice({
       state.isAuthenticated = action.payload.isAuthenticated
       state.token = action.payload.token
       state.roles = decodeRoles(action.payload.token)
+      state.idir = decodeIdir(action.payload.token)
     },
     authenticateError(state: State, action: PayloadAction<string>) {
       state.authenticating = false
@@ -61,6 +64,20 @@ const authSlice = createSlice({
       state.token = action.payload.token
       state.tokenRefreshed = action.payload.tokenRefreshed
       state.roles = decodeRoles(action.payload.token)
+      state.idir = decodeIdir(action.payload.token)
+    },
+    signoutFinished(state: State) {
+      state.authenticating = false
+      state.isAuthenticated = false
+      state.token = undefined
+      state.roles = []
+    },
+    signoutError(state: State, action: PayloadAction<string>) {
+      state.authenticating = false
+      state.isAuthenticated = false
+      state.error = action.payload
+      state.token = undefined
+      state.roles = []
     }
   }
 })
@@ -69,7 +86,9 @@ export const {
   authenticateStart,
   authenticateFinished,
   authenticateError,
-  refreshTokenFinished
+  refreshTokenFinished,
+  signoutFinished,
+  signoutError
 } = authSlice.actions
 
 export default authSlice.reducer
@@ -88,6 +107,23 @@ export const decodeRoles = (token: string | undefined) => {
   } catch (e) {
     // User has no roles
     return []
+  }
+}
+
+export const decodeIdir = (token: string | undefined) => {
+  if (isUndefined(token)) {
+    return undefined
+  }
+  if (TEST_AUTH || window.Cypress) {
+    return 'test@idir'
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const decodedToken: any = jwt_decode(token)
+  try {
+    return decodedToken.preferred_username
+  } catch (e) {
+    // No idir username
+    return undefined
   }
 }
 
@@ -126,5 +162,17 @@ export const authenticate = (): AppThunk => dispatch => {
         // Restart the authentication flow
         dispatch(authenticate())
       })
+  }
+}
+
+export const signout = (): AppThunk => async dispatch => {
+  if (!kcInstance) {
+    return dispatch(signoutError('Failed to authenticate (Unable to fetch keycloak-js).'))
+  }
+
+  try {
+    await kcInstance.logout()
+  } catch (e) {
+    return dispatch(signoutError(`Failed to signout: ${e}`))
   }
 }

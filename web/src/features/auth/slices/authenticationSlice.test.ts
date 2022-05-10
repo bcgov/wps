@@ -4,7 +4,9 @@ import authReducer, {
   authenticateStart,
   authenticateFinished,
   authenticateError,
-  refreshTokenFinished
+  refreshTokenFinished,
+  signoutFinished,
+  signoutError
 } from 'features/auth/slices/authenticationSlice'
 
 describe('authenticationSlice', () => {
@@ -45,6 +47,7 @@ describe('authenticationSlice', () => {
         ...initialState,
         authenticating: false,
         isAuthenticated: true,
+        idir: 'cbrady@idir',
         token: tokenWithRoles,
         roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts']
       })
@@ -59,6 +62,7 @@ describe('authenticationSlice', () => {
         ...initialState,
         authenticating: false,
         isAuthenticated: true,
+        idir: 'cbrady@idir',
         token: tokenWithoutRoles,
         roles: []
       })
@@ -84,6 +88,7 @@ describe('authenticationSlice', () => {
         authenticating: false,
         tokenRefreshed: true,
         token: tokenWithRoles,
+        idir: 'cbrady@idir',
         roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts']
       })
     })
@@ -98,7 +103,50 @@ describe('authenticationSlice', () => {
         authenticating: false,
         tokenRefreshed: true,
         token: tokenWithoutRoles,
+        idir: 'cbrady@idir',
         roles: []
+      })
+    })
+    describe('signout', () => {
+      it('should unset isAuthenticated, roles and token states when signout is dispatched ', () => {
+        const signedInState = {
+          authenticating: false,
+          isAuthenticated: true,
+          tokenRefreshed: false,
+          token: tokenWithRoles,
+          idir: 'cbrady@idir',
+          roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts'],
+          error: null
+        }
+
+        expect(authReducer(signedInState, signoutFinished())).toEqual({
+          ...signedInState,
+          authenticating: false,
+          isAuthenticated: false,
+          token: undefined,
+          roles: []
+        })
+      })
+      it('should unset isAuthenticated, roles, token and set error states when signout is dispatched and fails ', () => {
+        const signedInState = {
+          authenticating: false,
+          isAuthenticated: true,
+          tokenRefreshed: false,
+          token: tokenWithRoles,
+          idir: 'cbrady@idir',
+          roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts'],
+          error: null
+        }
+        const error = 'error'
+
+        expect(authReducer(signedInState, signoutError(error))).toEqual({
+          ...signedInState,
+          authenticating: false,
+          isAuthenticated: false,
+          token: undefined,
+          roles: [],
+          error: error
+        })
       })
     })
   })
