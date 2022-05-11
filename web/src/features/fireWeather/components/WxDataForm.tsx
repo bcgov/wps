@@ -8,11 +8,7 @@ import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
 import WxStationDropdown from 'features/fireWeather/components/WxStationDropdown'
 import { selectStations } from 'features/stations/slices/stationsSlice'
-import {
-  selectWxDataLoading,
-  selectFireWeatherStationsLoading,
-  selectFireWeatherStations
-} from 'app/rootReducer'
+import { selectWxDataLoading, selectFireWeatherStationsLoading, selectFireWeatherStations } from 'app/rootReducer'
 
 const useStyles = makeStyles({
   form: {
@@ -93,10 +89,7 @@ const WxDataForm = ({ stationCodesQuery, toiFromQuery, setSidePanelState }: Prop
 
   return (
     <form className={classes.form} noValidate>
-      <WxStationDropdown
-        className={classes.stationDropdown}
-        stationCodes={selectedStationsByCode}
-      />
+      <WxStationDropdown className={classes.stationDropdown} stationCodes={selectedStationsByCode} />
       <TimeOfInterestPicker
         className={classes.timeOfInterest}
         timeOfInterest={timeOfInterest}
@@ -104,9 +97,7 @@ const WxDataForm = ({ stationCodesQuery, toiFromQuery, setSidePanelState }: Prop
       />
       <GetWxDataButton
         onBtnClick={handleSubmit}
-        selector={
-          hasSelectedCodes ? selectWxDataLoading : selectFireWeatherStationsLoading
-        }
+        selector={hasSelectedCodes ? selectWxDataLoading : selectFireWeatherStationsLoading}
       />
     </form>
   )

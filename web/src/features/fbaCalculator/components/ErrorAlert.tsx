@@ -45,8 +45,7 @@ const ErrorAlert = (props: ErrorAlertProps) => {
             </IconButton>
           }
         >
-          The following errors have occurred. Please refresh the page. If the problem
-          persists, please&nbsp;
+          The following errors have occurred. Please refresh the page. If the problem persists, please&nbsp;
           <a
             id="contact-fba-error"
             href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - FBA Error`}

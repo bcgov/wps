@@ -22,10 +22,7 @@ const FixedDecimalNumberCell = (props: FixedDecimalNumberCellProps) => {
   const classes = useStyles()
 
   return (
-    <TableCell
-      data-testid={props.testId}
-      className={props.className ? props.className : classes.dataRow}
-    >
+    <TableCell data-testid={props.testId} className={props.className ? props.className : classes.dataRow}>
       {props.value?.toFixed(DECIMAL_PLACES)}
     </TableCell>
   )

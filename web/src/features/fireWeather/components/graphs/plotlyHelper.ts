@@ -38,12 +38,7 @@ export const getLayoutConfig = (title: string): Partial<Layout> => ({
   }
 })
 
-export const populateTimeOfInterestLineData = (
-  x: string,
-  y0: number,
-  y1: number,
-  yaxis?: string
-): Data => {
+export const populateTimeOfInterestLineData = (x: string, y0: number, y1: number, yaxis?: string): Data => {
   return {
     x: [x, x],
     y: [y0, y1],
@@ -428,16 +423,13 @@ export const getDailyAndAccumPrecips = (
   const dates: string[] = []
   const dailyPrecips: number[] = []
   const shouldAggregate =
-    values.length > 0 &&
-    (values[0].precipitation !== undefined || values[0].delta_precipitation !== undefined)
+    values.length > 0 && (values[0].precipitation !== undefined || values[0].delta_precipitation !== undefined)
 
   // if the type of the value is observation or one of weather models, then aggregate hourly data to daily
   if (shouldAggregate) {
     const aggregatedPrecips: { [k: string]: number } = {}
     values.forEach(({ datetime, precipitation, delta_precipitation }) => {
-      const date = DateTime.fromISO(datetime)
-        .setZone(`UTC${PST_UTC_OFFSET}`)
-        .toFormat('yyyy-MM-dd')
+      const date = DateTime.fromISO(datetime).setZone(`UTC${PST_UTC_OFFSET}`).toFormat('yyyy-MM-dd')
       let precip = 0
 
       if (precipitation != null) {
@@ -641,9 +633,7 @@ export const populateGraphDataForWind = (
     if (wind_speed != null) {
       dates.push(formatDatetimeInPST(datetime))
       windSpds.push(wind_speed)
-      windSpdsTexts.push(
-        wind_direction != null ? `${formatWindDirection(wind_direction)}` : '-'
-      )
+      windSpdsTexts.push(wind_direction != null ? `${formatWindDirection(wind_direction)}` : '-')
 
       if (wind_direction != null && show) {
         const arrowShape = rotatePoints(arrowPoints, wind_direction)

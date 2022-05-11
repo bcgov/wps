@@ -14,11 +14,7 @@ const ImageHeader = () => {
 
   return (
     <a href="https://gov.bc.ca">
-      <img
-        className={classes.logo}
-        src={'/images/BCID_H_rgb_rev.svg'}
-        alt="B.C. Government logo"
-      />
+      <img className={classes.logo} src={'/images/BCID_H_rgb_rev.svg'} alt="B.C. Government logo" />
     </a>
   )
 }

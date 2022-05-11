@@ -28,11 +28,7 @@ export const PageTitle: React.FunctionComponent<Props> = (props: Props) => {
 
   return (
     <div className={classes.root}>
-      {maxWidth !== undefined ? (
-        <Container maxWidth={maxWidth}>{title}</Container>
-      ) : (
-        <Container>{title}</Container>
-      )}
+      {maxWidth !== undefined ? <Container maxWidth={maxWidth}>{title}</Container> : <Container>{title}</Container>}
     </div>
   )
 }

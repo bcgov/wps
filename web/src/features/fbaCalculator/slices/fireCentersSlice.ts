@@ -37,8 +37,7 @@ const fireCentersSlice = createSlice({
   }
 })
 
-export const { getFireCentersStart, getFireCentersFailed, getFireCentersSuccess } =
-  fireCentersSlice.actions
+export const { getFireCentersStart, getFireCentersFailed, getFireCentersSuccess } = fireCentersSlice.actions
 
 export default fireCentersSlice.reducer
 

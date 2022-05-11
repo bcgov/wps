@@ -9,11 +9,7 @@ export interface FireStartsDropdownProps {
   fireStartRanges: FireStartRange[]
   areaId: number
   dayOffset: number
-  setFireStarts: (
-    areaId: number,
-    dayOffset: number,
-    newFireStarts: FireStartRange
-  ) => void
+  setFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStartRange) => void
 }
 
 const useStyles = makeStyles({

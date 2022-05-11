@@ -8,10 +8,7 @@ import Select, { SelectChangeEvent } from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Switch from '@mui/material/Switch'
 
-import {
-  ToggleValues,
-  SetToggleValues
-} from 'features/fireWeather/components/graphs/useGraphToggles'
+import { ToggleValues, SetToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 
 const useStyles = makeStyles({
   root: {
@@ -192,18 +189,10 @@ const WxDataToggles = ({
           minWidth: '220px'
         }}
       >
-        <Typography
-          className={classes.switchLabel}
-          style={{ lineHeight: '41px' }}
-          variant="body2"
-        >
+        <Typography className={classes.switchLabel} style={{ lineHeight: '41px' }} variant="body2">
           Hover mode:{' '}
           <FormControl size="small">
-            <Select
-              variant="outlined"
-              value={hoverMode as string}
-              onChange={handleHoverModeChange}
-            >
+            <Select variant="outlined" value={hoverMode as string} onChange={handleHoverModeChange}>
               <MenuItem value={'closest'}>Closest</MenuItem>
               <MenuItem value={'x'}>X</MenuItem>
               <MenuItem value={'x unified'}>X Unified</MenuItem>

@@ -16,37 +16,24 @@ const ToggleLegend = (props: any) => {
 
   return (
     <div className="toggle-legend">
-      {payload.map(
-        (entry: { value: string; color: string }, idx: React.Key | null | undefined) => {
-          const { value, color } = entry
-          const active = _.includes(disabled, value)
-          const style = {
-            marginRight: 10,
-            color: active ? '#AAA' : '#000'
-          }
-
-          return (
-            <span
-              key={idx}
-              className="legend-item"
-              onClick={() => handleClick(value)}
-              style={style}
-            >
-              <Surface
-                width={10}
-                height={10}
-                viewBox={{ x: 0, y: 0, width: 10, height: 10 }}
-              >
-                <Symbols cx={5} cy={5} type="circle" size={50} fill={color} />
-                {active && (
-                  <Symbols cx={5} cy={5} type="circle" size={25} fill={'#FFF'} />
-                )}
-              </Surface>
-              <span>{value}</span>
-            </span>
-          )
+      {payload.map((entry: { value: string; color: string }, idx: React.Key | null | undefined) => {
+        const { value, color } = entry
+        const active = _.includes(disabled, value)
+        const style = {
+          marginRight: 10,
+          color: active ? '#AAA' : '#000'
         }
-      )}
+
+        return (
+          <span key={idx} className="legend-item" onClick={() => handleClick(value)} style={style}>
+            <Surface width={10} height={10} viewBox={{ x: 0, y: 0, width: 10, height: 10 }}>
+              <Symbols cx={5} cy={5} type="circle" size={50} fill={color} />
+              {active && <Symbols cx={5} cy={5} type="circle" size={25} fill={'#FFF'} />}
+            </Surface>
+            <span>{value}</span>
+          </span>
+        )
+      })}
     </div>
   )
 }

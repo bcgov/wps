@@ -34,18 +34,11 @@ const DayHeaders = (props: DayHeadersProps) => {
   return (
     <React.Fragment>
       {/* Non-day specific headers */}
-      <StickyCell
-        left={0}
-        zIndexOffset={11}
-        colSpan={2}
-        className={classes.noBottomBorder}
-      >
+      <StickyCell left={0} zIndexOffset={11} colSpan={2} className={classes.noBottomBorder}>
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell
-                className={`${classes.spaceHeader} ${classes.noBottomBorder}`}
-              ></TableCell>
+              <TableCell className={`${classes.spaceHeader} ${classes.noBottomBorder}`}></TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -72,14 +65,10 @@ const DayHeaders = (props: DayHeadersProps) => {
           className={`${classes.dayHeader} ${i > 0 ? classes.leftBorder : undefined}`}
           key={i}
         >
-          {start
-            .plus({ days: i })
-            .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })}
+          {start.plus({ days: i }).toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })}
         </TableCell>
       ))}
-      <TableCell
-        className={`${classes.leftBorder} ${classes.noBottomBorder}`}
-      ></TableCell>
+      <TableCell className={`${classes.leftBorder} ${classes.noBottomBorder}`}></TableCell>
     </React.Fragment>
   )
 }

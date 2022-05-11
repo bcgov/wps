@@ -26,22 +26,16 @@ const prepCycleIteration = (dateRange: PrepDateRange) => {
     const cell = getByTestId(`day-${i}`)
     expect(cell.className).toMatch(/makeStyles-dayHeader-/)
     expect(cell.innerHTML).toEqual(
-      DateTime.fromISO(startDate)
-        .plus({ days: i })
-        .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })
+      DateTime.fromISO(startDate).plus({ days: i }).toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })
     )
   })
 }
 
 describe('DayHeaders', () => {
   it('should return table row with the headers for the given date range', () => {
-    const startDate = pstFormatter(
-      DateTime.now().set({ day: 1, month: 10, year: 2021 }).startOf('day').toUTC()
-    )
+    const startDate = pstFormatter(DateTime.now().set({ day: 1, month: 10, year: 2021 }).startOf('day').toUTC())
 
-    const endDate = pstFormatter(
-      DateTime.now().set({ day: 5, month: 10, year: 2021 }).startOf('day')
-    )
+    const endDate = pstFormatter(DateTime.now().set({ day: 5, month: 10, year: 2021 }).startOf('day'))
 
     const dateRange: PrepDateRange = { start_date: startDate, end_date: endDate }
     prepCycleIteration(dateRange)

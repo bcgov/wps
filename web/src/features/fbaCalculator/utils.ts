@@ -4,12 +4,8 @@ import _ from 'lodash'
 import { isNull } from 'lodash'
 import { FBAInputRow } from './components/FBATable'
 
-export const isGrassFuelType = (fuelType: string): boolean =>
-  fuelType === 'o1a' || fuelType === 'o1b'
-export const isValidFuelSetting = (
-  fuelType: string,
-  grassCurePercentage: number | null
-): boolean => {
+export const isGrassFuelType = (fuelType: string): boolean => fuelType === 'o1a' || fuelType === 'o1b'
+export const isValidFuelSetting = (fuelType: string, grassCurePercentage: number | null): boolean => {
   if (isGrassFuelType(fuelType)) {
     return !isNull(grassCurePercentage)
   }
@@ -90,10 +86,7 @@ export const getUrlParamsFromRows = (rows: FBATableRow[]): string => {
   }
   const query = '?'
   const params = rows
-    .map(
-      row =>
-        `s=${row.weatherStation?.value}&f=${row.fuelType?.value}&c=${row.grassCure}&w=${row.windSpeed}`
-    )
+    .map(row => `s=${row.weatherStation?.value}&f=${row.fuelType?.value}&c=${row.grassCure}&w=${row.windSpeed}`)
     .join(',')
 
   return query + params

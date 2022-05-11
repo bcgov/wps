@@ -49,15 +49,7 @@ export const tempColorScale = [
   darkBlueColor
 ]
 
-export const windColorScale = [
-  '#460270',
-  '#BC69EF',
-  '#D6B2ED',
-  neutralColor,
-  '#7AD3CE',
-  '#17B8A7',
-  '#089E83'
-]
+export const windColorScale = ['#460270', '#BC69EF', '#D6B2ED', neutralColor, '#7AD3CE', '#17B8A7', '#089E83']
 
 export const smallRadius = 4
 export const mediumRadius = 5
@@ -72,10 +64,7 @@ export const computeTempAccuracyColor = (stationMetric: StationMetrics): string 
     return noDataColor
   }
   return tempColorScale[
-    computeTempScaleIndex(
-      stationMetric.forecasts.temperature,
-      stationMetric.observations.temperature
-    )
+    computeTempScaleIndex(stationMetric.forecasts.temperature, stationMetric.observations.temperature)
   ]
 }
 
@@ -84,10 +73,7 @@ export const computeRHAccuracyColor = (stationMetric: StationMetrics): string =>
     return noDataColor
   }
   return rhColorScale[
-    computeRHScaleIndex(
-      stationMetric.forecasts.relative_humidity,
-      stationMetric.observations.relative_humidity
-    )
+    computeRHScaleIndex(stationMetric.forecasts.relative_humidity, stationMetric.observations.relative_humidity)
   ]
 }
 
@@ -137,10 +123,7 @@ export const determineMarkerRadius = (scaleIndex: number): number => {
   }
 }
 
-export const computeRHScaleIndex = (
-  metricForecast: number,
-  metricObservation: number
-): number => {
+export const computeRHScaleIndex = (metricForecast: number, metricObservation: number): number => {
   const percentagePointDifference = metricForecast - metricObservation
   let scaledDifference = percentagePointDifference / rhGradientStepInPercentagePoints
   if (scaledDifference > 0) {
@@ -162,10 +145,7 @@ export const computeRHScaleIndex = (
   }
 }
 
-export const computeTempScaleIndex = (
-  metricForecast: number,
-  metricObservation: number
-): number => {
+export const computeTempScaleIndex = (metricForecast: number, metricObservation: number): number => {
   const tempDifference = metricForecast - metricObservation
   let scaledDifference = tempDifference / tempGradientStepInDegrees
   if (scaledDifference > 0) {

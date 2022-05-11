@@ -44,12 +44,8 @@ const WxStationDropdown = (props: Props) => {
   } = useSelector(selectPercentileStations)
   const maxNumOfSelect = props.maxNumOfSelect || 3
 
-  const { isThereUnknownCode, selectedStationOptions } = getSelectedStationOptions(
-    props.stationCodes,
-    stationsByCode
-  )
-  const isThereError =
-    !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
+  const { isThereUnknownCode, selectedStationOptions } = getSelectedStationOptions(props.stationCodes, stationsByCode)
+  const isThereError = !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
   const allStationOptions: Option[] = (stations as GeoJsonStation[]).map(station => ({
     name: station.properties.name,
     code: station.properties.code
@@ -96,26 +92,18 @@ const WxStationDropdown = (props: Props) => {
               fullWidth
               size="small"
               error={isThereError}
-              helperText={
-                !isThereError && `Select up to ${maxNumOfSelect} weather stations.`
-              }
+              helperText={!isThereError && `Select up to ${maxNumOfSelect} weather stations.`}
             />
           )}
         />
       </div>
 
       {errorFetchingStations && (
-        <ErrorMessage
-          error={errorFetchingStations}
-          context="while fetching weather stations"
-        />
+        <ErrorMessage error={errorFetchingStations} context="while fetching weather stations" />
       )}
 
       {!errorFetchingStations && isThereUnknownCode && (
-        <ErrorMessage
-          error="Unknown station code(s)"
-          message="Unknown weather station code(s) detected."
-        />
+        <ErrorMessage error="Unknown station code(s)" message="Unknown weather station code(s) detected." />
       )}
     </div>
   )
