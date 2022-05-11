@@ -5,9 +5,7 @@ import React from 'react'
 
 describe('NewStationForm', () => {
   const renderNewStationForm = (newStation: AdminStation, invalid: boolean) => {
-    const { getByTestId, queryByText } = render(
-      <NewStationForm newStation={newStation} invalid={invalid} />
-    )
+    const { getByTestId, queryByText } = render(<NewStationForm newStation={newStation} invalid={invalid} />)
     return { getByTestId, queryByText }
   }
   describe('valid states', () => {
@@ -70,25 +68,19 @@ describe('NewStationForm', () => {
       const { getByTestId } = renderNewStationForm({ dirty: true }, true)
 
       const planningAreaSelect = getByTestId('select-planning-area')
-      expect(
-        planningAreaSelect.getElementsByClassName('Mui-error').length
-      ).toBeGreaterThanOrEqual(1)
+      expect(planningAreaSelect.getElementsByClassName('Mui-error').length).toBeGreaterThanOrEqual(1)
     })
     it('should render error outline for station dropdown when missing and station is edited', () => {
       const { getByTestId } = renderNewStationForm({ dirty: true }, true)
 
       const planningAreaSelect = getByTestId('select-station')
-      expect(
-        planningAreaSelect.getElementsByClassName('Mui-error').length
-      ).toBeGreaterThanOrEqual(1)
+      expect(planningAreaSelect.getElementsByClassName('Mui-error').length).toBeGreaterThanOrEqual(1)
     })
     it('should render error outline for fuel type dropdown when missing and station is edited', () => {
       const { getByTestId } = renderNewStationForm({ dirty: true }, true)
 
       const planningAreaSelect = getByTestId('select-fuel-type')
-      expect(
-        planningAreaSelect.getElementsByClassName('Mui-error').length
-      ).toBeGreaterThanOrEqual(1)
+      expect(planningAreaSelect.getElementsByClassName('Mui-error').length).toBeGreaterThanOrEqual(1)
     })
   })
 })

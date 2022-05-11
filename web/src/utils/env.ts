@@ -21,11 +21,4 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
-export const {
-  API_BASE_URL,
-  HIDE_DISCLAIMER,
-  KC_AUTH_URL,
-  KC_REALM,
-  KC_CLIENT,
-  TEST_AUTH
-} = ENV
+export const { API_BASE_URL, HIDE_DISCLAIMER, KC_AUTH_URL, KC_REALM, KC_CLIENT, TEST_AUTH } = ENV
