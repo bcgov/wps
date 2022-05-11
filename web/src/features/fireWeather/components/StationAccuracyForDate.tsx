@@ -52,10 +52,7 @@ const StationAccuracyForDate = (props: Props) => {
           <div className={classes.rowContainer}>
             <div className={classes.title}>Stations forecast accuracy for:</div>
           </div>
-          <div
-            className={classes.rowContainer}
-            data-testid="station-forecast-accuracy-for-date"
-          >
+          <div className={classes.rowContainer} data-testid="station-forecast-accuracy-for-date">
             <div className={classes.time}>{props.toiFromQuery.slice(0, 10)}</div>
           </div>
         </div>

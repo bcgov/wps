@@ -85,10 +85,7 @@ const BaseStationAttributeCells = ({
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell
-                key={`station-${station.code}-fuel-type`}
-                className={`${className} ${classes.noBottomBorder}`}
-              >
+              <TableCell key={`station-${station.code}-fuel-type`} className={`${className} ${classes.noBottomBorder}`}>
                 <FuelTypeDropdown
                   setFuelType={(code: number, fuelTypeId: number) => {
                     setFuelType(planningAreaId, code, fuelTypeId)
@@ -104,12 +101,7 @@ const BaseStationAttributeCells = ({
           </TableBody>
         </Table>
       </StickyCell>
-      <StickyCell
-        left={355}
-        zIndexOffset={11}
-        backgroundColor={'#ffffff'}
-        className={classes.rightBorder}
-      >
+      <StickyCell left={355} zIndexOffset={11} backgroundColor={'#ffffff'} className={classes.rightBorder}>
         <Table>
           <TableBody>
             <TableRow>

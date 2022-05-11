@@ -18,10 +18,7 @@ export interface StaticCellsProps {
   selectedFuelType: FuelType | undefined
 }
 
-export const isError = (
-  daily: StationDaily | undefined,
-  selectedFuelType: FuelType | undefined
-): boolean => {
+export const isError = (daily: StationDaily | undefined, selectedFuelType: FuelType | undefined): boolean => {
   if (!isValidGrassCure(daily, selectedFuelType)) {
     return false
   }
@@ -73,15 +70,9 @@ export const StaticCells = ({
           selected={isRowSelected}
         ></IntensityGroupCell>
         {/* Fire Starts */}
-        <TableCell
-          data-testid={`${daily.code}-fire-starts`}
-          className={classNameForRow}
-        ></TableCell>
+        <TableCell data-testid={`${daily.code}-fire-starts`} className={classNameForRow}></TableCell>
         {/* Prep Level */}
-        <TableCell
-          data-testid={`${daily.code}-prep-level`}
-          className={classNameForRow}
-        ></TableCell>
+        <TableCell data-testid={`${daily.code}-prep-level`} className={classNameForRow}></TableCell>
       </React.Fragment>
     )
   })

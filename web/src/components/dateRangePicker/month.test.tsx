@@ -53,11 +53,9 @@ describe('Month', () => {
   const onDayHoverMock = jest.fn((date: Date): void => {
     /** no op */
   })
-  const onMonthNavigateMock = jest.fn(
-    (marker: symbol, action: NavigationAction): void => {
-      /** no op */
-    }
-  )
+  const onMonthNavigateMock = jest.fn((marker: symbol, action: NavigationAction): void => {
+    /** no op */
+  })
 
   beforeEach(() => {
     // Reset all stubs

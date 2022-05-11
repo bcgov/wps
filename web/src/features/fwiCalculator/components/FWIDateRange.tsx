@@ -15,14 +15,7 @@ export interface FWIDateRangeProps {
   updateEndDate: (newDate: Date) => void
 }
 
-const FWIDateRange = ({
-  open,
-  setOpen,
-  startDate,
-  updateStartDate,
-  endDate,
-  updateEndDate
-}: FWIDateRangeProps) => {
+const FWIDateRange = ({ open, setOpen, startDate, updateStartDate, endDate, updateEndDate }: FWIDateRangeProps) => {
   const toggle = () => setOpen(!open)
   const changeHandler = (newDateRange: DateRange) => {
     if (!isUndefined(newDateRange.startDate) && !isUndefined(newDateRange.endDate)) {

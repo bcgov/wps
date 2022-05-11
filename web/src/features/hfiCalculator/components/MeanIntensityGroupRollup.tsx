@@ -23,10 +23,8 @@ const useStyles = makeStyles({
   }
 })
 
-const grassCureToolTipFirstLine =
-  'Grass Cure % not defined in WFWX for one or more stations.'
-const genericErrorToolTipFirstLine =
-  'Incomplete weather data in WFWX for one or more stations.'
+const grassCureToolTipFirstLine = 'Grass Cure % not defined in WFWX for one or more stations.'
+const genericErrorToolTipFirstLine = 'Incomplete weather data in WFWX for one or more stations.'
 const toolTipSecondLine = ' Cannot calculate Mean FIG.'
 
 const grassCureErrorToolTipElement = (
@@ -91,10 +89,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
     )
   }
   return (
-    <TableCell
-      className={classes.intensityGroup}
-      data-testid={`zone-${props.area.id}-mean-intensity`}
-    >
+    <TableCell className={classes.intensityGroup} data-testid={`zone-${props.area.id}-mean-intensity`}>
       {validatedMig}
     </TableCell>
   )

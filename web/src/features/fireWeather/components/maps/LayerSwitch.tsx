@@ -51,12 +51,7 @@ const LayerSwitch = ({ map, value, setValue }: Props) => {
   return (
     <div className={classes.root}>
       <div className={classes.btnWrapper}>
-        <Fab
-          onMouseOver={openPopover}
-          color="primary"
-          size="small"
-          data-testid="layer-switch"
-        >
+        <Fab onMouseOver={openPopover} color="primary" size="small" data-testid="layer-switch">
           <LayersIcon />
         </Fab>
       </div>
@@ -80,14 +75,7 @@ const LayerSwitch = ({ map, value, setValue }: Props) => {
         >
           <RadioGroup aria-label="base-layers" value={value} onChange={handleLayerChange}>
             {Object.keys(map).map(key => {
-              return (
-                <FormControlLabel
-                  key={key}
-                  label={key}
-                  value={map[key]}
-                  control={<Radio size="small" />}
-                />
-              )
+              return <FormControlLabel key={key} label={key} value={map[key]} control={<Radio size="small" />} />
             })}
           </RadioGroup>
         </FormControl>

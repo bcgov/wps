@@ -21,19 +21,10 @@ export const MultiFWITableCell = (props: any): JSX.Element => {
   const isNumericEditableCell = inputColumns.includes(restProps.column.name)
 
   if (isNumericEditableCell) {
-    return (
-      <Table.Cell
-        className={classes.input}
-        {...restProps}
-        tabIndex={0}
-        onFocus={onClick}
-      />
-    )
+    return <Table.Cell className={classes.input} {...restProps} tabIndex={0} onFocus={onClick} />
   }
 
-  const isAdjustedStatus =
-    restProps.column.name === 'status' &&
-    String(restProps.value).toLowerCase() === 'adjusted'
+  const isAdjustedStatus = restProps.column.name === 'status' && String(restProps.value).toLowerCase() === 'adjusted'
   const classToApply = isAdjustedStatus ? classes.adjusted : undefined
   return <Table.Cell className={classToApply} {...restProps} />
 }

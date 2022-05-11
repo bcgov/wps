@@ -39,9 +39,9 @@ const LiveChangesAlert = () => {
           }
         >
           <AlertTitle>Warning</AlertTitle>
-          Any changes made to fuel types, fire starts or selected stations will be
-          reflected for all users in this Fire Centre and captured as an official
-          decision. More nuanced controls and permissions are presently in development.
+          Any changes made to fuel types, fire starts or selected stations will be reflected for all users in this Fire
+          Centre and captured as an official decision. More nuanced controls and permissions are presently in
+          development.
         </Alert>
       </Collapse>
     </div>

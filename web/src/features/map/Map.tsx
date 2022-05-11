@@ -63,15 +63,7 @@ interface Props {
   redrawFlag?: RedrawCommand
 }
 
-const Map = ({
-  children,
-  center,
-  redrawFlag,
-  isCollapsed,
-  selectedWxVariable,
-  toiFromQuery,
-  setMapCenter
-}: Props) => {
+const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, toiFromQuery, setMapCenter }: Props) => {
   const classes = useStyles()
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -203,10 +195,7 @@ const Map = ({
       <MapContext.Provider value={map}>
         <div ref={mapRef} className={classes.map} data-testid="map">
           {children}
-          <FireIndicesVectorLayer
-            toiFromQuery={toiFromQuery}
-            selectedWxVariable={selectedWxVariable}
-          />
+          <FireIndicesVectorLayer toiFromQuery={toiFromQuery} selectedWxVariable={selectedWxVariable} />
         </div>
         {renderTooltip && (
           <div ref={overlayRef} className="ol-popup">

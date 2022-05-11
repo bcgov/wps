@@ -89,10 +89,7 @@ const Day: React.FunctionComponent<DayProps> = ({
       >
         <Typography
           color={!disabled ? 'textPrimary' : 'textSecondary'}
-          className={combineCSSClassNames(
-            classes.buttonText,
-            !disabled && filled && classes.contrast
-          )}
+          className={combineCSSClassNames(classes.buttonText, !disabled && filled && classes.contrast)}
           variant="body2"
         >
           {value}

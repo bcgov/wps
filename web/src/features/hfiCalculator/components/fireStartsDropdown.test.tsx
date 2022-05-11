@@ -49,9 +49,7 @@ describe('FireStartsDropdown', () => {
 
     userEvent.type(autocomplete, '{enter}')
     await waitFor(() => expect(setFireStartsMock).toBeCalledTimes(1))
-    await waitFor(() =>
-      expect(setFireStartsMock).toBeCalledWith(testAreaId, dayOffset, highestFireStarts)
-    )
+    await waitFor(() => expect(setFireStartsMock).toBeCalledWith(testAreaId, dayOffset, highestFireStarts))
   })
   it('should be disabled when fire starts are not enabled', async () => {
     const setFireStartsMock = jest.fn()

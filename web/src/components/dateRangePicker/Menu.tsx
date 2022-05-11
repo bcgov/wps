@@ -47,17 +47,8 @@ interface MenuProps {
 const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
   const classes = useStyles()
 
-  const {
-    dateRange,
-    minDate,
-    maxDate,
-    firstMonth,
-    setFirstMonth,
-    secondMonth,
-    setSecondMonth,
-    helpers,
-    handlers
-  } = props
+  const { dateRange, minDate, maxDate, firstMonth, setFirstMonth, secondMonth, setSecondMonth, helpers, handlers } =
+    props
 
   const { startDate, endDate } = dateRange
   const canNavigateCloser = differenceInCalendarMonths(secondMonth, firstMonth) >= 2
@@ -112,11 +103,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
         <Grid item></Grid>
 
         <Grid item>
-          <Button
-            data-testid="date-range-reset-button"
-            variant="outlined"
-            onClick={handlers.resetDateRange}
-          >
+          <Button data-testid="date-range-reset-button" variant="outlined" onClick={handlers.resetDateRange}>
             Reset
           </Button>
         </Grid>

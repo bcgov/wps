@@ -1,12 +1,5 @@
 import React from 'react'
-import {
-  Paper,
-  TableContainer,
-  Table,
-  TableRow,
-  TableCell,
-  TableBody
-} from '@mui/material'
+import { Paper, TableContainer, Table, TableRow, TableCell, TableBody } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 
 import { MeanValues } from 'api/percentileAPI'
@@ -25,9 +18,7 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const PercentileMeanResultTable: React.FunctionComponent<Props> = ({
-  meanValues
-}: Props) => {
+export const PercentileMeanResultTable: React.FunctionComponent<Props> = ({ meanValues }: Props) => {
   const classes = useStyles()
   const { ffmc, bui, isi } = meanValues
 

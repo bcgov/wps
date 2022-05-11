@@ -7,9 +7,7 @@ import Style from 'ol/style/Style'
 import { range, startCase, lowerCase } from 'lodash'
 
 const fireCentreTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
-  const text = feature
-    .get('mof_fire_centre_name')
-    .replace(' Fire Centre', '\nFire Centre')
+  const text = feature.get('mof_fire_centre_name').replace(' Fire Centre', '\nFire Centre')
   return new Text({
     overflow: true,
     fill: new Fill({ color: 'black' }),
@@ -19,9 +17,7 @@ const fireCentreTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Te
   })
 }
 
-export const fireCentreLabelStyler = (
-  feature: RenderFeature | ol.Feature<Geometry>
-): Style => {
+export const fireCentreLabelStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
   return new Style({
     text: fireCentreTextStyler(feature)
   })
@@ -37,9 +33,7 @@ export const fireCentreStyler = (): Style => {
 }
 
 const fireZoneTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
-  const text = feature
-    .get('fire_zone_mof_fire_zone_name')
-    .replace(' Fire Zone', '\nFire Zone')
+  const text = feature.get('fire_zone_mof_fire_zone_name').replace(' Fire Zone', '\nFire Zone')
   return new Text({
     overflow: true,
     fill: new Fill({ color: 'black' }),
@@ -58,9 +52,7 @@ export const fireZoneStyler = (): Style => {
   })
 }
 
-export const fireZoneLabelStyler = (
-  feature: RenderFeature | ol.Feature<Geometry>
-): Style => {
+export const fireZoneLabelStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
   return new Style({
     text: fireZoneTextStyler(feature)
   })
@@ -106,14 +98,11 @@ const thessianPolygonStyle = new Style({})
  *
  * 20 times more likely not to have a HFI critical threshold color. 4000 and 10000 equally likely.
  */
-const hfiColors = [
-  new Fill({ color: 'rgba(255, 0, 0, 0.4)' }),
-  new Fill({ color: 'rgba(255, 128, 0, 0.4)' })
-].concat(range(20).flatMap(() => new Fill({ color: 'rgba(0, 0, 0, 0)' })))
+const hfiColors = [new Fill({ color: 'rgba(255, 0, 0, 0.4)' }), new Fill({ color: 'rgba(255, 128, 0, 0.4)' })].concat(
+  range(20).flatMap(() => new Fill({ color: 'rgba(0, 0, 0, 0)' }))
+)
 
-export const thessianPolygonStyler = (
-  feature: RenderFeature | ol.Feature<Geometry>
-): Style => {
+export const thessianPolygonStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
   const colorIdx = Math.floor(feature.get('code') % (hfiColors.length - 1))
   thessianPolygonStyle.setFill(hfiColors[colorIdx])
   return thessianPolygonStyle

@@ -17,11 +17,7 @@ import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
 import { selectFireWeatherStations, selectFireBehaviourCalcResult } from 'app/rootReducer'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { fetchFireBehaviourStations } from 'features/fbaCalculator/slices/fbaCalculatorSlice'
-import {
-  getRowsFromUrlParams,
-  getNextRowIdFromRows,
-  getUrlParamsFromRows
-} from 'features/fbaCalculator/utils'
+import { getRowsFromUrlParams, getNextRowIdFromRows, getUrlParamsFromRows } from 'features/fbaCalculator/utils'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
@@ -123,9 +119,7 @@ const FBATable = (props: FBATableProps) => {
   const dispatch: AppDispatch = useDispatch()
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
-  const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
-  )
+  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
   const [initialLoad, setInitialLoad] = useState<boolean>(true)
@@ -134,31 +128,21 @@ const FBATable = (props: FBATableProps) => {
   const [rows, setRows] = useState<FBATableRow[]>([])
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const { stations, error: stationsError } = useSelector(selectFireWeatherStations)
-  const {
-    fireBehaviourResultStations,
-    loading,
-    error: fbaResultsError
-  } = useSelector(selectFireBehaviourCalcResult)
-  const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(
-    fireBehaviourResultStations
-  )
+  const { fireBehaviourResultStations, loading, error: fbaResultsError } = useSelector(selectFireBehaviourCalcResult)
+  const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(fireBehaviourResultStations)
   const [visibleColumns, setVisibleColumns] = useState<string[]>(tableColumnLabels)
 
   const rowsFromQuery = getRowsFromUrlParams(location.search)
 
-  const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(
-    station => ({
-      value: String(station.properties.code),
-      label: `${station.properties.name} (${station.properties.code})`
-    })
-  )
+  const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(station => ({
+    value: String(station.properties.code),
+    label: `${station.properties.name} (${station.properties.code})`
+  }))
 
-  const fuelTypeMenuOptions: GridMenuOption[] = Object.entries(FuelTypes.get()).map(
-    ([key, value]) => ({
-      value: key,
-      label: value.friendlyName
-    })
-  )
+  const fuelTypeMenuOptions: GridMenuOption[] = Object.entries(FuelTypes.get()).map(([key, value]) => ({
+    value: key,
+    label: value.friendlyName
+  }))
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
@@ -166,9 +150,7 @@ const FBATable = (props: FBATableProps) => {
 
   useEffect(() => {
     if (stations.length > 0) {
-      const stationCodeMap = new Map(
-        stationMenuOptions.map(station => [station.value, station.label])
-      )
+      const stationCodeMap = new Map(stationMenuOptions.map(station => [station.value, station.label]))
 
       const sortedRows = RowManager.sortRows(
         sortByColumn,
@@ -219,10 +201,7 @@ const FBATable = (props: FBATableProps) => {
       setRows(sortedRows)
       setInitialLoad(false)
     }
-    const updatedCalculatedResults = RowManager.updateRows(
-      calculatedResults,
-      fireBehaviourResultStations
-    )
+    const updatedCalculatedResults = RowManager.updateRows(calculatedResults, fireBehaviourResultStations)
     setCalculatedResults(updatedCalculatedResults)
   }, [fireBehaviourResultStations, stations]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -235,10 +214,7 @@ const FBATable = (props: FBATableProps) => {
         fireBehaviourResultStations
       )
     )
-    const updatedCalculatedResults = RowManager.updateRows(
-      calculatedResults,
-      fireBehaviourResultStations
-    )
+    const updatedCalculatedResults = RowManager.updateRows(calculatedResults, fireBehaviourResultStations)
     setCalculatedResults(updatedCalculatedResults)
     setRows(sortedRows)
   }, [dateOfInterest, fireBehaviourResultStations]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -334,13 +310,7 @@ const FBATable = (props: FBATableProps) => {
 
   type TextDisplayCellType = keyof Pick<
     FBATableRow,
-    | 'zone_code'
-    | 'elevation'
-    | 'temp'
-    | 'rh'
-    | 'wind_direction'
-    | 'precipitation'
-    | 'fire_type'
+    'zone_code' | 'elevation' | 'temp' | 'rh' | 'wind_direction' | 'precipitation' | 'fire_type'
   >
   type FixedDecimalNumberCellType = keyof Pick<
     FBATableRow,
@@ -358,26 +328,15 @@ const FBATable = (props: FBATableProps) => {
 
   const getTextDisplayCell = (row: FBATableRow, rowProperty: TextDisplayCellType) => {
     return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
+      <LoadingIndicatorCell loading={loading} rowUpdating={rowIdsToUpdate.has(row.id)} initialLoad={initialLoad}>
         <TextDisplayCell value={row[rowProperty]}></TextDisplayCell>
       </LoadingIndicatorCell>
     )
   }
 
-  const getFixedDecimalNumberCell = (
-    row: FBATableRow,
-    rowProperty: FixedDecimalNumberCellType
-  ) => {
+  const getFixedDecimalNumberCell = (row: FBATableRow, rowProperty: FixedDecimalNumberCellType) => {
     return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
+      <LoadingIndicatorCell loading={loading} rowUpdating={rowIdsToUpdate.has(row.id)} initialLoad={initialLoad}>
         <FixedDecimalNumberCell value={row[rowProperty]}></FixedDecimalNumberCell>
       </LoadingIndicatorCell>
     )
@@ -385,12 +344,7 @@ const FBATable = (props: FBATableProps) => {
 
   const getWeatherStationCell = (row: FBATableRow) => {
     return (
-      <StickyCell
-        left={50}
-        zIndexOffset={1}
-        backgroundColor="#FFFFFF"
-        testId={'stickyCell-fba'}
-      >
+      <StickyCell left={50} zIndexOffset={1} backgroundColor="#FFFFFF" testId={'stickyCell-fba'}>
         <WeatherStationCell
           stationOptions={stationMenuOptions}
           inputRows={rows}
@@ -437,11 +391,7 @@ const FBATable = (props: FBATableProps) => {
 
   const getStatusCell = (row: FBATableRow) => {
     return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
+      <LoadingIndicatorCell loading={loading} rowUpdating={rowIdsToUpdate.has(row.id)} initialLoad={initialLoad}>
         <StatusCell value={row.status}></StatusCell>
       </LoadingIndicatorCell>
     )
@@ -455,11 +405,7 @@ const FBATable = (props: FBATableProps) => {
           updateRow={updateRow}
           inputValue={row.windSpeed}
           calculatedValue={row.wind_speed}
-          disabled={
-            rowIdsToUpdate.has(row.id) &&
-            !rowShouldUpdate(row) &&
-            !isWindSpeedInvalid(row.windSpeed)
-          }
+          disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row) && !isWindSpeedInvalid(row.windSpeed)}
           rowId={row.id}
         />
       </TableCell>
@@ -468,11 +414,7 @@ const FBATable = (props: FBATableProps) => {
 
   const getHFICell = (row: FBATableRow) => {
     return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
+      <LoadingIndicatorCell loading={loading} rowUpdating={rowIdsToUpdate.has(row.id)} initialLoad={initialLoad}>
         <HFICell value={row.head_fire_intensity}></HFICell>
       </LoadingIndicatorCell>
     )
@@ -480,11 +422,7 @@ const FBATable = (props: FBATableProps) => {
 
   const getCriticalHours4000Cell = (row: FBATableRow) => {
     return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
+      <LoadingIndicatorCell loading={loading} rowUpdating={rowIdsToUpdate.has(row.id)} initialLoad={initialLoad}>
         <CriticalHoursCell value={row.critical_hours_hfi_4000}></CriticalHoursCell>
       </LoadingIndicatorCell>
     )
@@ -492,11 +430,7 @@ const FBATable = (props: FBATableProps) => {
 
   const getCriticalHours10000Cell = (row: FBATableRow) => {
     return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
+      <LoadingIndicatorCell loading={loading} rowUpdating={rowIdsToUpdate.has(row.id)} initialLoad={initialLoad}>
         <CriticalHoursCell value={row.critical_hours_hfi_10000}></CriticalHoursCell>
       </LoadingIndicatorCell>
     )
@@ -504,14 +438,8 @@ const FBATable = (props: FBATableProps) => {
 
   const getCFBCell = (row: FBATableRow) => {
     return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <CrownFractionBurnedCell
-          value={row.percentage_crown_fraction_burned}
-        ></CrownFractionBurnedCell>
+      <LoadingIndicatorCell loading={loading} rowUpdating={rowIdsToUpdate.has(row.id)} initialLoad={initialLoad}>
+        <CrownFractionBurnedCell value={row.percentage_crown_fraction_burned}></CrownFractionBurnedCell>
       </LoadingIndicatorCell>
     )
   }
@@ -602,21 +530,13 @@ const FBATable = (props: FBATableProps) => {
   return (
     <React.Fragment>
       {stationsError ||
-        (fbaResultsError && (
-          <ErrorAlert stationsError={stationsError} fbaResultsError={fbaResultsError} />
-        ))}
+        (fbaResultsError && <ErrorAlert stationsError={stationsError} fbaResultsError={fbaResultsError} />)}
       <ErrorBoundary>
         <FormControl className={classes.formControl}>
           <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
         </FormControl>
         <FormControl className={classes.formControl}>
-          <Button
-            data-testid="add-row"
-            variant="contained"
-            color="primary"
-            spinnercolor="white"
-            onClick={addStation}
-          >
+          <Button data-testid="add-row" variant="contained" color="primary" spinnercolor="white" onClick={addStation}>
             Add Row
           </Button>
         </FormControl>
@@ -633,11 +553,7 @@ const FBATable = (props: FBATableProps) => {
           </Button>
         </FormControl>
         <FormControl className={classes.formControl}>
-          <Button
-            data-testid="export"
-            disabled={selected.length === 0}
-            onClick={exportSelectedRows}
-          >
+          <Button data-testid="export" disabled={selected.length === 0} onClick={exportSelectedRows}>
             <GetAppIcon />
             Export Selection
           </Button>
@@ -692,9 +608,7 @@ const FBATable = (props: FBATableProps) => {
                       <StickyCell left={0} zIndexOffset={1} backgroundColor="#FFFFFF">
                         <SelectionCell
                           selected={selected}
-                          updateSelected={(newSelected: number[]) =>
-                            setSelected(newSelected)
-                          }
+                          updateSelected={(newSelected: number[]) => setSelected(newSelected)}
                           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
                           rowId={row.id}
                         />

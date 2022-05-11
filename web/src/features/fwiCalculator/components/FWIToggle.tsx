@@ -26,10 +26,7 @@ const useStyles = makeStyles({
 const FWIToggle = (props: ViewSwitcherTogglesProps) => {
   const classes = useStyles()
 
-  const handleToggle = (
-    _: React.MouseEvent<HTMLElement, MouseEvent>,
-    changeToMulti: boolean
-  ) => {
+  const handleToggle = (_: React.MouseEvent<HTMLElement, MouseEvent>, changeToMulti: boolean) => {
     if (!isNull(changeToMulti)) {
       props.toggleView(changeToMulti)
     }
@@ -43,18 +40,10 @@ const FWIToggle = (props: ViewSwitcherTogglesProps) => {
         value={props.isBasic}
         className={classes.toggleGroup}
       >
-        <ToggleButton
-          data-testid="fwi-multi-toggle"
-          value={true}
-          aria-label="fwi multi toggle"
-        >
+        <ToggleButton data-testid="fwi-multi-toggle" value={true} aria-label="fwi multi toggle">
           Basic
         </ToggleButton>
-        <ToggleButton
-          data-testid="fwi-multi-toggle"
-          value={false}
-          aria-label="fwi daily toggle"
-        >
+        <ToggleButton data-testid="fwi-multi-toggle" value={false} aria-label="fwi daily toggle">
           Multi
         </ToggleButton>
       </ToggleButtonGroup>

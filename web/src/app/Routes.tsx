@@ -31,11 +31,7 @@ const WPSRoutes: React.FunctionComponent = () => {
         <Route path="/" element={<Navigate to={PERCENTILE_CALC_ROUTE} />} />
         <Route
           path={PERCENTILE_CALC_ROUTE}
-          element={
-            <PercentileCalculatorPageWithDisclaimer
-              showDisclaimer={shouldShowDisclaimer}
-            />
-          }
+          element={<PercentileCalculatorPageWithDisclaimer showDisclaimer={shouldShowDisclaimer} />}
         />
         <Route path={FIRE_WEATHER_ROUTE} element={<Navigate to={MORECAST_ROUTE} />} />
         <Route

@@ -10,11 +10,7 @@ export interface FireStartsDropdownProps {
   areaId: number
   dayOffset: number
   fireStartsEnabled: boolean
-  setFireStarts: (
-    areaId: number,
-    dayOffset: number,
-    newFireStarts: FireStartRange
-  ) => void
+  setFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStartRange) => void
 }
 
 const useStyles = makeStyles({

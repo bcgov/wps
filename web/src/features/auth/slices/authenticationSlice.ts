@@ -137,9 +137,7 @@ export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
 
   if (!kcInstance) {
-    return dispatch(
-      authenticateError('Failed to authenticate (Unable to fetch keycloak-js).')
-    )
+    return dispatch(authenticateError('Failed to authenticate (Unable to fetch keycloak-js).'))
   }
 
   kcInstance

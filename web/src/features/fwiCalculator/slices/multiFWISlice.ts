@@ -42,8 +42,7 @@ const multiFWISlice = createSlice({
   }
 })
 
-export const { getMultiFWIStart, getMultiFWIFailed, getMultiFWISuccess } =
-  multiFWISlice.actions
+export const { getMultiFWIStart, getMultiFWIFailed, getMultiFWISuccess } = multiFWISlice.actions
 
 export default multiFWISlice.reducer
 

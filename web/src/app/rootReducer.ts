@@ -14,9 +14,7 @@ import highResModelsReducer from 'features/fireWeather/slices/highResModelsSlice
 import highResModelSummariesReducer from 'features/fireWeather/slices/highResModelSummariesSlice'
 import regionalModelsReducer from 'features/fireWeather/slices/regionalModelsSlice'
 import regionalModelSummariesReducer from 'features/fireWeather/slices/regionalModelSummariesSlice'
-import hfiCalculatorDailiesReducer, {
-  HFICalculatorState
-} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import hfiCalculatorDailiesReducer, { HFICalculatorState } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import hfiStationsReducer from 'features/hfiCalculator/slices/stationsSlice'
 import fbaCalculatorSlice from 'features/fbaCalculator/slices/fbaCalculatorSlice'
 import fireCentersSlice from 'features/fbaCalculator/slices/fireCentersSlice'
@@ -66,14 +64,11 @@ export const selectObservations = (state: RootState) => state.observations
 export const selectForecasts = (state: RootState) => state.forecasts
 export const selectModelSummaries = (state: RootState) => state.modelSummaries
 export const selectForecastSummaries = (state: RootState) => state.forecastSummaries
-export const selectFireBehaviourCalcResult = (state: RootState) =>
-  state.fbaCalculatorResults
+export const selectFireBehaviourCalcResult = (state: RootState) => state.fbaCalculatorResults
 export const selectHighResModels = (state: RootState) => state.highResModels
-export const selectHighResModelSummaries = (state: RootState) =>
-  state.highResModelSummaries
+export const selectHighResModelSummaries = (state: RootState) => state.highResModelSummaries
 export const selectRegionalModels = (state: RootState) => state.regionalModels
-export const selectRegionalModelSummaries = (state: RootState) =>
-  state.regionalModelSummaries
+export const selectRegionalModelSummaries = (state: RootState) => state.regionalModelSummaries
 export const selectHFIStations = (state: RootState) => state.hfiStations
 export const selectFireCenters = (state: RootState) => state.fireCenters
 export const selectFWIOutputs = (state: RootState) => state.fwiOutputs
@@ -89,19 +84,11 @@ export const selectWxDataLoading = (state: RootState): boolean =>
   state.highResModelSummaries.loading ||
   state.regionalModels.loading ||
   state.regionalModelSummaries.loading
-export const selectFireWeatherStationsLoading = (state: RootState): boolean =>
-  state.fireWeatherStations.loading
-export const selectHFIDailiesLoading = (state: RootState): boolean =>
-  state.hfiCalculatorDailies.fireCentresLoading
-export const selectHFICalculatorState = (state: RootState): HFICalculatorState =>
-  state.hfiCalculatorDailies
-export const selectHFIStationsLoading = (state: RootState): boolean =>
-  state.hfiStations.loading
-export const selectFireBehaviourStationsLoading = (state: RootState): boolean =>
-  state.fbaCalculatorResults.loading
-export const selectFireCentersLoading = (state: RootState): boolean =>
-  state.fireCenters.loading
-export const selectFWIOutputsLoading = (state: RootState): boolean =>
-  state.fwiOutputs.loading
-export const selectMultiFWIOutputsLoading = (state: RootState): boolean =>
-  state.multiFWIOutputs.loading
+export const selectFireWeatherStationsLoading = (state: RootState): boolean => state.fireWeatherStations.loading
+export const selectHFIDailiesLoading = (state: RootState): boolean => state.hfiCalculatorDailies.fireCentresLoading
+export const selectHFICalculatorState = (state: RootState): HFICalculatorState => state.hfiCalculatorDailies
+export const selectHFIStationsLoading = (state: RootState): boolean => state.hfiStations.loading
+export const selectFireBehaviourStationsLoading = (state: RootState): boolean => state.fbaCalculatorResults.loading
+export const selectFireCentersLoading = (state: RootState): boolean => state.fireCenters.loading
+export const selectFWIOutputsLoading = (state: RootState): boolean => state.fwiOutputs.loading
+export const selectMultiFWIOutputsLoading = (state: RootState): boolean => state.multiFWIOutputs.loading

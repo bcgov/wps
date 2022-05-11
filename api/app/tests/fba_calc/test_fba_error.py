@@ -66,7 +66,7 @@ def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments,
                                                crown_base_height=crown_base_height,
                                                crown_fuel_load=None,
                                                lat=latitude, long=longitude, bui=bui,
-                                               ffmc=ffmc, isi=isi, wind_speed=wind_speed,
+                                               ffmc=ffmc, isi=isi, fwi=None, wind_speed=wind_speed,
                                                wind_direction=wind_direction,
                                                temperature=20.0,  # temporary fix so tests don't break
                                                relative_humidity=20.0,
@@ -267,6 +267,7 @@ def given_spreadsheet_input(elevation: float,  # pylint: disable=too-many-argume
                             ros: float, hfi: float, cfb: float):
     """ Take input and calculate actual and expected results """
     # get python result:
+    fwi = None
     python_input = FBACalculatorWeatherStation(elevation=elevation,
                                                fuel_type=FuelTypeEnum[fuel_type],
                                                time_of_interest=time_of_interest,
@@ -280,6 +281,7 @@ def given_spreadsheet_input(elevation: float,  # pylint: disable=too-many-argume
                                                bui=bui,
                                                ffmc=ffmc,
                                                isi=isi,
+                                               fwi=fwi,
                                                wind_speed=wind_speed,
                                                wind_direction=wind_direction,
                                                temperature=20.0,  # temporary fix so tests don't break
