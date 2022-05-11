@@ -14,13 +14,16 @@ const PlanningAreaReadyToggle = ({ disabled }: PlanningAreaReadyToggleProps) => 
     <IconButton
       aria-label="hfi-toggle-ready"
       data-testid="hfi-toggle-ready"
-      size="large"
       disabled={disabled}
       onClick={() => {
         setReady(!ready)
       }}
     >
-      {ready ? <ToggleOnOutlinedIcon color="success" /> : <ToggleOffOutlinedIcon />}
+      {ready ? (
+        <ToggleOnOutlinedIcon fontSize="large" color="success" />
+      ) : (
+        <ToggleOffOutlinedIcon fontSize="large" />
+      )}
     </IconButton>
   )
 }
