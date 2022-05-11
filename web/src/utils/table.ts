@@ -8,10 +8,7 @@ import {
 } from 'utils/constants'
 import { ModelValue } from 'api/modelAPI'
 import { ObservedValue } from 'api/observationAPI'
-import {
-  WeatherValue,
-  Column
-} from 'features/fireWeather/components/tables/SortableTableByDatetime'
+import { WeatherValue, Column } from 'features/fireWeather/components/tables/SortableTableByDatetime'
 
 export type Order = 'asc' | 'desc'
 
@@ -114,10 +111,7 @@ const calculateMaxWindSpeed = (rows: WeatherValue[]): number | null => {
   // Returns null if the maximum value is 0.0 (since we don't want every
   // wind cell in the table to be highlighted).
   const maxWindSpeed = _.maxBy(rows, 'wind_speed')?.wind_speed ?? null
-  if (
-    maxWindSpeed !== null &&
-    maxWindSpeed.toFixed(WIND_SPEED_VALUES_DECIMAL) !== '0.0'
-  ) {
+  if (maxWindSpeed !== null && maxWindSpeed.toFixed(WIND_SPEED_VALUES_DECIMAL) !== '0.0') {
     return maxWindSpeed
   } else {
     return null

@@ -154,12 +154,7 @@ const TempRHGraph = (props: Props) => {
   const biasAdjGdpsData = populateGraphDataForTempAndRH(biasAdjGDPSGraphProperties)
 
   const y2Range = [0, 102]
-  const timeOfInterestLine = populateTimeOfInterestLineData(
-    timeOfInterest,
-    y2Range[0],
-    y2Range[1],
-    'y2'
-  )
+  const timeOfInterestLine = populateTimeOfInterestLineData(timeOfInterest, y2Range[0], y2Range[1], 'y2')
 
   // Update plotly revision to trigger re-drawing of the plot
   const setRevision = useState(0)[1]

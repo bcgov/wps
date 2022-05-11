@@ -19,8 +19,7 @@ const useStyles = makeStyles({
     order: 2,
     width: getRootWidth(props),
     overflowX: 'hidden',
-    boxShadow:
-      '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
+    boxShadow: '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
   }),
   ordering: {
     display: 'flex',
@@ -51,20 +50,11 @@ const ExpandableContainer = (props: Props) => {
   const collapsed = props.currentWidth === PARTIAL_WIDTH
   return (
     <div className={classes.root}>
-      <IconButton
-        value="close"
-        color="primary"
-        aria-label="Close side view"
-        onClick={props.close}
-        size="large"
-      >
+      <IconButton value="close" color="primary" aria-label="Close side view" onClick={props.close} size="large">
         <CloseIcon />
       </IconButton>
       <div className={classes.ordering}>
-        <div
-          className={classes.expandCollapse}
-          onClick={collapsed ? props.expand : props.collapse}
-        >
+        <div className={classes.expandCollapse} onClick={collapsed ? props.expand : props.collapse}>
           <IconButton
             value="expand-collapse"
             data-testid="expand-collapse-button"

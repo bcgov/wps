@@ -8,10 +8,7 @@ export interface YesterdayIndexCellsProps {
   yesterdayActuals?: YesterdayIndices
 }
 
-const YesterdayIndexCells = ({
-  yesterdayActuals,
-  isLoading
-}: YesterdayIndexCellsProps) => {
+const YesterdayIndexCells = ({ yesterdayActuals, isLoading }: YesterdayIndexCellsProps) => {
   return (
     <React.Fragment>
       <TableRow>
@@ -21,9 +18,7 @@ const YesterdayIndexCells = ({
             <Skeleton />
           </TableCell>
         ) : (
-          <TableCell align="right">
-            {yesterdayActuals?.ffmc?.toFixed(DECIMAL_PLACES)}
-          </TableCell>
+          <TableCell align="right">{yesterdayActuals?.ffmc?.toFixed(DECIMAL_PLACES)}</TableCell>
         )}
       </TableRow>
       <TableRow>
@@ -33,9 +28,7 @@ const YesterdayIndexCells = ({
             <Skeleton />
           </TableCell>
         ) : (
-          <TableCell align="right">
-            {yesterdayActuals?.dmc?.toFixed(DECIMAL_PLACES)}
-          </TableCell>
+          <TableCell align="right">{yesterdayActuals?.dmc?.toFixed(DECIMAL_PLACES)}</TableCell>
         )}
       </TableRow>
       <TableRow>
@@ -45,9 +38,7 @@ const YesterdayIndexCells = ({
             <Skeleton />
           </TableCell>
         ) : (
-          <TableCell align="right">
-            {yesterdayActuals?.dc?.toFixed(DECIMAL_PLACES)}
-          </TableCell>
+          <TableCell align="right">{yesterdayActuals?.dc?.toFixed(DECIMAL_PLACES)}</TableCell>
         )}
       </TableRow>
     </React.Fragment>

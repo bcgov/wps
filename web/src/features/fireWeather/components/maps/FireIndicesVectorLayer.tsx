@@ -58,9 +58,7 @@ const FireIndicesVectorLayer = ({ toiFromQuery, selectedWxVariable }: Props) => 
       : tempPointStyleFunction
 
   useEffect(() => {
-    dispatch(
-      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
-    )
+    dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

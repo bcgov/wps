@@ -24,10 +24,7 @@ const useStyles = makeStyles({
 
 const findLastUpdate = (dailies?: StationDaily[]) => {
   const forecasts = dailies?.filter(daily => daily.status === 'FORECAST')
-  const lastUpdatedDaily: StationDaily | undefined = maxBy(
-    forecasts,
-    forecast => forecast.last_updated
-  )
+  const lastUpdatedDaily: StationDaily | undefined = maxBy(forecasts, forecast => forecast.last_updated)
   if (lastUpdatedDaily?.last_updated) {
     return DateTime.fromObject(
       {

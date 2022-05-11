@@ -157,27 +157,18 @@ const dailiesSlice = createSlice({
     setSelectedPrepDate: (state: HFICalculatorState, action: PayloadAction<string>) => {
       state.selectedPrepDate = action.payload
     },
-    setSelectedFireCentre: (
-      state: HFICalculatorState,
-      action: PayloadAction<FireCentre | undefined>
-    ) => {
+    setSelectedFireCentre: (state: HFICalculatorState, action: PayloadAction<FireCentre | undefined>) => {
       state.selectedFireCentre = action.payload
     },
     setChangeSaved: (state: HFICalculatorState, action: PayloadAction<boolean>) => {
       state.changeSaved = action.payload
     },
-    setResult: (
-      state: HFICalculatorState,
-      action: PayloadAction<HFIResultResponse | undefined>
-    ) => {
+    setResult: (state: HFICalculatorState, action: PayloadAction<HFIResultResponse | undefined>) => {
       state.result = action.payload
       state.dateRange = action.payload?.date_range
       state.fireCentresLoading = false
     },
-    setFuelTypes: (
-      state: HFICalculatorState,
-      action: PayloadAction<FuelTypesResponse>
-    ) => {
+    setFuelTypes: (state: HFICalculatorState, action: PayloadAction<FuelTypesResponse>) => {
       state.fuelTypes = action.payload.fuel_types
       state.fuelTypesLoading = false
     }

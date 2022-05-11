@@ -116,10 +116,7 @@ describe('DateRangePicker - utils', () => {
       const startDate = new Date('2021/11/28')
       const endDate = new Date('2021/11/29')
       const differentEndDate = new Date('2021/11/30')
-      const result = isSameRange(
-        { startDate, endDate },
-        { startDate, endDate: differentEndDate }
-      )
+      const result = isSameRange({ startDate, endDate }, { startDate, endDate: differentEndDate })
       expect(result).toEqual(false)
     })
     it('should return false for empty ranges', () => {

@@ -63,12 +63,7 @@ const authSlice = createSlice({
   }
 })
 
-const {
-  authenticateStart,
-  authenticateFinished,
-  authenticateError,
-  refreshTokenFinished
-} = authSlice.actions
+const { authenticateStart, authenticateFinished, authenticateError, refreshTokenFinished } = authSlice.actions
 
 export default authSlice.reducer
 
@@ -90,9 +85,7 @@ export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
 
   if (!kcInstance) {
-    return dispatch(
-      authenticateError('Failed to authenticate (Unable to fetch keycloak-js).')
-    )
+    return dispatch(authenticateError('Failed to authenticate (Unable to fetch keycloak-js).'))
   }
 
   kcInstance
