@@ -11,7 +11,7 @@ from app import configure_logging
 from app.schemas.fba_calc import FuelTypeEnum
 from app.utils.time import get_hour_20_from_date
 from app.fire_behaviour.advisory import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
-from app.fire_behaviour.cffdrs import initial_spread_index, bui_calc
+from app.fire_behaviour.cffdrs import fire_weather_index, initial_spread_index, bui_calc
 from app.utils.redapp import FBPCalculateStatisticsCOM
 from app.tests.fba_calc import check_metric, fire_size_acceptable_margin_of_error
 from app.tests.common import str2float
@@ -80,6 +80,7 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
         bui = bui_calc(dmc, dc)
         ffmc = random.uniform(11, 100)
         isi = initial_spread_index(ffmc, wind_speed)
+        fwi = fire_weather_index(isi, bui)
 
         message = (f"""({index}) elevation:{elevation} ; lat: {latitude} ; lon: {longitude}; """
                    f"""toi: {time_of_interest}; ws: {wind_speed}; wd: {wind_direction}; """
@@ -107,6 +108,7 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
                                                    bui=bui,
                                                    ffmc=ffmc,
                                                    isi=isi,
+                                                   fwi=fwi,
                                                    wind_speed=wind_speed,
                                                    wind_direction=wind_direction,
                                                    temperature=temperature,
