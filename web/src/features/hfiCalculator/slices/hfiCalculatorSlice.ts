@@ -18,10 +18,7 @@ import {
   addNewStation
 } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
-import {
-  AddStationOptions,
-  AdminStation
-} from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { AddStationOptions, AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import { AxiosError } from 'axios'
 
 export interface FireStartRange {
@@ -162,10 +159,7 @@ const dailiesSlice = createSlice({
     setStationAdded(state: HFICalculatorState, action: PayloadAction<boolean>) {
       state.stationAdded = action.payload
     },
-    setAddedStationFailed(
-      state: HFICalculatorState,
-      action: PayloadAction<string | null>
-    ) {
+    setAddedStationFailed(state: HFICalculatorState, action: PayloadAction<string | null>) {
       state.stationAddedError = action.payload
     },
     getHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {

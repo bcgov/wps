@@ -124,10 +124,7 @@ export async function addNewStation(
     station_code: newStation.station.code,
     fuel_type_id: newStation.fuelType.id
   }
-  const { status } = await axios.post<number>(
-    baseUrl + 'admin/add-station/' + fireCentreId,
-    requestBody
-  )
+  const { status } = await axios.post<number>(baseUrl + 'admin/add-station/' + fireCentreId, requestBody)
   return status
 }
 

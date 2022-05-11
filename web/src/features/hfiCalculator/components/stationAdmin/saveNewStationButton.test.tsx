@@ -1,9 +1,6 @@
 import { render } from '@testing-library/react'
 import { FuelType } from 'api/hfiCalculatorAPI'
-import {
-  BasicPlanningArea,
-  BasicWFWXStation
-} from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { BasicPlanningArea, BasicWFWXStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
 import React from 'react'
 
