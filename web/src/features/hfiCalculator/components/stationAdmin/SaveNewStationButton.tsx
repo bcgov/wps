@@ -20,11 +20,7 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-const SaveNewStationButton = ({
-  newStation,
-  invalidNewStation,
-  handleSave
-}: SaveNewStationButtonProps) => {
+const SaveNewStationButton = ({ newStation, invalidNewStation, handleSave }: SaveNewStationButtonProps) => {
   const classes = useStyles()
 
   return (

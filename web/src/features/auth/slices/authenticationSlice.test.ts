@@ -38,26 +38,20 @@ describe('authenticationSlice', () => {
       })
     })
     it('should set token with roles correctly when authentication finishes', () => {
-      expect(
-        authReducer(
-          initialState,
-          authenticateFinished({ isAuthenticated: true, token: tokenWithRoles })
-        )
-      ).toEqual({
-        ...initialState,
-        authenticating: false,
-        isAuthenticated: true,
-        idir: 'cbrady@idir',
-        token: tokenWithRoles,
-        roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts']
-      })
+      expect(authReducer(initialState, authenticateFinished({ isAuthenticated: true, token: tokenWithRoles }))).toEqual(
+        {
+          ...initialState,
+          authenticating: false,
+          isAuthenticated: true,
+          idir: 'cbrady@idir',
+          token: tokenWithRoles,
+          roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts']
+        }
+      )
     })
     it('should set token without roles correctly when authentication finishes', () => {
       expect(
-        authReducer(
-          initialState,
-          authenticateFinished({ isAuthenticated: true, token: tokenWithoutRoles })
-        )
+        authReducer(initialState, authenticateFinished({ isAuthenticated: true, token: tokenWithoutRoles }))
       ).toEqual({
         ...initialState,
         authenticating: false,
@@ -78,12 +72,7 @@ describe('authenticationSlice', () => {
       })
     })
     it('should set state correctly when token refreshes with roles', () => {
-      expect(
-        authReducer(
-          initialState,
-          refreshTokenFinished({ tokenRefreshed: true, token: tokenWithRoles })
-        )
-      ).toEqual({
+      expect(authReducer(initialState, refreshTokenFinished({ tokenRefreshed: true, token: tokenWithRoles }))).toEqual({
         ...initialState,
         authenticating: false,
         tokenRefreshed: true,
@@ -94,10 +83,7 @@ describe('authenticationSlice', () => {
     })
     it('should set state correctly when token refreshes without roles', () => {
       expect(
-        authReducer(
-          initialState,
-          refreshTokenFinished({ tokenRefreshed: true, token: tokenWithoutRoles })
-        )
+        authReducer(initialState, refreshTokenFinished({ tokenRefreshed: true, token: tokenWithoutRoles }))
       ).toEqual({
         ...initialState,
         authenticating: false,
