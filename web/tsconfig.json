@@ -23,5 +23,15 @@
   },
   "include": [
     "src"
-  ]
+  ],
+  "resolve": {
+    "fallback": {
+      "process": "process/browser",
+      "zlib": "browserify-zlib",
+      "stream": "stream-browserify",
+      "util": "util",
+      "buffer": "buffer",
+      "assert": "assert"
+    }
+  }
 }

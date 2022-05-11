@@ -1,4 +1,16 @@
-import { FormControl, Grid } from '@mui/material'
+import {
+  Dialog,
+  FormControl,
+  Grid,
+  DialogContent,
+  DialogTitle,
+  DialogActions,
+  IconButton,
+  Paper,
+  Fab,
+  Button
+} from '@mui/material'
+import { Clear } from '@mui/icons-material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
@@ -8,6 +20,7 @@ import FormalFBATable from 'features/fba/components/FormalFBATable'
 import { DateTime } from 'luxon'
 import { selectFireCenters } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
+import ReactPDF from '@react-pdf/renderer'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
@@ -16,6 +29,7 @@ import { FireCenter } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
+import AdvisoryPDF from 'features/fba/components/AdvisoryPDF'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -33,6 +47,10 @@ const useStyles = makeStyles(() => ({
   },
   instructions: {
     textAlign: 'left'
+  },
+  closeIcon: {
+    position: 'absolute',
+    right: '0px'
   }
 }))
 
@@ -40,6 +58,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
+  const [modalOpen, setModalOpen] = useState<boolean>(false)
 
   const emptyInstructions = (
     <div data-testid={'fba-instructions'} className={classes.instructions}>
@@ -78,6 +97,20 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const openPDFPreviewModal = () => {
+    setModalOpen(true)
+  }
+
+  const handleClose = () => {
+    setModalOpen(false)
+  }
+
+  const handleSave = () => {
+    console.log('Saving PDF...')
+    // return ReactPDF.render(<AdvisoryPDF />, `${__dirname}/example.pdf`)
+    ReactPDF.renderToFile(<AdvisoryPDF />, `${__dirname}/example.pdf`)
+  }
+
   return (
     <React.Fragment>
       <GeneralHeader
@@ -85,6 +118,33 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         title="Predictive Services Unit"
         productName="Predictive Services Unit"
       />
+      <Dialog open={modalOpen}>
+        <Paper>
+          <DialogTitle>
+            Preview PDF
+            <IconButton className={classes.closeIcon} onClick={handleClose} size="large">
+              <Clear />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent>
+            <AdvisoryPDF />
+          </DialogContent>
+          <DialogActions>
+            <Fab
+              color="primary"
+              aria-label="apply"
+              onClick={handleSave}
+              variant="extended"
+              data-testId="apply-btn"
+            >
+              Save
+            </Fab>
+            <Button aria-label="cancel" onClick={handleClose}>
+              Cancel
+            </Button>
+          </DialogActions>
+        </Paper>
+      </Dialog>
       <Container maxWidth={'xl'}>
         <h1>
           {/* (🔥🦇) */}
@@ -123,6 +183,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             </Grid>
           </Grid>
         </Grid>
+        <Button onClick={openPDFPreviewModal}>Export to PDF</Button>
       </Container>
     </React.Fragment>
   )
