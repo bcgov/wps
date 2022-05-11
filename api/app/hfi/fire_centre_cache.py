@@ -10,7 +10,7 @@ from app.schemas.hfi_calc import HFIWeatherStationsResponse
 from app.utils.redis import create_redis
 
 logger = logging.getLogger(__name__)
-cache_expiry_seconds = 86400
+cache_expiry_seconds = 86400  # 1 day, 24 hours, 1440 minutes
 key = "fire_centres"
 
 
