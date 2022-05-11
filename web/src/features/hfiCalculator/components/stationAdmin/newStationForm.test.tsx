@@ -34,7 +34,7 @@ describe('NewStationForm', () => {
     )
   }
   describe('valid states', () => {
-    it('should not render error message when new station has not been edited', () => {
+    it('should not render error message when station dropdown has not been edited', () => {
       const { queryByText } = renderNewStationForm({ dirty: false }, false, null)
 
       const errorMessage = queryByText('Please complete empty fields to continue')
@@ -97,7 +97,7 @@ describe('NewStationForm', () => {
     })
   })
   describe('invalid states', () => {
-    it('should render error message when new station is edited with empty fields', () => {
+    it('should render error message when station dropdown is edited with empty fields', () => {
       const { queryByText } = renderNewStationForm({ dirty: true }, true, null)
 
       const errorMessage = queryByText('Please complete empty fields to continue')
@@ -116,7 +116,7 @@ describe('NewStationForm', () => {
     })
     describe('dropdown error outlines', () => {
       const renderIncompleteForm = () => renderNewStationForm({ dirty: true }, true, null)
-      it('should render error outline for planning area dropdown when missing and station is edited', () => {
+      it('should render error outline for planning area dropdown when missing and planning area is edited', () => {
         const { getByTestId } = renderIncompleteForm()
 
         const planningAreaSelect = getByTestId('select-planning-area')
@@ -132,7 +132,7 @@ describe('NewStationForm', () => {
           planningAreaSelect.getElementsByClassName('Mui-error').length
         ).toBeGreaterThanOrEqual(1)
       })
-      it('should render error outline for fuel type dropdown when missing and station is edited', () => {
+      it('should render error outline for fuel type dropdown when missing and fuel type is edited', () => {
         const { getByTestId } = renderIncompleteForm()
 
         const planningAreaSelect = getByTestId('select-fuel-type')

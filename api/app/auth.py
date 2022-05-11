@@ -79,7 +79,7 @@ async def auth_with_select_station_role_required(token=Depends(authentication_re
 
 
 async def auth_with_station_admin_role_required(token=Depends(authentication_required)):
-    """ Only return requests that have set fire starts permission """
+    """ Only return requests that have station admin permission """
     return await check_token_for_role('hfi_station_admin', token)
 
 
