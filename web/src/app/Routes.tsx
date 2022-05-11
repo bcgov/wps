@@ -23,8 +23,7 @@ import { FireBehaviourAdvisoryPage } from 'features/fba/pages/FireBehaviourAdvis
 import { FWICalculatorPage } from 'features/fwiCalculator/pages/FWICalculatorPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
-const shouldAuthenticate =
-  process.env.NODE_ENV === 'production' || window.Cypress === undefined
+const shouldAuthenticate = process.env.NODE_ENV === 'production' || window.Cypress === undefined
 
 const WPSRoutes: React.FunctionComponent = () => {
   return (
@@ -33,11 +32,7 @@ const WPSRoutes: React.FunctionComponent = () => {
         <Route path="/" element={<Navigate to={PERCENTILE_CALC_ROUTE} />} />
         <Route
           path={PERCENTILE_CALC_ROUTE}
-          element={
-            <PercentileCalculatorPageWithDisclaimer
-              showDisclaimer={shouldShowDisclaimer}
-            />
-          }
+          element={<PercentileCalculatorPageWithDisclaimer showDisclaimer={shouldShowDisclaimer} />}
         />
         <Route path={FIRE_WEATHER_ROUTE} element={<Navigate to={MORECAST_ROUTE} />} />
         <Route

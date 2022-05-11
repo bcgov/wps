@@ -79,9 +79,7 @@ const FireCentreDropdown = (props: Props) => {
             if (isNull(option)) {
               props.onChange(undefined)
             } else {
-              const fc = Object.values(props.fireCentres).filter(
-                record => record.name === option.name
-              )[0]
+              const fc = Object.values(props.fireCentres).filter(record => record.name === option.name)[0]
               props.onChange(fc)
             }
           }}

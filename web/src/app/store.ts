@@ -11,9 +11,7 @@ const store = configureStore({
   // TODO: see if a better solution can be found: https://reactjs.org/docs/hooks-reference.html#usereducer
   // import { configureStore, Action, getDefaultMiddleware } from '@reduxjs/toolkit'
   middleware: getDefaultMiddleware =>
-    getDefaultMiddleware({ immutableCheck: false, serializableCheck: false }).concat(
-      thunkMiddleware
-    )
+    getDefaultMiddleware({ immutableCheck: false, serializableCheck: false }).concat(thunkMiddleware)
 })
 
 if (process.env.NODE_ENV === 'development' && module.hot) {

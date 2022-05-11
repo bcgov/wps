@@ -74,8 +74,7 @@ const forecastsSlice = createSlice({
   }
 })
 
-export const { getForecastsStart, getForecastsFailed, getForecastsSuccess } =
-  forecastsSlice.actions
+export const { getForecastsStart, getForecastsFailed, getForecastsSuccess } = forecastsSlice.actions
 
 export default forecastsSlice.reducer
 

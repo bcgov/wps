@@ -32,10 +32,7 @@ const stationsSlice = createSlice({
       state.loading = false
       state.error = action.payload
     },
-    getStationsSuccess(
-      state: State,
-      action: PayloadAction<GeoJsonStation[] | DetailedGeoJsonStation[]>
-    ) {
+    getStationsSuccess(state: State, action: PayloadAction<GeoJsonStation[] | DetailedGeoJsonStation[]>) {
       state.error = null
       state.stations = action.payload
       const stationsByCode: State['stationsByCode'] = {}
@@ -77,12 +74,7 @@ export const fetchWxStations =
     }
   }
 
-export const {
-  getStationsStart,
-  getStationsFailed,
-  getStationsSuccess,
-  selectStation,
-  selectStations
-} = stationsSlice.actions
+export const { getStationsStart, getStationsFailed, getStationsSuccess, selectStation, selectStations } =
+  stationsSlice.actions
 
 export default stationsSlice.reducer

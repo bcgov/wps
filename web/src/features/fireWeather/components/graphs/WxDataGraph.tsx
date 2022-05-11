@@ -56,9 +56,7 @@ const WxDataGraph = ({
   const hasModels = gdpsModels.length !== 0
   const hasForecasts = noonForecasts.length !== 0
   const hasBiasAdjModels =
-    gdpsModels.filter(
-      v => v.bias_adjusted_temperature || v.bias_adjusted_relative_humidity
-    ).length !== 0
+    gdpsModels.filter(v => v.bias_adjusted_temperature || v.bias_adjusted_relative_humidity).length !== 0
   const hasHighResModels = hrdpsModels.length !== 0
   const hasRegionalModels = rdpsModels.length !== 0
 
@@ -94,14 +92,7 @@ const WxDataGraph = ({
     }
   }
 
-  if (
-    !hasObservations &&
-    !hasForecasts &&
-    !hasModels &&
-    !hasBiasAdjModels &&
-    !hasHighResModels &&
-    !hasRegionalModels
-  ) {
+  if (!hasObservations && !hasForecasts && !hasModels && !hasBiasAdjModels && !hasHighResModels && !hasRegionalModels) {
     return null
   }
 

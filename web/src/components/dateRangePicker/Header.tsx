@@ -28,20 +28,7 @@ interface HeaderProps {
   onClickPrevious: () => void
 }
 
-const MONTHS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'June',
-  'July',
-  'Aug',
-  'Sept',
-  'Oct',
-  'Nov',
-  'Dec'
-]
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
 
 const generateYears = (relativeTo: Date, count: number) => {
   const half = Math.floor(count / 2)
@@ -73,12 +60,7 @@ const Header: React.FunctionComponent<HeaderProps> = ({
   return (
     <Grid container justifyContent="space-between" alignItems="center">
       <Grid item className={classes.iconContainer}>
-        <IconButton
-          className={classes.icon}
-          disabled={prevDisabled}
-          onClick={onClickPrevious}
-          size="large"
-        >
+        <IconButton className={classes.icon} disabled={prevDisabled} onClick={onClickPrevious} size="large">
           <ChevronLeft color={prevDisabled ? 'disabled' : 'action'} />
         </IconButton>
       </Grid>
@@ -112,12 +94,7 @@ const Header: React.FunctionComponent<HeaderProps> = ({
         </Select>
       </Grid>
       <Grid item className={classes.iconContainer}>
-        <IconButton
-          className={classes.icon}
-          disabled={nextDisabled}
-          onClick={onClickNext}
-          size="large"
-        >
+        <IconButton className={classes.icon} disabled={nextDisabled} onClick={onClickNext} size="large">
           <ChevronRight color={nextDisabled ? 'disabled' : 'action'} />
         </IconButton>
       </Grid>
