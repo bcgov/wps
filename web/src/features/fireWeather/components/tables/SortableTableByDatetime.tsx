@@ -119,20 +119,13 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
 
-  const minMaxValuesToHighlight: MinMaxValues =
-    getMinMaxValueCalculator(rowsSortedByDatetime)
-  const rowIds: RowIdsOfMinMaxValues = getMinMaxValuesRowIds(
-    rowsSortedByDatetime,
-    minMaxValuesToHighlight
-  )
+  const minMaxValuesToHighlight: MinMaxValues = getMinMaxValueCalculator(rowsSortedByDatetime)
+  const rowIds: RowIdsOfMinMaxValues = getMinMaxValuesRowIds(rowsSortedByDatetime, minMaxValuesToHighlight)
 
   return (
     <div className={classes.display} data-testid={props.testId}>
       <Accordion defaultExpanded>
-        <AccordionSummary
-          data-testid={`${props.testId}-accordion`}
-          expandIcon={<ExpandMoreIcon />}
-        >
+        <AccordionSummary data-testid={`${props.testId}-accordion`} expandIcon={<ExpandMoreIcon />}>
           <Typography component="div" variant="subtitle2">
             {props.title}
           </Typography>
@@ -154,11 +147,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                           sortDirection={canSort ? order : false}
                         >
                           {canSort ? (
-                            <TableSortLabel
-                              active={canSort}
-                              direction={order}
-                              onClick={toggleDatetimeOrder}
-                            >
+                            <TableSortLabel active={canSort} direction={order} onClick={toggleDatetimeOrder}>
                               {column.label}
                             </TableSortLabel>
                           ) : (
@@ -176,12 +165,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                       {props.columns.map(column => {
                         const value = row[column.id]
                         let display = null
-                        const { className, testId } = getCellClassNameAndTestId(
-                          column,
-                          rowIds,
-                          idx,
-                          classes
-                        )
+                        const { className, testId } = getCellClassNameAndTestId(column, rowIds, idx, classes)
 
                         if (typeof value === 'string' && column.formatDt) {
                           display = column.formatDt(value)
@@ -191,12 +175,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                         }
 
                         return (
-                          <TableCell
-                            key={column.id}
-                            align={column.align}
-                            className={className}
-                            data-testid={testId}
-                          >
+                          <TableCell key={column.id} align={column.align} className={className} data-testid={testId}>
                             {display}
                           </TableCell>
                         )

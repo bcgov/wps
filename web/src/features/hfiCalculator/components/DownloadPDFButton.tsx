@@ -8,12 +8,7 @@ export interface DownloadPDFButtonProps {
 const DownloadPDFButton = (props: DownloadPDFButtonProps) => {
   return (
     <React.Fragment>
-      <Button
-        variant="text"
-        color="primary"
-        onClick={props.onClick}
-        data-testid={'download-pdf-button'}
-      >
+      <Button variant="text" color="primary" onClick={props.onClick} data-testid={'download-pdf-button'}>
         <GetAppIcon />
         Download PDF
       </Button>

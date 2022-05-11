@@ -19,7 +19,7 @@
   "rules": {
     "prettier/prettier": [
       "error",
-      { "singleQuote": true, "semi": false, "printWidth": 90 }
+      { "singleQuote": true, "semi": false, "printWidth": 120 }
     ],
     "react/prop-types": "off",
     "no-useless-catch": "off",

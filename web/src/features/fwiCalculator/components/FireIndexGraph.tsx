@@ -1,14 +1,5 @@
 import React, { useState } from 'react'
-import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Line,
-  LineChart,
-  Legend,
-  Tooltip,
-  ResponsiveContainer
-} from 'recharts'
+import { XAxis, YAxis, CartesianGrid, Line, LineChart, Legend, Tooltip, ResponsiveContainer } from 'recharts'
 import { MultiDayRow } from 'features/fwiCalculator/components/dataModel'
 import _ from 'lodash'
 import ToggleLegend from 'features/fwiCalculator/components/ToggleLegend'
@@ -33,11 +24,9 @@ export interface FireIndexGraphProps {
 
 const FireIndexGraph = ({ rowData }: FireIndexGraphProps) => {
   const [disabled, setDisabled] = useState<string[]>(['dc'])
-  const linesToShow = _.without(Array.from(chartColors.keys()), ...disabled).map(
-    (line, idx) => (
-      <Line key={idx} type="monotone" dataKey={line} stroke={chartColors.get(line)} />
-    )
-  )
+  const linesToShow = _.without(Array.from(chartColors.keys()), ...disabled).map((line, idx) => (
+    <Line key={idx} type="monotone" dataKey={line} stroke={chartColors.get(line)} />
+  ))
 
   return (
     <ResponsiveContainer minWidth={100} minHeight={600}>

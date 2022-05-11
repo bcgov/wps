@@ -38,10 +38,7 @@ const fireBehaviourStationsSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getFireBehaviourStationsSuccess(
-      state: State,
-      action: PayloadAction<FBAWeatherStationsResponse>
-    ) {
+    getFireBehaviourStationsSuccess(state: State, action: PayloadAction<FBAWeatherStationsResponse>) {
       state.error = null
       state.fireBehaviourResultStations = action.payload.stations
       state.date = DateTime.fromFormat(action.payload.date, 'yyyy/MM/dd')
@@ -53,11 +50,8 @@ const fireBehaviourStationsSlice = createSlice({
   }
 })
 
-export const {
-  getFireBehaviourStationsStart,
-  getFireBehaviourStationsFailed,
-  getFireBehaviourStationsSuccess
-} = fireBehaviourStationsSlice.actions
+export const { getFireBehaviourStationsStart, getFireBehaviourStationsFailed, getFireBehaviourStationsSuccess } =
+  fireBehaviourStationsSlice.actions
 
 export default fireBehaviourStationsSlice.reducer
 
@@ -88,10 +82,7 @@ export const fetchFireBehaviourStations =
     try {
       if (!isEmpty(fetchableFireStations)) {
         dispatch(getFireBehaviourStationsStart())
-        const fireBehaviourStations = await postFBAStations(
-          pstFormatter(date),
-          fetchableFireStations
-        )
+        const fireBehaviourStations = await postFBAStations(pstFormatter(date), fetchableFireStations)
         dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
       }
     } catch (err) {
