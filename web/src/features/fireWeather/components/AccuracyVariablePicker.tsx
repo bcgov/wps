@@ -42,12 +42,8 @@ const AccuracyVariablePicker = (props: Props) => {
           className={classes.select}
           onChange={props.changeHandler}
         >
-          <MenuItem value={AccuracyWeatherVariableEnum['Relative Humidity']}>
-            Relative Humidity
-          </MenuItem>
-          <MenuItem value={AccuracyWeatherVariableEnum['Temperature']}>
-            Temperature
-          </MenuItem>
+          <MenuItem value={AccuracyWeatherVariableEnum['Relative Humidity']}>Relative Humidity</MenuItem>
+          <MenuItem value={AccuracyWeatherVariableEnum['Temperature']}>Temperature</MenuItem>
         </Select>
       </FormControl>
     </div>

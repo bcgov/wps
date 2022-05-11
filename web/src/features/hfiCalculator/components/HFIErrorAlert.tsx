@@ -43,8 +43,7 @@ const HFIErrorAlert = ({ errors, disableGeneralInstructions }: HFIErrorAlertProp
     }
     return (
       <>
-        The following errors have occurred. Please refresh the page. If the problem
-        persists, please&nbsp;
+        The following errors have occurred. Please refresh the page. If the problem persists, please&nbsp;
         <a
           id="contact-hfi-error"
           href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - HFI Error`}

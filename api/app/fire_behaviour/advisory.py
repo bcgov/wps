@@ -18,7 +18,7 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
                  time_of_interest: date, percentage_conifer: float,
                  percentage_dead_balsam_fir: float, grass_cure: float,
                  crown_base_height: int, crown_fuel_load: Optional[float], lat: float, long: float,
-                 bui: float, ffmc: float, isi: float, wind_speed: float, wind_direction: float,
+                 bui: float, ffmc: float, isi: float, fwi: float, wind_speed: float, wind_direction: float,
                  temperature: float, relative_humidity: float, precipitation: float, status: str,
                  prev_day_daily_ffmc: float, last_observed_morning_rh_values: dict):
         self.elevation = elevation
@@ -36,6 +36,7 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
         self.bui = bui
         self.ffmc = ffmc
         self.isi = isi
+        self.fwi = fwi
         self.wind_speed = wind_speed
         self.wind_direction = wind_direction
         self.temperature = temperature
@@ -50,9 +51,10 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
             time_of_interest {self.time_of_interest}, percentage_conifer {self.percentage_conifer},\
             percentage_dead_balsam_fir {self.percentage_dead_balsam_fir}, grass_cure {self.grass_cure},\
             crown_base_height {self.crown_base_height}, crown_fuel_load {self.crown_fuel_load}, bui {self.bui},\
-            ffmc {self.ffmc}, isi {self.isi}, prev_day_daily_ffmc {self.prev_day_daily_ffmc}, wind_speed {self.wind_speed},\
-            temperature {self.temperature}, relative_humidity {self.relative_humidity}, \
-            precipitation {self.precipitation}, status {self.status}"
+            ffmc {self.ffmc}, isi {self.isi}, fwi {self.fwi} prev_day_daily_ffmc {self.prev_day_daily_ffmc},\
+            wind_speed {self.wind_speed}, temperature {self.temperature},\
+            relative_humidity {self.relative_humidity}, precipitation {self.precipitation},\
+            status {self.status}"
 
 
 class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes

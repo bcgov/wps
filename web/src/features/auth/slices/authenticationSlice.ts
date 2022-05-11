@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import kcInstance, { kcInitOption } from 'features/auth/keycloak'
-import jwt_decode from 'jwt-decode'
+import * as jwtDecode from 'jwt-decode'
 import { logError } from 'utils/error'
 import { isUndefined } from 'lodash'
 import { KC_CLIENT, TEST_AUTH } from 'utils/env'
@@ -101,7 +101,7 @@ export const decodeRoles = (token: string | undefined) => {
     return Object.values(ROLES.HFI)
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const decodedToken: any = jwt_decode(token)
+  const decodedToken: any = jwtDecode.default(token)
   try {
     return decodedToken.resource_access[KC_CLIENT].roles
   } catch (e) {
@@ -118,7 +118,7 @@ export const decodeIdir = (token: string | undefined) => {
     return 'test@idir'
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const decodedToken: any = jwt_decode(token)
+  const decodedToken: any = jwtDecode.default(token)
   try {
     return decodedToken.preferred_username
   } catch (e) {
@@ -137,9 +137,7 @@ export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
 
   if (!kcInstance) {
-    return dispatch(
-      authenticateError('Failed to authenticate (Unable to fetch keycloak-js).')
-    )
+    return dispatch(authenticateError('Failed to authenticate (Unable to fetch keycloak-js).'))
   }
 
   kcInstance

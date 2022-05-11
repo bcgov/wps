@@ -41,11 +41,7 @@ describe('SaveNewStationButton', () => {
     const handleSaveMock = jest.fn()
 
     const { getByTestId } = render(
-      <SaveNewStationButton
-        newStation={{ dirty: true }}
-        invalidNewStation={true}
-        handleSave={handleSaveMock}
-      />
+      <SaveNewStationButton newStation={{ dirty: true }} invalidNewStation={true} handleSave={handleSaveMock} />
     )
 
     const saveButton = getByTestId('save-new-station-button')
@@ -56,11 +52,7 @@ describe('SaveNewStationButton', () => {
     const handleSaveMock = jest.fn()
 
     const { getByTestId } = render(
-      <SaveNewStationButton
-        newStation={{ dirty: false }}
-        invalidNewStation={false}
-        handleSave={handleSaveMock}
-      />
+      <SaveNewStationButton newStation={{ dirty: false }} invalidNewStation={false} handleSave={handleSaveMock} />
     )
 
     const saveButton = getByTestId('save-new-station-button')

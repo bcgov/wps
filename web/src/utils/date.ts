@@ -9,13 +9,9 @@ export const toISO = (dtDateTime: DateTime): string => {
   return dtDateTime.toISO({ suppressMilliseconds: true, includeOffset: true })
 }
 
-export const isNoonInPST = (dt: string): boolean =>
-  DateTime.fromISO(dt).setZone('UTC').hour === UTC_NOON_HOUR
+export const isNoonInPST = (dt: string): boolean => DateTime.fromISO(dt).setZone('UTC').hour === UTC_NOON_HOUR
 
-export const formatDatetimeInPST = (
-  dt: string | Date | DateTime,
-  format?: string
-): string => {
+export const formatDatetimeInPST = (dt: string | Date | DateTime, format?: string): string => {
   let datetime = undefined
 
   if (typeof dt === 'string') {

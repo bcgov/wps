@@ -12,12 +12,7 @@ export interface FWIStationCellProps {
 }
 const emptyLabel = 'Select a station'
 
-const FWIStationCell = ({
-  isLoading,
-  stationOptions,
-  input,
-  setInput
-}: FWIStationCellProps) => {
+const FWIStationCell = ({ isLoading, stationOptions, input, setInput }: FWIStationCellProps) => {
   // eslint-disable-next-line
 
   const handleChange = (
@@ -40,12 +35,7 @@ const FWIStationCell = ({
       getOptionLabel={option => `${option.name} (${option.code})`}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
       renderInput={params => (
-        <TextField
-          {...params}
-          label={input.stationOption ? '' : emptyLabel}
-          variant="outlined"
-          size="small"
-        />
+        <TextField {...params} label={input.stationOption ? '' : emptyLabel} variant="outlined" size="small" />
       )}
       onChange={handleChange}
       value={input.stationOption}

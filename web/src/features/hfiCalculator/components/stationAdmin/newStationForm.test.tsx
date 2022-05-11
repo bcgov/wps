@@ -1,9 +1,6 @@
 import { render } from '@testing-library/react'
 import { FuelType } from 'api/hfiCalculatorAPI'
-import {
-  AdminStation,
-  BasicWFWXStation
-} from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { AdminStation, BasicWFWXStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import NewStationForm from 'features/hfiCalculator/components/stationAdmin/NewStationForm'
 import React from 'react'
 
@@ -17,11 +14,7 @@ describe('NewStationForm', () => {
     setInvalidMock.mockReset()
   })
 
-  const renderNewStationForm = (
-    newStation: AdminStation,
-    invalid: boolean,
-    stationAddedError: string | null
-  ) => {
+  const renderNewStationForm = (newStation: AdminStation, invalid: boolean, stationAddedError: string | null) => {
     return render(
       <NewStationForm
         newStation={newStation}
@@ -42,11 +35,7 @@ describe('NewStationForm', () => {
     })
     it('should not render error outline for planning area dropdown when it exists', () => {
       const planningArea = { id: 1, name: 'test' }
-      const { getByTestId } = renderNewStationForm(
-        { dirty: true, planningArea },
-        false,
-        null
-      )
+      const { getByTestId } = renderNewStationForm({ dirty: true, planningArea }, false, null)
 
       const planningAreaSelect = getByTestId('select-planning-area')
       expect(planningAreaSelect.getElementsByClassName('Mui-error').length).toBe(0)
@@ -105,11 +94,7 @@ describe('NewStationForm', () => {
     })
     it('should render error message when new station already exists', () => {
       const alreadyExistsMessage = 'Station already exists'
-      const { queryByText } = renderNewStationForm(
-        { dirty: true },
-        true,
-        alreadyExistsMessage
-      )
+      const { queryByText } = renderNewStationForm({ dirty: true }, true, alreadyExistsMessage)
 
       const errorMessage = queryByText(alreadyExistsMessage)
       expect(errorMessage).toBeInTheDocument()
@@ -120,25 +105,19 @@ describe('NewStationForm', () => {
         const { getByTestId } = renderIncompleteForm()
 
         const planningAreaSelect = getByTestId('select-planning-area')
-        expect(
-          planningAreaSelect.getElementsByClassName('Mui-error').length
-        ).toBeGreaterThanOrEqual(1)
+        expect(planningAreaSelect.getElementsByClassName('Mui-error').length).toBeGreaterThanOrEqual(1)
       })
       it('should render error outline for station dropdown when missing and station is edited', () => {
         const { getByTestId } = renderIncompleteForm()
 
         const planningAreaSelect = getByTestId('select-station')
-        expect(
-          planningAreaSelect.getElementsByClassName('Mui-error').length
-        ).toBeGreaterThanOrEqual(1)
+        expect(planningAreaSelect.getElementsByClassName('Mui-error').length).toBeGreaterThanOrEqual(1)
       })
       it('should render error outline for fuel type dropdown when missing and fuel type is edited', () => {
         const { getByTestId } = renderIncompleteForm()
 
         const planningAreaSelect = getByTestId('select-fuel-type')
-        expect(
-          planningAreaSelect.getElementsByClassName('Mui-error').length
-        ).toBeGreaterThanOrEqual(1)
+        expect(planningAreaSelect.getElementsByClassName('Mui-error').length).toBeGreaterThanOrEqual(1)
       })
     })
   })

@@ -9,11 +9,7 @@ export const updateFBARow = (
   field: string,
   // eslint-disable-next-line
   value: any,
-  updatedRowBuilder: (
-    rowToUpdate: FBATableRow,
-    field: string,
-    value: GridMenuOption | number
-  ) => FBATableRow,
+  updatedRowBuilder: (rowToUpdate: FBATableRow, field: string, value: GridMenuOption | number) => FBATableRow,
   dispatchRequest = true
 ): void => {
   const rowToUpdate = find(inputRows, ['id', rowId])

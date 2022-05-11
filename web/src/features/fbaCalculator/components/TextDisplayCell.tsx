@@ -18,11 +18,7 @@ const useStyles = makeStyles({
 const TextDisplayCell = (props: TextDisplayCellProps) => {
   const classes = useStyles()
 
-  return (
-    <TableCell className={props.className ? props.className : classes.dataRow}>
-      {props.value}
-    </TableCell>
-  )
+  return <TableCell className={props.className ? props.className : classes.dataRow}>{props.value}</TableCell>
 }
 
 export default React.memo(TextDisplayCell)

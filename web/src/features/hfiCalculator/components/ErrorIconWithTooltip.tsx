@@ -1,10 +1,4 @@
-import {
-  createTheme,
-  ThemeProvider,
-  Theme,
-  StyledEngineProvider,
-  Tooltip
-} from '@mui/material'
+import { createTheme, ThemeProvider, Theme, StyledEngineProvider, Tooltip } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { fireTableStyles } from 'app/theme'
@@ -59,15 +53,10 @@ const ErrorIconWithTooltip = (props: ErrorIconWithTooltipProps) => {
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={errorIconTheme}>
-        <Tooltip
-          title={props.tooltipElement}
-          aria-label={`${props.tooltipAriaText.join('\n')}`}
-        >
+        <Tooltip title={props.tooltipElement} aria-label={`${props.tooltipAriaText.join('\n')}`}>
           <div
             className={
-              !props.isDataCell || isUndefined(props.isDataCell)
-                ? classes.planningAreaIcon
-                : classes.dataCellIcon
+              !props.isDataCell || isUndefined(props.isDataCell) ? classes.planningAreaIcon : classes.dataCellIcon
             }
           >
             <ErrorOutlineIcon data-testid={props.testId}></ErrorOutlineIcon>

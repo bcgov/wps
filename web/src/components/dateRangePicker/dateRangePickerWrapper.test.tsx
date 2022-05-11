@@ -3,12 +3,7 @@ import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWr
 import { DateRange } from 'components/dateRangePicker/types'
 import React from 'react'
 
-const setup = (
-  open: boolean,
-  toggleMock: () => void,
-  initialDateRange: DateRange,
-  onChangeMock: () => void
-) => {
+const setup = (open: boolean, toggleMock: () => void, initialDateRange: DateRange, onChangeMock: () => void) => {
   const { getByTestId, getByRole } = render(
     <DateRangePickerWrapper
       open={open}

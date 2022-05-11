@@ -49,11 +49,9 @@ const HFILoadingDataView = ({
     return pdfLoading || fuelTypesLoading || stationDataLoading || fireCentresLoading
   }
 
-  const isLoadingWithoutError = () =>
-    isLoading() && isNull(fireCentresError) && isNull(hfiError)
+  const isLoadingWithoutError = () => isLoading() && isNull(fireCentresError) && isNull(hfiError)
 
-  const isFireCentreUnselected = () =>
-    (isUndefined(selectedFireCentre) || isUndefined(dateRange)) && !isLoading()
+  const isFireCentreUnselected = () => (isUndefined(selectedFireCentre) || isUndefined(dateRange)) && !isLoading()
 
   const errorNotification = buildErrorNotification()
 

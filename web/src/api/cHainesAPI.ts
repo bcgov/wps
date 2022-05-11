@@ -13,28 +13,18 @@ export interface ModelRuns {
   model_runs: ModelRun[]
 }
 
-export async function getModelRuns(
-  model_run_timestamp: string | null
-): Promise<ModelRuns> {
+export async function getModelRuns(model_run_timestamp: string | null): Promise<ModelRuns> {
   const url = `${API_BASE_URL}/c-haines/model-runs`
   const { data } = await axios.get(url, {
     params: {
-      model_run_timestamp: model_run_timestamp
-        ? new Date(model_run_timestamp).toISOString()
-        : null
+      model_run_timestamp: model_run_timestamp ? new Date(model_run_timestamp).toISOString() : null
     }
   })
   return data
 }
 
-export function getCHainesGeoJSONURI(
-  model: string,
-  model_run_timestamp: string,
-  prediction_timestamp: string
-): string {
-  return `${API_BASE_URL}/c-haines/${encodeURIComponent(
-    model
-  )}/prediction?model_run_timestamp=${encodeURIComponent(
+export function getCHainesGeoJSONURI(model: string, model_run_timestamp: string, prediction_timestamp: string): string {
+  return `${API_BASE_URL}/c-haines/${encodeURIComponent(model)}/prediction?model_run_timestamp=${encodeURIComponent(
     model_run_timestamp
   )}&prediction_timestamp=${encodeURIComponent(prediction_timestamp)}`
 }
@@ -44,30 +34,17 @@ export function getKMLNetworkLinkURI(): string {
 }
 
 export function getCHainesModelKMLURI(model: string): string {
-  return `${API_BASE_URL}/c-haines/${encodeURIComponent(
-    model
-  )}/predictions?response_format=KML`
+  return `${API_BASE_URL}/c-haines/${encodeURIComponent(model)}/predictions?response_format=KML`
 }
 
-export function getCHainesKMLURI(
-  model: string,
-  model_run_timestamp: string,
-  prediction_timestamp: string
-): string {
-  return `${API_BASE_URL}/c-haines/${encodeURIComponent(
-    model
-  )}/prediction?model_run_timestamp=${encodeURIComponent(
+export function getCHainesKMLURI(model: string, model_run_timestamp: string, prediction_timestamp: string): string {
+  return `${API_BASE_URL}/c-haines/${encodeURIComponent(model)}/prediction?model_run_timestamp=${encodeURIComponent(
     model_run_timestamp
   )}&prediction_timestamp=${encodeURIComponent(prediction_timestamp)}&response_format=KML`
 }
 
-export function getCHainesKMLModelRunURI(
-  model: string,
-  model_run_timestamp: string
-): string {
-  return `${API_BASE_URL}/c-haines/${encodeURIComponent(
-    model
-  )}/predictions?model_run_timestamp=${encodeURIComponent(
+export function getCHainesKMLModelRunURI(model: string, model_run_timestamp: string): string {
+  return `${API_BASE_URL}/c-haines/${encodeURIComponent(model)}/predictions?model_run_timestamp=${encodeURIComponent(
     model_run_timestamp
   )}&response_format=KML`
 }

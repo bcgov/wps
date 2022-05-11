@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  IconButton,
-  Paper,
-  Typography,
-  Button
-} from '@mui/material'
+import { Dialog, DialogContent, IconButton, Paper, Typography, Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
@@ -73,17 +66,12 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const AddStationModal = ({
-  modalOpen,
-  setModalOpen
-}: AddStationModalProps): JSX.Element => {
+export const AddStationModal = ({ modalOpen, setModalOpen }: AddStationModalProps): JSX.Element => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
 
-  const { fuelTypes, selectedFireCentre, stationAdded, stationAddedError } = useSelector(
-    selectHFICalculatorState
-  )
+  const { fuelTypes, selectedFireCentre, stationAdded, stationAddedError } = useSelector(selectHFICalculatorState)
   const { stations: wfwxStations } = useSelector(selectFireWeatherStations)
 
   const newEmptyStation: AdminStation = { dirty: false }
@@ -148,13 +136,7 @@ export const AddStationModal = ({
 
   return (
     <React.Fragment>
-      <Dialog
-        fullWidth
-        maxWidth="md"
-        open={modalOpen}
-        onClose={handleClose}
-        data-testid="manage-stations-modal"
-      >
+      <Dialog fullWidth maxWidth="md" open={modalOpen} onClose={handleClose} data-testid="manage-stations-modal">
         <Paper>
           <IconButton className={classes.closeIcon} onClick={handleClose}>
             <ClearIcon />
@@ -176,11 +158,7 @@ export const AddStationModal = ({
               stationAddedError={stationAddedError}
             />
           </DialogContent>
-          <SaveNewStationButton
-            newStation={newStation}
-            invalidNewStation={invalid}
-            handleSave={handleSave}
-          />
+          <SaveNewStationButton newStation={newStation} invalidNewStation={invalid} handleSave={handleSave} />
           <Button
             variant="outlined"
             color="primary"

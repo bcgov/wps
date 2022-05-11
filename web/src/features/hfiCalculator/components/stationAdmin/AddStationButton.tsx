@@ -11,12 +11,7 @@ const AddStationButton = () => {
 
   return (
     <React.Fragment>
-      <Button
-        variant="text"
-        color="primary"
-        onClick={openAddStationModal}
-        data-testid={'manage-stations-button'}
-      >
+      <Button variant="text" color="primary" onClick={openAddStationModal} data-testid={'manage-stations-button'}>
         <AddCircleOutlineIcon />
         Add weather station
       </Button>

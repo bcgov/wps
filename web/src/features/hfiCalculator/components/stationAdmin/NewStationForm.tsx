@@ -2,10 +2,7 @@ import React, { Dispatch, SetStateAction } from 'react'
 import { Box, Autocomplete, TextField, Grid, Typography, Tooltip } from '@mui/material'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
-import {
-  AddStationOptions,
-  AdminStation
-} from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { AddStationOptions, AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import makeStyles from '@mui/styles/makeStyles'
 import { isNull, isUndefined } from 'lodash'
 
@@ -45,25 +42,17 @@ export const NewStationForm = ({
 
   const invalidNewStation = (station: AdminStation) => {
     const missingFields =
-      isUndefined(station.planningArea) ||
-      isUndefined(station.station) ||
-      isUndefined(station.fuelType)
+      isUndefined(station.planningArea) || isUndefined(station.station) || isUndefined(station.fuelType)
     setInvalid(missingFields && station.dirty)
   }
 
-  const planningAreaError =
-    (newStation.dirty && isUndefined(newStation.planningArea)) ||
-    !isNull(stationAddedError)
+  const planningAreaError = (newStation.dirty && isUndefined(newStation.planningArea)) || !isNull(stationAddedError)
 
-  const stationError =
-    (newStation.dirty && isUndefined(newStation.station)) || !isNull(stationAddedError)
+  const stationError = (newStation.dirty && isUndefined(newStation.station)) || !isNull(stationAddedError)
 
-  const fuelTypeError =
-    (newStation.dirty && isUndefined(newStation.fuelType)) || !isNull(stationAddedError)
+  const fuelTypeError = (newStation.dirty && isUndefined(newStation.fuelType)) || !isNull(stationAddedError)
 
-  const toolTipText = (
-    <div className={classes.toolTipText}>Grass curing is set in WFWX</div>
-  )
+  const toolTipText = <div className={classes.toolTipText}>Grass curing is set in WFWX</div>
 
   return (
     <Box sx={{ marginTop: 5 }}>
@@ -80,12 +69,7 @@ export const NewStationForm = ({
                 options={addStationOptions ? addStationOptions.planning_areas : []}
                 getOptionLabel={option => option?.name}
                 renderInput={params => (
-                  <TextField
-                    {...params}
-                    label="Select Planning Area"
-                    variant="outlined"
-                    error={planningAreaError}
-                  />
+                  <TextField {...params} label="Select Planning Area" variant="outlined" error={planningAreaError} />
                 )}
                 onChange={(_, value) => {
                   const changedNewStation = {
@@ -110,12 +94,7 @@ export const NewStationForm = ({
                 options={addStationOptions ? addStationOptions.stations : []}
                 getOptionLabel={option => option?.name}
                 renderInput={params => (
-                  <TextField
-                    {...params}
-                    label="Select Station"
-                    variant="outlined"
-                    error={stationError}
-                  />
+                  <TextField {...params} label="Select Station" variant="outlined" error={stationError} />
                 )}
                 onChange={(_, value) => {
                   const changedNewStation = {
@@ -132,11 +111,7 @@ export const NewStationForm = ({
             <Grid item>
               <Typography>
                 <strong>Fuel Type</strong>
-                <Tooltip
-                  className={classes.tooltip}
-                  title={toolTipText}
-                  aria-label="grass-curing-is-set-in-wfwx"
-                >
+                <Tooltip className={classes.tooltip} title={toolTipText} aria-label="grass-curing-is-set-in-wfwx">
                   <InfoOutlinedIcon></InfoOutlinedIcon>
                 </Tooltip>
               </Typography>
@@ -146,12 +121,7 @@ export const NewStationForm = ({
                 options={addStationOptions ? addStationOptions.fuel_types : []}
                 getOptionLabel={option => option?.abbrev}
                 renderInput={params => (
-                  <TextField
-                    {...params}
-                    label="Select Fuel Type"
-                    variant="outlined"
-                    error={fuelTypeError}
-                  />
+                  <TextField {...params} label="Select Fuel Type" variant="outlined" error={fuelTypeError} />
                 )}
                 onChange={(_, value) => {
                   const changedNewStation = {
@@ -167,31 +137,17 @@ export const NewStationForm = ({
           </Grid>
         </Grid>
         {invalid && (
-          <Grid
-            container
-            direction="row"
-            justifyContent="center"
-            spacing={1}
-            marginTop={5}
-          >
+          <Grid container direction="row" justifyContent="center" spacing={1} marginTop={5}>
             <Grid item>
               <ErrorOutlineIcon color="error" />
             </Grid>
             <Grid item>
-              <Typography variant="body1">
-                Please complete empty fields to continue
-              </Typography>
+              <Typography variant="body1">Please complete empty fields to continue</Typography>
             </Grid>
           </Grid>
         )}
         {!isNull(stationAddedError) && (
-          <Grid
-            container
-            direction="row"
-            justifyContent="center"
-            spacing={1}
-            marginTop={5}
-          >
+          <Grid container direction="row" justifyContent="center" spacing={1} marginTop={5}>
             <Grid item>
               <ErrorOutlineIcon color="error" />
             </Grid>

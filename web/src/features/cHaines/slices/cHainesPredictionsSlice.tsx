@@ -30,9 +30,7 @@ const cHainesPredictionsSlice = createSlice({
       state.loading = true
     },
     getPredictionSuccess(state: State, action: PayloadAction<GeoJSONContext>) {
-      state.model_runs[action.payload.model_run_timestamp][
-        action.payload.prediction_timestamp
-      ] = action.payload.result
+      state.model_runs[action.payload.model_run_timestamp][action.payload.prediction_timestamp] = action.payload.result
     },
     getPredictionFailed(state: State, action: PayloadAction<string>) {
       state.loading = false
@@ -41,25 +39,16 @@ const cHainesPredictionsSlice = createSlice({
   }
 })
 
-const { getPredictionStart, getPredictionSuccess, getPredictionFailed } =
-  cHainesPredictionsSlice.actions
+const { getPredictionStart, getPredictionSuccess, getPredictionFailed } = cHainesPredictionsSlice.actions
 
 export default cHainesPredictionsSlice.reducer
 
 export const fetchCHainesGeoJSON =
-  (
-    model_abbreviation: string,
-    model_run_timestamp: string,
-    prediction_timestamp: string
-  ): AppThunk =>
+  (model_abbreviation: string, model_run_timestamp: string, prediction_timestamp: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(getPredictionStart())
-      const geoJSON = await getCHainesGeoJSON(
-        model_abbreviation,
-        model_run_timestamp,
-        prediction_timestamp
-      )
+      const geoJSON = await getCHainesGeoJSON(model_abbreviation, model_run_timestamp, prediction_timestamp)
       const result = {
         model: model_abbreviation,
         model_run_timestamp: model_run_timestamp,
