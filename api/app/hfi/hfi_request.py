@@ -9,7 +9,7 @@ from app.schemas.hfi_calc import HFIResultRequest, StationInfo
 
 def update_result_request(result_request: HFIResultRequest,
                           latest_stations: List[PlanningWeatherStation]):
-    """ Immutable copy of the result request with the latest planning weather stations """
+    """ Returns copy of the result request with the latest planning weather stations """
     if len(latest_stations) == 0:
         return result_request
 
@@ -31,7 +31,8 @@ def update_result_request(result_request: HFIResultRequest,
             station_info: StationInfo = StationInfo(
                 station_code=station.station_code,
                 selected=existing_station.selected if existing_station is not None else True,
-                fuel_type_id=station.fuel_type_id)
+                fuel_type_id=existing_station.fuel_type_id if existing_station is not None else station.fuel_type_id)  # pylint: disable=line-too-long
+
             updated_station_info_list.append(station_info)
         updated_result_request.planning_area_station_info[planning_area_id] = updated_station_info_list
     return updated_result_request
