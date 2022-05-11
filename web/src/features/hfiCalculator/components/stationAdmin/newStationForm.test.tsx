@@ -10,6 +10,7 @@ import React from 'react'
 describe('NewStationForm', () => {
   const setNewStationMock = jest.fn()
   const setInvalidMock = jest.fn()
+  const handleFormChangeMock = jest.fn()
 
   beforeEach(() => {
     setNewStationMock.mockReset()
@@ -27,6 +28,7 @@ describe('NewStationForm', () => {
         invalid={invalid}
         setNewStation={setNewStationMock}
         setInvalid={setInvalidMock}
+        handleFormChange={handleFormChangeMock}
         stationAddedError={stationAddedError}
       />
     )

@@ -16,6 +16,7 @@ export interface NewStationFormProps {
   setNewStation: Dispatch<SetStateAction<AdminStation>>
   invalid: boolean
   setInvalid: Dispatch<SetStateAction<boolean>>
+  handleFormChange: () => void
   stationAddedError: string | null
 }
 
@@ -37,6 +38,7 @@ export const NewStationForm = ({
   setNewStation,
   invalid,
   setInvalid,
+  handleFormChange,
   stationAddedError
 }: NewStationFormProps): JSX.Element => {
   const classes = useStyles()
@@ -93,6 +95,7 @@ export const NewStationForm = ({
                   }
                   setNewStation(changedNewStation)
                   invalidNewStation(changedNewStation)
+                  handleFormChange()
                 }}
               />
             </Grid>
@@ -122,6 +125,7 @@ export const NewStationForm = ({
                   }
                   setNewStation(changedNewStation)
                   invalidNewStation(changedNewStation)
+                  handleFormChange()
                 }}
               />
             </Grid>

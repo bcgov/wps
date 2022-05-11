@@ -116,6 +116,10 @@ export const AddStationModal = ({
     }
   }
 
+  const handleFormChange = () => {
+    dispatch(setAddedStationFailed(null))
+  }
+
   useEffect(() => {
     handleClose()
     if (stationAdded) {
@@ -167,6 +171,7 @@ export const AddStationModal = ({
               setNewStation={setNewStation}
               invalid={invalid}
               setInvalid={setInvalid}
+              handleFormChange={handleFormChange}
               addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
               stationAddedError={stationAddedError}
             />
