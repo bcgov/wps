@@ -1,8 +1,4 @@
-import {
-  StationDaily,
-  WeatherStation,
-  WeatherStationProperties
-} from 'api/hfiCalculatorAPI'
+import { StationDaily, WeatherStation, WeatherStationProperties } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
 
 const defaultProps: WeatherStationProperties = {

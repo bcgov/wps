@@ -1,9 +1,4 @@
-import {
-  IntegratedSorting,
-  SortingState,
-  EditingState,
-  ChangeSet
-} from '@devexpress/dx-react-grid'
+import { IntegratedSorting, SortingState, EditingState, ChangeSet } from '@devexpress/dx-react-grid'
 import {
   ColumnChooser,
   Grid as ReactGrid,
@@ -48,11 +43,7 @@ export interface MultiDayFWITableProps {
   endDate: string
 }
 
-export const MultiDayFWITable = ({
-  selectedStation,
-  startDate,
-  endDate
-}: MultiDayFWITableProps): JSX.Element => {
+export const MultiDayFWITable = ({ selectedStation, startDate, endDate }: MultiDayFWITableProps): JSX.Element => {
   const dispatch: AppDispatch = useDispatch()
   const { multiFWIOutputs } = useSelector(selectMultiFWIOutputs)
   const isLoading = useSelector(selectMultiFWIOutputsLoading)
@@ -78,10 +69,7 @@ export const MultiDayFWITable = ({
   const [rows, setRows] = useState<MultiDayRow[]>([])
 
   const loadFromRange = () => {
-    if (
-      Interval.fromDateTimes(DateTime.fromISO(startDate), DateTime.fromISO(endDate))
-        .isValid
-    ) {
+    if (Interval.fromDateTimes(DateTime.fromISO(startDate), DateTime.fromISO(endDate)).isValid) {
       const dates = getDaysBetween(startDate, endDate)
       const newRows = generateDefaultRowsFromDates(dates)
       setRows(newRows)
@@ -145,10 +133,7 @@ export const MultiDayFWITable = ({
           {isLoading && <LinearProgress />}
           <SortingState defaultSorting={[{ columnName: 'date', direction: 'asc' }]} />
           <IntegratedSorting />
-          <EditingState
-            onCommitChanges={commitChanges}
-            columnExtensions={disabledColumns}
-          />
+          <EditingState onCommitChanges={commitChanges} columnExtensions={disabledColumns} />
           <Table cellComponent={MultiFWITableCell} />
           <TableHeaderRow showSortingControls />
           <TableColumnVisibility />
