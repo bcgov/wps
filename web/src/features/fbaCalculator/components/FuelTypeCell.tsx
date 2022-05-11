@@ -26,11 +26,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
     if (!isEqual(selectedFuelType, value)) {
       setSelectedFuelType(value)
-      const updatedRow = buildUpdatedOptionRow(
-        props.inputRows[props.rowId],
-        'fuelType',
-        value
-      )
+      const updatedRow = buildUpdatedOptionRow(props.inputRows[props.rowId], 'fuelType', value)
       const dispatchRequest = !isGrassCureInvalid(updatedRow)
       updateFBARow(
         props.inputRows,
@@ -53,12 +49,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
       renderInput={params => (
-        <TextField
-          {...params}
-          label={props.value ? '' : emptyLabel}
-          variant="outlined"
-          size="small"
-        />
+        <TextField {...params} label={props.value ? '' : emptyLabel} variant="outlined" size="small" />
       )}
       onChange={changeHandler}
       disabled={props.disabled}

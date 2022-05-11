@@ -11,12 +11,7 @@ export interface FWIStationCellProps {
 }
 const emptyLabel = 'Select a station'
 
-const FWIStationSelect = ({
-  isLoading,
-  selectedStation,
-  setSelectedStation,
-  stationOptions
-}: FWIStationCellProps) => {
+const FWIStationSelect = ({ isLoading, selectedStation, setSelectedStation, stationOptions }: FWIStationCellProps) => {
   return (
     <Autocomplete
       fullWidth
@@ -27,13 +22,7 @@ const FWIStationSelect = ({
       getOptionLabel={option => `${option.name} (${option.code})`}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
       renderInput={params => (
-        <TextField
-          {...params}
-          label={selectedStation ? '' : emptyLabel}
-          variant="outlined"
-          size="medium"
-          fullWidth
-        />
+        <TextField {...params} label={selectedStation ? '' : emptyLabel} variant="outlined" size="medium" fullWidth />
       )}
       onChange={(_, value) => {
         setSelectedStation(value)

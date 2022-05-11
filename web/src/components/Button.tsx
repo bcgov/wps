@@ -35,16 +35,9 @@ export const Button = forwardRef<HTMLButtonElement, Props>((props, ref) => {
   const buttonClassName = clsx(classes.root, className)
 
   return (
-    <B
-      {...buttonProps}
-      className={buttonClassName}
-      disabled={disabled || loading}
-      ref={ref}
-    >
+    <B {...buttonProps} className={buttonClassName} disabled={disabled || loading} ref={ref}>
       {buttonProps.children}
-      {loading && hasSpinner && (
-        <CircularProgress size={20} className={classes.spinner} />
-      )}
+      {loading && hasSpinner && <CircularProgress size={20} className={classes.spinner} />}
     </B>
   )
 })

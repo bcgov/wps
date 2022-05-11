@@ -26,10 +26,7 @@ export interface FWIOutputResponse {
   fwi_outputs: FWIOutput[]
 }
 
-export async function getFWIOutput(
-  input: FWIInputParameters,
-  date: string
-): Promise<FWIOutput[]> {
+export async function getFWIOutput(input: FWIInputParameters, date: string): Promise<FWIOutput[]> {
   const url = '/fwi-calc/'
   const { data } = await axios.post<FWIOutputResponse>(url, {
     input: {

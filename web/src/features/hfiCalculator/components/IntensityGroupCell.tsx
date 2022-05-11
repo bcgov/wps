@@ -28,9 +28,7 @@ const IntensityGroupCell = (props: IntensityGroupCellProps) => {
   return (
     <TableCell
       className={`${
-        !props.selected && !props.error && props.value
-          ? classes.unselectedStation
-          : classes.intensityGroupCell
+        !props.selected && !props.error && props.value ? classes.unselectedStation : classes.intensityGroupCell
       }`}
       data-testid={props.testid}
     >

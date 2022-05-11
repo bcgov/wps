@@ -19,13 +19,7 @@ const useStyles = makeStyles({
     color: UNSELECTED_STATION_COLOR
   }
 })
-const WeeklyROSCell = ({
-  daily,
-  testId,
-  isRowSelected,
-  error,
-  isFirstDayOfPrepPeriod
-}: WeeklyROSCellProps) => {
+const WeeklyROSCell = ({ daily, testId, isRowSelected, error, isFirstDayOfPrepPeriod }: WeeklyROSCellProps) => {
   const dataValue = error ? '' : daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)
 
   const classes = useStyles()

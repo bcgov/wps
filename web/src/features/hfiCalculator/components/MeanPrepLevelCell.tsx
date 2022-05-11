@@ -82,8 +82,7 @@ const MeanPrepLevelCell = (props: MeanPrepLevelCellProps) => {
     )
   }
 
-  const prepLevelTooltipText =
-    'Cannot calculate prep level. Please check the daily forecast using the tabs above.'
+  const prepLevelTooltipText = 'Cannot calculate prep level. Please check the daily forecast using the tabs above.'
 
   const prepLevelErrorTooltipElement = <div>{prepLevelTooltipText}</div>
 

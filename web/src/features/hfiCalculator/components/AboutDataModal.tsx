@@ -33,12 +33,7 @@ export const AboutDataModal = (props: ModalProps): JSX.Element => {
 
   return (
     <React.Fragment>
-      <Dialog
-        fullWidth
-        className={classes.modalWindow}
-        open={props.modalOpen}
-        onClose={handleClose}
-      >
+      <Dialog fullWidth className={classes.modalWindow} open={props.modalOpen} onClose={handleClose}>
         <Paper>
           <DialogTitle>
             <IconButton className={classes.closeIcon} onClick={handleClose} size="large">
@@ -47,22 +42,14 @@ export const AboutDataModal = (props: ModalProps): JSX.Element => {
           </DialogTitle>
           <DialogContent>
             <h1>About This Data</h1>
-            <p>
-              Forecasted weather outputs are for 13:00 and FWI Indices are for 17:00 PDT.
-            </p>
+            <p>Forecasted weather outputs are for 13:00 and FWI Indices are for 17:00 PDT.</p>
             <p>These fire behaviour calculations assume flat terrain.</p>
             <br />
-            <p>
-              Weather and fire behaviour indices are sourced from the Wildfire One API.
-            </p>
+            <p>Weather and fire behaviour indices are sourced from the Wildfire One API.</p>
             <br />
             <p>
               Values are calculated using the{' '}
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://r-forge.r-project.org/projects/cffdrs/"
-              >
+              <a target="_blank" rel="noopener noreferrer" href="https://r-forge.r-project.org/projects/cffdrs/">
                 Canadian Forest Fire Danger Rating System R Library
               </a>{' '}
               and are intended to provide general guidance for Prep Day.

@@ -93,9 +93,7 @@ export const generateDefaultRowsFromDates = (dates: DateTime[]): MultiDayRow[] =
 export const output2Rows = (multiFWIOutputs: MultiFWIOutput[]): MultiDayRow[] => {
   return multiFWIOutputs.map(output => ({
     id: output.id,
-    date: DateTime.fromISO(pstFormatter(DateTime.fromISO(output.datetime))).toFormat(
-      'dd/MMM/yyyy'
-    ),
+    date: DateTime.fromISO(pstFormatter(DateTime.fromISO(output.datetime))).toFormat('dd/MMM/yyyy'),
     isoDate: output.datetime,
     status: output.status,
     temp: Number(output.temp?.toFixed(DECIMAL_PLACES)),
@@ -112,10 +110,7 @@ export const output2Rows = (multiFWIOutputs: MultiFWIOutput[]): MultiDayRow[] =>
   }))
 }
 
-export const updateRows = <T extends { id: number }>(
-  existingRows: Array<T>,
-  updatedCalculatedRows: T[]
-): Array<T> => {
+export const updateRows = <T extends { id: number }>(existingRows: Array<T>, updatedCalculatedRows: T[]): Array<T> => {
   if (existingRows.length === 0) {
     return updatedCalculatedRows
   }

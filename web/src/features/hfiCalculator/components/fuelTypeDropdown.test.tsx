@@ -64,8 +64,6 @@ describe('FuelTypeDropdown', () => {
 
     await waitFor(() => expect(input.value).toBe(fuelTypes[5].abbrev))
     await waitFor(() => expect(setFuelTypeMock).toBeCalledTimes(1))
-    await waitFor(() =>
-      expect(setFuelTypeMock).toBeCalledWith(testStation.code, fuelTypes[5].id)
-    )
+    await waitFor(() => expect(setFuelTypeMock).toBeCalledWith(testStation.code, fuelTypes[5].id))
   })
 })

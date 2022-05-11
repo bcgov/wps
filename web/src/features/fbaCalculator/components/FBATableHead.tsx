@@ -1,11 +1,4 @@
-import {
-  Checkbox,
-  TableCell,
-  TableRow,
-  TableSortLabel,
-  Tooltip,
-  TableHead
-} from '@mui/material'
+import { Checkbox, TableCell, TableRow, TableSortLabel, Tooltip, TableHead } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import FBAProgressRow from 'features/fbaCalculator/components/FBAProgressRow'
@@ -96,11 +89,7 @@ const FBATableHead = ({
       </StickyCell>
     ),
     Elevation: (
-      <TableCell
-        className={classes.headerCell}
-        key="header-elevation"
-        sortDirection={order}
-      >
+      <TableCell className={classes.headerCell} key="header-elevation" sortDirection={order}>
         <TableSortLabel
           direction={order}
           onClick={() => {
@@ -113,20 +102,14 @@ const FBATableHead = ({
     ),
     'FBP Fuel Type': (
       <StickyCell left={280} zIndexOffset={Z_INDEX_OFFSET} key="fbp-fuel-type">
-        <TableSortLabel
-          direction={order}
-          onClick={() => toggleSorting(SortByColumn.FuelType)}
-        >
+        <TableSortLabel direction={order} onClick={() => toggleSorting(SortByColumn.FuelType)}>
           <TableHeader largerMaxWidth={true} text={'FBP Fuel Type'}></TableHeader>
         </TableSortLabel>
       </StickyCell>
     ),
     'Grass Cure': (
       <TableCell sortDirection={order} key="grass-cure">
-        <TableSortLabel
-          direction={order}
-          onClick={() => toggleSorting(SortByColumn.GrassCure)}
-        >
+        <TableSortLabel direction={order} onClick={() => toggleSorting(SortByColumn.GrassCure)}>
           <TableHeader text={'Grass Cure (%)'}></TableHeader>
         </TableSortLabel>
       </TableCell>
