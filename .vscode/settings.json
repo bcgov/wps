@@ -23,25 +23,15 @@
     "eslint.format.enable": true,
     "eslint.validate": [
         "javascript",
-        "typescript"
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
     ],
     "eslint.run": "onSave",
     "[python]": {
         "editor.rulers": [
             120
         ]
-    },
-    "[javascript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.tabSize": 2
-    },
-    "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.tabSize": 2
-    },
-    "[typescriptreact]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.tabSize": 2
     },
     "[yaml]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
