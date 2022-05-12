@@ -34,7 +34,7 @@ def downgrade():
     # fire centre is Prince George FC, planning area is Prince George Zone
     res = conn.execute('SELECT id FROM planning_areas WHERE name LIKE {}'.format('\'Prince George Zone%%\''))
     results = res.fetchall()
-    planning_area_id = str(results[0]).replace('(', '').replace(',', '').replace(')', '')
+    planning_area_id = results[0][0]
 
     # order_of_appearance_in_planning_area_list is 4
     op.execute(
