@@ -16,7 +16,7 @@ import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { getDailiesByStationCode, getSelectedFuelType, stationCodeSelected } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
-import { selectHFICalculatorState } from 'app/rootReducer'
+import { selectAuthentication, selectHFICalculatorState } from 'app/rootReducer'
 import { DateTime } from 'luxon'
 import { isUndefined, sortBy } from 'lodash'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
@@ -26,6 +26,7 @@ import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredData
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DailyHFICell } from 'features/hfiCalculator/components/DailyHFICell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
+import { ROLES } from 'features/auth/roles'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -73,6 +74,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
   const { selectedPrepDate, result } = useSelector(selectHFICalculatorState)
+  const { roles, isAuthenticated } = useSelector(selectAuthentication)
 
   const getDailyForDay = (stationCode: number): StationDaily | undefined => {
     const dailiesForStation = getDailiesByStationCode(result, stationCode)
@@ -298,6 +300,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               station={station}
                               planningAreaId={area.id}
                               className={classNameForRow}
+                              selectStationEnabled={roles.includes(ROLES.HFI.SELECT_STATION) && isAuthenticated}
+                              isSetFuelTypeEnabled={roles.includes(ROLES.HFI.SET_FUEL_TYPE) && isAuthenticated}
                               stationCodeInSelected={stationCodeInSelected}
                               toggleSelectedStation={toggleSelectedStation}
                               isDailyTable={true}
