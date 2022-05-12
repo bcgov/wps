@@ -184,17 +184,10 @@ export async function setFuelType(
 
 export async function getPrepDateRange(
   fire_centre_id: number,
-  start_date: Date,
-  end_date: Date
+  start_date: string,
+  end_date: string
 ): Promise<HFIResultResponse> {
-  const url =
-    baseUrl +
-    'fire_centre/' +
-    fire_centre_id +
-    '/' +
-    start_date.toISOString().split('T')[0] +
-    '/' +
-    end_date.toISOString().split('T')[0]
+  const url = baseUrl + 'fire_centre/' + fire_centre_id + '/' + start_date + '/' + end_date
 
   const { data } = await axios.get<RawHFIResultResponse>(url)
   return { ...data, planning_area_hfi_results: buildResult(data) }

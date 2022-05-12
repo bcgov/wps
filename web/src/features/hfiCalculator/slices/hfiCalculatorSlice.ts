@@ -20,6 +20,7 @@ import {
 import { DateTime } from 'luxon'
 import { AddStationOptions, AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import { AxiosError } from 'axios'
+import { isUndefined } from 'lodash'
 
 export interface FireStartRange {
   label: string
@@ -210,19 +211,6 @@ export const {
 
 export default dailiesSlice.reducer
 
-export const fetchLoadDefaultHFIResult =
-  (fire_center_id: number): AppThunk =>
-  async dispatch => {
-    try {
-      dispatch(loadHFIResultStart())
-      const result = await loadDefaultHFIResult(fire_center_id)
-      dispatch(setResult(result))
-    } catch (err) {
-      dispatch(getHFIResultFailed((err as Error).toString()))
-      logError(err)
-    }
-  }
-
 export const fetchSetStationSelected =
   (
     fire_center_id: number,
@@ -280,12 +268,17 @@ export const fetchSetFuelType =
   }
 
 export const fetchGetPrepDateRange =
-  (fire_center_id: number, start_date: Date, end_date: Date): AppThunk =>
+  (fire_center_id: number, start_date?: string, end_date?: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(loadHFIResultStart())
-      const result = await getPrepDateRange(fire_center_id, start_date, end_date)
-      dispatch(setResult(result))
+      if (isUndefined(start_date) || isUndefined(end_date)) {
+        const result = await loadDefaultHFIResult(fire_center_id)
+        dispatch(setResult(result))
+      } else {
+        const result = await getPrepDateRange(fire_center_id, start_date, end_date)
+        dispatch(setResult(result))
+      }
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)

@@ -14,9 +14,9 @@ def update_result_request(result_request: HFIResultRequest,
         return result_request
 
     updated_result_request = result_request.copy(deep=True)
-    get_attr = operator.attrgetter('planning_area_id')
+    key = operator.attrgetter('planning_area_id')
     stations_by_planning_area = dict((k, list(map(lambda x: x, values)))
-                                     for k, values in groupby(currently_persisted_stations, get_attr))
+                                     for k, values in groupby(sorted(currently_persisted_stations, key=key), key))
     for planning_area_id in updated_result_request.planning_area_station_info:
         request_stations = result_request.planning_area_station_info[planning_area_id]
         request_stations_by_code = {
