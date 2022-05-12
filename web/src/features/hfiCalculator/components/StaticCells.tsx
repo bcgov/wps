@@ -6,7 +6,7 @@ import HighestDailyFIGCell from 'features/hfiCalculator/components/HighestDailyF
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
-import { isUndefined, range } from 'lodash'
+import { isNull, isUndefined, range } from 'lodash'
 import React, { ReactElement } from 'react'
 
 export interface StaticCellsProps {
@@ -16,6 +16,23 @@ export interface StaticCellsProps {
   classNameForRow: string | undefined
   isRowSelected: boolean
   selectedFuelType: FuelType | undefined
+}
+
+export const isError = (daily: StationDaily | undefined, selectedFuelType: FuelType | undefined): boolean => {
+  if (!isValidGrassCure(daily, selectedFuelType)) {
+    return false
+  }
+  if (
+    isNull(daily?.bui) ||
+    isNull(daily?.dc) ||
+    isNull(daily?.dmc) ||
+    isNull(daily?.ffmc) ||
+    isNull(daily?.isi) ||
+    isNull(daily?.fwi)
+  ) {
+    return true
+  }
+  return false
 }
 
 export const StaticCells = ({
@@ -28,7 +45,7 @@ export const StaticCells = ({
 }: StaticCellsProps): ReactElement => {
   const staticCells = range(numPrepDays).map(dailyIndex => {
     const daily = dailies?.at(dailyIndex)
-    const error = !isValidGrassCure(daily, selectedFuelType)
+    const error = isError(daily, selectedFuelType)
     return isUndefined(daily) ? (
       <EmptyStaticCells
         key={`empty-${station.code}-${dailyIndex}`}
@@ -53,15 +70,9 @@ export const StaticCells = ({
           selected={isRowSelected}
         ></IntensityGroupCell>
         {/* Fire Starts */}
-        <TableCell
-          data-testid={`${daily.code}-fire-starts`}
-          className={classNameForRow}
-        ></TableCell>
+        <TableCell data-testid={`${daily.code}-fire-starts`} className={classNameForRow}></TableCell>
         {/* Prep Level */}
-        <TableCell
-          data-testid={`${daily.code}-prep-level`}
-          className={classNameForRow}
-        ></TableCell>
+        <TableCell data-testid={`${daily.code}-prep-level`} className={classNameForRow}></TableCell>
       </React.Fragment>
     )
   })

@@ -1,6 +1,6 @@
 import { TableCell } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { isUndefined } from 'lodash'
+import { isUndefined, isNull } from 'lodash'
 import React from 'react'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
@@ -23,10 +23,8 @@ const useStyles = makeStyles({
   }
 })
 
-const grassCureToolTipFirstLine =
-  'Grass Cure % not defined in WFWX for one or more stations.'
-const genericErrorToolTipFirstLine =
-  'Incomplete weather data in WFWX for one or more stations.'
+const grassCureToolTipFirstLine = 'Grass Cure % not defined in WFWX for one or more stations.'
+const genericErrorToolTipFirstLine = 'Incomplete weather data in WFWX for one or more stations.'
 const toolTipSecondLine = ' Cannot calculate Mean FIG.'
 
 const grassCureErrorToolTipElement = (
@@ -71,7 +69,15 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
       </TableCell>
     )
   }
-  if (genericError) {
+  const validatedMig =
+    isUndefined(props.meanIntensityGroup) ||
+    isNull(props.meanIntensityGroup) ||
+    isNaN(props.meanIntensityGroup) ||
+    props.meanIntensityGroup === Infinity ||
+    props.meanIntensityGroup === -Infinity
+      ? ''
+      : props.meanIntensityGroup
+  if (genericError || validatedMig === '') {
     return (
       <TableCell>
         <ErrorIconWithTooltip
@@ -82,18 +88,8 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
       </TableCell>
     )
   }
-  const validatedMig =
-    isUndefined(props.meanIntensityGroup) ||
-    isNaN(props.meanIntensityGroup) ||
-    props.meanIntensityGroup === Infinity ||
-    props.meanIntensityGroup === -Infinity
-      ? ''
-      : props.meanIntensityGroup
   return (
-    <TableCell
-      className={classes.intensityGroup}
-      data-testid={`zone-${props.area.id}-mean-intensity`}
-    >
+    <TableCell className={classes.intensityGroup} data-testid={`zone-${props.area.id}-mean-intensity`}>
       {validatedMig}
     </TableCell>
   )

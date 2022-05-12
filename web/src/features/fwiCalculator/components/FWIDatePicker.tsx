@@ -13,13 +13,7 @@ export interface FWIDateRangeProps {
   updateEndDate: (newDate: Date) => void
 }
 
-const FWIDatePicker = ({
-  isBasic,
-  startDate,
-  updateStartDate,
-  updateEndDate,
-  endDate
-}: FWIDateRangeProps) => {
+const FWIDatePicker = ({ isBasic, startDate, updateStartDate, updateEndDate, endDate }: FWIDateRangeProps) => {
   const [open, setOpen] = useState(false)
   const displayFormat = 'dd/MM/yyyy'
 
@@ -36,10 +30,7 @@ const FWIDatePicker = ({
   return (
     <React.Fragment>
       {isBasic ? (
-        <WPSDatePicker
-          date={DateTime.fromJSDate(startDate)}
-          updateDate={updateStartDateWrapper}
-        />
+        <WPSDatePicker date={DateTime.fromJSDate(startDate)} updateDate={updateStartDateWrapper} />
       ) : (
         <React.Fragment>
           <TextField
@@ -50,9 +41,9 @@ const FWIDatePicker = ({
             disabled={true}
             label={'Dates of Interest (PST-08:00)'}
             onClick={() => setOpen(!open)}
-            value={`${DateTime.fromJSDate(startDate)
+            value={`${DateTime.fromJSDate(startDate).toFormat(displayFormat).trim()} - ${DateTime.fromJSDate(endDate)
               .toFormat(displayFormat)
-              .trim()} - ${DateTime.fromJSDate(endDate).toFormat(displayFormat).trim()}
+              .trim()}
                       `}
             InputProps={{
               startAdornment: (

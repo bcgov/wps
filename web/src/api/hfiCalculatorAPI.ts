@@ -57,15 +57,15 @@ export interface StationDaily {
   wind_direction: number
   grass_cure_percentage: number
   precipitation: number
-  ffmc: number
-  dmc: number
-  dc: number
-  isi: number
-  bui: number
-  fwi: number
+  ffmc: number | null
+  dmc: number | null
+  dc: number | null
+  isi: number | null
+  bui: number | null
+  fwi: number | null
   danger_class: number
   rate_of_spread: number
-  hfi: number
+  hfi: number | null
   observation_valid: boolean
   observation_valid_comment: string
   intensity_group: number
@@ -98,12 +98,8 @@ export async function getHFIStations(): Promise<HFIWeatherStationsResponse> {
   return data
 }
 
-export async function loadDefaultHFIResult(
-  fire_center_id: number
-): Promise<HFIResultResponse> {
-  const { data } = await axios.get<RawHFIResultResponse>(
-    baseUrl + 'fire_centre/' + fire_center_id
-  )
+export async function loadDefaultHFIResult(fire_center_id: number): Promise<HFIResultResponse> {
+  const { data } = await axios.get<RawHFIResultResponse>(baseUrl + 'fire_centre/' + fire_center_id)
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 
@@ -212,39 +208,27 @@ export async function setNewFireStarts(
 }
 
 function buildResult(data: RawHFIResultResponse) {
-  const planningAreaResultsWithDates: PlanningAreaResult[] =
-    data.planning_area_hfi_results.map(areaResult => ({
-      ...areaResult,
-      daily_results: areaResult.daily_results.map(dr => ({
-        ...dr,
-        dailies: dr.dailies.map(validatedDaily => ({
-          ...validatedDaily,
-          daily: {
-            ...validatedDaily.daily,
-            date: formatISODateInPST(validatedDaily.daily.date),
-            last_updated: DateTime.fromISO(validatedDaily.daily.last_updated)
-          }
-        })),
-        date: formatISODateInPST(dr.date)
-      }))
+  const planningAreaResultsWithDates: PlanningAreaResult[] = data.planning_area_hfi_results.map(areaResult => ({
+    ...areaResult,
+    daily_results: areaResult.daily_results.map(dr => ({
+      ...dr,
+      dailies: dr.dailies.map(validatedDaily => ({
+        ...validatedDaily,
+        daily: {
+          ...validatedDaily.daily,
+          date: formatISODateInPST(validatedDaily.daily.date),
+          last_updated: DateTime.fromISO(validatedDaily.daily.last_updated)
+        }
+      })),
+      date: formatISODateInPST(dr.date)
     }))
+  }))
   return planningAreaResultsWithDates
 }
 
-export async function getPDF(
-  fire_center_id: number,
-  start_date: string,
-  end_date: string
-): Promise<void> {
+export async function getPDF(fire_center_id: number, start_date: string, end_date: string): Promise<void> {
   const response = await axios.get(
-    baseUrl +
-      'fire_centre/' +
-      fire_center_id +
-      '/' +
-      start_date +
-      '/' +
-      end_date +
-      '/pdf',
+    baseUrl + 'fire_centre/' + fire_center_id + '/' + start_date + '/' + end_date + '/pdf',
     {
       responseType: 'blob'
     }

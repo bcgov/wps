@@ -15,11 +15,7 @@ import {
   fetchSetFuelType
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
-import {
-  selectHFIStations,
-  selectHFIStationsLoading,
-  selectHFICalculatorState
-} from 'app/rootReducer'
+import { selectHFIStations, selectHFIStationsLoading, selectHFICalculatorState } from 'app/rootReducer'
 import { FormControl } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
@@ -88,11 +84,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     fuelTypes
   } = useSelector(selectHFICalculatorState)
 
-  const setSelectedStation = (
-    planningAreaId: number,
-    code: number,
-    selected: boolean
-  ) => {
+  const setSelectedStation = (planningAreaId: number, code: number, selected: boolean) => {
     if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
       dispatch(
         fetchSetStationSelected(
@@ -122,11 +114,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
-  const setNewFireStarts = (
-    areaId: number,
-    dayOffset: number,
-    newFireStarts: FireStartRange
-  ) => {
+  const setNewFireStarts = (areaId: number, dayOffset: number, newFireStarts: FireStartRange) => {
     if (!isUndefined(result) && !isUndefined(result.date_range)) {
       dispatch(
         fetchSetNewFireStarts(
@@ -154,13 +142,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       !isUndefined(newDateRange.startDate) &&
       !isUndefined(newDateRange.endDate)
     ) {
-      dispatch(
-        fetchGetPrepDateRange(
-          result.selected_fire_center_id,
-          newDateRange.startDate,
-          newDateRange.endDate
-        )
-      )
+      dispatch(fetchGetPrepDateRange(result.selected_fire_center_id, newDateRange.startDate, newDateRange.endDate))
     }
   }
 
@@ -169,9 +151,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const fireCentresArray = Object.values(fireCentres)
       return fireCentresArray.find(centre => centre.name == name)
     }
-    const storedFireCentre = findCentre(
-      localStorage.getItem('hfiCalcPreferredFireCentre')
-    )
+    const storedFireCentre = findCentre(localStorage.getItem('hfiCalcPreferredFireCentre'))
     if (!isUndefined(storedFireCentre) && storedFireCentre !== selectedFireCentre) {
       dispatch(setSelectedFireCentre(storedFireCentre))
     }
@@ -184,10 +164,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [])
 
   useEffect(() => {
-    if (
-      selectedFireCentre &&
-      selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')
-    ) {
+    if (selectedFireCentre && selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')) {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
     if (!isUndefined(selectedFireCentre)) {
@@ -216,11 +193,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         !isUndefined(result.date_range.end_date)
       ) {
         dispatch(
-          fetchPDFDownload(
-            result.selected_fire_center_id,
-            result.date_range.start_date,
-            result.date_range.end_date
-          )
+          fetchPDFDownload(result.selected_fire_center_id, result.date_range.start_date, result.date_range.end_date)
         )
       }
     }
@@ -235,12 +208,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   return (
     <main data-testid="hfi-calculator-page">
-      <GeneralHeader
-        padding="3em"
-        spacing={0.985}
-        title="HFI Calculator"
-        productName="HFI Calculator"
-      />
+      <GeneralHeader padding="3em" spacing={0.985} title="HFI Calculator" productName="HFI Calculator" />
       <HFIPageSubHeader
         fireCentres={fireCentres}
         setDateRange={updatePrepDateRange}
@@ -264,10 +232,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             <LiveChangesAlert />
             {buildSuccessNotification()}
             <FormControl className={classes.formControl}>
-              <ViewSwitcherToggles
-                dateRange={dateRange}
-                selectedPrepDate={selectedPrepDate}
-              />
+              <ViewSwitcherToggles dateRange={dateRange} selectedPrepDate={selectedPrepDate} />
             </FormControl>
 
             <FormControl className={classes.pdfButton}>

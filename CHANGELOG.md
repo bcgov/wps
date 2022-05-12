@@ -1,4 +1,8 @@
-## 2022-05-04 HFI Calc - C7B bug (C7B was being calculated as C7)
+## 2022-05-10 FBA Calculator
+
+### Bug
+
+## 2022-05-10 FBA Calculator - Recalculated FWI was not being propogated back to front end on wind speed override.
 
 ### Bug
 

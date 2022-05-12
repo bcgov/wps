@@ -6,16 +6,10 @@ import { PercentileHeader, PageTitle, Container, ErrorBoundary } from 'component
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
 import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
-import {
-  fetchPercentiles,
-  resetPercentilesResult
-} from 'features/percentileCalculator/slices/percentilesSlice'
+import { fetchPercentiles, resetPercentilesResult } from 'features/percentileCalculator/slices/percentilesSlice'
 import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
 import PercentileResults from 'features/percentileCalculator/components/PercentileResults'
-import {
-  TimeRangeSlider,
-  yearWhenTheCalculationIsDone
-} from 'features/percentileCalculator/components/TimeRangeSlider'
+import { TimeRangeSlider, yearWhenTheCalculationIsDone } from 'features/percentileCalculator/components/TimeRangeSlider'
 import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 import { getStations, StationSource } from 'api/stationAPI'
 import { AppDispatch } from 'app/store'
@@ -78,10 +72,7 @@ const PercentileCalculatorPage = () => {
 
   return (
     <main data-testid="percentile-calculator-page">
-      <PercentileHeader
-        title="Predictive Services Unit"
-        productName="Percentile Calculator"
-      />
+      <PercentileHeader title="Predictive Services Unit" productName="Percentile Calculator" />
       <PageTitle title="Percentile Calculator" />
       <Container>
         <WxStationDropdown stationCodes={stationCodes} onChange={setStationCodes} />

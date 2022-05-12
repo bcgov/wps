@@ -11,6 +11,7 @@ export interface RequiredDataCellProps {
   daily: StationDaily | undefined
   dailyKey: keyof StationDaily
   errorToolTipText: string
+  decimalPlaces?: number
 }
 
 export const RequiredDataCell = ({
@@ -18,9 +19,10 @@ export const RequiredDataCell = ({
   classNameForRow,
   daily,
   dailyKey,
-  errorToolTipText
+  errorToolTipText,
+  decimalPlaces = DECIMAL_PLACES
 }: RequiredDataCellProps): ReactElement => {
-  const dataValue = daily ? Number(daily[dailyKey])?.toFixed(DECIMAL_PLACES) : ''
+  const dataValue = daily ? Number(daily[dailyKey])?.toFixed(decimalPlaces) : ''
 
   return (
     <React.Fragment>

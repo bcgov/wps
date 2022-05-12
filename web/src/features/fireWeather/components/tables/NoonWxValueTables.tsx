@@ -10,9 +10,7 @@ import {
   formatPrecipitation
 } from 'utils/format'
 import { formatDatetimeInPST } from 'utils/date'
-import SortableTableByDatetime, {
-  Column
-} from 'features/fireWeather/components/tables/SortableTableByDatetime'
+import SortableTableByDatetime, { Column } from 'features/fireWeather/components/tables/SortableTableByDatetime'
 
 /**
  * Reusable component used to display noon forecasts (issued by forecasters)

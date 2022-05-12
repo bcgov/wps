@@ -19,13 +19,10 @@ import { isUndefined } from 'lodash'
 export const identity = <T>(x: T): T => x
 
 export const chunks = <T>(array: ReadonlyArray<T>, size: number): T[][] =>
-  Array.from({ length: Math.ceil(array.length / size) }, (_v, i) =>
-    array.slice(i * size, i * size + size)
-  )
+  Array.from({ length: Math.ceil(array.length / size) }, (_v, i) => array.slice(i * size, i * size + size))
 
-export const combineCSSClassNames = (
-  ...args: Array<string | false | undefined>
-): string => args.filter(identity).join(' ')
+export const combineCSSClassNames = (...args: Array<string | false | undefined>): string =>
+  args.filter(identity).join(' ')
 
 export const getDaysInMonth = (date: Date): Date[] => {
   const startWeek = startOfWeek(startOfMonth(date))
@@ -67,11 +64,7 @@ export const parseOptionalDate = (date: Date | Falsy, defaultValue: Date): Date 
   return defaultValue
 }
 
-export const getValidatedMonths = (
-  range: DateRange,
-  minDate: Date,
-  maxDate: Date
-): Array<Date | undefined> => {
+export const getValidatedMonths = (range: DateRange, minDate: Date, maxDate: Date): Array<Date | undefined> => {
   const { startDate, endDate } = range
   if (startDate && endDate) {
     const newStart = max([startDate, minDate])

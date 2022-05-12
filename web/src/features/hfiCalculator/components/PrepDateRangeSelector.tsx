@@ -6,8 +6,7 @@ import {
   TextField,
   ThemeProvider,
   Theme,
-  StyledEngineProvider,
-  adaptV4Theme
+  StyledEngineProvider
 } from '@mui/material'
 import * as materialIcons from '@mui/icons-material'
 import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
@@ -66,18 +65,20 @@ const useStyles = makeStyles({
   }
 })
 
-export const dateRangePickerTheme = createTheme(
-  adaptV4Theme({
-    overrides: {
-      MuiOutlinedInput: {
+export const dateRangePickerTheme = createTheme({
+  components: {
+    MuiOutlinedInput: {
+      styleOverrides: {
         input: {
           '&.Mui-disabled': {
             color: 'white',
             WebkitTextFillColor: 'white'
           }
         }
-      },
-      MuiTextField: {
+      }
+    },
+    MuiTextField: {
+      styleOverrides: {
         root: {
           color: 'white',
           minWidth: 300,
@@ -87,43 +88,40 @@ export const dateRangePickerTheme = createTheme(
             }
           }
         }
-      },
-      MuiFormLabel: {
+      }
+    },
+    MuiFormLabel: {
+      styleOverrides: {
         root: {
           '&.Mui-disabled': {
             color: 'white'
           }
         }
-      },
-      MuiSvgIcon: {
+      }
+    },
+    MuiSvgIcon: {
+      styleOverrides: {
         root: {
           fill: 'white'
         }
-      },
-      MuiIconButton: {
+      }
+    },
+    MuiIconButton: {
+      styleOverrides: {
         root: {
           paddingLeft: 0,
           paddingRight: 12
         }
       }
     }
-  })
-)
+  }
+})
 
-const PrepDateRangeSelector = ({
-  dateRange,
-  setDateRange
-}: PrepDateRangeSelectorProps) => {
+const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelectorProps) => {
   const classes = useStyles()
   const dateDisplayFormat = 'MMMM dd'
-  const startDate =
-    dateRange && dateRange.start_date
-      ? DateTime.fromISO(dateRange.start_date).toJSDate()
-      : undefined
-  const endDate =
-    dateRange && dateRange.end_date
-      ? DateTime.fromISO(dateRange.end_date).toJSDate()
-      : undefined
+  const startDate = dateRange && dateRange.start_date ? DateTime.fromISO(dateRange.start_date).toJSDate() : undefined
+  const endDate = dateRange && dateRange.end_date ? DateTime.fromISO(dateRange.end_date).toJSDate() : undefined
 
   const [dateRangePickerOpen, setDateRangePickerOpen] = useState<boolean>(false)
   const toggleDateRangePicker = () => setDateRangePickerOpen(!dateRangePickerOpen)
@@ -142,13 +140,11 @@ const PrepDateRangeSelector = ({
             label={'Set prep period'}
             onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
             value={
-              isUndefined(dateRange) ||
-              isUndefined(dateRange.start_date) ||
-              isUndefined(dateRange.end_date)
+              isUndefined(dateRange) || isUndefined(dateRange.start_date) || isUndefined(dateRange.end_date)
                 ? ''
-                : `${DateTime.fromISO(dateRange.start_date)
-                    .toFormat(dateDisplayFormat)
-                    .trim()} - ${DateTime.fromISO(dateRange.end_date)
+                : `${DateTime.fromISO(dateRange.start_date).toFormat(dateDisplayFormat).trim()} - ${DateTime.fromISO(
+                    dateRange.end_date
+                  )
                     .toFormat(dateDisplayFormat)
                     .trim()}
                         `

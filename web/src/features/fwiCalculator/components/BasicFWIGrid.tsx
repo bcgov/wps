@@ -5,16 +5,7 @@ import BasicFWIOutput from 'features/fwiCalculator/components/BasicFWIOutput'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFWICalculation } from 'features/fwiCalculator/slices/fwiSlice'
 import { selectFWIOutputs, selectFWIOutputsLoading } from 'app/rootReducer'
-import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  BarChart,
-  Bar,
-  Legend,
-  Tooltip,
-  ResponsiveContainer
-} from 'recharts'
+import { XAxis, YAxis, CartesianGrid, BarChart, Bar, Legend, Tooltip, ResponsiveContainer } from 'recharts'
 import { AppDispatch } from 'app/store'
 export interface Option {
   name: string

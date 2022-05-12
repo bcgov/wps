@@ -32,9 +32,7 @@ const HFILoadingDataContainer = ({
 }: HFILoadingDataContainerProps) => {
   const buildErrorNotification = () => {
     if (!isNull(fireCentresError) || !isNull(hfiError)) {
-      return (
-        <HFIErrorAlert hfiDailiesError={hfiError} fireCentresError={fireCentresError} />
-      )
+      return <HFIErrorAlert hfiDailiesError={hfiError} fireCentresError={fireCentresError} />
     }
     return <React.Fragment></React.Fragment>
   }
@@ -43,11 +41,9 @@ const HFILoadingDataContainer = ({
     return pdfLoading || fuelTypesLoading || stationDataLoading || fireCentresLoading
   }
 
-  const isLoadingWithoutError = () =>
-    isLoading() && isNull(fireCentresError) && isNull(hfiError)
+  const isLoadingWithoutError = () => isLoading() && isNull(fireCentresError) && isNull(hfiError)
 
-  const isFireCentreUnselected = () =>
-    (isUndefined(selectedFireCentre) || isUndefined(dateRange)) && !isLoading()
+  const isFireCentreUnselected = () => (isUndefined(selectedFireCentre) || isUndefined(dateRange)) && !isLoading()
 
   const errorNotification = buildErrorNotification()
 
