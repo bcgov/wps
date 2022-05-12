@@ -5,20 +5,34 @@ import { maxBy } from 'lodash'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import { theme } from 'app/theme'
+import { createTheme, StyledEngineProvider, ThemeProvider } from '@mui/material'
 
 export interface LastUpdatedHeaderProps {
   dailies?: StationDaily[]
-  className?: string
 }
 
 const useStyles = makeStyles({
   container: {
     display: 'flex',
     alignItems: 'center',
-    minWidth: '210px'
+    margin: theme.spacing(1)
   },
   headerText: {
-    fontSize: '14px'
+    fontSize: '14px',
+    color: theme.palette.primary.main
+  }
+})
+
+const lastUpdatedTheme = createTheme({
+  components: {
+    MuiSvgIcon: {
+      styleOverrides: {
+        root: {
+          fill: theme.palette.primary.main
+        }
+      }
+    }
   }
 })
 
@@ -46,12 +60,14 @@ const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
     const dateString = lastUpdate.toFormat('MMMM d, HH:mm') + ' PST'
 
     return (
-      <React.Fragment>
-        <span className={`${classes.container} ${props.className}`}>
-          <UpdateIcon></UpdateIcon>
-          <p className={classes.headerText}>Forecast last updated {dateString}</p>
-        </span>
-      </React.Fragment>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={lastUpdatedTheme}>
+          <span className={classes.container}>
+            <UpdateIcon></UpdateIcon>
+            <p className={classes.headerText}>Forecast last updated {dateString}</p>
+          </span>
+        </ThemeProvider>
+      </StyledEngineProvider>
     )
   } else {
     return <React.Fragment></React.Fragment>

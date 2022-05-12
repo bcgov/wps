@@ -2,7 +2,7 @@ import React from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 
 import { HIDE_DISCLAIMER } from 'utils/env'
-import AuthWrapper from 'features/auth/AuthWrapper'
+import AuthWrapper from 'features/auth/components/AuthWrapper'
 import PercentileCalculatorPageWithDisclaimer from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
 import HfiCalculatorPage from 'features/hfiCalculator/pages/HfiCalculatorPage'
 import CHainesPage from 'features/cHaines/pages/CHainesPage'
@@ -23,7 +23,6 @@ import { FireBehaviourAdvisoryPage } from 'features/fba/pages/FireBehaviourAdvis
 import { FWICalculatorPage } from 'features/fwiCalculator/pages/FWICalculatorPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
-const shouldAuthenticate = process.env.NODE_ENV === 'production' || window.Cypress === undefined
 
 const WPSRoutes: React.FunctionComponent = () => {
   return (
@@ -38,7 +37,7 @@ const WPSRoutes: React.FunctionComponent = () => {
         <Route
           path={MORECAST_ROUTE}
           element={
-            <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
+            <AuthWrapper>
               <MoreCastPage />
             </AuthWrapper>
           }
@@ -46,7 +45,7 @@ const WPSRoutes: React.FunctionComponent = () => {
         <Route
           path={HFI_CALC_ROUTE}
           element={
-            <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
+            <AuthWrapper>
               <HfiCalculatorPage />
             </AuthWrapper>
           }
@@ -56,7 +55,7 @@ const WPSRoutes: React.FunctionComponent = () => {
         <Route
           path={FIRE_BEHAVIOR_CALC_ROUTE}
           element={
-            <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
+            <AuthWrapper>
               <FireBehaviourCalculator />
             </AuthWrapper>
           }
@@ -64,7 +63,7 @@ const WPSRoutes: React.FunctionComponent = () => {
         <Route
           path={FIRE_BEHAVIOUR_ADVISORY_ROUTE}
           element={
-            <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
+            <AuthWrapper>
               <FireBehaviourAdvisoryPage />
             </AuthWrapper>
           }
@@ -72,7 +71,7 @@ const WPSRoutes: React.FunctionComponent = () => {
         <Route
           path={FWI_CALC_ROUTE}
           element={
-            <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
+            <AuthWrapper>
               <FWICalculatorPage />
             </AuthWrapper>
           }

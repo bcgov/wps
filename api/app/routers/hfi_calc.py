@@ -19,8 +19,12 @@ from app.schemas.hfi_calc import (HFIResultRequest,
                                   FireStartRange,
                                   StationInfo,
                                   DateRange, FuelTypesResponse, HFIWeatherStationsResponse)
+from app.auth import (auth_with_select_station_role_required,
+                      auth_with_set_fire_starts_role_required,
+                      auth_with_set_fuel_type_role_required,
+                      authentication_required,
+                      audit)
 from app.schemas.shared import (FuelType)
-from app.auth import authentication_required, audit
 from app.db.crud.hfi_calc import (get_fuel_type_by_id, get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   store_hfi_request,
@@ -173,7 +177,7 @@ async def set_planning_area_station(
     planning_area_id: int, station_code: int,
     enable: bool,
     response: Response,
-    token=Depends(authentication_required)
+    token=Depends(auth_with_select_station_role_required)
 ):
     """ Enable / disable a station withing a planning area """
     logger.info('/fire_centre/%s/%s/%s/planning_area/%s/station/%s/selected/%s',
@@ -214,7 +218,7 @@ async def set_planning_area_station_fuel_type(
     station_code: int,
     fuel_type_id: int,
     response: Response,
-    token=Depends(authentication_required)  # pylint: disable=unused-argument
+    token=Depends(auth_with_set_fuel_type_role_required)
 ):
     """ Set the fuel type for a station in a planning area. """
     logger.info("/fire_centre/%s/%s/%s/planning_area/%s/station/%s/fuel_type/%s",
@@ -258,7 +262,7 @@ async def set_fire_start_range(fire_centre_id: int,
                                prep_day_date: date,
                                fire_start_range_id: int,
                                response: Response,
-                               token=Depends(authentication_required)):
+                               token=Depends(auth_with_set_fire_starts_role_required)):
     """ Set the fire start range, by id."""
     logger.info("/fire_centre/%s/%s/%s/planning_area/%s"
                 "/fire_starts/%s/fire_start_range/%s",
