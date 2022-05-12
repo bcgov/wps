@@ -19,12 +19,13 @@ import {
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
-import { selectHFICalculatorState } from 'app/rootReducer'
+import { selectAuthentication, selectHFICalculatorState } from 'app/rootReducer'
 import { useSelector } from 'react-redux'
 import { FireStartRange, PlanningAreaResult, PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
+import { ROLES } from 'features/auth/roles'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -44,6 +45,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
   const { result } = useSelector(selectHFICalculatorState)
+  const { roles, isAuthenticated } = useSelector(selectAuthentication)
 
   const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
     if (isUndefined(result) || isUndefined(result?.planning_area_station_info)) {
@@ -159,6 +161,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           setNewFireStarts={props.setNewFireStarts}
                           planningAreaClass={classes.planningArea}
                           numPrepDays={numPrepDays}
+                          fireStartsEnabled={roles.includes(ROLES.HFI.SET_FIRE_STARTS) && isAuthenticated}
                           fireStartRanges={result.fire_start_ranges}
                           fuelTypes={props.fuelTypes}
                           planningAreaStationInfo={result.planning_area_station_info}
@@ -187,6 +190,8 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 station={station}
                                 planningAreaId={area.id}
                                 className={classNameForRow}
+                                selectStationEnabled={roles.includes(ROLES.HFI.SELECT_STATION) && isAuthenticated}
+                                isSetFuelTypeEnabled={roles.includes(ROLES.HFI.SET_FUEL_TYPE) && isAuthenticated}
                                 stationCodeInSelected={stationCodeInSelected}
                                 toggleSelectedStation={toggleSelectedStation}
                                 grassCurePercentage={

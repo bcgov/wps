@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { authenticate } from 'features/auth/slices/authenticationSlice'
+import { authenticate, testAuthenticate } from 'features/auth/slices/authenticationSlice'
 import axios from 'api/axios'
 import { AppDispatch, AppThunk } from 'app/store'
 import { selectToken, selectAuthentication } from 'app/rootReducer'
+import { TEST_AUTH } from 'utils/env'
 
 interface Props {
-  shouldAuthenticate: boolean
   children: React.ReactElement
 }
 
@@ -22,20 +22,18 @@ const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
   })
 }
 
-const AuthWrapper = ({ children, shouldAuthenticate }: Props) => {
+const AuthWrapper = ({ children }: Props) => {
   const dispatch: AppDispatch = useDispatch()
   const { isAuthenticated, authenticating, error } = useSelector(selectAuthentication)
 
   useEffect(() => {
-    if (shouldAuthenticate) {
+    if (TEST_AUTH || window.Cypress) {
+      dispatch(testAuthenticate(true, 'test token'))
+    } else {
       dispatch(authenticate())
       dispatch(setAxiosRequestInterceptors())
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (!shouldAuthenticate) {
-    return children
-  }
 
   if (error) {
     return <div>{error}</div>
