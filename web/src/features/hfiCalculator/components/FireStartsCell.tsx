@@ -21,10 +21,7 @@ const useStyles = makeStyles({
 const FireStartsCell = (props: FireStartsCellProps) => {
   const classes = useStyles()
   return (
-    <TableCell
-      className={classes.fireStarts}
-      data-testid={`fire-starts-${props.areaName}`}
-    >
+    <TableCell className={classes.fireStarts} data-testid={`fire-starts-${props.areaName}`}>
       {props.fireStarts ? props.fireStarts.label : ''}
     </TableCell>
   )

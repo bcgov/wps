@@ -17,10 +17,7 @@ export const StationDataHeaderCells = (): ReactElement => {
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell
-                key="header-location"
-                className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}
-              >
+              <TableCell key="header-location" className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}>
                 Location
               </TableCell>
             </TableRow>
@@ -36,10 +33,7 @@ export const StationDataHeaderCells = (): ReactElement => {
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell
-                key="header-fuel-type"
-                className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}
-              >
+              <TableCell key="header-fuel-type" className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}>
                 FBP Fuel Type
               </TableCell>
             </TableRow>
@@ -50,9 +44,7 @@ export const StationDataHeaderCells = (): ReactElement => {
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell
-                className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}
-              >
+              <TableCell className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}>
                 Grass
                 <br />
                 Cure

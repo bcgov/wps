@@ -5,15 +5,11 @@ import React from 'react'
 describe('LoggedInStatus', () => {
   const idir = 'test@idir'
   it('should render nothing if not authenticated', () => {
-    const { container } = render(
-      <LoggedInStatus isAuthenticated={false} roles={[]} idir={undefined} />
-    )
+    const { container } = render(<LoggedInStatus isAuthenticated={false} roles={[]} idir={undefined} />)
     expect(container).toBeEmptyDOMElement()
   })
   it('should render locked lock and idir username if authenticated without any role', () => {
-    const { getByTestId, container } = render(
-      <LoggedInStatus isAuthenticated={true} roles={[]} idir={idir} />
-    )
+    const { getByTestId, container } = render(<LoggedInStatus isAuthenticated={true} roles={[]} idir={idir} />)
     const loggedInIcon = getByTestId('LockOutlinedIcon')
     expect(loggedInIcon).toBeDefined()
 

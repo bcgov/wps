@@ -20,9 +20,7 @@ const HighestDailyFIGCell = ({ testId, isRowSelected }: WeeklyROSCellProps) => {
   return (
     <TableCell
       data-testid={testId}
-      className={
-        isRowSelected ? classes.sectionSeparatorBorder : classes.unselectedStation
-      }
+      className={isRowSelected ? classes.sectionSeparatorBorder : classes.unselectedStation}
     />
   )
 }

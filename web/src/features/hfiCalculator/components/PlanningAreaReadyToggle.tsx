@@ -19,11 +19,7 @@ const PlanningAreaReadyToggle = ({ disabled }: PlanningAreaReadyToggleProps) => 
         setReady(!ready)
       }}
     >
-      {ready ? (
-        <ToggleOnOutlinedIcon fontSize="large" color="success" />
-      ) : (
-        <ToggleOffOutlinedIcon fontSize="large" />
-      )}
+      {ready ? <ToggleOnOutlinedIcon fontSize="large" color="success" /> : <ToggleOffOutlinedIcon fontSize="large" />}
     </IconButton>
   )
 }

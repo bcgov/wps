@@ -5,11 +5,7 @@ import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { range } from 'lodash'
 import React from 'react'
 import MeanPrepLevelCell from './MeanPrepLevelCell'
-import {
-  FireStartRange,
-  PlanningAreaResult,
-  StationInfo
-} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { FireStartRange, PlanningAreaResult, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
 
 export interface CalculatedCellsProps {
@@ -18,11 +14,7 @@ export interface CalculatedCellsProps {
   areaName: string
   planningAreaResult: PlanningAreaResult
   fireStartsEnabled: boolean
-  setNewFireStarts: (
-    areaId: number,
-    dayOffset: number,
-    newFireStarts: FireStartRange
-  ) => void
+  setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStartRange) => void
   planningAreaClass: string
   numPrepDays: number
   fireStartRanges: FireStartRange[]
@@ -37,8 +29,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
   return (
     <React.Fragment>
       {range(props.numPrepDays).map(day => {
-        const meanIntensityGroup =
-          props.planningAreaResult.daily_results[day]?.mean_intensity_group
+        const meanIntensityGroup = props.planningAreaResult.daily_results[day]?.mean_intensity_group
         const prepLevel = props.planningAreaResult.daily_results[day]?.prep_level
         const fireStarts = props.planningAreaResult.daily_results[day]?.fire_starts
 
@@ -63,9 +54,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
               />
             </TableCell>
             <PrepLevelCell
-              toolTipText={
-                'Cannot calculate prep level. Please check the daily forecast using the tabs above.'
-              }
+              toolTipText={'Cannot calculate prep level. Please check the daily forecast using the tabs above.'}
               prepLevel={prepLevel}
             />
           </React.Fragment>
@@ -82,10 +71,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
       <MeanPrepLevelCell
         areaName={props.areaName}
         meanPrepLevel={props.planningAreaResult.mean_prep_level}
-        emptyOrIncompleteForecast={
-          allPlanningAreaDailies.length === 0 ||
-          !props.planningAreaResult.all_dailies_valid
-        }
+        emptyOrIncompleteForecast={allPlanningAreaDailies.length === 0 || !props.planningAreaResult.all_dailies_valid}
       />
     </React.Fragment>
   )

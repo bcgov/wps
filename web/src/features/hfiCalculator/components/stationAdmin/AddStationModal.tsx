@@ -1,12 +1,5 @@
 import React, { useState } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  IconButton,
-  Paper,
-  Typography,
-  Button
-} from '@mui/material'
+import { Dialog, DialogContent, IconButton, Paper, Typography, Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
@@ -58,8 +51,7 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-const invalidNewStation = (newStation: AdminStation) =>
-  values(newStation).some(isEmpty) && newStation.dirty
+const invalidNewStation = (newStation: AdminStation) => values(newStation).some(isEmpty) && newStation.dirty
 
 export const AddStationModal = (props: ModalProps): JSX.Element => {
   const classes = useStyles()
@@ -92,13 +84,7 @@ export const AddStationModal = (props: ModalProps): JSX.Element => {
     <React.Fragment>
       {buildSuccessNotification()}
 
-      <Dialog
-        fullWidth
-        maxWidth="md"
-        open={props.modalOpen}
-        onClose={handleClose}
-        data-testid="manage-stations-modal"
-      >
+      <Dialog fullWidth maxWidth="md" open={props.modalOpen} onClose={handleClose} data-testid="manage-stations-modal">
         <Paper>
           <IconButton className={classes.closeIcon} onClick={handleClose}>
             <ClearIcon />
@@ -111,10 +97,7 @@ export const AddStationModal = (props: ModalProps): JSX.Element => {
             <Typography variant="body1" align="center">
               New weather station(s) will be included in the default list moving forward
             </Typography>
-            <NewStationForm
-              newStation={newStation}
-              invalid={invalidNewStation(newStation)}
-            />
+            <NewStationForm newStation={newStation} invalid={invalidNewStation(newStation)} />
           </DialogContent>
           <SaveNewStationButton
             newStation={newStation}

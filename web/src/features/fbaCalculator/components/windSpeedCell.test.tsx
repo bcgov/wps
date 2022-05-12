@@ -1,14 +1,9 @@
 import { render, screen } from '@testing-library/react'
-import WindSpeedCell, {
-  WindSpeedCellProps
-} from 'features/fbaCalculator/components/WindSpeedCell'
+import WindSpeedCell, { WindSpeedCellProps } from 'features/fbaCalculator/components/WindSpeedCell'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import React from 'react'
 describe('WindSpeedCell', () => {
-  const buildProps = (
-    inputRow: FBATableRow,
-    calculatedValue?: number
-  ): WindSpeedCellProps => ({
+  const buildProps = (inputRow: FBATableRow, calculatedValue?: number): WindSpeedCellProps => ({
     inputRows: [inputRow],
     updateRow: () => {
       /** no op */
@@ -29,17 +24,13 @@ describe('WindSpeedCell', () => {
     const row = buildTableRow(1)
     const props = buildProps(row)
     render(<WindSpeedCell {...props} />)
-    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild?.firstChild).toHaveValue(
-      1
-    )
+    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild?.firstChild).toHaveValue(1)
   })
   it('should set calculated value if no input value', () => {
     const row = buildTableRow(undefined)
     const props = buildProps(row, 2)
     render(<WindSpeedCell {...props} />)
-    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild?.firstChild).toHaveValue(
-      2
-    )
+    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild?.firstChild).toHaveValue(2)
   })
   it('should return field in error state when wind speed is set to over 120', () => {
     const row = buildTableRow(121)
@@ -55,20 +46,14 @@ describe('WindSpeedCell', () => {
 
     const correctedProps = { ...props, inputValue: 120 }
     rerender(<WindSpeedCell {...correctedProps} />)
-    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild?.firstChild).toHaveValue(
-      120
-    )
-    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild).not.toHaveClass(
-      'Mui-error'
-    )
+    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild?.firstChild).toHaveValue(120)
+    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild).not.toHaveClass('Mui-error')
   })
   it('should not return field in error state when wind speed is set to float under 120', () => {
     const row = buildTableRow(119.9)
     const props = buildProps(row)
     render(<WindSpeedCell {...props} />)
-    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild?.firstChild).toHaveValue(
-      119.9
-    )
+    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild?.firstChild).toHaveValue(119.9)
   })
   it('should return field with adjusted border color and weight when there is an input value', () => {
     const row = buildTableRow(1)

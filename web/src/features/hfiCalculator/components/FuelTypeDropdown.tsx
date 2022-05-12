@@ -40,9 +40,7 @@ const FuelTypeDropdown = ({
       options={fuelTypes}
       isOptionEqualToValue={(option, value) => isEqual(option.id, value.id)}
       getOptionLabel={option => option.abbrev}
-      renderInput={params => (
-        <TextField {...params} variant="outlined" value={selectedFuelType} />
-      )}
+      renderInput={params => <TextField {...params} variant="outlined" value={selectedFuelType} />}
       value={selectedFuelType}
       onChange={(_, value) => {
         if (!isNull(value)) {

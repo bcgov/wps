@@ -117,20 +117,11 @@ export const dateRangePickerTheme = createTheme({
   }
 })
 
-const PrepDateRangeSelector = ({
-  dateRange,
-  setDateRange
-}: PrepDateRangeSelectorProps) => {
+const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelectorProps) => {
   const classes = useStyles()
   const dateDisplayFormat = 'MMMM dd'
-  const startDate =
-    dateRange && dateRange.start_date
-      ? DateTime.fromISO(dateRange.start_date).toJSDate()
-      : undefined
-  const endDate =
-    dateRange && dateRange.end_date
-      ? DateTime.fromISO(dateRange.end_date).toJSDate()
-      : undefined
+  const startDate = dateRange && dateRange.start_date ? DateTime.fromISO(dateRange.start_date).toJSDate() : undefined
+  const endDate = dateRange && dateRange.end_date ? DateTime.fromISO(dateRange.end_date).toJSDate() : undefined
 
   const [dateRangePickerOpen, setDateRangePickerOpen] = useState<boolean>(false)
   const toggleDateRangePicker = () => setDateRangePickerOpen(!dateRangePickerOpen)
@@ -149,13 +140,11 @@ const PrepDateRangeSelector = ({
             label={'Set prep period'}
             onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
             value={
-              isUndefined(dateRange) ||
-              isUndefined(dateRange.start_date) ||
-              isUndefined(dateRange.end_date)
+              isUndefined(dateRange) || isUndefined(dateRange.start_date) || isUndefined(dateRange.end_date)
                 ? ''
-                : `${DateTime.fromISO(dateRange.start_date)
-                    .toFormat(dateDisplayFormat)
-                    .trim()} - ${DateTime.fromISO(dateRange.end_date)
+                : `${DateTime.fromISO(dateRange.start_date).toFormat(dateDisplayFormat).trim()} - ${DateTime.fromISO(
+                    dateRange.end_date
+                  )
                     .toFormat(dateDisplayFormat)
                     .trim()}
                         `

@@ -24,15 +24,10 @@ const useStyles = makeStyles({
   }
 })
 
-export const NewStationForm = ({
-  newStation,
-  invalid
-}: NewStationFormProps): JSX.Element => {
+export const NewStationForm = ({ newStation, invalid }: NewStationFormProps): JSX.Element => {
   const classes = useStyles()
 
-  const toolTipText = (
-    <div className={classes.toolTipText}>Grass curing is set in WFWX</div>
-  )
+  const toolTipText = <div className={classes.toolTipText}>Grass curing is set in WFWX</div>
 
   return (
     <Box sx={{ marginTop: 5 }}>
@@ -80,11 +75,7 @@ export const NewStationForm = ({
             <Grid item>
               <Typography>
                 <strong>Fuel Type</strong>
-                <Tooltip
-                  className={classes.tooltip}
-                  title={toolTipText}
-                  aria-label="grass-curing-is-set-in-wfwx"
-                >
+                <Tooltip className={classes.tooltip} title={toolTipText} aria-label="grass-curing-is-set-in-wfwx">
                   <InfoOutlinedIcon></InfoOutlinedIcon>
                 </Tooltip>
               </Typography>
@@ -105,20 +96,12 @@ export const NewStationForm = ({
           </Grid>
         </Grid>
         {invalid && (
-          <Grid
-            container
-            direction="row"
-            justifyContent="center"
-            spacing={1}
-            marginTop={5}
-          >
+          <Grid container direction="row" justifyContent="center" spacing={1} marginTop={5}>
             <Grid item>
               <ErrorOutlineIcon color="error" />
             </Grid>
             <Grid item>
-              <Typography variant="body1">
-                Please complete empty fields to continue
-              </Typography>
+              <Typography variant="body1">Please complete empty fields to continue</Typography>
             </Grid>
           </Grid>
         )}

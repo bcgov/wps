@@ -69,11 +69,7 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
     <div className={classes.root}>
       <FireCentreDropdown
         fireCentres={props.fireCentres}
-        selectedValue={
-          isUndefined(props.selectedFireCentre)
-            ? null
-            : { name: props.selectedFireCentre?.name }
-        }
+        selectedValue={isUndefined(props.selectedFireCentre) ? null : { name: props.selectedFireCentre?.name }}
         onChange={props.selectNewFireCentre}
       />
       <PrepDateRangeSelector
