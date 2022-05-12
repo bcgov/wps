@@ -10,7 +10,8 @@ import {
   fetchSetStationSelected,
   fetchFuelTypes,
   fetchPDFDownload,
-  fetchSetFuelType
+  fetchSetFuelType,
+  setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -191,6 +192,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
     if (!isUndefined(selectedFireCentre)) {
       dispatch(fetchGetPrepDateRange(selectedFireCentre.id, result?.date_range.start_date, result?.date_range.end_date))
+      dispatch(setSelectedPrepDate(''))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre])
