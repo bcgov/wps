@@ -144,8 +144,8 @@ describe('authenticationSlice', () => {
           isAuthenticated: true,
           tokenRefreshed: false,
           token: testToken,
-          idir: 'cbrady@idir',
-          roles: ['hfi_select_station', 'test-role', 'hfi_set_fire_starts'],
+          idir: 'test@idir',
+          roles: Object.values(ROLES.HFI),
           error: null
         }
         const error = 'error'
