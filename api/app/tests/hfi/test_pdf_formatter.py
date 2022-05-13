@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from typing import List
 from jinja2 import Environment, FunctionLoader
 from app.hfi.pdf_data_formatter import (get_date_range_string,
@@ -10,12 +10,11 @@ from app.hfi.pdf_data_formatter import (get_date_range_string,
                                         get_merged_station_data,
                                         get_prep_levels,
                                         get_sorted_dates,
-                                        get_station_dailies,
                                         response_2_daily_jinja_format,
                                         response_2_prep_cycle_jinja_format)
 from app.hfi.pdf_generator import build_mappings
 from app.hfi.pdf_template import get_template
-from app.schemas.hfi_calc import (DailyResult,
+from app.schemas.hfi_calc import (DailyResult, DateRange,
                                   FireCentre,
                                   HFIResultResponse,
                                   StationDaily, StationInfo,
@@ -32,41 +31,31 @@ jinja_env = Environment(loader=FunctionLoader(get_template), autoescape=True)
 lowest_fire_starts = (FireStartRange(id=1, label='0-1', ))
 
 
-def test_get_sorted_dates_all_unique():
-    """ Unique dates are in sorted order """
-    dailies: List[StationDaily] = [StationDaily(date=datetime.fromisocalendar(2022, 3, 3)),
-                                   StationDaily(date=datetime.fromisocalendar(2022, 2, 2))]
-
-    result = get_sorted_dates(dailies)
-    assert result[0] == datetime.fromisocalendar(2022, 2, 2)
-    assert result[1] == datetime.fromisocalendar(2022, 3, 3)
-
-
 def test_get_sorted_dates_same():
     """ Only one date of each date is returned in order """
-    dailies: List[StationDaily] = [StationDaily(date=datetime.fromisocalendar(2022, 2, 2)),
-                                   StationDaily(date=datetime.fromisocalendar(2022, 2, 2)),
-                                   StationDaily(date=datetime.fromisocalendar(2022, 3, 3)),
-                                   StationDaily(date=datetime.fromisocalendar(2022, 3, 3))]
+    start_date = date.fromisocalendar(2022, 2, 2)
+    end_date = start_date + timedelta(days=6)
+    date_range: DateRange = DateRange(start_date=start_date,
+                                      end_date=end_date)
 
-    result = get_sorted_dates(dailies)
-    assert len(result) == 2
-    assert result[0] == datetime.fromisocalendar(2022, 2, 2)
-    assert result[1] == datetime.fromisocalendar(2022, 3, 3)
+    result = get_sorted_dates(date_range)
+    assert len(result) == 7
+    assert result[0] == start_date
+    assert result[6] == end_date
 
 
 def test_get_date_range_string_2():
     """ Only one date of each date is returned in order """
-    dates = [datetime.fromisocalendar(2022, 2, 2), datetime.fromisocalendar(2022, 3, 3)]
+    dates = [date.fromisocalendar(2022, 2, 2), date.fromisocalendar(2022, 3, 3)]
     result = get_date_range_string(dates)
     assert result == '2022-01-11 to 2022-01-19'
 
 
 def test_get_date_range_string_3():
     """ Only one date of each date is returned in order """
-    dates = [datetime.fromisocalendar(2022, 1, 1),
-             datetime.fromisocalendar(2022, 2, 2),
-             datetime.fromisocalendar(2022, 3, 3)]
+    dates = [date.fromisocalendar(2022, 1, 1),
+             date.fromisocalendar(2022, 2, 2),
+             date.fromisocalendar(2022, 3, 3)]
     result = get_date_range_string(dates)
     assert result == '2022-01-03 to 2022-01-19'
 
@@ -79,7 +68,7 @@ def test_get_date_range_string_empty():
 
 def test_get_date_range_string_single():
     """ Only one date of each date is returned in order """
-    result = get_date_range_string([datetime.fromisocalendar(2022, 1, 1)])
+    result = get_date_range_string([date.fromisocalendar(2022, 1, 1)])
     assert result == '2022-01-03'
 
 
@@ -138,14 +127,12 @@ def test_all_array_functions():
         result_json = json.load(hfi_result)
         result = HFIResultResponse(**result_json)
 
+        # dates test
+        sorted_dates = get_sorted_dates(result.date_range)
+        formatted_dates: List[str] = get_formatted_dates(sorted_dates)
+        assert len(sorted_dates) == len(formatted_dates)
+
         for area_result in result.planning_area_hfi_results:
-            area_dailies = get_station_dailies(area_result)
-
-            # dates test
-            sorted_dates = get_sorted_dates(area_dailies)
-            formatted_dates: List[str] = get_formatted_dates(sorted_dates)
-            assert len(sorted_dates) == len(formatted_dates)
-
             # # of migs and prep levels should equal # of dates
             mean_intensity_groups = get_mean_intensity_groups(area_result.daily_results)
             prep_levels = get_prep_levels(area_result.daily_results)
