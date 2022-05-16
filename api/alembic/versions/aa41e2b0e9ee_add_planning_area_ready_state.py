@@ -1,8 +1,8 @@
 """Add planning area ready state
 
-Revision ID: d4fa3ec5183f
-Revises: 16386a52d7bf
-Create Date: 2022-05-16 11:21:16.354344
+Revision ID: aa41e2b0e9ee
+Revises: ac65354014bd
+Create Date: 2022-05-16 13:36:46.208331
 
 """
 from typing import List, Optional
@@ -12,10 +12,11 @@ from sqlalchemy.orm.session import Session
 
 
 # revision identifiers, used by Alembic.
-revision = 'd4fa3ec5183f'
-down_revision = '16386a52d7bf'
+revision = 'aa41e2b0e9ee'
+down_revision = 'ac65354014bd'
 branch_labels = None
 depends_on = None
+
 
 hfi_request_table = sa.Table('hfi_request', sa.MetaData(),
                              sa.Column('id', sa.Integer),
