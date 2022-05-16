@@ -89,6 +89,9 @@ def mock_redis(monkeypatch):
                 ex=None, px=None, nx=False, xx=False, keepttl=False):  # pylint: disable=invalid-name
             """ mock set """
 
+        def delete(self, name):  # pylint: disable=unused-argument, no-self-use
+            """ mock delete """
+
     def create_mock_redis():
         return MockRedis()
     monkeypatch.setattr(app.utils.redis, '_create_redis', create_mock_redis)

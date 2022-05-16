@@ -4,9 +4,14 @@ import json
 from typing import List, Optional, Dict, Tuple
 from datetime import date
 from jinja2 import Environment, FunctionLoader
-from fastapi import APIRouter, HTTPException, Response, Depends
-from pydantic.error_wrappers import ValidationError
+from fastapi import APIRouter, HTTPException, Response, Depends, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from pydantic.error_wrappers import ValidationError
+from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
+                                       get_cached_hydrated_fire_centres,
+                                       put_cached_hydrated_fire_centres)
+from app.hfi.hfi_request import update_result_request
 from app.utils.time import get_pst_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
@@ -14,21 +19,29 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (HFIResultRequest,
+from app.schemas.hfi_calc import (HFIAddStationRequest,
+                                  HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange,
                                   StationInfo,
-                                  DateRange, FuelTypesResponse, HFIWeatherStationsResponse)
+                                  DateRange,
+                                  FuelTypesResponse,
+                                  HFIWeatherStationsResponse)
 from app.auth import (auth_with_select_station_role_required,
                       auth_with_set_fire_starts_role_required,
+                      auth_with_station_admin_role_required,
                       auth_with_set_fuel_type_role_required,
                       authentication_required,
                       audit)
 from app.schemas.shared import (FuelType)
-from app.db.crud.hfi_calc import (get_fuel_type_by_id, get_most_recent_updated_hfi_request,
+from app.db.crud.hfi_calc import (get_fuel_type_by_id,
+                                  get_last_station_in_planning_area,
+                                  get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
+                                  get_planning_weather_stations,
                                   store_hfi_request,
-                                  get_fire_centre_stations)
+                                  get_fire_centre_stations,
+                                  store_hfi_station)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -54,6 +67,7 @@ def get_prepared_request(
 
     TODO: give this function a better name.
     """
+    # pylint: disable=too-many-locals
     fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
     if date_range:
         stored_request = get_most_recent_updated_hfi_request(session,
@@ -66,7 +80,10 @@ def get_prepared_request(
     request_loaded = False
     if stored_request:
         try:
-            result_request = HFIResultRequest.parse_obj(json.loads(stored_request.request))
+            latest_stations = get_planning_weather_stations(session, fire_centre_id)
+            result_request = update_result_request(
+                HFIResultRequest.parse_obj(json.loads(stored_request.request)),
+                latest_stations)
             request_loaded = True
         except ValidationError as validation_error:
             # This can happen when we change the schema! It's rare - but it happens.
@@ -348,18 +365,42 @@ async def get_fire_centres(response: Response):
     """ Returns list of fire centres and planning area for each fire centre,
     and weather stations within each planning area. Also returns the assigned fuel type
     for each weather station. """
+    logger.info('/hfi-calc/fire-centres')
+    response.headers["Cache-Control"] = "max-age=0"
 
-    try:
-        logger.info('/hfi-calc/fire-centres')
-        # we can safely cache the fire centres, as they don't change them very often.
-        # the eco-division logic is very slow, and chomps up 2 seconds!
-        response.headers["Cache-Control"] = "max-age=86400"
-        fire_centres_list = await hydrate_fire_centres()
-        return HFIWeatherStationsResponse(fire_centres=fire_centres_list)
+    # Attempt to retrieve from cache
+    cached_response = await get_cached_hydrated_fire_centres()
+    if cached_response is not None:
+        return cached_response
+    fire_centres_list = await hydrate_fire_centres()
+    response = HFIWeatherStationsResponse(fire_centres=fire_centres_list)
+    await put_cached_hydrated_fire_centres(response)
+    return response
 
-    except Exception as exc:
-        logger.critical(exc, exc_info=True)
-        raise
+
+@router.post('/admin/add-station/{fire_centre_id}', status_code=status.HTTP_201_CREATED)
+async def add_station(fire_centre_id: int,
+                      request: HFIAddStationRequest,
+                      _=Depends(auth_with_station_admin_role_required)):
+    """ Adds a station. """
+    logger.info('/hfi-calc/admin/add-station/%s', fire_centre_id)
+    with get_write_session_scope() as db_session:
+        last_weather_station = get_last_station_in_planning_area(
+            session=db_session, planning_area_id=request.planning_area_id)
+        order = last_weather_station.order_of_appearance_in_planning_area_list + 1
+        try:
+            store_hfi_station(db_session,
+                              station_code=request.station_code,
+                              fuel_type_id=request.fuel_type_id,
+                              planning_area_id=request.planning_area_id,
+                              order=order)
+            clear_cached_hydrated_fire_centres()
+        except IntegrityError as exception:
+            logger.info('Attempt to add existing station code %s to planning area id %s',
+                        request.station_code, request.planning_area_id, exc_info=exception)
+            db_session.rollback()
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail="Station already exists in planning area") from exception
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')

@@ -175,6 +175,13 @@ class HFIResultRequest(BaseModel):
     planning_area_fire_starts: Dict[int, List[FireStartRange]]
 
 
+class HFIAddStationRequest(BaseModel):
+    """ Request input for adding a station """
+    planning_area_id: int
+    station_code: int
+    fuel_type_id: int
+
+
 class HFIResultResponse(BaseModel):
     """
     Response that contains daily data, num prep days, selected station codes,

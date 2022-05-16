@@ -14,9 +14,13 @@ import {
   getFuelTypes,
   FuelType,
   FireCentre,
-  FuelTypesResponse
+  FuelTypesResponse,
+  addNewStation
 } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
+import { AddStationOptions, AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { AxiosError } from 'axios'
+import { isUndefined } from 'lodash'
 
 export interface FireStartRange {
   label: string
@@ -64,6 +68,7 @@ export interface HFICalculatorState {
   pdfLoading: boolean
   fireCentresLoading: boolean
   fuelTypesLoading: boolean
+  addStationOptionsLoading: boolean
   error: string | null
   dateRange: PrepDateRange | undefined
   selectedPrepDate: string
@@ -71,8 +76,11 @@ export interface HFICalculatorState {
   planningAreaHFIResults: { [key: string]: PlanningAreaResult }
   selectedFireCentre: FireCentre | undefined
   result: HFIResultResponse | undefined
+  addStationOptions: AddStationOptions | undefined
   fuelTypes: FuelType[]
   changeSaved: boolean
+  stationAdded: boolean
+  stationAddedError: string | null
 }
 
 export interface StationInfo {
@@ -116,6 +124,7 @@ export interface RawValidatedStationDaily {
 export const initialState: HFICalculatorState = {
   pdfLoading: false,
   fireCentresLoading: false,
+  addStationOptionsLoading: false,
   fuelTypesLoading: false,
   error: null,
   dateRange: undefined,
@@ -125,7 +134,10 @@ export const initialState: HFICalculatorState = {
   selectedFireCentre: undefined,
   result: undefined,
   fuelTypes: [],
-  changeSaved: false
+  addStationOptions: undefined,
+  changeSaved: false,
+  stationAdded: false,
+  stationAddedError: null
 }
 
 const dailiesSlice = createSlice({
@@ -144,6 +156,12 @@ const dailiesSlice = createSlice({
     },
     pdfDownloadEnd(state: HFICalculatorState) {
       state.pdfLoading = false
+    },
+    setStationAdded(state: HFICalculatorState, action: PayloadAction<boolean>) {
+      state.stationAdded = action.payload
+    },
+    setAddedStationFailed(state: HFICalculatorState, action: PayloadAction<string | null>) {
+      state.stationAddedError = action.payload
     },
     getHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
@@ -180,6 +198,8 @@ export const {
   fetchFuelTypesStart,
   pdfDownloadStart,
   pdfDownloadEnd,
+  setStationAdded,
+  setAddedStationFailed,
   getHFIResultFailed,
   fetchFuelTypesFailed,
   setSelectedPrepDate,
@@ -190,19 +210,6 @@ export const {
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer
-
-export const fetchLoadDefaultHFIResult =
-  (fire_center_id: number): AppThunk =>
-  async dispatch => {
-    try {
-      dispatch(loadHFIResultStart())
-      const result = await loadDefaultHFIResult(fire_center_id)
-      dispatch(setResult(result))
-    } catch (err) {
-      dispatch(getHFIResultFailed((err as Error).toString()))
-      logError(err)
-    }
-  }
 
 export const fetchSetStationSelected =
   (
@@ -261,12 +268,17 @@ export const fetchSetFuelType =
   }
 
 export const fetchGetPrepDateRange =
-  (fire_center_id: number, start_date: Date, end_date: Date): AppThunk =>
+  (fire_center_id: number, start_date?: string, end_date?: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(loadHFIResultStart())
-      const result = await getPrepDateRange(fire_center_id, start_date, end_date)
-      dispatch(setResult(result))
+      if (isUndefined(start_date) || isUndefined(end_date)) {
+        const result = await loadDefaultHFIResult(fire_center_id)
+        dispatch(setResult(result))
+      } else {
+        const result = await getPrepDateRange(fire_center_id, start_date, end_date)
+        dispatch(setResult(result))
+      }
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)
@@ -283,6 +295,19 @@ export const fetchFuelTypes = (): AppThunk => async dispatch => {
     logError(err)
   }
 }
+
+export const fetchAddStation =
+  (fireCentreId: number, newStation: Required<Omit<AdminStation, 'dirty'>>): AppThunk =>
+  async dispatch => {
+    try {
+      const status = await addNewStation(fireCentreId, newStation)
+      dispatch(setStationAdded(status === 201))
+    } catch (err) {
+      const { response } = err as AxiosError
+      dispatch(setAddedStationFailed(response?.data.detail))
+      logError(err)
+    }
+  }
 
 export const fetchSetNewFireStarts =
   (
