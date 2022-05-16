@@ -5,17 +5,21 @@ import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   FireStartRange,
   setSelectedFireCentre,
-  fetchLoadDefaultHFIResult,
   fetchSetNewFireStarts,
   fetchGetPrepDateRange,
   fetchSetStationSelected,
   fetchFuelTypes,
   fetchPDFDownload,
-  setSelectedPrepDate,
-  fetchSetFuelType
+  fetchSetFuelType,
+  setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectHFIStations, selectHFIStationsLoading, selectHFICalculatorState } from 'app/rootReducer'
+import {
+  selectHFIStations,
+  selectHFIStationsLoading,
+  selectHFICalculatorState,
+  selectAuthentication
+} from 'app/rootReducer'
 import { FormControl } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
@@ -30,12 +34,28 @@ import { DateRange } from 'components/dateRangePicker/types'
 import LiveChangesAlert from 'features/hfiCalculator/components/LiveChangesAlert'
 import { AppDispatch } from 'app/store'
 import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
+import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
+import { ROLES } from 'features/auth/roles'
+import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 
 const useStyles = makeStyles(theme => ({
   ...formControlStyles,
   container: {
     display: 'flex',
     justifyContent: 'center'
+  },
+  controlContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'row',
+    margin: theme.spacing(1),
+    minWidth: 210
+  },
+  actionButtonContainer: {
+    marginLeft: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'row'
   },
   helpIcon: {
     fill: theme.palette.primary.main
@@ -58,10 +78,6 @@ const useStyles = makeStyles(theme => ({
   prepDays: {
     margin: theme.spacing(1),
     minWidth: 100
-  },
-  pdfButton: {
-    margin: theme.spacing(1),
-    float: 'right'
   }
 }))
 
@@ -69,6 +85,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
+  const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const {
@@ -142,7 +159,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       !isUndefined(newDateRange.startDate) &&
       !isUndefined(newDateRange.endDate)
     ) {
-      dispatch(fetchGetPrepDateRange(result.selected_fire_center_id, newDateRange.startDate, newDateRange.endDate))
+      dispatch(
+        fetchGetPrepDateRange(
+          result.selected_fire_center_id,
+          newDateRange.startDate.toISOString().split('T')[0],
+          newDateRange.endDate.toISOString().split('T')[0]
+        )
+      )
     }
   }
 
@@ -168,7 +191,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
     if (!isUndefined(selectedFireCentre)) {
-      dispatch(fetchLoadDefaultHFIResult(selectedFireCentre.id))
+      dispatch(fetchGetPrepDateRange(selectedFireCentre.id, result?.date_range.start_date, result?.date_range.end_date))
       dispatch(setSelectedPrepDate(''))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -231,12 +254,19 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           <React.Fragment>
             <LiveChangesAlert />
             {buildSuccessNotification()}
-            <FormControl className={classes.formControl}>
+            <FormControl className={classes.controlContainer}>
               <ViewSwitcherToggles dateRange={dateRange} selectedPrepDate={selectedPrepDate} />
-            </FormControl>
-
-            <FormControl className={classes.pdfButton}>
-              <DownloadPDFButton onClick={handleDownloadClicked} />
+              <LastUpdatedHeader
+                dailies={result?.planning_area_hfi_results.flatMap(areaResult =>
+                  areaResult.daily_results.flatMap(dailyResult =>
+                    dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
+                  )
+                )}
+              />
+              <FormControl className={classes.actionButtonContainer}>
+                {roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && <AddStationButton />}
+                <DownloadPDFButton onClick={handleDownloadClicked} />
+              </FormControl>
             </FormControl>
 
             <ErrorBoundary>

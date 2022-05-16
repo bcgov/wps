@@ -32,7 +32,7 @@ const HFILoadingDataContainer = ({
 }: HFILoadingDataContainerProps) => {
   const buildErrorNotification = () => {
     if (!isNull(fireCentresError) || !isNull(hfiError)) {
-      return <HFIErrorAlert hfiDailiesError={hfiError} fireCentresError={fireCentresError} />
+      return <HFIErrorAlert errors={[hfiError, fireCentresError]} />
     }
     return <React.Fragment></React.Fragment>
   }
