@@ -1,13 +1,14 @@
 """ Marshals HFI result into structure that jinja can easily
         iterate over for generating the daily PDF sheets
 """
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from functools import reduce
 from itertools import groupby
+import copy
 import operator
 from typing import List, Dict
 
-from app.schemas.hfi_calc import (DailyTablePlanningAreaPDFData, DailyResult,
+from app.schemas.hfi_calc import (DailyTablePlanningAreaPDFData, DailyResult, DateRange,
                                   HFIResultResponse,
                                   PlanningArea, PlanningAreaResult,
                                   PrepTablePlanningAreaPDFData,
@@ -25,12 +26,12 @@ def response_2_prep_cycle_jinja_format(result: HFIResultResponse,
     Marshals HFI result into structure that jinja can easily
     iterate over for generating the prep cycle PDF sheet
     """
+    sorted_dates = get_sorted_dates(result.date_range)
+    formatted_dates: List[str] = get_formatted_dates(sorted_dates)
+    date_range: str = get_date_range_string(sorted_dates)
     prep_cycle_pdf_data: List[PrepTablePlanningAreaPDFData] = []
     for area_result in result.planning_area_hfi_results:
         area_dailies: List[StationDaily] = get_station_dailies(area_result)
-        sorted_dates = get_sorted_dates(area_dailies)
-        formatted_dates: List[str] = get_formatted_dates(sorted_dates)
-        date_range: str = get_date_range_string(sorted_dates)
         planning_area_station_info = result.planning_area_station_info[area_result.planning_area_id]
         station_pdf_data = get_station_pdf_data(
             area_dailies, station_dict, fuel_types, planning_area_station_info)
@@ -68,22 +69,28 @@ def get_station_dailies(area_result: PlanningAreaResult):
     return area_dailies
 
 
-def get_sorted_dates(area_dailies: List[StationDaily]) -> List[datetime]:
+def get_sorted_dates(date_range: DateRange) -> List[date]:
     """
     Returns the unique dates in sorted order
     """
-    unique_dates = list({daily.date for daily in area_dailies})
-    return sorted(unique_dates)
+    dates = []
+    current_date = date_range.start_date
+    while current_date != date_range.end_date:
+        dates.append(copy.deepcopy(current_date))
+        current_date = current_date + timedelta(days=1)
+
+    # last date
+    dates.append(copy.deepcopy(current_date))
+    return dates
 
 
-def get_formatted_dates(dates: List[datetime]):
+def get_formatted_dates(dates: List[date]) -> List[str]:
     """
     Returns the dates formatted as readable weekday strings
     """
     formatted_dates = []
-    for date in dates:
-        date_obj = datetime.strptime(str(date), '%Y-%m-%d %H:%M:%S%z')
-        formatted_date_string = str(date_obj.strftime("%A %B, %d, %Y"))
+    for raw_date in dates:
+        formatted_date_string = raw_date.strftime("%A %B, %d, %Y")
         formatted_dates.append(formatted_date_string)
 
     return formatted_dates
@@ -98,9 +105,9 @@ def get_date_range_string(dates: List[datetime]):
         return ''
 
     if len(dates) == 1:
-        return dates[0].date().isoformat()
+        return dates[0].isoformat()
 
-    return f'{dates[0].date().isoformat()} to {dates[-1].date().isoformat()}'
+    return f'{dates[0].isoformat()} to {dates[-1].isoformat()}'
 
 
 def get_fire_start_labels(daily_results: List[DailyResult]):
