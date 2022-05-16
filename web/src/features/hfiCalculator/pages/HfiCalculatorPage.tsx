@@ -5,14 +5,13 @@ import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   FireStartRange,
   setSelectedFireCentre,
-  fetchLoadDefaultHFIResult,
   fetchSetNewFireStarts,
   fetchGetPrepDateRange,
   fetchSetStationSelected,
   fetchFuelTypes,
   fetchPDFDownload,
-  setSelectedPrepDate,
-  fetchSetFuelType
+  fetchSetFuelType,
+  setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -160,7 +159,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       !isUndefined(newDateRange.startDate) &&
       !isUndefined(newDateRange.endDate)
     ) {
-      dispatch(fetchGetPrepDateRange(result.selected_fire_center_id, newDateRange.startDate, newDateRange.endDate))
+      dispatch(
+        fetchGetPrepDateRange(
+          result.selected_fire_center_id,
+          newDateRange.startDate.toISOString().split('T')[0],
+          newDateRange.endDate.toISOString().split('T')[0]
+        )
+      )
     }
   }
 
@@ -186,7 +191,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
     if (!isUndefined(selectedFireCentre)) {
-      dispatch(fetchLoadDefaultHFIResult(selectedFireCentre.id))
+      dispatch(fetchGetPrepDateRange(selectedFireCentre.id, result?.date_range.start_date, result?.date_range.end_date))
       dispatch(setSelectedPrepDate(''))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
