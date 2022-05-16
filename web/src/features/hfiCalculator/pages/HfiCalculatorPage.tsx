@@ -33,7 +33,7 @@ import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButt
 import { DateRange } from 'components/dateRangePicker/types'
 import LiveChangesAlert from 'features/hfiCalculator/components/LiveChangesAlert'
 import { AppDispatch } from 'app/store'
-import HFILoadingDataView from 'features/hfiCalculator/components/HFILoadingDataView'
+import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
 import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
 import { ROLES } from 'features/auth/roles'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
@@ -241,7 +241,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         padding="1rem"
       />
       <Container maxWidth={'xl'}>
-        <HFILoadingDataView
+        <HFILoadingDataContainer
           pdfLoading={pdfLoading}
           fuelTypesLoading={fuelTypesLoading}
           stationDataLoading={stationDataLoading}
@@ -286,7 +286,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               )}
             </ErrorBoundary>
           </React.Fragment>
-        </HFILoadingDataView>
+        </HFILoadingDataContainer>
       </Container>
     </main>
   )
