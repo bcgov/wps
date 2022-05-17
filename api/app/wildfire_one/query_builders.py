@@ -23,18 +23,20 @@ class BuildQueryStations(BuildQuery):
 
     def __init__(self, filters: List[str] = ['ACTIVE', ]):
         super().__init__()
-        self.query = None
+        self.param_query = None
         for filter in filters:
-            if self.query:
-                self.query += f'&stationStatus.id=="{filter}"'
+            if self.param_query:
+                self.param_query += f',stationStatus.id=="{filter}"'
             else:
-                self.query = f'stationStatus.id=="{filter}"'
+                self.param_query = f'stationStatus.id=="{filter}"'
 
     def query(self, page) -> Tuple[str, dict]:
         """ Return query url and params with rsql query for all weather stations marked active. """
         # NOTE: Currently the filter on stationStatus.id doesn't work.
         params = {'size': self.max_page_size, 'sort': 'displayLabel',
-                  'page': page, 'query': self.query}
+                  'page': page}
+        if self.param_query:
+            params['query'] = self.param_query
         url = f'{self.base_url}/v1/stations'
         return url, params
 

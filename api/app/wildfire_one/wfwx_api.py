@@ -114,7 +114,7 @@ async def get_detailed_stations(time_of_interest: datetime):
             fetch_raw_dailies_for_all_stations(session, header, time_of_interest))
         # Fetch all the stations
         stations_task = asyncio.create_task(fetch_detailed_geojson_stations(
-            session, header, BuildQueryAllActiveStations()))
+            session, header, BuildQueryStations()))
 
         # Await completion of concurrent tasks.
         dailies = await dailies_task
@@ -276,8 +276,9 @@ async def get_wfwx_stations_from_station_codes(
     # many station codes are added as query parameters.
     # IMPORTANT - the two calls below, cannot be made from within the lambda, as they will be
     # be called multiple times!
+    # IMPORTANT - no filter is being supplied when getting the station data.
     wfwx_stations = await get_station_data(session, header, mapper=wfwx_station_list_mapper,
-                                           query_builder=BuildQueryStations())
+                                           query_builder=BuildQueryStations(filters=[]))
     # TODO: this is not good. Code in wfwx api shouldn't be filtering on stations codes in hfi....
     fire_centre_station_codes = get_fire_centre_station_codes()
 
