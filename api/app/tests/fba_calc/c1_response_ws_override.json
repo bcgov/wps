@@ -1,0 +1,38 @@
+{
+    "date": "2021-07-05",
+    "stations": [
+        {
+            "id": 0,
+            "station_code": 230,
+            "station_name": "HORSEFLY",
+            "zone_code": "C3",
+            "elevation": 701,
+            "fuel_type": "C1",
+            "status": "ADJUSTED",
+            "temp": 25.2,
+            "rh": 31.0,
+            "wind_direction": 282,
+            "wind_speed": 20.0,
+            "precipitation": 0.0,
+            "grass_cure": null,
+            "fine_fuel_moisture_code": 91.00282372367012,
+            "drought_code": 340.544,
+            "initial_spread_index": 13.554947624318125,
+            "build_up_index": 117.899,
+            "duff_moisture_code": 103.923,
+            "fire_weather_index": 41.295521580139784,
+            "head_fire_intensity": 5031.742103269186,
+            "rate_of_spread": 8.301304058597559,
+            "fire_type": "IC",
+            "percentage_crown_fraction_burned": 0.7993874667752983,
+            "flame_length": 4.095421062304089,
+            "sixty_minute_fire_size": 5.553027144762176,
+            "thirty_minute_fire_size": 1.0009932672530117,
+            "critical_hours_hfi_4000": {
+                "start": 16.0,
+                "end": 18.0
+            },
+            "critical_hours_hfi_10000": null
+        }
+    ]
+}
