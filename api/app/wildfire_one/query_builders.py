@@ -26,11 +26,11 @@ class BuildQueryStations(BuildQuery):
         super().__init__()
         self.param_query = None
         # In conversation with Dana Hicks, on Apr 20, 2021 - Dana said to show active, test and project.
-        for filter in ('ACTIVE', 'TEST', 'PROJECT'):
+        for status in ('ACTIVE', 'TEST', 'PROJECT'):
             if self.param_query:
-                self.param_query += f',stationStatus.id=="{filter}"'
+                self.param_query += f',stationStatus.id=="{status}"'
             else:
-                self.param_query = f'stationStatus.id=="{filter}"'
+                self.param_query = f'stationStatus.id=="{status}"'
 
     def query(self, page) -> Tuple[str, dict]:
         """ Return query url and params with rsql query for all weather stations marked active. """
