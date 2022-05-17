@@ -89,18 +89,18 @@ def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, us
     )
     res = session.execute(stmt).fetchone()
     latest_hfi_request_id = res.id
-    existing_records = get_latest_hfi_ready_records(session, hfi_result_request)
-    if existing_records is not None:
-        updated_ready_records = []
-        for hfi_ready_record in existing_records:
-            updated_ready_records.append(HFIReady(hfi_request_id=latest_hfi_request_id,
-                                                  planning_area_id=hfi_ready_record.planning_area_id,
-                                                  ready=hfi_ready_record.ready,
-                                                  create_timestamp=hfi_ready_record.create_timestamp,
-                                                  create_user=hfi_ready_record.create_user,
-                                                  update_timestamp=hfi_ready_record.update_timestamp,
-                                                  update_user=hfi_ready_record.update_user))
-        session.bulk_save_objects(updated_ready_records)
+    latest_hfi_ready_records = get_latest_hfi_ready_records(session, hfi_result_request)
+    if latest_hfi_ready_records is not None:
+        updated_hfi_ready_records = []
+        for hfi_ready_record in latest_hfi_ready_records:
+            updated_hfi_ready_records.append(HFIReady(hfi_request_id=latest_hfi_request_id,
+                                                      planning_area_id=hfi_ready_record.planning_area_id,
+                                                      ready=hfi_ready_record.ready,
+                                                      create_timestamp=hfi_ready_record.create_timestamp,
+                                                      create_user=hfi_ready_record.create_user,
+                                                      update_timestamp=hfi_ready_record.update_timestamp,
+                                                      update_user=hfi_ready_record.update_user))
+        session.bulk_save_objects(updated_hfi_ready_records)
 
 
 def get_latest_hfi_ready_records(session: Session, hfi_result_request: HFIResultRequest):
