@@ -9,11 +9,8 @@ export interface FireStartsDropdownProps {
   fireStartRanges: FireStartRange[]
   areaId: number
   dayOffset: number
-  setFireStarts: (
-    areaId: number,
-    dayOffset: number,
-    newFireStarts: FireStartRange
-  ) => void
+  fireStartsEnabled: boolean
+  setFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStartRange) => void
 }
 
 const useStyles = makeStyles({
@@ -27,6 +24,7 @@ const FireStartsDropdown = ({
   fireStartRanges,
   areaId,
   dayOffset,
+  fireStartsEnabled,
   setFireStarts
 }: FireStartsDropdownProps) => {
   const classes = useStyles()
@@ -34,6 +32,7 @@ const FireStartsDropdown = ({
     <Autocomplete
       data-testid={`fire-starts-dropdown`}
       className={classes.dropdownClass}
+      disabled={!fireStartsEnabled}
       disableClearable
       autoHighlight
       autoSelect

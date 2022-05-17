@@ -27,8 +27,10 @@ from app.wildfire_one.wfwx_api import (get_auth_header, get_stations_by_codes,
                                        get_wfwx_stations_from_station_codes,
                                        get_raw_dailies_in_range_generator)
 from app.db.crud.hfi_calc import (get_fire_centre_stations,
-                                  get_fire_weather_stations, get_fire_centre_fire_start_ranges,
-                                  get_fire_start_lookup, get_fuel_types)
+                                  get_fire_weather_stations,
+                                  get_fire_centre_fire_start_ranges,
+                                  get_fire_start_lookup,
+                                  get_fuel_types)
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +116,7 @@ def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -
 async def hydrate_fire_centres():
     """Get detailed fire_centres from db and WFWX"""
 
-    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-locals, too-many-branches
     with get_read_session_scope() as session:
         # Fetch all fire weather stations from the database.
         station_query = get_fire_weather_stations(session)
@@ -127,7 +129,7 @@ async def hydrate_fire_centres():
 
         # Iterate through all the database records, collecting all the data we need.
         for (station_record, fuel_type_record, planning_area_record, fire_centre_record) in station_query:
-            station_info_dict[station_record.station_code] = {
+            station_info = {
                 'fuel_type': FuelTypeSchema(
                     id=fuel_type_record.id,
                     abbrev=fuel_type_record.abbrev,
@@ -140,6 +142,10 @@ async def hydrate_fire_centres():
                 'planning_area': planning_area_record,
                 'fire_centre': fire_centre_record
             }
+            if station_info_dict.get(station_record.station_code) is None:
+                station_info_dict[station_record.station_code] = [station_info]
+            else:
+                station_info_dict[station_record.station_code].append(station_info)
 
             if fire_centres_dict.get(fire_centre_record.id) is None:
                 fire_centres_dict[fire_centre_record.id] = {
@@ -169,22 +175,25 @@ async def hydrate_fire_centres():
         # Iterate through all the stations from wildfire one.
 
         for wfwx_station in wfwx_stations_data:
-            station_info = station_info_dict[wfwx_station.code]
             # Combine everything.
             station_properties = WeatherStationProperties(
                 name=wfwx_station.name,
                 elevation=wfwx_station.elevation,
                 wfwx_station_uuid=wfwx_station.wfwx_station_uuid)
 
-            weather_station = WeatherStation(code=wfwx_station.code,
-                                             order_of_appearance_in_planning_area_list=station_info[
-                                                 'order_of_appearance_in_planning_area_list'],
-                                             station_props=station_properties)
+            for station_info in station_info_dict[wfwx_station.code]:
+                weather_station = WeatherStation(code=wfwx_station.code,
+                                                 order_of_appearance_in_planning_area_list=station_info[
+                                                     'order_of_appearance_in_planning_area_list'],
+                                                 station_props=station_properties)
+                station_info['station'] = weather_station
+                for planning_station in station_info_dict[wfwx_station.code]:
+                    existing_station_codes = [
+                        s.code for s in planning_areas_dict[planning_station['planning_area'].id]['station_objects']]  # pylint: disable=line-too-long
 
-            station_info_dict[wfwx_station.code]['station'] = weather_station
-
-            planning_areas_dict[station_info_dict[wfwx_station.code]
-                                ['planning_area'].id]['station_objects'].append(weather_station)
+                    if weather_station.code not in existing_station_codes:
+                        planning_areas_dict[planning_station['planning_area'].id]['station_objects'].append(
+                            weather_station)
 
     # create PlanningArea objects containing all corresponding WeatherStation objects
     for key, val in planning_areas_dict.items():
@@ -308,18 +317,20 @@ def calculate_daily_results(num_prep_days: int,
                             area_dailies: List[StationDaily],
                             planning_area_fire_starts: Dict[int, FireStartRange],
                             area_id: int,
-                            fire_start_lookup: Dict[int, Dict[int, int]]) -> Tuple[List[DailyResult], bool]:
+                            fire_start_lookup: Dict[int, Dict[int, int]],
+                            num_unique_station_codes: int) -> Tuple[List[DailyResult], bool]:
     """ Calculate the daily results for a planning area."""
     daily_results: List[DailyResult] = []
     for index in range(num_prep_days):
         dailies_date = start_date + timedelta(days=index)
         prep_day_dailies = get_prep_day_dailies(dailies_date, area_dailies)
         daily_fire_starts: FireStartRange = planning_area_fire_starts[area_id][index]
-        mean_intensity_group = calculate_mean_intensity(prep_day_dailies)
+        mean_intensity_group = calculate_mean_intensity(prep_day_dailies, num_unique_station_codes)
         prep_level = calculate_prep_level(mean_intensity_group, daily_fire_starts, fire_start_lookup)
         validated_dailies: List[ValidatedStationDaily] = list(map(validate_station_daily, prep_day_dailies))
         # check if all validated_dailies are valid.
-        all_dailies_valid = all(map(lambda validated_daily: (validated_daily.valid), validated_dailies))
+        valids = [v.valid for v in validated_dailies]
+        all_dailies_valid = all(valids)
         daily_result = DailyResult(
             date=dailies_date,
             dailies=validated_dailies,
@@ -395,6 +406,9 @@ def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
             lowest_fire_starts)
 
         all_dailies_valid: bool = True
+        num_unique_station_codes = len([
+            station.station_code for station in filter(
+                lambda station: (station.selected), planning_area_station_info[area_id])])
 
         (daily_results,
          all_dailies_valid) = calculate_daily_results(num_prep_days,
@@ -402,7 +416,8 @@ def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
                                                       area_dailies,
                                                       planning_area_fire_starts,
                                                       area_id,
-                                                      fire_start_lookup)
+                                                      fire_start_lookup,
+                                                      num_unique_station_codes)
 
         highest_daily_intensity_group = calculate_max_intensity_group(
             list(map(lambda daily_result: (daily_result.mean_intensity_group), daily_results)))
@@ -435,11 +450,17 @@ def calculate_mean_prep_level(prep_levels: List[Optional[float]], num_prep_days:
     return round(mean(valid_prep_levels))
 
 
-def calculate_mean_intensity(dailies: List[StationDaily]):
+def calculate_mean_intensity(dailies: List[StationDaily], num_of_station_codes: int):
     """ Returns the mean intensity group from a list of values """
+    # If there are less dailies than there are unique station codes in the planning area,
+    # it means that some stations are entirely missing data for the day, so MIG can't
+    # be calculated.
+    if len(dailies) != num_of_station_codes:
+        return None
     intensity_groups = list(map(lambda daily: (daily.intensity_group), dailies))
     valid_intensity_groups = list(filter(None, intensity_groups))
-    if len(valid_intensity_groups) == 0:
+    # If some intensity groups are invalid, can't calculate mean intensity group. Should display error
+    if len(valid_intensity_groups) != len(dailies) or len(valid_intensity_groups) == 0:
         return None
     mean_intensity_group = mean(valid_intensity_groups)
     if round(mean_intensity_group % 1, 1) < 0.8:

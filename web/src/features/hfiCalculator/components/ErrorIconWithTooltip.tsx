@@ -1,11 +1,4 @@
-import {
-  createTheme,
-  ThemeProvider,
-  Theme,
-  StyledEngineProvider,
-  Tooltip,
-  adaptV4Theme
-} from '@mui/material'
+import { createTheme, ThemeProvider, Theme, StyledEngineProvider, Tooltip } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { fireTableStyles } from 'app/theme'
@@ -36,37 +29,34 @@ const useStyles = makeStyles({
   }
 })
 
-const errorIconTheme = createTheme(
-  adaptV4Theme({
-    overrides: {
-      MuiSvgIcon: {
+const errorIconTheme = createTheme({
+  components: {
+    MuiSvgIcon: {
+      styleOverrides: {
         root: {
           fill: '#D8292F'
         }
-      },
-      MuiTooltip: {
+      }
+    },
+    MuiTooltip: {
+      styleOverrides: {
         tooltip: {
           fontSize: 14
         }
       }
     }
-  })
-)
+  }
+})
 
 const ErrorIconWithTooltip = (props: ErrorIconWithTooltipProps) => {
   const classes = useStyles()
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={errorIconTheme}>
-        <Tooltip
-          title={props.tooltipElement}
-          aria-label={`${props.tooltipAriaText.join('\n')}`}
-        >
+        <Tooltip title={props.tooltipElement} aria-label={`${props.tooltipAriaText.join('\n')}`}>
           <div
             className={
-              !props.isDataCell || isUndefined(props.isDataCell)
-                ? classes.planningAreaIcon
-                : classes.dataCellIcon
+              !props.isDataCell || isUndefined(props.isDataCell) ? classes.planningAreaIcon : classes.dataCellIcon
             }
           >
             <ErrorOutlineIcon data-testid={props.testId}></ErrorOutlineIcon>

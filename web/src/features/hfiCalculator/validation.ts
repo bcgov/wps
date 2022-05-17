@@ -1,10 +1,7 @@
 import { StationDaily, FuelType } from 'api/hfiCalculatorAPI'
 import { isEqual, isNull, isUndefined } from 'lodash'
 
-export const isValidGrassCure = (
-  daily: StationDaily | undefined,
-  fuelType: FuelType | undefined
-): boolean => {
+export const isValidGrassCure = (daily: StationDaily | undefined, fuelType: FuelType | undefined): boolean => {
   if (!isGrassFuelType(fuelType)) {
     return true
   }

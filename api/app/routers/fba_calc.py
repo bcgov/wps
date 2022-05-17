@@ -41,6 +41,7 @@ def prepare_response(  # pylint: disable=too-many-locals
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = fba_station.ffmc
     isi = fba_station.isi
+    fire_weather_index = fba_station.fwi
     wind_speed = requested_station.wind_speed if requested_station.wind_speed is not None else raw_daily.get(
         'windSpeed', None)
     status = fba_station.status
@@ -50,7 +51,6 @@ def prepare_response(  # pylint: disable=too-many-locals
     precipitation = raw_daily.get('precipitation', None)
     drought_code = raw_daily.get('droughtCode', None)
     duff_moisture_code = raw_daily.get('duffMoistureCode', None)
-    fire_weather_index = raw_daily.get('fireWeatherIndex', None)
 
     station_response = StationResponse(
         id=None if requested_station.id is None else requested_station.id,
@@ -114,6 +114,7 @@ async def process_request(
         ffmc = raw_daily.get('fineFuelMoistureCode', None)
         isi = raw_daily.get('initialSpreadIndex', None)
         wind_speed = raw_daily.get('windSpeed', None)
+        fwi = raw_daily.get('fireWeatherIndex', None)
         status = raw_daily.get('recordType').get('id')
     # if user has specified wind speed as part of StationRequest, will need to
     # re-calculate FFMC & ISI with modified value of wind speed
@@ -128,6 +129,7 @@ async def process_request(
             precipitation,
             wind_speed)
         isi = cffdrs.initial_spread_index(ffmc, wind_speed)
+        fwi = cffdrs.fire_weather_index(isi, bui)
 
     # Prepare the inputs for the fire behaviour advisory calculation.
     # This is a combination of inputs from the front end, information about the station from wf1
@@ -147,6 +149,7 @@ async def process_request(
         bui=bui,
         ffmc=ffmc,
         isi=isi,
+        fwi=fwi,
         prev_day_daily_ffmc=yesterday.get('fineFuelMoistureCode', None),
         wind_speed=wind_speed,
         wind_direction=wind_direction,

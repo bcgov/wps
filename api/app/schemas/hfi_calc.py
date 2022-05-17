@@ -43,8 +43,13 @@ class StationDaily(BaseModel):
 required_daily_fields = ['temperature',
                          'relative_humidity',
                          'wind_speed',
-                         'wind_direction',
                          'precipitation',
+                         'bui',
+                         'ffmc',
+                         'dmc',
+                         'dc',
+                         'isi',
+                         'fwi',
                          'intensity_group']
 
 
@@ -168,6 +173,13 @@ class HFIResultRequest(BaseModel):
     planning_area_station_info: Dict[int, List[StationInfo]]
     # Mapping from planning area id to a map of FireStartRanges.
     planning_area_fire_starts: Dict[int, List[FireStartRange]]
+
+
+class HFIAddStationRequest(BaseModel):
+    """ Request input for adding a station """
+    planning_area_id: int
+    station_code: int
+    fuel_type_id: int
 
 
 class HFIResultResponse(BaseModel):

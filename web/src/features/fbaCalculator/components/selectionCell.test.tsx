@@ -26,9 +26,7 @@ describe('SelectionCell', () => {
         </Table>
       </TableContainer>
     )
-    const selectionCell = within(getByTestId('selection-checkbox-fba')).getByRole(
-      'checkbox'
-    ) as HTMLInputElement
+    const selectionCell = within(getByTestId('selection-checkbox-fba')).getByRole('checkbox') as HTMLInputElement
     expect(selectionCell).toBeChecked()
     expect(selectionCell).not.toBeDisabled()
   })
@@ -54,9 +52,7 @@ describe('SelectionCell', () => {
         </Table>
       </TableContainer>
     )
-    const selectionCell = within(getByTestId('selection-checkbox-fba')).getByRole(
-      'checkbox'
-    ) as HTMLInputElement
+    const selectionCell = within(getByTestId('selection-checkbox-fba')).getByRole('checkbox') as HTMLInputElement
     expect(selectionCell).not.toBeChecked()
     expect(selectionCell).not.toBeDisabled()
   })
@@ -82,9 +78,7 @@ describe('SelectionCell', () => {
         </Table>
       </TableContainer>
     )
-    const selectionCell = within(getByTestId('selection-checkbox-fba')).getByRole(
-      'checkbox'
-    ) as HTMLInputElement
+    const selectionCell = within(getByTestId('selection-checkbox-fba')).getByRole('checkbox') as HTMLInputElement
     expect(selectionCell).toBeDisabled()
   })
 })

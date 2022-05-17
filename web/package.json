@@ -2,7 +2,7 @@
   "name": "wps-web",
   "version": "0.1.0",
   "engines": {
-    "node": "~14.x",
+    "node": ">=16.13.1",
     "npm": "~8.1.0"
   },
   "license": "Apache-2.0",
@@ -102,7 +102,8 @@
     "eslint": "^8.12.0",
     "eslint-plugin-react-hooks": "^4.4.0",
     "react-scripts": "^5.0.1",
-    "start-server-and-test": "^1.11.4"
+    "start-server-and-test": "^1.11.4",
+    "ts-sinon": "^2.0.2"
   },
   "jest": {
     "collectCoverageFrom": [

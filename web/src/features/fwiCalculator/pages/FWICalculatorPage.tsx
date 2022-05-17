@@ -52,22 +52,16 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
 
   const [selectedStation, setSelectedStation] = useState<Option | null>(null)
 
-  const [startDate, setStartDate] = useState(
-    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toJSDate()
-  )
+  const [startDate, setStartDate] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toJSDate())
 
   const updateStartDate = (newDate: Date) => {
-    const pstDate = DateTime.fromJSDate(newDate)
-      .setZone(`UTC${PST_UTC_OFFSET}`)
-      .toJSDate()
+    const pstDate = DateTime.fromJSDate(newDate).setZone(`UTC${PST_UTC_OFFSET}`).toJSDate()
     if (!isEqual(pstDate, startDate)) {
       setStartDate(pstDate)
     }
   }
 
-  const [endDate, setEndDate] = useState(
-    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toJSDate()
-  )
+  const [endDate, setEndDate] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toJSDate())
 
   const updateEndDate = (newDate: Date) => {
     if (!isEqual(newDate, endDate)) {
@@ -77,11 +71,7 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
 
   return (
     <React.Fragment>
-      <GeneralHeader
-        spacing={1}
-        title="Predictive Services Unit"
-        productName="Predictive Services Unit"
-      />
+      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="Predictive Services Unit" />
       <Container maxWidth={'xl'}>
         <h1>
           {/* (🔥🦇) */}
@@ -94,12 +84,7 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
           </span>
         </h1>
         <Grid container direction={'row'}>
-          <Grid
-            container
-            justifyContent="space-between"
-            spacing={2}
-            className={classes.whitespaceBelow}
-          >
+          <Grid container justifyContent="space-between" spacing={2} className={classes.whitespaceBelow}>
             <Grid item xs={8}>
               <Grid container spacing={2}>
                 <Grid item xs={4} className={classes.menuSpacer}>
@@ -128,10 +113,7 @@ export const FWICalculatorPage: React.FunctionComponent = () => {
           <Grid container spacing={2}>
             <Grid item xs>
               {isBasic ? (
-                <BasicFWIGrid
-                  dateOfInterest={startDate.toISOString()}
-                  selectedStation={selectedStation}
-                />
+                <BasicFWIGrid dateOfInterest={startDate.toISOString()} selectedStation={selectedStation} />
               ) : (
                 <MultiDayFWITable
                   selectedStation={selectedStation}

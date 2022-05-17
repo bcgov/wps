@@ -1,11 +1,6 @@
-import { TextField, Tooltip, adaptV4Theme } from '@mui/material'
+import { TextField, Tooltip } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import {
-  createTheme,
-  ThemeProvider,
-  Theme,
-  StyledEngineProvider
-} from '@mui/material/styles'
+import { createTheme, ThemeProvider, Theme, StyledEngineProvider } from '@mui/material/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
@@ -32,18 +27,18 @@ const useStyles = makeStyles({
   }
 })
 
-const adjustedTheme = createTheme(
-  adaptV4Theme({
-    overrides: {
-      MuiInputBase: {
+const adjustedTheme = createTheme({
+  components: {
+    MuiInputBase: {
+      styleOverrides: {
         root: {
           border: '2px solid #460270',
           fontSize: '0.875rem'
         }
       }
     }
-  })
-)
+  }
+})
 
 const WindSpeedCell = (props: WindSpeedCellProps) => {
   const classes = useStyles()

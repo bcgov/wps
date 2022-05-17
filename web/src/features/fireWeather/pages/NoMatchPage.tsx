@@ -4,18 +4,13 @@ import React from 'react'
 export const NoMatchPage: React.FunctionComponent = () => {
   return (
     <main>
-      <GeneralHeader
-        spacing={1}
-        title="Predictive Services Unit"
-        productName="Predictive Services Unit"
-      />
+      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="Predictive Services Unit" />
       <Container>
         <h1>Page Not Found</h1>
         <p>If you entered a web address please check it is correct.</p>
         <p>
           You can also reach out the the Predictive Services Unit via TEAMS or{' '}
-          <a href="mailto:bcws.predictiveservices@gov.bc.ca">send us an email</a> to find
-          the information you need.
+          <a href="mailto:bcws.predictiveservices@gov.bc.ca">send us an email</a> to find the information you need.
         </p>
       </Container>
     </main>

@@ -1,7 +1,6 @@
 import XYZ from 'ol/source/XYZ'
 
-export const BC_ROAD_BASE_MAP_SERVER_URL =
-  'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
+export const BC_ROAD_BASE_MAP_SERVER_URL = 'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
 
 // Static source is allocated since our tile source does not change and
 // a new source is not allocated every time WeatherMap is re-rendered,
@@ -17,14 +16,5 @@ export const source = new XYZ({
 // but it's much cleaner.
 export const monochromeSource = new XYZ({
   url: `https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}`,
-  attributions: [
-    'Esri',
-    '© OpenStreetMap contributors',
-    'HERE',
-    'Garmin',
-    'USGS',
-    'EPA',
-    'NPS',
-    'NRCan'
-  ]
+  attributions: ['Esri', '© OpenStreetMap contributors', 'HERE', 'Garmin', 'USGS', 'EPA', 'NPS', 'NRCan']
 })

@@ -1,4 +1,4 @@
-import { Table, TableBody, TableRow, Checkbox, TableCell } from '@mui/material'
+import { Table, TableBody, TableRow, TableCell } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { FuelType, WeatherStation } from 'api/hfiCalculatorAPI'
 import StickyCell from 'components/StickyCell'
@@ -7,6 +7,7 @@ import React from 'react'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
+import StationSelectCell from 'features/hfiCalculator/components/StationSelectCell'
 
 export interface BaseStationAttributeCellsProps {
   testid?: string
@@ -14,6 +15,7 @@ export interface BaseStationAttributeCellsProps {
   planningAreaId: number
   className: string | undefined
   grassCurePercentage: number | undefined
+  selectStationEnabled: boolean
   stationCodeInSelected: (planningAreaId: number, code: number) => boolean
   toggleSelectedStation: (planningAreaId: number, code: number) => void
   setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
@@ -21,6 +23,7 @@ export interface BaseStationAttributeCellsProps {
   selectedFuelType: FuelType
   isDailyTable?: boolean
   isRowSelected: boolean
+  isSetFuelTypeEnabled: boolean
 }
 
 const useStyles = makeStyles({
@@ -32,12 +35,14 @@ const BaseStationAttributeCells = ({
   planningAreaId,
   className,
   grassCurePercentage,
+  selectStationEnabled,
   stationCodeInSelected,
   toggleSelectedStation,
   setFuelType,
   fuelTypes,
   selectedFuelType,
-  isRowSelected
+  isRowSelected,
+  isSetFuelTypeEnabled
 }: BaseStationAttributeCellsProps) => {
   const classes = useStyles()
 
@@ -47,14 +52,14 @@ const BaseStationAttributeCells = ({
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell className={`${className} ${classes.noBottomBorder}`}>
-                <Checkbox
-                  checked={stationCodeInSelected(planningAreaId, station.code)}
-                  onClick={() => toggleSelectedStation(planningAreaId, station.code)}
-                  data-testid={`select-station-${station.code}`}
-                  color="primary"
-                ></Checkbox>
-              </TableCell>
+              <StationSelectCell
+                className={className}
+                station={station}
+                planningAreaId={planningAreaId}
+                selectStationEnabled={selectStationEnabled}
+                stationCodeInSelected={stationCodeInSelected}
+                toggleSelectedStation={toggleSelectedStation}
+              />
             </TableRow>
           </TableBody>
         </Table>
@@ -80,10 +85,7 @@ const BaseStationAttributeCells = ({
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell
-                key={`station-${station.code}-fuel-type`}
-                className={`${className} ${classes.noBottomBorder}`}
-              >
+              <TableCell key={`station-${station.code}-fuel-type`} className={`${className} ${classes.noBottomBorder}`}>
                 <FuelTypeDropdown
                   setFuelType={(code: number, fuelTypeId: number) => {
                     setFuelType(planningAreaId, code, fuelTypeId)
@@ -92,18 +94,14 @@ const BaseStationAttributeCells = ({
                   selectedFuelType={selectedFuelType}
                   fuelTypes={fuelTypes}
                   isRowSelected={isRowSelected}
+                  isSetFuelTypeEnabled={isSetFuelTypeEnabled}
                 ></FuelTypeDropdown>
               </TableCell>
             </TableRow>
           </TableBody>
         </Table>
       </StickyCell>
-      <StickyCell
-        left={355}
-        zIndexOffset={11}
-        backgroundColor={'#ffffff'}
-        className={classes.rightBorder}
-      >
+      <StickyCell left={355} zIndexOffset={11} backgroundColor={'#ffffff'} className={classes.rightBorder}>
         <Table>
           <TableBody>
             <TableRow>

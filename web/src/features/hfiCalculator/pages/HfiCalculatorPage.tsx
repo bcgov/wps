@@ -5,20 +5,20 @@ import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
   FireStartRange,
   setSelectedFireCentre,
-  fetchLoadDefaultHFIResult,
   fetchSetNewFireStarts,
   fetchGetPrepDateRange,
   fetchSetStationSelected,
   fetchFuelTypes,
   fetchPDFDownload,
-  setSelectedPrepDate,
-  fetchSetFuelType
+  fetchSetFuelType,
+  setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   selectHFIStations,
   selectHFIStationsLoading,
-  selectHFICalculatorState
+  selectHFICalculatorState,
+  selectAuthentication
 } from 'app/rootReducer'
 import { FormControl } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -33,13 +33,29 @@ import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButt
 import { DateRange } from 'components/dateRangePicker/types'
 import LiveChangesAlert from 'features/hfiCalculator/components/LiveChangesAlert'
 import { AppDispatch } from 'app/store'
-import HFILoadingDataView from 'features/hfiCalculator/components/HFILoadingDataView'
+import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
+import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
+import { ROLES } from 'features/auth/roles'
+import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 
 const useStyles = makeStyles(theme => ({
   ...formControlStyles,
   container: {
     display: 'flex',
     justifyContent: 'center'
+  },
+  controlContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'row',
+    margin: theme.spacing(1),
+    minWidth: 210
+  },
+  actionButtonContainer: {
+    marginLeft: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'row'
   },
   helpIcon: {
     fill: theme.palette.primary.main
@@ -62,10 +78,6 @@ const useStyles = makeStyles(theme => ({
   prepDays: {
     margin: theme.spacing(1),
     minWidth: 100
-  },
-  pdfButton: {
-    margin: theme.spacing(1),
-    float: 'right'
   }
 }))
 
@@ -73,6 +85,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
+  const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const {
@@ -88,11 +101,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     fuelTypes
   } = useSelector(selectHFICalculatorState)
 
-  const setSelectedStation = (
-    planningAreaId: number,
-    code: number,
-    selected: boolean
-  ) => {
+  const setSelectedStation = (planningAreaId: number, code: number, selected: boolean) => {
     if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
       dispatch(
         fetchSetStationSelected(
@@ -122,11 +131,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
-  const setNewFireStarts = (
-    areaId: number,
-    dayOffset: number,
-    newFireStarts: FireStartRange
-  ) => {
+  const setNewFireStarts = (areaId: number, dayOffset: number, newFireStarts: FireStartRange) => {
     if (!isUndefined(result) && !isUndefined(result.date_range)) {
       dispatch(
         fetchSetNewFireStarts(
@@ -157,8 +162,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       dispatch(
         fetchGetPrepDateRange(
           result.selected_fire_center_id,
-          newDateRange.startDate,
-          newDateRange.endDate
+          newDateRange.startDate.toISOString().split('T')[0],
+          newDateRange.endDate.toISOString().split('T')[0]
         )
       )
     }
@@ -169,9 +174,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       const fireCentresArray = Object.values(fireCentres)
       return fireCentresArray.find(centre => centre.name == name)
     }
-    const storedFireCentre = findCentre(
-      localStorage.getItem('hfiCalcPreferredFireCentre')
-    )
+    const storedFireCentre = findCentre(localStorage.getItem('hfiCalcPreferredFireCentre'))
     if (!isUndefined(storedFireCentre) && storedFireCentre !== selectedFireCentre) {
       dispatch(setSelectedFireCentre(storedFireCentre))
     }
@@ -184,14 +187,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [])
 
   useEffect(() => {
-    if (
-      selectedFireCentre &&
-      selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')
-    ) {
+    if (selectedFireCentre && selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')) {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
     if (!isUndefined(selectedFireCentre)) {
-      dispatch(fetchLoadDefaultHFIResult(selectedFireCentre.id))
+      dispatch(fetchGetPrepDateRange(selectedFireCentre.id, result?.date_range.start_date, result?.date_range.end_date))
       dispatch(setSelectedPrepDate(''))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -216,11 +216,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         !isUndefined(result.date_range.end_date)
       ) {
         dispatch(
-          fetchPDFDownload(
-            result.selected_fire_center_id,
-            result.date_range.start_date,
-            result.date_range.end_date
-          )
+          fetchPDFDownload(result.selected_fire_center_id, result.date_range.start_date, result.date_range.end_date)
         )
       }
     }
@@ -235,12 +231,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   return (
     <main data-testid="hfi-calculator-page">
-      <GeneralHeader
-        padding="3em"
-        spacing={0.985}
-        title="HFI Calculator"
-        productName="HFI Calculator"
-      />
+      <GeneralHeader padding="3em" spacing={0.985} title="HFI Calculator" productName="HFI Calculator" />
       <HFIPageSubHeader
         fireCentres={fireCentres}
         setDateRange={updatePrepDateRange}
@@ -250,7 +241,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         padding="1rem"
       />
       <Container maxWidth={'xl'}>
-        <HFILoadingDataView
+        <HFILoadingDataContainer
           pdfLoading={pdfLoading}
           fuelTypesLoading={fuelTypesLoading}
           stationDataLoading={stationDataLoading}
@@ -263,15 +254,19 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           <React.Fragment>
             <LiveChangesAlert />
             {buildSuccessNotification()}
-            <FormControl className={classes.formControl}>
-              <ViewSwitcherToggles
-                dateRange={dateRange}
-                selectedPrepDate={selectedPrepDate}
+            <FormControl className={classes.controlContainer}>
+              <ViewSwitcherToggles dateRange={dateRange} selectedPrepDate={selectedPrepDate} />
+              <LastUpdatedHeader
+                dailies={result?.planning_area_hfi_results.flatMap(areaResult =>
+                  areaResult.daily_results.flatMap(dailyResult =>
+                    dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
+                  )
+                )}
               />
-            </FormControl>
-
-            <FormControl className={classes.pdfButton}>
-              <DownloadPDFButton onClick={handleDownloadClicked} />
+              <FormControl className={classes.actionButtonContainer}>
+                {roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && <AddStationButton />}
+                <DownloadPDFButton onClick={handleDownloadClicked} />
+              </FormControl>
             </FormControl>
 
             <ErrorBoundary>
@@ -291,7 +286,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               )}
             </ErrorBoundary>
           </React.Fragment>
-        </HFILoadingDataView>
+        </HFILoadingDataContainer>
       </Container>
     </main>
   )

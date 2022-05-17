@@ -5,6 +5,7 @@ import pytest
 import json
 from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
 from aiohttp import ClientSession
 from pytest_mock import MockerFixture
 import app.main
@@ -64,6 +65,15 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
             fuel_type = get_fuel_type_by_station_code(station_code)
             result.append((planning_station, fuel_type))
         return result
+
+    def mock_get_last_station_in_planning_area(*args, **kwargs):
+        """ Returns mocked PlanningWeatherStation. """
+        planning_station = PlanningWeatherStation(
+            station_code=1,
+            planning_area_id=1,
+            fuel_type_id=1,
+            order_of_appearance_in_planning_area_list=1)
+        return planning_station
 
     def mock_get_fire_centre_fire_start_ranges(_, __: int):
         """ Returns mocked FireStartRange """
@@ -127,14 +137,64 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
                         mock_get_fire_centre_fire_start_ranges)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fuel_types', mock_get_fuel_types)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_start_lookup', mock_get_fire_start_lookup)
+    monkeypatch.setattr(app.routers.hfi_calc, 'get_last_station_in_planning_area',
+                        mock_get_last_station_in_planning_area)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fuel_type_by_id', mock_get_fuel_type_by_id)
     monkeypatch.setattr(app.routers.hfi_calc, 'crud_get_fuel_types', mock_get_fuel_types)
 
 
+def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):
+    """ Prepare jwt decode to be mocked with permission
+    """
+    _setup_mock(monkeypatch)
+
+    class MockJWTDecodeWithRole:
+        """ Mock pyjwt module with role """
+
+        def __init__(self, role):
+            self.decoded_token = {
+                "preferred_username": "test_username",
+                "resource_access": {
+                    "wps-web": {
+                        "roles": [
+                            role
+                        ]
+                    }
+                }}
+
+        def __getitem__(self, key):
+            return self.decoded_token[key]
+
+        def get(self, key, _):
+            "Returns the mock decoded token"
+            return self.decoded_token[key]
+
+        def decode(self):
+            "Returns the mock decoded token"
+            return self.decoded_token
+
+    def mock_fire_start_role_function(*args, **kwargs):  # pylint: disable=unused-argument
+        return MockJWTDecodeWithRole(role)
+
+    if(role != 'None'):
+        monkeypatch.setattr("jwt.decode", mock_fire_start_role_function)
+
+
+headers = {'Content-Type': 'application/json',
+           'Authorization': 'Bearer token'}
+
+
 @pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_hfi_endpoint_request.feature', 'HFI - request')
-def test_fire_behaviour_calculator_scenario():
+@scenario('test_hfi_endpoint_request.feature', 'HFI - GET request')
+def test_fire_behaviour_calculator_get_scenario():
+    """ BDD Scenario. """
+    pass
+
+
+@pytest.mark.usefixtures('mock_jwt_decode')
+@scenario('test_hfi_endpoint_request.feature', 'HFI - POST request')
+def test_fire_behaviour_calculator_post_scenario():
     """ BDD Scenario. """
     pass
 
@@ -155,21 +215,31 @@ def given_stored_request(monkeypatch, stored_request_json: Tuple[dict, str]):
                         mock_get_most_recent_updated_hfi_request)
 
 
-@given(parsers.parse("I received a hfi-calc {url} with {verb}"),
+@given(parsers.parse("I received a GET request for hfi-calc {url}"),
        target_fixture='response',
-       converters={'url': str, 'verb': str})
-def given_hfi_calc_url(monkeypatch: pytest.MonkeyPatch, url: str, verb: str):
+       converters={'url': str})
+def given_hfi_calc_url_get(monkeypatch: pytest.MonkeyPatch, url: str):
     """ Handle request
     """
     _setup_mock(monkeypatch)
 
     client = TestClient(app.main.app)
-    headers = {'Content-Type': 'application/json',
-               'Authorization': 'Bearer token'}
-    if verb == 'get':
-        response = client.get(url, headers=headers)
-    else:
-        response = client.post(url, headers=headers)
+    response = client.get(url, headers=headers)
+    return {
+        'response': response
+    }
+
+
+@given(parsers.parse("I received a POST request for hfi-calc {url} with {role}"),
+       target_fixture='response',
+       converters={'url': str, 'role': str})
+def given_hfi_calc_url_post(monkeypatch: pytest.MonkeyPatch, url: str, role: str):
+    """ Handle request
+    """
+    _setup_mock_with_role(monkeypatch, role)
+
+    client = TestClient(app.main.app)
+    response = client.post(url, headers=headers)
     return {
         'response': response
     }
@@ -178,3 +248,35 @@ def given_hfi_calc_url(monkeypatch: pytest.MonkeyPatch, url: str, verb: str):
 @then(parsers.parse("request == saved = {request_saved}"), converters={'request_saved': strtobool})
 def then_request_saved(spy_store_hfi_request: MagicMock, request_saved: bool):
     assert spy_store_hfi_request.called == request_saved
+
+
+@pytest.mark.usefixtures('mock_jwt_decode')
+@scenario('test_hfi_endpoint_request.feature', 'HFI - Admin POST add station')
+def test_fire_behaviour_calculator_admin_post_scenario():
+    """ BDD Scenario. """
+    pass
+
+
+@given(parsers.parse("I received a POST request for hfi-calc admin {url} with {role}"),
+       target_fixture='request_details',
+       converters={'url': str, 'role': str})
+def given_post_with_request_body(monkeypatch: pytest.MonkeyPatch, url: str, role: str):
+    _setup_mock_with_role(monkeypatch, role)
+    return url
+
+
+@given(parsers.parse('it has a {request_body} for a station that is {already_added}'),
+       target_fixture='response',
+       converters={'request_body': load_json_file(__file__), 'already_added': str})
+def has_a_request_body(monkeypatch: pytest.MonkeyPatch, url: str, request_body, already_added):
+    if already_added == "True":
+        def mock_store_hfi_station(*args, **kwargs):
+            raise IntegrityError(MagicMock(), MagicMock(), MagicMock())
+
+        monkeypatch.setattr(app.routers.hfi_calc, 'store_hfi_station', mock_store_hfi_station)
+
+    client = TestClient(app.main.app)
+    response = client.post(url, headers=headers, json=request_body)
+    return {
+        'response': response
+    }

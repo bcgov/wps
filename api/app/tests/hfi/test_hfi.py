@@ -7,16 +7,20 @@ from pytest_mock import MockerFixture
 from app.hfi.hfi_calc import (calculate_hfi_results,
                               calculate_mean_intensity,
                               calculate_max_intensity_group,
-                              calculate_prep_level, validate_date_range, validate_station_daily)
+                              calculate_prep_level,
+                              validate_date_range,
+                              validate_station_daily)
 import app.db.models.hfi_calc as hfi_calc_models
-from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, FuelTypesResponse, InvalidDateRangeError,
+from app.schemas.hfi_calc import (DateRange,
+                                  FireCentre,
+                                  FireStartRange,
+                                  InvalidDateRangeError,
                                   PlanningArea,
                                   StationDaily, StationInfo,
                                   WeatherStation,
                                   WeatherStationProperties,
                                   required_daily_fields)
 from app.schemas.shared import FuelType
-from app.tests import load_json_file, load_json_file_with_name
 from app.utils.time import get_pst_now, get_utc_now
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from starlette.testclient import TestClient
@@ -124,13 +128,13 @@ def test_calculate_mean_intensity_basic():
         date=datetime.now(),
         intensity_group=1
     )
-    result = calculate_mean_intensity([daily1, daily2])
+    result = calculate_mean_intensity([daily1, daily2], 2)
     assert result == 1
 
 
 def test_calculate_mean_intensity_empty():
     """ Calculates mean intensity with empty list """
-    result = calculate_mean_intensity([])
+    result = calculate_mean_intensity([], 0)
     assert result == None
 
 
@@ -140,7 +144,7 @@ def test_calculate_mean_intensity_round_down():
     daily2 = StationDaily(code=2, date=datetime.now(), intensity_group=3)
     daily3 = StationDaily(code=3, date=datetime.now(), intensity_group=4)
     # mean is 2.66666667
-    result = calculate_mean_intensity([daily1, daily2, daily3])
+    result = calculate_mean_intensity([daily1, daily2, daily3], 3)
     assert result == 2
 
 
@@ -152,7 +156,7 @@ def test_calculate_mean_intensity_round_up():
     daily4 = StationDaily(code=4, date=datetime.now(), intensity_group=4)
     daily5 = StationDaily(code=5, date=datetime.now(), intensity_group=5)
     # mean is 3.8
-    result = calculate_mean_intensity([daily1, daily2, daily3, daily4, daily5])
+    result = calculate_mean_intensity([daily1, daily2, daily3, daily4, daily5], 5)
     assert result == 4
 
 
@@ -165,7 +169,7 @@ def test_calculate_mean_intensity_round_up_2():
     daily5 = StationDaily(code=5, date=datetime.now(), intensity_group=4)
     daily6 = StationDaily(code=6, date=datetime.now(), intensity_group=5)
     # mean is 3.83
-    result = calculate_mean_intensity([daily1, daily2, daily3, daily4, daily5, daily6])
+    result = calculate_mean_intensity([daily1, daily2, daily3, daily4, daily5, daily6], 6)
     assert result == 4
 
 
@@ -173,7 +177,7 @@ def test_calculate_mean_intensity_perfect_divisor():
     """ Calculates mean intensity, shouldn't need to round """
     daily1 = StationDaily(code=1, date=datetime.now(), intensity_group=2)
     daily2 = StationDaily(code=2, date=datetime.now(), intensity_group=2)
-    result = calculate_mean_intensity([daily1, daily2])
+    result = calculate_mean_intensity([daily1, daily2], 2)
     assert result == 2
 
 

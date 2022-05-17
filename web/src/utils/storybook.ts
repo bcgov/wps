@@ -32,13 +32,9 @@ const getPastValues = () => {
   const _pastRegionalModelValues = []
   const _regionalModelSummaries = []
 
-  let day = DateTime.fromObject({ minute: 0, second: 0 })
-    .setZone('UTC')
-    .minus({ days: 3 })
+  let day = DateTime.fromObject({ minute: 0, second: 0 }).setZone('UTC').minus({ days: 3 })
   const model_run_datetime = day.toISO()
-  const last = DateTime.fromObject({ minute: 0, second: 0 })
-    .setZone('UTC')
-    .minus({ days: 1 })
+  const last = DateTime.fromObject({ minute: 0, second: 0 }).setZone('UTC').minus({ days: 1 })
 
   while (last.diff(day, 'days').days >= 0) {
     for (let length = 0; length < 24; length++) {
@@ -169,9 +165,7 @@ const getFutureValues = () => {
   const first = DateTime.fromObject({ minute: 0, second: 0 }).setZone('UTC')
   let day = DateTime.fromObject({ minute: 0, second: 0 }).setZone('UTC')
   const model_run_datetime = day.toISO()
-  const last = DateTime.fromObject({ minute: 0, second: 0 })
-    .setZone('UTC')
-    .plus({ days: 10 }) // GDPS goes out 10 days.
+  const last = DateTime.fromObject({ minute: 0, second: 0 }).setZone('UTC').plus({ days: 10 }) // GDPS goes out 10 days.
 
   while (last.diff(day, 'days').days >= 0) {
     for (let length = 0; length < 24; length++) {
@@ -256,8 +250,7 @@ const getFutureValues = () => {
   }
 }
 
-export const { forecastValues, modelValues, highResModelValues, regionalModelValues } =
-  getFutureValues()
+export const { forecastValues, modelValues, highResModelValues, regionalModelValues } = getFutureValues()
 
 export const {
   observedValues,

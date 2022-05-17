@@ -44,9 +44,7 @@ export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
   const classes = useStyles()
 
   // set all columns as selected by default
-  const [selected, setSelected] = useState<Set<number>>(
-    new Set(Array(props.columns.length).keys())
-  )
+  const [selected, setSelected] = useState<Set<number>>(new Set(Array(props.columns.length).keys()))
 
   const handleClose = () => {
     props.setModalOpen(false)
@@ -75,12 +73,7 @@ export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
 
   return (
     <React.Fragment>
-      <Dialog
-        fullWidth
-        className={classes.modalWindow}
-        open={props.modalOpen}
-        onClose={handleClose}
-      >
+      <Dialog fullWidth className={classes.modalWindow} open={props.modalOpen} onClose={handleClose}>
         <Paper>
           <DialogTitle>
             Show Columns

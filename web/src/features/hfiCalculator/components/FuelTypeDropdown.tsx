@@ -10,6 +10,7 @@ export interface FuelTypeDropdownProps {
   selectedFuelType: FuelType
   setFuelType: (code: number, fuelTypeId: number) => void
   isRowSelected: boolean
+  isSetFuelTypeEnabled: boolean
 }
 
 const useStyles = makeStyles({
@@ -23,14 +24,15 @@ const FuelTypeDropdown = ({
   fuelTypes,
   selectedFuelType,
   setFuelType,
-  isRowSelected
+  isRowSelected,
+  isSetFuelTypeEnabled
 }: FuelTypeDropdownProps) => {
   const classes = useStyles()
 
   return (
     <Autocomplete
       data-testid={`fuel-type-dropdown`}
-      disabled={!isRowSelected}
+      disabled={!isRowSelected || !isSetFuelTypeEnabled}
       className={classes.dropdownClass}
       disableClearable
       autoHighlight
@@ -38,9 +40,7 @@ const FuelTypeDropdown = ({
       options={fuelTypes}
       isOptionEqualToValue={(option, value) => isEqual(option.id, value.id)}
       getOptionLabel={option => option.abbrev}
-      renderInput={params => (
-        <TextField {...params} variant="outlined" value={selectedFuelType} />
-      )}
+      renderInput={params => <TextField {...params} variant="outlined" value={selectedFuelType} />}
       value={selectedFuelType}
       onChange={(_, value) => {
         if (!isNull(value)) {

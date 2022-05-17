@@ -1,10 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import {
-  FireCentre,
-  getHFIStations,
-  HFIWeatherStationsResponse
-} from 'api/hfiCalculatorAPI'
+import { FireCentre, getHFIStations, HFIWeatherStationsResponse } from 'api/hfiCalculatorAPI'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 
@@ -33,10 +29,7 @@ const stationsSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getHFIStationsSuccess(
-      state: State,
-      action: PayloadAction<HFIWeatherStationsResponse>
-    ) {
+    getHFIStationsSuccess(state: State, action: PayloadAction<HFIWeatherStationsResponse>) {
       state.error = null
       state.fireCentres = action.payload.fire_centres
       state.loading = false
@@ -44,8 +37,7 @@ const stationsSlice = createSlice({
   }
 })
 
-export const { getHFIStationsStart, getHFIStationsFailed, getHFIStationsSuccess } =
-  stationsSlice.actions
+export const { getHFIStationsStart, getHFIStationsFailed, getHFIStationsSuccess } = stationsSlice.actions
 
 export default stationsSlice.reducer
 
