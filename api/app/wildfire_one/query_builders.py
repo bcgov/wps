@@ -18,26 +18,23 @@ class BuildQuery(ABC):
         """ Return query url and params """
 
 
-class BuildQueryAllActiveStations(BuildQuery):
+class BuildQueryStations(BuildQuery):
     """ Class for building a url and RSQL params to request all active stations. """
+
+    def __init__(self, filters: List[str] = ['ACTIVE', ]):
+        super().__init__()
+        self.query = None
+        for filter in filters:
+            if self.query:
+                self.query += f'&stationStatus.id=="{filter}"'
+            else:
+                self.query = f'stationStatus.id=="{filter}"'
 
     def query(self, page) -> Tuple[str, dict]:
         """ Return query url and params with rsql query for all weather stations marked active. """
         # NOTE: Currently the filter on stationStatus.id doesn't work.
         params = {'size': self.max_page_size, 'sort': 'displayLabel',
-                  'page': page, 'query': 'stationStatus.id=="ACTIVE"'}
-        url = f'{self.base_url}/v1/stations'
-        return url, params
-
-
-class BuildQueryAllStations(BuildQuery):
-    """ Class for building a url and RSQL params to request all stations. """
-
-    def query(self, page) -> Tuple[str, dict]:
-        """ Return query url and params with rsql query for all weather stations. """
-        # NOTE: Currently the filter on stationStatus.id doesn't work.
-        params = {'size': self.max_page_size, 'sort': 'displayLabel',
-                  'page': page}
+                  'page': page, 'query': self.query}
         url = f'{self.base_url}/v1/stations'
         return url, params
 

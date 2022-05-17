@@ -58,7 +58,7 @@ export enum StationSource {
   unspecified = 'unspecified',
   local_storage = 'local_storage',
   wildfire_one = 'wildfire_one',
-  wildfire_one_all = 'wildfire_one_all'
+  wildfire_one_active_or_project = 'wildfire_one_active_or_project'
 }
 
 const url = '/stations/'

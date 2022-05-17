@@ -20,7 +20,7 @@ from app.schemas.stations import (WeatherStation,
 import app.db.database
 from app.db.crud.stations import get_noon_forecast_observation_union
 from app.wildfire_one import wfwx_api
-from app.wildfire_one.query_builders import BuildQueryAllActiveStations, BuildQueryAllStations
+from app.wildfire_one.query_builders import BuildQueryStations
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_detailed_stations,
                                        get_station_data,
@@ -38,10 +38,14 @@ class StationSourceEnum(enum.Enum):
     We currently have two sources for station listing, local json file, or wildfire one api.
     If the source is unspecified, configuration will govern which is used.
     """
-    UNSPECIFIED = 'unspecified'  # Configuration wins.
-    WILDFIRE_ONE = 'wildfire_one'  # Use wildfire one as source.
-    WILDFIRE_ONE_ALL = 'wildfire_one_all'  # Use wildfire, with no filters applied as source.
-    LOCAL_STORAGE = 'local_storage'  # Use local storage as source.
+    # Configuration wins:
+    UNSPECIFIED = 'unspecified'
+    # Use wildfire one as source, filtering on active stations:
+    WILDFIRE_ONE = 'wildfire_one'
+    # Use wildfire, filtering on active and project stations:
+    WILDFIRE_ONE_ACTIVE_OR_PROJECT = 'wildfire_one_active_or_project'
+    # Use local storage as source:s
+    LOCAL_STORAGE = 'local_storage'
 
 
 def _get_stations_local() -> List[WeatherStation]:
@@ -134,9 +138,9 @@ async def get_stations_from_source(
     elif station_source == StationSourceEnum.WILDFIRE_ONE:
         # Get from wildfire one:
         return await get_stations_asynchronously()
-    elif station_source == StationSourceEnum.WILDFIRE_ONE_ALL:
+    elif station_source == StationSourceEnum.WILDFIRE_ONE_ACTIVE_OR_PROJECT:
         # Get from wildfire one, with no filters:
-        return await get_stations_asynchronously(return_all=True)
+        return await get_stations_asynchronously(filters=['ACTIVE', 'PROJECT'])
     # Get from local:
     return _get_stations_local()
 
@@ -173,14 +177,11 @@ async def get_stations_as_geojson(
     return geojson_stations
 
 
-async def get_stations_asynchronously(return_all: bool = False):
+async def get_stations_asynchronously(filters: List[str] = ['ACTIVE', ]):
     """ Get list of stations asynchronously """
     async with ClientSession() as session:
         header = await get_auth_header(session)
-        if return_all:
-            query_builder = BuildQueryAllStations()
-        else:
-            query_builder = BuildQueryAllActiveStations()
+        query_builder = BuildQueryStations(filters)
         return await get_station_data(session, header, query_builder=query_builder)
 
 
