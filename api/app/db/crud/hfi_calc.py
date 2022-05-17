@@ -104,6 +104,9 @@ def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, us
 
 
 def get_latest_hfi_ready_records(session: Session, hfi_result_request: HFIResultRequest):
+    """ Retrieve the current hfi ready records for each planning area based latest
+        HFI request defined by fire centre and prep date range. 
+    """
     query = session.query(HFIReady)\
         .join(HFIRequest)\
         .filter(HFIRequest.fire_centre_id == hfi_result_request.selected_fire_center_id)\
