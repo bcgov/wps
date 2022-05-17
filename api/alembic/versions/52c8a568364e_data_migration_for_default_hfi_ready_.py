@@ -1,20 +1,22 @@
 """Data migration for default hfi ready states
 
-Revision ID: 1fcbb3d89818
-Revises: 38d631284e7c
-Create Date: 2022-05-17 12:12:06.621167
+Revision ID: 52c8a568364e
+Revises: baa3e0182740
+Create Date: 2022-05-17 16:25:12.209993
 
 """
+import uuid
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.orm.session import Session
+from sqlalchemy.dialects import postgresql
 
 from app.utils.time import get_utc_now
 
 
 # revision identifiers, used by Alembic.
-revision = '1fcbb3d89818'
-down_revision = '38d631284e7c'
+revision = '52c8a568364e'
+down_revision = 'baa3e0182740'
 branch_labels = None
 depends_on = None
 
@@ -29,7 +31,7 @@ hfi_request_table = sa.Table('hfi_request', sa.MetaData(),
                              sa.Column('request', sa.JSON()))
 
 hfi_ready_table = sa.Table('hfi_ready', sa.MetaData(),
-                           sa.Column('id', sa.Integer),
+                           sa.Column('id', postgresql.UUID(as_uuid=True)),
                            sa.Column('hfi_request_id', sa.Integer),
                            sa.Column('planning_area_id', sa.Integer),
                            sa.Column('ready', sa.Boolean),
@@ -61,7 +63,7 @@ def upgrade():
     for hfi_request_id, planning_area_id in res:
         hfi_ready_records.append(
             {
-                'id': id_count,
+                'id': uuid.uuid4(),
                 'hfi_request_id': hfi_request_id,
                 'planning_area_id': planning_area_id,
                 'ready': False,

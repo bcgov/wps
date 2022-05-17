@@ -1,7 +1,9 @@
 """ Class models that reflect resources and map to database tables for HFI Calculator.
 """
+import uuid
 from sqlalchemy import (Boolean, Column, Integer,
                         Sequence, ForeignKey, UniqueConstraint)
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql.sqltypes import String, Date, JSON
 from app.db.database import Base
 from app.db.models.common import TZTimeStamp
@@ -111,7 +113,7 @@ class HFIReady(Base):
     __table_args__ = (
         {'comment': 'Marks whether a planning area is ready for a particular HFI Request'}
     )
-    id = Column(Integer, primary_key=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     hfi_request_id = Column(Integer, ForeignKey(HFI_REQUEST_ID), nullable=False, index=True)
     planning_area_id = Column(Integer, ForeignKey(PLANNING_AREAS_ID), nullable=False, index=True)
     ready = Column(Boolean, nullable=False, default=False, index=True)
