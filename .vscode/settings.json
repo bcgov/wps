@@ -5,7 +5,7 @@
     "python.testing.promptToConfigure": true,
     "python.envFile": "${workspaceFolder}/.env",
     "python.formatting.autopep8Args": [
-        "--max-line-length=110",
+        "--max-line-length=120",
         "--ignore=E402"
     ],
     "files.exclude": {
@@ -23,23 +23,15 @@
     "eslint.format.enable": true,
     "eslint.validate": [
         "javascript",
-        "typescript"
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
     ],
     "eslint.run": "onSave",
     "[python]": {
-        "editor.rulers": [110]
-    },
-    "[javascript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.tabSize": 2
-    },
-    "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.tabSize": 2
-    },
-    "[typescriptreact]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.tabSize": 2
+        "editor.rulers": [
+            120
+        ]
     },
     "[yaml]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -48,6 +40,9 @@
         "editor.formatOnSave": true
     },
     "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[jsonc]": {
         "editor.defaultFormatter": "vscode.json-language-features"
     },
     "python.testing.pytestArgs": [

@@ -8,11 +8,7 @@ export interface EmptyStaticCellsProps {
   classNameForRow: string | undefined
 }
 
-export const EmptyStaticCells = ({
-  rowId,
-  isRowSelected,
-  classNameForRow
-}: EmptyStaticCellsProps): ReactElement => {
+export const EmptyStaticCells = ({ rowId, isRowSelected, classNameForRow }: EmptyStaticCellsProps): ReactElement => {
   return (
     <React.Fragment key={`empty-row-${rowId}`}>
       <WeeklyROSCell
@@ -22,10 +18,7 @@ export const EmptyStaticCells = ({
         isFirstDayOfPrepPeriod={true}
       />
       <TableCell data-testid={`empty-hfi-${rowId}`} className={classNameForRow} />
-      <TableCell
-        data-testid={`empty-intensity-group-${rowId}`}
-        className={classNameForRow}
-      />
+      <TableCell data-testid={`empty-intensity-group-${rowId}`} className={classNameForRow} />
       <TableCell data-testid={`empty-fire-starts-${rowId}`} className={classNameForRow} />
       <TableCell data-testid={`empty-prep-level-${rowId}`} className={classNameForRow} />
     </React.Fragment>

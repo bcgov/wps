@@ -80,15 +80,11 @@ const MoreCastPage = () => {
 
   const shouldInitiallyShowSidePanel = codesFromQuery.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
-  const [sidePanelWidth, setSidePanelWidth] = useState(
-    calculateSidePanelWidth(codesFromQuery)
-  )
+  const [sidePanelWidth, setSidePanelWidth] = useState(calculateSidePanelWidth(codesFromQuery))
   const [selectedAccuracyWxVariable, setSelectedAccuracyWxVariable] = useState(
     AccuracyWeatherVariableEnum['Relative Humidity']
   )
-  const accuracyWxVariableChangeHandler = (
-    event: React.ChangeEvent<{ value: AccuracyWeatherVariableEnum }>
-  ) => {
+  const accuracyWxVariableChangeHandler = (event: React.ChangeEvent<{ value: AccuracyWeatherVariableEnum }>) => {
     setSelectedAccuracyWxVariable(event.target.value)
   }
 
@@ -123,10 +119,7 @@ const MoreCastPage = () => {
   const [showTableView, toggleTableView] = useState(
     codesFromQuery.length > 1 ? SidePanelEnum.Comparison : SidePanelEnum.Tables
   )
-  const handleToggleView = (
-    _: React.MouseEvent<HTMLElement>,
-    newTableView: SidePanelEnum
-  ) => {
+  const handleToggleView = (_: React.MouseEvent<HTMLElement>, newTableView: SidePanelEnum) => {
     if (newTableView !== null) {
       toggleTableView(newTableView)
     }
@@ -148,9 +141,7 @@ const MoreCastPage = () => {
       dispatch(fetchGlobalModelSummaries(codesFromQuery, toiFromQuery))
     }
     // Update local state to match with the query url
-    dispatch(
-      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
-    )
+    dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery))
     if (codesFromQuery.length > 1) {
       toggleTableView(SidePanelEnum.Comparison)
       setSidePanelState(true)
@@ -162,11 +153,7 @@ const MoreCastPage = () => {
 
   return (
     <main className={classes.main}>
-      <GeneralHeader
-        spacing={1}
-        title="Predictive Services Unit"
-        productName="MoreCast"
-      />
+      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="MoreCast" />
       <div className={classes.nav}>
         <WxDataForm
           stationCodesQuery={codesFromQuery}
@@ -192,11 +179,7 @@ const MoreCastPage = () => {
           collapse={collapseSidePanel}
           currentWidth={sidePanelWidth}
         >
-          <SidePanel
-            handleToggleView={handleToggleView}
-            showTableView={showTableView}
-            stationCodes={codesFromQuery}
-          >
+          <SidePanel handleToggleView={handleToggleView} showTableView={showTableView} stationCodes={codesFromQuery}>
             <NetworkErrorMessages />
             <WxDataDisplays
               stationCodes={codesFromQuery}

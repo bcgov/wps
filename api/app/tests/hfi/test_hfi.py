@@ -8,9 +8,14 @@ from app.fire_behaviour.prediction import calculate_fire_behaviour_prediction_us
 from app.hfi.hfi_calc import (calculate_hfi_results,
                               calculate_mean_intensity,
                               calculate_max_intensity_group,
-                              calculate_prep_level, validate_date_range, validate_station_daily)
+                              calculate_prep_level,
+                              validate_date_range,
+                              validate_station_daily)
 import app.db.models.hfi_calc as hfi_calc_models
-from app.schemas.hfi_calc import (DateRange, FireCentre, FireStartRange, FuelTypesResponse, InvalidDateRangeError,
+from app.schemas.hfi_calc import (DateRange,
+                                  FireCentre,
+                                  FireStartRange,
+                                  InvalidDateRangeError,
                                   PlanningArea,
                                   StationDaily, StationInfo,
                                   WeatherStation,

@@ -10,13 +10,10 @@ export interface StatusCellProps {
   isRowSelected: boolean
 }
 
-const noForecastText =
-  'Forecast not available. Please check WFWX or contact a Forecaster.'
+const noForecastText = 'Forecast not available. Please check WFWX or contact a Forecaster.'
 const noForecastElement = <div>{noForecastText}</div>
 
-const observationValidCommentElement = (daily: StationDaily) => (
-  <div>{daily.observation_valid_comment}</div>
-)
+const observationValidCommentElement = (daily: StationDaily) => <div>{daily.observation_valid_comment}</div>
 
 const StatusCell = (props: StatusCellProps) => {
   if (!props.isRowSelected) {

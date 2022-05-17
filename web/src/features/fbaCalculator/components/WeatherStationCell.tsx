@@ -25,14 +25,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
     if (!isEqual(selectedStation, value)) {
       setSelectedStation(value)
-      updateFBARow(
-        props.inputRows,
-        props.updateRow,
-        props.rowId,
-        'weatherStation',
-        value,
-        buildUpdatedOptionRow
-      )
+      updateFBARow(props.inputRows, props.updateRow, props.rowId, 'weatherStation', value, buildUpdatedOptionRow)
     }
   }
 
@@ -46,12 +39,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
       renderInput={params => (
-        <TextField
-          {...params}
-          label={props.value ? '' : emptyLabel}
-          variant="outlined"
-          size="small"
-        />
+        <TextField {...params} label={props.value ? '' : emptyLabel} variant="outlined" size="small" />
       )}
       onChange={changeHandler}
       disabled={props.disabled}

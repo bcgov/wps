@@ -1,3 +1,9 @@
+## 2022-05-11 HFI Calc [#1869](https://github.com/bcgov/wps/issues/1869),[#1871](https://github.com/bcgov/wps/issues/1871),[#1869](https://github.com/bcgov/wps/issues/1869)
+
+### Features
+
+- **hfi calculator:** Introduce role permission for editing HFI prep fire starts, fuel types and station selection.
+
 ## 2022-05-10 FBA Calculator
 
 ### Bug
@@ -9,10 +15,6 @@
 - Fixed [#1981](https://github.com/bcgov/wps/issues/1981): C7B fuel type lookup looking was wrong, causing C7 calculations.
 
 ## 2022-04-28 Fire Behaviour Calc - 422 bug caused by missing station
-
-### Bug
-
-- Fixed [#1964](https://github.com/bcgov/wps/issues/1964): Request failed with status code 422" due to missing station
 
 ## 2022-04-28 HFI Calc - Refactor + Grass Cure Display Bug
 

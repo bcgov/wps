@@ -63,9 +63,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
   }, [fireCenter])
 
-  const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
-  )
+  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
 
   const updateDate = (newDate: DateTime) => {
     if (newDate !== dateOfInterest) {
@@ -80,11 +78,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   return (
     <React.Fragment>
-      <GeneralHeader
-        spacing={1}
-        title="Predictive Services Unit"
-        productName="Predictive Services Unit"
-      />
+      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="Predictive Services Unit" />
       <Container maxWidth={'xl'}>
         <h1>
           {/* (🔥🦇) */}
@@ -110,10 +104,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid container spacing={2}>
             <Grid item xs>
               {fireCenter ? (
-                <FormalFBATable
-                  fireCenter={fireCenter}
-                  className={classes.listContainer}
-                />
+                <FormalFBATable fireCenter={fireCenter} className={classes.listContainer} />
               ) : (
                 emptyInstructions
               )}

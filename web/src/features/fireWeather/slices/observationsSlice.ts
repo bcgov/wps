@@ -45,8 +45,7 @@ const observationsSlice = createSlice({
   }
 })
 
-export const { getObservationsStart, getObservationsFailed, getObservationsSuccess } =
-  observationsSlice.actions
+export const { getObservationsStart, getObservationsFailed, getObservationsSuccess } = observationsSlice.actions
 
 export default observationsSlice.reducer
 

@@ -10,12 +10,7 @@ describe('DailyHFICell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <DailyHFICell
-                value={undefined}
-                error={true}
-                testid={'hfi-cell-error'}
-                className={undefined}
-              />
+              <DailyHFICell value={undefined} error={true} testid={'hfi-cell-error'} className={undefined} />
             </TableRow>
           </TableBody>
         </Table>
@@ -33,12 +28,7 @@ describe('DailyHFICell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <DailyHFICell
-                value={undefined}
-                error={false}
-                testid={'hfi-cell'}
-                className={undefined}
-              />
+              <DailyHFICell value={undefined} error={false} testid={'hfi-cell'} className={undefined} />
             </TableRow>
           </TableBody>
         </Table>

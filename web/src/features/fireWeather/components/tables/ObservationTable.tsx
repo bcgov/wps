@@ -1,9 +1,7 @@
 import React from 'react'
 
 import { ObservedValue } from 'api/observationAPI'
-import SortableTableByDatetime, {
-  Column
-} from 'features/fireWeather/components/tables/SortableTableByDatetime'
+import SortableTableByDatetime, { Column } from 'features/fireWeather/components/tables/SortableTableByDatetime'
 import { FFMC_VALUES_DECIMAL, ISI_VALUES_DECIMAL } from 'utils/constants'
 import {
   formatWindDirection,

@@ -3,6 +3,7 @@
 from typing import List
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from app.db.database import get_read_session_scope
 from app.schemas.hfi_calc import DateRange, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, PlanningArea, PlanningWeatherStation, HFIRequest,
@@ -45,6 +46,13 @@ def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
         .filter(PlanningArea.fire_centre_id == fire_centre_id)
 
 
+def get_planning_weather_stations(session, fire_centre_id: int) -> List[PlanningWeatherStation]:
+    """ Get all the stations for a fire centre. """
+    return session.query(PlanningWeatherStation)\
+        .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
+        .filter(PlanningArea.fire_centre_id == fire_centre_id).all()
+
+
 def get_most_recent_updated_hfi_request(session: Session,
                                         fire_centre_id: int,
                                         date_range: DateRange) -> HFIRequest:
@@ -77,6 +85,24 @@ def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, us
         create_user=username,
         request=hfi_result_request.json())
     session.add(hfi_request)
+
+
+def store_hfi_station(session: Session, station_code: int, fuel_type_id: int, planning_area_id: int, order: int):
+    """ Store planning weather station """
+    planning_weather_station = PlanningWeatherStation(station_code=station_code,
+                                                      fuel_type_id=fuel_type_id,
+                                                      planning_area_id=planning_area_id,
+                                                      order_of_appearance_in_planning_area_list=order)
+    session.add(planning_weather_station)
+    session.commit()
+
+
+def get_last_station_in_planning_area(session: Session, planning_area_id: int) -> PlanningWeatherStation:
+    """ Get the last station in a planning area """
+    return session.query(PlanningWeatherStation)\
+        .filter(PlanningWeatherStation.planning_area_id == planning_area_id)\
+        .order_by(desc(PlanningWeatherStation.order_of_appearance_in_planning_area_list))\
+        .first()
 
 
 def get_fire_centre_fire_start_ranges(session: Session, fire_centre_id: id) -> CursorResult:
