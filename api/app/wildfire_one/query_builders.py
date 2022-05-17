@@ -21,10 +21,12 @@ class BuildQuery(ABC):
 class BuildQueryStations(BuildQuery):
     """ Class for building a url and RSQL params to request all active stations. """
 
-    def __init__(self, filters: List[str] = ['ACTIVE', ]):
+    def __init__(self):
+        """ By default we filter on active stations. """
         super().__init__()
         self.param_query = None
-        for filter in filters:
+        # In conversation with Dana Hicks, on Apr 20, 2021 - Dana said to show active, test and project.
+        for filter in ('ACTIVE', 'TEST', 'PROJECT'):
             if self.param_query:
                 self.param_query += f',stationStatus.id=="{filter}"'
             else:
@@ -32,11 +34,8 @@ class BuildQueryStations(BuildQuery):
 
     def query(self, page) -> Tuple[str, dict]:
         """ Return query url and params with rsql query for all weather stations marked active. """
-        # NOTE: Currently the filter on stationStatus.id doesn't work.
         params = {'size': self.max_page_size, 'sort': 'displayLabel',
-                  'page': page}
-        if self.param_query:
-            params['query'] = self.param_query
+                  'page': page, 'query': self.param_query}
         url = f'{self.base_url}/v1/stations'
         return url, params
 

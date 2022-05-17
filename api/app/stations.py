@@ -42,9 +42,7 @@ class StationSourceEnum(enum.Enum):
     UNSPECIFIED = 'unspecified'
     # Use wildfire one as source, filtering on active stations:
     WILDFIRE_ONE = 'wildfire_one'
-    # Use wildfire, filtering on active and project stations:
-    WILDFIRE_ONE_ACTIVE_OR_PROJECT = 'wildfire_one_active_or_project'
-    # Use local storage as source:s
+    # Use local storage as source
     LOCAL_STORAGE = 'local_storage'
 
 
@@ -138,9 +136,6 @@ async def get_stations_from_source(
     elif station_source == StationSourceEnum.WILDFIRE_ONE:
         # Get from wildfire one:
         return await get_stations_asynchronously()
-    elif station_source == StationSourceEnum.WILDFIRE_ONE_ACTIVE_OR_PROJECT:
-        # Get from wildfire one, with no filters:
-        return await get_stations_asynchronously(filters=['ACTIVE', 'PROJECT'])
     # Get from local:
     return _get_stations_local()
 
@@ -177,11 +172,11 @@ async def get_stations_as_geojson(
     return geojson_stations
 
 
-async def get_stations_asynchronously(filters: List[str] = ['ACTIVE', ]):
+async def get_stations_asynchronously():
     """ Get list of stations asynchronously """
     async with ClientSession() as session:
         header = await get_auth_header(session)
-        query_builder = BuildQueryStations(filters)
+        query_builder = BuildQueryStations()
         return await get_station_data(session, header, query_builder=query_builder)
 
 

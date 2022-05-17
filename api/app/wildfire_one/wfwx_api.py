@@ -278,7 +278,7 @@ async def get_wfwx_stations_from_station_codes(
     # be called multiple times!
     # IMPORTANT - no filter is being supplied when getting the station data.
     wfwx_stations = await get_station_data(session, header, mapper=wfwx_station_list_mapper,
-                                           query_builder=BuildQueryStations(filters=[]))
+                                           query_builder=BuildQueryStations())
     # TODO: this is not good. Code in wfwx api shouldn't be filtering on stations codes in hfi....
     fire_centre_station_codes = get_fire_centre_station_codes()
 
