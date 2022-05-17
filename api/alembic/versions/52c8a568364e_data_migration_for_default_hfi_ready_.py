@@ -57,7 +57,6 @@ def upgrade():
     session = Session(bind=op.get_bind())
     res = session.query(hfi_request_table.c.id, planning_areas_table.c.id)\
         .join(hfi_request_table, hfi_request_table.c.fire_centre_id == planning_areas_table.c.fire_centre_id)
-    id_count = 1
     hfi_ready_records = []
     now = get_utc_now()
     for hfi_request_id, planning_area_id in res:
@@ -72,7 +71,6 @@ def upgrade():
                 'update_timestamp': now,
                 'update_user': 'system',
             })
-        id_count += 1
 
     op.bulk_insert(hfi_ready_table, hfi_ready_records)
 
