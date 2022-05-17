@@ -9,9 +9,7 @@ interface FormalFBATableProps {
   fireCenter: FireCenter
 }
 
-const buildAdvisoryHeader = (fireCenter: FireCenter) => (
-  <h2>{fireCenter.name}: Fire Behaviour Advisory Summary</h2>
-)
+const buildAdvisoryHeader = (fireCenter: FireCenter) => <h2>{fireCenter.name}: Fire Behaviour Advisory Summary</h2>
 
 const FormalFBATable = (props: FormalFBATableProps) => {
   return (

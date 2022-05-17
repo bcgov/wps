@@ -1,13 +1,4 @@
-import {
-  TableContainer,
-  Paper,
-  Table,
-  TableRow,
-  TableCell,
-  TableBody,
-  TableHead,
-  Skeleton
-} from '@mui/material'
+import { TableContainer, Paper, Table, TableRow, TableCell, TableBody, TableHead, Skeleton } from '@mui/material'
 import { FWIOutput } from 'api/fwiAPI'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import React from 'react'
@@ -39,18 +30,14 @@ const BasicFWIOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">
-                {output?.actual?.ffmc?.toFixed(DECIMAL_PLACES)}
-              </TableCell>
+              <TableCell align="right">{output?.actual?.ffmc?.toFixed(DECIMAL_PLACES)}</TableCell>
             )}
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">
-                {output?.adjusted?.ffmc?.toFixed(DECIMAL_PLACES)}
-              </TableCell>
+              <TableCell align="right">{output?.adjusted?.ffmc?.toFixed(DECIMAL_PLACES)}</TableCell>
             )}
           </TableRow>
           <TableRow>
@@ -60,18 +47,14 @@ const BasicFWIOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">
-                {output?.actual?.dmc?.toFixed(DECIMAL_PLACES)}
-              </TableCell>
+              <TableCell align="right">{output?.actual?.dmc?.toFixed(DECIMAL_PLACES)}</TableCell>
             )}
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">
-                {output?.adjusted?.dmc?.toFixed(DECIMAL_PLACES)}
-              </TableCell>
+              <TableCell align="right">{output?.adjusted?.dmc?.toFixed(DECIMAL_PLACES)}</TableCell>
             )}
           </TableRow>
           <TableRow>
@@ -81,18 +64,14 @@ const BasicFWIOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">
-                {output?.actual?.dc?.toFixed(DECIMAL_PLACES)}
-              </TableCell>
+              <TableCell align="right">{output?.actual?.dc?.toFixed(DECIMAL_PLACES)}</TableCell>
             )}
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">
-                {output?.adjusted?.dc?.toFixed(DECIMAL_PLACES)}
-              </TableCell>
+              <TableCell align="right">{output?.adjusted?.dc?.toFixed(DECIMAL_PLACES)}</TableCell>
             )}
           </TableRow>
           <TableRow>
@@ -102,18 +81,14 @@ const BasicFWIOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">
-                {output?.actual?.isi?.toFixed(DECIMAL_PLACES)}
-              </TableCell>
+              <TableCell align="right">{output?.actual?.isi?.toFixed(DECIMAL_PLACES)}</TableCell>
             )}
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">
-                {output?.adjusted?.isi?.toFixed(DECIMAL_PLACES)}
-              </TableCell>
+              <TableCell align="right">{output?.adjusted?.isi?.toFixed(DECIMAL_PLACES)}</TableCell>
             )}
           </TableRow>
           <TableRow>
@@ -123,18 +98,14 @@ const BasicFWIOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">
-                {output?.actual?.bui?.toFixed(DECIMAL_PLACES)}
-              </TableCell>
+              <TableCell align="right">{output?.actual?.bui?.toFixed(DECIMAL_PLACES)}</TableCell>
             )}
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">
-                {output?.adjusted?.bui?.toFixed(DECIMAL_PLACES)}
-              </TableCell>
+              <TableCell align="right">{output?.adjusted?.bui?.toFixed(DECIMAL_PLACES)}</TableCell>
             )}
           </TableRow>
           <TableRow>
@@ -144,18 +115,14 @@ const BasicFWIOutput = ({ isLoading, output }: BasicFWIOutputProps) => {
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">
-                {output?.actual?.fwi?.toFixed(DECIMAL_PLACES)}
-              </TableCell>
+              <TableCell align="right">{output?.actual?.fwi?.toFixed(DECIMAL_PLACES)}</TableCell>
             )}
             {isLoading ? (
               <TableCell data-testid="loading-indicator-fwi">
                 <Skeleton />
               </TableCell>
             ) : (
-              <TableCell align="right">
-                {output?.adjusted?.fwi?.toFixed(DECIMAL_PLACES)}
-              </TableCell>
+              <TableCell align="right">{output?.adjusted?.fwi?.toFixed(DECIMAL_PLACES)}</TableCell>
             )}
           </TableRow>
         </TableBody>

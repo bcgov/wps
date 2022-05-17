@@ -11,9 +11,7 @@ describe('hfiCalculatorSlice', () => {
   describe('reducer', () => {
     const dummyError = 'an error'
     it('should be initialized with correct state flags', () => {
-      expect(hfiCalculatorDailiesReducer(undefined, { type: undefined })).toEqual(
-        initialState
-      )
+      expect(hfiCalculatorDailiesReducer(undefined, { type: undefined })).toEqual(initialState)
     })
     it('should set fuelTypesLoading = true when fetchFuelTypesStart is called', () => {
       expect(hfiCalculatorDailiesReducer(initialState, fetchFuelTypesStart())).toEqual({
@@ -34,14 +32,10 @@ describe('hfiCalculatorSlice', () => {
       })
     })
     it('should set a value for error state when fetchFuelTypesFailed is called', () => {
-      expect(
-        hfiCalculatorDailiesReducer(initialState, fetchFuelTypesFailed(dummyError)).error
-      ).not.toBeNull()
+      expect(hfiCalculatorDailiesReducer(initialState, fetchFuelTypesFailed(dummyError)).error).not.toBeNull()
     })
     it('should set a value for error state when getHFIResultFailed is called', () => {
-      expect(
-        hfiCalculatorDailiesReducer(initialState, getHFIResultFailed(dummyError)).error
-      ).not.toBeNull()
+      expect(hfiCalculatorDailiesReducer(initialState, getHFIResultFailed(dummyError)).error).not.toBeNull()
     })
   })
 })

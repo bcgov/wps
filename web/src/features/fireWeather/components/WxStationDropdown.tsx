@@ -49,14 +49,11 @@ const WxStationDropdown = (props: Props) => {
     selectedStationsByCode,
     stationsByCode
   )
-  const isThereError =
-    !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
-  const allStationOptions: Option[] = (stations as GeoJsonStation[]).map(
-    (station: GeoJsonStation) => ({
-      name: station.properties.name,
-      code: station.properties.code
-    })
-  )
+  const isThereError = !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
+  const allStationOptions: Option[] = (stations as GeoJsonStation[]).map((station: GeoJsonStation) => ({
+    name: station.properties.name,
+    code: station.properties.code
+  }))
 
   useEffect(() => {
     const codesFromQuery = getStationCodesFromUrl(location.search)

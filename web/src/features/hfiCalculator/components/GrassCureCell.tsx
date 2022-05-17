@@ -38,9 +38,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
     </TableCell>
   ) : (
     <TableCell
-      className={`${!props.selected ? classes.unselectedStation : undefined} ${
-        props.className
-      } `}
+      className={`${!props.selected ? classes.unselectedStation : undefined} ${props.className} `}
       data-testid={`grass-cure`}
     >
       {props.value}

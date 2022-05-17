@@ -5,10 +5,7 @@ import { theme } from 'app/theme'
 import React from 'react'
 import { pstFormatter } from 'utils/date'
 import { useDispatch } from 'react-redux'
-import {
-  PrepDateRange,
-  setSelectedPrepDate
-} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { PrepDateRange, setSelectedPrepDate } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
 
 export interface ViewSwitcherTogglesProps {
@@ -36,10 +33,7 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
   const classes = useStyles()
   const dispatch = useDispatch()
 
-  const handleToggle = (
-    _: React.MouseEvent<HTMLElement, MouseEvent>,
-    prepDate: string
-  ) => {
+  const handleToggle = (_: React.MouseEvent<HTMLElement, MouseEvent>, prepDate: string) => {
     if (!isNull(prepDate)) {
       dispatch(setSelectedPrepDate(prepDate))
     }
@@ -79,11 +73,7 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
           value={formatDateString(props.selectedPrepDate)}
           className={classes.toggleGroup}
         >
-          <ToggleButton
-            data-testid="prep-period-toggle"
-            value={''}
-            aria-label="prep toggle"
-          >
+          <ToggleButton data-testid="prep-period-toggle" value={''} aria-label="prep toggle">
             Prep Period
           </ToggleButton>
           {/* Create a button for each day of the prep period. */}

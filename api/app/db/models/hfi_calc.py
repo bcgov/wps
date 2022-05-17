@@ -69,8 +69,7 @@ class PlanningWeatherStation(Base):
         {'comment': 'Identifies the unique code used to identify the station'}
     )
 
-    id = Column(Integer, Sequence('planning_weather_station_id_seq'),
-                primary_key=True, nullable=False, index=True)
+    id = Column(Integer, primary_key=True)
     station_code = Column(Integer, nullable=False, index=True)
     fuel_type_id = Column(Integer, ForeignKey('fuel_types.id'), nullable=False, index=True)
     planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)

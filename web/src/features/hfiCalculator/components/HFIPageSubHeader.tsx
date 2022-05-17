@@ -8,10 +8,13 @@ import { FireCentre } from 'api/hfiCalculatorAPI'
 import AboutDataModal from 'features/hfiCalculator/components/AboutDataModal'
 import { HelpOutlineOutlined } from '@mui/icons-material'
 import { formControlStyles, theme } from 'app/theme'
-import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { HFIResultResponse } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateRange } from 'components/dateRangePicker/types'
 import PrepDateRangeSelector from 'features/hfiCalculator/components/PrepDateRangeSelector'
+import LoggedInStatus from 'features/hfiCalculator/components/stationAdmin/LoggedInStatus'
+import { selectAuthentication } from 'app/rootReducer'
+import { useSelector } from 'react-redux'
+import SignoutButton from 'features/auth/components/SignoutButton'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -55,7 +58,7 @@ interface Props {
 
 export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) => {
   const classes = useStyles(props)
-
+  const { isAuthenticated, roles, idir } = useSelector(selectAuthentication)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
 
   const openAboutModal = () => {
@@ -66,24 +69,15 @@ export const HFIPageSubHeader: React.FunctionComponent<Props> = (props: Props) =
     <div className={classes.root}>
       <FireCentreDropdown
         fireCentres={props.fireCentres}
-        selectedValue={
-          isUndefined(props.selectedFireCentre)
-            ? null
-            : { name: props.selectedFireCentre?.name }
-        }
+        selectedValue={isUndefined(props.selectedFireCentre) ? null : { name: props.selectedFireCentre?.name }}
         onChange={props.selectNewFireCentre}
       />
       <PrepDateRangeSelector
         dateRange={props.result ? props.result.date_range : undefined}
         setDateRange={props.setDateRange}
       />
-      <LastUpdatedHeader
-        dailies={props.result?.planning_area_hfi_results.flatMap(areaResult =>
-          areaResult.daily_results.flatMap(dailyResult =>
-            dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
-          )
-        )}
-      />
+      <LoggedInStatus isAuthenticated={isAuthenticated} roles={roles} idir={idir} />
+      <SignoutButton />
       <div className={classes.aboutButtonGridItem}>
         <FormControl className={classes.minWidth210}>
           <Button onClick={openAboutModal} size="small">

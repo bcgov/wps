@@ -10,13 +10,7 @@ export interface FWIStationCellProps {
   setInput: React.Dispatch<React.SetStateAction<FWIInputParameters>>
   inputProps?: OutlinedTextFieldProps['InputProps']
 }
-const FWINumberCell = ({
-  isLoading,
-  inputField,
-  input,
-  inputProps,
-  setInput
-}: FWIStationCellProps) => {
+const FWINumberCell = ({ isLoading, inputField, input, inputProps, setInput }: FWIStationCellProps) => {
   const [previousValue, setPreviousValue] = useState(input[inputField])
   const [value, setValue] = useState(input[inputField])
 
@@ -28,12 +22,7 @@ const FWINumberCell = ({
   ) => {
     const stringInput = String(event.target.value)
     const numberInput = Number(stringInput)
-    if (
-      isUndefined(stringInput) ||
-      isNull(stringInput) ||
-      isNaN(numberInput) ||
-      stringInput.length <= 3
-    ) {
+    if (isUndefined(stringInput) || isNull(stringInput) || isNaN(numberInput) || stringInput.length <= 3) {
       setValue(Number(numberInput))
     }
   }

@@ -56,20 +56,11 @@ const HFICell = (props: HFICellProps) => {
 
   if (isUndefined(props.value) || isNull(props.value) || isNaN(props.value)) {
     return (
-      <TableCell
-        data-testid={props.testId}
-        className={props.className ? props.className : classes.dataRow}
-      ></TableCell>
+      <TableCell data-testid={props.testId} className={props.className ? props.className : classes.dataRow}></TableCell>
     )
   }
 
-  return (
-    <FixedDecimalNumberCell
-      testId={props.testId}
-      className={hfiStyle}
-      value={props.value}
-    />
-  )
+  return <FixedDecimalNumberCell testId={props.testId} className={hfiStyle} value={props.value} />
 }
 
 export default React.memo(HFICell)

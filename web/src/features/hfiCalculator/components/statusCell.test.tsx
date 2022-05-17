@@ -41,20 +41,13 @@ describe('StatusCell', () => {
     daily: { ...daily, observation_valid: false },
     valid: false
   }
-  const renderStatusCell = (
-    validatedDaily: ValidatedStationDaily | undefined,
-    isRowSelected = true
-  ) => {
+  const renderStatusCell = (validatedDaily: ValidatedStationDaily | undefined, isRowSelected = true) => {
     return render(
       <TableContainer>
         <Table>
           <TableBody>
             <TableRow>
-              <StatusCell
-                daily={validatedDaily?.daily}
-                className={''}
-                isRowSelected={isRowSelected}
-              />
+              <StatusCell daily={validatedDaily?.daily} className={''} isRowSelected={isRowSelected} />
             </TableRow>
           </TableBody>
         </Table>
