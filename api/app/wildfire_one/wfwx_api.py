@@ -77,8 +77,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
 
 async def get_station_data(session: ClientSession,
                            header: dict,
-                           mapper=station_list_mapper,
-                           query_builder=BuildQueryStations()):
+                           mapper=station_list_mapper):
     """ Get list of stations from WFWX Fireweather API.
     """
     logger.info('Using WFWX to retrieve station list')
@@ -87,7 +86,7 @@ async def get_station_data(session: ClientSession,
     # Iterate through "raw" station data.
     raw_stations = fetch_paged_response_generator(session,
                                                   header,
-                                                  query_builder,
+                                                  BuildQueryStations(),
                                                   'stations',
                                                   use_cache=True,
                                                   cache_expiry_seconds=redis_station_cache_expiry)
@@ -268,17 +267,13 @@ async def get_wfwx_stations_from_station_codes(
         header,
         station_codes: Optional[List[int]]) -> List[WFWXWeatherStation]:
     """ Return the WFWX station ids from WFWX API given a list of station codes.
-
-    NOTE: Stations are returned regardless of their status!
     """
 
     # All WFWX stations are requested because WFWX returns a malformed JSON response when too
     # many station codes are added as query parameters.
     # IMPORTANT - the two calls below, cannot be made from within the lambda, as they will be
     # be called multiple times!
-    # IMPORTANT - no filter is being supplied when getting the station data.
-    wfwx_stations = await get_station_data(session, header, mapper=wfwx_station_list_mapper,
-                                           query_builder=BuildQueryStations())
+    wfwx_stations = await get_station_data(session, header, mapper=wfwx_station_list_mapper)
     # TODO: this is not good. Code in wfwx api shouldn't be filtering on stations codes in hfi....
     fire_centre_station_codes = get_fire_centre_station_codes()
 

@@ -176,7 +176,6 @@ async def get_stations_asynchronously():
     """ Get list of stations asynchronously """
     async with ClientSession() as session:
         header = await get_auth_header(session)
-        query_builder = BuildQueryStations()
         return await get_station_data(session, header)
 
 
