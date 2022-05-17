@@ -266,8 +266,7 @@ async def get_wfwx_stations_from_station_codes(
         session: ClientSession,
         header,
         station_codes: Optional[List[int]]) -> List[WFWXWeatherStation]:
-    """ Return the WFWX station ids from WFWX API given a list of station codes.
-    """
+    """ Return the WFWX station ids from WFWX API given a list of station codes."""
 
     # All WFWX stations are requested because WFWX returns a malformed JSON response when too
     # many station codes are added as query parameters.

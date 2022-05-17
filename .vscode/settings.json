@@ -31,7 +31,7 @@
     "[python]": {
         "editor.rulers": [
             120,
-            110
+            100
         ]
     },
     "[yaml]": {
