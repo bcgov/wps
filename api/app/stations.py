@@ -177,7 +177,7 @@ async def get_stations_asynchronously():
     async with ClientSession() as session:
         header = await get_auth_header(session)
         query_builder = BuildQueryStations()
-        return await get_station_data(session, header, query_builder=query_builder)
+        return await get_station_data(session, header)
 
 
 def get_stations_synchronously() -> List[WeatherStation]:

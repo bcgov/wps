@@ -22,7 +22,7 @@ class BuildQueryStations(BuildQuery):
     """ Class for building a url and RSQL params to request all active stations. """
 
     def __init__(self):
-        """ By default we filter on active stations. """
+        """ Prepare filtering on active, test and project stations. """
         super().__init__()
         self.param_query = None
         # In conversation with Dana Hicks, on Apr 20, 2021 - Dana said to show active, test and project.
