@@ -80,7 +80,7 @@ run-with-tests:
 	# Run the application in the virtual environment (after linting and testing).
 	# Not failing on lint or test - just output so developer knows.
 	-poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
-	-poetry run python -m pytest -n 3 app;
+	-poetry run python -m pytest -x -n 3 app;
 	${call run-api,$(POETRY_RUN)}
 
 run:
@@ -160,7 +160,7 @@ docker-test:
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
 	# Make sure that your docker pycache doesn't conflict with your local pycache.
-	docker-compose run --rm api pytest -n 3 app
+	docker-compose run --rm api pytest -x -n 3 app
 
 docker-test-coverage:
 	# Run tests with coverage in docker (dev instance).
