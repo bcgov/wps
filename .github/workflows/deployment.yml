@@ -74,7 +74,7 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
           GIT_BRANCH=${GITHUB_HEAD_REF} bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
-  build-web:
+  build-web-image:
     name: Build Web Image
     runs-on: ubuntu-20.04
     steps:
@@ -94,7 +94,7 @@ jobs:
 
   deploy-dev:
     name: Deploy to Dev
-    needs: [build-image, prepare-dev-database]
+    needs: [build-image, build-web-image, prepare-dev-database]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
