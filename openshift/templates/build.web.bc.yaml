@@ -65,10 +65,10 @@ objects:
       resources:
         limits:
           cpu: "0"
-          memory: "5Gi"
+          memory: "0"
         requests:
           cpu: "0"
-          memory: "5Gi"
+          memory: "0"
       source:
         type: Git
         git:
