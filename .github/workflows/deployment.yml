@@ -56,7 +56,7 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
 
-  build-image:
+  build-api-image:
     name: Build Image
     runs-on: ubuntu-20.04
     steps:
@@ -94,7 +94,7 @@ jobs:
 
   deploy-dev:
     name: Deploy to Dev
-    needs: [build-image, build-web-image, prepare-dev-database]
+    needs: [build-api-image, build-web-image, prepare-dev-database]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
@@ -219,7 +219,7 @@ jobs:
 
   deploy-test:
     name: Deploy to Test
-    needs: [build-image, prepare-test-database]
+    needs: [build-api-image, prepare-test-database]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
