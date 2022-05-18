@@ -1,11 +1,9 @@
 """ CRUD operations relating to HFI Calculator
 """
-from tokenize import group
 from typing import List
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
-from sqlalchemy.dialects import postgresql
-from sqlalchemy import desc, func, insert
+from sqlalchemy import desc, insert
 from app.db.database import get_read_session_scope
 from app.schemas.hfi_calc import DateRange, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, HFIReady, PlanningArea, PlanningWeatherStation, HFIRequest,
@@ -79,6 +77,10 @@ def get_most_recent_updated_hfi_request_for_current_date(session: Session,
 
 def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, username: str):
     """ Store the supplied hfi request """
+    previous_latest_request = get_most_recent_updated_hfi_request(
+        session,
+        fire_centre_id=hfi_result_request.selected_fire_center_id,
+        date_range=hfi_result_request.date_range)
     stmt = (
         insert(HFIRequest).values(fire_centre_id=hfi_result_request.selected_fire_center_id,
                                   prep_start_day=hfi_result_request.date_range.start_date,
@@ -89,39 +91,50 @@ def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, us
     )
     res = session.execute(stmt).fetchone()
     latest_hfi_request_id = res.id
-    latest_hfi_ready_records = get_latest_hfi_ready_records(session, hfi_result_request)
-    if latest_hfi_ready_records is not None:
+    now = get_utc_now()
+
+    if previous_latest_request is not None:
+        # Copy over ready records for existing hfi request
+        latest_hfi_ready_records = get_latest_hfi_ready_records(session, previous_latest_request.id)
         updated_hfi_ready_records = []
-        for hfi_ready_record in latest_hfi_ready_records:
+        for latest_hfi_ready_record in latest_hfi_ready_records:
             updated_hfi_ready_records.append(HFIReady(hfi_request_id=latest_hfi_request_id,
-                                                      planning_area_id=hfi_ready_record.planning_area_id,
-                                                      ready=hfi_ready_record.ready,
-                                                      create_timestamp=hfi_ready_record.create_timestamp,
-                                                      create_user=hfi_ready_record.create_user,
-                                                      update_timestamp=hfi_ready_record.update_timestamp,
-                                                      update_user=hfi_ready_record.update_user))
+                                                      planning_area_id=latest_hfi_ready_record.planning_area_id,
+                                                      ready=latest_hfi_ready_record.ready,
+                                                      create_timestamp=latest_hfi_ready_record.create_timestamp,
+                                                      create_user=latest_hfi_ready_record.create_user,
+                                                      update_timestamp=now,
+                                                      update_user=username))
         session.bulk_save_objects(updated_hfi_ready_records)
+    else:
+        # Create ready records for new hfi request
+        planning_areas = get_planning_areas(session, hfi_result_request.selected_fire_center_id)
+        new_hfi_ready_records = []
+        for planning_area in planning_areas:
+            new_hfi_ready_records.append(HFIReady(hfi_request_id=latest_hfi_request_id,
+                                                  planning_area_id=planning_area.id,
+                                                  ready=False,
+                                                  create_timestamp=now,
+                                                  create_user=username,
+                                                  update_timestamp=now,
+                                                  update_user=username))
+        session.bulk_save_objects(new_hfi_ready_records)
 
 
-def get_latest_hfi_ready_records(session: Session, hfi_result_request: HFIResultRequest):
-    """ Retrieve the current hfi ready records for each planning area based latest
-        HFI request defined by fire centre and prep date range. 
-    """
-    query = session.query(HFIReady)\
-        .join(HFIRequest)\
-        .filter(HFIRequest.fire_centre_id == hfi_result_request.selected_fire_center_id)\
-        .filter(HFIRequest.prep_start_day == hfi_result_request.date_range.start_date)\
-        .filter(HFIRequest.prep_end_day == hfi_result_request.date_range.end_date)\
-        .distinct(HFIRequest.fire_centre_id,
-                  HFIReady.planning_area_id,
-                  HFIRequest.prep_start_day,
-                  HFIRequest.prep_end_day)\
-        .order_by(HFIRequest.fire_centre_id,
-                  HFIReady.planning_area_id,
-                  HFIRequest.prep_start_day,
-                  HFIRequest.prep_end_day,
-                  HFIRequest.create_timestamp.desc())
-    return query
+def get_latest_hfi_ready_records(session: Session, hfi_request_id: int):
+    """ Retrieve the latest hfi ready records for each distinct planning area in a hfi request """
+    return session.query(HFIReady)\
+        .join(HFIRequest, HFIRequest.id == hfi_request_id)\
+        .distinct(HFIReady.planning_area_id)\
+        .order_by(HFIReady.planning_area_id, HFIReady.create_timestamp.desc())\
+        .all()
+
+
+def get_planning_areas(session: Session, fire_centre_id: int):
+    """ Retrieve the planning areas for a fire centre"""
+    return session.query(PlanningArea)\
+        .filter(PlanningArea.fire_centre_id == fire_centre_id)\
+        .all()
 
 
 def store_hfi_station(session: Session, station_code: int, fuel_type_id: int, planning_area_id: int, order: int):
