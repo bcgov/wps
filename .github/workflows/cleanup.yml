@@ -31,6 +31,7 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
           bash openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
           NAME_APP=wps-ubuntu bash openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
+          NAME_APP=wps-web bash openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
 
       - name: Clean up api - test (OCP4)
         shell: bash
