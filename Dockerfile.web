@@ -15,7 +15,7 @@ USER 0
 
 ADD web .
 # NOTE: Can't use "--production=true", because we need react-scripts for yarn run start.
-RUN npm install -g npm@latest && npm install -g yarn@latest && RUN yarn install --frozen-lockfile
+RUN npm install -g npm@latest && npm install -g yarn@latest && yarn install --frozen-lockfile
 
 # Switch back to default user
 USER 1001
