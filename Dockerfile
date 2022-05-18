@@ -1,4 +1,5 @@
 ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:python3.9-latest
+ARG NODE_OPTIONS="--v8-pool-size=4"
 
 # PHASE 1 - build static html.
 # Pull from local registry - we can't pull from docker due to limits.
@@ -9,8 +10,9 @@ FROM registry.access.redhat.com/ubi8/nodejs-16 as static
 USER 0
 
 ADD web .
-RUN npm install -g npm@latest && npm install -g yarn@latest && NODE_OPTIONS="--v8-pool-size=2" yarn install --production=true --frozen-lockfile
-RUN NODE_OPTIONS="--v8-pool-size=2" yarn run build
+# NOTE: Can't use "--production=true", because we need react-scripts for yarn run build.
+RUN npm install -g npm@latest && npm install -g yarn@latest && yarn install --frozen-lockfile
+RUN yarn run build
 
 # Switch back to default user
 USER 1001

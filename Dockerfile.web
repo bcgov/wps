@@ -1,4 +1,9 @@
 ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-base
+# SUPER IMPORTANT: NODE_OPTIONS="--v8-pool-size=2"
+# A pod running in our openshift cluster, will report a ridiculous amount of cpu's available, as it's reporting
+# on the underlying hardware. Node, in it's wisdom, will try to scale to using a huge amount of cpu's, which in
+# turn results in massive memory usage. It's very important to limit the cpu pool size to something realistic.
+ARG NODE_OPTIONS="--v8-pool-size=4"
 
 # PHASE 1 - build static html.
 # Pull from local registry - we can't pull from docker due to limits.
@@ -9,9 +14,8 @@ FROM registry.access.redhat.com/ubi8/nodejs-16 as static
 USER 0
 
 ADD web .
-RUN npm install -g npm@latest && npm install -g yarn@latest && NODE_OPTIONS="--v8-pool-size=2" yarn install --production=true --frozen-lockfile
-# RUN NODE_OPTIONS="--max_old_space_size=1024 --v8-pool-size=1" yarn install --production=true --max_old_space_size=1024 --frozen-lockfile
-RUN NODE_OPTIONS="--v8-pool-size=2" yarn install --production=true --frozen-lockfile
+# NOTE: Can't use "--production=true", because we need react-scripts for yarn run start.
+RUN npm install -g npm@latest && npm install -g yarn@latest && RUN yarn install --frozen-lockfile
 
 # Switch back to default user
 USER 1001
