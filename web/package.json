@@ -62,7 +62,7 @@
   "scripts": {
     "start": "CI=true react-scripts start",
     "start:cypress": "export $(cat .env.cypress | xargs) && react-scripts --max_old_space_size=4096 -r @cypress/instrument-cra start",
-    "build": "react-scripts build",
+    "build": "react-scripts --v8-pool-size=1 build",
     "test": "react-scripts test --transformIgnorePatterns \"node_modules/(?!ol)/\"",
     "test:ci": "CI=true npm test",
     "coverage": "npm test -- --coverage --watchAll=false",
