@@ -9,7 +9,9 @@ FROM registry.access.redhat.com/ubi8/nodejs-16 as static
 USER 0
 
 ADD web .
-RUN npm i yarn && NODE_OPTIONS=--max_old_space_size=1000 yarn install --production=true --max_old_space_size=1000 --frozen-lockfile
+RUN npm install -g npm@latest
+RUN npm install -g yarn@latest
+RUN NODE_OPTIONS="--max_old_space_size=1024 --v8-pool-size=1" yarn install --production=true --max_old_space_size=1024 --frozen-lockfile
 # RUN yarn run build
 
 # Switch back to default user
