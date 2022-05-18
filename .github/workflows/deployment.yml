@@ -72,7 +72,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+          GIT_BRANCH=${GITHUB_HEAD_REF} bash NAME_APP=wps-api openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   build-web-image:
     name: Build Web Image
