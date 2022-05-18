@@ -20,7 +20,8 @@ from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_map
                                              parse_hourly_actual,
                                              station_list_mapper,
                                              wfwx_station_list_mapper)
-from app.wildfire_one.query_builders import (BuildQueryAllActiveStations, BuildQueryAllForecastsByAfterStart,
+from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
+                                             BuildQueryStations,
                                              BuildQueryAllHourliesByRange,
                                              BuildQueryByStationCode,
                                              BuildQueryDailiesByStationCode)
@@ -85,7 +86,7 @@ async def get_station_data(session: ClientSession,
     # Iterate through "raw" station data.
     raw_stations = fetch_paged_response_generator(session,
                                                   header,
-                                                  BuildQueryAllActiveStations(),
+                                                  BuildQueryStations(),
                                                   'stations',
                                                   use_cache=True,
                                                   cache_expiry_seconds=redis_station_cache_expiry)
@@ -112,7 +113,7 @@ async def get_detailed_stations(time_of_interest: datetime):
             fetch_raw_dailies_for_all_stations(session, header, time_of_interest))
         # Fetch all the stations
         stations_task = asyncio.create_task(fetch_detailed_geojson_stations(
-            session, header, BuildQueryAllActiveStations()))
+            session, header, BuildQueryStations()))
 
         # Await completion of concurrent tasks.
         dailies = await dailies_task
@@ -265,7 +266,7 @@ async def get_wfwx_stations_from_station_codes(
         session: ClientSession,
         header,
         station_codes: Optional[List[int]]) -> List[WFWXWeatherStation]:
-    """ Return the WFWX station ids from WFWX API given a list of station codes. """
+    """ Return the WFWX station ids from WFWX API given a list of station codes."""
 
     # All WFWX stations are requested because WFWX returns a malformed JSON response when too
     # many station codes are added as query parameters.
