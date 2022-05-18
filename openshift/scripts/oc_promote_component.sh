@@ -24,8 +24,8 @@ source "$(dirname ${0})/common/common"
 # Source and destination
 #
 IMAGE_REGISTRY="${IMAGE_REGISTRY:-'image-registry.openshift-image-registry.svc:5000'}"
-IMG_SOURCE="${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME_APP}-${SUFFIX}:${SUFFIX}"
-IMG_DEST="${NAME_APP}-${TAG_PROD}"
+IMG_SOURCE="${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME_APP}-${COMPONENT}-${SUFFIX}:${SUFFIX}"
+IMG_DEST="${NAME_APP}-${COMPONENT}-${TAG_PROD}"
 
 # Import to new image and retag, leaving the original tag in
 #
