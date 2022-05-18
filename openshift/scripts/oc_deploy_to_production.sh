@@ -28,7 +28,8 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 set -ex
 echo Promote
 bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
-bash $(dirname ${0})/oc_promote_ubuntu.sh ${SUFFIX} ${RUN_TYPE}
+COMPONENT=ubuntu bash $(dirname ${0})/oc_promote_component.sh ${SUFFIX} ${RUN_TYPE}
+COMPONENT=web bash $(dirname ${0})/oc_promote_component.sh ${SUFFIX} ${RUN_TYPE}
 echo Provision database
 CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi PVC_SIZE=45Gi PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_db.sh prod ${RUN_TYPE}
 echo Deploy API
