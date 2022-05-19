@@ -38,7 +38,10 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.insertSpaces": true,
         "editor.tabSize": 2,
-        "editor.formatOnSave": true
+        "editor.formatOnSave": true,
+        "editor.rulers": [
+            100
+        ]
     },
     "[json]": {
         "editor.defaultFormatter": "vscode.json-language-features"

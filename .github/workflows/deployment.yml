@@ -57,7 +57,7 @@ jobs:
           EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
 
   build-api-image:
-    name: Build Image
+    name: Build API Image
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
@@ -68,7 +68,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Build Image
+      - name: Build wps-api Image
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
@@ -86,7 +86,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Build Image
+      - name: Build wps-web Image
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
@@ -106,7 +106,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Build Image
+      - name: Build wps-c-haines Image
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
