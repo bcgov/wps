@@ -1,8 +1,9 @@
 ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:python3.9-latest
 # SUPER IMPORTANT: NODE_OPTIONS="--v8-pool-size=2"
-# A pod running in our openshift cluster, will report a ridiculous amount of cpu's available, as it's reporting
-# on the underlying hardware. Node, in it's wisdom, will try to scale to using a huge amount of cpu's, which in
-# turn results in massive memory usage. It's very important to limit the cpu pool size to something realistic.
+# A pod running in our openshift cluster, will report a ridiculous amount of cpu's available, as
+# it's reporting on the underlying hardware. Node, in it's wisdom, will try to scale to using a
+# huge amount of cpu's, which in turn results in massive memory usage. It's very important to
+# limit the cpu pool size to something realistic.
 ARG NODE_OPTIONS="--v8-pool-size=1"
 ARG GENERATE_SOURCEMAP=false
 
