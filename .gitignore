@@ -155,3 +155,6 @@ renv
 # Node Version Management
 web/.nvmrc
 node_modules
+
+# Human fire starts data
+api/app/human_fire_starts/data

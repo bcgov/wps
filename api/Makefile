@@ -114,8 +114,11 @@ run-all-jobs:
 c-haines:
 	$(POETRY_RUN) python -m app.c_haines.worker
 
-list-fire-starts-objects:
+list-fire-starts-datasets:
 	$(POETRY_RUN) python -m app.human_fire_starts.list_datasets
+
+publish-fire-starts-datasets:
+	$(POETRY_RUN) python -m app.human_fire_starts.publish_datasets
 
 fetch-database-partial:
 	$(POETRY_RUN) python scripts/copy_db_from_pod_to_local.py
