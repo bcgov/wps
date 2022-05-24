@@ -27,6 +27,7 @@ import {
   stationStyler,
   thessianPolygonStyler
 } from 'features/fba/components/featureStylers'
+import { SaveAs } from '@mui/icons-material'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -182,7 +183,7 @@ const FBAMap = (props: FBAMapProps) => {
   return (
     <ErrorBoundary>
       <div className={classes.main}>
-        <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
+        <div id="image" ref={mapRef} data-testid="fba-map" className={props.className}></div>
       </div>
     </ErrorBoundary>
   )

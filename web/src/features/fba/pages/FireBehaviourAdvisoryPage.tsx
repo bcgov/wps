@@ -1,4 +1,4 @@
-import { FormControl, Grid } from '@mui/material'
+import { Button, FormControl, Grid, useMediaQuery } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
@@ -8,7 +8,7 @@ import FormalFBATable from 'features/fba/components/FormalFBATable'
 import { DateTime } from 'luxon'
 import { selectFireCenters } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
+import { fetchFireCenters, fetchPDF } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
@@ -33,6 +33,12 @@ const useStyles = makeStyles(() => ({
   },
   instructions: {
     textAlign: 'left'
+  },
+  table: {
+    pageBreakInside: 'avoid'
+  },
+  image: {
+    pageBreakBefore: 'always'
   }
 }))
 
@@ -71,6 +77,11 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
   }
 
+  const handleSave = () => {
+    console.log('save')
+    dispatch(fetchPDF())
+  }
+
   useEffect(() => {
     dispatch(fetchFireCenters())
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
@@ -104,14 +115,17 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid container spacing={2}>
             <Grid item xs>
               {fireCenter ? (
-                <FormalFBATable fireCenter={fireCenter} className={classes.listContainer} />
+                <FormalFBATable fireCenter={fireCenter} className={`${classes.listContainer} ${classes.table}`} />
               ) : (
                 emptyInstructions
               )}
             </Grid>
             <Grid item xs>
-              <FBAMap selectedFireCenter={fireCenter} className={classes.mapContainer} />
+              <FBAMap selectedFireCenter={fireCenter} className={`${classes.mapContainer} ${classes.image}`} />
             </Grid>
+          </Grid>
+          <Grid item>
+            <Button onClick={handleSave}>Save as PDF</Button>
           </Grid>
         </Grid>
       </Container>

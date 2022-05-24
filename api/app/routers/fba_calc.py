@@ -1,15 +1,19 @@
 """ Routers for Fire Behaviour Advisory Calculator """
 
+from base64 import b64encode
 import logging
+import os
 from datetime import date, datetime, timedelta
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
+from jinja2 import Environment, FunctionLoader
 from app.auth import authentication_required, audit
 from app.fire_behaviour.advisory import (FBACalculatorWeatherStation, FireBehaviourAdvisory,
                                          calculate_fire_behaviour_advisory)
 from app.hourlies import get_hourly_readings_in_time_interval
 from app.schemas.fba_calc import (StationListRequest, StationRequest,
                                   StationsListResponse, StationResponse)
+import pdfkit
 from app.fire_behaviour import cffdrs
 from app.utils.time import get_hour_20_from_date
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
@@ -25,6 +29,14 @@ router = APIRouter(
 )
 
 logger = logging.getLogger(__name__)
+
+
+def get_template(_: str):
+    """ Returns template """
+    with open(os.path.join(os.path.dirname(__file__),
+                           '/Users/awilliam/Desktop/wps/api/app/fire_behaviour/templates/fba_template.jinja.html'),
+              'r', encoding="utf-8") as template:
+        return template.read()
 
 
 def prepare_response(  # pylint: disable=too-many-locals
@@ -164,6 +176,30 @@ async def process_request(
     # Prepare the response
     return prepare_response(
         requested_station, wfwx_station, fba_station, raw_daily, fire_behaviour_advisory)
+
+
+async def generate_pdf():
+    """"""
+    jinja_env = Environment(loader=FunctionLoader(get_template), autoescape=True)
+    template = jinja_env.get_template('test')
+
+    with open('/Users/awilliam/Desktop/wps/api/app/fire_behaviour/templates/dummy_image.bin', 'rb') as image_binary:
+        image_blob = image_binary.read()
+
+    decoded_blob = b64encode(image_blob).decode('ascii')
+
+    html_string = template.render(test_string='testy test test', map_image_blob=decoded_blob)
+    options = {
+        'page-size': 'Letter',
+        'orientation': 'Portrait',
+        'margin-left': '7mm',
+        'margin-right': '7mm',
+        'footer-right': '[page] of [topage]',
+        'footer-font-name': 'BCSans',
+        'footer-font-size': '6'
+    }
+    pdf_bytes: bytes = pdfkit.from_string(input=html_string, options=options)
+    return pdf_bytes
 
 
 def process_request_without_observation(requested_station: StationRequest,
