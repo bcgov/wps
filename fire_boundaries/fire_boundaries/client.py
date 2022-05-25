@@ -1,33 +1,17 @@
-import os
-from google.cloud import storage
 from google.oauth2.credentials import Credentials
-# from google.oauth2 import service_account
 import ee
 import json
 import jwt
 from datetime import datetime, timedelta
 
 def main():
-    service_account = '/Users/sybrand/Workspace/fire-350717-ca75193a59cc.json'
-    storage_client = storage.Client.from_service_account_json(service_account)
-
-    print(storage_client)
-
-
-def main2():
-    # credentials = service_account.Credentials.from_service_account_info(info)
-    # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/sybrand/Workspace/wps/fire_boundaries/fire-350717-ca75193a59cc_copy.json'
-
-    # this fails, because it's looking for:
-    # adc = {k: adc[k] for k in ['client_id', 'client_secret', 'refresh_token']}
-    # ee.Authenticate(auth_mode='appdefault')
-    # ee.Authenticate()
-
+    # construct jwt token
     token = jwt_token()
 
-    # from google.oauth2.credentials import Credentials
+    # from google.oauth2.credentials import Credentials - only works with python 3.8.* or earlier.
     credentials = Credentials(token=token)
     ee.Initialize(credentials)
+
     print(ee.Image("NASA/NASADEM_HGT/001").get("title").getInfo())
     
 
@@ -67,6 +51,4 @@ def jwt_token():
 
 
 if __name__ == '__main__':
-    # main()
-    main2()
-    # jwt_token()
+    main()

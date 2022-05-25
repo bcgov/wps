@@ -1,16 +1,6 @@
-# what?
+# Fire Boundaries using Google Earth Engine
 
-```
-sudo port select --set python python39
-sudo port select --set python3 python39
-```
-
-```
-sudo port selfupdate
-sudo port upgrade outdated
-sudo port install clang-14
-pyenv install 3.8.12
-```
+Google Earth Engine does not work on versions newer than 3.8.*
 
 ## Using macports on m1
 
