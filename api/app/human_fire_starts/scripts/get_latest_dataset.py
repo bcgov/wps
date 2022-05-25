@@ -1,4 +1,4 @@
-"""
+""" 
 A script to list human fire starts datasets from object store to stdout.
 """
 import asyncio
@@ -7,27 +7,22 @@ import sys
 import logging
 import logging.config
 from app import configure_logging
-from app.human_fire_starts.object_store import publish_datasets
+from app.human_fire_starts.object_store import get_latest_dataset
 
 logger = logging.getLogger(__name__)
-dirname = os.path.dirname(__file__)
-DATASET_FOLDER_PATH = os.path.join(dirname, 'data')
 
 
 def main():
-    """Walks data dir and passes each file path to publish to publish all files in data to object store"""
     try:
-        dataset_paths = [os.path.join(DATASET_FOLDER_PATH, f) for f in os.listdir(DATASET_FOLDER_PATH)]
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(publish_datasets(dataset_paths))
+        loop.run_until_complete(get_latest_dataset())
 
         # Exit with 0 - success.
-        logger.info('Successfully uploaded datasets')
         sys.exit(os.EX_OK)
     except Exception as exception:  # pylint: disable=broad-except
         # Exit non 0 - failure.
-        logger.error('Failed to retrieve human fire starts datasets.',
+        logger.error('Failed to retrieve latest human fire starts dataset.',
                      exc_info=exception)
         sys.exit(os.EX_SOFTWARE)
 
