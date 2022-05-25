@@ -121,8 +121,8 @@ list-fire-starts-datasets:
 publish-fire-starts-datasets:
 	$(POETRY_RUN) python -m app.human_fire_starts.scripts.publish_datasets
 
-latest-fire-starts-dataset:
-	$(POETRY_RUN) python -m app.human_fire_starts.scripts.get_latest_dataset
+latest-fire-starts-datasets:
+	$(POETRY_RUN) python -m app.human_fire_starts.scripts.get_latest_datasets
 
 fetch-database-partial:
 	$(POETRY_RUN) python scripts/copy_db_from_pod_to_local.py
