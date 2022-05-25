@@ -5,7 +5,7 @@ description = ""
 authors = ["Sybrand Strauss <sybrand.strauss@gov.bc.ca>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "3.8.13"
 PyJWT = "^2.4.0"
 cryptography = "^37.0.2"
 aiohttp = "^3.8.1"

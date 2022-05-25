@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "earth",
+            "type": "python",
+            "request": "launch",
+            "program": "fire_boundaries/fire_boundaries/client.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "api",
             "type": "python",
             "request": "launch",
