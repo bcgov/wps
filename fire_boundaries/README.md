@@ -11,11 +11,14 @@ I had trouble using pyenv to install the version I need. So installing python wi
 sudo port selfupdate
 sudo port upgrade outdated
 sudo port install python38
+sudo port install gdal
 ```
 
 this installs python 3.8 to: /opt/local/Library/Frameworks/Python.framework/Versions/3.8
 
 ```bash
 poetry env use /opt/local/Library/Frameworks/Python.framework/Versions/3.8/bin
+poetry run python -m pip install --upgrade pip
 poetry install
+poetry run python -m pip install gdal==$(gdal-config --version)
 ```
