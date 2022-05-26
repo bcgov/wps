@@ -151,3 +151,4 @@ def jwt_token():
 
 if __name__ == '__main__':
     main()
+    # once you have a polygon, you can calculate the area: https://pyproj4.github.io/pyproj/stable/examples.html#geodesic-area
