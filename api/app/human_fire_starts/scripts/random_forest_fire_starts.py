@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 import pandas
+import datetime
 from dateutil.parser import parse
 
 
@@ -31,13 +32,25 @@ st.caption("Input data")
 st.header("Random Forest Results")
 df = df.set_index('TIMESTAMP')
 
+with st.sidebar:
+    start_date = st.date_input(
+        "Select start date",
+        min_value=datetime.date(1950, 1, 1),
+        max_value=datetime.date.today()
+    )
+    end_date = st.date_input(
+        "Select end date",
+        min_value=datetime.date(1950, 1, 1),
+        max_value=datetime.date.today()
+    )
+
 
 def eval_model(input_df, output_label):
     X = input_df[['FIRE_CENTRE', 'ZONE', 'UNIX_TIMESTAMP']]  # Features
     y = input_df['COUNT']  # Labels
 
     # Create regression model
-    model = RandomForestRegressor(n_estimators=100)
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
 
     # Split data, 70% training and 30% test
     X_train, X_test, y_train, y_test = train_test_split(X.values, y, test_size=0.3)
