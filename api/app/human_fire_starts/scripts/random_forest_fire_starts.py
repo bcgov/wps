@@ -24,7 +24,6 @@ CSV_PATH = os.path.join(DATASET_FOLDER_PATH, 'FIRE_STARTS_PER_ZONE.csv')
 df = pandas.read_csv(CSV_PATH)
 df['UNIX_TIMESTAMP'] = df['TIMESTAMP'].map(parse_date)
 
-st.set_page_config(layout="wide")
 st.title("Fire Starts by Human Activity")
 st.dataframe(df)
 st.caption("Input data")
@@ -61,9 +60,11 @@ def eval_model(input_df, output_label):
     ax.plot(x_ax, ypred, linewidth=1.1, label="predicted")
     ax.legend(loc='best', fancybox=True, shadow=True)
     ax.grid(True)
-
     st.pyplot(fig)
 
+
+last_2_years = df[(df.index > '2020-05-01') & (df.index <= '2022-05-1')]
+eval_model(last_2_years, "May 1, 2020 to May 1, 2022 (Last 2 years)")
 
 last_5_years = df[(df.index > '2017-05-01') & (df.index <= '2022-05-1')]
 eval_model(last_5_years, "May 1, 2017 to May 1, 2022 (Last 5 years)")
