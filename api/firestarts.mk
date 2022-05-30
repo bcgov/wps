@@ -9,3 +9,6 @@ publish-fire-starts-datasets:
 # Download latest datasets from object store to app/human_fire_starts/data
 latest-fire-starts-datasets:
 	$(POETRY_RUN) python -m app.human_fire_starts.scripts.get_latest_datasets
+
+run-random-forests:
+	$(POETRY_RUN) python -m app.human_fire_starts.scripts.random_forest_fire_starts
