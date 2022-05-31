@@ -29,15 +29,9 @@ st.header("Random Forest Results")
 df = df.set_index('DATE_ISO')
 
 with st.sidebar:
-    start_date = st.date_input(
-        "Select start date",
-        min_value=datetime.date(1950, 1, 1),
-        max_value=datetime.date.today()
-    )
-    end_date = st.date_input(
-        "Select end date",
-        min_value=datetime.date(1950, 1, 1),
-        max_value=datetime.date.today()
+    date_range = st.date_input(
+        "Select date range",
+        value=[datetime.date(1950, 1, 1), datetime.date.today()]
     )
 
 
@@ -73,17 +67,26 @@ def eval_model(input_df, output_label):
     st.pyplot(fig)
 
 
-last_2_years = df[(df.index > '2020-05-01') & (df.index <= '2022-05-1')]
-eval_model(last_2_years, "May 1, 2020 to May 1, 2022 (Last 2 years)")
+try:
+    start_date, end_date = date_range
+    selected_range = df[(df.index >= start_date.isoformat()) & (df.index <= end_date.isoformat())]
+    output_label = f'{start_date.isoformat()} to {end_date.isoformat()}'
+    eval_model(selected_range, output_label)
+except Exception:
+    # do nothing
+    pass
 
-last_5_years = df[(df.index > '2017-05-01') & (df.index <= '2022-05-1')]
-eval_model(last_5_years, "May 1, 2017 to May 1, 2022 (Last 5 years)")
+# last_2_years = df[(df.index > '2020-05-01') & (df.index <= '2022-05-1')]
+# eval_model(last_2_years, "May 1, 2020 to May 1, 2022 (Last 2 years)")
 
-last_decade = df[(df.index > '2012-05-01') & (df.index <= '2022-05-1')]
-eval_model(last_decade, "May 1, 2012 to May 1, 2022 (Last Decade)")
+# last_5_years = df[(df.index > '2017-05-01') & (df.index <= '2022-05-1')]
+# eval_model(last_5_years, "May 1, 2017 to May 1, 2022 (Last 5 years)")
 
-last_two_decade = df[(df.index > '2002-05-01') & (df.index <= '2022-05-1')]
-eval_model(last_two_decade, "May 1, 2002 to May 1, 2022 (Last 2 decades)")
+# last_decade = df[(df.index > '2012-05-01') & (df.index <= '2022-05-1')]
+# eval_model(last_decade, "May 1, 2012 to May 1, 2022 (Last Decade)")
 
-last_three_decade = df[(df.index > '1992-05-01') & (df.index <= '2022-05-1')]
-eval_model(last_three_decade, "May 1, 1992 to May 1, 2022 (Last three decades)")
+# last_two_decade = df[(df.index > '2002-05-01') & (df.index <= '2022-05-1')]
+# eval_model(last_two_decade, "May 1, 2002 to May 1, 2022 (Last 2 decades)")
+
+# last_three_decade = df[(df.index > '1992-05-01') & (df.index <= '2022-05-1')]
+# eval_model(last_three_decade, "May 1, 1992 to May 1, 2022 (Last three decades)")
