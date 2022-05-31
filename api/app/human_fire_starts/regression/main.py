@@ -1,13 +1,12 @@
 import os
 import streamlit as st
 from os.path import dirname, realpath
-from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
 import pandas
 import datetime
 from dateutil.parser import parse
+
+from methods.evaluator import eval_model
 
 
 def parse_date(datestr: str):
@@ -24,18 +23,22 @@ HUMAN_FIRES_CSV_PATH = os.path.join(DATASET_FOLDER_PATH, 'HUMAN_FIRE_STARTS_PER_
 
 
 with st.sidebar:
-    dataset = st.radio(
-        "Select dataset",
-        ('All Fires', 'Human Caused Fires'))
     date_range = st.date_input(
         "Select date range",
         value=[datetime.date(1950, 1, 1), datetime.date.today()]
     )
+    dataset = st.radio(
+        "Select dataset",
+        ('All Fires', 'Human Caused Fires'))
+    method = st.radio(
+        "Select regression method",
+        ('Random Forest', 'Gradient Boost'))
     training_pct = st.number_input('Set training % to split data by',
                                    min_value=int(0), max_value=int(100), value=int(70))
     training_pct = round(training_pct * 0.01, 2)
     test_pct = round(1 - training_pct, 2)
     st.write('Training %:', training_pct, "Test %: ", test_pct)
+
 
 if dataset == "All Fires":
     df = pandas.read_csv(ALL_FIRES_CSV_PATH)
@@ -52,43 +55,24 @@ features = ['FIRE_CENTRE', 'ZONE', 'TIMESTAMP']
 target = 'COUNT'
 
 
-def eval_model(input_df, output_label):
-    X = input_df[features]  # Features
-    y = input_df[target]  # Labels
-
-    # Create regression model
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
-
-    # Split data, 70% training and 30% test
-    X_train, X_test, y_train, y_test = train_test_split(X.values, y, test_size=test_pct)
-
-    model.fit(X_train, y_train)
-
-    score = model.score(X_train, y_train)
-
-    ypred = model.predict(X_test)
-
-    mse = mean_squared_error(y_test, ypred)
-
-    # Plot
-    st.subheader(output_label)
-    st.write("R-squared: ", score, "MSE: ", mse, "RMSE: ", mse * (1 / 2.0))
-
-    fig, ax = plt.subplots()
-    x_ax = range(len(y_test))
-    ax.plot(x_ax, y_test, linewidth=1, label="original")
-    ax.plot(x_ax, ypred, linewidth=1.1, label="predicted")
-    ax.legend(loc='best', fancybox=True, shadow=True)
-    ax.set_ylabel("Fire starts")
-    ax.grid(True)
-    st.pyplot(fig)
-
-
 try:
     start_date, end_date = date_range
     selected_range = df[(df.index >= start_date.isoformat()) & (df.index <= end_date.isoformat())]
     output_label = f'{start_date.isoformat()} to {end_date.isoformat()}'
-    eval_model(selected_range, output_label)
+    model_result = eval_model(method, df, features, target, test_pct)
+
+    # Plot
+    st.subheader(output_label)
+    st.write("R-squared: ", model_result.score, "MSE: ", model_result.mse, "RMSE: ", model_result.rmse)
+
+    fig, ax = plt.subplots()
+    x_ax = range(len(model_result.y_test))
+    ax.plot(x_ax, model_result.y_test, linewidth=1, label="original")
+    ax.plot(x_ax, model_result.y_pred, linewidth=1.1, label="predicted")
+    ax.legend(loc='best', fancybox=True, shadow=True)
+    ax.set_ylabel("Fire starts")
+    ax.grid(True)
+    st.pyplot(fig)
 except Exception:
     # do nothing
     pass
