@@ -20,17 +20,13 @@ def parse_date(datestr: str):
 
 DATASET_FOLDER_PATH = os.path.join(dirname(realpath(dirname(__file__))), 'data')
 CSV_PATH = os.path.join(DATASET_FOLDER_PATH, 'FIRE_STARTS_PER_ZONE.csv')
-
-
 df = pandas.read_csv(CSV_PATH)
-df['UNIX_TIMESTAMP'] = df['TIMESTAMP'].map(parse_date)
 
 st.title("Fire Starts by Human Activity")
 st.dataframe(df)
 st.caption("Input data")
-
 st.header("Random Forest Results")
-df = df.set_index('TIMESTAMP')
+df = df.set_index('DATE_ISO')
 
 with st.sidebar:
     start_date = st.date_input(
@@ -46,7 +42,7 @@ with st.sidebar:
 
 
 def eval_model(input_df, output_label):
-    X = input_df[['FIRE_CENTRE', 'ZONE', 'UNIX_TIMESTAMP']]  # Features
+    X = input_df[['FIRE_CENTRE', 'ZONE', 'TIMESTAMP']]  # Features
     y = input_df['COUNT']  # Labels
 
     # Create regression model
@@ -72,6 +68,7 @@ def eval_model(input_df, output_label):
     ax.plot(x_ax, y_test, linewidth=1, label="original")
     ax.plot(x_ax, ypred, linewidth=1.1, label="predicted")
     ax.legend(loc='best', fancybox=True, shadow=True)
+    ax.set_ylabel("Fire starts")
     ax.grid(True)
     st.pyplot(fig)
 
