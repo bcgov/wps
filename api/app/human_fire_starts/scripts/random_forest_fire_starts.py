@@ -25,12 +25,17 @@ HUMAN_FIRES_CSV_PATH = os.path.join(DATASET_FOLDER_PATH, 'HUMAN_FIRE_STARTS_PER_
 
 with st.sidebar:
     dataset = st.radio(
-        "Pick dataset",
+        "Select dataset",
         ('All Fires', 'Human Caused Fires'))
     date_range = st.date_input(
         "Select date range",
         value=[datetime.date(1950, 1, 1), datetime.date.today()]
     )
+    training_pct = st.number_input('Set training % to split data by',
+                                   min_value=int(0), max_value=int(100), value=int(70))
+    training_pct = round(training_pct * 0.01, 2)
+    test_pct = round(1 - training_pct, 2)
+    st.write('Training %:', training_pct, "Test %: ", test_pct)
 
 if dataset == "All Fires":
     df = pandas.read_csv(ALL_FIRES_CSV_PATH)
@@ -52,7 +57,7 @@ def eval_model(input_df, output_label):
     model = RandomForestRegressor(n_estimators=100, random_state=42)
 
     # Split data, 70% training and 30% test
-    X_train, X_test, y_train, y_test = train_test_split(X.values, y, test_size=0.3)
+    X_train, X_test, y_train, y_test = train_test_split(X.values, y, test_size=test_pct)
 
     model.fit(X_train, y_train)
 
