@@ -19,20 +19,29 @@ def parse_date(datestr: str):
 
 
 DATASET_FOLDER_PATH = os.path.join(dirname(realpath(dirname(__file__))), 'data')
-CSV_PATH = os.path.join(DATASET_FOLDER_PATH, 'FIRE_STARTS_PER_ZONE.csv')
-df = pandas.read_csv(CSV_PATH)
+ALL_FIRES_CSV_PATH = os.path.join(DATASET_FOLDER_PATH, 'FIRE_STARTS_PER_ZONE.csv')
+HUMAN_FIRES_CSV_PATH = os.path.join(DATASET_FOLDER_PATH, 'HUMAN_FIRE_STARTS_PER_ZONE.csv')
+
+
+with st.sidebar:
+    dataset = st.radio(
+        "Pick dataset",
+        ('All Fires', 'Human Caused Fires'))
+    date_range = st.date_input(
+        "Select date range",
+        value=[datetime.date(1950, 1, 1), datetime.date.today()]
+    )
+
+if dataset == "All Fires":
+    df = pandas.read_csv(ALL_FIRES_CSV_PATH)
+else:
+    df = pandas.read_csv(HUMAN_FIRES_CSV_PATH)
 
 st.title("Fire Starts by Human Activity")
 st.dataframe(df)
 st.caption("Input data")
 st.header("Random Forest Results")
 df = df.set_index('DATE_ISO')
-
-with st.sidebar:
-    date_range = st.date_input(
-        "Select date range",
-        value=[datetime.date(1950, 1, 1), datetime.date.today()]
-    )
 
 
 def eval_model(input_df, output_label):
