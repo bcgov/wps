@@ -1,7 +1,17 @@
 """ Module containing different regression methods
 """
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any
+
+
+class RegressionMethod(str, Enum):
+    RANDOM_FOREST = 'Random Forest'
+    GRADIENT_BOOST = 'Gradient Boost'
+    EXTRA_TREES = 'Extra Trees'
+    BAGGING = 'Bagging'
+    ADA = 'Ada'
+    HIST_GRADIENT_BOOST = 'Histogram Gradient Boost'
 
 
 @dataclass()

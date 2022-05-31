@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas
 import datetime
 from dateutil.parser import parse
-
+from methods import RegressionMethod
 from methods.evaluator import eval_model
 
 
@@ -32,7 +32,7 @@ with st.sidebar:
         ('All Fires', 'Human Caused Fires'))
     method = st.radio(
         "Select regression method",
-        ('Random Forest', 'Gradient Boost'))
+        ([method.value for method in RegressionMethod]))
     training_pct = st.number_input('Set training % to split data by',
                                    min_value=int(0), max_value=int(100), value=int(70))
     training_pct = round(training_pct * 0.01, 2)
@@ -48,7 +48,7 @@ else:
 st.title("Fire Starts by Human Activity")
 st.dataframe(df)
 st.caption("Input data")
-st.header("Random Forest Results")
+st.header(f'{method} Results')
 df = df.set_index('DATE_ISO')
 
 features = ['FIRE_CENTRE', 'ZONE', 'TIMESTAMP']

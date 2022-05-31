@@ -1,18 +1,24 @@
-from . import ModelResult
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import GradientBoostingRegressor
+from . import ModelResult, RegressionMethod
+from sklearn.ensemble import (AdaBoostRegressor,
+                              HistGradientBoostingRegressor,
+                              RandomForestRegressor,
+                              GradientBoostingRegressor,
+                              BaggingRegressor,
+                              ExtraTreesRegressor)
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 
 
 def eval_model(method, input_df, features, target, test_pct) -> ModelResult:
-    if method == "Random Forest":
-        model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model_lookup = {RegressionMethod.RANDOM_FOREST: RandomForestRegressor(n_estimators=100, random_state=42),
+                    RegressionMethod.GRADIENT_BOOST: GradientBoostingRegressor(n_estimators=100, random_state=42),
+                    RegressionMethod.EXTRA_TREES: ExtraTreesRegressor(n_estimators=100, random_state=42),
+                    RegressionMethod.BAGGING: BaggingRegressor(n_estimators=100, random_state=42),
+                    RegressionMethod.ADA: AdaBoostRegressor(n_estimators=100, random_state=42),
+                    RegressionMethod.HIST_GRADIENT_BOOST: HistGradientBoostingRegressor()}
+    model = model_lookup.get(method, None)
+    if model is not None:
         return run_eval(model, input_df, features, target, test_pct)
-    elif method == "Gradient Boost":
-        model = GradientBoostingRegressor(n_estimators=100, random_state=42)
-        return run_eval(model, input_df, features, target, test_pct)
-    pass
 
 
 def run_eval(model, input_df, features, target, test_pct) -> ModelResult:
