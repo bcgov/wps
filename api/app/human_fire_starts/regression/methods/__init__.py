@@ -12,6 +12,7 @@ class RegressionMethod(str, Enum):
     BAGGING = 'Bagging'
     ADA = 'Ada'
     HIST_GRADIENT_BOOST = 'Histogram Gradient Boost'
+    LINEAR = "Linear"
 
 
 @dataclass()

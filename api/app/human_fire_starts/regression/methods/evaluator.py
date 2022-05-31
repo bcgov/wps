@@ -5,6 +5,7 @@ from sklearn.ensemble import (AdaBoostRegressor,
                               GradientBoostingRegressor,
                               BaggingRegressor,
                               ExtraTreesRegressor)
+from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 
@@ -15,6 +16,7 @@ def eval_model(method, input_df, features, target, test_pct) -> ModelResult:
                     RegressionMethod.EXTRA_TREES: ExtraTreesRegressor(n_estimators=100, random_state=42),
                     RegressionMethod.BAGGING: BaggingRegressor(n_estimators=100, random_state=42),
                     RegressionMethod.ADA: AdaBoostRegressor(n_estimators=100, random_state=42),
+                    RegressionMethod.LINEAR: LinearRegression(),
                     RegressionMethod.HIST_GRADIENT_BOOST: HistGradientBoostingRegressor()}
     model = model_lookup.get(method, None)
     if model is not None:
