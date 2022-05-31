@@ -39,6 +39,8 @@ with st.sidebar:
     test_pct = round(1 - training_pct, 2)
     st.write('Training %:', training_pct, "Test %: ", test_pct)
 
+    show_dataset = st.checkbox('Show dataset')
+
 
 if dataset == "All Fires":
     df = pandas.read_csv(ALL_FIRES_CSV_PATH)
@@ -46,8 +48,6 @@ else:
     df = pandas.read_csv(HUMAN_FIRES_CSV_PATH)
 
 st.title("Fire Starts by Human Activity")
-st.dataframe(df)
-st.caption("Input data")
 st.header(f'{method} Results')
 df = df.set_index('DATE_ISO')
 
@@ -76,6 +76,10 @@ try:
 except Exception:
     # do nothing
     pass
+
+if show_dataset:
+    st.header('Input dataset')
+    st.dataframe(df)
 
 # last_2_years = df[(df.index > '2020-05-01') & (df.index <= '2022-05-1')]
 # eval_model(last_2_years, "May 1, 2020 to May 1, 2022 (Last 2 years)")
