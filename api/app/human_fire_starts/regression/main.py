@@ -39,6 +39,9 @@ with st.sidebar:
     test_pct = round(1 - training_pct, 2)
     st.write('Training %:', training_pct, "Test %: ", test_pct)
 
+    cv_splits = st.number_input('Set number of cross validation data splits',
+                                min_value=int(5), max_value=int(100), value=int(10))
+
     show_dataset = st.checkbox('Show dataset')
 
 
@@ -62,11 +65,12 @@ try:
     start_date, end_date = date_range
     selected_range = df[(df.index >= start_date.isoformat()) & (df.index <= end_date.isoformat())]
     output_label = f'{start_date.isoformat()} to {end_date.isoformat()}'
-    model_result = eval_model(method, df, features, target, test_pct)
+    model_result = eval_model(method, df, features, target, test_pct, cv_splits)
 
     # Plot
     st.subheader(output_label)
     st.write("R-squared: ", model_result.score, "MSE: ", model_result.mse, "RMSE: ", model_result.rmse)
+    st.write("Time Series Split Cross Validation (MSE): ", list(model_result.cv_results))
 
     fig, ax = plt.subplots()
     x_ax = range(len(model_result.y_test))

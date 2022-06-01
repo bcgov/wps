@@ -23,6 +23,7 @@ class ModelResult:
     mse: float
     rmse: float
     model: Any
+    cv_results: Any
     X_train: Any
     X_test: Any
     y_train: Any

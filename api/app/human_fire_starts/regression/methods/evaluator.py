@@ -6,11 +6,11 @@ from sklearn.ensemble import (AdaBoostRegressor,
                               BaggingRegressor,
                               ExtraTreesRegressor)
 from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import TimeSeriesSplit, train_test_split, cross_val_score
 from sklearn.metrics import mean_squared_error
 
 
-def eval_model(method, input_df, features, target, test_pct) -> ModelResult:
+def eval_model(method, input_df, features, target, test_pct, cv_splits) -> ModelResult:
     model_lookup = {RegressionMethod.RANDOM_FOREST: RandomForestRegressor(n_estimators=100, random_state=42),
                     RegressionMethod.GRADIENT_BOOST: GradientBoostingRegressor(n_estimators=100, random_state=42),
                     RegressionMethod.EXTRA_TREES: ExtraTreesRegressor(n_estimators=100, random_state=42),
@@ -20,15 +20,19 @@ def eval_model(method, input_df, features, target, test_pct) -> ModelResult:
                     RegressionMethod.HIST_GRADIENT_BOOST: HistGradientBoostingRegressor()}
     model = model_lookup.get(method, None)
     if model is not None:
-        return run_eval(model, input_df, features, target, test_pct)
+        return run_eval(model, input_df, features, target, test_pct, cv_splits)
 
 
-def run_eval(model, input_df, features, target, test_pct) -> ModelResult:
+def run_eval(model, input_df, features, target, test_pct, cv_splits) -> ModelResult:
     X = input_df[features]  # Features
     y = input_df[target]  # Labels
 
     # Split data, based on test percentage
     X_train, X_test, y_train, y_test = train_test_split(X.values, y, test_size=test_pct, shuffle=False)
+
+    # TimeSeries Cross validation
+    tscv = TimeSeriesSplit(n_splits=cv_splits)
+    cv_results = cross_val_score(model, X_train, y_train, cv=tscv, scoring='neg_mean_squared_error')
 
     model.fit(X_train, y_train)
 
@@ -42,6 +46,7 @@ def run_eval(model, input_df, features, target, test_pct) -> ModelResult:
                        mse=mse,
                        rmse=mse * (1 / 2.0),
                        model=model,
+                       cv_results=cv_results,
                        X_train=X_train,
                        X_test=X_test,
                        y_train=y_train,
