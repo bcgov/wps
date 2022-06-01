@@ -49,6 +49,9 @@ else:
 
 st.title("Fire Starts by Human Activity")
 st.header(f'{method} Results')
+
+# We sort data by timestamp, so that train/test splits respect temporal dimension
+df.sort_values(by='TIMESTAMP', inplace=True)
 df = df.set_index('DATE_ISO')
 
 features = ['FIRE_CENTRE', 'ZONE', 'TIMESTAMP']

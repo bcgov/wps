@@ -28,7 +28,7 @@ def run_eval(model, input_df, features, target, test_pct) -> ModelResult:
     y = input_df[target]  # Labels
 
     # Split data, based on test percentage
-    X_train, X_test, y_train, y_test = train_test_split(X.values, y, test_size=test_pct)
+    X_train, X_test, y_train, y_test = train_test_split(X.values, y, test_size=test_pct, shuffle=False)
 
     model.fit(X_train, y_train)
 
