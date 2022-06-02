@@ -124,9 +124,7 @@ def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, us
 def get_latest_hfi_ready_records(session: Session, hfi_request_id: int):
     """ Retrieve the latest hfi ready records for each distinct planning area in a hfi request """
     return session.query(HFIReady)\
-        .join(HFIRequest, HFIRequest.id == hfi_request_id)\
-        .distinct(HFIReady.planning_area_id)\
-        .order_by(HFIReady.planning_area_id, HFIReady.create_timestamp.desc())\
+        .filter(HFIReady.hfi_request_id == hfi_request_id)\
         .all()
 
 
