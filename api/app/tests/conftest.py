@@ -50,7 +50,7 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("ROCKET_AUTH_TOKEN", "sometoken")
     monkeypatch.setenv("ROCKET_USER_ID", "someid")
     monkeypatch.setenv("ROCKET_CHANNEL", "#channel")
-    monkeypatch.setenv("OPENSHIFT_NAMESPACE_API", "apis/apps/v1beta1/namespaces/")
+    monkeypatch.setenv("OPENSHIFT_NAMESPACE_API", "apis/apps/v1/namespaces/")
     monkeypatch.setenv("OBJECT_STORE_SERVER", "some server")
     monkeypatch.setenv("OBJECT_STORE_USER_ID", "some user id")
     monkeypatch.setenv("OBJECT_STORE_SECRET", "some secret")

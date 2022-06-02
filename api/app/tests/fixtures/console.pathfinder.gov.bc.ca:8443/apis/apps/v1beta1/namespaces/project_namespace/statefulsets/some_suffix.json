@@ -1,10 +1,10 @@
 {
   "kind": "StatefulSet",
-  "apiVersion": "apps/v1beta1",
+  "apiVersion": "apps/v1",
   "metadata": {
     "name": "patroni-wps-api-dev",
     "namespace": "e1e498-dev",
-    "selfLink": "/apis/apps/v1beta1/namespaces/e1e498-dev/statefulsets/patroni-wps-api-dev",
+    "selfLink": "/apis/apps/v1/namespaces/e1e498-dev/statefulsets/patroni-wps-api-dev",
     "uid": "1cb36251-dcef-11ea-bc4f-0050568348cc",
     "resourceVersion": "2023643219",
     "generation": 1,
