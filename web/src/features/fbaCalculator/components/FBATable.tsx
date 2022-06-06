@@ -22,7 +22,6 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
-import assert from 'assert'
 import { rowShouldUpdate, isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import TextDisplayCell from 'features/fbaCalculator/components/TextDisplayCell'
 import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
@@ -237,7 +236,6 @@ const FBATable = (props: FBATableProps) => {
       grassCure: undefined,
       windSpeed: undefined
     }
-    assert(!new Set(rows.map(row => row.id)).has(newRowId))
     const newRows = rows.concat(newRow)
     setRows(newRows)
   }
