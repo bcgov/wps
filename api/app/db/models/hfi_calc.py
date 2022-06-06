@@ -1,13 +1,17 @@
 """ Class models that reflect resources and map to database tables for HFI Calculator.
 """
-from sqlalchemy import (Column, Integer,
+import uuid
+from sqlalchemy import (Boolean, Column, Integer,
                         Sequence, ForeignKey, UniqueConstraint)
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql.sqltypes import String, Date, JSON
 from app.db.database import Base
 from app.db.models.common import TZTimeStamp
 
 
 FIRE_CENTRES_ID = 'fire_centres.id'
+HFI_REQUEST_ID = 'hfi_request.id'
+PLANNING_AREAS_ID = 'planning_areas.id'
 
 
 class FireCentre(Base):
@@ -101,6 +105,22 @@ class HFIRequest(Base):
     create_user = Column(String, nullable=False)
     # NOTE: If the structure of the request changes, the stored request may not longer remain compatible.
     request = Column(JSON)
+
+
+class HFIReady(Base):
+    """ HFI ready status of a planning area in a HFI request """
+    __tablename__ = 'hfi_ready'
+    __table_args__ = (
+        {'comment': 'Marks whether a planning area is ready for a particular HFI Request'}
+    )
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    hfi_request_id = Column(Integer, ForeignKey(HFI_REQUEST_ID), nullable=False, index=True)
+    planning_area_id = Column(Integer, ForeignKey(PLANNING_AREAS_ID), nullable=False, index=True)
+    ready = Column(Boolean, nullable=False, default=False, index=True)
+    create_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    create_user = Column(String, nullable=False)
+    update_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    update_user = Column(String, nullable=False)
 
 
 class FireStartRange(Base):
