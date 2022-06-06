@@ -1,6 +1,6 @@
 import { MultiFWIOutput } from 'api/multiFWIAPI'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
-import { merge, uniqBy } from 'lodash'
+import { merge } from 'lodash'
 import { DateTime } from 'luxon'
 import { pstFormatter } from 'utils/date'
 

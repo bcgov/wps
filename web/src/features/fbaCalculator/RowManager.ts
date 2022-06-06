@@ -3,7 +3,7 @@ import { GridMenuOption, FBAInputRow } from 'features/fbaCalculator/components/F
 import { formatCrownFractionBurned } from 'features/fbaCalculator/components/CrownFractionBurnedCell'
 import { formatCriticalHoursAsString } from 'features/fbaCalculator/components/CriticalHoursCell'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
-import _, { isNull, isUndefined, merge, uniqBy } from 'lodash'
+import _, { isNull, isUndefined, merge } from 'lodash'
 import { Order } from 'utils/table'
 export enum SortByColumn {
   Zone,
