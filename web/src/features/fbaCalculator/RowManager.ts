@@ -1,10 +1,9 @@
 import { FBAStation } from 'api/fbaCalcAPI'
-import assert from 'assert'
 import { GridMenuOption, FBAInputRow } from 'features/fbaCalculator/components/FBATable'
 import { formatCrownFractionBurned } from 'features/fbaCalculator/components/CrownFractionBurnedCell'
 import { formatCriticalHoursAsString } from 'features/fbaCalculator/components/CriticalHoursCell'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
-import _, { isNull, isUndefined, merge, uniqBy } from 'lodash'
+import _, { isNull, isUndefined, merge } from 'lodash'
 import { Order } from 'utils/table'
 export enum SortByColumn {
   Zone,
@@ -163,7 +162,6 @@ export class RowManager {
       return row
     })
 
-    assert(mergedRows.length === uniqBy(mergedRows, 'id').length)
     return mergedRows
   }
 
