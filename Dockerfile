@@ -1,10 +1,12 @@
 ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:python3.9-latest
-# SUPER IMPORTANT: NODE_OPTIONS="--v8-pool-size=2"
+# SUPER IMPORTANT: NODE_OPTIONS="--v8-pool-size=1"
 # A pod running in our openshift cluster, will report a ridiculous amount of cpu's available, as
 # it's reporting on the underlying hardware. Node, in it's wisdom, will try to scale to using a
 # huge amount of cpu's, which in turn results in massive memory usage. It's very important to
 # limit the cpu pool size to something realistic.
 ARG NODE_OPTIONS="--v8-pool-size=1"
+# Source maps are not required for production builds, only for development builds to assist
+# in debugging. We set this to false, to reduce memory usage.
 ARG GENERATE_SOURCEMAP=false
 
 # PHASE 1 - build static html.
