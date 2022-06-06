@@ -44,7 +44,7 @@ export const StaticCells = ({
   selectedFuelType
 }: StaticCellsProps): ReactElement => {
   const staticCells = range(numPrepDays).map(dailyIndex => {
-    const daily = dailies?.at(dailyIndex)
+    const daily = dailies ? dailies[dailyIndex] : undefined
     const error = isError(daily, selectedFuelType)
     return isUndefined(daily) ? (
       <EmptyStaticCells

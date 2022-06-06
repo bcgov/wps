@@ -1,7 +1,6 @@
 import { MultiFWIOutput } from 'api/multiFWIAPI'
-import assert from 'assert'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
-import { merge, uniqBy } from 'lodash'
+import { merge } from 'lodash'
 import { DateTime } from 'luxon'
 import { pstFormatter } from 'utils/date'
 
@@ -125,6 +124,5 @@ export const updateRows = <T extends { id: number }>(existingRows: Array<T>, upd
     return row
   })
 
-  assert(mergedRows.length === uniqBy(mergedRows, 'id').length)
   return mergedRows
 }
