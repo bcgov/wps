@@ -100,7 +100,7 @@ def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, us
         for latest_hfi_ready_record in latest_hfi_ready_records:
             updated_hfi_ready_records.append(HFIReady(hfi_request_id=latest_hfi_request_id,
                                                       planning_area_id=latest_hfi_ready_record.planning_area_id,
-                                                      ready=latest_hfi_ready_record.ready,
+                                                      ready=False,
                                                       create_timestamp=latest_hfi_ready_record.create_timestamp,
                                                       create_user=latest_hfi_ready_record.create_user,
                                                       update_timestamp=now,
