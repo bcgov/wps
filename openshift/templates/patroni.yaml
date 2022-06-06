@@ -95,8 +95,7 @@ objects:
       selector:
         matchLabels:
           statefulset: ${NAME}
-      service:
-        name: ${NAME}
+      serviceName: ${NAME}
       template:
         metadata:
           creationTimestamp: null
