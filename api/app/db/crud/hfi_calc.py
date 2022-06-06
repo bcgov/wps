@@ -145,6 +145,28 @@ def store_hfi_station(session: Session, station_code: int, fuel_type_id: int, pl
     session.commit()
 
 
+def toggle_ready(session: Session,
+                 planning_area_id: int,
+                 hfi_request_id: int,
+                 username: str) -> HFIReady:
+    """ Toggles the planning area ready state for an hfi request """
+    now = get_utc_now()
+    ready_state: HFIReady = session.query(HFIReady)\
+        .filter(HFIReady.planning_area_id == planning_area_id)\
+        .filter(HFIReady.hfi_request_id == hfi_request_id)\
+        .first()
+    if ready_state.ready is True:
+        ready_state.ready = False
+    else:
+        ready_state.ready = True
+    ready_state.update_timestamp = now
+    ready_state.update_user = username
+    session.add(ready_state)
+    session.commit()
+    session.refresh(ready_state)
+    return ready_state
+
+
 def get_last_station_in_planning_area(session: Session, planning_area_id: int) -> PlanningWeatherStation:
     """ Get the last station in a planning area """
     return session.query(PlanningWeatherStation)\

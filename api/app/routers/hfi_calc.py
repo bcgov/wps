@@ -22,7 +22,7 @@ from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
 from app.schemas.hfi_calc import (HFIAddStationRequest,
                                   HFIResultRequest,
                                   HFIResultResponse,
-                                  FireStartRange,
+                                  FireStartRange, HFIToggleReadyResponse,
                                   StationInfo,
                                   DateRange,
                                   FuelTypesResponse,
@@ -31,6 +31,7 @@ from app.auth import (auth_with_select_station_role_required,
                       auth_with_set_fire_starts_role_required,
                       auth_with_station_admin_role_required,
                       auth_with_set_fuel_type_role_required,
+                      auth_with_set_ready_state_required,
                       authentication_required,
                       audit)
 from app.schemas.shared import (FuelType)
@@ -41,7 +42,7 @@ from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_planning_weather_stations,
                                   store_hfi_request,
                                   get_fire_centre_stations,
-                                  store_hfi_station)
+                                  store_hfi_station, toggle_ready)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -366,7 +367,7 @@ async def get_fire_centres(response: Response):
     and weather stations within each planning area. Also returns the assigned fuel type
     for each weather station. """
     logger.info('/hfi-calc/fire-centres')
-    response.headers["Cache-Control"] = "max-age=0"
+    response.headers["Cache-Control"] = no_cache
 
     # Attempt to retrieve from cache
     cached_response = await get_cached_hydrated_fire_centres()
@@ -376,6 +377,25 @@ async def get_fire_centres(response: Response):
     response = HFIWeatherStationsResponse(fire_centres=fire_centres_list)
     await put_cached_hydrated_fire_centres(response)
     return response
+
+
+@router.post("/planning_area/{planning_area_id}/hfi_request/{hfi_request_id}/ready",
+             response_model=HFIResultResponse)
+async def toggle_planning_area_ready(planning_area_id: int,
+                                     hfi_request_id: int,
+                                     response: Response,
+                                     token=Depends(auth_with_set_ready_state_required)):
+    """ Set the fire start range, by id."""
+    logger.info("/planning_area/%s/hfi_request/%s/ready", planning_area_id, hfi_request_id)
+    response.headers["Cache-Control"] = no_cache
+
+    with get_write_session_scope() as session:
+        username = token.get('preferred_username', None)
+        ready_state = toggle_ready(session, planning_area_id, hfi_request_id, username)
+        response = HFIToggleReadyResponse(planning_area_id=ready_state.planning_area_id,
+                                          hfi_request_id=ready_state.hfi_request_id,
+                                          ready=ready_state.ready)
+        return response
 
 
 @router.post('/admin/add-station/{fire_centre_id}', status_code=status.HTTP_201_CREATED)
@@ -403,7 +423,7 @@ async def add_station(fire_centre_id: int,
                                 detail="Station already exists in planning area") from exception
 
 
-@router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')
+@ router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')
 async def get_pdf(
     fire_centre_id: int,
     start_date: date,

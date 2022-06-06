@@ -198,6 +198,12 @@ class HFIResultResponse(BaseModel):
     fire_start_ranges: List[FireStartRange]
 
 
+class HFIToggleReadyResponse(BaseModel):
+    planning_area_id: int
+    hfi_request_id: int
+    ready: bool
+
+
 class StationPDFData(StationDaily, WeatherStation):
     """ All the details we have about stations """
     fuel_type: FuelType
