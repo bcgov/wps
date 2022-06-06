@@ -1,4 +1,3 @@
-import assert from 'assert'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import _ from 'lodash'
 import { isNull } from 'lodash'
@@ -23,7 +22,6 @@ export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
       // malformed param query
       return null
     }
-    assert(params.length === 3 || params.length === 4)
 
     const rowToBuild = {
       weatherStation: '1',
@@ -33,7 +31,6 @@ export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
     }
     params.forEach(param => {
       const keyValPair = param.replace('?', '').split('=')
-      assert(keyValPair.length === 2)
       switch (keyValPair[0]) {
         case 's':
           rowToBuild.weatherStation = keyValPair[1]

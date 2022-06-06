@@ -30,7 +30,8 @@
     "eslint.run": "onSave",
     "[python]": {
         "editor.rulers": [
-            120
+            120,
+            100
         ]
     },
     "[yaml]": {
