@@ -146,7 +146,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 <TableCell className={classes.noBottomBorder}>
                                   {area.name}
                                   <PlanningAreaReadyToggle
-                                    disabled={false}
+                                    enabled={roles.includes(ROLES.HFI.SET_READY_STATE) && isAuthenticated}
                                     loading={loading}
                                     readyDetails={planningAreaReadyDetails[area.id]}
                                     toggleReady={toggleReady}

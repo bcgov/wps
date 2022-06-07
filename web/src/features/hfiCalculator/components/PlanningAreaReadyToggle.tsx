@@ -6,13 +6,13 @@ import { ReadyPlanningAreaDetails } from 'api/hfiCalculatorAPI'
 import { isUndefined } from 'lodash'
 
 export interface PlanningAreaReadyToggleProps {
-  disabled: boolean
+  enabled: boolean
   loading: boolean
   readyDetails?: ReadyPlanningAreaDetails
   toggleReady: (planningAreaId: number, hfiRequestId: number) => void
 }
 
-const PlanningAreaReadyToggle = ({ disabled, loading, readyDetails, toggleReady }: PlanningAreaReadyToggleProps) => {
+const PlanningAreaReadyToggle = ({ enabled, loading, readyDetails, toggleReady }: PlanningAreaReadyToggleProps) => {
   const toggleReadyTheme = createTheme({
     components: {
       MuiTooltip: {
@@ -24,30 +24,34 @@ const PlanningAreaReadyToggle = ({ disabled, loading, readyDetails, toggleReady 
       }
     }
   })
-  const toolTipText = `Marked ready by ${readyDetails?.update_user} at ${readyDetails?.update_timestamp.toISO()}`
+  const toolTipText = readyDetails?.ready
+    ? `Marked ready by ${readyDetails?.update_user} at ${readyDetails?.update_timestamp.toISO()}`
+    : ''
   return (
-    <IconButton
-      aria-label="hfi-toggle-ready"
-      data-testid="hfi-toggle-ready"
-      disabled={disabled || loading}
-      onClick={() => {
-        if (!isUndefined(readyDetails)) {
-          toggleReady(readyDetails.planning_area_id, readyDetails.hfi_request_id)
-        }
-      }}
-    >
-      {readyDetails?.ready ? (
-        <StyledEngineProvider injectFirst>
-          <ThemeProvider theme={toggleReadyTheme}>
-            <Tooltip title={toolTipText} aria-label={toolTipText}>
-              <ToggleOnOutlinedIcon fontSize="large" color="success" />
-            </Tooltip>
-          </ThemeProvider>
-        </StyledEngineProvider>
-      ) : (
-        <ToggleOffOutlinedIcon fontSize="large" />
-      )}
-    </IconButton>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={toggleReadyTheme}>
+        <Tooltip title={toolTipText} aria-label={toolTipText}>
+          <span>
+            <IconButton
+              aria-label="hfi-toggle-ready"
+              data-testid="hfi-toggle-ready"
+              disabled={!enabled || loading}
+              onClick={() => {
+                if (!isUndefined(readyDetails)) {
+                  toggleReady(readyDetails.planning_area_id, readyDetails.hfi_request_id)
+                }
+              }}
+            >
+              {readyDetails?.ready ? (
+                <ToggleOnOutlinedIcon fontSize="large" color="success" />
+              ) : (
+                <ToggleOffOutlinedIcon fontSize="large" />
+              )}
+            </IconButton>
+          </span>
+        </Tooltip>
+      </ThemeProvider>
+    </StyledEngineProvider>
   )
 }
 
