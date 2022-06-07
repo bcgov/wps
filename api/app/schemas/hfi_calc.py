@@ -198,7 +198,7 @@ class HFIResultResponse(BaseModel):
     fire_start_ranges: List[FireStartRange]
 
 
-class HFIToggleReadyResponse(BaseModel):
+class HFIReadyState(BaseModel):
     planning_area_id: int
     hfi_request_id: int
     ready: bool
@@ -206,6 +206,10 @@ class HFIToggleReadyResponse(BaseModel):
     create_user: str
     update_timestamp: datetime
     update_user: str
+
+
+class HFIAllReadyStatesResponse(BaseModel):
+    ready_states: List[HFIReadyState]
 
 
 class StationPDFData(StationDaily, WeatherStation):

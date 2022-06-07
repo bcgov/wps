@@ -13,6 +13,7 @@ import {
   fetchSetFuelType,
   setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { fetchAllReadyStates } from 'features/hfiCalculator/slices/hfiReadySlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   selectHFIStations,
@@ -203,6 +204,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireCentres])
+
+  useEffect(() => {
+    if (!isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
+      // Request all ready states for hfi request unique by date and fire centre
+      dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
+      console.log('Grabbing all ready states')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFireCentre, dateRange])
 
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))

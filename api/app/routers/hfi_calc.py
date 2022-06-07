@@ -19,10 +19,10 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (HFIAddStationRequest,
+from app.schemas.hfi_calc import (HFIAddStationRequest, HFIAllReadyStatesResponse,
                                   HFIResultRequest,
                                   HFIResultResponse,
-                                  FireStartRange, HFIToggleReadyResponse,
+                                  FireStartRange, HFIReadyState,
                                   StationInfo,
                                   DateRange,
                                   FuelTypesResponse,
@@ -40,6 +40,7 @@ from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   get_planning_weather_stations,
+                                  get_latest_hfi_ready_records,
                                   store_hfi_request,
                                   get_fire_centre_stations,
                                   store_hfi_station, toggle_ready)
@@ -379,8 +380,38 @@ async def get_fire_centres(response: Response):
     return response
 
 
+@router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/ready')
+async def get_all_ready_records(
+    fire_centre_id: int,
+    start_date: date,
+    end_date: date,
+    response: Response,
+    _=Depends(authentication_required)
+):
+    logger.info("/fire_centre/%s/start_date/%s/end_date/%s/ready", fire_centre_id, start_date, end_date)
+    response.headers["Cache-Control"] = no_cache
+
+    with get_read_session_scope() as session:
+        hfi_request = get_most_recent_updated_hfi_request(session,
+                                                          fire_centre_id,
+                                                          DateRange(
+                                                              start_date=start_date,
+                                                              end_date=end_date))
+        ready_states: List[HFIReadyState] = []
+        ready_records: List[app.db.models.hfi_calc.HFIReady] = get_latest_hfi_ready_records(session, hfi_request.id)
+        for record in ready_records:
+            ready_states.append(HFIReadyState(planning_area_id=record.planning_area_id,
+                                              hfi_request_id=record.hfi_request_id,
+                                              ready=record.ready,
+                                              create_timestamp=record.create_timestamp,
+                                              create_user=record.create_user,
+                                              update_timestamp=record.update_timestamp,
+                                              update_user=record.update_user))
+        return HFIAllReadyStatesResponse(ready_states=ready_states)
+
+
 @router.post("/planning_area/{planning_area_id}/hfi_request/{hfi_request_id}/ready",
-             response_model=HFIToggleReadyResponse)
+             response_model=HFIReadyState)
 async def toggle_planning_area_ready(planning_area_id: int,
                                      hfi_request_id: int,
                                      response: Response,
@@ -392,13 +423,13 @@ async def toggle_planning_area_ready(planning_area_id: int,
     with get_write_session_scope() as session:
         username = token.get('preferred_username', None)
         ready_state = toggle_ready(session, planning_area_id, hfi_request_id, username)
-        response = HFIToggleReadyResponse(planning_area_id=ready_state.planning_area_id,
-                                          hfi_request_id=ready_state.hfi_request_id,
-                                          ready=ready_state.ready,
-                                          create_timestamp=ready_state.create_timestamp,
-                                          create_user=ready_state.create_user,
-                                          update_timestamp=ready_state.update_timestamp,
-                                          update_user=ready_state.update_user)
+        response = HFIReadyState(planning_area_id=ready_state.planning_area_id,
+                                 hfi_request_id=ready_state.hfi_request_id,
+                                 ready=ready_state.ready,
+                                 create_timestamp=ready_state.create_timestamp,
+                                 create_user=ready_state.create_user,
+                                 update_timestamp=ready_state.update_timestamp,
+                                 update_user=ready_state.update_user)
         return response
 
 
@@ -427,7 +458,7 @@ async def add_station(fire_centre_id: int,
                                 detail="Station already exists in planning area") from exception
 
 
-@ router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')
+@router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')
 async def get_pdf(
     fire_centre_id: int,
     start_date: date,

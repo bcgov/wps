@@ -92,14 +92,8 @@ export interface ReadyPlanningAreaDetails {
   update_user: string
 }
 
-export interface RawReadyPlanningAreaDetails {
-  planning_area_id: number
-  hfi_request_id: number
-  ready: boolean
-  create_timestamp: string
-  create_user: string
-  update_timestamp: string
-  update_user: string
+export interface HFIAllReadyStatesResponse {
+  ready_states: RawReadyPlanningAreaDetails[]
 }
 
 /**
@@ -141,11 +135,26 @@ export async function getFuelTypes(): Promise<FuelTypesResponse> {
   return data.data
 }
 
+export async function getAllReadyStates(
+  fire_centre_id: number,
+  start_date: string,
+  end_date: string
+): Promise<ReadyPlanningAreaDetails[]> {
+  const url = baseUrl + 'fire_centre/' + fire_centre_id + '/' + start_date + '/' + end_date + '/ready'
+
+  const { data } = await axios.get<HFIAllReadyStatesResponse>(url)
+  return data.ready_states.map(planningAreaReadyState => ({
+    ...planningAreaReadyState,
+    create_timestamp: formatISODateInPST(planningAreaReadyState.create_timestamp),
+    update_timestamp: formatISODateInPST(planningAreaReadyState.update_timestamp)
+  }))
+}
+
 export async function toggleReadyState(
   planning_area_id: number,
   hfi_request_id: number
 ): Promise<ReadyPlanningAreaDetails> {
-  const url = baseUrl + '/planning_area/' + planning_area_id + '/hfi_request/' + hfi_request_id + '/ready'
+  const url = baseUrl + 'planning_area/' + planning_area_id + '/hfi_request/' + hfi_request_id + '/ready'
 
   const { data } = await axios.post<RawReadyPlanningAreaDetails>(url)
   return {

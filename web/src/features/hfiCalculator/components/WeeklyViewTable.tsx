@@ -19,14 +19,16 @@ import {
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
-import { selectAuthentication, selectHFICalculatorState } from 'app/rootReducer'
-import { useSelector } from 'react-redux'
+import { selectAuthentication, selectHFICalculatorState, selectHFIReadyState } from 'app/rootReducer'
+import { useDispatch, useSelector } from 'react-redux'
 import { FireStartRange, PlanningAreaResult, PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
 import { ROLES } from 'features/auth/roles'
 import PlanningAreaReadyToggle from 'features/hfiCalculator/components/PlanningAreaReadyToggle'
+import { AppDispatch } from 'app/store'
+import { fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -44,9 +46,15 @@ const useStyles = makeStyles({
 
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
+  const dispatch: AppDispatch = useDispatch()
 
   const { result } = useSelector(selectHFICalculatorState)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
+  const { loading, planningAreaReadyDetails } = useSelector(selectHFIReadyState)
+
+  const toggleReady = (planningAreaId: number, hfiRequestId: number) => {
+    dispatch(fetchToggleReadyState(planningAreaId, hfiRequestId))
+  }
 
   const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
     if (isUndefined(result) || isUndefined(result?.planning_area_station_info)) {
@@ -136,7 +144,13 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             <TableBody>
                               <TableRow>
                                 <TableCell className={classes.noBottomBorder}>
-                                  {area.name} <PlanningAreaReadyToggle disabled={false} />
+                                  {area.name}
+                                  <PlanningAreaReadyToggle
+                                    disabled={false}
+                                    loading={loading}
+                                    readyDetails={planningAreaReadyDetails[area.id]}
+                                    toggleReady={toggleReady}
+                                  />
                                 </TableCell>
                               </TableRow>
                             </TableBody>

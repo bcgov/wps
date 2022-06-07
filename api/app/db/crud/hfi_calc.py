@@ -121,7 +121,7 @@ def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, us
         session.bulk_save_objects(new_hfi_ready_records)
 
 
-def get_latest_hfi_ready_records(session: Session, hfi_request_id: int):
+def get_latest_hfi_ready_records(session: Session, hfi_request_id: int) -> List[HFIReady]:
     """ Retrieve the latest hfi ready records for each distinct planning area in a hfi request """
     return session.query(HFIReady)\
         .filter(HFIReady.hfi_request_id == hfi_request_id)\
