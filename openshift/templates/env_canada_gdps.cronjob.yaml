@@ -40,7 +40,7 @@ parameters:
     value: "1000"
 objects:
   - kind: CronJob
-    apiVersion: batch/v1beta1
+    apiVersion: batch/v1
     metadata:
       name: ${JOB_NAME}
       labels:
