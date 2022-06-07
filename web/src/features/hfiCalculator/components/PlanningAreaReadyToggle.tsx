@@ -1,4 +1,4 @@
-import { IconButton } from '@mui/material'
+import { createTheme, ThemeProvider, StyledEngineProvider, Tooltip, IconButton } from '@mui/material'
 import ToggleOffOutlinedIcon from '@mui/icons-material/ToggleOffOutlined'
 import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined'
 import React from 'react'
@@ -13,6 +13,18 @@ export interface PlanningAreaReadyToggleProps {
 }
 
 const PlanningAreaReadyToggle = ({ disabled, loading, readyDetails, toggleReady }: PlanningAreaReadyToggleProps) => {
+  const toggleReadyTheme = createTheme({
+    components: {
+      MuiTooltip: {
+        styleOverrides: {
+          tooltip: {
+            fontSize: 14
+          }
+        }
+      }
+    }
+  })
+  const toolTipText = `Marked ready by ${readyDetails?.update_user} at ${readyDetails?.update_timestamp.toISO()}`
   return (
     <IconButton
       aria-label="hfi-toggle-ready"
@@ -25,7 +37,13 @@ const PlanningAreaReadyToggle = ({ disabled, loading, readyDetails, toggleReady 
       }}
     >
       {readyDetails?.ready ? (
-        <ToggleOnOutlinedIcon fontSize="large" color="success" />
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={toggleReadyTheme}>
+            <Tooltip title={toolTipText} aria-label={toolTipText}>
+              <ToggleOnOutlinedIcon fontSize="large" color="success" />
+            </Tooltip>
+          </ThemeProvider>
+        </StyledEngineProvider>
       ) : (
         <ToggleOffOutlinedIcon fontSize="large" />
       )}
