@@ -145,8 +145,8 @@ export async function getAllReadyStates(
   const { data } = await axios.get<HFIAllReadyStatesResponse>(url)
   return data.ready_states.map(planningAreaReadyState => ({
     ...planningAreaReadyState,
-    create_timestamp: formatISODateInPST(planningAreaReadyState.create_timestamp),
-    update_timestamp: formatISODateInPST(planningAreaReadyState.update_timestamp)
+    create_timestamp: DateTime.fromISO(planningAreaReadyState.create_timestamp),
+    update_timestamp: DateTime.fromISO(planningAreaReadyState.update_timestamp)
   }))
 }
 
@@ -159,8 +159,8 @@ export async function toggleReadyState(
   const { data } = await axios.post<RawReadyPlanningAreaDetails>(url)
   return {
     ...data,
-    create_timestamp: formatISODateInPST(data.create_timestamp),
-    update_timestamp: formatISODateInPST(data.update_timestamp)
+    create_timestamp: DateTime.fromISO(data.create_timestamp),
+    update_timestamp: DateTime.fromISO(data.update_timestamp)
   }
 }
 
