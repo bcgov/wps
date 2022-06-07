@@ -41,6 +41,7 @@ describe('hfiReadySlice', () => {
       const existingState = {
         loading: false,
         error: null,
+        readyToggleSuccess: false,
         planningAreaReadyDetails: {
           '1': {
             planning_area_id: 1,

@@ -19,7 +19,8 @@ import {
   selectHFIStations,
   selectHFIStationsLoading,
   selectHFICalculatorState,
-  selectAuthentication
+  selectAuthentication,
+  selectHFIReadyState
 } from 'app/rootReducer'
 import { FormControl } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -101,6 +102,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     changeSaved,
     fuelTypes
   } = useSelector(selectHFICalculatorState)
+  const { readyToggleSuccess } = useSelector(selectHFIReadyState)
 
   const setSelectedStation = (planningAreaId: number, code: number, selected: boolean) => {
     if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
@@ -232,7 +234,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   const buildSuccessNotification = () => {
-    if (changeSaved) {
+    if (changeSaved || readyToggleSuccess) {
       return <HFISuccessAlert message="Changes saved!" />
     }
     return <React.Fragment></React.Fragment>

@@ -8,12 +8,14 @@ import { logError } from 'utils/error'
 export interface HFIReadyState {
   loading: boolean
   error: string | null
+  readyToggleSuccess: boolean
   planningAreaReadyDetails: { [key: string]: ReadyPlanningAreaDetails }
 }
 
 export const initialState: HFIReadyState = {
   loading: false,
   error: null,
+  readyToggleSuccess: false,
   planningAreaReadyDetails: {}
 }
 
@@ -27,17 +29,21 @@ const hfiReady = createSlice({
   reducers: {
     setHFIReadyStart(state: HFIReadyState) {
       state.loading = true
+      state.readyToggleSuccess = false
     },
     setHFIToggleReadyState(state: HFIReadyState, action: PayloadAction<ReadyPlanningAreaDetails>) {
       state.loading = false
+      state.readyToggleSuccess = true
       state.planningAreaReadyDetails[action.payload.planning_area_id] = action.payload
     },
     setAllReadyStates(state: HFIReadyState, action: PayloadAction<ReadyPlanningAreaDetails[]>) {
       state.loading = false
+      state.readyToggleSuccess = false
       state.planningAreaReadyDetails = buildPlanningAreaDetails(action.payload)
     },
     setHFIReadyFailed(state: HFIReadyState, action: PayloadAction<string>) {
       state.loading = false
+      state.readyToggleSuccess = false
       state.error = action.payload
     }
   }
