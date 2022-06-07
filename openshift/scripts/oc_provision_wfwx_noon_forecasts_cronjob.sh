@@ -31,13 +31,13 @@ SCHEDULE="${SCHEDULE:-$((31 + $RANDOM % 29)) 8,16 * * *}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/wfwx_noon_forecasts.cronjob.yaml \
--p JOB_NAME=wfwx-noon-forecasts-${NAME_APP}-${SUFFIX} \
--p NAME=${NAME_APP} \
+-p JOB_NAME=wfwx-noon-forecasts-${APP_NAME}-${SUFFIX} \
+-p NAME=${APP_NAME}-api \
 -p SUFFIX=${SUFFIX} \
 -p SCHEDULE=\"${SCHEDULE}\" \
--p POSTGRES_USER=${POSTGRES_USER:-${NAME_DB}} \
--p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${NAME_DB}} \
--p POSTGRES_WRITE_HOST=${POSTGRES_WRITE_HOST:-"patroni-${NAME_DB}-${SUFFIX}-leader"} \
+-p POSTGRES_USER=${POSTGRES_USER:-${APP_NAME}} \
+-p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${APP_NAME}} \
+-p POSTGRES_WRITE_HOST=${POSTGRES_WRITE_HOST:-"patroni-${APP_NAME}-${SUFFIX}-leader"} \
 ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
 ${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"}"
 

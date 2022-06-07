@@ -1,7 +1,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: ${NAME}
+  name: ${APP_NAME}-${MODULE_NAME}
   annotations:
     openshift.io/display-name: "wps"
     description: "Wildfire Predictive Services - API"
@@ -12,12 +12,15 @@ metadata:
     openshift.io/documentation-url: "https://github.com/bcgov/wps"
     openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
-  app.kubernetes.io/part-of: "${NAME}"
-  app: ${NAME}-${SUFFIX}
+  app.kubernetes.io/part-of: "${APP_NAME}-${MODULE_NAME}"
+  app: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
 parameters:
-  - name: NAME
-    description: Module name
-    value: ${NAME}
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
+    value: wps
+  - name: MODULE_NAME
+    description: Module name (api, web, c-haines, etc. etc.)
+    value: api
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-### or prod
     required: true
@@ -41,9 +44,9 @@ objects:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
-        app: ${NAME}-${SUFFIX}
+        app: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
         common: "true"
-      name: ${NAME}-${SUFFIX}
+      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
     spec:
       lookupPolicy:
         local: false
@@ -53,14 +56,14 @@ objects:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
-        app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}
+        app: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
     spec:
       completionDeadlineSeconds: 1200 # 20 minutes
       output:
         to:
           kind: ImageStreamTag
-          name: ${NAME}-${SUFFIX}:${SUFFIX}
+          name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}
       resources:
         limits:
           cpu: "0"

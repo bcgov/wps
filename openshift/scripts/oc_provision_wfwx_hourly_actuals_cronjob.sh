@@ -31,13 +31,13 @@ SCHEDULE="${SCHEDULE:-$((16 + $RANDOM % 43)) * * * *}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/wfwx_hourly_actuals.cronjob.yaml \
--p JOB_NAME=wfwx-hourly-actuals-${NAME_APP}-${SUFFIX} \
--p NAME=${NAME_APP} \
+-p JOB_NAME=wfwx-hourly-actuals-${APP_NAME}-${SUFFIX} \
+-p NAME=${APP_NAME}-api \
 -p SUFFIX=${SUFFIX} \
 -p SCHEDULE=\"${SCHEDULE}\" \
--p POSTGRES_USER=${POSTGRES_USER:-${NAME_DB}} \
--p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${NAME_DB}} \
--p POSTGRES_WRITE_HOST=${POSTGRES_WRITE_HOST:-"patroni-${NAME_DB}-${SUFFIX}-leader"} \
+-p POSTGRES_USER=${POSTGRES_USER:-${APP_NAME}} \
+-p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${APP_NAME}} \
+-p POSTGRES_WRITE_HOST=${POSTGRES_WRITE_HOST:-"patroni-${APP_NAME}-${SUFFIX}-leader"} \
 ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
 ${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"}"
 

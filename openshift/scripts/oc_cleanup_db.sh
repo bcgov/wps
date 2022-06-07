@@ -33,7 +33,7 @@ fi
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
-APPLICATION_NAME="patroni-${NAME_APP}-${SUFFIX}"
+APPLICATION_NAME="patroni-${APP_NAME}-${SUFFIX}"
 
 OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
     all,cm,secret,endpoints,serviceaccounts,rolebinding.rbac.authorization.k8s.io,roles.rbac.authorization.k8s.io,pvc \
@@ -43,7 +43,7 @@ OC_CLEAN_CONFIGMAPS="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
     configmaps \
     -o name -l cluster-name=${APPLICATION_NAME}"
 
-OC_CLEAN_PATRONI_NETWORK_POLICY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} networkpolicy patroni-db-to-db-patroni-${NAME_APP}-${SUFFIX} --ignore-not-found=true" 
+OC_CLEAN_PATRONI_NETWORK_POLICY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} networkpolicy patroni-db-to-db-patroni-${APP_NAME}-${SUFFIX} --ignore-not-found=true" 
 
 # Execute commands
 #

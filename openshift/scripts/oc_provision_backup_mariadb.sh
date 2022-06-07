@@ -27,12 +27,12 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Prepare variables for backups
-NAME="backup-mariadb-${NAME_APP}-${SUFFIX}"
+NAME="backup-mariadb-${APP_NAME}-${SUFFIX}"
 IMAGE_NAMESPACE=${PROJ_TOOLS}
 EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-mariadb.dc.yaml \
-    -p APP_LABEL=${NAME_APP}-${SUFFIX} \
+    -p APP_LABEL=${APP_NAME}-${SUFFIX} \
     -p NAME=${NAME} \
     -p BACKUP_VOLUME_NAME=${NAME} \
     -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \

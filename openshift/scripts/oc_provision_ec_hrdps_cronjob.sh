@@ -30,14 +30,14 @@ SCHEDULE="${SCHEDULE:-$((13 + $RANDOM % 46)) * * * *}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/env_canada_hrdps.cronjob.yaml \
--p JOB_NAME=env-canada-hrdps-${NAME_APP}-${SUFFIX} \
--p NAME=${NAME_APP} \
+-p JOB_NAME=env-canada-hrdps-${APP_NAME}-api-${SUFFIX} \
+-p NAME=${APP_NAME}-api \
 -p SUFFIX=${SUFFIX} \
 -p SCHEDULE=\"${SCHEDULE}\" \
--p POSTGRES_USER=${POSTGRES_USER:-${NAME_DB}} \
--p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${NAME_DB}} \
--p POSTGRES_WRITE_HOST=${POSTGRES_WRITE_HOST:-"patroni-${NAME_DB}-${SUFFIX}-leader"} \
--p POSTGRES_READ_HOST=${POSTGRES_READ_HOST:-"patroni-${NAME_DB}-${SUFFIX}-replica"} \
+-p POSTGRES_USER=${POSTGRES_USER:-${APP_NAME}} \
+-p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${APP_NAME}} \
+-p POSTGRES_WRITE_HOST=${POSTGRES_WRITE_HOST:-"patroni-${APP_NAME}-${SUFFIX}-leader"} \
+-p POSTGRES_READ_HOST=${POSTGRES_READ_HOST:-"patroni-${APP_NAME}-${SUFFIX}-replica"} \
 ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
 ${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"}"
 

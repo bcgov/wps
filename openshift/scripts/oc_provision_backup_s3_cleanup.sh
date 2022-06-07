@@ -16,7 +16,7 @@ source "$(dirname ${0})/common/common"
 #%
 #%   ${THIS_FILE} pr-0
 
-CLUSTER_NAME="patroni-${NAME_APP}-${SUFFIX}"
+CLUSTER_NAME="patroni-${APP_NAME}-${SUFFIX}"
 JOB="job/cleanup-s3-wps-${SUFFIX}"
 
 # create the job
