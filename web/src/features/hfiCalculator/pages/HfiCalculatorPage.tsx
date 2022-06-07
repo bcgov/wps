@@ -209,7 +209,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     if (!isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
       // Request all ready states for hfi request unique by date and fire centre
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
-      console.log('Grabbing all ready states')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre, dateRange])
