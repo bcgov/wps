@@ -380,7 +380,7 @@ async def get_fire_centres(response: Response):
 
 
 @router.post("/planning_area/{planning_area_id}/hfi_request/{hfi_request_id}/ready",
-             response_model=HFIResultResponse)
+             response_model=HFIToggleReadyResponse)
 async def toggle_planning_area_ready(planning_area_id: int,
                                      hfi_request_id: int,
                                      response: Response,
@@ -394,7 +394,11 @@ async def toggle_planning_area_ready(planning_area_id: int,
         ready_state = toggle_ready(session, planning_area_id, hfi_request_id, username)
         response = HFIToggleReadyResponse(planning_area_id=ready_state.planning_area_id,
                                           hfi_request_id=ready_state.hfi_request_id,
-                                          ready=ready_state.ready)
+                                          ready=ready_state.ready,
+                                          create_timestamp=ready_state.create_timestamp,
+                                          create_user=ready_state.create_user,
+                                          update_timestamp=ready_state.update_timestamp,
+                                          update_user=ready_state.update_user)
         return response
 
 

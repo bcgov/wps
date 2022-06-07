@@ -202,6 +202,10 @@ class HFIToggleReadyResponse(BaseModel):
     planning_area_id: int
     hfi_request_id: int
     ready: bool
+    create_timestamp: datetime
+    create_user: str
+    update_timestamp: datetime
+    update_user: str
 
 
 class StationPDFData(StationDaily, WeatherStation):

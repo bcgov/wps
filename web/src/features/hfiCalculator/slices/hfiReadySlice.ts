@@ -1,15 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
-export interface ReadyPlanningAreaDetails {
-  id: string
-  hfi_request_id: number
-  planning_area_id: number
-  ready: boolean
-  create_timestamp: string
-  create_user: string
-  update_timestamp: string
-  update_user: string
-}
+import { ReadyPlanningAreaDetails, toggleReadyState } from 'api/hfiCalculatorAPI'
+import { AppThunk } from 'app/store'
+import { AxiosError } from 'axios'
+import { logError } from 'utils/error'
 
 export interface HFIReadyState {
   loading: boolean
@@ -30,16 +23,31 @@ const hfiReady = createSlice({
     setHFIReadyStart(state: HFIReadyState) {
       state.loading = true
     },
-    // setHFIReady: (state: HFIReadyState, action: PayloadAction<FuelTypesResponse>) => {
-    //   state.loading = false
-    // },
-    fetchHFIReadyFailed(state: HFIReadyState, action: PayloadAction<string>) {
+    setHFIToggleReadyState(state: HFIReadyState, action: PayloadAction<ReadyPlanningAreaDetails>) {
+      state.loading
+      state.planningAreaReadyDetails[action.payload.planning_area_id] = action.payload
+    },
+    setHFIReadyFailed(state: HFIReadyState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     }
   }
 })
 
-export const { setHFIReadyStart, fetchHFIReadyFailed } = hfiReady.actions
+export const { setHFIReadyStart, setHFIToggleReadyState, setHFIReadyFailed } = hfiReady.actions
 
 export default hfiReady.reducer
+
+export const fetchToggleReadyState =
+  (planning_area_id: number, hfi_request_id: number): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(setHFIReadyStart())
+      const readyState = await toggleReadyState(planning_area_id, hfi_request_id)
+      dispatch(setHFIToggleReadyState(readyState))
+    } catch (err) {
+      const { response } = err as AxiosError
+      dispatch(setHFIReadyFailed(response?.data.detail))
+      logError(err)
+    }
+  }
