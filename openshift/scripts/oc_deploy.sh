@@ -15,7 +15,7 @@ source "$(dirname ${0})/common/common"
 #%
 #% Examples:
 #%
-#%   Provide a PR number. Defaults to a dry-run.
+#%   Provide a PR number. Defaults to a dry-run=client.
 #%   ${THIS_FILE} pr-0
 #%
 #%   Apply when satisfied.
@@ -51,10 +51,10 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DC} \
  ${ENVIRONMENT:+ "-p ENVIRONMENT=${ENVIRONMENT}"} \
  ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"}"
 
-# Apply a template (apply or use --dry-run)
+# Apply a template (apply or use --dry-run=client)
 #
 OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
-[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run"
+[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
 
 # Cancel all previous deployments
 #
@@ -66,7 +66,7 @@ OC_DEPLOY="oc -n ${PROJ_TARGET} rollout latest dc/${NAME_OBJ}"
 OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=2m dc/${NAME_OBJ}"
 if [ ! "${APPLY}" ]; then
   OC_CANCEL_ALL_PREV_DEPLOY=""
-  OC_DEPLOY="${OC_DEPLOY} --dry-run || true" # in case there is no previous rollout
+  OC_DEPLOY="${OC_DEPLOY} --dry-run=client || true" # in case there is no previous rollout
   OC_LOG=""
 fi
 
