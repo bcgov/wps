@@ -30,7 +30,7 @@ const PlanningAreaReadyToggle = ({ enabled, loading, readyDetails, toggleReady }
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={toggleReadyTheme}>
-        <Tooltip title={toolTipText} aria-label={toolTipText}>
+        <Tooltip data-testid="hfi-ready-tooltip" title={toolTipText} aria-label={toolTipText}>
           <span>
             <IconButton
               aria-label="hfi-toggle-ready"
