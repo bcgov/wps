@@ -58,6 +58,7 @@ objects:
         metadata:
           labels:
             cronjob: ${JOB_NAME}
+            app: ${APP_LABEL}
         spec:
           template:
             spec:

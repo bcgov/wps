@@ -20,7 +20,8 @@ source "$(dirname ${0})/common/common"
 #%   Apply when satisfied.
 #%   ${THIS_FILE} pr-0 apply
 #%
-OBJ_NAME="${APP_NAME}-${SUFFIX}"
+OBJ_NAME="${APP_NAME}-${MODULE_NAME}-${SUFFIX}"
+APP_LABEL="${APP_NAME}-${SUFFIX}"
 
 # Delete (apply) or get (not apply) items matching the a label
 #
@@ -29,10 +30,9 @@ if [ "${APPLY}" ]; then
 else
 	DELETE_OR_GET="get"
 fi
-OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc -o name -l app=${OBJ_NAME}"
+OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc -o name -l app=${APP_LABEL}"
+# TODO: hoping I can now use the cronjob pods?
 OC_DELETE_EC_PODS="oc -n ${PROJ_TARGET} get pods -o name | { grep -E 'env-canada-(gdps|rdps|hrdps)-${OBJ_NAME}' || test \$? = 1; } | { xargs -r oc ${DELETE_OR_GET} --ignore-not-found=true || test \$? = 1; } | cat"
-OC_CLEAN_MARIDB_BACKUP="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l app=backup-mariadb-${OBJ_NAME}"
-OC_CLEAN_BACKUP_POSTGRES="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l app=backup-postgres-${OBJ_NAME}"
 
 # Execute commands
 #

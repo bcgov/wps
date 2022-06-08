@@ -121,6 +121,7 @@ objects:
           labels:
             template: "${JOB_NAME}-job"
             cronjob: "${JOB_NAME}"
+            app: ${APP_LABEL}
         spec:
           backoffLimit: ${{JOB_BACKOFF_LIMIT}}
           template:
