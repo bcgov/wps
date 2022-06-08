@@ -60,6 +60,7 @@ objects:
       name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
     spec:
       completionDeadlineSeconds: 1200 # 20 minutes
+      runPolicy: SerialLatestOnly
       output:
         to:
           kind: ImageStreamTag
