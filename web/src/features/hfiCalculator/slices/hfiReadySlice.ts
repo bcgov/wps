@@ -34,7 +34,7 @@ const hfiReady = createSlice({
     setHFIToggleReadyState(state: HFIReadyState, action: PayloadAction<ReadyPlanningAreaDetails>) {
       state.loading = false
       state.readyToggleSuccess = true
-      state.planningAreaReadyDetails[action.payload.planning_area_id] = action.payload
+      state.planningAreaReadyDetails[action.payload.planning_area_id] = { ...action.payload }
     },
     setAllReadyStates(state: HFIReadyState, action: PayloadAction<ReadyPlanningAreaDetails[]>) {
       state.loading = false
