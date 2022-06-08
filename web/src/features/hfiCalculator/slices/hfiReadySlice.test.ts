@@ -32,10 +32,11 @@ describe('hfiReadySlice', () => {
         update_timestamp: DateTime.fromISO('2017-05-25T09:08:34.123'),
         update_user: 'test'
       }
-      expect(hfiReadyReducer(initialState, setHFIToggleReadyState(newDetails))).toEqual({
-        ...initialState,
-        ...newDetails
-      })
+      const res = hfiReadyReducer(initialState, setHFIToggleReadyState(newDetails))
+      expect(res.planningAreaReadyDetails['1'].planning_area_id).toBe(1)
+      expect(res.planningAreaReadyDetails['1'].ready).toBe(true)
+      expect(res.planningAreaReadyDetails['1'].create_timestamp).toEqual(DateTime.fromISO('2016-05-25T09:08:34.123'))
+      expect(res.planningAreaReadyDetails['1'].update_timestamp).toEqual(DateTime.fromISO('2017-05-25T09:08:34.123'))
     })
     it('should update ready state details cumulatively', () => {
       const existingState = {
