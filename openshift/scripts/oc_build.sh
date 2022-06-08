@@ -20,7 +20,7 @@ source "$(dirname ${0})/common/common"
 # %   Apply when satisfied.
 # %   ${THIS_FILE} pr-0 apply
 # %
-OBJ_NAME="${APP_NAME}-${SUFFIX}"
+OBJ_NAME="${APP_NAME}-${MODULE_NAME}-${SUFFIX}"
 
 # Process a template (mostly variable substition)
 #​​

@@ -83,7 +83,7 @@ objects:
     metadata:
       labels:
         app: ${APP_NAME}-${SUFFIX}
-      name: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${MODULE}-${SUFFIX}
     spec:
       replicas: ${{REPLICAS}}
       selector:
