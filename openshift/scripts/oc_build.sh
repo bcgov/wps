@@ -20,6 +20,7 @@ source "$(dirname ${0})/common/common"
 # %   Apply when satisfied.
 # %   ${THIS_FILE} pr-0 apply
 # %
+OBJ_NAME="${APP-NAME}-${MODULE_NAME}-${SUFFIX}"
 
 # Process a template (mostly variable substition)
 #​​
@@ -38,9 +39,9 @@ OC_APPLY="oc -n ${PROJ_TOOLS} apply -f -"
 
 # Cancel non complete builds and start a new build (apply or don't run)
 #
-OC_CANCEL_BUILD="oc -n ${PROJ_TOOLS} cancel-build bc/${APP_NAME}-${MODULE_NAME}"
+OC_CANCEL_BUILD="oc -n ${PROJ_TOOLS} cancel-build bc/${OBJ_NAME}"
 [ "${APPLY}" ] || OC_CANCEL_BUILD=""
-OC_START_BUILD="oc -n ${PROJ_TOOLS} start-build ${APP_NAME}-${MODULE_NAME} --follow=true --wait=true"
+OC_START_BUILD="oc -n ${PROJ_TOOLS} start-build ${OBJ_NAME} --follow=true --wait=true"
 [ "${APPLY}" ] || OC_START_BUILD=""
 
 # Execute commands
@@ -52,9 +53,9 @@ eval "${OC_START_BUILD}"
 
 if [ "${APPLY}" ]; then
 	# Get the most recent build version
-	BUILD_LAST=$(oc -n ${PROJ_TOOLS} get bc/${APP_NAME}-${MODULE_NAME} -o 'jsonpath={.status.lastVersion}')
+	BUILD_LAST=$(oc -n ${PROJ_TOOLS} get bc/${OBJ_NAME} -o 'jsonpath={.status.lastVersion}')
 	# Command to get the build result
-	BUILD_RESULT=$(oc -n ${PROJ_TOOLS} get build/${APP_NAME}-${MODULE_NAME}-${BUILD_LAST} -o 'jsonpath={.status.phase}')
+	BUILD_RESULT=$(oc -n ${PROJ_TOOLS} get build/${OBJ_NAME}-${BUILD_LAST} -o 'jsonpath={.status.phase}')
 
 	# Make sure that result is a successful completion
 	if [ "${BUILD_RESULT}" != "Complete" ]; then
