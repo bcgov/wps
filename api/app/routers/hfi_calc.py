@@ -397,6 +397,8 @@ async def get_all_ready_records(
                                                           DateRange(
                                                               start_date=start_date,
                                                               end_date=end_date))
+        if hfi_request is None:
+            return HFIAllReadyStatesResponse(ready_states=[])
         ready_states: List[HFIReadyState] = []
         ready_records: List[app.db.models.hfi_calc.HFIReady] = get_latest_hfi_ready_records(session, hfi_request.id)
         for record in ready_records:

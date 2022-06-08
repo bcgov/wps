@@ -35,7 +35,7 @@ const PlanningAreaReadyToggle = ({ enabled, loading, readyDetails, toggleReady }
             <IconButton
               aria-label="hfi-toggle-ready"
               data-testid="hfi-toggle-ready"
-              disabled={!enabled || loading}
+              disabled={!enabled || loading || isUndefined(readyDetails)}
               onClick={() => {
                 if (!isUndefined(readyDetails)) {
                   toggleReady(readyDetails.planning_area_id, readyDetails.hfi_request_id)
