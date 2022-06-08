@@ -13,7 +13,7 @@ metadata:
     openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
   app.kubernetes.io/part-of: "${APP_NAME}-${MODULE_NAME}"
-  app: ${APP_NAME}-${SUFFIX}
+  app: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
 parameters:
   - name: APP_NAME
     description: Application name (wps - wildfire predictive services)

@@ -23,13 +23,8 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
-
-      - name: Clean up - test (OCP4)
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
-          PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
+          MODULE_NAME=api PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
+          MODULE_NAME=web PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
 
       - name: Clean up - tools (OCP4)
         shell: bash
@@ -38,6 +33,13 @@ jobs:
           MODULE_NAME=api bash openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
           MODULE_NAME=c-haines bash openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
           MODULE_NAME=web bash openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
+
+      - name: Clean up - test (OCP4)
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          MODULE_NAME=api PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
+          MODULE_NAME=web PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
 
   cleanup-db:
     name: Delete DB resources associated with PR
