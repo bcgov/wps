@@ -13,7 +13,7 @@ metadata:
     openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
   app.kubernetes.io/part-of: "${APP_NAME}-${MODULE_NAME}"
-  app: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+  app: ${APP_NAME}-${SUFFIX}
 parameters:
   - name: APP_NAME
     description: Application name (wps - wildfire predictive services)
@@ -82,8 +82,8 @@ objects:
     kind: DeploymentConfig
     metadata:
       labels:
-        app: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
-      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${SUFFIX}
     spec:
       replicas: ${{REPLICAS}}
       selector:
@@ -336,7 +336,7 @@ objects:
     kind: Service
     metadata:
       labels:
-        app: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}
       name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
     spec:
       ports:
@@ -351,7 +351,7 @@ objects:
     kind: Route
     metadata:
       labels:
-        app: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}
       name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
       annotations:
         # Enable HTTP Strict Transport Security:
@@ -396,7 +396,7 @@ objects:
     kind: Route
     metadata:
       labels:
-        app: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}
         certbot-managed: "true"
       name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}-vanity
       annotations:
