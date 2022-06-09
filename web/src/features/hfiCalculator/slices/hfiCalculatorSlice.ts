@@ -81,6 +81,7 @@ export interface HFICalculatorState {
   changeSaved: boolean
   stationAdded: boolean
   stationAddedError: string | null
+  updatedPlanningAreaId: number | null
 }
 
 export interface StationInfo {
@@ -137,7 +138,8 @@ export const initialState: HFICalculatorState = {
   addStationOptions: undefined,
   changeSaved: false,
   stationAdded: false,
-  stationAddedError: null
+  stationAddedError: null,
+  updatedPlanningAreaId: null
 }
 
 const dailiesSlice = createSlice({
@@ -189,6 +191,9 @@ const dailiesSlice = createSlice({
     setFuelTypes: (state: HFICalculatorState, action: PayloadAction<FuelTypesResponse>) => {
       state.fuelTypes = action.payload.fuel_types
       state.fuelTypesLoading = false
+    },
+    setUpdatedPlanningAreaId: (state: HFICalculatorState, action: PayloadAction<number>) => {
+      state.updatedPlanningAreaId = action.payload
     }
   }
 })
@@ -206,7 +211,8 @@ export const {
   setSelectedFireCentre,
   setFuelTypes,
   setResult,
-  setChangeSaved
+  setChangeSaved,
+  setUpdatedPlanningAreaId
 } = dailiesSlice.actions
 
 export default dailiesSlice.reducer

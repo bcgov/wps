@@ -11,7 +11,8 @@ import {
   fetchFuelTypes,
   fetchPDFDownload,
   fetchSetFuelType,
-  setSelectedPrepDate
+  setSelectedPrepDate,
+  setUpdatedPlanningAreaId
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { fetchAllReadyStates } from 'features/hfiCalculator/slices/hfiReadySlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -116,6 +117,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selected
         )
       )
+      dispatch(setUpdatedPlanningAreaId(planningAreaId))
     }
   }
 
@@ -131,17 +133,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           fuel_type_id
         )
       )
+      dispatch(setUpdatedPlanningAreaId(planningAreaId))
     }
   }
 
-  const setNewFireStarts = (areaId: number, dayOffset: number, newFireStarts: FireStartRange) => {
+  const setNewFireStarts = (planningAreaId: number, dayOffset: number, newFireStarts: FireStartRange) => {
     if (!isUndefined(result) && !isUndefined(result.date_range)) {
       dispatch(
         fetchSetNewFireStarts(
           result.selected_fire_center_id,
           result.date_range.start_date,
           result.date_range.end_date,
-          areaId,
+          planningAreaId,
           DateTime.fromISO(result.date_range.start_date + 'T00:00+00:00', {
             setZone: true
           })
@@ -150,6 +153,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           newFireStarts.id
         )
       )
+      dispatch(setUpdatedPlanningAreaId(planningAreaId))
     }
   }
 
