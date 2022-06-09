@@ -33,6 +33,7 @@ SCHEDULE="${SCHEDULE:-$((31 + $RANDOM % 29)) 8,16 * * *}"
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/wfwx_noon_forecasts.cronjob.yaml \
 -p JOB_NAME=wfwx-noon-forecasts-${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME}-api \
+-p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p SUFFIX=${SUFFIX} \
 -p SCHEDULE=\"${SCHEDULE}\" \
 -p POSTGRES_USER=${POSTGRES_USER:-${APP_NAME}} \

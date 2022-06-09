@@ -7,7 +7,7 @@ metadata:
     tags: "cronjob,wfwx-noon-forecasts"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
-  app: ${NAME}-${SUFFIX}
+  app: ${APP_LABEL}
 parameters:
   - name: NAME
     description: Module name
@@ -36,6 +36,9 @@ parameters:
   - name: POSTGRES_DATABASE
     required: true
     value: ${NAME}-${SUFFIX}
+  - name: APP_LABEL
+    required: true
+    value: wps-${SUFFIX}
 objects:
   - kind: CronJob
     apiVersion: batch/v1
