@@ -22,8 +22,6 @@ request_json = {
     "planning_area_hfi_results": [],
     "planning_area_fire_starts": {}
 }
-mock_hfi_request = HFIRequest(id=1, request=json.dumps(request_json))
-
 
 ready_state_json = {
     "hfi_request_id": 1,
@@ -34,6 +32,8 @@ ready_state_json = {
     "update_user": 'test',
     "update_timestamp": datetime.fromtimestamp(1560217369).isoformat()
 }
+
+mock_hfi_request = HFIRequest(id=1, request=json.dumps(request_json))
 mock_latest_ready_records = [HFIReady(id=1, **ready_state_json)]
 get_ready_states_url = "/api/hfi-calc/fire_centre/5/2022-05-01/2022-05-01/ready"
 post_toggle_ready_state_url = f'/api/hfi-calc/planning_area/{1}/hfi_request/{1}/ready'
