@@ -35,6 +35,8 @@ ready_state_json = {
     "update_timestamp": datetime.fromtimestamp(1560217369).isoformat()
 }
 mock_latest_ready_records = [HFIReady(id=1, **ready_state_json)]
+get_ready_states_url = "/api/hfi-calc/fire_centre/5/2022-05-01/2022-05-01/ready"
+post_toggle_ready_state_url = f'/api/hfi-calc/planning_area/{1}/hfi_request/{1}/ready'
 
 
 @pytest.fixture()
@@ -52,7 +54,7 @@ def test_get_all_ready_records(client: TestClient, monkeypatch: pytest.MonkeyPat
                         lambda *_: mock_hfi_request)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_latest_hfi_ready_records', lambda *_: mock_latest_ready_records)
 
-    response = client.get("/api/hfi-calc/fire_centre/5/2022-05-01/2022-05-01/ready")
+    response = client.get(get_ready_states_url)
     assert response.status_code == 200
 
     ready_states = json.loads(response.text)
@@ -66,7 +68,7 @@ def test_get_all_ready_records_no_hfi_request(client: TestClient, monkeypatch: p
                         lambda *_: None)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_latest_hfi_ready_records', lambda *_: [])
 
-    response = client.get("/api/hfi-calc/fire_centre/5/2022-05-01/2022-05-01/ready")
+    response = client.get(get_ready_states_url)
     assert response.status_code == 200
 
     ready_states = json.loads(response.text)
@@ -75,7 +77,7 @@ def test_get_all_ready_records_no_hfi_request(client: TestClient, monkeypatch: p
 
 def test_get_all_ready_records_unauthorized(client: TestClient):
     """ Authentication is required to request ready records """
-    response = client.get("/api/hfi-calc/fire_centre/5/2022-05-01/2022-05-01/ready")
+    response = client.get(get_ready_states_url)
     assert response.status_code == 401
 
 
@@ -112,11 +114,11 @@ def test_toggle_ready_authorized(client: TestClient, monkeypatch: pytest.MonkeyP
     monkeypatch.setattr("jwt.decode", mock_fire_start_role_function)
     monkeypatch.setattr(app.routers.hfi_calc, 'toggle_ready', lambda *_: HFIReady(id=1, **ready_state_json))
 
-    response = client.post(f'/api/hfi-calc/planning_area/{1}/hfi_request/{1}/ready')
+    response = client.post(post_toggle_ready_state_url)
     assert response.status_code == 200
 
 
 def test_toggle_ready_unauthorized(client: TestClient):
     """ set_hfi_ready_record role required for toggling ready state"""
-    response = client.post(f'/api/hfi-calc/planning_area/{1}/hfi_request/{1}/ready')
+    response = client.post(post_toggle_ready_state_url)
     assert response.status_code == 401
