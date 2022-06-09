@@ -56,7 +56,7 @@ def test_get_all_ready_records(client: TestClient, monkeypatch: pytest.MonkeyPat
     assert response.status_code == 200
 
     ready_states = json.loads(response.text)
-    ready_states['ready_states'][0]['hfi_request_id'] == mock_hfi_request.id
+    assert ready_states['ready_states'][0]['hfi_request_id'] == mock_hfi_request.id
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
