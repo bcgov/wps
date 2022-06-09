@@ -38,13 +38,14 @@ parameters:
   - name: WFWX_MAX_PAGE_SIZE
     description: Maximum number of entities to request at a time from the WFWX API
     value: "1000"
+  - name: APP_LABEL
+    required: true
+    value: ${NAME}-${SUFFIX}
 objects:
   - kind: CronJob
     apiVersion: batch/v1
     metadata:
       name: ${JOB_NAME}
-      labels:
-        cronjob: ${JOB_NAME}
     spec:
       # Don't run on the hour - as a courtesy to env canada, pick a random
       # number so that not everyone hits env. canada at the same time.
@@ -64,7 +65,7 @@ objects:
             spec:
               containers:
                 - name: ${JOB_NAME}
-                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-api-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
                     ["python", "-m", "app.weather_models.env_canada", "HRDPS"]
