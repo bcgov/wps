@@ -81,7 +81,7 @@ export interface HFICalculatorState {
   changeSaved: boolean
   stationAdded: boolean
   stationAddedError: string | null
-  updatedPlanningAreaId: number | null
+  updatedPlanningAreaId: UpdatedPlanningAreaId | null
 }
 
 export interface StationInfo {
@@ -120,6 +120,10 @@ export interface ValidatedStationDaily {
 export interface RawValidatedStationDaily {
   daily: RawDaily
   valid: boolean
+}
+
+export interface UpdatedPlanningAreaId {
+  planning_area_id: number
 }
 
 export const initialState: HFICalculatorState = {
@@ -192,7 +196,7 @@ const dailiesSlice = createSlice({
       state.fuelTypes = action.payload.fuel_types
       state.fuelTypesLoading = false
     },
-    setUpdatedPlanningAreaId: (state: HFICalculatorState, action: PayloadAction<number>) => {
+    setUpdatedPlanningAreaId: (state: HFICalculatorState, action: PayloadAction<UpdatedPlanningAreaId>) => {
       state.updatedPlanningAreaId = action.payload
     }
   }
@@ -224,7 +228,8 @@ export const fetchSetStationSelected =
     end_date: string,
     planning_area_id: number,
     station_code: number,
-    selected: boolean
+    selected: boolean,
+    updated_planning_area_id: UpdatedPlanningAreaId
   ): AppThunk =>
   async dispatch => {
     try {
@@ -239,6 +244,7 @@ export const fetchSetStationSelected =
       )
       dispatch(setResult(result))
       dispatch(setChangeSaved(true))
+      dispatch(setUpdatedPlanningAreaId(updated_planning_area_id))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)
@@ -252,7 +258,8 @@ export const fetchSetFuelType =
     end_date: string,
     planning_area_id: number,
     station_code: number,
-    fuel_type_id: number
+    fuel_type_id: number,
+    updated_planning_area_id: UpdatedPlanningAreaId
   ): AppThunk =>
   async dispatch => {
     try {
@@ -267,6 +274,7 @@ export const fetchSetFuelType =
       )
       dispatch(setResult(result))
       dispatch(setChangeSaved(true))
+      dispatch(setUpdatedPlanningAreaId(updated_planning_area_id))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)
@@ -322,7 +330,8 @@ export const fetchSetNewFireStarts =
     end_date: string,
     planning_area_id: number,
     prep_day_date: string,
-    fire_start_range_id: number
+    fire_start_range_id: number,
+    updated_planning_area_id: UpdatedPlanningAreaId
   ): AppThunk =>
   async dispatch => {
     try {
@@ -337,6 +346,7 @@ export const fetchSetNewFireStarts =
       )
       dispatch(setResult(result))
       dispatch(setChangeSaved(true))
+      dispatch(setUpdatedPlanningAreaId(updated_planning_area_id))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)

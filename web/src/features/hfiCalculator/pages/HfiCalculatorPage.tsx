@@ -11,10 +11,9 @@ import {
   fetchFuelTypes,
   fetchPDFDownload,
   fetchSetFuelType,
-  setSelectedPrepDate,
-  setUpdatedPlanningAreaId
+  setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { fetchAllReadyStates } from 'features/hfiCalculator/slices/hfiReadySlice'
+import { fetchAllReadyStates, fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   selectHFIStations,
@@ -30,7 +29,7 @@ import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherT
 import { formControlStyles } from 'app/theme'
 import { FireCentre } from 'api/hfiCalculatorAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
-import { isUndefined } from 'lodash'
+import { isNull, isUndefined } from 'lodash'
 import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
 import { DateRange } from 'components/dateRangePicker/types'
@@ -101,9 +100,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     dateRange,
     error: hfiError,
     changeSaved,
-    fuelTypes
+    fuelTypes,
+    updatedPlanningAreaId
   } = useSelector(selectHFICalculatorState)
-  const { readyToggleSuccess } = useSelector(selectHFIReadyState)
+  const { readyToggleSuccess, planningAreaReadyDetails } = useSelector(selectHFIReadyState)
 
   const setSelectedStation = (planningAreaId: number, code: number, selected: boolean) => {
     if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
@@ -114,10 +114,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           result.date_range.end_date,
           planningAreaId,
           code,
-          selected
+          selected,
+          { planning_area_id: planningAreaId }
         )
       )
-      dispatch(setUpdatedPlanningAreaId(planningAreaId))
     }
   }
 
@@ -130,10 +130,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           result.date_range.end_date,
           planningAreaId,
           code,
-          fuel_type_id
+          fuel_type_id,
+          { planning_area_id: planningAreaId }
         )
       )
-      dispatch(setUpdatedPlanningAreaId(planningAreaId))
     }
   }
 
@@ -150,10 +150,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           })
             .plus({ days: dayOffset })
             .toISODate(),
-          newFireStarts.id
+          newFireStarts.id,
+          { planning_area_id: planningAreaId }
         )
       )
-      dispatch(setUpdatedPlanningAreaId(planningAreaId))
     }
   }
 
@@ -192,6 +192,21 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     dispatch(fetchFuelTypes())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (
+      !isNull(updatedPlanningAreaId) &&
+      planningAreaReadyDetails[updatedPlanningAreaId.planning_area_id].ready === true
+    ) {
+      dispatch(
+        fetchToggleReadyState(
+          updatedPlanningAreaId.planning_area_id,
+          planningAreaReadyDetails[updatedPlanningAreaId.planning_area_id].hfi_request_id
+        )
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updatedPlanningAreaId])
 
   useEffect(() => {
     if (selectedFireCentre && selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')) {

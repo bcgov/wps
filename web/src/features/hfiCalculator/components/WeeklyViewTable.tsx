@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -10,7 +10,7 @@ import CalculatedPlanningAreaCells from 'features/hfiCalculator/components/Calcu
 import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
-import { isEmpty, isNull, isUndefined, sortBy } from 'lodash'
+import { isEmpty, isUndefined, sortBy } from 'lodash'
 import {
   calculateNumPrepDays,
   getDailiesByStationCode,
@@ -48,18 +48,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
 
-  const { result, updatedPlanningAreaId } = useSelector(selectHFICalculatorState)
+  const { result } = useSelector(selectHFICalculatorState)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { loading, planningAreaReadyDetails } = useSelector(selectHFIReadyState)
-
-  useEffect(() => {
-    if (!isNull(updatedPlanningAreaId) && planningAreaReadyDetails[updatedPlanningAreaId].ready === true) {
-      dispatch(
-        fetchToggleReadyState(updatedPlanningAreaId, planningAreaReadyDetails[updatedPlanningAreaId].hfi_request_id)
-      )
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [updatedPlanningAreaId])
 
   const toggleReady = (planningAreaId: number, hfiRequestId: number) => {
     dispatch(fetchToggleReadyState(planningAreaId, hfiRequestId))
