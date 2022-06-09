@@ -213,7 +213,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFireCentre, dateRange])
+  }, [selectedFireCentre?.id, dateRange?.start_date, dateRange?.end_date])
 
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))
