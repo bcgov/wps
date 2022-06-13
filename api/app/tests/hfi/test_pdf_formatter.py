@@ -198,8 +198,8 @@ def test_response_2_prep_cycle_jinja_format():
         assert area_pdf_data[4].planning_area_name == 'Mid Island'
         assert area_pdf_data[5].planning_area_name == 'North Island'
         assert area_pdf_data[6].planning_area_name == 'Mid-Coast'
-        assert formatted_dates == ['Monday August, 02, 2021', 'Tuesday August, 03, 2021',
-                                   'Wednesday August, 04, 2021']
+        assert formatted_dates == ['Monday August 02, 2021', 'Tuesday August 03, 2021',
+                                   'Wednesday August 04, 2021']
         assert date_range == '2021-08-02 to 2021-08-04'
 
 
