@@ -235,6 +235,19 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre?.id, dateRange?.start_date, dateRange?.end_date])
 
+  useEffect(() => {
+    if (
+      !isNull(updatedPlanningAreaId) &&
+      isUndefined(planningAreaReadyDetails[updatedPlanningAreaId.planning_area_id]) &&
+      !isUndefined(selectedFireCentre) &&
+      !isUndefined(dateRange)
+    ) {
+      // Request all ready states for hfi request unique by date and fire centre
+      dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updatedPlanningAreaId])
+
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))
   }
