@@ -6,6 +6,7 @@ import {
   RawHFIResultResponse
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
+import { PDT_UTC_OFFSET } from 'utils/constants'
 import { formatISODateInPST } from 'utils/date'
 
 export interface FuelType {
@@ -145,8 +146,8 @@ export async function getAllReadyStates(
   const { data } = await axios.get<HFIAllReadyStatesResponse>(url)
   return data.ready_states.map(planningAreaReadyState => ({
     ...planningAreaReadyState,
-    create_timestamp: DateTime.fromISO(planningAreaReadyState.create_timestamp),
-    update_timestamp: DateTime.fromISO(planningAreaReadyState.update_timestamp)
+    create_timestamp: DateTime.fromISO(planningAreaReadyState.create_timestamp).setZone(`UTC${PDT_UTC_OFFSET}`),
+    update_timestamp: DateTime.fromISO(planningAreaReadyState.update_timestamp).setZone(`UTC${PDT_UTC_OFFSET}`)
   }))
 }
 
@@ -159,8 +160,8 @@ export async function toggleReadyState(
   const { data } = await axios.post<RawReadyPlanningAreaDetails>(url)
   return {
     ...data,
-    create_timestamp: DateTime.fromISO(data.create_timestamp),
-    update_timestamp: DateTime.fromISO(data.update_timestamp)
+    create_timestamp: DateTime.fromISO(data.create_timestamp).setZone(`UTC${PDT_UTC_OFFSET}`),
+    update_timestamp: DateTime.fromISO(data.update_timestamp).setZone(`UTC${PDT_UTC_OFFSET}`)
   }
 }
 

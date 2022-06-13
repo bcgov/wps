@@ -12,6 +12,7 @@ export const RH_VALUES_DECIMAL = 0
 export const FFMC_VALUES_DECIMAL = 1
 export const ISI_VALUES_DECIMAL = 1
 
+export const PDT_UTC_OFFSET = -7
 export const PST_UTC_OFFSET = -8
 export const PST_ISO_TIMEZONE = 'T00:00-08:00'
 

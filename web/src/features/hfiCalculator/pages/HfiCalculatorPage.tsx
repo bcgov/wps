@@ -196,6 +196,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   useEffect(() => {
     if (
       !isNull(updatedPlanningAreaId) &&
+      !isUndefined(planningAreaReadyDetails[updatedPlanningAreaId.planning_area_id]) &&
       planningAreaReadyDetails[updatedPlanningAreaId.planning_area_id].ready === true
     ) {
       dispatch(

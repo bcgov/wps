@@ -8,7 +8,7 @@ from app.db.database import get_read_session_scope
 from app.schemas.hfi_calc import DateRange, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, HFIReady, PlanningArea, PlanningWeatherStation, HFIRequest,
                                     FireStartRange, FireCentreFireStartRange, FireStartLookup)
-from app.utils.time import get_utc_now, get_pst_now
+from app.utils.time import get_utc_now
 
 
 def get_fire_weather_stations(session: Session) -> CursorResult:
@@ -150,7 +150,7 @@ def toggle_ready(session: Session,
                  hfi_request_id: int,
                  username: str) -> HFIReady:
     """ Toggles the planning area ready state for an hfi request """
-    now = get_pst_now()
+    now = get_utc_now()
     ready_state: HFIReady = session.query(HFIReady)\
         .filter(HFIReady.planning_area_id == planning_area_id)\
         .filter(HFIReady.hfi_request_id == hfi_request_id)\
