@@ -43,7 +43,7 @@ def test_generate_html():
                                    fuel_types)
 
     assert hashlib.sha256(html_string.encode()).hexdigest(
-    ) == 'c5659e86bd97b679346eec9ecbbf1f81db58a68390135e05cb6118dfa971d74f'
+    ) == 'f0ac8e883fb4b2b8fbef2f549e97fdb545537c402d30664606cc00e605087034'
 
 
 def test_generate_pdf():
