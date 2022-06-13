@@ -90,10 +90,11 @@ function interceptGetReadyStates(fire_centre: number, start_date: string, end_da
   }).as('getReadyStates')
 }
 
-function interceptToggleReadyState(planning_area: number, hfi_request: number) {
-  cy.intercept('POST', `api/hfi-calc/planning_area/${planning_area}/hfi_request/${hfi_request}/ready`).as(
-    'toggleReadyState'
-  )
+function interceptToggleReadyState(fire_centre: number, planning_area: number, start_date: string, end_date: string) {
+  cy.intercept(
+    'POST',
+    `api/hfi-calc/fire_centre/${fire_centre}/planning_area/${planning_area}/${start_date}/${end_date}/ready`
+  ).as('toggleReadyState')
 }
 
 function interceptDownload(start_date: string, end_date: string) {
@@ -188,7 +189,7 @@ describe('HFI Calculator Page', () => {
     beforeEach(() => {
       interceptLoad('hfi-calc/dailies-saved.json')
       interceptGetReadyStates(1, start_date, end_date)
-      interceptToggleReadyState(70, 1)
+      interceptToggleReadyState(1, 70, start_date, end_date)
       cy.visit(HFI_CALC_ROUTE)
       cy.wait('@getFireCentres')
       cy.wait('@getFuelTypes')
