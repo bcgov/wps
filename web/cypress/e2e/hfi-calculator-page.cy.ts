@@ -90,11 +90,19 @@ function interceptGetReadyStates(fire_centre: number, start_date: string, end_da
   }).as('getReadyStates')
 }
 
+function interceptToggleReadyState(planning_area: number, hfi_request: number) {
+  cy.intercept('POST', `api/hfi-calc/planning_area/${planning_area}/hfi_request/${hfi_request}/ready`).as(
+    'toggleReadyState'
+  )
+}
+
 function interceptDownload(start_date: string, end_date: string) {
   cy.intercept('GET', `api/hfi-calc/fire_centre/1/${start_date}/${end_date}/pdf`).as('downloadPDF')
 }
 
 describe('HFI Calculator Page', () => {
+  const start_date = '2021-08-02'
+  const end_date = '2021-08-06'
   describe('first visit - no selected fire centre', () => {
     it('should show the select fire centre instructions', () => {
       cy.visit(HFI_CALC_ROUTE)
@@ -102,8 +110,6 @@ describe('HFI Calculator Page', () => {
     })
   })
   describe('prep period - saved', () => {
-    const start_date = '2021-08-02'
-    const end_date = '2021-08-06'
     beforeEach(() => {
       interceptLoad('hfi-calc/dailies-saved.json')
       interceptGetReadyStates(1, start_date, end_date)
@@ -112,7 +118,6 @@ describe('HFI Calculator Page', () => {
       cy.wait('@getFuelTypes')
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
-      cy.wait('@getReadyStates')
     })
     it('toggle station works', () => {
       // Click on a station, check that it's not checked. Click it again
@@ -177,6 +182,51 @@ describe('HFI Calculator Page', () => {
       cy.selectFireCentreInDropdown('Coastal')
       cy.getByTestId('hfi-calc-daily-table').should('not.exist')
       cy.getByTestId('hfi-calc-weekly-table').should('be.visible')
+    })
+  })
+  describe('ready states', () => {
+    beforeEach(() => {
+      interceptLoad('hfi-calc/dailies-saved.json')
+      interceptGetReadyStates(1, start_date, end_date)
+      interceptToggleReadyState(70, 1)
+      cy.visit(HFI_CALC_ROUTE)
+      cy.wait('@getFireCentres')
+      cy.wait('@getFuelTypes')
+      cy.selectFireCentreInDropdown('Kamloops')
+      cy.wait('@loadHFIResults')
+      cy.wait('@getReadyStates')
+    })
+    it('should toggle off ready state when a station is unselected', () => {
+      interceptSelectStationFalse(1, start_date, end_date, 70, 239)
+      cy.getByTestId('select-station-239').click({ force: true })
+      cy.wait('@selectStationFalse')
+      cy.getByTestId('select-station-239').find('input').should('be.not.checked')
+      cy.getByTestId('hfi-success-alert').should('exist')
+      cy.wait('@toggleReadyState')
+    })
+    it('should toggle off ready state when fire starts is changed', () => {
+      interceptSetFireStarts(1, '2021-08-02', '2021-08-06', 70, '2021-08-02', 4)
+      cy.getByTestId('fire-starts-dropdown')
+        .first()
+        .find('input')
+        .type('{downarrow}')
+        .type('{downarrow}')
+        .type('{enter}')
+      cy.wait('@setFireStarts')
+      cy.getByTestId('hfi-success-alert').should('exist')
+      cy.wait('@toggleReadyState')
+    })
+    it('should toggle off ready state when fuel type is changed', () => {
+      interceptSetFuelType(1, '2021-08-02', '2021-08-06', 70, 239, 3)
+      cy.getByTestId('fuel-type-dropdown')
+        .first()
+        .find('input')
+        .type('{downarrow}', { force: true })
+        .type('{downarrow}', { force: true })
+        .type('{enter}', { force: true })
+      cy.wait('@setFuelType')
+      cy.getByTestId('hfi-success-alert').should('exist')
+      cy.wait('@toggleReadyState')
     })
   })
   describe('all data exists', () => {
