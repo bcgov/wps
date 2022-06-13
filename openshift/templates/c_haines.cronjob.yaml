@@ -41,6 +41,9 @@ parameters:
     required: true
   - name: POSTGRES_DATABASE
     required: true
+  - name: APP_LABEL
+    required: true
+    value: ${NAME}-${SUFFIX}
 objects:
   - kind: CronJob
     apiVersion: batch/v1
