@@ -412,19 +412,24 @@ async def get_all_ready_records(
         return HFIAllReadyStatesResponse(ready_states=ready_states)
 
 
-@router.post("/planning_area/{planning_area_id}/hfi_request/{hfi_request_id}/ready",
+@router.post("/fire_centre/{fire_centre_id}/planning_area/{planning_area_id}/{start_date}/{end_date}/ready",
              response_model=HFIReadyState)
-async def toggle_planning_area_ready(planning_area_id: int,
-                                     hfi_request_id: int,
-                                     response: Response,
-                                     token=Depends(auth_with_set_ready_state_required)):
+async def toggle_planning_area_ready(
+        fire_centre_id: int,
+        planning_area_id: int,
+        start_date: date,
+        end_date: date, response: Response,
+        token=Depends(auth_with_set_ready_state_required)):
     """ Set the fire start range, by id."""
-    logger.info("/planning_area/%s/hfi_request/%s/ready", planning_area_id, hfi_request_id)
+    logger.info("/planning_area/%s/start_date/%s/end_date/%s/ready", planning_area_id, start_date, end_date)
     response.headers["Cache-Control"] = no_cache
 
     with get_write_session_scope() as session:
         username = token.get('preferred_username', None)
-        ready_state = toggle_ready(session, planning_area_id, hfi_request_id, username)
+        ready_state = toggle_ready(session, fire_centre_id, planning_area_id, DateRange(
+            start_date=start_date,
+            end_date=end_date),
+            username)
         response = HFIReadyState(planning_area_id=ready_state.planning_area_id,
                                  hfi_request_id=ready_state.hfi_request_id,
                                  ready=ready_state.ready,

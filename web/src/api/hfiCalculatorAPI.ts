@@ -152,10 +152,23 @@ export async function getAllReadyStates(
 }
 
 export async function toggleReadyState(
+  fire_centre_id: number,
   planning_area_id: number,
-  hfi_request_id: number
+  start_date: string,
+  end_date: string
 ): Promise<ReadyPlanningAreaDetails> {
-  const url = baseUrl + 'planning_area/' + planning_area_id + '/hfi_request/' + hfi_request_id + '/ready'
+  ///fire_centre/{fire_centre_id}/planning_area/{planning_area_id}/{start_date}/{end_date}/ready
+  const url =
+    baseUrl +
+    'fire_centre/' +
+    fire_centre_id +
+    '/planning_area/' +
+    planning_area_id +
+    '/' +
+    start_date +
+    '/' +
+    end_date +
+    '/ready'
 
   const { data } = await axios.post<RawReadyPlanningAreaDetails>(url)
   return {

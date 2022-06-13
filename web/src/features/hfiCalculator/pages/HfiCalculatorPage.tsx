@@ -195,15 +195,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     if (
+      !isUndefined(result) &&
+      !isUndefined(result.date_range) &&
       !isNull(updatedPlanningAreaId) &&
       !isUndefined(planningAreaReadyDetails[updatedPlanningAreaId.planning_area_id]) &&
       planningAreaReadyDetails[updatedPlanningAreaId.planning_area_id].ready === true
     ) {
       dispatch(
-        fetchToggleReadyState(
-          updatedPlanningAreaId.planning_area_id,
-          planningAreaReadyDetails[updatedPlanningAreaId.planning_area_id].hfi_request_id
-        )
+        fetchToggleReadyState(result.selected_fire_center_id, updatedPlanningAreaId.planning_area_id, result.date_range)
       )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

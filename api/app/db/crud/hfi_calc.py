@@ -100,7 +100,7 @@ def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, us
         for latest_hfi_ready_record in latest_hfi_ready_records:
             updated_hfi_ready_records.append(HFIReady(hfi_request_id=latest_hfi_request_id,
                                                       planning_area_id=latest_hfi_ready_record.planning_area_id,
-                                                      ready=False,
+                                                      ready=latest_hfi_ready_record.ready,
                                                       create_timestamp=latest_hfi_ready_record.create_timestamp,
                                                       create_user=latest_hfi_ready_record.create_user,
                                                       update_timestamp=now,
@@ -146,14 +146,16 @@ def store_hfi_station(session: Session, station_code: int, fuel_type_id: int, pl
 
 
 def toggle_ready(session: Session,
+                 fire_centre_id: int,
                  planning_area_id: int,
-                 hfi_request_id: int,
+                 date_range: DateRange,
                  username: str) -> HFIReady:
     """ Toggles the planning area ready state for an hfi request """
     now = get_utc_now()
+    hfi_request = get_most_recent_updated_hfi_request(session, fire_centre_id, date_range)
     ready_state: HFIReady = session.query(HFIReady)\
         .filter(HFIReady.planning_area_id == planning_area_id)\
-        .filter(HFIReady.hfi_request_id == hfi_request_id)\
+        .filter(HFIReady.hfi_request_id == hfi_request.id)\
         .first()
     if ready_state.ready is True:
         ready_state.ready = False
@@ -163,7 +165,6 @@ def toggle_ready(session: Session,
     ready_state.update_user = username
     session.add(ready_state)
     session.commit()
-    session.refresh(ready_state)
     return ready_state
 
 

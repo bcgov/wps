@@ -52,8 +52,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { loading, planningAreaReadyDetails } = useSelector(selectHFIReadyState)
 
-  const toggleReady = (planningAreaId: number, hfiRequestId: number) => {
-    dispatch(fetchToggleReadyState(planningAreaId, hfiRequestId))
+  const toggleReady = (planningAreaId: number) => {
+    if (!isUndefined(result) && !isUndefined(result.date_range)) {
+      dispatch(fetchToggleReadyState(result.selected_fire_center_id, planningAreaId, result.date_range))
+    }
   }
 
   const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {

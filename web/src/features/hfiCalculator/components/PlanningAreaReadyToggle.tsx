@@ -9,7 +9,7 @@ export interface PlanningAreaReadyToggleProps {
   enabled: boolean
   loading: boolean
   readyDetails?: ReadyPlanningAreaDetails
-  toggleReady: (planningAreaId: number, hfiRequestId: number) => void
+  toggleReady: (planningAreaId: number) => void
 }
 
 const PlanningAreaReadyToggle = ({ enabled, loading, readyDetails, toggleReady }: PlanningAreaReadyToggleProps) => {
@@ -38,7 +38,7 @@ const PlanningAreaReadyToggle = ({ enabled, loading, readyDetails, toggleReady }
               disabled={!enabled || loading || isUndefined(readyDetails)}
               onClick={() => {
                 if (!isUndefined(readyDetails)) {
-                  toggleReady(readyDetails.planning_area_id, readyDetails.hfi_request_id)
+                  toggleReady(readyDetails.planning_area_id)
                 }
               }}
             >

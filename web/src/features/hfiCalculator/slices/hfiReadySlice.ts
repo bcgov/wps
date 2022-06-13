@@ -54,11 +54,16 @@ export const { setHFIReadyStart, setHFIToggleReadyState, setAllReadyStates, setH
 export default hfiReady.reducer
 
 export const fetchToggleReadyState =
-  (planning_area_id: number, hfi_request_id: number): AppThunk =>
+  (fire_centre_id: number, planning_area_id: number, date_range: PrepDateRange): AppThunk =>
   async dispatch => {
     try {
       dispatch(setHFIReadyStart())
-      const readyState = await toggleReadyState(planning_area_id, hfi_request_id)
+      const readyState = await toggleReadyState(
+        fire_centre_id,
+        planning_area_id,
+        date_range.start_date,
+        date_range.end_date
+      )
       dispatch(setHFIToggleReadyState(readyState))
     } catch (err) {
       const { response } = err as AxiosError
