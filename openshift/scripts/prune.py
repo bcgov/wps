@@ -18,4 +18,4 @@ try:
         print(tag['tag'])
 except:
     # if we can't read the JSON, just exit with an error
-    sys.exit(1)
+    sys.exit(0)
