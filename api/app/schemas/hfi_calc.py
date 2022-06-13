@@ -173,7 +173,6 @@ class HFIResultRequest(BaseModel):
     planning_area_station_info: Dict[int, List[StationInfo]]
     # Mapping from planning area id to a map of FireStartRanges.
     planning_area_fire_starts: Dict[int, List[FireStartRange]]
-    planning_area_ready_status: Optional[Dict[int, bool]]
 
 
 class HFIAddStationRequest(BaseModel):
