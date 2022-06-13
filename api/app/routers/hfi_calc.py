@@ -421,7 +421,8 @@ async def toggle_planning_area_ready(
         end_date: date, response: Response,
         token=Depends(auth_with_set_ready_state_required)):
     """ Set the fire start range, by id."""
-    logger.info("/planning_area/%s/start_date/%s/end_date/%s/ready", planning_area_id, start_date, end_date)
+    logger.info("/fire_centre/%s/planning_area/%s/start_date/%s/end_date/%s/ready",
+                fire_centre_id, planning_area_id, start_date, end_date)
     response.headers["Cache-Control"] = no_cache
 
     with get_write_session_scope() as session:

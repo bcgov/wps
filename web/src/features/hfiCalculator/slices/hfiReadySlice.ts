@@ -38,18 +38,21 @@ const hfiReady = createSlice({
     },
     setAllReadyStates(state: HFIReadyState, action: PayloadAction<ReadyPlanningAreaDetails[]>) {
       state.loading = false
-      state.readyToggleSuccess = false
       state.planningAreaReadyDetails = buildPlanningAreaDetails(action.payload)
     },
     setHFIReadyFailed(state: HFIReadyState, action: PayloadAction<string>) {
       state.loading = false
       state.readyToggleSuccess = false
       state.error = action.payload
+    },
+    setToggleSuccess(state: HFIReadyState, action: PayloadAction<boolean>) {
+      state.readyToggleSuccess = action.payload
     }
   }
 })
 
-export const { setHFIReadyStart, setHFIToggleReadyState, setAllReadyStates, setHFIReadyFailed } = hfiReady.actions
+export const { setHFIReadyStart, setHFIToggleReadyState, setAllReadyStates, setToggleSuccess, setHFIReadyFailed } =
+  hfiReady.actions
 
 export default hfiReady.reducer
 

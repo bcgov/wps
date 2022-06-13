@@ -99,11 +99,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     fireCentresLoading,
     dateRange,
     error: hfiError,
-    changeSaved,
     fuelTypes,
     updatedPlanningAreaId
   } = useSelector(selectHFICalculatorState)
-  const { readyToggleSuccess, planningAreaReadyDetails } = useSelector(selectHFIReadyState)
+  const { planningAreaReadyDetails } = useSelector(selectHFIReadyState)
 
   const setSelectedStation = (planningAreaId: number, code: number, selected: boolean) => {
     if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
@@ -265,13 +264,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
-  const buildSuccessNotification = () => {
-    if (changeSaved || readyToggleSuccess) {
-      return <HFISuccessAlert message="Changes saved!" />
-    }
-    return <React.Fragment></React.Fragment>
-  }
-
   return (
     <main data-testid="hfi-calculator-page">
       <GeneralHeader padding="3em" spacing={0.985} title="HFI Calculator" productName="HFI Calculator" />
@@ -296,7 +288,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         >
           <React.Fragment>
             <LiveChangesAlert />
-            {buildSuccessNotification()}
+            <HFISuccessAlert />
             <FormControl className={classes.controlContainer}>
               <ViewSwitcherToggles dateRange={dateRange} selectedPrepDate={selectedPrepDate} />
               <LastUpdatedHeader
