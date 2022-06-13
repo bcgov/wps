@@ -84,6 +84,12 @@ function interceptSetFireStarts(
   ).as('setFireStarts')
 }
 
+function interceptGetReadyStates(fire_centre: number, start_date: string, end_date: string) {
+  cy.intercept('GET', `api/hfi-calc/fire_centre/${fire_centre}/${start_date}/${end_date}/ready`, {
+    fixture: 'hfi-calc/ready-states.json'
+  }).as('getReadyStates')
+}
+
 function interceptDownload(start_date: string, end_date: string) {
   cy.intercept('GET', `api/hfi-calc/fire_centre/1/${start_date}/${end_date}/pdf`).as('downloadPDF')
 }
@@ -96,19 +102,21 @@ describe('HFI Calculator Page', () => {
     })
   })
   describe('prep period - saved', () => {
+    const start_date = '2021-08-02'
+    const end_date = '2021-08-06'
     beforeEach(() => {
       interceptLoad('hfi-calc/dailies-saved.json')
+      interceptGetReadyStates(1, start_date, end_date)
       cy.visit(HFI_CALC_ROUTE)
       cy.wait('@getFireCentres')
       cy.wait('@getFuelTypes')
       cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
+      cy.wait('@getReadyStates')
     })
     it('toggle station works', () => {
       // Click on a station, check that it's not checked. Click it again
       // check that it's checked.
-      const start_date = '2021-08-02'
-      const end_date = '2021-08-06'
       interceptSelectStationFalse(1, start_date, end_date, 70, 239)
       cy.getByTestId('select-station-239').click({ force: true })
       cy.wait('@selectStationFalse')

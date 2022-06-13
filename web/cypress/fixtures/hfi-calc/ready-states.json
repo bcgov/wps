@@ -1,0 +1,49 @@
+{
+    "ready_states": [
+        {
+            "planning_area_id": 70,
+            "hfi_request_id": 1,
+            "ready": false,
+            "create_timestamp": "2019-06-10T18:42:49",
+            "create_user": "test",
+            "update_timestamp": "2019-06-10T18:42:49",
+            "update_user": ""
+        },
+        {
+            "planning_area_id": 71,
+            "hfi_request_id": 1,
+            "ready": false,
+            "create_timestamp": "2019-06-10T18:42:49",
+            "create_user": "test",
+            "update_timestamp": "2019-06-10T18:42:49",
+            "update_user": ""
+        },
+        {
+            "planning_area_id": 72,
+            "hfi_request_id": 1,
+            "ready": false,
+            "create_timestamp": "2019-06-10T18:42:49",
+            "create_user": "test",
+            "update_timestamp": "2019-06-10T18:42:49",
+            "update_user": "test"
+        },
+        {
+            "planning_area_id": 73,
+            "hfi_request_id": 1,
+            "ready": false,
+            "create_timestamp": "2019-06-10T18:42:49",
+            "create_user": "test",
+            "update_timestamp": "2019-06-10T18:42:49",
+            "update_user": "test"
+        },
+        {
+            "planning_area_id": 74,
+            "hfi_request_id": 1,
+            "ready": false,
+            "create_timestamp": "2019-06-10T18:42:49",
+            "create_user": "test",
+            "update_timestamp": "2019-06-10T18:42:49",
+            "update_user": "test"
+        }
+    ]
+}
