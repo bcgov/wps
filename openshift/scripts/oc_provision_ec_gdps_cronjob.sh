@@ -31,6 +31,7 @@ SCHEDULE="${SCHEDULE:-$((9 + $RANDOM % 50)) * * * *}"
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/env_canada_gdps.cronjob.yaml \
 -p JOB_NAME=env-canada-gdps-${APP_NAME}-${SUFFIX} \
+-p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME} \
 -p SUFFIX=${SUFFIX} \
 -p SCHEDULE=\"${SCHEDULE}\" \

@@ -32,6 +32,7 @@ SCHEDULE="${SCHEDULE:-$((24 + $RANDOM % 35)) */2 * * *}"
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/env_canada_rdps.cronjob.yaml \
 -p JOB_NAME=env-canada-rdps-${APP_NAME}-${SUFFIX} \
+-p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME} \
 -p SUFFIX=${SUFFIX} \
 -p SCHEDULE=\"${SCHEDULE}\" \
