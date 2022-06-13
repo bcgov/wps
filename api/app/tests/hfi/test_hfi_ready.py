@@ -1,6 +1,5 @@
 from fastapi.testclient import TestClient
 import pytest
-from datetime import datetime
 import app
 import json
 from app.db.models.hfi_calc import HFIRequest, HFIReady
@@ -28,9 +27,9 @@ ready_state_json = {
     "planning_area_id": 1,
     "ready": False,
     "create_user": 'test',
-    "create_timestamp": datetime.fromtimestamp(1560130969).isoformat(),
+    "create_timestamp": '2019-06-10T18:42:49',
     "update_user": 'test',
-    "update_timestamp": datetime.fromtimestamp(1560217369).isoformat()
+    "update_timestamp": '2019-06-10T18:42:49'
 }
 
 mock_hfi_request = HFIRequest(id=1, request=json.dumps(request_json))
