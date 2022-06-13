@@ -12,6 +12,9 @@ parameters:
   - name: NAME
     description: Module name
     value: wps
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
@@ -68,22 +71,22 @@ objects:
                     - name: WFWX_AUTH_URL
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.wfwx-auth-url
                     - name: WFWX_BASE_URL
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.wfwx-base-url
                     - name: WFWX_USER
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.wfwx-user
                     - name: WFWX_SECRET
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: wfwx-secret
                     - name: POSTGRES_READ_USER
                       value: ${POSTGRES_USER}
@@ -92,7 +95,7 @@ objects:
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: app-db-password
                     - name: POSTGRES_WRITE_HOST
                       value: ${POSTGRES_WRITE_HOST}
@@ -105,37 +108,37 @@ objects:
                     - name: ROCKET_URL_POST_MESSAGE
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: rocket.chat-url-post-message
                     - name: ROCKET_CHANNEL
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: rocket.chat-channel
                     - name: ROCKET_USER_ID
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: rocket.chat-user-id-secret
                     - name: ROCKET_AUTH_TOKEN
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: rocket.chat-auth-token-secret
                     - name: REDIS_HOST
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-host
                     - name: REDIS_PORT
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-port
                     - name: REDIS_USE
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-use
                     - name: REDIS_PASSWORD
                       valueFrom:
@@ -145,17 +148,17 @@ objects:
                     - name: REDIS_STATION_CACHE_EXPIRY
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-station-cache-expiry
                     - name: REDIS_AUTH_CACHE_EXPIRY
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-auth-cache-expiry
                     - name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-dailies-by-station-code-expiry
 
               restartPolicy: OnFailure
