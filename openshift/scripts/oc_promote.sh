@@ -34,7 +34,7 @@ OC_IMG_RETAG="oc -n ${PROJ_TOOLS} tag ${IMG_DEST}:${SUFFIX} ${IMG_DEST}:${TAG_PR
 
 # Get list of images to prune.
 #
-TAGS=$(oc -n ${PROJ_TOOLS} get is/${IMG_DEST} --output=json | python $(dirname ${0})/prune.py)
+TAGS=$(oc -n ${PROJ_TOOLS} get is/${IMG_DEST} --output=json --ignore-not-found=true | python $(dirname ${0})/prune.py)
 declare -a OC_IMG_PRUNE=()
 for TAG in ${TAGS}; do
 	OC_IMG_PRUNE+=("oc -n ${PROJ_TOOLS} tag -d ${IMG_DEST}:${TAG}")
