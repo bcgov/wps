@@ -1,17 +1,13 @@
 import makeStyles from '@mui/styles/makeStyles'
 import { Alert, Snackbar } from '@mui/material'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectHFICalculatorState, selectHFIReadyState } from 'app/rootReducer'
 import React from 'react'
 import { setChangeSaved } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import { setToggleSuccess } from 'features/hfiCalculator/slices/hfiReadySlice'
 
 const message = 'Changes saved!'
-
-export interface HFISuccessAlertProps {
-  changeSaved: boolean
-  readyToggleSuccess: boolean
-}
 
 const useStyles = makeStyles({
   alert: {
@@ -24,9 +20,11 @@ const useStyles = makeStyles({
   }
 })
 
-const HFISuccessAlert = ({ changeSaved, readyToggleSuccess }: HFISuccessAlertProps) => {
+const HFISuccessAlert = () => {
   const classes = useStyles()
 
+  const { readyToggleSuccess } = useSelector(selectHFIReadyState)
+  const { changeSaved } = useSelector(selectHFICalculatorState)
   const dispatch: AppDispatch = useDispatch()
 
   const handleClose = () => {
