@@ -22,7 +22,7 @@ parameters:
     required: true
   - name: GLOBAL_NAME
     description: Name of global Module
-    value: wps
+    value: wps-global
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
@@ -41,6 +41,8 @@ parameters:
     required: true
   - name: POSTGRES_DATABASE
     required: true
+  - name: APP_LABEL
+    required: true
 objects:
   - kind: CronJob
     apiVersion: batch/v1
@@ -55,6 +57,7 @@ objects:
         metadata:
           labels:
             cronjob: ${JOB_NAME}
+            app: ${APP_LABEL}
         spec:
           template:
             spec:
@@ -78,7 +81,7 @@ objects:
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: app-db-password
                     - name: POSTGRES_WRITE_HOST
                       value: ${POSTGRES_WRITE_HOST}
@@ -91,86 +94,86 @@ objects:
                     - name: MAX_WEEKS_C_HAINES
                       valueFrom:
                         configMapKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.max-weeks-c-haines
                     - name: ROCKET_URL_POST_MESSAGE
                       valueFrom:
                         configMapKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: rocket.chat-url-post-message
                     - name: ROCKET_CHANNEL
                       valueFrom:
                         configMapKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: rocket.chat-channel
                     - name: ROCKET_USER_ID
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: rocket.chat-user-id-secret
                     - name: ROCKET_AUTH_TOKEN
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: rocket.chat-auth-token-secret
                     - name: OBJECT_STORE_SERVER
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: object-store-server
                     - name: OBJECT_STORE_USER_ID
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: object-store-user-id
                     - name: OBJECT_STORE_SECRET
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: object-store-secret
                     - name: OBJECT_STORE_BUCKET
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: object-store-bucket
                     - name: REDIS_HOST
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-host
                     - name: REDIS_PORT
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-port
                     - name: REDIS_USE
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-use
                     - name: REDIS_PASSWORD
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-redis
+                          name: wps-redis
                           key: database-password
                     - name: REDIS_STATION_CACHE_EXPIRY
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-station-cache-expiry
                     - name: REDIS_AUTH_CACHE_EXPIRY
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-auth-cache-expiry
                     - name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-dailies-by-station-code-expiry
                     - name: REDIS_CACHE_ENV_CANADA
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-cache-env-canada
               restartPolicy: OnFailure

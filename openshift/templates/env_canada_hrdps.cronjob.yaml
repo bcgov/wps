@@ -12,6 +12,9 @@ parameters:
   - name: NAME
     description: Module name
     value: wps
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
@@ -38,13 +41,13 @@ parameters:
   - name: WFWX_MAX_PAGE_SIZE
     description: Maximum number of entities to request at a time from the WFWX API
     value: "1000"
+  - name: APP_LABEL
+    required: true
 objects:
   - kind: CronJob
     apiVersion: batch/v1
     metadata:
       name: ${JOB_NAME}
-      labels:
-        cronjob: ${JOB_NAME}
     spec:
       # Don't run on the hour - as a courtesy to env canada, pick a random
       # number so that not everyone hits env. canada at the same time.
@@ -58,12 +61,13 @@ objects:
         metadata:
           labels:
             cronjob: ${JOB_NAME}
+            app: ${APP_LABEL}
         spec:
           template:
             spec:
               containers:
                 - name: ${JOB_NAME}
-                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-api-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
                     ["python", "-m", "app.weather_models.env_canada", "HRDPS"]
@@ -75,7 +79,7 @@ objects:
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: app-db-password
                     - name: POSTGRES_WRITE_HOST
                       value: ${POSTGRES_WRITE_HOST}
@@ -88,89 +92,89 @@ objects:
                     - name: ROCKET_URL_POST_MESSAGE
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: rocket.chat-url-post-message
                     - name: ROCKET_CHANNEL
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: rocket.chat-channel
                     - name: ROCKET_USER_ID
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: rocket.chat-user-id-secret
                     - name: ROCKET_AUTH_TOKEN
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: rocket.chat-auth-token-secret
                     - name: USE_WFWX
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.use-wfwx
                     - name: WFWX_MAX_PAGE_SIZE
                       value: ${WFWX_MAX_PAGE_SIZE}
                     - name: WFWX_AUTH_URL
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.wfwx-auth-url
                     - name: WFWX_BASE_URL
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.wfwx-base-url
                     - name: WFWX_USER
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.wfwx-user
                     - name: WFWX_SECRET
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: wfwx-secret
                     - name: REDIS_HOST
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-host
                     - name: REDIS_PORT
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-port
                     - name: REDIS_USE
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-use
                     - name: REDIS_PASSWORD
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-redis
+                          name: wps-redis
                           key: database-password
                     - name: REDIS_STATION_CACHE_EXPIRY
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-station-cache-expiry
                     - name: REDIS_AUTH_CACHE_EXPIRY
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-auth-cache-expiry
                     - name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-dailies-by-station-code-expiry
                     - name: REDIS_CACHE_ENV_CANADA
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: env.redis-cache-env-canada
                   resources:
                     limits:

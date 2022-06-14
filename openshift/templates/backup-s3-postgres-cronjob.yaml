@@ -96,7 +96,7 @@ parameters:
     required: true
   - name: GLOBAL_NAME
     description: Name of global Module
-    value: wps
+    value: wps-global
   - name: CLUSTER_NAME
     description: |
       The name of the patroni cluster to connect to.
@@ -121,6 +121,7 @@ objects:
           labels:
             template: "${JOB_NAME}-job"
             cronjob: "${JOB_NAME}"
+            app: ${APP_LABEL}
         spec:
           backoffLimit: ${{JOB_BACKOFF_LIMIT}}
           template:
@@ -154,22 +155,22 @@ objects:
                     - name: AWS_HOSTNAME
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: object-store-server
                     - name: AWS_ACCESS_KEY
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: object-store-user-id
                     - name: AWS_SECRET_KEY
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: object-store-secret
                     - name: AWS_BUCKET
                       valueFrom:
                         secretKeyRef:
-                          name: ${GLOBAL_NAME}-global
+                          name: ${GLOBAL_NAME}
                           key: object-store-bucket
                     - name: POSTGRESQL_USER
                       value: ${DATABASE_USER}

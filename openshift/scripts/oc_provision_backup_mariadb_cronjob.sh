@@ -27,21 +27,21 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Prepare variables for backups
-CONFIG_MAP_NAME="backup-mariadb-${NAME_APP}-${SUFFIX}-config"
-CONFIG_VOLUME_NAME="backup-mariadb-${NAME_APP}-${SUFFIX}-config-volume"
-JOB_NAME="backup-mariadb-${NAME_APP}-${SUFFIX}"
+CONFIG_MAP_NAME="backup-mariadb-${APP_NAME}-${SUFFIX}-config"
+CONFIG_VOLUME_NAME="backup-mariadb-${APP_NAME}-${SUFFIX}-config-volume"
+JOB_NAME="backup-mariadb-${APP_NAME}-${SUFFIX}"
 IMAGE_NAMESPACE=${PROJ_TOOLS}
 EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-mariadb-cronjob.yaml \
     -p CONFIG_VOLUME_NAME=${CONFIG_VOLUME_NAME} \
     -p CONFIG_MAP_NAME=${CONFIG_MAP_NAME} \
-    -p DATABASE_SERVICE_NAME=patroni-${NAME_APP}-${SUFFIX}-leader \
+    -p DATABASE_SERVICE_NAME=patroni-${APP_NAME}-${SUFFIX}-leader \
     -p DATABASE_DEPLOYMENT_NAME=matomo-db \
     -p JOB_NAME=${JOB_NAME} \
     -p JOB_PERSISTENT_STORAGE_NAME=${JOB_NAME} \
     -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \
-    -p APP_LABEL=${NAME_APP}-${SUFFIX} \
+    -p APP_LABEL=${APP_NAME}-${SUFFIX} \
     ${CPU_LIMIT:+ " -p CPU_LIMIT=${CPU_LIMIT}"} \
     ${CPU_REQUEST:+ " -p CPU_REQUEST=${CPU_REQUEST}"} \
     ${JOB_PERSISTENT_STORAGE_NAME:+ " -p JOB_PERSISTENT_STORAGE_NAME=${JOB_PERSISTENT_STORAGE_NAME}"} \

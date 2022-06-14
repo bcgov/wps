@@ -24,8 +24,8 @@ source "$(dirname ${0})/common/common"
 # Source and destination
 #
 IMAGE_REGISTRY="${IMAGE_REGISTRY:-'image-registry.openshift-image-registry.svc:5000'}"
-IMG_SOURCE="${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME_APP}-${SUFFIX}:${SUFFIX}"
-IMG_DEST="${NAME_APP}-${TAG_PROD}"
+IMG_SOURCE="${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}"
+IMG_DEST="${APP_NAME}-${MODULE_NAME}-${TAG_PROD}"
 
 # Import to new image and retag, leaving the original tag in
 #
@@ -34,7 +34,7 @@ OC_IMG_RETAG="oc -n ${PROJ_TOOLS} tag ${IMG_DEST}:${SUFFIX} ${IMG_DEST}:${TAG_PR
 
 # Get list of images to prune.
 #
-TAGS=$(oc -n ${PROJ_TOOLS} get is/${IMG_DEST} --output=json | python $(dirname ${0})/prune.py)
+TAGS=$(oc -n ${PROJ_TOOLS} get is/${IMG_DEST} --output=json --ignore-not-found=true | python $(dirname ${0})/prune.py)
 declare -a OC_IMG_PRUNE=()
 for TAG in ${TAGS}; do
 	OC_IMG_PRUNE+=("oc -n ${PROJ_TOOLS} tag -d ${IMG_DEST}:${TAG}")
