@@ -157,7 +157,6 @@ export async function toggleReadyState(
   start_date: string,
   end_date: string
 ): Promise<ReadyPlanningAreaDetails> {
-  ///fire_centre/{fire_centre_id}/planning_area/{planning_area_id}/{start_date}/{end_date}/ready
   const url =
     baseUrl +
     'fire_centre/' +
