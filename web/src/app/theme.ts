@@ -15,7 +15,7 @@ export const theme = createTheme({
       main: '#FBC02D',
       dark: '#C49000'
     },
-    success: { main: '#44D77A' },
+    success: { main: '#2E8540' },
     error: { main: '#FF3E34' },
     warning: { main: '#FE7921' },
     contrastThreshold: 3,

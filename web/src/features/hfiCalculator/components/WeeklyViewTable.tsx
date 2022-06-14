@@ -19,13 +19,16 @@ import {
 } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
-import { selectAuthentication, selectHFICalculatorState } from 'app/rootReducer'
-import { useSelector } from 'react-redux'
+import { selectAuthentication, selectHFICalculatorState, selectHFIReadyState } from 'app/rootReducer'
+import { useDispatch, useSelector } from 'react-redux'
 import { FireStartRange, PlanningAreaResult, PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
 import { ROLES } from 'features/auth/roles'
+import PlanningAreaReadyToggle from 'features/hfiCalculator/components/PlanningAreaReadyToggle'
+import { AppDispatch } from 'app/store'
+import { fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -43,9 +46,17 @@ const useStyles = makeStyles({
 
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
+  const dispatch: AppDispatch = useDispatch()
 
   const { result } = useSelector(selectHFICalculatorState)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
+  const { loading, planningAreaReadyDetails } = useSelector(selectHFIReadyState)
+
+  const toggleReady = (planningAreaId: number) => {
+    if (!isUndefined(result) && !isUndefined(result.date_range)) {
+      dispatch(fetchToggleReadyState(result.selected_fire_center_id, planningAreaId, result.date_range))
+    }
+  }
 
   const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
     if (isUndefined(result) || isUndefined(result?.planning_area_station_info)) {
@@ -134,7 +145,15 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           <Table>
                             <TableBody>
                               <TableRow>
-                                <TableCell className={classes.noBottomBorder}>{area.name}</TableCell>
+                                <TableCell className={classes.noBottomBorder}>
+                                  {area.name}
+                                  <PlanningAreaReadyToggle
+                                    enabled={roles.includes(ROLES.HFI.SET_READY_STATE) && isAuthenticated}
+                                    loading={loading}
+                                    readyDetails={planningAreaReadyDetails[area.id]}
+                                    toggleReady={toggleReady}
+                                  />
+                                </TableCell>
                               </TableRow>
                             </TableBody>
                           </Table>

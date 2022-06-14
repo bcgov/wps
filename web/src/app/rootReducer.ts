@@ -16,6 +16,7 @@ import regionalModelsReducer from 'features/fireWeather/slices/regionalModelsSli
 import regionalModelSummariesReducer from 'features/fireWeather/slices/regionalModelSummariesSlice'
 import hfiCalculatorDailiesReducer, { HFICalculatorState } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import hfiStationsReducer from 'features/hfiCalculator/slices/stationsSlice'
+import hfiReadyReducer, { HFIReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 import fbaCalculatorSlice from 'features/fbaCalculator/slices/fbaCalculatorSlice'
 import fireCentersSlice from 'features/fbaCalculator/slices/fireCentersSlice'
 import fwiSlice from 'features/fwiCalculator/slices/fwiSlice'
@@ -39,6 +40,7 @@ const rootReducer = combineReducers({
   regionalModelSummaries: regionalModelSummariesReducer,
   hfiCalculatorDailies: hfiCalculatorDailiesReducer,
   hfiStations: hfiStationsReducer,
+  hfiReady: hfiReadyReducer,
   fbaCalculatorResults: fbaCalculatorSlice,
   fireCenters: fireCentersSlice,
   fwiOutputs: fwiSlice,
@@ -88,6 +90,7 @@ export const selectFireWeatherStationsLoading = (state: RootState): boolean => s
 export const selectHFIDailiesLoading = (state: RootState): boolean => state.hfiCalculatorDailies.fireCentresLoading
 export const selectHFICalculatorState = (state: RootState): HFICalculatorState => state.hfiCalculatorDailies
 export const selectHFIStationsLoading = (state: RootState): boolean => state.hfiStations.loading
+export const selectHFIReadyState = (state: RootState): HFIReadyState => state.hfiReady
 export const selectFireBehaviourStationsLoading = (state: RootState): boolean => state.fbaCalculatorResults.loading
 export const selectFireCentersLoading = (state: RootState): boolean => state.fireCenters.loading
 export const selectFWIOutputsLoading = (state: RootState): boolean => state.fwiOutputs.loading
