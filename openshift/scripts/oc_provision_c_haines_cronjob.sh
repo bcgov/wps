@@ -27,9 +27,10 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/c_haines.cronjob.yaml \
--p JOB_NAME=${NAME_APP}-c-haines-${SUFFIX} \
--p NAME=${NAME_APP} \
--p IMAGE_NAME=${NAME_APP}-ubuntu-${SUFFIX} \
+-p JOB_NAME=${APP_NAME}-c-haines-${SUFFIX} \
+-p APP_LABEL=${APP_NAME}-${SUFFIX} \
+-p NAME=${APP_NAME} \
+-p IMAGE_NAME=${APP_NAME}-c-haines-${SUFFIX} \
 -p IMAGE_TAG=${SUFFIX} \
 -p SUFFIX=${SUFFIX} \
 -p POSTGRES_USER=wps \
