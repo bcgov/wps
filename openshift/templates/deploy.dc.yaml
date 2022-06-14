@@ -363,7 +363,8 @@ objects:
         haproxy.router.openshift.io/balance: roundrobin
         haproxy.router.openshift.io/disable_cookies: "true"
     spec:
-      host: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
+      host: ${APP_NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
+      path: "/api"
       port:
         targetPort: 8080-tcp
       to:
@@ -373,7 +374,8 @@ objects:
         termination: edge
   - apiVersion: route.openshift.io/v1
     # Route for wps-prod.apps.silver.devops.gov.bc.ca
-    # Right now, this points to the API, but once the web service is ready, it should point there.
+    # Right now, this points to the API, but once the web service is ready, it should point to
+    # the web service.
     kind: Route
     metadata:
       labels:
@@ -396,6 +398,31 @@ objects:
         termination: edge
   - apiVersion: route.openshift.io/v1
     # Route for psu.nrs.gov.bc.ca
+    # Right now, this points to the API, but once the web service is ready, this route must point
+    # to the web service.
+    kind: Route
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+        certbot-managed: "true"
+      name: ${APP_NAME}-${SUFFIX}-vanity
+      annotations:
+        # Enable HTTP Strict Transport Security:
+        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+        # Use roundrobin load balancing strategy
+        haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/disable_cookies: "true"
+    spec:
+      host: ${VANITY_DOMAIN}
+      port:
+        targetPort: 8080-tcp
+      to:
+        kind: Service
+        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+      tls:
+        termination: edge
+  - apiVersion: route.openshift.io/v1
+    # Route for psu.nrs.gov.bc.ca/api
     kind: Route
     metadata:
       labels:
@@ -410,6 +437,7 @@ objects:
         haproxy.router.openshift.io/disable_cookies: "true"
     spec:
       host: ${VANITY_DOMAIN}
+      path: "/api"
       port:
         targetPort: 8080-tcp
       to:
