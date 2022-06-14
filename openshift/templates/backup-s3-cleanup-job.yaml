@@ -9,7 +9,7 @@ parameters:
     required: true
   - name: GLOBAL_NAME
     description: Name of global Module
-    value: wps
+    value: wps-global
   - name: PROJ_TOOLS
     required: true
   - name: CLUSTER_NAME
@@ -43,22 +43,22 @@ objects:
                 - name: AWS_HOSTNAME
                   valueFrom:
                     secretKeyRef:
-                      name: ${GLOBAL_NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: object-store-server
                 - name: AWS_ACCESS_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: ${GLOBAL_NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: object-store-user-id
                 - name: AWS_SECRET_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: ${GLOBAL_NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: object-store-secret
                 - name: AWS_BUCKET
                   valueFrom:
                     secretKeyRef:
-                      name: ${GLOBAL_NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: object-store-bucket
                 - name: PG_DATABASE
                   value: wps

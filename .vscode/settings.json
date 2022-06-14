@@ -28,6 +28,9 @@
         "typescriptreact",
     ],
     "eslint.run": "onSave",
+    "editor.rulers": [
+        100
+    ],
     "[python]": {
         "editor.rulers": [
             120,
@@ -38,7 +41,7 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.insertSpaces": true,
         "editor.tabSize": 2,
-        "editor.formatOnSave": true
+        "editor.formatOnSave": true,
     },
     "[json]": {
         "editor.defaultFormatter": "vscode.json-language-features"

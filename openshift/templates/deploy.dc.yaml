@@ -1,7 +1,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: ${NAME}
+  name: ${APP_NAME}-${MODULE_NAME}
   annotations:
     openshift.io/display-name: "wps"
     description: "Wildfire Predictive Services - API"
@@ -12,12 +12,18 @@ metadata:
     openshift.io/documentation-url: "https://github.com/bcgov/wps"
     openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
-  app.kubernetes.io/part-of: "${NAME}"
-  app: ${NAME}-${SUFFIX}
+  app.kubernetes.io/part-of: "${APP_NAME}-${MODULE_NAME}"
+  app: ${APP_NAME}-${SUFFIX}
 parameters:
-  - name: NAME
-    description: Module name
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
     value: wps
+  - name: MODULE_NAME
+    description: Module name (api, web, c-haines, etc. etc.)
+    value: api
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
@@ -79,30 +85,30 @@ objects:
     kind: DeploymentConfig
     metadata:
       labels:
-        app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
     spec:
       replicas: ${{REPLICAS}}
       selector:
-        name: ${NAME}-${SUFFIX}
+        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
       strategy:
         type: Rolling
       triggers: []
       template:
         metadata:
           labels:
-            name: ${NAME}-${SUFFIX}
+            name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
         spec:
           automountServiceAccountToken: false
           containers:
-            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
-              name: ${NAME}
+              name: ${APP_NAME}-${MODULE_NAME}
               env:
                 - name: ORIGINS
                   value: ${ALLOWED_ORIGINS}
                 - name: BASE_URI
-                  value: https://${NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
+                  value: https://${APP_NAME}-${MODULE_NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
                 - name: PORT # The port that the API will run on (used by fastapi docker image)
                   value: "8080"
                 - name: WORKERS_PER_CORE # The number of worker per code (used by fastapi docker image)
@@ -110,7 +116,7 @@ objects:
                 - name: "TIMEOUT" # https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.gunicorn.timeout
                 - name: USE_WFWX
                   value: ${USE_WFWX}
@@ -119,27 +125,27 @@ objects:
                 - name: WFWX_AUTH_URL
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.wfwx-auth-url
                 - name: WFWX_BASE_URL
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.wfwx-base-url
                 - name: WFWX_USER
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.wfwx-user
                 - name: WFWX_SECRET
                   valueFrom:
                     secretKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: wfwx-secret
                 - name: KEYCLOAK_PUBLIC_KEY
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.keycloak-public-key
                 - name: POSTGRES_READ_USER
                   value: ${POSTGRES_USER}
@@ -148,7 +154,7 @@ objects:
                 - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: app-db-password
                 - name: POSTGRES_WRITE_HOST
                   value: ${POSTGRES_WRITE_HOST}
@@ -161,17 +167,17 @@ objects:
                 - name: STATUS_CHECKER_SECRET
                   valueFrom:
                     secretKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: status-checker-sa-secret
                 - name: OPENSHIFT_BASE_URI
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.openshift-base-uri
                 - name: OPENSHIFT_NAMESPACE_API
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.openshift-namespace-api
                 - name: PATRONI_CLUSTER_NAME
                   value: patroni-wps-${SUFFIX}
@@ -180,122 +186,122 @@ objects:
                 - name: ROCKET_URL_POST_MESSAGE
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: rocket.chat-url-post-message
                 - name: ROCKET_CHANNEL
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: rocket.chat-channel
                 - name: ROCKET_USER_ID
                   valueFrom:
                     secretKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: rocket.chat-user-id-secret
                 - name: ROCKET_AUTH_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: rocket.chat-auth-token-secret
                 - name: REACT_APP_KEYCLOAK_AUTH_URL
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.keycloak-auth-url
                 - name: REACT_APP_KEYCLOAK_REALM
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.keycloak-realm
                 - name: REACT_APP_KEYCLOAK_CLIENT
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.keycloak-client
                 - name: REACT_APP_MATOMO_URL
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.matomo-url
                 - name: REACT_APP_MATOMO_SITE_ID
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.matomo-site-id
                 - name: REACT_APP_MATOMO_CONTAINER
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.matomo-container
                 - name: OBJECT_STORE_SERVER
                   valueFrom:
                     secretKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: object-store-server
                 - name: OBJECT_STORE_USER_ID
                   valueFrom:
                     secretKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: object-store-user-id
                 - name: OBJECT_STORE_SECRET
                   valueFrom:
                     secretKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: object-store-secret
                 - name: OBJECT_STORE_BUCKET
                   valueFrom:
                     secretKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: object-store-bucket
                 - name: REDIS_HOST
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.redis-host
                 - name: REDIS_PORT
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.redis-port
                 - name: REDIS_USE
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.redis-use
                 - name: REDIS_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: ${NAME}-redis
+                      name: wps-redis
                       key: database-password
                 - name: REDIS_STATION_CACHE_EXPIRY
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.redis-station-cache-expiry
                 - name: REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.redis-hourlies-by-station-code-cache-expiry
                 - name: REDIS_AUTH_CACHE_EXPIRY
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.redis-auth-cache-expiry
                 - name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.redis-dailies-by-station-code-expiry
                 - name: REDIS_CACHE_ENV_CANADA
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.redis-cache-env-canada
                 - name: REDIS_ENV_CANADA_CACHE_EXPIRY
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-global
+                      name: ${GLOBAL_NAME}
                       key: env.redis-env-canada-cache-expiry
               ports:
                 - containerPort: 8080
@@ -333,8 +339,8 @@ objects:
     kind: Service
     metadata:
       labels:
-        app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
     spec:
       ports:
         - name: 8080-tcp
@@ -342,13 +348,14 @@ objects:
           port: 80
           targetPort: 8080
       selector:
-        name: ${NAME}-${SUFFIX}
+        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
   - apiVersion: route.openshift.io/v1
+    # Route for wps-api.apps.silver.devops.gov.bc.ca
     kind: Route
     metadata:
       labels:
-        app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
       annotations:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
@@ -356,21 +363,49 @@ objects:
         haproxy.router.openshift.io/balance: roundrobin
         haproxy.router.openshift.io/disable_cookies: "true"
     spec:
-      host: ${NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
+      host: ${APP_NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
+      path: "/api"
       port:
         targetPort: 8080-tcp
       to:
         kind: Service
-        name: ${NAME}-${SUFFIX}
+        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
       tls:
         termination: edge
   - apiVersion: route.openshift.io/v1
+    # Route for wps-prod.apps.silver.devops.gov.bc.ca
+    # Right now, this points to the API, but once the web service is ready, it should point to
+    # the web service.
     kind: Route
     metadata:
       labels:
-        app: ${NAME}-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${SUFFIX}
+      annotations:
+        # Enable HTTP Strict Transport Security:
+        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+        # Use roundrobin load balancing strategy
+        haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/disable_cookies: "true"
+    spec:
+      host: ${APP_NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
+      port:
+        targetPort: 8080-tcp
+      to:
+        kind: Service
+        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+      tls:
+        termination: edge
+  - apiVersion: route.openshift.io/v1
+    # Route for psu.nrs.gov.bc.ca
+    # Right now, this points to the API, but once the web service is ready, this route must point
+    # to the web service.
+    kind: Route
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
         certbot-managed: "true"
-      name: ${NAME}-${SUFFIX}-vanity
+      name: ${APP_NAME}-${SUFFIX}-vanity
       annotations:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
@@ -383,6 +418,30 @@ objects:
         targetPort: 8080-tcp
       to:
         kind: Service
-        name: ${NAME}-${SUFFIX}
+        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+      tls:
+        termination: edge
+  - apiVersion: route.openshift.io/v1
+    # Route for psu.nrs.gov.bc.ca/api
+    kind: Route
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+        certbot-managed: "true"
+      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}-vanity
+      annotations:
+        # Enable HTTP Strict Transport Security:
+        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+        # Use roundrobin load balancing strategy
+        haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/disable_cookies: "true"
+    spec:
+      host: ${VANITY_DOMAIN}
+      path: "/api"
+      port:
+        targetPort: 8080-tcp
+      to:
+        kind: Service
+        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
       tls:
         termination: edge

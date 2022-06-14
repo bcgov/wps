@@ -19,20 +19,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Clean up api - dev (OCP4)
+      - name: Clean up - dev (OCP4)
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
 
-      - name: Clean up api - tools (OCP4)
+      - name: Clean up - tools (OCP4)
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
           bash openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
-          NAME_APP=wps-ubuntu bash openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
 
-      - name: Clean up api - test (OCP4)
+      - name: Clean up - test (OCP4)
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"

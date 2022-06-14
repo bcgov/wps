@@ -111,7 +111,7 @@ objects:
     metadata:
       name: "${BACKUP_VOLUME_NAME}"
       labels:
-        app: "${NAME}-persistent"
+        app: ${APP_LABEL}
         template: "${NAME}-persistent-template"
     spec:
       storageClassName: "${BACKUP_VOLUME_CLASS}"
@@ -126,7 +126,7 @@ objects:
       annotations:
       name: ${NAME}-config
       labels:
-        app: "${NAME}"
+        app: ${APP_LABEL}
     data:
       backup.conf: |
         # ============================================================
@@ -147,7 +147,7 @@ objects:
       name: "${NAME}"
       labels:
         template: "${NAME}-deployment"
-        app: "${NAME}"
+        app: ${APP_LABEL}
       annotations:
         description: Defines how to deploy the ${NAME} server
     spec:
