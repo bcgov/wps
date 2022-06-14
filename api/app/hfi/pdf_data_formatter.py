@@ -90,7 +90,7 @@ def get_formatted_dates(dates: List[date]) -> List[str]:
     """
     formatted_dates = []
     for raw_date in dates:
-        formatted_date_string = raw_date.strftime("%A %B, %d, %Y")
+        formatted_date_string = raw_date.strftime("%A %B %d, %Y")
         formatted_dates.append(formatted_date_string)
 
     return formatted_dates
