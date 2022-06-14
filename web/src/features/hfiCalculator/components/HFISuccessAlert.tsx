@@ -1,11 +1,12 @@
 import makeStyles from '@mui/styles/makeStyles'
 import { Alert, Snackbar } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectHFICalculatorState, selectHFIReadyState } from 'app/rootReducer'
+import { RootState } from 'app/rootReducer'
 import React from 'react'
 import { setChangeSaved } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import { setToggleSuccess } from 'features/hfiCalculator/slices/hfiReadySlice'
+import { isEqual } from 'lodash'
 
 const message = 'Changes saved!'
 
@@ -23,23 +24,21 @@ const useStyles = makeStyles({
 const HFISuccessAlert = () => {
   const classes = useStyles()
 
-  const { readyToggleSuccess } = useSelector(selectHFIReadyState)
-  const { changeSaved } = useSelector(selectHFICalculatorState)
+  const show = useSelector(
+    (state: RootState) => state.hfiReady.readyToggleSuccess || state.hfiCalculatorDailies.changeSaved,
+    isEqual
+  )
   const dispatch: AppDispatch = useDispatch()
 
   const handleClose = () => {
-    if (changeSaved) {
-      dispatch(setChangeSaved(false))
-    }
-    if (readyToggleSuccess) {
-      dispatch(setToggleSuccess(false))
-    }
+    dispatch(setChangeSaved(false))
+    dispatch(setToggleSuccess(false))
   }
 
   return (
     <Snackbar
       data-testid="hfi-success-alert"
-      open={changeSaved || readyToggleSuccess}
+      open={show}
       autoHideDuration={6000}
       onClose={handleClose}
       anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
