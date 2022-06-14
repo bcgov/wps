@@ -19,10 +19,10 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (HFIAddStationRequest,
+from app.schemas.hfi_calc import (HFIAddStationRequest, HFIAllReadyStatesResponse,
                                   HFIResultRequest,
                                   HFIResultResponse,
-                                  FireStartRange,
+                                  FireStartRange, HFIReadyState,
                                   StationInfo,
                                   DateRange,
                                   FuelTypesResponse,
@@ -31,6 +31,7 @@ from app.auth import (auth_with_select_station_role_required,
                       auth_with_set_fire_starts_role_required,
                       auth_with_station_admin_role_required,
                       auth_with_set_fuel_type_role_required,
+                      auth_with_set_ready_state_required,
                       authentication_required,
                       audit)
 from app.schemas.shared import (FuelType)
@@ -39,9 +40,10 @@ from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   get_planning_weather_stations,
+                                  get_latest_hfi_ready_records,
                                   store_hfi_request,
                                   get_fire_centre_stations,
-                                  store_hfi_station)
+                                  store_hfi_station, toggle_ready)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -366,7 +368,7 @@ async def get_fire_centres(response: Response):
     and weather stations within each planning area. Also returns the assigned fuel type
     for each weather station. """
     logger.info('/hfi-calc/fire-centres')
-    response.headers["Cache-Control"] = "max-age=0"
+    response.headers["Cache-Control"] = no_cache
 
     # Attempt to retrieve from cache
     cached_response = await get_cached_hydrated_fire_centres()
@@ -376,6 +378,67 @@ async def get_fire_centres(response: Response):
     response = HFIWeatherStationsResponse(fire_centres=fire_centres_list)
     await put_cached_hydrated_fire_centres(response)
     return response
+
+
+@router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/ready')
+async def get_all_ready_records(
+    fire_centre_id: int,
+    start_date: date,
+    end_date: date,
+    response: Response,
+    _=Depends(authentication_required)
+):
+    logger.info("/fire_centre/%s/start_date/%s/end_date/%s/ready", fire_centre_id, start_date, end_date)
+    response.headers["Cache-Control"] = no_cache
+
+    with get_read_session_scope() as session:
+        hfi_request = get_most_recent_updated_hfi_request(session,
+                                                          fire_centre_id,
+                                                          DateRange(
+                                                              start_date=start_date,
+                                                              end_date=end_date))
+        if hfi_request is None:
+            return HFIAllReadyStatesResponse(ready_states=[])
+        ready_states: List[HFIReadyState] = []
+        ready_records: List[app.db.models.hfi_calc.HFIReady] = get_latest_hfi_ready_records(session, hfi_request.id)
+        for record in ready_records:
+            ready_states.append(HFIReadyState(planning_area_id=record.planning_area_id,
+                                              hfi_request_id=record.hfi_request_id,
+                                              ready=record.ready,
+                                              create_timestamp=record.create_timestamp,
+                                              create_user=record.create_user,
+                                              update_timestamp=record.update_timestamp,
+                                              update_user=record.update_user))
+        return HFIAllReadyStatesResponse(ready_states=ready_states)
+
+
+@router.post("/fire_centre/{fire_centre_id}/planning_area/{planning_area_id}/{start_date}/{end_date}/ready",
+             response_model=HFIReadyState)
+async def toggle_planning_area_ready(
+        fire_centre_id: int,
+        planning_area_id: int,
+        start_date: date,
+        end_date: date, response: Response,
+        token=Depends(auth_with_set_ready_state_required)):
+    """ Set the fire start range, by id."""
+    logger.info("/fire_centre/%s/planning_area/%s/start_date/%s/end_date/%s/ready",
+                fire_centre_id, planning_area_id, start_date, end_date)
+    response.headers["Cache-Control"] = no_cache
+
+    with get_write_session_scope() as session:
+        username = token.get('preferred_username', None)
+        ready_state = toggle_ready(session, fire_centre_id, planning_area_id, DateRange(
+            start_date=start_date,
+            end_date=end_date),
+            username)
+        response = HFIReadyState(planning_area_id=ready_state.planning_area_id,
+                                 hfi_request_id=ready_state.hfi_request_id,
+                                 ready=ready_state.ready,
+                                 create_timestamp=ready_state.create_timestamp,
+                                 create_user=ready_state.create_user,
+                                 update_timestamp=ready_state.update_timestamp,
+                                 update_user=ready_state.update_user)
+        return response
 
 
 @router.post('/admin/add-station/{fire_centre_id}', status_code=status.HTTP_201_CREATED)

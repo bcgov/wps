@@ -100,7 +100,7 @@ def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, us
         for latest_hfi_ready_record in latest_hfi_ready_records:
             updated_hfi_ready_records.append(HFIReady(hfi_request_id=latest_hfi_request_id,
                                                       planning_area_id=latest_hfi_ready_record.planning_area_id,
-                                                      ready=False,
+                                                      ready=latest_hfi_ready_record.ready,
                                                       create_timestamp=latest_hfi_ready_record.create_timestamp,
                                                       create_user=latest_hfi_ready_record.create_user,
                                                       update_timestamp=now,
@@ -121,7 +121,7 @@ def store_hfi_request(session: Session, hfi_result_request: HFIResultRequest, us
         session.bulk_save_objects(new_hfi_ready_records)
 
 
-def get_latest_hfi_ready_records(session: Session, hfi_request_id: int):
+def get_latest_hfi_ready_records(session: Session, hfi_request_id: int) -> List[HFIReady]:
     """ Retrieve the latest hfi ready records for each distinct planning area in a hfi request """
     return session.query(HFIReady)\
         .filter(HFIReady.hfi_request_id == hfi_request_id)\
@@ -143,6 +143,29 @@ def store_hfi_station(session: Session, station_code: int, fuel_type_id: int, pl
                                                       order_of_appearance_in_planning_area_list=order)
     session.add(planning_weather_station)
     session.commit()
+
+
+def toggle_ready(session: Session,
+                 fire_centre_id: int,
+                 planning_area_id: int,
+                 date_range: DateRange,
+                 username: str) -> HFIReady:
+    """ Toggles the planning area ready state for an hfi request """
+    now = get_utc_now()
+    hfi_request = get_most_recent_updated_hfi_request(session, fire_centre_id, date_range)
+    ready_state: HFIReady = session.query(HFIReady)\
+        .filter(HFIReady.planning_area_id == planning_area_id)\
+        .filter(HFIReady.hfi_request_id == hfi_request.id)\
+        .first()
+    if ready_state.ready is True:
+        ready_state.ready = False
+    else:
+        ready_state.ready = True
+    ready_state.update_timestamp = now
+    ready_state.update_user = username
+    session.add(ready_state)
+    session.commit()
+    return ready_state
 
 
 def get_last_station_in_planning_area(session: Session, planning_area_id: int) -> PlanningWeatherStation:

@@ -6,6 +6,7 @@ import {
   RawHFIResultResponse
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
+import { PACIFIC_IANA_TIMEZONE } from 'utils/constants'
 import { formatISODateInPST } from 'utils/date'
 
 export interface FuelType {
@@ -82,11 +83,31 @@ export interface StationDaily {
   last_updated: DateTime
 }
 
+export interface ReadyPlanningAreaDetails {
+  planning_area_id: number
+  hfi_request_id: number
+  ready: boolean
+  create_timestamp: DateTime
+  create_user: string
+  update_timestamp: DateTime
+  update_user: string
+}
+
+export interface HFIAllReadyStatesResponse {
+  ready_states: RawReadyPlanningAreaDetails[]
+}
+
 /**
  * Axios does't marshal complex objects like DateTime.
  * RawDaily is the daily representation over the wire (a string date)
- * that we then marshall into a StationDaily (with a DateTime)
+ * that we then marshall that into an object with a DateTime
  */
+export interface RawReadyPlanningAreaDetails
+  extends Omit<ReadyPlanningAreaDetails, 'create_timestamp' | 'update_timestamp'> {
+  create_timestamp: string
+  update_timestamp: string
+}
+
 export interface RawDaily extends Omit<StationDaily, 'date' | 'last_updated'> {
   date: string
   last_updated: string
@@ -113,6 +134,47 @@ export async function loadDefaultHFIResult(fire_center_id: number): Promise<HFIR
 export async function getFuelTypes(): Promise<FuelTypesResponse> {
   const data = await axios.get<FuelTypesResponse>(baseUrl + 'fuel_types')
   return data.data
+}
+
+export async function getAllReadyStates(
+  fire_centre_id: number,
+  start_date: string,
+  end_date: string
+): Promise<ReadyPlanningAreaDetails[]> {
+  const url = baseUrl + 'fire_centre/' + fire_centre_id + '/' + start_date + '/' + end_date + '/ready'
+
+  const { data } = await axios.get<HFIAllReadyStatesResponse>(url)
+  return data.ready_states.map(planningAreaReadyState => ({
+    ...planningAreaReadyState,
+    create_timestamp: DateTime.fromISO(planningAreaReadyState.create_timestamp).setZone(PACIFIC_IANA_TIMEZONE),
+    update_timestamp: DateTime.fromISO(planningAreaReadyState.update_timestamp).setZone(PACIFIC_IANA_TIMEZONE)
+  }))
+}
+
+export async function toggleReadyState(
+  fire_centre_id: number,
+  planning_area_id: number,
+  start_date: string,
+  end_date: string
+): Promise<ReadyPlanningAreaDetails> {
+  const url =
+    baseUrl +
+    'fire_centre/' +
+    fire_centre_id +
+    '/planning_area/' +
+    planning_area_id +
+    '/' +
+    start_date +
+    '/' +
+    end_date +
+    '/ready'
+
+  const { data } = await axios.post<RawReadyPlanningAreaDetails>(url)
+  return {
+    ...data,
+    create_timestamp: DateTime.fromISO(data.create_timestamp).setZone(PACIFIC_IANA_TIMEZONE),
+    update_timestamp: DateTime.fromISO(data.update_timestamp).setZone(PACIFIC_IANA_TIMEZONE)
+  }
 }
 
 export async function addNewStation(
