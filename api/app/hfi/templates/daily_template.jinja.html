@@ -40,36 +40,36 @@
                 <tr colspan="21">
                     {% for planning_area_data in planning_areas %}
                         <td colspan="21"><strong>{{planning_area_data['planning_area_name']}}</strong></td>
-                        <td>{{planning_area_data['mean_intensity_group'] if planning_area_data['mean_intensity_group'] is not none}}</td>
+                        <td>{{planning_area_data['mean_intensity_group'] if planning_area_data['mean_intensity_group'] is not none else 'ND'}}</td>
                         <td rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['fire_starts'] if planning_area_data['fire_starts'] is not none}}</td>
-                        <td rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['prep_level'] if planning_area_data['prep_level'] is not none}}</td>
+                        <td rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['prep_level'] if planning_area_data['prep_level'] is not none else 'ND'}}</td>
                             {% if planning_area_data['dailies']|length < 1 %}
                                 <tr />
                             {% endif %}
                             {% for d in planning_area_data['dailies']  %}
                                 <tr>
                                     <td>{{d['station_props']['name'] if d['station_props']['name'] is not none}}</td>
-                                    <td>{{d['station_props']['elevation'] if d['station_props']['elevation'] is not none}}</td>
+                                    <td>{{d['station_props']['elevation'] if d['station_props']['elevation'] is not none else 'ND'}}</td>
                                     <td>{{d['fuel_type']['abbrev'] if d['fuel_type']['abbrev'] is not none}}</td>  
                                     <td>{{d['grass_cure_percentage'] if d['grass_cure_percentage'] is not none}}</td>
                                     <td>{{d['status'] if d['status'] is not none}}</td>
-                                    <td>{{d['temperature'] if d['temperature'] is not none}}</td>   
-                                    <td>{{d['relative_humidity']| round(1) if d['relative_humidity'] is not none}}</td>
-                                    <td>{{d['wind_direction'] if d['wind_direction'] is not none}}</td> 
-                                    <td>{{d['wind_speed']| round(1) if d['wind_speed'] is not none}}</td>   
-                                    <td>{{d['precipitation']| round(1) if d['precipitation'] is not none}}</td> 
-                                    <td>{{d['ffmc']| round(1) if d['ffmc'] is not none}}</td> 
-                                    <td>{{d['dmc']| round(1) if d['dmc'] is not none}}</td> 
-                                    <td>{{d['dc']| round(1) if d['dc'] is not none}}</td> 
-                                    <td>{{d['isi']| round(1) if d['isi'] is not none}}</td> 
-                                    <td>{{d['bui']| round(1) if d['bui'] is not none}}</td> 
-                                    <td>{{d['fwi']| round(1) if d['fwi'] is not none}}</td> 
-                                    <td>{{d['danger_class'] if d['danger_class'] is not none}}</td> 
-                                    <td>{{d['rate_of_spread'] | round(1) if d['rate_of_spread'] is not none}}</td> 
-                                    <td>{{d['hfi']| round(1) if d['hfi'] is not none}}</td> 
-                                    <td>{{d['sixty_minute_fire_size']| round(1) if d['sixty_minute_fire_size'] is not none}}</td> 
-                                    <td>{{d['fire_type'] if d['fire_type'] is not none}}</td> 
-                                    <td>{{d['intensity_group'] if d['intensity_group'] is not none}}</td>
+                                    <td>{{d['temperature'] if d['temperature'] is not none else 'ND'}}</td>   
+                                    <td>{{d['relative_humidity']| round(1) if d['relative_humidity'] is not none else 'ND'}}</td>
+                                    <td>{{d['wind_direction'] if d['wind_direction'] is not none else 'ND'}}</td> 
+                                    <td>{{d['wind_speed']| round(1) if d['wind_speed'] is not none else 'ND'}}</td>   
+                                    <td>{{d['precipitation']| round(1) if d['precipitation'] is not none else 'ND'}}</td> 
+                                    <td>{{d['ffmc']| round(1) if d['ffmc'] is not none else 'ND'}}</td> 
+                                    <td>{{d['dmc']| round(1) if d['dmc'] is not none else 'ND'}}</td> 
+                                    <td>{{d['dc']| round(1) if d['dc'] is not none else 'ND'}}</td> 
+                                    <td>{{d['isi']| round(1) if d['isi'] is not none else 'ND'}}</td> 
+                                    <td>{{d['bui']| round(1) if d['bui'] is not none else 'ND'}}</td> 
+                                    <td>{{d['fwi']| round(1) if d['fwi'] is not none else 'ND'}}</td> 
+                                    <td>{{d['danger_class'] if d['danger_class'] is not none else 'ND'}}</td> 
+                                    <td>{{d['rate_of_spread'] | round(1) if d['rate_of_spread'] is not none else 'ND'}}</td> 
+                                    <td>{{d['hfi']| round(1) if d['hfi'] is not none else 'ND'}}</td> 
+                                    <td>{{d['sixty_minute_fire_size']| round(1) if d['sixty_minute_fire_size'] is not none else 'ND'}}</td> 
+                                    <td>{{d['fire_type'] if d['fire_type'] is not none else 'ND'}}</td> 
+                                    <td>{{d['intensity_group'] if d['intensity_group'] is not none else 'ND'}}</td>
                                 </tr>
                             {% endfor %}
                     {% endfor %}
