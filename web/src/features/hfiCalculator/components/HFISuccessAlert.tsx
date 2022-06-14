@@ -2,7 +2,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { Alert, Snackbar } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'app/rootReducer'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { setChangeSaved } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import { setToggleSuccess } from 'features/hfiCalculator/slices/hfiReadySlice'
@@ -28,6 +28,13 @@ const HFISuccessAlert = () => {
     (state: RootState) => state.hfiReady.readyToggleSuccess || state.hfiCalculatorDailies.changeSaved,
     isEqual
   )
+
+  const [currentShowState, setCurrentShowState] = useState(false)
+
+  useEffect(() => {
+    setCurrentShowState(show)
+  }, [show])
+
   const dispatch: AppDispatch = useDispatch()
 
   const handleClose = () => {
@@ -38,7 +45,7 @@ const HFISuccessAlert = () => {
   return (
     <Snackbar
       data-testid="hfi-success-alert"
-      open={show}
+      open={currentShowState}
       autoHideDuration={6000}
       onClose={handleClose}
       anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
