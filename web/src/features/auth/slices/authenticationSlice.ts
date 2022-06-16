@@ -5,7 +5,7 @@ import kcInstance, { kcInitOption } from 'features/auth/keycloak'
 import * as jwtDecode from 'jwt-decode'
 import { logError } from 'utils/error'
 import { isUndefined } from 'lodash'
-import { KC_CLIENT, TEST_AUTH } from 'utils/env'
+import { KC_CLIENT, TEST_AUTH, KC_AUTH_URL, KC_REALM } from 'utils/env'
 import { ROLES } from 'features/auth/roles'
 
 interface State {
@@ -169,8 +169,12 @@ export const signout = (): AppThunk => async dispatch => {
   }
 
   try {
-    const smLogoutUrl = `https://logontest7.gov.bc.ca/clp-cgi/logoff.cgi?retnow=1&returl=https%3A%2F%2Fdev.oidc.gov.bc.ca%2Fauth%2Frealms%2F8wl6x4cp%2Fprotocol%2Fopenid-connect%2Flogout%3Fpost_logout_redirect_uri%3Dhttp%3A%2F%2Flocalhost%3A3000%2Fhfi-calculator`
-    window.location.href = smLogoutUrl
+    const postLogoutRedirectURI = window.location.href
+    const returl = encodeURIComponent(
+      `${KC_AUTH_URL}/realms/${KC_REALM}/protocol/openid-connect/logout?post_logout_redirect_uri=${postLogoutRedirectURI}`
+    )
+    const logoutURL = `https://logontest7.gov.bc.ca/clp-cgi/logoff.cgi?retnow=1&returl=${returl}`
+    window.location.href = logoutURL
   } catch (e) {
     return dispatch(signoutError(`Failed to signout: ${e}`))
   }
