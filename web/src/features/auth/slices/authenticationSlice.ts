@@ -7,7 +7,6 @@ import { logError } from 'utils/error'
 import { isUndefined } from 'lodash'
 import { KC_CLIENT, TEST_AUTH } from 'utils/env'
 import { ROLES } from 'features/auth/roles'
-import axios from 'axios'
 
 interface State {
   authenticating: boolean
@@ -170,28 +169,8 @@ export const signout = (): AppThunk => async dispatch => {
   }
 
   try {
-    // document.cookie.split(';').forEach(function (c) {
-    //   document.cookie = c
-    //     .replace(/^ +/, '')
-    //     .replace(/=.*/, '=;expires=' + new Date().toUTCString() + 'domain=.gov.bc.ca' + ';path=/;')
-    //   console.log(document.cookie)
-    // })
-    // Cookies.remove('SMSESSION', { path: '', domain: '.gov.bc.ca' })
-    // Cookies.remove('SMFED_OLD_IDENTITY', { path: '', domain: '.gov.bc.ca' })
-    // Cookies.remove('SMFED_OLD_SESSION', { path: '', domain: '.gov.bc.ca' })
-    // await axios.get(
-    //   `https://logontest7.gov.bc.ca/clp-cgi/logoff.cgi?retnow=1?post_logout_redirect_uri=${encodeURI(
-    //     'localhost:3000/hfi-calculator'
-    //   )}`
-    // )
-    const smLogoutUrl = `https://logontest7.gov.bc.ca/clp-cgi/logoff.cgi?retnow=1&returl=https%3A%2F%2Fdev.oidc.gov.bc.ca%2Fauth%2Frealms%2F8wl6x4cp%2Fprotocol%2Fopenid-connect%2Flogout`
-    await axios.get(smLogoutUrl, {
-      headers: {
-        Accept: '*/*'
-      }
-    })
-
-    // await kcInstance.logout()
+    const smLogoutUrl = `https://logontest7.gov.bc.ca/clp-cgi/logoff.cgi?retnow=1&returl=https%3A%2F%2Fdev.oidc.gov.bc.ca%2Fauth%2Frealms%2F8wl6x4cp%2Fprotocol%2Fopenid-connect%2Flogout%3Fpost_logout_redirect_uri%3Dhttp%3A%2F%2Flocalhost%3A3000%2Fhfi-calculator`
+    window.location.href = smLogoutUrl
   } catch (e) {
     return dispatch(signoutError(`Failed to signout: ${e}`))
   }
