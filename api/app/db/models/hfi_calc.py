@@ -1,5 +1,6 @@
 """ Class models that reflect resources and map to database tables for HFI Calculator.
 """
+from email.policy import default
 import uuid
 from sqlalchemy import (Boolean, Column, Integer,
                         Sequence, ForeignKey, UniqueConstraint)
@@ -78,12 +79,20 @@ class PlanningWeatherStation(Base):
     fuel_type_id = Column(Integer, ForeignKey('fuel_types.id'), nullable=False, index=True)
     planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)
     order_of_appearance_in_planning_area_list = Column(Integer, nullable=True)
+    # Track which user created the record for auditing purposes.
+    create_user = Column(String, nullable=False)
+    create_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    # Track which user updated/deleted the record for auditing purposes.
+    update_user = Column(String, nullable=False)
+    update_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    is_deleted = Column(Boolean, nullable=False, default=False)
 
     def __str__(self):
         return (f'id:{self.id}, '
                 f'station_code:{self.station_code}, '
                 f'fuel_type_id:{self.fuel_type_id}, '
-                f'planning_area_id:{self.planning_area_id}')
+                f'planning_area_id:{self.planning_area_id}, '
+                f'is_deleted:{self.is_deleted}')
 
 
 class HFIRequest(Base):
