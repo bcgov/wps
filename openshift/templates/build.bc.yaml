@@ -83,6 +83,8 @@ objects:
           # when npm run build executes, it will replace node tags with
           # python jinja tags using these environment variables.
           env:
+            - name: "REACT_APP_SM_LOGOUT_URL"
+              value: "{{REACT_APP_SM_LOGOUT_URL}}"
             - name: "REACT_APP_KEYCLOAK_AUTH_URL"
               value: "{{REACT_APP_KEYCLOAK_AUTH_URL}}"
             - name: "REACT_APP_KEYCLOAK_REALM"

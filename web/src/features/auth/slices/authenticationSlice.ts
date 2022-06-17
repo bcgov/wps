@@ -5,7 +5,7 @@ import kcInstance, { kcInitOption } from 'features/auth/keycloak'
 import * as jwtDecode from 'jwt-decode'
 import { logError } from 'utils/error'
 import { isUndefined } from 'lodash'
-import { KC_CLIENT, TEST_AUTH, KC_AUTH_URL, KC_REALM } from 'utils/env'
+import { KC_CLIENT, TEST_AUTH, KC_AUTH_URL, KC_REALM, SM_LOGOUT_URL } from 'utils/env'
 import { ROLES } from 'features/auth/roles'
 
 interface State {
@@ -173,7 +173,7 @@ export const signout = (): AppThunk => async dispatch => {
     const returl = encodeURIComponent(
       `${KC_AUTH_URL}/realms/${KC_REALM}/protocol/openid-connect/logout?post_logout_redirect_uri=${postLogoutRedirectURI}`
     )
-    const logoutURL = `https://logontest7.gov.bc.ca/clp-cgi/logoff.cgi?retnow=1&returl=${returl}`
+    const logoutURL = `${SM_LOGOUT_URL}${returl}`
     window.location.href = logoutURL
   } catch (e) {
     return dispatch(signoutError(`Failed to signout: ${e}`))
