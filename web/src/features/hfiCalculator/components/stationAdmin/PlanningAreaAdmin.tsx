@@ -36,8 +36,8 @@ const PlanningAreaAdmin = ({
           return (
             <StationForm
               key={`pa-admin-station-${idx}`}
-              station={station}
-              fuelType={fuelType}
+              adminRow={{ station: { code: station.code, name: station.station_props.name }, fuelType }}
+              rowId={idx}
               planningAreaId={planningArea.id}
               addStationOptions={addStationOptions}
             />

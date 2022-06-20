@@ -92,7 +92,6 @@ export const AddStationModal = ({
       }))
     : []
   const stations: BasicWFWXStation[] = wfwxStations.map(station => ({
-    wfwx_station_uuid: station.properties.name,
     code: station.properties.code,
     name: station.properties.name
   }))
