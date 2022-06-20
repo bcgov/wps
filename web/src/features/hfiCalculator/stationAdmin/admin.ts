@@ -9,14 +9,12 @@ export interface StationAdminRow {
 
 /**
  * `previous` is the previous station state, current is the current WFWX station.
- * This captures an edited station in a planning area
- *
- * When `previous` does not exist, `current` is a newly added station row
+ *  This captures an edited station in a planning area
  */
 export interface StationAdminEdit {
   planningAreaId: number
   rowId: number
-  previous?: StationAdminRow
+  previous: StationAdminRow
   current: StationAdminRow
 }
 
