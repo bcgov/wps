@@ -299,13 +299,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                 )}
               />
               <FormControl className={classes.actionButtonContainer}>
-                {roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && (
-                  <AddStationButton
-                    planningAreas={
-                      selectedFireCentre ? fireCentres.find(fc => fc.id === selectedFireCentre.id)?.planning_areas : []
-                    }
-                  />
-                )}
+                {roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && <AddStationButton />}
                 <DownloadPDFButton onClick={handleDownloadClicked} />
               </FormControl>
             </FormControl>

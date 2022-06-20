@@ -2,13 +2,8 @@ import React, { useState } from 'react'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import { Button } from '@mui/material'
 import AddStationModal from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
-import { PlanningArea } from 'api/hfiCalculatorAPI'
 
-export interface AddStationButtonProps {
-  planningAreas?: PlanningArea[]
-}
-
-const AddStationButton = ({ planningAreas }: AddStationButtonProps) => {
+const AddStationButton = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const openAddStationModal = () => {
     setModalOpen(true)
@@ -20,7 +15,7 @@ const AddStationButton = ({ planningAreas }: AddStationButtonProps) => {
         <AddCircleOutlineIcon />
         Add weather station
       </Button>
-      <AddStationModal modalOpen={modalOpen} setModalOpen={setModalOpen} planningAreas={planningAreas} />
+      <AddStationModal modalOpen={modalOpen} setModalOpen={setModalOpen} />
     </React.Fragment>
   )
 }

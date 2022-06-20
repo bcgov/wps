@@ -3,6 +3,7 @@ import { Dialog, DialogContent, IconButton, Paper, Typography, Button } from '@m
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
+import NewStationForm from 'features/hfiCalculator/components/stationAdmin/NewStationForm'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
 import {
@@ -12,12 +13,11 @@ import {
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
-import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
+import { FuelType } from 'api/hfiCalculatorAPI'
 import { isNull, isUndefined } from 'lodash'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
-import StationListAdmin from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 
 export interface AdminStation {
   dirty: boolean
@@ -43,7 +43,6 @@ export interface AddStationOptions {
 
 export interface AddStationModalProps {
   testId?: string
-  planningAreas?: PlanningArea[]
   modalOpen: boolean
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -67,7 +66,7 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const AddStationModal = ({ modalOpen, setModalOpen, planningAreas }: AddStationModalProps): JSX.Element => {
+export const AddStationModal = ({ modalOpen, setModalOpen }: AddStationModalProps): JSX.Element => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
@@ -144,12 +143,12 @@ export const AddStationModal = ({ modalOpen, setModalOpen, planningAreas }: AddS
           </IconButton>
           <DialogContent>
             <Typography variant="h5" align="center">
-              Manage Default Weather Stations and Fuels
+              Add New Weather Station
             </Typography>
             <Typography variant="body1" align="center">
-              Change the default wx and fuelds for all future prep
+              New weather station will be included in the default list moving forward
             </Typography>
-            {/* <NewStationForm
+            <NewStationForm
               newStation={newStation}
               setNewStation={setNewStation}
               invalid={invalid}
@@ -157,14 +156,8 @@ export const AddStationModal = ({ modalOpen, setModalOpen, planningAreas }: AddS
               handleFormChange={handleFormChange}
               addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
               stationAddedError={stationAddedError}
-            /> */}
-          </DialogContent>
-          {!isUndefined(planningAreas) && !isUndefined(wfwxStations) && (
-            <StationListAdmin
-              planningAreas={planningAreas}
-              addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
             />
-          )}
+          </DialogContent>
           <SaveNewStationButton newStation={newStation} invalidNewStation={invalid} handleSave={handleSave} />
           <Button
             variant="outlined"
