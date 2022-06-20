@@ -96,6 +96,7 @@ async def get_index(request: Request):
             "index.html",
             {
                 'request': request,
+                'REACT_APP_SM_LOGOUT_URL': config.get('REACT_APP_SM_LOGOUT_URL'),
                 'REACT_APP_KEYCLOAK_AUTH_URL': config.get('REACT_APP_KEYCLOAK_AUTH_URL'),
                 'REACT_APP_KEYCLOAK_REALM': config.get('REACT_APP_KEYCLOAK_REALM'),
                 'REACT_APP_KEYCLOAK_CLIENT': config.get('REACT_APP_KEYCLOAK_CLIENT'),
