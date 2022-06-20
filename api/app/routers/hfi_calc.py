@@ -40,7 +40,7 @@ from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   get_planning_weather_stations,
-                                  get_latest_hfi_ready_records,
+                                  get_latest_hfi_ready_records, remove_hfi_station,
                                   store_hfi_request,
                                   get_fire_centre_stations,
                                   add_hfi_station, toggle_ready)
@@ -466,6 +466,17 @@ async def add_station(fire_centre_id: int,
             db_session.rollback()
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail="Station already exists in planning area") from exception
+
+
+@router.post('/admin/remove-station/{planning_area_id}/{station_code}', status_code=status.HTTP_200_OK)
+async def remove_station(planning_area_id: int, station_code: str,
+                         token=Depends(auth_with_station_admin_role_required)):
+    """ Removes a station. """
+    logger.info('/hfi-calc/admin/remove-station/%s/%s', planning_area_id, station_code)
+    username = token.get('preferred_username', None)
+    with get_write_session_scope() as db_session:
+        remove_hfi_station(db_session, planning_area_id, station_code, username)
+        clear_cached_hydrated_fire_centres()
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')

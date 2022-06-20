@@ -151,6 +151,27 @@ def add_hfi_station(session: Session, station_code: int, fuel_type_id: int, plan
     session.commit()
 
 
+def remove_hfi_station(session: Session, station_code: int, planning_area_id: int, username: str):
+    """ Remove planning weather station """
+    now = get_utc_now()
+    planning_weather_station = session.query(PlanningWeatherStation)\
+        .filter(PlanningWeatherStation.station_code == station_code)\
+        .filter(PlanningWeatherStation.planning_area_id == planning_area_id)\
+        .first()
+    position = planning_weather_station.order_of_appearance_in_planning_area_list
+    planning_weather_station.is_deleted = True
+    planning_weather_station.order_of_appearance_in_planning_area_list = None
+    planning_weather_station.update_username = username
+    planning_weather_station.update_timestamp = now
+    all_stations_in_planning_area = session.query(PlanningWeatherStation)\
+        .filter(PlanningWeatherStation.planning_area_id == planning_area_id)\
+        .all()
+    for station in all_stations_in_planning_area:
+        if station.order_of_appearance_in_planning_area_list > position:
+            station.order_of_appearance_in_planning_area_list -= 1
+    session.commit()
+
+
 def toggle_ready(session: Session,
                  fire_centre_id: int,
                  planning_area_id: int,
