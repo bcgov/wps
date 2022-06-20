@@ -1,17 +1,26 @@
 import React from 'react'
-import { PlanningArea } from 'api/hfiCalculatorAPI'
+import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
 import { Button, Typography, Box } from '@mui/material'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import StationForm from 'features/hfiCalculator/components/stationAdmin/StationForm'
 import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import { sortBy } from 'lodash'
+import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { getSelectedFuelType } from 'features/hfiCalculator/util'
 
 export interface PlanningAreaAdminProps {
   planningArea: PlanningArea
+  planningAreaStationInfo: { [key: number]: StationInfo[] }
+  fuelTypes: FuelType[]
   addStationOptions?: AddStationOptions
 }
 
-const PlanningAreaAdmin = ({ planningArea, addStationOptions }: PlanningAreaAdminProps) => {
+const PlanningAreaAdmin = ({
+  planningArea,
+  planningAreaStationInfo,
+  fuelTypes,
+  addStationOptions
+}: PlanningAreaAdminProps) => {
   return (
     <Box sx={{ width: '100%', pt: 4 }}>
       <Typography variant="h6">
@@ -22,9 +31,18 @@ const PlanningAreaAdmin = ({ planningArea, addStationOptions }: PlanningAreaAdmi
       </Typography>
 
       {sortBy(planningArea.stations, station => station.order_of_appearance_in_planning_area_list).map(
-        (station, idx) => (
-          <StationForm key={`pa-admin-station-${idx}`} station={station} addStationOptions={addStationOptions} />
-        )
+        (station, idx) => {
+          const fuelType = getSelectedFuelType(planningAreaStationInfo, planningArea.id, station.code, fuelTypes)
+          return (
+            <StationForm
+              key={`pa-admin-station-${idx}`}
+              station={station}
+              fuelType={fuelType}
+              planningAreaId={planningArea.id}
+              addStationOptions={addStationOptions}
+            />
+          )
+        }
       )}
     </Box>
   )
