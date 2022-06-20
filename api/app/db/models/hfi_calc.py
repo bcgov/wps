@@ -1,6 +1,5 @@
 """ Class models that reflect resources and map to database tables for HFI Calculator.
 """
-from email.policy import default
 import uuid
 from sqlalchemy import (Boolean, Column, Integer,
                         Sequence, ForeignKey, UniqueConstraint)
