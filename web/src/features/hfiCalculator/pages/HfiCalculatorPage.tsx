@@ -11,7 +11,8 @@ import {
   fetchFuelTypes,
   fetchPDFDownload,
   fetchSetFuelType,
-  setSelectedPrepDate
+  setSelectedPrepDate,
+  fetchGetOrCreateHFIRequest
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { fetchAllReadyStates, fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -100,7 +101,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     dateRange,
     error: hfiError,
     fuelTypes,
-    updatedPlanningAreaId
+    updatedPlanningAreaId,
+    requestNewPrepPeriod
   } = useSelector(selectHFICalculatorState)
   const { planningAreaReadyDetails } = useSelector(selectHFIReadyState)
 
@@ -191,6 +193,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     dispatch(fetchFuelTypes())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (
+      !isUndefined(result) &&
+      !isUndefined(result.date_range) &&
+      !isUndefined(result.date_range.start_date) &&
+      !isUndefined(result.date_range.end_date)
+    ) {
+      dispatch(fetchGetOrCreateHFIRequest(result.selected_fire_center_id, result.date_range))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestNewPrepPeriod])
 
   useEffect(() => {
     if (

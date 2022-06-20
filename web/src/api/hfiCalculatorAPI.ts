@@ -3,6 +3,7 @@ import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/Add
 import {
   HFIResultResponse,
   PlanningAreaResult,
+  PrepDateRange,
   RawHFIResultResponse
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
@@ -128,6 +129,16 @@ export async function getHFIStations(): Promise<HFIWeatherStationsResponse> {
 
 export async function loadDefaultHFIResult(fire_center_id: number): Promise<HFIResultResponse> {
   const { data } = await axios.get<RawHFIResultResponse>(baseUrl + 'fire_centre/' + fire_center_id)
+  return { ...data, planning_area_hfi_results: buildResult(data) }
+}
+
+export async function getOrCreateHFIResult(
+  fire_center_id: number,
+  dateRange: PrepDateRange
+): Promise<HFIResultResponse> {
+  const { data } = await axios.post<RawHFIResultResponse>(
+    baseUrl + 'fire_centre/' + fire_center_id + '/' + dateRange.start_date + '/' + dateRange.end_date
+  )
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 
