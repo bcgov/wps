@@ -137,7 +137,7 @@ const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelecto
             variant="outlined"
             disabled={true}
             className={classes.textFieldInput}
-            label={'Set prep period'}
+            label={'Set date range'}
             onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
             value={
               isUndefined(dateRange) || isUndefined(dateRange.start_date) || isUndefined(dateRange.end_date)

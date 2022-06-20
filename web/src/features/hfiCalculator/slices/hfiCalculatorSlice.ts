@@ -15,7 +15,8 @@ import {
   FuelType,
   FireCentre,
   FuelTypesResponse,
-  addNewStation
+  addNewStation,
+  getOrCreateHFIResult
 } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
 import { AddStationOptions, AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
@@ -82,6 +83,7 @@ export interface HFICalculatorState {
   stationAdded: boolean
   stationAddedError: string | null
   updatedPlanningAreaId: UpdatedPlanningAreaId | null
+  requestNewPrepPeriod: { startDate?: Date; endDate?: Date } | undefined
 }
 
 export interface StationInfo {
@@ -143,7 +145,8 @@ export const initialState: HFICalculatorState = {
   changeSaved: false,
   stationAdded: false,
   stationAddedError: null,
-  updatedPlanningAreaId: null
+  updatedPlanningAreaId: null,
+  requestNewPrepPeriod: undefined
 }
 
 const dailiesSlice = createSlice({
@@ -198,6 +201,9 @@ const dailiesSlice = createSlice({
     },
     setUpdatedPlanningAreaId: (state: HFICalculatorState, action: PayloadAction<UpdatedPlanningAreaId>) => {
       state.updatedPlanningAreaId = action.payload
+    },
+    setPrepPeriod: (state: HFICalculatorState, action: PayloadAction<{ startDate?: Date; endDate?: Date }>) => {
+      state.requestNewPrepPeriod = action.payload
     }
   }
 })
@@ -216,6 +222,7 @@ export const {
   setFuelTypes,
   setResult,
   setChangeSaved,
+  setPrepPeriod,
   setUpdatedPlanningAreaId
 } = dailiesSlice.actions
 
@@ -295,6 +302,19 @@ export const fetchGetPrepDateRange =
       }
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+export const fetchGetOrCreateHFIRequest =
+  (fire_centre_id: number, date_range: PrepDateRange): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(loadHFIResultStart())
+      const result = await getOrCreateHFIResult(fire_centre_id, date_range)
+      dispatch(setResult(result))
+    } catch (err) {
+      const { response } = err as AxiosError
+      dispatch(getHFIResultFailed(response?.data.detail))
       logError(err)
     }
   }

@@ -7,6 +7,7 @@ import { MARKERS } from 'components/dateRangePicker/DateRangePicker'
 import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/types'
 import Month from 'components/dateRangePicker/Month'
 import { theme } from 'app/theme'
+import SetPrepPeriodButton from 'components/dateRangePicker/SetPrepPeriodButton'
 
 const useStyles = makeStyles(() => ({
   header: {
@@ -41,6 +42,7 @@ interface MenuProps {
     onDayHover: (day: Date) => void
     onMonthNavigate: (marker: symbol, action: NavigationAction) => void
     resetDateRange: () => void
+    toggle: () => void
   }
 }
 
@@ -100,12 +102,20 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
         <div className={classes.divider} />
       </Grid>
       <Grid justifyContent="space-between" container className={classes.footer}>
-        <Grid item></Grid>
-
         <Grid item>
-          <Button data-testid="date-range-reset-button" variant="outlined" onClick={handlers.resetDateRange}>
-            Reset
+          <Button data-testid="date-range-reset-button" variant="text" onClick={handlers.resetDateRange}>
+            Clear Selection
           </Button>
+        </Grid>
+        <Grid container sm={8} justifyContent="flex-end" spacing={1}>
+          <Grid item>
+            <Button data-testid="date-range-reset-button" variant="outlined" onClick={handlers.toggle}>
+              View date range
+            </Button>
+          </Grid>
+          <Grid item>
+            <SetPrepPeriodButton dateRange={dateRange} toggle={handlers.toggle} />
+          </Grid>
         </Grid>
       </Grid>
     </Paper>

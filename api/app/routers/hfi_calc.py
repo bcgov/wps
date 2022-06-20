@@ -19,7 +19,8 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (HFIAddStationRequest, HFIAllReadyStatesResponse,
+from app.schemas.hfi_calc import (HFIAddStationRequest,
+                                  HFIAllReadyStatesResponse,
                                   HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange, HFIReadyState,
@@ -27,7 +28,8 @@ from app.schemas.hfi_calc import (HFIAddStationRequest, HFIAllReadyStatesRespons
                                   DateRange,
                                   FuelTypesResponse,
                                   HFIWeatherStationsResponse)
-from app.auth import (auth_with_select_station_role_required,
+from app.auth import (auth_with_create_hfi_request_required,
+                      auth_with_select_station_role_required,
                       auth_with_set_fire_starts_role_required,
                       auth_with_station_admin_role_required,
                       auth_with_set_fuel_type_role_required,
@@ -187,6 +189,35 @@ async def get_fuel_types(response: Response) -> FuelTypesResponse:
     for fuel_type_record in result:
         fuel_types.append(fuel_type_model_to_schema(fuel_type_record))
     return FuelTypesResponse(fuel_types=fuel_types)
+
+
+@router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}")
+async def create_new_hfi_request(
+    fire_centre_id: int, start_date: date, end_date: date,
+    response: Response,
+    token=Depends(auth_with_create_hfi_request_required)
+):
+    """ Create new HFI request """
+    logger.info('/fire_centre/%s/%s/%s', fire_centre_id, start_date, end_date)
+    response.headers["Cache-Control"] = no_cache
+
+    with get_read_session_scope() as session:
+        # We get an existing request object (it will load from the DB or create it
+        # from scratch if it doesn't exist).
+        request, _, fire_centre_fire_start_ranges = get_prepared_request(session,
+                                                                         fire_centre_id,
+                                                                         DateRange(
+                                                                             start_date=start_date,
+                                                                             end_date=end_date))
+
+        # Get the response.
+        request_response = await calculate_and_create_response(
+            session, request, fire_centre_fire_start_ranges)
+
+    # We save the request in the database. (We do this right at the end, so that we don't
+    # save a broken request by accident.)
+    save_request_in_database(request, token.get('preferred_username', None))
+    return request_response
 
 
 @router.post("/fire_centre/{fire_centre_id}/{start_date}/{end_date}/planning_area/{planning_area_id}"
