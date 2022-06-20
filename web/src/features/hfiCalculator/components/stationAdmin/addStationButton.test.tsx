@@ -8,7 +8,7 @@ describe('ManageStationsButton', () => {
   it('should render the button without the modal showing', () => {
     const { getByTestId, queryByText } = render(
       <Provider store={store}>
-        <AddStationButton />
+        <AddStationButton planningAreaStationInfo={{}} />
       </Provider>
     )
 
@@ -20,7 +20,7 @@ describe('ManageStationsButton', () => {
   it('should render the modal when the button is clicked', async () => {
     const { getByTestId } = render(
       <Provider store={store}>
-        <AddStationButton />
+        <AddStationButton planningAreaStationInfo={{}} />
       </Provider>
     )
 
