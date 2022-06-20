@@ -50,7 +50,9 @@ def get_planning_weather_stations(session, fire_centre_id: int) -> List[Planning
     """ Get all the stations for a fire centre. """
     return session.query(PlanningWeatherStation)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
-        .filter(PlanningArea.fire_centre_id == fire_centre_id).all()
+        .filter(PlanningArea.fire_centre_id == fire_centre_id)\
+        .filter(PlanningWeatherStation.is_deleted == False)\
+        .all()
 
 
 def get_most_recent_updated_hfi_request(session: Session,
