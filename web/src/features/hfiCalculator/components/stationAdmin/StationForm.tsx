@@ -1,13 +1,15 @@
 import React from 'react'
 import { Autocomplete, TextField, Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { WeatherStation } from 'api/hfiCalculatorAPI'
+import { FuelType, WeatherStation } from 'api/hfiCalculatorAPI'
 import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import { isEqual } from 'lodash'
 
 export interface StationFormProps {
   testId?: string
+  planningAreaId: number
   station: WeatherStation
+  fuelType?: FuelType
   addStationOptions?: AddStationOptions
 }
 
@@ -23,22 +25,13 @@ const useStyles = makeStyles({
   }
 })
 
-export const StationForm = ({ station, addStationOptions }: StationFormProps): JSX.Element => {
+export const StationForm = ({
+  station,
+  addStationOptions,
+  fuelType,
+  planningAreaId
+}: StationFormProps): JSX.Element => {
   const classes = useStyles()
-
-  //   const invalidNewStation = (station: AdminStation) => {
-  //     const missingFields =
-  //       isUndefined(station.planningArea) || isUndefined(station.station) || isUndefined(station.fuelType)
-  //     setInvalid(missingFields && station.dirty)
-  //   }
-
-  //   const planningAreaError = (newStation.dirty && isUndefined(newStation.planningArea)) || !isNull(stationAddedError)
-
-  //   const stationError = (newStation.dirty && isUndefined(newStation.station)) || !isNull(stationAddedError)
-
-  //   const fuelTypeError = (newStation.dirty && isUndefined(newStation.fuelType)) || !isNull(stationAddedError)
-
-  //   const toolTipText = <div className={classes.toolTipText}>Grass curing is set in WFWX</div>
 
   return (
     <Grid container spacing={1} sx={{ pt: 1 }}>
@@ -55,7 +48,7 @@ export const StationForm = ({ station, addStationOptions }: StationFormProps): J
               renderInput={params => <TextField {...params} label="Select Station" variant="outlined" />}
               onChange={(_, value) => {
                 /** TODO */
-                console.log(value)
+                console.log(value, planningAreaId)
               }}
             />
           </Grid>
@@ -63,38 +56,19 @@ export const StationForm = ({ station, addStationOptions }: StationFormProps): J
             <Autocomplete
               data-testid={'select-fuel-type'}
               className={classes.autocomplete}
+              value={fuelType}
               options={addStationOptions ? addStationOptions.fuel_types : []}
               getOptionLabel={option => option?.abbrev}
               isOptionEqualToValue={(option, value) => isEqual(option, value)}
               renderInput={params => <TextField {...params} label="Select Fuel Type" variant="outlined" />}
               onChange={(_, value) => {
                 /** TODO */
-                console.log(value)
+                console.log(value, planningAreaId)
               }}
             />
           </Grid>
         </Grid>
       </Grid>
-      {/* {invalid && (
-          <Grid container direction="row" justifyContent="center" spacing={1} marginTop={5}>
-            <Grid item>
-              <ErrorOutlineIcon color="error" />
-            </Grid>
-            <Grid item>
-              <Typography variant="body1">Please complete empty fields to continue</Typography>
-            </Grid>
-          </Grid>
-        )}
-        {!isNull(stationAddedError) && (
-          <Grid container direction="row" justifyContent="center" spacing={1} marginTop={5}>
-            <Grid item>
-              <ErrorOutlineIcon color="error" />
-            </Grid>
-            <Grid item>
-              <Typography variant="body1">Station already exists</Typography>
-            </Grid>
-          </Grid>
-        )} */}
     </Grid>
   )
 }

@@ -84,7 +84,7 @@ export const AddStationModal = ({
 
   const newEmptyStation: AdminStation = { dirty: false }
   const [newStation, setNewStation] = useState<AdminStation>(newEmptyStation)
-  const [invalid, setInvalid] = useState<boolean>(false)
+  const [invalid] = useState<boolean>(false)
   const planning_areas: BasicPlanningArea[] = selectedFireCentre
     ? selectedFireCentre.planning_areas.map(planningArea => ({
         id: planningArea.id,
@@ -110,10 +110,6 @@ export const AddStationModal = ({
     if (!isNull(stationAddedError)) {
       dispatch(setAddedStationFailed(null))
     }
-  }
-
-  const handleFormChange = () => {
-    dispatch(setAddedStationFailed(null))
   }
 
   useEffect(() => {
@@ -169,6 +165,7 @@ export const AddStationModal = ({
           {!isUndefined(planningAreas) && !isUndefined(wfwxStations) && (
             <StationListAdmin
               planningAreas={planningAreas}
+              fuelTypes={fuelTypes}
               addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
               planningAreaStationInfo={planningAreaStationInfo}
             />
