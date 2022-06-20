@@ -8,7 +8,8 @@ import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootRed
 import {
   fetchAddStation,
   setAddedStationFailed,
-  setStationAdded
+  setStationAdded,
+  StationInfo
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
@@ -44,6 +45,7 @@ export interface AddStationOptions {
 export interface AddStationModalProps {
   testId?: string
   planningAreas?: PlanningArea[]
+  planningAreaStationInfo: { [key: number]: StationInfo[] }
   modalOpen: boolean
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -67,7 +69,12 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const AddStationModal = ({ modalOpen, setModalOpen, planningAreas }: AddStationModalProps): JSX.Element => {
+export const AddStationModal = ({
+  modalOpen,
+  setModalOpen,
+  planningAreas,
+  planningAreaStationInfo
+}: AddStationModalProps): JSX.Element => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
@@ -163,6 +170,7 @@ export const AddStationModal = ({ modalOpen, setModalOpen, planningAreas }: AddS
             <StationListAdmin
               planningAreas={planningAreas}
               addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
+              planningAreaStationInfo={planningAreaStationInfo}
             />
           )}
           <SaveNewStationButton newStation={newStation} invalidNewStation={invalid} handleSave={handleSave} />
