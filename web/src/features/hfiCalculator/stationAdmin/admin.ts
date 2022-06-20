@@ -1,17 +1,10 @@
-import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
+import { FuelType } from 'api/hfiCalculatorAPI'
 import { BasicWFWXStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import { uniqWith, reverse, clone } from 'lodash'
 
 export interface StationAdminRow {
   station: BasicWFWXStation
   fuelType?: FuelType
-}
-
-export const buildStationAdminRows = (planningArea: PlanningArea, fuelTypes: FuelType): StationAdminRow[] => {
-  /**
-   * TODD
-   */
-  return []
 }
 
 /**
