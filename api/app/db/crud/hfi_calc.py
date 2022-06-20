@@ -135,12 +135,18 @@ def get_planning_areas(session: Session, fire_centre_id: int):
         .all()
 
 
-def store_hfi_station(session: Session, station_code: int, fuel_type_id: int, planning_area_id: int, order: int):
-    """ Store planning weather station """
+def add_hfi_station(session: Session, station_code: int, fuel_type_id: int, planning_area_id: int, order: int, username: str):
+    """ Add planning weather station """
+    now = get_utc_now()
     planning_weather_station = PlanningWeatherStation(station_code=station_code,
                                                       fuel_type_id=fuel_type_id,
                                                       planning_area_id=planning_area_id,
-                                                      order_of_appearance_in_planning_area_list=order)
+                                                      order_of_appearance_in_planning_area_list=order,
+                                                      create_username=username,
+                                                      update_username=username,
+                                                      create_timestamp=now,
+                                                      update_timestamp=now,
+                                                      is_deleted=False)
     session.add(planning_weather_station)
     session.commit()
 

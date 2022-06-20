@@ -43,7 +43,7 @@ from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_latest_hfi_ready_records,
                                   store_hfi_request,
                                   get_fire_centre_stations,
-                                  store_hfi_station, toggle_ready)
+                                  add_hfi_station, toggle_ready)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -444,19 +444,21 @@ async def toggle_planning_area_ready(
 @router.post('/admin/add-station/{fire_centre_id}', status_code=status.HTTP_201_CREATED)
 async def add_station(fire_centre_id: int,
                       request: HFIAddStationRequest,
-                      _=Depends(auth_with_station_admin_role_required)):
+                      token=Depends(auth_with_station_admin_role_required)):
     """ Adds a station. """
     logger.info('/hfi-calc/admin/add-station/%s', fire_centre_id)
+    username = token.get('preferred_username', None)
     with get_write_session_scope() as db_session:
         last_weather_station = get_last_station_in_planning_area(
             session=db_session, planning_area_id=request.planning_area_id)
         order = last_weather_station.order_of_appearance_in_planning_area_list + 1
         try:
-            store_hfi_station(db_session,
-                              station_code=request.station_code,
-                              fuel_type_id=request.fuel_type_id,
-                              planning_area_id=request.planning_area_id,
-                              order=order)
+            add_hfi_station(db_session,
+                            station_code=request.station_code,
+                            fuel_type_id=request.fuel_type_id,
+                            planning_area_id=request.planning_area_id,
+                            order=order,
+                            username=username)
             clear_cached_hydrated_fire_centres()
         except IntegrityError as exception:
             logger.info('Attempt to add existing station code %s to planning area id %s',
