@@ -270,10 +270,10 @@ def given_post_with_request_body(monkeypatch: pytest.MonkeyPatch, url: str, role
        converters={'request_body': load_json_file(__file__), 'already_added': str})
 def has_a_request_body(monkeypatch: pytest.MonkeyPatch, url: str, request_body, already_added):
     if already_added == "True":
-        def mock_store_hfi_station(*args, **kwargs):
+        def mock_add_hfi_station(*args, **kwargs):
             raise IntegrityError(MagicMock(), MagicMock(), MagicMock())
 
-        monkeypatch.setattr(app.routers.hfi_calc, 'store_hfi_station', mock_store_hfi_station)
+        monkeypatch.setattr(app.routers.hfi_calc, 'add_hfi_station', mock_add_hfi_station)
 
     client = TestClient(app.main.app)
     response = client.post(url, headers=headers, json=request_body)
