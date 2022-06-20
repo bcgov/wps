@@ -142,8 +142,8 @@ def add_hfi_station(session: Session, station_code: int, fuel_type_id: int, plan
                                                       fuel_type_id=fuel_type_id,
                                                       planning_area_id=planning_area_id,
                                                       order_of_appearance_in_planning_area_list=order,
-                                                      create_username=username,
-                                                      update_username=username,
+                                                      create_user=username,
+                                                      update_user=username,
                                                       create_timestamp=now,
                                                       update_timestamp=now,
                                                       is_deleted=False)
