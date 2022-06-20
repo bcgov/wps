@@ -3,11 +3,13 @@ import { PlanningArea } from 'api/hfiCalculatorAPI'
 import { sortBy } from 'lodash'
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import { Box } from '@mui/material'
-import { AddStationOptions, BasicWFWXStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface StationListAdminProps {
   planningAreas: PlanningArea[]
   addStationOptions?: AddStationOptions
+  planningAreaStationInfo: { [key: number]: StationInfo[] }
 }
 
 const StationListAdmin = ({ planningAreas, addStationOptions }: StationListAdminProps) => {
