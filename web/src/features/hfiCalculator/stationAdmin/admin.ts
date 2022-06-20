@@ -4,13 +4,14 @@ import { uniqWith, reverse, clone } from 'lodash'
 
 export interface StationAdminRow {
   station: BasicWFWXStation
-  fuelType: FuelType
+  fuelType?: FuelType
 }
 
-export const buildStationAdminRows = (planningArea: PlanningArea, fuelTypes: FuelType) => {
+export const buildStationAdminRows = (planningArea: PlanningArea, fuelTypes: FuelType): StationAdminRow[] => {
   /**
    * TODD
    */
+  return []
 }
 
 /**
@@ -21,7 +22,7 @@ export const buildStationAdminRows = (planningArea: PlanningArea, fuelTypes: Fue
  */
 export interface StationAdminEdit {
   planningAreaId: number
-  stationCode: number
+  rowId: number
   previous?: StationAdminRow
   current: StationAdminRow
 }
@@ -40,7 +41,7 @@ export const collapseEdits = (editState: StationAdminEditLog): StationAdminEditL
   const collapsedEdits = uniqWith(
     reverse(clone(editState.edits)),
     (editA: StationAdminEdit, editB: StationAdminEdit) =>
-      editA.planningAreaId === editB.planningAreaId && editA.stationCode === editB.stationCode
+      editA.planningAreaId === editB.planningAreaId && editA.rowId === editB.rowId
   )
   return { edits: collapsedEdits }
 }
