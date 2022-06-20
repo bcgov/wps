@@ -203,6 +203,11 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: rocket.chat-auth-token-secret
+                - name: REACT_APP_SM_LOGOUT_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.sm-logout-url
                 - name: REACT_APP_KEYCLOAK_AUTH_URL
                   valueFrom:
                     configMapKeyRef:

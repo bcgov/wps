@@ -1,6 +1,7 @@
 let ENV = {
   API_BASE_URL: process.env.REACT_APP_API_BASE_URL as string,
   HIDE_DISCLAIMER: process.env.REACT_APP_HIDE_DISCLAIMER,
+  SM_LOGOUT_URL: process.env.REACT_APP_SM_LOGOUT_URL as string,
   KC_AUTH_URL: process.env.REACT_APP_KEYCLOAK_AUTH_URL as string,
   KC_REALM: process.env.REACT_APP_KEYCLOAK_REALM as string,
   KC_CLIENT: process.env.REACT_APP_KEYCLOAK_CLIENT as string,
@@ -14,6 +15,7 @@ if (process.env.NODE_ENV === 'production') {
     // TODO: Figure out why axios goes to http on gets!
     API_BASE_URL: `${window.location.protocol}//${window.location.host}/api`,
     HIDE_DISCLAIMER: undefined,
+    SM_LOGOUT_URL: window.env.REACT_APP_SM_LOGOUT_URL,
     KC_AUTH_URL: window.env.REACT_APP_KEYCLOAK_AUTH_URL,
     KC_REALM: window.env.REACT_APP_KEYCLOAK_REALM,
     KC_CLIENT: window.env.REACT_APP_KEYCLOAK_CLIENT,
@@ -21,4 +23,4 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
-export const { API_BASE_URL, HIDE_DISCLAIMER, KC_AUTH_URL, KC_REALM, KC_CLIENT, TEST_AUTH } = ENV
+export const { API_BASE_URL, HIDE_DISCLAIMER, KC_AUTH_URL, KC_REALM, KC_CLIENT, TEST_AUTH, SM_LOGOUT_URL } = ENV
