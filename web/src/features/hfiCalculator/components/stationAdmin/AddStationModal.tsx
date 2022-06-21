@@ -168,15 +168,6 @@ export const AddStationModal = ({
             <Typography variant="body1" align="center">
               Change the default wx and fuelds for all future prep
             </Typography>
-            {/* <NewStationForm
-              newStation={newStation}
-              setNewStation={setNewStation}
-              invalid={invalid}
-              setInvalid={setInvalid}
-              handleFormChange={handleFormChange}
-              addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
-              stationAddedError={stationAddedError}
-            /> */}
           </DialogContent>
           {!isUndefined(planningAreas) && !isUndefined(wfwxStations) && (
             <StationListAdmin
@@ -184,7 +175,6 @@ export const AddStationModal = ({
               fuelTypes={fuelTypes}
               adminRows={adminRows}
               addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
-              planningAreaStationInfo={planningAreaStationInfo}
             />
           )}
           <SaveNewStationButton newStation={newStation} invalidNewStation={invalid} handleSave={handleSave} />
