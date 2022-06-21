@@ -416,8 +416,6 @@ objects:
         termination: edge
   - apiVersion: route.openshift.io/v1
     # Route for wps-prod.apps.silver.devops.gov.bc.ca
-    # Right now, this points to the API, but once the web service is ready, it should point to
-    # the web service.
     kind: Route
     metadata:
       labels:
@@ -440,8 +438,7 @@ objects:
         termination: edge
   - apiVersion: route.openshift.io/v1
     # Route for psu.nrs.gov.bc.ca
-    # Right now, this points to the API, but once the web service is ready, this route must point
-    # to the web service.
+    # Points to web
     kind: Route
     metadata:
       labels:
@@ -457,14 +454,15 @@ objects:
     spec:
       host: ${VANITY_DOMAIN}
       port:
-        targetPort: 8080-tcp
+        targetPort: 3000-tcp
       to:
         kind: Service
-        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        name: ${APP_NAME}-web-${SUFFIX}
       tls:
         termination: edge
   - apiVersion: route.openshift.io/v1
     # Route for psu.nrs.gov.bc.ca/api
+    # Points to api
     kind: Route
     metadata:
       labels:
