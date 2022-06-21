@@ -1,53 +1,50 @@
 import React from 'react'
-import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
-import { Button, Typography, Box } from '@mui/material'
+import { PlanningArea } from 'api/hfiCalculatorAPI'
+import { Typography, Box, IconButton } from '@mui/material'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import StationForm from 'features/hfiCalculator/components/stationAdmin/StationForm'
 import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
-import { sortBy } from 'lodash'
-import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { getSelectedFuelType } from 'features/hfiCalculator/util'
+import { StationAdminRow } from 'features/hfiCalculator/stationAdmin/admin'
+import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 
 export interface PlanningAreaAdminProps {
   planningArea: PlanningArea
-  planningAreaStationInfo: { [key: number]: StationInfo[] }
-  fuelTypes: FuelType[]
+  adminRows: { [key: string]: StationAdminRow[] }
   addStationOptions?: AddStationOptions
+  adminHandlers: AdminHandlers
 }
 
-const PlanningAreaAdmin = ({
-  planningArea,
-  planningAreaStationInfo,
-  fuelTypes,
-  addStationOptions
-}: PlanningAreaAdminProps) => {
+const PlanningAreaAdmin = ({ planningArea, addStationOptions, adminHandlers, adminRows }: PlanningAreaAdminProps) => {
+  const stationAdminRow = adminRows[planningArea.id]
   return (
     <Box sx={{ width: '100%', pt: 4 }}>
       <Typography variant="h6">
         {planningArea.name}
-        <Button variant="text" color="primary" data-testid={'add-station-'}>
+        <IconButton
+          color="primary"
+          size="large"
+          onClick={() => {
+            adminHandlers.handleAddStation(planningArea.id)
+          }}
+        >
           <AddCircleOutlineIcon />
-        </Button>
+        </IconButton>
+        {/* <Button variant="text" color="primary" data-testid={'add-station-'}>
+          <AddCircleOutlineIcon />
+        </Button> */}
       </Typography>
 
-      {sortBy(planningArea.stations, station => station.order_of_appearance_in_planning_area_list).map(
-        (station, idx) => {
-          const fuelType = getSelectedFuelType(planningAreaStationInfo, planningArea.id, station.code, fuelTypes)
-          return (
-            <StationForm
-              key={`pa-admin-station-${idx}`}
-              adminRow={{
-                planningAreaId: planningArea.id,
-                station: { code: station.code, name: station.station_props.name },
-                fuelType
-              }}
-              rowId={idx}
-              planningAreaId={planningArea.id}
-              addStationOptions={addStationOptions}
-            />
-          )
-        }
-      )}
+      {stationAdminRow.map((adminRow, idx) => {
+        return (
+          <StationForm
+            key={`pa-admin-station-${idx}`}
+            adminRow={adminRow}
+            planningAreaId={planningArea.id}
+            addStationOptions={addStationOptions}
+            adminHandlers={adminHandlers}
+          />
+        )
+      })}
     </Box>
   )
 }
