@@ -28,31 +28,31 @@ const StationListAdmin = ({ planningAreas, addStationOptions, adminRows }: Stati
   const handleAddStation = (planningAreaId: number) => {
     const lastRowId = maxBy(adminRows[planningAreaId], 'rowId')?.rowId
     if (lastRowId) {
-      const newRowId = lastRowId + 1
+      const currentRow = adminRowList[planningAreaId].concat([{ planningAreaId, rowId: lastRowId + 1 }])
       setAdminRows({
-        ...adminRows,
-        [planningAreaId]: adminRows[planningAreaId].concat({ planningAreaId, rowId: newRowId })
+        ...adminRowList,
+        [planningAreaId]: currentRow
       })
     }
   }
 
   const handleEditStation = (planningAreaId: number, rowId: number, row: StationAdminRow) => {
-    const currentRow = adminRows[planningAreaId]
+    const currentRow = adminRowList[planningAreaId]
     const idx = findIndex(currentRow, row => row.rowId === rowId)
     currentRow.splice(idx, 1, row)
     setAdminRows({
-      ...adminRows,
+      ...adminRowList,
       [planningAreaId]: currentRow
     })
   }
 
   const handleRemoveStation = (planningAreaId: number, rowId: number) => {
-    const currentRow = adminRows[planningAreaId]
+    const currentRow = adminRowList[planningAreaId]
     const idx = findIndex(currentRow, row => row.rowId === rowId)
     currentRow.splice(idx, 1)
 
     setAdminRows({
-      ...adminRows,
+      ...adminRowList,
       [planningAreaId]: currentRow
     })
   }
