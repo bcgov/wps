@@ -2,16 +2,17 @@ import React from 'react'
 import { Autocomplete, TextField, Grid, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 import { isEqual } from 'lodash'
 import { StationAdminRow } from 'features/hfiCalculator/stationAdmin/admin'
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
 
 export interface StationFormProps {
   testId?: string
-  rowId: number
   adminRow: StationAdminRow
   planningAreaId: number
   addStationOptions?: AddStationOptions
+  adminHandlers: AdminHandlers
 }
 
 const useStyles = makeStyles({
@@ -20,7 +21,12 @@ const useStyles = makeStyles({
   }
 })
 
-export const StationForm = ({ adminRow, addStationOptions, planningAreaId, rowId }: StationFormProps): JSX.Element => {
+export const StationForm = ({
+  adminRow,
+  addStationOptions,
+  planningAreaId,
+  adminHandlers
+}: StationFormProps): JSX.Element => {
   const classes = useStyles()
 
   return (
@@ -32,14 +38,13 @@ export const StationForm = ({ adminRow, addStationOptions, planningAreaId, rowId
               className={classes.autocomplete}
               data-testid={'select-station'}
               disableClearable
-              value={{ name: adminRow.station.name, code: adminRow.station.code }}
+              value={adminRow.station}
               options={addStationOptions ? addStationOptions.stations : []}
               getOptionLabel={option => option?.name}
               isOptionEqualToValue={(option, value) => isEqual(option, value)}
               renderInput={params => <TextField {...params} label="Select Station" variant="outlined" />}
               onChange={(_, value) => {
-                /** TODO */
-                console.log(value, planningAreaId, rowId)
+                adminHandlers.handleEditStation(planningAreaId, adminRow.rowId, { ...adminRow, station: { ...value } })
               }}
             />
           </Grid>
@@ -54,13 +59,18 @@ export const StationForm = ({ adminRow, addStationOptions, planningAreaId, rowId
               isOptionEqualToValue={(option, value) => isEqual(option, value)}
               renderInput={params => <TextField {...params} label="Select Fuel Type" variant="outlined" />}
               onChange={(_, value) => {
-                /** TODO */
-                console.log(value, planningAreaId, rowId)
+                adminHandlers.handleEditStation(planningAreaId, adminRow.rowId, { ...adminRow, fuelType: { ...value } })
               }}
             />
           </Grid>
           <Grid item>
-            <IconButton size="large">
+            <IconButton
+              color="primary"
+              size="large"
+              onClick={() => {
+                adminHandlers.handleRemoveStation(planningAreaId, adminRow.rowId)
+              }}
+            >
               <DeleteOutlinedIcon />
             </IconButton>
           </Grid>

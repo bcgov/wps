@@ -101,8 +101,9 @@ export const AddStationModal = ({
     planningAreas
       ? planningAreas
           .map(pa =>
-            pa.stations.map(station => ({
+            pa.stations.map((station, i) => ({
               planningAreaId: pa.id,
+              rowId: i,
               station: { code: station.code, name: station.station_props.name },
               fuelType: getSelectedFuelType(planningAreaStationInfo, pa.id, station.code, fuelTypes)
             }))
@@ -111,20 +112,6 @@ export const AddStationModal = ({
       : [],
     'planningAreaId'
   )
-
-  const [adminRowList, setAdminRows] = useState<{ [key: string]: StationAdminRow[] }>(adminRows)
-
-  const handleAddStation = (planningAreaId: number, row: StationAdminRow) => {
-    /**
-     * TODO
-     */
-  }
-
-  const handleEditStation = (planningAreaId: number, rowId: number, row: StationAdminRow) => {
-    /**
-     * TODO
-     */
-  }
 
   useEffect(() => {
     if (!isUndefined(selectedFireCentre)) {
@@ -195,6 +182,7 @@ export const AddStationModal = ({
             <StationListAdmin
               planningAreas={planningAreas}
               fuelTypes={fuelTypes}
+              adminRows={adminRows}
               addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
               planningAreaStationInfo={planningAreaStationInfo}
             />
