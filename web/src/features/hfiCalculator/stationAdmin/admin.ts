@@ -3,6 +3,7 @@ import { BasicWFWXStation } from 'features/hfiCalculator/components/stationAdmin
 import { uniqWith, reverse, clone } from 'lodash'
 
 export interface StationAdminRow {
+  planningAreaId: number
   station: BasicWFWXStation
   fuelType?: FuelType
 }
