@@ -4,8 +4,7 @@ import { sortBy } from 'lodash'
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import { Box } from '@mui/material'
 import { maxBy, findIndex } from 'lodash'
-import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
-import { StationAdminRow } from 'features/hfiCalculator/stationAdmin/admin'
+import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 
 export interface AdminHandlers {
   handleEditStation: (planningAreaId: number, rowId: number, row: StationAdminRow) => void
