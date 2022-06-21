@@ -3,8 +3,7 @@ import { PlanningArea } from 'api/hfiCalculatorAPI'
 import { Typography, Box, IconButton } from '@mui/material'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import StationForm from 'features/hfiCalculator/components/stationAdmin/StationForm'
-import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
-import { StationAdminRow } from 'features/hfiCalculator/stationAdmin/admin'
+import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 
 export interface PlanningAreaAdminProps {

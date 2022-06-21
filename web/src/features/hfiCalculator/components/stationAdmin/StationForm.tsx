@@ -1,10 +1,9 @@
 import React from 'react'
 import { Autocomplete, TextField, Grid, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 import { isEqual, isUndefined } from 'lodash'
-import { StationAdminRow } from 'features/hfiCalculator/stationAdmin/admin'
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
 
 export interface StationFormProps {
