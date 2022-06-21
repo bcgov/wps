@@ -5,7 +5,6 @@ import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/Pl
 import { Box } from '@mui/material'
 import { maxBy, findIndex } from 'lodash'
 import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
-import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { StationAdminRow } from 'features/hfiCalculator/stationAdmin/admin'
 
 export interface AdminHandlers {
@@ -18,7 +17,6 @@ export interface StationListAdminProps {
   planningAreas: PlanningArea[]
   fuelTypes: FuelType[]
   addStationOptions?: AddStationOptions
-  planningAreaStationInfo: { [key: number]: StationInfo[] }
   adminRows: { [key: string]: StationAdminRow[] }
 }
 
