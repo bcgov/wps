@@ -1,5 +1,6 @@
 """ CRUD operations relating to HFI Calculator
 """
+from turtle import position
 from typing import List
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
@@ -137,40 +138,47 @@ def get_planning_areas(session: Session, fire_centre_id: int):
         .all()
 
 
-def add_hfi_station(session: Session, station_code: int, fuel_type_id: int, planning_area_id: int, order: int, username: str):
-    """ Add planning weather station """
+def add_hfi_stations(session: Session, stations: List[PlanningWeatherStation], username: str):
+    """ Add planning weather stations """
     now = get_utc_now()
-    planning_weather_station = PlanningWeatherStation(station_code=station_code,
-                                                      fuel_type_id=fuel_type_id,
-                                                      planning_area_id=planning_area_id,
-                                                      order_of_appearance_in_planning_area_list=order,
-                                                      create_user=username,
-                                                      update_user=username,
-                                                      create_timestamp=now,
-                                                      update_timestamp=now,
-                                                      is_deleted=False)
-    session.add(planning_weather_station)
+    for station in stations:
+        station.create_user = username
+        station.update_user = username
+        station.create_timestamp = now
+        station.update_timestamp = now
+        station.is_deleted = False
+    session.bulk_save_objects(stations)
     session.commit()
 
 
-def remove_hfi_station(session: Session, station_code: int, planning_area_id: int, username: str):
-    """ Remove planning weather station """
+def remove_hfi_stations(session: Session, stations: List[PlanningWeatherStation], username: str):
+    """ Remove planning weather stations """
     now = get_utc_now()
-    planning_weather_station = session.query(PlanningWeatherStation)\
-        .filter(PlanningWeatherStation.station_code == station_code)\
-        .filter(PlanningWeatherStation.planning_area_id == planning_area_id)\
-        .first()
-    position = planning_weather_station.order_of_appearance_in_planning_area_list
-    planning_weather_station.is_deleted = True
-    planning_weather_station.order_of_appearance_in_planning_area_list = None
-    planning_weather_station.update_username = username
-    planning_weather_station.update_timestamp = now
-    all_stations_in_planning_area = session.query(PlanningWeatherStation)\
-        .filter(PlanningWeatherStation.planning_area_id == planning_area_id)\
-        .all()
-    for station in all_stations_in_planning_area:
-        if station.order_of_appearance_in_planning_area_list > position:
-            station.order_of_appearance_in_planning_area_list -= 1
+    all_stations_to_save: List[PlanningWeatherStation] = []
+    for station in stations:
+        position = station.order_of_appearance_in_planning_area_list
+        station.update_user = username
+        station.update_timestamp = now
+        station.is_deleted = True
+        all_stations_to_save.append(station)
+        all_stations_in_planning_area = session.query(PlanningWeatherStation)\
+            .filter(PlanningWeatherStation.planning_area_id == station.planning_area_id)\
+            .all()
+        for other_station in all_stations_in_planning_area:
+            if other_station.order_of_appearance_in_planning_area_list > position:
+                other_station.order_of_appearance_in_planning_area_list -= 1
+                all_stations_to_save.append(other_station)
+    session.bulk_save_objects(all_stations_to_save)
+    session.commit()
+
+
+def update_hfi_stations(session: Session, stations: List[PlanningWeatherStation], username: str):
+    """ Update planning weather stations """
+    now = get_utc_now()
+    for station in stations:
+        station.update_user = username
+        station.update_timestamp = now
+    session.bulk_save_objects(stations)
     session.commit()
 
 

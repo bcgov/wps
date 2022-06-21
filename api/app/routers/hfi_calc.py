@@ -35,15 +35,15 @@ from app.auth import (auth_with_select_station_role_required,
                       authentication_required,
                       audit)
 from app.schemas.shared import (FuelType)
-from app.db.crud.hfi_calc import (get_fuel_type_by_id,
+from app.db.crud.hfi_calc import (add_hfi_stations, get_fuel_type_by_id,
                                   get_last_station_in_planning_area,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   get_planning_weather_stations,
-                                  get_latest_hfi_ready_records, remove_hfi_station,
+                                  get_latest_hfi_ready_records, remove_hfi_station, remove_hfi_stations,
                                   store_hfi_request,
                                   get_fire_centre_stations,
-                                  add_hfi_station, toggle_ready)
+                                  add_hfi_station, toggle_ready, update_hfi_station, update_hfi_stations)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -484,6 +484,16 @@ async def batch_update_stations(fire_centre_id: int, request: HFIBatchStationReq
     """ Apply updates for a list of stations. """
     logger.info('/hfi-calc/admin/stations/%s', fire_centre_id)
     username = token.get('preferred_username', None)
+    with get_write_session_scope() as db_session:
+        try:
+            add_hfi_stations(db_session, request.add_stations, username)
+            update_hfi_stations(db_session, request.update_stations, username)
+            remove_hfi_stations(db_session, request.remove_stations, username)
+        except Exception as exc:
+            logger.info(exc)
+            db_session.rollback()
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+        clear_cached_hydrated_fire_centres()
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')
