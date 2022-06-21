@@ -1,9 +1,10 @@
 import React from 'react'
-import { Autocomplete, TextField, Grid } from '@mui/material'
+import { Autocomplete, TextField, Grid, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import { isEqual } from 'lodash'
 import { StationAdminRow } from 'features/hfiCalculator/stationAdmin/admin'
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
 
 export interface StationFormProps {
   testId?: string
@@ -30,6 +31,7 @@ export const StationForm = ({ adminRow, addStationOptions, planningAreaId, rowId
             <Autocomplete
               className={classes.autocomplete}
               data-testid={'select-station'}
+              disableClearable
               value={{ name: adminRow.station.name, code: adminRow.station.code }}
               options={addStationOptions ? addStationOptions.stations : []}
               getOptionLabel={option => option?.name}
@@ -43,8 +45,9 @@ export const StationForm = ({ adminRow, addStationOptions, planningAreaId, rowId
           </Grid>
           <Grid item>
             <Autocomplete
-              data-testid={'select-fuel-type'}
               className={classes.autocomplete}
+              data-testid={'select-fuel-type'}
+              disableClearable
               value={adminRow.fuelType}
               options={addStationOptions ? addStationOptions.fuel_types : []}
               getOptionLabel={option => option?.abbrev}
@@ -55,6 +58,11 @@ export const StationForm = ({ adminRow, addStationOptions, planningAreaId, rowId
                 console.log(value, planningAreaId, rowId)
               }}
             />
+          </Grid>
+          <Grid item>
+            <IconButton size="large">
+              <DeleteOutlinedIcon />
+            </IconButton>
           </Grid>
         </Grid>
       </Grid>
