@@ -23,16 +23,6 @@ RUN yarn run build
 # Switch back to default user
 USER 1001
 
-# while testing stuff out:
-# docker build -f ./Dockerfile.web --tag=wps/web .
-# -p 8080:3000 - "map port 3000 in the container, to 8080 in the host"
-# docker run -p 3000:3000 wps/web
-# docker contains ls
-# docker stop [the container id]
-# 
-
-# CMD ["yarn", "run", "start"]
-
 # # PHASE 2 - prepare hosting.
 # https://catalog.redhat.com/software/containers/ubi8/nginx-120/6156abfac739c0a4123a86fd
 FROM registry.access.redhat.com/ubi8/nginx-120
@@ -45,3 +35,11 @@ COPY --from=static /opt/app-root/src/build .
 
 EXPOSE 3000
 CMD nginx -g "daemon off;"
+
+# while testing stuff out:
+# docker build -f ./Dockerfile.web --tag=wps/web .
+# -p 8080:3000 - "map port 3000 in the container, to 8080 in the host"
+# docker run -p 3000:3000 wps/web
+# docker contains ls
+# docker stop [the container id]
+# 

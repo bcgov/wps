@@ -101,6 +101,29 @@ objects:
         spec:
           automountServiceAccountToken: false
           containers:
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-web-${SUFFIX}:${SUFFIX}
+              imagePullPolicy: Always
+              name: ${APP_NAME}-web
+              ports:
+                - containerPort: 3000
+                  protocol: TCP
+              readinessProbe:
+                httpGet:
+                  path: /api/ready
+                  port: 3000
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                periodSeconds: 120
+                timeoutSeconds: 1
+              livenessProbe:
+                httpGet:
+                  path: /api/health
+                  port: 3000
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                periodSeconds: 120
+                timeoutSeconds: 1
+
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${APP_NAME}-${MODULE_NAME}
@@ -354,6 +377,20 @@ objects:
           targetPort: 8080
       selector:
         name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-web-${SUFFIX}
+    spec:
+      ports:
+        - name: 3000-tcp
+          protocol: TCP
+          port: 80
+          targetPort: 3000
+      selector:
+        name: ${APP_NAME}-web-${SUFFIX}
   - apiVersion: route.openshift.io/v1
     # Route for wps-api.apps.silver.devops.gov.bc.ca
     kind: Route
@@ -395,10 +432,10 @@ objects:
     spec:
       host: ${APP_NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
       port:
-        targetPort: 8080-tcp
+        targetPort: 3000-tcp
       to:
         kind: Service
-        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        name: ${APP_NAME}-web-${SUFFIX}
       tls:
         termination: edge
   - apiVersion: route.openshift.io/v1
