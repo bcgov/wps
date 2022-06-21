@@ -4,7 +4,8 @@ import { uniqWith, reverse, clone } from 'lodash'
 
 export interface StationAdminRow {
   planningAreaId: number
-  station: BasicWFWXStation
+  rowId: number
+  station?: BasicWFWXStation
   fuelType?: FuelType
 }
 
