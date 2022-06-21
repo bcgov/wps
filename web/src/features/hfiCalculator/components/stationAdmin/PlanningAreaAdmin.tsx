@@ -29,9 +29,6 @@ const PlanningAreaAdmin = ({ planningArea, addStationOptions, adminHandlers, adm
         >
           <AddCircleOutlineIcon />
         </IconButton>
-        {/* <Button variant="text" color="primary" data-testid={'add-station-'}>
-          <AddCircleOutlineIcon />
-        </Button> */}
       </Typography>
 
       {stationAdminRow.map((adminRow, idx) => {

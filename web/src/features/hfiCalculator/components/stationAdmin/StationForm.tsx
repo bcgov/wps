@@ -3,7 +3,7 @@ import { Autocomplete, TextField, Grid, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
-import { isEqual } from 'lodash'
+import { isEqual, isUndefined } from 'lodash'
 import { StationAdminRow } from 'features/hfiCalculator/stationAdmin/admin'
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
 
@@ -44,7 +44,12 @@ export const StationForm = ({
               isOptionEqualToValue={(option, value) => isEqual(option, value)}
               renderInput={params => <TextField {...params} label="Select Station" variant="outlined" />}
               onChange={(_, value) => {
-                adminHandlers.handleEditStation(planningAreaId, adminRow.rowId, { ...adminRow, station: { ...value } })
+                if (!isUndefined(adminRow.station)) {
+                  adminHandlers.handleEditStation(planningAreaId, adminRow.rowId, {
+                    ...adminRow,
+                    station: { ...value }
+                  })
+                }
               }}
             />
           </Grid>
@@ -59,7 +64,12 @@ export const StationForm = ({
               isOptionEqualToValue={(option, value) => isEqual(option, value)}
               renderInput={params => <TextField {...params} label="Select Fuel Type" variant="outlined" />}
               onChange={(_, value) => {
-                adminHandlers.handleEditStation(planningAreaId, adminRow.rowId, { ...adminRow, fuelType: { ...value } })
+                if (!isUndefined(adminRow.fuelType)) {
+                  adminHandlers.handleEditStation(planningAreaId, adminRow.rowId, {
+                    ...adminRow,
+                    fuelType: { ...value }
+                  })
+                }
               }}
             />
           </Grid>
@@ -68,7 +78,9 @@ export const StationForm = ({
               color="primary"
               size="large"
               onClick={() => {
-                adminHandlers.handleRemoveStation(planningAreaId, adminRow.rowId)
+                if (!isUndefined(adminRow)) {
+                  adminHandlers.handleRemoveStation(planningAreaId, adminRow.rowId)
+                }
               }}
             >
               <DeleteOutlinedIcon />
