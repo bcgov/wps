@@ -19,7 +19,6 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import StationListAdmin from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
-import { StationAdminRow } from 'features/hfiCalculator/stationAdmin/admin'
 import { getSelectedFuelType } from 'features/hfiCalculator/util'
 
 export interface AdminStation {
@@ -42,6 +41,13 @@ export interface AddStationOptions {
   planning_areas: BasicPlanningArea[]
   stations: BasicWFWXStation[]
   fuel_types: FuelType[]
+}
+
+export interface StationAdminRow {
+  planningAreaId: number
+  rowId: number
+  station?: BasicWFWXStation
+  fuelType?: FuelType
 }
 
 export interface AddStationModalProps {
