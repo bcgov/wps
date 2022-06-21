@@ -19,7 +19,7 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (HFIAddStationRequest, HFIAllReadyStatesResponse,
+from app.schemas.hfi_calc import (HFIAddOrUpdateStationRequest, HFIAllReadyStatesResponse, HFIBatchStationRequest,
                                   HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange, HFIReadyState,
@@ -443,7 +443,7 @@ async def toggle_planning_area_ready(
 
 @router.post('/admin/add-station/{fire_centre_id}', status_code=status.HTTP_201_CREATED)
 async def add_station(fire_centre_id: int,
-                      request: HFIAddStationRequest,
+                      request: HFIAddOrUpdateStationRequest,
                       token=Depends(auth_with_station_admin_role_required)):
     """ Adds a station. """
     logger.info('/hfi-calc/admin/add-station/%s', fire_centre_id)
@@ -477,6 +477,13 @@ async def remove_station(planning_area_id: int, station_code: str,
     with get_write_session_scope() as db_session:
         remove_hfi_station(db_session, planning_area_id, station_code, username)
         clear_cached_hydrated_fire_centres()
+
+
+@router.post('/admin/stations/{fire_centre_id}', status_code=status.HTTP_200_OK)
+async def batch_update_stations(fire_centre_id: int, request: HFIBatchStationRequest, token=Depends(auth_with_station_admin_role_required)):
+    """ Apply updates for a list of stations. """
+    logger.info('/hfi-calc/admin/stations/%s', fire_centre_id)
+    username = token.get('preferred_username', None)
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')
