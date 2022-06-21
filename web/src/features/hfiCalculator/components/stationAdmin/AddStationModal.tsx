@@ -14,11 +14,13 @@ import {
 import { AppDispatch } from 'app/store'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
 import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
-import { isNull, isUndefined } from 'lodash'
+import { groupBy, isNull, isUndefined } from 'lodash'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import StationListAdmin from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
+import { StationAdminRow } from 'features/hfiCalculator/stationAdmin/admin'
+import { getSelectedFuelType } from 'features/hfiCalculator/util'
 
 export interface AdminStation {
   dirty: boolean
@@ -95,6 +97,34 @@ export const AddStationModal = ({
     code: station.properties.code,
     name: station.properties.name
   }))
+  const adminRows: { [key: string]: StationAdminRow[] } = groupBy(
+    planningAreas
+      ? planningAreas
+          .map(pa =>
+            pa.stations.map(station => ({
+              planningAreaId: pa.id,
+              station: { code: station.code, name: station.station_props.name },
+              fuelType: getSelectedFuelType(planningAreaStationInfo, pa.id, station.code, fuelTypes)
+            }))
+          )
+          .flat()
+      : [],
+    'planningAreaId'
+  )
+
+  const [adminRowList, setAdminRows] = useState<{ [key: string]: StationAdminRow[] }>(adminRows)
+
+  const handleAddStation = (planningAreaId: number, row: StationAdminRow) => {
+    /**
+     * TODO
+     */
+  }
+
+  const handleEditStation = (planningAreaId: number, rowId: number, row: StationAdminRow) => {
+    /**
+     * TODO
+     */
+  }
 
   useEffect(() => {
     if (!isUndefined(selectedFireCentre)) {
