@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
-import { sortBy } from 'lodash'
+import { sortBy, maxBy, findIndex } from 'lodash'
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import { Box } from '@mui/material'
-import { maxBy, findIndex } from 'lodash'
 import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 
 export interface AdminHandlers {
@@ -35,7 +34,7 @@ const StationListAdmin = ({ planningAreas, addStationOptions, adminRows }: Stati
 
   const handleEditStation = (planningAreaId: number, rowId: number, row: StationAdminRow) => {
     const currentRow = adminRowList[planningAreaId]
-    const idx = findIndex(currentRow, row => row.rowId === rowId)
+    const idx = findIndex(currentRow, r => r.rowId === rowId)
     currentRow.splice(idx, 1, row)
     setAdminRows({
       ...adminRowList,
