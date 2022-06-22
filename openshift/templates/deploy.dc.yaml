@@ -1,7 +1,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: ${APP_NAME}-${MODULE_NAME}
+  name: ${APP_NAME}
   annotations:
     openshift.io/display-name: "wps"
     description: "Wildfire Predictive Services - API"
@@ -12,15 +12,12 @@ metadata:
     openshift.io/documentation-url: "https://github.com/bcgov/wps"
     openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
-  app.kubernetes.io/part-of: "${APP_NAME}-${MODULE_NAME}"
+  app.kubernetes.io/part-of: "${APP_NAME}"
   app: ${APP_NAME}-${SUFFIX}
 parameters:
   - name: APP_NAME
     description: Application name (wps - wildfire predictive services)
     value: wps
-  - name: MODULE_NAME
-    description: Module name (api, web, c-haines, etc. etc.)
-    value: api
   - name: GLOBAL_NAME
     description: Name of global Module
     value: wps-global
@@ -86,18 +83,18 @@ objects:
     metadata:
       labels:
         app: ${APP_NAME}-${SUFFIX}
-      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${SUFFIX}
     spec:
       replicas: ${{REPLICAS}}
       selector:
-        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        name: ${APP_NAME}-${SUFFIX}
       strategy:
         type: Rolling
       triggers: []
       template:
         metadata:
           labels:
-            name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+            name: ${APP_NAME}-${SUFFIX}
         spec:
           automountServiceAccountToken: false
           containers:
@@ -109,7 +106,7 @@ objects:
                   protocol: TCP
               readinessProbe:
                 httpGet:
-                  path: /api/ready
+                  path: /ready
                   port: 3000
                   scheme: HTTP
                 initialDelaySeconds: 10
@@ -117,21 +114,21 @@ objects:
                 timeoutSeconds: 1
               livenessProbe:
                 httpGet:
-                  path: /api/health
+                  path: /health
                   port: 3000
                   scheme: HTTP
                 initialDelaySeconds: 10
                 periodSeconds: 120
                 timeoutSeconds: 1
 
-            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-api-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
-              name: ${APP_NAME}-${MODULE_NAME}
+              name: ${APP_NAME}-api
               env:
                 - name: ORIGINS
                   value: ${ALLOWED_ORIGINS}
                 - name: BASE_URI
-                  value: https://${APP_NAME}-${MODULE_NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
+                  value: https://${APP_NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
                 - name: PORT # The port that the API will run on (used by fastapi docker image)
                   value: "8080"
                 - name: WORKERS_PER_CORE # The number of worker per code (used by fastapi docker image)
@@ -368,7 +365,7 @@ objects:
     metadata:
       labels:
         app: ${APP_NAME}-${SUFFIX}
-      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+      name: ${APP_NAME}-api-${SUFFIX}
     spec:
       ports:
         - name: 8080-tcp
@@ -376,7 +373,7 @@ objects:
           port: 80
           targetPort: 8080
       selector:
-        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        name: ${APP_NAME}-${SUFFIX}
   - apiVersion: v1
     kind: Service
     metadata:
@@ -390,14 +387,14 @@ objects:
           port: 80
           targetPort: 3000
       selector:
-        name: ${APP_NAME}-web-${SUFFIX}
+        name: ${APP_NAME}-${SUFFIX}
   - apiVersion: route.openshift.io/v1
-    # Route for wps-api.apps.silver.devops.gov.bc.ca
+    # Route for wps-api-prod.apps.silver.devops.gov.bc.ca
     kind: Route
     metadata:
       labels:
         app: ${APP_NAME}-${SUFFIX}
-      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+      name: ${APP_NAME}-api-${SUFFIX}
       annotations:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
@@ -411,7 +408,7 @@ objects:
         targetPort: 8080-tcp
       to:
         kind: Service
-        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        name: ${APP_NAME}-api-${SUFFIX}
       tls:
         termination: edge
   - apiVersion: route.openshift.io/v1
@@ -420,7 +417,7 @@ objects:
     metadata:
       labels:
         app: ${APP_NAME}-${SUFFIX}
-      name: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-web-${SUFFIX}
       annotations:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
@@ -434,6 +431,31 @@ objects:
       to:
         kind: Service
         name: ${APP_NAME}-web-${SUFFIX}
+      tls:
+        termination: edge
+  - apiVersion: route.openshift.io/v1
+    # Route for psu.nrs.gov.bc.ca/api
+    # Points to api
+    kind: Route
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+        certbot-managed: "true"
+      name: ${APP_NAME}-api-${SUFFIX}-vanity
+      annotations:
+        # Enable HTTP Strict Transport Security:
+        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+        # Use roundrobin load balancing strategy
+        haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/disable_cookies: "true"
+    spec:
+      host: ${VANITY_DOMAIN}
+      path: "/api"
+      port:
+        targetPort: 8080-tcp
+      to:
+        kind: Service
+        name: ${APP_NAME}-api-${SUFFIX}
       tls:
         termination: edge
   - apiVersion: route.openshift.io/v1
@@ -458,30 +480,5 @@ objects:
       to:
         kind: Service
         name: ${APP_NAME}-web-${SUFFIX}
-      tls:
-        termination: edge
-  - apiVersion: route.openshift.io/v1
-    # Route for psu.nrs.gov.bc.ca/api
-    # Points to api
-    kind: Route
-    metadata:
-      labels:
-        app: ${APP_NAME}-${SUFFIX}
-        certbot-managed: "true"
-      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}-vanity
-      annotations:
-        # Enable HTTP Strict Transport Security:
-        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
-        # Use roundrobin load balancing strategy
-        haproxy.router.openshift.io/balance: roundrobin
-        haproxy.router.openshift.io/disable_cookies: "true"
-    spec:
-      host: ${VANITY_DOMAIN}
-      path: "/api"
-      port:
-        targetPort: 8080-tcp
-      to:
-        kind: Service
-        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
       tls:
         termination: edge
