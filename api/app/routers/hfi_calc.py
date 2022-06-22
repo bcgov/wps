@@ -40,10 +40,10 @@ from app.db.crud.hfi_calc import (add_hfi_stations, get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   get_planning_weather_stations,
-                                  get_latest_hfi_ready_records, remove_hfi_station, remove_hfi_stations,
+                                  get_latest_hfi_ready_records, remove_hfi_stations,
                                   store_hfi_request,
                                   get_fire_centre_stations,
-                                  add_hfi_station, toggle_ready, update_hfi_station, update_hfi_stations)
+                                  toggle_ready, update_hfi_stations)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -441,46 +441,9 @@ async def toggle_planning_area_ready(
         return response
 
 
-@router.post('/admin/add-station/{fire_centre_id}', status_code=status.HTTP_201_CREATED)
-async def add_station(fire_centre_id: int,
-                      request: HFIAddOrUpdateStationRequest,
-                      token=Depends(auth_with_station_admin_role_required)):
-    """ Adds a station. """
-    logger.info('/hfi-calc/admin/add-station/%s', fire_centre_id)
-    username = token.get('preferred_username', None)
-    with get_write_session_scope() as db_session:
-        last_weather_station = get_last_station_in_planning_area(
-            session=db_session, planning_area_id=request.planning_area_id)
-        order = last_weather_station.order_of_appearance_in_planning_area_list + 1
-        try:
-            add_hfi_station(db_session,
-                            station_code=request.station_code,
-                            fuel_type_id=request.fuel_type_id,
-                            planning_area_id=request.planning_area_id,
-                            order=order,
-                            username=username)
-            clear_cached_hydrated_fire_centres()
-        except IntegrityError as exception:
-            logger.info('Attempt to add existing station code %s to planning area id %s',
-                        request.station_code, request.planning_area_id, exc_info=exception)
-            db_session.rollback()
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                                detail="Station already exists in planning area") from exception
-
-
-@router.post('/admin/remove-station/{planning_area_id}/{station_code}', status_code=status.HTTP_200_OK)
-async def remove_station(planning_area_id: int, station_code: str,
-                         token=Depends(auth_with_station_admin_role_required)):
-    """ Removes a station. """
-    logger.info('/hfi-calc/admin/remove-station/%s/%s', planning_area_id, station_code)
-    username = token.get('preferred_username', None)
-    with get_write_session_scope() as db_session:
-        remove_hfi_station(db_session, planning_area_id, station_code, username)
-        clear_cached_hydrated_fire_centres()
-
-
 @router.post('/admin/stations/{fire_centre_id}', status_code=status.HTTP_200_OK)
-async def batch_update_stations(fire_centre_id: int, request: HFIBatchStationRequest, token=Depends(auth_with_station_admin_role_required)):
+async def batch_update_stations(fire_centre_id: int, request: HFIBatchStationRequest,
+                                token=Depends(auth_with_station_admin_role_required)):
     """ Apply updates for a list of stations. """
     logger.info('/hfi-calc/admin/stations/%s', fire_centre_id)
     username = token.get('preferred_username', None)
