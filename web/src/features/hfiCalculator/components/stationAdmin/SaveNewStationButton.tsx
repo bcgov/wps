@@ -1,13 +1,10 @@
 import React from 'react'
 import { Button } from '@mui/material'
-import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
-import { isEmpty, values } from 'lodash'
 
 export interface SaveNewStationButtonProps {
   testId?: string
-  newStation: AdminStation
   invalidNewStation: boolean
   handleSave: () => void
 }
@@ -20,14 +17,14 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-const SaveNewStationButton = ({ newStation, invalidNewStation, handleSave }: SaveNewStationButtonProps) => {
+const SaveNewStationButton = ({ invalidNewStation, handleSave }: SaveNewStationButtonProps) => {
   const classes = useStyles()
 
   return (
     <Button
       variant="contained"
       color="primary"
-      disabled={invalidNewStation || values(newStation).every(isEmpty)}
+      disabled={invalidNewStation}
       className={classes.actionButton}
       onClick={handleSave}
       data-testid={'save-new-station-button'}

@@ -5,12 +5,7 @@ import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
-import {
-  fetchAddStation,
-  setAddedStationFailed,
-  setStationAdded,
-  StationInfo
-} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { setAddedStationFailed, setStationAdded, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
 import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
@@ -89,9 +84,6 @@ export const AddStationModal = ({
 
   const { fuelTypes, selectedFireCentre, stationAdded, stationAddedError } = useSelector(selectHFICalculatorState)
   const { stations: wfwxStations } = useSelector(selectFireWeatherStations)
-
-  const newEmptyStation: AdminStation = { dirty: false }
-  const [newStation, setNewStation] = useState<AdminStation>(newEmptyStation)
   const [invalid] = useState<boolean>(false)
   const planning_areas: BasicPlanningArea[] = selectedFireCentre
     ? selectedFireCentre.planning_areas.map(planningArea => ({
@@ -103,15 +95,16 @@ export const AddStationModal = ({
     code: station.properties.code,
     name: station.properties.name
   }))
+
   const adminRows: { [key: string]: StationAdminRow[] } = groupBy(
     planningAreas
       ? planningAreas
-          .map(pa =>
-            pa.stations.map((station, i) => ({
-              planningAreaId: pa.id,
+          .map(planningArea =>
+            planningArea.stations.map((station, i) => ({
+              planningAreaId: planningArea.id,
               rowId: i,
               station: { code: station.code, name: station.station_props.name },
-              fuelType: getSelectedFuelType(planningAreaStationInfo, pa.id, station.code, fuelTypes)
+              fuelType: getSelectedFuelType(planningAreaStationInfo, planningArea.id, station.code, fuelTypes)
             }))
           )
           .flat()
@@ -128,7 +121,6 @@ export const AddStationModal = ({
 
   const handleClose = () => {
     setModalOpen(false)
-    setNewStation(newEmptyStation)
     if (!isNull(stationAddedError)) {
       dispatch(setAddedStationFailed(null))
     }
@@ -144,19 +136,10 @@ export const AddStationModal = ({
   }, [stationAdded])
 
   const handleSave = () => {
-    if (
-      !isUndefined(selectedFireCentre) &&
-      !isUndefined(newStation.planningArea) &&
-      !isUndefined(newStation.station) &&
-      !isUndefined(newStation.fuelType)
-    ) {
-      dispatch(
-        fetchAddStation(selectedFireCentre.id, {
-          planningArea: newStation.planningArea,
-          station: newStation.station,
-          fuelType: newStation.fuelType
-        })
-      )
+    if (!isUndefined(selectedFireCentre)) {
+      /**
+       * TODO: Save update API call
+       */
     }
   }
 
@@ -183,7 +166,7 @@ export const AddStationModal = ({
               addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
             />
           )}
-          <SaveNewStationButton newStation={newStation} invalidNewStation={invalid} handleSave={handleSave} />
+          <SaveNewStationButton invalidNewStation={invalid} handleSave={handleSave} />
           <Button
             variant="outlined"
             color="primary"
