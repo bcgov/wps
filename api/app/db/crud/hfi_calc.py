@@ -205,14 +205,6 @@ def toggle_ready(session: Session,
     return ready_state
 
 
-def get_last_station_in_planning_area(session: Session, planning_area_id: int) -> PlanningWeatherStation:
-    """ Get the last station in a planning area """
-    return session.query(PlanningWeatherStation)\
-        .filter(PlanningWeatherStation.planning_area_id == planning_area_id)\
-        .order_by(desc(PlanningWeatherStation.order_of_appearance_in_planning_area_list))\
-        .first()
-
-
 def get_fire_centre_fire_start_ranges(session: Session, fire_centre_id: id) -> CursorResult:
     """ Get the fire start ranges for a fire centre """
     return session.query(FireStartRange)\

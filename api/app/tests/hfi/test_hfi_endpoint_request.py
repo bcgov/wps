@@ -66,15 +66,6 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
             result.append((planning_station, fuel_type))
         return result
 
-    def mock_get_last_station_in_planning_area(*args, **kwargs):
-        """ Returns mocked PlanningWeatherStation. """
-        planning_station = PlanningWeatherStation(
-            station_code=1,
-            planning_area_id=1,
-            fuel_type_id=1,
-            order_of_appearance_in_planning_area_list=1)
-        return planning_station
-
     def mock_get_fire_centre_fire_start_ranges(_, __: int):
         """ Returns mocked FireStartRange """
         data = ((1, '0-1'), (2, '1-2'), (3, '2-3'), (4, '3-6'), (5, '6+'))
@@ -137,8 +128,6 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
                         mock_get_fire_centre_fire_start_ranges)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fuel_types', mock_get_fuel_types)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_start_lookup', mock_get_fire_start_lookup)
-    monkeypatch.setattr(app.routers.hfi_calc, 'get_last_station_in_planning_area',
-                        mock_get_last_station_in_planning_area)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fuel_type_by_id', mock_get_fuel_type_by_id)
     monkeypatch.setattr(app.routers.hfi_calc, 'crud_get_fuel_types', mock_get_fuel_types)
