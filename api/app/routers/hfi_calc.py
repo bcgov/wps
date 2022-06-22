@@ -5,7 +5,6 @@ from typing import List, Optional, Dict, Tuple
 from datetime import date
 from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, HTTPException, Response, Depends, status
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from pydantic.error_wrappers import ValidationError
 from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
@@ -19,7 +18,7 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (HFIAddOrUpdateStationRequest, HFIAllReadyStatesResponse, HFIBatchStationRequest,
+from app.schemas.hfi_calc import (HFIAllReadyStatesResponse, HFIBatchStationRequest,
                                   HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange, HFIReadyState,
@@ -36,7 +35,6 @@ from app.auth import (auth_with_select_station_role_required,
                       audit)
 from app.schemas.shared import (FuelType)
 from app.db.crud.hfi_calc import (add_hfi_stations, get_fuel_type_by_id,
-                                  get_last_station_in_planning_area,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   get_planning_weather_stations,
@@ -455,7 +453,7 @@ async def batch_update_stations(fire_centre_id: int, request: HFIBatchStationReq
         except Exception as exc:
             logger.info(exc)
             db_session.rollback()
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST) from exc
         clear_cached_hydrated_fire_centres()
 
 
