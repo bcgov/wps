@@ -14,12 +14,10 @@ import {
   getFuelTypes,
   FuelType,
   FireCentre,
-  FuelTypesResponse,
-  addNewStation
+  FuelTypesResponse
 } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
-import { AddStationOptions, AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
-import { AxiosError } from 'axios'
+import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import { isUndefined } from 'lodash'
 
 export interface FireStartRange {
@@ -309,19 +307,6 @@ export const fetchFuelTypes = (): AppThunk => async dispatch => {
     logError(err)
   }
 }
-
-export const fetchAddStation =
-  (fireCentreId: number, newStation: Required<Omit<AdminStation, 'dirty'>>): AppThunk =>
-  async dispatch => {
-    try {
-      const status = await addNewStation(fireCentreId, newStation)
-      dispatch(setStationAdded(status === 201))
-    } catch (err) {
-      const { response } = err as AxiosError
-      dispatch(setAddedStationFailed(response?.data.detail))
-      logError(err)
-    }
-  }
 
 export const fetchSetNewFireStarts =
   (

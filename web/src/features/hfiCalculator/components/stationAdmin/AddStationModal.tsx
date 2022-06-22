@@ -16,13 +16,6 @@ import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import StationListAdmin from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 import { getSelectedFuelType } from 'features/hfiCalculator/util'
 
-export interface AdminStation {
-  dirty: boolean
-  planningArea?: BasicPlanningArea
-  station?: BasicWFWXStation
-  fuelType?: FuelType
-}
-
 export interface BasicPlanningArea {
   id: number
   name: string

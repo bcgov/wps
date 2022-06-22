@@ -1,5 +1,4 @@
 import axios from 'api/axios'
-import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import {
   HFIResultResponse,
   PlanningAreaResult,
@@ -175,19 +174,6 @@ export async function toggleReadyState(
     create_timestamp: DateTime.fromISO(data.create_timestamp).setZone(PACIFIC_IANA_TIMEZONE),
     update_timestamp: DateTime.fromISO(data.update_timestamp).setZone(PACIFIC_IANA_TIMEZONE)
   }
-}
-
-export async function addNewStation(
-  fireCentreId: number,
-  newStation: Required<Omit<AdminStation, 'dirty'>>
-): Promise<number> {
-  const requestBody: AddStationRequest = {
-    planning_area_id: newStation.planningArea.id,
-    station_code: newStation.station.code,
-    fuel_type_id: newStation.fuelType.id
-  }
-  const { status } = await axios.post<number>(baseUrl + 'admin/add-station/' + fireCentreId, requestBody)
-  return status
 }
 
 export async function setStationSelected(
