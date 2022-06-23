@@ -11,5 +11,6 @@ const config = {
   REACT_APP_SM_LOGOUT_URL: undefined,
   REACT_APP_KEYCLOAK_REALM: undefined,
   REACT_APP_KEYCLOAK_CLIENT: undefined,
-  REACT_APP_KEYCLOAK_AUTH_URL: 'https://dev.oidc.gov.bc.ca/auth'
+  REACT_APP_KEYCLOAK_AUTH_URL: 'https://dev.oidc.gov.bc.ca/auth',
+  API_BASE_URL: 'http://localhost:8080'
 }
