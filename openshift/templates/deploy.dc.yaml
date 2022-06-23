@@ -97,7 +97,14 @@ objects:
             name: ${APP_NAME}-${SUFFIX}
         spec:
           automountServiceAccountToken: false
+          volumes:
+            - name: config-env
+              configMap:
+                name: ${GLOBAL_NAME}
           containers:
+            #############################################################################
+            # WEB container
+            #############################################################################
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-web-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${APP_NAME}-web
@@ -120,7 +127,13 @@ objects:
                 initialDelaySeconds: 10
                 periodSeconds: 120
                 timeoutSeconds: 1
-
+              volumeMounts:
+                - name: config-env
+                  mountPath: "/opt/app-root/src/config.js"
+                  subPath: config.js
+            #############################################################################
+            # API container
+            #############################################################################
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-api-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${APP_NAME}-api
@@ -389,6 +402,8 @@ objects:
       selector:
         name: ${APP_NAME}-${SUFFIX}
   - apiVersion: route.openshift.io/v1
+    ################################################################################
+    # API ROUTE
     # Route for wps-api-prod.apps.silver.devops.gov.bc.ca
     kind: Route
     metadata:
@@ -412,6 +427,8 @@ objects:
       tls:
         termination: edge
   - apiVersion: route.openshift.io/v1
+    ################################################################################
+    # WEB ROUTE
     # Route for wps-prod.apps.silver.devops.gov.bc.ca
     kind: Route
     metadata:
@@ -434,6 +451,8 @@ objects:
       tls:
         termination: edge
   - apiVersion: route.openshift.io/v1
+    ################################################################################
+    # API ROUTE
     # Route for psu.nrs.gov.bc.ca/api
     # Points to api
     kind: Route
@@ -459,6 +478,8 @@ objects:
       tls:
         termination: edge
   - apiVersion: route.openshift.io/v1
+    ################################################################################
+    # WEB ROUTE
     # Route for psu.nrs.gov.bc.ca
     # Points to web
     kind: Route
