@@ -7,7 +7,7 @@
  * needed before process.env is available.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const config = {
+var config = {
   REACT_APP_SM_LOGOUT_URL: undefined,
   REACT_APP_KEYCLOAK_REALM: undefined,
   REACT_APP_KEYCLOAK_CLIENT: undefined,
