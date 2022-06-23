@@ -1,5 +1,6 @@
 """ This module contains pydandict schemas the HFI Calculator.
 """
+from enum import Enum
 import logging
 from typing import List, Dict, Optional
 from datetime import datetime, date
@@ -175,17 +176,23 @@ class HFIResultRequest(BaseModel):
     planning_area_fire_starts: Dict[int, List[FireStartRange]]
 
 
+class HFIStationCommand(Enum):
+    ADD = 'ADD'
+    UPDATE = 'UPDATE'
+    REMOVE = 'REMOVE'
+
+
 class HFIAddUpdateOrRemoveStationRequest(BaseModel):
     """ Request input for adding, updating, or deleting a station """
     planning_area_id: int
     station_code: int
     fuel_type_id: int
-    command: str
+    command: HFIStationCommand
 
 
 class HFIBatchStationRequest(BaseModel):
     """ Request input for updating a batch of HFI stations. """
-    stations: List[HFIAddUpdateOrRemoveStationRequest]  # treat as ordered list
+    stations: List[HFIAddUpdateOrRemoveStationRequest]
 
 
 class HFIResultResponse(BaseModel):

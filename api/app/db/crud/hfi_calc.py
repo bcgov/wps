@@ -5,7 +5,7 @@ from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, insert
 from app.db.database import get_read_session_scope
-from app.schemas.hfi_calc import DateRange, HFIResultRequest
+from app.schemas.hfi_calc import DateRange, HFIAddUpdateOrRemoveStationRequest, HFIResultRequest, HFIStationCommand
 from app.db.models.hfi_calc import (FireCentre, FuelType, HFIReady, PlanningArea, PlanningWeatherStation, HFIRequest,
                                     FireStartRange, FireCentreFireStartRange, FireStartLookup)
 from app.utils.time import get_utc_now
@@ -130,6 +130,14 @@ def get_latest_hfi_ready_records(session: Session, hfi_request_id: int) -> List[
         .all()
 
 
+def get_last_station_in_planning_area(session: Session, planning_area_id: int) -> PlanningWeatherStation:
+    """ Get the last station in a planning area """
+    return session.query(PlanningWeatherStation)\
+        .filter(PlanningWeatherStation.planning_area_id == planning_area_id)\
+        .order_by(desc(PlanningWeatherStation.order_of_appearance_in_planning_area_list))\
+        .first()
+
+
 def get_planning_areas(session: Session, fire_centre_id: int):
     """ Retrieve the planning areas for a fire centre"""
     return session.query(PlanningArea)\
@@ -137,47 +145,72 @@ def get_planning_areas(session: Session, fire_centre_id: int):
         .all()
 
 
-def add_hfi_stations(session: Session, stations: List[PlanningWeatherStation], username: str):
-    """ Add planning weather stations """
-    now = get_utc_now()
-    for station in stations:
-        station.create_user = username
-        station.update_user = username
-        station.create_timestamp = now
-        station.update_timestamp = now
-        station.is_deleted = False
-    session.bulk_save_objects(stations)
-    session.commit()
+def _add_station(session: Session, station_request: HFIAddUpdateOrRemoveStationRequest, username: str) -> PlanningWeatherStation:
+    """ Create a new PlanningWeatherStation object, ready to be inserted into database. """
+    last_station_in_planning_area = get_last_station_in_planning_area(session, station_request.planning_area_id)
+    station = PlanningWeatherStation(
+        planning_area_id=station_request.planning_area_id,
+        station_code=station_request.station_code,
+        order_of_appearance_in_planning_area_list=last_station_in_planning_area.order_of_appearance_in_planning_area_list + 1,
+        create_user=username,
+        update_user=username,
+        create_timestamp=get_utc_now(),
+        update_timestamp=get_utc_now(),
+        is_deleted=False
+    )
+    return station
 
 
-def remove_hfi_stations(session: Session, stations: List[PlanningWeatherStation], username: str):
-    """ Remove planning weather stations """
-    now = get_utc_now()
-    all_stations_to_save: List[PlanningWeatherStation] = []
-    for station in stations:
-        position = station.order_of_appearance_in_planning_area_list
-        station.update_user = username
-        station.update_timestamp = now
-        station.is_deleted = True
-        all_stations_to_save.append(station)
-        all_stations_in_planning_area = session.query(PlanningWeatherStation)\
-            .filter(PlanningWeatherStation.planning_area_id == station.planning_area_id)\
-            .all()
-        for other_station in all_stations_in_planning_area:
-            if other_station.order_of_appearance_in_planning_area_list > position:
-                other_station.order_of_appearance_in_planning_area_list -= 1
-                all_stations_to_save.append(other_station)
-    session.bulk_save_objects(all_stations_to_save)
-    session.commit()
+def _remove_station(session: Session, station_request: HFIAddUpdateOrRemoveStationRequest, username: str) -> List[PlanningWeatherStation]:
+    """ Mark the PlanningWeatherStation database record to indicate it's been deleted (and add audit values).
+    Return the deleted station object, as well as any other stations whose ordering needs to be updated because
+    the deleted station was in the middle of the list. """
+    stations_to_update: List[PlanningWeatherStation] = []
+    station = session.query(PlanningWeatherStation)\
+        .filter(PlanningWeatherStation.planning_area_id == station_request.planning_area_id)\
+        .filter(PlanningWeatherStation.station_code == station_request.station_code)\
+        .first()
+    position = station.order_of_appearance_in_planning_area_list
+    station.update_user = username
+    station.update_timestamp = get_utc_now()
+    station.is_deleted = True
+    station.order_of_appearance_in_planning_area_list = None
+    stations_to_update.append(station)
+    all_stations_in_planning_area = session.query(PlanningWeatherStation)\
+        .filter(PlanningWeatherStation.planning_area_id == station.planning_area_id)\
+        .all()
+    for other_station in all_stations_in_planning_area:
+        if other_station.order_of_appearance_in_planning_area_list > position:
+            other_station.order_of_appearance_in_planning_area_list -= 1
+            stations_to_update.append(other_station)
+    return stations_to_update
 
 
-def update_hfi_stations(session: Session, stations: List[PlanningWeatherStation], username: str):
-    """ Update planning weather stations """
-    now = get_utc_now()
-    for station in stations:
-        station.update_user = username
-        station.update_timestamp = now
-    session.bulk_save_objects(stations)
+def _update_station(session: Session, station_request: HFIAddUpdateOrRemoveStationRequest, username: str) -> PlanningWeatherStation:
+    """ Update the PlanningWeatherStation object (retrieved from database) with the new fuel type. """
+    station = session.query(PlanningWeatherStation)\
+        .filter(PlanningWeatherStation.planning_area_id == station_request.planning_area_id)\
+        .filter(PlanningWeatherStation.station_code == station_request.station_code)\
+        .first()
+    station.update_user = username
+    station.update_timestamp = get_utc_now()
+    station.fuel_type_id = station_request.fuel_type_id
+    return station
+
+
+def batch_save_hfi_stations(session: Session, stations: List[HFIAddUpdateOrRemoveStationRequest], username: str):
+    """ Process station changes in the order that they were received (treat the list as ordered).
+    """
+    stations_to_save: List[PlanningWeatherStation] = []
+    for station_request in stations:
+        if station_request.command == HFIStationCommand.ADD:
+            station = _add_station(session, station_request, username)
+            stations_to_save.append(station)
+        elif station_request.command == HFIStationCommand.REMOVE:
+            stations_to_save.append(_remove_station(session, station_request, username))
+        elif station.command == HFIStationCommand.UPDATE:
+            stations_to_save.append(_update_station(session, station_request, username))
+    session.bulk_save_objects(stations_to_save)
     session.commit()
 
 
