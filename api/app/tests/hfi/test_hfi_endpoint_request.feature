@@ -72,13 +72,13 @@ Feature: /hfi/
         And it has a <request_body> for a station that is <already_added>
         Then the response status code is <status_code>
         Examples:
-            | url                               | role               | request_body                        | status_code | already_added |
-            # Test add station with correct role
-            | /api/hfi-calc/admin/add-station/1 | hfi_station_admin  | test_admin_add_station_request.json | 201         | False         |
+            | url                               | role               | request_body                         | status_code | already_added |
+            # Test add stations with correct role
+            | /api/hfi-calc/admin/stations/1    | hfi_station_admin  | test_admin_add_stations_request.json | 200         | False         |
             # Test add station without roles
-            | /api/hfi-calc/admin/add-station/1 | None               | test_admin_add_station_request.json | 401         | False         |
+            #| /api/hfi-calc/admin/add-station/1 | None               | test_admin_add_station_request.json | 401         | False         |
             # Test add station without correct role
-            | /api/hfi-calc/admin/add-station/1 | hfi_select_station | test_admin_add_station_request.json | 401         | False         |
+            #| /api/hfi-calc/admin/add-station/1 | hfi_select_station | test_admin_add_station_request.json | 401         | False         |
             # Test add station with correct role but station already exists
-            | /api/hfi-calc/admin/add-station/1 | hfi_station_admin  | test_admin_add_station_request.json | 409         | True          |
+            #| /api/hfi-calc/admin/add-station/1 | hfi_station_admin  | test_admin_add_station_request.json | 409         | True          |
 

@@ -1,0 +1,21 @@
+{
+    "add_stations": [
+        {
+            "planning_area_id": 1,
+            "station_code": 101,
+            "fuel_type_id": 1
+        },
+        {
+            "planning_area_id": 1,
+            "station_code": 102,
+            "fuel_type_id": 2
+        },
+        {
+            "planning_area_id": 2,
+            "station_code": 103,
+            "fuel_type_id": 3
+        }
+    ],
+    "update_stations": [],
+    "remove_stations": []
+}

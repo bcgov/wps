@@ -1,6 +1,5 @@
 """ CRUD operations relating to HFI Calculator
 """
-from turtle import position
 from typing import List
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
