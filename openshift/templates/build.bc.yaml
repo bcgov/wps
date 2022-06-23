@@ -80,23 +80,6 @@ objects:
         contextDir: ./
       strategy:
         dockerStrategy:
-          # when npm run build executes, it will replace node tags with
-          # python jinja tags using these environment variables.
-          env:
-            - name: "REACT_APP_SM_LOGOUT_URL"
-              value: "{{REACT_APP_SM_LOGOUT_URL}}"
-            - name: "REACT_APP_KEYCLOAK_AUTH_URL"
-              value: "{{REACT_APP_KEYCLOAK_AUTH_URL}}"
-            - name: "REACT_APP_KEYCLOAK_REALM"
-              value: "{{REACT_APP_KEYCLOAK_REALM}}"
-            - name: "REACT_APP_KEYCLOAK_CLIENT"
-              value: "{{REACT_APP_KEYCLOAK_CLIENT}}"
-            - name: "REACT_APP_MATOMO_URL"
-              value: "{{REACT_APP_MATOMO_URL}}"
-            - name: "REACT_APP_MATOMO_SITE_ID"
-              value: "{{REACT_APP_MATOMO_SITE_ID}}"
-            - name: "REACT_APP_MATOMO_CONTAINER"
-              value: "{{REACT_APP_MATOMO_CONTAINER}}"
           buildArgs:
             - name: "DOCKER_IMAGE"
               value: "${{DOCKER_IMAGE}}"

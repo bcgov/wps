@@ -236,41 +236,6 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: rocket.chat-auth-token-secret
-                - name: REACT_APP_SM_LOGOUT_URL
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.sm-logout-url
-                - name: REACT_APP_KEYCLOAK_AUTH_URL
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.keycloak-auth-url
-                - name: REACT_APP_KEYCLOAK_REALM
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.keycloak-realm
-                - name: REACT_APP_KEYCLOAK_CLIENT
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.keycloak-client
-                - name: REACT_APP_MATOMO_URL
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.matomo-url
-                - name: REACT_APP_MATOMO_SITE_ID
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.matomo-site-id
-                - name: REACT_APP_MATOMO_CONTAINER
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.matomo-container
                 - name: OBJECT_STORE_SERVER
                   valueFrom:
                     secretKeyRef:

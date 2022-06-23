@@ -2,7 +2,9 @@
  * This is a placeholder configuration file. In Openshift/dockerfile, this file is replaced by
  * a mapping.
  *
- * In local development values are taken from process.env (except for REACT_APP_KEYCLOAK_AUTH_URL)
+ * In local development values are taken from process.env
+ * REACT_APP_KEYCLOAK_AUTH_URL is an exception - because of the way keycloak is loaded, it's
+ * needed before process.env is available.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 var config = {
