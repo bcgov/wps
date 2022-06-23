@@ -17,7 +17,7 @@ USER 0
 
 ADD web .
 # NOTE: Can't use "--production=true", because we need react-scripts for yarn run start.
-RUN npm install -g npm@latest && npm install -g yarn@latest && yarn install --frozen-lockfile
+RUN npm install -g npm@latest && npm install -g yarn@latest && yarn install --frozen-lockfile --production=true
 RUN yarn run build
 
 # Switch back to default user
@@ -36,11 +36,3 @@ COPY --from=static /opt/app-root/src/build .
 EXPOSE 3000
 # CMD ./prepare_config.sh && nginx -g "daemon off;"
 CMD nginx -g "daemon off;"
-
-# while testing stuff out:
-# docker build -f ./Dockerfile.web --tag=wps/web .
-# -p 8080:3000 - "map port 3000 in the container, to 8080 in the host"
-# docker run -p 3000:3000 wps/web
-# docker contains ls
-# docker stop [the container id]
-# 
