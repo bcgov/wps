@@ -7,19 +7,25 @@ import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/compo
 import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 
 export interface PlanningAreaAdminProps {
-  planningArea: PlanningArea
-  adminRows: { [key: string]: StationAdminRow[] }
+  planningArea: Pick<PlanningArea, 'id' | 'name'>
+  planningAreaAdminStations: { [key: string]: StationAdminRow[] }
   addStationOptions?: AddStationOptions
   adminHandlers: AdminHandlers
 }
 
-const PlanningAreaAdmin = ({ planningArea, addStationOptions, adminHandlers, adminRows }: PlanningAreaAdminProps) => {
-  const stationAdminRow = adminRows[planningArea.id]
+const PlanningAreaAdmin = ({
+  planningArea,
+  addStationOptions,
+  adminHandlers,
+  planningAreaAdminStations
+}: PlanningAreaAdminProps) => {
+  const stationAdminRow = planningAreaAdminStations[planningArea.id]
   return (
-    <Box sx={{ width: '100%', pt: 4 }}>
+    <Box sx={{ width: '100%', pt: 4 }} data-testid="planning-area-admin">
       <Typography variant="h6">
         {planningArea.name}
         <IconButton
+          data-testid="admin-add-station-button"
           color="primary"
           size="large"
           onClick={() => {
@@ -30,10 +36,10 @@ const PlanningAreaAdmin = ({ planningArea, addStationOptions, adminHandlers, adm
         </IconButton>
       </Typography>
 
-      {stationAdminRow.map((adminRow, idx) => {
+      {stationAdminRow.map(adminRow => {
         return (
           <StationForm
-            key={`pa-admin-station-${idx}`}
+            key={`pa-admin-station-${planningArea.id}-${adminRow.rowId}`}
             adminRow={adminRow}
             planningAreaId={planningArea.id}
             addStationOptions={addStationOptions}

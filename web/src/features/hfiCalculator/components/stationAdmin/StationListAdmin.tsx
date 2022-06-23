@@ -13,7 +13,7 @@ export interface AdminHandlers {
 
 export interface StationListAdminProps {
   planningAreas: PlanningArea[]
-  fuelTypes: FuelType[]
+  fuelTypes: Pick<FuelType, 'id' | 'abbrev'>[]
   addStationOptions?: AddStationOptions
   adminRows: { [key: string]: StationAdminRow[] }
 }
@@ -59,7 +59,7 @@ const StationListAdmin = ({ planningAreas, addStationOptions, adminRows }: Stati
         <PlanningAreaAdmin
           key={`planning-area-admin-${index}`}
           planningArea={area}
-          adminRows={adminRowList}
+          planningAreaAdminStations={adminRowList}
           addStationOptions={addStationOptions}
           adminHandlers={{
             handleAddStation,

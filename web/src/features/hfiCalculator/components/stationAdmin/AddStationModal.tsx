@@ -26,16 +26,16 @@ export interface BasicWFWXStation {
 }
 
 export interface AddStationOptions {
-  planning_areas: BasicPlanningArea[]
-  stations: BasicWFWXStation[]
-  fuel_types: FuelType[]
+  planningAreaOptions: BasicPlanningArea[]
+  stationOptions: BasicWFWXStation[]
+  fuelTypeOptions: FuelType[]
 }
 
 export interface StationAdminRow {
   planningAreaId: number
   rowId: number
   station?: BasicWFWXStation
-  fuelType?: FuelType
+  fuelType?: Pick<FuelType, 'id' | 'abbrev'>
 }
 
 export interface AddStationModalProps {
@@ -156,7 +156,11 @@ export const AddStationModal = ({
               planningAreas={planningAreas}
               fuelTypes={fuelTypes}
               adminRows={adminRows}
-              addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
+              addStationOptions={{
+                planningAreaOptions: planning_areas,
+                stationOptions: stations,
+                fuelTypeOptions: fuelTypes
+              }}
             />
           )}
           <SaveNewStationButton invalidNewStation={invalid} handleSave={handleSave} />
