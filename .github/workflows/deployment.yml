@@ -219,7 +219,7 @@ jobs:
 
   deploy-test:
     name: Deploy to Test
-    needs: [build-api-image, prepare-test-database]
+    needs: [build-api-image, build-web-image, prepare-test-database]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables

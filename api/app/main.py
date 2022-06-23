@@ -14,7 +14,6 @@ from app.auth import authentication_required, audit
 from app import config
 from app import health
 from app import hourlies
-from app.frontend import frontend
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.routers import fba, forecasts, fwi_calc, weather_models, c_haines, stations, hfi_calc, fba_calc
 from app.fire_behaviour.cffdrs import CFFDRS
@@ -72,13 +71,10 @@ api = FastAPI(
 app = Starlette()
 
 
-# The order here is important:
-# 1. Mount the /api
-# Technically we could leave the api on the root (/), but then you'd get index.html
-# instead of a 404 if you have a mistake on your api url.
+# Mount the /api
+# In production, / routes to the frontend. (api and front end run in seperate containers, with
+# seperate routing)
 app.mount('/api', app=api)
-# 2. Mount everything else on the root, to the frontend app.
-app.mount('/', app=frontend)
 
 ORIGINS = config.get('ORIGINS')
 
