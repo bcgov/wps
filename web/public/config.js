@@ -12,5 +12,5 @@ var config = {
   REACT_APP_KEYCLOAK_REALM: '8wl6x4cp',
   REACT_APP_KEYCLOAK_CLIENT: 'wps-web',
   REACT_APP_KEYCLOAK_AUTH_URL: 'https://dev.oidc.gov.bc.ca/auth',
-  API_BASE_URL: 'http://localhost:8080'
+  API_BASE_URL: 'http://localhost:8080/api'
 }
