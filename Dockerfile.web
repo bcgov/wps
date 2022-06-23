@@ -16,8 +16,8 @@ FROM registry.access.redhat.com/ubi8/nodejs-16 as static
 USER 0
 
 ADD web .
-# NOTE: Can't use "--production=true", because we need react-scripts for yarn run start.
-RUN npm install -g npm@latest && npm install -g yarn@latest && yarn install --frozen-lockfile --production=true
+# NOTE: Can't use "--production=true", build will fail.
+RUN npm install -g npm@latest && npm install -g yarn@latest && yarn install --frozen-lockfile
 RUN yarn run build
 
 # Switch back to default user
