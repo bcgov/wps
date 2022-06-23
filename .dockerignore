@@ -1,6 +1,10 @@
 **/.gitignore
+**/.github
+**/.vscode
+**/.zap
+**/architecture
 **/node_modules
 **/Dockerfile*
-**/openshift
+**/r
 **/junk
 **/scripts

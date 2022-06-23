@@ -28,7 +28,7 @@ USER 1001
 FROM registry.access.redhat.com/ubi8/nginx-120
 
 # Add application sources
-ADD openshift/nginx.conf "${NGINX_CONF_PATH}"
+ADD ./openshift/nginx.conf "${NGINX_CONF_PATH}"
 
 # Copy the static content:
 COPY --from=static /opt/app-root/src/build .
