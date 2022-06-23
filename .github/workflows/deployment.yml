@@ -59,7 +59,7 @@ jobs:
   build-web-image:
     # Declared ahead of build-api-image ; it runs slightly slower than the api build, and putting
     # it here increases the odds that it get's started 1st, so api and web are slightly more likely
-    # to finish building a bit faster.
+    # to finish building at the same time.
     name: Build Web Image
     runs-on: ubuntu-20.04
     steps:

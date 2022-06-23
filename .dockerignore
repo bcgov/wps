@@ -1,3 +1,5 @@
+# We want to exclude a whole bunch of stuff for docker. Otherwise docker pulls a bunch of
+# file it doesn't need into it's context when doing a build, which can slow down things.
 .githooks
 .github
 .vscode

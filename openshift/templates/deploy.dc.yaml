@@ -111,6 +111,13 @@ objects:
               ports:
                 - containerPort: 3000
                   protocol: TCP
+              resources:
+                limits:
+                  cpu: 75m
+                  memory: 2Gi
+                requests:
+                  cpu: 25m
+                  memory: 1Gi
               readinessProbe:
                 httpGet:
                   path: /ready

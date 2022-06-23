@@ -111,11 +111,6 @@ describe('Percentile Calculator Page', () => {
   describe('Calculation result', () => {
     beforeEach(() => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-      cy.visit(PERCENTILE_CALC_ROUTE, {
-        onBeforeLoad: (win: any) => {
-          win._mtm = { push: () => {} } // mock Matomo object
-        }
-      })
       cy.getByTestId('disclaimer-accept-button').click()
     })
 
