@@ -145,13 +145,13 @@ def get_planning_areas(session: Session, fire_centre_id: int):
         .all()
 
 
-def _add_station(session: Session, station_request: HFIAddUpdateOrRemoveStationRequest, username: str) -> PlanningWeatherStation:
+def _add_station(station_request: HFIAddUpdateOrRemoveStationRequest, username: str) -> PlanningWeatherStation:
     """ Create a new PlanningWeatherStation object, ready to be inserted into database. """
-    last_station_in_planning_area = get_last_station_in_planning_area(session, station_request.planning_area_id)
     station = PlanningWeatherStation(
         planning_area_id=station_request.planning_area_id,
         station_code=station_request.station_code,
-        order_of_appearance_in_planning_area_list=last_station_in_planning_area.order_of_appearance_in_planning_area_list + 1,
+        # row_id is 0-indexed, but planning area list is 1-indexed
+        order_of_appearance_in_planning_area_list=station_request.row_id + 1,
         create_user=username,
         update_user=username,
         create_timestamp=get_utc_now(),
@@ -194,22 +194,31 @@ def _update_station(session: Session, station_request: HFIAddUpdateOrRemoveStati
         .first()
     station.update_user = username
     station.update_timestamp = get_utc_now()
+    station.order_of_appearance_in_planning_area_list = station_request.row_id + 1
     station.fuel_type_id = station_request.fuel_type_id
     return station
 
 
-def batch_save_hfi_stations(session: Session, stations: List[HFIAddUpdateOrRemoveStationRequest], username: str):
-    """ Process station changes in the order that they were received (treat the list as ordered).
+def batch_save_hfi_stations(session: Session, station_requests: List[HFIAddUpdateOrRemoveStationRequest], username: str):
+    """ Perform deletions first, then additions, then updates.
     """
     stations_to_save: List[PlanningWeatherStation] = []
-    for station_request in stations:
-        if station_request.command == HFIStationCommand.ADD:
-            station = _add_station(session, station_request, username)
-            stations_to_save.append(station)
-        elif station_request.command == HFIStationCommand.REMOVE:
-            stations_to_save.append(_remove_station(session, station_request, username))
-        elif station.command == HFIStationCommand.UPDATE:
-            stations_to_save.append(_update_station(session, station_request, username))
+    requests_to_delete = [request for request in station_requests if request.command == HFIStationCommand.DELETE]
+    for request in requests_to_delete:
+        stations_to_save.extend(_remove_station(session, request, username))
+    session.bulk_save_objects(stations_to_save)
+    # Need to perform removals in database first to get updated ordering.
+    # Next is additions.
+    stations_to_save = []
+    requests_to_add = [request for request in station_requests if request.command == HFIStationCommand.ADD]
+    for request in requests_to_add:
+        stations_to_save.append(_add_station(request, username))
+    session.bulk_save_objects(stations_to_save)
+    # Finally, updates.
+    stations_to_save = []
+    requests_to_update = [request for request in station_requests if request.command == HFIStationCommand.UPDATE]
+    for request in requests_to_update:
+        stations_to_save.append(_update_station(session, request, username))
     session.bulk_save_objects(stations_to_save)
     session.commit()
 

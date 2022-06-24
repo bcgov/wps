@@ -187,6 +187,7 @@ class HFIAddUpdateOrRemoveStationRequest(BaseModel):
     planning_area_id: int
     station_code: int
     fuel_type_id: int
+    row_id: int
     command: HFIStationCommand
 
 
