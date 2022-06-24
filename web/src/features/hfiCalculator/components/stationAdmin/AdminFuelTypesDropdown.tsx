@@ -39,9 +39,11 @@ export const AdminFuelTypesDropdown = ({
       renderInput={params => <TextField {...params} label="Select Fuel Type" variant="outlined" />}
       onChange={(_, value) => {
         if (!isNull(adminRow.fuelType)) {
+          const command = adminRow.command === 'add' ? 'add' : 'update'
           handleEditStation(planningAreaId, adminRow.rowId, {
             ...adminRow,
-            fuelType: { ...value }
+            fuelType: { ...value },
+            command
           })
         }
       }}

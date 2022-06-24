@@ -1,4 +1,5 @@
 import axios from 'api/axios'
+import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import {
   HFIResultResponse,
   PlanningAreaResult,
@@ -116,6 +117,16 @@ export interface StationDailyResponse {
   dailies: RawDaily[]
 }
 
+export interface HFIAddOrUpdateStationRequest {
+  planning_area_id: number
+  station_code: number
+  fuel_type_id: number
+}
+
+export interface HFIBatchStationRequest {
+  stations: HFIAddOrUpdateStationRequest[]
+}
+
 const baseUrl = '/hfi-calc/'
 
 export async function getHFIStations(): Promise<HFIWeatherStationsResponse> {
@@ -174,6 +185,22 @@ export async function toggleReadyState(
     create_timestamp: DateTime.fromISO(data.create_timestamp).setZone(PACIFIC_IANA_TIMEZONE),
     update_timestamp: DateTime.fromISO(data.update_timestamp).setZone(PACIFIC_IANA_TIMEZONE)
   }
+}
+
+export async function updateStations(
+  fireCentreId: number,
+  stationUpdateCommands: Required<StationAdminRow>[]
+): Promise<number> {
+  const requestBody: HFIBatchStationRequest = {
+    stations: stationUpdateCommands.map(stationUpdate => ({
+      planning_area_id: stationUpdate.planningAreaId,
+      station_code: stationUpdate.station.code,
+      fuel_type_id: stationUpdate.fuelType.id,
+      command: stationUpdate.command
+    }))
+  }
+  const { status } = await axios.post<number>(baseUrl + 'admin/stations/' + fireCentreId, requestBody)
+  return status
 }
 
 export async function setStationSelected(

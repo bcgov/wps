@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Dialog, DialogContent, IconButton, Paper, Typography, Button } from '@mui/material'
+import React, { useEffect } from 'react'
+import { Dialog, DialogContent, IconButton, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
 import { setAddedStationFailed, setStationAdded, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
-import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
 import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
 import { groupBy, isNull, isUndefined } from 'lodash'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
@@ -36,6 +35,7 @@ export interface StationAdminRow {
   rowId: number
   station?: BasicWFWXStation
   fuelType?: Pick<FuelType, 'id' | 'abbrev'>
+  command?: 'add' | 'update' | 'remove'
 }
 
 export interface AddStationModalProps {
@@ -77,7 +77,6 @@ export const AddStationModal = ({
 
   const { fuelTypes, selectedFireCentre, stationAdded, stationAddedError } = useSelector(selectHFICalculatorState)
   const { stations: wfwxStations } = useSelector(selectFireWeatherStations)
-  const [invalid] = useState<boolean>(false)
   const planning_areas: BasicPlanningArea[] = selectedFireCentre
     ? selectedFireCentre.planning_areas.map(planningArea => ({
         id: planningArea.id,
@@ -128,14 +127,6 @@ export const AddStationModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stationAdded])
 
-  const handleSave = () => {
-    if (!isUndefined(selectedFireCentre)) {
-      /**
-       * TODO: Save update API call
-       */
-    }
-  }
-
   return (
     <React.Fragment>
       <Dialog fullWidth maxWidth="md" open={modalOpen} onClose={handleClose} data-testid="manage-stations-modal">
@@ -151,8 +142,9 @@ export const AddStationModal = ({
               Change the default wx and fuelds for all future prep
             </Typography>
           </DialogContent>
-          {!isUndefined(planningAreas) && !isUndefined(wfwxStations) && (
+          {!isUndefined(planningAreas) && !isUndefined(wfwxStations) && !isUndefined(selectedFireCentre) && (
             <StationListAdmin
+              fireCentreId={selectedFireCentre.id}
               planningAreas={planningAreas}
               fuelTypes={fuelTypes}
               adminRows={adminRows}
@@ -161,18 +153,9 @@ export const AddStationModal = ({
                 stationOptions: stations,
                 fuelTypeOptions: fuelTypes
               }}
+              handleCancel={handleClose}
             />
           )}
-          <SaveNewStationButton invalidNewStation={invalid} handleSave={handleSave} />
-          <Button
-            variant="outlined"
-            color="primary"
-            className={classes.actionButton}
-            onClick={handleClose}
-            data-testid={'cancel-new-station-button'}
-          >
-            Cancel
-          </Button>
         </Paper>
       </Dialog>
     </React.Fragment>

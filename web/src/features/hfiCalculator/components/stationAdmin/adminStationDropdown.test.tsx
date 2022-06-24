@@ -33,7 +33,8 @@ describe('AdminStationDropdown', () => {
     await waitFor(() =>
       expect(editStationMock).toBeCalledWith(stationAdminRow.planningAreaId, stationAdminRow.rowId, {
         ...stationAdminRow,
-        station: { ...stationOptions[0] }
+        station: { ...stationOptions[0] },
+        command: 'update'
       })
     )
   })

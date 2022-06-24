@@ -38,9 +38,11 @@ export const AdminStationDropdown = ({
       renderInput={params => <TextField {...params} label="Select Station" variant="outlined" />}
       onChange={(_, value) => {
         if (!isNull(value)) {
+          const command = adminRow.command === 'add' ? 'add' : 'update'
           handleEditStation(planningAreaId, adminRow.rowId, {
             ...adminRow,
-            station: { ...value }
+            station: { ...value },
+            command
           })
         }
       }}

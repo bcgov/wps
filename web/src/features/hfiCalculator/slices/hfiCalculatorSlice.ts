@@ -14,10 +14,11 @@ import {
   getFuelTypes,
   FuelType,
   FireCentre,
-  FuelTypesResponse
+  FuelTypesResponse,
+  updateStations
 } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
-import { AddStationOptions } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import { isUndefined } from 'lodash'
 
 export interface FireStartRange {
@@ -332,6 +333,18 @@ export const fetchSetNewFireStarts =
       dispatch(setResult(result))
       dispatch(setChangeSaved(true))
       dispatch(setUpdatedPlanningAreaId(updated_planning_area_id))
+    } catch (err) {
+      dispatch(getHFIResultFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
+export const fetchAddOrUpdateStations =
+  (fire_center_id: number, stationUpdates: Required<StationAdminRow>[]): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(loadHFIResultStart())
+      await updateStations(fire_center_id, stationUpdates)
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)
