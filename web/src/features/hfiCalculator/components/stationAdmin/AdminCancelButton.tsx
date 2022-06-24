@@ -3,9 +3,9 @@ import { Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 
-export interface SaveNewStationButtonProps {
+export interface AdminCancelButtonProps {
   testId?: string
-  handleSave: () => void
+  handleCancel: () => void
 }
 
 const useStyles = makeStyles(() => ({
@@ -16,20 +16,20 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-const SaveNewStationButton = ({ handleSave }: SaveNewStationButtonProps) => {
+const AdminCancelButton = ({ handleCancel }: AdminCancelButtonProps) => {
   const classes = useStyles()
 
   return (
     <Button
-      variant="contained"
+      data-testid={'cancel-new-station-button'}
+      variant="outlined"
       color="primary"
       className={classes.actionButton}
-      onClick={handleSave}
-      data-testid={'save-new-station-button'}
+      onClick={handleCancel}
     >
-      Save
+      Cancel
     </Button>
   )
 }
 
-export default React.memo(SaveNewStationButton)
+export default React.memo(AdminCancelButton)

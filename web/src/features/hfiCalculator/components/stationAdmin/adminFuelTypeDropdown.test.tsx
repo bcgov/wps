@@ -34,7 +34,8 @@ describe('AdminFuelTypesDropdown', () => {
     await waitFor(() =>
       expect(editStationMock).toBeCalledWith(stationAdminRow.planningAreaId, stationAdminRow.rowId, {
         ...stationAdminRow,
-        fuelType: { ...fuelTypes[0] }
+        fuelType: { ...fuelTypes[0] },
+        command: 'update'
       })
     )
   })
