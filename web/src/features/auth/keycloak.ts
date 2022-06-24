@@ -7,13 +7,12 @@ export const kcInitOption: KeycloakInitOptions = {
   enableLogging: process.env.NODE_ENV !== 'production'
 }
 
-// Let Typescript know we are using the 'native' promise type
-const instance = window.Keycloak
-  ? window.Keycloak({
-      url: KC_AUTH_URL,
-      realm: KC_REALM,
-      clientId: KC_CLIENT
-    })
-  : null
+const getInstance = () => {
+  return window.Keycloak({
+    url: KC_AUTH_URL,
+    realm: KC_REALM,
+    clientId: KC_CLIENT
+  })
+}
 
-export default instance
+export default getInstance

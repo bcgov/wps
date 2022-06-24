@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
-import kcInstance, { kcInitOption } from 'features/auth/keycloak'
+import getKcInstance, { kcInitOption } from 'features/auth/keycloak'
 import * as jwtDecode from 'jwt-decode'
 import { logError } from 'utils/error'
 import { isUndefined } from 'lodash'
@@ -136,6 +136,8 @@ export const testAuthenticate =
 export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
 
+  const kcInstance = getKcInstance()
+
   if (!kcInstance) {
     return dispatch(authenticateError('Failed to authenticate (Unable to fetch keycloak-js).'))
   }
@@ -164,6 +166,8 @@ export const authenticate = (): AppThunk => dispatch => {
 }
 
 export const signout = (): AppThunk => async dispatch => {
+  const kcInstance = getKcInstance()
+
   if (!kcInstance) {
     return dispatch(signoutError('Failed to authenticate (Unable to fetch keycloak-js).'))
   }
