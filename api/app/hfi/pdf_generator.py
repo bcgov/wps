@@ -70,9 +70,6 @@ def generate_pdf(result: HFIResultResponse,
         'footer-font-size': '6'
     }
 
-    with open('tmp.html', 'w') as f:
-        f.write(rendered_output)
-
     pdf_bytes: bytes = pdfkit.from_string(input=rendered_output, options=options, css=CSS_PATH)
     pdf_filename = get_pdf_filename(fire_centre_name, datetime_generated.date(), idir)
 
