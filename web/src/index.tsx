@@ -18,18 +18,6 @@ const render = () => {
   )
 }
 
-// const renderWhenReady = () => {
-//   // Not ideal that we block until keycloak is loaded, especially since we
-//   // only get around to loading it pretty late in the game!
-//   const script = document.createElement('script')
-//   script.src = KC_AUTH_URL + '/js/keycloak.js'
-//   script.type = 'text/javascript'
-//   script.onload = function () {
-//     render()
-//   }
-//   document.head.appendChild(script)
-// }
-
 render()
 
 if (process.env.NODE_ENV === 'development' && module.hot) {

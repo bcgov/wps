@@ -7,7 +7,7 @@
  * needed before process.env is available.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-var config = {
+const config = {
   REACT_APP_SM_LOGOUT_URL: 'https://logontest7.gov.bc.ca/clp-cgi/logoff.cgi?retnow=1&returl=',
   REACT_APP_KEYCLOAK_REALM: '8wl6x4cp',
   REACT_APP_KEYCLOAK_CLIENT: 'wps-web',
