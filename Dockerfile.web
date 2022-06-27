@@ -34,5 +34,4 @@ ADD ./openshift/nginx.conf "${NGINX_CONF_PATH}"
 COPY --from=static /opt/app-root/src/build .
 
 EXPOSE 3000
-# CMD ./prepare_config.sh && nginx -g "daemon off;"
 CMD nginx -g "daemon off;"

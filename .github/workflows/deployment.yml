@@ -44,18 +44,6 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           bash openshift/scripts/oc_provision_backup_s3_postgres_cronjob.sh ${SUFFIX} apply
 
-      - name: Prepare MariaDB Backup Deployment Config
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb.sh ${SUFFIX} apply
-
-      - name: Prepare MariaDB Backup Cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
-
   build-web-image:
     # Declared ahead of build-api-image ; it runs slightly slower than the api build, and putting
     # it here increases the odds that it get's started 1st, so api and web are slightly more likely
