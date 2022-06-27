@@ -5,7 +5,6 @@ import { Provider } from 'react-redux'
 import 'index.css'
 import store from 'app/store'
 import * as serviceWorker from 'serviceWorker'
-import { KC_AUTH_URL } from 'utils/env'
 
 const render = () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -19,19 +18,19 @@ const render = () => {
   )
 }
 
-const renderWhenReady = () => {
-  // Not ideal that we block until keycloak is loaded, especially since we
-  // only get around to loading it pretty late in the game!
-  const script = document.createElement('script')
-  script.src = KC_AUTH_URL + '/js/keycloak.js'
-  script.type = 'text/javascript'
-  script.onload = function () {
-    render()
-  }
-  document.head.appendChild(script)
-}
+// const renderWhenReady = () => {
+//   // Not ideal that we block until keycloak is loaded, especially since we
+//   // only get around to loading it pretty late in the game!
+//   const script = document.createElement('script')
+//   script.src = KC_AUTH_URL + '/js/keycloak.js'
+//   script.type = 'text/javascript'
+//   script.onload = function () {
+//     render()
+//   }
+//   document.head.appendChild(script)
+// }
 
-renderWhenReady()
+render()
 
 if (process.env.NODE_ENV === 'development' && module.hot) {
   // As with the root reducer, we can hot-reload the React component tree

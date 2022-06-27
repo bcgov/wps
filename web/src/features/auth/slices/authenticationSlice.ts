@@ -136,33 +136,35 @@ export const testAuthenticate =
 export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
 
-  const kcInstance = getKcInstance()
+  const promise = getKcInstance()
 
-  if (!kcInstance) {
-    return dispatch(authenticateError('Failed to authenticate (Unable to fetch keycloak-js).'))
-  }
+  Promise.resolve(promise).then(kcInstance => {
+    if (!kcInstance) {
+      return dispatch(authenticateError('Failed to authenticate (Unable to fetch keycloak-js).'))
+    }
 
-  kcInstance
-    .init(kcInitOption)
-    .then(isAuthenticated => {
-      dispatch(authenticateFinished({ isAuthenticated, token: kcInstance?.token }))
-    })
-    .catch(err => {
-      logError(err)
-      dispatch(authenticateError('Failed to authenticate.'))
-    })
-  // Set a callback that will be triggered when the access token is expired
-  kcInstance.onTokenExpired = () => {
     kcInstance
-      ?.updateToken(0)
-      .then(tokenRefreshed => {
-        dispatch(refreshTokenFinished({ tokenRefreshed, token: kcInstance?.token }))
+      .init(kcInitOption)
+      .then(isAuthenticated => {
+        dispatch(authenticateFinished({ isAuthenticated, token: kcInstance?.token }))
       })
-      .catch(() => {
-        // Restart the authentication flow
-        dispatch(authenticate())
+      .catch(err => {
+        logError(err)
+        dispatch(authenticateError('Failed to authenticate.'))
       })
-  }
+    // Set a callback that will be triggered when the access token is expired
+    kcInstance.onTokenExpired = () => {
+      kcInstance
+        ?.updateToken(0)
+        .then(tokenRefreshed => {
+          dispatch(refreshTokenFinished({ tokenRefreshed, token: kcInstance?.token }))
+        })
+        .catch(() => {
+          // Restart the authentication flow
+          dispatch(authenticate())
+        })
+    }
+  })
 }
 
 export const signout = (): AppThunk => async dispatch => {
