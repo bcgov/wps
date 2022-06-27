@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>BC Wildfire Service - HFI Calculator - {{fire_centre_name}} - Date: {{date}}</title>
-    </head>
-        <body>
-            {% for date, planning_areas in daily_pdf_data_by_date.items() %}
+        {% for date, planning_areas in daily_pdf_data_by_date.items() %}
             <h1>BC Wildfire Service - HFI Calculator</h1>
             <h2>{{fire_centre_name}} - Date: {{date}}</h2>
             <table>

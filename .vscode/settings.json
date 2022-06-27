@@ -37,6 +37,9 @@
             100
         ]
     },
+    "[html]": {
+        "editor.formatOnSave": false
+    },
     "[yaml]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.insertSpaces": true,
