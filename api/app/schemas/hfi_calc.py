@@ -196,6 +196,26 @@ class HFIBatchStationRequest(BaseModel):
     stations: List[HFIAddUpdateOrRemoveStationRequest]
 
 
+class HFIAdminAddedStation(BaseModel):
+    """ Request input for adding a station """
+    planning_area_id: int
+    station_code: int
+    fuel_type_id: int
+    row_id: int
+
+
+class HFIAdminRemovedStation(BaseModel):
+    """ Request input for removing a station """
+    planning_area_id: int
+    row_id: int
+
+
+class HFIAdminStationUpdateRequest(BaseModel):
+    """ Request input for updating a batch of HFI stations. """
+    added: List[HFIAddUpdateOrRemoveStationRequest]
+    removed: List[HFIAdminRemovedStation]
+
+
 class HFIResultResponse(BaseModel):
     """
     Response that contains daily data, num prep days, selected station codes,
