@@ -6,7 +6,7 @@ import { AdminStationDropdown } from 'features/hfiCalculator/components/stationA
 import { AdminFuelTypesDropdown } from 'features/hfiCalculator/components/stationAdmin/AdminFuelTypesDropdown'
 import AdminRemoveButton from 'features/hfiCalculator/components/stationAdmin/AdminRemoveButton'
 
-export interface StationFormProps {
+export interface ExistingStationListProps {
   testId?: string
   adminRow: StationAdminRow
   planningAreaId: number
@@ -14,12 +14,12 @@ export interface StationFormProps {
   adminHandlers: AdminHandlers
 }
 
-export const StationForm = ({
+export const ExistingStationList = ({
   adminRow,
   addStationOptions,
   planningAreaId,
   adminHandlers
-}: StationFormProps): JSX.Element => {
+}: ExistingStationListProps): JSX.Element => {
   return (
     <Grid container spacing={1} sx={{ pt: 1 }} data-testid={`pa-admin-station-${planningAreaId}-${adminRow.rowId}`}>
       <Grid item>
@@ -29,7 +29,7 @@ export const StationForm = ({
               adminRow={adminRow}
               planningAreaId={planningAreaId}
               stationOptions={addStationOptions ? addStationOptions.stationOptions : []}
-              handleEditStation={adminHandlers.handleEditStation}
+              disabled={true}
             />
           </Grid>
           <Grid item>
@@ -37,14 +37,14 @@ export const StationForm = ({
               adminRow={adminRow}
               planningAreaId={planningAreaId}
               fuelTypes={addStationOptions ? addStationOptions.fuelTypeOptions : []}
-              handleEditStation={adminHandlers.handleEditStation}
+              disabled={true}
             />
           </Grid>
           <Grid item>
             <AdminRemoveButton
               adminRow={adminRow}
               planningAreaId={planningAreaId}
-              handleRemoveStation={adminHandlers.handleRemoveStation}
+              handleRemoveStation={adminHandlers.handleRemoveExistingStation}
             />
           </Grid>
         </Grid>
@@ -53,4 +53,4 @@ export const StationForm = ({
   )
 }
 
-export default React.memo(StationForm)
+export default React.memo(ExistingStationList)

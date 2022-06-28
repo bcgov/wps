@@ -189,14 +189,15 @@ export async function toggleReadyState(
 
 export async function updateStations(
   fireCentreId: number,
-  stationUpdateCommands: Required<StationAdminRow>[]
+  addedStations: Required<StationAdminRow>[],
+  removedStations: Pick<StationAdminRow, 'planningAreaId' | 'rowId'>[]
 ): Promise<number> {
+  console.log(removedStations)
   const requestBody: HFIBatchStationRequest = {
-    stations: stationUpdateCommands.map(stationUpdate => ({
+    stations: addedStations.map(stationUpdate => ({
       planning_area_id: stationUpdate.planningAreaId,
       station_code: stationUpdate.station.code,
-      fuel_type_id: stationUpdate.fuelType.id,
-      command: stationUpdate.command
+      fuel_type_id: stationUpdate.fuelType.id
     }))
   }
   const { status } = await axios.post<number>(baseUrl + 'admin/stations/' + fireCentreId, requestBody)
