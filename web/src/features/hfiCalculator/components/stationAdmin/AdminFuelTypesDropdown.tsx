@@ -19,12 +19,12 @@ export interface AdminFuelTypesDropdownProps {
   disabled: boolean
 }
 
-export const AdminFuelTypesDropdown = ({ adminRow, fuelTypes, disabled }: AdminFuelTypesDropdownProps) => {
+export const AdminFuelTypesDropdown = ({ testId, adminRow, fuelTypes, disabled }: AdminFuelTypesDropdownProps) => {
   const classes = useStyles()
   return (
     <Autocomplete
       className={classes.autocomplete}
-      data-testid={'admin-fuel-type'}
+      data-testid={testId}
       disableClearable
       disabled={disabled}
       value={adminRow.fuelType}

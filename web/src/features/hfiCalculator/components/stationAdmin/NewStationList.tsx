@@ -25,6 +25,7 @@ export const NewStationList = ({
         <Grid container direction="row" spacing={1}>
           <Grid item>
             <AdminStationDropdown
+              testId={`added-station-dropdown-${planningAreaId}-${adminRow.rowId}`}
               adminRow={adminRow}
               planningAreaId={planningAreaId}
               stationOptions={addStationOptions ? addStationOptions.stationOptions : []}
@@ -33,6 +34,7 @@ export const NewStationList = ({
           </Grid>
           <Grid item>
             <AdminFuelTypesDropdown
+              testId={`added-ft-dropdown-${planningAreaId}-${adminRow.rowId}`}
               adminRow={adminRow}
               planningAreaId={planningAreaId}
               fuelTypes={addStationOptions ? addStationOptions.fuelTypeOptions : []}
