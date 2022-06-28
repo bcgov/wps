@@ -212,7 +212,7 @@ class HFIAdminRemovedStation(BaseModel):
 
 class HFIAdminStationUpdateRequest(BaseModel):
     """ Request input for updating a batch of HFI stations. """
-    added: List[HFIAddUpdateOrRemoveStationRequest]
+    added: List[HFIAdminAddedStation]
     removed: List[HFIAdminRemovedStation]
 
 
