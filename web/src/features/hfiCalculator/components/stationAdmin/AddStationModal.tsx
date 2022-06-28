@@ -8,7 +8,7 @@ import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootRed
 import { setAddedStationFailed, setStationAdded, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
-import { groupBy, isNull, isUndefined } from 'lodash'
+import { groupBy, isNull, isUndefined, sortBy } from 'lodash'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
@@ -35,7 +35,6 @@ export interface StationAdminRow {
   rowId: number
   station?: BasicWFWXStation
   fuelType?: Pick<FuelType, 'id' | 'abbrev'>
-  command?: 'add' | 'update' | 'remove'
 }
 
 export interface AddStationModalProps {
@@ -90,9 +89,9 @@ export const AddStationModal = ({
 
   const adminRows: { [key: string]: StationAdminRow[] } = groupBy(
     planningAreas
-      ? planningAreas
+      ? sortBy(planningAreas, 'order_of_appearance_in_list')
           .map(planningArea =>
-            planningArea.stations.map((station, i) => ({
+            sortBy(planningArea.stations, 'order_of_appearance_in_planning_area_list').map((station, i) => ({
               planningAreaId: planningArea.id,
               rowId: i,
               station: { code: station.code, name: station.station_props.name },
@@ -147,7 +146,7 @@ export const AddStationModal = ({
               fireCentreId={selectedFireCentre.id}
               planningAreas={planningAreas}
               fuelTypes={fuelTypes}
-              adminRows={adminRows}
+              existingPlanningAreaStations={adminRows}
               addStationOptions={{
                 planningAreaOptions: planning_areas,
                 stationOptions: stations,

@@ -14,31 +14,33 @@ describe('PlanningAreaAdmin', () => {
     /** no op */
   })
 
-  const mockEdit = jest.fn((): void => {
+  const mockRemove = jest.fn((): void => {
     /** no op */
   })
 
-  const mockRemove = jest.fn((): void => {
+  const mockRemoveExisting = jest.fn((): void => {
     /** no op */
   })
   const adminHandlers: AdminHandlers = {
     handleAddStation: mockAdd,
-    handleEditStation: mockEdit,
-    handleRemoveStation: mockRemove
+    handleRemoveStation: mockRemove,
+    handleRemoveExistingStation: mockRemoveExisting
   }
 
   beforeEach(() => {
     mockAdd.mockReset()
-    mockEdit.mockReset()
     mockRemove.mockReset()
+    mockRemoveExisting.mockReset()
   })
 
   it('should render the planning area admin component', () => {
     const { getByTestId } = render(
       <PlanningAreaAdmin
         planningArea={planningArea}
-        planningAreaAdminStations={planningAreaAdminStations}
+        existingStations={planningAreaAdminStations}
         adminHandlers={adminHandlers}
+        addedStations={{}}
+        removedStations={{}}
       />
     )
     expect(getByTestId('planning-area-admin')).toBeDefined()
@@ -47,8 +49,10 @@ describe('PlanningAreaAdmin', () => {
     const { getByTestId } = render(
       <PlanningAreaAdmin
         planningArea={planningArea}
-        planningAreaAdminStations={planningAreaAdminStations}
+        existingStations={planningAreaAdminStations}
         adminHandlers={adminHandlers}
+        addedStations={{}}
+        removedStations={{}}
       />
     )
     expect(getByTestId(`pa-admin-station-${planningArea.id}-${stationAdminRow.rowId}`)).toBeDefined()
@@ -57,8 +61,10 @@ describe('PlanningAreaAdmin', () => {
     const { getByTestId } = render(
       <PlanningAreaAdmin
         planningArea={planningArea}
-        planningAreaAdminStations={planningAreaAdminStations}
+        existingStations={planningAreaAdminStations}
         adminHandlers={adminHandlers}
+        addedStations={{}}
+        removedStations={{}}
       />
     )
 

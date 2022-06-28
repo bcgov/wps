@@ -340,11 +340,15 @@ export const fetchSetNewFireStarts =
   }
 
 export const fetchAddOrUpdateStations =
-  (fire_center_id: number, stationUpdates: Required<StationAdminRow>[]): AppThunk =>
+  (
+    fire_center_id: number,
+    addedStations: Required<StationAdminRow>[],
+    removedStations: Pick<StationAdminRow, 'planningAreaId' | 'rowId'>[]
+  ): AppThunk =>
   async dispatch => {
     try {
       dispatch(loadHFIResultStart())
-      await updateStations(fire_center_id, stationUpdates)
+      await updateStations(fire_center_id, addedStations, removedStations)
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)

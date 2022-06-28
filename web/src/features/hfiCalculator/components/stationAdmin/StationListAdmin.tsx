@@ -11,9 +11,9 @@ import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
 
 export interface AdminHandlers {
-  handleEditStation: (planningAreaId: number, rowId: number, row: StationAdminRow) => void
-  handleRemoveStation: (planningAreaId: number, rowId: number) => void
+  handleRemoveExistingStation: (planningAreaId: number, rowId: number) => void
   handleAddStation: (planningAreaId: number) => void
+  handleRemoveStation: (planningAreaId: number, rowId: number) => void
 }
 
 export interface StationListAdminProps {
@@ -21,7 +21,7 @@ export interface StationListAdminProps {
   planningAreas: PlanningArea[]
   fuelTypes: Pick<FuelType, 'id' | 'abbrev'>[]
   addStationOptions?: AddStationOptions
-  adminRows: { [key: string]: StationAdminRow[] }
+  existingPlanningAreaStations: { [key: string]: StationAdminRow[] }
   handleCancel: () => void
 }
 
@@ -29,51 +29,67 @@ const StationListAdmin = ({
   fireCentreId,
   planningAreas,
   addStationOptions,
-  adminRows,
+  existingPlanningAreaStations,
   handleCancel
 }: StationListAdminProps) => {
   const dispatch: AppDispatch = useDispatch()
 
-  const [adminRowList, setAdminRows] = useState<{ [key: string]: StationAdminRow[] }>(adminRows)
+  const [addedStations, setAddedStations] = useState<{ [key: string]: StationAdminRow[] }>(
+    Object.keys(existingPlanningAreaStations).reduce((accumulator, key) => {
+      return { ...accumulator, [key]: [] }
+    }, {})
+  )
+  const [removedStations, setRemovedStations] = useState<{
+    [key: string]: { planningAreaId: number; rowId: number }[]
+  }>(
+    Object.keys(existingPlanningAreaStations).reduce((accumulator, key) => {
+      return { ...accumulator, [key]: [] }
+    }, {})
+  )
 
+  /** Adds net new stations */
   const handleAddStation = (planningAreaId: number) => {
-    const lastRowId = maxBy(adminRows[planningAreaId], 'rowId')?.rowId
-    if (lastRowId) {
-      const currentRow = adminRowList[planningAreaId].concat([{ planningAreaId, rowId: lastRowId + 1 }])
-      setAdminRows({
-        ...adminRowList,
-        [planningAreaId]: currentRow
-      })
-    }
-  }
-
-  const handleEditStation = (planningAreaId: number, rowId: number, row: StationAdminRow) => {
-    const currentRow = adminRowList[planningAreaId]
-    const idx = findIndex(currentRow, r => r.rowId === rowId)
-    currentRow.splice(idx, 1, row)
-    setAdminRows({
-      ...adminRowList,
+    const maxRowId = maxBy(addedStations[planningAreaId], 'rowId')?.rowId
+    const lastRowId = maxRowId ? maxRowId : 0
+    const currentRow = addedStations[planningAreaId].concat([{ planningAreaId, rowId: lastRowId + 1 }])
+    setAddedStations({
+      ...addedStations,
       [planningAreaId]: currentRow
     })
   }
 
+  /** Removes net new stations */
   const handleRemoveStation = (planningAreaId: number, rowId: number) => {
-    const currentRow = adminRowList[planningAreaId]
-    const idx = findIndex(currentRow, row => row.rowId === rowId)
-    currentRow.splice(idx, 1)
+    const currentlyAdded = addedStations[planningAreaId]
+    const idx = findIndex(currentlyAdded, r => r.rowId === rowId)
+    currentlyAdded.splice(idx, 1)
+    setAddedStations({
+      ...addedStations,
+      [planningAreaId]: currentlyAdded
+    })
+  }
 
-    setAdminRows({
-      ...adminRowList,
+  /** Removes existing stations, not net new ones */
+  const handleRemoveExistingStation = (planningAreaId: number, rowId: number) => {
+    const currentRow = removedStations[planningAreaId].concat({ planningAreaId, rowId })
+    setRemovedStations({
+      ...removedStations,
       [planningAreaId]: currentRow
     })
   }
 
   const handleSave = () => {
-    const commands = Object.values(adminRowList)
-      .flat()
-      .filter(station => !isUndefined(station.command))
-    if (every(commands, addedStation => !isUndefined(addedStation.station) && !isUndefined(addedStation.fuelType))) {
-      dispatch(fetchAddOrUpdateStations(fireCentreId, commands as Required<StationAdminRow>[]))
+    /** TODO */
+    const allAdded = Object.values(addedStations).flat()
+    const allRemoved = Object.values(removedStations).flat()
+    if (every(allAdded, addedStation => !isUndefined(addedStation.station) && !isUndefined(addedStation.fuelType))) {
+      dispatch(
+        fetchAddOrUpdateStations(
+          fireCentreId,
+          allAdded as Required<StationAdminRow>[],
+          allRemoved as Required<StationAdminRow>[]
+        )
+      )
     }
   }
 
@@ -83,12 +99,14 @@ const StationListAdmin = ({
         <PlanningAreaAdmin
           key={`planning-area-admin-${index}`}
           planningArea={area}
-          planningAreaAdminStations={adminRowList}
+          existingStations={existingPlanningAreaStations}
+          addedStations={addedStations}
+          removedStations={removedStations}
           addStationOptions={addStationOptions}
           adminHandlers={{
             handleAddStation,
-            handleEditStation,
-            handleRemoveStation
+            handleRemoveStation,
+            handleRemoveExistingStation
           }}
         />
       ))}
