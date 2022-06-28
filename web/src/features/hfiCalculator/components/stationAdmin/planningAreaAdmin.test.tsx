@@ -63,7 +63,7 @@ describe('PlanningAreaAdmin', () => {
     )
     expect(getByTestId(`pa-admin-station-${planningArea.id}-${stationAdminRow.rowId}`)).toBeDefined()
   })
-  xit('should call add handler callback with planning area id when add button clicked', async () => {
+  it('should call add handler callback with planning area id when add button clicked', async () => {
     const { getByTestId } = render(
       <PlanningAreaAdmin
         planningArea={planningArea}
