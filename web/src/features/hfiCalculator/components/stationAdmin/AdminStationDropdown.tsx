@@ -18,12 +18,12 @@ export interface AdminStationDropdownProps {
   disabled: boolean
 }
 
-export const AdminStationDropdown = ({ adminRow, stationOptions, disabled }: AdminStationDropdownProps) => {
+export const AdminStationDropdown = ({ testId, adminRow, stationOptions, disabled }: AdminStationDropdownProps) => {
   const classes = useStyles()
   return (
     <Autocomplete
       className={classes.autocomplete}
-      data-testid={'admin-select-station'}
+      data-testid={testId}
       disableClearable
       disabled={disabled}
       value={adminRow.station}

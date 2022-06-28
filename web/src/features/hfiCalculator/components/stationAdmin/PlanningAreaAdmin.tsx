@@ -53,7 +53,7 @@ const PlanningAreaAdmin = ({
       {currentStations.map(adminRow => {
         return (
           <ExistingStationList
-            key={`pa-admin-station-${planningArea.id}-${adminRow.rowId}`}
+            key={`existing-admin-station-${planningArea.id}-${adminRow.rowId}`}
             adminRow={adminRow}
             planningAreaId={planningArea.id}
             addStationOptions={addStationOptions}
@@ -64,7 +64,7 @@ const PlanningAreaAdmin = ({
       {addedStationsRow.map(added => {
         return (
           <NewStationList
-            key={`add-pa-admin-station-${planningArea.id}-${added.rowId}`}
+            key={`added-station-list-${planningArea.id}-${added.rowId}`}
             adminRow={added}
             planningAreaId={planningArea.id}
             addStationOptions={addStationOptions}
