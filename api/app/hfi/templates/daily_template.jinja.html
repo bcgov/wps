@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>BC Wildfire Service - HFI Calculator - {{fire_centre_name}} - Date: {{date}}</title>
-    </head>
-        <body>
-            {% for date, planning_areas in daily_pdf_data_by_date.items() %}
+        {% for date, planning_areas in daily_pdf_data_by_date.items() %}
             <h1>BC Wildfire Service - HFI Calculator</h1>
             <h2>{{fire_centre_name}} - Date: {{date}}</h2>
             <table>
@@ -42,7 +36,7 @@
                         <td colspan="21"><strong>{{planning_area_data['planning_area_name']}}</strong></td>
                         <td>{{planning_area_data['mean_intensity_group'] if planning_area_data['mean_intensity_group'] is not none else 'ND'}}</td>
                         <td rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['fire_starts'] if planning_area_data['fire_starts'] is not none}}</td>
-                        <td rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['prep_level'] if planning_area_data['prep_level'] is not none else 'ND'}}</td>
+                        <td class="{{ ' prepLevel prepLevel{:1.0f}'.format(planning_area_data['prep_level']) if planning_area_data['prep_level'] is not none else ''}}" rowspan="{{planning_area_data['dailies']|length + 1}}">{{planning_area_data['prep_level'] if planning_area_data['prep_level'] is not none else 'ND'}}</td>
                             {% if planning_area_data['dailies']|length < 1 %}
                                 <tr />
                             {% endif %}
