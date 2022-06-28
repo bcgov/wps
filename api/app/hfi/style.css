@@ -30,3 +30,48 @@ p {
   border-collapse: collapse;
   padding: 0;
 }
+.prepLevel {
+  border-width: 2px;
+  border-style: solid;
+  background-color: white;
+  border-collapse: unset;
+}
+.prepLevel1 {
+  border-color: #A0CD63;
+}
+.prepLevel2 {
+  border-color: #4CAFEA;
+}
+.prepLevel3 {
+  border-color: #FFFD54;
+}
+.prepLevel4 {
+  border-color: #F6C142;
+}
+.prepLevel5 {
+  border-color: #EA3223;
+}
+.prepLevel6 {
+  border-color: "#B02318";
+}
+.meanPrepLevel1 {
+  background-color: #A0CD63;
+}
+.meanPrepLevel2 {
+  background-color: #4CAFEA;
+}
+.meanPrepLevel3 {
+  background-color: #FFFD54;
+}
+.meanPrepLevel4 {
+  background-color: #F6C142;
+}
+.meanPrepLevel5 {
+  background-color: #EA3223;
+  color: white;
+}
+.meanPrepLevel6 {
+  background-color: #B02318;
+  color: white;
+}
+
