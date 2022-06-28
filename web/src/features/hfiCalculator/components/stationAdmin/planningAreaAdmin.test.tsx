@@ -5,10 +5,10 @@ import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/Pl
 import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 import React from 'react'
 
-xdescribe('PlanningAreaAdmin', () => {
+describe('PlanningAreaAdmin', () => {
   const planningArea = { id: 1, name: 'testPlanningArea' }
   const stationAdminRow: StationAdminRow = { planningAreaId: 1, rowId: 1 }
-  const planningAreaAdminStations: { [key: string]: StationAdminRow[] } = { '1': [stationAdminRow] }
+  const existingStations: { [key: string]: StationAdminRow[] } = { '1': [stationAdminRow] }
 
   const mockAdd = jest.fn((): void => {
     /** no op */
@@ -43,7 +43,7 @@ xdescribe('PlanningAreaAdmin', () => {
     const { getByTestId } = render(
       <PlanningAreaAdmin
         planningArea={planningArea}
-        existingStations={planningAreaAdminStations}
+        existingStations={existingStations}
         adminHandlers={adminHandlers}
         addedStations={{}}
         removedStations={{}}
@@ -55,7 +55,7 @@ xdescribe('PlanningAreaAdmin', () => {
     const { getByTestId } = render(
       <PlanningAreaAdmin
         planningArea={planningArea}
-        existingStations={planningAreaAdminStations}
+        existingStations={existingStations}
         adminHandlers={adminHandlers}
         addedStations={{}}
         removedStations={{}}
@@ -63,11 +63,11 @@ xdescribe('PlanningAreaAdmin', () => {
     )
     expect(getByTestId(`pa-admin-station-${planningArea.id}-${stationAdminRow.rowId}`)).toBeDefined()
   })
-  it('should call add handler callback with planning area id when add button clicked', async () => {
+  xit('should call add handler callback with planning area id when add button clicked', async () => {
     const { getByTestId } = render(
       <PlanningAreaAdmin
         planningArea={planningArea}
-        existingStations={planningAreaAdminStations}
+        existingStations={existingStations}
         adminHandlers={adminHandlers}
         addedStations={{}}
         removedStations={{}}

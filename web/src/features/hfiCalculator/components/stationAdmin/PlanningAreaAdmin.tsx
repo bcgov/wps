@@ -33,7 +33,7 @@ const PlanningAreaAdmin = ({
     removedStationsRow,
     (a, b) => isEqual(a.planningAreaId, b.planningAreaId) && isEqual(a.rowId, b.rowId)
   )
-  const addedStationsRow = addedStations[planningArea.id]
+  const addedStationsRow = addedStations[planningArea.id] ? addedStations[planningArea.id] : []
   return (
     <Box sx={{ width: '100%', pt: 4 }} data-testid="planning-area-admin">
       <Typography variant="h6">
