@@ -34,14 +34,14 @@ from app.auth import (auth_with_select_station_role_required,
                       authentication_required,
                       audit)
 from app.schemas.shared import (FuelType)
-from app.db.crud.hfi_calc import (add_hfi_stations, get_fuel_type_by_id,
+from app.db.crud.hfi_calc import (batch_save_hfi_stations, get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   get_planning_weather_stations,
-                                  get_latest_hfi_ready_records, remove_hfi_stations,
+                                  get_latest_hfi_ready_records,
                                   store_hfi_request,
                                   get_fire_centre_stations,
-                                  toggle_ready, update_hfi_stations)
+                                  toggle_ready)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -447,9 +447,7 @@ async def batch_update_stations(fire_centre_id: int, request: HFIBatchStationReq
     username = token.get('preferred_username', None)
     with get_write_session_scope() as db_session:
         try:
-            add_hfi_stations(db_session, request.add_stations, username)
-            update_hfi_stations(db_session, request.update_stations, username)
-            remove_hfi_stations(db_session, request.remove_stations, username)
+            batch_save_hfi_stations(db_session, request.stations, username)
         except Exception as exc:
             logger.info(exc)
             db_session.rollback()
