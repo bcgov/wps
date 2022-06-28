@@ -87,7 +87,7 @@ export const AddStationModal = ({
     name: station.properties.name
   }))
 
-  const adminRows: { [key: string]: StationAdminRow[] } = groupBy(
+  const existingStations: { [key: string]: StationAdminRow[] } = groupBy(
     planningAreas
       ? sortBy(planningAreas, 'order_of_appearance_in_list')
           .map(planningArea =>
@@ -146,7 +146,7 @@ export const AddStationModal = ({
               fireCentreId={selectedFireCentre.id}
               planningAreas={planningAreas}
               fuelTypes={fuelTypes}
-              existingPlanningAreaStations={adminRows}
+              existingPlanningAreaStations={existingStations}
               addStationOptions={{
                 planningAreaOptions: planning_areas,
                 stationOptions: stations,

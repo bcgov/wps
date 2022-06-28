@@ -79,7 +79,6 @@ const StationListAdmin = ({
   }
 
   const handleSave = () => {
-    /** TODO */
     const allAdded = Object.values(addedStations).flat()
     const allRemoved = Object.values(removedStations).flat()
     if (every(allAdded, addedStation => !isUndefined(addedStation.station) && !isUndefined(addedStation.fuelType))) {
