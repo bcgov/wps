@@ -5,7 +5,11 @@ import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
-import { setAddedStationFailed, setStationAdded, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import {
+  setStationsUpdatedFailed,
+  setStationUpdated,
+  StationInfo
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
 import { groupBy, isNull, isUndefined, sortBy } from 'lodash'
@@ -74,7 +78,7 @@ export const AddStationModal = ({
 
   const dispatch: AppDispatch = useDispatch()
 
-  const { fuelTypes, selectedFireCentre, stationAdded, stationAddedError } = useSelector(selectHFICalculatorState)
+  const { fuelTypes, selectedFireCentre, stationsUpdated, stationsUpdatedError } = useSelector(selectHFICalculatorState)
   const { stations: wfwxStations } = useSelector(selectFireWeatherStations)
   const planning_areas: BasicPlanningArea[] = selectedFireCentre
     ? selectedFireCentre.planning_areas.map(planningArea => ({
@@ -112,19 +116,19 @@ export const AddStationModal = ({
 
   const handleClose = () => {
     setModalOpen(false)
-    if (!isNull(stationAddedError)) {
-      dispatch(setAddedStationFailed(null))
+    if (!isNull(stationsUpdatedError)) {
+      dispatch(setStationsUpdatedFailed(null))
     }
   }
 
   useEffect(() => {
     handleClose()
-    if (stationAdded) {
+    if (stationsUpdated) {
       dispatch(fetchHFIStations())
-      dispatch(setStationAdded(false))
+      dispatch(setStationUpdated(false))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stationAdded])
+  }, [stationsUpdated])
 
   return (
     <React.Fragment>
@@ -152,7 +156,7 @@ export const AddStationModal = ({
                 stationOptions: stations,
                 fuelTypeOptions: fuelTypes
               }}
-              handleCancel={handleClose}
+              handleClose={handleClose}
             />
           )}
         </Paper>

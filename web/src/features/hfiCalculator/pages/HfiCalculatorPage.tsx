@@ -97,6 +97,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     pdfLoading,
     fuelTypesLoading,
     fireCentresLoading,
+    stationsUpdateLoading,
     dateRange,
     error: hfiError,
     fuelTypes,
@@ -281,6 +282,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           fuelTypesLoading={fuelTypesLoading}
           stationDataLoading={stationDataLoading}
           fireCentresLoading={fireCentresLoading}
+          stationsUpdateLoading={stationsUpdateLoading}
           fireCentresError={fireCentresError}
           hfiError={hfiError}
           selectedFireCentre={selectedFireCentre}

@@ -67,7 +67,7 @@ export interface HFICalculatorState {
   pdfLoading: boolean
   fireCentresLoading: boolean
   fuelTypesLoading: boolean
-  addStationOptionsLoading: boolean
+  stationsUpdateLoading: boolean
   error: string | null
   dateRange: PrepDateRange | undefined
   selectedPrepDate: string
@@ -78,8 +78,8 @@ export interface HFICalculatorState {
   addStationOptions: AddStationOptions | undefined
   fuelTypes: FuelType[]
   changeSaved: boolean
-  stationAdded: boolean
-  stationAddedError: string | null
+  stationsUpdated: boolean
+  stationsUpdatedError: string | null
   updatedPlanningAreaId: UpdatedPlanningAreaId | null
 }
 
@@ -128,7 +128,7 @@ export interface UpdatedPlanningAreaId {
 export const initialState: HFICalculatorState = {
   pdfLoading: false,
   fireCentresLoading: false,
-  addStationOptionsLoading: false,
+  stationsUpdateLoading: false,
   fuelTypesLoading: false,
   error: null,
   dateRange: undefined,
@@ -140,8 +140,8 @@ export const initialState: HFICalculatorState = {
   fuelTypes: [],
   addStationOptions: undefined,
   changeSaved: false,
-  stationAdded: false,
-  stationAddedError: null,
+  stationsUpdated: false,
+  stationsUpdatedError: null,
   updatedPlanningAreaId: null
 }
 
@@ -153,6 +153,12 @@ const dailiesSlice = createSlice({
       state.fireCentresLoading = true
       state.changeSaved = false
     },
+    loadStationUpdateStart(state: HFICalculatorState) {
+      state.stationsUpdateLoading = true
+    },
+    loadStationUpdateEnd(state: HFICalculatorState) {
+      state.stationsUpdateLoading = false
+    },
     fetchFuelTypesStart(state: HFICalculatorState) {
       state.fuelTypesLoading = true
     },
@@ -162,11 +168,11 @@ const dailiesSlice = createSlice({
     pdfDownloadEnd(state: HFICalculatorState) {
       state.pdfLoading = false
     },
-    setStationAdded(state: HFICalculatorState, action: PayloadAction<boolean>) {
-      state.stationAdded = action.payload
+    setStationUpdated(state: HFICalculatorState, action: PayloadAction<boolean>) {
+      state.stationsUpdated = action.payload
     },
-    setAddedStationFailed(state: HFICalculatorState, action: PayloadAction<string | null>) {
-      state.stationAddedError = action.payload
+    setStationsUpdatedFailed(state: HFICalculatorState, action: PayloadAction<string | null>) {
+      state.stationsUpdatedError = action.payload
     },
     getHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
@@ -203,11 +209,13 @@ const dailiesSlice = createSlice({
 
 export const {
   loadHFIResultStart,
+  loadStationUpdateStart,
+  loadStationUpdateEnd,
   fetchFuelTypesStart,
   pdfDownloadStart,
   pdfDownloadEnd,
-  setStationAdded,
-  setAddedStationFailed,
+  setStationUpdated,
+  setStationsUpdatedFailed,
   getHFIResultFailed,
   fetchFuelTypesFailed,
   setSelectedPrepDate,
@@ -347,8 +355,9 @@ export const fetchAddOrUpdateStations =
   ): AppThunk =>
   async dispatch => {
     try {
-      dispatch(loadHFIResultStart())
+      dispatch(loadStationUpdateStart())
       await updateStations(fire_center_id, addedStations, removedStations)
+      dispatch(loadStationUpdateEnd())
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)

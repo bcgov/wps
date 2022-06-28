@@ -4,7 +4,7 @@ import { sortBy, maxBy, findIndex, every, isUndefined } from 'lodash'
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import { Box } from '@mui/material'
 import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
-import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
+import SaveStationUpdatesButton from 'features/hfiCalculator/components/stationAdmin/SaveStationUpdatesButton'
 import AdminCancelButton from 'features/hfiCalculator/components/stationAdmin/AdminCancelButton'
 import { fetchAddOrUpdateStations } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
@@ -24,7 +24,7 @@ export interface StationListAdminProps {
   fuelTypes: Pick<FuelType, 'id' | 'abbrev'>[]
   addStationOptions?: AddStationOptions
   existingPlanningAreaStations: { [key: string]: StationAdminRow[] }
-  handleCancel: () => void
+  handleClose: () => void
 }
 
 const StationListAdmin = ({
@@ -32,7 +32,7 @@ const StationListAdmin = ({
   planningAreas,
   addStationOptions,
   existingPlanningAreaStations,
-  handleCancel
+  handleClose
 }: StationListAdminProps) => {
   const dispatch: AppDispatch = useDispatch()
 
@@ -102,6 +102,7 @@ const StationListAdmin = ({
           allRemoved as Required<StationAdminRow>[]
         )
       )
+      handleClose()
     }
   }
 
@@ -123,8 +124,8 @@ const StationListAdmin = ({
           }}
         />
       ))}
-      <SaveNewStationButton handleSave={handleSave} />
-      <AdminCancelButton handleCancel={handleCancel} />
+      <SaveStationUpdatesButton handleSave={handleSave} />
+      <AdminCancelButton handleCancel={handleClose} />
     </Box>
   )
 }

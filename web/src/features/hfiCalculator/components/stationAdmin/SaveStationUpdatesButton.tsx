@@ -3,7 +3,7 @@ import { Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 
-export interface SaveNewStationButtonProps {
+export interface SaveStationUpdatesButtonProps {
   testId?: string
   handleSave: () => void
 }
@@ -16,7 +16,7 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-const SaveNewStationButton = ({ handleSave }: SaveNewStationButtonProps) => {
+const SaveStationUpdatesButton = ({ handleSave }: SaveStationUpdatesButtonProps) => {
   const classes = useStyles()
 
   return (
@@ -32,4 +32,4 @@ const SaveNewStationButton = ({ handleSave }: SaveNewStationButtonProps) => {
   )
 }
 
-export default React.memo(SaveNewStationButton)
+export default React.memo(SaveStationUpdatesButton)

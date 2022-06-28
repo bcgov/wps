@@ -117,6 +117,22 @@ export interface StationDailyResponse {
   dailies: RawDaily[]
 }
 
+export interface HFIAdminAddedStation {
+  planning_area_id: number
+  station_code: number
+  fuel_type_id: number
+  row_id: number
+}
+
+export interface HFIAdminRemovedStation {
+  planning_area_id: number
+  row_id: number
+}
+
+export interface HFIAdminStationUpdateRequest {
+  added: HFIAdminAddedStation[]
+  removed: HFIAdminRemovedStation[]
+}
 export interface HFIAddOrUpdateStationRequest {
   planning_area_id: number
   station_code: number
@@ -193,14 +209,19 @@ export async function updateStations(
   removedStations: Pick<StationAdminRow, 'planningAreaId' | 'rowId'>[]
 ): Promise<number> {
   console.log(removedStations)
-  const requestBody: HFIBatchStationRequest = {
-    stations: addedStations.map(stationUpdate => ({
-      planning_area_id: stationUpdate.planningAreaId,
-      station_code: stationUpdate.station.code,
-      fuel_type_id: stationUpdate.fuelType.id
+  const requestBody: HFIAdminStationUpdateRequest = {
+    added: addedStations.map(addedStation => ({
+      planning_area_id: addedStation.planningAreaId,
+      station_code: addedStation.station.code,
+      fuel_type_id: addedStation.fuelType.id,
+      row_id: addedStation.rowId
+    })),
+    removed: removedStations.map(removedStation => ({
+      planning_area_id: removedStation.planningAreaId,
+      row_id: removedStation.rowId
     }))
   }
-  const { status } = await axios.post<number>(baseUrl + 'admin/stations/' + fireCentreId, requestBody)
+  const { status } = await axios.post(baseUrl + 'admin/stations/' + fireCentreId, requestBody)
   return status
 }
 
