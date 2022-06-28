@@ -15,11 +15,10 @@ import {
   FuelType,
   FireCentre,
   FuelTypesResponse,
-  addNewStation
+  updateStations
 } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
-import { AddStationOptions, AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
-import { AxiosError } from 'axios'
+import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import { isUndefined } from 'lodash'
 
 export interface FireStartRange {
@@ -310,19 +309,6 @@ export const fetchFuelTypes = (): AppThunk => async dispatch => {
   }
 }
 
-export const fetchAddStation =
-  (fireCentreId: number, newStation: Required<Omit<AdminStation, 'dirty'>>): AppThunk =>
-  async dispatch => {
-    try {
-      const status = await addNewStation(fireCentreId, newStation)
-      dispatch(setStationAdded(status === 201))
-    } catch (err) {
-      const { response } = err as AxiosError
-      dispatch(setAddedStationFailed(response?.data.detail))
-      logError(err)
-    }
-  }
-
 export const fetchSetNewFireStarts =
   (
     fire_center_id: number,
@@ -347,6 +333,22 @@ export const fetchSetNewFireStarts =
       dispatch(setResult(result))
       dispatch(setChangeSaved(true))
       dispatch(setUpdatedPlanningAreaId(updated_planning_area_id))
+    } catch (err) {
+      dispatch(getHFIResultFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
+export const fetchAddOrUpdateStations =
+  (
+    fire_center_id: number,
+    addedStations: Required<StationAdminRow>[],
+    removedStations: Pick<StationAdminRow, 'planningAreaId' | 'rowId'>[]
+  ): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(loadHFIResultStart())
+      await updateStations(fire_center_id, addedStations, removedStations)
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)

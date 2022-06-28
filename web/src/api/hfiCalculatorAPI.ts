@@ -1,5 +1,5 @@
 import axios from 'api/axios'
-import { AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import {
   HFIResultResponse,
   PlanningAreaResult,
@@ -117,6 +117,16 @@ export interface StationDailyResponse {
   dailies: RawDaily[]
 }
 
+export interface HFIAddOrUpdateStationRequest {
+  planning_area_id: number
+  station_code: number
+  fuel_type_id: number
+}
+
+export interface HFIBatchStationRequest {
+  stations: HFIAddOrUpdateStationRequest[]
+}
+
 const baseUrl = '/hfi-calc/'
 
 export async function getHFIStations(): Promise<HFIWeatherStationsResponse> {
@@ -177,16 +187,20 @@ export async function toggleReadyState(
   }
 }
 
-export async function addNewStation(
+export async function updateStations(
   fireCentreId: number,
-  newStation: Required<Omit<AdminStation, 'dirty'>>
+  addedStations: Required<StationAdminRow>[],
+  removedStations: Pick<StationAdminRow, 'planningAreaId' | 'rowId'>[]
 ): Promise<number> {
-  const requestBody: AddStationRequest = {
-    planning_area_id: newStation.planningArea.id,
-    station_code: newStation.station.code,
-    fuel_type_id: newStation.fuelType.id
+  console.log(removedStations)
+  const requestBody: HFIBatchStationRequest = {
+    stations: addedStations.map(stationUpdate => ({
+      planning_area_id: stationUpdate.planningAreaId,
+      station_code: stationUpdate.station.code,
+      fuel_type_id: stationUpdate.fuelType.id
+    }))
   }
-  const { status } = await axios.post<number>(baseUrl + 'admin/add-station/' + fireCentreId, requestBody)
+  const { status } = await axios.post<number>(baseUrl + 'admin/stations/' + fireCentreId, requestBody)
   return status
 }
 

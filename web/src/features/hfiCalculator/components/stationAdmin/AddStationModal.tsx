@@ -1,30 +1,19 @@
-import React, { useEffect, useState } from 'react'
-import { Dialog, DialogContent, IconButton, Paper, Typography, Button } from '@mui/material'
+import React, { useEffect } from 'react'
+import { Dialog, DialogContent, IconButton, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
-import NewStationForm from 'features/hfiCalculator/components/stationAdmin/NewStationForm'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
-import {
-  fetchAddStation,
-  setAddedStationFailed,
-  setStationAdded
-} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { setAddedStationFailed, setStationAdded, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
-import SaveNewStationButton from 'features/hfiCalculator/components/stationAdmin/SaveNewStationButton'
-import { FuelType } from 'api/hfiCalculatorAPI'
-import { isNull, isUndefined } from 'lodash'
+import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
+import { groupBy, isNull, isUndefined, sortBy } from 'lodash'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
-
-export interface AdminStation {
-  dirty: boolean
-  planningArea?: BasicPlanningArea
-  station?: BasicWFWXStation
-  fuelType?: FuelType
-}
+import StationListAdmin from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
+import { getSelectedFuelType } from 'features/hfiCalculator/util'
 
 export interface BasicPlanningArea {
   id: number
@@ -36,13 +25,22 @@ export interface BasicWFWXStation {
 }
 
 export interface AddStationOptions {
-  planning_areas: BasicPlanningArea[]
-  stations: BasicWFWXStation[]
-  fuel_types: FuelType[]
+  planningAreaOptions: BasicPlanningArea[]
+  stationOptions: BasicWFWXStation[]
+  fuelTypeOptions: FuelType[]
+}
+
+export interface StationAdminRow {
+  planningAreaId: number
+  rowId: number
+  station?: BasicWFWXStation
+  fuelType?: Pick<FuelType, 'id' | 'abbrev'>
 }
 
 export interface AddStationModalProps {
   testId?: string
+  planningAreas?: PlanningArea[]
+  planningAreaStationInfo: { [key: number]: StationInfo[] }
   modalOpen: boolean
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -66,17 +64,18 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const AddStationModal = ({ modalOpen, setModalOpen }: AddStationModalProps): JSX.Element => {
+export const AddStationModal = ({
+  modalOpen,
+  setModalOpen,
+  planningAreas,
+  planningAreaStationInfo
+}: AddStationModalProps): JSX.Element => {
   const classes = useStyles()
 
   const dispatch: AppDispatch = useDispatch()
 
   const { fuelTypes, selectedFireCentre, stationAdded, stationAddedError } = useSelector(selectHFICalculatorState)
   const { stations: wfwxStations } = useSelector(selectFireWeatherStations)
-
-  const newEmptyStation: AdminStation = { dirty: false }
-  const [newStation, setNewStation] = useState<AdminStation>(newEmptyStation)
-  const [invalid, setInvalid] = useState<boolean>(false)
   const planning_areas: BasicPlanningArea[] = selectedFireCentre
     ? selectedFireCentre.planning_areas.map(planningArea => ({
         id: planningArea.id,
@@ -84,10 +83,25 @@ export const AddStationModal = ({ modalOpen, setModalOpen }: AddStationModalProp
       }))
     : []
   const stations: BasicWFWXStation[] = wfwxStations.map(station => ({
-    wfwx_station_uuid: station.properties.name,
     code: station.properties.code,
     name: station.properties.name
   }))
+
+  const existingStations: { [key: string]: StationAdminRow[] } = groupBy(
+    planningAreas
+      ? sortBy(planningAreas, 'order_of_appearance_in_list')
+          .map(planningArea =>
+            sortBy(planningArea.stations, 'order_of_appearance_in_planning_area_list').map((station, i) => ({
+              planningAreaId: planningArea.id,
+              rowId: i,
+              station: { code: station.code, name: station.station_props.name },
+              fuelType: getSelectedFuelType(planningAreaStationInfo, planningArea.id, station.code, fuelTypes)
+            }))
+          )
+          .flat()
+      : [],
+    'planningAreaId'
+  )
 
   useEffect(() => {
     if (!isUndefined(selectedFireCentre)) {
@@ -98,14 +112,9 @@ export const AddStationModal = ({ modalOpen, setModalOpen }: AddStationModalProp
 
   const handleClose = () => {
     setModalOpen(false)
-    setNewStation(newEmptyStation)
     if (!isNull(stationAddedError)) {
       dispatch(setAddedStationFailed(null))
     }
-  }
-
-  const handleFormChange = () => {
-    dispatch(setAddedStationFailed(null))
   }
 
   useEffect(() => {
@@ -117,23 +126,6 @@ export const AddStationModal = ({ modalOpen, setModalOpen }: AddStationModalProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stationAdded])
 
-  const handleSave = () => {
-    if (
-      !isUndefined(selectedFireCentre) &&
-      !isUndefined(newStation.planningArea) &&
-      !isUndefined(newStation.station) &&
-      !isUndefined(newStation.fuelType)
-    ) {
-      dispatch(
-        fetchAddStation(selectedFireCentre.id, {
-          planningArea: newStation.planningArea,
-          station: newStation.station,
-          fuelType: newStation.fuelType
-        })
-      )
-    }
-  }
-
   return (
     <React.Fragment>
       <Dialog fullWidth maxWidth="md" open={modalOpen} onClose={handleClose} data-testid="manage-stations-modal">
@@ -143,31 +135,26 @@ export const AddStationModal = ({ modalOpen, setModalOpen }: AddStationModalProp
           </IconButton>
           <DialogContent>
             <Typography variant="h5" align="center">
-              Add New Weather Station
+              Manage Default Weather Stations and Fuels
             </Typography>
             <Typography variant="body1" align="center">
-              New weather station will be included in the default list moving forward
+              Change the default wx and fuelds for all future prep
             </Typography>
-            <NewStationForm
-              newStation={newStation}
-              setNewStation={setNewStation}
-              invalid={invalid}
-              setInvalid={setInvalid}
-              handleFormChange={handleFormChange}
-              addStationOptions={{ planning_areas, stations, fuel_types: fuelTypes }}
-              stationAddedError={stationAddedError}
-            />
           </DialogContent>
-          <SaveNewStationButton newStation={newStation} invalidNewStation={invalid} handleSave={handleSave} />
-          <Button
-            variant="outlined"
-            color="primary"
-            className={classes.actionButton}
-            onClick={handleClose}
-            data-testid={'cancel-new-station-button'}
-          >
-            Cancel
-          </Button>
+          {!isUndefined(planningAreas) && !isUndefined(wfwxStations) && !isUndefined(selectedFireCentre) && (
+            <StationListAdmin
+              fireCentreId={selectedFireCentre.id}
+              planningAreas={planningAreas}
+              fuelTypes={fuelTypes}
+              existingPlanningAreaStations={existingStations}
+              addStationOptions={{
+                planningAreaOptions: planning_areas,
+                stationOptions: stations,
+                fuelTypeOptions: fuelTypes
+              }}
+              handleCancel={handleClose}
+            />
+          )}
         </Paper>
       </Dialog>
     </React.Fragment>
