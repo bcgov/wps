@@ -7,45 +7,54 @@ import AdminRemoveButton from 'features/hfiCalculator/components/stationAdmin/Ad
 
 export interface NewStationListProps {
   testId?: string
-  adminRow: StationAdminRow
+  newStation: StationAdminRow
   planningAreaId: number
   addStationOptions?: AddStationOptions
-  removeHandler: (planningAreaId: number, rowId: number) => void
+  handleRemoveStation: (planningAreaId: number, rowId: number) => void
+  handleEditStation: (planningAreaId: number, rowId: number, station: StationAdminRow) => void
 }
 
 export const NewStationList = ({
-  adminRow,
+  newStation,
   addStationOptions,
   planningAreaId,
-  removeHandler
+  handleRemoveStation,
+  handleEditStation
 }: NewStationListProps): JSX.Element => {
   return (
-    <Grid container spacing={1} sx={{ pt: 1 }} data-testid={`new-pa-admin-station-${planningAreaId}-${adminRow.rowId}`}>
+    <Grid
+      container
+      spacing={1}
+      sx={{ pt: 1 }}
+      data-testid={`new-pa-admin-station-${planningAreaId}-${newStation.rowId}`}
+    >
       <Grid item>
         <Grid container direction="row" spacing={1}>
           <Grid item>
             <AdminStationDropdown
-              testId={`added-station-dropdown-${planningAreaId}-${adminRow.rowId}`}
-              adminRow={adminRow}
+              testId={`added-station-dropdown-${planningAreaId}-${newStation.rowId}`}
+              adminRow={newStation}
               planningAreaId={planningAreaId}
               stationOptions={addStationOptions ? addStationOptions.stationOptions : []}
               disabled={false}
+              handleEditStation={handleEditStation}
             />
           </Grid>
           <Grid item>
             <AdminFuelTypesDropdown
-              testId={`added-ft-dropdown-${planningAreaId}-${adminRow.rowId}`}
-              adminRow={adminRow}
+              testId={`added-ft-dropdown-${planningAreaId}-${newStation.rowId}`}
+              adminRow={newStation}
               planningAreaId={planningAreaId}
               fuelTypes={addStationOptions ? addStationOptions.fuelTypeOptions : []}
               disabled={false}
+              handleEditStation={handleEditStation}
             />
           </Grid>
           <Grid item>
             <AdminRemoveButton
-              adminRow={adminRow}
+              adminRow={newStation}
               planningAreaId={planningAreaId}
-              handleRemoveStation={removeHandler}
+              handleRemoveStation={handleRemoveStation}
             />
           </Grid>
         </Grid>

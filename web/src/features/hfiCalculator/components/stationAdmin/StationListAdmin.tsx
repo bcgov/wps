@@ -12,8 +12,10 @@ import { useDispatch } from 'react-redux'
 
 export interface AdminHandlers {
   handleRemoveExistingStation: (planningAreaId: number, rowId: number) => void
+  /** Net new station handlers */
   handleAddStation: (planningAreaId: number) => void
   handleRemoveStation: (planningAreaId: number, rowId: number) => void
+  handleEditStation: (planningAreaId: number, rowId: number, station: StationAdminRow) => void
 }
 
 export interface StationListAdminProps {
@@ -69,6 +71,17 @@ const StationListAdmin = ({
     })
   }
 
+  /** Edits net new stations */
+  const handleEditStation = (planningAreaId: number, rowId: number, row: StationAdminRow) => {
+    const currentlyAdded = addedStations[planningAreaId]
+    const idx = findIndex(currentlyAdded, r => r.rowId === rowId)
+    currentlyAdded.splice(idx, 1, row)
+    setAddedStations({
+      ...addedStations,
+      [planningAreaId]: currentlyAdded
+    })
+  }
+
   /** Removes existing stations, not net new ones */
   const handleRemoveExistingStation = (planningAreaId: number, rowId: number) => {
     const currentRow = removedStations[planningAreaId].concat({ planningAreaId, rowId })
@@ -105,6 +118,7 @@ const StationListAdmin = ({
           adminHandlers={{
             handleAddStation,
             handleRemoveStation,
+            handleEditStation,
             handleRemoveExistingStation
           }}
         />

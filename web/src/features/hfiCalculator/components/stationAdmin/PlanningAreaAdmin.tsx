@@ -65,10 +65,11 @@ const PlanningAreaAdmin = ({
         return (
           <NewStationList
             key={`added-station-list-${planningArea.id}-${added.rowId}`}
-            adminRow={added}
+            newStation={added}
             planningAreaId={planningArea.id}
             addStationOptions={addStationOptions}
-            removeHandler={adminHandlers.handleRemoveStation}
+            handleRemoveStation={adminHandlers.handleRemoveStation}
+            handleEditStation={adminHandlers.handleEditStation}
           />
         )
       })}

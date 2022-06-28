@@ -8,18 +8,20 @@ describe('AdminStationDropdown', () => {
   it('should call edit handler callback with station option when submitted', async () => {
     const stationAdminRow: StationAdminRow = { planningAreaId: 1, rowId: 1 }
     const stationOptions: BasicWFWXStation[] = [{ name: 'test', code: 2 }]
-    const editStationMock = jest.fn()
+    const handleEditStationMock = jest.fn()
 
     const { getByTestId } = render(
       <AdminStationDropdown
+        testId="enabled-station-dropdown"
         adminRow={stationAdminRow}
         planningAreaId={stationAdminRow.planningAreaId}
         stationOptions={stationOptions}
-        handleEditStation={editStationMock}
+        disabled={false}
+        handleEditStation={handleEditStationMock}
       />
     )
 
-    const autocomplete = getByTestId('admin-select-station')
+    const autocomplete = getByTestId('enabled-station-dropdown')
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
     autocomplete.focus()
@@ -28,13 +30,12 @@ describe('AdminStationDropdown', () => {
     userEvent.type(autocomplete, '{enter}')
 
     await waitFor(() => expect(input.value).toBe(stationOptions[0].name))
-    await waitFor(() => expect(editStationMock).toBeCalledTimes(1))
+    await waitFor(() => expect(handleEditStationMock).toBeCalledTimes(1))
 
     await waitFor(() =>
-      expect(editStationMock).toBeCalledWith(stationAdminRow.planningAreaId, stationAdminRow.rowId, {
+      expect(handleEditStationMock).toBeCalledWith(stationAdminRow.planningAreaId, stationAdminRow.rowId, {
         ...stationAdminRow,
-        station: { ...stationOptions[0] },
-        command: 'update'
+        station: { ...stationOptions[0] }
       })
     )
   })
