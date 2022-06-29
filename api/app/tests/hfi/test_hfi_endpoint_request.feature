@@ -74,7 +74,7 @@ Feature: /hfi/
         Examples:
             | url                               | role               | request_body                         | status_code | already_added |
             # Test add stations with correct role
-            | /api/hfi-calc/admin/stations/1    | hfi_station_admin  | test_admin_add_stations_request.json | 200         | False         |
+            | /api/hfi-calc/admin/stations    | hfi_station_admin  | test_admin_add_stations_request.json | 200         | False         |
             # Test add station without roles
             #| /api/hfi-calc/admin/add-station/1 | None               | test_admin_add_station_request.json | 401         | False         |
             # Test add station without correct role

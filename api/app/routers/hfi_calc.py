@@ -18,7 +18,7 @@ from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (HFIAllReadyStatesResponse, HFIBatchStationRequest,
+from app.schemas.hfi_calc import (HFIAdminStationUpdateRequest, HFIAllReadyStatesResponse,
                                   HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange, HFIReadyState,
@@ -439,15 +439,15 @@ async def toggle_planning_area_ready(
         return response
 
 
-@router.post('/admin/stations/{fire_centre_id}', status_code=status.HTTP_200_OK)
-async def batch_update_stations(fire_centre_id: int, request: HFIBatchStationRequest,
+@router.post('/admin/stations', status_code=status.HTTP_200_OK)
+async def batch_update_stations(request: HFIAdminStationUpdateRequest,
                                 token=Depends(auth_with_station_admin_role_required)):
     """ Apply updates for a list of stations. """
-    logger.info('/hfi-calc/admin/stations/%s', fire_centre_id)
+    logger.info('/hfi-calc/admin/stations')
     username = token.get('preferred_username', None)
     with get_write_session_scope() as db_session:
         try:
-            batch_save_hfi_stations(db_session, request.stations, username)
+            batch_save_hfi_stations(db_session, request, username)
         except Exception as exc:
             logger.info(exc)
             db_session.rollback()

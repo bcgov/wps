@@ -1,21 +1,23 @@
 {
-    "add_stations": [
+    "added": [
         {
             "planning_area_id": 1,
             "station_code": 101,
-            "fuel_type_id": 1
+            "fuel_type_id": 1,
+            "row_id": 0
         },
         {
             "planning_area_id": 1,
             "station_code": 102,
-            "fuel_type_id": 2
+            "fuel_type_id": 2,
+            "row_id": 1
         },
         {
             "planning_area_id": 2,
             "station_code": 103,
-            "fuel_type_id": 3
+            "fuel_type_id": 3,
+            "row_id": 0
         }
     ],
-    "update_stations": [],
-    "remove_stations": []
+    "removed": []
 }
