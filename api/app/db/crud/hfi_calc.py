@@ -170,6 +170,7 @@ def _remove_station(session: Session, station_request: HFIAdminRemovedStation, u
     # NOTE: we filter based on the position in planning area list, not on station code - not sure how I feel about this
     station = session.query(PlanningWeatherStation)\
         .filter(PlanningWeatherStation.planning_area_id == station_request.planning_area_id)\
+        .filter(PlanningWeatherStation.station_code == station_request.station_code)\
         .filter(PlanningWeatherStation.order_of_appearance_in_planning_area_list == station_request.row_id + 1)\
         .first()
     position = station.order_of_appearance_in_planning_area_list
