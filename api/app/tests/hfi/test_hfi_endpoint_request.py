@@ -264,7 +264,10 @@ def has_a_request_body(monkeypatch: pytest.MonkeyPatch, url: str, request_body, 
 
         monkeypatch.setattr(app.routers.hfi_calc, 'add_hfi_station', mock_add_hfi_station)
 
-    monkeypatch.setattr(app.routers.hfi_calc, 'batch_save_hfi_stations', lambda *_: None)
+    def mock_stations_for_removal(*args, **kwargs):
+        return [], []
+    monkeypatch.setattr(app.routers.hfi_calc, 'get_stations_for_removal', mock_stations_for_removal)
+    monkeypatch.setattr(app.routers.hfi_calc, 'save_hfi_stations', lambda *_: None)
     client = TestClient(app.main.app)
     response = client.post(url, headers=headers, json=request_body)
     return {

@@ -10,8 +10,9 @@ from pydantic.error_wrappers import ValidationError
 from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
                                        get_cached_hydrated_fire_centres,
                                        put_cached_hydrated_fire_centres)
+from app.hfi.hfi_admin import update_stations
 from app.hfi.hfi_request import update_result_request
-from app.utils.time import get_pst_now
+from app.utils.time import get_pst_now, get_utc_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
 from app.hfi.pdf_template import get_template
@@ -39,9 +40,10 @@ from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   get_planning_weather_stations,
                                   get_latest_hfi_ready_records,
+                                  get_stations_for_removal,
                                   store_hfi_request,
                                   get_fire_centre_stations,
-                                  toggle_ready)
+                                  toggle_ready, save_hfi_stations)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -446,8 +448,12 @@ async def batch_update_stations(request: HFIAdminStationUpdateRequest,
     logger.info('/hfi-calc/admin/stations')
     username = token.get('preferred_username', None)
     with get_write_session_scope() as db_session:
-        # update_hfi_stations(db_session, request, username)
-        clear_cached_hydrated_fire_centres()
+        timestamp = get_utc_now()
+        stations_to_remove, all_planning_area_stations = get_stations_for_removal(
+            db_session, request.removed, timestamp, username)
+        stations_to_save = update_stations(stations_to_remove, all_planning_area_stations, request.added, username)
+        save_hfi_stations(stations_to_save)
+    clear_cached_hydrated_fire_centres()
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')

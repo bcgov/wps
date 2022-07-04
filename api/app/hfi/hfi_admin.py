@@ -7,6 +7,25 @@ from typing import Dict, List, Set, Tuple
 from datetime import datetime
 from app.db.models.hfi_calc import PlanningWeatherStation
 from app.schemas.hfi_calc import HFIAdminAddedStation
+from app.utils.time import get_utc_now
+
+
+def update_stations(stations_to_remove: List[PlanningWeatherStation],
+                    all_planning_area_stations: List[PlanningWeatherStation],
+                    to_add: List[HFIAdminAddedStation],
+                    username: str):
+    """
+        Orchestrates removal and addition of stations
+    """
+    timestamp = get_utc_now()
+    stations_marked_for_removal, stations_with_order_updates = remove_stations(
+        stations_to_remove, all_planning_area_stations)
+
+    next_order_by_planning_area = get_next_order_by_planning_area(stations_with_order_updates)
+
+    stations_to_add = add_stations(to_add, next_order_by_planning_area, timestamp, username)
+
+    return stations_marked_for_removal + stations_with_order_updates + stations_to_add
 
 
 def remove_stations(stations_to_remove: List[PlanningWeatherStation],

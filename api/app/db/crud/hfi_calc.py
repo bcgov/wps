@@ -5,8 +5,7 @@ from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, insert
 from app.db.database import get_read_session_scope
-from app.hfi.hfi_admin import remove_stations, add_stations, get_next_order_by_planning_area
-from app.schemas.hfi_calc import DateRange, HFIAdminRemovedStation, HFIAdminStationUpdateRequest, HFIResultRequest
+from app.schemas.hfi_calc import DateRange, HFIAdminRemovedStation, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, HFIReady, PlanningArea, PlanningWeatherStation, HFIRequest,
                                     FireStartRange, FireCentreFireStartRange, FireStartLookup)
 from app.utils.time import get_utc_now
@@ -147,7 +146,7 @@ def get_planning_areas(session: Session, fire_centre_id: int):
 
 
 def get_stations_for_removal(session: Session,
-                             station_requests: List[HFIAdminRemovedStation]) -> List[PlanningWeatherStation]:
+                             station_requests: List[HFIAdminRemovedStation]):
     """ Returns the station model requested to remove, along with all
     stations in in planning area, in ascending order. """
     remove_request_planning_area_ids = [request.planning_area_id for request in station_requests]
@@ -168,22 +167,8 @@ def get_stations_for_removal(session: Session,
     return stations_to_remove, all_stations_in_planning_area
 
 
-def update_hfi_stations(session: Session,
-                        update_request: HFIAdminStationUpdateRequest,
-                        username: str):
-    """ Perform deletions first to update ordering, then additions.
-    """
-    timestamp = get_utc_now()
-    stations_to_remove, all_planning_area_stations = get_stations_for_removal(
-        session, update_request.removed, timestamp, username)
-    stations_marked_for_removal, stations_with_order_updates = remove_stations(
-        stations_to_remove, all_planning_area_stations)
-
-    next_order_by_planning_area = get_next_order_by_planning_area(stations_with_order_updates)
-
-    stations_to_add = add_stations(update_request.added, next_order_by_planning_area, timestamp, username)
-
-    stations_to_save = stations_marked_for_removal + stations_with_order_updates + stations_to_add
+def save_hfi_stations(session: Session,
+                      stations_to_save: List[PlanningWeatherStation]):
 
     session.bulk_save_objects(stations_to_save)
     session.commit()
