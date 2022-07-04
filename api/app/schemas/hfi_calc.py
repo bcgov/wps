@@ -186,8 +186,8 @@ class HFIAdminAddedStation(BaseModel):
 class HFIAdminRemovedStation(BaseModel):
     """ Request input for removing a station """
     planning_area_id: int
-    row_id: int
     station_code: int
+    row_id: int
 
 
 class HFIAdminStationUpdateRequest(BaseModel):

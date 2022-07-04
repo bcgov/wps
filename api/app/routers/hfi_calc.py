@@ -34,7 +34,7 @@ from app.auth import (auth_with_select_station_role_required,
                       authentication_required,
                       audit)
 from app.schemas.shared import (FuelType)
-from app.db.crud.hfi_calc import (batch_save_hfi_stations, get_fuel_type_by_id,
+from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   get_planning_weather_stations,
@@ -446,12 +446,7 @@ async def batch_update_stations(request: HFIAdminStationUpdateRequest,
     logger.info('/hfi-calc/admin/stations')
     username = token.get('preferred_username', None)
     with get_write_session_scope() as db_session:
-        try:
-            batch_save_hfi_stations(db_session, request, username)
-        except Exception as exc:
-            logger.info(exc)
-            db_session.rollback()
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST) from exc
+        # update_hfi_stations(db_session, request, username)
         clear_cached_hydrated_fire_centres()
 
 
