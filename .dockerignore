@@ -1,6 +1,20 @@
-**/.gitignore
-**/node_modules
+# We want to exclude a whole bunch of stuff for docker. Otherwise docker pulls a bunch of
+# file it doesn't need into it's context when doing a build, which can slow down things.
+.githooks
+.github
+.vscode
+.zap
+.architecture
+.gitignore
+node_modules
+web/build
+web/coverage-cypress
+web/.nyc_output
+web/node_modules
+r
+.dockerignore
 **/Dockerfile*
-**/openshift
 **/junk
 **/scripts
+**/python_cache*
+**.venv
