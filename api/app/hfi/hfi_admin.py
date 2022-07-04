@@ -13,13 +13,14 @@ from app.utils.time import get_utc_now
 def update_stations(stations_to_remove: List[PlanningWeatherStation],
                     all_planning_area_stations: List[PlanningWeatherStation],
                     to_add: List[HFIAdminAddedStation],
+                    timestamp: datetime,
                     username: str):
     """
         Orchestrates removal and addition of stations
     """
     timestamp = get_utc_now()
     stations_marked_for_removal, stations_with_order_updates = remove_stations(
-        stations_to_remove, all_planning_area_stations)
+        stations_to_remove, all_planning_area_stations, timestamp, username)
 
     next_order_by_planning_area = get_next_order_by_planning_area(stations_with_order_updates)
 
@@ -94,7 +95,7 @@ def add_stations(stations_to_add: List[HFIAdminAddedStation],
     """
     added_stations: List[PlanningWeatherStation] = []
     for station_to_add in stations_to_add:
-        order = next_order_by_planning_area[station.planning_area_id]
+        order = next_order_by_planning_area[station_to_add.planning_area_id]
         station = PlanningWeatherStation(
             planning_area_id=station_to_add.planning_area_id,
             station_code=station_to_add.station_code,

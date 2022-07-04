@@ -451,7 +451,12 @@ async def batch_update_stations(request: HFIAdminStationUpdateRequest,
         timestamp = get_utc_now()
         stations_to_remove, all_planning_area_stations = get_stations_for_removal(
             db_session, request.removed, timestamp, username)
-        stations_to_save = update_stations(stations_to_remove, all_planning_area_stations, request.added, username)
+        stations_to_save = update_stations(
+            stations_to_remove,
+            all_planning_area_stations,
+            request.added,
+            timestamp,
+            username)
         save_hfi_stations(stations_to_save)
     clear_cached_hydrated_fire_centres()
 
