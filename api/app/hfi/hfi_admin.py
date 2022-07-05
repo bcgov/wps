@@ -7,7 +7,6 @@ from typing import Dict, List, Set, Tuple
 from datetime import datetime
 from app.db.models.hfi_calc import PlanningWeatherStation
 from app.schemas.hfi_calc import HFIAdminAddedStation
-from app.utils.time import get_utc_now
 
 
 def update_stations(stations_to_remove: List[PlanningWeatherStation],
