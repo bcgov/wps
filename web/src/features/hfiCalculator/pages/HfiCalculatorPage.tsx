@@ -10,8 +10,7 @@ import {
   fetchSetStationSelected,
   fetchFuelTypes,
   fetchPDFDownload,
-  fetchSetFuelType,
-  setSelectedPrepDate
+  fetchSetFuelType
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { fetchAllReadyStates, fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 import { useDispatch, useSelector } from 'react-redux'
