@@ -3,6 +3,8 @@ from app.db.models.hfi_calc import PlanningWeatherStation
 from app.hfi.hfi_admin import add_stations, get_next_order_by_planning_area, remove_stations, update_station_ordering
 from app.schemas.hfi_calc import HFIAdminAddedStation
 
+timestamp = datetime.fromisoformat("2019-06-10T18:42:49")
+
 
 def test_get_next_order_by_planning_area():
     """ Next order value for each planning area is computed based on stations"""
@@ -33,7 +35,6 @@ def test_add_station():
     """ Adding a station to a planning area with correct order """
     pa_order_dict = {1: 1}
     station_to_add = HFIAdminAddedStation(planning_area_id=1, station_code=1, fuel_type_id=1, row_id=1)
-    timestamp = datetime.fromisoformat("2019-06-10T18:42:49")
     username = "test_user"
     res = add_stations([station_to_add], pa_order_dict, timestamp, username)
     assert res[0].planning_area_id == station_to_add.planning_area_id
@@ -45,7 +46,6 @@ def test_add_stations():
     pa_order_dict = {1: 1}
     station_to_add_1 = HFIAdminAddedStation(planning_area_id=1, station_code=1, fuel_type_id=1, row_id=1)
     station_to_add_2 = HFIAdminAddedStation(planning_area_id=1, station_code=2, fuel_type_id=1, row_id=1)
-    timestamp = datetime.fromisoformat("2019-06-10T18:42:49")
     username = "test_user"
     res = add_stations([station_to_add_1, station_to_add_2], pa_order_dict, timestamp, username)
 
@@ -63,7 +63,6 @@ def test_add_stations_different_planning_areas():
     pa_order_dict = {1: 2, 2: 3}
     station_to_add_1 = HFIAdminAddedStation(planning_area_id=1, station_code=1, fuel_type_id=1, row_id=1)
     station_to_add_2 = HFIAdminAddedStation(planning_area_id=2, station_code=2, fuel_type_id=1, row_id=1)
-    timestamp = datetime.fromisoformat("2019-06-10T18:42:49")
     username = "test_user"
     res = add_stations([station_to_add_1, station_to_add_2], pa_order_dict, timestamp, username)
 
