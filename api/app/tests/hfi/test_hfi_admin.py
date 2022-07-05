@@ -34,7 +34,7 @@ def test_get_next_order_by_planning_area_no_stations():
 def test_add_station():
     """ Adding a station to a planning area with correct order """
     pa_order_dict = {1: 1}
-    station_to_add = HFIAdminAddedStation(planning_area_id=1, station_code=1, fuel_type_id=1, row_id=1)
+    station_to_add = HFIAdminAddedStation(planning_area_id=1, station_code=1, fuel_type_id=1)
     username = "test_user"
     res = add_stations([station_to_add], pa_order_dict, timestamp, username)
     assert res[0].planning_area_id == station_to_add.planning_area_id
@@ -44,8 +44,8 @@ def test_add_station():
 def test_add_stations():
     """ Adding stations to a planning area with correct orders """
     pa_order_dict = {1: 1}
-    station_to_add_1 = HFIAdminAddedStation(planning_area_id=1, station_code=1, fuel_type_id=1, row_id=1)
-    station_to_add_2 = HFIAdminAddedStation(planning_area_id=1, station_code=2, fuel_type_id=1, row_id=1)
+    station_to_add_1 = HFIAdminAddedStation(planning_area_id=1, station_code=1, fuel_type_id=1)
+    station_to_add_2 = HFIAdminAddedStation(planning_area_id=1, station_code=2, fuel_type_id=1)
     username = "test_user"
     res = add_stations([station_to_add_1, station_to_add_2], pa_order_dict, timestamp, username)
 
@@ -61,8 +61,8 @@ def test_add_stations():
 def test_add_stations_different_planning_areas():
     """ Adding stations to a planning area with correct orders """
     pa_order_dict = {1: 2, 2: 3}
-    station_to_add_1 = HFIAdminAddedStation(planning_area_id=1, station_code=1, fuel_type_id=1, row_id=1)
-    station_to_add_2 = HFIAdminAddedStation(planning_area_id=2, station_code=2, fuel_type_id=1, row_id=1)
+    station_to_add_1 = HFIAdminAddedStation(planning_area_id=1, station_code=1, fuel_type_id=1)
+    station_to_add_2 = HFIAdminAddedStation(planning_area_id=2, station_code=2, fuel_type_id=1)
     username = "test_user"
     res = add_stations([station_to_add_1, station_to_add_2], pa_order_dict, timestamp, username)
 

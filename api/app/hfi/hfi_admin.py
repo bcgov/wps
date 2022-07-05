@@ -70,12 +70,8 @@ def update_station_ordering(planning_areas_with_removals: Dict[int, Set[Tuple[in
     for planning_area_id, orders in planning_areas_with_removals.items():
         all_stations = all_stations_by_planning_area.get(planning_area_id, None)
         if all_stations is not None:
-            other_stations = list(
-                filter(
-                    lambda x: (x.station_code, x.order_of_appearance_in_planning_area_list) not in orders,
-                    all_stations))
-            stations_with_order = filter(
-                lambda x: x.order_of_appearance_in_planning_area_list is not None, other_stations)
+            other_stations = get_other_stations(orders, all_stations)
+            stations_with_order = get_stations_with_order(other_stations)
             sorted_other_stations: List[PlanningWeatherStation] = sorted(
                 stations_with_order, key=attrgetter('order_of_appearance_in_planning_area_list'))
             for idx, sorted_station in enumerate(sorted_other_stations):
@@ -83,6 +79,25 @@ def update_station_ordering(planning_areas_with_removals: Dict[int, Set[Tuple[in
                 stations_with_order_updates.append(sorted_station)
 
     return stations_with_order_updates
+
+
+def get_other_stations(stations_removed: Set[Tuple[int, int]], all_stations: List[PlanningWeatherStation]):
+    """
+        Given a set of removed stations, {(station_code, order), ...},
+        and list of all stations, return a list of stations not in set
+    """
+    return list(
+        filter(
+            lambda x: (x.station_code, x.order_of_appearance_in_planning_area_list) not in stations_removed,
+            all_stations))
+
+
+def get_stations_with_order(stations: List[PlanningWeatherStation]):
+    """
+        Returns list of stations that have an order
+    """
+    return list(filter(
+                lambda x: x.order_of_appearance_in_planning_area_list is not None, stations))
 
 
 def add_stations(stations_to_add: List[HFIAdminAddedStation],
