@@ -206,30 +206,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updatedPlanningAreaId])
 
-  // useEffect(() => {
-  //   if (selectedFireCentre && selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')) {
-  //     localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
-  //   }
-  //   if (!isUndefined(selectedFireCentre)) {
-  //     if (!isUndefined(dateRange)) {
-  //       // Request all ready states for hfi request unique by date and fire centre
-  //       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
-  //     } else {
-  //       dispatch(
-  //         fetchGetPrepDateRange(selectedFireCentre.id, result?.date_range.start_date, result?.date_range.end_date)
-  //       )
-  //       dispatch(setSelectedPrepDate(''))
-  //     }
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [selectedFireCentre, dateRange?.start_date, dateRange?.end_date])
-
   useEffect(() => {
     if (selectedFireCentre && selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')) {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
     if (!isUndefined(selectedFireCentre)) {
-      // dispatch(setSelectedPrepDate(''))
       dispatch(fetchGetPrepDateRange(selectedFireCentre.id))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
