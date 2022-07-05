@@ -230,7 +230,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
     if (!isUndefined(selectedFireCentre)) {
       // dispatch(setSelectedPrepDate(''))
-      dispatch(fetchGetPrepDateRange(selectedFireCentre.id, result?.date_range.start_date, result?.date_range.end_date))
+      dispatch(fetchGetPrepDateRange(selectedFireCentre.id))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre])
