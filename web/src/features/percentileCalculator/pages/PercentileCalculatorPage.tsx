@@ -48,19 +48,6 @@ const PercentileCalculatorPage = () => {
   const onCalculateClick = () => {
     // Update the url query with the new station codes
     navigate({ search: `${stationCodeQueryKey}=${stationCodes.join(',')}` })
-
-    // Create a matomo event, pushing various variables onto the dataLayer
-    // NOTE: This section is proof of concept - strongly consider re-factoring when adding other events.
-    // TODO: Re-evaluate this way of implementing Matomo once we know more about it.
-    if (window._mtm) {
-      // see: https://developer.matomo.org/guides/tagmanager/integration-plugin#supporting-the-data-layer
-      window._mtm.push({
-        event: 'calculatePercentiles',
-        stationCodes,
-        percentile: defaultPercentile,
-        yearRange: yearRange
-      })
-    }
   }
 
   const onResetClick = () => {
