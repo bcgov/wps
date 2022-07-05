@@ -95,7 +95,7 @@ def add_stations(stations_to_add: List[HFIAdminAddedStation],
     """
     added_stations: List[PlanningWeatherStation] = []
     for station_to_add in stations_to_add:
-        order = next_order_by_planning_area[station_to_add.planning_area_id]
+        order = next_order_by_planning_area.get(station_to_add.planning_area_id, 1)
         station = PlanningWeatherStation(
             planning_area_id=station_to_add.planning_area_id,
             station_code=station_to_add.station_code,
@@ -108,7 +108,7 @@ def add_stations(stations_to_add: List[HFIAdminAddedStation],
             is_deleted=False
         )
         added_stations.append(station)
-        next_order_by_planning_area[station.planning_area_id] += 1
+        next_order_by_planning_area[station.planning_area_id] = order + 1
     return added_stations
 
 

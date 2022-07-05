@@ -442,7 +442,7 @@ async def toggle_planning_area_ready(
 
 
 @router.post('/admin/stations', status_code=status.HTTP_200_OK)
-async def batch_update_stations(request: HFIAdminStationUpdateRequest,
+async def admin_update_stations(request: HFIAdminStationUpdateRequest,
                                 token=Depends(auth_with_station_admin_role_required)):
     """ Apply updates for a list of stations. """
     logger.info('/hfi-calc/admin/stations')
@@ -450,14 +450,14 @@ async def batch_update_stations(request: HFIAdminStationUpdateRequest,
     with get_write_session_scope() as db_session:
         timestamp = get_utc_now()
         stations_to_remove, all_planning_area_stations = get_stations_for_removal(
-            db_session, request.removed, timestamp, username)
+            db_session, request.removed)
         stations_to_save = update_stations(
             stations_to_remove,
             all_planning_area_stations,
             request.added,
             timestamp,
             username)
-        save_hfi_stations(stations_to_save)
+        save_hfi_stations(db_session, stations_to_save)
     clear_cached_hydrated_fire_centres()
 
 
