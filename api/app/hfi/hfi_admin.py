@@ -27,7 +27,7 @@ def update_stations(stations_to_remove: List[PlanningWeatherStation],
     return stations_marked_for_removal + stations_with_order_updates + stations_to_add
 
 
-def remove_stations(remove_stations: List[PlanningWeatherStation],
+def remove_stations(remove_station_list: List[PlanningWeatherStation],
                     all_planning_area_stations: List[PlanningWeatherStation],
                     timestamp: datetime,
                     username: str):
@@ -39,7 +39,7 @@ def remove_stations(remove_stations: List[PlanningWeatherStation],
     planning_areas_with_removals = defaultdict(set)
 
     # Mark stations for removal and track their orders for updating other stations in planning area
-    for station in remove_stations:
+    for station in remove_station_list:
         station.update_timestamp = timestamp
         station.update_user = username
         station.is_deleted = True
