@@ -29,7 +29,7 @@ def update_stations(stations_to_remove: List[PlanningWeatherStation],
     return stations_marked_for_removal + stations_with_order_updates + stations_to_add
 
 
-def remove_stations(stations_to_remove: List[PlanningWeatherStation],
+def remove_stations(remove_stations: List[PlanningWeatherStation],
                     all_planning_area_stations: List[PlanningWeatherStation],
                     timestamp: datetime,
                     username: str):
@@ -41,7 +41,7 @@ def remove_stations(stations_to_remove: List[PlanningWeatherStation],
     planning_areas_with_removals = defaultdict(set)
 
     # Mark stations for removal and track their orders for updating other stations in planning area
-    for station in stations_to_remove:
+    for station in remove_stations:
         station.update_timestamp = timestamp
         station.update_user = username
         station.is_deleted = True
@@ -76,8 +76,10 @@ def update_station_ordering(planning_areas_with_removals: Dict[int, Set[Tuple[in
                 filter(
                     lambda x: (x.station_code, x.order_of_appearance_in_planning_area_list) not in orders,
                     all_stations))
+            stations_with_order = filter(
+                lambda x: x.order_of_appearance_in_planning_area_list is not None, other_stations)
             sorted_other_stations: List[PlanningWeatherStation] = sorted(
-                other_stations, key='order_of_appearance_in_planning_area_list')
+                stations_with_order, key=attrgetter('order_of_appearance_in_planning_area_list'))
             for idx, sorted_station in enumerate(sorted_other_stations):
                 sorted_station.order_of_appearance_in_planning_area_list = idx + 1
                 stations_with_order_updates.append(sorted_station)

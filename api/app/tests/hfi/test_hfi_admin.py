@@ -1,70 +1,220 @@
-from fastapi.testclient import TestClient
-import pytest
-
-from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
-
-
-add_stations_json = {
-    "added": [
-        {
-            "planning_area_id": 1,
-            "station_code": 101,
-            "fuel_type_id": 1,
-            "row_id": 0
-        },
-        {
-            "planning_area_id": 1,
-            "station_code": 102,
-            "fuel_type_id": 2,
-            "row_id": 1
-        },
-        {
-            "planning_area_id": 2,
-            "station_code": 103,
-            "fuel_type_id": 3,
-            "row_id": 0
-        }
-    ],
-    "removed": []
-}
+from datetime import datetime
+from app.db.models.hfi_calc import PlanningWeatherStation
+from app.hfi.hfi_admin import add_stations, get_next_order_by_planning_area, remove_stations, update_station_ordering
+from app.schemas.hfi_calc import HFIAdminAddedStation
 
 
-post_admin_stations_url = '/api/hfi-calc/admin/stations'
+def test_get_next_order_by_planning_area():
+    """ Next order value for each planning area is computed based on stations"""
+    planning_area_1 = 1
+    pa1_station1 = PlanningWeatherStation(planning_area_id=planning_area_1,
+                                          station_code=1,
+                                          order_of_appearance_in_planning_area_list=1)
+    pa1_station2 = PlanningWeatherStation(planning_area_id=planning_area_1,
+                                          station_code=2,
+                                          order_of_appearance_in_planning_area_list=2)
+    planning_area_2 = 2
+    pa2_station1 = PlanningWeatherStation(planning_area_id=planning_area_2,
+                                          station_code=3,
+                                          order_of_appearance_in_planning_area_list=1)
+
+    res = get_next_order_by_planning_area([pa1_station1, pa1_station2, pa2_station1])
+    assert res[planning_area_1] == 3  # order 1 and 2 for pa1 are taken
+    assert res[planning_area_2] == 2  # order 2 for pa2 taken
 
 
-@pytest.fixture()
-def client():
-    from app.main import app as test_app
-
-    with TestClient(test_app) as test_client:
-        yield test_client
+def test_get_next_order_by_planning_area_no_stations():
+    """ Empty dict map of ordering for no stations in a planning area"""
+    res = get_next_order_by_planning_area([])
+    assert res == {}
 
 
-def test_post_stations_unauthorized(client: TestClient):
-    """ hfi_station_admin role required for updating stations"""
-    response = client.post(post_admin_stations_url, json=add_stations_json)
-    assert response.status_code == 401
+def test_add_station():
+    """ Adding a station to a planning area with correct order """
+    pa_order_dict = {1: 1}
+    station_to_add = HFIAdminAddedStation(planning_area_id=1, station_code=1, fuel_type_id=1, row_id=1)
+    timestamp = datetime.fromisoformat("2019-06-10T18:42:49")
+    username = "test_user"
+    res = add_stations([station_to_add], pa_order_dict, timestamp, username)
+    assert res[0].planning_area_id == station_to_add.planning_area_id
+    assert res[0].order_of_appearance_in_planning_area_list == 1
 
 
-def test_post_stations_authorized(client: TestClient, monkeypatch: pytest.MonkeyPatch):
-    """ Allowed to post station changes with correct role"""
+def test_add_stations():
+    """ Adding stations to a planning area with correct orders """
+    pa_order_dict = {1: 1}
+    station_to_add_1 = HFIAdminAddedStation(planning_area_id=1, station_code=1, fuel_type_id=1, row_id=1)
+    station_to_add_2 = HFIAdminAddedStation(planning_area_id=1, station_code=2, fuel_type_id=1, row_id=1)
+    timestamp = datetime.fromisoformat("2019-06-10T18:42:49")
+    username = "test_user"
+    res = add_stations([station_to_add_1, station_to_add_2], pa_order_dict, timestamp, username)
 
-    def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
-        return MockJWTDecodeWithRole('hfi_station_admin')
+    assert res[0].planning_area_id == station_to_add_1.planning_area_id
+    assert res[0].station_code == station_to_add_1.station_code
+    assert res[0].order_of_appearance_in_planning_area_list == 1
 
-    monkeypatch.setattr("jwt.decode", mock_admin_role_function)
+    assert res[1].planning_area_id == station_to_add_2.planning_area_id
+    assert res[1].station_code == station_to_add_2.station_code
+    assert res[1].order_of_appearance_in_planning_area_list == 2
 
-    response = client.post(post_admin_stations_url, json=add_stations_json)
-    assert response.status_code == 200
+
+def test_add_stations_different_planning_areas():
+    """ Adding stations to a planning area with correct orders """
+    pa_order_dict = {1: 2, 2: 3}
+    station_to_add_1 = HFIAdminAddedStation(planning_area_id=1, station_code=1, fuel_type_id=1, row_id=1)
+    station_to_add_2 = HFIAdminAddedStation(planning_area_id=2, station_code=2, fuel_type_id=1, row_id=1)
+    timestamp = datetime.fromisoformat("2019-06-10T18:42:49")
+    username = "test_user"
+    res = add_stations([station_to_add_1, station_to_add_2], pa_order_dict, timestamp, username)
+
+    assert res[0].planning_area_id == station_to_add_1.planning_area_id
+    assert res[0].station_code == station_to_add_1.station_code
+    assert res[0].order_of_appearance_in_planning_area_list == 2
+
+    assert res[1].planning_area_id == station_to_add_2.planning_area_id
+    assert res[1].station_code == station_to_add_2.station_code
+    assert res[1].order_of_appearance_in_planning_area_list == 3
 
 
-def test_post_stations_wrong_role(client: TestClient, monkeypatch: pytest.MonkeyPatch):
-    """ Allowed to post station changes with incorrect role"""
+def test_update_order_all_stations_removed():
+    """ Correct station order for planning area when all stations are removed """
 
-    def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
-        return MockJWTDecodeWithRole('hfi_set_ready_state')
+    # [planning_area_id] -> {(station_code, order)...}
+    # planning area 1 has stations 1 and 2 removed
+    planning_area_removed_stations = {1: {(1, 1), (2, 2)}}
+    all_planning_area_stations = [PlanningWeatherStation(planning_area_id=1,
+                                                         station_code=1,
+                                                         order_of_appearance_in_planning_area_list=1),
+                                  PlanningWeatherStation(planning_area_id=1,
+                                                         station_code=2,
+                                                         order_of_appearance_in_planning_area_list=2)]
+    res = update_station_ordering(planning_area_removed_stations, all_planning_area_stations)
+    assert len(res) == 0  # no order updates since all stations are removed
 
-    monkeypatch.setattr("jwt.decode", mock_admin_role_function)
 
-    response = client.post(post_admin_stations_url, json=add_stations_json)
-    assert response.status_code == 401
+def test_update_order_last_station_removed():
+    """ Correct station order for planning area when all stations are removed """
+
+    # [planning_area_id] -> {(station_code, order)...}
+    # planning area 1 has stations 1 and 2 removed
+    planning_area_removed_stations = {1: {(2, 2)}}
+    all_planning_area_stations = [PlanningWeatherStation(planning_area_id=1,
+                                                         station_code=1,
+                                                         order_of_appearance_in_planning_area_list=1),
+                                  PlanningWeatherStation(planning_area_id=1,
+                                                         station_code=2,
+                                                         order_of_appearance_in_planning_area_list=2)]
+    res = update_station_ordering(planning_area_removed_stations, all_planning_area_stations)
+    assert res[0].planning_area_id == 1
+    assert res[0].station_code == 1
+    assert res[0].order_of_appearance_in_planning_area_list == 1  # first station still has same order
+
+
+def test_update_order_first_station_removed():
+    """ Correct station order for planning area when all stations are removed """
+
+    # [planning_area_id] -> {(station_code, order)...}
+    # planning area 1 has stations 1 and 2 removed
+    planning_area_removed_stations = {1: {(1, 1)}}
+    all_planning_area_stations = [PlanningWeatherStation(planning_area_id=1,
+                                                         station_code=1,
+                                                         order_of_appearance_in_planning_area_list=1),
+                                  PlanningWeatherStation(planning_area_id=1,
+                                                         station_code=2,
+                                                         order_of_appearance_in_planning_area_list=2)]
+    res = update_station_ordering(planning_area_removed_stations, all_planning_area_stations)
+    assert res[0].planning_area_id == 1
+    assert res[0].station_code == 2
+    assert res[0].order_of_appearance_in_planning_area_list == 1  # remaining station now has order 1
+
+
+def test_update_order_middle_station_removed():
+    """ Correct station order for planning area when all stations are removed """
+
+    # [planning_area_id] -> {(station_code, order)...}
+    # planning area 1 has stations 1 and 2 removed
+    planning_area_removed_stations = {1: {(2, 2)}}
+    all_planning_area_stations = [PlanningWeatherStation(planning_area_id=1,
+                                                         station_code=1,
+                                                         order_of_appearance_in_planning_area_list=1),
+                                  PlanningWeatherStation(planning_area_id=1,
+                                                         station_code=2,
+                                                         order_of_appearance_in_planning_area_list=2),
+                                  PlanningWeatherStation(planning_area_id=1,
+                                                         station_code=3,
+                                                         order_of_appearance_in_planning_area_list=3)]
+    res = update_station_ordering(planning_area_removed_stations, all_planning_area_stations)
+
+    assert len(res) == 2
+
+    assert res[0].planning_area_id == 1
+    assert res[0].station_code == 1
+    assert res[0].order_of_appearance_in_planning_area_list == 1  # first station still has order 1
+
+    assert res[1].planning_area_id == 1
+    assert res[1].station_code == 3
+    assert res[1].order_of_appearance_in_planning_area_list == 2  # last station now has order 2
+
+
+def test_remove_station():
+    """ Removing a station marks it as deleted an updates remaining orders """
+    removals = [PlanningWeatherStation(planning_area_id=1,
+                                       station_code=1,
+                                       order_of_appearance_in_planning_area_list=1)]
+    all_planning_area_stations = [removals[0],
+                                  PlanningWeatherStation(planning_area_id=1,
+                                                         station_code=2,
+                                                         order_of_appearance_in_planning_area_list=2),
+                                  PlanningWeatherStation(planning_area_id=1,
+                                                         station_code=3,
+                                                         order_of_appearance_in_planning_area_list=3)]
+    timestamp = datetime.fromisoformat('2019-06-10T18:42:49')
+    username = 'test'
+    stations_to_remove, stations_with_order_updates = remove_stations(
+        removals, all_planning_area_stations, timestamp, username)
+
+    assert stations_to_remove[0].planning_area_id == removals[0].planning_area_id
+    assert stations_to_remove[0].station_code == removals[0].station_code
+    assert stations_to_remove[0].order_of_appearance_in_planning_area_list == None
+
+    assert len(stations_with_order_updates) == 2
+    assert stations_with_order_updates[0].planning_area_id == all_planning_area_stations[1].planning_area_id
+    assert stations_with_order_updates[0].station_code == all_planning_area_stations[1].station_code
+    assert stations_with_order_updates[0].order_of_appearance_in_planning_area_list == 1  # 2nd is 1st now
+
+    assert stations_with_order_updates[1].planning_area_id == all_planning_area_stations[2].planning_area_id
+    assert stations_with_order_updates[1].station_code == all_planning_area_stations[2].station_code
+    assert stations_with_order_updates[1].order_of_appearance_in_planning_area_list == 2  # 3rd is 2nd now
+
+
+def test_remove_stations():
+    """ Removing stations marks them as deleted and updates remaining orders"""
+    removals = [PlanningWeatherStation(planning_area_id=1,
+                                       station_code=1,
+                                       order_of_appearance_in_planning_area_list=1),
+                PlanningWeatherStation(planning_area_id=1,
+                                       station_code=2,
+                                       order_of_appearance_in_planning_area_list=2)]
+    all_planning_area_stations = [removals[0],
+                                  removals[1],
+                                  PlanningWeatherStation(planning_area_id=1,
+                                                         station_code=3,
+                                                         order_of_appearance_in_planning_area_list=3)]
+    timestamp = datetime.fromisoformat('2019-06-10T18:42:49')
+    username = 'test'
+    stations_to_remove, stations_with_order_updates = remove_stations(
+        removals, all_planning_area_stations, timestamp, username)
+
+    assert len(stations_to_remove) == 2
+    assert stations_to_remove[0].planning_area_id == removals[0].planning_area_id
+    assert stations_to_remove[0].station_code == removals[0].station_code
+    assert stations_to_remove[0].order_of_appearance_in_planning_area_list == None
+
+    assert stations_to_remove[1].planning_area_id == removals[1].planning_area_id
+    assert stations_to_remove[1].station_code == removals[1].station_code
+    assert stations_to_remove[1].order_of_appearance_in_planning_area_list == None
+
+    assert len(stations_with_order_updates) == 1
+    assert stations_with_order_updates[0].planning_area_id == all_planning_area_stations[2].planning_area_id
+    assert stations_with_order_updates[0].station_code == all_planning_area_stations[2].station_code
+    assert stations_with_order_updates[0].order_of_appearance_in_planning_area_list == 1  # last one left
