@@ -16,28 +16,22 @@ FROM registry.access.redhat.com/ubi8/nodejs-16 as static
 USER 0
 
 ADD web .
-# NOTE: Can't use "--production=true", because we need react-scripts for yarn run start.
+# NOTE: Can't use "--production=true", build will fail.
 RUN npm install -g npm@latest && npm install -g yarn@latest && yarn install --frozen-lockfile
+RUN yarn run build
 
 # Switch back to default user
 USER 1001
 
-# while testing stuff out:
-# docker build -f ./Dockerfile.web --tag=wps/web .
-# -p 8080:3000 - "map port 3000 in the container, to 8080 in the host"
-# docker run -p 3000:3000 wps/web
-# docker contains ls
-# docker stop [the container id]
-# 
-
-CMD ["yarn", "run", "start"]
-
 # # PHASE 2 - prepare hosting.
-# # Using local docker image to speed up build. See openshift/wps-api-base for details.
-# FROM ${DOCKER_IMAGE}
+# https://catalog.redhat.com/software/containers/ubi8/nginx-120/6156abfac739c0a4123a86fd
+FROM registry.access.redhat.com/ubi8/nginx-120
 
-# # Copy the static content:
-# COPY --from=static /opt/app-root/src/build /app/static
+# Add application sources
+ADD ./openshift/nginx.conf "${NGINX_CONF_PATH}"
 
-# The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
-# EXPOSE 8080
+# Copy the static content:
+COPY --from=static /opt/app-root/src/build .
+
+EXPOSE 3000
+CMD nginx -g "daemon off;"

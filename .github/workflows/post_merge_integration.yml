@@ -32,20 +32,20 @@ jobs:
           cache-name: cache-poetry-installer
         with:
           path: "~/poetry_installer"
-          key: "1.1.11"
+          key: "poetry-installer-1.1.11"
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
         run: |
           echo
           mkdir ~/poetry_installer
-          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py > ~/poetry_installer/install-poetry.py
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python get-poetry.py --version 1.1.11
-          source ~/.poetry/env
+          python install-poetry.py --version 1.1.11
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
+          poetry config experimental.new-installer false
       # poetry cache folder: /home/runner/.cache/pypoetry
       - name: Cache poetry
         uses: actions/cache@v3
@@ -59,19 +59,29 @@ jobs:
       - name: Install python dependencies using poetry (api)
         working-directory: ./api
         run: |
-          source ~/.poetry/env
           poetry install
       - name: Install ubuntu pre-requisites (api)
         # The python gdal and R component relies on libgdal-dev being installed.
         # The api uses wkhtmltopdf to generate pdf's.
         run: |
           sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev wkhtmltopdf
-      - name: Lint (api)
-        # We run lint before unit tests, and before installing some of the
-        # longer running dependency installs because it runs faster, so we'll reach a fail condition sooner.
+      - name: Install gdal python (api)
+        # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
+        # available to us. As such, gdal is not installed by poetry, since the version will differ between
+        # platforms.
+        # Also have to be absolutely sure that numpy is installed before gdal (otherwise gdal doesn't install
+        # correctly, and you'll run into ndarray errors.)
+        # On ubuntu20.04, the most recent we have is gdal, so we use pygdal to install it. (used to use
+        # gdal, but it now has a bug that causes it to fail to install on ubuntu20.04)
         working-directory: ./api
         run: |
-          source ~/.poetry/env
+          poetry run pip install numpy
+          poetry run pip install pygdal==3.0.4.10
+      - name: Lint (api)
+        # We used to be able to do linting before installing gdal, but it's not possible anymore.
+        # We can however place it ahead of the R installs.
+        working-directory: ./api
+        run: |
           poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -93,21 +103,9 @@ jobs:
         run: |
           if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
           renv::restore()
-      - name: Install gdal python (api)
-        # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
-        # available to us. As such, gdal is not installed by poetry, since the version will differ between
-        # platforms.
-        # Also have to be absolutely sure that numpy is installed before gdal (otherwise gdal doesn't install
-        # correctly, and you'll run into ndarray errors.)
-        working-directory: ./api
-        run: |
-          source ~/.poetry/env
-          poetry run pip install numpy
-          CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal poetry run pip install gdal==$(gdal-config --version)
       - name: Unit Test with coverage (api)
         working-directory: ./api
         run: |
-          source ~/.poetry/env
           export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
           export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6:/$LD_PRELOAD
           export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATHpoetry
@@ -117,7 +115,6 @@ jobs:
         working-directory: ./api
         shell: bash
         run: |
-          source ~/.poetry/env
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
       - name: Archive coverage report (api)

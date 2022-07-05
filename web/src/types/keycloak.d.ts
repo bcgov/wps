@@ -31,9 +31,7 @@ export = Keycloak
  * Creates a new Keycloak client instance.
  * @param config A configuration object or path to a JSON config file.
  */
-declare function Keycloak(
-  config?: Keycloak.KeycloakConfig | string
-): Keycloak.KeycloakInstance
+declare function Keycloak(config?: Keycloak.KeycloakConfig | string): Keycloak.KeycloakInstance
 
 declare namespace Keycloak {
   type KeycloakAdapterName = 'cordova' | 'cordova-native' | 'default' | any
@@ -223,9 +221,7 @@ declare namespace Keycloak {
      *
      * @deprecated Use `.then()` instead.
      */
-    success(
-      callback: KeycloakPromiseCallback<TSuccess>
-    ): KeycloakPromise<TSuccess, TError>
+    success(callback: KeycloakPromiseCallback<TSuccess>): KeycloakPromise<TSuccess, TError>
 
     /**
      * Function to call if the promised action throws an error.

@@ -27,7 +27,7 @@ source "$(dirname ${0})/common/common"
 # Target project override for Dev or Prod deployments
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
-OBJ_NAME="${APP_NAME}-${MODULE_NAME}-${SUFFIX}"
+OBJ_NAME="${APP_NAME}-${SUFFIX}"
 
 # Process a template (mostly variable substition)
 #
