@@ -18,7 +18,6 @@ def update_stations(stations_to_remove: List[PlanningWeatherStation],
     """
         Orchestrates removal and addition of stations
     """
-    timestamp = get_utc_now()
     stations_marked_for_removal, stations_with_order_updates = remove_stations(
         stations_to_remove, all_planning_area_stations, timestamp, username)
 
