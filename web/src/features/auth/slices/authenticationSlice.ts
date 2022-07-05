@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
-import kcInstance, { kcInitOption } from 'features/auth/keycloak'
+import getKcInstance, { kcInitOption } from 'features/auth/keycloak'
 import * as jwtDecode from 'jwt-decode'
 import { logError } from 'utils/error'
 import { isUndefined } from 'lodash'
@@ -136,34 +136,40 @@ export const testAuthenticate =
 export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
 
-  if (!kcInstance) {
-    return dispatch(authenticateError('Failed to authenticate (Unable to fetch keycloak-js).'))
-  }
+  const promise = getKcInstance()
 
-  kcInstance
-    .init(kcInitOption)
-    .then(isAuthenticated => {
-      dispatch(authenticateFinished({ isAuthenticated, token: kcInstance?.token }))
-    })
-    .catch(err => {
-      logError(err)
-      dispatch(authenticateError('Failed to authenticate.'))
-    })
-  // Set a callback that will be triggered when the access token is expired
-  kcInstance.onTokenExpired = () => {
+  Promise.resolve(promise).then(kcInstance => {
+    if (!kcInstance) {
+      return dispatch(authenticateError('Failed to authenticate (Unable to fetch keycloak-js).'))
+    }
+
     kcInstance
-      ?.updateToken(0)
-      .then(tokenRefreshed => {
-        dispatch(refreshTokenFinished({ tokenRefreshed, token: kcInstance?.token }))
+      .init(kcInitOption)
+      .then(isAuthenticated => {
+        dispatch(authenticateFinished({ isAuthenticated, token: kcInstance?.token }))
       })
-      .catch(() => {
-        // Restart the authentication flow
-        dispatch(authenticate())
+      .catch(err => {
+        logError(err)
+        dispatch(authenticateError('Failed to authenticate.'))
       })
-  }
+    // Set a callback that will be triggered when the access token is expired
+    kcInstance.onTokenExpired = () => {
+      kcInstance
+        ?.updateToken(0)
+        .then(tokenRefreshed => {
+          dispatch(refreshTokenFinished({ tokenRefreshed, token: kcInstance?.token }))
+        })
+        .catch(() => {
+          // Restart the authentication flow
+          dispatch(authenticate())
+        })
+    }
+  })
 }
 
 export const signout = (): AppThunk => async dispatch => {
+  const kcInstance = getKcInstance()
+
   if (!kcInstance) {
     return dispatch(signoutError('Failed to authenticate (Unable to fetch keycloak-js).'))
   }

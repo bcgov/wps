@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      - roles
 jobs:
   lint-and-test-api:
     name: Python - Lint, Test with coverage

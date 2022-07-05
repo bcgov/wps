@@ -33,7 +33,6 @@ import { isNull, isUndefined } from 'lodash'
 import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
 import { DateRange } from 'components/dateRangePicker/types'
-import LiveChangesAlert from 'features/hfiCalculator/components/LiveChangesAlert'
 import { AppDispatch } from 'app/store'
 import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
 import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
@@ -287,7 +286,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           dateRange={dateRange}
         >
           <React.Fragment>
-            <LiveChangesAlert />
             <HFISuccessAlert />
             <FormControl className={classes.controlContainer}>
               <ViewSwitcherToggles dateRange={dateRange} selectedPrepDate={selectedPrepDate} />
