@@ -188,10 +188,7 @@ export async function toggleReadyState(
   }
 }
 
-export async function addNewStation(
-  fireCentreId: number,
-  newStation: Required<Omit<AdminStation, 'dirty'>>
-): Promise<number> {
+export async function addNewStation(newStation: Required<Omit<AdminStation, 'dirty'>>): Promise<number> {
   const requestBody: HFIAdminStationUpdateRequest = {
     added: [
       {

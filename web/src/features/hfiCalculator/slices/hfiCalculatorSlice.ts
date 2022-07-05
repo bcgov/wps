@@ -311,10 +311,10 @@ export const fetchFuelTypes = (): AppThunk => async dispatch => {
 }
 
 export const fetchAddStation =
-  (fireCentreId: number, newStation: Required<Omit<AdminStation, 'dirty'>>): AppThunk =>
+  (newStation: Required<Omit<AdminStation, 'dirty'>>): AppThunk =>
   async dispatch => {
     try {
-      const status = await addNewStation(fireCentreId, newStation)
+      const status = await addNewStation(newStation)
       dispatch(setStationAdded(status === 201))
     } catch (err) {
       const { response } = err as AxiosError

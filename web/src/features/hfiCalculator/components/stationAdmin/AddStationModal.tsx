@@ -125,7 +125,7 @@ export const AddStationModal = ({ modalOpen, setModalOpen }: AddStationModalProp
       !isUndefined(newStation.fuelType)
     ) {
       dispatch(
-        fetchAddStation(selectedFireCentre.id, {
+        fetchAddStation({
           planningArea: newStation.planningArea,
           station: newStation.station,
           fuelType: newStation.fuelType
