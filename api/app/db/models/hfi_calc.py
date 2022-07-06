@@ -80,11 +80,11 @@ class PlanningWeatherStation(Base):
     order_of_appearance_in_planning_area_list = Column(Integer, nullable=True)
     # Track which user created the record for auditing purposes.
     create_user = Column(String, nullable=False)
-    create_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    create_timestamp = Column(TZTimeStamp, nullable=False)
     # Track which user updated/deleted the record for auditing purposes.
     update_user = Column(String, nullable=False)
-    update_timestamp = Column(TZTimeStamp, nullable=False, index=True)
-    is_deleted = Column(Boolean, nullable=False, default=False)
+    update_timestamp = Column(TZTimeStamp, nullable=False)
+    is_deleted = Column(Boolean, nullable=False, default=False, index=True)
 
     def __str__(self):
         return (f'id:{self.id}, '
