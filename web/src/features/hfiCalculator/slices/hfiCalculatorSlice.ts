@@ -315,7 +315,7 @@ export const fetchAddStation =
   async dispatch => {
     try {
       const status = await addNewStation(newStation)
-      dispatch(setStationAdded(status === 201))
+      dispatch(setStationAdded(status === 200))
     } catch (err) {
       const { response } = err as AxiosError
       dispatch(setAddedStationFailed(response?.data.detail))
