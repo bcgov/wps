@@ -39,7 +39,7 @@ from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   get_planning_weather_stations,
-                                  get_latest_hfi_ready_records,
+                                  get_latest_hfi_ready_records, get_stations_for_affected_planning_areas,
                                   get_stations_for_removal,
                                   store_hfi_request,
                                   get_fire_centre_stations,
@@ -449,8 +449,8 @@ async def admin_update_stations(request: HFIAdminStationUpdateRequest,
     username = token.get('preferred_username', None)
     with get_write_session_scope() as db_session:
         timestamp = get_utc_now()
-        stations_to_remove, all_planning_area_stations = get_stations_for_removal(
-            db_session, request.removed)
+        stations_to_remove = get_stations_for_removal(db_session, request.removed)
+        all_planning_area_stations = get_stations_for_affected_planning_areas(db_session, request)
         stations_to_save = update_stations(
             stations_to_remove,
             all_planning_area_stations,

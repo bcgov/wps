@@ -5,7 +5,7 @@ from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, insert
 from app.db.database import get_read_session_scope
-from app.schemas.hfi_calc import DateRange, HFIAdminRemovedStation, HFIResultRequest
+from app.schemas.hfi_calc import DateRange, HFIAdminRemovedStation, HFIAdminStationUpdateRequest, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, HFIReady, PlanningArea, PlanningWeatherStation, HFIRequest,
                                     FireStartRange, FireCentreFireStartRange, FireStartLookup)
 from app.utils.time import get_utc_now
@@ -159,12 +159,18 @@ def get_stations_for_removal(session: Session,
         .filter(PlanningWeatherStation.planning_area_id.in_(remove_request_planning_area_ids))\
         .filter(PlanningWeatherStation.station_code.in_(remove_request_station_codes))\
         .filter(PlanningWeatherStation.order_of_appearance_in_planning_area_list.in_(remove_request_orders))
+    return stations_to_remove
 
-    all_stations_in_planning_area = session.query(PlanningWeatherStation)\
-        .filter(PlanningWeatherStation.planning_area_id.in_(remove_request_planning_area_ids))\
+
+def get_stations_for_affected_planning_areas(session: Session, request: HFIAdminStationUpdateRequest):
+    removed_planning_area_ids = [remove_request.planning_area_id for remove_request in request.removed]
+    added_planning_area_ids = [add_request.planning_area_id for add_request in request.added]
+    affected_planning_area_ids = removed_planning_area_ids + added_planning_area_ids
+
+    return session.query(PlanningWeatherStation)\
+        .filter(PlanningWeatherStation.planning_area_id.in_(affected_planning_area_ids))\
         .order_by(PlanningWeatherStation.order_of_appearance_in_planning_area_list)\
         .all()
-    return stations_to_remove, all_stations_in_planning_area
 
 
 def save_hfi_stations(session: Session,

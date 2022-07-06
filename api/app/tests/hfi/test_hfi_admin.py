@@ -6,8 +6,44 @@ from app.schemas.hfi_calc import HFIAdminAddedStation
 timestamp = datetime.fromisoformat("2019-06-10T18:42:49")
 
 
+def test_get_next_order_by_planning_area_no_stations():
+    """ No updated stations or existing stations means no ordering"""
+    res = get_next_order_by_planning_area([], [])
+    assert res == {}
+
+
+def test_get_next_order_by_planning_area_with_updates():
+    """ Updated station list is the current list so its ordering takes precedence over existing stations
+        In this case the last existing station was removed so the next added station has order 2
+    """
+    updated_stations = [PlanningWeatherStation(planning_area_id=1,
+                                               station_code=4,
+                                               order_of_appearance_in_planning_area_list=1)]
+    existing_stations = [PlanningWeatherStation(planning_area_id=1,
+                                                station_code=4,
+                                                order_of_appearance_in_planning_area_list=1),
+                         PlanningWeatherStation(planning_area_id=1,
+                                                station_code=5,
+                                                order_of_appearance_in_planning_area_list=2)]
+    res = get_next_order_by_planning_area(updated_stations, existing_stations)
+    assert res == {1: 2}
+
+
+def test_get_next_order_by_planning_area_no_updates():
+    """ No updated stations mean next order is max(existing_orders) + 1"""
+    updated_stations = []
+    existing_stations = [PlanningWeatherStation(planning_area_id=1,
+                                                station_code=4,
+                                                order_of_appearance_in_planning_area_list=1),
+                         PlanningWeatherStation(planning_area_id=1,
+                                                station_code=5,
+                                                order_of_appearance_in_planning_area_list=2)]
+    res = get_next_order_by_planning_area(updated_stations, existing_stations)
+    assert res == {1: 3}
+
+
 def test_get_next_order_by_planning_area():
-    """ Next order value for each planning area is computed based on stations"""
+    """ Next order is computed based on stations in each planning area """
     planning_area_1 = 1
     pa1_station1 = PlanningWeatherStation(planning_area_id=planning_area_1,
                                           station_code=1,
@@ -20,15 +56,9 @@ def test_get_next_order_by_planning_area():
                                           station_code=3,
                                           order_of_appearance_in_planning_area_list=1)
 
-    res = get_next_order_by_planning_area([pa1_station1, pa1_station2, pa2_station1])
+    res = get_next_order_by_planning_area([], [pa1_station1, pa1_station2, pa2_station1])
     assert res[planning_area_1] == 3  # order 1 and 2 for pa1 are taken
     assert res[planning_area_2] == 2  # order 2 for pa2 taken
-
-
-def test_get_next_order_by_planning_area_no_stations():
-    """ Empty dict map of ordering for no stations in a planning area"""
-    res = get_next_order_by_planning_area([])
-    assert res == {}
 
 
 def test_add_station():

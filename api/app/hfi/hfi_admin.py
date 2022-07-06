@@ -20,7 +20,8 @@ def update_stations(stations_to_remove: List[PlanningWeatherStation],
     stations_marked_for_removal, stations_with_order_updates = remove_stations(
         stations_to_remove, all_planning_area_stations, timestamp, username)
 
-    next_order_by_planning_area = get_next_order_by_planning_area(stations_with_order_updates)
+    next_order_by_planning_area = get_next_order_by_planning_area(
+        stations_with_order_updates, all_planning_area_stations)
 
     stations_to_add = add_stations(to_add, next_order_by_planning_area, timestamp, username)
 
@@ -55,7 +56,7 @@ def remove_stations(remove_station_list: List[PlanningWeatherStation],
 
 
 def update_station_ordering(planning_areas_with_removals: Dict[int, Set[Tuple[int, int]]],
-                            all_planning_area_stations: List[PlanningWeatherStation]) -> List[PlanningWeatherStation]:
+                            all_planning_area_stations: List[PlanningWeatherStation]):
     """
         Given a dict of [planning_area_id] -> (station_code, order),
         indicating a station removed from a planning area, and list of all stations
@@ -67,13 +68,12 @@ def update_station_ordering(planning_areas_with_removals: Dict[int, Set[Tuple[in
     all_stations_by_planning_area = dict((k, list(map(lambda x: x, values)))
                                          for k, values in groupby(sorted(all_planning_area_stations, key=key), key))
 
-    for planning_area_id, orders in planning_areas_with_removals.items():
+    for planning_area_id, removed_stations in planning_areas_with_removals.items():
         all_stations = all_stations_by_planning_area.get(planning_area_id, None)
         if all_stations is not None:
-            other_stations = get_other_stations(orders, all_stations)
-            stations_with_order = get_stations_with_order(other_stations)
+            other_stations = get_stations_with_order(get_other_stations(removed_stations, all_stations))
             sorted_other_stations: List[PlanningWeatherStation] = sorted(
-                stations_with_order, key=attrgetter('order_of_appearance_in_planning_area_list'))
+                other_stations, key=attrgetter('order_of_appearance_in_planning_area_list'))
             for idx, sorted_station in enumerate(sorted_other_stations):
                 sorted_station.order_of_appearance_in_planning_area_list = idx + 1
                 stations_with_order_updates.append(sorted_station)
@@ -86,18 +86,16 @@ def get_other_stations(stations_removed: Set[Tuple[int, int]], all_stations: Lis
         Given a set of removed stations, {(station_code, order), ...},
         and list of all stations, return a list of stations not in set
     """
-    return list(
-        filter(
-            lambda x: (x.station_code, x.order_of_appearance_in_planning_area_list) not in stations_removed,
-            all_stations))
+    return list(filter(
+        lambda x: (x.station_code, x.order_of_appearance_in_planning_area_list) not in stations_removed,
+        all_stations))
 
 
 def get_stations_with_order(stations: List[PlanningWeatherStation]):
     """
         Returns list of stations that have an order
     """
-    return list(filter(
-                lambda x: x.order_of_appearance_in_planning_area_list is not None, stations))
+    return list(filter(lambda x: x.order_of_appearance_in_planning_area_list is not None, stations))
 
 
 def add_stations(stations_to_add: List[HFIAdminAddedStation],
@@ -127,12 +125,35 @@ def add_stations(stations_to_add: List[HFIAdminAddedStation],
     return added_stations
 
 
-def get_next_order_by_planning_area(stations: List[PlanningWeatherStation]) -> Dict[int, int]:
+def get_next_order_by_planning_area(station_with_order_updates: List[PlanningWeatherStation],
+                                    all_planning_area_stations: List[PlanningWeatherStation]) -> Dict[int, int]:
     """ Return next highest ordering for each planning area """
     next_order_by_planning_area = {}
 
-    for planning_area_id, planning_area_stations in groupby(stations, lambda x: x.planning_area_id):
-        orders = [station.order_of_appearance_in_planning_area_list for station in list(planning_area_stations)]
-        next_order_by_planning_area[planning_area_id] = max(orders) + 1
+    key = attrgetter('planning_area_id')
+    updated_stations_by_planning_area = dict((k, list(map(lambda x: x, values)))
+                                             for k, values in groupby(sorted(station_with_order_updates, key=key), key))
+    all_stations_by_planning_area = dict((k, list(map(lambda x: x, values)))
+                                         for k, values in groupby(sorted(all_planning_area_stations, key=key), key))
+
+    for planning_area_id, planning_area_stations in all_stations_by_planning_area.items():
+        updated_stations = updated_stations_by_planning_area.get(planning_area_id, [])
+        next_order_by_planning_area[planning_area_id] = get_next_order(updated_stations, planning_area_stations)
 
     return next_order_by_planning_area
+
+
+def get_next_order(updated_stations: List[PlanningWeatherStation], other_stations: List[PlanningWeatherStation]):
+    """
+        Returns the next order for a list of planning stations based on updated and existing stations.
+        Updated stations will include and removals, so that list may have a smaller max order.
+    """
+    updated_orders = [station.order_of_appearance_in_planning_area_list for station in updated_stations]
+    existing_orders = [station.order_of_appearance_in_planning_area_list for station in other_stations]
+
+    if len(updated_orders) == 0:
+        return max(existing_orders) + 1
+    if len(existing_orders) == 0:
+        return max(updated_orders) + 1
+
+    return min(max(updated_orders) + 1, max(existing_orders) + 1)
