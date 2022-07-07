@@ -1,6 +1,5 @@
 """ This module contains pydandict schemas the HFI Calculator.
 """
-from enum import Enum
 import logging
 from typing import List, Dict, Optional
 from datetime import datetime, date
@@ -182,18 +181,6 @@ class HFIAdminAddedStation(BaseModel):
     station_code: int
     fuel_type_id: int
     row_id: int
-
-
-class HFIAdminRemovedStation(BaseModel):
-    """ Request input for removing a station """
-    planning_area_id: int
-    row_id: int
-
-
-class HFIAdminStationUpdateRequest(BaseModel):
-    """ Request input for updating a batch of HFI stations. """
-    added: List[HFIAdminAddedStation]
-    removed: List[HFIAdminRemovedStation]
 
 
 class HFIAdminRemovedStation(BaseModel):
