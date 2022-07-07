@@ -142,15 +142,6 @@ export interface HFIAdminStationUpdateRequest {
   added: HFIAdminAddedStation[]
   removed: HFIAdminRemovedStation[]
 }
-export interface HFIAddOrUpdateStationRequest {
-  planning_area_id: number
-  station_code: number
-  fuel_type_id: number
-}
-
-export interface HFIBatchStationRequest {
-  stations: HFIAddOrUpdateStationRequest[]
-}
 
 const baseUrl = '/hfi-calc/'
 
