@@ -28,7 +28,6 @@ export interface StationListAdminProps {
 }
 
 const StationListAdmin = ({
-  fireCentreId,
   planningAreas,
   addStationOptions,
   existingPlanningAreaStations,
@@ -96,11 +95,7 @@ const StationListAdmin = ({
     const allRemoved = Object.values(removedStations).flat()
     if (every(allAdded, addedStation => !isUndefined(addedStation.station) && !isUndefined(addedStation.fuelType))) {
       dispatch(
-        fetchAddOrUpdateStations(
-          fireCentreId,
-          allAdded as Required<StationAdminRow>[],
-          allRemoved as Required<StationAdminRow>[]
-        )
+        fetchAddOrUpdateStations(allAdded as Required<StationAdminRow>[], allRemoved as Required<StationAdminRow>[])
       )
       handleClose()
     }

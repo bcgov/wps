@@ -203,22 +203,7 @@ export async function toggleReadyState(
   }
 }
 
-// export async function addNewStation(newStation: Required<Omit<AdminStation, 'dirty'>>): Promise<number> {
-//   const requestBody: HFIAdminStationUpdateRequest = {
-//     added: [
-//       {
-//         planning_area_id: newStation.planningArea.id,
-//         station_code: newStation.station.code,
-//         fuel_type_id: newStation.fuelType.id
-//       }
-//     ],
-//     removed: []
-//   }
-//   const { status } = await axios.post<number>(baseUrl + 'admin/stations', requestBody)
-//   return status
-// }
 export async function updateStations(
-  fireCentreId: number,
   addedStations: Required<StationAdminRow>[],
   removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[]
 ): Promise<number> {
