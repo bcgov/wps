@@ -5,7 +5,7 @@ from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, insert
 from app.db.database import get_read_session_scope
-from app.schemas.hfi_calc import DateRange, HFIResultRequest
+from app.schemas.hfi_calc import DateRange, HFIAdminRemovedStation, HFIAdminStationUpdateRequest, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, HFIReady, PlanningArea, PlanningWeatherStation, HFIRequest,
                                     FireStartRange, FireCentreFireStartRange, FireStartLookup)
 from app.utils.time import get_utc_now
@@ -50,7 +50,9 @@ def get_planning_weather_stations(session, fire_centre_id: int) -> List[Planning
     """ Get all the stations for a fire centre. """
     return session.query(PlanningWeatherStation)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
-        .filter(PlanningArea.fire_centre_id == fire_centre_id).all()
+        .filter(PlanningArea.fire_centre_id == fire_centre_id)\
+        .filter(PlanningWeatherStation.is_deleted == False)\
+        .all()
 
 
 def get_most_recent_updated_hfi_request(session: Session,
@@ -128,6 +130,15 @@ def get_latest_hfi_ready_records(session: Session, hfi_request_id: int) -> List[
         .all()
 
 
+def get_last_station_in_planning_area(session: Session, planning_area_id: int) -> PlanningWeatherStation:
+    """ Get the last station in a planning area """
+    return session.query(PlanningWeatherStation)\
+        .filter(PlanningWeatherStation.planning_area_id == planning_area_id)\
+        .filter(PlanningWeatherStation.is_deleted == False)\
+        .order_by(desc(PlanningWeatherStation.order_of_appearance_in_planning_area_list))\
+        .first()
+
+
 def get_planning_areas(session: Session, fire_centre_id: int):
     """ Retrieve the planning areas for a fire centre"""
     return session.query(PlanningArea)\
@@ -135,13 +146,39 @@ def get_planning_areas(session: Session, fire_centre_id: int):
         .all()
 
 
-def store_hfi_station(session: Session, station_code: int, fuel_type_id: int, planning_area_id: int, order: int):
-    """ Store planning weather station """
-    planning_weather_station = PlanningWeatherStation(station_code=station_code,
-                                                      fuel_type_id=fuel_type_id,
-                                                      planning_area_id=planning_area_id,
-                                                      order_of_appearance_in_planning_area_list=order)
-    session.add(planning_weather_station)
+def get_stations_for_removal(session: Session,
+                             station_requests: List[HFIAdminRemovedStation]):
+    """ Returns the station model requested to remove, along with all
+    stations in in planning area, in ascending order. """
+    remove_request_planning_area_ids = [request.planning_area_id for request in station_requests]
+    remove_request_station_codes = [request.station_code for request in station_requests]
+
+    # ordering is 1-based, row_id is 0-based
+    remove_request_orders = [request.row_id + 1 for request in station_requests]
+
+    stations_to_remove = session.query(PlanningWeatherStation)\
+        .filter(PlanningWeatherStation.planning_area_id.in_(remove_request_planning_area_ids))\
+        .filter(PlanningWeatherStation.station_code.in_(remove_request_station_codes))\
+        .filter(PlanningWeatherStation.order_of_appearance_in_planning_area_list.in_(remove_request_orders))
+    return stations_to_remove
+
+
+def get_stations_for_affected_planning_areas(session: Session, request: HFIAdminStationUpdateRequest):
+    removed_planning_area_ids = [remove_request.planning_area_id for remove_request in request.removed]
+    added_planning_area_ids = [add_request.planning_area_id for add_request in request.added]
+    affected_planning_area_ids = removed_planning_area_ids + added_planning_area_ids
+
+    return session.query(PlanningWeatherStation)\
+        .filter(PlanningWeatherStation.planning_area_id.in_(affected_planning_area_ids))\
+        .filter(PlanningWeatherStation.is_deleted == False)\
+        .order_by(PlanningWeatherStation.order_of_appearance_in_planning_area_list)\
+        .all()
+
+
+def save_hfi_stations(session: Session,
+                      stations_to_save: List[PlanningWeatherStation]):
+
+    session.bulk_save_objects(stations_to_save)
     session.commit()
 
 
@@ -166,14 +203,6 @@ def toggle_ready(session: Session,
     session.add(ready_state)
     session.commit()
     return ready_state
-
-
-def get_last_station_in_planning_area(session: Session, planning_area_id: int) -> PlanningWeatherStation:
-    """ Get the last station in a planning area """
-    return session.query(PlanningWeatherStation)\
-        .filter(PlanningWeatherStation.planning_area_id == planning_area_id)\
-        .order_by(desc(PlanningWeatherStation.order_of_appearance_in_planning_area_list))\
-        .first()
 
 
 def get_fire_centre_fire_start_ranges(session: Session, fire_centre_id: id) -> CursorResult:
