@@ -134,6 +134,7 @@ def get_last_station_in_planning_area(session: Session, planning_area_id: int) -
     """ Get the last station in a planning area """
     return session.query(PlanningWeatherStation)\
         .filter(PlanningWeatherStation.planning_area_id == planning_area_id)\
+        .filter(PlanningWeatherStation.is_deleted == False)\
         .order_by(desc(PlanningWeatherStation.order_of_appearance_in_planning_area_list))\
         .first()
 
@@ -169,6 +170,7 @@ def get_stations_for_affected_planning_areas(session: Session, request: HFIAdmin
 
     return session.query(PlanningWeatherStation)\
         .filter(PlanningWeatherStation.planning_area_id.in_(affected_planning_area_ids))\
+        .filter(PlanningWeatherStation.is_deleted == False)\
         .order_by(PlanningWeatherStation.order_of_appearance_in_planning_area_list)\
         .all()
 
