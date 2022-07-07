@@ -317,6 +317,19 @@ export const fetchFuelTypes = (): AppThunk => async dispatch => {
   }
 }
 
+export const fetchAddStation =
+  (newStation: Required<Omit<AdminStation, 'dirty'>>): AppThunk =>
+  async dispatch => {
+    try {
+      const status = await addNewStation(newStation)
+      dispatch(setStationAdded(status === 200))
+    } catch (err) {
+      const { response } = err as AxiosError
+      dispatch(setAddedStationFailed(response?.data.detail))
+      logError(err)
+    }
+  }
+
 export const fetchSetNewFireStarts =
   (
     fire_center_id: number,

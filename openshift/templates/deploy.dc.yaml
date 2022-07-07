@@ -1,7 +1,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: ${APP_NAME}-${MODULE_NAME}
+  name: ${APP_NAME}
   annotations:
     openshift.io/display-name: "wps"
     description: "Wildfire Predictive Services - API"
@@ -12,15 +12,12 @@ metadata:
     openshift.io/documentation-url: "https://github.com/bcgov/wps"
     openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
-  app.kubernetes.io/part-of: "${APP_NAME}-${MODULE_NAME}"
+  app.kubernetes.io/part-of: "${APP_NAME}"
   app: ${APP_NAME}-${SUFFIX}
 parameters:
   - name: APP_NAME
     description: Application name (wps - wildfire predictive services)
     value: wps
-  - name: MODULE_NAME
-    description: Module name (api, web, c-haines, etc. etc.)
-    value: api
   - name: GLOBAL_NAME
     description: Name of global Module
     value: wps-global
@@ -86,29 +83,72 @@ objects:
     metadata:
       labels:
         app: ${APP_NAME}-${SUFFIX}
-      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${SUFFIX}
     spec:
       replicas: ${{REPLICAS}}
       selector:
-        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        name: ${APP_NAME}-${SUFFIX}
       strategy:
         type: Rolling
       triggers: []
       template:
         metadata:
           labels:
-            name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+            name: ${APP_NAME}-${SUFFIX}
         spec:
           automountServiceAccountToken: false
+          volumes:
+            - name: config-env
+              configMap:
+                name: ${GLOBAL_NAME}
           containers:
-            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}
+            #############################################################################
+            # WEB container
+            #############################################################################
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-web-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
-              name: ${APP_NAME}-${MODULE_NAME}
+              name: ${APP_NAME}-web
+              ports:
+                - containerPort: 3000
+                  protocol: TCP
+              resources:
+                limits:
+                  cpu: 75m
+                  memory: 2Gi
+                requests:
+                  cpu: 25m
+                  memory: 1Gi
+              readinessProbe:
+                httpGet:
+                  path: /ready
+                  port: 3000
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                periodSeconds: 120
+                timeoutSeconds: 1
+              livenessProbe:
+                httpGet:
+                  path: /health
+                  port: 3000
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                periodSeconds: 120
+                timeoutSeconds: 1
+              volumeMounts:
+                - name: config-env
+                  mountPath: "/opt/app-root/src/config.js"
+                  subPath: config.js
+            #############################################################################
+            # API container
+            #############################################################################
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-api-${SUFFIX}:${SUFFIX}
+              imagePullPolicy: Always
+              name: ${APP_NAME}-api
               env:
                 - name: ORIGINS
                   value: ${ALLOWED_ORIGINS}
                 - name: BASE_URI
-                  value: https://${APP_NAME}-${MODULE_NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
+                  value: https://${APP_NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
                 - name: PORT # The port that the API will run on (used by fastapi docker image)
                   value: "8080"
                 - name: WORKERS_PER_CORE # The number of worker per code (used by fastapi docker image)
@@ -203,41 +243,6 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: rocket.chat-auth-token-secret
-                - name: REACT_APP_SM_LOGOUT_URL
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.sm-logout-url
-                - name: REACT_APP_KEYCLOAK_AUTH_URL
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.keycloak-auth-url
-                - name: REACT_APP_KEYCLOAK_REALM
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.keycloak-realm
-                - name: REACT_APP_KEYCLOAK_CLIENT
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.keycloak-client
-                - name: REACT_APP_MATOMO_URL
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.matomo-url
-                - name: REACT_APP_MATOMO_SITE_ID
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.matomo-site-id
-                - name: REACT_APP_MATOMO_CONTAINER
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.matomo-container
                 - name: OBJECT_STORE_SERVER
                   valueFrom:
                     secretKeyRef:
@@ -345,7 +350,7 @@ objects:
     metadata:
       labels:
         app: ${APP_NAME}-${SUFFIX}
-      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+      name: ${APP_NAME}-api-${SUFFIX}
     spec:
       ports:
         - name: 8080-tcp
@@ -353,14 +358,30 @@ objects:
           port: 80
           targetPort: 8080
       selector:
-        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        name: ${APP_NAME}-${SUFFIX}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-web-${SUFFIX}
+    spec:
+      ports:
+        - name: 3000-tcp
+          protocol: TCP
+          port: 80
+          targetPort: 3000
+      selector:
+        name: ${APP_NAME}-${SUFFIX}
   - apiVersion: route.openshift.io/v1
-    # Route for wps-api.apps.silver.devops.gov.bc.ca
+    ################################################################################
+    # API ROUTE
+    # Route for wps-api-prod.apps.silver.devops.gov.bc.ca
     kind: Route
     metadata:
       labels:
         app: ${APP_NAME}-${SUFFIX}
-      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+      name: ${APP_NAME}-api-${SUFFIX}
       annotations:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
@@ -374,18 +395,18 @@ objects:
         targetPort: 8080-tcp
       to:
         kind: Service
-        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        name: ${APP_NAME}-api-${SUFFIX}
       tls:
         termination: edge
   - apiVersion: route.openshift.io/v1
+    ################################################################################
+    # WEB ROUTE
     # Route for wps-prod.apps.silver.devops.gov.bc.ca
-    # Right now, this points to the API, but once the web service is ready, it should point to
-    # the web service.
     kind: Route
     metadata:
       labels:
         app: ${APP_NAME}-${SUFFIX}
-      name: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-web-${SUFFIX}
       annotations:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
@@ -395,16 +416,44 @@ objects:
     spec:
       host: ${APP_NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
       port:
-        targetPort: 8080-tcp
+        targetPort: 3000-tcp
       to:
         kind: Service
-        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        name: ${APP_NAME}-web-${SUFFIX}
       tls:
         termination: edge
   - apiVersion: route.openshift.io/v1
+    ################################################################################
+    # API ROUTE
+    # Route for psu.nrs.gov.bc.ca/api
+    # Points to api
+    kind: Route
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+        certbot-managed: "true"
+      name: ${APP_NAME}-api-${SUFFIX}-vanity
+      annotations:
+        # Enable HTTP Strict Transport Security:
+        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+        # Use roundrobin load balancing strategy
+        haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/disable_cookies: "true"
+    spec:
+      host: ${VANITY_DOMAIN}
+      path: "/api"
+      port:
+        targetPort: 8080-tcp
+      to:
+        kind: Service
+        name: ${APP_NAME}-api-${SUFFIX}
+      tls:
+        termination: edge
+  - apiVersion: route.openshift.io/v1
+    ################################################################################
+    # WEB ROUTE
     # Route for psu.nrs.gov.bc.ca
-    # Right now, this points to the API, but once the web service is ready, this route must point
-    # to the web service.
+    # Points to web
     kind: Route
     metadata:
       labels:
@@ -420,33 +469,9 @@ objects:
     spec:
       host: ${VANITY_DOMAIN}
       port:
-        targetPort: 8080-tcp
+        targetPort: 3000-tcp
       to:
         kind: Service
-        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
-      tls:
-        termination: edge
-  - apiVersion: route.openshift.io/v1
-    # Route for psu.nrs.gov.bc.ca/api
-    kind: Route
-    metadata:
-      labels:
-        app: ${APP_NAME}-${SUFFIX}
-        certbot-managed: "true"
-      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}-vanity
-      annotations:
-        # Enable HTTP Strict Transport Security:
-        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
-        # Use roundrobin load balancing strategy
-        haproxy.router.openshift.io/balance: roundrobin
-        haproxy.router.openshift.io/disable_cookies: "true"
-    spec:
-      host: ${VANITY_DOMAIN}
-      path: "/api"
-      port:
-        targetPort: 8080-tcp
-      to:
-        kind: Service
-        name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+        name: ${APP_NAME}-web-${SUFFIX}
       tls:
         termination: edge

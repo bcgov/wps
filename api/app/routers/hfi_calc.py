@@ -10,15 +10,16 @@ from pydantic.error_wrappers import ValidationError
 from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
                                        get_cached_hydrated_fire_centres,
                                        put_cached_hydrated_fire_centres)
+from app.hfi.hfi_admin import update_stations
 from app.hfi.hfi_request import update_result_request
-from app.utils.time import get_pst_now
+from app.utils.time import get_pst_now, get_utc_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
 from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (HFIAllReadyStatesResponse, HFIBatchStationRequest,
+from app.schemas.hfi_calc import (HFIAdminStationUpdateRequest, HFIAllReadyStatesResponse,
                                   HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange, HFIReadyState,
@@ -34,14 +35,15 @@ from app.auth import (auth_with_select_station_role_required,
                       authentication_required,
                       audit)
 from app.schemas.shared import (FuelType)
-from app.db.crud.hfi_calc import (batch_save_hfi_stations, get_fuel_type_by_id,
+from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   get_planning_weather_stations,
-                                  get_latest_hfi_ready_records,
+                                  get_latest_hfi_ready_records, get_stations_for_affected_planning_areas,
+                                  get_stations_for_removal,
                                   store_hfi_request,
                                   get_fire_centre_stations,
-                                  toggle_ready)
+                                  toggle_ready, save_hfi_stations)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -439,20 +441,24 @@ async def toggle_planning_area_ready(
         return response
 
 
-@router.post('/admin/stations/{fire_centre_id}', status_code=status.HTTP_200_OK)
-async def batch_update_stations(fire_centre_id: int, request: HFIBatchStationRequest,
+@router.post('/admin/stations', status_code=status.HTTP_200_OK)
+async def admin_update_stations(request: HFIAdminStationUpdateRequest,
                                 token=Depends(auth_with_station_admin_role_required)):
     """ Apply updates for a list of stations. """
-    logger.info('/hfi-calc/admin/stations/%s', fire_centre_id)
+    logger.info('/hfi-calc/admin/stations')
     username = token.get('preferred_username', None)
     with get_write_session_scope() as db_session:
-        try:
-            batch_save_hfi_stations(db_session, request.stations, username)
-        except Exception as exc:
-            logger.info(exc)
-            db_session.rollback()
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST) from exc
-        clear_cached_hydrated_fire_centres()
+        timestamp = get_utc_now()
+        stations_to_remove = get_stations_for_removal(db_session, request.removed)
+        all_planning_area_stations = get_stations_for_affected_planning_areas(db_session, request)
+        stations_to_save = update_stations(
+            stations_to_remove,
+            all_planning_area_stations,
+            request.added,
+            timestamp,
+            username)
+        save_hfi_stations(db_session, stations_to_save)
+    clear_cached_hydrated_fire_centres()
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')

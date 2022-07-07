@@ -72,19 +72,6 @@ const WxDataForm = ({ stationCodesQuery, toiFromQuery, setSidePanelState }: Prop
     navigate({
       search: potentialCodes + `${timeOfInterestQueryKey}=${timeOfInterest}`
     })
-
-    // Create matomo event
-    // NOTE: This section is proof of concept - strongly consider re-factoring when adding other events.
-    // TODO: Re-evaluate this way of implementing Matomo once we know more about it.
-    if (window._mtm) {
-      // Create event, and push list of stations to the matomo data layer.
-      // see: https://developer.matomo.org/guides/tagmanager/integration-plugin#supporting-the-data-layer
-      window._mtm.push({
-        event: 'getWeatherData',
-        stationCodes: selectedStationsByCode,
-        timeOfInterest: timeOfInterest
-      })
-    }
   }
 
   return (

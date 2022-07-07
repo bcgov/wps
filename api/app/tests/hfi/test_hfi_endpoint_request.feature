@@ -66,19 +66,3 @@ Feature: /hfi/
             # Invalid fuel type should return 500 error, and not be saved.
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25/planning_area/1/station/230/fuel_type/-1                  | hfi_set_fuel_type   | 500         | None                                                     | False         | None                                  |
 
-
-    Scenario: HFI - Admin POST add station
-        Given I received a POST request for hfi-calc admin <url> with <role>
-        And it has a <request_body> for a station that is <already_added>
-        Then the response status code is <status_code>
-        Examples:
-            | url                               | role               | request_body                         | status_code | already_added |
-            # Test add stations with correct role
-            | /api/hfi-calc/admin/stations/1    | hfi_station_admin  | test_admin_add_stations_request.json | 200         | False         |
-            # Test add station without roles
-            #| /api/hfi-calc/admin/add-station/1 | None               | test_admin_add_station_request.json | 401         | False         |
-            # Test add station without correct role
-            #| /api/hfi-calc/admin/add-station/1 | hfi_select_station | test_admin_add_station_request.json | 401         | False         |
-            # Test add station with correct role but station already exists
-            #| /api/hfi-calc/admin/add-station/1 | hfi_station_admin  | test_admin_add_station_request.json | 409         | True          |
-

@@ -44,17 +44,26 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           bash openshift/scripts/oc_provision_backup_s3_postgres_cronjob.sh ${SUFFIX} apply
 
-      - name: Prepare MariaDB Backup Deployment Config
+  build-web-image:
+    # Declared ahead of build-api-image ; it runs slightly slower than the api build, and putting
+    # it here increases the odds that it get's started 1st, so api and web are slightly more likely
+    # to finish building at the same time.
+    name: Build Web Image
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set Variables
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb.sh ${SUFFIX} apply
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-      - name: Prepare MariaDB Backup Cronjob
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build wps-web Image
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+          GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=web DOCKER_FILE=Dockerfile.web PATH_BC=openshift/templates/build.web.bc.yaml bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   build-api-image:
     name: Build API Image
@@ -73,24 +82,6 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
           GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=api bash openshift/scripts/oc_build.sh ${SUFFIX} apply
-
-  build-web-image:
-    name: Build Web Image
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Build wps-web Image
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=web DOCKER_FILE=Dockerfile.web PATH_BC=openshift/templates/build.web.bc.yaml bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   deploy-dev:
     name: Deploy to Dev
@@ -219,7 +210,7 @@ jobs:
 
   deploy-test:
     name: Deploy to Test
-    needs: [build-api-image, prepare-test-database]
+    needs: [build-api-image, build-web-image, prepare-test-database]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables

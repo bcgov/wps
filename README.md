@@ -60,7 +60,6 @@ graph LR
 
         pg_tileserv["pg_tileserv</br>[Software System]"]
         redis["REDIS</br>[Software System]"]
-        matomo["Matomo</br>[Software System]"]
 
         subgraph Openshift Cronjobs
             c-haines["C-Haines</br>[Container: Python]</br>Periodically fetch weather data, process and store relevant subset."]
@@ -86,7 +85,6 @@ graph LR
     pg_tileserv-. "Read geometries" .->Database
     FrontEnd-.->|"Uses</br>[JSON/HTTPS]"|API
     FrontEnd-.->|"Uses</br>[HTTPS]"|pg_tileserv
-    FrontEnd-. "Analytics</br>[HTTPS]" .->matomo
     FrontEnd-. "Authenticate</br>[HTTPS]" .->sso
     FrontEnd-. "Read</br>[HTTPS]" .->s3
     c-haines-. "[S3/HTTPS]" .->s3

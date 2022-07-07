@@ -176,26 +176,6 @@ class HFIResultRequest(BaseModel):
     planning_area_fire_starts: Dict[int, List[FireStartRange]]
 
 
-class HFIStationCommand(Enum):
-    ADD = 'ADD'
-    UPDATE = 'UPDATE'
-    REMOVE = 'REMOVE'
-
-
-class HFIAddUpdateOrRemoveStationRequest(BaseModel):
-    """ Request input for adding, updating, or deleting a station """
-    planning_area_id: int
-    station_code: int
-    fuel_type_id: int
-    row_id: int
-    command: HFIStationCommand
-
-
-class HFIBatchStationRequest(BaseModel):
-    """ Request input for updating a batch of HFI stations. """
-    stations: List[HFIAddUpdateOrRemoveStationRequest]
-
-
 class HFIAdminAddedStation(BaseModel):
     """ Request input for adding a station """
     planning_area_id: int
@@ -213,6 +193,19 @@ class HFIAdminRemovedStation(BaseModel):
 class HFIAdminStationUpdateRequest(BaseModel):
     """ Request input for updating a batch of HFI stations. """
     added: List[HFIAddUpdateOrRemoveStationRequest]
+    removed: List[HFIAdminRemovedStation]
+
+
+class HFIAdminRemovedStation(BaseModel):
+    """ Request input for removing a station """
+    planning_area_id: int
+    station_code: int
+    row_id: int
+
+
+class HFIAdminStationUpdateRequest(BaseModel):
+    """ Request input for updating a batch of HFI stations. """
+    added: List[HFIAdminAddedStation]
     removed: List[HFIAdminRemovedStation]
 
 
