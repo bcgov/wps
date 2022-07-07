@@ -55,7 +55,7 @@ def test_post_stations_authorized(client: TestClient, monkeypatch: pytest.Monkey
 
 
 def test_post_stations_wrong_role(client: TestClient, monkeypatch: pytest.MonkeyPatch):
-    """ Allowed to post station changes with incorrect role"""
+    """ Should not be allowed to post station changes with incorrect role"""
 
     def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
         return MockJWTDecodeWithRole('hfi_set_ready_state')
