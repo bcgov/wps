@@ -128,28 +128,7 @@ export const AddStationModal = ({
       dispatch(setStationUpdated(false))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-<<<<<<< HEAD
   }, [stationsUpdated])
-=======
-  }, [stationAdded])
-
-  const handleSave = () => {
-    if (
-      !isUndefined(selectedFireCentre) &&
-      !isUndefined(newStation.planningArea) &&
-      !isUndefined(newStation.station) &&
-      !isUndefined(newStation.fuelType)
-    ) {
-      dispatch(
-        fetchAddStation({
-          planningArea: newStation.planningArea,
-          station: newStation.station,
-          fuelType: newStation.fuelType
-        })
-      )
-    }
-  }
->>>>>>> main
 
   return (
     <React.Fragment>

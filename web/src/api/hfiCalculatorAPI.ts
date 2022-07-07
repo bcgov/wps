@@ -132,9 +132,7 @@ export interface HFIAdminAddedStation {
   planning_area_id: number
   station_code: number
   fuel_type_id: number
-  row_id: number
 }
-
 export interface HFIAdminRemovedStation {
   planning_area_id: number
   row_id: number
@@ -214,18 +212,40 @@ export async function toggleReadyState(
   }
 }
 
-export async function addNewStation(newStation: Required<Omit<AdminStation, 'dirty'>>): Promise<number> {
+// export async function addNewStation(newStation: Required<Omit<AdminStation, 'dirty'>>): Promise<number> {
+//   const requestBody: HFIAdminStationUpdateRequest = {
+//     added: [
+//       {
+//         planning_area_id: newStation.planningArea.id,
+//         station_code: newStation.station.code,
+//         fuel_type_id: newStation.fuelType.id
+//       }
+//     ],
+//     removed: []
+//   }
+//   const { status } = await axios.post<number>(baseUrl + 'admin/stations', requestBody)
+//   return status
+// }
+export async function updateStations(
+  fireCentreId: number,
+  addedStations: Required<StationAdminRow>[],
+  removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[]
+): Promise<number> {
+  console.log(removedStations)
   const requestBody: HFIAdminStationUpdateRequest = {
-    added: [
-      {
-        planning_area_id: newStation.planningArea.id,
-        station_code: newStation.station.code,
-        fuel_type_id: newStation.fuelType.id
-      }
-    ],
-    removed: []
+    added: addedStations.map(addedStation => ({
+      planning_area_id: addedStation.planningAreaId,
+      station_code: addedStation.station.code,
+      fuel_type_id: addedStation.fuelType.id,
+      row_id: addedStation.rowId
+    })),
+    removed: removedStations.map(removedStation => ({
+      planning_area_id: removedStation.planningAreaId,
+      station_code: removedStation.station.code,
+      row_id: removedStation.rowId
+    }))
   }
-  const { status } = await axios.post<number>(baseUrl + 'admin/stations', requestBody)
+  const { status } = await axios.post(baseUrl + 'admin/stations', requestBody)
   return status
 }
 
