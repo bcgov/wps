@@ -5,21 +5,21 @@ from typing import List, Optional, Dict, Tuple
 from datetime import date
 from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, HTTPException, Response, Depends, status
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from pydantic.error_wrappers import ValidationError
 from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
                                        get_cached_hydrated_fire_centres,
                                        put_cached_hydrated_fire_centres)
+from app.hfi.hfi_admin import update_stations
 from app.hfi.hfi_request import update_result_request
-from app.utils.time import get_pst_now
+from app.utils.time import get_pst_now, get_utc_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
 from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,
                               validate_date_range,
                               load_fire_start_ranges)
-from app.schemas.hfi_calc import (HFIAddStationRequest, HFIAllReadyStatesResponse,
+from app.schemas.hfi_calc import (HFIAdminStationUpdateRequest, HFIAllReadyStatesResponse,
                                   HFIResultRequest,
                                   HFIResultResponse,
                                   FireStartRange, HFIReadyState,
@@ -36,14 +36,14 @@ from app.auth import (auth_with_select_station_role_required,
                       audit)
 from app.schemas.shared import (FuelType)
 from app.db.crud.hfi_calc import (get_fuel_type_by_id,
-                                  get_last_station_in_planning_area,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
                                   get_planning_weather_stations,
-                                  get_latest_hfi_ready_records,
+                                  get_latest_hfi_ready_records, get_stations_for_affected_planning_areas,
+                                  get_stations_for_removal,
                                   store_hfi_request,
                                   get_fire_centre_stations,
-                                  store_hfi_station, toggle_ready)
+                                  toggle_ready, save_hfi_stations)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -441,29 +441,24 @@ async def toggle_planning_area_ready(
         return response
 
 
-@router.post('/admin/add-station/{fire_centre_id}', status_code=status.HTTP_201_CREATED)
-async def add_station(fire_centre_id: int,
-                      request: HFIAddStationRequest,
-                      _=Depends(auth_with_station_admin_role_required)):
-    """ Adds a station. """
-    logger.info('/hfi-calc/admin/add-station/%s', fire_centre_id)
+@router.post('/admin/stations', status_code=status.HTTP_200_OK)
+async def admin_update_stations(request: HFIAdminStationUpdateRequest,
+                                token=Depends(auth_with_station_admin_role_required)):
+    """ Apply updates for a list of stations. """
+    logger.info('/hfi-calc/admin/stations')
+    username = token.get('preferred_username', None)
     with get_write_session_scope() as db_session:
-        last_weather_station = get_last_station_in_planning_area(
-            session=db_session, planning_area_id=request.planning_area_id)
-        order = last_weather_station.order_of_appearance_in_planning_area_list + 1
-        try:
-            store_hfi_station(db_session,
-                              station_code=request.station_code,
-                              fuel_type_id=request.fuel_type_id,
-                              planning_area_id=request.planning_area_id,
-                              order=order)
-            clear_cached_hydrated_fire_centres()
-        except IntegrityError as exception:
-            logger.info('Attempt to add existing station code %s to planning area id %s',
-                        request.station_code, request.planning_area_id, exc_info=exception)
-            db_session.rollback()
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                                detail="Station already exists in planning area") from exception
+        timestamp = get_utc_now()
+        stations_to_remove = get_stations_for_removal(db_session, request.removed)
+        all_planning_area_stations = get_stations_for_affected_planning_areas(db_session, request)
+        stations_to_save = update_stations(
+            stations_to_remove,
+            all_planning_area_stations,
+            request.added,
+            timestamp,
+            username)
+        save_hfi_stations(db_session, stations_to_save)
+    clear_cached_hydrated_fire_centres()
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')

@@ -3,6 +3,7 @@ import pytest
 import app
 import json
 from app.db.models.hfi_calc import HFIRequest, HFIReady
+from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
 request_json = {
     "selected_prep_date": "2020-05-21",
@@ -82,30 +83,6 @@ def test_get_all_ready_records_unauthorized(client: TestClient):
 
 def test_toggle_ready_authorized(client: TestClient, monkeypatch: pytest.MonkeyPatch):
     """ set_hfi_ready_record role required for toggling ready state"""
-    class MockJWTDecodeWithRole:
-        """ Mock pyjwt module with role """
-
-        def __init__(self, role):
-            self.decoded_token = {
-                "preferred_username": "test_username",
-                "resource_access": {
-                    "wps-web": {
-                        "roles": [
-                            role
-                        ]
-                    }
-                }}
-
-        def __getitem__(self, key):
-            return self.decoded_token[key]
-
-        def get(self, key, _):
-            "Returns the mock decoded token"
-            return self.decoded_token[key]
-
-        def decode(self):
-            "Returns the mock decoded token"
-            return self.decoded_token
 
     def mock_fire_start_role_function(*_, **__):  # pylint: disable=unused-argument
         return MockJWTDecodeWithRole('hfi_set_ready_state')
