@@ -10,7 +10,8 @@ import {
   fetchSetStationSelected,
   fetchFuelTypes,
   fetchPDFDownload,
-  fetchSetFuelType
+  fetchSetFuelType,
+  setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { fetchAllReadyStates, fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -210,6 +211,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
     if (!isUndefined(selectedFireCentre)) {
+      dispatch(setSelectedPrepDate('')) // do this so that the page automatically toggles
+      // back to "Prep Period" tab instead of a specific date that may no longer be relevant
       dispatch(fetchGetPrepDateRange(selectedFireCentre.id))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
