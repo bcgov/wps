@@ -123,7 +123,11 @@ const StationListAdmin = ({
           }}
         />
       ))}
-      <SaveStationUpdatesButton handleSave={handleSave} />
+      <SaveStationUpdatesButton
+        addedStations={Object.values(addedStations).flat()}
+        removedStations={Object.values(removedStations).flat()}
+        handleSave={handleSave}
+      />
       <AdminCancelButton handleCancel={handleClose} />
     </Box>
   )
