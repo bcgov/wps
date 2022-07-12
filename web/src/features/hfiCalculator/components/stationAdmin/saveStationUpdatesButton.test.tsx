@@ -48,6 +48,21 @@ describe('SaveStationUpdatesButton', () => {
     const saveButton = getByTestId('save-new-station-button')
     expect(saveButton).toBeDisabled()
   })
+  it('should be enabled when an added station has all fields seleced', () => {
+    const handleSaveMock = jest.fn()
+
+    const { getByTestId } = render(
+      <SaveStationUpdatesButton
+        handleSave={handleSaveMock}
+        addedStations={[
+          { planningAreaId: 1, rowId: 1, fuelType: { id: 1, abbrev: 'c5' }, station: { code: 1, name: 'test' } }
+        ]}
+        removedStations={[]}
+      />
+    )
+    const saveButton = getByTestId('save-new-station-button')
+    expect(saveButton).toBeEnabled()
+  })
   it('should not be enabled when an added station has nothing selected', () => {
     const handleSaveMock = jest.fn()
 
