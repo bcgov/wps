@@ -152,7 +152,8 @@ def get_next_order(updated_stations: List[PlanningWeatherStation], other_station
 
     # An existing could be removed and hence have no order
     existing_orders = [
-        station.order_of_appearance_in_planning_area_list for station in other_stations if station.order_of_appearance_in_planning_area_list is not None]
+        station.order_of_appearance_in_planning_area_list for station in other_stations
+        if station.order_of_appearance_in_planning_area_list is not None]
 
     if len(updated_orders) == 0:
         return max(existing_orders) + 1
