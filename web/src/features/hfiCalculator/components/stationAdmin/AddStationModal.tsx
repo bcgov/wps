@@ -139,10 +139,10 @@ export const AddStationModal = ({
           </IconButton>
           <DialogContent>
             <Typography variant="h5" align="center">
-              Manage Default Weather Stations and Fuels
+              Manage Default Weather Stations
             </Typography>
             <Typography variant="body1" align="center">
-              Change the default wx and fuelds for all future prep
+              Add and remove stations in planning areas for all future prep
             </Typography>
           </DialogContent>
           {!isUndefined(planningAreas) && !isUndefined(wfwxStations) && !isUndefined(selectedFireCentre) && (
