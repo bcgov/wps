@@ -3,7 +3,11 @@ import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
 import { sortBy, maxBy, findIndex, every, isUndefined } from 'lodash'
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import { Box } from '@mui/material'
-import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import {
+  AddStationOptions,
+  BasicWFWXStation,
+  StationAdminRow
+} from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 import SaveStationUpdatesButton from 'features/hfiCalculator/components/stationAdmin/SaveStationUpdatesButton'
 import AdminCancelButton from 'features/hfiCalculator/components/stationAdmin/AdminCancelButton'
 import { fetchAddOrUpdateStations } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -11,7 +15,7 @@ import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
 
 export interface AdminHandlers {
-  handleRemoveExistingStation: (planningAreaId: number, rowId: number) => void
+  handleRemoveExistingStation: (planningAreaId: number, rowId: number, station: BasicWFWXStation) => void
   /** Net new station handlers */
   handleAddStation: (planningAreaId: number) => void
   handleRemoveStation: (planningAreaId: number, rowId: number) => void
@@ -41,7 +45,7 @@ const StationListAdmin = ({
     }, {})
   )
   const [removedStations, setRemovedStations] = useState<{
-    [key: string]: { planningAreaId: number; rowId: number }[]
+    [key: string]: { planningAreaId: number; rowId: number; station: BasicWFWXStation }[]
   }>(
     Object.keys(existingPlanningAreaStations).reduce((accumulator, key) => {
       return { ...accumulator, [key]: [] }
@@ -82,8 +86,8 @@ const StationListAdmin = ({
   }
 
   /** Removes existing stations, not net new ones */
-  const handleRemoveExistingStation = (planningAreaId: number, rowId: number) => {
-    const currentRow = removedStations[planningAreaId].concat({ planningAreaId, rowId })
+  const handleRemoveExistingStation = (planningAreaId: number, rowId: number, station: BasicWFWXStation) => {
+    const currentRow = removedStations[planningAreaId].concat({ planningAreaId, rowId, station })
     setRemovedStations({
       ...removedStations,
       [planningAreaId]: currentRow

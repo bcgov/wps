@@ -149,7 +149,10 @@ def get_next_order(updated_stations: List[PlanningWeatherStation], other_station
         Updated stations will include and removals, so that list may have a smaller max order.
     """
     updated_orders = [station.order_of_appearance_in_planning_area_list for station in updated_stations]
-    existing_orders = [station.order_of_appearance_in_planning_area_list for station in other_stations]
+
+    # An existing could be removed and hence have no order
+    existing_orders = [
+        station.order_of_appearance_in_planning_area_list for station in other_stations if station.order_of_appearance_in_planning_area_list is not None]
 
     if len(updated_orders) == 0:
         return max(existing_orders) + 1

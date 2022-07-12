@@ -18,6 +18,7 @@ def get_fire_weather_stations(session: Session) -> CursorResult:
         .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
         .join(FireCentre, FireCentre.id == PlanningArea.fire_centre_id)\
+        .filter(PlanningWeatherStation.is_deleted == False)\
         .order_by(FireCentre.name, PlanningArea.name)
 
 

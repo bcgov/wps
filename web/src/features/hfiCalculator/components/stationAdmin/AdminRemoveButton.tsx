@@ -2,12 +2,12 @@ import React from 'react'
 import { isUndefined } from 'lodash'
 import { IconButton } from '@mui/material'
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
-import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { BasicWFWXStation, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
 
 export interface AdminRemoveButtonProps {
   adminRow: StationAdminRow
   planningAreaId: number
-  handleRemoveStation: (planningAreaId: number, rowId: number) => void
+  handleRemoveStation: (planningAreaId: number, rowId: number, station: BasicWFWXStation) => void
 }
 
 const AdminRemoveButton = ({ adminRow, planningAreaId, handleRemoveStation }: AdminRemoveButtonProps) => {
@@ -17,8 +17,8 @@ const AdminRemoveButton = ({ adminRow, planningAreaId, handleRemoveStation }: Ad
       color="primary"
       size="large"
       onClick={() => {
-        if (!isUndefined(adminRow)) {
-          handleRemoveStation(planningAreaId, adminRow.rowId)
+        if (!isUndefined(adminRow) && !isUndefined(adminRow.station)) {
+          handleRemoveStation(planningAreaId, adminRow.rowId, adminRow.station)
         }
       }}
     >
