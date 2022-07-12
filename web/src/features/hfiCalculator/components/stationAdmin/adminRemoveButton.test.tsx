@@ -6,7 +6,7 @@ import React from 'react'
 
 describe('AdminRemoveButton', () => {
   it('should call remove handler callback with planning area id and row id', async () => {
-    const stationAdminRow: StationAdminRow = { planningAreaId: 1, rowId: 1 }
+    const stationAdminRow: StationAdminRow = { planningAreaId: 1, rowId: 1, station: { code: 1, name: 'test' } }
     const removeMock = jest.fn()
 
     const { getByTestId } = render(
@@ -22,6 +22,8 @@ describe('AdminRemoveButton', () => {
     userEvent.click(adminRemoveButton)
 
     await waitFor(() => expect(removeMock).toBeCalledTimes(1))
-    await waitFor(() => expect(removeMock).toBeCalledWith(stationAdminRow.planningAreaId, stationAdminRow.rowId))
+    await waitFor(() =>
+      expect(removeMock).toBeCalledWith(stationAdminRow.planningAreaId, stationAdminRow.rowId, stationAdminRow.station)
+    )
   })
 })
