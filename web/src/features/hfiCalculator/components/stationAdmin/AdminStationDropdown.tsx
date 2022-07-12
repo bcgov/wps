@@ -39,7 +39,9 @@ export const AdminStationDropdown = ({
       options={stationOptions}
       getOptionLabel={option => option?.name}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
-      renderInput={params => <TextField {...params} label={label} variant="outlined" />}
+      renderInput={params => (
+        <TextField {...params} label={label} variant="outlined" error={isUndefined(adminRow.station)} />
+      )}
       onChange={(_, value) => {
         if (!isNull(value) && !isUndefined(handleEditStation)) {
           handleEditStation(adminRow.planningAreaId, adminRow.rowId, {

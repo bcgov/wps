@@ -38,7 +38,9 @@ export const AdminFuelTypesDropdown = ({
       options={fuelTypes}
       getOptionLabel={option => option?.abbrev}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
-      renderInput={params => <TextField {...params} label="Fuel Type" variant="outlined" />}
+      renderInput={params => (
+        <TextField {...params} label="Fuel Type" variant="outlined" error={isUndefined(adminRow.fuelType)} />
+      )}
       onChange={(_, value) => {
         if (!isNull(value) && !isUndefined(handleEditStation)) {
           handleEditStation(adminRow.planningAreaId, adminRow.rowId, {
