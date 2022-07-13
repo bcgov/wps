@@ -207,7 +207,6 @@ export async function updateStations(
   addedStations: Required<StationAdminRow>[],
   removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[]
 ): Promise<number> {
-  console.log(removedStations)
   const requestBody: HFIAdminStationUpdateRequest = {
     added: addedStations.map(addedStation => ({
       planning_area_id: addedStation.planningAreaId,

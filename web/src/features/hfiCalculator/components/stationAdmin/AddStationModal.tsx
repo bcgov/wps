@@ -5,11 +5,7 @@ import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
-import {
-  setStationsUpdatedFailed,
-  setStationUpdated,
-  StationInfo
-} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { setStationsUpdatedFailed, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
 import { groupBy, isNull, isUndefined, sortBy } from 'lodash'
@@ -78,7 +74,7 @@ export const AddStationModal = ({
 
   const dispatch: AppDispatch = useDispatch()
 
-  const { fuelTypes, selectedFireCentre, stationsUpdated, stationsUpdatedError } = useSelector(selectHFICalculatorState)
+  const { fuelTypes, selectedFireCentre, stationsUpdatedError, changeSaved } = useSelector(selectHFICalculatorState)
   const { stations: wfwxStations } = useSelector(selectFireWeatherStations)
   const planning_areas: BasicPlanningArea[] = selectedFireCentre
     ? selectedFireCentre.planning_areas.map(planningArea => ({
@@ -123,12 +119,11 @@ export const AddStationModal = ({
 
   useEffect(() => {
     handleClose()
-    if (stationsUpdated) {
+    if (changeSaved) {
       dispatch(fetchHFIStations())
-      dispatch(setStationUpdated(false))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stationsUpdated])
+  }, [changeSaved])
 
   return (
     <React.Fragment>
