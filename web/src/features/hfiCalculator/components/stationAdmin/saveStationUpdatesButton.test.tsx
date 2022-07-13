@@ -2,12 +2,6 @@ import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SaveStationUpdatesButton from 'features/hfiCalculator/components/stationAdmin/SaveStationUpdatesButton'
 import React from 'react'
-/**
- *   planningAreaId: number
-  rowId: number
-  station?: BasicWFWXStation
-  fuelType?: Pick<FuelType, 'id' | 'abbrev'>
- */
 
 describe('SaveStationUpdatesButton', () => {
   it('should render button enabled when there is a removed station', () => {
