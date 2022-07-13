@@ -48,6 +48,8 @@ graph LR
 
     wf1["WFWX Fire Weather API</br>[Software System]"]
 
+    wso2["WSO2 API Gateway"]
+
     sso["Red Hat SSO / Keycloak</br>[Idendity Provider]</br>https://oidc.gov.bc.ca"]
 
     subgraph Wildfire Predictive Services Unit Web Application
@@ -80,8 +82,9 @@ graph LR
     API-.->|"Read</br>[psycopg]"|Database
     API-.->|"Read</br>[JSON/HTTPS]"|CFFDRS_API
     API-.->|"Uses</br>[Reads from disk]"|Files
-    API-. "Fetch fire weather data</br>[JSON/HTTPS]" .->wf1
+    API-. "Fetch fire weather data</br>[JSON/HTTPS]" .->wso2
     API-. "Cache WFWX responses" .->redis
+    wso2-. "Proxies" .->wf1
     pg_tileserv-. "Read geometries" .->Database
     FrontEnd-.->|"Uses</br>[JSON/HTTPS]"|API
     FrontEnd-.->|"Uses</br>[HTTPS]"|pg_tileserv
