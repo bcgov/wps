@@ -2,6 +2,10 @@
 
 ## Automated Advisory System (AutoNEAL):
 
+NOTE: This is a work in progress.
+
+NOTE: Given the experience of processing GRIB files in MoreCast, and generating C-Haines - I think a good idea would be to use a Queueing system to tie together all the pieces. That way we'd have only one cronjob, that places GeoTIFF files onto a Queue, and from there on have nicely decoupled processes that generate outputs. You could sequence everything together in the context of the cronjob, but it doesn't scale nicely and makes for very tightly coupled code.
+
 ```mermaid
 graph BT
 
@@ -19,9 +23,9 @@ subgraph Openshift
     BackEndServer["API Server</br>[Container: Python, FastAPI]</br>Allow for editing advisory properties"]
     FeatureServer["[Container: pg_featureserv]"]
     TileServer["[Container: pg_tileserv]"]
-    Advisorator["Advisorator</br>[Container: Unknown? Python?]</br>Advisory making thing</br>Is this a cronjob?</br>Is this listening to a queue?</br>Is this done on the fly?"]
+
     PostGIS[("Geospatial database</br>[Container: Postgres, PostGIS]</br>- HFI 4000 - 10000 polygons</br> - HFI > 10000 polygons</br>- Advisory polygons + text")]
-    Cronjob["Job</br>[Container: Openshift Cronjob, Python, GDAL/OSGEO]"]
+    Cronjob["Job / Queue</br>[Container: Openshift Cronjob, Python, GDAL/OSGEO, Kafka?]</br>1. Fetch GeoTIFF</br>2. Classify HFI</br>3. Polygonize</br>4. Store in PostGIS</br>4. Advisorator? (generate advisories)</br></br>NOTE: I think using a queing systems would makes sense, instead of a big fat cronjob."]
 
     Cronjob-.->PostGIS
     PostGIS-.->Advisorator
