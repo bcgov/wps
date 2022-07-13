@@ -1,6 +1,6 @@
 # Ideas
 
-## HFI advisory template:
+## Automated Advisory System (AutoNEAL):
 
 ```mermaid
 graph BT
@@ -59,6 +59,7 @@ end
 SFMSJob -.-> ObjectStore
 ```
 
+## A stab at understanding SFMS - maybe not needed? Drop this section
 
 ```mermaid
 graph TB
