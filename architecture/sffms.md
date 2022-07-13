@@ -22,14 +22,14 @@ Container_Boundary(Openshift, "Openshift Cluster") {
     ComponentDb(PostGIS, "PostGIS", "PostGIS", "Geospatial database")
     Component(PSU_FETCH_JOB, "Opensfhit Job", "Python, Cronjob", "Periodically fetch HFI daily forecasts from Object Store.")
 
-    Rel(SDE, PSU_FETCH_JOB, "Read")
+    Rel(Object Store, PSU_FETCH_JOB, "Read")
     Rel(PSU_FETCH_JOB, PostGIS, "Write")
     Rel(PostGIS, VectorTileServer, "Read")
     Rel(PostGIS, TemplateThing, "Read")
 }
 
-Container_Boundary(SDE, "???") {
-    ComponentDb(SDE, "SDE", "SDE", "SDE")
+Container_Boundary(Object Store, "???") {
+    ComponentDb(Object Store, "Object Store", "Object Store", "Object Store? Is this SFTP? Is it an S3 object store?")
 }
 
 Container_Boundary(WildfireServers, "Wildfire Servers") {
@@ -39,7 +39,7 @@ Container_Boundary(WildfireServers, "Wildfire Servers") {
 
     Rel(SFMS, SFMSFileSystem, "SFMS generates GeoTIFF, .shp and .png files.")
     Rel(SFMSFileSystem, SFMS_JOB, "Read local files.")
-    Rel(SFMS_JOB, SDE, "Place files in SDE??")
+    Rel(SFMS_JOB, Object Store, "Place files in Object Store??")
 }
 ```
 
