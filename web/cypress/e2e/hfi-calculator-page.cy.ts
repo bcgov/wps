@@ -194,11 +194,11 @@ describe('HFI Calculator Page', () => {
       cy.selectFireCentreInDropdown('Cariboo')
       cy.wait('@loadHFIResults')
     })
-    it('should load available the current HFI Result for a fire centre, regardless of default prep date ranges', () => {
+    it('should load the current HFI Result for a fire centre, regardless of default prep date ranges', () => {
       cy.getByTestId('daily-toggle-0').contains('Fri, Jul 01')
       cy.getByTestId('daily-toggle-3').contains('Mon, Jul 04')
-      cy.selectFireCentreInDropdown('Kamloops')
       interceptLoad('hfi-calc/hfi_result_kamloops.json')
+      cy.selectFireCentreInDropdown('Kamloops')
       cy.wait('@loadHFIResults')
       cy.getByTestId('daily-toggle-0').contains('Fri, Jul 01')
       cy.getByTestId('daily-toggle-2').contains('Sun, Jul 03')
