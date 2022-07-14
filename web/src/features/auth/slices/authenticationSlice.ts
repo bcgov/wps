@@ -133,7 +133,7 @@ export const testAuthenticate =
     dispatch(authenticateFinished({ isAuthenticated, token }))
   }
 
-export const authenticate = (): AppThunk => async dispatch => {
+export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
 
   const keycloak = getKeyclockInstance()
