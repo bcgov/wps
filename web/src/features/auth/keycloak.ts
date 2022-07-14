@@ -8,11 +8,9 @@ export const kcInitOptions: KeycloakInitOptions = {
 }
 
 export const getKeyclockInstance = (): Keycloak => {
-  const keycloak = new Keycloak({
+  return new Keycloak({
     url: KC_AUTH_URL,
     realm: KC_REALM,
     clientId: KC_CLIENT
   })
-
-  return keycloak
 }
