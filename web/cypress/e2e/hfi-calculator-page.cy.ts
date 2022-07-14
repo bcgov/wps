@@ -185,6 +185,26 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('hfi-calc-weekly-table').should('be.visible')
     })
   })
+  describe('default date ranges', () => {
+    beforeEach(() => {
+      interceptLoad('hfi-calc/hfi_result_cariboo.json')
+      cy.visit(HFI_CALC_ROUTE)
+      cy.wait('@getFireCentres')
+      cy.wait('@getFuelTypes')
+      cy.selectFireCentreInDropdown('Cariboo')
+      cy.wait('@loadHFIResults')
+    })
+    it('should load available the current HFI Result for a fire centre, regardless of default prep date ranges', () => {
+      cy.getByTestId('daily-toggle-0').contains('Fri, Jul 01')
+      cy.getByTestId('daily-toggle-3').contains('Mon, Jul 04')
+      cy.selectFireCentreInDropdown('Kamloops')
+      interceptLoad('hfi-calc/hfi_result_kamloops.json')
+      cy.wait('@loadHFIResults')
+      cy.getByTestId('daily-toggle-0').contains('Fri, Jul 01')
+      cy.getByTestId('daily-toggle-2').contains('Sun, Jul 03')
+      cy.getByTestId('daily-toggle-3').should('not.exist')
+    })
+  })
   describe('ready states', () => {
     beforeEach(() => {
       interceptLoad('hfi-calc/dailies-saved.json')
