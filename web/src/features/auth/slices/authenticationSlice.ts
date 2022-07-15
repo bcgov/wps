@@ -6,7 +6,7 @@ import { logError } from 'utils/error'
 import { isUndefined } from 'lodash'
 import { KC_CLIENT, TEST_AUTH, KC_AUTH_URL, KC_REALM, SM_LOGOUT_URL } from 'utils/env'
 import { ROLES } from 'features/auth/roles'
-import { getKeyclockInstance, kcInitOptions } from 'features/auth/keycloak'
+import { getKeycloakInstance, kcInitOptions } from 'features/auth/keycloak'
 
 interface State {
   authenticating: boolean
@@ -136,7 +136,7 @@ export const testAuthenticate =
 export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
 
-  const keycloak = getKeyclockInstance()
+  const keycloak = getKeycloakInstance()
   keycloak
     .init(kcInitOptions)
     .then(isAuthenticated => {

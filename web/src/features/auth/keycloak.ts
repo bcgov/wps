@@ -7,7 +7,7 @@ export const kcInitOptions: KeycloakInitOptions = {
   enableLogging: process.env.NODE_ENV !== 'production'
 }
 
-export const getKeyclockInstance = (): Keycloak => {
+export const getKeycloakInstance = (): Keycloak => {
   return new Keycloak({
     url: KC_AUTH_URL,
     realm: KC_REALM,
