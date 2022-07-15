@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { theme } from 'app/theme'
 import { isEmpty, isUndefined, some } from 'lodash'
 

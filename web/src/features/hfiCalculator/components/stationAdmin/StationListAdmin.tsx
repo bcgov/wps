@@ -7,7 +7,7 @@ import {
   AddStationOptions,
   BasicWFWXStation,
   StationAdminRow
-} from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+} from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import SaveStationUpdatesButton from 'features/hfiCalculator/components/stationAdmin/SaveStationUpdatesButton'
 import AdminCancelButton from 'features/hfiCalculator/components/stationAdmin/AdminCancelButton'
 import { fetchAddOrUpdateStations } from 'features/hfiCalculator/slices/hfiCalculatorSlice'

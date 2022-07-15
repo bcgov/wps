@@ -1,16 +1,16 @@
 import React, { useState } from 'react'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { Button } from '@mui/material'
-import AddStationModal from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import ManageStationsModal from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { PlanningArea } from 'api/hfiCalculatorAPI'
 import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
-export interface AddStationButtonProps {
+export interface ManageStationsButtonProps {
   planningAreas?: PlanningArea[]
   planningAreaStationInfo: { [key: number]: StationInfo[] }
 }
 
-const AddStationButton = ({ planningAreas, planningAreaStationInfo }: AddStationButtonProps) => {
+const ManageStationsButton = ({ planningAreas, planningAreaStationInfo }: ManageStationsButtonProps) => {
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const openAddStationModal = () => {
     setModalOpen(true)
@@ -22,7 +22,7 @@ const AddStationButton = ({ planningAreas, planningAreaStationInfo }: AddStation
         <SettingsOutlinedIcon />
         Manage Stations
       </Button>
-      <AddStationModal
+      <ManageStationsModal
         modalOpen={modalOpen}
         setModalOpen={setModalOpen}
         planningAreas={planningAreas}
@@ -32,4 +32,4 @@ const AddStationButton = ({ planningAreas, planningAreaStationInfo }: AddStation
   )
 }
 
-export default React.memo(AddStationButton)
+export default React.memo(ManageStationsButton)

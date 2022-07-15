@@ -18,7 +18,7 @@ import {
   updateStations
 } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
-import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { isUndefined } from 'lodash'
 
 export interface FireStartRange {

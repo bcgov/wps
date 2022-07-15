@@ -1,6 +1,6 @@
 import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 import React from 'react'

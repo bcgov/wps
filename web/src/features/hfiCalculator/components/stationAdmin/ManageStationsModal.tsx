@@ -64,7 +64,7 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const AddStationModal = ({
+export const ManageStationsModal = ({
   modalOpen,
   setModalOpen,
   planningAreas,
@@ -160,4 +160,4 @@ export const AddStationModal = ({
   )
 }
 
-export default React.memo(AddStationModal)
+export default React.memo(ManageStationsModal)

@@ -35,7 +35,7 @@ import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButt
 import { DateRange } from 'components/dateRangePicker/types'
 import { AppDispatch } from 'app/store'
 import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
-import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
+import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin/ManageStationsButton'
 import { ROLES } from 'features/auth/roles'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 
@@ -300,7 +300,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               />
               <FormControl className={classes.actionButtonContainer}>
                 {!isUndefined(result) && roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && (
-                  <AddStationButton
+                  <ManageStationsButton
                     planningAreas={
                       selectedFireCentre ? fireCentres.find(fc => fc.id === selectedFireCentre.id)?.planning_areas : []
                     }

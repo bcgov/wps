@@ -2,7 +2,7 @@ import React from 'react'
 import { isUndefined } from 'lodash'
 import { IconButton } from '@mui/material'
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
-import { BasicWFWXStation, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { BasicWFWXStation, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 
 export interface AdminRemoveButtonProps {
   adminRow: StationAdminRow

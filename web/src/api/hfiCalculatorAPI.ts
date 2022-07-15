@@ -1,5 +1,5 @@
 import axios from 'api/axios'
-import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import {
   HFIResultResponse,
   PlanningAreaResult,

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Grid } from '@mui/material'
-import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
+import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 import { AdminStationDropdown } from 'features/hfiCalculator/components/stationAdmin/AdminStationDropdown'
 import { AdminFuelTypesDropdown } from 'features/hfiCalculator/components/stationAdmin/AdminFuelTypesDropdown'
