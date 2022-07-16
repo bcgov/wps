@@ -10,7 +10,7 @@ from pydantic.error_wrappers import ValidationError
 from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
                                        get_cached_hydrated_fire_centres,
                                        put_cached_hydrated_fire_centres)
-from app.hfi.hfi_admin import update_stations
+from app.hfi.hfi_admin import get_unique_planning_area_ids, update_stations
 from app.hfi.hfi_request import update_result_request
 from app.utils.time import get_pst_now, get_utc_now
 from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
@@ -43,7 +43,7 @@ from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_stations_for_removal,
                                   store_hfi_request,
                                   get_fire_centre_stations,
-                                  toggle_ready, save_hfi_stations)
+                                  toggle_ready, save_hfi_stations, unready_planning_areas)
 from app.db.crud.hfi_calc import get_fuel_types as crud_get_fuel_types
 import app.db.models.hfi_calc
 from app.db.database import get_read_session_scope, get_write_session_scope
@@ -457,7 +457,10 @@ async def admin_update_stations(request: HFIAdminStationUpdateRequest,
             request.added,
             timestamp,
             username)
+        affected_planning_area_ids = get_unique_planning_area_ids(stations_to_save)
         save_hfi_stations(db_session, stations_to_save)
+        unready_planning_areas(db_session, request.date_range, request.fire_centre_id,
+                               username, affected_planning_area_ids)
     clear_cached_hydrated_fire_centres()
 
 

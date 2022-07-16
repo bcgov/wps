@@ -1,11 +1,12 @@
 """ CRUD operations relating to HFI Calculator
 """
-from typing import List
+from typing import List, Optional
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, insert
+from sqlalchemy import and_, desc, exists, insert, update
+from sqlalchemy.dialects import postgresql
 from app.db.database import get_read_session_scope
-from app.schemas.hfi_calc import DateRange, HFIAdminRemovedStation, HFIAdminStationUpdateRequest, HFIResultRequest
+from app.schemas.hfi_calc import DateRange, HFIAdminRemovedStation, HFIAdminStationUpdateRequest, HFIReadyState, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, HFIReady, PlanningArea, PlanningWeatherStation, HFIRequest,
                                     FireStartRange, FireCentreFireStartRange, FireStartLookup)
 from app.utils.time import get_utc_now
@@ -175,6 +176,39 @@ def get_stations_for_affected_planning_areas(session: Session, request: HFIAdmin
         .filter(PlanningWeatherStation.is_deleted == False)\
         .order_by(PlanningWeatherStation.order_of_appearance_in_planning_area_list)\
         .all()
+
+
+def unready_planning_areas(session: Session,
+                           date_range: Optional[DateRange],
+                           fire_centre_id: int,
+                           username: str,
+                           planning_area_ids):
+    if date_range is None:
+        return
+    now = get_utc_now()
+    query = update(HFIReady).values(
+        {HFIReady.ready: False, HFIReady.update_user: username, HFIReady.update_timestamp: now})
+    query = query.where(HFIReady.planning_area_id.in_(planning_area_ids))
+    query = query.where(HFIReady.hfi_request_id == HFIRequest.id)
+    query = query.where(HFIRequest.fire_centre_id == fire_centre_id)
+    query = query.where(HFIRequest.prep_start_day >= date_range.start_date)
+    # stmt = update(HFIReady)\
+    #     .values({HFIReady.ready: False, HFIReady.update_user: username, HFIReady.update_timestamp: now})\
+    #     .where(and_(HFIRequest.fire_centre_id == HFIRequest.fire_centre_id,
+    #                 HFIRequest.prep_start_day >= date_range.start_date,
+    #                 exists().where(and_(HFIReady.hfi_request_id == HFIRequest.id,
+    #                                     HFIReady.planning_area_id.in_(planning_area_ids)))))
+    # .where(HFIReady.hfi_request_id == HFIRequest.id)
+    # .where()
+    # query = session.query(HFIReady, HFIRequest)
+    # .join(HFIReady, HFIReady.hfi_request_id == HFIRequest.id)
+    # .filter(HFIReady.planning_area_id.in_(planning_area_ids))
+    # .filter(HFIRequest.fire_centre_id == fire_centre_id)
+    # .filter(HFIRequest.prep_start_day >= date_range.start_date)
+    # .update({HFIReady.ready: False, HFIReady.update_user: username, HFIReady.update_timestamp: now})
+
+    sql = query.compile(dialect=postgresql.dialect())
+    print(sql)
 
 
 def save_hfi_stations(session: Session,

@@ -13,7 +13,7 @@ def update_stations(stations_to_remove: List[PlanningWeatherStation],
                     all_planning_area_stations: List[PlanningWeatherStation],
                     to_add: List[HFIAdminAddedStation],
                     timestamp: datetime,
-                    username: str):
+                    username: str) -> List[PlanningWeatherStation]:
     """
         Orchestrates removal and addition of stations
     """
@@ -161,3 +161,7 @@ def get_next_order(updated_stations: List[PlanningWeatherStation], other_station
         return max(updated_orders) + 1
 
     return min(max(updated_orders) + 1, max(existing_orders) + 1)
+
+
+def get_unique_planning_area_ids(stations: List[PlanningWeatherStation]):
+    return list(set([station.planning_area_id for station in stations]))

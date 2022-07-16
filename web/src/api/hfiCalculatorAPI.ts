@@ -3,6 +3,7 @@ import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/
 import {
   HFIResultResponse,
   PlanningAreaResult,
+  PrepDateRange,
   RawHFIResultResponse
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
@@ -62,6 +63,7 @@ export interface HFIAdminRemovedStation {
 export interface HFIAdminStationUpdateRequest {
   added: HFIAdminAddedStation[]
   removed: HFIAdminRemovedStation[]
+  dateRange?: PrepDateRange
 }
 
 export interface HFIWeatherStationsResponse {
@@ -139,8 +141,10 @@ export interface HFIAdminRemovedStation {
 }
 
 export interface HFIAdminStationUpdateRequest {
+  fire_centre_id: number
   added: HFIAdminAddedStation[]
   removed: HFIAdminRemovedStation[]
+  date_range?: PrepDateRange
 }
 
 const baseUrl = '/hfi-calc/'
@@ -204,10 +208,13 @@ export async function toggleReadyState(
 }
 
 export async function updateStations(
+  fire_centre_id: number,
   addedStations: Required<StationAdminRow>[],
-  removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[]
+  removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[],
+  dateRange?: PrepDateRange
 ): Promise<number> {
   const requestBody: HFIAdminStationUpdateRequest = {
+    fire_centre_id,
     added: addedStations.map(addedStation => ({
       planning_area_id: addedStation.planningAreaId,
       station_code: addedStation.station.code,
@@ -218,7 +225,8 @@ export async function updateStations(
       planning_area_id: removedStation.planningAreaId,
       station_code: removedStation.station.code,
       row_id: removedStation.rowId
-    }))
+    })),
+    date_range: dateRange
   }
   const { status } = await axios.post(baseUrl + 'admin/stations', requestBody)
   return status
