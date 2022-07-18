@@ -42,7 +42,7 @@ describe('SaveStationUpdatesButton', () => {
     const saveButton = getByTestId('save-new-station-button')
     expect(saveButton).toBeDisabled()
   })
-  it('should be enabled when an added station has all fields seleced', () => {
+  it('should be enabled when an added station has all fields selected', () => {
     const handleSaveMock = jest.fn()
 
     const { getByTestId } = render(
