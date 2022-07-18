@@ -247,7 +247,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }, [updatedPlanningAreaId])
 
   useEffect(() => {
-    /** TODO */
     if (!stationsUpdateLoading && !isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
       dispatch(fetchHFIStations())
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
