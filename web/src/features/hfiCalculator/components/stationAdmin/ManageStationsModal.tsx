@@ -11,7 +11,6 @@ import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
 import { groupBy, isNull, isUndefined, sortBy } from 'lodash'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
-import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import StationListAdmin from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 import { getSelectedFuelType } from 'features/hfiCalculator/util'
 
@@ -74,8 +73,7 @@ export const ManageStationsModal = ({
 
   const dispatch: AppDispatch = useDispatch()
 
-  const { fuelTypes, selectedFireCentre, stationsUpdatedError, changeSaved, dateRange } =
-    useSelector(selectHFICalculatorState)
+  const { fuelTypes, selectedFireCentre, stationsUpdatedError, dateRange } = useSelector(selectHFICalculatorState)
   const { stations: wfwxStations } = useSelector(selectFireWeatherStations)
   const planning_areas: BasicPlanningArea[] = selectedFireCentre
     ? selectedFireCentre.planning_areas.map(planningArea => ({
@@ -117,14 +115,6 @@ export const ManageStationsModal = ({
       dispatch(setStationsUpdatedFailed(null))
     }
   }
-
-  useEffect(() => {
-    handleClose()
-    if (changeSaved) {
-      dispatch(fetchHFIStations())
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [changeSaved])
 
   return (
     <React.Fragment>

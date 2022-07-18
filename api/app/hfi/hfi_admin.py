@@ -164,4 +164,4 @@ def get_next_order(updated_stations: List[PlanningWeatherStation], other_station
 
 
 def get_unique_planning_area_ids(stations: List[PlanningWeatherStation]):
-    return list(set([station.planning_area_id for station in stations]))
+    return list({station.planning_area_id for station in stations})

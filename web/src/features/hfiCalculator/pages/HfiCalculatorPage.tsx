@@ -246,6 +246,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updatedPlanningAreaId])
 
+  useEffect(() => {
+    /** TODO */
+    if (!stationsUpdateLoading && !isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
+      dispatch(fetchHFIStations())
+      dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stationsUpdateLoading])
+
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))
   }
