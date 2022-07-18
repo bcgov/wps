@@ -211,11 +211,19 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
     }
     if (!isUndefined(selectedFireCentre)) {
-      dispatch(fetchGetPrepDateRange(selectedFireCentre.id, result?.date_range.start_date, result?.date_range.end_date))
-      dispatch(setSelectedPrepDate(''))
+      dispatch(setSelectedPrepDate('')) // do this so that the page automatically toggles
+      // back to "Prep Period" tab instead of a specific date that may no longer be relevant
+      dispatch(fetchGetPrepDateRange(selectedFireCentre.id))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre])
+
+  useEffect(() => {
+    if (!isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
+      dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange])
 
   useEffect(() => {
     if (Object.keys(fireCentres).length > 0) {
@@ -223,14 +231,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireCentres])
-
-  useEffect(() => {
-    if (!isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
-      // Request all ready states for hfi request unique by date and fire centre
-      dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFireCentre?.id, dateRange?.start_date, dateRange?.end_date])
 
   useEffect(() => {
     if (
