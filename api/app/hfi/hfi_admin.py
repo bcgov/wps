@@ -146,21 +146,19 @@ def get_next_order_by_planning_area(station_with_order_updates: List[PlanningWea
 def get_next_order(updated_stations: List[PlanningWeatherStation], other_stations: List[PlanningWeatherStation]):
     """
         Returns the next order for a list of planning stations based on updated and existing stations.
-        Updated stations will include and removals, so that list may have a smaller max order.
+        Updated stations include additions and removals, so the next order could be smaller than the
+        max order in the existing stations list.
     """
     updated_orders = [station.order_of_appearance_in_planning_area_list for station in updated_stations]
 
-    # An existing could be removed and hence have no order
+    # An existing station could be removed and hence have no order
     existing_orders = [
         station.order_of_appearance_in_planning_area_list for station in other_stations
         if station.order_of_appearance_in_planning_area_list is not None]
 
     if len(updated_orders) == 0:
         return max(existing_orders) + 1
-    if len(existing_orders) == 0:
-        return max(updated_orders) + 1
-
-    return min(max(updated_orders) + 1, max(existing_orders) + 1)
+    return max(updated_orders) + 1
 
 
 def get_unique_planning_area_ids(stations: List[PlanningWeatherStation]):
