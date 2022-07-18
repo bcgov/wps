@@ -19,8 +19,7 @@ def get_fire_weather_stations(session: Session) -> CursorResult:
         .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
         .join(FireCentre, FireCentre.id == PlanningArea.fire_centre_id)\
-        .filter(PlanningWeatherStation.is_deleted == False)\
-        .order_by(FireCentre.name, PlanningArea.name)
+        .filter(PlanningWeatherStation.is_deleted == False)
 
 
 def get_all_stations(session: Session) -> CursorResult:
@@ -162,7 +161,8 @@ def get_stations_for_removal(session: Session,
     stations_to_remove = session.query(PlanningWeatherStation)\
         .filter(PlanningWeatherStation.planning_area_id.in_(remove_request_planning_area_ids))\
         .filter(PlanningWeatherStation.station_code.in_(remove_request_station_codes))\
-        .filter(PlanningWeatherStation.order_of_appearance_in_planning_area_list.in_(remove_request_orders))
+        .filter(PlanningWeatherStation.order_of_appearance_in_planning_area_list.in_(remove_request_orders))\
+        .all()
     return stations_to_remove
 
 
