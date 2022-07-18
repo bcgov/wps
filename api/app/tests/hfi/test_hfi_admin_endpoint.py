@@ -75,7 +75,7 @@ def test_post_stations_authorized_with_date_range(client: TestClient, monkeypatc
         "removed": [],
         "date_range": {"start_date": "2020-05-21", "end_date": "2020-05-26"}
     }
-    response = client.post(post_admin_stations_url, json=add_stations_json)
+    response = client.post(post_admin_stations_url, json=update_stations_json)
     assert response.status_code == 200
 
 
