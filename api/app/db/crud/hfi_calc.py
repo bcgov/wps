@@ -3,10 +3,9 @@
 from typing import List, Optional
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, desc, exists, insert, update
-from sqlalchemy.dialects import postgresql
+from sqlalchemy import desc, insert, update
 from app.db.database import get_read_session_scope
-from app.schemas.hfi_calc import DateRange, HFIAdminRemovedStation, HFIAdminStationUpdateRequest, HFIReadyState, HFIResultRequest
+from app.schemas.hfi_calc import DateRange, HFIAdminRemovedStation, HFIAdminStationUpdateRequest, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, HFIReady, PlanningArea, PlanningWeatherStation, HFIRequest,
                                     FireStartRange, FireCentreFireStartRange, FireStartLookup)
 from app.utils.time import get_utc_now
