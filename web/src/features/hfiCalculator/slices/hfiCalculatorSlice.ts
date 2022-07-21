@@ -345,13 +345,12 @@ export const fetchAddOrUpdateStations =
   (
     fireCentreId: number,
     addedStations: Required<StationAdminRow>[],
-    removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[],
-    dateRange?: PrepDateRange
+    removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[]
   ): AppThunk =>
   async dispatch => {
     try {
       dispatch(loadStationUpdateStart())
-      await updateStations(fireCentreId, addedStations, removedStations, dateRange)
+      await updateStations(fireCentreId, addedStations, removedStations)
       dispatch(loadStationUpdateEnd())
       dispatch(setChangeSaved(true))
     } catch (err) {

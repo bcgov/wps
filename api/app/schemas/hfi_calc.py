@@ -194,7 +194,6 @@ class HFIAdminStationUpdateRequest(BaseModel):
     fire_centre_id: int
     added: List[HFIAdminAddedStation]
     removed: List[HFIAdminRemovedStation]
-    date_range: Optional[DateRange]
 
 
 class HFIResultResponse(BaseModel):

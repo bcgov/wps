@@ -63,7 +63,6 @@ export interface HFIAdminRemovedStation {
 export interface HFIAdminStationUpdateRequest {
   added: HFIAdminAddedStation[]
   removed: HFIAdminRemovedStation[]
-  dateRange?: PrepDateRange
 }
 
 export interface HFIWeatherStationsResponse {
@@ -210,8 +209,7 @@ export async function toggleReadyState(
 export async function updateStations(
   fire_centre_id: number,
   addedStations: Required<StationAdminRow>[],
-  removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[],
-  dateRange?: PrepDateRange
+  removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[]
 ): Promise<number> {
   const requestBody: HFIAdminStationUpdateRequest = {
     fire_centre_id,
@@ -225,8 +223,7 @@ export async function updateStations(
       planning_area_id: removedStation.planningAreaId,
       station_code: removedStation.station.code,
       row_id: removedStation.rowId
-    })),
-    date_range: dateRange
+    }))
   }
   const { status } = await axios.post(baseUrl + 'admin/stations', requestBody)
   return status

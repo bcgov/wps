@@ -459,7 +459,7 @@ async def admin_update_stations(request: HFIAdminStationUpdateRequest,
             username)
         affected_planning_area_ids = get_unique_planning_area_ids(stations_to_save)
         save_hfi_stations(db_session, stations_to_save)
-        unready_planning_areas(db_session, request.date_range, request.fire_centre_id,
+        unready_planning_areas(db_session, request.fire_centre_id,
                                username, affected_planning_area_ids)
     clear_cached_hydrated_fire_centres()
 

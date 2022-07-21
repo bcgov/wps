@@ -10,7 +10,7 @@ import {
 } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import SaveStationUpdatesButton from 'features/hfiCalculator/components/stationAdmin/SaveStationUpdatesButton'
 import AdminCancelButton from 'features/hfiCalculator/components/stationAdmin/AdminCancelButton'
-import { fetchAddOrUpdateStations, PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { fetchAddOrUpdateStations } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { AppDispatch } from 'app/store'
 import { useDispatch } from 'react-redux'
 
@@ -25,7 +25,6 @@ export interface AdminHandlers {
 export interface StationListAdminProps {
   fireCentreId: number
   planningAreas: PlanningArea[]
-  dateRange?: PrepDateRange
   fuelTypes: Pick<FuelType, 'id' | 'abbrev'>[]
   addStationOptions?: AddStationOptions
   existingPlanningAreaStations: { [key: string]: StationAdminRow[] }
@@ -37,7 +36,6 @@ const StationListAdmin = ({
   planningAreas,
   addStationOptions,
   existingPlanningAreaStations,
-  dateRange,
   handleClose
 }: StationListAdminProps) => {
   const dispatch: AppDispatch = useDispatch()
@@ -105,8 +103,7 @@ const StationListAdmin = ({
         fetchAddOrUpdateStations(
           fireCentreId,
           allAdded as Required<StationAdminRow>[],
-          allRemoved as Required<StationAdminRow>[],
-          dateRange
+          allRemoved as Required<StationAdminRow>[]
         )
       )
       handleClose()

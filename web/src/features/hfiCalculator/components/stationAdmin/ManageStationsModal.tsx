@@ -73,7 +73,7 @@ export const ManageStationsModal = ({
 
   const dispatch: AppDispatch = useDispatch()
 
-  const { fuelTypes, selectedFireCentre, stationsUpdatedError, dateRange } = useSelector(selectHFICalculatorState)
+  const { fuelTypes, selectedFireCentre, stationsUpdatedError } = useSelector(selectHFICalculatorState)
   const { stations: wfwxStations } = useSelector(selectFireWeatherStations)
   const planning_areas: BasicPlanningArea[] = selectedFireCentre
     ? selectedFireCentre.planning_areas.map(planningArea => ({
@@ -135,7 +135,6 @@ export const ManageStationsModal = ({
             <StationListAdmin
               fireCentreId={selectedFireCentre.id}
               planningAreas={planningAreas}
-              dateRange={dateRange}
               fuelTypes={fuelTypes}
               existingPlanningAreaStations={existingStations}
               addStationOptions={{

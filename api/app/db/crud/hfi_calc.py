@@ -178,20 +178,16 @@ def get_stations_for_affected_planning_areas(session: Session, request: HFIAdmin
 
 
 def unready_planning_areas(session: Session,
-                           date_range: Optional[DateRange],
                            fire_centre_id: int,
                            username: str,
                            planning_area_ids):
-    if date_range is None:
-        return
     now = get_utc_now()
     query = update(HFIReady).values(
         {HFIReady.ready: False, HFIReady.update_user: username, HFIReady.update_timestamp: now})\
         .where(HFIReady.planning_area_id.in_(planning_area_ids))\
         .where(HFIReady.hfi_request_id == HFIRequest.id)\
         .where(HFIRequest.fire_centre_id == fire_centre_id)\
-        .where(HFIRequest.prep_start_day >= date_range.start_date).\
-        execution_options(synchronize_session="fetch")
+        .execution_options(synchronize_session="fetch")
     session.execute(query)
 
 
