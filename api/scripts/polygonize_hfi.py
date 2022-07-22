@@ -94,7 +94,15 @@ if __name__ == '__main__':
     """
     You can take the GeoJSON, and stick it into PostGIS:
 
+    ```bash
     ogr2ogr -f "PostgreSQL" PG:"dbname=tileserv host=localhost user=tileserv password=tileserv" "hfi_classified.json" -nlt MULTIPOLYGON -lco precision=NO -nln hfi -overwrite
+    ```
+
+    You could throw it into a development database on openshift, by port forwarding there:
+
+    ```bash
+    oc port-forward my-database-pod 5432:5432
+    ```
 
     You can then take something like pg_tileserv to serve it up:
 
