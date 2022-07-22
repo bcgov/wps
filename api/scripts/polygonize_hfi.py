@@ -90,3 +90,22 @@ def polygonize(geotiff_filename, geojson_filename):
 
 if __name__ == '__main__':
     polygonize(sys.argv[1], sys.argv[2])
+
+    """
+    You can take the GeoJSON, and stick it into PostGIS:
+
+    ogr2ogr -f "PostgreSQL" PG:"dbname=tileserv host=localhost user=tileserv password=tileserv" "hfi_classified.json" -nlt MULTIPOLYGON -lco precision=NO -nln hfi -overwrite
+
+    You can then take something like pg_tileserv to serve it up:
+
+    Download the latest [pg_tileserver](https://github.com/CrunchyData/pg_tileserv), unzip and start.
+
+    ```bash
+    mkdir pg_tileserv
+    cd pg_tileserv
+    wget https://postgisftw.s3.amazonaws.com/pg_tileserv_latest_linux.zip
+    unzip pg_tileserv
+    export DATABASE_URL=postgresql://tileserv:tileserv@localhost/tileserv
+    ./pg_tileserv
+    ```
+"""
