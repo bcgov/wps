@@ -25,14 +25,15 @@ import {
   fireZoneStyler,
   fireZoneLabelStyler,
   stationStyler,
-  thessianPolygonStyler
+  thessianPolygonStyler,
+  hfiStyler
 } from 'features/fba/components/featureStylers'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 5.45
 const BC_CENTER_FIRE_CENTRES = [-124.16748046874999, 54.584796743678744]
-const TILE_SERVER_URL = 'https://wps-prod-tileserv.apps.silver.devops.gov.bc.ca'
+const TILE_SERVER_URL = 'https://tileserv-dev.apps.silver.devops.gov.bc.ca'
 
 export interface FBAMapProps {
   testId?: string
@@ -60,6 +61,16 @@ const FBAMap = (props: FBAMapProps) => {
     }),
     style: fireZoneStyler,
     zIndex: 49
+  })
+
+  const hfiVector = new VectorTileLayer({
+    source: new VectorTileSource({
+      attributions: ['BC Wildfire Service'],
+      format: new MVT(),
+      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf`
+    }),
+    style: hfiStyler,
+    zIndex: 100
   })
 
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
@@ -96,15 +107,15 @@ const FBAMap = (props: FBAMapProps) => {
     maxZoom: 6
   })
 
-  const thessianVector = new VectorTileLayer({
-    source: new VectorTileSource({
-      attributions: ['BC Wildfire Service'],
-      format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.fire_area_thessian_polygons/{z}/{x}/{y}.pbf`
-    }),
-    style: thessianPolygonStyler,
-    zIndex: 50
-  })
+  // const thessianVector = new VectorTileLayer({
+  //   source: new VectorTileSource({
+  //     attributions: ['BC Wildfire Service'],
+  //     format: new MVT(),
+  //     url: `${TILE_SERVER_URL}/public.fire_area_thessian_polygons/{z}/{x}/{y}.pbf`
+  //   }),
+  //   style: thessianPolygonStyler,
+  //   zIndex: 50
+  // })
 
   useEffect(() => {
     if (!map) return
@@ -139,8 +150,9 @@ const FBAMap = (props: FBAMapProps) => {
           source: baseMapSource
         }),
         fireZoneVector,
+        hfiVector,
         fireCentreVector,
-        thessianVector,
+        // thessianVector,
         fireZoneLabel,
         fireCentreLabel
       ],
