@@ -112,9 +112,9 @@ const hfiStyle = new Style({})
 
 export const hfiStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
   if (feature.get('hfi') === '4000 > hfi < 10000') {
-    hfiStyle.setFill(new Fill({ color: 'rgba(255, 0, 0, 0.4)' }))
-  } else if (feature.get('hfi') === 'hfi >= 10000') {
     hfiStyle.setFill(new Fill({ color: 'rgba(255, 128, 0, 0.4)' }))
+  } else if (feature.get('hfi') === 'hfi >= 10000') {
+    hfiStyle.setFill(new Fill({ color: 'rgba(255, 0, 0, 0.4)' }))
   }
   return hfiStyle
 }
