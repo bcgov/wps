@@ -8,6 +8,7 @@ Create Date: 2022-07-26 12:56:12.921106
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.orm.session import Session
+from app.utils.time import get_utc_now
 
 
 # revision identifiers, used by Alembic.
@@ -15,7 +16,6 @@ revision = '2dac381ad6e7'
 down_revision = '157ba3a3f3fb'
 branch_labels = None
 depends_on = None
-
 
 planning_areas_table = sa.Table('planning_areas', sa.MetaData(),
                                 sa.Column('id', sa.Integer),
@@ -29,7 +29,13 @@ planning_weather_stations_table = sa.Table('planning_weather_stations', sa.MetaD
                                            sa.Column('fuel_type_id', sa.Integer),
                                            sa.Column('planning_area_id', sa.Integer),
                                            sa.Column('station_code', sa.Integer),
-                                           sa.Column('order_of_appearance_in_planning_area_list', sa.Integer))
+                                           sa.Column('order_of_appearance_in_planning_area_list', sa.Integer),
+                                           sa.Column('create_user', sa.String),
+                                           sa.Column('create_timestamp', sa.TIMESTAMP),
+                                           sa.Column('update_user', sa.String),
+                                           sa.Column('update_timestamp', sa.TIMESTAMP),
+                                           sa.Column('is_deleted', sa.Boolean))
+
 
 moose_lake = 165
 
@@ -45,9 +51,14 @@ def upgrade():
     session = Session(bind=op.get_bind())
     nadina_id = get_nadina_planning_area_id(session)
 
-    stmt = planning_weather_stations_table.delete().\
+    stmt = planning_weather_stations_table.update().\
         where(sa.and_(planning_weather_stations_table.c.station_code == moose_lake,
-              planning_weather_stations_table.c.planning_area_id == nadina_id))
+              planning_weather_stations_table.c.planning_area_id == nadina_id)).\
+        values({
+            'is_deleted': True,
+            'update_user': 'system',
+            'update_timestamp': get_utc_now()
+        })
 
     session.execute(stmt)
     # ### end Alembic commands ###
