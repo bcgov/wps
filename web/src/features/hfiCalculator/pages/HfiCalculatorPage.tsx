@@ -35,7 +35,7 @@ import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButt
 import { DateRange } from 'components/dateRangePicker/types'
 import { AppDispatch } from 'app/store'
 import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
-import AddStationButton from 'features/hfiCalculator/components/stationAdmin/AddStationButton'
+import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin/ManageStationsButton'
 import { ROLES } from 'features/auth/roles'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 
@@ -96,6 +96,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     pdfLoading,
     fuelTypesLoading,
     fireCentresLoading,
+    stationsUpdateLoading,
     dateRange,
     error: hfiError,
     fuelTypes,
@@ -245,6 +246,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updatedPlanningAreaId])
 
+  useEffect(() => {
+    if (!stationsUpdateLoading && !isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
+      dispatch(fetchHFIStations())
+      dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stationsUpdateLoading])
+
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))
   }
@@ -280,6 +289,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           fuelTypesLoading={fuelTypesLoading}
           stationDataLoading={stationDataLoading}
           fireCentresLoading={fireCentresLoading}
+          stationsUpdateLoading={stationsUpdateLoading}
           fireCentresError={fireCentresError}
           hfiError={hfiError}
           selectedFireCentre={selectedFireCentre}
@@ -297,7 +307,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                 )}
               />
               <FormControl className={classes.actionButtonContainer}>
-                {roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && <AddStationButton />}
+                {!isUndefined(result) && roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && (
+                  <ManageStationsButton
+                    planningAreas={
+                      selectedFireCentre ? fireCentres.find(fc => fc.id === selectedFireCentre.id)?.planning_areas : []
+                    }
+                    planningAreaStationInfo={result.planning_area_station_info}
+                  />
+                )}
                 <DownloadPDFButton onClick={handleDownloadClicked} />
               </FormControl>
             </FormControl>
