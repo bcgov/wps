@@ -1,9 +1,9 @@
 """ CRUD operations relating to HFI Calculator
 """
-from typing import List
+from typing import List, Optional
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, insert
+from sqlalchemy import desc, insert, update
 from app.db.database import get_read_session_scope
 from app.schemas.hfi_calc import DateRange, HFIAdminRemovedStation, HFIAdminStationUpdateRequest, HFIResultRequest
 from app.db.models.hfi_calc import (FireCentre, FuelType, HFIReady, PlanningArea, PlanningWeatherStation, HFIRequest,
@@ -18,7 +18,7 @@ def get_fire_weather_stations(session: Session) -> CursorResult:
         .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
         .join(FireCentre, FireCentre.id == PlanningArea.fire_centre_id)\
-        .order_by(FireCentre.name, PlanningArea.name)
+        .filter(PlanningWeatherStation.is_deleted == False)
 
 
 def get_all_stations(session: Session) -> CursorResult:
@@ -43,6 +43,7 @@ def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
     return session.query(PlanningWeatherStation, FuelType)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
         .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)\
+        .filter(PlanningWeatherStation.is_deleted == False)\
         .filter(PlanningArea.fire_centre_id == fire_centre_id)
 
 
@@ -159,7 +160,8 @@ def get_stations_for_removal(session: Session,
     stations_to_remove = session.query(PlanningWeatherStation)\
         .filter(PlanningWeatherStation.planning_area_id.in_(remove_request_planning_area_ids))\
         .filter(PlanningWeatherStation.station_code.in_(remove_request_station_codes))\
-        .filter(PlanningWeatherStation.order_of_appearance_in_planning_area_list.in_(remove_request_orders))
+        .filter(PlanningWeatherStation.order_of_appearance_in_planning_area_list.in_(remove_request_orders))\
+        .all()
     return stations_to_remove
 
 
@@ -173,6 +175,20 @@ def get_stations_for_affected_planning_areas(session: Session, request: HFIAdmin
         .filter(PlanningWeatherStation.is_deleted == False)\
         .order_by(PlanningWeatherStation.order_of_appearance_in_planning_area_list)\
         .all()
+
+
+def unready_planning_areas(session: Session,
+                           fire_centre_id: int,
+                           username: str,
+                           planning_area_ids):
+    now = get_utc_now()
+    query = update(HFIReady).values(
+        {HFIReady.ready: False, HFIReady.update_user: username, HFIReady.update_timestamp: now})\
+        .where(HFIReady.planning_area_id.in_(planning_area_ids))\
+        .where(HFIReady.hfi_request_id == HFIRequest.id)\
+        .where(HFIRequest.fire_centre_id == fire_centre_id)\
+        .execution_options(synchronize_session="fetch")
+    session.execute(query)
 
 
 def save_hfi_stations(session: Session,

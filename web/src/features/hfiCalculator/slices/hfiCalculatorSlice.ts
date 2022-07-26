@@ -15,11 +15,10 @@ import {
   FuelType,
   FireCentre,
   FuelTypesResponse,
-  addNewStation
+  updateStations
 } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
-import { AddStationOptions, AdminStation } from 'features/hfiCalculator/components/stationAdmin/AddStationModal'
-import { AxiosError } from 'axios'
+import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { isUndefined } from 'lodash'
 
 export interface FireStartRange {
@@ -68,7 +67,7 @@ export interface HFICalculatorState {
   pdfLoading: boolean
   fireCentresLoading: boolean
   fuelTypesLoading: boolean
-  addStationOptionsLoading: boolean
+  stationsUpdateLoading: boolean
   error: string | null
   dateRange: PrepDateRange | undefined
   selectedPrepDate: string
@@ -79,8 +78,7 @@ export interface HFICalculatorState {
   addStationOptions: AddStationOptions | undefined
   fuelTypes: FuelType[]
   changeSaved: boolean
-  stationAdded: boolean
-  stationAddedError: string | null
+  stationsUpdatedError: string | null
   updatedPlanningAreaId: UpdatedPlanningAreaId | null
 }
 
@@ -129,7 +127,7 @@ export interface UpdatedPlanningAreaId {
 export const initialState: HFICalculatorState = {
   pdfLoading: false,
   fireCentresLoading: false,
-  addStationOptionsLoading: false,
+  stationsUpdateLoading: false,
   fuelTypesLoading: false,
   error: null,
   dateRange: undefined,
@@ -141,8 +139,7 @@ export const initialState: HFICalculatorState = {
   fuelTypes: [],
   addStationOptions: undefined,
   changeSaved: false,
-  stationAdded: false,
-  stationAddedError: null,
+  stationsUpdatedError: null,
   updatedPlanningAreaId: null
 }
 
@@ -154,6 +151,12 @@ const dailiesSlice = createSlice({
       state.fireCentresLoading = true
       state.changeSaved = false
     },
+    loadStationUpdateStart(state: HFICalculatorState) {
+      state.stationsUpdateLoading = true
+    },
+    loadStationUpdateEnd(state: HFICalculatorState) {
+      state.stationsUpdateLoading = false
+    },
     fetchFuelTypesStart(state: HFICalculatorState) {
       state.fuelTypesLoading = true
     },
@@ -163,11 +166,8 @@ const dailiesSlice = createSlice({
     pdfDownloadEnd(state: HFICalculatorState) {
       state.pdfLoading = false
     },
-    setStationAdded(state: HFICalculatorState, action: PayloadAction<boolean>) {
-      state.stationAdded = action.payload
-    },
-    setAddedStationFailed(state: HFICalculatorState, action: PayloadAction<string | null>) {
-      state.stationAddedError = action.payload
+    setStationsUpdatedFailed(state: HFICalculatorState, action: PayloadAction<string | null>) {
+      state.stationsUpdatedError = action.payload
     },
     getHFIResultFailed(state: HFICalculatorState, action: PayloadAction<string>) {
       state.error = action.payload
@@ -204,11 +204,12 @@ const dailiesSlice = createSlice({
 
 export const {
   loadHFIResultStart,
+  loadStationUpdateStart,
+  loadStationUpdateEnd,
   fetchFuelTypesStart,
   pdfDownloadStart,
   pdfDownloadEnd,
-  setStationAdded,
-  setAddedStationFailed,
+  setStationsUpdatedFailed,
   getHFIResultFailed,
   fetchFuelTypesFailed,
   setSelectedPrepDate,
@@ -310,19 +311,6 @@ export const fetchFuelTypes = (): AppThunk => async dispatch => {
   }
 }
 
-export const fetchAddStation =
-  (newStation: Required<Omit<AdminStation, 'dirty'>>): AppThunk =>
-  async dispatch => {
-    try {
-      const status = await addNewStation(newStation)
-      dispatch(setStationAdded(status === 200))
-    } catch (err) {
-      const { response } = err as AxiosError
-      dispatch(setAddedStationFailed(response?.data.detail))
-      logError(err)
-    }
-  }
-
 export const fetchSetNewFireStarts =
   (
     fire_center_id: number,
@@ -347,6 +335,24 @@ export const fetchSetNewFireStarts =
       dispatch(setResult(result))
       dispatch(setChangeSaved(true))
       dispatch(setUpdatedPlanningAreaId(updated_planning_area_id))
+    } catch (err) {
+      dispatch(getHFIResultFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
+
+export const fetchAddOrUpdateStations =
+  (
+    fireCentreId: number,
+    addedStations: Required<StationAdminRow>[],
+    removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[]
+  ): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(loadStationUpdateStart())
+      await updateStations(fireCentreId, addedStations, removedStations)
+      dispatch(loadStationUpdateEnd())
+      dispatch(setChangeSaved(true))
     } catch (err) {
       dispatch(getHFIResultFailed((err as Error).toString()))
       logError(err)
