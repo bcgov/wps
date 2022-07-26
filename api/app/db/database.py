@@ -18,11 +18,18 @@ postgres_read_host = config.get('POSTGRES_READ_HOST', 'localhost')
 postgres_port = config.get('POSTGRES_PORT', '5432')
 postgres_database = config.get('POSTGRES_DATABASE', 'wps')
 
+hfi_read_user = config.get('HFI_READ_USER', 'tileserv')
+hfi_postgres_password = config.get('HFI_POSTGRES_PASSWORD', 'tileserv')
+hfi_postgres_read_host = config.get('HFI_POSTGRES_READ_HOST', 'localhost')
+hfi_postgres_database = config.get('HFI_POSTGRES_DATABASE', 'tileserv')
+
 # pylint: disable=line-too-long
 DB_WRITE_STRING = f'postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
 
 # pylint: disable=line-too-long
 DB_READ_STRING = f'postgresql://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}'
+
+HFI_DB_READ_STRING = f'postgresql://{hfi_read_user}:{hfi_postgres_password}@{hfi_postgres_read_host}:{postgres_port}/{hfi_postgres_database}'
 
 # connect to database - defaulting to always use utc timezone
 _write_engine = create_engine(DB_WRITE_STRING, connect_args={
@@ -30,6 +37,13 @@ _write_engine = create_engine(DB_WRITE_STRING, connect_args={
 # use pre-ping on read, as connections are quite often stale due to how few users we have at the moment.
 _read_engine = create_engine(
     DB_READ_STRING,
+    pool_size=int(config.get('POSTGRES_POOL_SIZE', 5)),
+    max_overflow=int(config.get('POSTGRES_MAX_OVERFLOW', 10)),
+    pool_pre_ping=True, connect_args={
+        'options': '-c timezone=utc'})
+
+_hfi_read_engine = create_engine(
+    HFI_DB_READ_STRING,
     pool_size=int(config.get('POSTGRES_POOL_SIZE', 5)),
     max_overflow=int(config.get('POSTGRES_MAX_OVERFLOW', 10)),
     pool_pre_ping=True, connect_args={
@@ -43,6 +57,8 @@ _write_session = sessionmaker(
     autocommit=False, autoflush=False, bind=_write_engine)
 _read_session = sessionmaker(
     autocommit=False, autoflush=False, bind=_read_engine)
+_hfi_read_session = sessionmaker(
+    autocommit=False, autoflush=False, bind=_hfi_read_engine)
 
 # constructing a base class for declarative class definitions
 Base = declarative_base()
@@ -58,7 +74,28 @@ def _get_read_session() -> sessionmaker:
     return _read_session()
 
 
+def _get_hfi_read_session() -> sessionmaker:
+    """ abstraction used for mocking out a read session """
+    return _hfi_read_session()
+
+
 @contextmanager
+def get_hfi_read_session_scope() -> Generator[Session, None, None]:
+    """
+    Provide a transactional scope around a series of operations.
+    """
+    session = _get_hfi_read_session()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+@ contextmanager
 def get_read_session_scope() -> Generator[Session, None, None]:
     """Provide a transactional scope around a series of operations."""
     session = _get_read_session()
@@ -69,7 +106,7 @@ def get_read_session_scope() -> Generator[Session, None, None]:
         session.close()
 
 
-@contextmanager
+@ contextmanager
 def get_write_session_scope() -> Generator[Session, None, None]:
     """Provide a transactional scope around a series of operations."""
     session = _get_write_session()
