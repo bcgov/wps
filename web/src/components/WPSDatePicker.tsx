@@ -12,6 +12,8 @@ interface WPSDatePickerProps {
   size?: 'small' | 'medium'
   date: DateTime
   updateDate: (d: DateTime) => void
+  minDate?: DateTime
+  maxDate?: DateTime
 }
 
 const WPSDatePicker = (props: WPSDatePickerProps) => {
@@ -26,6 +28,8 @@ const WPSDatePicker = (props: WPSDatePickerProps) => {
             props.updateDate(newValue)
           }
         }}
+        minDate={props.minDate}
+        maxDate={props.maxDate}
         renderInput={params => <TextField {...params} />}
       />
     </LocalizationProvider>

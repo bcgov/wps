@@ -4,7 +4,6 @@ import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
-import FormalFBATable from 'features/fba/components/FormalFBATable'
 import { DateTime } from 'luxon'
 import { selectFireCenters } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
@@ -41,13 +40,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
 
-  const emptyInstructions = (
-    <div data-testid={'fba-instructions'} className={classes.instructions}>
-      <p>Select a fire center to get started.</p>
-      <p>A selected fire center will populate this pane with its station details.</p>
-    </div>
-  )
-
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
   useEffect(() => {
@@ -64,6 +56,8 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [fireCenter])
 
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+  const minDate = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).minus({ days: 1 })
+  const maxDate = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 3 })
 
   const updateDate = (newDate: DateTime) => {
     if (newDate !== dateOfInterest) {
@@ -88,7 +82,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid container spacing={2}>
             <Grid item>
               <FormControl className={classes.formControl}>
-                <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
+                <WPSDatePicker date={dateOfInterest} updateDate={updateDate} minDate={minDate} maxDate={maxDate} />
               </FormControl>
             </Grid>
             <Grid item xs={2}>
@@ -100,16 +94,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 />
               </FormControl>
             </Grid>
-          </Grid>
-          <Grid container spacing={2}>
-            <Grid item xs>
-              {fireCenter ? (
-                <FormalFBATable fireCenter={fireCenter} className={classes.listContainer} />
-              ) : (
-                emptyInstructions
-              )}
-            </Grid>
-            <Grid item xs>
+            <Grid item>
               <FBAMap selectedFireCenter={fireCenter} className={classes.mapContainer} />
             </Grid>
           </Grid>
