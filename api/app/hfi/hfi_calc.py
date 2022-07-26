@@ -455,8 +455,8 @@ def calculate_mean_intensity(dailies: List[StationDaily], num_of_station_codes: 
     # If there are less dailies than there are unique station codes in the planning area,
     # it means that some stations are entirely missing data for the day, so MIG can't
     # be calculated.
-    if len(dailies) != num_of_station_codes:
-        return None
+    # if len(dailies) != num_of_station_codes:
+    #     return None
     intensity_groups = list(map(lambda daily: (daily.intensity_group), dailies))
     valid_intensity_groups = list(filter(None, intensity_groups))
     # If some intensity groups are invalid, can't calculate mean intensity group. Should display error
