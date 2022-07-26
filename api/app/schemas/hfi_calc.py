@@ -191,6 +191,7 @@ class HFIAdminRemovedStation(BaseModel):
 
 class HFIAdminStationUpdateRequest(BaseModel):
     """ Request input for updating a batch of HFI stations. """
+    fire_centre_id: int
     added: List[HFIAdminAddedStation]
     removed: List[HFIAdminRemovedStation]
 
