@@ -5,6 +5,7 @@ from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
 
 add_stations_json = {
+    "fire_centre_id": 1,
     "added": [
         {
             "planning_area_id": 1,
@@ -26,6 +27,7 @@ add_stations_json = {
 }
 
 post_admin_stations_url = '/api/hfi-calc/admin/stations'
+decode_fn = "jwt.decode"
 
 
 @pytest.fixture()
@@ -48,9 +50,33 @@ def test_post_stations_authorized(client: TestClient, monkeypatch: pytest.Monkey
     def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
         return MockJWTDecodeWithRole('hfi_station_admin')
 
-    monkeypatch.setattr("jwt.decode", mock_admin_role_function)
+    monkeypatch.setattr(decode_fn, mock_admin_role_function)
 
     response = client.post(post_admin_stations_url, json=add_stations_json)
+    assert response.status_code == 200
+
+
+def test_post_stations_authorized_with_date_range(client: TestClient, monkeypatch: pytest.MonkeyPatch):
+    """ Update stations with date range"""
+
+    def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
+        return MockJWTDecodeWithRole('hfi_station_admin')
+
+    monkeypatch.setattr(decode_fn, mock_admin_role_function)
+
+    update_stations_json = {
+        "fire_centre_id": 1,
+        "added": [
+            {
+                "planning_area_id": 1,
+                "station_code": 101,
+                "fuel_type_id": 1,
+            }
+        ],
+        "removed": [],
+        "date_range": {"start_date": "2020-05-21", "end_date": "2020-05-26"}
+    }
+    response = client.post(post_admin_stations_url, json=update_stations_json)
     assert response.status_code == 200
 
 
@@ -60,7 +86,7 @@ def test_post_stations_wrong_role(client: TestClient, monkeypatch: pytest.Monkey
     def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
         return MockJWTDecodeWithRole('hfi_set_ready_state')
 
-    monkeypatch.setattr("jwt.decode", mock_admin_role_function)
+    monkeypatch.setattr(decode_fn, mock_admin_role_function)
 
     response = client.post(post_admin_stations_url, json=add_stations_json)
     assert response.status_code == 401
