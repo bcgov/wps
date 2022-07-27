@@ -12,6 +12,7 @@ export interface HFILoadingDataContainerProps {
   fuelTypesLoading: boolean
   stationDataLoading: boolean
   fireCentresLoading: boolean
+  stationsUpdateLoading: boolean
   fireCentresError: string | null
   hfiError: string | null
   children: JSX.Element
@@ -25,6 +26,7 @@ const HFILoadingDataContainer = ({
   stationDataLoading,
   fireCentresLoading,
   fireCentresError,
+  stationsUpdateLoading,
   hfiError,
   children,
   dateRange,
@@ -38,7 +40,7 @@ const HFILoadingDataContainer = ({
   }
 
   const isLoading = () => {
-    return pdfLoading || fuelTypesLoading || stationDataLoading || fireCentresLoading
+    return pdfLoading || fuelTypesLoading || stationDataLoading || fireCentresLoading || stationsUpdateLoading
   }
 
   const isLoadingWithoutError = () => isLoading() && isNull(fireCentresError) && isNull(hfiError)
