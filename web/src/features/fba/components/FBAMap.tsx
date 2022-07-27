@@ -7,15 +7,13 @@ import VectorTileLayer from 'ol/layer/VectorTile'
 import VectorTileSource from 'ol/source/VectorTile'
 import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
-
 import GeoJSON from 'ol/format/GeoJSON'
-
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
-import { selectFireWeatherStations } from 'app/rootReducer'
-import { monochromeSource as baseMapSource } from 'features/fireWeather/components/maps/constants'
+import { selectFireWeatherStations, selectFireZoneAreas } from 'app/rootReducer'
+import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
@@ -25,8 +23,8 @@ import {
   fireZoneStyler,
   fireZoneLabelStyler,
   stationStyler,
-  thessianPolygonStyler,
-  hfiStyler
+  hfiStyler,
+  createFireZoneStyler
 } from 'features/fba/components/featureStylers'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
@@ -49,19 +47,55 @@ const FBAMap = (props: FBAMapProps) => {
     }
   })
   const classes = useStyles()
+  // const dispatch: AppDispatch = useDispatch()
   const { stations } = useSelector(selectFireWeatherStations)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
+  // const [fireZoneStyle, setFireZoneStyle] = useState(fireZoneStyler)
+  // const [prevFireZoneVector, setPrevFireZoneVector] = useState<VectorTileLayer | null>(null)
+  const [fireZoneVector, setFireZoneVector] = useState(
+    new VectorTileLayer({
+      source: new VectorTileSource({
+        attributions: ['BC Wildfire Service'],
+        format: new MVT(),
+        url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
+      }),
+      style: fireZoneStyler,
+      zIndex: 49,
+      properties: { name: 'fireZoneVector' }
+    })
+  )
 
-  const fireZoneVector = new VectorTileLayer({
-    source: new VectorTileSource({
-      attributions: ['BC Wildfire Service'],
-      format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
-    }),
-    style: fireZoneStyler,
-    zIndex: 49
-  })
+  const { fireZoneAreas } = useSelector(selectFireZoneAreas)
+
+  useEffect(() => {
+    if (map) {
+      const layer = map
+        .getLayers()
+        .getArray()
+        .find(layer => layer.getProperties()?.name === 'fireZoneVector')
+      if (layer) {
+        map.removeLayer(layer)
+      }
+      map.addLayer(fireZoneVector)
+    }
+  }, [map, fireZoneVector])
+
+  useEffect(() => {
+    // setPrevFireZoneVector(fireZoneVector)
+    setFireZoneVector(
+      new VectorTileLayer({
+        source: new VectorTileSource({
+          attributions: ['BC Wildfire Service'],
+          format: new MVT(),
+          url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
+        }),
+        style: createFireZoneStyler(fireZoneAreas),
+        zIndex: 49,
+        properties: { name: 'fireZoneVector' }
+      })
+    )
+  }, [fireZoneAreas])
 
   const hfiVector = new VectorTileLayer({
     source: new VectorTileSource({
@@ -106,16 +140,6 @@ const FBAMap = (props: FBAMapProps) => {
     zIndex: 100,
     maxZoom: 6
   })
-
-  // const thessianVector = new VectorTileLayer({
-  //   source: new VectorTileSource({
-  //     attributions: ['BC Wildfire Service'],
-  //     format: new MVT(),
-  //     url: `${TILE_SERVER_URL}/public.fire_area_thessian_polygons/{z}/{x}/{y}.pbf`
-  //   }),
-  //   style: thessianPolygonStyler,
-  //   zIndex: 50
-  // })
 
   useEffect(() => {
     if (!map) return

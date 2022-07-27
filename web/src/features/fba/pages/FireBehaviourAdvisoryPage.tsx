@@ -15,6 +15,7 @@ import { FireCenter } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
+import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -67,6 +68,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchFireCenters())
+    dispatch(fetchFireZoneAreas())
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
