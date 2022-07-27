@@ -24,12 +24,13 @@ class FireCenterListResponse(BaseModel):
     fire_centers: List[FireCentre]
 
 
-class ZoneArea(BaseModel):
+class FireZoneArea(BaseModel):
     """ A zone is a grouping of planning areas within a fire centre. """
-    fire_zone_id: int
+    mof_fire_zone_id: int
     elevated_hfi_area: float
+    elevated_hfi_percentage: float
 
 
-class ZoneAreaListResponse(BaseModel):
+class FireZoneAreaListResponse(BaseModel):
     """ Response for all planning areas, in a list """
-    zones: List[ZoneArea]
+    zones: List[FireZoneArea]
