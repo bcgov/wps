@@ -40,7 +40,7 @@ planning_weather_stations_table = sa.Table('planning_weather_stations', sa.MetaD
 moose_lake = 165
 
 
-def get_nadina_planning_area_id(session: Session):
+def get_vanjam_planning_area_id(session: Session):
     res = session.query(planning_areas_table) \
         .filter(planning_areas_table.c.name.ilike(f'VanJam%'))
     return int(res.first().id)
@@ -48,7 +48,7 @@ def get_nadina_planning_area_id(session: Session):
 
 def upgrade():
     session = Session(bind=op.get_bind())
-    vanjam_id = get_nadina_planning_area_id(session)
+    vanjam_id = get_vanjam_planning_area_id(session)
 
     stmt = planning_weather_stations_table.update().\
         where(sa.and_(planning_weather_stations_table.c.station_code == moose_lake,
