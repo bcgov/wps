@@ -13,7 +13,7 @@ def update_stations(stations_to_remove: List[PlanningWeatherStation],
                     all_planning_area_stations: List[PlanningWeatherStation],
                     to_add: List[HFIAdminAddedStation],
                     timestamp: datetime,
-                    username: str):
+                    username: str) -> List[PlanningWeatherStation]:
     """
         Orchestrates removal and addition of stations
     """
@@ -146,14 +146,20 @@ def get_next_order_by_planning_area(station_with_order_updates: List[PlanningWea
 def get_next_order(updated_stations: List[PlanningWeatherStation], other_stations: List[PlanningWeatherStation]):
     """
         Returns the next order for a list of planning stations based on updated and existing stations.
-        Updated stations will include and removals, so that list may have a smaller max order.
+        Updated stations include additions and removals, so the next order could be smaller than the
+        max order in the existing stations list.
     """
     updated_orders = [station.order_of_appearance_in_planning_area_list for station in updated_stations]
-    existing_orders = [station.order_of_appearance_in_planning_area_list for station in other_stations]
+
+    # An existing station could be removed and hence have no order
+    existing_orders = [
+        station.order_of_appearance_in_planning_area_list for station in other_stations
+        if station.order_of_appearance_in_planning_area_list is not None]
 
     if len(updated_orders) == 0:
         return max(existing_orders) + 1
-    if len(existing_orders) == 0:
-        return max(updated_orders) + 1
+    return max(updated_orders) + 1
 
-    return min(max(updated_orders) + 1, max(existing_orders) + 1)
+
+def get_unique_planning_area_ids(stations: List[PlanningWeatherStation]):
+    return list({station.planning_area_id for station in stations})
