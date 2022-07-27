@@ -1,9 +1,31 @@
 from datetime import datetime
 from app.db.models.hfi_calc import PlanningWeatherStation
-from app.hfi.hfi_admin import add_stations, get_next_order_by_planning_area, remove_stations, update_station_ordering
+from app.hfi.hfi_admin import add_stations, get_next_order_by_planning_area, get_unique_planning_area_ids, remove_stations, update_station_ordering
 from app.schemas.hfi_calc import HFIAdminAddedStation
 
 timestamp = datetime.fromisoformat("2019-06-10T18:42:49")
+
+
+def test_get_unique_planning_areas_dups():
+    stations = [PlanningWeatherStation(planning_area_id=1,
+                                       station_code=4,
+                                       order_of_appearance_in_planning_area_list=1),
+                PlanningWeatherStation(planning_area_id=1,
+                                       station_code=5,
+                                       order_of_appearance_in_planning_area_list=2)]
+    res = get_unique_planning_area_ids(stations)
+    assert res == [1]
+
+
+def test_get_unique_planning_areas_uniques():
+    stations = [PlanningWeatherStation(planning_area_id=1,
+                                       station_code=4,
+                                       order_of_appearance_in_planning_area_list=1),
+                PlanningWeatherStation(planning_area_id=2,
+                                       station_code=5,
+                                       order_of_appearance_in_planning_area_list=2)]
+    res = get_unique_planning_area_ids(stations)
+    assert res == [1, 2]
 
 
 def test_get_next_order_by_planning_area_no_stations():
