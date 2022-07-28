@@ -8,7 +8,7 @@ It does make the folder "api" redundant!
 # step 1 - classify
 
 ```bash
-python -m advisory.classify_hfi /home/sybrand/Workspace/wps/api/advisory/hfi20220720.tif out.tif
+python -m advisory.classify_hfi /my/path/to/hfi20220720.tif hfi_classified.tif
 ```
 
 Validate output, manuall:
@@ -17,7 +17,7 @@ qgis : TODO: elaborate
 # step 2 - polygonize
 
 ```bash
-
+python -m advisory.polygonize_hfi hfi_classified.tif hfi_classified.json
 ```
 
 
