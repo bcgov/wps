@@ -33,11 +33,20 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
 
 @router.get('/fire-zone-areas/', response_model=FireZoneAreaListResponse)
 async def get_zones(_=Depends(authentication_required)):
-    with get_read_session_scope() as session:
-        advisories = get_advisories(session)
-        zones = []
-        for advisory in advisories:
-            zones.append(FireZoneArea(mof_fire_zone_id=advisory.mof_fire_zone_id,
-                                      elevated_hfi_area=advisory.elevated_hfi_area,
-                                      elevated_hfi_percentage=advisory.elevated_hfi_percentage))
-        return FireZoneAreaListResponse(zones=zones)
+    try:
+        logger.info('/fire-zone-areas/')
+        with get_read_session_scope() as session:
+            logger.info('a')
+            advisories = get_advisories(session)
+            logger.info('b')
+            zones = []
+            logger.info('c')
+            for advisory in advisories:
+                logger.info('d')
+                zones.append(FireZoneArea(mof_fire_zone_id=advisory.mof_fire_zone_id,
+                                          elevated_hfi_area=advisory.elevated_hfi_area,
+                                          elevated_hfi_percentage=advisory.elevated_hfi_percentage))
+            logger.info('e')
+            return FireZoneAreaListResponse(zones=zones)
+    except Exception as exc:
+        logger.error(exc, exc_info=True)
