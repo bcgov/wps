@@ -6,6 +6,9 @@ from app.db.models.advisory import FireZoneAdvisory
 
 
 def generate_advisories():
+    # NOTE! This was a quick hack to get something to work locally - and is not the way
+    # we should approach it. I think we need to generate simplified zone polygons with
+    # layer properties that contain percentages etc. etc.
     with get_tileserver_session_scope() as tileserver_session:
         rows = get_hfi_area_percentages(tileserver_session)
 
