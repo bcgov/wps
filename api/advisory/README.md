@@ -20,4 +20,9 @@ qgis : TODO: elaborate
 python -m advisory.polygonize_hfi hfi_classified.tif hfi_classified.json
 ```
 
+# step 3 - import into db
+
+You can use ogr2ogr to immport the json file into the database.
+
+
 
