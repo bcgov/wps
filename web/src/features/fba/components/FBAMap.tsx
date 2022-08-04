@@ -4,6 +4,8 @@ import { defaults as defaultControls } from 'ol/control'
 import { fromLonLat, get } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
+import VectorLayer from 'ol/layer/Vector'
+import OLOverlay from 'ol/Overlay'
 import VectorTileSource from 'ol/source/VectorTile'
 import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
@@ -53,6 +55,7 @@ const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
+  const overlayRef = useRef<HTMLDivElement | null>(null)
   // const [fireZoneStyle, setFireZoneStyle] = useState(fireZoneStyler)
   // const [prevFireZoneVector, setPrevFireZoneVector] = useState<VectorTileLayer | null>(null)
   const [fireZoneVector, setFireZoneVector] = useState(
@@ -221,6 +224,50 @@ const FBAMap = (props: FBAMapProps) => {
         mapObject.getView().fit(fireCentreExtent.extent)
       }
     }
+
+    const source = new VectorSource()
+    const layer = new VectorLayer({
+      source: source
+    })
+
+    if (overlayRef.current) {
+      const hoverOverlay = new OLOverlay({
+        element: overlayRef.current,
+        autoPan: true,
+        autoPanAnimation: {
+          duration: 250
+        }
+      })
+
+      mapObject.addOverlay(hoverOverlay)
+
+      mapObject.on('pointermove', function (event) {
+        source.clear()
+        hoverOverlay?.setPosition(undefined)
+        mapObject.forEachFeatureAtPixel(
+          event.pixel,
+          function (feature) {
+            const geometry = feature.getGeometry()
+            if (geometry) {
+              const overlayCurrent = overlayRef.current
+              if (overlayCurrent) {
+                const hfiRange = feature.get('hfi')
+                if (hfiRange) {
+                  overlayCurrent.innerHTML = hfiRange
+                  hoverOverlay.setPosition(event.coordinate)
+                }
+              }
+            }
+          },
+          {
+            hitTolerance: 2
+          }
+        )
+      })
+    }
+
+    mapObject.addLayer(layer)
+
     setMap(mapObject)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -246,6 +293,7 @@ const FBAMap = (props: FBAMapProps) => {
     <ErrorBoundary>
       <div className={classes.main}>
         <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
+        <div ref={overlayRef} id="feature-overlay"></div>
       </div>
     </ErrorBoundary>
   )
