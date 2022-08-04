@@ -1,12 +1,9 @@
 import os
-import sys
 import json
 import tempfile
+from datetime import date
 import numpy as np
 from osgeo import gdal, ogr
-from pyproj import Transformer, Proj
-from shapely.ops import transform
-from shapely.geometry import shape, mapping
 
 
 def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransform):
@@ -25,46 +22,46 @@ def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransfor
     return dataset, band
 
 
-def _re_project_and_classify_geojson(source_json_filename: str,
-                                     source_projection: str) -> dict:
-    proj_from = Proj(projparams=source_projection)
-    proj_to = Proj('epsg:4326')
-    project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
+def classify_geojson(source_json_filename: str, today: date) -> dict:
     with open(source_json_filename, encoding="utf-8") as source_file:
         geojson_data = json.load(source_file)
 
         for feature in geojson_data.get('features', {}):
             properties = feature.get('properties', {})
+            properties['date'] = today.isoformat()
             hfi = properties.get('hfi', None)
             if hfi is not None:
                 if hfi == 1:
                     properties['hfi'] = '4000 > hfi < 10000'
                 elif hfi == 2:
                     properties['hfi'] = 'hfi >= 10000'
-            # Re-project to WGS84
-            source_geometry = shape(feature['geometry'])
-            geometry = transform(project.transform, source_geometry)
-            geojson_geometry = mapping(geometry)
-            feature['geometry']['coordinates'] = geojson_geometry['coordinates']
     return geojson_data
 
 
-def polygonize(geotiff_filename, geojson_filename):
+def polygonize(geotiff_filename, geojson_filename, today: date):
     classification = gdal.Open(geotiff_filename, gdal.GA_ReadOnly)
-    band = classification.GetRasterBand(1)
-    classification_data = band.ReadAsArray()
+
+    warp = gdal.Warp('hfi_wgs84.tiff', classification, dstSRS='EPSG:4326')
+    warp = None  # Closes the file so its written to disk
+    del classification, warp
+
+    wgs84_classification = gdal.Open('hfi_wgs84.tiff', gdal.GA_ReadOnly)
+    band = wgs84_classification.GetRasterBand(1)
+    classification_data = wgs84_classification.ReadAsArray()
 
     # generate mask data
     mask_data = np.where(classification_data == 0, False, True)
     mask_ds, mask_band = _create_in_memory_band(
-        mask_data, band.XSize, band.YSize, classification.GetProjection(),
-        classification.GetGeoTransform())
+        mask_data, band.XSize, band.YSize, wgs84_classification.GetProjection(),
+        wgs84_classification.GetGeoTransform())
 
     # Create a GeoJSON layer.
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'temp.geojson')
         geojson_driver = ogr.GetDriverByName('GeoJSON')
         dst_ds = geojson_driver.CreateDataSource(temp_filename)
+
+        # HFI Layer
         dst_layer = dst_ds.CreateLayer('hfi')
         field_name = ogr.FieldDefn("hfi", ogr.OFTInteger)
         field_name.SetWidth(24)
@@ -75,11 +72,10 @@ def polygonize(geotiff_filename, geojson_filename):
 
         # Ensure that all data in the target dataset is written to disk.
         dst_ds.FlushCache()
-        source_projection = classification.GetProjection()
         # Explicitly clean up (is this needed?)
-        del dst_ds, classification, mask_band, mask_ds
+        del dst_ds, mask_band, mask_ds
 
-        data = _re_project_and_classify_geojson(temp_filename, source_projection)
+        data = classify_geojson(temp_filename, today)
 
         # Remove any existing target file.
         if os.path.exists(geojson_filename):
@@ -89,7 +85,7 @@ def polygonize(geotiff_filename, geojson_filename):
 
 
 if __name__ == '__main__':
-    polygonize(sys.argv[1], sys.argv[2])
+    polygonize("out.tiff", "out.geojson", date.fromisoformat("2022-08-06"))
 
     """
     You can take the GeoJSON, and stick it into PostGIS:

@@ -24,8 +24,9 @@ const useStyles = makeStyles(() => ({
     height: 700
   },
   mapContainer: {
-    width: 900,
-    height: 700
+    width: '100%',
+    height: '100%',
+    position: 'absolute'
   },
   fireCenter: {
     minWidth: 280,
@@ -68,20 +69,20 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchFireCenters())
-    dispatch(fetchFireZoneAreas())
+    dispatch(fetchFireZoneAreas(dateOfInterest.toISODate()))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    dispatch(fetchFireZoneAreas(dateOfInterest.toISODate()))
+  }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <React.Fragment>
-      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="Predictive Services Unit" />
+      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="Fire Behaviour Advisory Tool" />
       <Container maxWidth={'xl'}>
-        <h1>
-          {/* (🔥🦇) */}
-          Fire Behaviour Advisory Tool
-        </h1>
         <Grid container direction={'row'}>
-          <Grid container spacing={2}>
+          <Grid container spacing={1}>
             <Grid item>
               <FormControl className={classes.formControl}>
                 <WPSDatePicker date={dateOfInterest} updateDate={updateDate} minDate={minDate} maxDate={maxDate} />
@@ -96,12 +97,10 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 />
               </FormControl>
             </Grid>
-            <Grid item>
-              <FBAMap selectedFireCenter={fireCenter} className={classes.mapContainer} />
-            </Grid>
           </Grid>
         </Grid>
       </Container>
+      <FBAMap date={dateOfInterest} selectedFireCenter={fireCenter} className={classes.mapContainer} />
     </React.Fragment>
   )
 }

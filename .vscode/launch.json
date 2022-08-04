@@ -56,6 +56,13 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "advisory polygonize",
+            "type": "python",
+            "request": "launch",
+            "module": "api.advisory.polygonize_hfi",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Chrome",
             "type": "pwa-chrome",
             "request": "launch",
