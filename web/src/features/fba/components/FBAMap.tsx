@@ -179,7 +179,7 @@ const FBAMap = (props: FBAMapProps) => {
     const layer = map
       .getLayers()
       .getArray()
-      .find(layer => layer.getProperties()?.name === 'hfiVector')
+      .find(l => l.getProperties()?.name === 'hfiVector')
     if (layer) {
       map.removeLayer(layer)
     }
