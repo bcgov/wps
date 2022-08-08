@@ -78,7 +78,7 @@ const FBAMap = (props: FBAMapProps) => {
       const layer = map
         .getLayers()
         .getArray()
-        .find(layer => layer.getProperties()?.name === 'fireZoneVector')
+        .find(l => l.getProperties()?.name === 'fireZoneVector')
       if (layer) {
         map.removeLayer(layer)
       }
