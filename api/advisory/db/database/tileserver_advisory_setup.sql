@@ -1,3 +1,4 @@
+-- TODO: Remove when we have a migration toolchain in place
 CREATE TABLE IF NOT EXISTS advisory_fire_zones (
     id SERIAL PRIMARY KEY,
     for_date DATE NOT NULL,

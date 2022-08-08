@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 import tempfile
 from datetime import date
 import numpy as np
@@ -85,8 +86,7 @@ def polygonize(geotiff_filename, geojson_filename, today: date):
 
 
 if __name__ == '__main__':
-    polygonize("out.tiff", "out.geojson", date.fromisoformat("2022-08-06"))
-
+    polygonize(sys.argv[1], sys.argv[2], sys.argv[3])
     """
     You can take the GeoJSON, and stick it into PostGIS:
 
