@@ -58,8 +58,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [fireCenter])
 
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
-  const minDate = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).minus({ days: 1 })
-  const maxDate = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 3 })
 
   const updateDate = (newDate: DateTime) => {
     if (newDate !== dateOfInterest) {
@@ -85,7 +83,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid container spacing={1}>
             <Grid item>
               <FormControl className={classes.formControl}>
-                <WPSDatePicker date={dateOfInterest} updateDate={updateDate} minDate={minDate} maxDate={maxDate} />
+                <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
               </FormControl>
             </Grid>
             <Grid item xs={2}>
