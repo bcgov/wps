@@ -34,7 +34,7 @@ import { DateTime } from 'luxon'
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
-const TILE_SERVER_URL = 'http://0.0.0.0:7800'
+const TILE_SERVER_URL = 'https://tileserv-dev.apps.silver.devops.gov.bc.ca'
 
 export interface FBAMapProps {
   testId?: string
