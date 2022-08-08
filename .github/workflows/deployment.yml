@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-      - roles
+      - story/classify-hfi-multiple-days
 
 jobs:
   prepare-dev-database:
