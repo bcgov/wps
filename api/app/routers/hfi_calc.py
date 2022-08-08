@@ -467,7 +467,7 @@ async def admin_update_stations(request: HFIAdminStationUpdateRequest,
         except IntegrityError as exception:
             logger.info(exception, exc_info=exception)
             db_session.rollback()
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,  # pylint: disable=raise-missing-from
                                 detail="Station already exists in planning area")
 
 
