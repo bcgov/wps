@@ -8,7 +8,6 @@ from advisory.db.database.tileserver import get_tileserver_read_session_scope
 from app.auth import authentication_required, audit
 from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
-from app.db.database import get_read_session_scope
 from app.db.crud.fba_advisory import get_advisories
 
 logger = logging.getLogger(__name__)
