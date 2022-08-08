@@ -5,6 +5,7 @@ from typing import List, Optional, Dict, Tuple
 from datetime import date
 from jinja2 import Environment, FunctionLoader
 from fastapi import APIRouter, HTTPException, Response, Depends, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from pydantic.error_wrappers import ValidationError
 from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
@@ -458,10 +459,16 @@ async def admin_update_stations(request: HFIAdminStationUpdateRequest,
             timestamp,
             username)
         affected_planning_area_ids = get_unique_planning_area_ids(stations_to_save)
-        save_hfi_stations(db_session, stations_to_save)
-        unready_planning_areas(db_session, request.fire_centre_id,
-                               username, affected_planning_area_ids)
-    clear_cached_hydrated_fire_centres()
+        try:
+            save_hfi_stations(db_session, stations_to_save)
+            unready_planning_areas(db_session, request.fire_centre_id,
+                                   username, affected_planning_area_ids)
+            clear_cached_hydrated_fire_centres()
+        except IntegrityError as exception:
+            logger.info(exception, exc_info=exception)
+            db_session.rollback()
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Station already exists in planning area")
 
 
 @router.get('/fire_centre/{fire_centre_id}/{start_date}/{end_date}/pdf')
