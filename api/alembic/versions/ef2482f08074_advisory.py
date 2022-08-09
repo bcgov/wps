@@ -1,7 +1,7 @@
 """Advisory
 
 Revision ID: ef2482f08074
-Revises: 6d29ebbf61f7
+Revises: 62d35d76e1bf
 Create Date: 2022-07-26 18:43:07.572588
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'ef2482f08074'
-down_revision = '6d29ebbf61f7'
+down_revision = '62d35d76e1bf'
 branch_labels = None
 depends_on = None
 
