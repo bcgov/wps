@@ -356,7 +356,6 @@ export const fetchAddOrUpdateStations =
       dispatch(setChangeSaved(true))
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        console.log(err.response?.data.detail)
         dispatch(getHFIResultFailed(err.response?.data.detail))
       } else {
         dispatch(getHFIResultFailed((err as Error).toString()))
