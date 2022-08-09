@@ -21,27 +21,20 @@ router = APIRouter(
 @router.get('/fire-centers', response_model=FireCenterListResponse)
 async def get_all_fire_centers(_=Depends(authentication_required)):
     """ Returns fire centers for all active stations. """
-    try:
-        logger.info('/fba/fire-centers/')
-        async with ClientSession() as session:
-            header = await get_auth_header(session)
-            fire_centers = await get_fire_centers(session, header)
-        return FireCenterListResponse(fire_centers=fire_centers)
-    except Exception as exc:
-        logger.critical(exc, exc_info=True)
-        raise
+    logger.info('/fba/fire-centers/')
+    async with ClientSession() as session:
+        header = await get_auth_header(session)
+        fire_centers = await get_fire_centers(session, header)
+    return FireCenterListResponse(fire_centers=fire_centers)
 
 
 @router.get('/fire-zone-areas/{for_date}', response_model=FireZoneAreaListResponse)
 async def get_zones(for_date: date, _=Depends(authentication_required)):
-    try:
-        with get_tileserver_read_session_scope() as session:
-            advisories = get_advisories(session, for_date)
-            zones = []
-            for advisory in advisories:
-                zones.append(FireZoneArea(mof_fire_zone_id=advisory.mof_fire_zone_id,
-                                          elevated_hfi_area=advisory.elevated_hfi_area,
-                                          elevated_hfi_percentage=advisory.elevated_hfi_percentage))
-            return FireZoneAreaListResponse(zones=zones)
-    except Exception as exc:
-        logger.error(exc, exc_info=True)
+    with get_tileserver_read_session_scope() as session:
+        advisories = get_advisories(session, for_date)
+        zones = []
+        for advisory in advisories:
+            zones.append(FireZoneArea(mof_fire_zone_id=advisory.mof_fire_zone_id,
+                                      elevated_hfi_area=advisory.elevated_hfi_area,
+                                      elevated_hfi_percentage=advisory.elevated_hfi_percentage))
+        return FireZoneAreaListResponse(zones=zones)

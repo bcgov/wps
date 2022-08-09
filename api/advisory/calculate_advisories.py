@@ -1,3 +1,4 @@
+""" Proof of concept - generating advisories """
 from datetime import date
 from advisory.db.database.tileserver import get_tileserver_write_session_scope
 from advisory.db.crud import get_hfi_area_percentages

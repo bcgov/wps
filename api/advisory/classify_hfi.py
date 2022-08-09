@@ -1,3 +1,5 @@
+""" Proof of concept, run classification on HFI GeoTiff
+"""
 import os
 import sys
 import numpy as np
