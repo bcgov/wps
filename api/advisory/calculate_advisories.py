@@ -30,5 +30,4 @@ async def generate_advisories(today: date):
 
 
 if __name__ == '__main__':
-    today = date.fromisoformat(sys.argv[1])
-    asyncio.run(generate_advisories(today))
+    asyncio.run(generate_advisories(date.fromisoformat(sys.argv[1])))

@@ -18,19 +18,10 @@ async def get_hfi_area_percentages(session: AsyncSession, for_date: date) -> Lis
                   FireZone.mof_fire_zone_id,
                   FireZone.mof_fire_zone_name,
                   FireZone.geom.ST_Transform(3005).ST_Area().label('zone_area'),
-                  Hfi.wkb_geometry.ST_Union().ST_Intersection(FireZone.geom).ST_Transform(3005).ST_Area().label('hfi_area'))\
+                  Hfi.wkb_geometry.ST_Union().ST_Intersection(FireZone.geom)
+                  .ST_Transform(3005).ST_Area().label('hfi_area'))\
         .join(Hfi, Hfi.wkb_geometry.ST_Intersects(FireZone.geom))\
         .where(Hfi.date == for_date)\
         .group_by(FireZone.id)
     result = await session.execute(stmt)
     return result.all()
-
-    # return session.query(
-    #     FireZone.id,
-    #     FireZone.mof_fire_zone_id,
-    #     FireZone.mof_fire_zone_name,
-    #     FireZone.geom.ST_Transform(3005).ST_Area().label('zone_area'),
-    #     Hfi.wkb_geometry.ST_Union().ST_Intersection(FireZone.geom).ST_Transform(3005).ST_Area().label('hfi_area'))\
-    #     .join(Hfi, Hfi.wkb_geometry.ST_Intersects(FireZone.geom))\
-    #     .filter(Hfi.date == for_date)\
-    #     .group_by(FireZone.id)
