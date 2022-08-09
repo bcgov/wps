@@ -33,8 +33,8 @@ export async function getFBAFireCenters(): Promise<FBAResponse> {
   return data
 }
 
-export async function getFireZoneAreas(): Promise<ZoneAreaListResponse> {
-  const url = '/fba/fire-zone-areas'
+export async function getFireZoneAreas(for_date: string): Promise<ZoneAreaListResponse> {
+  const url = `/fba/fire-zone-areas/${for_date}`
 
   const { data } = await axios.get(url, {})
   return data

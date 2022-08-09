@@ -41,13 +41,15 @@ export const { getFireZoneAreasStart, getFireZoneAreasFailed, getFireZoneAreasSu
 
 export default fireZoneAreasSlice.reducer
 
-export const fetchFireZoneAreas = (): AppThunk => async dispatch => {
-  try {
-    dispatch(getFireZoneAreasStart())
-    const fireZoneAreas = await getFireZoneAreas()
-    dispatch(getFireZoneAreasSuccess(fireZoneAreas))
-  } catch (err) {
-    dispatch(getFireZoneAreasFailed((err as Error).toString()))
-    logError(err)
+export const fetchFireZoneAreas =
+  (for_date: string): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getFireZoneAreasStart())
+      const fireZoneAreas = await getFireZoneAreas(for_date)
+      dispatch(getFireZoneAreasSuccess(fireZoneAreas))
+    } catch (err) {
+      dispatch(getFireZoneAreasFailed((err as Error).toString()))
+      logError(err)
+    }
   }
-}

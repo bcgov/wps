@@ -1,12 +1,13 @@
 """ Routers for new/formal/non-tinker fba.
 """
 import logging
+from datetime import date
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
+from advisory.db.database.tileserver import get_tileserver_read_session_scope
 from app.auth import authentication_required, audit
 from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
-from app.db.database import get_read_session_scope
 from app.db.crud.fba_advisory import get_advisories
 
 logger = logging.getLogger(__name__)
@@ -31,11 +32,11 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
         raise
 
 
-@router.get('/fire-zone-areas', response_model=FireZoneAreaListResponse)
-async def get_zones(_=Depends(authentication_required)):
+@router.get('/fire-zone-areas/{for_date}', response_model=FireZoneAreaListResponse)
+async def get_zones(for_date: date, _=Depends(authentication_required)):
     try:
-        with get_read_session_scope() as session:
-            advisories = get_advisories(session)
+        with get_tileserver_read_session_scope() as session:
+            advisories = get_advisories(session, for_date)
             zones = []
             for advisory in advisories:
                 zones.append(FireZoneArea(mof_fire_zone_id=advisory.mof_fire_zone_id,
