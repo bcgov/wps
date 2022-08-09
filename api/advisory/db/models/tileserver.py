@@ -1,7 +1,7 @@
 """ We don't want alembic to manage the models in here!
 """
 
-from sqlalchemy import (Column, Integer, Float, String, ForeignKey)
+from sqlalchemy import (Column, Integer, Date, String)
 from geoalchemy2 import Geometry
 from app.db.database import Base
 
@@ -11,6 +11,7 @@ class Hfi(Base):
     """
     __tablename__ = 'hfi'
     ogc_fid = Column(Integer, primary_key=True, index=True)
+    date = Column(Date, nullable=False)
     wkb_geometry = Column(Geometry('POLYGON'))
 
 
