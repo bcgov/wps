@@ -1,11 +1,13 @@
 """ Create/Read/Update/Delete """
 from datetime import date
+from typing import List
 from sqlalchemy import select
+from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from advisory.db.models.tileserver import (Hfi, FireZone)
 
 
-async def get_hfi_area_percentages(session: AsyncSession, for_date: date):
+async def get_hfi_area_percentages(session: AsyncSession, for_date: date) -> List[Row]:
     """ This is terribly slow!
 
     For each fire zone, it gives you the area of the fire zone, and the area of hfi polygons
@@ -21,7 +23,7 @@ async def get_hfi_area_percentages(session: AsyncSession, for_date: date):
         .where(Hfi.date == for_date)\
         .group_by(FireZone.id)
     result = await session.execute(stmt)
-    return result.scalars()
+    return result.all()
 
     # return session.query(
     #     FireZone.id,

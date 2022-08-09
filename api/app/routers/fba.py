@@ -30,7 +30,7 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
 
 @router.get('/fire-zone-areas/{for_date}', response_model=FireZoneAreaListResponse)
 async def get_zones(for_date: date, _=Depends(authentication_required)):
-    with await get_tileserver_read_session_scope() as session:
+    async with get_tileserver_read_session_scope() as session:
         advisories = await get_advisories(session, for_date)
         zones = []
         for advisory in advisories:
