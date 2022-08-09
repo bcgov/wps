@@ -1,9 +1,10 @@
 from sqlalchemy.orm import Session
+from datetime import date
 from advisory.db.models.tileserver import (Hfi, FireZone)
-from advisory.db.database.tileserver import get_tileserver_session_scope
+from advisory.db.database.tileserver import get_tileserver_read_session_scope
 
 
-def get_hfi_area_percentages(session: Session):
+def get_hfi_area_percentages(session: Session, for_date: date):
     """ This is terribly slow!
 
     For each fire zone, it gives you the area of the fire zone, and the area of hfi polygons
@@ -15,5 +16,7 @@ def get_hfi_area_percentages(session: Session):
         FireZone.mof_fire_zone_id,
         FireZone.mof_fire_zone_name,
         FireZone.geom.ST_Transform(3005).ST_Area().label('zone_area'),
-        Hfi.wkb_geometry.ST_Union().ST_Intersection(FireZone.geom).ST_Transform(3005).ST_Area().label('hfi_area')
-    ).join(Hfi, Hfi.wkb_geometry.ST_Intersects(FireZone.geom)).group_by(FireZone.id)
+        Hfi.wkb_geometry.ST_Union().ST_Intersection(FireZone.geom).ST_Transform(3005).ST_Area().label('hfi_area'))\
+        .join(Hfi, Hfi.wkb_geometry.ST_Intersects(FireZone.geom))\
+        .filter(Hfi.date == for_date)\
+        .group_by(FireZone.id)
