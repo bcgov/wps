@@ -1,3 +1,31 @@
+"""
+    You can take the GeoJSON, and stick it into PostGIS:
+
+    ```bash
+    ogr2ogr -f "PostgreSQL" PG:"dbname=tileserv host=localhost user=tileserv password=tileserv"\
+             "hfi_classified.json" -nlt MULTIPOLYGON -lco precision=NO -nln hfi -overwrite
+    ```
+
+    You could throw it into a development database on openshift, by port forwarding there:
+
+    ```bash
+    oc port-forward my-database-pod 5432:5432
+    ```
+
+    You can then take something like pg_tileserv to serve it up:
+
+    Download the latest [pg_tileserver](https://github.com/CrunchyData/pg_tileserv), unzip and
+    start.
+
+    ```bash
+    mkdir pg_tileserv
+    cd pg_tileserv
+    wget https://postgisftw.s3.amazonaws.com/pg_tileserv_latest_linux.zip
+    unzip pg_tileserv
+    export DATABASE_URL=postgresql://tileserv:tileserv@localhost/tileserv
+    ./pg_tileserv
+    ```
+"""
 import os
 import json
 import sys
@@ -81,35 +109,9 @@ def polygonize(geotiff_filename, geojson_filename, today: date):
         # Remove any existing target file.
         if os.path.exists(geojson_filename):
             os.remove(geojson_filename)
-        with open(geojson_filename, 'w') as file_pointer:
+        with open(geojson_filename, 'w', encoding='utf-8') as file_pointer:
             json.dump(data, file_pointer, indent=2)
 
 
 if __name__ == '__main__':
     polygonize(sys.argv[1], sys.argv[2], sys.argv[3])
-    """
-    You can take the GeoJSON, and stick it into PostGIS:
-
-    ```bash
-    ogr2ogr -f "PostgreSQL" PG:"dbname=tileserv host=localhost user=tileserv password=tileserv" "hfi_classified.json" -nlt MULTIPOLYGON -lco precision=NO -nln hfi -overwrite
-    ```
-
-    You could throw it into a development database on openshift, by port forwarding there:
-
-    ```bash
-    oc port-forward my-database-pod 5432:5432
-    ```
-
-    You can then take something like pg_tileserv to serve it up:
-
-    Download the latest [pg_tileserver](https://github.com/CrunchyData/pg_tileserv), unzip and start.
-
-    ```bash
-    mkdir pg_tileserv
-    cd pg_tileserv
-    wget https://postgisftw.s3.amazonaws.com/pg_tileserv_latest_linux.zip
-    unzip pg_tileserv
-    export DATABASE_URL=postgresql://tileserv:tileserv@localhost/tileserv
-    ./pg_tileserv
-    ```
-"""
