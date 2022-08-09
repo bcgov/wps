@@ -18,16 +18,10 @@ postgres_port = config.get('POSTGRES_PORT', '5432')
 TILESERVER_READ_STRING = f'postgresql+asyncpg://{tileserver_read_user}:{tileserver_postgres_password}@{tileserver_postgres_read_host}:{postgres_port}/{tileserver_postgres_database}'
 TILESERVER_WRITE_STRING = f'postgresql+asyncpg://{tileserver_write_user}:{tileserver_postgres_password}@{tileserver_postgres_write_host}:{postgres_port}/{tileserver_postgres_database}'
 
+# TODO: figure out connection pooling?
 tile_server_read_engine = create_async_engine(TILESERVER_READ_STRING)
-# TODO: what about these other params?
-# pool_size=int(config.get('POSTGRES_POOL_SIZE', 5)),
-# max_overflow=int(config.get('POSTGRES_MAX_OVERFLOW', 10)),
-# pool_pre_ping=True, connect_args={
-# 'options': '-c timezone=utc'})
 
-# connect to database - defaulting to always use utc timezone
 tile_server_write_engine = create_async_engine(TILESERVER_WRITE_STRING)
-# TODO: how do you tell asyncpg to use utc? e.g. connect_args={'options': '-c timezone=utc'})
 
 tile_server_read_session_maker = sessionmaker(
     autocommit=False, autoflush=False, bind=tile_server_read_engine, class_=AsyncSession)
@@ -54,10 +48,6 @@ async def get_tileserver_read_session_scope() -> AsyncGenerator[AsyncSession, No
     session = _get_tileserver_read_session()
     try:
         yield session
-        await session.commit()
-    except Exception:
-        await session.rollback()
-        raise
     finally:
         await session.close()
 

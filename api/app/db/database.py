@@ -1,7 +1,7 @@
 """ Setup database to perform CRUD transactions
 """
 import logging
-from typing import Generator
+from typing import Generator, AsyncGenerator
 from contextlib import contextmanager, asynccontextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -39,12 +39,8 @@ _read_engine = create_engine(
     pool_pre_ping=True, connect_args={
         'options': '-c timezone=utc'})
 
-_async_read_engine = create_async_engine(
-    ASYNC_DB_READ_STRING,
-    pool_size=int(config.get('POSTGRES_POOL_SIZE', 5)),
-    max_overflow=int(config.get('POSTGRES_MAX_OVERFLOW', 10)),
-    pool_pre_ping=True, connect_args={
-        'options': '-c timezone=utc'})
+# TODO: figure out connection pooling? pre-ping etc.?
+_async_read_engine = create_async_engine(ASYNC_DB_READ_STRING)
 
 # bind session to database
 # avoid using these variables anywhere outside of context manager - if
@@ -54,41 +50,43 @@ _write_session = sessionmaker(
     autocommit=False, autoflush=False, bind=_write_engine)
 _read_session = sessionmaker(
     autocommit=False, autoflush=False, bind=_read_engine)
-_async_read_session = sessionmaker(
+_async_read_sessionmaker = sessionmaker(
     autocommit=False, autoflush=False, bind=_async_read_engine, class_=AsyncSession)
 
 # constructing a base class for declarative class definitions
 Base = declarative_base()
 
 
-def _get_write_session() -> sessionmaker:
+def _get_write_session() -> Session:
     """ abstraction used for mocking out a write session """
     return _write_session()
 
 
-def _get_read_session() -> sessionmaker:
+def _get_read_session() -> Session:
     """ abstraction used for mocking out a read session """
     return _read_session()
 
 
-def _get_async_read_session() -> sessionmaker:
+def _get_async_read_session() -> AsyncSession:
     """ abstraction used for mocking out a read session """
-    return _async_read_session()
+    return _async_read_sessionmaker()
 
 
 @asynccontextmanager
-async def get_async_read_session_scope():
+async def get_async_read_session_scope() -> AsyncGenerator[AsyncSession, None]:
     """ Return a session scope for async read session """
-    async with _get_async_read_session() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+    session = _get_async_read_session()
+    try:
+        yield session
+    finally:
+        await session.close()
 
 
 @contextmanager
 def get_read_session_scope() -> Generator[Session, None, None]:
-    """Provide a transactional scope around a series of operations."""
+    """Provide a transactional scope around a series of operations.
+    THIS METHOD IS DEPRECATED! PLEASE MOVE TO USING: get_async_read_session_scope
+    """
     session = _get_read_session()
     try:
         yield session
@@ -99,7 +97,9 @@ def get_read_session_scope() -> Generator[Session, None, None]:
 
 @contextmanager
 def get_write_session_scope() -> Generator[Session, None, None]:
-    """Provide a transactional scope around a series of operations."""
+    """Provide a transactional scope around a series of operations.
+    THIS METHOD IS DEPRECATED! PLEASE MOVE TO USING: get_async_write_session_scope
+    """
     session = _get_write_session()
     try:
         yield session
