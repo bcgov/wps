@@ -2,7 +2,7 @@
 """
 import uuid
 from sqlalchemy import (Boolean, Column, Integer,
-                        Sequence, ForeignKey, UniqueConstraint)
+                        Sequence, ForeignKey, UniqueConstraint, Index)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql.sqltypes import String, Date, JSON
 from app.db.database import Base
@@ -68,6 +68,10 @@ class PlanningWeatherStation(Base):
     __table_args__ = (
         UniqueConstraint('order_of_appearance_in_planning_area_list',
                          'planning_area_id', name='unique_order_for_planning_area'),
+        Index('unique_non_deleted_station_per_planning_area',
+              'is_deleted', 'station_code', 'planning_area_id',
+              unique=True,
+              postgresql_where=('not is_deleted')),
         {'comment': 'Identifies the unique code used to identify the station'}
     )
 
