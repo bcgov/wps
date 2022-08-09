@@ -20,6 +20,7 @@ import {
 import { DateTime } from 'luxon'
 import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { isUndefined } from 'lodash'
+import axios from 'axios'
 
 export interface FireStartRange {
   label: string
@@ -354,7 +355,11 @@ export const fetchAddOrUpdateStations =
       dispatch(loadStationUpdateEnd())
       dispatch(setChangeSaved(true))
     } catch (err) {
-      dispatch(getHFIResultFailed((err as Error).toString()))
+      if (axios.isAxiosError(err)) {
+        dispatch(getHFIResultFailed(err.response?.data.detail))
+      } else {
+        dispatch(getHFIResultFailed((err as Error).toString()))
+      }
       logError(err)
     }
   }
