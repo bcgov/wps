@@ -53,6 +53,9 @@ RUN cd /tmp && \
 
 WORKDIR /app
 COPY ./app /app/app
+# TODO: we need to do this better.
+RUN mkdir /app/advisory
+COPY ./advisory /app/advisory
 RUN mkdir /app/libs
 COPY ./libs /app/libs
 
