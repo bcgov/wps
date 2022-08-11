@@ -109,7 +109,7 @@ api.include_router(hfi_calc.router, tags=["HFI"])
 api.include_router(fba_calc.router, tags=["FBA Calc"])
 api.include_router(fba.router, tags=["FBA"])
 api.include_router(fwi_calc.router, tags=["FWI"])
-api.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
+# api.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
 
 # cog_router = APIRouter(prefix="/cog")
 # cog = TilerFactory()

@@ -1,15 +1,4 @@
 [[package]]
-name = "affine"
-version = "2.3.1"
-description = "Matrices describing affine transformation of the plane."
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.extras]
-test = ["pytest (>=4.6)", "pytest-cov", "pydocstyle", "flake8", "coveralls"]
-
-[[package]]
 name = "aiobotocore"
 version = "2.3.4"
 description = "Async client for aws services using botocore and aiohttp"
@@ -293,22 +282,6 @@ css = ["tinycss2 (>=1.1.0,<1.2)"]
 dev = ["build (==0.8.0)", "flake8 (==4.0.1)", "hashin (==0.17.0)", "pip-tools (==6.6.2)", "pytest (==7.1.2)", "Sphinx (==4.3.2)", "tox (==3.25.0)", "twine (==4.0.1)", "wheel (==0.37.1)", "black (==22.3.0)", "mypy (==0.961)"]
 
 [[package]]
-name = "boto3"
-version = "1.21.21"
-description = "The AWS SDK for Python"
-category = "main"
-optional = false
-python-versions = ">= 3.6"
-
-[package.dependencies]
-botocore = ">=1.24.21,<1.25.0"
-jmespath = ">=0.7.1,<2.0.0"
-s3transfer = ">=0.5.0,<0.6.0"
-
-[package.extras]
-crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
-
-[[package]]
 name = "botocore"
 version = "1.24.21"
 description = "Low-level, data-driven core of boto 3."
@@ -323,14 +296,6 @@ urllib3 = ">=1.25.4,<1.27"
 
 [package.extras]
 crt = ["awscrt (==0.13.5)"]
-
-[[package]]
-name = "cachetools"
-version = "5.2.0"
-description = "Extensible memoizing collections and decorators"
-category = "main"
-optional = false
-python-versions = "~=3.7"
 
 [[package]]
 name = "certifi"
@@ -626,21 +591,6 @@ packaging = "*"
 SQLAlchemy = ">=1.4"
 
 [[package]]
-name = "geojson-pydantic"
-version = "0.4.3"
-description = "Pydantic data models for the GeoJSON spec."
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[package.dependencies]
-pydantic = "*"
-
-[package.extras]
-test = ["shapely", "pytest-cov", "pytest"]
-dev = ["pre-commit"]
-
-[[package]]
 name = "geopandas"
 version = "0.11.1"
 description = "Geographic pandas extensions"
@@ -689,44 +639,6 @@ description = "Python wrapper for hiredis"
 category = "main"
 optional = false
 python-versions = ">=3.6"
-
-[[package]]
-name = "httpcore"
-version = "0.15.0"
-description = "A minimal low-level HTTP client."
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[package.dependencies]
-anyio = ">=3.0.0,<4.0.0"
-certifi = "*"
-h11 = ">=0.11,<0.13"
-sniffio = ">=1.0.0,<2.0.0"
-
-[package.extras]
-http2 = ["h2 (>=3,<5)"]
-socks = ["socksio (>=1.0.0,<2.0.0)"]
-
-[[package]]
-name = "httpx"
-version = "0.23.0"
-description = "The next generation HTTP client."
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[package.dependencies]
-certifi = "*"
-httpcore = ">=0.15.0,<0.16.0"
-rfc3986 = {version = ">=1.3,<2", extras = ["idna2008"]}
-sniffio = "*"
-
-[package.extras]
-brotli = ["brotlicffi", "brotli"]
-cli = ["click (>=8.0.0,<9.0.0)", "rich (>=10,<13)", "pygments (>=2.0.0,<3.0.0)"]
-http2 = ["h2 (>=3,<5)"]
-socks = ["socksio (>=1.0.0,<2.0.0)"]
 
 [[package]]
 name = "idna"
@@ -1138,25 +1050,6 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "morecantile"
-version = "3.1.2"
-description = "Construct and use map tile grids (a.k.a TileMatrixSet / TMS)."
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[package.dependencies]
-attrs = "*"
-pydantic = "*"
-pyproj = ">=3.1,<4.0"
-
-[package.extras]
-dev = ["pytest", "pytest-cov", "pre-commit"]
-docs = ["mkdocs", "mkdocs-material", "pygments"]
-rasterio = ["rasterio (>=1.2.1)"]
-test = ["mercantile", "pytest", "pytest-cov"]
-
-[[package]]
 name = "multidict"
 version = "6.0.2"
 description = "multidict implementation"
@@ -1296,18 +1189,6 @@ python-versions = ">=2.6,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
 
 [package.extras]
 cryptography = ["cryptography (<2.2)", "cryptography"]
-
-[[package]]
-name = "numexpr"
-version = "2.8.3"
-description = "Fast numerical expression evaluator for NumPy"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[package.dependencies]
-numpy = ">=1.13.3"
-packaging = "*"
 
 [[package]]
 name = "numpy"
@@ -1698,21 +1579,6 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
-name = "pystac"
-version = "1.6.1"
-description = "Python library for working with Spatiotemporal Asset Catalog (STAC)."
-category = "main"
-optional = false
-python-versions = ">=3.8"
-
-[package.dependencies]
-python-dateutil = ">=2.7.0"
-
-[package.extras]
-orjson = ["orjson (>=3.5)"]
-validation = ["jsonschema (>=4.0.1)"]
-
-[[package]]
 name = "pytest"
 version = "7.1.2"
 description = "pytest: simple powerful testing with Python"
@@ -1941,32 +1807,6 @@ packaging = "*"
 test = ["pytest-qt", "pytest-cov (>=3.0.0)", "pytest (>=6,!=7.0.0,!=7.0.1)"]
 
 [[package]]
-name = "rasterio"
-version = "1.3.0.post1"
-description = "Fast and direct raster I/O for use with Numpy and SciPy"
-category = "main"
-optional = false
-python-versions = ">=3.8"
-
-[package.dependencies]
-affine = "*"
-attrs = "*"
-certifi = "*"
-click = ">=4.0"
-click-plugins = "*"
-cligj = ">=0.5"
-numpy = ">=1.18"
-snuggs = ">=1.4.1"
-
-[package.extras]
-all = ["sphinx-rtd-theme", "pytest-cov (>=2.2.0)", "sphinx", "numpydoc", "packaging", "shapely", "hypothesis", "ghp-import", "matplotlib", "ipython (>=2.0)", "boto3 (>=1.2.4)", "pytest (>=2.8.2)"]
-docs = ["ghp-import", "numpydoc", "sphinx", "sphinx-rtd-theme"]
-ipython = ["ipython (>=2.0)"]
-plot = ["matplotlib"]
-s3 = ["boto3 (>=1.2.4)"]
-test = ["boto3 (>=1.2.4)", "hypothesis", "packaging", "pytest-cov (>=2.2.0)", "pytest (>=2.8.2)", "shapely"]
-
-[[package]]
 name = "redis"
 version = "4.3.4"
 description = "Python client for Redis database and key-value store"
@@ -2015,78 +1855,6 @@ ntlm-auth = ">=1.0.2"
 requests = ">=2.0.0"
 
 [[package]]
-name = "rfc3986"
-version = "1.5.0"
-description = "Validating URI References per RFC 3986"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-idna = {version = "*", optional = true, markers = "extra == \"idna2008\""}
-
-[package.extras]
-idna2008 = ["idna"]
-
-[[package]]
-name = "rio-color"
-version = "1.0.4"
-description = "Color correction plugin for rasterio"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-click = ">=4.0"
-rasterio = ">=1.0,<2.0"
-rio-mucho = "*"
-
-[package.extras]
-test = ["codecov", "pytest-cov", "colormath (==2.0.2)", "pytest"]
-
-[[package]]
-name = "rio-mucho"
-version = "1.0.0"
-description = "Windowed multiprocessing wrapper for rasterio"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-numpy = "*"
-rasterio = ">=1.0,<2.0"
-
-[package.extras]
-test = ["pytest", "pytest-cov", "coveralls"]
-
-[[package]]
-name = "rio-tiler"
-version = "3.1.6"
-description = "User friendly Rasterio plugin to read raster datasets."
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[package.dependencies]
-attrs = "*"
-boto3 = "*"
-cachetools = "*"
-httpx = "*"
-importlib_resources = {version = ">=1.1.0", markers = "python_version < \"3.9\""}
-morecantile = ">=3.1,<4.0"
-numexpr = "*"
-numpy = "*"
-pydantic = "*"
-pystac = ">=0.5.4"
-rasterio = ">=1.1.7"
-rio-color = "*"
-
-[package.extras]
-dev = ["pre-commit"]
-docs = ["nbconvert", "mkdocs", "mkdocs-jupyter", "mkdocs-material", "pygments"]
-test = ["pytest", "pytest-asyncio", "pytest-benchmark", "pytest-cov"]
-
-[[package]]
 name = "rope"
 version = "1.3.0"
 description = "a python refactoring library..."
@@ -2122,20 +1890,6 @@ numpy = ["pandas"]
 pandas = ["numpy", "pandas"]
 setup = ["setuptools"]
 test = ["pytest"]
-
-[[package]]
-name = "s3transfer"
-version = "0.5.2"
-description = "An Amazon S3 Transfer Manager"
-category = "main"
-optional = false
-python-versions = ">= 3.6"
-
-[package.dependencies]
-botocore = ">=1.12.36,<2.0a.0"
-
-[package.extras]
-crt = ["botocore[crt] (>=1.20.29,<2.0a.0)"]
 
 [[package]]
 name = "scikit-learn"
@@ -2211,14 +1965,6 @@ test = ["pytest", "pytest-cov"]
 vectorized = ["numpy"]
 
 [[package]]
-name = "simplejson"
-version = "3.17.6"
-description = "Simple, fast, extensible JSON encoder/decoder for Python"
-category = "main"
-optional = false
-python-versions = ">=2.5, !=3.0.*, !=3.1.*, !=3.2.*"
-
-[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -2244,21 +1990,6 @@ description = "Sniff out which async library your code is running under"
 category = "main"
 optional = false
 python-versions = ">=3.5"
-
-[[package]]
-name = "snuggs"
-version = "1.4.7"
-description = "Snuggs are s-expressions for Numpy"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-numpy = "*"
-pyparsing = ">=2.1.6"
-
-[package.extras]
-test = ["pytest", "hypothesis"]
 
 [[package]]
 name = "soupsieve"
@@ -2369,28 +2100,6 @@ webencodings = ">=0.4"
 [package.extras]
 doc = ["sphinx", "sphinx-rtd-theme"]
 test = ["pytest", "pytest-cov", "pytest-flake8", "pytest-isort", "coverage"]
-
-[[package]]
-name = "titiler.core"
-version = "0.7.0"
-description = "A modern dynamic tile server built on top of FastAPI and Rasterio/GDAL."
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[package.dependencies]
-fastapi = ">=0.73.0"
-geojson-pydantic = "*"
-importlib_resources = {version = ">=1.1.0", markers = "python_version < \"3.9\""}
-jinja2 = ">=2.11.2,<4.0.0"
-numpy = "*"
-pydantic = "*"
-rasterio = "*"
-rio-tiler = ">=3.1,<3.2"
-simplejson = "*"
-
-[package.extras]
-test = ["pytest", "pytest-cov", "pytest-asyncio", "requests"]
 
 [[package]]
 name = "toml"
@@ -2569,10 +2278,9 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.10,<3.10"
-content-hash = "a8fd4c2b8e65e331661c7ef1e82822233fcc740ad2c721d4fa4de80104f9de48"
+content-hash = "1c4c2c8c7ff09e3704ad4401647626518ae1acd35f2c3a2cb634d2dca9a0e36b"
 
 [metadata.files]
-affine = []
 aiobotocore = []
 aiodns = [
     {file = "aiodns-3.0.0-py3-none-any.whl", hash = "sha256:2b19bc5f97e5c936638d28e665923c093d8af2bf3aa88d35c43417fa25d136a2"},
@@ -2740,14 +2448,9 @@ beautifulsoup4 = [
     {file = "beautifulsoup4-4.11.1.tar.gz", hash = "sha256:ad9aa55b65ef2808eb405f46cf74df7fcb7044d5cbc26487f96eb2ef2e436693"},
 ]
 bleach = []
-boto3 = []
 botocore = [
     {file = "botocore-1.24.21-py3-none-any.whl", hash = "sha256:92daca8775e738a9db9b465d533019285f09d541e903233261299fd87c2f842c"},
     {file = "botocore-1.24.21.tar.gz", hash = "sha256:7e976cfd0a61601e74624ef8f5246b40a01f2cce73a011ef29cf80a6e371d0fa"},
-]
-cachetools = [
-    {file = "cachetools-5.2.0-py3-none-any.whl", hash = "sha256:f9f17d2aec496a9aa6b76f53e3b614c965223c061982d434d160f930c698a9db"},
-    {file = "cachetools-5.2.0.tar.gz", hash = "sha256:6a94c6402995a99c3970cc7e4884bb60b4a8639938157eeed436098bf9831757"},
 ]
 certifi = []
 cffi = []
@@ -2815,7 +2518,6 @@ fiona = [
 fonttools = []
 frozenlist = []
 geoalchemy2 = []
-geojson-pydantic = []
 geopandas = []
 glob2 = [
     {file = "glob2-0.7.tar.gz", hash = "sha256:85c3dbd07c8aa26d63d7aacee34fa86e9a91a3873bc30bf62ec46e531f92ab8c"},
@@ -2919,8 +2621,6 @@ hiredis = [
     {file = "hiredis-2.0.0-pp37-pypy37_pp73-win32.whl", hash = "sha256:f52010e0a44e3d8530437e7da38d11fb822acfb0d5b12e9cd5ba655509937ca0"},
     {file = "hiredis-2.0.0.tar.gz", hash = "sha256:81d6d8e39695f2c37954d1011c0480ef7cf444d4e3ae24bc5e89ee5de360139a"},
 ]
-httpcore = []
-httpx = []
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
     {file = "idna-3.3.tar.gz", hash = "sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d"},
@@ -3070,7 +2770,6 @@ mistune = [
     {file = "mistune-0.8.4-py2.py3-none-any.whl", hash = "sha256:88a1051873018da288eee8538d476dffe1262495144b33ecb586c4ab266bb8d4"},
     {file = "mistune-0.8.4.tar.gz", hash = "sha256:59a3429db53c50b5c6bcc8a07f8848cb00d7dc8bdb431a4ab41920d201d4756e"},
 ]
-morecantile = []
 multidict = [
     {file = "multidict-6.0.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:0b9e95a740109c6047602f4db4da9949e6c5945cefbad34a1299775ddc9a62e2"},
     {file = "multidict-6.0.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:ac0e27844758d7177989ce406acc6a83c16ed4524ebc363c1f748cba184d89d3"},
@@ -3151,7 +2850,6 @@ ntlm-auth = [
     {file = "ntlm-auth-1.5.0.tar.gz", hash = "sha256:c9667d361dc09f6b3750283d503c689070ff7d89f2f6ff0d38088d5436ff8543"},
     {file = "ntlm_auth-1.5.0-py2.py3-none-any.whl", hash = "sha256:f1527c581dbf149349134fc2d789d50af2a400e193206956fa0ab456ccc5a8ba"},
 ]
-numexpr = []
 numpy = []
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
@@ -3395,7 +3093,6 @@ pyrsistent = [
     {file = "pyrsistent-0.18.1-cp39-cp39-win_amd64.whl", hash = "sha256:e24a828f57e0c337c8d8bb9f6b12f09dfdf0273da25fda9e314f0b684b415a07"},
     {file = "pyrsistent-0.18.1.tar.gz", hash = "sha256:d4d61f8b993a7255ba714df3aca52700f8125289f84f704cf80916517c46eb96"},
 ]
-pystac = []
 pytest = [
     {file = "pytest-7.1.2-py3-none-any.whl", hash = "sha256:13d0e3ccfc2b6e26be000cb6568c832ba67ba32e719443bfe725814d3c42433c"},
     {file = "pytest-7.1.2.tar.gz", hash = "sha256:a06a0425453864a270bc45e71f783330a7428defb4230fb5e6a731fde06ecd45"},
@@ -3454,20 +3151,14 @@ pywinpty = []
 pyzmq = []
 qtconsole = []
 qtpy = []
-rasterio = []
 redis = []
 requests = []
 requests-ntlm = [
     {file = "requests_ntlm-1.1.0-py2.py3-none-any.whl", hash = "sha256:1eb43d1026b64d431a8e0f1e8a8c8119ac698e72e9b95102018214411a8463ea"},
     {file = "requests_ntlm-1.1.0.tar.gz", hash = "sha256:9189c92e8c61ae91402a64b972c4802b2457ce6a799d658256ebf084d5c7eb71"},
 ]
-rfc3986 = []
-rio-color = []
-rio-mucho = []
-rio-tiler = []
 rope = []
 rpy2 = []
-s3transfer = []
 scikit-learn = []
 scipy = []
 send2trash = [
@@ -3514,7 +3205,6 @@ shapely = [
     {file = "Shapely-1.8.2-cp39-cp39-win_amd64.whl", hash = "sha256:3423299254deec075e79fb7dc7909d702104e4167149de7f45510c3a6342eeea"},
     {file = "Shapely-1.8.2.tar.gz", hash = "sha256:572af9d5006fd5e3213e37ee548912b0341fb26724d6dc8a4e3950c10197ebb6"},
 ]
-simplejson = []
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
@@ -3526,7 +3216,6 @@ sniffio = [
     {file = "sniffio-1.2.0-py3-none-any.whl", hash = "sha256:471b71698eac1c2112a40ce2752bb2f4a4814c22a54a3eed3676bc0f5ca9f663"},
     {file = "sniffio-1.2.0.tar.gz", hash = "sha256:c4666eecec1d3f50960c6bdf61ab7bc350648da6c126e3cf6898d8cd4ddcd3de"},
 ]
-snuggs = []
 soupsieve = [
     {file = "soupsieve-2.3.2.post1-py3-none-any.whl", hash = "sha256:3b2503d3c7084a42b1ebd08116e5f81aadfaea95863628c80a3b774a11b7c759"},
     {file = "soupsieve-2.3.2.post1.tar.gz", hash = "sha256:fc53893b3da2c33de295667a0e19f078c14bf86544af307354de5fcf12a3f30d"},
@@ -3549,7 +3238,6 @@ tinycss2 = [
     {file = "tinycss2-1.1.1-py3-none-any.whl", hash = "sha256:fe794ceaadfe3cf3e686b22155d0da5780dd0e273471a51846d0a02bc204fec8"},
     {file = "tinycss2-1.1.1.tar.gz", hash = "sha256:b2e44dd8883c360c35dd0d1b5aad0b610e5156c2cb3b33434634e539ead9d8bf"},
 ]
-"titiler.core" = []
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
     {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
