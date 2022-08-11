@@ -9,14 +9,15 @@ from app import config
 
 tileserver_read_user = config.get('TILESERVER_READ_USER', 'tileserv')
 tileserver_write_user = config.get('TILESERVER_WRITE_USER', 'tileserv')
-tileserver_postgres_password = config.get('TILESERVER_POSTGRES_PASSWORD', 'tileserv')
+tileserver_postgres_read_password = config.get('TILESERVER_POSTGRES_READ_PASSWORD', 'tileserv')
+tileserver_postgres_write_password = config.get('TILESERVER_POSTGRES_WRITE_PASSWORD', 'tileserv')
 tileserver_postgres_read_host = config.get('TILESERVER_POSTGRES_READ_HOST', 'localhost')
 tileserver_postgres_write_host = config.get('TILESERVER_POSTGRES_WRITE_HOST', 'localhost')
 tileserver_postgres_database = config.get('TILESERVER_POSTGRES_DATABASE', 'tileserv')
 postgres_port = config.get('POSTGRES_PORT', '5432')
 
-TILESERVER_READ_STRING = f'postgresql+asyncpg://{tileserver_read_user}:{tileserver_postgres_password}@{tileserver_postgres_read_host}:{postgres_port}/{tileserver_postgres_database}'
-TILESERVER_WRITE_STRING = f'postgresql+asyncpg://{tileserver_write_user}:{tileserver_postgres_password}@{tileserver_postgres_write_host}:{postgres_port}/{tileserver_postgres_database}'
+TILESERVER_READ_STRING = f'postgresql+asyncpg://{tileserver_read_user}:{tileserver_postgres_read_password}@{tileserver_postgres_read_host}:{postgres_port}/{tileserver_postgres_database}'
+TILESERVER_WRITE_STRING = f'postgresql+asyncpg://{tileserver_write_user}:{tileserver_postgres_write_password}@{tileserver_postgres_write_host}:{postgres_port}/{tileserver_postgres_database}'
 
 # TODO: figure out connection pooling?
 tile_server_read_engine = create_async_engine(TILESERVER_READ_STRING)
