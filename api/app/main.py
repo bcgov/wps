@@ -16,7 +16,7 @@ from app import health
 from app import hourlies
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.routers import (fba, forecasts, fwi_calc, weather_models, c_haines, stations, hfi_calc,
-                         fba_calc, cog)
+                         fba_calc)
 from app.fire_behaviour.cffdrs import CFFDRS
 
 
