@@ -1,21 +1,24 @@
 import * as ol from 'ol'
+import * as proj from 'ol/proj'
 import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls } from 'ol/control'
 import { fromLonLat, get } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
+import { FeatureLike } from 'ol/Feature'
+import XYZ from 'ol/source/XYZ'
 import VectorLayer from 'ol/layer/Vector'
 import OLOverlay from 'ol/Overlay'
 import VectorTileSource from 'ol/source/VectorTile'
 import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
-import { useSelector } from 'react-redux'
-import React, { useEffect, useRef, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
-import { selectFireWeatherStations, selectFireZoneAreas } from 'app/rootReducer'
-import { hfiSource as baseMapSource } from 'features/fireWeather/components/maps/constants'
+import { selectFireWeatherStations, selectFireZoneAreas, selectValueAtCoordinate } from 'app/rootReducer'
+import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
@@ -30,6 +33,8 @@ import {
 } from 'features/fba/components/featureStylers'
 import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
+import { AppDispatch } from 'app/store'
+import { fetchValueAtCoordinate } from 'features/fba/slices/valueAtCoordinateSlice'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -41,6 +46,28 @@ export interface FBAMapProps {
   className: string
   selectedFireCenter: FireCenter | undefined
   date: DateTime
+  showRawHFI: boolean
+}
+
+export const hfiSourceFactory = (url: string) => {
+  return new XYZ({
+    url: `http://localhost:8090/tile/{z}/{x}/{y}?path=${url}`,
+    imageSmoothing: true
+  })
+}
+
+export const hfiTileFactory = (url: string, layerName: string) => {
+  return new Tile({ source: hfiSourceFactory(url), properties: { name: layerName } })
+}
+
+const removeLayerByName = (map: ol.Map, layerName: string) => {
+  const layer = map
+    .getLayers()
+    .getArray()
+    .find(l => l.getProperties()?.name === layerName)
+  if (layer) {
+    map.removeLayer(layer)
+  }
 }
 
 const FBAMap = (props: FBAMapProps) => {
@@ -51,8 +78,10 @@ const FBAMap = (props: FBAMapProps) => {
     }
   })
   const classes = useStyles()
-  // const dispatch: AppDispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
   const { stations } = useSelector(selectFireWeatherStations)
+  const { valueAtCoordinate } = useSelector(selectValueAtCoordinate)
+  const [feature, setFeature] = useState<FeatureLike | null>(null)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const overlayRef = useRef<HTMLDivElement | null>(null)
@@ -176,15 +205,20 @@ const FBAMap = (props: FBAMapProps) => {
       properties: { name: 'hfiVector' }
     })
 
-    const layer = map
-      .getLayers()
-      .getArray()
-      .find(l => l.getProperties()?.name === 'hfiVector')
-    if (layer) {
-      map.removeLayer(layer)
-    }
+    removeLayerByName(map, 'hfiVector')
     map.addLayer(latestHFILayer)
   }, [props.date]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!map) return
+    const layerName = 'hfiRaw'
+    removeLayerByName(map, layerName)
+    if (props.showRawHFI) {
+      const isoDate = props.date.toISODate().replaceAll('-', '')
+      const layer = hfiTileFactory(`sybrand_sfms/hfi${isoDate}.tif`, layerName)
+      map.addLayer(layer)
+    }
+  }, [props.date, props.showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -264,6 +298,13 @@ const FBAMap = (props: FBAMapProps) => {
           }
         )
       })
+
+      mapObject.on('singleclick', e => {
+        const coordinate = proj.transform(e.coordinate, 'EPSG:3857', 'EPSG:4326')
+        // fetch hfi at coordinate
+        const isoDate = props.date.toISODate().replaceAll('-', '')
+        dispatch(fetchValueAtCoordinate(`sybrand_sfms/hfi${isoDate}.tif`, coordinate[1], coordinate[0]))
+      })
     }
 
     mapObject.addLayer(layer)
@@ -289,10 +330,28 @@ const FBAMap = (props: FBAMapProps) => {
 
     map?.addLayer(stationsLayer)
   }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    // setFeature()
+  }, [valueAtCoordinate])
+
+  const renderTooltip = useCallback(
+    (feature: FeatureLike | null) => {
+      if (!feature) return null
+      return <div>Hello world</div>
+    },
+    [dispatch]
+  )
+
   return (
     <ErrorBoundary>
       <div className={classes.main}>
         <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
+        {renderTooltip && (
+          <div ref={overlayRef} className="ol-popup">
+            {renderTooltip(feature)}
+          </div>
+        )}
         <div ref={overlayRef} id="feature-overlay"></div>
       </div>
     </ErrorBoundary>

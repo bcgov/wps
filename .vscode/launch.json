@@ -19,10 +19,6 @@
             "program": "cogtiler/cogtiler/main.py",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "env": {
-                "AWS_ACCESS_KEY_ID": "nr-wps-dev",
-                "AWS_SECRET_ACCESS_KEY": "HV6BSR7jmS6gdttB0hdVldoEGiUrcYH6EdM81hky"
-            }
         },
         {
             "name": "app.jobs.noon_forecasts",

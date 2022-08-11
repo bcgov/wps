@@ -1,5 +1,4 @@
 import XYZ from 'ol/source/XYZ'
-import Raster from 'ol/source/Raster'
 
 export const BC_ROAD_BASE_MAP_SERVER_URL = 'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
 

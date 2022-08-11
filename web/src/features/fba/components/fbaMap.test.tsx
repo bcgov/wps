@@ -9,7 +9,12 @@ describe('FBAMap', () => {
   it('should render height with height and width properties set', () => {
     const { getByTestId } = render(
       <Provider store={store}>
-        <FBAMap date={DateTime.fromISO('2016-05-25')} selectedFireCenter={undefined} className={''} />
+        <FBAMap
+          date={DateTime.fromISO('2016-05-25')}
+          selectedFireCenter={undefined}
+          className={''}
+          showRawHFI={false}
+        />
       </Provider>
     )
 
