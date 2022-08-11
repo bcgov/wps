@@ -9,14 +9,20 @@
             "type": "python",
             "request": "launch",
             "program": "api/app/main.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "justMyCode": false
         },
         {
-            "name": "api - module",
+            "name": "cog",
             "type": "python",
             "request": "launch",
-            "module": "app.main",
-            "console": "integratedTerminal"
+            "program": "cogtiler/cogtiler/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "AWS_ACCESS_KEY_ID": "nr-wps-dev",
+                "AWS_SECRET_ACCESS_KEY": "HV6BSR7jmS6gdttB0hdVldoEGiUrcYH6EdM81hky"
+            }
         },
         {
             "name": "app.jobs.noon_forecasts",
@@ -54,6 +60,23 @@
             "request": "launch",
             "program": "openshift/s3-backup/docker/prune_test.py",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "advisory polygonize",
+            "type": "python",
+            "request": "launch",
+            "module": "api.advisory.polygonize_hfi",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "advisory calculate",
+            "type": "python",
+            "request": "launch",
+            "module": "advisory.calculate_advisories",
+            "console": "integratedTerminal",
+            "args": [
+                "2022-08-09"
+            ]
         },
         {
             "name": "Chrome",
