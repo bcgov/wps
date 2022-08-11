@@ -4,6 +4,8 @@ import { defaults as defaultControls } from 'ol/control'
 import { fromLonLat, get } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
+import VectorLayer from 'ol/layer/Vector'
+import OLOverlay from 'ol/Overlay'
 import VectorTileSource from 'ol/source/VectorTile'
 import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
@@ -26,17 +28,19 @@ import {
   hfiStyler,
   createFireZoneStyler
 } from 'features/fba/components/featureStylers'
+import { CENTER_OF_BC } from 'utils/constants'
+import { DateTime } from 'luxon'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
-const zoom = 5.45
-const BC_CENTER_FIRE_CENTRES = [-124.16748046874999, 54.584796743678744]
+const zoom = 6
 const TILE_SERVER_URL = 'https://tileserv-dev.apps.silver.devops.gov.bc.ca'
 
 export interface FBAMapProps {
   testId?: string
   className: string
   selectedFireCenter: FireCenter | undefined
+  date: DateTime
 }
 
 const FBAMap = (props: FBAMapProps) => {
@@ -51,6 +55,7 @@ const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
+  const overlayRef = useRef<HTMLDivElement | null>(null)
   // const [fireZoneStyle, setFireZoneStyle] = useState(fireZoneStyler)
   // const [prevFireZoneVector, setPrevFireZoneVector] = useState<VectorTileLayer | null>(null)
   const [fireZoneVector, setFireZoneVector] = useState(
@@ -73,7 +78,7 @@ const FBAMap = (props: FBAMapProps) => {
       const layer = map
         .getLayers()
         .getArray()
-        .find(layer => layer.getProperties()?.name === 'fireZoneVector')
+        .find(l => l.getProperties()?.name === 'fireZoneVector')
       if (layer) {
         map.removeLayer(layer)
       }
@@ -101,10 +106,11 @@ const FBAMap = (props: FBAMapProps) => {
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf`
+      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=date=${props.date.toISODate()}'`
     }),
     style: hfiStyler,
-    zIndex: 100
+    zIndex: 100,
+    properties: { name: 'hfiVector' }
   })
 
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
@@ -151,10 +157,34 @@ const FBAMap = (props: FBAMapProps) => {
       }
     } else {
       // reset map view to full province
-      map.getView().setCenter(fromLonLat(BC_CENTER_FIRE_CENTRES))
+      map.getView().setCenter(fromLonLat(CENTER_OF_BC))
       map.getView().setZoom(zoom)
     }
   }, [props.selectedFireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!map) return
+
+    const latestHFILayer = new VectorTileLayer({
+      source: new VectorTileSource({
+        attributions: ['BC Wildfire Service'],
+        format: new MVT(),
+        url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=date=${props.date.toISODate()}'`
+      }),
+      style: hfiStyler,
+      zIndex: 100,
+      properties: { name: 'hfiVector' }
+    })
+
+    const layer = map
+      .getLayers()
+      .getArray()
+      .find(l => l.getProperties()?.name === 'hfiVector')
+    if (layer) {
+      map.removeLayer(layer)
+    }
+    map.addLayer(latestHFILayer)
+  }, [props.date]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -167,7 +197,7 @@ const FBAMap = (props: FBAMapProps) => {
     const options: MapOptions = {
       view: new ol.View({
         zoom,
-        center: fromLonLat(BC_CENTER_FIRE_CENTRES)
+        center: fromLonLat(CENTER_OF_BC)
       }),
       layers: [
         new Tile({
@@ -194,6 +224,50 @@ const FBAMap = (props: FBAMapProps) => {
         mapObject.getView().fit(fireCentreExtent.extent)
       }
     }
+
+    const source = new VectorSource()
+    const layer = new VectorLayer({
+      source: source
+    })
+
+    if (overlayRef.current) {
+      const hoverOverlay = new OLOverlay({
+        element: overlayRef.current,
+        autoPan: true,
+        autoPanAnimation: {
+          duration: 250
+        }
+      })
+
+      mapObject.addOverlay(hoverOverlay)
+
+      mapObject.on('pointermove', function (event) {
+        source.clear()
+        hoverOverlay?.setPosition(undefined)
+        mapObject.forEachFeatureAtPixel(
+          event.pixel,
+          function (feature) {
+            const geometry = feature.getGeometry()
+            if (geometry) {
+              const overlayCurrent = overlayRef.current
+              if (overlayCurrent) {
+                const hfiRange = feature.get('hfi')
+                if (hfiRange) {
+                  overlayCurrent.innerHTML = hfiRange
+                  hoverOverlay.setPosition(event.coordinate)
+                }
+              }
+            }
+          },
+          {
+            hitTolerance: 2
+          }
+        )
+      })
+    }
+
+    mapObject.addLayer(layer)
+
     setMap(mapObject)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -219,6 +293,7 @@ const FBAMap = (props: FBAMapProps) => {
     <ErrorBoundary>
       <div className={classes.main}>
         <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
+        <div ref={overlayRef} id="feature-overlay"></div>
       </div>
     </ErrorBoundary>
   )
