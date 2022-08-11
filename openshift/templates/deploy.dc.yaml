@@ -67,6 +67,18 @@ parameters:
     required: True
   - name: POSTGRES_READ_HOST
     required: True
+  - name: TILESERVER_READ_USER
+    required: True
+  - name: TILESERVER_WRITE_USER
+    required: True
+  - name: TILESERVER_POSTGRES_READ_PASSWORD
+    required: True
+  - name: TILESERVER_POSTGRES_WRITE_PASSWORD
+    required: True
+  - name: TILESERVER_POSTGRES_READ_HOST
+    required: True
+  - name: TILESERVER_POSTGRES_WRITE_HOST
+    required: True
   - name: ENVIRONMENT
     description: Can be used to modify route (e.g. when deploying to test)
     value: ""
@@ -313,6 +325,36 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.redis-env-canada-cache-expiry
+                - name: TILESERVER_POSTGRES_READ_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.tileserver_postgres_read_host
+                - name: TILESERVER_POSTGRES_WRITE_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.tileserver_postgres_write_host
+                - name: TILESERVER_READ_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserv_read_user
+                - name: TILESERVER_WRITE_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserv_write_user
+                - name: TILESERVER_POSTGRES_WRITE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserver_postgres_write_password
+                - name: TILESERVER_POSTGRES_READ_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserver_postgres_read_password
               ports:
                 - containerPort: 8080
                   protocol: TCP
