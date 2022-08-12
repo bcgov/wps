@@ -1,7 +1,7 @@
 import * as ol from 'ol'
 import * as proj from 'ol/proj'
 import { MapOptions } from 'ol/PluggableMap'
-import { defaults as defaultControls } from 'ol/control'
+import { defaults as defaultControls, FullScreen } from 'ol/control'
 import { fromLonLat, get } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
@@ -14,7 +14,7 @@ import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { useDispatch, useSelector } from 'react-redux'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectFireZoneAreas, selectValueAtCoordinate } from 'app/rootReducer'
@@ -30,11 +30,12 @@ import {
   stationStyler,
   hfiStyler,
   createFireZoneStyler
-} from 'features/fba/components/featureStylers'
+} from 'features/fba/components/map/featureStylers'
 import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
 import { AppDispatch } from 'app/store'
 import { fetchValueAtCoordinate } from 'features/fba/slices/valueAtCoordinateSlice'
+import { LayerControl } from 'features/fba/components/map/HFILayerControl'
 
 export const fbaMapContext = React.createContext<ol.Map | null>(null)
 
@@ -46,7 +47,6 @@ export interface FBAMapProps {
   className: string
   selectedFireCenter: FireCenter | undefined
   date: DateTime
-  showRawHFI: boolean
 }
 
 export const hfiSourceFactory = (url: string) => {
@@ -82,6 +82,10 @@ const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const { valueAtCoordinate } = useSelector(selectValueAtCoordinate)
   const [feature, setFeature] = useState<FeatureLike | null>(null)
+  const [showRawHFI, setShowRawHFI] = useState(false)
+  const updateRawHfi = (event: ChangeEvent<HTMLInputElement>, checked: boolean) => {
+    setShowRawHFI(checked)
+  }
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const overlayRef = useRef<HTMLDivElement | null>(null)
@@ -213,12 +217,12 @@ const FBAMap = (props: FBAMapProps) => {
     if (!map) return
     const layerName = 'hfiRaw'
     removeLayerByName(map, layerName)
-    if (props.showRawHFI) {
+    if (showRawHFI) {
       const isoDate = props.date.toISODate().replaceAll('-', '')
       const layer = hfiTileFactory(`sybrand_sfms/hfi${isoDate}.tif`, layerName)
       map.addLayer(layer)
     }
-  }, [props.date, props.showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [props.date, showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -245,7 +249,7 @@ const FBAMap = (props: FBAMapProps) => {
         fireCentreLabel
       ],
       overlays: [],
-      controls: defaultControls()
+      controls: defaultControls().extend([new FullScreen(), LayerControl.buildHFILayerCheckbox(setShowRawHFI)])
     }
     // Create the map with the options above and set the target
     // To the ref above so that it is rendered in that div

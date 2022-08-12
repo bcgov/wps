@@ -1,8 +1,8 @@
-import { FormControl, FormControlLabel, Grid, Checkbox } from '@mui/material'
+import { FormControl, Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GeneralHeader, Container } from 'components'
-import React, { ChangeEvent, useEffect, useState } from 'react'
-import FBAMap from 'features/fba/components/FBAMap'
+import React, { useEffect, useState } from 'react'
+import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import { DateTime } from 'luxon'
 import { selectFireCenters } from 'app/rootReducer'
@@ -43,7 +43,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const { fireCenters } = useSelector(selectFireCenters)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
-  const [showRawHFI, setShowRawHFI] = useState(false)
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -64,10 +63,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (newDate !== dateOfInterest) {
       setDateOfInterest(newDate)
     }
-  }
-
-  const updateRawHfi = (event: ChangeEvent<HTMLInputElement>, checked: boolean) => {
-    setShowRawHFI(checked)
   }
 
   useEffect(() => {
@@ -100,21 +95,10 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 />
               </FormControl>
             </Grid>
-            <Grid item xs={3}>
-              <FormControl>
-                {/* TODO: this should be on some fancy layer control on the map? */}
-                <FormControlLabel control={<Checkbox onChange={updateRawHfi} />} label="Raw HFI" />
-              </FormControl>
-            </Grid>
           </Grid>
         </Grid>
       </Container>
-      <FBAMap
-        date={dateOfInterest}
-        selectedFireCenter={fireCenter}
-        className={classes.mapContainer}
-        showRawHFI={showRawHFI}
-      />
+      <FBAMap date={dateOfInterest} selectedFireCenter={fireCenter} className={classes.mapContainer} />
     </React.Fragment>
   )
 }
