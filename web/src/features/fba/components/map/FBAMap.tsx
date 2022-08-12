@@ -12,7 +12,7 @@ import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { useDispatch, useSelector } from 'react-redux'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectFireZoneAreas, selectValueAtCoordinate } from 'app/rootReducer'
@@ -34,6 +34,7 @@ import { DateTime } from 'luxon'
 import { AppDispatch } from 'app/store'
 import { fetchValueAtCoordinate } from 'features/fba/slices/valueAtCoordinateSlice'
 import { LayerControl } from 'features/fba/components/map/HFILayerControl'
+import FBATooltip from 'features/fba/components/map/FBATooltip'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -78,7 +79,7 @@ const FBAMap = (props: FBAMapProps) => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { stations } = useSelector(selectFireWeatherStations)
-  const { valueAtCoordinate } = useSelector(selectValueAtCoordinate)
+  const { valueAtCoordinate, loading } = useSelector(selectValueAtCoordinate)
   const [showRawHFI, setShowRawHFI] = useState(false)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -268,36 +269,12 @@ const FBAMap = (props: FBAMapProps) => {
 
       mapObject.addOverlay(overlay)
 
-      // mapObject.on('pointermove', function (event) {
-      //   source.clear()
-      //   hoverOverlay?.setPosition(undefined)
-      //   mapObject.forEachFeatureAtPixel(
-      //     event.pixel,
-      //     function (feature) {
-      //       const geometry = feature.getGeometry()
-      //       if (geometry) {
-      //         const overlayCurrent = overlayRef.current
-      //         if (overlayCurrent) {
-      //           const hfiRange = feature.get('hfi')
-      //           if (hfiRange) {
-      //             overlayCurrent.innerHTML = hfiRange
-      //             hoverOverlay.setPosition(event.coordinate)
-      //           }
-      //         }
-      //       }
-      //     },
-      //     {
-      //       hitTolerance: 2
-      //     }
-      //   )
-      // })
-
       mapObject.on('singleclick', e => {
         const coordinate = proj.transform(e.coordinate, 'EPSG:3857', 'EPSG:4326')
         // fetch hfi at coordinate
         const isoDate = props.date.toISODate().replaceAll('-', '')
         dispatch(fetchValueAtCoordinate(`sybrand_sfms/hfi${isoDate}.tif`, coordinate[1], coordinate[0]))
-        document.body.style.cursor = 'wait'
+        overlay.setPosition(e.coordinate)
       })
     }
 
@@ -323,35 +300,12 @@ const FBAMap = (props: FBAMapProps) => {
     map?.addLayer(stationsLayer)
   }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const renderTooltip = useCallback(
-    (valueAtCoordinate?: number) => {
-      if (!valueAtCoordinate) return null
-      document.body.style.cursor = 'default'
-      const overlayCurrent = overlayRef.current
-      if (overlayCurrent) {
-        overlayCurrent.innerHTML = `<div><p>${valueAtCoordinate}</p></div>`
-        console.log(`HFI: ${valueAtCoordinate}`)
-      }
-
-      return (
-        <div data-testid={`blah-${valueAtCoordinate}-tooltip`}>
-          <p>{valueAtCoordinate}</p>
-        </div>
-      )
-    },
-    [overlayRef]
-  )
-
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
         <div className={classes.main}>
           <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
-          {renderTooltip && (
-            <div ref={overlayRef} className="ol-popup">
-              {renderTooltip(valueAtCoordinate)}
-            </div>
-          )}
+          <FBATooltip ref={overlayRef} valueAtCoordinate={valueAtCoordinate} loading={loading} />
         </div>
       </MapContext.Provider>
     </ErrorBoundary>

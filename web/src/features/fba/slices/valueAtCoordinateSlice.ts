@@ -45,6 +45,7 @@ export const fetchValueAtCoordinate =
   (layer: string, latitude: number, longitude: number): AppThunk =>
   async dispatch => {
     try {
+      dispatch(getValueAtCoordinateStart())
       const value = await getValueAtCoordinate(layer, latitude, longitude)
       dispatch(getValueAtCoordinateSuccess(value))
     } catch (err) {
