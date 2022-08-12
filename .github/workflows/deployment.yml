@@ -1,6 +1,10 @@
 name: Deployment
 
-on: [pull_request, workflow_dispatch]
+on: workflow_dispatch
+
+on:
+  pull_request:
+    types: [ assigned, opened, synchronize, reopened ]
 
 jobs:
   prepare-dev-database:
