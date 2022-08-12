@@ -1,10 +1,6 @@
 name: Deployment
 
-on:
-  pull_request:
-    branches:
-      - main
-      - story/classify-hfi-multiple-days
+on: push
 
 jobs:
   prepare-dev-database:
