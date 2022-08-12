@@ -26,7 +26,7 @@ export const monochromeSource = new XYZ({
 
 // const demCogUrl = encodeURIComponent('http://localhost:8080/api/cog/tiff')
 
-export const hfiSource = new XYZ({
-  url: `http://localhost:8090/async/{z}/{x}/{y}?path=sybrand_sfms/hfi20220811.tif`,
+export const ftlSource = new XYZ({
+  url: `http://localhost:8090/ftl/{z}/{x}/{y}?path=ftl/ftl_2018_cloudoptimized.tif`,
   imageSmoothing: true
 })

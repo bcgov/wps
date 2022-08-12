@@ -16,7 +16,7 @@ from rio_tiler.io import COGReader
 from rio_tiler.errors import TileOutsideBounds
 from rio_tiler.utils import render
 from decouple import config
-from cogtiler.util import classify
+from cogtiler.util import classify, classify_ftl
 
 app = FastAPI()
 
@@ -70,10 +70,46 @@ async def value(band: int, lat: float, lon: float, path: str) -> Response:
         return response
 
 
+@app.get('/ftl/{z}/{x}/{y}')
+async def xyz(z: int, x: int, y: int, path: str) -> Response:
+    """ Not sure what's best. Do we make this entire function syncronous? Or
+    do we put run each blocking call in the threadpool?
+    TODO: this is really a HFI specific tiler - because of the classification!
+    """
+    s3_url = f's3://{bucket}/{path}'
+    try:
+        with await run_in_threadpool(COGReader, s3_url) as image:
+            try:
+                img = await run_in_threadpool(image.tile, x, y, z)
+            except TileOutsideBounds:
+                response = Response(status_code=404)
+                response.headers["Cache-Control"] = "max-age=604800"
+                return response
+            data, mask = classify_ftl(img.data)
+            del img
+    except RasterioIOError:
+        # If the file is not found, return 404
+        response = Response(status_code=404)
+        return response
+    # TODO: This part (`render`) gives an error:
+    # "ERROR 4: `/vsimem/xxxx.tif' not recognized as a supported file format."
+    # We can replace this with a different method. It's just taking an array of rgba values
+    # and turning it into a png file.
+    rendered = await run_in_threadpool(render, data, mask)
+    response = Response(content=rendered, media_type="image/png")
+    # cache it for a week - we probably only need to cache for a day or two, but this is on
+    # the client, so we don't care.
+    # response.headers["Cache-Control"] = "max-age=604800"
+    # don't cache while we test this.
+    response.headers["Cache-Control"] = "max-age=0"
+    return response
+
+
 @app.get('/tile/{z}/{x}/{y}')
 async def xyz(z: int, x: int, y: int, path: str) -> Response:
     """ Not sure what's best. Do we make this entire function syncronous? Or
     do we put run each blocking call in the threadpool?
+    TODO: this is really a HFI specific tiler - because of the classification!
     """
     s3_url = f's3://{bucket}/{path}'
     try:
