@@ -43,6 +43,23 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           bash openshift/scripts/oc_provision_backup_s3_postgres_cronjob.sh ${SUFFIX} apply
+  build-cogs-image:
+    name: Build COGS Image
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build wps-api Image
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+          GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=cogs DOCKER_FILE=Dockerfile.cogs bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   build-web-image:
     # Declared ahead of build-api-image ; it runs slightly slower than the api build, and putting
@@ -85,7 +102,8 @@ jobs:
 
   deploy-dev:
     name: Deploy to Dev
-    needs: [build-api-image, build-web-image, prepare-dev-database]
+    needs:
+      [build-api-image, build-cogs-image, build-web-image, prepare-dev-database]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
