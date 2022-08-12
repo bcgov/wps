@@ -74,7 +74,13 @@ async def value(band: int, lat: float, lon: float, path: str) -> Response:
 async def xyz(z: int, x: int, y: int, path: str) -> Response:
     """ Not sure what's best. Do we make this entire function syncronous? Or
     do we put run each blocking call in the threadpool?
-    TODO: this is really a HFI specific tiler - because of the classification!
+    TODO: this is really a FTL specific tiler - because of the classification!
+
+    ```bash
+    gdal_translate ftl2018.bin ftl_2018.tif -co TILED=YES -co COMPRESS=DEFLATE
+    gdaladdo -r nearest ftl_2018.tif 2 4 8 16 32
+    gdal_translate ftl_2018.tif ftl_2018_cloudoptimized.tif -co TILED=YES -co COMPRESS=LZW -co COPY_SRC_OVERVIEWS=YES
+    ```
     """
     s3_url = f's3://{bucket}/{path}'
     try:
