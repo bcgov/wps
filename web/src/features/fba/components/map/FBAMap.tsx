@@ -35,6 +35,7 @@ import { AppDispatch } from 'app/store'
 import { fetchValueAtCoordinate } from 'features/fba/slices/valueAtCoordinateSlice'
 import { LayerControl } from 'features/fba/components/map/HFILayerControl'
 import FBATooltip from 'features/fba/components/map/FBATooltip'
+import { RASTER_SERVER_BASE_URL } from 'utils/env'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -50,7 +51,7 @@ export interface FBAMapProps {
 
 export const hfiSourceFactory = (url: string) => {
   return new XYZ({
-    url: `http://localhost:8090/tile/{z}/{x}/{y}?path=${url}`,
+    url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=${url}`,
     imageSmoothing: true
   })
 }
@@ -214,7 +215,7 @@ const FBAMap = (props: FBAMapProps) => {
     removeLayerByName(map, layerName)
     if (showRawHFI) {
       const isoDate = props.date.toISODate().replaceAll('-', '')
-      const layer = hfiTileFactory(`sybrand_sfms/hfi${isoDate}.tif`, layerName)
+      const layer = hfiTileFactory(`gpdqha/sybrand_sfms/hfi${isoDate}.tif`, layerName)
       map.addLayer(layer)
     }
   }, [props.date, showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -273,7 +274,7 @@ const FBAMap = (props: FBAMapProps) => {
         const coordinate = proj.transform(e.coordinate, 'EPSG:3857', 'EPSG:4326')
         // fetch hfi at coordinate
         const isoDate = props.date.toISODate().replaceAll('-', '')
-        dispatch(fetchValueAtCoordinate(`sybrand_sfms/hfi${isoDate}.tif`, coordinate[1], coordinate[0]))
+        dispatch(fetchValueAtCoordinate(`gpdqha/sybrand_sfms/hfi${isoDate}.tif`, coordinate[1], coordinate[0]))
         overlay.setPosition(e.coordinate)
       })
     }

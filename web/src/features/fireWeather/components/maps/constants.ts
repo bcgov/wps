@@ -1,4 +1,5 @@
 import XYZ from 'ol/source/XYZ'
+import { RASTER_SERVER_BASE_URL } from 'utils/env'
 
 export const BC_ROAD_BASE_MAP_SERVER_URL = 'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
 
@@ -27,6 +28,6 @@ export const monochromeSource = new XYZ({
 // const demCogUrl = encodeURIComponent('http://localhost:8080/api/cog/tiff')
 
 export const ftlSource = new XYZ({
-  url: `http://localhost:8090/ftl/{z}/{x}/{y}?path=ftl/ftl_2018_cloudoptimized.tif`,
+  url: `${RASTER_SERVER_BASE_URL}/ftl/{z}/{x}/{y}?path=gpdqha/ftl/ftl_2018_cloudoptimized.tif`,
   imageSmoothing: true
 })
