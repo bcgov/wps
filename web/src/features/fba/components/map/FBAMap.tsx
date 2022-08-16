@@ -88,8 +88,6 @@ const FBAMap = (props: FBAMapProps) => {
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const overlayRef = useRef<HTMLDivElement | null>(null)
-  // const [fireZoneStyle, setFireZoneStyle] = useState(fireZoneStyler)
-  // const [prevFireZoneVector, setPrevFireZoneVector] = useState<VectorTileLayer | null>(null)
   const [fireZoneVector, setFireZoneVector] = useState(
     new VectorTileLayer({
       source: new VectorTileSource({
