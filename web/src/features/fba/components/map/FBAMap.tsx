@@ -16,7 +16,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectFireZoneAreas, selectValueAtCoordinate } from 'app/rootReducer'
-import { ftlSource, source as baseMapSource } from 'features/fireWeather/components/maps/constants'
+import { ftlSource, sfmsFtlSource, source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
@@ -83,6 +83,7 @@ const FBAMap = (props: FBAMapProps) => {
   const { valueAtCoordinate, loading } = useSelector(selectValueAtCoordinate)
   const [showRawHFI, setShowRawHFI] = useState(false)
   const [showFTL, setShowFTL] = useState(false)
+  const [showSfmsFtl, setShowSfmsFtl] = useState(false)
   const [showHighHFI, setShowHighHFI] = useState(true)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -235,6 +236,16 @@ const FBAMap = (props: FBAMapProps) => {
   }, [showFTL]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (!map) return
+    const layerName = 'sfmsftl'
+    if (showSfmsFtl) {
+      map.addLayer(new Tile({ source: sfmsFtlSource, properties: { name: layerName } }))
+    } else {
+      removeLayerByName(map, layerName)
+    }
+  }, [showSfmsFtl]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     // The React ref is used to attach to the div rendered in our
     // return statement of which this map's target is set to.
     // The ref is a div of type  HTMLDivElement.
@@ -261,7 +272,8 @@ const FBAMap = (props: FBAMapProps) => {
       overlays: [],
       controls: defaultControls().extend([
         new FullScreen(),
-        LayerControl.buildHFILayerCheckbox('FTL', setShowFTL, showFTL),
+        LayerControl.buildHFILayerCheckbox('FTL 2018', setShowFTL, showFTL),
+        LayerControl.buildHFILayerCheckbox('FTL SFMS', setShowSfmsFtl, showSfmsFtl),
         LayerControl.buildHFILayerCheckbox('High HFI', setShowHighHFI, showHighHFI),
         LayerControl.buildHFILayerCheckbox('Raw HFI', setShowRawHFI, showRawHFI)
       ])

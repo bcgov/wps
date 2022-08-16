@@ -13,14 +13,6 @@
             "justMyCode": false
         },
         {
-            "name": "cog",
-            "type": "python",
-            "request": "launch",
-            "program": "cogtiler/cogtiler/main.py",
-            "console": "integratedTerminal",
-            "justMyCode": false,
-        },
-        {
             "name": "app.jobs.noon_forecasts",
             "type": "python",
             "request": "launch",

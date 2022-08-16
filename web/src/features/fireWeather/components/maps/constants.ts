@@ -31,3 +31,8 @@ export const ftlSource = new XYZ({
   url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/ftl/ftl_2018_cloudoptimized.tif&source=ftl`,
   imageSmoothing: true
 })
+
+export const sfmsFtlSource = new XYZ({
+  url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/sfms/cog/static/cog_fbp2021.tif&source=ftl`,
+  imageSmoothing: true
+})
