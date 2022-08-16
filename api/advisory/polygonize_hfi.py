@@ -114,4 +114,4 @@ def polygonize(geotiff_filename, geojson_filename, today: date):
 
 
 if __name__ == '__main__':
-    polygonize(sys.argv[1], sys.argv[2], sys.argv[3])
+    polygonize(sys.argv[1], sys.argv[2], date.fromisoformat(sys.argv[3]))
