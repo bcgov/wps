@@ -16,7 +16,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectFireZoneAreas, selectValueAtCoordinate } from 'app/rootReducer'
-import { ftlSource as baseMapSource } from 'features/fireWeather/components/maps/constants'
+import { ftlSource, source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
@@ -51,7 +51,7 @@ export interface FBAMapProps {
 
 export const hfiSourceFactory = (url: string) => {
   return new XYZ({
-    url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=${url}`,
+    url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=${url}&source=hfi`,
     imageSmoothing: true
   })
 }
@@ -82,6 +82,8 @@ const FBAMap = (props: FBAMapProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
   const { valueAtCoordinate, loading } = useSelector(selectValueAtCoordinate)
   const [showRawHFI, setShowRawHFI] = useState(false)
+  const [showFTL, setShowFTL] = useState(false)
+  const [showHighHFI, setShowHighHFI] = useState(true)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const overlayRef = useRef<HTMLDivElement | null>(null)
@@ -193,21 +195,23 @@ const FBAMap = (props: FBAMapProps) => {
 
   useEffect(() => {
     if (!map) return
-
-    const latestHFILayer = new VectorTileLayer({
-      source: new VectorTileSource({
-        attributions: ['BC Wildfire Service'],
-        format: new MVT(),
-        url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=date=${props.date.toISODate()}'`
-      }),
-      style: hfiStyler,
-      zIndex: 100,
-      properties: { name: 'hfiVector' }
-    })
-
-    removeLayerByName(map, 'hfiVector')
-    map.addLayer(latestHFILayer)
-  }, [props.date]) // eslint-disable-line react-hooks/exhaustive-deps
+    const layerName = 'hfiVector'
+    if (showHighHFI) {
+      const latestHFILayer = new VectorTileLayer({
+        source: new VectorTileSource({
+          attributions: ['BC Wildfire Service'],
+          format: new MVT(),
+          url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=date=${props.date.toISODate()}'`
+        }),
+        style: hfiStyler,
+        zIndex: 100,
+        properties: { name: layerName }
+      })
+      map.addLayer(latestHFILayer)
+    } else {
+      removeLayerByName(map, layerName)
+    }
+  }, [props.date, showHighHFI]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!map) return
@@ -215,10 +219,20 @@ const FBAMap = (props: FBAMapProps) => {
     removeLayerByName(map, layerName)
     if (showRawHFI) {
       const isoDate = props.date.toISODate().replaceAll('-', '')
-      const layer = hfiTileFactory(`gpdqha/sybrand_sfms/hfi${isoDate}.tif`, layerName)
+      const layer = hfiTileFactory(`gpdqha/sfms/cog/cog_hfi${isoDate}.tif`, layerName)
       map.addLayer(layer)
     }
   }, [props.date, showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!map) return
+    const layerName = 'ftl'
+    if (showFTL) {
+      map.addLayer(new Tile({ source: ftlSource, properties: { name: layerName } }))
+    } else {
+      removeLayerByName(map, layerName)
+    }
+  }, [showFTL]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -245,7 +259,12 @@ const FBAMap = (props: FBAMapProps) => {
         fireCentreLabel
       ],
       overlays: [],
-      controls: defaultControls().extend([new FullScreen(), LayerControl.buildHFILayerCheckbox(setShowRawHFI)])
+      controls: defaultControls().extend([
+        new FullScreen(),
+        LayerControl.buildHFILayerCheckbox('FTL', setShowFTL, showFTL),
+        LayerControl.buildHFILayerCheckbox('High HFI', setShowHighHFI, showHighHFI),
+        LayerControl.buildHFILayerCheckbox('Raw HFI', setShowRawHFI, showRawHFI)
+      ])
     }
     // Create the map with the options above and set the target
     // To the ref above so that it is rendered in that div
@@ -274,7 +293,7 @@ const FBAMap = (props: FBAMapProps) => {
         const coordinate = proj.transform(e.coordinate, 'EPSG:3857', 'EPSG:4326')
         // fetch hfi at coordinate
         const isoDate = props.date.toISODate().replaceAll('-', '')
-        dispatch(fetchValueAtCoordinate(`gpdqha/sybrand_sfms/hfi${isoDate}.tif`, coordinate[1], coordinate[0]))
+        dispatch(fetchValueAtCoordinate(`gpdqha/sfms/cog/cog_hfi${isoDate}.tif`, coordinate[1], coordinate[0]))
         overlay.setPosition(e.coordinate)
       })
     }
