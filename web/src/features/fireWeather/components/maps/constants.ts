@@ -20,13 +20,6 @@ export const monochromeSource = new XYZ({
   attributions: ['Esri', '© OpenStreetMap contributors', 'HERE', 'Garmin', 'USGS', 'EPA', 'NPS', 'NRCan']
 })
 
-// cog == Cloud Optimized GeoTIFF
-// const demCogUrl = encodeURIComponent(
-//   'https://nrs.objectstore.gov.bc.ca/gpdqha/sybrand_dem/BC_Area_CDEM.tif?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=nr-wps-dev/20220808/us-east-1/s3/aws4_request&X-Amz-Date=20220808T215051Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=a18abe8847bbe87fb92ee6095460472b4d1f8ab8730d3f3a111af7f02b3eeb79'
-// )
-
-// const demCogUrl = encodeURIComponent('http://localhost:8080/api/cog/tiff')
-
 export const ftlSource = new XYZ({
   url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/ftl/ftl_2018_cloudoptimized.tif&source=ftl`,
   imageSmoothing: true

@@ -13,6 +13,5 @@ const config = {
   REACT_APP_KEYCLOAK_CLIENT: 'wps-web',
   REACT_APP_KEYCLOAK_AUTH_URL: 'https://dev.oidc.gov.bc.ca/auth',
   API_BASE_URL: 'http://localhost:8080/api',
-  RASTER_SERVER_BASE_URL: 'https://wps-dev-raster-tileserver.apps.silver.devops.gov.bc.ca'
-  // RASTER_SERVER_BASE_URL: 'http://localhost:8090'
+  RASTER_SERVER_BASE_URL: 'https://wps-dev-raster-tileserver.apps.silver.devops.gov.bc.ca/v0.0.1'
 }

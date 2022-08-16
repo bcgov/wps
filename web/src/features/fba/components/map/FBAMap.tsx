@@ -33,7 +33,7 @@ import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
 import { AppDispatch } from 'app/store'
 import { fetchValueAtCoordinate } from 'features/fba/slices/valueAtCoordinateSlice'
-import { LayerControl } from 'features/fba/components/map/HFILayerControl'
+import { LayerControl } from 'features/fba/components/map/layerControl'
 import FBATooltip from 'features/fba/components/map/FBATooltip'
 import { RASTER_SERVER_BASE_URL } from 'utils/env'
 
@@ -272,10 +272,10 @@ const FBAMap = (props: FBAMapProps) => {
       overlays: [],
       controls: defaultControls().extend([
         new FullScreen(),
-        LayerControl.buildHFILayerCheckbox('FTL 2018', setShowFTL, showFTL),
-        LayerControl.buildHFILayerCheckbox('FTL SFMS', setShowSfmsFtl, showSfmsFtl),
-        LayerControl.buildHFILayerCheckbox('High HFI', setShowHighHFI, showHighHFI),
-        LayerControl.buildHFILayerCheckbox('Raw HFI', setShowRawHFI, showRawHFI)
+        LayerControl.buildLayerCheckbox('FTL 2018', setShowFTL, showFTL),
+        LayerControl.buildLayerCheckbox('FTL SFMS', setShowSfmsFtl, showSfmsFtl),
+        LayerControl.buildLayerCheckbox('High HFI', setShowHighHFI, showHighHFI),
+        LayerControl.buildLayerCheckbox('Raw HFI', setShowRawHFI, showRawHFI)
       ])
     }
     // Create the map with the options above and set the target
