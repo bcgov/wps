@@ -56,6 +56,13 @@ export const hfiSourceFactory = (url: string) => {
   })
 }
 
+export const ftlSourceFactory = (filter: string) => {
+  return new XYZ({
+    url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/ftl/ftl_2018_cloudoptimized.tif&source=ftl&filter=${filter}`,
+    imageSmoothing: true
+  })
+}
+
 export const hfiTileFactory = (url: string, layerName: string) => {
   return new Tile({ source: hfiSourceFactory(url), properties: { name: layerName } })
 }
@@ -83,6 +90,7 @@ const FBAMap = (props: FBAMapProps) => {
   const { valueAtCoordinate, loading } = useSelector(selectValueAtCoordinate)
   const [showRawHFI, setShowRawHFI] = useState(false)
   const [showFTL, setShowFTL] = useState(false)
+  const [showFTL_M, setShowFTL_M] = useState(false)
   const [showSfmsFtl, setShowSfmsFtl] = useState(false)
   const [showHighHFI, setShowHighHFI] = useState(true)
   const [map, setMap] = useState<ol.Map | null>(null)
@@ -195,6 +203,7 @@ const FBAMap = (props: FBAMapProps) => {
   useEffect(() => {
     if (!map) return
     const layerName = 'hfiVector'
+    removeLayerByName(map, layerName)
     if (showHighHFI) {
       const latestHFILayer = new VectorTileLayer({
         source: new VectorTileSource({
@@ -207,8 +216,6 @@ const FBAMap = (props: FBAMapProps) => {
         properties: { name: layerName }
       })
       map.addLayer(latestHFILayer)
-    } else {
-      removeLayerByName(map, layerName)
     }
   }, [props.date, showHighHFI]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -232,6 +239,16 @@ const FBAMap = (props: FBAMapProps) => {
       removeLayerByName(map, layerName)
     }
   }, [showFTL]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!map) return
+    const layerName = 'ftlM'
+    if (showFTL_M) {
+      map.addLayer(new Tile({ source: ftlSourceFactory('m1/m2'), properties: { name: layerName } }))
+    } else {
+      removeLayerByName(map, layerName)
+    }
+  }, [showFTL_M]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!map) return
@@ -271,6 +288,7 @@ const FBAMap = (props: FBAMapProps) => {
       controls: defaultControls().extend([
         new FullScreen(),
         LayerControl.buildLayerCheckbox('FTL 2018', setShowFTL, showFTL),
+        LayerControl.buildLayerCheckbox('FTL 2018 M1/M2', setShowFTL_M, showFTL_M),
         LayerControl.buildLayerCheckbox('FTL SFMS', setShowSfmsFtl, showSfmsFtl),
         LayerControl.buildLayerCheckbox('High HFI', setShowHighHFI, showHighHFI),
         LayerControl.buildLayerCheckbox('Raw HFI', setShowRawHFI, showRawHFI)
