@@ -1,3 +1,4 @@
+import { CommentsDisabledOutlined } from '@mui/icons-material'
 import axios, { raster } from 'api/axios'
 
 export interface FireCenterStation {
@@ -40,9 +41,24 @@ export async function getFireZoneAreas(for_date: string): Promise<ZoneAreaListRe
   return data
 }
 
-export async function getValueAtCoordinate(layer: string, latitude: number, longitude: number): Promise<number> {
+export async function getValueAtCoordinate(
+  layer: string,
+  latitude: number,
+  longitude: number,
+  description: string,
+  encoder: (value: number) => string
+): Promise<{ value: string | undefined; description: string }> {
   const url = `/value/1/${latitude}/${longitude}?path=${layer}`
 
-  const { data } = await raster.get(url, {})
-  return data
+  return await raster
+    .get(url, {})
+    .then(response => {
+      return { value: encoder(response.data), description }
+    })
+    .catch(error => {
+      console.error(error)
+      return { value: undefined, description }
+    })
+  // const { data } = await raster.get(url, {})
+  // return { value: data, description: description }
 }

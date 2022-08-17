@@ -32,7 +32,7 @@ import {
 import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
 import { AppDispatch } from 'app/store'
-import { fetchValueAtCoordinate } from 'features/fba/slices/valueAtCoordinateSlice'
+import { fetchValuesAtCoordinate } from 'features/fba/slices/valueAtCoordinateSlice'
 import { LayerControl } from 'features/fba/components/map/layerControl'
 import FBATooltip from 'features/fba/components/map/FBATooltip'
 import { RASTER_SERVER_BASE_URL } from 'utils/env'
@@ -334,16 +334,7 @@ const FBAMap = (props: FBAMapProps) => {
       if (overlay) {
         const coordinate = proj.transform(e.coordinate, 'EPSG:3857', 'EPSG:4326')
         // fetch hfi at coordinate
-        const isoDate = props.date.toISODate().replaceAll('-', '')
-        dispatch(
-          fetchValueAtCoordinate(
-            [`gpdqha/sfms/cog/cog_hfi${isoDate}.tif`],
-            coordinate[1],
-            coordinate[0],
-            'SFMS HFI',
-            props.date
-          )
-        )
+        dispatch(fetchValuesAtCoordinate(coordinate[1], coordinate[0], props.date))
         overlay.setPosition(e.coordinate)
       }
     })

@@ -43,7 +43,8 @@ const FBATooltip = React.forwardRef((props: FBATooltipProps, ref) => {
           {props.valuesAtCoordinate.map(valueAtCoordinate => {
             return (
               <p key={valueAtCoordinate.description}>
-                {valueAtCoordinate.date.toLocaleString()} {valueAtCoordinate.description} : {valueAtCoordinate.value}
+                {valueAtCoordinate.description} :{' '}
+                {valueAtCoordinate.value === undefined ? 'undefined' : valueAtCoordinate.value}
               </p>
             )
           })}
