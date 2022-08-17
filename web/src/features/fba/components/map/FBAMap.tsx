@@ -36,6 +36,7 @@ import { fetchValueAtCoordinate } from 'features/fba/slices/valueAtCoordinateSli
 import { LayerControl } from 'features/fba/components/map/layerControl'
 import FBATooltip from 'features/fba/components/map/FBATooltip'
 import { RASTER_SERVER_BASE_URL } from 'utils/env'
+import { EventsKey } from 'ol/events'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -87,13 +88,14 @@ const FBAMap = (props: FBAMapProps) => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { stations } = useSelector(selectFireWeatherStations)
-  const { valueAtCoordinate, loading } = useSelector(selectValueAtCoordinate)
+  const { values, loading } = useSelector(selectValueAtCoordinate)
   const [showRawHFI, setShowRawHFI] = useState(false)
   const [showFTL, setShowFTL] = useState(false)
   const [showFTL_M, setShowFTL_M] = useState(false)
   const [showSfmsFtl, setShowSfmsFtl] = useState(false)
   const [showHighHFI, setShowHighHFI] = useState(true)
   const [map, setMap] = useState<ol.Map | null>(null)
+  const [singleClickKey, setSingleClickKey] = useState<EventsKey | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const [fireZoneVector, setFireZoneVector] = useState(
@@ -312,22 +314,42 @@ const FBAMap = (props: FBAMapProps) => {
         autoPan: true,
         autoPanAnimation: {
           duration: 250
-        }
+        },
+        id: 'popup'
       })
 
       mapObject.addOverlay(overlay)
-
-      mapObject.on('singleclick', e => {
-        const coordinate = proj.transform(e.coordinate, 'EPSG:3857', 'EPSG:4326')
-        // fetch hfi at coordinate
-        const isoDate = props.date.toISODate().replaceAll('-', '')
-        dispatch(fetchValueAtCoordinate(`gpdqha/sfms/cog/cog_hfi${isoDate}.tif`, coordinate[1], coordinate[0]))
-        overlay.setPosition(e.coordinate)
-      })
     }
 
     setMap(mapObject)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!map) return
+    if (singleClickKey) {
+      map.un('singleclick', singleClickKey.listener)
+    }
+    const newKey = map.on('singleclick', e => {
+      const overlay = map.getOverlayById('popup')
+      if (overlay) {
+        const coordinate = proj.transform(e.coordinate, 'EPSG:3857', 'EPSG:4326')
+        // fetch hfi at coordinate
+        const isoDate = props.date.toISODate().replaceAll('-', '')
+        dispatch(
+          fetchValueAtCoordinate(
+            [`gpdqha/sfms/cog/cog_hfi${isoDate}.tif`],
+            coordinate[1],
+            coordinate[0],
+            'SFMS HFI',
+            props.date
+          )
+        )
+        overlay.setPosition(e.coordinate)
+      }
+    })
+    setSingleClickKey(newKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.date, map, dispatch])
 
   useEffect(() => {
     const stationsSource = new VectorSource({
@@ -353,7 +375,7 @@ const FBAMap = (props: FBAMapProps) => {
       <MapContext.Provider value={map}>
         <div className={classes.main}>
           <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
-          <FBATooltip ref={overlayRef} valueAtCoordinate={valueAtCoordinate} loading={loading} />
+          <FBATooltip ref={overlayRef} valuesAtCoordinate={values} loading={loading} />
         </div>
       </MapContext.Provider>
     </ErrorBoundary>

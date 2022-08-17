@@ -1,10 +1,11 @@
 import { Box, CircularProgress } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import React from 'react'
+import { IValueAtCoordinate } from 'features/fba/slices/valueAtCoordinateSlice'
 
 export interface FBATooltipProps {
   testId?: string
-  valueAtCoordinate?: number
+  valuesAtCoordinate: IValueAtCoordinate[]
   loading: boolean
 }
 
@@ -39,7 +40,13 @@ const FBATooltip = React.forwardRef((props: FBATooltipProps, ref) => {
         <CircularProgress />
       ) : (
         <div id="popup-content">
-          <p>{`HFI: ${props.valueAtCoordinate}`}</p>
+          {props.valuesAtCoordinate.map(valueAtCoordinate => {
+            return (
+              <p key={valueAtCoordinate.description}>
+                {valueAtCoordinate.date.toLocaleString()} {valueAtCoordinate.description} : {valueAtCoordinate.value}
+              </p>
+            )
+          })}
         </div>
       )}
     </Box>
