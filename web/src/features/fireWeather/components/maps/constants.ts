@@ -29,3 +29,23 @@ export const sfmsFtlSource = new XYZ({
   url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/sfms/cog/static/cog_fbp2021.tif&source=ftl`,
   imageSmoothing: true
 })
+
+export const sfmsElevationSource = new XYZ({
+  url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/sfms/cog/static/cog_bc_elevation.tif&source=elevation`,
+  imageSmoothing: true
+})
+
+export const twelveArcElevationSource = new XYZ({
+  url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/dem/cog/cog_BC_Area_CDEM.tif&source=elevation`,
+  imageSmoothing: true
+})
+
+export const sfmsSlopeSource = new XYZ({
+  url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/sfms/cog/static/cog_bc_slope.tif&source=slope`,
+  imageSmoothing: true
+})
+
+export const sfmsAspectSource = new XYZ({
+  url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/sfms/cog/static/cog_bc_aspect.tif&source=aspect`,
+  imageSmoothing: true
+})

@@ -1,4 +1,3 @@
-import { CommentsDisabledOutlined } from '@mui/icons-material'
 import axios, { raster } from 'api/axios'
 
 export interface FireCenterStation {

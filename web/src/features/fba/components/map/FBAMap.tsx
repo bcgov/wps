@@ -16,7 +16,15 @@ import React, { useEffect, useRef, useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectFireZoneAreas, selectValueAtCoordinate } from 'app/rootReducer'
-import { ftlSource, sfmsFtlSource, source as baseMapSource } from 'features/fireWeather/components/maps/constants'
+import {
+  sfmsElevationSource,
+  twelveArcElevationSource,
+  ftlSource,
+  sfmsFtlSource,
+  sfmsSlopeSource,
+  sfmsAspectSource,
+  source as baseMapSource
+} from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
@@ -94,6 +102,10 @@ const FBAMap = (props: FBAMapProps) => {
   const [showFTL_M, setShowFTL_M] = useState(false)
   const [showSfmsFtl, setShowSfmsFtl] = useState(false)
   const [showHighHFI, setShowHighHFI] = useState(true)
+  const [showSfmsElevation, setShowSfmsElevation] = useState(false)
+  const [show12arcElevation, setShow12arcElevation] = useState(false)
+  const [showSfmsSlope, setShowSfmsSlope] = useState(false)
+  const [showSfmsAspect, setShowSfmsAspect] = useState(false)
   const [map, setMap] = useState<ol.Map | null>(null)
   const [singleClickKey, setSingleClickKey] = useState<EventsKey | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -232,15 +244,38 @@ const FBAMap = (props: FBAMapProps) => {
     }
   }, [props.date, showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
+  const addRemoveLayer = (map: ol.Map | null, show: boolean, layerName: string, source: XYZ) => {
     if (!map) return
-    const layerName = 'ftl'
-    if (showFTL) {
-      map.addLayer(new Tile({ source: ftlSource, properties: { name: layerName } }))
+    if (show) {
+      map.addLayer(new Tile({ source: source, properties: { name: layerName } }))
     } else {
       removeLayerByName(map, layerName)
     }
+  }
+
+  useEffect(() => {
+    addRemoveLayer(map, showFTL, 'ftl', ftlSource)
   }, [showFTL]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    addRemoveLayer(map, showSfmsElevation, 'sfmsElevation', sfmsElevationSource)
+  }, [showSfmsElevation]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    addRemoveLayer(map, show12arcElevation, '12arcElevation', twelveArcElevationSource)
+  }, [show12arcElevation]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    addRemoveLayer(map, showSfmsFtl, 'sfmsFtl', sfmsFtlSource)
+  }, [showSfmsFtl]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    addRemoveLayer(map, showSfmsAspect, 'sfmsAspect', sfmsAspectSource)
+  }, [showSfmsAspect]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    addRemoveLayer(map, showSfmsSlope, 'sfmsSlope', sfmsSlopeSource)
+  }, [showSfmsSlope]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!map) return
@@ -251,16 +286,6 @@ const FBAMap = (props: FBAMapProps) => {
       removeLayerByName(map, layerName)
     }
   }, [showFTL_M]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!map) return
-    const layerName = 'sfmsftl'
-    if (showSfmsFtl) {
-      map.addLayer(new Tile({ source: sfmsFtlSource, properties: { name: layerName } }))
-    } else {
-      removeLayerByName(map, layerName)
-    }
-  }, [showSfmsFtl]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -293,7 +318,11 @@ const FBAMap = (props: FBAMapProps) => {
         LayerControl.buildLayerCheckbox('FTL 2018 M1/M2', setShowFTL_M, showFTL_M),
         LayerControl.buildLayerCheckbox('FTL SFMS', setShowSfmsFtl, showSfmsFtl),
         LayerControl.buildLayerCheckbox('High HFI', setShowHighHFI, showHighHFI),
-        LayerControl.buildLayerCheckbox('Raw HFI', setShowRawHFI, showRawHFI)
+        LayerControl.buildLayerCheckbox('Raw HFI', setShowRawHFI, showRawHFI),
+        LayerControl.buildLayerCheckbox('SFMS Elevation', setShowSfmsElevation, showSfmsElevation),
+        LayerControl.buildLayerCheckbox('12 arc Elevation', setShow12arcElevation, show12arcElevation),
+        LayerControl.buildLayerCheckbox('SFMS Slope', setShowSfmsSlope, showSfmsSlope),
+        LayerControl.buildLayerCheckbox('SFMS Aspect', setShowSfmsAspect, showSfmsAspect)
       ])
     }
     // Create the map with the options above and set the target
