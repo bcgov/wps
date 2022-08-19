@@ -16,7 +16,6 @@ describe('Fire Behaviour Advisory Page', () => {
   })
 
   it('Renders the initial page', () => {
-    cy.contains('Fire Behaviour Advisory Tool')
     cy.getByTestId('fire-center-dropdown').should('be.visible')
     cy.getByTestId('fba-map').should('be.visible')
   })
