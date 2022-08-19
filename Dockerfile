@@ -14,7 +14,7 @@ RUN cd /tmp && \
 COPY ./api/app /app/app
 # TODO: we need to do this better.
 RUN mkdir /app/advisory
-COPY .api/advisory /app/advisory
+COPY ./api/advisory /app/advisory
 # Copy java libs:
 RUN mkdir /app/libs
 COPY ./api/libs /app/libs

@@ -63,6 +63,16 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "advisory calculate",
+            "type": "python",
+            "request": "launch",
+            "module": "advisory.calculate_advisories",
+            "console": "integratedTerminal",
+            "args": [
+                "2022-08-09"
+            ]
+        },
+        {
             "name": "Chrome",
             "type": "pwa-chrome",
             "request": "launch",
