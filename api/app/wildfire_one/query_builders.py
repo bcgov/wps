@@ -26,7 +26,9 @@ class BuildQueryStations(BuildQuery):
         super().__init__()
         self.param_query = None
         # In conversation with Dana Hicks, on Apr 20, 2021 - Dana said to show active, test and project.
-        for status in ('ACTIVE', 'TEST', 'PROJECT'):
+        # Added Disabled status to fix situation where stations Disabled in WFWX API are being used in
+        # HFI Calc, causing Planning Area-level calculations to break due to missing station data.
+        for status in ('ACTIVE', 'TEST', 'PROJECT', 'DISABLED'):
             if self.param_query:
                 self.param_query += f',stationStatus.id=="{status}"'
             else:
