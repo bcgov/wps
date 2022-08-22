@@ -1,0 +1,295 @@
+﻿kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
+metadata:
+  annotations:
+    template.alpha.openshift.io/wait-for-ready: 'true'
+  resourceVersion: '3697714227'
+  name: wps-redis
+  uid: 993faf9d-08fc-47cb-994f-4cb2055da786
+  creationTimestamp: '2021-06-18T18:50:06Z'
+  generation: 19
+  managedFields:
+    - manager: Mozilla
+      operation: Update
+      apiVersion: apps.openshift.io/v1
+      time: '2021-07-26T22:59:42Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:spec':
+          'f:template':
+            'f:spec':
+              'f:containers':
+                'k:{"name":"redis"}':
+                  'f:resources':
+                    'f:limits':
+                      'f:memory': {}
+                    'f:requests':
+                      .: {}
+                      'f:memory': {}
+    - manager: openshift-controller-manager
+      operation: Update
+      apiVersion: apps.openshift.io/v1
+      time: '2022-06-06T18:15:22Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:template.alpha.openshift.io/wait-for-ready': {}
+          'f:labels':
+            .: {}
+            'f:template': {}
+            'f:template.openshift.io/template-instance-owner': {}
+        'f:spec':
+          'f:replicas': {}
+          'f:selector':
+            .: {}
+            'f:name': {}
+          'f:strategy':
+            'f:activeDeadlineSeconds': {}
+            'f:recreateParams':
+              .: {}
+              'f:timeoutSeconds': {}
+            'f:type': {}
+          'f:template':
+            .: {}
+            'f:metadata':
+              .: {}
+              'f:creationTimestamp': {}
+              'f:labels':
+                .: {}
+                'f:name': {}
+            'f:spec':
+              .: {}
+              'f:containers':
+                .: {}
+                'k:{"name":"redis"}':
+                  'f:image': {}
+                  'f:volumeMounts':
+                    .: {}
+                    'k:{"mountPath":"/var/lib/redis/data"}':
+                      .: {}
+                      'f:mountPath': {}
+                      'f:name': {}
+                  'f:terminationMessagePolicy': {}
+                  .: {}
+                  'f:resources':
+                    .: {}
+                    'f:limits':
+                      .: {}
+                      'f:memory': {}
+                  'f:livenessProbe':
+                    .: {}
+                    'f:failureThreshold': {}
+                    'f:initialDelaySeconds': {}
+                    'f:periodSeconds': {}
+                    'f:successThreshold': {}
+                    'f:tcpSocket':
+                      .: {}
+                      'f:port': {}
+                    'f:timeoutSeconds': {}
+                  'f:env':
+                    .: {}
+                    'k:{"name":"REDIS_PASSWORD"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:secretKeyRef': {}
+                  'f:readinessProbe':
+                    .: {}
+                    'f:exec':
+                      .: {}
+                      'f:command': {}
+                    'f:failureThreshold': {}
+                    'f:initialDelaySeconds': {}
+                    'f:periodSeconds': {}
+                    'f:successThreshold': {}
+                    'f:timeoutSeconds': {}
+                  'f:securityContext':
+                    .: {}
+                    'f:capabilities': {}
+                    'f:privileged': {}
+                  'f:terminationMessagePath': {}
+                  'f:imagePullPolicy': {}
+                  'f:ports':
+                    .: {}
+                    'k:{"containerPort":6379,"protocol":"TCP"}':
+                      .: {}
+                      'f:containerPort': {}
+                      'f:protocol': {}
+                  'f:name': {}
+              'f:dnsPolicy': {}
+              'f:restartPolicy': {}
+              'f:schedulerName': {}
+              'f:securityContext': {}
+              'f:terminationGracePeriodSeconds': {}
+              'f:volumes':
+                .: {}
+                'k:{"name":"wps-redis-data"}':
+                  .: {}
+                  'f:emptyDir': {}
+                  'f:name': {}
+          'f:triggers': {}
+        'f:status':
+          'f:conditions':
+            .: {}
+            'k:{"type":"Available"}':
+              .: {}
+              'f:type': {}
+            'k:{"type":"Progressing"}':
+              .: {}
+              'f:type': {}
+          'f:details':
+            .: {}
+            'f:message': {}
+    - manager: openshift-controller-manager
+      operation: Update
+      apiVersion: apps.openshift.io/v1
+      time: '2022-06-07T11:55:02Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:status':
+          'f:updatedReplicas': {}
+          'f:readyReplicas': {}
+          'f:conditions':
+            'k:{"type":"Available"}':
+              'f:lastTransitionTime': {}
+              'f:lastUpdateTime': {}
+              'f:message': {}
+              'f:status': {}
+            'k:{"type":"Progressing"}':
+              'f:lastTransitionTime': {}
+              'f:lastUpdateTime': {}
+              'f:message': {}
+              'f:reason': {}
+              'f:status': {}
+          'f:details':
+            'f:causes': {}
+          'f:replicas': {}
+          'f:availableReplicas': {}
+          'f:observedGeneration': {}
+          'f:unavailableReplicas': {}
+          'f:latestVersion': {}
+      subresource: status
+  namespace: e1e498-prod
+  labels:
+    template: redis-ephemeral-template
+    template.openshift.io/template-instance-owner: 31445217-3081-42d2-88f6-97ef32b19ff1
+spec:
+  strategy:
+    type: Recreate
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    activeDeadlineSeconds: 21600
+  triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - redis
+        from:
+          kind: ImageStreamTag
+          namespace: openshift
+          name: 'redis:5-el8'
+        lastTriggeredImage: >-
+          image-registry.openshift-image-registry.svc:5000/openshift/redis@sha256:0b6f2072bb6ef3d182cd7fbd534bb00d838d23e17c0f0b3e7b3fd6b7ac1901cc
+    - type: ConfigChange
+  replicas: 1
+  revisionHistoryLimit: 10
+  test: false
+  selector:
+    name: wps-redis
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        name: wps-redis
+    spec:
+      volumes:
+        - name: wps-redis-data
+          emptyDir: {}
+      containers:
+        - resources:
+            limits:
+              memory: 8Gi
+            requests:
+              memory: 512Mi
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - '-i'
+                - '-c'
+                - >-
+                  test "$(redis-cli -h 127.0.0.1 -a $REDIS_PASSWORD ping)" ==
+                  "PONG"
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          name: redis
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 30
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wps-redis
+                  key: database-password
+          securityContext:
+            capabilities: {}
+            privileged: false
+          ports:
+            - containerPort: 6379
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: wps-redis-data
+              mountPath: /var/lib/redis/data
+          terminationMessagePolicy: File
+          image: >-
+            image-registry.openshift-image-registry.svc:5000/openshift/redis@sha256:0b6f2072bb6ef3d182cd7fbd534bb00d838d23e17c0f0b3e7b3fd6b7ac1901cc
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+status:
+  observedGeneration: 19
+  details:
+    message: image change
+    causes:
+      - type: ImageChange
+        imageTrigger:
+          from:
+            kind: DockerImage
+            name: >-
+              image-registry.openshift-image-registry.svc:5000/openshift/redis@sha256:0b6f2072bb6ef3d182cd7fbd534bb00d838d23e17c0f0b3e7b3fd6b7ac1901cc
+  availableReplicas: 1
+  unavailableReplicas: 0
+  latestVersion: 16
+  updatedReplicas: 1
+  conditions:
+    - type: Available
+      status: 'True'
+      lastUpdateTime: '2022-06-07T11:55:02Z'
+      lastTransitionTime: '2022-06-07T11:55:02Z'
+      message: Deployment config has minimum availability.
+    - type: Progressing
+      status: 'True'
+      lastUpdateTime: '2022-06-07T11:55:08Z'
+      lastTransitionTime: '2022-06-07T11:54:41Z'
+      reason: NewReplicationControllerAvailable
+      message: replication controller "wps-redis-16" successfully rolled out
+  replicas: 1
+  readyReplicas: 1
