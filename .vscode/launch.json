@@ -9,14 +9,8 @@
             "type": "python",
             "request": "launch",
             "program": "api/app/main.py",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "api - module",
-            "type": "python",
-            "request": "launch",
-            "module": "app.main",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "justMyCode": false
         },
         {
             "name": "app.jobs.noon_forecasts",
