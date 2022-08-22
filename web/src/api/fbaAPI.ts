@@ -1,4 +1,4 @@
-import axios from 'api/axios'
+import axios, { raster } from 'api/axios'
 
 export interface FireCenterStation {
   code: number
@@ -38,4 +38,24 @@ export async function getFireZoneAreas(for_date: string): Promise<ZoneAreaListRe
 
   const { data } = await axios.get(url, {})
   return data
+}
+
+export async function getValueAtCoordinate(
+  layer: string,
+  latitude: number,
+  longitude: number,
+  description: string,
+  encoder: (value: number) => string
+): Promise<{ value: string | undefined; description: string }> {
+  const url = `/value/1/${latitude}/${longitude}?path=${layer}`
+
+  return raster
+    .get(url, {})
+    .then(response => {
+      return { value: encoder(response.data), description }
+    })
+    .catch(error => {
+      console.error(error)
+      return { value: undefined, description }
+    })
 }
