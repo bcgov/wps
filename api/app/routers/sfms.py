@@ -19,12 +19,13 @@ class FileLikeObject(io.IOBase):
     """ Very basic wrapper of the SpooledTemporaryFile to expose the file-like object interface. """
 
     def __init__(self, file: SpooledTemporaryFile):
+        super().__init__()
         self.file = file
 
     def read(self, size: int = -1):
         return self.file.read(size)
 
-    def write(self, b: bytes):
+    def write(self, b: bytes):  # pylint: disable=invalid-name
         return self.file.write(b)
 
     def seek(self, offset: int, whence: int = io.SEEK_SET):
