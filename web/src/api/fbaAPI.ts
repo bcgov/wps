@@ -49,7 +49,7 @@ export async function getValueAtCoordinate(
 ): Promise<{ value: string | undefined; description: string }> {
   const url = `/value/1/${latitude}/${longitude}?path=${layer}`
 
-  return await raster
+  return raster
     .get(url, {})
     .then(response => {
       return { value: encoder(response.data), description }
@@ -58,6 +58,4 @@ export async function getValueAtCoordinate(
       console.error(error)
       return { value: undefined, description }
     })
-  // const { data } = await raster.get(url, {})
-  // return { value: data, description: description }
 }

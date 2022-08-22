@@ -144,7 +144,6 @@ const FBAMap = (props: FBAMapProps) => {
   }, [map, fireZoneVector])
 
   useEffect(() => {
-    // setPrevFireZoneVector(fireZoneVector)
     setFireZoneVector(
       new VectorTileLayer({
         source: new VectorTileSource({
