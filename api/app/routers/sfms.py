@@ -58,7 +58,7 @@ def is_actual(filename: str) -> bool:
     if file_date < now_date:
         # It's from the past - it's an actual.
         return True
-    elif file_date > now_date:
+    if file_date > now_date:
         # It's from the future - it's a forecast.
         return False
     # It's from today - now it get's weird.
