@@ -7,7 +7,7 @@ terms of local time. Local time is confusing in BC, and especially so in wildfir
 - Solar noon is at 20h00 UTC.
 - Solar noon is at 12h00 PST. (So in the winter, the sun is overhead at noon)
 - Solar noon is at 13h00 PDT. (So in the summer, the sun is NOT overhead at noon)
-- That does noon even have to do with anything, when things like the daily FFMC is for 5pm.
+- What does noon even have to do with anything, when things like the daily FFMC is for 5pm.
 """
 from datetime import datetime, timezone, timedelta, date
 from typing import Final
