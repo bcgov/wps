@@ -36,7 +36,7 @@ async def get_hfi_area_percentages(session: AsyncSession, for_date: date) -> Lis
     return all
 
 
-async def get_hfi_area_percentages(session: AsyncSession, for_date: date) -> List[Row]:
+async def get_simple_hfi_area_percentages(session: AsyncSession, for_date: date) -> List[Row]:
     """ This uses simplified zone polygons to speed up query
 
     For each fire zone, it gives you the area of the fire zone, and the area of hfi polygons
@@ -47,10 +47,10 @@ async def get_hfi_area_percentages(session: AsyncSession, for_date: date) -> Lis
     stmt = select(SimpleFireZone.id,
                   SimpleFireZone.mof_fire_zone_id,
                   SimpleFireZone.mof_fire_zone_name,
-                  SimpleFireZone.geom.ST_Transform(3005).ST_Area().label('zone_area'),
-                  Hfi.wkb_geometry.ST_Union().ST_Intersection(SimpleFireZone.geom)
+                  SimpleFireZone.wkb_geometry.ST_Transform(3005).ST_Area().label('zone_area'),
+                  Hfi.wkb_geometry.ST_Union().ST_Intersection(SimpleFireZone.wkb_geometry)
                   .ST_Transform(3005).ST_Area().label('hfi_area'))\
-        .join(Hfi, Hfi.wkb_geometry.ST_Intersects(SimpleFireZone.geom))\
+        .join(Hfi, Hfi.wkb_geometry.ST_Intersects(SimpleFireZone.wkb_geometry))\
         .where(Hfi.date == for_date)\
         .group_by(SimpleFireZone.id)
     result = await session.execute(stmt)
