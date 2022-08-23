@@ -14,6 +14,11 @@ This script is used to upload SFMS output to the Predictive Services Unit API.
 
 The code relating to multipart form data is based on the blog post:
 https://blog.thesparktree.com/the-unfortunately-long-story-dealing-with
+
+The code could have been simplified by using the requests library, BUT: "Python 2.7 reached the 
+end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no longer 
+maintained. pip 21.0 will drop support for Python 2.7 in January 2021." - so it's best to avoid
+any external dependencies.
 """
 import sys
 import os
@@ -23,6 +28,16 @@ import io
 import httplib
 import urlparse
 import codecs
+import logging
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 
 def get_config(ini):
@@ -53,7 +68,6 @@ class MultiPartForm(object):
         self.form_fields = []
         self.files = []
         self.boundary = mimetools.choose_boundary()
-        return
 
     def get_content_type(self):
         return 'multipart/form-data; boundary=%s' % self.boundary
@@ -61,34 +75,32 @@ class MultiPartForm(object):
     def add_field(self, name, value):
         """Add a simple field to the form data."""
         self.form_fields.append((name, value))
-        return
 
     def add_file(self, fieldname, filename, mimetype=None):
         """Add a file to be uploaded."""
-        fileHandle = None
+        file_handle = None
         try:
-            fileHandle = codecs.open(filename, "rb")
-            body = fileHandle.read()
+            file_handle = codecs.open(filename, "rb")
+            body = file_handle.read()
         finally:
-            if fileHandle:
-                fileHandle.close()
+            if file_handle:
+                file_handle.close()
         basename = os.path.basename(filename)
         if mimetype is None:
             mimetype = mimetypes.guess_type(basename)[0] or 'application/octet-stream'
         self.files.append((fieldname, basename, mimetype, body))
-        return
 
     def get_binary(self):
         """Return a binary buffer containing the form data, including attached files."""
         part_boundary = '--' + self.boundary
 
         binary = io.BytesIO()
-        needsCLRF = False
+        needs_clrf = False
         # Add the form fields
         for name, value in self.form_fields:
-            if needsCLRF:
+            if needs_clrf:
                 binary.write('\r\n')
-            needsCLRF = True
+            needs_clrf = True
 
             block = [part_boundary,
                      'Content-Disposition: form-data; name="%s"' % name,
@@ -99,9 +111,9 @@ class MultiPartForm(object):
 
         # Add the files to upload
         for field_name, filename, content_type, body in self.files:
-            if needsCLRF:
+            if needs_clrf:
                 binary.write('\r\n')
-            needsCLRF = True
+            needs_clrf = True
 
             block = [part_boundary,
                      str('Content-Disposition: file; name="%s"; filename="%s"' %
@@ -118,7 +130,7 @@ class MultiPartForm(object):
         return binary
 
 
-def upload(filename, url, secret):
+def upload(filename, url, secret, last_modified, create_time):
     """ Give a filename, URL and secret, post file to the url.
 
     Based on blogpost: https://blog.thesparktree.com/the-unfortunately-long-story-dealing-with
@@ -132,33 +144,37 @@ def upload(filename, url, secret):
     http.connect()
     http.putrequest('POST', url)
     http.putheader('Secret', secret)
+    http.putheader('Create-time', create_time.isoformat())
+    http.putheader('Last-modified', last_modified.isoformat())
     http.putheader('Content-type', form.get_content_type())
     http.putheader('Content-length', str(len(form_buffer)))
     http.endheaders()
     http.send(form_buffer)
     result = http.getresponse()
 
-    print('Status: ' + str(result.status))
+    logger.info('Status: %s', result.status)
 
 
 def main(ini):
-    """ Given some configuration filename, POST all files to the confured URL. """
+    """ Given some configuration filename, POST all files to the configured URL. """
     config = get_config(ini)
-    print('Uploading tiff files from "' + config.get('source') + '" to "' + config.get('url') + '"')
+    logger.info('Uploading tiff files from "%s" to "%s"', config.get('source'), config.get('url'))
 
     # Iterate over all files in the directory
     for filename in os.listdir(config.get('source')):
         filename = filename.lower()
         if filename.endswith('tif') or filename.endswith('tiff'):
             filename = os.path.join(config.get('source'), filename)
+            last_modified = datetime.fromtimestamp(os.path.getmtime(filename))
+            create_time = datetime.fromtimestamp(os.path.getctime(filename))
             try:
-                print('Uploading: ' + filename)
-                upload(filename, config.get('url'), config.get('secret'))
+                logger.info('Uploading "%s"', filename)
+                upload(filename, config.get('url'), config.get('secret'), last_modified, create_time)
             except KeyboardInterrupt:
-                print('Aborted')
+                logger.warning('Aborted')
                 sys.exit(1)
-            except:
-                print('Error uploading: ' + filename)
+            except Exception as exception:
+                logger.error('Error uploading "%s" with %s', filename, exception, exc_info=True)
                 print(sys.exc_info()[0])
 
 
