@@ -21,7 +21,7 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 OBJ_NAME="${APP_NAME}-${SUFFIX}"
 
-# Process a template (mostly variable substition)
+# Process a template (mostly variable substitution)
 #
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_NATS} \
  -p SUFFIX=${SUFFIX} \

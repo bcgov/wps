@@ -55,7 +55,7 @@ PROJ_TARGET=<cluster-namespace> ./oc_deploy_nats.sh nats apply
 oc delete all --selector app=nats
 ```
 
-Then you'll need to manually delete the PVC's (`wps-nats-jetstream-nats-x1) and ConfigMap (nats-config)
+Then you'll need to manually delete the PVC's (`wps-nats-jetstream-nats-x1`) and ConfigMap (`nats-config`)
 
 ## Create service account in dev
 
