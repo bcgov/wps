@@ -6,7 +6,7 @@ This project contains a script that is intended to be run on the SFMS windows se
 
 The python script in this project, `sfms.py` is targeted at python 2.7, since the SFMS server is running python 2.7.
 
-The pythong script, `sfms.py` does not require any external dependencies. [Python 2.7 is deprected](https://www.python.org/doc/sunset-python-2/) so we can't rely on pip being able to install any external dependencies.
+The python script, `sfms.py` does not require any external dependencies. [Python 2.7 is deprected](https://www.python.org/doc/sunset-python-2/) so we can't rely on pip being able to install any external dependencies.
 
 ## Run
 
