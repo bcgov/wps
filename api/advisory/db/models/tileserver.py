@@ -31,5 +31,5 @@ class SimpleFireZone(Base):
     __tablename__ = 'simple_fire_zones'
     id = Column(Integer, primary_key=True, index=True)
     mof_fire_zone_id = Column(Integer)
-    geom = Column(Geometry('MULTIPOLYGON'))
+    wkb_geometry = Column(Geometry('MULTIPOLYGON'))
     mof_fire_zone_name = Column(String)
