@@ -76,8 +76,8 @@ def get_prefix(filename: str) -> str:
 
 def get_target_filename(filename: str) -> str:
     """ Get the target filename, something that looks like this:
-    bucket/smfs/upload/forecast/[issue date NOT TIME]/hfi20220823.tif
-    bucket/smfs/upload/actual/[issue date NOT TIME]/hfi20220823.tif
+    bucket/sfms/upload/forecast/[issue date NOT TIME]/hfi20220823.tif
+    bucket/sfms/upload/actual/[issue date NOT TIME]/hfi20220823.tif
     """
     # We are assuming that the local server time, matches the issue date. We assume that
     # right after a file is generated, this API is called - and as such the current
