@@ -53,7 +53,7 @@ async def upload(file: UploadFile, request: Request):
         return Response(status_code=401)
     # Get an async S3 client.
     async with get_client() as (client, bucket):
-        key = os.path.join('sfms', 'uploads', datetime.now().isoformat(), file.filename)
+        key = os.path.join('sfms', 'uploads', datetime.now().isoformat()[:16], file.filename)
         logger.info('Uploading file "%s" to "%s"', file.filename, key)
         await client.put_object(Bucket=bucket, Key=key, Body=FileLikeObject(file.file))
         logger.info('Done uploading file')
