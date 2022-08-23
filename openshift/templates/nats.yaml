@@ -1,0 +1,208 @@
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: nats
+  annotations:
+    "openshift.io/display-name": nats
+parameters:
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
+    value: wps
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+objects:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: nats-config
+      labels:
+        app: nats
+    data:
+      nats.conf: |-
+        pid_file: "/var/run/nats/nats.pid"
+        http: 8222
+        max_payload: 100Mb
+        max_pending: 120Mb
+        debug: false
+        trace: false
+        trace_verbose: false
+        server_name: $POD_NAME
+        cluster {
+            port: 6222
+            name: wps-nats-cluster
+            routes [
+               nats://nats-0.nats.${APP_NAME}-${SUFFIX}.svc.cluster.local:6222
+               nats://nats-1.nats.${APP_NAME}-${SUFFIX}.svc.cluster.local:6222
+               nats://nats-2.nats.${APP_NAME}-${SUFFIX}.svc.cluster.local:6222
+               nats://nats-3.nats.${APP_NAME}-${SUFFIX}.svc.cluster.local:6222
+               nats://nats-4.nats.${APP_NAME}-${SUFFIX}.svc.cluster.local:6222
+            ]
+            cluster_advertise: $CLUSTER_ADVERTISE
+            connect_retries: 50
+        }
+        leafnodes {
+          port: 7422
+        }
+        jetstream {
+          store_dir: /data
+          max_file: 5Gi
+        }
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: nats
+      labels:
+        app: nats
+    spec:
+      selector:
+        app: nats
+      clusterIP: None
+      ports:
+        - name: client
+          port: 4222
+        - name: cluster
+          port: 6222
+        - name: monitor
+          port: 8222
+        - name: metrics
+          port: 7777
+        - name: leafnodes
+          port: 7422
+        - name: gateways
+          port: 7522
+
+  - apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      name: nats
+      labels:
+        app: nats
+    spec:
+      selector:
+        matchLabels:
+          app: nats
+      replicas: 5
+      serviceName: "nats"
+      volumeClaimTemplates:
+        - metadata:
+            name: wps-nats-jetstream
+          spec:
+            accessModes:
+              - ReadWriteMany
+            volumeMode: "Filesystem"
+            persistentVolumeReclaimPolicy: Delete
+            resources:
+              requests:
+                storage: 5Gi
+      template:
+        metadata:
+          labels:
+            app: nats
+        spec:
+          # Common volumes for the containers
+          volumes:
+            - name: config-volume
+              configMap:
+                name: nats-config
+            - name: pid
+              emptyDir: {}
+            - name: wps-nats-jetstream
+              persistentVolumeClaim:
+                claimName: wps-nats-jetstream
+
+          # Required to be able to HUP signal and apply config reload
+          # to the server without restarting the pod.
+          shareProcessNamespace: true
+
+          #################
+          #               #
+          #  NATS Server  #
+          #               #
+          #################
+          terminationGracePeriodSeconds: 60
+          containers:
+            - name: nats
+              image: image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/nats:2.8.4-alpine
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "256Mi"
+                limits:
+                  cpu: "250m"
+                  memory: "1024Mi"
+              ports:
+                - containerPort: 4222
+                  name: client
+                - containerPort: 7422
+                  name: leafnodes
+                - containerPort: 6222
+                  name: cluster
+                - containerPort: 8222
+                  name: monitor
+                - containerPort: 7777
+                  name: metrics
+              command:
+                - "nats-server"
+                - "--config"
+                - "/etc/nats-config/nats.conf"
+
+              # Required to be able to define an environment variable
+              # that refers to other environment variables.  This env var
+              # is later used as part of the configuration file.
+              env:
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: APP_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: SUFFIX
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: CLUSTER_ADVERTISE
+                  value: $(POD_NAME).nats.$(APP_NAME)-$(SUFFIX).svc
+                - name: TZ
+                  value: America/Vancouver
+              imagePullPolicy: Always
+              volumeMounts:
+                - mountPath: /etc/nats-config
+                  name: config-volume
+                - mountPath: /var/run/nats
+                  name: pid
+                - mountPath: /data
+                  name: wps-nats-jetstream
+
+        # Liveness/Readiness probes against the monitoring .
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8222
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8222
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+
+        # Gracefully stop NATS Server on pod deletion or image upgrade.
+        #
+        lifecycle:
+          preStop:
+            exec:
+              # Using the alpine based NATS image, we add an extra sleep that is
+              # the same amount as the terminationGracePeriodSeconds to allow
+              # the NATS Server to gracefully terminate the client connections.
+              #
+              command:
+                [
+                  "/bin/sh",
+                  "-c",
+                  "/nats-server -sl=ldm=/var/run/nats/nats.pid && /bin/sleep 60",
+                ]
