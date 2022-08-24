@@ -13,6 +13,13 @@
             "justMyCode": false
         },
         {
+            "name": "sfms",
+            "type": "python",
+            "request": "launch",
+            "program": "sfms/app/main.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "app.jobs.noon_forecasts",
             "type": "python",
             "request": "launch",

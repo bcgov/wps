@@ -1722,6 +1722,17 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "python-multipart"
+version = "0.0.5"
+description = "A streaming multipart parser for Python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+six = ">=1.4.0"
+
+[[package]]
 name = "pytoolconfig"
 version = "1.2.2"
 description = "Python tool configuration"
@@ -2209,7 +2220,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "uvicorn"
-version = "0.18.2"
+version = "0.18.3"
 description = "The lightning-fast ASGI server."
 category = "main"
 optional = false
@@ -2220,7 +2231,7 @@ click = ">=7.0"
 h11 = ">=0.8"
 
 [package.extras]
-standard = ["websockets (>=10.0)", "httptools (>=0.4.0)", "watchfiles (>=0.13)", "python-dotenv (>=0.13)", "PyYAML (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "colorama (>=0.4)"]
+standard = ["colorama (>=0.4)", "httptools (>=0.4.0)", "python-dotenv (>=0.13)", "pyyaml (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "watchfiles (>=0.13)", "websockets (>=10.0)"]
 
 [[package]]
 name = "watchdog"
@@ -2292,7 +2303,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.10,<3.10"
-content-hash = "e52bc7c48bc5d5060a04474d190f7b0a225957bc7b9ab1d634cd45d0d73b8de2"
+content-hash = "d9bd5d195738d990735a0cfc60ed2d8bb3884905715de7c35c69b935311916ee"
 
 [metadata.files]
 aiobotocore = []
@@ -3128,6 +3139,7 @@ python-decouple = [
     {file = "python-decouple-3.6.tar.gz", hash = "sha256:2838cdf77a5cf127d7e8b339ce14c25bceb3af3e674e039d4901ba16359968c7"},
     {file = "python_decouple-3.6-py3-none-any.whl", hash = "sha256:6cf502dc963a5c642ea5ead069847df3d916a6420cad5599185de6bab11d8c2e"},
 ]
+python-multipart = []
 pytoolconfig = []
 pytz = []
 pytz-deprecation-shim = [

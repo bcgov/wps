@@ -343,6 +343,11 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: tileserver_postgres_read_password
+                - name: SFMS_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: sfms-secret
               ports:
                 - containerPort: 8080
                   protocol: TCP
