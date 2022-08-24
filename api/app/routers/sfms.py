@@ -7,7 +7,7 @@ from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request
 from app.utils.s3 import get_client
 from app import config
-from app.utils.time import get_hour_20, get_utc_now, get_pst_now
+from app.utils.time import get_hour_20, get_pdt_now
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ def is_actual(filename: str) -> bool:
         year=int(file_date_string[:4]),
         month=int(file_date_string[4:6]),
         day=int(file_date_string[6:8]))
-    now = get_pst_now()
+    now = get_pdt_now()
     now_date = now.date()
 
     if file_date < now_date:
@@ -82,7 +82,7 @@ def get_target_filename(filename: str) -> str:
     # We are assuming that the local server time, matches the issue date. We assume that
     # right after a file is generated, this API is called - and as such the current
     # time IS the issue date.
-    issue_date = get_utc_now()
+    issue_date = get_pdt_now()
     # depending on the issue date, we decide if it's a forecast or actual.
     prefix = get_prefix(filename)
     # create the filename
