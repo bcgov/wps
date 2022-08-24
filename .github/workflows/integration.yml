@@ -133,43 +133,43 @@ jobs:
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
-      - name: Setup kernel for react, increase watchers
-        run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-      - uses: actions/cache@v3
-        with:
-          path: |
-            **/node_modules
-            ~/.cache/Cypress
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-      - name: Install node dependencies (web)
-        working-directory: ./web
-        if: steps.yarn-cache.outputs.cache-hit != 'true'
-        run: yarn install
-      - name: Lint (web)
-        working-directory: ./web
-        run: yarn run lint
-      # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
-      # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
-      # It seems unnecessary at the moment because tests pass anyway
-      - name: Cypress tests with coverage (web)
-        working-directory: ./web
-        run: yarn run cypress:ci
-      - name: Unit tests (web)
-        working-directory: ./web
-        run: yarn run coverage:ci
-      - name: Merge and finalize test coverage (web)
-        working-directory: ./web
-        run: yarn run finalizeCoverage
+  #     - name: Setup kernel for react, increase watchers
+  #       run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #     - uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           **/node_modules
+  #           ~/.cache/Cypress
+  #         key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+  #     - name: Install node dependencies (web)
+  #       working-directory: ./web
+  #       if: steps.yarn-cache.outputs.cache-hit != 'true'
+  #       run: yarn install
+  #     - name: Lint (web)
+  #       working-directory: ./web
+  #       run: yarn run lint
+  #     # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
+  #     # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
+  #     # It seems unnecessary at the moment because tests pass anyway
+  #     - name: Cypress tests with coverage (web)
+  #       working-directory: ./web
+  #       run: yarn run cypress:ci
+  #     - name: Unit tests (web)
+  #       working-directory: ./web
+  #       run: yarn run coverage:ci
+  #     - name: Merge and finalize test coverage (web)
+  #       working-directory: ./web
+  #       run: yarn run finalizeCoverage
 
-      - name: Archive coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: web-coverage-report
-          path: ./web/finalCoverage
+  #     - name: Archive coverage report
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: web-coverage-report
+  #         path: ./web/finalCoverage
   upload-code-coverage:
     name: Coverage with CodeCov
     runs-on: ubuntu-20.04
