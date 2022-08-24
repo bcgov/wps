@@ -251,7 +251,7 @@ async def get_stations_data(  # pylint:disable=too-many-locals
                 except Exception as exception:  # pylint: disable=broad-except
                     # If something goes wrong processing the request, then we return this station
                     # with an error response.
-                    logger.error('request object: %s', request.__str__())
+                    logger.error('request object: %s', request.__str__())  # pylint: disable=unnecessary-dunder-call
                     logger.critical(exception, exc_info=True)
                     station_response = process_request_without_observation(
                         requested_station, wfwx_station, request.date, 'ERROR')
@@ -266,6 +266,6 @@ async def get_stations_data(  # pylint:disable=too-many-locals
 
         return StationsListResponse(date=request.date, stations=stations_response)
     except Exception as exception:
-        logger.error('request object: %s', request.__str__())
+        logger.error('request object: %s', request.__str__())  # pylint: disable=unnecessary-dunder-call
         logger.critical(exception, exc_info=True)
         raise
