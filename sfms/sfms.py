@@ -140,7 +140,10 @@ def upload(filename, url, secret, last_modified, create_time):
     form_buffer = form.get_binary().getvalue()
 
     schema, netloc, url, params, query, fragments = urlparse.urlparse(url)
-    http = httplib.HTTPConnection(netloc)
+    if schema == 'https':
+        http = httplib.HTTPSConnection(netloc)
+    else:
+        http = httplib.HTTPConnection(netloc)
     http.connect()
     http.putrequest('POST', url)
     http.putheader('Secret', secret)
