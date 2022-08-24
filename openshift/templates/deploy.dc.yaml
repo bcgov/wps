@@ -67,18 +67,6 @@ parameters:
     required: True
   - name: POSTGRES_READ_HOST
     required: True
-  - name: TILESERVER_READ_USER
-    required: True
-  - name: TILESERVER_WRITE_USER
-    required: True
-  - name: TILESERVER_POSTGRES_READ_PASSWORD
-    required: True
-  - name: TILESERVER_POSTGRES_WRITE_PASSWORD
-    required: True
-  - name: TILESERVER_POSTGRES_READ_HOST
-    required: True
-  - name: TILESERVER_POSTGRES_WRITE_HOST
-    required: True
   - name: ENVIRONMENT
     description: Can be used to modify route (e.g. when deploying to test)
     value: ""
