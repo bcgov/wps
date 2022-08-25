@@ -2,7 +2,7 @@
 """
 import uuid
 from sqlalchemy import (Boolean, Column, Integer,
-                        Sequence, ForeignKey, UniqueConstraint)
+                        Sequence, ForeignKey, UniqueConstraint, Index)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql.sqltypes import String, Date, JSON
 from app.db.database import Base
@@ -66,10 +66,12 @@ class PlanningWeatherStation(Base):
     """ Weather station within planning area selected as a representative of its associated planning area """
     __tablename__ = 'planning_weather_stations'
     __table_args__ = (
-        UniqueConstraint('station_code', 'planning_area_id',
-                         name='unique_station_code_for_planning_area'),
         UniqueConstraint('order_of_appearance_in_planning_area_list',
                          'planning_area_id', name='unique_order_for_planning_area'),
+        Index('unique_non_deleted_station_per_planning_area',
+              'is_deleted', 'station_code', 'planning_area_id',
+              unique=True,
+              postgresql_where=('not is_deleted')),
         {'comment': 'Identifies the unique code used to identify the station'}
     )
 
@@ -78,12 +80,20 @@ class PlanningWeatherStation(Base):
     fuel_type_id = Column(Integer, ForeignKey('fuel_types.id'), nullable=False, index=True)
     planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)
     order_of_appearance_in_planning_area_list = Column(Integer, nullable=True)
+    # Track which user created the record for auditing purposes.
+    create_user = Column(String, nullable=False)
+    create_timestamp = Column(TZTimeStamp, nullable=False)
+    # Track which user updated/deleted the record for auditing purposes.
+    update_user = Column(String, nullable=False)
+    update_timestamp = Column(TZTimeStamp, nullable=False)
+    is_deleted = Column(Boolean, nullable=False, default=False, index=True)
 
     def __str__(self):
         return (f'id:{self.id}, '
                 f'station_code:{self.station_code}, '
                 f'fuel_type_id:{self.fuel_type_id}, '
-                f'planning_area_id:{self.planning_area_id}')
+                f'planning_area_id:{self.planning_area_id}, '
+                f'is_deleted:{self.is_deleted}')
 
 
 class HFIRequest(Base):

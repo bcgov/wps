@@ -313,6 +313,11 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.redis-env-canada-cache-expiry
+                - name: SFMS_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: sfms-secret
               ports:
                 - containerPort: 8080
                   protocol: TCP
