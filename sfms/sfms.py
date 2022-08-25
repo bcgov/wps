@@ -48,7 +48,7 @@ def get_config(ini):
         config = {}
         for line in file.readlines():
             line = line.strip()
-            if line.startswith('#'):
+            if line.startswith('#') or line.startswith(';'):
                 continue
             if line:
                 key, value = line.split('=')
