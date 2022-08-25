@@ -221,9 +221,7 @@ async def calculate_latest_hfi_results(
         orm_session: Session,
         request: HFIResultRequest,
         fire_centre_fire_start_ranges: List[FireStartRange]) -> Tuple[List[PlanningAreaResult], DateRange]:
-    "Set up time range and fire centre data for calculating HFI results"
-
-    # pylint: disable=too-many-locals
+    """Set up time range and fire centre data for calculating HFI results"""
     # ensure we have valid start and end dates
     valid_date_range = validate_date_range(request.date_range)
     # wf1 talks in terms of timestamps, so we convert the dates to the correct timestamps.
