@@ -92,10 +92,7 @@ const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, to
     if (overlayRef.current) {
       overlay = new OLOverlay({
         element: overlayRef.current,
-        autoPan: true,
-        autoPanAnimation: {
-          duration: 250
-        }
+        autoPan: { animation: { duration: 250 } }
       })
 
       mapObject.addOverlay(overlay)
