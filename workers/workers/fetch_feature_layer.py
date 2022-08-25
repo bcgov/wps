@@ -5,10 +5,7 @@ references:
 - https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm
 - https://support.esri.com/en/technical-article/000019645
 """
-import urllib.parse
-import urllib.request
 from urllib.parse import quote_plus as urlquote
-import json
 from datetime import datetime
 import fire
 from sqlalchemy import Table, MetaData, Column, Integer, Float, Text, TIMESTAMP, create_engine
@@ -20,7 +17,7 @@ from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely import wkb
-from arc import fetch_object_list
+from workers.workers.esri import fetch_object_list, fetch_object
 
 
 def get_column_type(value):
@@ -58,35 +55,6 @@ def create_table_schema(meta_data: MetaData, data: dict, table_name: str, geom_t
                      timezone=True), nullable=False),
                  *list(columns.values()),
                  schema=None)
-
-
-def fetch_object(object_id: int, url: str):
-    """
-    Fetch a single object from a feature layer. We have to fetch objects one by one, because they
-    can get pretty big. Big enough, that if you ask for more than one at a time, you're likely to
-    encounter 500 errors.
-
-    object_id: object id to fetch (e.g. 1)
-    url: layer url to fetch (e.g. https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/2)
-    """
-    print(f'fetching object {object_id}')
-
-    params = {
-        'where': f'objectid={object_id}',
-        'geometryType': 'esriGeometryEnvelope',
-        'spatialRel': 'esriSpatialRelIntersects',
-        # 'outSR': '102100',
-        'outFields': '*',
-        'returnGeometry': 'true',
-        'returnIdsOnly': 'false',
-        'f': 'geojson'
-    }
-
-    encode_params = urllib.parse.urlencode(params).encode("utf-8")
-    print(f'{url}/query?{encode_params.decode()}')
-    with urllib.request.urlopen(f'{url}/query?', encode_params) as response:
-        json_data = json.loads(response.read())
-    return json_data
 
 
 def save_feature(geom_type: str, geom: BaseGeometry, srid: int, feature: dict,
