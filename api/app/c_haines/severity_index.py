@@ -391,7 +391,6 @@ class CHainesSeverityGenerator():
             return payload
         return None
 
-    # pylint: disable=no-self-use
     async def _assets_exist(self, model: ModelEnum,
                             model_run_timestamp: datetime,
                             prediction_timestamp: datetime) -> bool:
@@ -468,7 +467,6 @@ class CHainesSeverityGenerator():
 
         return c_haines_data, source_info
 
-    # pylint: disable=no-self-use
     async def _persist_severity_data(self,
                                      payload: EnvCanadaPayload,
                                      c_haines_severity_data: numpy.ndarray,
