@@ -8,9 +8,11 @@ terms of local time. Local time is confusing in BC, and especially so in wildfir
 - Solar noon is at 12h00 PST. (So in the winter, the sun is overhead at noon)
 - Solar noon is at 13h00 PDT. (So in the summer, the sun is NOT overhead at noon)
 - What does noon even have to do with anything, when things like the daily FFMC is for 5pm.
+- Until we stop changing time zones, PDT is used in summer, PST is used in winter.
 """
 from datetime import datetime, timezone, timedelta, date
 from typing import Final
+import pytz
 
 
 PST_UTC_OFFSET: Final[int] = -8
@@ -42,9 +44,19 @@ def _get_pst_now() -> datetime:
     return datetime.now(tz=get_pst_tz())
 
 
+def _get_vancouver_now() -> datetime:
+    """ Easily mockable pst function """
+    return datetime.now(tz=pytz.timezone('America/Vancouver'))
+
+
 def get_pst_now() -> datetime:
-    """ Helper function to get the current PST time """
+    """ Helper function to get the current PST (winter) time """
     return _get_pst_now()
+
+
+def get_vancouver_now() -> datetime:
+    """ Helper function to get the current PDT (summer) time """
+    return _get_vancouver_now()
 
 
 def get_pst_today_start_and_end():
