@@ -1,4 +1,14 @@
-""" Functions for dealing with time """
+""" Functions for dealing with time.
+
+What's the deal with PDT,PST,UTC?????
+
+Best practice is to use UTC everywhere, but we have to deal with the fact that users think in
+terms of local time. Local time is confusing in BC, and especially so in wildfire because:
+- Solar noon is at 20h00 UTC.
+- Solar noon is at 12h00 PST. (So in the winter, the sun is overhead at noon)
+- Solar noon is at 13h00 PDT. (So in the summer, the sun is NOT overhead at noon)
+- What does noon even have to do with anything, when things like the daily FFMC is for 5pm.
+"""
 from datetime import datetime, timezone, timedelta, date
 from typing import Final
 
@@ -55,7 +65,10 @@ def get_hour_20_from_date(date_of_interest: date) -> datetime:
 
 
 def get_hour_20(time_of_interest: datetime) -> datetime:
-    """ Helper to return datetime at hour 20 in utc """
+    """ Helper to return datetime at hour 20 in utc.
+    The significance of hour 20, is that it's the time of solar noon in B.C.
+    20 UTC == 13h00 PDT == 12h00 PST
+    """
     return datetime(year=time_of_interest.year,
                     month=time_of_interest.month,
                     day=time_of_interest.day,
