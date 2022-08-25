@@ -11,8 +11,8 @@ terms of local time. Local time is confusing in BC, and especially so in wildfir
 - Until we stop changing time zones, PDT is used in summer, PST is used in winter.
 """
 from datetime import datetime, timezone, timedelta, date
-import pytz
 from typing import Final
+import pytz
 
 
 PST_UTC_OFFSET: Final[int] = -8
