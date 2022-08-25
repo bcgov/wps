@@ -11,6 +11,7 @@ terms of local time. Local time is confusing in BC, and especially so in wildfir
 - Until we stop changing time zones, PDT is used in summer, PST is used in winter.
 """
 from datetime import datetime, timezone, timedelta, date
+import pytz
 from typing import Final
 
 
@@ -21,11 +22,6 @@ PDT_UTC_OFFSET: Final[int] = -7
 def _get_pst_tz() -> timezone:
     """ Easily mockable Pacific Standard Timezone (PST) : UTC-8 function"""
     return timezone(timedelta(hours=PST_UTC_OFFSET), name="PST")
-
-
-def _get_pdt_tz() -> timezone:
-    """ Easily mockable Pacific Standard Timezone (PDT) : UTC-7 function"""
-    return timezone(timedelta(hours=PDT_UTC_OFFSET), name="PDT")
 
 
 def get_pst_tz() -> timezone:
@@ -48,9 +44,9 @@ def _get_pst_now() -> datetime:
     return datetime.now(tz=get_pst_tz())
 
 
-def _get_pdt_now() -> datetime:
+def _get_vancouver_now() -> datetime:
     """ Easily mockable pst function """
-    return datetime.now(tz=_get_pdt_tz())
+    return datetime.now(tz=pytz.timezone('America/Vancouver'))
 
 
 def get_pst_now() -> datetime:
@@ -58,9 +54,9 @@ def get_pst_now() -> datetime:
     return _get_pst_now()
 
 
-def get_pdt_now() -> datetime:
+def get_vancouver_now() -> datetime:
     """ Helper function to get the current PDT (summer) time """
-    return _get_pdt_now()
+    return _get_vancouver_now()
 
 
 def get_pst_today_start_and_end():
