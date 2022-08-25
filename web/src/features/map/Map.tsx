@@ -6,7 +6,7 @@ import * as ol from 'ol'
 import { toLonLat } from 'ol/proj'
 import { FeatureLike } from 'ol/Feature'
 import OLOverlay from 'ol/Overlay'
-import { MapOptions } from 'ol/PluggableMap'
+import View from 'ol/View'
 import { defaults as defaultControls } from 'ol/control'
 
 import { Button, ErrorBoundary } from 'components'
@@ -75,15 +75,14 @@ const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, to
   useEffect(() => {
     if (!mapRef.current) return
 
-    const options: MapOptions = {
-      view: new ol.View({ zoom, center }),
+    let overlay: OLOverlay | undefined
+
+    const mapObject = new ol.Map({
+      view: new View({ zoom, center }),
       layers: [],
       overlays: [],
       controls: defaultControls()
-    }
-    let overlay: OLOverlay | undefined
-
-    const mapObject = new ol.Map(options)
+    })
     mapObject.setTarget(mapRef.current)
     setMap(mapObject)
 
