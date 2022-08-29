@@ -29,11 +29,11 @@ async def get_hfi_area_percentages(session: AsyncSession, for_date: date) -> Lis
         .where(Hfi.date == for_date)\
         .group_by(FireZone.id)
     result = await session.execute(stmt)
-    all = result.all()
+    all_hfi_percentages = result.all()
     perf_end = perf_counter()
     delta = perf_end - perf_start
     logger.info('%f delta count before and after hfi area / complex fire zone query', delta)
-    return all
+    return all_hfi_percentages
 
 
 async def get_simple_hfi_area_percentages(session: AsyncSession, for_date: date) -> List[Row]:
@@ -54,8 +54,8 @@ async def get_simple_hfi_area_percentages(session: AsyncSession, for_date: date)
         .where(Hfi.date == for_date)\
         .group_by(SimpleFireZone.id)
     result = await session.execute(stmt)
-    all = result.all()
+    all_hfi_percentages = result.all()
     perf_end = perf_counter()
     delta = perf_end - perf_start
     logger.info('%f delta count before and after hfi area / simple fire zones query', delta)
-    return all
+    return all_hfi_percentages
