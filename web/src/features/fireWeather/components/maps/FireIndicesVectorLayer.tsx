@@ -5,7 +5,6 @@ import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import VectorLayer from 'features/map/VectorLayer'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
-import { get } from 'ol/proj'
 import { useDispatch, useSelector } from 'react-redux'
 import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 import {
@@ -68,7 +67,7 @@ const FireIndicesVectorLayer = ({ toiFromQuery, selectedWxVariable }: Props) => 
           features: new GeoJSON().readFeatures(
             { type: 'FeatureCollection', features: stations },
             {
-              featureProjection: get('EPSG:3857')
+              featureProjection: 'EPSG:3857'
             }
           )
         })
