@@ -5,10 +5,10 @@ from datetime import date
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from advisory.db.database.tileserver import get_tileserver_read_session_scope
+from advisory.db.crud import get_simple_hfi_area_percentages
 from app.auth import authentication_required, audit
 from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
-from app.db.crud.fba_advisory import get_advisories
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +31,17 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
 @router.get('/fire-zone-areas/{for_date}', response_model=FireZoneAreaListResponse)
 async def get_zones(for_date: date, _=Depends(authentication_required)):
     async with get_tileserver_read_session_scope() as session:
-        advisories = await get_advisories(session, for_date)
         zones = []
-        for advisory in advisories:
-            zones.append(FireZoneArea(mof_fire_zone_id=advisory.mof_fire_zone_id,
-                                      elevated_hfi_area=advisory.elevated_hfi_area,
-                                      elevated_hfi_percentage=advisory.elevated_hfi_percentage))
+        rows = await get_simple_hfi_area_percentages(session, for_date)
+
+        # Fetch rows.
+        for row in rows:
+            zone_area = row.zone_area
+            hfi_area = row.hfi_area
+            print(f'{row.mof_fire_zone_name}:{hfi_area}/{zone_area}={hfi_area/zone_area*100}%')
+
+            zones.append(FireZoneArea(
+                mof_fire_zone_id=row.mof_fire_zone_id,
+                elevated_hfi_area=row.hfi_area,
+                elevated_hfi_percentage=hfi_area / zone_area * 100))
         return FireZoneAreaListResponse(zones=zones)
