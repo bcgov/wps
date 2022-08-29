@@ -52,7 +52,10 @@ async def get_simple_hfi_area_percentages(session: AsyncSession, for_date: date)
                   .ST_Transform(3005).ST_Area().label('hfi_area'))\
         .join(Hfi, Hfi.wkb_geometry.ST_Intersects(SimpleFireZone.wkb_geometry))\
         .where(Hfi.date == for_date)\
-        .group_by(SimpleFireZone.id)
+        .group_by(SimpleFireZone.id,
+                  SimpleFireZone.mof_fire_zone_id,
+                  SimpleFireZone.mof_fire_zone_name,
+                  SimpleFireZone.wkb_geometry)
     result = await session.execute(stmt)
     all_hfi_percentages = result.all()
     perf_end = perf_counter()
