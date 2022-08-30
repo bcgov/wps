@@ -11,7 +11,7 @@ docker-run:
 
 docker-db:
 	# Run the database
-	docker-compose up db
+	docker compose up db
 
 docker-web-server-build:
 	# Build the web in server mode (same dockerfile as used in production)
