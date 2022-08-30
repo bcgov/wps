@@ -1,7 +1,6 @@
 import * as ol from 'ol'
-import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls } from 'ol/control'
-import { fromLonLat, get } from 'ol/proj'
+import { fromLonLat } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import VectorTileSource from 'ol/source/VectorTile'
@@ -129,7 +128,8 @@ const FBAMap = (props: FBAMapProps) => {
     // Pattern copied from web/src/features/map/Map.tsx
     if (!mapRef.current) return
 
-    const options: MapOptions = {
+    // Create the map set the target to the ref above so that it is rendered in that div
+    const mapObject = new ol.Map({
       view: new ol.View({
         zoom,
         center: fromLonLat(BC_CENTER_FIRE_CENTRES)
@@ -146,10 +146,7 @@ const FBAMap = (props: FBAMapProps) => {
       ],
       overlays: [],
       controls: defaultControls()
-    }
-    // Create the map with the options above and set the target
-    // To the ref above so that it is rendered in that div
-    const mapObject = new ol.Map(options)
+    })
     mapObject.setTarget(mapRef.current)
 
     if (props.selectedFireCenter) {
@@ -166,7 +163,7 @@ const FBAMap = (props: FBAMapProps) => {
       features: new GeoJSON().readFeatures(
         { type: 'FeatureCollection', features: stations },
         {
-          featureProjection: get('EPSG:3857')
+          featureProjection: 'EPSG:3857'
         }
       )
     })
