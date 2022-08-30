@@ -38,9 +38,6 @@ const useStyles = makeStyles(() => ({
     margin: theme.spacing(1),
     marginLeft: 50
   },
-  thresholdLabel: {
-    borderColor: 'black'
-  },
   instructions: {
     textAlign: 'left'
   }
