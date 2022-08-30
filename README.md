@@ -75,8 +75,14 @@ graph LR
     end
 
     subgraph "S3 Compliant, OCIO Object Storage Service"
-        s3[("Object Storage</br>[Container: S3 Compliant]")]
+        s3[("Object Storage</br>[Container: S3 Compliant]</br>C-Haines, SFMS, Backups etc.")]
     end
+
+    subgraph WildfireServers
+        SFMS
+    end
+
+    SFMS-."Push GeoTIFF</br>[MultiPartForm/HTTPS]".->API
 
     API-. "Read</br>[S3/HTTPS]" .->s3
     API-.->|"Read</br>[psycopg]"|Database
