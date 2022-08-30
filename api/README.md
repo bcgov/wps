@@ -64,6 +64,8 @@ Ensure that the CLASSPATH environment variable points to the jar files in api/li
 brew install gdal
 ```
 
+Note that there are other subsequent steps for gdal installation. See "Install project python requirements".
+
 ##### wkhtmltopdf
 
 ```bash
