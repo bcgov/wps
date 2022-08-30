@@ -1,3 +1,4 @@
+import os
 import json
 from typing import Final
 from workers.esri import fetch_object_list, fetch_object
@@ -8,12 +9,19 @@ def main():
     # server.
     zone_url: Final = "https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/8"
     zone_ids = fetch_object_list(zone_url)
+    target_folder = 'zones'
+
+    if not os.path.exists(target_folder):
+        os.mkdir(target_folder)
 
     for object_id in zone_ids:
         # Fetch each object in turn.
-        obj = fetch_object(object_id, zone_url)
-        with open(f'zones/{object_id}.json', 'w') as f:
-            json.dump(obj, f)
+        target_file = os.path.join(target_folder, f'{object_id}.json')
+        if not os.path.exists(target_file):
+            obj = fetch_object(object_id, zone_url)
+            with open(target_file, 'w') as f:
+                # the file being dumped is geojson, so it's WGS84 (EPSG:4326)
+                json.dump(obj, f)
 
 
 if __name__ == '__main__':
