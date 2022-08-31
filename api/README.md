@@ -10,18 +10,6 @@ Wildfire Predictive Services Unit support decision making in prevention, prepare
 
 - Docker [Mac](https://hub.docker.com/editions/community/docker-ce-desktop-mac/), [Win](https://hub.docker.com/editions/community/docker-ce-desktop-windows/), [Ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Fedora](https://docs.docker.com/install/linux/docker-ce/fedora/)
 
-- Docker Compose
-
-```bash
-brew install docker-compose
-```
-
-OR
-
-```bash
-pip install docker-compose
-```
-
 ### Installing
 
 You will need an environment file. See: .env.example.
@@ -31,7 +19,7 @@ You will need an environment file. See: .env.example.
 For local development, you can copy .env.example to .env.docker.
 
 ```bash
-docker-compose build
+docker compose build
 ```
 
 #### Local machine, running MacOS
@@ -193,7 +181,7 @@ make docker-run
 will execute:
 
 ```bash
-docker-compose up
+docker compose up
 ```
 
 #### Local machine, running mac os
