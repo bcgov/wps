@@ -1195,6 +1195,14 @@ optional = false
 python-versions = ">=3.8"
 
 [[package]]
+name = "osgeo"
+version = "0.0.1"
+description = "A dummy placeholder for the `gdal` package"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "packaging"
 version = "21.3"
 description = "Core utilities for Python packages"
@@ -2221,7 +2229,7 @@ docs = ["rst.linker (>=1.9)", "jaraco.packaging (>=9)", "sphinx"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.10,<3.10"
-content-hash = "e908bfe41eeb8371a0fbd3ab8d8392b0d02336234aef6d6dae9b2850f9d95cfd"
+content-hash = "7b289b58f0b3ada00a54b3a46699dfa68a76f9cb822c1512dc47771e2cc8632d"
 
 [metadata.files]
 aiobotocore = []
@@ -2373,6 +2381,7 @@ ntlm-auth = [
     {file = "ntlm_auth-1.5.0-py2.py3-none-any.whl", hash = "sha256:f1527c581dbf149349134fc2d789d50af2a400e193206956fa0ab456ccc5a8ba"},
 ]
 numpy = []
+osgeo = []
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
     {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
