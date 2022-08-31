@@ -23,13 +23,3 @@ class FireZone(Base):
     mof_fire_zone_id = Column(Integer)
     geom = Column(Geometry('MULTIPOLYGON'))
     mof_fire_zone_name = Column(String)
-
-
-class SimpleFireZone(Base):
-    """ This table manually created - see wps-tileserver project for details!
-    """
-    __tablename__ = 'simple_fire_zones'
-    id = Column(Integer, primary_key=True, index=True)
-    mof_fire_zone_id = Column(Integer)
-    wkb_geometry = Column(Geometry('MULTIPOLYGON'))
-    mof_fire_zone_name = Column(String)
