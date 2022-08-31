@@ -11,8 +11,8 @@ from workers.esri import fetch_object_list, fetch_object
 
 
 def main():
-    # We fetch a list of object id's, fetching the entire layer in one go, will probably crash the
-    # server.
+    # We fetch a list of object id's, fetching the entire layer in one go, will most likely crash
+    # the server we're talking to.
     zone_url: Final = "https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/8"
     zone_ids = fetch_object_list(zone_url)
     target_folder = 'zones'

@@ -11,10 +11,10 @@ update all the zones in place, to have a lower resolution
 ```sql
 update zones_wgs84 set wkb_geometry = ST_Transform(ST_Simplify(ST_Transform(zones_wgs84.wkb_geometry, 3005), 2000), 4326);
 
-update zones_wgs84 set wkb_geometry = ST_Transform(ST_Simplify(ST_Transform(zones_wgs84.wkb_geometry, 3005), 32), 4326);
+update zones_wgs84 set wkb_geometry = ST_Transform(ST_Simplify(ST_Transform(zones_wgs84.wkb_geometry, 3005), 1, true), 4326);
 
 
-update fire_centres set geom = ST_Transform(ST_Simplify(ST_Transform(geom, 3005), 128, true), 4326);
+update fire_zones set geom = ST_Transform(ST_Simplify(ST_Transform(geom, 3005), 1000, true), 4326);
 ```
 at 128, borders start not matching up nicely!
 at 64, borders start not matching up nicely!
