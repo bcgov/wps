@@ -5,7 +5,7 @@ from datetime import date
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from advisory.db.database.tileserver import get_tileserver_read_session_scope
-from advisory.db.crud import get_simple_hfi_area_percentages
+from advisory.db.crud import get_hfi_area_percentages
 from app.auth import authentication_required, audit
 from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
@@ -32,7 +32,7 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
 async def get_zones(for_date: date, _=Depends(authentication_required)):
     async with get_tileserver_read_session_scope() as session:
         zones = []
-        rows = await get_simple_hfi_area_percentages(session, for_date)
+        rows = await get_hfi_area_percentages(session, for_date)
 
         # Fetch rows.
         for row in rows:
