@@ -1,3 +1,9 @@
+"""
+
+references:
+- https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm
+- https://support.esri.com/en/technical-article/000019645
+"""
 import os
 import json
 from typing import Final
@@ -20,7 +26,7 @@ def main():
         if not os.path.exists(target_file):
             obj = fetch_object(object_id, zone_url)
             with open(target_file, 'w') as f:
-                # the file being dumped is geojson, so it's WGS84 (EPSG:4326)
+                # the file being dumped is json, BC Albers EPSG:3005
                 json.dump(obj, f)
 
 
