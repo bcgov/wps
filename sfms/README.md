@@ -45,3 +45,15 @@ pyenv which python
 poetry env use [use the output of the previous command]
 poetry install
 ```
+
+
+### pyenv + 2.7.18 on M1
+
+On M1, `pyenv install 2.7.18` fails, and will never pass (they're not going to bother fixing it, and they shouldn't! it's deprecated).
+
+You CAN however try run a universal binary in x86_64 mode, and get it to work that way!
+
+```bash
+arch -x86_64 /bin/bash 
+pyenv install -v 2.7.18
+```
