@@ -28,7 +28,8 @@ def get_noon_forecasts(request: WeatherDataRequest):
         back_5_days = request.time_of_interest - timedelta(days=5)
         forward_5_days = request.time_of_interest + timedelta(days=5)
 
-        return fetch_noon_forecasts(request.stations, back_5_days, forward_5_days)
+        a = fetch_noon_forecasts(request.stations, back_5_days, forward_5_days)
+        return a
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise

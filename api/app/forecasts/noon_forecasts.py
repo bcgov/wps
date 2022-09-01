@@ -36,9 +36,9 @@ def parse_table_records_to_noon_forecast_response(data: [app.db.models.forecasts
                 hour=record.weather_date.hour,
                 tzinfo=timezone.utc).isoformat(),
             temp_valid=record.temp_valid,
-            temperature=record.temperature,
+            temperature=None if math.isnan(record.temperature) else record.temperature,
             rh_valid=record.rh_valid,
-            relative_humidity=record.relative_humidity,
+            relative_humidity=None if math.isnan(record.relative_humidity) else record.relative_humidity,
             wdir_valid=record.wdir_valid,
             wind_direction=None if math.isnan(
                 record.wind_direction) else record.wind_direction,
