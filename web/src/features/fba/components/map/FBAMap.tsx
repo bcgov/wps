@@ -161,7 +161,7 @@ const FBAMap = (props: FBAMapProps) => {
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=date=${props.date.toISODate()}'`
+      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=date='${props.date.toISODate()}'`
     }),
     style: hfiStyler,
     zIndex: 100,
@@ -226,7 +226,7 @@ const FBAMap = (props: FBAMapProps) => {
         source: new VectorTileSource({
           attributions: ['BC Wildfire Service'],
           format: new MVT(),
-          url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=date=${props.date.toISODate()}'`
+          url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=date='${props.date.toISODate()}'`
         }),
         style: hfiStyler,
         zIndex: 100,
