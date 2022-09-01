@@ -53,6 +53,11 @@ def upgrade():
             mof_fire_zone_id = attributes.get('MOF_FIRE_ZONE_ID')
             fire_zone_id = str(int(mof_fire_zone_id))
             geometry = feature.get('geometry', {})
+            # Rings???
+            # That's right:
+            # https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm
+            # "A polygon (specified as esriGeometryPolygon) contains an array of rings or curveRings
+            # and a spatialReference."
             rings = geometry.get('rings', [[]])
             polygons = []
             for ring in rings:
