@@ -3,6 +3,7 @@ the noon_forecasts table in our database.
 """
 import logging
 from collections import defaultdict
+from typing import List
 from datetime import datetime, timezone
 import math
 from app.schemas.forecasts import NoonForecast, NoonForecastResponse, NoonForecastValue
@@ -19,7 +20,7 @@ class StationNotFoundException(Exception):
     """ Custom exception for when a station cannot be found """
 
 
-def parse_table_records_to_noon_forecast_response(data: [app.db.models.forecasts.NoonForecast]):
+def parse_table_records_to_noon_forecast_response(data: List[app.db.models.forecasts.NoonForecast]):
     """ Given a list of table records from the database, parse each record
     (which is a NoonForecast object) and structure it as a NoonForecast
     object, then return the list of NoonForecast objects as a NoonForecastResponse
