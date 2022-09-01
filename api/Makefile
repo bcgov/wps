@@ -203,5 +203,8 @@ docker-run-hourly-actuals:
 database-upgrade:
 	PYTHONPATH=. $(POETRY_RUN) alembic upgrade head
 
+database-downgrade:
+	PYTHONPATH=. $(POETRY_RUN) alembic downgrade -1
+
 docker-database-upgrade:
 	docker compose exec -e PYTHONPATH=. api alembic upgrade head
