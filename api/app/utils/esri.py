@@ -29,7 +29,7 @@ def fetch_object_list(url: str):
     return json_data['objectIds']
 
 
-def fetch_object(object_id: int, url: str, outSR: str = '3005', f: str = 'geoJSON') -> dict:
+def fetch_object(object_id: int, url: str, outSR: str = '3005', f: str = 'json') -> dict:
     """
     Fetch a single object from a feature layer. By default the output is
     json in BC Albers (EPSG:3005)

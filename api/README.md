@@ -328,6 +328,12 @@ PYTHONPATH=. alembic revision --autogenerate -m "Comment relevant to change"
 
 You may have to modify the generated code to import geoalchemy2
 
+You may want to have a data import/modification step, where you're not actually changing the database, but want to manage new data. You can create an "empty" migration, and insert data as needed:
+
+```bash
+PYTHONPATH=. alembic revision -m "Comment relevant to change"
+```
+
 Then apply:
 
 ```bash
