@@ -83,7 +83,7 @@ const stationTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text 
     stroke: new Stroke({ color: 'white', width: 2 }),
     font: '11px sans-serif',
     text: text,
-    textBaseline: 'center',
+    textBaseline: 'middle',
     textAlign: 'left',
     offsetX: 9,
     offsetY: 1

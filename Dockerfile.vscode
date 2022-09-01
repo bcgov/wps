@@ -5,7 +5,7 @@
 # but it's also a pain working with because debian is so old.
 FROM ubuntu:22.04
 
-ARG USERNAME=worker
+ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
@@ -41,41 +41,46 @@ RUN apt-get -y install python3-poetry
 # we work around that, by using the python3-poetry command.
 RUN apt-get -y install python-is-python3
 
+# I prefer zsh to bash
+RUN apt-get -y install zsh
+
 # from: https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
-RUN mkdir /app
-RUN chown worker /app
-USER worker
-ENV PATH="/home/worker/.local/bin:${PATH}"
+# RUN mkdir /vscode
+# RUN chown vscode /vscode
+USER $USERNAME
+ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
 
-WORKDIR /app
+WORKDIR /home/$USERNAME
 
 # Update pip
 RUN python3 -m pip install --upgrade pip
-
-# Copy poetry files.
-COPY pyproject.toml poetry.lock ./
-
-COPY --chown=worker:worker poetry.lock pyproject.toml ./
 RUN python3 -m pip install cachecontrol
 
-RUN poetry install
+# I like oh-my-zsh:
+RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+# BUT - for some reason git+zsh == slowness, so tell git not to slow down zsh:
+# git config --add oh-my-zsh.hide-dirty 1
 
-# We can't have this inside pyproject.toml because the gdal version differs from platform to platform.
-# To figure out what version of pygdal you need, run gdal-config
-RUN poetry run python -m pip install pygdal==3.4.1.10
+# Copy poetry files.
+# COPY pyproject.toml poetry.lock ./
 
-COPY ./app /app/app
-# TODO: we need to do this better.
-RUN mkdir /app/advisory
-COPY ./advisory /app/advisory
-RUN mkdir /app/libs
-COPY ./libs /app/libs
+# COPY --chown=worker:worker poetry.lock pyproject.toml ./
 
-EXPOSE 8080
+# RUN poetry install
 
-ENV CLASSPATH=/app/libs/REDapp_Lib.jar:/app/libs/WTime.jar:/app/libs/hss-java.jar:${CLASSPATH}
-CMD PYTHONPATH=. poetry run alembic upgrade head && poetry run uvicorn app.main:app --host 0.0.0.0 --reload --port 8080
+# # We can't have this inside pyproject.toml because the gdal version differs from platform to platform.
+# # To figure out what version of pygdal you need, run gdal-config
+# RUN poetry run python -m pip install pygdal==3.4.1.10
+
+# COPY ./app /app/app
+# RUN mkdir /app/libs
+# COPY ./libs /app/libs
+
+EXPOSE 8080 3000
+
+# ENV CLASSPATH=/app/libs/REDapp_Lib.jar:/app/libs/WTime.jar:/app/libs/hss-java.jar:${CLASSPATH}
+# CMD PYTHONPATH=. poetry run alembic upgrade head && poetry run uvicorn app.main:app --host 0.0.0.0 --reload --port 8080
 

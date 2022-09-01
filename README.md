@@ -23,6 +23,14 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 4. Open [http://localhost:8080](http://localhost:8080) to view the front end served up from a static folder by the python api.
 5. Open [http://localhost:3000](http://localhost:3000) to view the front end served up in developer mode by node.
 
+#### Developing the application in a dev container, using vscode:
+
+- Open up the project: `Remote-Containers: Open Folder in Container`, select docker-compose.vscode.yml
+- Sometimes VSCode doesn't pick up you've changed the docker container: `Remote-Containers: Rebuild Container`
+- Install extensions into the container, as needed.
+- You can point the API database to: `host.docker.internal`
+- You can start up other services outside of vscode, e.g.: `docker compose up db` and `docker compose up redis`
+
 #### Running the api alone
 
 Refer to [api/README.md](api/README.md).
@@ -40,6 +48,8 @@ Refer to [web/README.md](api/README.md)
 A glossary of terms relating to Wildfire that are relevant to Predictive Services can be found at the [Predictive Wildfire Wiki Glossary Page](https://github.com/bcgov/wps/wiki/Glossary)
 
 ## Architecture
+
+*if you're not seeing an architecture diagram below, you need the mermaid plugin*
 
 ```mermaid
 graph LR
@@ -75,8 +85,14 @@ graph LR
     end
 
     subgraph "S3 Compliant, OCIO Object Storage Service"
-        s3[("Object Storage</br>[Container: S3 Compliant]")]
+        s3[("Object Storage</br>[Container: S3 Compliant]</br>C-Haines, SFMS, Backups etc.")]
     end
+
+    subgraph WildfireServers
+        SFMS
+    end
+
+    SFMS-."Push GeoTIFF</br>[MultiPartForm/HTTPS]".->API
 
     API-. "Read</br>[S3/HTTPS]" .->s3
     API-.->|"Read</br>[psycopg]"|Database

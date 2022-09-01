@@ -37,7 +37,8 @@ def send_rocketchat_notification(text: str, exc_info: Exception) -> dict:
             json={
                 'channel': config.get('ROCKET_CHANNEL'),
                 'text': full_message
-            }
+            },
+            timeout=10
         )
         result = response.json()
     except Exception as exception:  # pylint: disable=broad-except
