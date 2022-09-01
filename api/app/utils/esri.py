@@ -18,6 +18,9 @@ def fetch_object_list(url: str):
     """
     logger.info('fetching object list for %s...', url)
 
+    # 1=1 ???
+    # There's no direct way of asking for all records, so the hack is to pass a condition that
+    # is true for all records.
     params = {
         'where': '1=1',
         'geometryType': 'esriGeometryEnvelope',
