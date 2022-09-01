@@ -23,22 +23,22 @@ branch_labels = None
 depends_on = None
 
 
-area_type_table = sa.Table('advisory_area_types', sa.MetaData(),
-                           sa.Column('id', sa.Integer),
-                           sa.Column('name', sa.String))
+shape_type_table = sa.Table('advisory_shape_types', sa.MetaData(),
+                            sa.Column('id', sa.Integer),
+                            sa.Column('name', sa.String))
 
-area_table = sa.Table('advisory_areas', sa.MetaData(),
-                      sa.Column('id', sa.Integer),
-                      sa.Column('external_identifier', sa.String),
-                      sa.Column('area_type', sa.Integer),
-                      sa.Column('geom', geoalchemy2.Geometry))
+shape_table = sa.Table('advisory_shapes', sa.MetaData(),
+                       sa.Column('id', sa.Integer),
+                       sa.Column('external_identifier', sa.String),
+                       sa.Column('shape_type', sa.Integer),
+                       sa.Column('geom', geoalchemy2.Geometry))
 
 
 def upgrade():
     session = Session(bind=op.get_bind())
-    statement = area_type_table.insert().values(name='fire_zone').returning(area_type_table.c.id)
+    statement = shape_type_table.insert().values(name='fire_zone').returning(shape_type_table.c.id)
     result = session.execute(statement).fetchone()
-    area_type_id = result.id
+    shape_type_id = result.id
 
     # We fetch a list of object id's, fetching the entire layer in one go, will most likely crash
     # the server we're talking to.
@@ -60,9 +60,9 @@ def upgrade():
                 polygons.append(Polygon(ring).simplify(1000, preserve_topology=True))
             geom = MultiPolygon(polygons)
             # Insert.
-            statement = area_table.insert().values(
+            statement = shape_table.insert().values(
                 external_identifier=fire_zone_id,
-                area_type=area_type_id,
+                shape_type=shape_type_id,
                 geom=wkb.dumps(geom, hex=True, srid=3005))
             session.execute(statement)
 
@@ -70,14 +70,14 @@ def upgrade():
 def downgrade():
     session = Session(bind=op.get_bind())
     # Delete 'fire_zones'
-    statement = area_type_table.select().where(area_type_table.c.name == 'fire_zone')
+    statement = shape_type_table.select().where(shape_type_table.c.name == 'fire_zone')
     result = session.execute(statement).fetchone()
-    area_type_id = result.id
+    shape_type_id = result.id
 
     # Delete areas of type
-    statement = area_table.delete().where(area_table.c.area_type == area_type_id)
+    statement = shape_table.delete().where(shape_table.c.shape_type == shape_type_id)
     session.execute(statement)
 
     # Delete 'fire_zone' type
-    statement = area_type_table.delete().where(area_type_table.c.name == 'fire_zone')
+    statement = shape_type_table.delete().where(shape_type_table.c.name == 'fire_zone')
     session.execute(statement)
