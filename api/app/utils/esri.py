@@ -4,6 +4,9 @@ Functions for talking to ESRI ARC servers.
 import urllib.parse
 import urllib.request
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def fetch_object_list(url: str):
@@ -13,7 +16,7 @@ def fetch_object_list(url: str):
     url: layer url to fetch
     (e.g. https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/2)
     """
-    print(f'fetching object list for {url}...')
+    logger.info('fetching object list for %s...', url)
 
     params = {
         'where': '1=1',
@@ -25,7 +28,7 @@ def fetch_object_list(url: str):
     }
 
     encode_params = urllib.parse.urlencode(params).encode("utf-8")
-    print(f'{url}/query?{encode_params.decode()}')
+    logger.info('%s/query?%s', url, encode_params.decode())
     with urllib.request.urlopen(f'{url}/query?', encode_params) as response:
         json_data = json.loads(response.read())
     return json_data['objectIds']
@@ -48,7 +51,7 @@ def fetch_object(object_id: int, url: str, out_sr: str = '3005', response_format
     For more information see:
     https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm
     """
-    print(f'fetching object {object_id}')
+    logger.info('fetching object %s', object_id)
 
     # Note: If you drop outSR, and set f to geoJSON, you get a GeoJSON geometry in WGS84.
     params = {
@@ -63,7 +66,7 @@ def fetch_object(object_id: int, url: str, out_sr: str = '3005', response_format
     }
 
     encode_params = urllib.parse.urlencode(params).encode("utf-8")
-    print(f'{url}/query?{encode_params.decode()}')
+    logger.info('%s/query?%s', object_id, encode_params.decode())
     with urllib.request.urlopen(f'{url}/query?', encode_params) as response:
         json_data = json.loads(response.read())
     return json_data
