@@ -1,8 +1,7 @@
 import * as ol from 'ol'
 import * as proj from 'ol/proj'
-import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
-import { fromLonLat, get } from 'ol/proj'
+import { fromLonLat } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import XYZ from 'ol/source/XYZ'
@@ -63,7 +62,7 @@ export interface FBAMapProps {
 export const hfiSourceFactory = (url: string) => {
   return new XYZ({
     url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=${url}&source=hfi`,
-    imageSmoothing: false,
+    interpolate: false,
     tileSize: COG_TILE_SIZE,
     maxZoom: SFMS_MAX_ZOOM
   })
@@ -72,7 +71,7 @@ export const hfiSourceFactory = (url: string) => {
 export const ftlSourceFactory = (filter: string) => {
   return new XYZ({
     url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/ftl/ftl_2018_cloudoptimized.tif&source=ftl&filter=${filter}`,
-    imageSmoothing: true,
+    interpolate: true,
     tileSize: COG_TILE_SIZE
   })
 }
@@ -299,7 +298,9 @@ const FBAMap = (props: FBAMapProps) => {
     // Pattern copied from web/src/features/map/Map.tsx
     if (!mapRef.current) return
 
-    const options: MapOptions = {
+    // Create the map with the options above and set the target
+    // To the ref above so that it is rendered in that div
+    const mapObject = new ol.Map({
       view: new ol.View({
         zoom,
         center: fromLonLat(CENTER_OF_BC)
@@ -328,10 +329,7 @@ const FBAMap = (props: FBAMapProps) => {
         LayerControl.buildLayerCheckbox('SFMS Slope', setShowSfmsSlope, showSfmsSlope),
         LayerControl.buildLayerCheckbox('SFMS Aspect', setShowSfmsAspect, showSfmsAspect)
       ])
-    }
-    // Create the map with the options above and set the target
-    // To the ref above so that it is rendered in that div
-    const mapObject = new ol.Map(options)
+    })
     mapObject.setTarget(mapRef.current)
 
     if (props.selectedFireCenter) {
@@ -344,10 +342,7 @@ const FBAMap = (props: FBAMapProps) => {
     if (overlayRef.current) {
       const overlay = new OLOverlay({
         element: overlayRef.current,
-        autoPan: true,
-        autoPanAnimation: {
-          duration: 250
-        },
+        autoPan: { animation: { duration: 250 } },
         id: 'popup'
       })
 
@@ -380,7 +375,7 @@ const FBAMap = (props: FBAMapProps) => {
       features: new GeoJSON().readFeatures(
         { type: 'FeatureCollection', features: stations },
         {
-          featureProjection: get('EPSG:3857')
+          featureProjection: 'EPSG:3857'
         }
       )
     })

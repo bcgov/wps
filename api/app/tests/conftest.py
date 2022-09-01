@@ -80,7 +80,7 @@ def mock_redis(monkeypatch):
         def __init__(self) -> None:
             """ Mock init """
 
-        def get(self, name):  # pylint: disable=unused-argument, no-self-use
+        def get(self, name):  # pylint: disable=unused-argument
             """ mock get """
             return None
 
@@ -89,7 +89,7 @@ def mock_redis(monkeypatch):
                 ex=None, px=None, nx=False, xx=False, keepttl=False):  # pylint: disable=invalid-name
             """ mock set """
 
-        def delete(self, name):  # pylint: disable=unused-argument, no-self-use
+        def delete(self, name):  # pylint: disable=unused-argument
             """ mock delete """
 
     def create_mock_redis():
