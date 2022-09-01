@@ -29,7 +29,7 @@ shape_type_table = sa.Table('advisory_shape_types', sa.MetaData(),
 
 shape_table = sa.Table('advisory_shapes', sa.MetaData(),
                        sa.Column('id', sa.Integer),
-                       sa.Column('external_identifier', sa.String),
+                       sa.Column('source_identifier', sa.String),
                        sa.Column('shape_type', sa.Integer),
                        sa.Column('geom', geoalchemy2.Geometry))
 
@@ -61,7 +61,7 @@ def upgrade():
             geom = MultiPolygon(polygons)
             # Insert.
             statement = shape_table.insert().values(
-                external_identifier=fire_zone_id,
+                source_identifier=fire_zone_id,
                 shape_type=shape_type_id,
                 geom=wkb.dumps(geom, hex=True, srid=3005))
             session.execute(statement)

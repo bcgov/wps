@@ -29,13 +29,13 @@ class Shape(Base):
         # we may have to re-visit this constraint - but for the time being, the idea is
         # that for any given type of area, it has to be unique for the kind of thing that
         # it is. e.g. a zone has some id.
-        UniqueConstraint('external_identifier', 'shape_type'),
+        UniqueConstraint('source_identifier', 'shape_type'),
         {'comment': 'Record identifying some area of interest with respect to advisories'}
     )
 
     id = Column(Integer, primary_key=True)
     # An area is uniquely identified, e.g. a zone has a number, so does a fire.
-    external_identifier = Column(String, nullable=False, index=True)
+    source_identifier = Column(String, nullable=False, index=True)
     shape_type = Column(Integer, ForeignKey('advisory_shape_types.id'), nullable=False, index=True)
     geom = Column(Geometry('MULTIPOLYGON', spatial_index=False), nullable=False)
 
