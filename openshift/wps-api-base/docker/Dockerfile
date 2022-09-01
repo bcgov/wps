@@ -1,38 +1,35 @@
-# As per https://fastapi.tiangolo.com/deployment/, we use the provided docker image from docker
-# tianglo/uvicorn-gunicorn-fastapi:python3.9
-# see: https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker for available images.
-#
 # When building in openshift, you'll need the latest image in openshift:
 # 1) get the latest:
-# docker pull tiangolo/uvicorn-gunicorn-fastapi:python3.9
+# docker pull python:bullsey
 # 2) tag it for upload:
-# docker tag tiangolo/uvicorn-gunicorn-fastapi:python3.9 image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.9
+# docker tag python:bullsey image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/python:bullsey
 # 3) log into openshift:
 # docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
 # 4) push to openshift:
-# docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.9
+# docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/python:bullsey
 
 
 # When building in openshift, you can reference the image in openshift:
-# FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.9
+# FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/python:bullsey
 #
 # When building local, you can reference the docker image:
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9
+FROM python:bullsey
 
 # Install pre-requisites
 # - old (2.4.*; current debian) version of gdal
 # - R (for cffdrs)
 # - JDK (for red-app)
 # - xfonts-75dpi xfonts-base (for wkhtmltopdf)
-RUN apt-get update --fix-missing && apt-get -y install libgdal-dev r-base openjdk-11-jdk xfonts-75dpi xfonts-base
+RUN apt-get update --fix-missing && apt-get -y install libgdal-dev r-base openjdk-17-jdk xfonts-75dpi xfonts-base wkhtmltopdf
 
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
 
+# TODO: validate that we don't need this anymore on bullsey
 # Install pdf-kit for PDF generation on HFI (with qt support!)
 # We can't just run apt-get -y install wkhtmltopdf, because we don't get qt support.
-RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb -P /tmp && \
-    dpkg -i /tmp/wkhtmltox_0.12.6-1.buster_amd64.deb
+# RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb -P /tmp && \
+# dpkg -i /tmp/wkhtmltox_0.12.6-1.buster_amd64.deb
 
 # Update pip  
 RUN python -m pip install --upgrade pip
