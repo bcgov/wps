@@ -1,11 +1,12 @@
 import enum
 from sqlalchemy import (Integer, String, Column, Index, ForeignKey, Enum, UniqueConstraint)
 from geoalchemy2 import Geometry
-
 from app.db.database import Base
 
 
 class ShapeTypeEnum(enum.Enum):
+    """ Define different shape types. e.g. "Zone", "Fire Centre" - later we may add
+    "Incident"/"Fire", "Custom" etc. etc. """
     fire_centre = 1
     fire_zone = 2
 
