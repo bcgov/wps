@@ -89,7 +89,7 @@ class MockAsyncResponse:
 
 class DefaultMockAioSession:
     """ Mock aiobotocore.session.AioSession """
-    # pylint: disable=unused-argument, no-self-use
+    # pylint: disable=unused-argument
 
     @asynccontextmanager
     async def create_client(self, *args, **kwargs):
@@ -101,7 +101,7 @@ class DefaultMockAioBaseClient:
     """ Stubbed AioBaseClient object
     """
     # It's a stubbed object, so we don't care about pylint warnings:
-    # pylint: disable=unused-argument, missing-function-docstring, too-many-arguments, no-self-use
+    # pylint: disable=unused-argument, missing-function-docstring, too-many-arguments
 
     def __init__(self, *args, **kwargs):
         """ you can set the values below for some default behaviour """

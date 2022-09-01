@@ -1,6 +1,18 @@
-""" Functions for dealing with time """
+""" Functions for dealing with time.
+
+What's the deal with PDT,PST,UTC?????
+
+Best practice is to use UTC everywhere, but we have to deal with the fact that users think in
+terms of local time. Local time is confusing in BC, and especially so in wildfire because:
+- Solar noon is at 20h00 UTC.
+- Solar noon is at 12h00 PST. (So in the winter, the sun is overhead at noon)
+- Solar noon is at 13h00 PDT. (So in the summer, the sun is NOT overhead at noon)
+- What does noon even have to do with anything, when things like the daily FFMC is for 5pm.
+- Until we stop changing time zones, PDT is used in summer, PST is used in winter.
+"""
 from datetime import datetime, timezone, timedelta, date
 from typing import Final
+import pytz
 
 
 PST_UTC_OFFSET: Final[int] = -8
@@ -32,9 +44,19 @@ def _get_pst_now() -> datetime:
     return datetime.now(tz=get_pst_tz())
 
 
+def _get_vancouver_now() -> datetime:
+    """ Easily mockable pst function """
+    return datetime.now(tz=pytz.timezone('America/Vancouver'))
+
+
 def get_pst_now() -> datetime:
-    """ Helper function to get the current PST time """
+    """ Helper function to get the current PST (winter) time """
     return _get_pst_now()
+
+
+def get_vancouver_now() -> datetime:
+    """ Helper function to get the current PDT (summer) time """
+    return _get_vancouver_now()
 
 
 def get_pst_today_start_and_end():
@@ -55,7 +77,10 @@ def get_hour_20_from_date(date_of_interest: date) -> datetime:
 
 
 def get_hour_20(time_of_interest: datetime) -> datetime:
-    """ Helper to return datetime at hour 20 in utc """
+    """ Helper to return datetime at hour 20 in utc.
+    The significance of hour 20, is that it's the time of solar noon in B.C.
+    20 UTC == 13h00 PDT == 12h00 PST
+    """
     return datetime(year=time_of_interest.year,
                     month=time_of_interest.month,
                     day=time_of_interest.day,
