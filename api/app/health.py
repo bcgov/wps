@@ -22,7 +22,7 @@ def patroni_cluster_health_check():
     header = {
         'Authorization': 'Bearer ' + config.get('STATUS_CHECKER_SECRET')
     }
-    resp = requests.get(url, headers=header)
+    resp = requests.get(url, headers=header, timeout=10)
     resp_json = resp.json()
     # NOTE: In Openshift parlance "replica" refers to how many of one pod we have, in Patroni, a "Replica"
     # refers to a read only copy of of the Leader.
