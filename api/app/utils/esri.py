@@ -1,3 +1,6 @@
+"""
+Functions for talking to ESRI ARC servers.
+"""
 import urllib.parse
 import urllib.request
 import json
@@ -7,7 +10,8 @@ def fetch_object_list(url: str):
     """
     Fetch object list from a feature layer.
 
-    url: layer url to fetch (e.g. https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/2)
+    url: layer url to fetch
+    (e.g. https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/2)
     """
     print(f'fetching object list for {url}...')
 
@@ -15,8 +19,6 @@ def fetch_object_list(url: str):
         'where': '1=1',
         'geometryType': 'esriGeometryEnvelope',
         'spatialRel': 'esriSpatialRelIntersects',
-        # 'outSR': '102100',
-        # 'outFields': '*',
         'returnGeometry': 'false',
         'returnIdsOnly': 'true',
         'f': 'json'
@@ -29,7 +31,7 @@ def fetch_object_list(url: str):
     return json_data['objectIds']
 
 
-def fetch_object(object_id: int, url: str, outSR: str = '3005', f: str = 'json') -> dict:
+def fetch_object(object_id: int, url: str, out_sr: str = '3005', response_format: str = 'json') -> dict:
     """
     Fetch a single object from a feature layer. By default the output is
     json in BC Albers (EPSG:3005)
@@ -38,9 +40,10 @@ def fetch_object(object_id: int, url: str, outSR: str = '3005', f: str = 'json')
     encounter 500 errors.
 
     object_id: object id to fetch (e.g. 1)
-    url: layer url to fetch (e.g. https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/2)
-    outSR: Spatial reference, e.g. '4326' (WGS84 EPSG:4326) or '3005' (BC Albers EPSG:3005)
-    f: output format, e.g. 'geoJSON', 'json'
+    url: layer url to fetch
+    (e.g. https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/2)
+    out_sr: Spatial reference, e.g. '4326' (WGS84 EPSG:4326) or '3005' (BC Albers EPSG:3005)
+    response_format: output format, e.g. 'geoJSON', 'json'
 
     For more information see:
     https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm
@@ -52,11 +55,11 @@ def fetch_object(object_id: int, url: str, outSR: str = '3005', f: str = 'json')
         'where': f'objectid={object_id}',
         'geometryType': 'esriGeometryEnvelope',
         'spatialRel': 'esriSpatialRelIntersects',
-        'outSR': outSR,
+        'outSR': out_sr,
         'outFields': '*',
         'returnGeometry': 'true',
         'returnIdsOnly': 'false',
-        'f': f
+        'f': response_format
     }
 
     encode_params = urllib.parse.urlencode(params).encode("utf-8")
