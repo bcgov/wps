@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 async def get_hfi_area_percentages(session: AsyncSession, for_date: date) -> List[Row]:
-    """ This is terribly slow!
+    """ DEPRECATED?
+
+    This is terribly slow!
 
     For each fire zone, it gives you the area of the fire zone, and the area of hfi polygons
     within that fire zone. Using those two values, you can then calculate the percentage of the
