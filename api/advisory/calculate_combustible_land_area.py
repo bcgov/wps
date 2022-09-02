@@ -2,6 +2,7 @@ import os
 import sys
 from osgeo import gdal, osr, ogr
 import numpy as np
+from datetime import datetime
 
 
 def transform_shapefile_to_epsg_3005(source_file, new_filename):
@@ -129,119 +130,69 @@ def polygonize_geotiff(raster_source_filename, vector_dest_filename):
     dest_layer = destination.CreateLayer(vector_dest_filename, geom_type=ogr.wkbPolygon, srs=dest_srs)
     dest_layer.CreateField(value)
     dest_field = dest_layer.GetLayerDefn().GetFieldIndex('Band 1')
-
     gdal.Polygonize(source_band, None, dest_layer, dest_field, [])
 
     print('Polygonized {} to {}.shp'.format(raster_source_filename, vector_dest_filename))
 
 
-def classify_combustible_fuels(source_path, target_path):
-    """
-    Given a source path of some GeoTIFF describing fuel types, classify the GeoTIFF according to whether
-    the fuel type is combustible (1) or non-combustible (0), and save it to a new GeoTIFF.
-    The output GeoTIFF will use 8 bit unsigned values.
-    """
-    # Read the source data.
-    source_tiff = gdal.Open(source_path, gdal.GA_ReadOnly)
-    print('******************************************')
-    print('COMBUSTIBLE FUELS SOURCE TIFF DATA:')
-    print('Projection: {}'.format(source_tiff.GetProjection()))
-    print('Raster XSize x YSize: {} x {}'.format(source_tiff.RasterXSize, source_tiff.RasterYSize))
-    print('Raster Count: {}'.format(source_tiff.RasterCount))
-    source_band = source_tiff.GetRasterBand(1)
-    source_band.ComputeStatistics(0)
-    source_band.GetMetadata()
-    print("[ NO DATA VALUE ]: {}".format(source_band.GetNoDataValue()))
-    print("[ MIN ]: {}".format(source_band.GetMinimum()))
-    print("[ MAX ]: {}".format(source_band.GetMaximum()))
-    ulx, xres, xskew, uly, yskew, yres = source_tiff.GetGeoTransform()
-    print(ulx, xres, xskew, uly, yskew, yres)
-    lrx = ulx + (source_tiff.RasterXSize * xres)
-    lry = uly + (source_tiff.RasterYSize * yres)
-    print("Upper left corner {}, {}. Lower right corner {}, {}.".format(ulx, uly, lrx, lry))
-    print('******************************************')
-
-    source_data = source_band.ReadAsArray()
-    # Classify the data.
-    # Null values are encoded in source_data as -10000.
-    # Non-fuel types are encoded as one of 99, 100, 102, 103 (there is no 101).
-    classified = np.where(source_data == -10000, 0, source_data)
-    classified = np.where((classified == 99) | (classified == 100) | (
-        classified == 102) | (classified == 103), 0, classified)
-    # The rest of the fuel types are combustible.
-    classified = np.where(classified > 0, 1, classified)
-
-    target_path += '.tif'
-
-    # Remove any existing target file.
-    if os.path.exists(target_path):
-        os.remove(target_path)
-    output_driver = gdal.GetDriverByName("GTiff")
-    # Create an object with the same dimensions as the input, but with 8 bit unsigned values.
-    target_tiff = output_driver.Create(target_path, xsize=source_band.XSize,
-                                       ysize=source_band.YSize, bands=1, eType=gdal.GDT_Byte)
-    # Set the geotransform and projection to the same as the input.
-    target_tiff.SetGeoTransform(source_tiff.GetGeoTransform())
-    target_tiff.SetProjection(source_tiff.GetProjection())
-
-    # # Write the classified data to the band.
-    target_band = target_tiff.GetRasterBand(1)
-    target_band.SetNoDataValue(0)
-    target_band.WriteArray(classified)
-
-    # # Important to make sure data is flushed to disk!
-    target_tiff.FlushCache()
-
-    print('\nClassified fuel type tiff written to {}\n'.format(target_path))
-
-    # Save and close geotiff files
-    source_tiff, target_tiff = None, None
-
-    # Explicit delete to make sure underlying resources are cleared up!
-    del source_band
-    del source_tiff
-    del target_band
-    del target_tiff
-    del output_driver
-
-    return
-
-
 def calculate_combustible_area_by_fire_zone(fuel_types_vector_filename, fire_zones_vector_filename):
+    start_time = datetime.now()
+
     driver = ogr.GetDriverByName('ESRI Shapefile')
     fuel_types = driver.Open(fuel_types_vector_filename, gdal.GA_ReadOnly)
     fuel_types_layer = fuel_types.GetLayer()
     fire_zones = driver.Open(fire_zones_vector_filename, gdal.GA_ReadOnly)
     fire_zones_layer = fire_zones.GetLayer()
 
+    print('Unfiltered feature count: {}'.format(fuel_types_layer.GetFeatureCount()))
+    # Filter out non-combustible fuel types
+    fuel_types_layer.SetAttributeFilter('"Band 1" > 0 and ("Band 1" < 99 or "Band 1" > 103)')
+    print('Filtered feature count: {}'.format(fuel_types_layer.GetFeatureCount()))
+
     print('Analyzing {} fire zones in {}'.format(fire_zones_layer.GetFeatureCount(), fire_zones_vector_filename))
-    print('Analyzing {} fuel type polygons in {}'.format(fuel_types_layer.GetFeatureCount(), fuel_types_vector_filename))
+    print('Analyzing {} fuel type polygons in {}\n'.format(
+        fuel_types_layer.GetFeatureCount(), fuel_types_vector_filename))
 
-    # for feature in fire_zones_layer:
-    #     zone_name = feature.GetField('MFFRZNNM')
-    #     zone_area_sqm = feature.GetField('AREA_SQM')
-    #     print('{}: {} sq.m.'.format(zone_name, zone_area_sqm))
-    #     zone_geom = feature.geometry()
+    for feature in fire_zones_layer:
+        zone_name = feature.GetField('MFFRZNNM')
+        zone_area_sqm = feature.GetField('AREA_SQM')
+        zone_geom = feature.geometry()
 
-    for feature in fuel_types_layer:
-        print('Feature Metadata Dict: {}'.format(feature.items()))
+        fuel_types_layer.SetSpatialFilter(zone_geom)
+        # create GeometryCollection of all filtered fuel type polygons
+        geom_collection = ogr.Geometry(ogr.wkbGeometryCollection)
+        for fuel_type_geom in fuel_types_layer:
+            geom_collection.AddGeometry(fuel_type_geom.geometry())
 
-    return
+        # ensure the GeometryCollection is valid
+        geom_collection_valid = geom_collection.MakeValid()
+
+        # this line is necessary because otherwise Fraser Fire Zone can't undergo spatial
+        # comparison for calculating Intersection. Likely due to the Fraser polygon
+        # self-intersecting somewhere. Buffer(0) tries to correct the self-intersection
+        # by "guessing", but it isn't always right.
+        # Confusingly, when checking IsValid() on every zone_geom, they all return True.
+        # https://gis.stackexchange.com/questions/311209/how-to-fix-invalid-polygon-with-self-intersection-python
+        buffered_geom_collection = geom_collection_valid.Buffer(0)
+
+        # get intersection
+        intersection = buffered_geom_collection.Intersection(zone_geom)
+        if intersection is not None and intersection.GetArea() > 0:
+            intersect_area = intersection.GetArea()
+            print('{} has {} sq.m. of combustible land - {}% of its total area.'.format(zone_name,
+                  intersect_area, 100 * intersect_area / zone_area_sqm))
+
+    delta = datetime.now() - start_time
+    print('Script took {} seconds to run.'.format(delta.seconds))
 
 
 if __name__ == '__main__':
     # Usage:
     # advisory.calculate_combustible_land_area <fire_zones_shapefile_path> <fuel_types_geotiff_path>
     # 1. convert all input files to EPSG:3005
-    # transform_shapefile_to_epsg_3005(sys.argv[1], 'fire_zones_epsg_3005')
-    # transform_geotiff_to_epsg_3005(sys.argv[2], 'fuel_types_epsg_3005')
-    # 2. rasterize fire zones shapefile
-    # rasterize_shapefile('fire_zones_epsg_3005.shp', 'fire_zones_epsg_3005')
-
-    # rasterizing was painful. Let's try polygonizing the fuel types geotiff instead
-    # polygonize_geotiff('fuel_types_epsg_3005.tif', 'fuel_types_epsg_3005')
-
-    # 3. convert fuel types raster into bitmask of combustible/not
-    # classify_combustible_fuels('fuel_types_epsg_3005.tif', 'combustible_fuels_epsg_3005')
-    # 4. calculate area of combustible fuel by zone
+    transform_shapefile_to_epsg_3005(sys.argv[1], 'fire_zones_epsg_3005')
+    transform_geotiff_to_epsg_3005(sys.argv[2], 'fuel_types_epsg_3005')
+    # 2. polygonize the fuel types geotiff
+    polygonize_geotiff('fuel_types_epsg_3005.tif', 'fuel_types_epsg_3005')
+    # 3. calculate area of combustible fuel by zone
     calculate_combustible_area_by_fire_zone('fuel_types_epsg_3005.shp', 'fire_zones_epsg_3005.shp')
