@@ -64,13 +64,13 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx: bool, mock_redis_
     class MockRedis():
         """ Mock class"""
 
-        def get(self, *args, **kwargs):  # pylint: disable=no-self-use, unused-argument
+        def get(self, *args, **kwargs):  # pylint: disable=unused-argument
             """ Mock function """
             if mock_redis_exception:
                 raise Exception('explode')
             return {}
 
-        def set(self, *args, **kwargs):  # pylint: disable=no-self-use, unused-argument
+        def set(self, *args, **kwargs):  # pylint: disable=unused-argument
             """ Mock function """
             if mock_redis_exception:
                 raise Exception('explode')

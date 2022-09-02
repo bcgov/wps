@@ -18,7 +18,7 @@ COPY ./api/advisory /app/advisory
 # Copy java libs:
 RUN mkdir /app/libs
 COPY ./api/libs /app/libs
-# Copy almebic:
+# Copy alembic:
 COPY ./api/alembic /app/alembic
 COPY ./api/alembic.ini /app
 # Copy pre-start.sh (it will be run on startup):

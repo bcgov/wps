@@ -83,35 +83,6 @@ def transform_geotiff_to_epsg_3005(source_file, new_filename):
     del source_data
 
 
-def rasterize_shapefile(vector_source_filename, raster_dest_filename):
-    """
-    Ingests the file <vector_source_filename>, creates new file called
-    <raster_dest_filename>.tif, and inputs rasterized contents of source file
-    into destination file.
-    """
-    driver = ogr.GetDriverByName('ESRI Shapefile')
-    source_data = driver.Open(vector_source_filename, gdal.GA_ReadOnly)
-    if source_data is None:
-        print('Could not open file {}'.format(vector_source_filename))
-        return
-
-    source_layer = source_data.GetLayer()
-    # source_spatial_ref = source_layer.GetSpatialRef()
-
-    output_file = raster_dest_filename + '.tif'
-    dest_data = gdal.GetDriverByName('GTiff').Create(output_file, 791, 694, 1, gdal.GDT_Byte)
-    band = dest_data.GetRasterBand(1)
-    no_data_value = -10000
-    band.SetNoDataValue(no_data_value)
-    band.FlushCache()
-
-    gdal.RasterizeLayer(dest_data, [1], source_layer)
-
-    # close files
-    dest_data, source_data = None, None
-    return
-
-
 def polygonize_geotiff(raster_source_filename, vector_dest_filename):
     """
     Ingests the file <raster_source_filename>, creates new file called
