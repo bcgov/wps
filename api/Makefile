@@ -149,7 +149,7 @@ docker-build:
 	# Build dev docker images.
 	# Having issues? try: docker volume prune
 	# Still having issues? try: docker system prune
-	docker-compose build
+	docker compose build
 
 docker-lint:
 	# Run linting in docker (dev instance).
@@ -160,7 +160,7 @@ docker-test:
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
 	# Make sure that your docker pycache doesn't conflict with your local pycache.
-	docker-compose run --rm api pytest -x -n 3 app
+	docker compose run --rm api pytest -x -n 3 app
 
 docker-test-coverage:
 	# Run tests with coverage in docker (dev instance).
@@ -169,39 +169,42 @@ docker-test-coverage:
 docker-shell:
 	# Shell into the dev container.
 	# docker run -it --env-file app/.env --entrypoint bash wps-api_api:latest
-	docker-compose run --rm api bash
+	docker compose run --rm api bash
 
 docker-run:
 	# Run docker in dev mode.
-	docker-compose up
+	docker compose up
 
 docker-shell-db:
 	# Shell into the db container
-	docker-compose exec db psql -h db -U wps
+	docker compose exec db psql -h db -U wps
 
 docker-redis:
 	# Start up a local Redis service within docker container
-	docker-compose up redis
+	docker compose up redis
 
 docker-run-env-canada:
 	# Run a python script to download model data from Env Canada on docker
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.weather_models.env_canada GDPS
-	docker-compose exec api python -m app.weather_models.env_canada HRDPS
-	docker-compose exec api python -m app.weather_models.env_canada RDPS
+	docker compose exec api python -m app.weather_models.env_canada GDPS
+	docker compose exec api python -m app.weather_models.env_canada HRDPS
+	docker compose exec api python -m app.weather_models.env_canada RDPS
 
 docker-run-noon-forecasts:
 	# Run a python script to download forecast data from BC Wild Fire on docker
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.jobs.noon_forecasts
+	docker compose exec api python -m app.jobs.noon_forecasts
 
 docker-run-hourly-actuals:
 	# Run a python script to download hourly actuals from BC Wild Fire on docker.
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.jobs.hourly_actuals
+	docker compose exec api python -m app.jobs.hourly_actuals
 
 database-upgrade:
 	PYTHONPATH=. $(POETRY_RUN) alembic upgrade head
 
+database-downgrade:
+	PYTHONPATH=. $(POETRY_RUN) alembic downgrade -1
+
 docker-database-upgrade:
-	docker-compose exec -e PYTHONPATH=. api alembic upgrade head
+	docker compose exec -e PYTHONPATH=. api alembic upgrade head
