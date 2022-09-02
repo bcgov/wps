@@ -9,13 +9,14 @@
             "type": "python",
             "request": "launch",
             "program": "api/app/main.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "justMyCode": false
         },
         {
-            "name": "api - module",
+            "name": "sfms",
             "type": "python",
             "request": "launch",
-            "module": "app.main",
+            "program": "sfms/app/main.py",
             "console": "integratedTerminal"
         },
         {
