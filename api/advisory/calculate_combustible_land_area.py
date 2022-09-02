@@ -161,9 +161,9 @@ if __name__ == '__main__':
     # Usage:
     # advisory.calculate_combustible_land_area <fire_zones_shapefile_path> <fuel_types_geotiff_path>
     # 1. convert all input files to EPSG:3005
-    transform_shapefile_to_epsg_3005(sys.argv[1], 'fire_zones_epsg_3005')
-    transform_geotiff_to_epsg_3005(sys.argv[2], 'fuel_types_epsg_3005')
+    # transform_shapefile_to_epsg_3005(sys.argv[1], 'fire_zones_epsg_3005')
+    # transform_geotiff_to_epsg_3005(sys.argv[2], 'fuel_types_epsg_3005')
     # 2. polygonize the fuel types geotiff
-    polygonize_geotiff('fuel_types_epsg_3005.tif', 'fuel_types_epsg_3005')
+    # polygonize_geotiff('fuel_types_epsg_3005.tif', 'fuel_types_epsg_3005')
     # 3. calculate area of combustible fuel by zone
     calculate_combustible_area_by_fire_zone('fuel_types_epsg_3005.shp', 'fire_zones_epsg_3005.shp')
