@@ -1,109 +1,21 @@
-import os
 import sys
-from osgeo import gdal, osr, ogr
+from osgeo import gdal, ogr
 import numpy as np
 from datetime import datetime
 
+"""
+calculate_combustible_land_area.py iterates calculates the total land area covered by combustible
+fuels in each fire zone, given input vector files for fuel_types and fire_zones.
 
-def transform_shapefile_to_epsg_3005(source_file, new_filename):
-    """
-    Transforms coordinates in source_file shapefile to EPSG:3005 (BC Albers),
-    writes to newly created shapefile called <new_filename>.shp
-    """
-    driver = ogr.GetDriverByName('ESRI Shapefile')
-    source_data = driver.Open(source_file, gdal.GA_ReadOnly)
+In order to run this script, the input shapefiles for fire zones and fuel types must be in vector
+format, and must use BC Albers (EPSG:3005) coordinate system. 
 
-    if source_data is None:
-        print('Could not open {}'.format(source_file))
-        return
+To convert the coordinates of a .shp or .tif file into EPSG:3005, use the
+transform_to_epsg_3005.py script before running this script.
 
-    source_layer = source_data.GetLayer()
-    input_spatial_ref = source_layer.GetSpatialRef()
-
-    output_spatial_ref = osr.SpatialReference()
-    output_spatial_ref.ImportFromEPSG(3005)
-
-    coords_transform = osr.CreateCoordinateTransformation(input_spatial_ref, output_spatial_ref)
-
-    # create output layer
-    output_shapefile = new_filename + '.shp'
-    if os.path.exists(output_shapefile):
-        driver.DeleteDataSource(output_shapefile)
-    output_dataset = driver.CreateDataSource(output_shapefile)
-    output_layer = output_dataset.CreateLayer("epsg_3005", output_spatial_ref, geom_type=ogr.wkbMultiPolygon)
-
-    input_layer_defn = source_layer.GetLayerDefn()
-    for i in range(input_layer_defn.GetFieldCount()):
-        field_defn = input_layer_defn.GetFieldDefn(i)
-        output_layer.CreateField(field_defn)
-
-    output_layer_defn = output_layer.GetLayerDefn()
-
-    # loop through input features
-    input_feature = source_layer.GetNextFeature()
-    while input_feature:
-        # get input geometry
-        geom = input_feature.GetGeometryRef()
-        # reproject the geom
-        geom.Transform(coords_transform)
-        # create new feature
-        output_feature = ogr.Feature(output_layer_defn)
-        # set the geometry and attribute
-        output_feature.SetGeometry(geom)
-        for i in range(output_layer_defn.GetFieldCount()):
-            output_feature.SetField(output_layer_defn.GetFieldDefn(i).GetNameRef(), input_feature.GetField(i))
-        # add the feature to output_shapefile
-        output_layer.CreateFeature(output_feature)
-        # dereference the features, get next input feature
-        output_feature = None
-        input_feature = source_layer.GetNextFeature()
-
-    # save and close shapefile
-    source_data = None
-    output_dataset = None
-
-    print('Transformed shapefile written to {}'.format(new_filename + '.shp'))
-
-    del source_data, output_dataset, coords_transform
-
-
-def transform_geotiff_to_epsg_3005(source_file, new_filename):
-    """
-    Transforms coordinates in source_file geotiff to EPSG:3005 (BC Albers),
-    writes to newly created geotiff called <new_filename>.tif
-    """
-    source_data = gdal.Open(source_file, gdal.GA_ReadOnly)
-    gdal.Warp(new_filename + '.tif', source_data, dstSRS='EPSG:3005')
-
-    # close file so it is written to disk
-    source_data = None
-
-    print('Transformed geotiff written to {}'.format(new_filename + '.tif'))
-
-    del source_data
-
-
-def polygonize_geotiff(raster_source_filename, vector_dest_filename):
-    """
-    Ingests the file <raster_source_filename>, creates new file called
-    <vector_dest_filename>.shp, and inserts polygonized contents of source
-    file into destination file.
-    """
-    source_data = gdal.Open(raster_source_filename, gdal.GA_ReadOnly)
-    source_band = source_data.GetRasterBand(1)
-    value = ogr.FieldDefn('Band 1', ogr.OFTInteger)
-    print('{} raster count: {}'.format(raster_source_filename, source_data.RasterCount))
-
-    driver = ogr.GetDriverByName("ESRI Shapefile")
-    destination = driver.CreateDataSource(vector_dest_filename + ".shp")
-    dest_srs = ogr.osr.SpatialReference()
-    dest_srs.ImportFromEPSG(3005)
-    dest_layer = destination.CreateLayer(vector_dest_filename, geom_type=ogr.wkbPolygon, srs=dest_srs)
-    dest_layer.CreateField(value)
-    dest_field = dest_layer.GetLayerDefn().GetFieldIndex('Band 1')
-    gdal.Polygonize(source_band, None, dest_layer, dest_field, [])
-
-    print('Polygonized {} to {}.shp'.format(raster_source_filename, vector_dest_filename))
+To convert a raster (.tif) file to a vector (.shp) file, use the
+polygonize_geotiff.py script before running this script.
+"""
 
 
 def calculate_combustible_area_by_fire_zone(fuel_types_vector_filename, fire_zones_vector_filename):
@@ -158,12 +70,6 @@ def calculate_combustible_area_by_fire_zone(fuel_types_vector_filename, fire_zon
 
 
 if __name__ == '__main__':
-    # Usage:
-    # advisory.calculate_combustible_land_area <fire_zones_shapefile_path> <fuel_types_geotiff_path>
-    # 1. convert all input files to EPSG:3005
-    # transform_shapefile_to_epsg_3005(sys.argv[1], 'fire_zones_epsg_3005')
-    # transform_geotiff_to_epsg_3005(sys.argv[2], 'fuel_types_epsg_3005')
-    # 2. polygonize the fuel types geotiff
-    # polygonize_geotiff('fuel_types_epsg_3005.tif', 'fuel_types_epsg_3005')
-    # 3. calculate area of combustible fuel by zone
+    if len(sys.argv != 2):
+        print('Usage: advisory.calculate_combustible_land_area <fuel_types_vector_filepath> <fire_zones_vector_filepath>')
     calculate_combustible_area_by_fire_zone('fuel_types_epsg_3005.shp', 'fire_zones_epsg_3005.shp')
