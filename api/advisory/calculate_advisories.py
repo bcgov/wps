@@ -17,15 +17,15 @@ async def generate_advisories(today: date):
 
         # Fetch rows.
         for row in rows:
-            zone_area = row.zone_area
+            combustible_area = row.combustible_area
             hfi_area = row.hfi_area
-            print(f'{row.mof_fire_zone_name}:{hfi_area}/{zone_area}={hfi_area/zone_area*100}%')
+            print(f'{row.mof_fire_zone_name}:{hfi_area}/{combustible_area}={hfi_area/combustible_area*100}%')
 
             advisory = FireZoneAdvisory(
                 for_date=today,
                 mof_fire_zone_id=row.mof_fire_zone_id,
                 elevated_hfi_area=row.hfi_area,
-                elevated_hfi_percentage=hfi_area / zone_area * 100)
+                elevated_hfi_percentage=hfi_area / combustible_area * 100)
             await save_advisory(tileserver_session, advisory)
 
 

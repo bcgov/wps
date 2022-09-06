@@ -17,6 +17,7 @@ async def get_hfi_area_percentages(session: AsyncSession, for_date: date) -> Lis
     stmt = select(FireZone.id,
                   FireZone.mof_fire_zone_id,
                   FireZone.mof_fire_zone_name,
+                  FireZone.combustible_area,
                   FireZone.geom.ST_Transform(3005).ST_Area().label('zone_area'),
                   Hfi.wkb_geometry.ST_Union().ST_Intersection(FireZone.geom)
                   .ST_Transform(3005).ST_Area().label('hfi_area'))\

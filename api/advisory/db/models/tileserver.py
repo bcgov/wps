@@ -1,7 +1,7 @@
 """ We don't want alembic to manage the models in here!
 """
 
-from sqlalchemy import (Column, Integer, Date, String)
+from sqlalchemy import (Column, Integer, Date, String, Float)
 from geoalchemy2 import Geometry
 from app.db.database import Base
 
@@ -23,3 +23,4 @@ class FireZone(Base):
     mof_fire_zone_id = Column(Integer)
     geom = Column(Geometry('MULTIPOLYGON'))
     mof_fire_zone_name = Column(String)
+    combustible_area = Column(Float)
