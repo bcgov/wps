@@ -87,7 +87,6 @@ async def get_zones(for_date: date):
         for row in rows:
             zone_area = row.zone_area
             hfi_area = row.hfi_area
-            print(f'{row.mof_fire_zone_name}:{hfi_area}/{zone_area}={hfi_area/zone_area*100}%')
 
             zones.append(FireZoneArea(
                 mof_fire_zone_id=row.mof_fire_zone_id,
