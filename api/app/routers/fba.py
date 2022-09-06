@@ -9,10 +9,12 @@ import tempfile
 from shapely.geometry import Polygon
 from shapely import wkb
 from app import config
-from app.db.database import get_async_read_session_scope, get_async_write_session_scope
-from app.db.crud.fba_advisory import get_hfi_area_percentages, get_hfi, save_hfi
+from advisory.db.database.tileserver import get_tileserver_read_session_scope
+from advisory.db.crud import get_hfi_area_percentages
+from app.db.database import get_async_write_session_scope
+from app.db.crud.fba_advisory import save_hfi
 from app.db.models.advisory import ClassifiedHfi
-from app.auth import authentication_required, audit
+from app.auth import authentication_required
 from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 from app.autoneal.classify_hfi import classify_hfi
@@ -71,13 +73,13 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
 @router.get('/fire-zone-areas/{for_date}', response_model=FireZoneAreaListResponse)
 # async def get_zones(for_date: date, _=Depends(authentication_required)):
 async def get_zones(for_date: date):
-    async with get_async_read_session_scope() as session:
+    async with get_tileserver_read_session_scope() as session:
         zones = []
 
         # this is a slow step! checking to see if it's there, then making it! that's nuts!
-        hfi = await get_hfi(session, for_date)
-        if hfi.first() is None:
-            await process_hfi(for_date)
+        # hfi = await get_hfi(session, for_date)
+        # if hfi.first() is None:
+        #     await process_hfi(for_date)
 
         rows = await get_hfi_area_percentages(session, for_date)
 
