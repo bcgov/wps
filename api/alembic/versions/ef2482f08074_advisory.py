@@ -1,7 +1,7 @@
 """Advisory
 
 Revision ID: ef2482f08074
-Revises: 62d35d76e1bf
+Revises: c04f22e31997
 Create Date: 2022-07-26 18:43:07.572588
 
 """
