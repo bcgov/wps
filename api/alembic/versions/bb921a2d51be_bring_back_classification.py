@@ -28,7 +28,6 @@ def upgrade():
                     sa.Column('geom', geoalchemy2.types.Geometry(geometry_type='POLYGON', srid=3005,
                                                                  spatial_index=False, from_text='ST_GeomFromEWKT', name='geometry'), nullable=True),
                     sa.PrimaryKeyConstraint('id'),
-                    sa.UniqueConstraint('run_type', 'run_date', 'for_date'),
                     comment='HFI classification for some forecast/advisory run on some day, for some date'
                     )
     op.create_index('idx_advisory_classified_hfi_geom', 'advisory_classified_hfi',

@@ -30,7 +30,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
     :param run_date: The date of the run to process. (when was the hfi file created?)
     :param for_date: The date of the hfi to process. (when is the hfi for?)
     """
-    logger.info('Processing HFI for run date: %s, for date: ', run_date, for_date)
+    logger.info('Processing HFI %s for run date: %s, for date: %s', run_type, run_date, for_date)
     perf_start = perf_counter()
 
     bucket = config.get('OBJECT_STORE_BUCKET')
@@ -38,7 +38,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
     # but this method doesn't even belong here, it's just a shortcut for now!
     for_date_string = f'{for_date.year}{for_date.month:02d}{for_date.day:02d}'
 
-    key = f'/vsis3/{bucket}/sfms/uploads/{run_type}/{run_date.isoformat()}/hfi{for_date_string}.tif'
+    key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_date.isoformat()}/hfi{for_date_string}.tif'
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(key, temp_filename)
@@ -70,7 +70,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                 # geometry from wkb, then dumping it back into wkb, with srid=3005.
                 polygon = wkb.loads(geometry.ExportToIsoWkb())
                 obj = ClassifiedHfi(hfi=hfi,
-                                    run_type=RunTypeEnum(run_type),
+                                    run_type=RunTypeEnum(run_type.value),
                                     run_date=run_date,
                                     for_date=for_date,
                                     geom=wkb.dumps(polygon,

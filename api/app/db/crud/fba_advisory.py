@@ -5,7 +5,7 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
-from app.db.models.advisory import Shape, ClassifiedHfi
+from app.db.models.advisory import Shape, ClassifiedHfi, RunTypeEnum
 
 
 logger = logging.getLogger(__name__)
@@ -15,13 +15,19 @@ async def save_hfi(session: AsyncSession, hfi: ClassifiedHfi):
     session.add(hfi)
 
 
-async def get_hfi(session: AsyncSession, for_date: date):
-    stmt = select(ClassifiedHfi).where(ClassifiedHfi.date == for_date)
+async def get_hfi(session: AsyncSession, run_type: RunTypeEnum, run_date: date, for_date: date):
+    stmt = select(ClassifiedHfi).where(
+        ClassifiedHfi.run_type == run_type,
+        ClassifiedHfi.for_date == for_date,
+        ClassifiedHfi.run_date == run_date)
     result = await session.execute(stmt)
     return result.scalars()
 
 
-async def get_hfi_area_percentages(session: AsyncSession, for_date: date) -> List[Row]:
+async def get_hfi_area(session: AsyncSession,
+                       run_type: RunTypeEnum,
+                       run_date: date,
+                       for_date: date) -> List[Row]:
     """ This is slow - but not terribly slow.
 
     For each fire zone, it gives you the area of the fire zone, and the area of hfi polygons
@@ -34,11 +40,13 @@ async def get_hfi_area_percentages(session: AsyncSession, for_date: date) -> Lis
                   Shape.geom.ST_Area().label('zone_area'),
                   ClassifiedHfi.geom.ST_Union().ST_Intersection(Shape.geom).ST_Area().label('hfi_area'))\
         .join(ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
-        .where(ClassifiedHfi.date == for_date)\
+        .where(ClassifiedHfi.run_type == run_type,
+               ClassifiedHfi.for_date == for_date,
+               ClassifiedHfi.run_date == run_date)\
         .group_by(Shape.id)
     result = await session.execute(stmt)
-    all_hfi_percentages = result.all()
+    all_hfi = result.all()
     perf_end = perf_counter()
     delta = perf_end - perf_start
     logger.info('%f delta count before and after hfi area / complex fire zone query', delta)
-    return all_hfi_percentages
+    return all_hfi

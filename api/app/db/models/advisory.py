@@ -14,8 +14,8 @@ class ShapeTypeEnum(enum.Enum):
 
 class RunTypeEnum(enum.Enum):
     """ Define different run types. e.g. "Forecast", "Actual" """
-    forecast = 1
-    actual = 2
+    forecast = "forecast"
+    actual = "actual"
 
 
 class ShapeType(Base):
@@ -58,7 +58,6 @@ class ClassifiedHfi(Base):
     """
     __tablename__ = 'advisory_classified_hfi'
     __table_args__ = (
-        UniqueConstraint('run_type', 'run_date', 'for_date'),
         {'comment': 'HFI classification for some forecast/advisory run on some day, for some date'}
     )
     id = Column(Integer, primary_key=True, index=True)
