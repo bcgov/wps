@@ -1,9 +1,6 @@
 from osgeo import gdal, ogr, osr
-from typing import Tuple, Any
-import os
-import json
+from typing import Tuple
 import numpy as np
-import tempfile
 
 
 def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransform):
@@ -23,6 +20,7 @@ def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransfor
 
 
 def polygonize(geotiff_filename) -> Tuple[ogr.DataSource, ogr.Layer]:
+    """  Given some tiff file, return a polygonized version of it, in memory, as an ogr layer. """
     source: gdal.Dataset = gdal.Open(geotiff_filename, gdal.GA_ReadOnly)
 
     source_band = source.GetRasterBand(1)
@@ -51,28 +49,3 @@ def polygonize(geotiff_filename) -> Tuple[ogr.DataSource, ogr.Layer]:
     dst_ds.FlushCache()
     del source, mask_band, mask_ds
     return dst_ds, dst_layer
-
-    # # Create a GeoJSON layer.
-    # with tempfile.TemporaryDirectory() as temp_dir:
-    #     temp_filename = os.path.join(temp_dir, 'temp.geojson')
-    #     geojson_driver = ogr.GetDriverByName('GeoJSON')
-    #     dst_ds = geojson_driver.CreateDataSource(temp_filename)
-
-    #     # HFI Layer
-    #     dst_layer = dst_ds.CreateLayer('hfi')
-    #     field_name = ogr.FieldDefn("hfi", ogr.OFTInteger)
-    #     field_name.SetWidth(24)
-    #     dst_layer.CreateField(field_name)
-
-    #     # Turn the rasters into polygons.
-    #     gdal.Polygonize(band, mask_band, dst_layer, 0, [], callback=None)
-
-    #     # Ensure that all data in the target dataset is written to disk.
-    #     dst_ds.FlushCache()
-    #     # Explicitly clean up (is this needed?)
-    #     del dst_ds, mask_band, mask_ds
-
-    #     with open(temp_filename, encoding="utf-8") as source_file:
-    #         geojson_data = json.load(source_file)
-
-    # return geojson_data

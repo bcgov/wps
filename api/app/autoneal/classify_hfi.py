@@ -1,7 +1,6 @@
 """ Proof of concept, run classification on HFI GeoTiff
 """
 import os
-import sys
 import numpy as np
 from osgeo import gdal
 
@@ -10,6 +9,8 @@ def classify_hfi(source_path, target_path):
     """
     Given a source path of some HFI GeoTIFF, classify the GeoTIFF and save it to a new GeoTIFF.
     The output GeoTIFF will use 8 bit unsigned values.
+
+    NOTE: This could be done in memory!
     """
     # Read the source data.
     source_tiff = gdal.Open(source_path, gdal.GA_ReadOnly)
