@@ -7,7 +7,7 @@ import tempfile
 from shapely import wkb
 from osgeo import ogr, osr
 from app import config
-from app.db.models.advisory import ClassifiedHfi
+from app.db.models.advisory import ClassifiedHfi, RunTypeEnum
 from app.db.database import get_async_write_session_scope
 from app.db.crud.fba_advisory import save_hfi
 from app.autoneal.classify_hfi import classify_hfi
@@ -36,7 +36,6 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
     bucket = config.get('OBJECT_STORE_BUCKET')
     # TODO what really has to happen, is that we grab the most recent prediction for the given date,
     # but this method doesn't even belong here, it's just a shortcut for now!
-    run_date = for_date
     for_date_string = f'{for_date.year}{for_date.month:02d}{for_date.day:02d}'
 
     key = f'/vsis3/{bucket}/sfms/uploads/{run_type}/{run_date.isoformat()}/hfi{for_date_string}.tif'
@@ -70,7 +69,13 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                 # the SRID is EPSG:3005. So we're doing this redundant step of creating a shapely
                 # geometry from wkb, then dumping it back into wkb, with srid=3005.
                 polygon = wkb.loads(geometry.ExportToIsoWkb())
-                obj = ClassifiedHfi(hfi=hfi, date=for_date, geom=wkb.dumps(polygon, hex=True, srid=NAD83_BC_ALBERS))
+                obj = ClassifiedHfi(hfi=hfi,
+                                    run_type=RunTypeEnum(run_type),
+                                    run_date=run_date,
+                                    for_date=for_date,
+                                    geom=wkb.dumps(polygon,
+                                                   hex=True,
+                                                   srid=NAD83_BC_ALBERS))
                 await save_hfi(session, obj)
         del dst_ds, layer
     perf_end = perf_counter()

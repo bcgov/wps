@@ -6,11 +6,11 @@ from datetime import date
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.db.database import get_async_read_session_scope
-from app.db.crud.fba_advisory import get_hfi_area_percentages, get_hfi, save_hfi
+from app.db.crud.fba_advisory import get_hfi_area_percentages, get_hfi
 from app.auth import authentication_required, audit
 from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
-from app.autoneal.process_hfi import process_hfi
+from app.autoneal.process_hfi import process_hfi, RunType
 
 logger = logging.getLogger(__name__)
 
@@ -30,16 +30,17 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
     return FireCenterListResponse(fire_centers=fire_centers)
 
 
-@router.get('/fire-zone-areas/{for_date}', response_model=FireZoneAreaListResponse)
+@router.get('/fire-zone-areas/{run_type}/{run_date}/{for_date}',
+            response_model=FireZoneAreaListResponse)
 # async def get_zones(for_date: date, _=Depends(authentication_required)):
-async def get_zones(for_date: date):
+async def get_zones(run_type: RunType, run_date: date, for_date: date):
     async with get_async_read_session_scope() as session:
         zones = []
 
         # this is a slow step! checking to see if it's there, then making it! that's nuts!
         hfi = await get_hfi(session, for_date)
         if hfi.first() is None:
-            await process_hfi(for_date)
+            await process_hfi(run_type, run_date, for_date)
 
         rows = await get_hfi_area_percentages(session, for_date)
 

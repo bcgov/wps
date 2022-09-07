@@ -52,5 +52,5 @@ def downgrade():
     op.drop_table('advisory_shapes')
     op.drop_index(op.f('ix_advisory_shape_types_name'), table_name='advisory_shape_types')
     op.drop_table('advisory_shape_types')
-    sa.Enum(name='shapetypeenum').drop(op.get_bind())
     # ### end Alembic commands ###
+    sa.Enum(name='shapetypeenum').drop(op.get_bind())

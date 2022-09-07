@@ -5,20 +5,10 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
-from app.db.models.advisory import FireZoneAdvisory, Shape, ShapeType, ClassifiedHfi
+from app.db.models.advisory import Shape, ClassifiedHfi
 
 
 logger = logging.getLogger(__name__)
-
-
-async def save_advisory(session: AsyncSession, advisory: FireZoneAdvisory):
-    session.add(advisory)
-
-
-async def get_advisories(session: AsyncSession, today: date):
-    stmt = select(FireZoneAdvisory).where(FireZoneAdvisory.for_date == today)
-    result = await session.execute(stmt)
-    return result.scalars()
 
 
 async def save_hfi(session: AsyncSession, hfi: ClassifiedHfi):
@@ -32,7 +22,7 @@ async def get_hfi(session: AsyncSession, for_date: date):
 
 
 async def get_hfi_area_percentages(session: AsyncSession, for_date: date) -> List[Row]:
-    """ This is terribly slow!
+    """ This is slow - but not terribly slow.
 
     For each fire zone, it gives you the area of the fire zone, and the area of hfi polygons
     within that fire zone. Using those two values, you can then calculate the percentage of the

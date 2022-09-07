@@ -1,25 +1,8 @@
 import enum
-from sqlalchemy import (Integer, Float, Date, String, Column, Index, ForeignKey, Enum, UniqueConstraint)
+from sqlalchemy import (Integer, Date, String, Column, Index, ForeignKey, Enum, UniqueConstraint)
 from geoalchemy2 import Geometry
 from app.db.database import Base
 from app.geospatial import NAD83_BC_ALBERS
-
-
-class FireZoneAdvisory(Base):
-    """ 
-    TODO: this needs unique constrainsts etc. etc.
-    TODO: i think we're getting rid of this soon?
-    """
-    __tablename__ = 'advisory_fire_zones'
-    __table_args__ = (
-        {'comment': 'Information about advisories.'}
-    )
-    id = Column(Integer, primary_key=True, index=True)
-    for_date = Column(Date, nullable=False, index=True)
-    # TODO: the official spec has two different numbers!
-    mof_fire_zone_id = Column(Integer, nullable=False, index=True)
-    elevated_hfi_area = Column(Float, nullable=False)
-    elevated_hfi_percentage = Column(Float, nullable=False)
 
 
 class ShapeTypeEnum(enum.Enum):
@@ -27,6 +10,12 @@ class ShapeTypeEnum(enum.Enum):
     "Incident"/"Fire", "Custom" etc. etc. """
     fire_centre = 1
     fire_zone = 2
+
+
+class RunTypeEnum(enum.Enum):
+    """ Define different run types. e.g. "Forecast", "Actual" """
+    forecast = 1
+    actual = 2
 
 
 class ShapeType(Base):
@@ -64,12 +53,20 @@ Index('idx_advisory_areas_geom', Shape.geom, postgresql_using='gist')
 
 class ClassifiedHfi(Base):
     """ TODO: Do!
+    NOTE: In actual fact, forecasts and actuals can be run multiple times per day,
+    but we only care about the most recent one, so we only store the date, not the timesamp.
     """
     __tablename__ = 'advisory_classified_hfi'
+    __table_args__ = (
+        UniqueConstraint('run_type', 'run_date', 'for_date'),
+        {'comment': 'HFI classification for some forecast/advisory run on some day, for some date'}
+    )
     id = Column(Integer, primary_key=True, index=True)
     # TODO: we could do this better!
     hfi = Column(String, nullable=False)
-    date = Column(Date, nullable=False)
+    run_type = Column(Enum(RunTypeEnum), nullable=False, index=True)
+    run_date = Column(Date, nullable=False)
+    for_date = Column(Date, nullable=False)
     geom = Column(Geometry('POLYGON', spatial_index=False, srid=NAD83_BC_ALBERS))
 
 
