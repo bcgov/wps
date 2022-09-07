@@ -52,7 +52,7 @@ Index('idx_advisory_areas_geom', Shape.geom, postgresql_using='gist')
 
 
 class ClassifiedHfi(Base):
-    """ TODO: Do!
+    """ HFI classified into different groups.
     NOTE: In actual fact, forecasts and actuals can be run multiple times per day,
     but we only care about the most recent one, so we only store the date, not the timesamp.
     """
