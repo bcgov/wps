@@ -10,9 +10,9 @@ class NoonForecastValue(BaseModel):
     """ Data structure for a noon forecast retrieved from BC FireWeather Phase 1 """
     datetime: datetime
     temp_valid: bool
-    temperature: int
+    temperature: int = None
     rh_valid: bool
-    relative_humidity: int
+    relative_humidity: int = None
     wdir_valid: bool
     wind_direction: int = None
     wspeed_valid: bool
