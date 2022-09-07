@@ -61,7 +61,7 @@ def classify_geojson(source_json_filename: str, today: date) -> dict:
             hfi = properties.get('hfi', None)
             if hfi is not None:
                 if hfi == 1:
-                    properties['hfi'] = '4000 > hfi < 10000'
+                    properties['hfi'] = '4000 < hfi < 10000'
                 elif hfi == 2:
                     properties['hfi'] = 'hfi >= 10000'
     return geojson_data

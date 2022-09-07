@@ -1,4 +1,5 @@
-from osgeo import gdal, ogr
+from osgeo import gdal, ogr, osr
+from typing import Tuple, Any
 import os
 import json
 import numpy as np
@@ -21,39 +22,57 @@ def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransfor
     return dataset, band
 
 
-def polygonize(geotiff_filename) -> dict:
-    classification = gdal.Open(geotiff_filename, gdal.GA_ReadOnly)
+def polygonize(geotiff_filename) -> Tuple[ogr.DataSource, ogr.Layer]:
+    source: gdal.Dataset = gdal.Open(geotiff_filename, gdal.GA_ReadOnly)
 
-    band = classification.GetRasterBand(1)
-    classification_data = classification.ReadAsArray()
+    source_band = source.GetRasterBand(1)
+    source_data = source.ReadAsArray()
+    # https://gdal.org/api/python/osgeo.osr.html#osgeo.osr.SpatialReference
+    spatial_reference: osr.SpatialReference = source.GetSpatialRef()
 
     # generate mask data
-    mask_data = np.where(classification_data == 0, False, True)
+    mask_data = np.where(source_data == 0, False, True)
     mask_ds, mask_band = _create_in_memory_band(
-        mask_data, band.XSize, band.YSize, classification.GetProjection(),
-        classification.GetGeoTransform())
+        mask_data, source_band.XSize, source_band.YSize, source.GetProjection(),
+        source.GetGeoTransform())
 
-    # Create a GeoJSON layer.
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_filename = os.path.join(temp_dir, 'temp.geojson')
-        geojson_driver = ogr.GetDriverByName('GeoJSON')
-        dst_ds = geojson_driver.CreateDataSource(temp_filename)
+    # Create a memory OGR datasource to put results in.
+    mem_drv: ogr.Driver = ogr.GetDriverByName("Memory")
+    # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.DataSource
+    dst_ds: ogr.DataSource = mem_drv.CreateDataSource("out")
 
-        # HFI Layer
-        dst_layer = dst_ds.CreateLayer('hfi')
-        field_name = ogr.FieldDefn("hfi", ogr.OFTInteger)
-        field_name.SetWidth(24)
-        dst_layer.CreateField(field_name)
+    dst_layer: ogr.Layer = dst_ds.CreateLayer("hfi", spatial_reference, ogr.wkbPolygon)
+    field_name = ogr.FieldDefn("hfi", ogr.OFTInteger)
+    field_name.SetWidth(24)
+    dst_layer.CreateField(field_name)
 
-        # Turn the rasters into polygons.
-        gdal.Polygonize(band, mask_band, dst_layer, 0, [], callback=None)
+    gdal.Polygonize(source_band, mask_band, dst_layer, 0, [], callback=None)
 
-        # Ensure that all data in the target dataset is written to disk.
-        dst_ds.FlushCache()
-        # Explicitly clean up (is this needed?)
-        del dst_ds, mask_band, mask_ds
+    dst_ds.FlushCache()
+    del source, mask_band, mask_ds
+    return dst_ds, dst_layer
 
-        with open(temp_filename, encoding="utf-8") as source_file:
-            geojson_data = json.load(source_file)
+    # # Create a GeoJSON layer.
+    # with tempfile.TemporaryDirectory() as temp_dir:
+    #     temp_filename = os.path.join(temp_dir, 'temp.geojson')
+    #     geojson_driver = ogr.GetDriverByName('GeoJSON')
+    #     dst_ds = geojson_driver.CreateDataSource(temp_filename)
 
-    return geojson_data
+    #     # HFI Layer
+    #     dst_layer = dst_ds.CreateLayer('hfi')
+    #     field_name = ogr.FieldDefn("hfi", ogr.OFTInteger)
+    #     field_name.SetWidth(24)
+    #     dst_layer.CreateField(field_name)
+
+    #     # Turn the rasters into polygons.
+    #     gdal.Polygonize(band, mask_band, dst_layer, 0, [], callback=None)
+
+    #     # Ensure that all data in the target dataset is written to disk.
+    #     dst_ds.FlushCache()
+    #     # Explicitly clean up (is this needed?)
+    #     del dst_ds, mask_band, mask_ds
+
+    #     with open(temp_filename, encoding="utf-8") as source_file:
+    #         geojson_data = json.load(source_file)
+
+    # return geojson_data
