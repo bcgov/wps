@@ -55,6 +55,11 @@ class Shape(Base):
     source_identifier = Column(String, nullable=False, index=True)
     shape_type = Column(Integer, ForeignKey('advisory_shape_types.id'), nullable=False, index=True)
     geom = Column(Geometry('MULTIPOLYGON', spatial_index=False, srid=3005), nullable=False)
+    # The area in square meters of the shape's geom that has combustible fuels in it,
+    # according to the fuel type layer
+    combustible_area = Column(Float, nullable=True)
+    # Optional name that can be used to help identify the shape
+    name = Column(String, nullable=True)
 
 
 # Explict creation of index due to issue with alembic + geoalchemy.

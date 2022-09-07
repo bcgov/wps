@@ -38,6 +38,7 @@ def calculate_combustible_area_by_fire_zone(fuel_types_vector_filename, fire_zon
 
     for feature in fire_zones_layer:
         zone_name = feature.GetField('MFFRZNNM')
+        zone_id = feature.GetField('MFFRZND')
         zone_area_sqm = feature.GetField('AREA_SQM')
         zone_geom = feature.geometry()
 
