@@ -1,5 +1,6 @@
 import logging
 import os
+from enum import Enum
 from datetime import date
 from time import perf_counter
 import tempfile
@@ -11,16 +12,25 @@ from app.db.database import get_async_write_session_scope
 from app.db.crud.fba_advisory import save_hfi
 from app.autoneal.classify_hfi import classify_hfi
 from app.autoneal.polygonize import polygonize
+from app.geospatial import NAD83_BC_ALBERS
 
 
 logger = logging.getLogger(__name__)
 
 
-async def process_hfi(for_date: date):
+class RunType(Enum):
+    Forecast = 'forecast'
+    Actual = 'actual'
+
+
+async def process_hfi(run_type: RunType, run_date: date, for_date: date):
     """ Create a new hfi record for the given date.
-    TODO: this doesn't belong in the router! but where???
+
+    :param run_type: The type of run to process. (is it a forecast or actual run?)
+    :param run_date: The date of the run to process. (when was the hfi file created?)
+    :param for_date: The date of the hfi to process. (when is the hfi for?)
     """
-    logger.info('Processing HFI for %s', for_date)
+    logger.info('Processing HFI for run date: %s, for date: ', run_date, for_date)
     perf_start = perf_counter()
 
     bucket = config.get('OBJECT_STORE_BUCKET')
@@ -29,7 +39,7 @@ async def process_hfi(for_date: date):
     run_date = for_date
     for_date_string = f'{for_date.year}{for_date.month:02d}{for_date.day:02d}'
 
-    key = f'/vsis3/{bucket}/sfms/uploads/forecast/{run_date.isoformat()}/hfi{for_date_string}.tif'
+    key = f'/vsis3/{bucket}/sfms/uploads/{run_type}/{run_date.isoformat()}/hfi{for_date_string}.tif'
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(key, temp_filename)
@@ -37,7 +47,7 @@ async def process_hfi(for_date: date):
 
         spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
         target_srs = osr.SpatialReference()
-        target_srs.ImportFromEPSG(3005)
+        target_srs.ImportFromEPSG(NAD83_BC_ALBERS)
         coordinateTransform = osr.CoordinateTransformation(spatial_reference, target_srs)
 
         async with get_async_write_session_scope() as session:
@@ -53,14 +63,14 @@ async def process_hfi(for_date: date):
                     raise Exception('unknown hfi value!')
                 # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Geometry
                 geometry: ogr.Geometry = feature.GetGeometryRef()
-                # Make sure the geometry is in 3005!
+                # Make sure the geometry is in EPSG:3005!
                 geometry.Transform(coordinateTransform)
                 # Would be very nice to go directly from the ogr.Geometry into the database,
                 # but I can't figure out how to have the wkt output also include the fact that
-                # the SRID is 3005. So we're doing this redundant step of creating a shapely
+                # the SRID is EPSG:3005. So we're doing this redundant step of creating a shapely
                 # geometry from wkb, then dumping it back into wkb, with srid=3005.
                 polygon = wkb.loads(geometry.ExportToIsoWkb())
-                obj = ClassifiedHfi(hfi=hfi, date=for_date, geom=wkb.dumps(polygon, hex=True, srid=3005))
+                obj = ClassifiedHfi(hfi=hfi, date=for_date, geom=wkb.dumps(polygon, hex=True, srid=NAD83_BC_ALBERS))
                 await save_hfi(session, obj)
         del dst_ds, layer
     perf_end = perf_counter()
