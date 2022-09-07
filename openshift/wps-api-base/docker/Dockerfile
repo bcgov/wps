@@ -10,10 +10,17 @@
 
 
 # When building in openshift, you can reference the image in openshift:
-# FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/python:bullsey
+# FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/python:3.10.7-bullseye
 #
 # When building local, you can reference the docker image:
-FROM python:bullsey
+FROM python:bullseye
+
+ARG USERNAME=worker
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# Tell r-base not to wait for interactive input.
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install pre-requisites
 # - old (2.4.*; current debian) version of gdal
@@ -31,6 +38,14 @@ RUN R -e "install.packages('cffdrs')"
 # RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb -P /tmp && \
 # dpkg -i /tmp/wkhtmltox_0.12.6-1.buster_amd64.deb
 
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
+
+USER $USERNAME
+ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
+
+WORKDIR /home/$USERNAME
+
 # Update pip  
 RUN python -m pip install --upgrade pip
 
@@ -46,10 +61,10 @@ RUN python -m pip install numpy
 RUN python -m pip install gdal==$(gdal-config --version)
 
 # Install poetry https://python-poetry.org/docs/#installation
-RUN cd /tmp && \
-    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py > install-poetry.py && \
-    POETRY_HOME=/opt/poetry python install-poetry.py --version 1.1.11 && \
-    cd /usr/local/bin && \
-    ln -s /opt/poetry/bin/poetry && \
-    poetry config virtualenvs.create false && \
-    poetry config experimental.new-installer false
+# RUN cd /tmp && \
+#     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py > install-poetry.py && \
+#     POETRY_HOME=/opt/poetry python install-poetry.py --version 1.1.11 && \
+#     cd /usr/local/bin && \
+#     ln -s /opt/poetry/bin/poetry && \
+#     poetry config virtualenvs.create false && \
+#     poetry config experimental.new-installer false
