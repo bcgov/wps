@@ -60,3 +60,18 @@ class Shape(Base):
 
 # Explict creation of index due to issue with alembic + geoalchemy.
 Index('idx_advisory_areas_geom', Shape.geom, postgresql_using='gist')
+
+
+class ClassifiedHfi(Base):
+    """ TODO: Do!
+    """
+    __tablename__ = 'advisory_classified_hfi'
+    id = Column(Integer, primary_key=True, index=True)
+    # TODO: we could do this better!
+    hfi = Column(String, nullable=False)
+    date = Column(Date, nullable=False)
+    geom = Column(Geometry('POLYGON', spatial_index=False, srid=NAD83_BC_ALBERS))
+
+
+# Explict creation of index due to issue with alembic + geoalchemy.
+Index('idx_advisory_classified_hfi_geom', ClassifiedHfi.geom, postgresql_using='gist')
