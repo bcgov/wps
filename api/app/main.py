@@ -109,7 +109,7 @@ api.include_router(hfi_calc.router, tags=["HFI"])
 api.include_router(fba_calc.router, tags=["FBA Calc"])
 api.include_router(fba.router, tags=["Fire Behaviour Advisory"])
 api.include_router(fwi_calc.router, tags=["FWI"])
-api.include_router(sfms.router, tags=["SFMS", "Fire Behaviour Advisory"])
+api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
 
 
 @api.get('/ready')
