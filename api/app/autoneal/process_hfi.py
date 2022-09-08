@@ -1,3 +1,5 @@
+""" Code relating to processing HFI GeoTIFF files, and storing resultant data.
+"""
 import logging
 import os
 from enum import Enum
@@ -19,8 +21,12 @@ logger = logging.getLogger(__name__)
 
 
 class RunType(Enum):
-    Forecast = 'forecast'
-    Actual = 'actual'
+    FORECAST = 'forecast'
+    ACTUAL = 'actual'
+
+
+class UnknownHFiClassification(Exception):
+    """ Raised when the hfi classification is not one of the expected values. """
 
 
 async def process_hfi(run_type: RunType, run_date: date, for_date: date):
@@ -47,7 +53,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
         spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
         target_srs = osr.SpatialReference()
         target_srs.ImportFromEPSG(NAD83_BC_ALBERS)
-        coordinateTransform = osr.CoordinateTransformation(spatial_reference, target_srs)
+        coordinate_transform = osr.CoordinateTransformation(spatial_reference, target_srs)
 
         async with get_async_write_session_scope() as session:
             for i in range(layer.GetFeatureCount()):
@@ -59,11 +65,11 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                 elif hfi == 2:
                     hfi = 'hfi >= 10000'
                 else:
-                    raise Exception('unknown hfi value!')
+                    raise UnknownHFiClassification(f'unknown hfi value: {hfi}')
                 # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Geometry
                 geometry: ogr.Geometry = feature.GetGeometryRef()
                 # Make sure the geometry is in EPSG:3005!
-                geometry.Transform(coordinateTransform)
+                geometry.Transform(coordinate_transform)
                 # Would be very nice to go directly from the ogr.Geometry into the database,
                 # but I can't figure out how to have the wkt output also include the fact that
                 # the SRID is EPSG:3005. So we're doing this redundant step of creating a shapely

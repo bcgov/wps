@@ -1,5 +1,6 @@
-from osgeo import gdal, ogr, osr
+""" Code for polygonizing a geotiff file. """
 from typing import Tuple
+from osgeo import gdal, ogr, osr
 import numpy as np
 
 
