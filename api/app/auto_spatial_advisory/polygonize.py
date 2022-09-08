@@ -36,6 +36,7 @@ def polygonize(geotiff_filename) -> Tuple[ogr.DataSource, ogr.Layer]:
         source.GetGeoTransform())
 
     # Create a memory OGR datasource to put results in.
+    # https://gdal.org/drivers/vector/memory.html#vector-memory
     mem_drv: ogr.Driver = ogr.GetDriverByName("Memory")
     # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.DataSource
     dst_ds: ogr.DataSource = mem_drv.CreateDataSource("out")
