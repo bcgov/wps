@@ -52,10 +52,9 @@ def calculate_combustible_area_by_fire_zone(fuel_types_vector_filename, fire_zon
         geom_collection_valid = geom_collection.MakeValid()
 
         # this line is necessary because otherwise Fraser Fire Zone can't undergo spatial
-        # comparison for calculating Intersection. Likely due to the Fraser polygon
-        # self-intersecting somewhere. Buffer(0) tries to correct the self-intersection
-        # by "guessing", but it isn't always right.
-        # Confusingly, when checking IsValid() on every zone_geom, they all return True.
+        # comparison for calculating Intersection. Likely due to the fuel types polygons
+        # self-intersecting somewhere within the Fraser Fire Zone. Buffer(0) tries to
+        # correct the self-intersection by "guessing", but it isn't always right.
         # https://gis.stackexchange.com/questions/311209/how-to-fix-invalid-polygon-with-self-intersection-python
         buffered_geom_collection = geom_collection_valid.Buffer(0)
 
@@ -63,14 +62,12 @@ def calculate_combustible_area_by_fire_zone(fuel_types_vector_filename, fire_zon
         intersection = buffered_geom_collection.Intersection(zone_geom)
         if intersection is not None and intersection.GetArea() > 0:
             intersect_area = intersection.GetArea()
-            print('{} has {} sq.m. of combustible land - {}% of its total area.'.format(zone_name,
+            print('{} has {} sq.m. of combustible land - {:.2f}% of its total area.'.format(zone_name,
                   intersect_area, 100 * intersect_area / zone_area_sqm))
 
     delta = datetime.now() - start_time
-    print('Script took {} seconds to run.'.format(delta.seconds))
+    print('\nScript took {} seconds to run.'.format(delta.seconds))
 
 
 if __name__ == '__main__':
-    if len(sys.argv != 2):
-        print('Usage: advisory.calculate_combustible_land_area <fuel_types_vector_filepath> <fire_zones_vector_filepath>')
     calculate_combustible_area_by_fire_zone('fuel_types_epsg_3005.shp', 'fire_zones_epsg_3005.shp')
