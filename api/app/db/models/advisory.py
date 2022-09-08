@@ -62,6 +62,9 @@ class ClassifiedHfi(Base):
     )
     id = Column(Integer, primary_key=True, index=True)
     # TODO: we could do this better!
+    # Right now, we're throwing a string value in here, which by convention is '4000 < hfi < 10000'
+    # or 'hfi >= 10000' ; That's a bit too fuzzy. We should probably have this be a foreign key
+    # wich references another table that has the actual values.
     hfi = Column(String, nullable=False)
     run_type = Column(Enum(RunTypeEnum), nullable=False, index=True)
     run_date = Column(Date, nullable=False)
