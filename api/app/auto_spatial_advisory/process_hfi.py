@@ -44,6 +44,9 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
     # but this method doesn't even belong here, it's just a shortcut for now!
     for_date_string = f'{for_date.year}{for_date.month:02d}{for_date.day:02d}'
 
+    # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
+    # it's S3 virtual file system driver to read the file.
+    # https://gdal.org/user/virtual_file_systems.html
     key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_date.isoformat()}/hfi{for_date_string}.tif'
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
