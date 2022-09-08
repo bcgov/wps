@@ -1,10 +1,9 @@
-import asyncio
 import nats
 from app import config
 from nats.errors import TimeoutError
 
 
-async def main():
+async def configure_message_queue():
     nc = await nats.connect("localhost")
 
     # Create JetStream context.
@@ -65,6 +64,3 @@ async def main():
     print("All data in stream:", len(data))
 
     await nc.close()
-
-if __name__ == '__main__':
-    asyncio.run(main())

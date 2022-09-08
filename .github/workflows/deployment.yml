@@ -85,7 +85,8 @@ jobs:
 
   deploy-dev:
     name: Deploy to Dev
-    needs: [build-api-image, build-web-image, prepare-dev-database]
+    needs:
+      [build-api-image, build-web-image, prepare-dev-database, deploy-dev-queue]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables

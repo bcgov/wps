@@ -9,6 +9,7 @@ from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from app import schemas, configure_logging
+from app.nats import configure_message_queue
 from app.percentile import get_precalculated_percentiles
 from app.auth import authentication_required, audit
 from app import config
@@ -21,6 +22,7 @@ from app.fire_behaviour.cffdrs import CFFDRS
 
 
 configure_logging()
+configure_message_queue()
 
 logger = logging.getLogger(__name__)
 
