@@ -48,7 +48,7 @@ class Shape(Base):
 
 
 # Explict creation of index due to issue with alembic + geoalchemy.
-Index('idx_advisory_areas_geom', Shape.geom, postgresql_using='gist')
+Index('idx_advisory_shapes_geom', Shape.geom, postgresql_using='gist')
 
 
 class ClassifiedHfi(Base):
