@@ -6,7 +6,7 @@ from enum import Enum
 from datetime import date
 from time import perf_counter
 import tempfile
-from shapely import wkb
+from shapely import wkb, wkt
 from osgeo import ogr, osr
 from app import config
 from app.db.models.auto_spatial_advisory import ClassifiedHfi, RunTypeEnum
@@ -82,7 +82,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                 # but I can't figure out how to have the wkt output also include the fact that
                 # the SRID is EPSG:3005. So we're doing this redundant step of creating a shapely
                 # geometry from wkb, then dumping it back into wkb, with srid=3005.
-                polygon = wkb.loads(geometry.ExportToIsoWkb())
+                polygon = wkt.loads(geometry.ExportToIsoWkt())
                 obj = ClassifiedHfi(threshold=threshold_id,
                                     run_type=RunTypeEnum(run_type.value),
                                     run_date=run_date,
