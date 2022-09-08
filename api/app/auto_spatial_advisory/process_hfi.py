@@ -81,7 +81,10 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                 # Would be very nice to go directly from the ogr.Geometry into the database,
                 # but I can't figure out how to have the wkt output also include the fact that
                 # the SRID is EPSG:3005. So we're doing this redundant step of creating a shapely
-                # geometry from wkb, then dumping it back into wkb, with srid=3005.
+                # geometry from wkt, then dumping it back into wkb, with srid=3005.
+                # NOTE: geometry.ExportToIsoWkb isn't consistent in it's return value between
+                # different versions of gdal (bytearray vs. bytestring) - so we're opting for
+                # wkt instead of wkb here for better compatibility.
                 polygon = wkt.loads(geometry.ExportToIsoWkt())
                 obj = ClassifiedHfi(threshold=threshold_id,
                                     run_type=RunTypeEnum(run_type.value),
