@@ -51,6 +51,21 @@ class Shape(Base):
 Index('idx_advisory_shapes_geom', Shape.geom, postgresql_using='gist')
 
 
+class HfiClassificationThreshold(Base):
+    __tablename__ = 'advisory_hfi_classification_threshold'
+    __table_args__ = (
+        {'comment': 'The Operational Safe Works Standards specifies that an hfi of greater than '
+                    '4000 should result in an advisory. However in order for an FBAN to create '
+                    'useful information, there are other thresholds of concern. E.g. > 10000'
+         }
+    )
+    id = Column(Integer, primary_key=True, index=True)
+    # e.g. '4000 < hfi < 10000' or 'hfi >= 10000'
+    description = Column(String, nullable=False)
+    # e.g. 'advisory' 'warning'
+    name = Column(String, nullable=False)
+
+
 class ClassifiedHfi(Base):
     """ HFI classified into different groups.
     NOTE: In actual fact, forecasts and actuals can be run multiple times per day,
@@ -61,11 +76,7 @@ class ClassifiedHfi(Base):
         {'comment': 'HFI classification for some forecast/advisory run on some day, for some date'}
     )
     id = Column(Integer, primary_key=True, index=True)
-    # TODO: we could do this better!
-    # Right now, we're throwing a string value in here, which by convention is '4000 < hfi < 10000'
-    # or 'hfi >= 10000' ; That's a bit too fuzzy. We should probably have this be a foreign key
-    # wich references another table that has the actual values.
-    hfi = Column(String, nullable=False)
+    threshold = Column(Integer, ForeignKey('advisory_hfi_classification_threshold.id'), nullable=False, index=True)
     run_type = Column(Enum(RunTypeEnum), nullable=False, index=True)
     run_date = Column(Date, nullable=False)
     for_date = Column(Date, nullable=False)

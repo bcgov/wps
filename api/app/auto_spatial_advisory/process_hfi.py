@@ -9,9 +9,10 @@ import tempfile
 from shapely import wkb
 from osgeo import ogr, osr
 from app import config
-from app.db.models.advisory import ClassifiedHfi, RunTypeEnum
-from app.db.database import get_async_write_session_scope
-from app.db.crud.fba_advisory import save_hfi
+from app.db.models.auto_spatial_advisory import ClassifiedHfi, RunTypeEnum
+from app.db.database import get_async_read_session_scope, get_async_write_session_scope
+from app.db.crud.auto_spatial_advisory import (
+    save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum)
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.polygonize import polygonize
 from app.geospatial import NAD83_BC_ALBERS
@@ -58,15 +59,19 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
         target_srs.ImportFromEPSG(NAD83_BC_ALBERS)
         coordinate_transform = osr.CoordinateTransformation(spatial_reference, target_srs)
 
+        async with get_async_read_session_scope() as session:
+            advisory = await get_hfi_classification_threshold(session, HfiClassificationThresholdEnum.ADVISORY)
+            warning = await get_hfi_classification_threshold(session, HfiClassificationThresholdEnum.WARNING)
+
         async with get_async_write_session_scope() as session:
             for i in range(layer.GetFeatureCount()):
                 # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Feature
                 feature: ogr.Feature = layer.GetFeature(i)
                 hfi = feature.GetField(0)
                 if hfi == 1:
-                    hfi = '4000 < hfi < 10000'
+                    threshold_id = advisory.id
                 elif hfi == 2:
-                    hfi = 'hfi >= 10000'
+                    threshold_id = warning.id
                 else:
                     raise UnknownHFiClassification(f'unknown hfi value: {hfi}')
                 # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Geometry
@@ -78,7 +83,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                 # the SRID is EPSG:3005. So we're doing this redundant step of creating a shapely
                 # geometry from wkb, then dumping it back into wkb, with srid=3005.
                 polygon = wkb.loads(geometry.ExportToIsoWkb())
-                obj = ClassifiedHfi(hfi=hfi,
+                obj = ClassifiedHfi(threshold=threshold_id,
                                     run_type=RunTypeEnum(run_type.value),
                                     run_date=run_date,
                                     for_date=for_date,

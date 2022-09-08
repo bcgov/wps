@@ -1,14 +1,28 @@
 from datetime import date
+from enum import Enum
 import logging
 from time import perf_counter
 from typing import List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
-from app.db.models.advisory import Shape, ClassifiedHfi, RunTypeEnum
+from app.db.models.auto_spatial_advisory import Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 
 
 logger = logging.getLogger(__name__)
+
+
+class HfiClassificationThresholdEnum(Enum):
+    """ Enum for the different HFI classification thresholds. """
+    ADVISORY = 'advisory'
+    WARNING = 'warning'
+
+
+async def get_hfi_classification_threshold(session: AsyncSession, name: HfiClassificationThresholdEnum) -> HfiClassificationThreshold:
+    stmt = select(HfiClassificationThreshold).where(
+        HfiClassificationThreshold.name == name.value)
+    result = await session.execute(stmt)
+    return result.scalars().first()
 
 
 async def save_hfi(session: AsyncSession, hfi: ClassifiedHfi):
