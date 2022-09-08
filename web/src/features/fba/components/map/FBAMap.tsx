@@ -57,6 +57,7 @@ export interface FBAMapProps {
   className: string
   selectedFireCenter: FireCenter | undefined
   date: DateTime
+  advisoryThreshold: number
 }
 
 export const hfiSourceFactory = (url: string) => {
@@ -150,12 +151,12 @@ const FBAMap = (props: FBAMapProps) => {
           format: new MVT(),
           url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
         }),
-        style: createFireZoneStyler(fireZoneAreas),
+        style: createFireZoneStyler(fireZoneAreas, props.advisoryThreshold),
         zIndex: 49,
         properties: { name: 'fireZoneVector' }
       })
     )
-  }, [fireZoneAreas])
+  }, [fireZoneAreas, props.advisoryThreshold])
 
   const hfiVector = new VectorTileLayer({
     source: new VectorTileSource({

@@ -46,7 +46,8 @@ export const fetchFireZoneAreas =
   async dispatch => {
     try {
       dispatch(getFireZoneAreasStart())
-      const fireZoneAreas = await getFireZoneAreas(for_date)
+      // TODO: We need a mechanism to request the most recent run date for a given for_date
+      const fireZoneAreas = await getFireZoneAreas('forecast', for_date, for_date)
       dispatch(getFireZoneAreasSuccess(fireZoneAreas))
     } catch (err) {
       dispatch(getFireZoneAreasFailed((err as Error).toString()))
