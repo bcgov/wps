@@ -55,5 +55,5 @@ pytest-watch = "^4.2.0"
 pytest-testmon = "^1.2.3"
 
 [build-system]
-requires = ["poetry>=1.1.11", "setuptools>=65.3.0"]
+requires = ["poetry>=1.1.11"]
 build-backend = "poetry.masonry.api"
