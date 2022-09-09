@@ -1,3 +1,19 @@
+-- get the combustable area of fire zones
+select 
+	advisory_shapes.source_identifier,
+ 	advisory_shapes.id,
+	ST_Area(advisory_shapes.geom) as zone_area,
+	ST_Area(ST_Intersection(ST_Union(advisory_fuel_types.geom), advisory_shapes.geom)) as fuel_types,
+	ST_Area(ST_Intersection(ST_Union(advisory_fuel_types.geom), advisory_shapes.geom))/ST_Area(advisory_shapes.geom)
+from advisory_shapes
+JOIN advisory_fuel_types ON ST_Intersects(advisory_fuel_types.geom, advisory_shapes.geom)
+where fuel_type_id not in (-10000, 99, 102)
+group by advisory_shapes.id
+order by source_identifier;
+
+
+
+-- select * from advisory_fuel_types limit 1;
 
 -- get the area of fire zones
 

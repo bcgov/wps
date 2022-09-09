@@ -6,7 +6,8 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
-from app.db.models.auto_spatial_advisory import Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
+from app.db.models.auto_spatial_advisory import (
+    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType)
 
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,10 @@ async def save_hfi(session: AsyncSession, hfi: ClassifiedHfi):
     session.add(hfi)
 
 
+async def save_fuel_type(session: AsyncSession, fuel_type: FuelType):
+    session.add(fuel_type)
+
+
 async def get_hfi(session: AsyncSession, run_type: RunTypeEnum, run_date: date, for_date: date):
     stmt = select(ClassifiedHfi).where(
         ClassifiedHfi.run_type == run_type,
@@ -36,6 +41,22 @@ async def get_hfi(session: AsyncSession, run_type: RunTypeEnum, run_date: date, 
         ClassifiedHfi.run_date == run_date)
     result = await session.execute(stmt)
     return result.scalars()
+
+
+async def get_combustible_area(session: AsyncSession, run_type: RunTypeEnum, run_date: date, for_date: date):
+    #     SELECT
+    # 	advisory_shapes.source_identifier,
+    #  	advisory_shapes.id,
+    # 	ST_Area(advisory_shapes.geom) as zone_area,
+    # 	ST_Area(ST_Intersection(ST_Union(advisory_fuel_types.geom), advisory_shapes.geom)) as fuel_types,
+    # 	ST_Area(ST_Intersection(ST_Union(advisory_fuel_types.geom), advisory_shapes.geom))/ST_Area(advisory_shapes.geom) as percentage
+    # FROM advisory_shapes
+    # JOIN advisory_fuel_types ON ST_Intersects(advisory_fuel_types.geom, advisory_shapes.geom)
+    # WHERE fuel_type_id not in (-10000, 99, 102)
+    # -- WHERE fuel_type_id in (2, 5, 8)
+    # GROUP BY advisory_shapes.id
+    # ORDER BY source_identifier;
+    pass
 
 
 async def get_hfi_area(session: AsyncSession,
