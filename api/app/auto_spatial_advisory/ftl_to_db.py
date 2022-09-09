@@ -1,7 +1,8 @@
 import asyncio
 import logging
-from osgeo import ogr, osr
+from osgeo import ogr, osr, gdal
 from shapely import wkt, wkb
+from app import config
 from app.auto_spatial_advisory.polygonize import polygonize
 from app.db.models.auto_spatial_advisory import FuelType
 from app.db.database import get_async_write_session_scope
@@ -14,10 +15,12 @@ logger = logging.getLogger(__name__)
 
 async def main():
     """Main entry point for the script."""
-    # key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_date.isoformat()}/hfi{for_date_string}.tif'
-    # filename = '/home/sybrand/ftl/ftl_2018/ftl2018.bin'
-    filename = '/home/sybrand/ftl/fbp2021.tif'
-    logger.info('start polygonize')
+    gdal.SetConfigOption('AWS_SECRET_ACCESS_KEY', config.get('OBJECT_STORE_SECRET'))
+    gdal.SetConfigOption('AWS_ACCESS_KEY_ID', config.get('OBJECT_STORE_USER_ID'))
+    gdal.SetConfigOption('AWS_S3_ENDPOINT', config.get('OBJECT_STORE_SERVER'))
+    gdal.SetConfigOption('AWS_VIRTUAL_HOSTING', 'FALSE')
+    bucket = config.get('OBJECT_STORE_BUCKET')
+    filename = f'/vsis3/{bucket}/sfms/static/fbp2021.tif'
     ds, layer = polygonize(filename)
 
     spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
