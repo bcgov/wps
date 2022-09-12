@@ -67,4 +67,4 @@ Upgrades to the version of PostGIS in the patroni image, don't mean that the dat
 SELECT postgis_extensions_upgrade();
 ```
 
-This script cannot be run as part of the alembic scripts in the api project, the api uses a `wps` user that does not have the appropraite priveleges. Upgrading the image may this require manually running `SELECT postgis_extensions_upgrade();` on the target database once the new image has been applied.
+This script cannot be run as part of the alembic scripts in the api project, the api uses a `wps` user that does not have the appropriate priveleges. Upgrading the image may this require manually running `SELECT postgis_extensions_upgrade();` on the target database once the new image has been applied.
