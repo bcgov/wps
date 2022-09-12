@@ -1,7 +1,7 @@
 ---
 name: Bug
 about: Create a report to help us improve
-title: ''
+title: 'PRODUCT: DESCRIPTIVE TITLE'
 labels: Bug
 assignees: ''
 
