@@ -51,6 +51,7 @@ async def get_hfi_area(session: AsyncSession,
     perf_start = perf_counter()
     stmt = select(Shape.id,
                   Shape.source_identifier,
+                  Shape.combustible_area,
                   Shape.geom.ST_Area().label('zone_area'),
                   ClassifiedHfi.geom.ST_MakeValid().ST_Union().ST_Intersection(Shape.geom).ST_Area().label('hfi_area'))\
         .join(ClassifiedHfi, ClassifiedHfi.geom.ST_MakeValid().ST_Intersects(Shape.geom))\
