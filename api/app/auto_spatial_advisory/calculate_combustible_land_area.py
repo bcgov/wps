@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 import logging
 from osgeo import gdal, ogr
 import asyncio
@@ -20,16 +20,29 @@ The fuel types vector file is retrieved from our object store bucket, and the fi
 logger = logging.getLogger(__name__)
 
 
-async def calculate_combustible_area_by_fire_zone():
+async def calculate_combustible_area_by_fire_zone() -> List[Dict[int, float]]:
     # Simplified fuel type layer that SFMS system uses (fbp2021.tif) has been converted to EPSG:3005,
     # polygonized, and saved to our object store bucket.
+    gdal.SetConfigOption('AWS_SECRET_ACCESS_KEY', config.get('OBJECT_STORE_SECRET'))
+    gdal.SetConfigOption('AWS_ACCESS_KEY_ID', config.get('OBJECT_STORE_USER_ID'))
+    gdal.SetConfigOption('AWS_S3_ENDPOINT', config.get('OBJECT_STORE_SERVER'))
+    gdal.SetConfigOption('AWS_VIRTUAL_HOSTING', 'FALSE')
     bucket = config.get('OBJECT_STORE_BUCKET')
     fuel_types_vector_filepath = f'/vsis3/{bucket}/ftl/fuel_types_epsg_3005.shp'
 
     driver = ogr.GetDriverByName('ESRI Shapefile')
-    fuel_types = driver.Open(fuel_types_vector_filepath, gdal.GA_ReadOnly)
-    logger.info('Retrieving fuel types layer from {}'.format(fuel_types_vector_filepath))
-    fuel_types_layer = fuel_types.GetLayer()
+    try:
+        fuel_types = driver.Open(fuel_types_vector_filepath, gdal.GA_ReadOnly)
+        logger.info('Retrieving fuel types layer from {}'.format(fuel_types_vector_filepath))
+    except Exception as exc:
+        logger.error('Failed to retrieve fuel types layer from {}'.format(fuel_types_vector_filepath))
+        logger.error(exc)
+
+    if fuel_types is not None:
+        fuel_types_layer = fuel_types.GetLayer()
+    else:
+        logger.error('Retrieved None when ogr opened {}'.format(fuel_types_vector_filepath))
+        return []
 
     async with get_async_read_session_scope() as session:
         stmt = select(Shape.id,
@@ -42,7 +55,7 @@ async def calculate_combustible_area_by_fire_zone():
     # Filter out non-combustible fuel types
     fuel_types_layer.SetAttributeFilter('"Band 1" > 0 and ("Band 1" < 99 or "Band 1" > 103)')
 
-    zone_combustible_area_dict: Dict[int, float] = {}
+    zone_combustible_area_dicts: List[Dict[int, float]] = []
 
     for zone in all_zones:
         zone_geom = ogr.CreateGeometryFromWkt(zone.geom_wkt)
@@ -66,10 +79,11 @@ async def calculate_combustible_area_by_fire_zone():
         intersection = buffered_geom_collection.Intersection(zone_geom)
         if intersection is not None and intersection.GetArea() > 0:
             intersect_area = intersection.GetArea()
-            zone_combustible_area_dict[zone.source_identifier] = intersect_area
+            zone_dict = {'source_identifier': zone.source_identifier, 'combustible_area': intersect_area}
+            zone_combustible_area_dicts.append(zone_dict)
 
     logger.info('Finished calculating combustible areas for all fire zones.')
-    return zone_combustible_area_dict
+    return zone_combustible_area_dicts
 
 
 if __name__ == '__main__':

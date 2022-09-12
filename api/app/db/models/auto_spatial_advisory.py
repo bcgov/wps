@@ -46,7 +46,9 @@ class Shape(Base):
     shape_type = Column(Integer, ForeignKey('advisory_shape_types.id'), nullable=False, index=True)
     # The area in square meters of the shape's geom that has combustible fuels in it,
     # according to the fuel type layer
-    combustible_area = Column(Float, nullable=False)
+    # Have to make this column nullable to start because the table already exists. Will be
+    # modified in subsequent migration to nullable=False
+    combustible_area = Column(Float, nullable=True)
     geom = Column(Geometry('MULTIPOLYGON', spatial_index=False, srid=NAD83_BC_ALBERS), nullable=False)
 
 
