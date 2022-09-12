@@ -1,9 +1,15 @@
+import asyncio
 import nats
-from app import config
 from nats.errors import TimeoutError
 
 
-async def configure_message_queue():
+def configure_message_queue():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(test_basic_messaging_functions())
+
+
+async def test_basic_messaging_functions():
     nc = await nats.connect("localhost")
 
     # Create JetStream context.

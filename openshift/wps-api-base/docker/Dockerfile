@@ -46,12 +46,13 @@ RUN python -m pip install numpy
 # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
 # available to us. As such, gdal is not installed by poetry, since the version will differ between
 # platforms.
+RUN python -m pip install pygdal==3.2.2.10
 RUN python -m pip install gdal==$(gdal-config --version)
 
 # Install poetry https://python-poetry.org/docs/#installation
 RUN cd /tmp && \
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py > install-poetry.py && \
-    POETRY_HOME=/opt/poetry python install-poetry.py --version 1.1.11 && \
+    POETRY_HOME=/opt/poetry python install-poetry.py --version 1.2.0 && \
     cd /usr/local/bin && \
     ln -s /opt/poetry/bin/poetry && \
     poetry config virtualenvs.create false && \
