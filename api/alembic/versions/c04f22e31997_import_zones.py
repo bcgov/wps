@@ -6,7 +6,6 @@ Create Date: 2022-08-31 22:56:52.264112
 
 """
 from typing import Final
-import tempfile
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.orm.session import Session

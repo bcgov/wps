@@ -9,4 +9,5 @@ from app.db.models.weather_models import (ProcessedModelRunUrl, PredictionModel,
                                           PredictionModelGridSubset, ModelRunGridSubsetPrediction,
                                           WeatherStationModelPrediction)
 from app.db.models.hfi_calc import (FireCentre, FuelType, PlanningArea, PlanningWeatherStation)
-from app.db.models.advisory import (Shape, ShapeType, FireZoneAdvisory)
+from app.db.models.auto_spatial_advisory import (Shape, ShapeType, HfiClassificationThreshold,
+                                                 ClassifiedHfi, RunTypeEnum, ShapeTypeEnum)

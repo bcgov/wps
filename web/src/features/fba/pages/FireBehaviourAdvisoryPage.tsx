@@ -1,4 +1,4 @@
-import { FormControl, Grid } from '@mui/material'
+import { FormControl, FormControlLabel, Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
@@ -16,6 +16,7 @@ import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
+import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -32,6 +33,11 @@ const useStyles = makeStyles(() => ({
     minWidth: 280,
     margin: theme.spacing(1)
   },
+  thresholdDropdown: {
+    minWidth: 280,
+    margin: theme.spacing(1),
+    marginLeft: 50
+  },
   instructions: {
     textAlign: 'left'
   }
@@ -43,6 +49,8 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const { fireCenters } = useSelector(selectFireCenters)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
+
+  const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -95,10 +103,30 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 />
               </FormControl>
             </Grid>
+            <Grid item>
+              <FormControl className={classes.thresholdDropdown}>
+                <FormControlLabel
+                  label="
+                Advisory HFI Threshold"
+                  labelPlacement="top"
+                  control={
+                    <AdvisoryThresholdSlider
+                      advisoryThreshold={advisoryThreshold}
+                      setAdvisoryThreshold={setAdvisoryThreshold}
+                    />
+                  }
+                />
+              </FormControl>
+            </Grid>
           </Grid>
         </Grid>
       </Container>
-      <FBAMap date={dateOfInterest} selectedFireCenter={fireCenter} className={classes.mapContainer} />
+      <FBAMap
+        date={dateOfInterest}
+        selectedFireCenter={fireCenter}
+        advisoryThreshold={advisoryThreshold}
+        className={classes.mapContainer}
+      />
     </React.Fragment>
   )
 }
