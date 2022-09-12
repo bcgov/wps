@@ -31,7 +31,7 @@ jobs:
           cache-name: cache-poetry-installer
         with:
           path: "~/poetry_installer"
-          key: "poetry-installer-1.1.11"
+          key: "poetry-installer-1.2.0"
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
         run: |
@@ -41,7 +41,7 @@ jobs:
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python install-poetry.py --version 1.1.11
+          python install-poetry.py --version 1.2.0
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
           poetry config experimental.new-installer false
@@ -55,6 +55,10 @@ jobs:
           key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-cache-
+      - name: Install numpy
+        working-directory: ./api
+        run: |
+          poetry run pip install numpy
       - name: Install python dependencies using poetry (api)
         working-directory: ./api
         run: |
@@ -74,7 +78,6 @@ jobs:
         # gdal, but it now has a bug that causes it to fail to install on ubuntu20.04)
         working-directory: ./api
         run: |
-          poetry run pip install numpy
           poetry run pip install pygdal==3.0.4.10
       - name: Lint (api)
         # We used to be able to do linting before installing gdal, but it's not possible anymore.
