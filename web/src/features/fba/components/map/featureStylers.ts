@@ -53,11 +53,11 @@ export const fireZoneStyler = (): Style => {
   })
 }
 
-export const createFireZoneStyler = (fireZoneAreas: FireZoneArea[]) => {
+export const createFireZoneStyler = (fireZoneAreas: FireZoneArea[], advisoryThreshold: number) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const mof_fire_zone_id = feature.get('mof_fire_zone_id')
     const fireZoneArea = fireZoneAreas.find(f => f.mof_fire_zone_id === mof_fire_zone_id)
-    const advisory = fireZoneArea && fireZoneArea.elevated_hfi_percentage > 10 ? true : false
+    const advisory = fireZoneArea && fireZoneArea.elevated_hfi_percentage > advisoryThreshold ? true : false
     return new Style({
       stroke: new Stroke({
         color: advisory ? 'red' : 'black',
@@ -128,7 +128,7 @@ export const thessianPolygonStyler = (feature: RenderFeature | ol.Feature<Geomet
 const hfiStyle = new Style({})
 
 export const hfiStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-  if (feature.get('hfi') === '4000 > hfi < 10000') {
+  if (feature.get('hfi') === '4000 < hfi < 10000') {
     hfiStyle.setFill(new Fill({ color: 'rgba(255, 128, 0, 0.4)' }))
   } else if (feature.get('hfi') === 'hfi >= 10000') {
     hfiStyle.setFill(new Fill({ color: 'rgba(255, 0, 0, 0.4)' }))
