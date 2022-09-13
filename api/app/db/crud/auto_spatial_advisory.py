@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from app.db.models.auto_spatial_advisory import (
-    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType)
+    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelTypeLayer)
 
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ async def save_hfi(session: AsyncSession, hfi: ClassifiedHfi):
     session.add(hfi)
 
 
-async def save_fuel_type(session: AsyncSession, fuel_type: FuelType):
+async def save_fuel_type(session: AsyncSession, fuel_type: FuelTypeLayer):
     session.add(fuel_type)
 
 
@@ -44,19 +44,21 @@ async def get_hfi(session: AsyncSession, run_type: RunTypeEnum, run_date: date, 
 
 
 async def get_combustible_area(session: AsyncSession, run_type: RunTypeEnum, run_date: date, for_date: date):
-    #     SELECT
-    # 	advisory_shapes.source_identifier,
-    #  	advisory_shapes.id,
-    # 	ST_Area(advisory_shapes.geom) as zone_area,
-    # 	ST_Area(ST_Intersection(ST_Union(advisory_fuel_types.geom), advisory_shapes.geom)) as fuel_types,
-    # 	ST_Area(ST_Intersection(ST_Union(advisory_fuel_types.geom), advisory_shapes.geom))/ST_Area(advisory_shapes.geom) as percentage
-    # FROM advisory_shapes
-    # JOIN advisory_fuel_types ON ST_Intersects(advisory_fuel_types.geom, advisory_shapes.geom)
-    # WHERE fuel_type_id not in (-10000, 99, 102)
-    # -- WHERE fuel_type_id in (2, 5, 8)
-    # GROUP BY advisory_shapes.id
-    # ORDER BY source_identifier;
-    pass
+    logger.info('starting zone/combustible area intersection query')
+    perf_start = perf_counter()
+    stmt = select(Shape.id,
+                  Shape.source_identifier,
+                  Shape.geom.ST_Area().label('zone_area'),
+                  FuelTypeLayer.geom.ST_Union().ST_Intersection(Shape.geom).ST_Area().label('combustible_area'))\
+        .join(FuelTypeLayer, FuelTypeLayer.geom.ST_Intersects(Shape.geom))\
+        .where(FuelTypeLayer.fuel_type_id not in (-10000, 99, 102))\
+        .group_by(Shape.id)
+    result = await session.execute(stmt)
+    all_combustible = result.all()
+    perf_end = perf_counter()
+    delta = perf_end - perf_start
+    logger.info('%f delta count before and after hfi area + zone/area intersection query', delta)
+    return all_combustible
 
 
 async def get_hfi_area(session: AsyncSession,
@@ -69,6 +71,7 @@ async def get_hfi_area(session: AsyncSession,
     within that fire zone. Using those two values, you can then calculate the percentage of the
     zone that has a high hfi.
     """
+    logger.info('starting zone/area intersection query')
     perf_start = perf_counter()
     stmt = select(Shape.id,
                   Shape.source_identifier,
@@ -83,5 +86,5 @@ async def get_hfi_area(session: AsyncSession,
     all_hfi = result.all()
     perf_end = perf_counter()
     delta = perf_end - perf_start
-    logger.info('%f delta count before and after hfi area / complex fire zone query', delta)
+    logger.info('%f delta count before and after hfi area + zone/area intersection query', delta)
     return all_hfi
