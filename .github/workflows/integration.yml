@@ -193,7 +193,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.6.15]
+        python-version: [3.8]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -211,7 +211,7 @@ jobs:
           cache-name: cache-poetry-installer
         with:
           path: "~/poetry_installer"
-          key: "poetry-installer-1.1.11"
+          key: "poetry-installer-1.2.0"
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
         run: |
@@ -221,7 +221,7 @@ jobs:
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python install-poetry.py --version 1.1.11
+          python install-poetry.py --version 1.2.0
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
           poetry config experimental.new-installer false
