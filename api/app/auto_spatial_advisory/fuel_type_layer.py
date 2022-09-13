@@ -1,7 +1,7 @@
-"""
+""" Functions for manipulating the BC Fuel Type Layer
 """
 import asyncio
-from email.generator import Generator
+from typing import Generator, Tuple
 import logging
 from osgeo import ogr, osr, gdal
 from shapely import wkt, wkb
@@ -16,9 +16,9 @@ from app.geospatial import NAD83_BC_ALBERS
 logger = logging.getLogger(__name__)
 
 
-def fuel_type_iterator() -> Generator:
+def fuel_type_iterator() -> Generator[Tuple[int, str], None, None]:
     """
-    Yields fuel type id and geom by polygonzing fuel type layer geotiff store in S3, and then
+    Yields fuel type id and geom by polygonzing fuel type layer raster stored in S3, and then
     iterating over feature from the resultant layer.
 
     NOTE: This works fine with a small FTL file, such as the SFMS one, but the the high resolution
@@ -29,6 +29,8 @@ def fuel_type_iterator() -> Generator:
     gdal.SetConfigOption('AWS_S3_ENDPOINT', config.get('OBJECT_STORE_SERVER'))
     gdal.SetConfigOption('AWS_VIRTUAL_HOSTING', 'FALSE')
     bucket = config.get('OBJECT_STORE_BUCKET')
+    # Hard coded for a geotiff on our S3 server, but this could be replaced by any raster file
+    # that gdal is able to read.
     filename = f'/vsis3/{bucket}/sfms/static/fbp2021.tif'
     logger.info('Polygonizing %s...', filename)
     ds, layer = polygonize(filename)

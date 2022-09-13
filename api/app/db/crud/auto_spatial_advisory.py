@@ -43,7 +43,9 @@ async def get_hfi(session: AsyncSession, run_type: RunTypeEnum, run_date: date, 
     return result.scalars()
 
 
-async def get_combustible_area(session: AsyncSession, run_type: RunTypeEnum, run_date: date, for_date: date):
+async def get_combustible_area(session: AsyncSession):
+    """ Get the combustible area for each "shape". This is slow, and we don't expect it to run
+    in real time. """
     logger.info('starting zone/combustible area intersection query')
     perf_start = perf_counter()
     stmt = select(Shape.id,
