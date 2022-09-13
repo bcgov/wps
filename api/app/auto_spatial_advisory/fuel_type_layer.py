@@ -33,7 +33,7 @@ def fuel_type_iterator() -> Generator[Tuple[int, str], None, None]:
     # that gdal is able to read.
     filename = f'/vsis3/{bucket}/sfms/static/fbp2021.tif'
     logger.info('Polygonizing %s...', filename)
-    ds, layer = polygonize(filename)
+    data_set, layer = polygonize(filename)
 
     spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
     target_srs = osr.SpatialReference()
@@ -51,7 +51,7 @@ def fuel_type_iterator() -> Generator[Tuple[int, str], None, None]:
         geom = wkb.dumps(polygon, hex=True, srid=NAD83_BC_ALBERS)
         yield (fuel_type_id, geom)
 
-    del ds, layer
+    del data_set, layer
 
 
 async def inject_ftl_into_database():
@@ -66,8 +66,6 @@ async def inject_ftl_into_database():
         for fuel_type_id, geom in fuel_type_iterator():
             fuel_type = FuelType(fuel_type_id=fuel_type_id, geom=geom)
             await save_fuel_type(session, fuel_type)
-
-    del ds, layer
 
 
 if __name__ == '__main__':
