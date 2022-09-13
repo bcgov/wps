@@ -474,6 +474,9 @@ objects:
         # Use roundrobin load balancing strategy
         haproxy.router.openshift.io/balance: roundrobin
         haproxy.router.openshift.io/disable_cookies: "true"
+        # TODO: we don't want to keep it at 60s - this is just a temporary workaround while
+        # we generate classified HFI on the fly.
+        haproxy.router.openshift.io/timeout: 60s
     spec:
       host: ${VANITY_DOMAIN}
       path: "/api"
