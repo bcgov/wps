@@ -30,6 +30,7 @@ services:
       - wps_network
   nats:
     image: nats
+    # we need to run nats with jetstream
     command: -js
     ports:
       - 4222:4222

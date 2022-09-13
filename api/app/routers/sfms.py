@@ -96,4 +96,7 @@ async def upload(file: UploadFile,
         # Regardless of what happens with putting a message on the queue, we return 200 to the
         # caller. The caller doesn't care that we failed to put a message on the queue. That's
         # our problem. We have the file, and it's up to us to make sure it gets processed now.
+        # NOTE: Ideally, we'd be able to rely on the caller to retry the upload if we fail to
+        # put a message on the queue. But, we can't do that because the caller isn't very smart,
+        # and can't be given that level or responsibility.
         return Response(status_code=200)
