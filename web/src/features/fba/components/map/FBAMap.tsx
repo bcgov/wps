@@ -63,6 +63,7 @@ export interface FBAMapProps {
 export const hfiSourceFactory = (url: string) => {
   return new XYZ({
     url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=${url}&source=hfi`,
+    interpolate: false,
     tileSize: COG_TILE_SIZE,
     maxZoom: SFMS_MAX_ZOOM
   })
