@@ -1,13 +1,15 @@
 import logging
+import json
 from typing import Final
 import nats
 from app import config
+from pydantic import BaseModel
 
 
 logger = logging.getLogger(__name__)
 
 
-async def publish(subject: str, payload: bytes):
+async def publish(subject: str, payload: BaseModel):
     """ Publish message to NATS """
     stream: Final = config.get('NATS_STREAM')
     # connect to nats server.
@@ -16,7 +18,8 @@ async def publish(subject: str, payload: bytes):
     js = nc.jetstream()
     # we create a stream, this is important, we need to messages to stick around for a while!
     await js.add_stream(name=stream, subjects=[config.get('NATS_SUBJECT')])
-    ack = await js.publish(subject, payload, stream=stream)
+    # we publish the message, using pydantic to serialize the payload.
+    ack = await js.publish(subject, json.dumps(payload.json()).encode(), stream=stream)
     logger.info(f"Ack: stream=%s, sequence=%s", ack.stream, ack.seq)
     await nc.flush()
     await nc.close()

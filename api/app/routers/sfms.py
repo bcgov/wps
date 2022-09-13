@@ -81,11 +81,15 @@ async def upload(file: UploadFile,
         # in case we need to know about it in the future.
         key = get_target_filename(file.filename)
         logger.info('Uploading file "%s" to "%s"', file.filename, key)
-        await client.put_object(Bucket=bucket, Key=key, Body=FileLikeObject(file.file),
-                                Metadata=get_meta_data(request))
+        meta_data = get_meta_data(request)
+        await client.put_object(Bucket=bucket,
+                                Key=key,
+                                Body=FileLikeObject(file.file),
+                                Metadata=meta_data)
         logger.info('Done uploading file')
     try:
-        await publish('sfms', get_sfms_file_message())
+        message = get_sfms_file_message(file.filename, meta_data)
+        await publish('sfms', message)
     except Exception as e:
         logger.error(e, exc_info=True)
     finally:
