@@ -20,7 +20,7 @@ def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransfor
     return dataset, band
 
 
-def polygonize(geotiff_filename) -> Tuple[ogr.DataSource, ogr.Layer]:
+def polygonize_in_memory(geotiff_filename) -> Tuple[ogr.DataSource, ogr.Layer]:
     """  Given some tiff file, return a polygonized version of it, in memory, as an ogr layer. """
     source: gdal.Dataset = gdal.Open(geotiff_filename, gdal.GA_ReadOnly)
 
@@ -51,3 +51,37 @@ def polygonize(geotiff_filename) -> Tuple[ogr.DataSource, ogr.Layer]:
     dst_ds.FlushCache()
     del source, mask_band, mask_ds
     return dst_ds, dst_layer
+
+
+def polygonize_geotiff_to_shapefile(raster_source_filename, vector_dest_filename):
+    """
+    TODO: Automate this.
+    At the moment this function isn't used as part of any automated process, 
+    but has been used to manually convert the fuel type layer tiff to a shapefile,
+    which then gets manually uploaded to our S3 bucket.
+
+    Ingests the file <raster_source_filename>, creates new file called
+    <vector_dest_filename>.shp, and inserts polygonized contents of source
+    file into destination file.
+    """
+    if raster_source_filename[-3:] != '.tif':
+        return '{} is an invalid file format for raster source'.format(raster_source_filename)
+    if vector_dest_filename[-3:] != '.shp':
+        vector_dest_filename += '.shp'
+
+    source_data = gdal.Open(raster_source_filename, gdal.GA_ReadOnly)
+    source_band = source_data.GetRasterBand(1)
+    value = ogr.FieldDefn('Band 1', ogr.OFTInteger)
+    print('{} raster count: {}'.format(raster_source_filename, source_data.RasterCount))
+
+    driver = ogr.GetDriverByName("ESRI Shapefile")
+    destination = driver.CreateDataSource(vector_dest_filename)
+    dest_srs = ogr.osr.SpatialReference()
+    dest_srs.ImportFromEPSG(3005)
+    dest_layer = destination.CreateLayer(vector_dest_filename, geom_type=ogr.wkbPolygon, srs=dest_srs)
+    dest_layer.CreateField(value)
+    # TODO: would be nice to rename this field to "Fuel Type Id" - "Band 1" means nothing
+    dest_field = dest_layer.GetLayerDefn().GetFieldIndex('Band 1')
+    gdal.Polygonize(source_band, None, dest_layer, dest_field, [])
+
+    return 'Polygonized {} to {}'.format(raster_source_filename, vector_dest_filename)
