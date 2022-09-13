@@ -7,7 +7,8 @@ from fastapi import APIRouter, UploadFile, Response, Request
 from app.nats import publish
 from app.utils.s3 import get_client
 from app import config
-from app.auto_spatial_advisory.sfms import get_target_filename
+from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename
+from app.schemas.auto_spatial_advisory import SFMSFile, SFMSRunType
 
 
 logger = logging.getLogger(__name__)
@@ -84,7 +85,7 @@ async def upload(file: UploadFile,
                                 Metadata=get_meta_data(request))
         logger.info('Done uploading file')
     try:
-        await publish('sfms', key.encode())
+        await publish('sfms', get_sfms_file_message())
     except Exception as e:
         logger.error(e, exc_info=True)
     finally:

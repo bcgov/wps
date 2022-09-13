@@ -30,6 +30,7 @@ services:
       - wps_network
   nats:
     image: nats
+    command: -js
     ports:
       - 4222:4222
     networks:

@@ -1,7 +1,7 @@
 import logging
-import asyncio
+from typing import Final
 import nats
-from nats.errors import TimeoutError
+from app import config
 
 
 logger = logging.getLogger(__name__)
@@ -9,76 +9,83 @@ logger = logging.getLogger(__name__)
 
 async def publish(subject: str, payload: bytes):
     """ Publish message to NATS """
-    nc = await nats.connect("localhost")
-    await nc.publish(subject, payload)
+    stream: Final = config.get('NATS_STREAM')
+    # connect to nats server.
+    nc = await nats.connect(config.get('NATS_SERVER'))
+    # we need to use a jetstream, so that we have a message context.
+    js = nc.jetstream()
+    # we create a stream, this is important, we need to messages to stick around for a while!
+    await js.add_stream(name=stream, subjects=[config.get('NATS_SUBJECT')])
+    ack = await js.publish(subject, payload, stream=stream)
+    logger.info(f"Ack: stream=%s, sequence=%s", ack.stream, ack.seq)
     await nc.flush()
     await nc.close()
 
 
-def configure_message_queue():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(test_basic_messaging_functions())
+# def configure_message_queue():
+#     loop = asyncio.new_event_loop()
+#     asyncio.set_event_loop(loop)
+#     loop.run_until_complete(test_basic_messaging_functions())
 
 
-async def test_basic_messaging_functions():
-    nc = await nats.connect("localhost")
+# async def test_basic_messaging_functions():
+#     nc = await nats.connect("localhost")
 
-    # Create JetStream context.
-    js = nc.jetstream()
+#     # Create JetStream context.
+#     js = nc.jetstream()
 
-    # Persist messages on 'foo's subject.
-    await js.add_stream(name="sample-stream", subjects=["foo"])
+#     # Persist messages on 'foo's subject.
+#     await js.add_stream(name="sample-stream", subjects=["foo"])
 
-    for i in range(0, 10):
-        ack = await js.publish("foo", f"hello world: {i}".encode())
-        print(ack)
+#     for i in range(0, 10):
+#         ack = await js.publish("foo", f"hello world: {i}".encode())
+#         print(ack)
 
-    # Create pull based consumer on 'foo'.
-    psub = await js.pull_subscribe("foo", "psub")
+#     # Create pull based consumer on 'foo'.
+#     psub = await js.pull_subscribe("foo", "psub")
 
-    # Fetch and ack messagess from consumer.
-    for i in range(0, 10):
-        msgs = await psub.fetch(1)
-        for msg in msgs:
-            print(msg)
+#     # Fetch and ack messagess from consumer.
+#     for i in range(0, 10):
+#         msgs = await psub.fetch(1)
+#         for msg in msgs:
+#             print(msg)
 
-    # Create single ephemeral push based subscriber.
-    sub = await js.subscribe("foo")
-    msg = await sub.next_msg()
-    await msg.ack()
+#     # Create single ephemeral push based subscriber.
+#     sub = await js.subscribe("foo")
+#     msg = await sub.next_msg()
+#     await msg.ack()
 
-    # Create single push based subscriber that is durable across restarts.
-    sub = await js.subscribe("foo", durable="myapp")
-    msg = await sub.next_msg()
-    await msg.ack()
+#     # Create single push based subscriber that is durable across restarts.
+#     sub = await js.subscribe("foo", durable="myapp")
+#     msg = await sub.next_msg()
+#     await msg.ack()
 
-    # Create deliver group that will be have load balanced messages.
-    async def qsub_a(msg):
-        print("QSUB A:", msg)
-        await msg.ack()
+#     # Create deliver group that will be have load balanced messages.
+#     async def qsub_a(msg):
+#         print("QSUB A:", msg)
+#         await msg.ack()
 
-    async def qsub_b(msg):
-        print("QSUB B:", msg)
-        await msg.ack()
-    await js.subscribe("foo", "workers", cb=qsub_a)
-    await js.subscribe("foo", "workers", cb=qsub_b)
+#     async def qsub_b(msg):
+#         print("QSUB B:", msg)
+#         await msg.ack()
+#     await js.subscribe("foo", "workers", cb=qsub_a)
+#     await js.subscribe("foo", "workers", cb=qsub_b)
 
-    for i in range(0, 10):
-        ack = await js.publish("foo", f"hello world: {i}".encode())
-        print("\t", ack)
+#     for i in range(0, 10):
+#         ack = await js.publish("foo", f"hello world: {i}".encode())
+#         print("\t", ack)
 
-    # Create ordered consumer with flow control and heartbeats
-    # that auto resumes on failures.
-    osub = await js.subscribe("foo", ordered_consumer=True)
-    data = bytearray()
+#     # Create ordered consumer with flow control and heartbeats
+#     # that auto resumes on failures.
+#     osub = await js.subscribe("foo", ordered_consumer=True)
+#     data = bytearray()
 
-    while True:
-        try:
-            msg = await osub.next_msg()
-            data.extend(msg.data)
-        except TimeoutError:
-            break
-    print("All data in stream:", len(data))
+#     while True:
+#         try:
+#             msg = await osub.next_msg()
+#             data.extend(msg.data)
+#         except TimeoutError:
+#             break
+#     print("All data in stream:", len(data))
 
-    await nc.close()
+#     await nc.close()
