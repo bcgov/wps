@@ -87,7 +87,7 @@ class ClassifiedHfi(Base):
 Index('idx_advisory_classified_hfi_geom', ClassifiedHfi.geom, postgresql_using='gist')
 
 
-class FuelTypeLayer(Base):
+class FuelType(Base):
     """ Identify some kind of fuel type. """
     __tablename__ = 'advisory_fuel_types'
     __table_args__ = (
@@ -99,4 +99,4 @@ class FuelTypeLayer(Base):
 
 
 # Explict creation of index due to issue with alembic + geoalchemy.
-Index('idx_advisory_fuel_types_geom', FuelTypeLayer.geom, postgresql_using='gist')
+Index('idx_advisory_fuel_types_geom', FuelType.geom, postgresql_using='gist')

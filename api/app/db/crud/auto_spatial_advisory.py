@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from app.db.models.auto_spatial_advisory import (
-    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelTypeLayer)
+    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType)
 
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ async def save_hfi(session: AsyncSession, hfi: ClassifiedHfi):
     session.add(hfi)
 
 
-async def save_fuel_type(session: AsyncSession, fuel_type: FuelTypeLayer):
+async def save_fuel_type(session: AsyncSession, fuel_type: FuelType):
     session.add(fuel_type)
 
 
@@ -49,9 +49,9 @@ async def get_combustible_area(session: AsyncSession, run_type: RunTypeEnum, run
     stmt = select(Shape.id,
                   Shape.source_identifier,
                   Shape.geom.ST_Area().label('zone_area'),
-                  FuelTypeLayer.geom.ST_Union().ST_Intersection(Shape.geom).ST_Area().label('combustible_area'))\
-        .join(FuelTypeLayer, FuelTypeLayer.geom.ST_Intersects(Shape.geom))\
-        .where(FuelTypeLayer.fuel_type_id not in (-10000, 99, 102))\
+                  FuelType.geom.ST_Union().ST_Intersection(Shape.geom).ST_Area().label('combustible_area'))\
+        .join(FuelType, FuelType.geom.ST_Intersects(Shape.geom))\
+        .where(FuelType.fuel_type_id not in (-10000, 99, 102))\
         .group_by(Shape.id)
     result = await session.execute(stmt)
     all_combustible = result.all()
