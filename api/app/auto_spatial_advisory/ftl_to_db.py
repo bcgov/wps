@@ -4,7 +4,7 @@ from osgeo import ogr, osr, gdal
 from shapely import wkt, wkb
 from app import config
 from app.auto_spatial_advisory.polygonize import polygonize
-from app.db.models.auto_spatial_advisory import FuelType
+from app.db.models.auto_spatial_advisory import FuelTypeLayer
 from app.db.database import get_async_write_session_scope
 from app.db.crud.auto_spatial_advisory import save_fuel_type
 from app.geospatial import NAD83_BC_ALBERS
@@ -38,9 +38,9 @@ async def main():
             geometry.Transform(coordinate_transform)
             polygon = wkt.loads(geometry.ExportToIsoWkt())
 
-            obj = FuelType(fuel_type_id=fuel_type, geom=wkb.dumps(polygon,
-                                                                  hex=True,
-                                                                  srid=NAD83_BC_ALBERS))
+            obj = FuelTypeLayer(fuel_type_id=fuel_type, geom=wkb.dumps(polygon,
+                                                                       hex=True,
+                                                                       srid=NAD83_BC_ALBERS))
 
             await save_fuel_type(session, obj)
 

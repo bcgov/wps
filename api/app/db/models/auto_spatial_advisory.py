@@ -99,4 +99,4 @@ class FuelTypeLayer(Base):
 
 
 # Explict creation of index due to issue with alembic + geoalchemy.
-Index('idx_advisory_fuel_types_geom', FuelType.geom, postgresql_using='gist')
+Index('idx_advisory_fuel_types_geom', FuelTypeLayer.geom, postgresql_using='gist')
