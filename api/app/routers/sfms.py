@@ -1,13 +1,14 @@
 """ Router for SFMS """
-import os
 import io
 import logging
-from datetime import datetime, date
+from datetime import datetime
 from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request
+from app.nats import publish
 from app.utils.s3 import get_client
 from app import config
-from app.utils.time import get_hour_20, get_vancouver_now
+from app.auto_spatial_advisory.sfms import get_target_filename
+
 
 logger = logging.getLogger(__name__)
 
@@ -38,55 +39,6 @@ class FileLikeObject(io.IOBase):
 
     def seek(self, offset: int, whence: int = io.SEEK_SET):
         return self.file.seek(offset, whence)
-
-
-def is_actual(filename: str) -> bool:
-    """ Decide whether the file is an actual or forecast file.
-    08h00 PST on the 22nd hfi20220823.tif -> forecast
-    13h00 PST on the 22nd hfi20220823.tif -> forecast
-    08h00 PST on the 23rd hfi20220823.tif -> forecast
-    13h00 PST on the 23rd hfi20220823.tif -> actual
-    """
-    file_date_string = filename[-12:-4]
-    file_date = date(
-        year=int(file_date_string[:4]),
-        month=int(file_date_string[4:6]),
-        day=int(file_date_string[6:8]))
-    now = get_vancouver_now()
-    now_date = now.date()
-
-    if file_date < now_date:
-        # It's from the past - it's an actual.
-        return True
-    if file_date > now_date:
-        # It's from the future - it's a forecast.
-        return False
-    # It's from today - now it get's weird.
-    # If the current time is after solar noon, it's an actual.
-    # If the current time is before solar noon, it's a forecast.
-    solar_noon_today = get_hour_20(now)
-    return now > solar_noon_today
-
-
-def get_prefix(filename: str) -> str:
-    if is_actual(filename):
-        return 'actual'
-    return 'forecast'
-
-
-def get_target_filename(filename: str) -> str:
-    """ Get the target filename, something that looks like this:
-    bucket/sfms/upload/forecast/[issue date NOT TIME]/hfi20220823.tif
-    bucket/sfms/upload/actual/[issue date NOT TIME]/hfi20220823.tif
-    """
-    # We are assuming that the local server time, matches the issue date. We assume that
-    # right after a file is generated, this API is called - and as such the current
-    # time IS the issue date.
-    issue_date = get_vancouver_now()
-    # depending on the issue date, we decide if it's a forecast or actual.
-    prefix = get_prefix(filename)
-    # create the filename
-    return os.path.join('sfms', 'uploads', prefix, issue_date.isoformat()[:10], filename)
 
 
 def get_meta_data(request: Request) -> dict:
@@ -131,5 +83,12 @@ async def upload(file: UploadFile,
         await client.put_object(Bucket=bucket, Key=key, Body=FileLikeObject(file.file),
                                 Metadata=get_meta_data(request))
         logger.info('Done uploading file')
-        # TODO: Put message on queue to trigger processing of new HFI data.
+    try:
+        await publish('sfms', key.encode())
+    except Exception as e:
+        logger.error(e, exc_info=True)
+    finally:
+        # Regardless of what happens with putting a message on the queue, we return 200 to the
+        # caller. The caller doesn't care that we failed to put a message on the queue. That's
+        # our problem. We have the file, and it's up to us to make sure it gets processed now.
         return Response(status_code=200)

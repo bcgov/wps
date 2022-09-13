@@ -22,7 +22,7 @@ from app.fire_behaviour.cffdrs import CFFDRS
 
 
 configure_logging()
-configure_message_queue()
+# can't do this here:! configure_message_queue()
 
 logger = logging.getLogger(__name__)
 

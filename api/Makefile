@@ -208,3 +208,6 @@ database-downgrade:
 
 docker-database-upgrade:
 	docker compose exec -e PYTHONPATH=. api alembic upgrade head
+
+nats:
+	docker run -p 4222:4222 -ti nats:latest

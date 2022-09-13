@@ -1,6 +1,18 @@
+import logging
 import asyncio
 import nats
 from nats.errors import TimeoutError
+
+
+logger = logging.getLogger(__name__)
+
+
+async def publish(subject: str, payload: bytes):
+    """ Publish message to NATS """
+    nc = await nats.connect("localhost")
+    await nc.publish(subject, payload)
+    await nc.flush()
+    await nc.close()
 
 
 def configure_message_queue():
