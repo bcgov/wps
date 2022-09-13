@@ -45,7 +45,24 @@ async def get_hfi(session: AsyncSession, run_type: RunTypeEnum, run_date: date, 
 
 async def get_combustible_area(session: AsyncSession):
     """ Get the combustible area for each "shape". This is slow, and we don't expect it to run
-    in real time. """
+    in real time.
+
+    This method isn't being used right now, but you can calculate the combustible area for each
+    zone as follows:
+
+    ```python
+    from app.db.crud.auto_spatial_advisory import get_combustible_area
+    from app.db.database import get_async_read_session_scope
+
+    async with get_async_read_session_scope() as session:
+    result = await get_combustible_area(session)
+
+    for record in result:
+        print(record)
+        print(record['combustible_area']/record['zone_area'])
+    ```
+
+    """
     logger.info('starting zone/combustible area intersection query')
     perf_start = perf_counter()
     stmt = select(Shape.id,
@@ -53,7 +70,7 @@ async def get_combustible_area(session: AsyncSession):
                   Shape.geom.ST_Area().label('zone_area'),
                   FuelType.geom.ST_Union().ST_Intersection(Shape.geom).ST_Area().label('combustible_area'))\
         .join(FuelType, FuelType.geom.ST_Intersects(Shape.geom))\
-        .where(FuelType.fuel_type_id not in (-10000, 99, 102))\
+        .where(FuelType.fuel_type_id.not_in((-10000, 99, 100, 102, 103)))\
         .group_by(Shape.id)
     result = await session.execute(stmt)
     all_combustible = result.all()
