@@ -318,6 +318,13 @@ make test-watch
 
 Or enforce by running [scripts/test.sh](scripts/test.sh) as part of your ci/cd pipeline.
 
+
+#### ModuleNotFoundError: No module named 'pkg_resources'
+
+```bash
+poetry run python -m pip install --upgrade setuptools
+```
+
 ### Making changes to the database
 
 After making a change to the model, create migration script:
