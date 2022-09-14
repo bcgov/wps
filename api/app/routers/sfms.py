@@ -8,6 +8,7 @@ from app.nats import publish
 from app.utils.s3 import get_client
 from app import config
 from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename
+from app.auto_spatial_advisory.nats import stream_name, subjects
 
 
 logger = logging.getLogger(__name__)
@@ -93,7 +94,8 @@ async def upload(file: UploadFile,
         # As noted below, the caller will have no idea if anything has gone wrong, which is
         # unfortunate, but we can't do anything about it.
         message = get_sfms_file_message(file.filename, meta_data)
-        background_tasks.add_task(publish, 'sfms.new', message)
+        subject = 'sfms.file'
+        background_tasks.add_task(publish, stream_name, subject, message, subjects)
     except Exception as exception:  # pylint: disable=broad-except
         logger.error(exception, exc_info=True)
         # Regardless of what happens with putting a message on the queue, we return 200 to the

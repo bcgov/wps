@@ -12,6 +12,7 @@ class SFMSRunType(Enum):
 
 class SFMSFile(BaseModel):
     """ SFMS File - this schema used to store messages on the queue """
+    version: str = '0.0.1'
     key: str  # S3 key
     run_type: SFMSRunType  # forecast or actual
     last_modified: datetime  # last modified date as provided by windows file system when uploaded

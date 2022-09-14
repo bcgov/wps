@@ -318,7 +318,7 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: sfms-secret
-                - name: NATS_STREAM
+                - name: NATS_STREAM_PREFIX
                   value: ${APP_NAME}-${SUFFIX}
                 - name: NATS_SERVER
                   valueFrom:
