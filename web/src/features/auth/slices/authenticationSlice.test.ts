@@ -12,7 +12,6 @@ import authReducer, {
 } from 'features/auth/slices/authenticationSlice'
 import sinon from 'sinon'
 import * as jwtDecode from 'jwt-decode'
-import { KC_CLIENT } from 'utils/env'
 import { ROLES } from 'features/auth/roles'
 
 describe('authenticationSlice', () => {
@@ -27,11 +26,11 @@ describe('authenticationSlice', () => {
   const idir_username = 'test@idir'
   const decodedAllRoles = {
     idir_username,
-    resource_access: { [KC_CLIENT]: { roles: Object.values(ROLES.HFI) } }
+    client_roles: Object.values(ROLES.HFI)
   }
   const decodedNoRoles = {
     idir_username,
-    resource_access: { [KC_CLIENT]: { roles: [] } }
+    client_roles: []
   }
   it('should return all roles of a user from a token', () => {
     sandbox.stub(jwtDecode, 'default').returns(decodedAllRoles)
