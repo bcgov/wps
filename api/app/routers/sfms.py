@@ -3,12 +3,11 @@ import io
 import logging
 from datetime import datetime
 from tempfile import SpooledTemporaryFile
-from fastapi import APIRouter, UploadFile, Response, Request
+from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks
 from app.nats import publish
 from app.utils.s3 import get_client
 from app import config
 from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename
-from app.schemas.auto_spatial_advisory import SFMSFile, SFMSRunType
 
 
 logger = logging.getLogger(__name__)
@@ -57,7 +56,8 @@ def get_meta_data(request: Request) -> dict:
 
 @router.post('/upload')
 async def upload(file: UploadFile,
-                 request: Request):
+                 request: Request,
+                 background_tasks: BackgroundTasks):
     """
     Trigger the SFMS process to run on the provided file.
     The header MUST include the SFMS secret key.
@@ -88,8 +88,10 @@ async def upload(file: UploadFile,
                                 Metadata=meta_data)
         logger.info('Done uploading file')
     try:
+        # We don't want to hold back the response to the client, so we'll publish the message
+        # as a background task.
         message = get_sfms_file_message(file.filename, meta_data)
-        await publish('sfms', message)
+        background_tasks.add_task(publish, 'sfms.new', message)
     except Exception as e:
         logger.error(e, exc_info=True)
         # Regardless of what happens with putting a message on the queue, we return 200 to the

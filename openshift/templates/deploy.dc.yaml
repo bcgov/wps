@@ -77,17 +77,6 @@ parameters:
   - name: WORKERS_PER_CORE
     description: "Number of workers per core. e.g. openshift pods report having 32 cores, so 0.125 would give you 4 workers total."
     value: "0.125"
-  - name: NATS_STREAM
-    description: "NATS stream name"
-    required: True
-    # value: e.g. wps-pr-1234 ; that way we don't need a million different servers in dev. just one server with lots of streams.
-  - name: NATS_SUBJECT
-    description: "NATS subject name"
-    value: "sfms"
-  - name: NATS_SERVER
-    description: "NATS server name"
-    required: True
-
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -329,6 +318,13 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: sfms-secret
+                - name: NATS_STREAM
+                  value: ${APP_NAME}-${SUFFIX}
+                - name: NATS_SERVER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.nats-server
               ports:
                 - containerPort: 8080
                   protocol: TCP

@@ -86,7 +86,8 @@ jobs:
   deploy-dev:
     name: Deploy to Dev
     needs:
-      [build-api-image, build-web-image, prepare-dev-database, deploy-dev-queue]
+      # [build-api-image, build-web-image, prepare-dev-database, deploy-dev-queue]
+      [build-api-image, build-web-image, prepare-dev-database]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
@@ -133,23 +134,24 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
-  deploy-dev-queue:
-    name: Deploy Message Queue to Dev
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+  # We may be able take it out of scope for this PR?
+  # deploy-dev-queue:
+  #   name: Deploy Message Queue to Dev
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - name: Set Variables
+  #       shell: bash
+  #       run: |
+  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-      - name: Checkout
-        uses: actions/checkout@v3
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: NATS Message Queue
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_deploy_nats.sh ${SUFFIX} apply
+  #     - name: NATS Message Queue
+  #       shell: bash
+  #       run: |
+  #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+  #         PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_deploy_nats.sh ${SUFFIX} apply
 
   scan-dev:
     name: ZAP Baseline Scan Dev
