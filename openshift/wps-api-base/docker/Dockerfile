@@ -33,13 +33,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 # - R (for cffdrs)
 # - JDK (for red-app)
 # - wkhtmltopdf (for making pdf's)
-RUN apt-get update --fix-missing && apt-get -y install python3 python3-dev python-is-python3 libgdal-dev r-base openjdk-17-jdk wkhtmltopdf
+RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base openjdk-17-jdk wkhtmltopdf
 
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
-
-# Update pip  
-RUN python -m pip install --upgrade pip
 
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
@@ -48,6 +45,9 @@ USER $USERNAME
 ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
 
 WORKDIR /home/$USERNAME
+
+# Update pip  
+RUN python3 -m pip install --upgrade pip
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
