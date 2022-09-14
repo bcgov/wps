@@ -1,19 +1,24 @@
 # When building in openshift, you'll need the latest image in openshift:
 # 1) get the latest:
-# docker pull python:bullsey
+# docker pull ubuntu:22.04
 # 2) tag it for upload:
-# docker tag python:bullsey image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/python:bullsey
+# docker tag ubuntu:22.04 image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/ubuntu:22.04
 # 3) log into openshift:
 # docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
 # 4) push to openshift:
-# docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/python:bullsey
+# docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/ubuntu:22.04
 
 
+# Rationale for using ubuntu:22.04:
+# - It's the latest ubuntu LTS release.
+# - It generally has a more recent version of gdal than debian.
+# - It generally has a fairly recent version of python.
+# - It has a more recent version of wkhtmltopdf and supporting libraries than debian.
 # When building in openshift, you can reference the image in openshift:
-# FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/python:3.10.7-bullseye
+# FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu:22.04
 #
 # When building local, you can reference the docker image:
-FROM python:bullseye
+FROM ubuntu:22.04
 
 ARG USERNAME=worker
 ARG USER_UID=1000
@@ -23,20 +28,18 @@ ARG USER_GID=$USER_UID
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install pre-requisites
-# - old (2.4.*; current debian) version of gdal
+# - python (we want python!)
+# - gdal (for geospatial)
 # - R (for cffdrs)
 # - JDK (for red-app)
-# - xfonts-75dpi xfonts-base (for wkhtmltopdf)
-RUN apt-get update --fix-missing && apt-get -y install libgdal-dev r-base openjdk-17-jdk xfonts-75dpi xfonts-base wkhtmltopdf
+# - wkhtmltopdf (for making pdf's)
+RUN apt-get update --fix-missing && apt-get -y install python3 python3-dev python-is-python3 libgdal-dev r-base openjdk-17-jdk wkhtmltopdf
 
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
 
-# TODO: validate that we don't need this anymore on bullsey
-# Install pdf-kit for PDF generation on HFI (with qt support!)
-# We can't just run apt-get -y install wkhtmltopdf, because we don't get qt support.
-# RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb -P /tmp && \
-# dpkg -i /tmp/wkhtmltox_0.12.6-1.buster_amd64.deb
+# Update pip  
+RUN python -m pip install --upgrade pip
 
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
@@ -46,19 +49,18 @@ ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
 
 WORKDIR /home/$USERNAME
 
-# Update pip  
-RUN python -m pip install --upgrade pip
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
 # According to the stackexchange thread below, we need to install numpy before
 # installing gdal or we could end up missing _gdal_array
 # https://gis.stackexchange.com/questions/153199/import-error-no-module-named-gdal-array
-RUN python -m pip install numpy
+# RUN python -m pip install numpy
 
 # Install gdal
 # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
 # available to us. As such, gdal is not installed by poetry, since the version will differ between
 # platforms.
-RUN python -m pip install gdal==$(gdal-config --version)
+# RUN python -m pip install gdal==$(gdal-config --version)
 
 # Install poetry https://python-poetry.org/docs/#installation
 # RUN cd /tmp && \
