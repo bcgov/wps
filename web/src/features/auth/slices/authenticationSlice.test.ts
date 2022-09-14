@@ -63,23 +63,29 @@ describe('authenticationSlice', () => {
     })
     it('should set token with roles correctly when authentication finishes', () => {
       sandbox.stub(jwtDecode, 'default').returns(decodedAllRoles)
-      expect(authReducer(initialState, authenticateFinished({ isAuthenticated: true, token: testToken }))).toEqual({
+      expect(
+        authReducer(initialState, authenticateFinished({ isAuthenticated: true, token: testToken, idToken: testToken }))
+      ).toEqual({
         ...initialState,
         authenticating: false,
         isAuthenticated: true,
         idir: 'test@idir',
         token: testToken,
+        idToken: testToken,
         roles: Object.values(ROLES.HFI)
       })
     })
     it('should set token without roles correctly when authentication finishes', () => {
       sandbox.stub(jwtDecode, 'default').returns(decodedNoRoles)
-      expect(authReducer(initialState, authenticateFinished({ isAuthenticated: true, token: testToken }))).toEqual({
+      expect(
+        authReducer(initialState, authenticateFinished({ isAuthenticated: true, token: testToken, idToken: testToken }))
+      ).toEqual({
         ...initialState,
         authenticating: false,
         isAuthenticated: true,
         idir: 'test@idir',
         token: testToken,
+        idToken: testToken,
         roles: []
       })
     })
@@ -95,22 +101,28 @@ describe('authenticationSlice', () => {
     })
     it('should set state correctly when token refreshes with roles', () => {
       sandbox.stub(jwtDecode, 'default').returns(decodedAllRoles)
-      expect(authReducer(initialState, refreshTokenFinished({ tokenRefreshed: true, token: testToken }))).toEqual({
+      expect(
+        authReducer(initialState, refreshTokenFinished({ tokenRefreshed: true, token: testToken, idToken: testToken }))
+      ).toEqual({
         ...initialState,
         authenticating: false,
         tokenRefreshed: true,
         token: testToken,
+        idToken: testToken,
         idir: 'test@idir',
         roles: Object.values(ROLES.HFI)
       })
     })
     it('should set state correctly when token refreshes without roles', () => {
       sandbox.stub(jwtDecode, 'default').returns(decodedNoRoles)
-      expect(authReducer(initialState, refreshTokenFinished({ tokenRefreshed: true, token: testToken }))).toEqual({
+      expect(
+        authReducer(initialState, refreshTokenFinished({ tokenRefreshed: true, token: testToken, idToken: testToken }))
+      ).toEqual({
         ...initialState,
         authenticating: false,
         tokenRefreshed: true,
         token: testToken,
+        idToken: testToken,
         idir: 'test@idir',
         roles: []
       })
@@ -123,6 +135,7 @@ describe('authenticationSlice', () => {
           isAuthenticated: true,
           tokenRefreshed: false,
           token: testToken,
+          idToken: testToken,
           idir: 'test@idir',
           roles: Object.values(ROLES.HFI),
           error: null
@@ -133,6 +146,7 @@ describe('authenticationSlice', () => {
           authenticating: false,
           isAuthenticated: false,
           token: undefined,
+          idToken: undefined,
           roles: []
         })
       })
@@ -143,6 +157,7 @@ describe('authenticationSlice', () => {
           isAuthenticated: true,
           tokenRefreshed: false,
           token: testToken,
+          idToken: testToken,
           idir: 'test@idir',
           roles: Object.values(ROLES.HFI),
           error: null
@@ -154,6 +169,7 @@ describe('authenticationSlice', () => {
           authenticating: false,
           isAuthenticated: false,
           token: undefined,
+          idToken: undefined,
           roles: [],
           error: error
         })

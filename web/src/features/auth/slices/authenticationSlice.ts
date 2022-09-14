@@ -4,7 +4,7 @@ import { AppThunk } from 'app/store'
 import * as jwtDecode from 'jwt-decode'
 import { logError } from 'utils/error'
 import { isUndefined } from 'lodash'
-import { TEST_AUTH, KC_AUTH_URL, KC_REALM, SM_LOGOUT_URL } from 'utils/env'
+import { TEST_AUTH, KC_AUTH_URL, KC_REALM, SM_LOGOUT_URL, KC_CLIENT } from 'utils/env'
 import { ROLES } from 'features/auth/roles'
 import { getKeycloakInstance, kcInitOptions } from 'features/auth/keycloak'
 
@@ -13,6 +13,7 @@ interface State {
   isAuthenticated: boolean
   tokenRefreshed: boolean
   token: string | undefined
+  idToken: string | undefined
   idir: string | undefined
   roles: string[]
   error: string | null
@@ -23,6 +24,7 @@ export const initialState: State = {
   isAuthenticated: false,
   tokenRefreshed: false,
   token: undefined,
+  idToken: undefined,
   idir: undefined,
   roles: [],
   error: null
@@ -40,11 +42,13 @@ const authSlice = createSlice({
       action: PayloadAction<{
         isAuthenticated: boolean
         token: string | undefined
+        idToken: string | undefined
       }>
     ) {
       state.authenticating = false
       state.isAuthenticated = action.payload.isAuthenticated
       state.token = action.payload.token
+      state.idToken = action.payload.idToken
       state.roles = decodeRoles(action.payload.token)
       state.idir = decodeIdir(action.payload.token)
     },
@@ -59,9 +63,11 @@ const authSlice = createSlice({
       action: PayloadAction<{
         tokenRefreshed: boolean
         token: string | undefined
+        idToken: string | undefined
       }>
     ) {
       state.token = action.payload.token
+      state.idToken = action.payload.idToken
       state.tokenRefreshed = action.payload.tokenRefreshed
       state.roles = decodeRoles(action.payload.token)
       state.idir = decodeIdir(action.payload.token)
@@ -70,6 +76,7 @@ const authSlice = createSlice({
       state.authenticating = false
       state.isAuthenticated = false
       state.token = undefined
+      state.idToken = undefined
       state.roles = []
     },
     signoutError(state: State, action: PayloadAction<string>) {
@@ -77,6 +84,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false
       state.error = action.payload
       state.token = undefined
+      state.idToken = undefined
       state.roles = []
     }
   }
@@ -128,9 +136,9 @@ export const decodeIdir = (token: string | undefined) => {
 }
 
 export const testAuthenticate =
-  (isAuthenticated: boolean, token: string): AppThunk =>
+  (isAuthenticated: boolean, token: string, idToken: string): AppThunk =>
   dispatch => {
-    dispatch(authenticateFinished({ isAuthenticated, token }))
+    dispatch(authenticateFinished({ isAuthenticated, token, idToken }))
   }
 
 export const authenticate = (): AppThunk => dispatch => {
@@ -140,7 +148,7 @@ export const authenticate = (): AppThunk => dispatch => {
   keycloak
     .init(kcInitOptions)
     .then(isAuthenticated => {
-      dispatch(authenticateFinished({ isAuthenticated, token: keycloak?.token }))
+      dispatch(authenticateFinished({ isAuthenticated, token: keycloak?.token, idToken: keycloak?.idToken }))
     })
     .catch(err => {
       logError(err)
@@ -151,7 +159,7 @@ export const authenticate = (): AppThunk => dispatch => {
     keycloak
       ?.updateToken(0)
       .then(tokenRefreshed => {
-        dispatch(refreshTokenFinished({ tokenRefreshed, token: keycloak?.token }))
+        dispatch(refreshTokenFinished({ tokenRefreshed, token: keycloak?.token, idToken: keycloak?.idToken }))
       })
       .catch(() => {
         // Restart the authentication flow
@@ -160,15 +168,17 @@ export const authenticate = (): AppThunk => dispatch => {
   }
 }
 
-export const signout = (): AppThunk => async dispatch => {
-  try {
-    const postLogoutRedirectURI = window.location.href
-    const returl = encodeURIComponent(
-      `${KC_AUTH_URL}/realms/${KC_REALM}/protocol/openid-connect/logout?post_logout_redirect_uri=${postLogoutRedirectURI}`
-    )
-    const logoutURL = `${SM_LOGOUT_URL}${returl}`
-    window.location.href = logoutURL
-  } catch (e) {
-    return dispatch(signoutError(`Failed to signout: ${e}`))
+export const signout =
+  (idToken?: string): AppThunk =>
+  async dispatch => {
+    try {
+      const postLogoutRedirectURI = window.location.href
+      const returl = encodeURIComponent(
+        `${KC_AUTH_URL}/realms/${KC_REALM}/protocol/openid-connect/logout?client_id=${KC_CLIENT}&id_token_hint=${idToken}&post_logout_redirect_uri=${postLogoutRedirectURI}`
+      )
+      const logoutURL = `${SM_LOGOUT_URL}${returl}`
+      window.location.href = logoutURL
+    } catch (e) {
+      return dispatch(signoutError(`Failed to signout: ${e}`))
+    }
   }
-}
