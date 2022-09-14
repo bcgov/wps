@@ -23,7 +23,7 @@ async def _publish(stream: str, subject: str, payload: BaseModel, subjects: List
         server: Final = config.get('NATS_SERVER')
         # connect to nats server.
         logger.info("Connecting to NATS server %s...", server)
-        connection = await nats.connect(server)
+        connection = await nats.connect(server)  # pylint: disable=no-member
         # we need to use a jetstream, so that we have a message context.
         logger.info('Creating JetStream context...')
         jetstream = connection.jetstream()
