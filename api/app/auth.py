@@ -28,10 +28,11 @@ async def authenticate(token: str = Depends(permissive_oauth2_scheme)):
     # RSA public key format
     keycloak_public_key = '-----BEGIN PUBLIC KEY-----\n' + \
         config.get('KEYCLOAK_PUBLIC_KEY') + '\n-----END PUBLIC KEY-----'
+    keycloak_client = config.get('REACT_APP_KEYCLOAK_CLIENT')
 
     try:
         decoded_token = jwt.decode(
-            token, keycloak_public_key, algorithms=['RS256'])
+            token, keycloak_public_key, algorithms=['RS256'], audience=keycloak_client)
         return decoded_token
     except InvalidTokenError as exception:
         logger.error('Could not validate the credential %s', exception)
@@ -41,7 +42,7 @@ async def authenticate(token: str = Depends(permissive_oauth2_scheme)):
 async def audit(request: Request, token=Depends(authenticate)):
     """ Audits attempted requests based on bearer token. """
     path = request.url.path
-    username = token.get('preferred_username', None)
+    username = token.get('idir_username', None)
 
     create_api_access_audit_log(username, bool(token), path)
     return token
@@ -59,7 +60,7 @@ async def authentication_required(token=Depends(authenticate)):
 
 async def check_token_for_role(role: str, token):
     """ Return token if role exists in roles, 401 exception otherwise """
-    roles = token.get('resource_access', {}).get('wps-web', {}).get('roles', {})
+    roles = token.get('client_roles', {})
     if role not in roles:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

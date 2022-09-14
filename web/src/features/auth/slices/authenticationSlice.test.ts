@@ -24,13 +24,13 @@ describe('authenticationSlice', () => {
     sandbox.restore()
   })
   const testToken = 'testToken'
-  const preferred_username = 'test@idir'
+  const idir_username = 'test@idir'
   const decodedAllRoles = {
-    preferred_username,
+    idir_username,
     resource_access: { [KC_CLIENT]: { roles: Object.values(ROLES.HFI) } }
   }
   const decodedNoRoles = {
-    preferred_username,
+    idir_username,
     resource_access: { [KC_CLIENT]: { roles: [] } }
   }
   it('should return all roles of a user from a token', () => {
@@ -46,7 +46,7 @@ describe('authenticationSlice', () => {
   it('should return idir username from token', () => {
     sandbox.stub(jwtDecode, 'default').returns(decodedNoRoles)
     const roles = decodeIdir(testToken)
-    expect(roles).toEqual(preferred_username)
+    expect(roles).toEqual(idir_username)
   })
   describe('reducer', () => {
     it('should be initialized with correct state', () => {

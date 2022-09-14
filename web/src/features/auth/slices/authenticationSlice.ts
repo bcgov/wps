@@ -4,7 +4,7 @@ import { AppThunk } from 'app/store'
 import * as jwtDecode from 'jwt-decode'
 import { logError } from 'utils/error'
 import { isUndefined } from 'lodash'
-import { KC_CLIENT, TEST_AUTH, KC_AUTH_URL, KC_REALM, SM_LOGOUT_URL } from 'utils/env'
+import { TEST_AUTH, KC_AUTH_URL, KC_REALM, SM_LOGOUT_URL } from 'utils/env'
 import { ROLES } from 'features/auth/roles'
 import { getKeycloakInstance, kcInitOptions } from 'features/auth/keycloak'
 
@@ -103,7 +103,7 @@ export const decodeRoles = (token: string | undefined) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const decodedToken: any = jwtDecode.default(token)
   try {
-    return decodedToken.resource_access[KC_CLIENT].roles
+    return decodedToken.client_roles
   } catch (e) {
     // User has no roles
     return []
@@ -120,7 +120,7 @@ export const decodeIdir = (token: string | undefined) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const decodedToken: any = jwtDecode.default(token)
   try {
-    return decodedToken.preferred_username
+    return decodedToken.idir_username
   } catch (e) {
     // No idir username
     return undefined
