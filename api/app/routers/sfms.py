@@ -90,10 +90,12 @@ async def upload(file: UploadFile,
     try:
         # We don't want to hold back the response to the client, so we'll publish the message
         # as a background task.
+        # As noted below, the caller will have no idea if anything has gone wrong, which is
+        # unfortunate, but we can't do anything about it.
         message = get_sfms_file_message(file.filename, meta_data)
         background_tasks.add_task(publish, 'sfms.new', message)
-    except Exception as e:
-        logger.error(e, exc_info=True)
+    except Exception as exception:  # pylint: disable=broad-except
+        logger.error(exception, exc_info=True)
         # Regardless of what happens with putting a message on the queue, we return 200 to the
         # caller. The caller doesn't care that we failed to put a message on the queue. That's
         # our problem. We have the file, and it's up to us to make sure it gets processed now.

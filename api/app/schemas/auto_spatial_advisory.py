@@ -1,4 +1,4 @@
-""" Schemas used for serializing and deserializing data that is published on the message queue. 
+""" Schemas used for serializing and deserializing data that is published on the message queue.
 """
 from datetime import datetime, date
 from enum import Enum

@@ -1,3 +1,5 @@
+""" Code for talking to [NATS](https://docs.nats.io/)
+"""
 import logging
 import json
 import asyncio
@@ -12,26 +14,30 @@ logger = logging.getLogger(__name__)
 
 
 async def _publish(subject: str, payload: BaseModel):
-    """ Publish message to NATS """
+    """ Publish message to NATS.
+
+    NOTE: Take care with thread contexts!
+    """
     try:
         stream: Final = config.get('NATS_STREAM')
         server: Final = config.get('NATS_SERVER')
         # connect to nats server.
         logger.info("Connecting to NATS server %s...", server)
-        nc = await nats.connect(server)
+        connection = await nats.connect(server)
         # we need to use a jetstream, so that we have a message context.
         logger.info('Creating JetStream context...')
-        js = nc.jetstream()
+        jetstream = connection.jetstream()
         # we create a stream, this is important, we need to messages to stick around for a while!
-        # await js.add_stream(name=stream, subjects=[s.value for s in Subject])
-        await js.add_stream(name=stream, subjects=['sfms.*'])
+        # NOTE: Once you've created a stream, it's difficult to change!
+        # NOTE: Right now I'm thinking there are sfms related messages, and hfi related messages?
+        await jetstream.add_stream(name=stream, subjects=['sfms.*', 'hfi.*'])
         # we publish the message, using pydantic to serialize the payload.
-        ack = await js.publish(subject, json.dumps(payload.json()).encode(), stream=stream)
-        logger.info(f"Ack: stream=%s, sequence=%s", ack.stream, ack.seq)
-        await nc.flush()
-        await nc.close()
-    except Exception as e:
-        logger.error(e, exc_info=True)
+        ack = await jetstream.publish(subject, json.dumps(payload.json()).encode(), stream=stream)
+        logger.info("Ack: stream=%s, sequence=%s", ack.stream, ack.seq)
+        await connection.flush()
+        await connection.close()
+    except Exception as exception:  # pylint: disable=broad-except
+        logger.error(exception, exc_info=True)
 
 
 def _publish_in_event_loop(subject: str, payload: BaseModel):
