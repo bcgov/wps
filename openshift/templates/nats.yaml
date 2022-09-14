@@ -27,7 +27,7 @@ objects:
         server_name: $POD_NAME
         cluster {
             port: 6222
-            name: educ-nats-cluster
+            name: wps-nats-cluster
             routes [
                nats://nats-0.nats.${POD_NAMESPACE}.svc.cluster.local:6222
                nats://nats-1.nats.${POD_NAMESPACE}.svc.cluster.local:6222
@@ -83,7 +83,7 @@ objects:
       serviceName: "nats"
       volumeClaimTemplates:
         - metadata:
-            name: nats-jetstream-educ-vol
+            name: nats-jetstream-wps
           spec:
             accessModes:
               - ReadWriteMany
@@ -104,9 +104,9 @@ objects:
                 name: nats-config
             - name: pid
               emptyDir: {}
-            - name: nats-jetstream-educ-vol
+            - name: nats-jetstream-wps
               persistentVolumeClaim:
-                claimName: nats-jetstream-educ-vol
+                claimName: nats-jetstream-wps
 
           # Required to be able to HUP signal and apply config reload
           # to the server without restarting the pod.
@@ -167,7 +167,7 @@ objects:
                 - mountPath: /var/run/nats
                   name: pid
                 - mountPath: /data
-                  name: nats-jetstream-educ-vol
+                  name: nats-jetstream-wps
 
         # Liveness/Readiness probes against the monitoring .
         livenessProbe:
