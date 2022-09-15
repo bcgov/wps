@@ -9,6 +9,9 @@ from app import config
 from app.main import app
 
 
+URL = '/api/sfms/upload'
+
+
 def get_pdt_8am():
     """ Morning SFMS runs some time in the morning
     Just to make everything extra confusing, use a PDT (-7) timestamp.
@@ -118,7 +121,7 @@ def test_endpoint(mock_publish: AsyncMock, mock_get_client: AsyncMock):
 
     mock_get_client.return_value = _mock_get_client_for_router()
     client = TestClient(app)
-    response = client.post('/api/sfms/upload',
+    response = client.post(URL,
                            files={'file': ('hfi20220904.tiff', b'')},
                            headers={
                                'Secret': config.get('SFMS_SECRET'),
@@ -143,7 +146,7 @@ def test_endpoint_no_secret(mock_publish: AsyncMock, mock_get_client: AsyncMock)
 
     mock_get_client.return_value = _mock_get_client_for_router()
     client = TestClient(app)
-    response = client.post('/api/sfms/upload',
+    response = client.post(URL,
                            files={'file': ('test_sfms_upload.py', b'')})
     # If you didn't give a secret = we should get a 401.
     assert response.status_code == 401
@@ -165,7 +168,7 @@ def test_endpoint_wrong_secret(mock_publish: AsyncMock, mock_get_client: AsyncMo
     mock_get_client.return_value = _mock_get_client_for_router()
 
     client = TestClient(app)
-    response = client.post('/api/sfms/upload',
+    response = client.post(URL,
                            files={'file': ('test_sfms_upload.py', b'')},
                            headers={'Secret': 'fudge'})
     # If your secret is wrong = we should get a 401.
