@@ -103,5 +103,5 @@ async def upload(file: UploadFile,
         # our problem. We have the file, and it's up to us to make sure it gets processed now.
         # NOTE: Ideally, we'd be able to rely on the caller to retry the upload if we fail to
         # put a message on the queue. But, we can't do that because the caller isn't very smart,
-        # and can't be given that level or responsibility.
+        # and can't be given that level of responsibility.
     return Response(status_code=200)
