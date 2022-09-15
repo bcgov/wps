@@ -9,7 +9,6 @@ export const kcInitOptions: KeycloakInitOptions = {
 }
 
 export const getKeycloakInstance = (): Keycloak => {
-  console.log({ KC_AUTH_URL, KC_REALM, KC_CLIENT })
   return new Keycloak({
     url: KC_AUTH_URL,
     realm: KC_REALM,
