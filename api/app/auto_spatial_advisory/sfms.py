@@ -34,7 +34,7 @@ def is_actual(filename: str) -> bool:
     if file_date > now_date:
         # It's from the future - it's a forecast.
         return False
-    # It's from today - now it get's weird.
+    # It's from today - now it gets weird.
     # If the current time is after solar noon, it's an actual.
     # If the current time is before solar noon, it's a forecast.
     solar_noon_today = get_hour_20(now)
