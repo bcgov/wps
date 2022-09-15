@@ -26,7 +26,7 @@ RUN python -m pip install --upgrade pip
 # Copy poetry files.
 COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
 # Install dependencies.
-RUN poetry install
+RUN poetry install --without dev
 # Get a python binding for gdal that matches the version of gdal we have installed.
 RUN poetry run python -m pip install gdal==$(gdal-config --version)
 
@@ -47,5 +47,10 @@ EXPOSE 8080
 
 # Set the classpath to include copied libs
 ENV CLASSPATH=/app/libs/REDapp_Lib.jar:/app/libs/WTime.jar:/app/libs/hss-java.jar:${CLASSPATH}
+# Tell poetry where to find the cache
+# TODO: change "worker" to somehow use $USERNAME
+ENV POETRY_CACHE_DIR="/home/worker/.cache/pypoetry"
+# Put poetry on the path
+ENV PATH="/home/worker/.local/bin:${PATH}"
 
 CMD ["./start.sh"]

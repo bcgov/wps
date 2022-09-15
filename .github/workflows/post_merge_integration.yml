@@ -8,10 +8,10 @@ on:
 jobs:
   lint-and-test-api:
     name: Python - Lint, Test with coverage
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [3.10.4]
         R: ["3.5.2"]
     env:
       RENV_PATHS_ROOT: ~/.local/share/renv
@@ -22,7 +22,7 @@ jobs:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
       - name: Setup Python ${{ matrix.python-version }} (api)
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Cache poetry installer
@@ -124,7 +124,7 @@ jobs:
           path: ./api/coverage-reports/coverage-report.xml
   lint-and-test-web:
     name: Web - Lint, Test with coverage
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         node-version: [16.x]
@@ -173,7 +173,7 @@ jobs:
           path: ./web/finalCoverage
   upload-code-coverage:
     name: Coverage with CodeCov
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [lint-and-test-web, lint-and-test-api]
     steps:
       # we need to checkout, so that we have codecov.yml
