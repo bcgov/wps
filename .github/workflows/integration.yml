@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.8, 3.9]
+        python-version: [3.10.4]
         R: ["3.5.2"]
     env:
       RENV_PATHS_ROOT: ~/.local/share/renv

@@ -5,7 +5,7 @@ description = "Wildfire Predictive Services Unit API"
 authors = ["Sybrand Strauss <sybrand.strauss@gov.bc.ca>"]
 
 [tool.poetry.dependencies]
-python = ">=3.8.10,<3.11"
+python = ">=3.10.4,<3.11"
 fastapi = "^0"
 requests = "^2"
 aiodns = "^3"
