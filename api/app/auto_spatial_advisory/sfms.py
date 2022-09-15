@@ -6,6 +6,13 @@ from app.schemas.auto_spatial_advisory import SFMSFile, SFMSRunType
 from app.utils.time import get_hour_20, get_vancouver_now
 
 
+def get_date_part(filename: str) -> str:
+    """ Get the date part of the filename.
+    Filename example: hfi20220823.tif
+    """
+    return filename[filename.rfind('.') - 8:filename.rfind('.')]
+
+
 def is_actual(filename: str) -> bool:
     """ Decide whether the file is an actual or forecast file.
     08h00 PST on the 22nd hfi20220823.tif -> forecast
@@ -13,7 +20,7 @@ def is_actual(filename: str) -> bool:
     08h00 PST on the 23rd hfi20220823.tif -> forecast
     13h00 PST on the 23rd hfi20220823.tif -> actual
     """
-    file_date_string = filename[-12:-4]
+    file_date_string = get_date_part(filename)
     file_date = date(
         year=int(file_date_string[:4]),
         month=int(file_date_string[4:6]),
@@ -64,7 +71,7 @@ def get_sfms_file_message(filename: str, meta_data: dict) -> SFMSFile:
     prefix = get_prefix(filename)
     run_type = SFMSRunType(prefix)
     issue_date = get_vancouver_now().date()
-    for_date = filename[-12:-4]
+    for_date = get_date_part(filename)
 
     return SFMSFile(key=key,
                     run_type=run_type,

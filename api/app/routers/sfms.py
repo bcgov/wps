@@ -74,7 +74,7 @@ async def upload(file: UploadFile,
     """
     logger.info('sfms/upload/')
     secret = request.headers.get('Secret')
-    if secret != config.get('SFMS_SECRET'):
+    if secret == '' or secret != config.get('SFMS_SECRET'):
         return Response(status_code=401)
     # Get an async S3 client.
     async with get_client() as (client, bucket):

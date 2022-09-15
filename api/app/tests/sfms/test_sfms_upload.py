@@ -1,7 +1,12 @@
-from unittest.mock import patch
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, patch
 from datetime import datetime, timezone
+from fastapi.testclient import TestClient
 from app.auto_spatial_advisory.sfms import is_actual
 from app.routers.sfms import get_target_filename
+from app import config
+
+from app.main import app
 
 
 def get_pdt_8am():
@@ -45,6 +50,12 @@ def test_is_actual_before_noon(_):
     assert is_actual('hfi20220823.tif') is False
     # If it's for tomorrow, we assume it's a forecast.
     assert is_actual('hfi20220824.tif') is False
+
+
+def test_tiff_does_not_break():
+    """ If someone decided to add an extra f on tiff, it should keep working!"""
+    # Slightly silly way to check that no exception is thrown:
+    assert is_actual('hfi20220824.tiff') in (True, False)
 
 
 @patch('app.auto_spatial_advisory.sfms.get_vancouver_now', return_value=get_pdt_noon())
@@ -94,3 +105,72 @@ def test_get_target_filename_day_difference(_):
     assert get_target_filename('hfi20220823.tif') == 'sfms/uploads/actual/2022-08-23/hfi20220823.tif'
     # It's 5 pm, so anything for tomorrow, is a forecast.
     assert get_target_filename('hfi20220824.tif') == 'sfms/uploads/forecast/2022-08-23/hfi20220824.tif'
+
+
+@patch('app.routers.sfms.get_client')
+@patch('app.routers.sfms.publish')
+def test_endpoint(mock_publish: AsyncMock, mock_get_client: AsyncMock):
+    mock_s3_client = AsyncMock()
+
+    @asynccontextmanager
+    async def _mock_get_client_for_router():
+        yield mock_s3_client, 'some_bucket'
+
+    mock_get_client.return_value = _mock_get_client_for_router()
+    client = TestClient(app)
+    response = client.post('/api/sfms/upload',
+                           files={'file': ('hfi20220904.tiff', b'')},
+                           headers={
+                               'Secret': config.get('SFMS_SECRET'),
+                               'Last-modified': datetime.now().isoformat(),
+                               'Create-time': datetime.now().isoformat()})
+    # We should get a 200 response if the file is uploaded successfully.
+    assert response.status_code == 200
+    # We should have called put_object once.
+    assert mock_s3_client.put_object.called
+    # We should have called publish once.
+    assert mock_publish.called
+
+
+@patch('app.routers.sfms.get_client')
+@patch('app.routers.sfms.publish')
+def test_endpoint_no_secret(mock_publish: AsyncMock, mock_get_client: AsyncMock):
+    mock_s3_client = AsyncMock()
+
+    @asynccontextmanager
+    async def _mock_get_client_for_router():
+        yield mock_s3_client, 'some_bucket'
+
+    mock_get_client.return_value = _mock_get_client_for_router()
+    client = TestClient(app)
+    response = client.post('/api/sfms/upload',
+                           files={'file': ('test_sfms_upload.py', b'')})
+    # If you didn't give a secret = we should get a 401.
+    assert response.status_code == 401
+    # We should not have called put_object.
+    assert mock_s3_client.put_object.called is False
+    # Publish should not have been called.
+    assert mock_publish.called is False
+
+
+@patch('app.routers.sfms.get_client')
+@patch('app.routers.sfms.publish')
+def test_endpoint_wrong_secret(mock_publish: AsyncMock, mock_get_client: AsyncMock):
+    mock_s3_client = AsyncMock()
+
+    @asynccontextmanager
+    async def _mock_get_client_for_router():
+        yield mock_s3_client, 'some_bucket'
+
+    mock_get_client.return_value = _mock_get_client_for_router()
+
+    client = TestClient(app)
+    response = client.post('/api/sfms/upload',
+                           files={'file': ('test_sfms_upload.py', b'')},
+                           headers={'Secret': 'fudge'})
+    # If your secret is wrong = we should get a 401.
+    assert response.status_code == 401
+    # We should not have called put_object.
+    assert mock_s3_client.put_object.called is False
+    # Publish should not have been called.
+    assert mock_publish.called is False
