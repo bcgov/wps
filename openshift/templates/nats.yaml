@@ -120,7 +120,7 @@ objects:
           terminationGracePeriodSeconds: 60
           containers:
             - name: nats
-              image: artifacts.developer.gov.bc.ca/docker-remote/nats:2.3.3-alpine
+              image: artifacts.developer.gov.bc.ca/docker-remote/nats:2.9.0-alpine
               resources:
                 requests:
                   cpu: "100m"
