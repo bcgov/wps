@@ -28,7 +28,7 @@ async def authenticate(token: str = Depends(permissive_oauth2_scheme)):
     # RSA public key format
     keycloak_public_key = '-----BEGIN PUBLIC KEY-----\n' + \
         config.get('KEYCLOAK_PUBLIC_KEY') + '\n-----END PUBLIC KEY-----'
-    keycloak_client = config.get('REACT_APP_KEYCLOAK_CLIENT')
+    keycloak_client = config.get('KEYCLOAK_CLIENT')
 
     try:
         decoded_token = jwt.decode(

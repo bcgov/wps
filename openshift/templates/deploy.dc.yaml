@@ -187,6 +187,11 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.gold.keycloak-public-key
+                - name: KEYCLOAK_CLIENT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.gold.keycloak-client
                 - name: POSTGRES_READ_USER
                   value: ${POSTGRES_USER}
                 - name: POSTGRES_WRITE_USER
