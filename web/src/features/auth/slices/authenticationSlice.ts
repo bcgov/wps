@@ -111,7 +111,10 @@ export const decodeRoles = (token: string | undefined) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const decodedToken: any = jwtDecode.default(token)
   try {
-    return decodedToken.client_roles
+    if (!isUndefined(decodedToken.client_roles)) {
+      return decodedToken.client_roles
+    }
+    return []
   } catch (e) {
     // User has no roles
     return []
