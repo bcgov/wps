@@ -2,24 +2,24 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: uvicorn-gunicorn-fastapi
+  name: wps-api-base
 labels:
   app: ${NAME}${SUFFIX}
   phase: build
-  app.kubernetes.io/name: uvicorn-gunicorn-fastapi
+  app.kubernetes.io/name: wps-api-base
   app.kubernetes.io/managed-by: template
-  app.kubernetes.io/version: "python3.8"
+  app.kubernetes.io/version: "ubuntu:22.04"
 parameters:
   - name: NAME
     value: wps-api-base
   - name: SUFFIX
   - name: VERSION
     description: Output version
-    value: "python3.9-latest"
+    value: "ubuntu.22.04-latest"
   - name: GIT_URL
     value: https://github.com/bcgov/wps.git
   - name: GIT_BRANCH
-    value: main
+    value: gunicorn_python
 objects:
   #ImageStream is created if it doesn't already exist
   - apiVersion: v1
@@ -63,3 +63,7 @@ objects:
         contextDir: openshift/wps-api-base/docker
       strategy:
         type: Docker
+        dockerStrategy:
+          from:
+            kind: ImageStreamTag
+            name: artifacts.developer.gov.bc.ca/docker-remote/ubuntu:22.04
