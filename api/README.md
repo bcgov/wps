@@ -72,8 +72,9 @@ curl -sSL https://install.python-poetry.org | python -
 
 ##### Install project python requirements
 
-`poetry env use 3.10.4` doesn't actually honor the minor version, if you want 3.10.4 exactly, you have
-to find the location of the 3.10.4 binary and point to that.
+`poetry env use 3.10.4` doesn't actually honor the minor version, if you have more than one version
+of 3.10, and you want 3.10.4 exactly, you have to find the location of the 3.10.4 binary and point
+to that.
 
 ```bash
 pyenv which python
@@ -90,7 +91,7 @@ pip install gdal==$(gdal-config --version)
 pip install pygdal==3.0.4.10
 ```
 
-**N.B.: If `poetry env use [version]` returns an `EnvCommandError` saying something like "pyenv: python3.8: command not found", but `pyenv versions` shows that 3.8.10 is installed, you must first run `pyenv shell 3.8.10` and then re-run `poetry env use [path to python 3.8.10]`.**
+**N.B.: If `poetry env use [version]` returns an `EnvCommandError` saying something like "pyenv: python3.10: command not found", but `pyenv versions` shows that 3.10.4 is installed, you must first run `pyenv shell 3.10.4` and then re-run `poetry env use [path to python 3.10.4]`.**
 
 ##### Troubleshooting
 
