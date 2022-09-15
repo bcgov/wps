@@ -176,12 +176,12 @@ export const signout =
   async dispatch => {
     try {
       const postLogoutRedirectURI = window.location.href
-      const returl = encodeURIComponent(
+      const keycloakLogoutUrl = encodeURIComponent(
         `${KC_AUTH_URL}/realms/${KC_REALM}/protocol/openid-connect/logout?client_id=${KC_CLIENT}&id_token_hint=${idToken}&post_logout_redirect_uri=${postLogoutRedirectURI}`
       )
-      const logoutURL = `${SM_LOGOUT_URL}${returl}`
+      const logoutURL = `${SM_LOGOUT_URL}${keycloakLogoutUrl}`
       window.location.href = logoutURL
     } catch (e) {
-      return dispatch(signoutError(`Failed to signout: ${e}`))
+      return dispatch(signoutError(`Failed to sign out: ${e}`))
     }
   }
