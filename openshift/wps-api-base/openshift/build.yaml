@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   creationTimestamp: null
@@ -8,7 +8,7 @@ labels:
   phase: build
   app.kubernetes.io/name: wps-api-base
   app.kubernetes.io/managed-by: template
-  app.kubernetes.io/version: "ubuntu:22.04"
+  app.kubernetes.io/version: "ubuntu.22.04"
 parameters:
   - name: NAME
     value: wps-api-base
@@ -63,7 +63,3 @@ objects:
         contextDir: openshift/wps-api-base/docker
       strategy:
         type: Docker
-        dockerStrategy:
-          from:
-            kind: ImageStreamTag
-            name: artifacts.developer.gov.bc.ca/docker-remote/ubuntu:22.04

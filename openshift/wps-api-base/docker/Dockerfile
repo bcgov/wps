@@ -1,3 +1,5 @@
+ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:22.04
+
 FROM registry.access.redhat.com/rhel7/rhel-tools AS poetry
 # We grab step 0 from registry.access.redhat.com because both openshift and your local
 # machine can access it - so it's easy to test in both environments.
@@ -23,10 +25,9 @@ RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
 # When building in openshift, you can reference the image in openshift:
 # FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu:22.04
 #
-# When building local, you can reference the docker image:
-FROM ubuntu:22.04
-# We replace this from with: FROM artifacts.developer.gov.bc.ca/docker-remote/ubuntu:22.04
-# in the openshift build template. That way thebuild works here, and in openshift.
+# When building local, you can do
+# docker build --build-arg DOCKER_IMAGE=ubuntu:22.04 . --tag=wps-api-base:ubuntu.22.04-latest
+FROM ${DOCKER_IMAGE}
 
 ARG USERNAME=worker
 ARG USER_UID=1000
