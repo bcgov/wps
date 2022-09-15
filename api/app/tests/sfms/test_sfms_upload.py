@@ -113,6 +113,8 @@ def test_get_target_filename_day_difference(_):
 @patch('app.routers.sfms.get_client')
 @patch('app.routers.sfms.publish')
 def test_endpoint(mock_publish: AsyncMock, mock_get_client: AsyncMock):
+    """ Test that if all is well - the endpoint returns 200, the file is uploaded to S3, and
+    a message is published to the queue. """
     mock_s3_client = AsyncMock()
 
     @asynccontextmanager
@@ -138,6 +140,8 @@ def test_endpoint(mock_publish: AsyncMock, mock_get_client: AsyncMock):
 @patch('app.routers.sfms.get_client')
 @patch('app.routers.sfms.publish')
 def test_endpoint_no_secret(mock_publish: AsyncMock, mock_get_client: AsyncMock):
+    """ Test that if no secret is provided, we get a 401, no file is uploaded, and no message is
+    placed on the queue. """
     mock_s3_client = AsyncMock()
 
     @asynccontextmanager
@@ -159,6 +163,8 @@ def test_endpoint_no_secret(mock_publish: AsyncMock, mock_get_client: AsyncMock)
 @patch('app.routers.sfms.get_client')
 @patch('app.routers.sfms.publish')
 def test_endpoint_wrong_secret(mock_publish: AsyncMock, mock_get_client: AsyncMock):
+    """ Test that if the wrong secret is provided, we get a 401, no file is uploaded, and no
+    message is placed on the queue. """
     mock_s3_client = AsyncMock()
 
     @asynccontextmanager
