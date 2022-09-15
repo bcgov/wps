@@ -60,26 +60,27 @@ brew install --cask wkhtmltopdf
 
 ##### Poetry
 
-Try to match the latest version of python in our production environment (as of writing, API is on 3.9.7 and C-Haines is on 3.8.10)
+Try to match the latest version of python in our production environment (as of writing, API is on 3.10.4)
 
 ```bash
 brew update
 brew install pyenv
-pyenv install 3.8.10
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+pyenv install 3.10.4
+pyenv local 3.10.4
+curl -sSL https://install.python-poetry.org | python -
 ```
 
 ##### Install project python requirements
 
-`poetry env use 3.8.10` doesn't actually honor the minor version, if you want 3.8.10 exactly, you have
-to find the location of the 3.8.10 binary and point to that.
+`poetry env use 3.10.4` doesn't actually honor the minor version, if you want 3.10.4 exactly, you have
+to find the location of the 3.10.4 binary and point to that.
 
 ```bash
 pyenv which python
 ```
 
 ```bash
-poetry env use [path to python 3.8.10, get this by running 'pyenv which python']
+poetry env use [path to python 3.10.4, get this by running 'pyenv which python']
 poetry run python -m pip install --upgrade pip
 poetry install
 poetry shell
