@@ -147,26 +147,6 @@ jobs:
           # Do not return failure on warnings - TODO: this has to be resolved!
           cmd_options: "-I"
 
-  build-c-haines-image:
-    # C-Haines relies on a gdal version not currently available in the debian image we use,
-    # so we need to create an ubuntu based image.
-    name: Build c-haines image
-    runs-on: ubuntu-20.04
-
-    steps:
-      - name: Set Variables
-        shell: bash
-        run: echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Build wps-c-haines Image
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" MODULE_NAME=c-haines DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu-base:20.04 DOCKER_FILE=Dockerfile.ubuntu bash openshift/scripts/oc_build.sh ${SUFFIX} apply
-
   deploy-c-haines:
     name: Deploy c-haines cronjob
     runs-on: ubuntu-20.04
@@ -174,7 +154,7 @@ jobs:
     # - the image to be built before we can deploy.
     # - the database to be there (so we can write to it).
     # - wait for the api deployment, as it's responsible for upgrading the database.
-    needs: [build-c-haines-image, prepare-dev-database, deploy-dev]
+    needs: [build-api-image, prepare-dev-database, deploy-dev]
 
     steps:
       - name: Set Variables
