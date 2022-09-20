@@ -35,7 +35,7 @@ def get_fuel_types_from_object_store():
     gdal.SetConfigOption('AWS_S3_ENDPOINT', config.get('OBJECT_STORE_SERVER'))
     gdal.SetConfigOption('AWS_VIRTUAL_HOSTING', 'FALSE')
     bucket = config.get('OBJECT_STORE_BUCKET')
-    fuel_types_vector_filepath = f'/vsis3/{bucket}/ftl/fuel_types_epsg_3005.shp'
+    fuel_types_vector_filepath = f'/vsis3/{bucket}/ftl/fuel_types_from_sfms_epsg_3005.shp'
 
     driver = ogr.GetDriverByName('ESRI Shapefile')
     fuel_types = driver.Open(fuel_types_vector_filepath, gdal.GA_ReadOnly)

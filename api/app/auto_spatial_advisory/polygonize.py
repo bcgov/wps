@@ -80,7 +80,7 @@ def polygonize_geotiff_to_shapefile(raster_source_filename, vector_dest_filename
     dest_srs.ImportFromEPSG(3005)
     dest_layer = destination.CreateLayer(vector_dest_filename, geom_type=ogr.wkbPolygon, srs=dest_srs)
     dest_layer.CreateField(value)
-    # TODO: would be nice to rename this field to "Fuel Type Id" - "Band 1" means nothing
+    # 'Band 1' is the field name on the layer for Fuel Type ID
     dest_field = dest_layer.GetLayerDefn().GetFieldIndex('Band 1')
     gdal.Polygonize(source_band, None, dest_layer, dest_field, [])
 
