@@ -13,7 +13,7 @@ def get_date_part(filename: str) -> str:
     return filename[filename.rfind('.') - 8:filename.rfind('.')]
 
 
-def is_actual(filename: str) -> bool:
+def get_prefix(filename: str) -> bool:
     """ Decide whether the file is an actual or forecast file.
     08h00 PST on the 22nd hfi20220823.tif -> forecast
     13h00 PST on the 22nd hfi20220823.tif -> forecast
@@ -38,11 +38,7 @@ def is_actual(filename: str) -> bool:
     # If the current time is after solar noon, it's an actual.
     # If the current time is before solar noon, it's a forecast.
     solar_noon_today = get_hour_20(now)
-    return now > solar_noon_today
-
-
-def get_prefix(filename: str) -> str:
-    if is_actual(filename):
+    if now > solar_noon_today:
         return 'actual'
     return 'forecast'
 
