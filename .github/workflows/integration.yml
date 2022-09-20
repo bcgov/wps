@@ -74,8 +74,8 @@ jobs:
         # gdal, but it now has a bug that causes it to fail to install on ubuntu20.04)
         working-directory: ./api
         run: |
-          poetry run pip install numpy
-          poetry run pip install pygdal==3.0.4.10
+          poetry run python -m pip install numpy
+          poetry run python -m pip install gdal==$(gdal-config --version)
       - name: Lint (api)
         # We used to be able to do linting before installing gdal, but it's not possible anymore.
         # We can however place it ahead of the R installs.
