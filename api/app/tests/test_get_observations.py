@@ -2,10 +2,7 @@
 import logging
 import asyncio
 from datetime import datetime
-from typing import List, Generator
-from contextlib import contextmanager
 import json
-from app.utils import strtobool
 from pytest_bdd import scenario, given, then, parsers
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
@@ -17,6 +14,7 @@ from app.db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
 from app.tests.common import default_mock_client_get
 import app.wildfire_one.wfwx_api
+from app.utils import strtobool
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +41,7 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx: bool, mock_redis_
         result.set_result(stations)
         return result
 
+    # pylint: disable=unused-argument
     def mock_get_hourly_actuals(
             session: Session,
             station_codes: List[int],

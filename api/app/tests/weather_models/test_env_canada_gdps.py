@@ -3,15 +3,13 @@
 import os
 import sys
 import logging
-from typing import Generator
-from contextlib import contextmanager
+from unittest.mock import MagicMock
 import datetime
 from datetime import datetime
 import pytest
 import requests
 import shapely.wkt
 from sqlalchemy.orm import Session
-from geoalchemy2.shape import from_shape
 import app.utils.time as time_utils
 import app.db.database
 from app.schemas.stations import WeatherStation, Season
@@ -108,7 +106,11 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
 
 @pytest.fixture()
 def mock_session(monkeypatch):
-    """ Mocked out sqlalchemy session object """
+    """ Mocked out database queries """
+    # For some reason the autouse hookup from conftest doesn't take!
+    monkeypatch.setattr(app.db.database, '_get_write_session', MagicMock())
+    monkeypatch.setattr(app.db.database, '_get_read_session', MagicMock())
+
     geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
             " -120.525 50.62500000000001, -120.525 50.77500000000001))")
     shape = shapely.wkt.loads(geom)

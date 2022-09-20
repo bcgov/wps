@@ -13,9 +13,7 @@ from app.tests.common import (
     MockJWTDecode, default_aiobotocore_get_session, default_mock_requests_get,
     default_mock_requests_post, default_mock_requests_session_get,
     default_mock_requests_session_post)
-from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
-import app.utils.time as time_utils
 from app.schemas.shared import WeatherDataRequest
 import app.wildfire_one.wildfire_fetchers
 import app.utils.redis
