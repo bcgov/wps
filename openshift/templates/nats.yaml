@@ -1,4 +1,3 @@
----
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
@@ -6,12 +5,9 @@ metadata:
   annotations:
     "openshift.io/display-name": nats
 parameters:
-  - name: APP_NAME
-    description: Application name (wps - wildfire predictive services)
-    value: wps
-  - name: SUFFIX
-    description: Deployment suffix, e.g. pr-###
-    required: true
+  - description: The pod namespace
+    name: POD_NAMESPACE
+    value: ${POD_NAMESPACE}
 objects:
   - apiVersion: v1
     kind: ConfigMap
@@ -33,11 +29,11 @@ objects:
             port: 6222
             name: wps-nats-cluster
             routes [
-               nats://nats-0.nats.${APP_NAME}-${SUFFIX}.svc.cluster.local:6222
-               nats://nats-1.nats.${APP_NAME}-${SUFFIX}.svc.cluster.local:6222
-               nats://nats-2.nats.${APP_NAME}-${SUFFIX}.svc.cluster.local:6222
-               nats://nats-3.nats.${APP_NAME}-${SUFFIX}.svc.cluster.local:6222
-               nats://nats-4.nats.${APP_NAME}-${SUFFIX}.svc.cluster.local:6222
+               nats://nats-0.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://nats-1.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://nats-2.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://nats-3.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://nats-4.nats.${POD_NAMESPACE}.svc.cluster.local:6222
             ]
             cluster_advertise: $CLUSTER_ADVERTISE
             connect_retries: 50
@@ -87,7 +83,7 @@ objects:
       serviceName: "nats"
       volumeClaimTemplates:
         - metadata:
-            name: wps-nats-jetstream
+            name: nats-jetstream-wps
           spec:
             accessModes:
               - ReadWriteMany
@@ -108,9 +104,9 @@ objects:
                 name: nats-config
             - name: pid
               emptyDir: {}
-            - name: wps-nats-jetstream
+            - name: nats-jetstream-wps
               persistentVolumeClaim:
-                claimName: wps-nats-jetstream
+                claimName: nats-jetstream-wps
 
           # Required to be able to HUP signal and apply config reload
           # to the server without restarting the pod.
@@ -124,7 +120,7 @@ objects:
           terminationGracePeriodSeconds: 60
           containers:
             - name: nats
-              image: image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/nats:2.8.4-alpine
+              image: artifacts.developer.gov.bc.ca/docker-remote/nats:2.9.0-alpine
               resources:
                 requests:
                   cpu: "100m"
@@ -156,16 +152,12 @@ objects:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.name
-                - name: APP_NAME
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.namespace
-                - name: SUFFIX
+                - name: POD_NAMESPACE
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.namespace
                 - name: CLUSTER_ADVERTISE
-                  value: $(POD_NAME).nats.$(APP_NAME)-$(SUFFIX).svc
+                  value: $(POD_NAME).nats.$(POD_NAMESPACE).svc
                 - name: TZ
                   value: America/Vancouver
               imagePullPolicy: Always
@@ -175,7 +167,7 @@ objects:
                 - mountPath: /var/run/nats
                   name: pid
                 - mountPath: /data
-                  name: wps-nats-jetstream
+                  name: nats-jetstream-wps
 
         # Liveness/Readiness probes against the monitoring .
         livenessProbe:
