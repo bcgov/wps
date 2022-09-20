@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import List, Generator
 from contextlib import contextmanager
 import json
-from distutils.util import strtobool
 from pytest_bdd import scenario, given, then, parsers
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
@@ -19,6 +18,7 @@ from app.db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
 from app.tests.common import default_mock_client_get
 import app.wildfire_one.wfwx_api
+from app.utils import strtobool
 
 logger = logging.getLogger(__name__)
 
