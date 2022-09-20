@@ -3,11 +3,11 @@
 import logging
 import json
 import asyncio
-from typing import Final, List
+from typing import List
 import nats
 from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel
-from app import config
+from app.auto_spatial_advisory.nats import server
 
 
 logger = logging.getLogger(__name__)
@@ -19,8 +19,6 @@ async def _publish(stream: str, subject: str, payload: BaseModel, subjects: List
     NOTE: Take care with thread contexts!
     """
     try:
-
-        server: Final = config.get('NATS_SERVER')
         # connect to nats server.
         logger.info("Connecting to NATS server %s...", server)
         connection = await nats.connect(server)  # pylint: disable=no-member
