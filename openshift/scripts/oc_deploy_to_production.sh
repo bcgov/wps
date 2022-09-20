@@ -32,6 +32,8 @@ MODULE_NAME=c-haines bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 MODULE_NAME=web bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 echo Provision database
 CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi PVC_SIZE=45Gi PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_db.sh prod ${RUN_TYPE}
+echo Provision NATS
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_nats.sh prod ${RUN_TYPE}
 echo Deploy API
 MODULE_NAME=api WORKERS_PER_CORE=0.25 CPU_REQUEST=100m CPU_LIMIT=500m MEMORY_REQUEST=3Gi MEMORY_LIMIT=6Gi REPLICAS=3 PROJ_TARGET=${PROJ_TARGET} VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca bash $(dirname ${0})/oc_deploy.sh prod ${RUN_TYPE}
 echo Env Canada Subscriber
