@@ -7,6 +7,7 @@ from datetime import date
 from time import perf_counter
 import tempfile
 from shapely import wkb, wkt
+from shapely.validation import make_valid
 from osgeo import ogr, osr
 from app import config
 from app.db.models.auto_spatial_advisory import ClassifiedHfi, RunTypeEnum
@@ -86,6 +87,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                 # different versions of gdal (bytearray vs. bytestring) - so we're opting for
                 # wkt instead of wkb here for better compatibility.
                 polygon = wkt.loads(geometry.ExportToIsoWkt())
+                polygon = make_valid(polygon)
                 obj = ClassifiedHfi(threshold=threshold_id,
                                     run_type=RunTypeEnum(run_type.value),
                                     run_date=run_date,

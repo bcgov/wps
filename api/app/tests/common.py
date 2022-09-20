@@ -14,7 +14,7 @@ class MockJWTDecode:
     """ Mock pyjwt module """
 
     def __init__(self):
-        self.decoded_token = {"preferred_username": "test_username"}
+        self.decoded_token = {"idir_username": "test_username"}
 
     def __getitem__(self, key):
         return self.decoded_token[key]

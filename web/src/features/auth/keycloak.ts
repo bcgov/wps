@@ -4,7 +4,8 @@ import Keycloak, { KeycloakInitOptions } from 'keycloak-js'
 export const kcInitOptions: KeycloakInitOptions = {
   onLoad: 'login-required',
   checkLoginIframe: false,
-  enableLogging: process.env.NODE_ENV !== 'production'
+  enableLogging: process.env.NODE_ENV !== 'production',
+  pkceMethod: 'S256'
 }
 
 export const getKeycloakInstance = (): Keycloak => {

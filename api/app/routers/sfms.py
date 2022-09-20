@@ -1,13 +1,15 @@
 """ Router for SFMS """
-import os
 import io
 import logging
-from datetime import datetime, date
+from datetime import datetime
 from tempfile import SpooledTemporaryFile
-from fastapi import APIRouter, UploadFile, Response, Request
+from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks
+from app.nats import publish
 from app.utils.s3 import get_client
 from app import config
-from app.utils.time import get_hour_20, get_vancouver_now
+from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename
+from app.auto_spatial_advisory.nats import stream_name, subjects
+
 
 logger = logging.getLogger(__name__)
 
@@ -40,55 +42,6 @@ class FileLikeObject(io.IOBase):
         return self.file.seek(offset, whence)
 
 
-def is_actual(filename: str) -> bool:
-    """ Decide whether the file is an actual or forecast file.
-    08h00 PST on the 22nd hfi20220823.tif -> forecast
-    13h00 PST on the 22nd hfi20220823.tif -> forecast
-    08h00 PST on the 23rd hfi20220823.tif -> forecast
-    13h00 PST on the 23rd hfi20220823.tif -> actual
-    """
-    file_date_string = filename[-12:-4]
-    file_date = date(
-        year=int(file_date_string[:4]),
-        month=int(file_date_string[4:6]),
-        day=int(file_date_string[6:8]))
-    now = get_vancouver_now()
-    now_date = now.date()
-
-    if file_date < now_date:
-        # It's from the past - it's an actual.
-        return True
-    if file_date > now_date:
-        # It's from the future - it's a forecast.
-        return False
-    # It's from today - now it get's weird.
-    # If the current time is after solar noon, it's an actual.
-    # If the current time is before solar noon, it's a forecast.
-    solar_noon_today = get_hour_20(now)
-    return now > solar_noon_today
-
-
-def get_prefix(filename: str) -> str:
-    if is_actual(filename):
-        return 'actual'
-    return 'forecast'
-
-
-def get_target_filename(filename: str) -> str:
-    """ Get the target filename, something that looks like this:
-    bucket/sfms/upload/forecast/[issue date NOT TIME]/hfi20220823.tif
-    bucket/sfms/upload/actual/[issue date NOT TIME]/hfi20220823.tif
-    """
-    # We are assuming that the local server time, matches the issue date. We assume that
-    # right after a file is generated, this API is called - and as such the current
-    # time IS the issue date.
-    issue_date = get_vancouver_now()
-    # depending on the issue date, we decide if it's a forecast or actual.
-    prefix = get_prefix(filename)
-    # create the filename
-    return os.path.join('sfms', 'uploads', prefix, issue_date.isoformat()[:10], filename)
-
-
 def get_meta_data(request: Request) -> dict:
     """ Create the meta-data for the s3 object.
     # NOTE: No idea what timezone this is going to be. Is it UTC? Is it PST? Is it PDT?
@@ -104,7 +57,8 @@ def get_meta_data(request: Request) -> dict:
 
 @router.post('/upload')
 async def upload(file: UploadFile,
-                 request: Request):
+                 request: Request,
+                 background_tasks: BackgroundTasks):
     """
     Trigger the SFMS process to run on the provided file.
     The header MUST include the SFMS secret key.
@@ -120,7 +74,7 @@ async def upload(file: UploadFile,
     """
     logger.info('sfms/upload/')
     secret = request.headers.get('Secret')
-    if secret != config.get('SFMS_SECRET'):
+    if not secret or secret != config.get('SFMS_SECRET'):
         return Response(status_code=401)
     # Get an async S3 client.
     async with get_client() as (client, bucket):
@@ -128,8 +82,26 @@ async def upload(file: UploadFile,
         # in case we need to know about it in the future.
         key = get_target_filename(file.filename)
         logger.info('Uploading file "%s" to "%s"', file.filename, key)
-        await client.put_object(Bucket=bucket, Key=key, Body=FileLikeObject(file.file),
-                                Metadata=get_meta_data(request))
+        meta_data = get_meta_data(request)
+        await client.put_object(Bucket=bucket,
+                                Key=key,
+                                Body=FileLikeObject(file.file),
+                                Metadata=meta_data)
         logger.info('Done uploading file')
-        # TODO: Put message on queue to trigger processing of new HFI data.
-        return Response(status_code=200)
+    try:
+        # We don't want to hold back the response to the client, so we'll publish the message
+        # as a background task.
+        # As noted below, the caller will have no idea if anything has gone wrong, which is
+        # unfortunate, but we can't do anything about it.
+        message = get_sfms_file_message(file.filename, meta_data)
+        subject = 'sfms.file'
+        background_tasks.add_task(publish, stream_name, subject, message, subjects)
+    except Exception as exception:  # pylint: disable=broad-except
+        logger.error(exception, exc_info=True)
+        # Regardless of what happens with putting a message on the queue, we return 200 to the
+        # caller. The caller doesn't care that we failed to put a message on the queue. That's
+        # our problem. We have the file, and it's up to us to make sure it gets processed now.
+        # NOTE: Ideally, we'd be able to rely on the caller to retry the upload if we fail to
+        # put a message on the queue. But, we can't do that because the caller isn't very smart,
+        # and can't be given that level of responsibility.
+    return Response(status_code=200)
