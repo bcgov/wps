@@ -137,7 +137,7 @@ objects:
               volumeMounts:
                 - name: config-env
                   mountPath: "/opt/app-root/src/config.js"
-                  subPath: config.js
+                  subPath: gold.config.js
             #############################################################################
             # API container
             #############################################################################
@@ -186,7 +186,12 @@ objects:
                   valueFrom:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
-                      key: env.keycloak-public-key
+                      key: env.gold.keycloak-public-key
+                - name: KEYCLOAK_CLIENT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.gold.keycloak-client
                 - name: POSTGRES_READ_USER
                   value: ${POSTGRES_USER}
                 - name: POSTGRES_WRITE_USER
