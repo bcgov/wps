@@ -13,7 +13,7 @@ def get_date_part(filename: str) -> str:
     return filename[filename.rfind('.') - 8:filename.rfind('.')]
 
 
-def get_prefix(filename: str) -> bool:
+def get_prefix(filename: str) -> str:
     """ Decide whether the file is an actual or forecast file.
     08h00 PST on the 22nd hfi20220823.tif -> forecast
     13h00 PST on the 22nd hfi20220823.tif -> forecast

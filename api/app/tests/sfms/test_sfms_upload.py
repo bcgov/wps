@@ -1,3 +1,4 @@
+from typing import Final
 from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, patch
 from datetime import datetime, timezone
@@ -10,6 +11,10 @@ from app.main import app
 
 
 URL = '/api/sfms/upload'
+
+yesterday: Final = 'hfi20220822.tif'
+today: Final = 'hfi20220823.tif'
+tomorrow: Final = 'hfi20220824.tif'
 
 
 def get_pdt_8am():
@@ -48,11 +53,11 @@ def get_time_in_utc(date: datetime):
 def test_is_actual_before_noon(_):
     """ Test is_actual function """
     # If it's for yesterday, we assume it's an actual.
-    assert get_prefix('hfi20220822.tif') is 'actual'
+    assert get_prefix(yesterday) == 'actual'
     # If it's for today, we assume it's a forecast (actual only comes after SOLAR noon).
-    assert get_prefix('hfi20220823.tif') is 'forecast'
+    assert get_prefix(today) == 'forecast'
     # If it's for tomorrow, we assume it's a forecast.
-    assert get_prefix('hfi20220824.tif') is 'forecast'
+    assert get_prefix(tomorrow) == 'forecast'
 
 
 def test_tiff_does_not_break():
@@ -65,33 +70,33 @@ def test_tiff_does_not_break():
 def test_is_actual_after_noon(_):
     """ Test is_actual function """
     # If it's for yesterday, we assume it's an actual.
-    assert get_prefix('hfi20220822.tif') is 'actual'
+    assert get_prefix(yesterday) == 'actual'
     # If it's for today, we assume it's an forecast, since it's BEFORE solar noon.
-    assert get_prefix('hfi20220823.tif') is 'forecast'
+    assert get_prefix(today) == 'forecast'
     # If it's for tomorrow, we assume it's a forecast.
-    assert get_prefix('hfi20220824.tif') is 'forecast'
+    assert get_prefix(tomorrow) == 'forecast'
 
 
 @patch('app.auto_spatial_advisory.sfms.get_vancouver_now', return_value=get_pdt_1pm())
 def test_is_actual_after_solar_noon(_):
     """ Test is_actual function """
     # If it's for yesterday, we assume it's an actual.
-    assert get_prefix('hfi20220822.tif') is 'actual'
+    assert get_prefix(yesterday) == 'actual'
     # If it's for today, we assume it's an actual, since it's after SOLAR noon.
-    assert get_prefix('hfi20220823.tif') is 'actual'
+    assert get_prefix(today) == 'actual'
     # If it's for tomorrow, we assume it's a forecast.
-    assert get_prefix('hfi20220824.tif') is 'forecast'
+    assert get_prefix(tomorrow) == 'forecast'
 
 
 @patch('app.auto_spatial_advisory.sfms.get_vancouver_now', return_value=get_pdt_1pm())
 def test_get_target_filename(_):
     """ Test get_target_filename function """
     # If it's for yesterday, we assume it's an actual.
-    assert get_target_filename('hfi20220822.tif') == 'sfms/uploads/actual/2022-08-23/hfi20220822.tif'
+    assert get_target_filename(yesterday) == 'sfms/uploads/actual/2022-08-23/hfi20220822.tif'
     # If it's for today, after solar noon, we assume it's an actual.
-    assert get_target_filename('hfi20220823.tif') == 'sfms/uploads/actual/2022-08-23/hfi20220823.tif'
+    assert get_target_filename(today) == 'sfms/uploads/actual/2022-08-23/hfi20220823.tif'
     # If it's for tomorrow, we assume it's a forecast.
-    assert get_target_filename('hfi20220824.tif') == 'sfms/uploads/forecast/2022-08-23/hfi20220824.tif'
+    assert get_target_filename(tomorrow) == 'sfms/uploads/forecast/2022-08-23/hfi20220824.tif'
 
 
 @patch('app.auto_spatial_advisory.sfms.get_vancouver_now', return_value=get_pdt_17())
@@ -103,11 +108,11 @@ def test_get_target_filename_day_difference(_):
     # PDT.
     # Now sure. We could store the entire timestamp in the filename, and then we know exactly
     # what we're dealing with - but that seems excessive.
-    assert get_target_filename('hfi20220822.tif') == 'sfms/uploads/actual/2022-08-23/hfi20220822.tif'
+    assert get_target_filename(yesterday) == 'sfms/uploads/actual/2022-08-23/hfi20220822.tif'
     # It's 5 pm, so anything for today, is an actual.
-    assert get_target_filename('hfi20220823.tif') == 'sfms/uploads/actual/2022-08-23/hfi20220823.tif'
+    assert get_target_filename(today) == 'sfms/uploads/actual/2022-08-23/hfi20220823.tif'
     # It's 5 pm, so anything for tomorrow, is a forecast.
-    assert get_target_filename('hfi20220824.tif') == 'sfms/uploads/forecast/2022-08-23/hfi20220824.tif'
+    assert get_target_filename(tomorrow) == 'sfms/uploads/forecast/2022-08-23/hfi20220824.tif'
 
 
 @patch('app.routers.sfms.get_client')
