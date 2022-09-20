@@ -2,6 +2,7 @@
 """
 import os
 from datetime import date
+from typing import Final
 from app.schemas.auto_spatial_advisory import SFMSFile, SFMSRunType
 from app.utils.time import get_hour_20, get_vancouver_now
 
@@ -20,6 +21,8 @@ def get_prefix(filename: str) -> str:
     08h00 PST on the 23rd hfi20220823.tif -> forecast
     13h00 PST on the 23rd hfi20220823.tif -> actual
     """
+    actual: Final = 'actual'
+    forecast: Final = 'forecast'
     file_date_string = get_date_part(filename)
     file_date = date(
         year=int(file_date_string[:4]),
@@ -30,17 +33,17 @@ def get_prefix(filename: str) -> str:
 
     if file_date < now_date:
         # It's from the past - it's an actual.
-        return True
+        return actual
     if file_date > now_date:
         # It's from the future - it's a forecast.
-        return False
+        return forecast
     # It's from today - now it gets weird.
     # If the current time is after solar noon, it's an actual.
     # If the current time is before solar noon, it's a forecast.
     solar_noon_today = get_hour_20(now)
     if now > solar_noon_today:
-        return 'actual'
-    return 'forecast'
+        return actual
+    return forecast
 
 
 def get_target_filename(filename: str) -> str:
