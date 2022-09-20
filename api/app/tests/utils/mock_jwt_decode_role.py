@@ -3,14 +3,11 @@ class MockJWTDecodeWithRole:
 
     def __init__(self, role):
         self.decoded_token = {
-            "preferred_username": "test_username",
-            "resource_access": {
-                "wps-web": {
-                    "roles": [
-                        role
-                    ]
-                }
-            }}
+            "idir_username": "test_username",
+            "client_roles": [
+                role
+            ]
+        }
 
     def __getitem__(self, key):
         return self.decoded_token[key]
