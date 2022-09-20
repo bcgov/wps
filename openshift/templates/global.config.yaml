@@ -111,6 +111,9 @@ parameters:
   - name: SFMS_SECRET
     description: Secret for SFMS process triger
     required: True
+  - name: NATS_SERVER
+    description: NATS server url
+    required: True
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -140,6 +143,7 @@ objects:
       env.redis-cache-env-canada: ${REDIS_CACHE_ENV_CANADA}
       env.redis-env-canada-cache-expiry: ${REDIS_ENV_CANADA_CACHE_EXPIRY}
       env.gunicorn.timeout: ${GUNICORN_TIMEOUT}
+      env.nats-server: ${NATS_SERVER}
 
   - kind: Secret
     apiVersion: v1
