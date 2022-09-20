@@ -45,7 +45,6 @@ jobs:
           python install-poetry.py --version 1.2.0
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
-          poetry config experimental.new-installer false
       # poetry cache folder: /home/runner/.cache/pypoetry
       - name: Cache poetry
         uses: actions/cache@v3
@@ -108,9 +107,9 @@ jobs:
         run: |
           export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
           export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6:/$LD_PRELOAD
-          export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATHpoetry
+          export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATH
           export ORIGINS=testorigin
-          poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings -vvv
+          poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings -vvv --log-level=DEBUG
       - name: Create coverage report (api)
         working-directory: ./api
         shell: bash
