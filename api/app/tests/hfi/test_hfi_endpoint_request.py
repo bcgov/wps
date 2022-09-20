@@ -143,14 +143,10 @@ def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):
 
         def __init__(self, role):
             self.decoded_token = {
-                "preferred_username": "test_username",
-                "resource_access": {
-                    "wps-web": {
-                        "roles": [
-                            role
-                        ]
-                    }
-                }}
+                "idir_username": "test_username",
+                "client_roles": [
+                    role
+                ]}
 
         def __getitem__(self, key):
             return self.decoded_token[key]
@@ -166,7 +162,7 @@ def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):
     def mock_fire_start_role_function(*args, **kwargs):  # pylint: disable=unused-argument
         return MockJWTDecodeWithRole(role)
 
-    if(role != 'None'):
+    if (role != 'None'):
         monkeypatch.setattr("jwt.decode", mock_fire_start_role_function)
 
 
