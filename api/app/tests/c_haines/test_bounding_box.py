@@ -1,7 +1,7 @@
 """ Test the bounding box logic.
 """
 import os
-from distutils.util import strtobool
+from app.utils import strtobool
 from osgeo import gdal
 from pyproj import CRS
 from pytest_bdd import scenario, given, then, parsers

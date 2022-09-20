@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import List, Generator
 from contextlib import contextmanager
 import json
-from distutils.util import strtobool
+from app.utils import strtobool
 from pytest_bdd import scenario, given, then, parsers
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
