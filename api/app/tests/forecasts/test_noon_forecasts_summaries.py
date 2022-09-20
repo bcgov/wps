@@ -9,7 +9,6 @@ from typing import List, Generator
 from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 import pytest
 import app.main
 from app.db.models.forecasts import NoonForecast
@@ -27,32 +26,6 @@ mock_tmps = [20, 21, 22]
 mock_rhs = [50, 51, 52]
 
 
-def get_session_with_data():
-    """ Create a session with some test data.
-    """
-    session = UnifiedAlchemyMagicMock()
-    station_codes = [209, 322]
-    weather_values = []
-    for index, tmp in enumerate(mock_tmps):
-        weather_values.append({
-            'tmp': tmp,
-            'rh': mock_rhs[index]
-        })
-
-    for code in station_codes:
-        for value in weather_values:
-            session.add(
-                NoonForecast(
-                    station_code=code,
-                    weather_date=weather_date,
-                    created_at=time_utils.get_utc_now(),
-                    temperature=value['tmp'],
-                    relative_humidity=value['rh']
-                )
-            )
-    return session
-
-
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_noon_forecasts_summaries.feature', 'Get noon forecasts summaries(historic)')
 def test_noon_forecasts():
@@ -62,13 +35,8 @@ def test_noon_forecasts():
 @given(parsers.parse('I request noon forecasts for stations: {codes}'),
        target_fixture='response',
        converters={'codes': json.loads})
-def given_request(monkeypatch, codes: List):
+def given_request(codes: List):
     """ Stub forecasts into the database and make a request """
-
-    @contextmanager
-    def mock_get_session_scope(*_) -> Generator[Session, None, None]:
-        yield get_session_with_data()
-    monkeypatch.setattr(app.db.database, 'get_read_session_scope', mock_get_session_scope)
 
     client = TestClient(app.main.app)
     endpoint = '/api/forecasts/noon/summaries/'

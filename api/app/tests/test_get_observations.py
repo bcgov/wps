@@ -10,8 +10,6 @@ from pytest_bdd import scenario, given, then, parsers
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
 from sqlalchemy.orm import Session
-from alchemy_mock.mocking import UnifiedAlchemyMagicMock
-from alchemy_mock.compat import mock
 import pytest
 import app.main
 import app.utils.time
@@ -45,21 +43,17 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx: bool, mock_redis_
         result.set_result(stations)
         return result
 
-    @contextmanager
-    def mock_get_session_scope(*_) -> Generator[Session, None, None]:
-        """ Slap some actuals into the database to match the stations being queried """
+    def mock_get_hourly_actuals(
+            session: Session,
+            station_codes: List[int],
+            start_date: datetime,
+            end_date: datetime = None):
+        """ Mock the get_hourly_actuals function. """
         hourly_actuals = []
         for code in codes:
             hourly_actuals.append(HourlyActual(weather_date=datetime.fromisoformat(
                 "2020-01-01T01:01+00:00"), station_code=code, temp_valid=True, temperature=11.1))
-
-        # Create a mock session - no filters, this is what you'll get on any query
-        session = UnifiedAlchemyMagicMock(data=[
-            (
-                [mock.call.query(HourlyActual)], hourly_actuals
-            )
-        ])
-        yield session
+        return hourly_actuals
 
     class MockRedis():
         """ Mock class"""
@@ -91,8 +85,7 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx: bool, mock_redis_
         monkeypatch.setenv("USE_WFWX", 'False')
         monkeypatch.setattr('app.wildfire_one.wfwx_api.get_stations_by_codes',
                             lambda _: build_mock_stations(codes))
-        monkeypatch.setattr(
-            app.db.database, 'get_read_session_scope', mock_get_session_scope)
+        monkeypatch.setattr('app.hourlies.get_hourly_actuals', mock_get_hourly_actuals)
 
     # Create API client and get the reppnse.
     client = TestClient(app.main.app)

@@ -10,8 +10,6 @@ import shapely.wkt
 from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
 # TODO: get rid of alchemy mock
-from alchemy_mock.mocking import UnifiedAlchemyMagicMock
-from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
 import app.utils.time as time_utils
 import app.db.database
@@ -41,37 +39,9 @@ def mock_session(monkeypatch):
         id=1, prediction_model_id=3, prediction_run_timestamp=time_utils.get_utc_now(),
         prediction_model=hrdps_prediction_model, complete=True)
 
-    @contextmanager
-    def mock_get_session_hrdps_scope(*args):
-
-        yield UnifiedAlchemyMagicMock(data=[
-            (
-                [mock.call.query(PredictionModel),
-                 mock.call.filter(PredictionModel.abbreviation == 'HRDPS',
-                                  PredictionModel.projection == 'ps2.5km')],
-                [hrdps_prediction_model],
-            ),
-            (
-                [mock.call.query(ProcessedModelRunUrl),
-                 mock.call.filter(ProcessedModelRunUrl == hrdps_url)],
-                [hrdps_processed_model_run]
-            ),
-            (
-                [mock.call.query(PredictionModelRunTimestamp)],
-                [hrdps_prediction_model_run]
-            ),
-            (
-                [mock.call.query(PredictionModelGridSubset)],
-                [PredictionModelGridSubset(
-                    id=1, prediction_model_id=hrdps_prediction_model.id, geom=from_shape(shape))]
-            )
-        ])
-
     def mock_get_hrdps_prediction_model_run_timestamp_records(*args, **kwargs):
         return [(hrdps_prediction_model_run, hrdps_prediction_model)]
 
-    monkeypatch.setattr(app.db.database, 'get_write_session_scope',
-                        mock_get_session_hrdps_scope)
     monkeypatch.setattr(app.weather_models.env_canada, 'get_prediction_model_run_timestamp_records',
                         mock_get_hrdps_prediction_model_run_timestamp_records)
 
