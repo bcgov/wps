@@ -2,38 +2,26 @@
 
 import os
 import sys
-from contextlib import contextmanager
 import logging
 import pytest
 import requests
-import shapely.wkt
 from sqlalchemy.orm import Session
-from geoalchemy2.shape import from_shape
 import app.utils.time as time_utils
-import app.db.database
 from app.weather_models import env_canada
-from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           PredictionModelGridSubset)
+from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp)
+import app.db.database
 # pylint: disable=unused-import
 from app.tests.weather_models.test_env_canada_gdps import (MockResponse, mock_get_stations,
                                                            mock_get_model_run_predictions_for_grid,
                                                            mock_get_actuals_left_outer_join_with_predictions)
-# pylint: disable=unused-argument, redefined-outer-name
-
 
 logger = logging.getLogger(__name__)
 
 
 @pytest.fixture()
-def mock_session(monkeypatch):
+def mock_database(monkeypatch):
     """ Mocked out sqlalchemy session object """
-    geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
-            " -120.525 50.62500000000001, -120.525 50.77500000000001))")
-    shape = shapely.wkt.loads(geom)
 
-    rdps_url = ('https://dd.weather.gc.ca/model_gem_regional/10km/grib2/00/034/'
-                'CMC_reg_RH_TGL_2_ps10km_2020110500_P034.grib2')
-    rdps_processed_model_run = ProcessedModelRunUrl(url=rdps_url)
     rdps_prediction_model = PredictionModel(id=2,
                                             abbreviation='RDPS',
                                             projection='ps10km',
@@ -97,7 +85,7 @@ def test_get_rdps_download_urls():
 
 @pytest.mark.usefixtures('mock_get_processed_file_record')
 def test_process_rdps(mock_download,
-                      mock_session,
+                      mock_database,
                       mock_get_model_run_predictions_for_grid,
                       mock_get_actuals_left_outer_join_with_predictions,
                       mock_get_stations):
@@ -107,5 +95,4 @@ def test_process_rdps(mock_download,
     sys.argv = ["argv", "RDPS"]
     assert env_canada.process_models() == 1
 
-# pylint: enable=unused-argument, redefined-outer-name
 # pylint: enable=unused-import

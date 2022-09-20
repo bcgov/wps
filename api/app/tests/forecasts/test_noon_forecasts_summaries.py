@@ -1,11 +1,9 @@
 """ Functional testing for /noon_forecasts/summaries/ endpoint.
 """
-
-from datetime import timedelta
+from datetime import timedelta, datetime
 import json
 import logging
-from contextlib import contextmanager
-from typing import List, Generator
+from typing import List
 from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -13,6 +11,7 @@ import pytest
 import app.main
 from app.db.models.forecasts import NoonForecast
 import app.utils.time as time_utils
+from app.schemas.stations import StationCodeList
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +25,34 @@ mock_tmps = [20, 21, 22]
 mock_rhs = [50, 51, 52]
 
 
+def mock_query_noon_forecast_records(session: Session,
+                                     station_codes: StationCodeList,
+                                     start_date: datetime,
+                                     end_date: datetime
+                                     ):
+    forecasts = []
+    station_codes = [209, 322]
+    weather_values = []
+    for index, tmp in enumerate(mock_tmps):
+        weather_values.append({
+            'tmp': tmp,
+            'rh': mock_rhs[index]
+        })
+
+    for code in station_codes:
+        for value in weather_values:
+            forecasts.append(
+                NoonForecast(
+                    station_code=code,
+                    weather_date=weather_date,
+                    created_at=time_utils.get_utc_now(),
+                    temperature=value['tmp'],
+                    relative_humidity=value['rh']
+                )
+            )
+    return forecasts
+
+
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_noon_forecasts_summaries.feature', 'Get noon forecasts summaries(historic)')
 def test_noon_forecasts():
@@ -35,8 +62,11 @@ def test_noon_forecasts():
 @given(parsers.parse('I request noon forecasts for stations: {codes}'),
        target_fixture='response',
        converters={'codes': json.loads})
-def given_request(codes: List):
+def given_request(monkeypatch, codes: List):
     """ Stub forecasts into the database and make a request """
+
+    monkeypatch.setattr(app.forecasts.noon_forecasts_summaries,
+                        'query_noon_forecast_records', mock_query_noon_forecast_records)
 
     client = TestClient(app.main.app)
     endpoint = '/api/forecasts/noon/summaries/'

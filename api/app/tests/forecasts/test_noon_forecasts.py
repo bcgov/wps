@@ -13,6 +13,7 @@ import pytest
 from pytest_bdd import scenario, given, then, parsers
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
+from app.schemas.stations import StationCodeList
 import app.main
 from app.tests.common import default_mock_client_get
 import app.wildfire_one
@@ -20,6 +21,24 @@ import app.db.database
 from app.db.models.forecasts import NoonForecast
 
 logger = logging.getLogger(__name__)
+
+
+def mock_query_noon_forecast_records(session: Session,
+                                     station_codes: StationCodeList,
+                                     start_date: datetime,
+                                     end_date: datetime
+                                     ):
+    """ Mock something. """
+    forecasts = []
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    filename = os.path.join(dirname, 'test_noon_forecasts.json')
+    with open(filename) as data:
+        json_data = json.load(data)
+        for forecast in json_data:
+            forecast['weather_date'] = datetime.fromisoformat(forecast['weather_date'])
+            forecast['created_at'] = datetime.fromisoformat(forecast['created_at'])
+            forecasts.append(NoonForecast(**forecast))
+    return forecasts
 
 
 @pytest.mark.usefixtures('mock_env_with_use_wfwx', 'mock_jwt_decode')
@@ -34,6 +53,7 @@ def given_request(monkeypatch, codes: List):
     """ Make /api/forecasts/noon/ request using mocked out ClientSession.
     """
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
+    monkeypatch.setattr(app.forecasts.noon_forecasts, 'query_noon_forecast_records', mock_query_noon_forecast_records)
 
     # Create API client and get the reppnse.
     client = TestClient(app.main.app)

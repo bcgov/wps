@@ -3,21 +3,17 @@
 import os
 import sys
 import logging
-from unittest.mock import MagicMock
 import datetime
 from datetime import datetime
 import pytest
 import requests
-import shapely.wkt
 from sqlalchemy.orm import Session
 import app.utils.time as time_utils
-import app.db.database
 from app.schemas.stations import WeatherStation, Season
 from app.weather_models import env_canada, machine_learning
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           PredictionModelGridSubset, ModelRunGridSubsetPrediction)
+                           ModelRunGridSubsetPrediction)
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
-# pylint: disable=unused-argument, redefined-outer-name
 
 
 logger = logging.getLogger(__name__)
@@ -105,19 +101,8 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
 
 
 @pytest.fixture()
-def mock_session(monkeypatch):
+def mock_database(monkeypatch):
     """ Mocked out database queries """
-    # For some reason the autouse hookup from conftest doesn't take!
-    monkeypatch.setattr(app.db.database, '_get_write_session', MagicMock())
-    monkeypatch.setattr(app.db.database, '_get_read_session', MagicMock())
-
-    geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
-            " -120.525 50.62500000000001, -120.525 50.77500000000001))")
-    shape = shapely.wkt.loads(geom)
-
-    gdps_url = ('https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/000/'
-                'CMC_glb_TMP_TGL_2_latlon.15x.15_2021020300_P000.grib2')
-    gdps_processed_model_run = ProcessedModelRunUrl(url=gdps_url)
     gdps_prediction_model = PredictionModel(id=1,
                                             abbreviation='GDPS',
                                             projection='latlon.15x.15',
@@ -166,7 +151,7 @@ def test_get_gdps_download_urls():
 
 @pytest.mark.usefixtures('mock_get_processed_file_record')
 def test_process_gdps(mock_download,
-                      mock_session,
+                      mock_database,
                       mock_get_processed_file_count,
                       mock_get_model_run_predictions_for_grid,
                       mock_get_actuals_left_outer_join_with_predictions,
@@ -189,5 +174,3 @@ def test_for_zero_day_bug(monkeypatch):
                     'grib2/lat_lon/12/000/CMC_glb_TMP_TGL_2_latlon.'
                     '15x.15_2020083112_P000.grib2')
     assert url == expected_url
-
-# pylint: enable=unused-argument, redefined-outer-name
