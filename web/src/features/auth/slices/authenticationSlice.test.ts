@@ -12,7 +12,6 @@ import authReducer, {
 } from 'features/auth/slices/authenticationSlice'
 import sinon from 'sinon'
 import * as jwtDecode from 'jwt-decode'
-import { KC_CLIENT } from 'utils/env'
 import { ROLES } from 'features/auth/roles'
 
 describe('authenticationSlice', () => {
@@ -24,14 +23,14 @@ describe('authenticationSlice', () => {
     sandbox.restore()
   })
   const testToken = 'testToken'
-  const preferred_username = 'test@idir'
+  const idir_username = 'test@idir'
   const decodedAllRoles = {
-    preferred_username,
-    resource_access: { [KC_CLIENT]: { roles: Object.values(ROLES.HFI) } }
+    idir_username,
+    client_roles: Object.values(ROLES.HFI)
   }
   const decodedNoRoles = {
-    preferred_username,
-    resource_access: { [KC_CLIENT]: { roles: [] } }
+    idir_username,
+    client_roles: []
   }
   it('should return all roles of a user from a token', () => {
     sandbox.stub(jwtDecode, 'default').returns(decodedAllRoles)
@@ -46,7 +45,7 @@ describe('authenticationSlice', () => {
   it('should return idir username from token', () => {
     sandbox.stub(jwtDecode, 'default').returns(decodedNoRoles)
     const roles = decodeIdir(testToken)
-    expect(roles).toEqual(preferred_username)
+    expect(roles).toEqual(idir_username)
   })
   describe('reducer', () => {
     it('should be initialized with correct state', () => {
@@ -64,23 +63,29 @@ describe('authenticationSlice', () => {
     })
     it('should set token with roles correctly when authentication finishes', () => {
       sandbox.stub(jwtDecode, 'default').returns(decodedAllRoles)
-      expect(authReducer(initialState, authenticateFinished({ isAuthenticated: true, token: testToken }))).toEqual({
+      expect(
+        authReducer(initialState, authenticateFinished({ isAuthenticated: true, token: testToken, idToken: testToken }))
+      ).toEqual({
         ...initialState,
         authenticating: false,
         isAuthenticated: true,
         idir: 'test@idir',
         token: testToken,
+        idToken: testToken,
         roles: Object.values(ROLES.HFI)
       })
     })
     it('should set token without roles correctly when authentication finishes', () => {
       sandbox.stub(jwtDecode, 'default').returns(decodedNoRoles)
-      expect(authReducer(initialState, authenticateFinished({ isAuthenticated: true, token: testToken }))).toEqual({
+      expect(
+        authReducer(initialState, authenticateFinished({ isAuthenticated: true, token: testToken, idToken: testToken }))
+      ).toEqual({
         ...initialState,
         authenticating: false,
         isAuthenticated: true,
         idir: 'test@idir',
         token: testToken,
+        idToken: testToken,
         roles: []
       })
     })
@@ -96,22 +101,28 @@ describe('authenticationSlice', () => {
     })
     it('should set state correctly when token refreshes with roles', () => {
       sandbox.stub(jwtDecode, 'default').returns(decodedAllRoles)
-      expect(authReducer(initialState, refreshTokenFinished({ tokenRefreshed: true, token: testToken }))).toEqual({
+      expect(
+        authReducer(initialState, refreshTokenFinished({ tokenRefreshed: true, token: testToken, idToken: testToken }))
+      ).toEqual({
         ...initialState,
         authenticating: false,
         tokenRefreshed: true,
         token: testToken,
+        idToken: testToken,
         idir: 'test@idir',
         roles: Object.values(ROLES.HFI)
       })
     })
     it('should set state correctly when token refreshes without roles', () => {
       sandbox.stub(jwtDecode, 'default').returns(decodedNoRoles)
-      expect(authReducer(initialState, refreshTokenFinished({ tokenRefreshed: true, token: testToken }))).toEqual({
+      expect(
+        authReducer(initialState, refreshTokenFinished({ tokenRefreshed: true, token: testToken, idToken: testToken }))
+      ).toEqual({
         ...initialState,
         authenticating: false,
         tokenRefreshed: true,
         token: testToken,
+        idToken: testToken,
         idir: 'test@idir',
         roles: []
       })
@@ -124,6 +135,7 @@ describe('authenticationSlice', () => {
           isAuthenticated: true,
           tokenRefreshed: false,
           token: testToken,
+          idToken: testToken,
           idir: 'test@idir',
           roles: Object.values(ROLES.HFI),
           error: null
@@ -134,6 +146,7 @@ describe('authenticationSlice', () => {
           authenticating: false,
           isAuthenticated: false,
           token: undefined,
+          idToken: undefined,
           roles: []
         })
       })
@@ -144,6 +157,7 @@ describe('authenticationSlice', () => {
           isAuthenticated: true,
           tokenRefreshed: false,
           token: testToken,
+          idToken: testToken,
           idir: 'test@idir',
           roles: Object.values(ROLES.HFI),
           error: null
@@ -155,6 +169,7 @@ describe('authenticationSlice', () => {
           authenticating: false,
           isAuthenticated: false,
           token: undefined,
+          idToken: undefined,
           roles: [],
           error: error
         })
