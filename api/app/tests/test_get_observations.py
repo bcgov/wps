@@ -3,10 +3,7 @@ import logging
 import asyncio
 from datetime import datetime
 import json
-<<<<<<< HEAD
 from typing import List
-=======
->>>>>>> origin/main
 from pytest_bdd import scenario, given, then, parsers
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
