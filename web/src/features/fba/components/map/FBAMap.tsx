@@ -72,7 +72,7 @@ export const hfiSourceFactory = (url: string) => {
 export const ftlSourceFactory = (filter: string) => {
   return new XYZ({
     url: `${RASTER_SERVER_BASE_URL}/tile/{z}/{x}/{y}?path=gpdqha/ftl/ftl_2018_cloudoptimized.tif&source=ftl&filter=${filter}`,
-    interpolate: false,
+    interpolate: true,
     tileSize: COG_TILE_SIZE
   })
 }
