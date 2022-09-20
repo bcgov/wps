@@ -30,8 +30,8 @@ def mock_query_noon_forecast_records(session: Session,
                                      start_date: datetime,
                                      end_date: datetime
                                      ):
+    """ Mock some noon forecasts """
     forecasts = []
-    station_codes = [209, 322]
     weather_values = []
     for index, tmp in enumerate(mock_tmps):
         weather_values.append({
@@ -39,7 +39,7 @@ def mock_query_noon_forecast_records(session: Session,
             'rh': mock_rhs[index]
         })
 
-    for code in station_codes:
+    for code in [209, 322]:
         for value in weather_values:
             forecasts.append(
                 NoonForecast(

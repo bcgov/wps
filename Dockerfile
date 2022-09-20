@@ -5,7 +5,7 @@ ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/w
 
 FROM ${DOCKER_IMAGE}
 
-# We don't want to run our app as root, we we define a worker user.
+# We don't want to run our app as root, so we define a worker user.
 ARG USERNAME=worker
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID

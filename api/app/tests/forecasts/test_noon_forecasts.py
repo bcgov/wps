@@ -28,7 +28,7 @@ def mock_query_noon_forecast_records(session: Session,
                                      start_date: datetime,
                                      end_date: datetime
                                      ):
-    """ Mock something. """
+    """ Mock some noon forecasts """
     forecasts = []
     dirname = os.path.dirname(os.path.realpath(__file__))
     filename = os.path.join(dirname, 'test_noon_forecasts.json')

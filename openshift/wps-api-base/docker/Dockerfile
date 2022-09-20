@@ -22,7 +22,7 @@ RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
 # docker build --build-arg DOCKER_IMAGE=ubuntu:22.04 . --tag=wps-api-base:ubuntu.22.04-latest
 FROM ${DOCKER_IMAGE}
 
-# We don't want to run our app as root, we we define a worker user.
+# We don't want to run our app as root, so we define a worker user.
 ARG USERNAME=worker
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
