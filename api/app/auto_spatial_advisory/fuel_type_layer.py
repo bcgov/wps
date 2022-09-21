@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def fuel_type_iterator() -> Generator[Tuple[int, str], None, None]:
     """
-    Yields fuel type id and geom by polygonzing fuel type layer raster stored in S3, and then
+    Yields fuel type id and geom by polygonizing fuel type layer raster stored in S3, and then
     iterating over feature from the resultant layer.
 
     NOTE: This works fine with a small FTL file, such as the SFMS one, but the the high resolution
