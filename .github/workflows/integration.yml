@@ -5,15 +5,79 @@ on:
     branches:
       - main
 jobs:
-  lint-and-test-api:
-    name: Python - Lint, Test with coverage
+  lint-api:
+    name: Python - Lint
     runs-on: ubuntu-22.04
     strategy:
       matrix:
         python-version: [3.10.4]
         R: ["3.5.2"]
-    env:
-      RENV_PATHS_ROOT: ~/.local/share/renv
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Install ubuntu pre-requisites (api)
+        # The python gdal and R component relies on libgdal-dev being installed.
+        run: sudo apt-get -y install libgdal-dev
+      - name: Setup Python ${{ matrix.python-version }} (api)
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Cache poetry installer
+        uses: actions/cache@v3
+        id: cache-poetry-installer
+        env:
+          cache-name: cache-poetry-installer
+        with:
+          path: "~/poetry_installer"
+          key: "poetry-installer-1.2.0"
+      - name: Download poetry installer
+        if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
+        run: |
+          echo
+          mkdir ~/poetry_installer
+          curl -sSL https://install.python-poetry.org > ~/poetry_installer/install-poetry.py
+      - name: Install poetry (api)
+        run: |
+          cd ~/poetry_installer
+          python install-poetry.py --version 1.2.0
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project false
+      - name: Cache poetry
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-poetry
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-cache-
+      - name: Cache .venv
+        id: cache-venv
+        uses: actions/cache@v3
+        with:
+          path: ~/work/wps/wps/api/.venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
+      - name: Install python dependencies using poetry (api)
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+        working-directory: ./api
+        run: |
+          poetry run python -m pip install --upgrade pip
+          poetry install
+          poetry run python -m pip install gdal==$(gdal-config --version)
+      - name: Lint (api)
+        # We used to be able to do linting before installing gdal, but it's not possible anymore.
+        # We can however place it ahead of the R installs.
+        working-directory: ./api
+        run: |
+          poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
+
+  test-api:
+    name: Python - Test with coverage
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        python-version: [3.10.4]
+        R: ["3.5.2"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -23,8 +87,7 @@ jobs:
       - name: Install ubuntu pre-requisites (api)
         # The python gdal and R component relies on libgdal-dev being installed.
         # The api uses wkhtmltopdf to generate pdf's.
-        run: |
-          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev wkhtmltopdf
+        run: sudo apt-get -y install libgdal-dev wkhtmltopdf
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v4
         with:
@@ -63,7 +126,7 @@ jobs:
         id: cache-venv
         uses: actions/cache@v3
         with:
-          path: ~/wps/wps/api/.venv
+          path: ~/work/wps/wps/api/.venv
           key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
       - name: Install python dependencies using poetry (api)
         if: steps.cache-venv.outputs.cache-hit != 'true'
@@ -72,12 +135,6 @@ jobs:
           poetry run python -m pip install --upgrade pip
           poetry install
           poetry run python -m pip install gdal==$(gdal-config --version)
-      - name: Lint (api)
-        # We used to be able to do linting before installing gdal, but it's not possible anymore.
-        # We can however place it ahead of the R installs.
-        working-directory: ./api
-        run: |
-          poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.R }}
@@ -118,7 +175,7 @@ jobs:
           export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATH
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
-          poetry run coverage run --source=app -m pytest --version
+          poetry run coverage run --source=app -m pytest app/tests/test_health.py -x -o log_cli=true --disable-warnings -vvv
         # poetry run coverage run --source=app -m pytest app/tests/test_auth.py -x -o log_cli=true --disable-warnings -vvv
       - name: Create coverage report (api)
         working-directory: ./api
@@ -183,7 +240,7 @@ jobs:
   upload-code-coverage:
     name: Coverage with CodeCov
     runs-on: ubuntu-22.04
-    needs: [lint-and-test-web, lint-and-test-api]
+    needs: [lint-and-test-web, test-api]
     steps:
       # we need to checkout, so that we have codecov.yml
       - name: Checkout repo
