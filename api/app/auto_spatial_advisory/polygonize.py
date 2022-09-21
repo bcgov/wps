@@ -22,7 +22,7 @@ def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransfor
 
 
 @contextmanager
-def polygonize_in_memory(geotiff_filename) -> Tuple[ogr.DataSource, ogr.Layer]:
+def polygonize_in_memory(geotiff_filename) -> ogr.Layer:
     """  Given some tiff file, return a polygonized version of it, in memory, as an ogr layer. """
     source: gdal.Dataset = gdal.Open(geotiff_filename, gdal.GA_ReadOnly)
 
