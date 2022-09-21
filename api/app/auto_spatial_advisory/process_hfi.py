@@ -15,7 +15,7 @@ from app.db.database import get_async_read_session_scope, get_async_write_sessio
 from app.db.crud.auto_spatial_advisory import (
     save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum)
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
-from app.auto_spatial_advisory.polygonize import polygonize
+from app.auto_spatial_advisory.polygonize import polygonize_in_memory
 from app.geospatial import NAD83_BC_ALBERS
 
 
@@ -53,7 +53,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(key, temp_filename)
-        dst_ds, layer = polygonize(temp_filename)
+        dst_ds, layer = polygonize_in_memory(temp_filename)
 
         spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
         target_srs = osr.SpatialReference()
