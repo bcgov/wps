@@ -2,7 +2,7 @@
 # FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu:20.04
 
 # When building local, you can reference the docker image:
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # Install GDAL
 RUN apt-get -y update
