@@ -54,6 +54,13 @@ jobs:
           key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-cache-
+      - name: Cache .venv
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-venv
+        with:
+          path: ~/wps/wps/api/.venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
       - name: Install python dependencies using poetry (api)
         working-directory: ./api
         run: |
@@ -100,7 +107,6 @@ jobs:
       - name: Unit Test with coverage (api)
         working-directory: ./api
         run: |
-          export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
           export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATH
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
