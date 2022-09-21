@@ -1,4 +1,5 @@
 """ Code for polygonizing a geotiff file. """
+from contextlib import contextmanager
 from typing import Tuple
 from osgeo import gdal, ogr, osr
 import numpy as np
@@ -20,6 +21,7 @@ def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransfor
     return dataset, band
 
 
+@contextmanager
 def polygonize_in_memory(geotiff_filename) -> Tuple[ogr.DataSource, ogr.Layer]:
     """  Given some tiff file, return a polygonized version of it, in memory, as an ogr layer. """
     source: gdal.Dataset = gdal.Open(geotiff_filename, gdal.GA_ReadOnly)
@@ -50,7 +52,8 @@ def polygonize_in_memory(geotiff_filename) -> Tuple[ogr.DataSource, ogr.Layer]:
 
     dst_ds.FlushCache()
     del source, mask_band, mask_ds
-    return dst_ds, dst_layer
+    yield dst_layer
+    del dst_ds, dst_layer
 
 
 def polygonize_geotiff_to_shapefile(raster_source_filename, vector_dest_filename):

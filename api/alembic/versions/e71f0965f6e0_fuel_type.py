@@ -1,7 +1,7 @@
 """Fuel Type
 
 Revision ID: e71f0965f6e0
-Revises: fbca68ccc9da
+Revises: d9c05cb16869
 Create Date: 2022-09-08 16:13:02.083018
 
 """
@@ -12,7 +12,7 @@ import geoalchemy2
 
 # revision identifiers, used by Alembic.
 revision = 'e71f0965f6e0'
-down_revision = 'fbca68ccc9da'
+down_revision = 'd9c05cb16869'
 branch_labels = None
 depends_on = None
 

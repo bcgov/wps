@@ -6,7 +6,7 @@ import logging
 from osgeo import ogr, osr, gdal
 from shapely import wkt, wkb
 from app import config
-from app.auto_spatial_advisory.polygonize import polygonize
+from app.auto_spatial_advisory.polygonize import polygonize_in_memory
 from app.db.models.auto_spatial_advisory import FuelType
 from app.db.database import get_async_write_session_scope
 from app.db.crud.auto_spatial_advisory import save_fuel_type
@@ -33,25 +33,23 @@ def fuel_type_iterator() -> Generator[Tuple[int, str], None, None]:
     # that gdal is able to read.
     filename = f'/vsis3/{bucket}/sfms/static/fbp2021.tif'
     logger.info('Polygonizing %s...', filename)
-    data_set, layer = polygonize(filename)
+    with polygonize_in_memory(filename) as layer:
 
-    spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
-    target_srs = osr.SpatialReference()
-    target_srs.ImportFromEPSG(NAD83_BC_ALBERS)
-    coordinate_transform = osr.CoordinateTransformation(spatial_reference, target_srs)
+        spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
+        target_srs = osr.SpatialReference()
+        target_srs.ImportFromEPSG(NAD83_BC_ALBERS)
+        coordinate_transform = osr.CoordinateTransformation(spatial_reference, target_srs)
 
-    logger.info('Iterating over features and insterting into database...')
-    for i in range(layer.GetFeatureCount()):
-        feature: ogr.Feature = layer.GetFeature(i)
-        fuel_type_id = feature.GetField(0)
-        geometry: ogr.Geometry = feature.GetGeometryRef()
-        # Make sure the geometry is in EPSG:3005!
-        geometry.Transform(coordinate_transform)
-        polygon = wkt.loads(geometry.ExportToIsoWkt())
-        geom = wkb.dumps(polygon, hex=True, srid=NAD83_BC_ALBERS)
-        yield (fuel_type_id, geom)
-
-    del data_set, layer
+        logger.info('Iterating over features and inserting into database...')
+        for i in range(layer.GetFeatureCount()):
+            feature: ogr.Feature = layer.GetFeature(i)
+            fuel_type_id = feature.GetField(0)
+            geometry: ogr.Geometry = feature.GetGeometryRef()
+            # Make sure the geometry is in EPSG:3005!
+            geometry.Transform(coordinate_transform)
+            polygon = wkt.loads(geometry.ExportToIsoWkt())
+            geom = wkb.dumps(polygon, hex=True, srid=NAD83_BC_ALBERS)
+            yield (fuel_type_id, geom)
 
 
 async def inject_ftl_into_database():
