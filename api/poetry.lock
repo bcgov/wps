@@ -1083,6 +1083,17 @@ testing = ["pytest", "coverage", "astroid (>=1.5.3,<1.6.0)", "pylint (>=1.7.2,<1
 yaml = ["PyYAML (>=5.1.0)"]
 
 [[package]]
+name = "nats-py"
+version = "2.1.7"
+description = "NATS client for Python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+nkeys = ["nkeys"]
+
+[[package]]
 name = "nbclient"
 version = "0.6.8"
 description = "A client library for executing notebooks. Formerly nbconvert's ExecutePreprocessor."
@@ -2300,7 +2311,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "e0eada5d42717015b4f286dea0c11e57cd5de290049fed708d1e7406195f0329"
+content-hash = "b0f691c374c74ab302e2f1f381b89e8f1581ade7be25a718e0976f0269254f2f"
 
 [metadata.files]
 aiobotocore = []
@@ -2709,6 +2720,7 @@ munch = [
     {file = "munch-2.5.0-py2.py3-none-any.whl", hash = "sha256:6f44af89a2ce4ed04ff8de41f70b226b984db10a91dcc7b9ac2efc1c77022fdd"},
     {file = "munch-2.5.0.tar.gz", hash = "sha256:2d735f6f24d4dba3417fa448cae40c6e896ec1fdab6cdb5e6510999758a4dbd2"},
 ]
+nats-py = []
 nbclient = []
 nbconvert = []
 nbformat = []
