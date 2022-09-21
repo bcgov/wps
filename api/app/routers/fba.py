@@ -51,11 +51,11 @@ async def get_zones(run_type: RunType, run_date: date, for_date: date, _=Depends
 
         # Fetch rows.
         for row in rows:
-            zone_area = row.zone_area
+            combustible_area = row.combustible_area
             hfi_area = row.hfi_area
 
             zones.append(FireZoneArea(
                 mof_fire_zone_id=row.source_identifier,
                 elevated_hfi_area=row.hfi_area,
-                elevated_hfi_percentage=hfi_area / zone_area * 100))
+                elevated_hfi_percentage=hfi_area / combustible_area * 100))
         return FireZoneAreaListResponse(zones=zones)
