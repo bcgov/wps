@@ -57,6 +57,7 @@ jobs:
       - name: Install python dependencies using poetry (api)
         working-directory: ./api
         run: |
+          poetry run python -m pip install --upgrade pip
           poetry install
       - name: Install ubuntu pre-requisites (api)
         # The python gdal and R component relies on libgdal-dev being installed.
@@ -67,13 +68,8 @@ jobs:
         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
         # available to us. As such, gdal is not installed by poetry, since the version will differ between
         # platforms.
-        # Also have to be absolutely sure that numpy is installed before gdal (otherwise gdal doesn't install
-        # correctly, and you'll run into ndarray errors.)
-        # On ubuntu20.04, the most recent we have is gdal, so we use pygdal to install it. (used to use
-        # gdal, but it now has a bug that causes it to fail to install on ubuntu20.04)
         working-directory: ./api
         run: |
-          poetry run python -m pip install numpy
           poetry run python -m pip install gdal==$(gdal-config --version)
       - name: Lint (api)
         # We used to be able to do linting before installing gdal, but it's not possible anymore.
