@@ -1,0 +1,9 @@
+{
+  "https://rc-notifications-test.ca/api/v1/chat.postMessage": {
+    "post": {
+      "None": {
+        "None": "api/v1/chat.postMessage.json"
+      }
+    }
+  }
+}

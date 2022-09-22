@@ -1,0 +1,831 @@
+{
+  "_embedded": {
+    "stations": [
+      {
+        "id": "36fd5565-aca6-46b3-a801-a474a47aac51",
+        "displayLabel": "KITPARK",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681635,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 106,
+        "stationAcronym": "FKI",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "AutoCaller GOES",
+        "dataLoggerType": {
+          "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+          "displayLabel": "FWS12S",
+          "displayOrder": 5,
+          "dataLoggerType": "FWS12S",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 54.1696,
+        "longitude": -128.57585,
+        "elevation": 75,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": true,
+        "influencingSlope": 0,
+        "installationDate": "1995-07-13T07:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "074c5942-e3fb-4442-934e-82062597252d",
+          "displayLabel": "Northwest Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test7",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R5",
+          "zone": 47,
+          "displayLabel": "Skeena Zone (Kalum)",
+          "alias": 5,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": "1st Daily 19950713; NESID: BCF53432 / CHNL: 38 / 1st Tx: 00:11:40 / Tx Window: 10 sec / Interval: 01:00:00 / Preamble: Short / Bit Rate: 300 / Interleaver: None",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/36fd5565-aca6-46b3-a801-a474a47aac51"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/36fd5565-aca6-46b3-a801-a474a47aac51"
+          }
+        }
+      },
+      {
+        "id": "99139e95-1716-4297-b4e9-395e6b76b9dc",
+        "displayLabel": "DEASE LAKE (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681639,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 107,
+        "stationAcronym": "WDL",
+        "stationStatus": {
+          "id": "DISABLED",
+          "displayLabel": "Disabled",
+          "displayOrder": 2,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 58.5,
+        "longitude": -130.0,
+        "elevation": 800,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1970-01-01T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R9",
+          "zone": 49,
+          "displayLabel": "Cassiar Zone",
+          "alias": 9,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/99139e95-1716-4297-b4e9-395e6b76b9dc"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/99139e95-1716-4297-b4e9-395e6b76b9dc"
+          }
+        }
+      },
+      {
+        "id": "e2f0b06f-15d9-452d-b8c4-f2369ae80935",
+        "displayLabel": "DEASE LAKE FS",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681643,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 108,
+        "stationAcronym": "FDL",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+          "displayLabel": "FWS12S",
+          "displayOrder": 5,
+          "dataLoggerType": "FWS12S",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 58.425783,
+        "longitude": -130.018717,
+        "elevation": 800,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": true,
+        "influencingSlope": 0,
+        "installationDate": "1996-05-09T07:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "074c5942-e3fb-4442-934e-82062597252d",
+          "displayLabel": "Northwest Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test7",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R9",
+          "zone": 49,
+          "displayLabel": "Cassiar Zone",
+          "alias": 9,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": "1st Daily 19780501; (1M SP)",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/e2f0b06f-15d9-452d-b8c4-f2369ae80935"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/e2f0b06f-15d9-452d-b8c4-f2369ae80935"
+          }
+        }
+      },
+      {
+        "id": "66f464ec-6a11-4e58-adb8-81f2efc63ffa",
+        "displayLabel": "WHITEHORSE (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585174076225,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-03-25T22:07:56.000+0000",
+        "stationCode": 109,
+        "stationAcronym": "VXY",
+        "stationStatus": {
+          "id": "DISABLED",
+          "displayLabel": "Disabled",
+          "displayOrder": 2,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 60.7,
+        "longitude": -135.1,
+        "elevation": 706,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1970-01-01T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": null,
+        "comments": "not for FWI",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/66f464ec-6a11-4e58-adb8-81f2efc63ffa"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/66f464ec-6a11-4e58-adb8-81f2efc63ffa"
+          }
+        }
+      },
+      {
+        "id": "8e2100bd-57b7-47c7-ae5a-de717e1ee7c3",
+        "displayLabel": "TELEGRAPH CREEK",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681681,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 110,
+        "stationAcronym": "FTC",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+          "displayLabel": "FWS12S",
+          "displayOrder": 5,
+          "dataLoggerType": "FWS12S",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 57.914133,
+        "longitude": -131.17115,
+        "elevation": 382,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": true,
+        "influencingSlope": 0,
+        "installationDate": "1988-07-13T07:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "074c5942-e3fb-4442-934e-82062597252d",
+          "displayLabel": "Northwest Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test7",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R9",
+          "zone": 49,
+          "displayLabel": "Cassiar Zone",
+          "alias": 9,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": "1st Daily 19780501; - CRMP- shared with MOTI (P2)",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/8e2100bd-57b7-47c7-ae5a-de717e1ee7c3"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/8e2100bd-57b7-47c7-ae5a-de717e1ee7c3"
+          }
+        }
+      },
+      {
+        "id": "e7160b68-9405-4054-a42a-0fdb190dcf79",
+        "displayLabel": "ATLIN",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681685,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 111,
+        "stationAcronym": "FAT",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+          "displayLabel": "FWS12S",
+          "displayOrder": 5,
+          "dataLoggerType": "FWS12S",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": {
+          "id": 1,
+          "displayLabel": "Zone 1",
+          "dangerRegion": 1,
+          "displayOrder": 1,
+          "creationTimestamp": "2020-02-26T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-26T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "hourly": true,
+        "latitude": 59.584483,
+        "longitude": -133.664383,
+        "elevation": 729,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": true,
+        "influencingSlope": 0,
+        "installationDate": "1990-09-12T07:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "074c5942-e3fb-4442-934e-82062597252d",
+          "displayLabel": "Northwest Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test7",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R9",
+          "zone": 49,
+          "displayLabel": "Cassiar Zone",
+          "alias": 9,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": "1st Daily 19970501; 1 - CRMP (P2)",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/e7160b68-9405-4054-a42a-0fdb190dcf79"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/e7160b68-9405-4054-a42a-0fdb190dcf79"
+          }
+        }
+      },
+      {
+        "id": "58284af7-29c7-4062-8ec8-0496c623ca7e",
+        "displayLabel": "ISKUT",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681689,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 112,
+        "stationAcronym": "FIK",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+          "displayLabel": "FWS12S",
+          "displayOrder": 5,
+          "dataLoggerType": "FWS12S",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 57.8615,
+        "longitude": -130.01825,
+        "elevation": 890,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": true,
+        "influencingSlope": 0,
+        "installationDate": "1992-12-03T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "074c5942-e3fb-4442-934e-82062597252d",
+          "displayLabel": "Northwest Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test7",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R9",
+          "zone": 49,
+          "displayLabel": "Cassiar Zone",
+          "alias": 9,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": "1st Daily 19790507; (1M SP)",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/58284af7-29c7-4062-8ec8-0496c623ca7e"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/58284af7-29c7-4062-8ec8-0496c623ca7e"
+          }
+        }
+      },
+      {
+        "id": "9ccfba9b-9597-402e-8c6e-0327cebb7769",
+        "displayLabel": "BOB QUINN LAKE",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681693,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 113,
+        "stationAcronym": "FBQ",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "AutoCaller GOES",
+        "dataLoggerType": {
+          "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+          "displayLabel": "FWS12S",
+          "displayOrder": 5,
+          "dataLoggerType": "FWS12S",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 56.980983,
+        "longitude": -130.2508,
+        "elevation": 609,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": true,
+        "influencingSlope": 0,
+        "installationDate": "1991-04-16T07:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "074c5942-e3fb-4442-934e-82062597252d",
+          "displayLabel": "Northwest Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test7",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R9",
+          "zone": 49,
+          "displayLabel": "Cassiar Zone",
+          "alias": 9,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": "NESID:BCF008BA; 1st:00:02:00; Interval: 01:00:00; Window: 10sec; P Channel: 22; S Channel: 0",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/9ccfba9b-9597-402e-8c6e-0327cebb7769"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/9ccfba9b-9597-402e-8c6e-0327cebb7769"
+          }
+        }
+      },
+      {
+        "id": "7710be15-b1b0-4d23-bd6f-8026f7b26cd8",
+        "displayLabel": "TESLIN (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585174076246,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-03-25T22:07:56.000+0000",
+        "stationCode": 114,
+        "stationAcronym": "YZW",
+        "stationStatus": {
+          "id": "DISABLED",
+          "displayLabel": "Disabled",
+          "displayOrder": 2,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 60.2,
+        "longitude": -132.8,
+        "elevation": 705,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1987-01-01T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": null,
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/7710be15-b1b0-4d23-bd6f-8026f7b26cd8"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/7710be15-b1b0-4d23-bd6f-8026f7b26cd8"
+          }
+        }
+      },
+      {
+        "id": "38c95458-4da3-41ed-9c3a-4710db70c7af",
+        "displayLabel": "FORT NELSON (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681708,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 115,
+        "stationAcronym": "YYE",
+        "stationStatus": {
+          "id": "DISABLED",
+          "displayLabel": "Disabled",
+          "displayOrder": 2,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 58.8,
+        "longitude": -122.6,
+        "elevation": 567,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1970-01-01T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 8,
+          "displayLabel": "Prince George Fire Centre",
+          "alias": 4
+        },
+        "zone": {
+          "id": "G9",
+          "zone": 16,
+          "displayLabel": "Fort Nelson Zone",
+          "alias": 9,
+          "fireCentre": "Prince George Fire Centre",
+          "fireCentreAlias": 4
+        },
+        "comments": "not for FWI",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/38c95458-4da3-41ed-9c3a-4710db70c7af"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/38c95458-4da3-41ed-9c3a-4710db70c7af"
+          }
+        }
+      }
+    ]
+  },
+  "_links": {
+    "first": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations?page=0&size=20"
+    },
+    "prev": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations?page=1&size=20"
+    },
+    "self": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations{&sort}",
+      "templated": true
+    },
+    "next": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations?page=3&size=20"
+    },
+    "last": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations?page=62&size=20"
+    },
+    "profile": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/profile/stations"
+    },
+    "search": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/search"
+    }
+  },
+  "page": {
+    "size": 10,
+    "totalElements": 50,
+    "totalPages": 3,
+    "number": 2
+  }
+}

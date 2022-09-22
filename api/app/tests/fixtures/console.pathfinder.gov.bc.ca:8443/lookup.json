@@ -1,0 +1,9 @@
+{
+   "https://console.pathfinder.gov.bc.ca:8443/apis/apps/v1beta1/namespaces/project_namespace/statefulsets/some_suffix": {
+      "get": {
+         "None": {
+            "None": "apis/apps/v1beta1/namespaces/project_namespace/statefulsets/some_suffix.json"
+         }
+      }
+   }
+}
