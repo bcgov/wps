@@ -2,9 +2,9 @@
 """
 import unittest
 
-# from starlette.testclient import TestClient
+from starlette.testclient import TestClient
 
-# from app.main import app
+from app.main import app
 
 
 PERCENTILE_URL = '/api/percentiles/'
