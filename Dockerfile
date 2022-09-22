@@ -53,4 +53,8 @@ ENV POETRY_CACHE_DIR="/home/worker/.cache/pypoetry"
 # Put poetry on the path
 ENV PATH="/home/worker/.local/bin:${PATH}"
 
+# Openshift runs with a random non-root user, so switching our user to 1001 allows us
+# to test locally with similar conditions to what we may find in openshift.
+USER 1001
+
 CMD ["./start.sh"]

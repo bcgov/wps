@@ -38,7 +38,7 @@ jobs:
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python install-poetry.py --version 1.2.0
+          python install-poetry.py --version 1.2.1
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
       - name: Cache poetry
@@ -108,7 +108,7 @@ jobs:
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python install-poetry.py --version 1.2.0
+          python install-poetry.py --version 1.2.1
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
       # poetry cache folder: /home/runner/.cache/pypoetry

@@ -45,6 +45,8 @@ RUN R -e "install.packages('cffdrs')"
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
+RUN chmod a+rx /home/$USERNAME
+
 USER $USERNAME
 ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
 
