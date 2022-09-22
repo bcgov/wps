@@ -94,7 +94,7 @@
     "@cypress/instrument-cra": "^1.4.0",
     "@testing-library/dom": "^8.13.0",
     "@testing-library/jest-dom": "^5.14.1",
-    "@testing-library/react": "^12.1.0",
+    "@testing-library/react": "^13.0.0",
     "@testing-library/user-event": "^14.1.1",
     "@types/jest": "^29.0.0",
     "@types/recharts": "^1.8.23",
