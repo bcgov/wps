@@ -48,10 +48,16 @@ EXPOSE 8080
 # Set the classpath to include copied libs
 ENV CLASSPATH=/app/libs/REDapp_Lib.jar:/app/libs/WTime.jar:/app/libs/hss-java.jar:${CLASSPATH}
 # Tell poetry where to find the cache
-# TODO: change "worker" to somehow use $USERNAME
-ENV POETRY_CACHE_DIR="/home/worker/.cache/pypoetry"
+ENV POETRY_CACHE_DIR="/home/${USERNAME}/.cache/pypoetry"
 # Put poetry on the path
-ENV PATH="/home/worker/.local/bin:${PATH}"
+ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
+
+# root user please
+USER 0
+# We don't know what user poetry is going to run as, so we give everyone write access directories
+# in the app folder. We need write access for .pyc files to be created. .pyc files are good,
+# they speed up python.
+RUN chmod a+w $(find /app/app -type d)
 
 # Openshift runs with a random non-root user, so switching our user to 1001 allows us
 # to test locally with similar conditions to what we may find in openshift.

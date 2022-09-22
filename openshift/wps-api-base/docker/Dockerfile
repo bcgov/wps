@@ -45,6 +45,9 @@ RUN R -e "install.packages('cffdrs')"
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
+# When our app is running, we want to allow poetry full access to the workers home directory.
+# +x : to execute the poetry binary
+# +r : to read poetry cache
 RUN chmod a+rx /home/$USERNAME
 
 USER $USERNAME
