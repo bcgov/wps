@@ -17,7 +17,7 @@ from app import config
 from app.rocketchat_notifications import send_rocketchat_notification
 # from app.routers import (fba, forecasts, fwi_calc, weather_models, c_haines, stations, hfi_calc,
 #                          fba_calc, sfms)
-# from app.fire_behaviour.cffdrs import CFFDRS
+from app.fire_behaviour.cffdrs import CFFDRS
 
 
 # configure_logging()
