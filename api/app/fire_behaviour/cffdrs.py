@@ -20,9 +20,12 @@ def _none2null(_):
 
 
 try:
-    none_converter = cv.Converter("None converter")
-    none_converter.py2rpy.register(type(None), _none2null)
+    # none_converter = cv.Converter("None converter")
+    # none_converter.py2rpy.register(type(None), _none2null)
+    pass
 except Exception as e:
+    # This is bad - anything that needs the CFFDRS R library is likely to fail, but we don't
+    # want this failure to bubble up and affect unrelated processes.
     logger.error(e, exc_info=True)
     print(e)
 
