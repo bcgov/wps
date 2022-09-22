@@ -9,7 +9,7 @@ from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from app import schemas, configure_logging
-from app.percentile import get_precalculated_percentiles
+# from app.percentile import get_precalculated_percentiles
 from app.auth import authentication_required, audit
 from app import config
 from app import health
@@ -160,24 +160,24 @@ async def get_hourlies(request: schemas.shared.WeatherDataRequest,
         raise
 
 
-@api.post('/percentiles/', response_model=schemas.percentiles.CalculatedResponse)
-async def get_percentiles(request: schemas.percentiles.PercentileRequest):
-    """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
-    """
-    try:
-        logger.info('/percentiles/')
+# @api.post('/percentiles/', response_model=schemas.percentiles.CalculatedResponse)
+# async def get_percentiles(request: schemas.percentiles.PercentileRequest):
+#     """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
+#     """
+#     try:
+#         logger.info('/percentiles/')
 
-        percentiles = get_precalculated_percentiles(request)
+#         percentiles = get_precalculated_percentiles(request)
 
-        return percentiles
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
+#         return percentiles
+#     except Exception as exception:
+#         logger.critical(exception, exc_info=True)
+#         raise
 
 
-if __name__ == "__main__":
-    # This section of code is for the convenience of developers only. Having this section of code, allows
-    # for developers to easily debug the application by running main.py and attaching to it with a debugger.
-    # uvicorn is imported in this scope only, as it's not required when the application is run in production.
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+# if __name__ == "__main__":
+#     # This section of code is for the convenience of developers only. Having this section of code, allows
+#     # for developers to easily debug the application by running main.py and attaching to it with a debugger.
+#     # uvicorn is imported in this scope only, as it's not required when the application is run in production.
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8080)
