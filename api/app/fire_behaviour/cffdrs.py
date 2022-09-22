@@ -1,30 +1,30 @@
 """ This module contains functions for computing fire weather metrics.
 """
-# import logging
+import logging
 # import math
 # from typing import Optional
-# import rpy2.robjects as robjs
+import rpy2.robjects as robjs
 # from rpy2.robjects import DataFrame
-# import rpy2.robjects.conversion as cv
+import rpy2.robjects.conversion as cv
 # from rpy2.rinterface import NULL
 # import app.utils.r_importer
 from app.utils.singleton import Singleton
 # from app.schemas.fba_calc import FuelTypeEnum
 
-# logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
-# def _none2null(_):
-#     """ Turn None values into null """
-#     return robjs.r("NULL")
+def _none2null(_):
+    """ Turn None values into null """
+    return robjs.r("NULL")
 
 
-# try:
-#     none_converter = cv.Converter("None converter")
-#     none_converter.py2rpy.register(type(None), _none2null)
-# except Exception as e:
-#     logger.error(e, exc_info=True)
-#     print(e)
+try:
+    none_converter = cv.Converter("None converter")
+    none_converter.py2rpy.register(type(None), _none2null)
+except Exception as e:
+    logger.error(e, exc_info=True)
+    print(e)
 
 
 @Singleton
