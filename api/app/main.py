@@ -5,13 +5,13 @@ See README.md for details on how to run.
 # import logging
 # from time import perf_counter
 # from urllib.request import Request
-# from fastapi import FastAPI, Depends, Response
+from fastapi import FastAPI, Depends, Response
 # from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 # from app import schemas, configure_logging
 # from app.percentile import get_precalculated_percentiles
 # from app.auth import authentication_required, audit
-# from app import config
+from app import config
 # from app import health
 # from app import hourlies
 # from app.rocketchat_notifications import send_rocketchat_notification
@@ -24,48 +24,48 @@ from starlette.applications import Starlette
 
 # logger = logging.getLogger(__name__)
 
-# API_INFO = '''
-#     Description: API for the PSU Services
+API_INFO = '''
+    Description: API for the PSU Services
 
-#     Warranty Disclaimer:
+    Warranty Disclaimer:
 
-#     This PSU API and related documentation is provided as a public service by the
-#     Government of British Columbia, Box 9411, Victoria, British
-#     Columbia, Canada V8W 9V1.
+    This PSU API and related documentation is provided as a public service by the
+    Government of British Columbia, Box 9411, Victoria, British
+    Columbia, Canada V8W 9V1.
 
-#     This PSU API and related documentation are provided \"as is\" without
-#     warranty of any kind, whether express or implied. Users of this
-#     software and documentation do so at their own risk. All implied
-#     warranties, including, without limitation, implied warranties of
-#     merchantability, fitness for a particular purpose, and
-#     non - infringement, are hereby expressly disclaimed. Links and
-#     references to any other websites or software are provided for
-#     information only and listing shall not be taken as endorsement of
-#     any kind.
+    This PSU API and related documentation are provided \"as is\" without
+    warranty of any kind, whether express or implied. Users of this
+    software and documentation do so at their own risk. All implied
+    warranties, including, without limitation, implied warranties of
+    merchantability, fitness for a particular purpose, and
+    non - infringement, are hereby expressly disclaimed. Links and
+    references to any other websites or software are provided for
+    information only and listing shall not be taken as endorsement of
+    any kind.
 
-#     The Government of British Columbia is not responsible for the
-#     content or reliability of any linked software and websites and does
-#     not endorse the content, products, services or views expressed
-#     within them. It is the responsibility of all persons who use the PSU API
-#     and documentation to independently confirm the accuracy of the
-#     data, information, or results obtained through their use.
+    The Government of British Columbia is not responsible for the
+    content or reliability of any linked software and websites and does
+    not endorse the content, products, services or views expressed
+    within them. It is the responsibility of all persons who use the PSU API
+    and documentation to independently confirm the accuracy of the
+    data, information, or results obtained through their use.
 
-#     Limitation of Liabilities Under no circumstances will the Government
-#     of British Columbia be liable to any person or business entity for
-#     any direct, indirect, special, incidental, consequential, or other
-#     damages based on any use of this software and documentation or any
-#     other software to which this site is linked, including, without
-#     limitation, any lost profits, business interruption, or loss of
-#     programs or information, even if the Government of British Columbia
-#     has been specifically advised of the possibility of such damages.'''
+    Limitation of Liabilities Under no circumstances will the Government
+    of British Columbia be liable to any person or business entity for
+    any direct, indirect, special, incidental, consequential, or other
+    damages based on any use of this software and documentation or any
+    other software to which this site is linked, including, without
+    limitation, any lost profits, business interruption, or loss of
+    programs or information, even if the Government of British Columbia
+    has been specifically advised of the possibility of such damages.'''
 
 
-# # This is the api app.
-# api = FastAPI(
-#     title="Predictive Services API",
-#     description=API_INFO,
-#     version="0.0.0"
-# )
+# This is the api app.
+api = FastAPI(
+    title="Predictive Services API",
+    description=API_INFO,
+    version="0.0.0"
+)
 
 # This is our base starlette app - it doesn't do much except glue together
 # the api and the front end.
@@ -75,9 +75,9 @@ app = Starlette()
 # Mount the /api
 # In production, / routes to the frontend. (api and front end run in seperate containers, with
 # seperate routing)
-# app.mount('/api', app=api)
+app.mount('/api', app=api)
 
-# ORIGINS = config.get('ORIGINS')
+ORIGINS = config.get('ORIGINS')
 
 
 # async def catch_exception_middleware(request: Request, call_next):
