@@ -5,9 +5,13 @@ metadata:
   annotations:
     "openshift.io/display-name": nats
 parameters:
-  - description: The pod namespace
-    name: POD_NAMESPACE
+  - name: POD_NAMESPACE
+    description: The pod namespace
     value: ${POD_NAMESPACE}
+    required: true
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
 objects:
   - apiVersion: v1
     kind: ConfigMap
@@ -198,3 +202,35 @@ objects:
                   "-c",
                   "/nats-server -sl=ldm=/var/run/nats/nats.pid && /bin/sleep 60",
                 ]
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: nats-consumer
+      labels:
+        app: nats
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: nats
+      template:
+        metadata:
+          labels:
+            app: nats
+        spec:
+          containers:
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-api-${SUFFIX}:${SUFFIX}
+              imagePullPolicy: Always
+              name: ${APP_NAME}-api
+              command: ["python -v"]
+              ports:
+                - containerPort: 4222
+                  name: client
+                - containerPort: 7422
+                  name: leafnodes
+                - containerPort: 6222
+                  name: cluster
+                - containerPort: 8222
+                  name: monitor
+                - containerPort: 7777
+                  name: metrics
