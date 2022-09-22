@@ -8,10 +8,10 @@ try:
 except Exception as e:
     print(e)
 # from rpy2.robjects import DataFrame
-try:
-    import rpy2.robjects.conversion as cv
-except Exception as e:
-    print(e)
+# try:
+#     import rpy2.robjects.conversion as cv
+# except Exception as e:
+#     print(e)
 
 # from rpy2.rinterface import NULL
 # import app.utils.r_importer
