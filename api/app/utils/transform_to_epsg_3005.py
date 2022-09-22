@@ -1,6 +1,9 @@
+import logging
 import sys
 import os
 from osgeo import osr, gdal, ogr
+
+logger = logging.getLogger(__name__)
 
 
 def transform_shapefile_to_epsg_3005(source_file, new_filename):
@@ -12,8 +15,7 @@ def transform_shapefile_to_epsg_3005(source_file, new_filename):
     source_data = driver.Open(source_file, gdal.GA_ReadOnly)
 
     if source_data is None:
-        print('Could not open {}'.format(source_file))
-        return
+        logger.error('Could not open %s', source_file)
 
     source_layer = source_data.GetLayer()
     input_spatial_ref = source_layer.GetSpatialRef()

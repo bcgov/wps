@@ -10,7 +10,7 @@ from shapely import wkb, wkt
 from shapely.validation import make_valid
 from osgeo import ogr, osr
 from app import config
-from app.db.models.auto_spatial_advisory import ClassifiedHfi, RunTypeEnum
+from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope
 from app.db.crud.auto_spatial_advisory import (
     save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum)
@@ -29,6 +29,42 @@ class RunType(Enum):
 
 class UnknownHFiClassification(Exception):
     """ Raised when the hfi classification is not one of the expected values. """
+
+
+def create_model_object(feature: ogr.Feature,
+                        advisory: HfiClassificationThreshold,
+                        warning: HfiClassificationThreshold,
+                        coordinate_transform: osr.CoordinateTransformation,
+                        run_type: RunType,
+                        run_date: date,
+                        for_date: date) -> ClassifiedHfi:
+    hfi = feature.GetField(0)
+    if hfi == 1:
+        threshold_id = advisory.id
+    elif hfi == 2:
+        threshold_id = warning.id
+    else:
+        raise UnknownHFiClassification(f'unknown hfi value: {hfi}')
+    # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Geometry
+    geometry: ogr.Geometry = feature.GetGeometryRef()
+    # Make sure the geometry is in EPSG:3005!
+    geometry.Transform(coordinate_transform)
+    # Would be very nice to go directly from the ogr.Geometry into the database,
+    # but I can't figure out how to have the wkt output also include the fact that
+    # the SRID is EPSG:3005. So we're doing this redundant step of creating a shapely
+    # geometry from wkt, then dumping it back into wkb, with srid=3005.
+    # NOTE: geometry.ExportToIsoWkb isn't consistent in it's return value between
+    # different versions of gdal (bytearray vs. bytestring) - so we're opting for
+    # wkt instead of wkb here for better compatibility.
+    polygon = wkt.loads(geometry.ExportToIsoWkt())
+    polygon = make_valid(polygon)
+    return ClassifiedHfi(threshold=threshold_id,
+                         run_type=RunTypeEnum(run_type.value),
+                         run_date=run_date,
+                         for_date=for_date,
+                         geom=wkb.dumps(polygon,
+                                        hex=True,
+                                        srid=NAD83_BC_ALBERS))
 
 
 async def process_hfi(run_type: RunType, run_date: date, for_date: date):
@@ -68,33 +104,13 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                 for i in range(layer.GetFeatureCount()):
                     # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Feature
                     feature: ogr.Feature = layer.GetFeature(i)
-                    hfi = feature.GetField(0)
-                    if hfi == 1:
-                        threshold_id = advisory.id
-                    elif hfi == 2:
-                        threshold_id = warning.id
-                    else:
-                        raise UnknownHFiClassification(f'unknown hfi value: {hfi}')
-                    # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Geometry
-                    geometry: ogr.Geometry = feature.GetGeometryRef()
-                    # Make sure the geometry is in EPSG:3005!
-                    geometry.Transform(coordinate_transform)
-                    # Would be very nice to go directly from the ogr.Geometry into the database,
-                    # but I can't figure out how to have the wkt output also include the fact that
-                    # the SRID is EPSG:3005. So we're doing this redundant step of creating a shapely
-                    # geometry from wkt, then dumping it back into wkb, with srid=3005.
-                    # NOTE: geometry.ExportToIsoWkb isn't consistent in it's return value between
-                    # different versions of gdal (bytearray vs. bytestring) - so we're opting for
-                    # wkt instead of wkb here for better compatibility.
-                    polygon = wkt.loads(geometry.ExportToIsoWkt())
-                    polygon = make_valid(polygon)
-                    obj = ClassifiedHfi(threshold=threshold_id,
-                                        run_type=RunTypeEnum(run_type.value),
-                                        run_date=run_date,
-                                        for_date=for_date,
-                                        geom=wkb.dumps(polygon,
-                                                       hex=True,
-                                                       srid=NAD83_BC_ALBERS))
+                    obj = create_model_object(feature,
+                                              advisory,
+                                              warning,
+                                              coordinate_transform,
+                                              run_type,
+                                              run_date,
+                                              for_date)
                     await save_hfi(session, obj)
 
     perf_end = perf_counter()

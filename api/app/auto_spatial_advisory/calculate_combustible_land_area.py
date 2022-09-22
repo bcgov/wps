@@ -1,16 +1,3 @@
-from contextlib import contextmanager
-from typing import Generator, Tuple
-import logging
-from osgeo import gdal, ogr
-import asyncio
-from geoalchemy2.shape import to_shape
-from shapely import wkb
-from sqlalchemy import select
-from app.db.database import get_async_read_session_scope
-from app.db.models.auto_spatial_advisory import Shape
-from app import config
-
-
 """
 calculate_combustible_land_area.py iterates calculates the total land area covered by combustible
 fuels in each fire zone.
@@ -18,6 +5,13 @@ fuels in each fire zone.
 The fuel types vector file is retrieved from our object store bucket, and the fire zones
 (simplified polygons) are pulled from our database.
 """
+from contextlib import contextmanager
+from typing import Generator, Tuple
+import logging
+from osgeo import gdal, ogr
+from geoalchemy2.shape import to_shape
+from app import config
+
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +33,7 @@ def get_fuel_types_from_object_store():
 
     driver = ogr.GetDriverByName('ESRI Shapefile')
     fuel_types = driver.Open(fuel_types_vector_filepath, gdal.GA_ReadOnly)
-    logger.info('Retrieving fuel types layer from {}'.format(fuel_types_vector_filepath))
+    logger.info('Retrieving fuel types layer from %s', fuel_types_vector_filepath)
     fuel_types_layer = fuel_types.GetLayer()
 
     # Filter out non-combustible fuel types
