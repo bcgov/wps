@@ -171,6 +171,7 @@ jobs:
       - name: Unit Test with coverage (api)
         working-directory: ./api
         run: |
+          export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
           export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATH
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
