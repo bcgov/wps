@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.10.4]
-        R: ["3.5.2"]
+        R: ["4.1.2"]
     env:
       RENV_PATHS_ROOT: ~/.local/share/renv
     steps:
