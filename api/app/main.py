@@ -112,10 +112,10 @@ api.middleware('http')(catch_exception_middleware)
 # api.include_router(sfms.router, tags=["SFMS", "Fire Behaviour Advisory"])
 
 
-@api.get('/ready')
-async def get_ready():
-    """ A simple endpoint for OpenShift readiness """
-    return Response()
+# @api.get('/ready')
+# async def get_ready():
+#     """ A simple endpoint for OpenShift readiness """
+#     return Response()
 
 
 # @api.get('/health')
