@@ -147,9 +147,11 @@ jobs:
       - name: Install R dependencies (api)
         run: R -e "install.packages('cffdrs')"
       - name: Mega frustration
+        working-directory: ./api
         run: poetry run python -m rpy2.situation LD_LIBRARY_PATH
       - name: Frustration
         run: |
+          working-directory: ./api
           export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
           poetry run python -c 'import rpy2.robjects as robjs'
       # - name: Set RENV_PATHS_ROOT
