@@ -3,10 +3,10 @@
 import logging
 # import math
 # from typing import Optional
-try:
-    import rpy2.robjects as robjs
-except Exception as e:
-    print(e)
+# try:
+#     import rpy2.robjects as robjs
+# except Exception as e:
+#     print(e)
 # from rpy2.robjects import DataFrame
 # try:
 #     import rpy2.robjects.conversion as cv
