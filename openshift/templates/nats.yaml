@@ -12,6 +12,10 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
+    value: wps
+    required: true
 objects:
   - apiVersion: v1
     kind: ConfigMap
