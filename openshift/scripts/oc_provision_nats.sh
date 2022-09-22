@@ -24,7 +24,8 @@ OBJ_NAME="${APP_NAME}-${SUFFIX}"
 # Process a template (mostly variable substitution)
 #
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_NATS} \
- -p POD_NAMESPACE=${PROJ_TARGET}"
+ -p POD_NAMESPACE=${PROJ_TARGET} \
+ -p SUFFIX=${SUFFIX}"
 
 # Apply a template (apply or use --dry-run=client)
 #
