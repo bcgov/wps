@@ -74,7 +74,7 @@ test-coverage:
 
 lint:
 	# Run lint.
-	$(POETRY_RUN) pylint --rcfile=.pylintrc advisory/*.py advisory/**/*.py app/*.py app/**/*.py;
+	$(POETRY_RUN) pylint --rcfile=.pylintrc app/*.py app/**/*.py;
 
 run-with-tests:
 	# Run the application in the virtual environment (after linting and testing).

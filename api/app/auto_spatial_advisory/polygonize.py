@@ -1,8 +1,11 @@
 """ Code for polygonizing a geotiff file. """
+import logging
 from contextlib import contextmanager
-from typing import Tuple
 from osgeo import gdal, ogr, osr
 import numpy as np
+
+
+logger = logging.getLogger(__name__)
 
 
 def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransform):
@@ -59,7 +62,7 @@ def polygonize_in_memory(geotiff_filename) -> ogr.Layer:
 def polygonize_geotiff_to_shapefile(raster_source_filename, vector_dest_filename):
     """
     TODO: Automate this.
-    At the moment this function isn't used as part of any automated process, 
+    At the moment this function isn't used as part of any automated process,
     but has been used to manually convert the fuel type layer tiff to a shapefile,
     which then gets manually uploaded to our S3 bucket.
 
@@ -68,14 +71,14 @@ def polygonize_geotiff_to_shapefile(raster_source_filename, vector_dest_filename
     file into destination file.
     """
     if raster_source_filename[-3:] != '.tif':
-        return '{} is an invalid file format for raster source'.format(raster_source_filename)
+        return f'{raster_source_filename} is an invalid file format for raster source'
     if vector_dest_filename[-3:] != '.shp':
         vector_dest_filename += '.shp'
 
     source_data = gdal.Open(raster_source_filename, gdal.GA_ReadOnly)
     source_band = source_data.GetRasterBand(1)
     value = ogr.FieldDefn('Band 1', ogr.OFTInteger)
-    print('{} raster count: {}'.format(raster_source_filename, source_data.RasterCount))
+    logger.info('%s raster count %s', raster_source_filename, source_data.RasterCount)
 
     driver = ogr.GetDriverByName("ESRI Shapefile")
     destination = driver.CreateDataSource(vector_dest_filename)
@@ -87,4 +90,4 @@ def polygonize_geotiff_to_shapefile(raster_source_filename, vector_dest_filename
     dest_field = dest_layer.GetLayerDefn().GetFieldIndex('Band 1')
     gdal.Polygonize(source_band, None, dest_layer, dest_field, [])
 
-    return 'Polygonized {} to {}'.format(raster_source_filename, vector_dest_filename)
+    return f'Polygonized {raster_source_filename} to {vector_dest_filename}'
