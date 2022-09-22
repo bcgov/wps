@@ -10,9 +10,7 @@ import app.utils.s3
 from app.utils.time import get_pst_tz
 from app import auth
 from app.tests.common import (
-    MockJWTDecode, default_aiobotocore_get_session, default_mock_requests_get,
-    default_mock_requests_post, default_mock_requests_session_get,
-    default_mock_requests_session_post)
+    MockJWTDecode, default_aiobotocore_get_session)
 import app.db.database
 from app.schemas.shared import WeatherDataRequest
 import app.wildfire_one.wildfire_fetchers
@@ -58,14 +56,6 @@ def mock_env(monkeypatch):
 def mock_aiobotocore_get_session(monkeypatch):
     """ Patch the session by default """
     monkeypatch.setattr(app.utils.s3, 'get_session', default_aiobotocore_get_session)
-
-
-@pytest.fixture(autouse=True)
-def mock_requests(monkeypatch):
-    """ Patch all calls to request.get by default.
-    """
-    monkeypatch.setattr(requests, 'get', default_mock_requests_get)
-    monkeypatch.setattr(requests, 'post', default_mock_requests_post)
 
 
 @pytest.fixture(autouse=True)

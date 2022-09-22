@@ -5,7 +5,6 @@ import os
 import json
 from typing import Optional
 from contextlib import asynccontextmanager
-from app.tests.fixtures.loader import FixtureFinder
 
 logger = logging.getLogger(__name__)
 
@@ -142,27 +141,6 @@ def is_json(filename):
     return extension == '.json'
 
 
-def get_mock_client_session(url: str, params: dict = None) -> MockClientSession:
-    """ Returns a mocked client session, looking for fixtures based on the url and params provided.
-    """
-    # Get the fixture filename
-    fixture_finder = FixtureFinder()
-    filename = fixture_finder.get_fixture_path(url, 'get', params)
-    logger.info('using mock client session to load %s, injecting %s', url, filename)
-    with open(filename, encoding="utf-8") as fixture_file:
-        if is_json(filename):
-            return MockClientSession(json=json.load(fixture_file))
-        return MockClientSession(text=fixture_file.read())
-
-
-def default_mock_client_get(*args, **kwargs) -> MockClientSession:
-    """ Return a mocked client session - this should be good for most request.
-    """
-    url = args[1]
-    params = kwargs.get('params')
-    return get_mock_client_session(url, params)
-
-
 def _get_fixture_response(fixture):
     logger.debug('construct response with %s', fixture)
     with open(fixture, 'rb') as fixture_file:
@@ -172,40 +150,6 @@ def _get_fixture_response(fixture):
         # Return a response with the appropriate fixture
         data = fixture_file.read()
         return MockResponse(text=data.decode(), content=data)
-
-
-def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:  # pylint: disable=unused-argument
-    """ Return a mocked request response """
-    # Get the file location of the fixture
-    fixture_finder = FixtureFinder()
-    filename = fixture_finder.get_fixture_path(url, 'get', params)
-    # Construct the response
-    return _get_fixture_response(filename)
-
-
-# pylint: disable=redefined-outer-name, unused-argument
-def default_mock_requests_post(url, data=None, json=None, params=None, **kwargs) -> MockResponse:
-    """ Return a mocked request response """
-    # Get the file location of the fixture
-    fixture_finder = FixtureFinder()
-    filename = fixture_finder.get_fixture_path(url, 'post', params, data)
-    # Construct the response
-    return _get_fixture_response(filename)
-# pylint: enable=redefined-outer-name
-
-
-# pylint: disable=redefined-outer-name
-def default_mock_requests_session_get(self, url, **kwargs) -> MockResponse:
-    """ Return a mocked request response from a request.Session object """
-    return default_mock_requests_get(url, **kwargs)
-# pylint: enable=redefined-outer-name
-
-
-# pylint: disable=redefined-outer-name
-def default_mock_requests_session_post(self, url, data=None, json=None, **kwargs) -> MockResponse:
-    """ Return a mocked request response from a request.Session object """
-    return default_mock_requests_post(url, data, json, **kwargs)
-# pylint: enable=redefined-outer-name
 
 
 def str2float(value: str):

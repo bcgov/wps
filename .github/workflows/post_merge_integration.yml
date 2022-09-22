@@ -32,7 +32,7 @@ jobs:
           cache-name: cache-poetry-installer
         with:
           path: "~/poetry_installer"
-          key: "poetry-installer-1.2.0"
+          key: "poetry-installer-1.2.1"
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
         run: |
