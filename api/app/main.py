@@ -3,21 +3,21 @@
 See README.md for details on how to run.
 """
 import logging
-# from time import perf_counter
+from time import perf_counter
 from urllib.request import Request
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
-# from app import schemas, configure_logging
-# from app.percentile import get_precalculated_percentiles
-# from app.auth import authentication_required, audit
+from app import schemas, configure_logging
+from app.percentile import get_precalculated_percentiles
+from app.auth import authentication_required, audit
 from app import config
-# from app import health
-# from app import hourlies
+from app import health
+from app import hourlies
 from app.rocketchat_notifications import send_rocketchat_notification
 # from app.routers import (fba, forecasts, fwi_calc, weather_models, c_haines, stations, hfi_calc,
 #                          fba_calc, sfms)
-# from app.fire_behaviour.cffdrs import CFFDRS
+from app.fire_behaviour.cffdrs import CFFDRS
 
 
 # configure_logging()
@@ -112,72 +112,72 @@ api.middleware('http')(catch_exception_middleware)
 # api.include_router(sfms.router, tags=["SFMS", "Fire Behaviour Advisory"])
 
 
-# @api.get('/ready')
-# async def get_ready():
-#     """ A simple endpoint for OpenShift readiness """
-#     return Response()
+@api.get('/ready')
+async def get_ready():
+    """ A simple endpoint for OpenShift readiness """
+    return Response()
 
 
-# @api.get('/health')
-# async def get_health():
-#     """ A simple endpoint for Openshift Healthchecks.
-#     It's assumed that if patroni is ok, then all is well.  """
-#     try:
-#         health_check = health.patroni_cluster_health_check()
+@api.get('/health')
+async def get_health():
+    """ A simple endpoint for Openshift Healthchecks.
+    It's assumed that if patroni is ok, then all is well.  """
+    try:
+        health_check = health.patroni_cluster_health_check()
 
-#         logger.debug('/health - healthy: %s. %s',
-#                      health_check.get('healthy'), health_check.get('message'))
+        logger.debug('/health - healthy: %s. %s',
+                     health_check.get('healthy'), health_check.get('message'))
 
-#         # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
-#         cffdrs_start = perf_counter()
-#         CFFDRS.instance()  # pylint: disable=no-member
-#         cffdrs_end = perf_counter()
-#         delta = cffdrs_end - cffdrs_start
-#         # Any delta below 100 milliseconds is just noise in the logs.
-#         if delta > 0.1:
-#             logger.info('%f seconds added by CFFDRS startup', delta)
+        # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
+        cffdrs_start = perf_counter()
+        CFFDRS.instance()  # pylint: disable=no-member
+        cffdrs_end = perf_counter()
+        delta = cffdrs_end - cffdrs_start
+        # Any delta below 100 milliseconds is just noise in the logs.
+        if delta > 0.1:
+            logger.info('%f seconds added by CFFDRS startup', delta)
 
-#         return health_check
-#     except Exception as exception:
-#         logger.error(exception, exc_info=True)
-#         raise
-
-
-# @api.post('/observations/', response_model=schemas.observations.WeatherStationHourlyReadingsResponse)
-# async def get_hourlies(request: schemas.shared.WeatherDataRequest,
-#                        _=Depends(authentication_required),
-#                        __=Depends(audit)):
-#     """ Returns hourly observations for the 5 days before and 10 days after the time of interest
-#     for the specified weather stations """
-#     try:
-#         logger.info('/observations/')
-
-#         readings = await hourlies.get_hourly_readings(request.stations, request.time_of_interest)
-
-#         return schemas.observations.WeatherStationHourlyReadingsResponse(hourlies=readings)
-#     except Exception as exception:
-#         logger.critical(exception, exc_info=True)
-#         raise
+        return health_check
+    except Exception as exception:
+        logger.error(exception, exc_info=True)
+        raise
 
 
-# @api.post('/percentiles/', response_model=schemas.percentiles.CalculatedResponse)
-# async def get_percentiles(request: schemas.percentiles.PercentileRequest):
-#     """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
-#     """
-#     try:
-#         logger.info('/percentiles/')
+@api.post('/observations/', response_model=schemas.observations.WeatherStationHourlyReadingsResponse)
+async def get_hourlies(request: schemas.shared.WeatherDataRequest,
+                       _=Depends(authentication_required),
+                       __=Depends(audit)):
+    """ Returns hourly observations for the 5 days before and 10 days after the time of interest
+    for the specified weather stations """
+    try:
+        logger.info('/observations/')
 
-#         percentiles = get_precalculated_percentiles(request)
+        readings = await hourlies.get_hourly_readings(request.stations, request.time_of_interest)
 
-#         return percentiles
-#     except Exception as exception:
-#         logger.critical(exception, exc_info=True)
-#         raise
+        return schemas.observations.WeatherStationHourlyReadingsResponse(hourlies=readings)
+    except Exception as exception:
+        logger.critical(exception, exc_info=True)
+        raise
 
 
-# if __name__ == "__main__":
-#     # This section of code is for the convenience of developers only. Having this section of code, allows
-#     # for developers to easily debug the application by running main.py and attaching to it with a debugger.
-#     # uvicorn is imported in this scope only, as it's not required when the application is run in production.
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8080)
+@api.post('/percentiles/', response_model=schemas.percentiles.CalculatedResponse)
+async def get_percentiles(request: schemas.percentiles.PercentileRequest):
+    """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
+    """
+    try:
+        logger.info('/percentiles/')
+
+        percentiles = get_precalculated_percentiles(request)
+
+        return percentiles
+    except Exception as exception:
+        logger.critical(exception, exc_info=True)
+        raise
+
+
+if __name__ == "__main__":
+    # This section of code is for the convenience of developers only. Having this section of code, allows
+    # for developers to easily debug the application by running main.py and attaching to it with a debugger.
+    # uvicorn is imported in this scope only, as it's not required when the application is run in production.
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8080)
