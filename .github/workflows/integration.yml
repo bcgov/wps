@@ -47,15 +47,15 @@ jobs:
           cache-name: cache-poetry
         with:
           path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-poetry-1.2.1-cache-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-poetry-cache-
+            ${{ runner.os }}-poetry-1.2.1-cache-
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v3
         with:
           path: ~/work/wps/wps/api/.venv
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-venv-poetry-1.2.1-${{ hashFiles('**/poetry.lock') }}
       - name: Install python dependencies using poetry (api)
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
@@ -118,15 +118,15 @@ jobs:
           cache-name: cache-poetry
         with:
           path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-poetry-1.2.1-cache-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-poetry-cache-
+            ${{ runner.os }}-poetry-1.2.1-cache-
       - name: Cache .venv
         id: cache-venv
         uses: actions/cache@v3
         with:
           path: ~/work/wps/wps/api/.venv
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-venv-poetry-1.2.1-${{ hashFiles('**/poetry.lock') }}
       - name: Install python dependencies using poetry (api)
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./api
