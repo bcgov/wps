@@ -3,9 +3,9 @@
 import logging
 # import math
 # from typing import Optional
-import rpy2.robjects as robjs
+# import rpy2.robjects as robjs
 # from rpy2.robjects import DataFrame
-import rpy2.robjects.conversion as cv
+# import rpy2.robjects.conversion as cv
 # from rpy2.rinterface import NULL
 # import app.utils.r_importer
 from app.utils.singleton import Singleton
@@ -14,9 +14,9 @@ from app.utils.singleton import Singleton
 logger = logging.getLogger(__name__)
 
 
-def _none2null(_):
-    """ Turn None values into null """
-    return robjs.r("NULL")
+# def _none2null(_):
+#     """ Turn None values into null """
+#     return robjs.r("NULL")
 
 
 try:
