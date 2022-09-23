@@ -233,11 +233,12 @@ objects:
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-nats-consumer:2022-sep-23-2
               imagePullPolicy: Always
               name: ${APP_NAME}-api
-              command: ["/bin/sh", "-c"]
-              args:
-                - echo starting;
-                  poetry version;
-                  tail -f /dev/null;
+              command: ["python3", "-m", "app.c_haines.worker"]
+              # command: ["/bin/sh", "-c"]
+              # args:
+              #   - echo starting;
+              #     poetry version;
+              #     tail -f /dev/null;
 
               # command:
               #   [
