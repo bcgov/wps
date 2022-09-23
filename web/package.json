@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "engines": {
     "node": ">=16.13.1",
-    "npm": "~8.1.0"
+    "npm": "~8.19.0"
   },
   "license": "Apache-2.0",
   "licenses": [
@@ -41,7 +41,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.29.4",
-    "esri-leaflet": "3.0.3",
+    "esri-leaflet": "3.0.8",
     "filefy": "^0.1.11",
     "jwt-decode": "^3.1.2",
     "keycloak-js": "^19.0.0",
