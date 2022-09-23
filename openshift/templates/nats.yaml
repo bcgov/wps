@@ -236,7 +236,7 @@ objects:
               command: ["/bin/sh", "-c"]
               args:
                 - echo starting;
-                  cd ../tmp;
+                  cp ../tmp/pyproject.toml .;
                   poetry version;
                   tail -f /dev/null;
 
