@@ -230,7 +230,7 @@ objects:
             app: nats
         spec:
           containers:
-            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-nats-consumer:2022-sep-23
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-nats-consumer:2022-sep-23-2
               imagePullPolicy: Always
               name: ${APP_NAME}-api
               command: ["/bin/sh", "-c"]
