@@ -236,10 +236,8 @@ objects:
               command: ["/bin/sh", "-c"]
               args:
                 - echo starting;
-                  pwd;
-                  ls -la;
-                  poetry version;
-                  echo done;
+                  tail -f /dev/null
+
               # command:
               #   [
               #     "poetry",
