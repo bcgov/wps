@@ -237,7 +237,7 @@ objects:
               args:
                 - echo starting;
                   ls -la;
-                  cd ..;
+                  cd app;
                   ls -la;
                   poetry version;
                   echo done;
