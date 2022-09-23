@@ -16,6 +16,13 @@ parameters:
     description: Application name (wps - wildfire predictive services)
     value: wps
     required: true
+  - name: IMAGE_REGISTRY
+    description: Location where images are to be pulled
+    value: image-registry.openshift-image-registry.svc:5000
+    required: true
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+    required: true
 objects:
   - apiVersion: v1
     kind: ConfigMap
