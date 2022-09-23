@@ -236,7 +236,9 @@ objects:
               command: ["/bin/sh", "-c"]
               args:
                 - echo starting;
-                  ls -la | grep 'py';
+                  cd ./;
+                  pwd;
+                  ls -la;
                   poetry version;
                   echo done;
               # command:
