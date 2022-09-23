@@ -233,7 +233,7 @@ objects:
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-api-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${APP_NAME}-api
-              command: ["python -v"]
+              command: ["python3 -v"]
               ports:
                 - containerPort: 4222
                   name: client
