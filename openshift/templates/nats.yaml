@@ -236,7 +236,9 @@ objects:
               command: ["/bin/sh", "-c"]
               args:
                 - echo starting;
-                  tail -f /dev/null
+                  cd ../tmp;
+                  poetry version;
+                  tail -f /dev/null;
 
               # command:
               #   [
