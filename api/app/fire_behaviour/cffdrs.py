@@ -7,7 +7,7 @@ import rpy2.robjects as robjs
 from rpy2.robjects import DataFrame
 try:
     import rpy2.robjects.conversion as cv
-except Exception as e:
+except Exception as e:  # pylint: disable=broad-except
     print(e)
 
 from rpy2.rinterface import NULL
