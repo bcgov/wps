@@ -233,14 +233,22 @@ objects:
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-api-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${APP_NAME}-api
-              command:
-                [
-                  "poetry",
-                  "run",
-                  "python",
-                  "-m",
-                  "auto_spatial_advisory.hfi_classify_consumer",
-                ]
+              command: ["/bin/sh", "-c"]
+              args:
+                - echo starting;
+                  ls -la;
+                  cd ..;
+                  ls -la;
+                  poetry version;
+                  echo done;
+              # command:
+              #   [
+              #     "poetry",
+              #     "run",
+              #     "python",
+              #     "-m",
+              #     "auto_spatial_advisory.hfi_classify_consumer",
+              #   ]
               ports:
                 - containerPort: 4222
                   name: client
