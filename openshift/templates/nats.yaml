@@ -248,6 +248,7 @@ objects:
               #     "python",
               #     "-m",
               #     "auto_spatial_advisory.hfi_classify_consumer",
+              #
               #   ]
               ports:
                 - containerPort: 4222
