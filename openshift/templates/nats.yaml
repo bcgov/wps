@@ -237,6 +237,7 @@ objects:
               args:
                 - echo starting;
                   cd ./;
+                  echo changed dir;
                   pwd;
                   ls -la;
                   poetry version;
