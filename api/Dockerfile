@@ -68,6 +68,8 @@ RUN poetry install
 RUN poetry run python -m pip install pygdal==3.4.1.10
 
 COPY ./app /app/app
+COPY pyproject.toml poetry.lock app/
+
 RUN mkdir /app/libs
 COPY ./libs /app/libs
 
