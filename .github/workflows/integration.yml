@@ -160,7 +160,7 @@ jobs:
         run: |
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
-      - name: Archive coverage report
+      - name: Archive coverage report (api)
         uses: actions/upload-artifact@v3
         with:
           name: api-coverage-report
