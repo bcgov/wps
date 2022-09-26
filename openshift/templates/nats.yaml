@@ -241,15 +241,15 @@ objects:
               #     poetry version;
               #     tail -f /dev/null;
 
-              # command:
-              #   [
-              #     "poetry",
-              #     "run",
-              #     "python",
-              #     "-m",
-              #     "auto_spatial_advisory.hfi_classify_consumer",
-              #
-              #   ]
+              command:
+                [
+                  "poetry",
+                  "run",
+                  "python",
+                  "-m",
+                  "app.auto_spatial_advisory.hfi_classify_consumer",
+              
+                ]
               ports:
                 - containerPort: 4222
                   name: client
