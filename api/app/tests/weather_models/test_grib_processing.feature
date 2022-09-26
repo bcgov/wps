@@ -7,8 +7,8 @@ Feature: Grib file processing
         And I expect pixels: <pixels>
 
         Examples:
-            | filename                                             | origin             | pixels                       |
-            | CMC_glb_RH_TGL_2_latlon.15x.15_2020071300_P000.grib2 | [-180.075, 90.075] | [0.15000000000000002, -0.15] |
+            | filename                                             | origin            | pixels                       |
+            | CMC_glb_RH_TGL_2_latlon.15x.15_2020071300_P000.grib2 | [179.925, 90.075] | [0.15000000000000002, -0.15] |
 
     Scenario: Extract the surrounding grid
         Given a grib file: <filename>

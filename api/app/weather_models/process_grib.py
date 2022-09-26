@@ -55,14 +55,14 @@ def get_surrounding_grid(
     row_one = struct.unpack('f' * 2, scanline_one)
     values = []
     values.extend(row_one)
-    scanline_two = band.ReadRaster(xoff=x_index, yoff=y_index+1, xsize=2, ysize=1,
+    scanline_two = band.ReadRaster(xoff=x_index, yoff=y_index + 1, xsize=2, ysize=1,
                                    buf_xsize=2, buf_ysize=1, buf_type=gdal.GDT_Float32)
     row_two = struct.unpack('f' * 2, scanline_two)
     values.append(row_two[1])
     values.append(row_two[0])
 
-    points = [[x_index, y_index], [x_index+1, y_index],
-              [x_index+1, y_index+1], [x_index, y_index+1]]
+    points = [[x_index, y_index], [x_index + 1, y_index],
+              [x_index + 1, y_index + 1], [x_index, y_index + 1]]
 
     return points, values
 
@@ -80,19 +80,19 @@ def calculate_raster_coordinate(
     raster_long, raster_lat = transformer.transform(longitude, latitude)
 
     # Calculate the j index for point i,j in the grib file
-    x_numerator = (raster_long - padf_transform[0] - raster_lat/padf_transform[5] *
+    x_numerator = (raster_long - padf_transform[0] - raster_lat / padf_transform[5] *
                    padf_transform[2] + padf_transform[3] / padf_transform[5] *
                    padf_transform[2]) / padf_transform[1]
 
-    y_numerator = (raster_lat - padf_transform[3] - raster_long/padf_transform[1] *
+    y_numerator = (raster_lat - padf_transform[3] - raster_long / padf_transform[1] *
                    padf_transform[4] + padf_transform[0] / padf_transform[1] *
                    padf_transform[4]) / padf_transform[5]
 
     denominator = 1 - \
-        padf_transform[4]/padf_transform[5]*padf_transform[2]/padf_transform[1]
+        padf_transform[4] / padf_transform[5] * padf_transform[2] / padf_transform[1]
 
-    i_index = math.floor(x_numerator/denominator)
-    j_index = math.floor(y_numerator/denominator)
+    i_index = math.floor(x_numerator / denominator)
+    j_index = math.floor(y_numerator / denominator)
 
     return (i_index, j_index)
 
@@ -103,9 +103,9 @@ def calculate_geographic_coordinate(
         transformer: Transformer):
     """ Calculate the geographic coordinates for a given points """
     x_coordinate = padf_transform[0] + point[0] * \
-        padf_transform[1] + point[1]*padf_transform[2]
+        padf_transform[1] + point[1] * padf_transform[2]
     y_coordinate = padf_transform[3] + point[0] * \
-        padf_transform[4] + point[1]*padf_transform[5]
+        padf_transform[4] + point[1] * padf_transform[5]
 
     lon, lat = transformer.transform(x_coordinate, y_coordinate)
     return (lon, lat)
@@ -116,9 +116,10 @@ def open_grib(filename: str) -> gdal.Dataset:
     return gdal.Open(filename, gdal.GA_ReadOnly)
 
 
-def get_dataset_geometry(dataset: gdal.Dataset) -> (List[int], List[int]):
+def get_dataset_geometry(dataset: gdal.Dataset) -> List[float]:
     """ Get the geometry info (origin and pixel size) of the dataset.
     """
+    # NOTE: What's the purpose of just wrapping the gdal calls in a function?
     return dataset.GetGeoTransform()
 
 
