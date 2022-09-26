@@ -230,7 +230,7 @@ objects:
             app: nats
         spec:
           containers:
-            - image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-c-haines-prod
+            - image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-c-haines-prod:prod
               imagePullPolicy: Always
               name: ${APP_NAME}-nats-consumer
               # command: ["python3", "-m", "app.c_haines.worker"]
