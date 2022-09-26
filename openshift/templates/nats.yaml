@@ -134,6 +134,7 @@ objects:
           #################
           terminationGracePeriodSeconds: 60
           containers:
+            ### Producer
             - name: nats-producer
               image: artifacts.developer.gov.bc.ca/docker-remote/nats:2.9.0-alpine
               resources:
@@ -183,6 +184,21 @@ objects:
                   name: pid
                 - mountPath: /data
                   name: nats-jetstream-wps
+              ### Consumer
+            - name: ${APP_NAME}-nats-consumer
+              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-nats-consumer:2022-sep-26-6
+              imagePullPolicy: Always
+              ports:
+                - containerPort: 4222
+                  name: client
+                - containerPort: 7422
+                  name: leafnodes
+                - containerPort: 6222
+                  name: cluster
+                - containerPort: 8222
+                  name: monitor
+                - containerPort: 7777
+                  name: metrics
 
         # Liveness/Readiness probes against the monitoring .
         livenessProbe:
@@ -213,34 +229,3 @@ objects:
                   "-c",
                   "/nats-server -sl=ldm=/var/run/nats/nats.pid && /bin/sleep 60",
                 ]
-  - apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: nats-consumer
-      labels:
-        app: nats
-    spec:
-      replicas: 3
-      selector:
-        matchLabels:
-          app: nats
-      template:
-        metadata:
-          labels:
-            app: nats
-        spec:
-          containers:
-            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-nats-consumer:2022-sep-26-6
-              imagePullPolicy: Always
-              name: ${APP_NAME}-nats-consumer
-              ports:
-                - containerPort: 4222
-                  name: client
-                - containerPort: 7422
-                  name: leafnodes
-                - containerPort: 6222
-                  name: cluster
-                - containerPort: 8222
-                  name: monitor
-                - containerPort: 7777
-                  name: metrics
