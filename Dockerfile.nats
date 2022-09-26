@@ -25,4 +25,8 @@ RUN poetry install --no-root --no-dev
 # Copy the app:
 COPY ./api/app /app/app
 
+USER 0
+
+RUN chmod -R 755 /app
+
 CMD poetry run python3 -m app.auto_spatial_advisory.hfi_classify_consumer
