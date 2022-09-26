@@ -17,6 +17,8 @@ RUN poetry run python3 -m pip install --upgrade pip
 # sure it's installed globally first, then it works.
 RUN python3 -m pip install cryptography
 
+RUN poetry config virtualenvs.create false --local
+
 # Install dependancies.
 RUN poetry install --no-root --no-dev
 
