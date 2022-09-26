@@ -230,7 +230,7 @@ objects:
             app: nats
         spec:
           containers:
-            - image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-nats-consumer:2022-sep-26-6
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-nats-consumer:2022-sep-26-6
               imagePullPolicy: Always
               name: ${APP_NAME}-nats-consumer
               ports:
