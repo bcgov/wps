@@ -15,10 +15,8 @@ RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
 # - It generally has a more recent version of gdal than debian.
 # - It generally has a fairly recent version of python.
 # - It has a more recent version of wkhtmltopdf and supporting libraries than debian.
-# When building in openshift, you can reference the image in openshift:
-# FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu:22.04
 #
-# When building local, you can do
+# When building local, you can pull direct from docker, instead of artifacts.developer.gov.bc.ca:
 # docker build --build-arg DOCKER_IMAGE=ubuntu:22.04 . --tag=wps-api-base:ubuntu.22.04-latest
 FROM ${DOCKER_IMAGE}
 
@@ -34,9 +32,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 # - python (we want python!)
 # - gdal (for geospatial)
 # - R (for cffdrs)
-# - JDK (for red-app)
 # - wkhtmltopdf (for making pdf's)
-RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base openjdk-17-jdk wkhtmltopdf
+RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base wkhtmltopdf
 
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
