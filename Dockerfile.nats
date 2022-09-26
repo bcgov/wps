@@ -1,0 +1,43 @@
+# Currenly used by the c-haines cronjob, which needs a new version of gdal than is provided
+# by the debian image used to serve up the api. Also used by nats consumers to ease deployment.
+ARG DOCKER_IMAGE=image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/ubuntu-base:20.04
+
+# Using local docker image to speed up build. See openshift/unicorn-base for details.
+FROM ${DOCKER_IMAGE}
+
+# We don't want to run our app as root, so we define a worker user.
+ARG USERNAME=1001
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# Switch to root
+USER 0
+
+# Create a directory for the app to run in, and grant worker access
+RUN mkdir /app
+RUN chown $USERNAME /app
+WORKDIR /app
+
+# Make sure we have the latest pip.
+RUN python3 -m pip install --upgrade pip
+
+# Copy poetry files.
+COPY --chown=$USERNAME:$USERNAME ./api/pyproject.toml ./api/poetry.lock /app/
+
+# Install dependencies.
+RUN poetry install --no-root --no-dev
+
+# Tell poetry where to find the cache
+# ENV POETRY_CACHE_DIR="/home/${USERNAME}/.cache/pypoetry"
+
+# Copy the app:
+COPY ./api/app /app/app
+
+# We don't know what user poetry is going to run as, so we give everyone write access directories
+# in the app folder. We need write access for .pyc files to be created. .pyc files are good,
+# they speed up python.
+RUN chmod a+w $(find /app/app -type d)
+
+RUN poetry config virtualenvs.create false --local
+
+CMD poetry run python3 -m app.auto_spatial_advisory.hfi_classify_consumer
