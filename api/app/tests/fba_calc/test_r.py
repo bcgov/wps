@@ -15,8 +15,10 @@ def test_r_version():
         if 'version' in str(item):
             # Look for the version number.
             version = str(item).split(' ')[3]
-            # If the major version is > 3, we're good.
-            major = version.split('.')[0]
-            assert int(major) >= 3
+            # If the major version is >= 4.1.2, we're good.
+            major, minor, patch = version.split('.')
+            assert int(major) >= 4
+            assert int(minor) >= 1
+            assert int(patch) >= 2
             return
     assert False
