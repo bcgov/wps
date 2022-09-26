@@ -234,21 +234,22 @@ objects:
               imagePullPolicy: Always
               name: ${APP_NAME}-nats-consumer
               # command: ["python3", "-m", "app.c_haines.worker"]
-              # command: ["/bin/sh", "-c"]
-              # args:
-              #   - echo starting;
-              #     poetry version;
-              #     tail -f /dev/null;
+              command: ["/bin/sh", "-c"]
+              args:
+                - echo starting;
+                  cp /tmp/pyproject.toml .;
+                  poetry run python3 -m app.auto_spatial_advisory.hfi_classify_consumer;
+                  echo done;
 
-              command:
-                [
-                  "poetry",
-                  "run",
-                  "python",
-                  "-m",
-                  "app.auto_spatial_advisory.hfi_classify_consumer",
-              
-                ]
+              # command:
+              #   [
+              #     "poetry",
+              #     "run",
+              #     "python",
+              #     "-m",
+              #     "app.auto_spatial_advisory.hfi_classify_consumer",
+
+              #   ]
               ports:
                 - containerPort: 4222
                   name: client
