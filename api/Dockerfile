@@ -3,7 +3,8 @@
 
 # debian would match more closely what we have in production, and would probably be ideal,
 # but it's also a pain working with because debian is so old.
-FROM ubuntu:22.04
+# FROM ubuntu:22.04
+FROM ubuntu:20.04
 
 ARG USERNAME=worker
 ARG USER_UID=1000
@@ -33,6 +34,7 @@ RUN R -e "install.packages('cffdrs')"
 RUN apt-get -y install git build-essential python3 python3-dev python3-pip curl vim
 
 # Install JDK
+# wouldn't this be nicer?: sudo apt install default-jdk
 RUN apt-get -y install openjdk-11-jdk
 
 # We could install poetry manually, but it's easier to use apt.
