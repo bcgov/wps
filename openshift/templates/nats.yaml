@@ -233,7 +233,6 @@ objects:
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-nats-consumer:2022-sep-23-2
               imagePullPolicy: Always
               name: ${APP_NAME}-nats-consumer
-              command: ["poetry", "run", "python", "-m", "pip", "install"]
               # command: ["python3", "-m", "app.c_haines.worker"]
               # command: ["/bin/sh", "-c"]
               # args:
