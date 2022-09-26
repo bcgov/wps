@@ -1,7 +1,7 @@
 ---
 name: Task
 about: Work for the team that cannot be written as a user story
-title: ''
+title: 'PRODUCT: DESCRIPTIVE TITLE'
 labels: Task
 assignees: ''
 
