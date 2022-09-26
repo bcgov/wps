@@ -233,7 +233,6 @@ objects:
             - image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-nats-consumer:2022-sep-26-5
               imagePullPolicy: Always
               name: ${APP_NAME}-nats-consumer
-              # command: ["python3", "-m", "app.c_haines.worker"]
               # command: ["/bin/sh", "-c"]
               # args:
               #   - echo starting;
