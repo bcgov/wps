@@ -8,6 +8,7 @@ from datetime import datetime
 import pytest
 import requests
 from sqlalchemy.orm import Session
+from shapely import wkt
 import app.utils.time as time_utils
 from app.schemas.stations import WeatherStation, Season
 from app.weather_models import env_canada, machine_learning
@@ -103,6 +104,12 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
 @pytest.fixture()
 def mock_database(monkeypatch):
     """ Mocked out database queries """
+    geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
+            " -120.525 50.62500000000001, -120.525 50.77500000000001))")
+    shape = wkt.loads(geom)
+    gdps_url = ('https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/000/'
+                'CMC_glb_TMP_TGL_2_latlon.15x.15_2021020300_P000.grib2')
+    gdps_processed_model_run = ProcessedModelRunUrl(url=gdps_url)
     gdps_prediction_model = PredictionModel(id=1,
                                             abbreviation='GDPS',
                                             projection='latlon.15x.15',
@@ -114,8 +121,19 @@ def mock_database(monkeypatch):
     def mock_get_gdps_prediction_model_run_timestamp_records(*args, **kwargs):
         return [(gdps_prediction_model_run, gdps_prediction_model)]
 
+    def mock_get_processed_file_record(session, url: str):
+        if url == gdps_url:
+            return gdps_processed_model_run
+
+    def mock_get_processed_file_count(*args, **kwargs):
+        return 0
+
     monkeypatch.setattr(env_canada, 'get_prediction_model_run_timestamp_records',
                         mock_get_gdps_prediction_model_run_timestamp_records)
+    monkeypatch.setattr(env_canada, 'get_processed_file_record', mock_get_processed_file_record)
+    monkeypatch.setattr(env_canada, 'get_processed_file_count', mock_get_processed_file_count)
+
+    # TODO: Figure out what to mock out here!
 
 
 @pytest.fixture()
