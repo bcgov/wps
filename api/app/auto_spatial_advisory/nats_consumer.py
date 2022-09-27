@@ -1,6 +1,5 @@
 import asyncio
 import nats
-from nats.aio.client import Client as NATS
 from app.auto_spatial_advisory.nats import server, stream_name, hfi_classify_group
 
 
@@ -31,7 +30,7 @@ async def run():
     async def cb(msg):
         print(msg)
 
-    sfms_sub = await js.subscribe(stream=stream_name,
+    sfms_sub = await js.subscribe(stream="wps-pr-2261sfms",
                                   subject="sfms.*",
                                   queue=hfi_classify_group,
                                   cb=cb)
