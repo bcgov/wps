@@ -6,14 +6,17 @@ import requests
 import pytest
 from pytest_mock import MockerFixture
 from pytest_bdd import then, parsers
+from app.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
 import app.utils.s3
-from app.utils.time import get_pst_tz
+from app.utils.time import get_pst_tz, get_utc_now
 from app import auth
 from app.tests.common import (
     MockJWTDecode, default_aiobotocore_get_session, default_mock_requests_get,
     default_mock_requests_post, default_mock_requests_session_get,
     default_mock_requests_session_post)
 import app.db.database
+import app.weather_models.env_canada
+import app.weather_models.process_grib
 from app.schemas.shared import WeatherDataRequest
 import app.wildfire_one.wildfire_fetchers
 import app.utils.redis
@@ -133,6 +136,24 @@ def mock_session(monkeypatch):
     """ Ensure that all unit tests mock out the database session by default! """
     monkeypatch.setattr(app.db.database, '_get_write_session', MagicMock())
     monkeypatch.setattr(app.db.database, '_get_read_session', MagicMock())
+
+    prediction_model = PredictionModel(id=1,
+                                       abbreviation='GDPS',
+                                       projection='latlon.15x.15',
+                                       name='Global Deterministic Prediction System')
+
+    def mock_get_prediction_model(session, model, projection):
+        return prediction_model
+
+    def mock_get_prediction_run(session, prediction_model_id: int, prediction_run_timestamp: datetime):
+        return PredictionModelRunTimestamp(
+            id=1, prediction_model_id=1, prediction_run_timestamp=get_utc_now(),
+            prediction_model=prediction_model, complete=True)
+
+    monkeypatch.setattr(app.weather_models.env_canada, 'get_prediction_model', mock_get_prediction_model)
+    monkeypatch.setattr(app.weather_models.process_grib, 'get_prediction_model', mock_get_prediction_model)
+
+    monkeypatch.setattr(app.weather_models.env_canada, 'get_prediction_run', mock_get_prediction_run)
 
 
 @pytest.fixture()
