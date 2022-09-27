@@ -23,6 +23,10 @@ parameters:
   - name: PROJ_TOOLS
     value: e1e498-tools
     required: true
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+    required: true
 objects:
   - apiVersion: v1
     kind: ConfigMap
@@ -233,6 +237,14 @@ objects:
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-nats-consumer:2022-sep-26-6
               imagePullPolicy: Always
               name: ${APP_NAME}-nats-consumer
+              env:
+                - name: NATS_STREAM_PREFIX
+                  value: ${APP_NAME}-${SUFFIX}
+                - name: NATS_SERVER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.nats-server
               ports:
                 - containerPort: 4222
                   name: client
