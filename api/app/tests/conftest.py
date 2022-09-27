@@ -15,6 +15,7 @@ from app.tests.common import (
     default_mock_requests_post, default_mock_requests_session_get,
     default_mock_requests_session_post)
 import app.db.database
+from app.weather_models import ModelEnum, ProjectionEnum
 import app.weather_models.env_canada
 import app.weather_models.process_grib
 from app.schemas.shared import WeatherDataRequest
@@ -144,7 +145,8 @@ def mock_session(monkeypatch):
 
     # pylint: disable=unused-argument
     def mock_get_prediction_model(session, model, projection):
-        return prediction_model
+        if model == ModelEnum.GDPS and projection == ProjectionEnum.LATLON_15X_15:
+            return prediction_model
 
     # pylint: disable=unused-argument
     def mock_get_prediction_run(session, prediction_model_id: int, prediction_run_timestamp: datetime):
