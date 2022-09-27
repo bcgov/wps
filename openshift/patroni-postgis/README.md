@@ -58,3 +58,15 @@ oc -n e1e498-prod policy add-role-to-user \
 # Build the patroni image, specifying some of the variables (useful if you're testing)
 oc -n e1e498-tools process -f openshift/build.yaml -p GIT_REF=mybranch -p VERSION=yourtag | oc -n e1e498-tools apply -f -
 ```
+
+## Upgrade issues
+
+Upgrades to the version of PostGIS in the patroni image, don't mean that the database plugins are upgraded. You need to run the following SQL to upgrade the database plugins:
+
+```bash
+SELECT postgis_extensions_upgrade();
+```
+
+This script cannot be run as part of the alembic scripts in the api project, the api uses a `wps` user that does not have the appropriate priveleges. Upgrading the image may this require manually running `SELECT postgis_extensions_upgrade();` on the target database once the new image has been applied.
+
+The PostGIS version can be checked with `SELECT postgis_full_version();`

@@ -52,6 +52,8 @@ Ensure that the CLASSPATH environment variable points to the jar files in api/li
 brew install gdal
 ```
 
+Note that there are other subsequent steps for gdal installation. See "Install project python requirements".
+
 ##### wkhtmltopdf
 
 ```bash
@@ -84,9 +86,9 @@ poetry run python -m pip install --upgrade pip
 poetry install
 poetry shell
 # we can't include gdal in poetry as we have little control over the version of gdal available on different platforms - we must match whatever version of gdal is available on the system in question.
-pip install gdal==$(gdal-config --version)
+python -m pip install gdal==$(gdal-config --version)
 # on ubuntu, you may have to install pygdal, with the correct version specified.
-pip install pygdal==3.0.4.10
+python -m pip install pygdal==3.0.4.10
 ```
 
 **N.B.: If `poetry env use [version]` returns an `EnvCommandError` saying something like "pyenv: python3.8: command not found", but `pyenv versions` shows that 3.8.10 is installed, you must first run `pyenv shell 3.8.10` and then re-run `poetry env use [path to python 3.8.10]`.**
@@ -317,6 +319,13 @@ make test-watch
 ```
 
 Or enforce by running [scripts/test.sh](scripts/test.sh) as part of your ci/cd pipeline.
+
+
+#### ModuleNotFoundError: No module named 'pkg_resources'
+
+```bash
+poetry run python -m pip install --upgrade setuptools
+```
 
 ### Making changes to the database
 
