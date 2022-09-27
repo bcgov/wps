@@ -224,7 +224,7 @@ async def set_planning_area_station(
 
     # We save the request in the database. (We do this right at the end, so that we don't
     # save a broken request by accident.)
-    save_request_in_database(request, token.get('preferred_username', None))
+    save_request_in_database(request, token.get('idir_username', None))
     return request_response
 
 
@@ -268,7 +268,7 @@ async def set_planning_area_station_fuel_type(
         request_response = await calculate_and_create_response(
             session, request, fire_centre_fire_start_ranges)
 
-    save_request_in_database(request, token.get('preferred_username', None))
+    save_request_in_database(request, token.get('idir_username', None))
     return request_response
 
 
@@ -314,7 +314,7 @@ async def set_fire_start_range(fire_centre_id: int,
             session, request, fire_centre_fire_start_ranges)
 
     # We save the request in the database.
-    save_request_in_database(request, token.get('preferred_username', None))
+    save_request_in_database(request, token.get('idir_username', None))
     return request_response
 
 
@@ -427,7 +427,7 @@ async def toggle_planning_area_ready(
     response.headers["Cache-Control"] = no_cache
 
     with get_write_session_scope() as session:
-        username = token.get('preferred_username', None)
+        username = token.get('idir_username', None)
         ready_state = toggle_ready(session, fire_centre_id, planning_area_id, DateRange(
             start_date=start_date,
             end_date=end_date),
@@ -447,7 +447,7 @@ async def admin_update_stations(request: HFIAdminStationUpdateRequest,
                                 token=Depends(auth_with_station_admin_role_required)):
     """ Apply updates for a list of stations. """
     logger.info('/hfi-calc/admin/stations')
-    username = token.get('preferred_username', None)
+    username = token.get('idir_username', None)
     with get_write_session_scope() as db_session:
         timestamp = get_utc_now()
         stations_to_remove = get_stations_for_removal(db_session, request.removed)
@@ -504,7 +504,7 @@ async def get_pdf(
     # See: https://jinja.palletsprojects.com/en/3.0.x/api/?highlight=functionloader#jinja2.FunctionLoader
     jinja_env = Environment(loader=FunctionLoader(get_template), autoescape=True)
 
-    username = token.get('preferred_username', None)
+    username = token.get('idir_username', None)
 
     pdf_bytes, pdf_filename = generate_pdf(request_response,
                                            fire_centres_list,

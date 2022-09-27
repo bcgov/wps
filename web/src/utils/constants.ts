@@ -22,7 +22,7 @@ export const MORECAST_ROUTE = '/morecast'
 export const HFI_CALC_ROUTE = '/hfi-calculator'
 export const C_HAINES_ROUTE = '/c-haines'
 export const FIRE_BEHAVIOR_CALC_ROUTE = '/fire-behaviour-calculator'
-export const FIRE_BEHAVIOUR_ADVISORY_ROUTE = '/fire-behaviour-advisory'
+export const FIRE_BEHAVIOUR_ADVISORY_ROUTE = '/auto-spatial-advisory'
 export const FWI_CALC_ROUTE = '/fwi-calculator'
 
 // ExpandableContainer widths

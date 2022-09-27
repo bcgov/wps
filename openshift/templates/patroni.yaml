@@ -292,11 +292,6 @@ parameters:
     description: |
       The image tag used to specify which image you would like deployed.
       Don't use `latest`.
-    # NOTE: testing out new image - if this works, then
-    # 1. tag v12-2022-09-12 as v12
-    # 2. update this reference
-    # OR
-    # just keep using this tag?
     value: "v12-2022-09-12"
   - name: PVC_SIZE
     description: The size of the persistent volume to create.

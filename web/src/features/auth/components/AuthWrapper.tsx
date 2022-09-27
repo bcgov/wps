@@ -28,7 +28,7 @@ const AuthWrapper = ({ children }: Props) => {
 
   useEffect(() => {
     if (TEST_AUTH || window.Cypress) {
-      dispatch(testAuthenticate(true, 'test token'))
+      dispatch(testAuthenticate(true, 'test token', 'test id token'))
     } else {
       dispatch(authenticate())
       dispatch(setAxiosRequestInterceptors())

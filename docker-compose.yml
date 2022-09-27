@@ -28,6 +28,14 @@ services:
       - "6379:6379"
     networks:
       - wps_network
+  nats:
+    image: nats
+    # we need to run nats with jetstream
+    command: -js
+    ports:
+      - 4222:4222
+    networks:
+      - wps_network
   # Application's local database container & service
   db:
     image: postgis/postgis

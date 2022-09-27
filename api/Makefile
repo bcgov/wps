@@ -74,7 +74,7 @@ test-coverage:
 
 lint:
 	# Run lint.
-	$(POETRY_RUN) pylint --rcfile=.pylintrc advisory/*.py advisory/**/*.py app/*.py app/**/*.py;
+	$(POETRY_RUN) pylint --rcfile=.pylintrc app/*.py app/**/*.py;
 
 run-with-tests:
 	# Run the application in the virtual environment (after linting and testing).
@@ -208,3 +208,7 @@ database-downgrade:
 
 docker-database-upgrade:
 	docker compose exec -e PYTHONPATH=. api alembic upgrade head
+
+nats:
+	# Run nats with jetstream
+	docker run -p 4222:4222 -ti nats:latest -js

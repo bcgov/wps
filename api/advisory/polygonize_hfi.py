@@ -39,7 +39,7 @@ def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransfor
     """ Create an in memory (https://gdal.org/drivers/raster/mem.html) data band to represent a
     single raster layer.
     See https://gdal.org/user/raster_data_model.html#raster-band for a complete
-    description of what a raster band is.    
+    description of what a raster band is.
     """
     # Create "In Memory Raster" driver, see: https://gdal.org/drivers/raster/mem.html
     mem_driver = gdal.GetDriverByName('MEM')

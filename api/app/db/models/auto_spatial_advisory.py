@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import (Integer, Date, String, Column, Index, ForeignKey, Enum, UniqueConstraint)
+from sqlalchemy import (Integer, Date, String, Float, Column, Index, ForeignKey, Enum, UniqueConstraint)
 from geoalchemy2 import Geometry
 from app.db.database import Base
 from app.geospatial import NAD83_BC_ALBERS
@@ -44,6 +44,11 @@ class Shape(Base):
     # An area is uniquely identified, e.g. a zone has a number, so does a fire.
     source_identifier = Column(String, nullable=False, index=True)
     shape_type = Column(Integer, ForeignKey('advisory_shape_types.id'), nullable=False, index=True)
+    # The area in square meters of the shape's geom that has combustible fuels in it,
+    # according to the fuel type layer
+    # Have to make this column nullable to start because the table already exists. Will be
+    # modified in subsequent migration to nullable=False
+    combustible_area = Column(Float, nullable=True)
     geom = Column(Geometry('MULTIPOLYGON', spatial_index=False, srid=NAD83_BC_ALBERS), nullable=False)
 
 
@@ -85,3 +90,18 @@ class ClassifiedHfi(Base):
 
 # Explict creation of index due to issue with alembic + geoalchemy.
 Index('idx_advisory_classified_hfi_geom', ClassifiedHfi.geom, postgresql_using='gist')
+
+
+class FuelType(Base):
+    """ Identify some kind of fuel type. """
+    __tablename__ = 'advisory_fuel_types'
+    __table_args__ = (
+        {'comment': 'Identify some kind of fuel type'}
+    )
+    id = Column(Integer, primary_key=True, index=True)
+    fuel_type_id = Column(Integer, nullable=False, index=True)
+    geom = Column(Geometry('POLYGON', spatial_index=False, srid=NAD83_BC_ALBERS))
+
+
+# Explict creation of index due to issue with alembic + geoalchemy.
+Index('idx_advisory_fuel_types_geom', FuelType.geom, postgresql_using='gist')
