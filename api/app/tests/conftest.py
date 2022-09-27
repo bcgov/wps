@@ -142,9 +142,11 @@ def mock_session(monkeypatch):
                                        projection='latlon.15x.15',
                                        name='Global Deterministic Prediction System')
 
+    # pylint: disable=unused-argument
     def mock_get_prediction_model(session, model, projection):
         return prediction_model
 
+    # pylint: disable=unused-argument
     def mock_get_prediction_run(session, prediction_model_id: int, prediction_run_timestamp: datetime):
         return PredictionModelRunTimestamp(
             id=1, prediction_model_id=1, prediction_run_timestamp=get_utc_now(),
