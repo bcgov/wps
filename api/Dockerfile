@@ -70,7 +70,9 @@ RUN poetry run python -m pip install pygdal==3.4.1.10
 ENV PATH="/home/worker/.local/bin:${PATH}"
 
 COPY ./app /app/app
-
+# TODO: we need to do this better.
+RUN mkdir /app/advisory
+COPY ./advisory /app/advisory
 RUN mkdir /app/libs
 COPY ./libs /app/libs
 
