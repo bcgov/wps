@@ -12,3 +12,14 @@ stream_name: Final = f'{stream_prefix}sfms'
 subjects: Final = ['sfms.*', ]
 
 hfi_classify_group: Final = "hfi_classify"
+
+
+# SFMS Stream/Subjects
+
+# Top of hierarchy, used for creating the stream
+sfms_subjects: Final = ['sfms.*', ]
+
+# Initial version of sfms file messages, published to, and subscribed from
+# Publisher should publish to the same stream with a new subject
+# Consumers should subscribe to the same stream with all subjects
+sfms_file_subject = 'sfms.file'

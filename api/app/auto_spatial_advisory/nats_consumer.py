@@ -2,7 +2,7 @@ import asyncio
 import json
 import datetime
 import nats
-from app.auto_spatial_advisory.nats import server, stream_name, hfi_classify_group
+from app.auto_spatial_advisory.nats import server, stream_name, hfi_classify_group, sfms_file_subject, subjects
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
 
 
@@ -48,8 +48,10 @@ async def run():
         print('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
         await process_hfi(run_type, run_date, for_date)
 
+    # idempotent operation, IFF stream with same configuration is added each time
+    await js.add_stream(name=stream_name, subjects=subjects)
     sfms_sub = await js.subscribe(stream=stream_name,
-                                  subject="sfms.*",
+                                  subject=sfms_file_subject,
                                   queue=hfi_classify_group,
                                   cb=cb)
 

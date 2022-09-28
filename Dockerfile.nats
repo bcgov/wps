@@ -29,4 +29,4 @@ USER 0
 
 RUN chmod -R 755 /app
 
-CMD poetry run python3 -m app.auto_spatial_advisory.hfi_classify_consumer
+CMD poetry run python3 -m app.auto_spatial_advisory.nats_consumer

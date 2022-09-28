@@ -26,6 +26,7 @@ async def _publish(stream: str, subject: str, payload: BaseModel, subjects: List
         logger.info('Creating JetStream context...')
         jetstream = connection.jetstream()
         # we create a stream, this is important, we need to messages to stick around for a while!
+        # idempotent operation, IFF stream with same configuration is added each time
         await jetstream.add_stream(name=stream, subjects=subjects)
         # we publish the message, using pydantic to serialize the payload.
         ack = await jetstream.publish(subject,
