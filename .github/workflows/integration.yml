@@ -136,9 +136,15 @@ jobs:
           poetry install
           poetry run python -m pip install gdal==$(gdal-config --version)
       - uses: r-lib/actions/setup-r@v2
+        # r-lib/actions/setup-r@v2 is supposed to install version ${{ matrix.R }}, BUT, it doesn't.
+        # When asking for 4.1.2 - it's installing a new version! Or at least reporting a newer
+        # version.
         with:
           r-version: ${{ matrix.R }}
       - name: Cache /home/runner/work/_temp/Library
+        # When installing cffdrs, a bunch of stuff is downloaded and compiled and placed in
+        # /home/runner/work/_temp/Library ; By caching this folder, subsequent calls to
+        # install cffdrs run much faster.
         id: cache-r-cffdrs
         uses: actions/cache@v3
         with:
