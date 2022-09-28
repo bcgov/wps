@@ -4,6 +4,7 @@ import logging
 from unittest.mock import MagicMock
 import requests
 import pytest
+from typing import Optional
 from pytest_mock import MockerFixture
 from pytest_bdd import then, parsers
 from app.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
@@ -144,9 +145,10 @@ def mock_session(monkeypatch):
                                        name='Global Deterministic Prediction System')
 
     # pylint: disable=unused-argument
-    def mock_get_prediction_model(session, model, projection):
+    def mock_get_prediction_model(session, model, projection) -> Optional[PredictionModel]:
         if model == ModelEnum.GDPS and projection == ProjectionEnum.LATLON_15X_15:
             return prediction_model
+        return None
 
     # pylint: disable=unused-argument
     def mock_get_prediction_run(session, prediction_model_id: int, prediction_run_timestamp: datetime):
