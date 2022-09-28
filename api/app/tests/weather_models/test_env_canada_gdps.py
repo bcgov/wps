@@ -124,8 +124,10 @@ def mock_database(monkeypatch):
         return [(gdps_prediction_model_run, gdps_prediction_model)]
 
     def mock_get_processed_file_record(session, url: str):
-        if url == gdps_url:
+        # We only want the one file to be processed - otherwise our test takes forever
+        if url != gdps_url:
             return gdps_processed_model_run
+        return None
 
     def mock_get_grids_for_coordinate(session, prediction_model, coordinate):
         return [PredictionModelGridSubset(
