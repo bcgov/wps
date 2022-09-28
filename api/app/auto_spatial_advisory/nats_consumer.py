@@ -1,7 +1,9 @@
 import asyncio
 import json
+import datetime
 import nats
 from app.auto_spatial_advisory.nats import server, stream_name, hfi_classify_group
+from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
 
 
 def parse_nats_message(msg):
@@ -9,12 +11,10 @@ def parse_nats_message(msg):
     """
     if msg.subject == 'sfms.file':
         json_data = json.loads(json.loads(msg.data))
-        print(json_data)
-        run_type = json_data['run_type']
-        key = json_data['key']
-        run_date = json_data['run_date']
-        for_date = json_data['for_date']
-        print('Run type: {}; Key: {}; Run date: {}; For date: {}\n'.format(run_type, key, run_date, for_date))
+        run_type = RunType.from_str(json_data['run_type'])
+        run_date = datetime.datetime.strptime(json_data['run_date'], "%Y-%m-%d").date()
+        for_date = datetime.datetime.strptime(json_data['for_date'], "%Y-%m-%d").date()
+        return (run_type, run_date, for_date)
     else:
         return
 
@@ -44,9 +44,11 @@ async def run():
     js = nc.jetstream()
 
     async def cb(msg):
-        parse_nats_message(msg)
+        run_type, run_date, for_date = parse_nats_message(msg)
+        print('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
+        await process_hfi(run_type, run_date, for_date)
 
-    sfms_sub = await js.subscribe(stream="wps-pr-2261sfms",
+    sfms_sub = await js.subscribe(stream=stream_name,
                                   subject="sfms.*",
                                   queue=hfi_classify_group,
                                   cb=cb)
