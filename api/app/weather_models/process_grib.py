@@ -81,8 +81,8 @@ def calculate_raster_coordinate(
     # Because not all model types use EPSG:4269 projection, we first convert longitude and latitude
     # to whichever projection and coordinate system the grib file is using
     raster_long, raster_lat = transformer.transform(longitude, latitude)
-    rev = ~transform
-    i_index, j_index = rev * (raster_long, raster_lat)
+    reverse = ~transform
+    i_index, j_index = reverse * (raster_long, raster_lat)
     return (math.floor(i_index), math.floor(j_index))
 
 
