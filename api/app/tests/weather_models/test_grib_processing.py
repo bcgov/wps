@@ -3,6 +3,7 @@ import os
 import logging
 import json
 from operator import itemgetter
+from numpy import full
 from pytest_bdd import scenario, given, then, when, parsers
 from pyproj import CRS
 from app.geospatial import NAD83_CRS
@@ -29,7 +30,8 @@ def test_extract_origin_and_pixel_information():
 def given_grib_file(filename):
     """ Open the dataset. """
     dirname = os.path.dirname(os.path.realpath(__file__))
-    return dict(dataset=process_grib.open_grib(os.path.join(dirname, filename)), filename=filename)
+    full_path = os.path.join(dirname, filename)
+    return dict(dataset=process_grib.open_grib(full_path), filename=full_path)
 
 
 @when('I extract the geometry')

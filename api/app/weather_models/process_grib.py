@@ -104,7 +104,7 @@ def open_grib(filename: str) -> gdal.Dataset:
 def get_dataset_geometry(filename) -> Affine:
     """ Get the geometry info (origin and pixel size) of the dataset.
 
-    GDAL 3.4.1 has a bug, and reports the wrong geometry for grib files, so 
+    GDAL 3.4.1 has a bug, and reports the wrong geometry for grib files, so
     dataset.GetGeoTransform() is unreliable.
     """
     # return dataset.GetGeoTransform()

@@ -3,14 +3,20 @@
 import os
 import sys
 import logging
+from typing import Optional
 import pytest
 import requests
+import shapely
 from sqlalchemy.orm import Session
+from geoalchemy2.shape import from_shape
 from pytest_mock import MockerFixture
 import app.utils.time as time_utils
 import app.db.database
-from app.weather_models import env_canada
-from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp)
+import app.db.crud.weather_models
+import app.weather_models.env_canada
+import app.weather_models.process_grib
+from app.db.models import (PredictionModel, ProcessedModelRunUrl,
+                           PredictionModelRunTimestamp, PredictionModelGridSubset)
 from app.tests.weather_models.test_env_canada_gdps import MockResponse
 
 
@@ -20,17 +26,44 @@ logger = logging.getLogger(__name__)
 @pytest.fixture()
 def mock_database(monkeypatch):
     """ Mocked out database queries """
+    geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
+            " -120.525 50.62500000000001, -120.525 50.77500000000001))")
+    shape = shapely.wkt.loads(geom)
+
+    hrdps_url = 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/00/007/' \
+        + 'CMC_hrdps_continental_TMP_TGL_2_ps2.5km_2020052100_P007-00.grib2'
+    hrdps_processed_model_run = ProcessedModelRunUrl(url=hrdps_url)
     hrdps_prediction_model = PredictionModel(id=3, abbreviation='HRDPS', projection='ps2.5km',
                                              name='High Resolution Deterministic Prediction System')
     hrdps_prediction_model_run = PredictionModelRunTimestamp(
-        id=1, prediction_model_id=3, prediction_run_timestamp=time_utils.get_utc_now(),
+        id=1, prediction_model_id=hrdps_prediction_model.id, prediction_run_timestamp=time_utils.get_utc_now(),
         prediction_model=hrdps_prediction_model, complete=True)
+
+    def mock_get_prediction_model(session, model, projection) -> Optional[PredictionModel]:
+        return hrdps_prediction_model
 
     def mock_get_hrdps_prediction_model_run_timestamp_records(*args, **kwargs):
         return [(hrdps_prediction_model_run, hrdps_prediction_model)]
 
+    def mock_get_processed_file_record(session, url: str):
+        # We only want the one file to be processed - otherwise our test takes forever
+        if url != hrdps_url:
+            return hrdps_processed_model_run
+        return None
+
+    def mock_get_grids_for_coordinate(session, prediction_model, coordinate):
+        return [PredictionModelGridSubset(
+            id=1, prediction_model_id=hrdps_prediction_model.id, geom=from_shape(shape)), ]
+
+    def mock_get_prediction_run(*args, **kwargs):
+        return hrdps_prediction_model_run
+
+    monkeypatch.setattr(app.weather_models.process_grib, 'get_prediction_model', mock_get_prediction_model)
     monkeypatch.setattr(app.weather_models.env_canada, 'get_prediction_model_run_timestamp_records',
                         mock_get_hrdps_prediction_model_run_timestamp_records)
+    monkeypatch.setattr(app.weather_models.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
+    monkeypatch.setattr(app.weather_models.env_canada, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
+    monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
 @pytest.fixture()
@@ -45,7 +78,7 @@ def mock_get_processed_file_record(monkeypatch):
         called = True
         return None
 
-    monkeypatch.setattr(env_canada, 'get_processed_file_record', get_processed_file_record)
+    monkeypatch.setattr(app.weather_models.env_canada, 'get_processed_file_record', get_processed_file_record)
 
 
 @pytest.fixture()
@@ -65,8 +98,8 @@ def mock_download(monkeypatch):
 def test_get_hrdps_download_urls():
     """ test to see if get_download_urls methods gives the correct number of urls """
     # -1 because 000 hour has no APCP_SFC_0
-    total_num_of_urls = 49 * len(env_canada.GRIB_LAYERS) - 1
-    assert len(list(env_canada.get_high_res_model_run_download_urls(
+    total_num_of_urls = 49 * len(app.weather_models.env_canada.GRIB_LAYERS) - 1
+    assert len(list(app.weather_models.env_canada.get_high_res_model_run_download_urls(
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
@@ -76,7 +109,7 @@ def test_process_hrdps(mock_download, mock_database):
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
     sys.argv = ["argv", "HRDPS"]
-    assert env_canada.process_models() == 1
+    assert app.weather_models.env_canada.process_models() == 1
 
 
 def test_main_fail(mocker: MockerFixture, monkeypatch):
@@ -86,11 +119,11 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     def mock_process_models():
         raise Exception()
 
-    rocket_chat_spy = mocker.spy(env_canada, 'send_rocketchat_notification')
-    monkeypatch.setattr(env_canada, 'process_models', mock_process_models)
+    rocket_chat_spy = mocker.spy(app.weather_models.env_canada, 'send_rocketchat_notification')
+    monkeypatch.setattr(app.weather_models.env_canada, 'process_models', mock_process_models)
 
     with pytest.raises(SystemExit) as excinfo:
-        env_canada.main()
+        app.weather_models.env_canada.main()
 
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_SOFTWARE

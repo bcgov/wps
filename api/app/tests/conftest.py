@@ -1,10 +1,10 @@
 """ Global fixtures """
 from datetime import timezone, datetime
 import logging
+from typing import Optional
 from unittest.mock import MagicMock
 import requests
 import pytest
-from typing import Optional
 from pytest_mock import MockerFixture
 from pytest_bdd import then, parsers
 from app.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp

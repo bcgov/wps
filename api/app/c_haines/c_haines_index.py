@@ -129,7 +129,7 @@ class CHainesGenerator():
         """ Prepare the boundary checker. """
         if not self.bound_checker:
             logger.info('Creating bound checker.')
-            transform: Affine = get_dataset_geometry(grib_tmp_700, grib_tmp_700_filename)
+            transform: Affine = get_dataset_geometry(grib_tmp_700_filename)
             crs = CRS.from_string(grib_tmp_700.GetProjection())
             # Create a transformer to go from whatever the raster is, to geographic coordinates.
             raster_to_geo_transformer = get_transformer(crs, NAD83_CRS)
