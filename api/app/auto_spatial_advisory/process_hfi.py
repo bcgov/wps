@@ -9,7 +9,7 @@ import tempfile
 from shapely import wkb, wkt
 from shapely.validation import make_valid
 from shapely.geometry import MultiPolygon
-from osgeo import ogr, osr
+from osgeo import ogr, osr, gdal
 from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from advisory.db.database.tileserver import get_tileserver_write_session_scope
@@ -44,8 +44,28 @@ class UnknownHFiClassification(Exception):
     """ Raised when the hfi classification is not one of the expected values. """
 
 
-async def write_classified_hfi_to_tileserver(session: AsyncSession, feature: ogr.Feature, coordinate_transform: osr.CoordinateTransformation, date: date,
-                                             advisory: HfiClassificationThreshold, warning: HfiClassificationThreshold):
+def create_cloud_optimized_raster(source_dataset):
+    """
+    Uses gdal tools to create a cloud-optimized raster of the classified HFI, for storage
+    in our object store.
+    """
+    # first create de-compressed tiled tiff
+    translate_options = gdal.TranslateOptions(format='GTiff', creationOptions=['TILED=YES', 'COMPRESS=DEFLATE'])
+    ds = gdal.Translate(source_dataset, dest, translate_options)
+
+    # rebuild overview image
+
+    # create COG
+    translate_options = gdal.TranslateOptions(format='GTiff', creationOptions=[
+                                              'TILED=YES', 'COMPRESS=LZW', 'COPY_SRC_OVERVIEWS=YES', 'BLOCKXSIZE=512', 'BLOCKYSIZE=512'])
+
+
+async def write_classified_hfi_to_tileserver(session: AsyncSession,
+                                             feature: ogr.Feature,
+                                             coordinate_transform: osr.CoordinateTransformation,
+                                             date: date,
+                                             advisory: HfiClassificationThreshold,
+                                             warning: HfiClassificationThreshold):
     """
     Given an ogr.Feature with an assigned HFI threshold value, write it to the tileserv database as a vector.
     """
