@@ -3,23 +3,22 @@ import json
 import datetime
 import logging
 import nats
+from nats.aio.msg import Msg
 from app.auto_spatial_advisory.nats import server, stream_name, hfi_classify_group, sfms_file_subject, subjects
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
 
 logger = logging.getLogger(__name__)
 
 
-def parse_nats_message(msg):
+def parse_nats_message(msg: Msg):
     """
     """
-    if msg.subject == 'sfms.file':
-        json_data = json.loads(json.loads(msg.data))
-        run_type = RunType.from_str(json_data['run_type'])
-        run_date = datetime.datetime.strptime(json_data['run_date'], "%Y-%m-%d").date()
-        for_date = datetime.datetime.strptime(json_data['for_date'], "%Y-%m-%d").date()
+    if msg.subject == sfms_file_subject:
+        decoded_msg = json.loads(json.loads(msg.data.decode()))
+        run_type = RunType.from_str(decoded_msg['run_type'])
+        run_date = datetime.datetime.strptime(decoded_msg['run_date'], "%Y-%m-%d").date()
+        for_date = datetime.datetime.strptime(decoded_msg['for_date'], "%Y-%m-%d").date()
         return (run_type, run_date, for_date)
-    else:
-        return
 
 
 async def run():
