@@ -234,7 +234,7 @@ objects:
             app: nats
         spec:
           containers:
-            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-nats-consumer:latest
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-api-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${APP_NAME}-nats-consumer
               env:
