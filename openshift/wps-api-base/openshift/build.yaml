@@ -19,7 +19,7 @@ parameters:
   - name: GIT_URL
     value: https://github.com/bcgov/wps.git
   - name: GIT_BRANCH
-    value: gunicorn_python
+    value: main
 objects:
   #ImageStream is created if it doesn't already exist
   - apiVersion: v1
