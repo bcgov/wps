@@ -33,8 +33,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 # - python (we want python!)
 # - gdal (for geospatial)
 # - R (for cffdrs)
-# - xfonts-75dpi (for wkhtmltopdf)
-RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base xfonts-75dpi
+# - xfonts-75dpi, xfonts-base (for wkhtmltopdf)
+RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base xfonts-base xfonts-75dpi
 
 # - wkhtmltopdf (for making pdf's)
 COPY --from=download /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
