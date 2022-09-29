@@ -73,7 +73,7 @@ def get_surrounding_grid(
 def calculate_raster_coordinate(
         longitude: float,
         latitude: float,
-        padf_transform: Affine,
+        transform: Affine,
         transformer: Transformer):
     """ From a given longitude and latitude, calculate the raster coordinate corresponding to the
     top left point of the grid surrounding the given geographic coordinate.
@@ -81,7 +81,7 @@ def calculate_raster_coordinate(
     # Because not all model types use EPSG:4269 projection, we first convert longitude and latitude
     # to whichever projection and coordinate system the grib file is using
     raster_long, raster_lat = transformer.transform(longitude, latitude)
-    rev = ~padf_transform
+    rev = ~transform
     i_index, j_index = rev * (raster_long, raster_lat)
     return (math.floor(i_index), math.floor(j_index))
 
@@ -107,7 +107,6 @@ def get_dataset_geometry(filename) -> Affine:
     GDAL 3.4.1 has a bug, and reports the wrong geometry for grib files, so
     dataset.GetGeoTransform() is unreliable.
     """
-    # return dataset.GetGeoTransform()
     source: DatasetReader = rasterio.open(filename)
     return source.transform
 

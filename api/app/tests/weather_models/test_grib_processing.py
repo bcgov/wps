@@ -3,7 +3,7 @@ import os
 import logging
 import json
 from operator import itemgetter
-from numpy import full
+from affine import Affine
 from pytest_bdd import scenario, given, then, when, parsers
 from pyproj import CRS
 from app.geospatial import NAD83_CRS
@@ -111,8 +111,9 @@ def when_calculate_raster_coordinate(data, geographic_coordinate):
     longitude, latitude = geographic_coordinate
     proj_crs = CRS.from_string(data['wkt_projection_string'])
     transformer = process_grib.get_transformer(NAD83_CRS, proj_crs)
+    padf_transform = Affine.from_gdal(*data['geotransform'])
     data['raster_coordinate'] = process_grib.calculate_raster_coordinate(
-        longitude, latitude, data['geotransform'], transformer)
+        longitude, latitude, padf_transform, transformer)
 
 
 @then(parsers.parse('I expect raster coordinates: {raster_coordinate}'), converters={'raster_coordinate': json.loads})
@@ -133,9 +134,10 @@ def calculate_geographic_coordinate(data, raster_coordinate):
     """ calculate the geographic coordinate """
     proj_crs = CRS.from_string(data['wkt_projection_string'])
     transformer = process_grib.get_transformer(proj_crs, NAD83_CRS)
+    padf_transform = Affine.from_gdal(*data['geotransform'])
     data['geographic_coordinate'] = \
         process_grib.calculate_geographic_coordinate(
-        raster_coordinate, data['geotransform'], transformer)
+        raster_coordinate, padf_transform, transformer)
 
 
 @then(parsers.parse('I expect the geographic_coordinate {geographic_coordinate}'), converters={'geographic_coordinate': json.loads})
