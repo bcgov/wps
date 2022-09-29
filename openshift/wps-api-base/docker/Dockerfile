@@ -8,7 +8,7 @@ FROM registry.access.redhat.com/rhel7/rhel-tools AS poetry
 # and curl is one of those.
 
 RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
-RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb -O /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
 
 # For the final stage, we use ubuntu:22.04
 # Rationale for using ubuntu:22.04:
@@ -33,9 +33,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 # - python (we want python!)
 # - gdal (for geospatial)
 # - R (for cffdrs)
-# - wkhtmltopdf (for making pdf's)
-RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base
+# - xfonts-75dpi (for wkhtmltopdf)
+RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base xfonts-75dpi
 
+# - wkhtmltopdf (for making pdf's)
 COPY --from=poetry /tmp/install.python-poetry.org ./tmp/install.python-poetry.org
 RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
 
