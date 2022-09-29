@@ -13,6 +13,9 @@ parameters:
     description: Application name (wps - wildfire predictive services)
     value: wps
     required: true
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
   - name: IMAGE_REGISTRY
     description: Location where images are to be pulled
     value: image-registry.openshift-image-registry.svc:5000
