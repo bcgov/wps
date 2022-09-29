@@ -9,12 +9,12 @@ parameters:
     description: The pod namespace
     value: ${POD_NAMESPACE}
     required: true
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
   - name: APP_NAME
     description: Application name (wps - wildfire predictive services)
     value: wps
-    required: true
-  - name: SUFFIX
-    description: Deployment suffix, e.g. pr-###
     required: true
   - name: IMAGE_REGISTRY
     description: Location where images are to be pulled
@@ -234,17 +234,9 @@ objects:
             app: nats
         spec:
           containers:
-            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-api-${SUFFIX}:${SUFFIX}
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-nats-consumer:latest
               imagePullPolicy: Always
               name: ${APP_NAME}-nats-consumer
-              command:
-                [
-                  "poetry",
-                  "run",
-                  "python3",
-                  "-m",
-                  "app.auto_spatial_advisory.nats_consumer",
-                ]
               env:
                 - name: NATS_STREAM_PREFIX
                   value: ${APP_NAME}-${SUFFIX}
