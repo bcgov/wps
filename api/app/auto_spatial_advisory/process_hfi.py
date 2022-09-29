@@ -8,7 +8,11 @@ from time import perf_counter
 import tempfile
 from shapely import wkb, wkt
 from shapely.validation import make_valid
+from shapely.geometry import MultiPolygon
 from osgeo import ogr, osr
+from sqlalchemy.sql import text
+from sqlalchemy.ext.asyncio import AsyncSession
+from advisory.db.database.tileserver import get_tileserver_write_session_scope
 from app import config
 from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope
@@ -40,6 +44,47 @@ class UnknownHFiClassification(Exception):
     """ Raised when the hfi classification is not one of the expected values. """
 
 
+async def write_classified_hfi_to_tileserver(session: AsyncSession, feature: ogr.Feature, coordinate_transform: osr.CoordinateTransformation, date: date,
+                                             advisory: HfiClassificationThreshold, warning: HfiClassificationThreshold):
+    """
+    Given an ogr.Feature with an assigned HFI threshold value, write it to the tileserv database as a vector.
+    """
+    # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Geometry
+    geometry: ogr.Geometry = feature.GetGeometryRef()
+    # Make sure the geometry is in target_srs!
+    geometry.Transform(coordinate_transform)
+    # Would be very nice to go directly from the ogr.Geometry into the database,
+    # but Sybrand can't figure out how to have the wkt output also include the fact that
+    # the SRID is target_srs. So we're doing this redundant step of creating a shapely
+    # geometry from wkt, then dumping it back into wkb, with target srid.
+    # NOTE: geometry.ExportToIsoWkb isn't consistent in it's return value between
+    # different versions of gdal (bytearray vs. bytestring) - so we're opting for
+    # wkt instead of wkb here for better compatibility.
+    polygon = wkt.loads(geometry.ExportToIsoWkt())
+    polygon = make_valid(polygon)
+    polygon = MultiPolygon([polygon])
+
+    threshold = get_threshold_from_hfi(feature, advisory, warning)
+
+    statement = text(
+        'INSERT INTO hfi (hfi, date, wkb_geometry) VALUES (:hfi, :date, ST_GeomFromText(:wkt_geometry, 4326))')
+    await session.execute(statement, {'hfi': threshold.description, 'date': date, 'wkt_geometry': wkt.dumps(polygon)})
+
+
+def get_threshold_from_hfi(feature: ogr.Feature, advisory: HfiClassificationThreshold, warning: HfiClassificationThreshold):
+    """
+    Parses the HFI id value (1 or 2) attributed to an ogr.Feature, and returns the id of the
+    appropriate HfiClassificationThreshold record in the database.
+    """
+    hfi = feature.GetField(0)
+    if hfi == 1:
+        return advisory
+    elif hfi == 2:
+        return warning
+    else:
+        raise UnknownHFiClassification(f'unknown hfi value: {hfi}')
+
+
 def create_model_object(feature: ogr.Feature,
                         advisory: HfiClassificationThreshold,
                         warning: HfiClassificationThreshold,
@@ -47,13 +92,7 @@ def create_model_object(feature: ogr.Feature,
                         run_type: RunType,
                         run_date: date,
                         for_date: date) -> ClassifiedHfi:
-    hfi = feature.GetField(0)
-    if hfi == 1:
-        threshold_id = advisory.id
-    elif hfi == 2:
-        threshold_id = warning.id
-    else:
-        raise UnknownHFiClassification(f'unknown hfi value: {hfi}')
+    threshold = get_threshold_from_hfi(feature, advisory, warning)
     # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Geometry
     geometry: ogr.Geometry = feature.GetGeometryRef()
     # Make sure the geometry is in EPSG:3005!
@@ -67,7 +106,7 @@ def create_model_object(feature: ogr.Feature,
     # wkt instead of wkb here for better compatibility.
     polygon = wkt.loads(geometry.ExportToIsoWkt())
     polygon = make_valid(polygon)
-    return ClassifiedHfi(threshold=threshold_id,
+    return ClassifiedHfi(threshold=threshold.id,
                          run_type=RunTypeEnum(run_type.value),
                          run_date=run_date,
                          for_date=for_date,
@@ -103,6 +142,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
             spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
             target_srs = osr.SpatialReference()
             target_srs.ImportFromEPSG(NAD83_BC_ALBERS)
+            target_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
             coordinate_transform = osr.CoordinateTransformation(spatial_reference, target_srs)
 
             async with get_async_read_session_scope() as session:
@@ -121,6 +161,12 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                                               run_date,
                                               for_date)
                     await save_hfi(session, obj)
+
+            async with get_tileserver_write_session_scope() as session:
+                logger.info('Writing HFI vectors to tileserv...')
+                for i in range(layer.GetFeatureCount()):
+                    feature: ogr.Feature = layer.GetFeature(i)
+                    await write_classified_hfi_to_tileserver(session, feature, coordinate_transform, for_date, advisory, warning)
 
     perf_end = perf_counter()
     delta = perf_end - perf_start
