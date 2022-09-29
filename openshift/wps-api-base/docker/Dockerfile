@@ -1,6 +1,6 @@
 ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:22.04
 # STAGE 0 : "poetry"
-FROM registry.access.redhat.com/rhel7/rhel-tools AS poetry
+FROM registry.access.redhat.com/rhel7/rhel-tools AS download
 # We grab the image for step 0 from registry.access.redhat.com because both openshift and your
 # local machine can access it - so it's easy to test in both environments.
 # We can use any image we want here - we just need something to grab the latest poetry installer
@@ -37,7 +37,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base xfonts-75dpi
 
 # - wkhtmltopdf (for making pdf's)
-COPY --from=poetry /tmp/install.python-poetry.org ./tmp/install.python-poetry.org
+COPY --from=download /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
 RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
 
 
@@ -63,5 +63,5 @@ WORKDIR /home/$USERNAME
 RUN python3 -m pip install --upgrade pip
 
 # Install poetry (using installation file from previous stage)
-COPY --from=poetry /tmp/install.python-poetry.org ./tmp/install.python-poetry.org
-RUN cat ./tmp/install.python-poetry.org | python3 -
+COPY --from=download /tmp/install.python-poetry.org /tmp/install.python-poetry.org
+RUN cat /tmp/install.python-poetry.org | python3 -
