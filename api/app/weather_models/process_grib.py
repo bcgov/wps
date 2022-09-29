@@ -11,6 +11,9 @@ from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session
 from osgeo import gdal
 from pyproj import CRS, Transformer
+from affine import Affine
+import rasterio
+from rasterio.io import DatasetReader
 from app.geospatial import NAD83_CRS
 from app.stations import get_stations_synchronously
 from app.db.models import (
@@ -70,7 +73,7 @@ def get_surrounding_grid(
 def calculate_raster_coordinate(
         longitude: float,
         latitude: float,
-        padf_transform: List[float],
+        padf_transform: Affine,
         transformer: Transformer):
     """ From a given longitude and latitude, calculate the raster coordinate corresponding to the
     top left point of the grid surrounding the given geographic coordinate.
@@ -78,49 +81,35 @@ def calculate_raster_coordinate(
     # Because not all model types use EPSG:4269 projection, we first convert longitude and latitude
     # to whichever projection and coordinate system the grib file is using
     raster_long, raster_lat = transformer.transform(longitude, latitude)
-
-    # Calculate the j index for point i,j in the grib file
-    x_numerator = (raster_long - padf_transform[0] - raster_lat / padf_transform[5] *
-                   padf_transform[2] + padf_transform[3] / padf_transform[5] *
-                   padf_transform[2]) / padf_transform[1]
-
-    y_numerator = (raster_lat - padf_transform[3] - raster_long / padf_transform[1] *
-                   padf_transform[4] + padf_transform[0] / padf_transform[1] *
-                   padf_transform[4]) / padf_transform[5]
-
-    denominator = 1 - \
-        padf_transform[4] / padf_transform[5] * padf_transform[2] / padf_transform[1]
-
-    i_index = math.floor(x_numerator / denominator)
-    j_index = math.floor(y_numerator / denominator)
-
-    return (i_index, j_index)
+    rev = ~padf_transform
+    i_index, j_index = rev * (raster_long, raster_lat)
+    return (math.floor(i_index), math.floor(j_index))
 
 
-def calculate_geographic_coordinate(
-        point: Tuple[int],
-        padf_transform: List[float],
-        transformer: Transformer):
+def calculate_geographic_coordinate(point: Tuple[int],
+                                    transform: Affine,
+                                    transformer: Transformer):
     """ Calculate the geographic coordinates for a given points """
-    x_coordinate = padf_transform[0] + point[0] * \
-        padf_transform[1] + point[1] * padf_transform[2]
-    y_coordinate = padf_transform[3] + point[0] * \
-        padf_transform[4] + point[1] * padf_transform[5]
-
+    x_coordinate, y_coordinate = transform * point
     lon, lat = transformer.transform(x_coordinate, y_coordinate)
     return (lon, lat)
 
 
 def open_grib(filename: str) -> gdal.Dataset:
     """ Open grib file """
+    # NOTE: What's the purpose of wrapping the gdal call in a function?
     return gdal.Open(filename, gdal.GA_ReadOnly)
 
 
-def get_dataset_geometry(dataset: gdal.Dataset) -> List[float]:
+def get_dataset_geometry(filename) -> Affine:
     """ Get the geometry info (origin and pixel size) of the dataset.
+
+    GDAL 3.4.1 has a bug, and reports the wrong geometry for grib files, so 
+    dataset.GetGeoTransform() is unreliable.
     """
-    # NOTE: What's the purpose of just wrapping the gdal calls in a function?
-    return dataset.GetGeoTransform()
+    # return dataset.GetGeoTransform()
+    source: DatasetReader = rasterio.open(filename)
+    return source.transform
 
 
 def get_transformer(crs_from, crs_to):
@@ -209,7 +198,7 @@ class GribFileProcessor():
         self.raster_to_geo_transformer = get_transformer(crs, NAD83_CRS)
         self.geo_to_raster_transformer = get_transformer(NAD83_CRS, crs)
 
-        self.padf_transform = get_dataset_geometry(dataset)
+        self.padf_transform = get_dataset_geometry(filename)
         # get the model (.e.g. GPDS/RDPS latlon24x.24):
         self.prediction_model = get_prediction_model(
             session, grib_info.model_enum, grib_info.projection)

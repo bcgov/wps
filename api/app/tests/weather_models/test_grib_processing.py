@@ -29,20 +29,20 @@ def test_extract_origin_and_pixel_information():
 def given_grib_file(filename):
     """ Open the dataset. """
     dirname = os.path.dirname(os.path.realpath(__file__))
-    return dict(dataset=process_grib.open_grib(os.path.join(dirname, filename)))
+    return dict(dataset=process_grib.open_grib(os.path.join(dirname, filename)), filename=filename)
 
 
 @when('I extract the geometry')
 def when_extract_geometry(grib_file):
     """ extract geometry """
     grib_file['geometry'] = process_grib.get_dataset_geometry(
-        grib_file['dataset'])
+        grib_file['filename'])
 
 
 @then(parsers.parse('I expect origin: {origin}'), converters={'origin': json.loads})
 def assert_origin(grib_file, origin):
     """ assert that origin matches expected """
-    actual_origin = itemgetter(0, 3)(grib_file['geometry'])
+    actual_origin = itemgetter(0, 3)(grib_file['geometry'].to_gdal())
     logger.warning('actual: %s ; expected %s', actual_origin, origin)
     # This fails when using gdal-2.2.3! Be sure to use a more recent version.
     assert origin == list(actual_origin)
@@ -51,7 +51,7 @@ def assert_origin(grib_file, origin):
 @then(parsers.parse('I expect pixels: {pixels}'), converters={'pixels': json.loads})
 def assert_pixels(grib_file, pixels):
     """ assert that pixels match expected """
-    actual_pixels = itemgetter(1, 5)(grib_file['geometry'])
+    actual_pixels = itemgetter(1, 5)(grib_file['geometry'].to_gdal())
     assert list(actual_pixels) == pixels
 
 

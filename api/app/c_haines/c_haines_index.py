@@ -6,6 +6,7 @@ from typing import Final, Tuple
 from functools import lru_cache
 from pyproj import CRS
 from osgeo import gdal
+from affine import Affine
 from app.geospatial import NAD83_CRS
 from app.weather_models.process_grib import (
     calculate_geographic_coordinate, get_dataset_geometry, get_transformer)
@@ -96,9 +97,9 @@ class BoundingBoxChecker():
     """ Class used to check if a given raster coordinate lies within a specified
     geographic bounding box. """
 
-    def __init__(self, padf_transform, raster_to_geo_transformer):
+    def __init__(self, transform: Affine, raster_to_geo_transformer):
         self.geo_bounding_box = get_geographic_bounding_box()
-        self.padf_transform = padf_transform
+        self.transform: Affine = transform
         self.raster_to_geo_transformer = raster_to_geo_transformer
 
     @lru_cache(maxsize=None)  # pylint: disable=cache-max-size-none
@@ -107,7 +108,7 @@ class BoundingBoxChecker():
         # Calculate lat/long and check bounds.
         lon, lat = calculate_geographic_coordinate(
             (raster_x, raster_y),
-            self.padf_transform,
+            self.transform,
             self.raster_to_geo_transformer)
         lon0 = self.geo_bounding_box[0][0]
         lat0 = self.geo_bounding_box[0][1]
@@ -124,15 +125,15 @@ class CHainesGenerator():
     def __init__(self):
         self.bound_checker: BoundingBoxChecker = None
 
-    def _prepare_bound_checker(self, grib_tmp_700: gdal.Dataset):
+    def _prepare_bound_checker(self, grib_tmp_700: gdal.Dataset, grib_tmp_700_filename: str):
         """ Prepare the boundary checker. """
         if not self.bound_checker:
             logger.info('Creating bound checker.')
-            padf_transform = get_dataset_geometry(grib_tmp_700)
+            transform: Affine = get_dataset_geometry(grib_tmp_700, grib_tmp_700_filename)
             crs = CRS.from_string(grib_tmp_700.GetProjection())
             # Create a transformer to go from whatever the raster is, to geographic coordinates.
             raster_to_geo_transformer = get_transformer(crs, NAD83_CRS)
-            self.bound_checker = BoundingBoxChecker(padf_transform, raster_to_geo_transformer)
+            self.bound_checker = BoundingBoxChecker(transform, raster_to_geo_transformer)
         else:
             logger.info('Re-using bound checker.')
 
@@ -163,7 +164,7 @@ class CHainesGenerator():
         # Prepare the boundary checker.
         # Boundary checking is very slow. We have to repeatedly convert a raster coordinate to a geographic
         # coordinate, so we can save a lot of time by creating a boundary checker that caches results.
-        self._prepare_bound_checker(source_data.grib_tmp_700)
+        self._prepare_bound_checker(source_data.grib_tmp_700, source_data.grib_tmp_700_filename)
 
         # Load the raster data.
         tmp_850_raster_band = source_data.grib_tmp_850.GetRasterBand(1)
