@@ -12,7 +12,7 @@ from shapely.geometry import MultiPolygon
 from osgeo import ogr, osr, gdal
 from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
-from advisory.db.database.tileserver import get_tileserver_write_session_scope
+from app.auto_spatial_advisory.db.database.tileserver import get_tileserver_write_session_scope
 from app import config
 from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope
