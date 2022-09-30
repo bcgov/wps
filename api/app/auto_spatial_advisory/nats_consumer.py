@@ -2,14 +2,13 @@ import asyncio
 import json
 import datetime
 import logging
-import os
 import nats
 from nats.aio.msg import Msg
 from app.auto_spatial_advisory.nats import server, stream_name, hfi_classify_group, sfms_file_subject, subjects
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
+from app import configure_logging
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 
 
 def parse_nats_message(msg: Msg):
@@ -64,6 +63,7 @@ async def run():
         logger.info('Msg received - {}\n'.format(msg))
 
 if __name__ == '__main__':
+    configure_logging()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     asyncio.run(run())
