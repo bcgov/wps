@@ -27,6 +27,14 @@ parameters:
     description: Name of global Module
     value: wps-global
     required: true
+  - name: POSTGRES_WRITE_HOST
+    required: true
+  - name: POSTGRES_READ_HOST
+    required: true
+  - name: POSTGRES_USER
+    required: true
+  - name: POSTGRES_DATABASE
+    required: true
 objects:
   - apiVersion: v1
     kind: ConfigMap
@@ -245,6 +253,58 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.nats-server
+                - name: POSTGRES_READ_USER
+                  value: ${POSTGRES_USER}
+                - name: POSTGRES_WRITE_USER
+                  value: ${POSTGRES_USER}
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: app-db-password
+                - name: POSTGRES_WRITE_HOST
+                  value: ${POSTGRES_WRITE_HOST}
+                - name: POSTGRES_READ_HOST
+                  value: ${POSTGRES_READ_HOST}
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: ${POSTGRES_DATABASE}
+                - name: TILESERVER_WRITE_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserv_write_user
+                - name: TILESERVER_POSTGRES_WRITE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserver_postgres_write_password
+                - name: TILESERVER_POSTGRES_WRITE_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.tileserver_postgres_write_host
+                - name: OBJECT_STORE_SERVER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-server
+                - name: OBJECT_STORE_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-user-id
+                - name: OBJECT_STORE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-secret
+                - name: OBJECT_STORE_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-bucket
               ports:
                 - containerPort: 4222
                   name: client
