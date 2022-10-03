@@ -6,6 +6,10 @@ Feature: Grib file processing
         Then I expect origin: <origin>
         And I expect pixels: <pixels>
 
+        # In gdal 3.2.2 : (-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15)
+        # In gdal 3.4.1 : (179.925, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15) <-- BUG!
+        # In gdal 3.5.1 : (-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15)
+
         Examples:
             | filename                                             | origin             | pixels                       |
             | CMC_glb_RH_TGL_2_latlon.15x.15_2020071300_P000.grib2 | [-180.075, 90.075] | [0.15000000000000002, -0.15] |
