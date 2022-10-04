@@ -33,7 +33,7 @@ RUN R -e "install.packages('cffdrs')"
 RUN apt-get -y install git build-essential python3 python3-dev python3-pip curl vim
 
 # Install JDK
-RUN apt-get -y install openjdk-11-jdk
+RUN apt-get -y install default-jdk
 
 # We could install poetry manually, but it's easier to use apt.
 RUN apt-get -y install python3-poetry

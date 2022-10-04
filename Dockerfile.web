@@ -1,4 +1,3 @@
-ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-base
 # SUPER IMPORTANT: NODE_OPTIONS="--v8-pool-size=1"
 # A pod running in our openshift cluster, will report a ridiculous amount of cpu's available, as
 # it's reporting on the underlying hardware. Node, in it's wisdom, will try to scale to using a
