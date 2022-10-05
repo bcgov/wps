@@ -20,6 +20,10 @@ def transform_shapefile_to_epsg_3005(source_file, new_filename):
         logger.error('Could not open %s', source_file)
 
     source_layer = source_data.GetLayer()
+
+    if source_data is None:
+        logger.error('Could not get layer form %s', source_file)
+
     input_spatial_ref = source_layer.GetSpatialRef()
 
     output_spatial_ref = osr.SpatialReference()
