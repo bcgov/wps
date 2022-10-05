@@ -13,6 +13,10 @@ async def mock_get_fire_centres(*_, **__):  # pylint: disable=unused-argument
     return []
 
 
+async def mock_get_hfi_area(*_, **__):  # pylint: disable=unused-argument
+    return []
+
+
 async def mock_get_auth_header(*_, **__):  # pylint: disable=unused-argument
     return {}
 
@@ -32,7 +36,7 @@ def client():
 @patch('app.routers.fba.get_auth_header', mock_get_auth_header)
 @patch('app.routers.fba.get_fire_centers', mock_get_fire_centres)
 @patch(decode_fn, mock_admin_role_function)
-def test_get_fire_centres_authorized(client: TestClient, monkeypatch: pytest.MonkeyPatch):
+def test_get_fire_centres_authorized(client: TestClient):
     """ Allowed to get fire centres when authorized"""
     response = client.get(get_fire_centres_url)
     assert response.status_code == 200
@@ -50,3 +54,12 @@ def test_get_fire_zone_areas_unauthorized(client: TestClient):
 
     response = client.get(get_fire_zone_areas_url)
     assert response.status_code == 401
+
+
+@patch('app.routers.fba.get_hfi_area', mock_get_hfi_area)
+@patch(decode_fn, mock_admin_role_function)
+def test_get_fire_zone_areas_unauthorized(client: TestClient):
+    """ Forbidden to get fire zone areas when unauthorized"""
+
+    response = client.get(get_fire_zone_areas_url)
+    assert response.status_code == 200
