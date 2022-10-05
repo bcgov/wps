@@ -6,6 +6,7 @@ ignore:
   - "web/src/features/cHaines"
   - "web/src/features/fwiCalculator"
   - "api/app/db/crud" # We don't write tests for the crud layer, the crud layer is mocked out in tests.
+  - "api/app/db/database.py" # We don't write tests for the database layer, it's mocked out in tests.
   - "api/app/tests" # We don't care about coverage of the tests themselves.
 coverage:
   # https://docs.codecov.com/docs/commit-status
