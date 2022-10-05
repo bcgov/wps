@@ -6,6 +6,7 @@ ignore:
   - "web/src/features/cHaines"
   - "web/src/features/fwiCalculator"
   - "web/src/features/fba" # Unstable while we work on ASA prototype
+  - "web/src/api/fbaAPI.ts" # Unstable while we work on ASA prototype
   - "web/src/utils/env.ts" # Just configuration
   - "api/app/db/crud" # We don't write tests for the crud layer, the crud layer is mocked out in tests.
   - "api/app/db/database.py" # We don't write tests for the database layer, it's mocked out in tests.
