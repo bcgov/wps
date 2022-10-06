@@ -243,6 +243,7 @@ const FBAMap = (props: FBAMapProps) => {
     removeLayerByName(map, layerName)
     if (showRawHFI) {
       const isoDate = props.date.toISODate().replaceAll('-', '')
+      // TODO: replace bucket name with env variable (for dev/prod)
       const layer = hfiTileFactory(`gpdqha/sfms/cog/cog_hfi${isoDate}.tif`, layerName)
       map.addLayer(layer)
     }

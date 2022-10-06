@@ -3,25 +3,10 @@ import logging
 from contextlib import contextmanager
 from osgeo import gdal, ogr, osr
 import numpy as np
+from app.utils.create_in_memory_raster_band import create_in_memory_band
 
 
 logger = logging.getLogger(__name__)
-
-
-def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransform):
-    """ Create an in memory data band to represent a single raster layer.
-    See https://gdal.org/user/raster_data_model.html#raster-band for a complete
-    description of what a raster band is.
-    """
-    mem_driver = gdal.GetDriverByName('MEM')
-
-    dataset = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
-    dataset.SetProjection(projection)
-    dataset.SetGeoTransform(geotransform)
-    band = dataset.GetRasterBand(1)
-    band.WriteArray(data)
-
-    return dataset, band
 
 
 @contextmanager
@@ -36,7 +21,7 @@ def polygonize_in_memory(geotiff_filename) -> ogr.Layer:
 
     # generate mask data
     mask_data = np.where(source_data == 0, False, True)
-    mask_ds, mask_band = _create_in_memory_band(
+    mask_ds, mask_band = create_in_memory_band(
         mask_data, source_band.XSize, source_band.YSize, source.GetProjection(),
         source.GetGeoTransform())
 
