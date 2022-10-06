@@ -44,22 +44,6 @@ class UnknownHFiClassification(Exception):
     """ Raised when the hfi classification is not one of the expected values. """
 
 
-def create_cloud_optimized_raster(source_dataset):
-    """
-    Uses gdal tools to create a cloud-optimized raster of the classified HFI, for storage
-    in our object store.
-    """
-    # first create de-compressed tiled tiff
-    translate_options = gdal.TranslateOptions(format='GTiff', creationOptions=['TILED=YES', 'COMPRESS=DEFLATE'])
-    ds = gdal.Translate(source_dataset, dest, translate_options)
-
-    # rebuild overview image
-
-    # create COG
-    translate_options = gdal.TranslateOptions(format='GTiff', creationOptions=[
-                                              'TILED=YES', 'COMPRESS=LZW', 'COPY_SRC_OVERVIEWS=YES', 'BLOCKXSIZE=512', 'BLOCKYSIZE=512'])
-
-
 async def write_classified_hfi_to_tileserver(session: AsyncSession,
                                              feature: ogr.Feature,
                                              coordinate_transform: osr.CoordinateTransformation,

@@ -33,26 +33,7 @@ import tempfile
 from datetime import date
 import numpy as np
 from osgeo import gdal, ogr
-
-
-def _create_in_memory_band(data: np.ndarray, cols, rows, projection, geotransform):
-    """ Create an in memory (https://gdal.org/drivers/raster/mem.html) data band to represent a
-    single raster layer.
-    See https://gdal.org/user/raster_data_model.html#raster-band for a complete
-    description of what a raster band is.
-    """
-    # Create "In Memory Raster" driver, see: https://gdal.org/drivers/raster/mem.html
-    mem_driver = gdal.GetDriverByName('MEM')
-    # https://gdal.org/api/python/osgeo.gdal.html#osgeo.gdal.Driver.Create
-    # https://gdal.org/api/gdaldriver_cpp.html#_CPPv4N10GDALDriver6CreateEPKciii12GDALDataType12CSLConstList
-    # The dataset wants a name, so we give it one, it can be anything, we don't reference it later.
-    dataset = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
-    dataset.SetProjection(projection)
-    dataset.SetGeoTransform(geotransform)
-    band = dataset.GetRasterBand(1)
-    band.WriteArray(data)
-
-    return dataset, band
+from app.utils.create_in_memory_raster_band import create_in_memory_band
 
 
 def classify_geojson(source_json_filename: str, today: date) -> dict:
@@ -84,7 +65,7 @@ def polygonize(geotiff_filename, geojson_filename, today: date):
 
     # generate mask data
     mask_data = np.where(classification_data == 0, False, True)
-    mask_ds, mask_band = _create_in_memory_band(
+    mask_ds, mask_band = create_in_memory_band(
         mask_data, band.XSize, band.YSize, wgs84_classification.GetProjection(),
         wgs84_classification.GetGeoTransform())
 
