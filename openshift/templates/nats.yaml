@@ -244,102 +244,102 @@ objects:
         metadata:
           labels:
             app: nats
-      spec:
-        containers:
-          - name: ${APP_NAME}-nats-consumer
-            image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
-            imagePullPolicy: "Always"
-            command:
-              [
-                "poetry",
-                "run",
-                "python",
-                "-m",
-                "app.auto_spatial_advisory.nats_consumer",
-              ]
-            env:
-              - name: NATS_STREAM_PREFIX
-                value: ${APP_NAME}-${SUFFIX}
-              - name: NATS_SERVER
-                valueFrom:
-                  configMapKeyRef:
-                    name: ${GLOBAL_NAME}
-                    key: env.nats-server
-              - name: POSTGRES_READ_USER
-                value: ${POSTGRES_USER}
-              - name: POSTGRES_WRITE_USER
-                value: ${POSTGRES_USER}
-              - name: POSTGRES_PASSWORD
-                valueFrom:
-                  secretKeyRef:
-                    name: ${GLOBAL_NAME}
-                    key: app-db-password
-              - name: POSTGRES_WRITE_HOST
-                value: ${POSTGRES_WRITE_HOST}
-              - name: POSTGRES_READ_HOST
-                value: ${POSTGRES_READ_HOST}
-              - name: POSTGRES_PORT
-                value: "5432"
-              - name: POSTGRES_DATABASE
-                value: ${POSTGRES_DATABASE}
-              - name: TILESERVER_POSTGRES_READ_HOST
-                valueFrom:
-                  configMapKeyRef:
-                    name: ${GLOBAL_NAME}
-                    key: env.tileserver_postgres_read_host
-              - name: TILESERVER_POSTGRES_WRITE_HOST
-                valueFrom:
-                  configMapKeyRef:
-                    name: ${GLOBAL_NAME}
-                    key: env.tileserver_postgres_write_host
-              - name: TILESERVER_READ_USER
-                valueFrom:
-                  secretKeyRef:
-                    name: ${GLOBAL_NAME}
-                    key: tileserv_read_user
-              - name: TILESERVER_WRITE_USER
-                valueFrom:
-                  secretKeyRef:
-                    name: ${GLOBAL_NAME}
-                    key: tileserv_write_user
-              - name: TILESERVER_POSTGRES_WRITE_PASSWORD
-                valueFrom:
-                  secretKeyRef:
-                    name: ${GLOBAL_NAME}
-                    key: tileserver_postgres_write_password
-              - name: TILESERVER_POSTGRES_READ_PASSWORD
-                valueFrom:
-                  secretKeyRef:
-                    name: ${GLOBAL_NAME}
-                    key: tileserver_postgres_read_password
-              - name: OBJECT_STORE_SERVER
-                valueFrom:
-                  secretKeyRef:
-                    name: ${GLOBAL_NAME}
-                    key: object-store-server
-              - name: OBJECT_STORE_USER_ID
-                valueFrom:
-                  secretKeyRef:
-                    name: ${GLOBAL_NAME}
-                    key: object-store-user-id
-              - name: OBJECT_STORE_SECRET
-                valueFrom:
-                  secretKeyRef:
-                    name: ${GLOBAL_NAME}
-                    key: object-store-secret
-              - name: OBJECT_STORE_BUCKET
-                valueFrom:
-                  secretKeyRef:
-                    name: ${GLOBAL_NAME}
-                    key: object-store-bucket
-            ports:
-              - containerPort: 4222
-                name: client
-              - containerPort: 7422
-                name: leafnodes
-              - containerPort: 6222
-                name: cluster
-              - containerPort: 8222
-                name: monitor
-              - containerPort: 7777
-                name: metrics
+        spec:
+          containers:
+            - name: ${APP_NAME}-nats-consumer
+              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
+              imagePullPolicy: "Always"
+              command:
+                [
+                  "poetry",
+                  "run",
+                  "python",
+                  "-m",
+                  "app.auto_spatial_advisory.nats_consumer",
+                ]
+              env:
+                - name: NATS_STREAM_PREFIX
+                  value: ${APP_NAME}-${SUFFIX}
+                - name: NATS_SERVER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.nats-server
+                - name: POSTGRES_READ_USER
+                  value: ${POSTGRES_USER}
+                - name: POSTGRES_WRITE_USER
+                  value: ${POSTGRES_USER}
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: app-db-password
+                - name: POSTGRES_WRITE_HOST
+                  value: ${POSTGRES_WRITE_HOST}
+                - name: POSTGRES_READ_HOST
+                  value: ${POSTGRES_READ_HOST}
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: ${POSTGRES_DATABASE}
+                - name: TILESERVER_POSTGRES_READ_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.tileserver_postgres_read_host
+                - name: TILESERVER_POSTGRES_WRITE_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.tileserver_postgres_write_host
+                - name: TILESERVER_READ_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserv_read_user
+                - name: TILESERVER_WRITE_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserv_write_user
+                - name: TILESERVER_POSTGRES_WRITE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserver_postgres_write_password
+                - name: TILESERVER_POSTGRES_READ_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserver_postgres_read_password
+                - name: OBJECT_STORE_SERVER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-server
+                - name: OBJECT_STORE_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-user-id
+                - name: OBJECT_STORE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-secret
+                - name: OBJECT_STORE_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-bucket
+              ports:
+                - containerPort: 4222
+                  name: client
+                - containerPort: 7422
+                  name: leafnodes
+                - containerPort: 6222
+                  name: cluster
+                - containerPort: 8222
+                  name: monitor
+                - containerPort: 7777
+                  name: metrics
