@@ -42,11 +42,11 @@ logger.addHandler(ch)
 
 def get_config(ini):
     """ Some very simple code for reading a config file into a dictionary. """
-    file = None
+    ini_file = None
     try:
-        file = open(ini, 'r')
+        ini_file = open(ini, 'r')
         config = {}
-        for line in file.readlines():
+        for line in ini_file.readlines():
             line = line.strip()
             if line.startswith('#') or line.startswith(';'):
                 continue
@@ -54,8 +54,8 @@ def get_config(ini):
                 key, value = line.split('=')
                 config[key] = value
     finally:
-        if file:
-            file.close()
+        if ini_file:
+            ini_file.close()
     return config
 
 
