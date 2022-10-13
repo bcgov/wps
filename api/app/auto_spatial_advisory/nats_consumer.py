@@ -1,3 +1,7 @@
+"""
+Nats consumer setup for consuming processing messages
+"""
+# pylint: skip-file
 import asyncio
 import json
 import datetime
@@ -13,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 def parse_nats_message(msg: Msg):
     """
+     Parse the fields from the messages to drive the processing
     """
     if msg.subject == sfms_file_subject:
         decoded_msg = json.loads(json.loads(msg.data.decode()))
