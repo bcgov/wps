@@ -135,6 +135,11 @@ jobs:
   deploy-dev-queue:
     name: Deploy Message Queue to Dev
     runs-on: ubuntu-22.04
+    # We need
+    # - the image to be built before we can deploy.
+    # - the database to be there (so we can write to it).
+    # - wait for the api deployment, as it's responsible for upgrading the database.
+    needs: [build-api-image, prepare-dev-database, deploy-dev]
     steps:
       - name: Set Variables
         shell: bash
