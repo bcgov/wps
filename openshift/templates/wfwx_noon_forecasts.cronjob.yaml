@@ -64,7 +64,8 @@ objects:
                 - name: ${JOB_NAME}
                   image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
-                  command: ["python", "-m", "app.jobs.noon_forecasts"]
+                  command:
+                    ["poetry", "run", "python", "-m", "app.jobs.noon_forecasts"]
                   env:
                     - name: WFWX_MAX_PAGE_SIZE
                       value: ${WFWX_MAX_PAGE_SIZE}

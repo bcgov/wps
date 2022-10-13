@@ -3,6 +3,7 @@ import os
 import logging
 import json
 from operator import itemgetter
+from affine import Affine
 from pytest_bdd import scenario, given, then, when, parsers
 from pyproj import CRS
 from app.geospatial import NAD83_CRS
@@ -29,20 +30,21 @@ def test_extract_origin_and_pixel_information():
 def given_grib_file(filename):
     """ Open the dataset. """
     dirname = os.path.dirname(os.path.realpath(__file__))
-    return dict(dataset=process_grib.open_grib(os.path.join(dirname, filename)))
+    full_path = os.path.join(dirname, filename)
+    return dict(dataset=process_grib.open_grib(full_path), filename=full_path)
 
 
 @when('I extract the geometry')
 def when_extract_geometry(grib_file):
     """ extract geometry """
     grib_file['geometry'] = process_grib.get_dataset_geometry(
-        grib_file['dataset'])
+        grib_file['filename'])
 
 
 @then(parsers.parse('I expect origin: {origin}'), converters={'origin': json.loads})
 def assert_origin(grib_file, origin):
     """ assert that origin matches expected """
-    actual_origin = itemgetter(0, 3)(grib_file['geometry'])
+    actual_origin = itemgetter(0, 3)(grib_file['geometry'].to_gdal())
     logger.warning('actual: %s ; expected %s', actual_origin, origin)
     # This fails when using gdal-2.2.3! Be sure to use a more recent version.
     assert origin == list(actual_origin)
@@ -51,7 +53,7 @@ def assert_origin(grib_file, origin):
 @then(parsers.parse('I expect pixels: {pixels}'), converters={'pixels': json.loads})
 def assert_pixels(grib_file, pixels):
     """ assert that pixels match expected """
-    actual_pixels = itemgetter(1, 5)(grib_file['geometry'])
+    actual_pixels = itemgetter(1, 5)(grib_file['geometry'].to_gdal())
     assert list(actual_pixels) == pixels
 
 
@@ -109,8 +111,9 @@ def when_calculate_raster_coordinate(data, geographic_coordinate):
     longitude, latitude = geographic_coordinate
     proj_crs = CRS.from_string(data['wkt_projection_string'])
     transformer = process_grib.get_transformer(NAD83_CRS, proj_crs)
+    padf_transform = Affine.from_gdal(*data['geotransform'])
     data['raster_coordinate'] = process_grib.calculate_raster_coordinate(
-        longitude, latitude, data['geotransform'], transformer)
+        longitude, latitude, padf_transform, transformer)
 
 
 @then(parsers.parse('I expect raster coordinates: {raster_coordinate}'), converters={'raster_coordinate': json.loads})
@@ -131,9 +134,10 @@ def calculate_geographic_coordinate(data, raster_coordinate):
     """ calculate the geographic coordinate """
     proj_crs = CRS.from_string(data['wkt_projection_string'])
     transformer = process_grib.get_transformer(proj_crs, NAD83_CRS)
+    padf_transform = Affine.from_gdal(*data['geotransform'])
     data['geographic_coordinate'] = \
         process_grib.calculate_geographic_coordinate(
-        raster_coordinate, data['geotransform'], transformer)
+        raster_coordinate, padf_transform, transformer)
 
 
 @then(parsers.parse('I expect the geographic_coordinate {geographic_coordinate}'), converters={'geographic_coordinate': json.loads})

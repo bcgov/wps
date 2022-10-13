@@ -24,7 +24,7 @@ def send_rocketchat_notification(text: str, exc_info: Exception) -> dict:
     """
     full_message = f"{datetime.now(tz=timezone.utc).isoformat()}\n{text}\n\
         {config.get('HOSTNAME')} ({threading.get_native_id()}): {exc_info}\n\
-        {traceback.format_exception(etype=type(exc_info),value=exc_info,tb=exc_info.__traceback__)}"
+        {traceback.format_exception(exc_info,value=exc_info,tb=exc_info.__traceback__)}"
     result = None
     try:
         response = requests.post(
