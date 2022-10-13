@@ -1,9 +1,8 @@
 """ Router for SFMS """
 import io
 import logging
-from datetime import datetime
+from datetime import datetime, date
 import os
-from datetime import date
 from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks
 from app.nats import publish
