@@ -244,8 +244,9 @@ objects:
         metadata:
           labels:
             app: nats
-        spec:
-          containers:
+      spec:
+        containers:
+          - name: ${APP_NAME}-nats-consumer
             image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
             imagePullPolicy: "Always"
             command:
@@ -256,7 +257,6 @@ objects:
                 "-m",
                 "app.auto_spatial_advisory.nats_consumer",
               ]
-            name: ${APP_NAME}-nats-consumer
             env:
               - name: NATS_STREAM_PREFIX
                 value: ${APP_NAME}-${SUFFIX}
