@@ -87,8 +87,8 @@ async def write_classified_hfi_to_tileserver(session: AsyncSession,
     threshold = get_threshold_from_hfi(feature, advisory, warning)
 
     statement = text(
-        'INSERT INTO hfi (hfi, date, wkb_geometry) VALUES (:hfi, :date, ST_GeomFromText(:wkt_geometry, 4326))')
-    await session.execute(statement, {'hfi': threshold.description, 'date': date, 'wkt_geometry': wkt.dumps(polygon)})
+        'INSERT INTO hfi (hfi, date, geom) VALUES (:hfi, :date, ST_GeomFromText(:geom, 3005))')
+    await session.execute(statement, {'hfi': threshold.description, 'date': date, 'geom': wkt.dumps(polygon)})
 
 
 def get_threshold_from_hfi(feature: ogr.Feature, advisory: HfiClassificationThreshold, warning: HfiClassificationThreshold):
