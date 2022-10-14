@@ -2,6 +2,7 @@ import logging
 import sys
 import os
 from osgeo import osr, gdal, ogr
+# pylint: skip-file
 
 logger = logging.getLogger(__name__)
 

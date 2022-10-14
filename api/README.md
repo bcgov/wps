@@ -62,26 +62,28 @@ brew install --cask wkhtmltopdf
 
 ##### Poetry
 
-Try to match the latest version of python in our production environment (as of writing, API is on 3.9.7 and C-Haines is on 3.8.10)
+Try to match the latest version of python in our production environment (as of writing, API is on 3.10.4)
 
 ```bash
 brew update
 brew install pyenv
-pyenv install 3.8.10
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+pyenv install 3.10.4
+pyenv local 3.10.4
+curl -sSL https://install.python-poetry.org | python -
 ```
 
 ##### Install project python requirements
 
-`poetry env use 3.8.10` doesn't actually honor the minor version, if you want 3.8.10 exactly, you have
-to find the location of the 3.8.10 binary and point to that.
+`poetry env use 3.10.4` doesn't actually honor the minor version, if you have more than one version
+of 3.10, and you want 3.10.4 exactly, you have to find the location of the 3.10.4 binary and point
+to that.
 
 ```bash
 pyenv which python
 ```
 
 ```bash
-poetry env use [path to python 3.8.10, get this by running 'pyenv which python']
+poetry env use [path to python 3.10.4, get this by running 'pyenv which python']
 poetry run python -m pip install --upgrade pip
 poetry install
 poetry shell
@@ -91,7 +93,7 @@ python -m pip install gdal==$(gdal-config --version)
 python -m pip install pygdal==3.0.4.10
 ```
 
-**N.B.: If `poetry env use [version]` returns an `EnvCommandError` saying something like "pyenv: python3.8: command not found", but `pyenv versions` shows that 3.8.10 is installed, you must first run `pyenv shell 3.8.10` and then re-run `poetry env use [path to python 3.8.10]`.**
+**N.B.: If `poetry env use [version]` returns an `EnvCommandError` saying something like "pyenv: python3.10: command not found", but `pyenv versions` shows that 3.10.4 is installed, you must first run `pyenv shell 3.10.4` and then re-run `poetry env use [path to python 3.10.4]`.**
 
 ##### Troubleshooting
 

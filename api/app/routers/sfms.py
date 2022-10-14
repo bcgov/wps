@@ -1,9 +1,8 @@
 """ Router for SFMS """
 import io
 import logging
-from datetime import datetime
+from datetime import datetime, date
 import os
-from datetime import date
 from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks
 from app.nats import publish
@@ -161,7 +160,6 @@ async def upload_manual(file: UploadFile,
                            for_date=date(year=int(for_date[0:4]),
                                          month=int(for_date[4:6]),
                                          day=int(for_date[6:8])))
-        # message = get_sfms_file_message(file.filename, meta_data)
         background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
     except Exception as exception:  # pylint: disable=broad-except
         logger.error(exception, exc_info=True)

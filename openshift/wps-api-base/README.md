@@ -29,5 +29,5 @@ docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.g
 # push it
 docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-api-base:my-tag
 # once you're good to go
-oc -n e1e498-tools tag wps-api-base:my-tag wps-api-base:python3.9-latest
+oc -n e1e498-tools tag wps-api-base:my-tag wps-api-base:ubuntu.22.04-latest
 ```

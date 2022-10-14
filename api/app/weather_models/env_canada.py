@@ -21,7 +21,10 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_model_run_predictions_for_grid,
                                         get_grids_for_coordinate,
                                         get_weather_station_model_prediction,
-                                        delete_model_run_grid_subset_predictions)
+                                        delete_model_run_grid_subset_predictions,
+                                        get_prediction_model,
+                                        get_prediction_run,
+                                        update_prediction_run)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
@@ -316,8 +319,7 @@ def mark_prediction_model_run_processed(session: Session,
                                         model_run_hour: int):
     """ Mark a prediction model run as processed (complete) """
 
-    prediction_model = app.db.crud.weather_models.get_prediction_model(
-        session, model, projection)
+    prediction_model = get_prediction_model(session, model, projection)
     prediction_run_timestamp = datetime.datetime(
         year=now.year,
         month=now.month,
@@ -329,13 +331,12 @@ def mark_prediction_model_run_processed(session: Session,
         hour=model_run_hour)
     logger.info('prediction_model:%s, prediction_run_timestamp:%s',
                 prediction_model, prediction_run_timestamp)
-    prediction_run = app.db.crud.weather_models.get_prediction_run(
-        session,
-        prediction_model.id,
-        prediction_run_timestamp)
+    prediction_run = get_prediction_run(session,
+                                        prediction_model.id,
+                                        prediction_run_timestamp)
     logger.info('prediction run: %s', prediction_run)
     prediction_run.complete = True
-    app.db.crud.weather_models.update_prediction_run(session, prediction_run)
+    update_prediction_run(session, prediction_run)
 
 
 def flag_file_as_processed(url: str, session: Session):

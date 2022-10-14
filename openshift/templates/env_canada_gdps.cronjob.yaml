@@ -70,7 +70,14 @@ objects:
                   image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-api-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
-                    ["python", "-m", "app.weather_models.env_canada", "GDPS"]
+                    [
+                      "poetry",
+                      "run",
+                      "python",
+                      "-m",
+                      "app.weather_models.env_canada",
+                      "GDPS",
+                    ]
                   env:
                     - name: POSTGRES_READ_USER
                       value: ${POSTGRES_USER}

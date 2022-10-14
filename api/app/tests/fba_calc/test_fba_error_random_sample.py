@@ -2,7 +2,6 @@
 Unit tests for fire behavour calculator.
 """
 from datetime import datetime, timezone as dt_tz
-from multiprocessing.spawn import import_main_path
 import random
 from typing import Final
 import logging
@@ -223,15 +222,16 @@ def then_cfb_good(results: list, cfb_margin_of_error: float):
         result['error']['cfb_margin_of_error'] = error
 
 
-@then("CFB_t is within range")
-def then_cfb_t(results: list):
+@then(parsers.parse("CFB_t is within range of {cfb_t_margin_of_error} compared to REDapp"),
+      converters={'cfb_t_margin_of_error': float})
+def then_cfb_t(results: list, cfb_t_margin_of_error: float):
     """ check the relative error of the ros """
     for result in results:
         check_metric('CFB_t',
                      result['fuel_type'],
                      result['python'].cfb_t * 100.0,
                      result['java'].cfb,
-                     acceptable_margin_of_error)
+                     cfb_t_margin_of_error)
 
 
 @then(parsers.parse("1 Hour Spread is within {one_hour_spread_margin_of_error} compared to REDapp"),
