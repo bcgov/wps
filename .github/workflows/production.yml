@@ -9,7 +9,7 @@ on: deployment
 jobs:
   deploy_to_production:
     name: Deploy to production
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Find PR number
         uses: actions/github-script@v6
@@ -35,7 +35,7 @@ jobs:
   set_deployment_status_success:
     name: Set production deployment successful
     needs: [deploy_to_production]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Set status to deployed
         uses: actions/github-script@v6

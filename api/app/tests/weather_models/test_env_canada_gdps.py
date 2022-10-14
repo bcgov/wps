@@ -3,26 +3,20 @@
 import os
 import sys
 import logging
-from typing import Generator
-from contextlib import contextmanager
 import datetime
 from datetime import datetime
 import pytest
 import requests
-import shapely.wkt
 from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
-# TODO: get rid of alchemy mock!
-from alchemy_mock.mocking import UnifiedAlchemyMagicMock
-from alchemy_mock.compat import mock
+from shapely import wkt
 import app.utils.time as time_utils
-import app.db.database
 from app.schemas.stations import WeatherStation, Season
 from app.weather_models import env_canada, machine_learning
+import app.db.crud.weather_models
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           PredictionModelGridSubset, ModelRunGridSubsetPrediction)
+                           ModelRunGridSubsetPrediction, PredictionModelGridSubset)
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
-# pylint: disable=unused-argument, redefined-outer-name
 
 
 logger = logging.getLogger(__name__)
@@ -110,14 +104,13 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
 
 
 @pytest.fixture()
-def mock_session(monkeypatch):
-    """ Mocked out sqlalchemy session object """
+def mock_database(monkeypatch):
+    """ Mocked out database queries """
     geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
             " -120.525 50.62500000000001, -120.525 50.77500000000001))")
-    shape = shapely.wkt.loads(geom)
-
+    shape = wkt.loads(geom)
     gdps_url = ('https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/000/'
-                'CMC_glb_TMP_TGL_2_latlon.15x.15_2021020300_P000.grib2')
+                'CMC_glb_TMP_TGL_2_latlon.15x.15_2020052100_P000.grib2')
     gdps_processed_model_run = ProcessedModelRunUrl(url=gdps_url)
     gdps_prediction_model = PredictionModel(id=1,
                                             abbreviation='GDPS',
@@ -127,39 +120,27 @@ def mock_session(monkeypatch):
         id=1, prediction_model_id=1, prediction_run_timestamp=time_utils.get_utc_now(),
         prediction_model=gdps_prediction_model, complete=True)
 
-    @contextmanager
-    def mock_get_session_gdps_scope(*args) -> Generator[Session, None, None]:
-
-        yield UnifiedAlchemyMagicMock(data=[
-            (
-                [mock.call.query(PredictionModel),
-                 mock.call.filter(PredictionModel.abbreviation == 'GDPS',
-                                  PredictionModel.projection == 'latlon.15x.15')],
-                [gdps_prediction_model],
-            ),
-            (
-                [mock.call.query(ProcessedModelRunUrl),
-                 mock.call.filter(ProcessedModelRunUrl.url == gdps_url)],
-                [gdps_processed_model_run]
-            ),
-            (
-                [mock.call.query(PredictionModelRunTimestamp)],
-                [gdps_prediction_model_run]
-            ),
-            (
-                [mock.call.query(PredictionModelGridSubset)],
-                [PredictionModelGridSubset(
-                    id=1, prediction_model_id=gdps_prediction_model.id, geom=from_shape(shape))]
-            )
-        ])
-
     def mock_get_gdps_prediction_model_run_timestamp_records(*args, **kwargs):
         return [(gdps_prediction_model_run, gdps_prediction_model)]
 
-    monkeypatch.setattr(app.db.database, 'get_write_session_scope',
-                        mock_get_session_gdps_scope)
+    def mock_get_processed_file_record(session, url: str):
+        # We only want the one file to be processed - otherwise our test takes forever
+        if url != gdps_url:
+            return gdps_processed_model_run
+        return None
+
+    def mock_get_grids_for_coordinate(session, prediction_model, coordinate):
+        return [PredictionModelGridSubset(
+            id=1, prediction_model_id=gdps_prediction_model.id, geom=from_shape(shape)), ]
+
+    def mock_get_prediction_run(*args, **kwargs):
+        return gdps_prediction_model_run
+
     monkeypatch.setattr(env_canada, 'get_prediction_model_run_timestamp_records',
                         mock_get_gdps_prediction_model_run_timestamp_records)
+    monkeypatch.setattr(env_canada, 'get_processed_file_record', mock_get_processed_file_record)
+    monkeypatch.setattr(env_canada, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
+    monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
 @pytest.fixture()
@@ -195,7 +176,7 @@ def test_get_gdps_download_urls():
 
 @pytest.mark.usefixtures('mock_get_processed_file_record')
 def test_process_gdps(mock_download,
-                      mock_session,
+                      mock_database,
                       mock_get_processed_file_count,
                       mock_get_model_run_predictions_for_grid,
                       mock_get_actuals_left_outer_join_with_predictions,
@@ -218,5 +199,3 @@ def test_for_zero_day_bug(monkeypatch):
                     'grib2/lat_lon/12/000/CMC_glb_TMP_TGL_2_latlon.'
                     '15x.15_2020083112_P000.grib2')
     assert url == expected_url
-
-# pylint: enable=unused-argument, redefined-outer-name

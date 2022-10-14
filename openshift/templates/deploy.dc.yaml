@@ -34,10 +34,10 @@ parameters:
     value: 500m
   - name: MEMORY_REQUEST
     description: Requested memory
-    value: 2Gi
+    value: 3Gi
   - name: MEMORY_LIMIT
     description: Memory upper limit
-    value: 3Gi
+    value: 6Gi
   - name: REPLICAS
     description: Number of replicas (pods)
     value: "2"
@@ -74,9 +74,9 @@ parameters:
     value: "False"
   - name: VANITY_DOMAIN
     requests: True
-  - name: WORKERS_PER_CORE
-    description: "Number of workers per core. e.g. openshift pods report having 32 cores, so 0.125 would give you 4 workers total."
-    value: "0.125"
+  - name: GUNICORN_WORKERS
+    description: "Number of gunicorn workers"
+    value: "4"
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -151,8 +151,8 @@ objects:
                   value: https://${APP_NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
                 - name: PORT # The port that the API will run on (used by fastapi docker image)
                   value: "8080"
-                - name: WORKERS_PER_CORE # The number of worker per code (used by fastapi docker image)
-                  value: ${WORKERS_PER_CORE}
+                - name: GUNICORN_WORKERS # The number of workers to spawn
+                  value: ${GUNICORN_WORKERS}
                 - name: "TIMEOUT" # https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout
                   valueFrom:
                     configMapKeyRef:

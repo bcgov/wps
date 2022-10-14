@@ -9,7 +9,7 @@ on:
 jobs:
   cleanup-non-db:
     name: Delete non-DB resources associated with pr
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Set Variables
         shell: bash
@@ -40,7 +40,7 @@ jobs:
   cleanup-db:
     name: Delete DB resources associated with PR
     needs: cleanup-non-db
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Set Variables
         shell: bash

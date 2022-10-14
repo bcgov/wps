@@ -1,11 +1,10 @@
 from typing import Tuple
-from distutils.util import strtobool
+from app.utils import strtobool
 from unittest.mock import MagicMock
 import pytest
 import json
 from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
-from sqlalchemy.exc import IntegrityError
 from aiohttp import ClientSession
 from pytest_mock import MockerFixture
 import app.main
@@ -120,6 +119,10 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
     def mock_get_fuel_types(_):
         return fuel_types
 
+    def mock_get_most_recent_updated_hfi_request_for_current_date(session,
+                                                                  fire_centre_id: int):
+        return None
+
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_weather_stations', mock_get_fire_weather_stations)
     monkeypatch.setattr(app.db.crud.hfi_calc, 'get_all_stations', mock_get_all_stations)
     # TODO: this is problematic, why are we calling get_fire_centre_stations twice?
@@ -131,6 +134,8 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fuel_type_by_id', mock_get_fuel_type_by_id)
     monkeypatch.setattr(app.routers.hfi_calc, 'crud_get_fuel_types', mock_get_fuel_types)
+    monkeypatch.setattr(app.routers.hfi_calc, 'get_most_recent_updated_hfi_request_for_current_date',
+                        mock_get_most_recent_updated_hfi_request_for_current_date)
 
 
 def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):

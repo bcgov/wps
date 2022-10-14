@@ -15,6 +15,7 @@ from pyproj import Transformer, Proj
 from shapely.ops import transform
 from shapely.geometry import shape, mapping
 from aiobotocore.client import AioBaseClient
+from affine import Affine
 from app.utils.s3 import object_exists, object_exists_v2
 import app.utils.time as time_utils
 from app.weather_models import ModelEnum, ProjectionEnum
@@ -29,6 +30,7 @@ from app.c_haines import GDALData
 from app.c_haines.object_store import (ObjectTypeEnum, generate_full_object_store_path)
 from app.c_haines.kml import save_as_kml_to_s3
 from app import config
+from app.weather_models.process_grib import get_dataset_geometry
 
 
 logger = logging.getLogger(__name__)
@@ -66,7 +68,7 @@ def open_gdal(filename_tmp_700: str,
         grib_tmp_850 = gdal.Open(filename_tmp_850, gdal.GA_ReadOnly)
         grib_dew_850 = gdal.Open(filename_dew_850, gdal.GA_ReadOnly)
         # Yield handy object.
-        yield GDALData(grib_tmp_700, grib_tmp_850, grib_dew_850)
+        yield GDALData(grib_tmp_700, grib_tmp_850, grib_dew_850, filename_tmp_700)
     finally:
         # Clean up memory.
         del grib_tmp_700, grib_tmp_850, grib_dew_850
@@ -170,9 +172,9 @@ def make_model_run_download_urls(model: ModelEnum,
 class SourceInfo():
     """ Handy class to store source information in . """
 
-    def __init__(self, projection, geotransform, rows: int, cols: int):
+    def __init__(self, projection, geotransform: Affine, rows: int, cols: int):
         self.projection: str = projection
-        self.geotransform = geotransform
+        self.geotransform: Affine = geotransform
         self.rows: int = rows
         self.cols: int = cols
 
@@ -186,7 +188,7 @@ def create_in_memory_band(data: numpy.ndarray, source_info: SourceInfo):
 
     dataset = mem_driver.Create('memory', source_info.cols, source_info.rows, 1, gdal.GDT_Byte)
     dataset.SetProjection(source_info.projection)
-    dataset.SetGeoTransform(source_info.geotransform)
+    dataset.SetGeoTransform(source_info.geotransform.to_gdal())
     band = dataset.GetRasterBand(1)
     band.WriteArray(data)
 
@@ -269,7 +271,7 @@ def _save_data_as_geotiff(payload: EnvCanadaPayload, ch_data: numpy.ndarray, sou
     logger.info('creating %s', filename)
     target_ds = gdal.GetDriverByName('GTiff')
     out_raster = target_ds.Create(filename, source_info.cols, source_info.rows, 1, gdal.GDT_Byte)
-    out_raster.SetGeoTransform(source_info.geotransform)
+    out_raster.SetGeoTransform(source_info.geotransform.to_gdal())
     outband = out_raster.GetRasterBand(1)
     outband.WriteArray(ch_data)
 
@@ -456,7 +458,7 @@ class CHainesSeverityGenerator():
             c_haines_data = self.c_haines_generator.generate_c_haines(source_data)
             # Store the projection and geotransform for later.
             projection = source_data.grib_tmp_700.GetProjection()
-            geotransform = source_data.grib_tmp_700.GetGeoTransform()
+            geotransform: Affine = get_dataset_geometry(source_data.grib_tmp_700_filename)
             # Store the dimensions for later.
             band = source_data.grib_tmp_700.GetRasterBand(1)
             rows = band.YSize

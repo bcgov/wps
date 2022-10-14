@@ -29,11 +29,6 @@ parameters:
   - name: GIT_BRANCH
     description: PR branch
     required: true
-  - name: DOCKER_IMAGE
-    description: Location of docker image
-    required: true
-    # TODO: change this image to whatever comes out of static content ticket
-    value: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:python3.9-latest
   - name: DOCKER_FILE
     description: Dockerfile to use
     required: true
@@ -81,8 +76,5 @@ objects:
         contextDir: ./
       strategy:
         dockerStrategy:
-          buildArgs:
-            - name: "DOCKER_IMAGE"
-              value: "${{DOCKER_IMAGE}}"
           dockerfilePath: ${DOCKER_FILE}
       triggers: []
