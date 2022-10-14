@@ -15,4 +15,4 @@ from .. import process_hfi
 
 if __name__ == '__main__':
     asyncio.run(process_hfi.process_hfi(process_hfi.RunType.ACTUAL, date.fromisoformat(
-        sys.argv[2]), date.fromisoformat(sys.argv[3])))
+        sys.argv[1]), date.fromisoformat(sys.argv[2])))

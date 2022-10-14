@@ -57,20 +57,14 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "advisory polygonize",
+            "name": "asa - process hfi",
             "type": "python",
             "request": "launch",
-            "module": "api.advisory.polygonize_hfi",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "advisory calculate",
-            "type": "python",
-            "request": "launch",
-            "module": "advisory.calculate_advisories",
+            "module": "app.auto_spatial_advisory.local.process_hfi_local",
             "console": "integratedTerminal",
             "args": [
-                "2022-08-09"
+                "2022-10-01",
+                "2022-10-01"
             ]
         },
         {
