@@ -12,5 +12,6 @@ const config = {
   REACT_APP_KEYCLOAK_REALM: 'standard',
   REACT_APP_KEYCLOAK_CLIENT: 'wps-3981',
   REACT_APP_KEYCLOAK_AUTH_URL: 'https://dev.loginproxy.gov.bc.ca/auth',
-  API_BASE_URL: 'http://localhost:8080/api'
+  API_BASE_URL: 'http://localhost:8080/api',
+  RASTER_SERVER_BASE_URL: 'https://wps-dev-raster-tileserver.apps.silver.devops.gov.bc.ca/v0.0.1'
 }

@@ -68,11 +68,14 @@ RUN poetry install
 RUN poetry run python -m pip install pygdal==3.4.1.10
 
 COPY ./app /app/app
+# TODO: we need to do this better.
+RUN mkdir /app/advisory
+COPY ./advisory /app/advisory
 RUN mkdir /app/libs
 COPY ./libs /app/libs
 
 EXPOSE 8080
 
 ENV CLASSPATH=/app/libs/REDapp_Lib.jar:/app/libs/WTime.jar:/app/libs/hss-java.jar:${CLASSPATH}
-CMD PYTHONPATH=. poetry run alembic upgrade head && poetry run uvicorn app.main:app --host 0.0.0.0 --reload --port 8080
+CMD PYTHONPATH=. poetry run alembic upgrade head && poetry run uvicorn app.main:app --timeout-keep-alive 120 --host 0.0.0.0 --reload --port 8080
 

@@ -5,6 +5,7 @@ import CircleStyle from 'ol/style/Circle'
 import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
 import { range, startCase, lowerCase } from 'lodash'
+import { FireZoneArea } from 'api/fbaAPI'
 
 const fireCentreTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
   const text = feature.get('mof_fire_centre_name').replace(' Fire Centre', '\nFire Centre')
@@ -50,6 +51,22 @@ export const fireZoneStyler = (): Style => {
       width: 1
     })
   })
+}
+
+export const createFireZoneStyler = (fireZoneAreas: FireZoneArea[], advisoryThreshold: number) => {
+  const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
+    const mof_fire_zone_id = feature.get('mof_fire_zone_id')
+    const fireZoneArea = fireZoneAreas.find(f => f.mof_fire_zone_id === mof_fire_zone_id)
+    const advisory = fireZoneArea && fireZoneArea.elevated_hfi_percentage > advisoryThreshold ? true : false
+    return new Style({
+      stroke: new Stroke({
+        color: advisory ? 'red' : 'black',
+        width: 1
+      }),
+      fill: advisory ? new Fill({ color: 'rgba(128, 0, 0, 0.4)' }) : undefined
+    })
+  }
+  return a
 }
 
 export const fireZoneLabelStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
@@ -106,4 +123,15 @@ export const thessianPolygonStyler = (feature: RenderFeature | ol.Feature<Geomet
   const colorIdx = Math.floor(feature.get('code') % (hfiColors.length - 1))
   thessianPolygonStyle.setFill(hfiColors[colorIdx])
   return thessianPolygonStyle
+}
+
+const hfiStyle = new Style({})
+
+export const hfiStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
+  if (feature.get('hfi') === '4000 < hfi < 10000') {
+    hfiStyle.setFill(new Fill({ color: 'rgba(255, 128, 0, 0.4)' }))
+  } else if (feature.get('hfi') === 'hfi >= 10000') {
+    hfiStyle.setFill(new Fill({ color: 'rgba(255, 0, 0, 0.4)' }))
+  }
+  return hfiStyle
 }

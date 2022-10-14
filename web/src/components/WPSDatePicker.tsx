@@ -12,6 +12,8 @@ interface WPSDatePickerProps {
   size?: 'small' | 'medium'
   date: DateTime
   updateDate: (d: DateTime) => void
+  minDate?: DateTime
+  maxDate?: DateTime
 }
 
 const WPSDatePicker = (props: WPSDatePickerProps) => {

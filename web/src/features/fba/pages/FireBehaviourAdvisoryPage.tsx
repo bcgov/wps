@@ -1,10 +1,9 @@
-import { FormControl, Grid } from '@mui/material'
+import { FormControl, FormControlLabel, Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GeneralHeader, Container } from 'components'
 import React, { useEffect, useState } from 'react'
-import FBAMap from 'features/fba/components/FBAMap'
+import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
-import FormalFBATable from 'features/fba/components/FormalFBATable'
 import { DateTime } from 'luxon'
 import { selectFireCenters } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
@@ -16,6 +15,8 @@ import { FireCenter } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
+import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
+import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -24,12 +25,18 @@ const useStyles = makeStyles(() => ({
     height: 700
   },
   mapContainer: {
-    width: 900,
-    height: 700
+    width: '100%',
+    height: '100%',
+    position: 'absolute'
   },
   fireCenter: {
     minWidth: 280,
     margin: theme.spacing(1)
+  },
+  thresholdDropdown: {
+    minWidth: 280,
+    margin: theme.spacing(1),
+    marginLeft: 50
   },
   instructions: {
     textAlign: 'left'
@@ -41,14 +48,9 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
 
-  const emptyInstructions = (
-    <div data-testid={'fba-instructions'} className={classes.instructions}>
-      <p>Select a fire center to get started.</p>
-      <p>A selected fire center will populate this pane with its station details.</p>
-    </div>
-  )
-
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
+
+  const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -73,19 +75,20 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchFireCenters())
+    dispatch(fetchFireZoneAreas(dateOfInterest.toISODate()))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    dispatch(fetchFireZoneAreas(dateOfInterest.toISODate()))
+  }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <React.Fragment>
-      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="Predictive Services Unit" />
+      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="Fire Behaviour Advisory Tool" />
       <Container maxWidth={'xl'}>
-        <h1>
-          {/* (🔥🦇) */}
-          Fire Behaviour Advisory Tool
-        </h1>
         <Grid container direction={'row'}>
-          <Grid container spacing={2}>
+          <Grid container spacing={1}>
             <Grid item>
               <FormControl className={classes.formControl}>
                 <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
@@ -100,21 +103,30 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 />
               </FormControl>
             </Grid>
-          </Grid>
-          <Grid container spacing={2}>
-            <Grid item xs>
-              {fireCenter ? (
-                <FormalFBATable fireCenter={fireCenter} className={classes.listContainer} />
-              ) : (
-                emptyInstructions
-              )}
-            </Grid>
-            <Grid item xs>
-              <FBAMap selectedFireCenter={fireCenter} className={classes.mapContainer} />
+            <Grid item>
+              <FormControl className={classes.thresholdDropdown}>
+                <FormControlLabel
+                  label="
+                Advisory HFI Threshold of combustible area"
+                  labelPlacement="top"
+                  control={
+                    <AdvisoryThresholdSlider
+                      advisoryThreshold={advisoryThreshold}
+                      setAdvisoryThreshold={setAdvisoryThreshold}
+                    />
+                  }
+                />
+              </FormControl>
             </Grid>
           </Grid>
         </Grid>
       </Container>
+      <FBAMap
+        date={dateOfInterest}
+        selectedFireCenter={fireCenter}
+        advisoryThreshold={advisoryThreshold}
+        className={classes.mapContainer}
+      />
     </React.Fragment>
   )
 }
