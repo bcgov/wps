@@ -1,5 +1,6 @@
 """ Code relating to processing HFI GeoTIFF files, and storing resultant data.
 """
+from inspect import CO_GENERATOR
 import logging
 import os
 from enum import Enum
@@ -10,10 +11,12 @@ from shapely import wkb, wkt
 from shapely.validation import make_valid
 from shapely.geometry import MultiPolygon
 from osgeo import ogr, osr, gdal
+import tempfile
 from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auto_spatial_advisory.db.database.tileserver import get_tileserver_write_session_scope
 from app import config
+from app.auto_spatial_advisory.sfms import get_prefix, get_target_filename
 from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope
 from app.db.crud.auto_spatial_advisory import (
@@ -21,6 +24,9 @@ from app.db.crud.auto_spatial_advisory import (
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.polygonize import polygonize_in_memory
 from app.geospatial import NAD83_BC_ALBERS
+from app.routers.sfms import FileLikeObject
+from app.utils.s3 import get_client
+from app.utils.time import get_vancouver_now
 
 
 logger = logging.getLogger(__name__)
@@ -119,6 +125,54 @@ def create_model_object(feature: ogr.Feature,
                                         srid=NAD83_BC_ALBERS))
 
 
+def get_target_filename(run_type: RunType, run_date: date, for_date_str: str) -> str:
+    """ Get the target filename, something that looks like this:
+    bucket/sfms/cog/forecast/[issue date NOT TIME]/cog_hfi20220823.tif
+    bucket/sfms/cog/actual/[issue date NOT TIME]/cog_hfi20220823.tif
+    """
+    # create the filename
+    return os.path.join('sfms', 'cog', run_type.value, run_date.isoformat()[:10], 'cog_hfi' + for_date_str + '.tif')
+
+
+async def create_cloud_optimized_raster(classified_hfi_filepath, run_type: RunType, run_date: date, for_date_str: str):
+    """
+    Uses gdal tools to create a cloud-optimized raster of the classified HFI
+    """
+    dest_filename = "cog_hfi{}.tif".format(for_date_str)
+    temp_filename = 'tmp.tif'
+    logger.info(
+        f'Creating Cloud Optimized Geotiff {dest_filename} for {run_type.value}/{run_date.isoformat()}/{for_date_str}')
+
+    source_tiff = gdal.Open(classified_hfi_filepath, gdal.GA_ReadOnly)
+
+    translate_options = gdal.TranslateOptions(format='GTiff', creationOptions=['TILED=YES', 'COMPRESS=DEFLATE'])
+    dataset = gdal.Translate(temp_filename, source_tiff, options=translate_options)
+
+    # rebuild overview image
+    # (This is the python equivalent of gdaladdo - splits the source dataset into smaller pieces)
+    dataset.BuildOverviews("NEAREST", [2, 4, 8, 16, 32, 64])
+
+    # create COG
+    driver = gdal.GetDriverByName('GTiff')
+    driver.CreateCopy(dest_filename, dataset, options=[
+        "COPY_SRC_OVERVIEWS=YES", "TILED=YES", "COMPRESS=LZW"])
+
+    # upload COG file to object store
+    key = get_target_filename(run_type, run_date, for_date_str)
+    # Get an async S3 client.
+    async with get_client() as (client, bucket):
+        with open(dest_filename, 'rb') as f:
+            logger.info('Uploading file to "%s"', key)
+            await client.put_object(Bucket=bucket,
+                                    Key=key,
+                                    Body=FileLikeObject(f))
+        f.close()
+        logger.info('Done uploading file')
+
+    del dataset
+    del driver
+
+
 async def process_hfi(run_type: RunType, run_date: date, for_date: date):
     """ Create a new hfi record for the given date.
 
@@ -171,6 +225,8 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                 for i in range(layer.GetFeatureCount()):
                     feature: ogr.Feature = layer.GetFeature(i)
                     await write_classified_hfi_to_tileserver(session, feature, coordinate_transform, for_date, advisory, warning)
+
+            await create_cloud_optimized_raster(temp_filename, run_type, run_date, for_date_string)
 
     perf_end = perf_counter()
     delta = perf_end - perf_start
