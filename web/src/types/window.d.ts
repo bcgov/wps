@@ -6,6 +6,7 @@ interface Window {
     REACT_APP_KEYCLOAK_REALM: string
     REACT_APP_KEYCLOAK_CLIENT: string
     API_BASE_URL: string | undefined
+    RASTER_SERVER_BASE_URL: string | undefined
   }
   Cypress: {} | undefined
 }

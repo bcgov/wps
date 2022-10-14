@@ -318,6 +318,36 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.redis-env-canada-cache-expiry
+                - name: TILESERVER_POSTGRES_READ_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.tileserver_postgres_read_host
+                - name: TILESERVER_POSTGRES_WRITE_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.tileserver_postgres_write_host
+                - name: TILESERVER_READ_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserv_read_user
+                - name: TILESERVER_WRITE_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserv_write_user
+                - name: TILESERVER_POSTGRES_WRITE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserver_postgres_write_password
+                - name: TILESERVER_POSTGRES_READ_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserver_postgres_read_password
                 - name: SFMS_SECRET
                   valueFrom:
                     secretKeyRef:
@@ -456,6 +486,9 @@ objects:
         # Use roundrobin load balancing strategy
         haproxy.router.openshift.io/balance: roundrobin
         haproxy.router.openshift.io/disable_cookies: "true"
+        # TODO: we don't want to keep it at 60s - this is just a temporary workaround while
+        # we generate classified HFI on the fly.
+        haproxy.router.openshift.io/timeout: 60s
     spec:
       host: ${VANITY_DOMAIN}
       path: "/api"

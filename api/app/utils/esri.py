@@ -5,6 +5,7 @@ import urllib.parse
 import urllib.request
 import json
 import logging
+from app.geospatial import NAD83_BC_ALBERS
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ def fetch_object_list(url: str):
     return json_data['objectIds']
 
 
-def fetch_object(object_id: int, url: str, out_sr: str = '3005', response_format: str = 'json') -> dict:
+def fetch_object(object_id: int, url: str, out_sr: str = str(NAD83_BC_ALBERS), response_format: str = 'json') -> dict:
     """
     Fetch a single object from a feature layer. By default the output is
     json in BC Albers (EPSG:3005)

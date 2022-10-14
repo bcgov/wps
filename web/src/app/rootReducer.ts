@@ -21,6 +21,8 @@ import fbaCalculatorSlice from 'features/fbaCalculator/slices/fbaCalculatorSlice
 import fireCentersSlice from 'features/fbaCalculator/slices/fireCentersSlice'
 import fwiSlice from 'features/fwiCalculator/slices/fwiSlice'
 import multiFWISlice from 'features/fwiCalculator/slices/multiFWISlice'
+import fireZoneAreasSlice from 'features/fba/slices/fireZoneAreasSlice'
+import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -43,8 +45,10 @@ const rootReducer = combineReducers({
   hfiReady: hfiReadyReducer,
   fbaCalculatorResults: fbaCalculatorSlice,
   fireCenters: fireCentersSlice,
+  fireZoneAreas: fireZoneAreasSlice,
   fwiOutputs: fwiSlice,
-  multiFWIOutputs: multiFWISlice
+  multiFWIOutputs: multiFWISlice,
+  valueAtCoordinate: valueAtCoordinateSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -73,8 +77,10 @@ export const selectRegionalModels = (state: RootState) => state.regionalModels
 export const selectRegionalModelSummaries = (state: RootState) => state.regionalModelSummaries
 export const selectHFIStations = (state: RootState) => state.hfiStations
 export const selectFireCenters = (state: RootState) => state.fireCenters
+export const selectFireZoneAreas = (state: RootState) => state.fireZoneAreas
 export const selectFWIOutputs = (state: RootState) => state.fwiOutputs
 export const selectMultiFWIOutputs = (state: RootState) => state.multiFWIOutputs
+export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
 
 export const selectWxDataLoading = (state: RootState): boolean =>
   state.observations.loading ||
