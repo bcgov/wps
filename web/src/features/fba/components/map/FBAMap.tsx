@@ -244,7 +244,8 @@ const FBAMap = (props: FBAMapProps) => {
     if (showRawHFI) {
       const isoDate = props.date.toISODate().replaceAll('-', '')
       // TODO: replace bucket name with env variable (for dev/prod)
-      const layer = hfiTileFactory(`gpdqha/sfms/cog/cog_hfi${isoDate}.tif`, layerName)
+      // TODO: remove hard-coded values for run_type and run_date
+      const layer = hfiTileFactory(`gpdqha/sfms/cog/actual/2022-10-13/cog_hfi${isoDate}.tif`, layerName)
       map.addLayer(layer)
     }
   }, [props.date, showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
