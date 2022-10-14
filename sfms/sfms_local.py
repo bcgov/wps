@@ -1,25 +1,3 @@
-"""
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-
-This script is used to upload SFMS output to the Predictive Services Unit API.
-
-The code relating to multipart form data is based on the blog post:
-https://blog.thesparktree.com/the-unfortunately-long-story-dealing-with
-
-The code could have been simplified by using the requests library, BUT: "Python 2.7 reached the 
-end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no longer 
-maintained. pip 21.0 will drop support for Python 2.7 in January 2021." - so it's best to avoid
-any external dependencies.
-"""
 import sys
 import os
 import mimetools
