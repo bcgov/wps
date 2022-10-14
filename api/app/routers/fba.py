@@ -6,12 +6,12 @@ from datetime import date
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.db.database import get_async_read_session_scope
-from app.db.crud.auto_spatial_advisory import get_hfi_area, get_hfi
+from app.db.crud.auto_spatial_advisory import get_hfi_area
 from app.auth import authentication_required, audit
 from app.db.models.auto_spatial_advisory import RunTypeEnum
 from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
-from app.auto_spatial_advisory.process_hfi import process_hfi, RunType
+from app.auto_spatial_advisory.process_hfi import RunType
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +37,6 @@ async def get_zones(run_type: RunType, run_date: date, for_date: date, _=Depends
     """ Return area of each zone, and percentage of area of zone with high hfi. """
     async with get_async_read_session_scope() as session:
         zones = []
-
-        # this is a slow step! checking to see if it's there, then making it! this is just a
-        # temporary workaround until we have automation in place.
-        hfi = await get_hfi(session, RunTypeEnum(run_type.value), run_date, for_date)
-        if hfi.first() is None:
-            await process_hfi(run_type, run_date, for_date)
 
         rows = await get_hfi_area(session,
                                   RunTypeEnum(run_type.value),

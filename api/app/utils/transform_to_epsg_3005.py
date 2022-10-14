@@ -1,8 +1,9 @@
+""" Shapefile helper functions related to transforms
+"""
 import logging
 import sys
 import os
 from osgeo import osr, gdal, ogr
-# pylint: skip-file
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,10 @@ def transform_shapefile_to_epsg_3005(source_file, new_filename):
         logger.error('Could not open %s', source_file)
 
     source_layer = source_data.GetLayer()
+
+    if source_layer is None:
+        logger.error('Could not get layer form %s', source_file)
+
     input_spatial_ref = source_layer.GetSpatialRef()
 
     output_spatial_ref = osr.SpatialReference()
@@ -66,8 +71,7 @@ def transform_shapefile_to_epsg_3005(source_file, new_filename):
     output_dataset = None
 
     del source_data, output_dataset, coords_transform
-
-    return 'Transformed shapefile written to {}'.format(new_filename)
+    return f"Transformed shapefile written to {new_filename}"
 
 
 def transform_geotiff_to_epsg_3005(source_file, new_filename):
@@ -85,16 +89,18 @@ def transform_geotiff_to_epsg_3005(source_file, new_filename):
 
     del source_data
 
-    return 'Transformed geotiff written to {}'.format(new_filename)
+    return f"Transformed geotiff written to {new_filename}"
 
 
 def transform_file(filepath, new_filename):
     if filepath[-3:] == '.tif':
-        transform_geotiff_to_epsg_3005(filepath, new_filename)
-    elif filepath[-3:] == '.shp':
-        transform_shapefile_to_epsg_3005(filepath, new_filename)
-    else:
-        return 'Invalid file format.'
+        result = transform_geotiff_to_epsg_3005(filepath, new_filename)
+        return result
+    if filepath[-3:] == '.shp':
+        result = transform_shapefile_to_epsg_3005(filepath, new_filename)
+        return result
+
+    return 'Invalid file format.'
 
 
 if __name__ == '__main__':
