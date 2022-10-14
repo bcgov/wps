@@ -171,6 +171,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                 warning = await get_hfi_classification_threshold(session, HfiClassificationThresholdEnum.WARNING)
 
             async with get_async_write_session_scope() as session:
+                logger.info('Writing HFI advisory zones to API database...')
                 for i in range(layer.GetFeatureCount()):
                     # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Feature
                     feature: ogr.Feature = layer.GetFeature(i)
