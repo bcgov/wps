@@ -10,13 +10,13 @@ import tempfile
 from shapely import wkb, wkt
 from shapely.validation import make_valid
 from shapely.geometry import MultiPolygon
-from osgeo import ogr, osr, gdal
 import tempfile
 from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auto_spatial_advisory.db.database.tileserver import get_tileserver_write_session_scope
-from app import config
 from app.auto_spatial_advisory.sfms import get_prefix, get_target_filename
+from osgeo import ogr, osr, gdal
+from app import config
 from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope
 from app.db.crud.auto_spatial_advisory import (
