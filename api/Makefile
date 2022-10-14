@@ -8,7 +8,7 @@ endif
 
 define run-api
 	# function to run api
-	${1} uvicorn app.main:app --host 0.0.0.0 --reload --port 8080;
+	${1} uvicorn app.main:app --timeout-keep-alive 120 --host 0.0.0.0 --reload --port 8080;
 endef
 
 define build-static
