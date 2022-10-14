@@ -67,12 +67,23 @@ RUN poetry install
 # To figure out what version of pygdal you need, run gdal-config
 RUN poetry run python -m pip install pygdal==3.4.1.10
 
+ENV PATH="/home/worker/.local/bin:${PATH}"
+
 COPY ./app /app/app
 # TODO: we need to do this better.
 RUN mkdir /app/advisory
 COPY ./advisory /app/advisory
 RUN mkdir /app/libs
 COPY ./libs /app/libs
+
+# root user please
+USER 0
+# We don't know what user poetry is going to run as, so we give everyone write access directories
+# in the app folder. We need write access for .pyc files to be created. .pyc files are good,
+# they speed up python.
+RUN chmod a+w $(find /app/app -type d)
+
+USER worker
 
 EXPOSE 8080
 
