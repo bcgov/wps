@@ -24,7 +24,15 @@ OBJ_NAME="${APP_NAME}-${SUFFIX}"
 # Process a template (mostly variable substitution)
 #
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_NATS} \
- -p POD_NAMESPACE=${PROJ_TARGET}"
+ -p POD_NAMESPACE=${PROJ_TARGET} \
+ -p SUFFIX=${SUFFIX} \
+ -p IMAGE_NAME=${APP_NAME}-api-${SUFFIX} \
+ -p IMAGE_TAG=${SUFFIX} \
+ -p POSTGRES_USER=wps \
+ -p POSTGRES_DATABASE=wps \
+ -p POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader \
+ -p POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica \
+ -p APP_NAME=${APP_NAME}"
 
 # Apply a template (apply or use --dry-run=client)
 #

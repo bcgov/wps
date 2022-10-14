@@ -1,14 +1,16 @@
 """ Router for SFMS """
 import io
 import logging
-from datetime import datetime
+from datetime import datetime, date
+import os
 from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks
 from app.nats import publish
 from app.utils.s3 import get_client
 from app import config
-from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename
-from app.auto_spatial_advisory.nats import stream_name, subjects
+from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename, get_date_part
+from app.auto_spatial_advisory.nats import stream_name, subjects, sfms_file_subject
+from app.schemas.auto_spatial_advisory import SFMSFile
 
 
 logger = logging.getLogger(__name__)
@@ -94,8 +96,71 @@ async def upload(file: UploadFile,
         # As noted below, the caller will have no idea if anything has gone wrong, which is
         # unfortunate, but we can't do anything about it.
         message = get_sfms_file_message(file.filename, meta_data)
-        subject = 'sfms.file'
-        background_tasks.add_task(publish, stream_name, subject, message, subjects)
+        background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
+    except Exception as exception:  # pylint: disable=broad-except
+        logger.error(exception, exc_info=True)
+        # Regardless of what happens with putting a message on the queue, we return 200 to the
+        # caller. The caller doesn't care that we failed to put a message on the queue. That's
+        # our problem. We have the file, and it's up to us to make sure it gets processed now.
+        # NOTE: Ideally, we'd be able to rely on the caller to retry the upload if we fail to
+        # put a message on the queue. But, we can't do that because the caller isn't very smart,
+        # and can't be given that level of responsibility.
+    return Response(status_code=200)
+
+
+@router.post('/manual')
+async def upload_manual(file: UploadFile,
+                        request: Request,
+                        background_tasks: BackgroundTasks):
+    """
+    Trigger the SFMS process to run on the provided file.
+    The header MUST include the SFMS secret key.
+
+    ```
+    curl -X 'POST' \\
+        'https://psu.nrs.gov.bc.ca/api/sfms/upload' \\
+        -H 'accept: application/json' \\
+        -H 'Content-Type: multipart/form-data' \\
+        -H 'Secret: secret' \\
+        -H 'ForecastOrActual: actual' \\
+        -H 'IssueDate: 2022-09-19' \\
+        -F 'file=@hfi20220812.tif;type=image/tiff'
+    ```
+    """
+    logger.info('sfms/manual')
+    forecast_or_actual = request.headers.get('ForecastOrActual')
+    issue_date = date.fromisoformat(request.headers.get('IssueDate'))
+    secret = request.headers.get('Secret')
+    if not secret or secret != config.get('SFMS_SECRET'):
+        return Response(status_code=401)
+    # Get an async S3 client.
+    async with get_client() as (client, bucket):
+        # We save the Last-modified and Create-time as metadata in the object store - just
+        # in case we need to know about it in the future.
+        key = os.path.join('sfms', 'uploads', forecast_or_actual, issue_date.isoformat()[:10], file.filename)
+        # create the filename
+        logger.info('Uploading file "%s" to "%s"', file.filename, key)
+        meta_data = get_meta_data(request)
+        await client.put_object(Bucket=bucket,
+                                Key=key,
+                                Body=FileLikeObject(file.file),
+                                Metadata=meta_data)
+        logger.info('Done uploading file')
+    try:
+        # We don't want to hold back the response to the client, so we'll publish the message
+        # as a background task.
+        # As noted below, the caller will have no idea if anything has gone wrong, which is
+        # unfortunate, but we can't do anything about it.
+        for_date = get_date_part(file.filename)
+        message = SFMSFile(key=key,
+                           run_type=forecast_or_actual,
+                           last_modified=meta_data.get('last_modified'),
+                           create_time=meta_data.get('create_time'),
+                           run_date=issue_date,
+                           for_date=date(year=int(for_date[0:4]),
+                                         month=int(for_date[4:6]),
+                                         day=int(for_date[6:8])))
+        background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
     except Exception as exception:  # pylint: disable=broad-except
         logger.error(exception, exc_info=True)
         # Regardless of what happens with putting a message on the queue, we return 200 to the

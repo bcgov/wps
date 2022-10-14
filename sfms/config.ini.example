@@ -1,5 +1,6 @@
-secret=secret
+secret=somesecret
 source=/home/user/sfms
-destination=https://psu.nrs.gov.bc.ca/api/sfms/upload
-
+url=https://psu.nrs.gov.bc.ca/api/sfms/upload
+forecast_or_actual=actual
+issue_date=2022-09-20
 
