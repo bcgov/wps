@@ -66,6 +66,7 @@ async def run():
     while True:
         msg = await sfms_sub.next_msg(timeout=None)
         logger.info('Msg received - {}\n'.format(msg))
+        await msg.ack()
 
 if __name__ == '__main__':
     configure_logging()
