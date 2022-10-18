@@ -298,7 +298,7 @@ parameters:
     displayName: Persistent Volume Size
     value: 2Gi
   - name: STORAGE_CLASS
-    value: netapp-file-standard
+    value: netapp-block-standard
   - name: IMAGE_REGISTRY
     value: image-registry.openshift-image-registry.svc:5000
   - description: Username of the superuser account for initialization.
