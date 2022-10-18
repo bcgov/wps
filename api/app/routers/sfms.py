@@ -160,7 +160,8 @@ async def upload_manual(file: UploadFile,
                            for_date=date(year=int(for_date[0:4]),
                                          month=int(for_date[4:6]),
                                          day=int(for_date[6:8])))
-        logger.info('Message created "%s" for date "%s"', message.key, message.for_date)
+        logger.info('Message created "%s" for date "%s" to put on %s',
+                    message.key, message.for_date, background_tasks.is_async)
         # TODO: this is turned off for now, since a) writes too much data, b) we don't have a prod tileserverdb
         # background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
     except Exception as exception:  # pylint: disable=broad-except
