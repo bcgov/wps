@@ -1,15 +1,16 @@
-import { TableCell } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { Table, TableBody, TableCell, TableRow } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
-import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
-import { range } from 'lodash'
+import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { calculateNumPrepDays } from 'features/hfiCalculator/util'
+import { isUndefined, range } from 'lodash'
+import { DateTime } from 'luxon'
 import React from 'react'
-import { getPrepWeeklyDateRange } from 'utils/date'
 
 export interface DayHeadersProps {
   testId?: string
-  isoDate: string
+  dateRange?: PrepDateRange
 }
 
 const useStyles = makeStyles({
@@ -23,46 +24,51 @@ const useStyles = makeStyles({
   }
 })
 const DayHeaders = (props: DayHeadersProps) => {
-  const { start } = getPrepWeeklyDateRange(props.isoDate)
+  const start =
+    isUndefined(props.dateRange) || isUndefined(props.dateRange.start_date)
+      ? DateTime.now()
+      : DateTime.fromISO(props.dateRange.start_date)
+  const numPrepDays = calculateNumPrepDays(props.dateRange)
 
   const classes = useStyles()
   return (
     <React.Fragment>
       {/* Non-day specific headers */}
-      <StickyCell
-        left={0}
-        zIndexOffset={11}
-        colSpan={2}
-        className={classes.noBottomBorder}
-      >
-        <TableCell
-          className={`${classes.spaceHeader} ${classes.noBottomBorder}`}
-        ></TableCell>
+      <StickyCell left={0} zIndexOffset={11} colSpan={2} className={classes.noBottomBorder}>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className={`${classes.spaceHeader} ${classes.noBottomBorder}`}></TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </StickyCell>
       <TableCell className={classes.spaceHeader}></TableCell>
       <StickyCell
-        left={230}
+        left={227}
         colSpan={2}
         zIndexOffset={11}
         className={`${classes.rightBorder} ${classes.noBottomBorder}`}
       >
-        <TableCell className={classes.noBottomBorder}></TableCell>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className={classes.noBottomBorder}></TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </StickyCell>
-      {range(NUM_WEEK_DAYS).map(i => (
+      {range(numPrepDays).map(i => (
         <TableCell
           data-testid={`day-${i}`}
           colSpan={5}
           className={`${classes.dayHeader} ${i > 0 ? classes.leftBorder : undefined}`}
           key={i}
         >
-          {start
-            .plus({ days: i })
-            .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })}
+          {start.plus({ days: i }).toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })}
         </TableCell>
       ))}
-      <TableCell
-        className={`${classes.leftBorder} ${classes.noBottomBorder}`}
-      ></TableCell>
+      <TableCell className={`${classes.leftBorder} ${classes.noBottomBorder}`}></TableCell>
     </React.Fragment>
   )
 }

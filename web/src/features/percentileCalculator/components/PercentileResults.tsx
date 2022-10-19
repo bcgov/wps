@@ -1,5 +1,5 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 import { useSelector } from 'react-redux'
 
 import { selectPercentiles } from 'app/rootReducer'
@@ -27,15 +27,13 @@ export const PercentileResults = React.memo(function _(props: PercentileResultsP
   const classes = useStyles()
 
   // Object.entries(result.stations) is an array of station code & station response key value pairs
-  const stationResults = Object.entries(props.result.stations).map(
-    ([stationCode, stationResponse]) => {
-      return (
-        <GridItem key={stationCode} md lg>
-          <PercentileStationResultTable stationResponse={stationResponse} />
-        </GridItem>
-      )
-    }
-  )
+  const stationResults = Object.entries(props.result.stations).map(([stationCode, stationResponse]) => {
+    return (
+      <GridItem key={stationCode} md lg>
+        <PercentileStationResultTable stationResponse={stationResponse} />
+      </GridItem>
+    )
+  })
   const isMoreThanOneResult = stationResults.length > 1
 
   return (
@@ -61,13 +59,7 @@ const PercentileResultsWrapper: React.FC = () => {
   const { result, error } = useSelector(selectPercentiles)
 
   if (error) {
-    return (
-      <ErrorMessage
-        error={error}
-        context="while getting the calculation result"
-        marginTop={5}
-      />
-    )
+    return <ErrorMessage error={error} context="while getting the calculation result" marginTop={5} />
   }
 
   if (!result) return null

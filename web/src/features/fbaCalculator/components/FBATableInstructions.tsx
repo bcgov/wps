@@ -1,4 +1,4 @@
-import { makeStyles } from '@material-ui/core'
+import makeStyles from '@mui/styles/makeStyles'
 import React from 'react'
 
 const useStyles = makeStyles({
@@ -14,8 +14,8 @@ const FBATableInstructions = () => {
     <div data-testid={'fba-instructions'} className={classes.content}>
       <p>Add a row to get started.</p>
       <p>
-        Build custom lists of weather stations by fire center, zone or fuel type. Bookmark
-        the URL to save your custom list.
+        Build custom lists of weather stations by fire center, zone or fuel type. Bookmark the URL to save your custom
+        list.
       </p>
     </div>
   )

@@ -9,14 +9,27 @@
             "type": "python",
             "request": "launch",
             "program": "api/app/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "sfms",
+            "type": "python",
+            "request": "launch",
+            "program": "sfms/app/main.py",
             "console": "integratedTerminal"
         },
         {
-            "name": "api - module",
+            "name": "app.jobs.noon_forecasts",
             "type": "python",
             "request": "launch",
-            "module": "app.main",
-            "console": "integratedTerminal"
+            "module": "app.jobs.noon_forecasts"
+        },
+        {
+            "name": "app.jobs.hourly_actuals",
+            "type": "python",
+            "request": "launch",
+            "module": "app.jobs.hourly_actuals"
         },
         {
             "name": "app.weather_models.env_canada RDPS",
@@ -43,5 +56,23 @@
             "program": "openshift/s3-backup/docker/prune_test.py",
             "console": "integratedTerminal"
         },
+        {
+            "name": "asa - process hfi",
+            "type": "python",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.local.process_hfi_local",
+            "console": "integratedTerminal",
+            "args": [
+                "2022-10-01",
+                "2022-10-01"
+            ]
+        },
+        {
+            "name": "Chrome",
+            "type": "pwa-chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/web"
+        }
     ]
 }

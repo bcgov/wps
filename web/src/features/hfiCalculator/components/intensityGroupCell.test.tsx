@@ -1,4 +1,4 @@
-import { TableContainer, Table, TableRow, TableBody } from '@material-ui/core'
+import { TableContainer, Table, TableRow, TableBody } from '@mui/material'
 import { render } from '@testing-library/react'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import React from 'react'
@@ -9,12 +9,7 @@ describe('IntensityGroupCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <IntensityGroupCell
-                testid={'value1-color1'}
-                value={1}
-                error={false}
-                selected={true}
-              ></IntensityGroupCell>
+              <IntensityGroupCell testid={'value1-color1'} value={1} error={false} selected={true}></IntensityGroupCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -30,12 +25,7 @@ describe('IntensityGroupCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <IntensityGroupCell
-                testid={'value2-color2'}
-                value={2}
-                error={false}
-                selected={true}
-              ></IntensityGroupCell>
+              <IntensityGroupCell testid={'value2-color2'} value={2} error={false} selected={true}></IntensityGroupCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -51,12 +41,7 @@ describe('IntensityGroupCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <IntensityGroupCell
-                testid={'value3-color3'}
-                value={3}
-                error={false}
-                selected={true}
-              ></IntensityGroupCell>
+              <IntensityGroupCell testid={'value3-color3'} value={3} error={false} selected={true}></IntensityGroupCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -72,12 +57,7 @@ describe('IntensityGroupCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <IntensityGroupCell
-                testid={'value4-color4'}
-                value={4}
-                error={false}
-                selected={true}
-              ></IntensityGroupCell>
+              <IntensityGroupCell testid={'value4-color4'} value={4} error={false} selected={true}></IntensityGroupCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -115,17 +95,12 @@ describe('IntensityGroupCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <IntensityGroupCell
-                testid={'not-selected'}
-                value={1}
-                error={false}
-                selected={false}
-              />
+              <IntensityGroupCell testid={'not-selected'} value={1} error={false} selected={false} />
             </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
     )
-    expect(getByTestId('not-selected')).toHaveStyle({ color: 'rgba(0,0,0,0.87)' })
+    expect(getByTestId('not-selected')).toHaveStyle({ color: 'rgba(0,0,0,0.54)' })
   })
 })

@@ -11,13 +11,6 @@ acceptable_margin_of_error: Final = 0.01
 fire_size_acceptable_margin_of_error: Final = 0.02  # close, but using slightly different approach to RedAPP.
 
 
-def str2float(value: str):
-    """ Change a string into a floating point number, or a None """
-    if value == 'None':
-        return None
-    return float(value)
-
-
 def relative_error(actual: float, expected: float, precision: int = 2):
     """ Calculate the relative error between two values - default to precision of 2."""
     actual = round(actual, precision)
@@ -27,7 +20,7 @@ def relative_error(actual: float, expected: float, precision: int = 2):
     if expected == 0:
         # Can't divide by 0! Taking this as a 100% difference
         return 1
-    error = Decimal(abs((actual-expected)/expected))
+    error = Decimal(abs((actual - expected) / expected))
     # we only care up to 2 decimal places at most.
     return float(round(error, precision))
 

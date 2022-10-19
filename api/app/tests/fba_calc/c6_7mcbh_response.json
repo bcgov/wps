@@ -26,8 +26,8 @@
             "fire_type": "IC",
             "percentage_crown_fraction_burned": 0.8456039995667115,
             "flame_length": 7.481381317374287,
-            "sixty_minute_fire_size": 23.197754608239208,
-            "thirty_minute_fire_size": 3.9591256024591996,
+            "sixty_minute_fire_size": 23.19378953112267,
+            "thirty_minute_fire_size": 3.9584488887602687,
             "critical_hours_hfi_4000": {
                 "start": 13.0,
                 "end": 20.0

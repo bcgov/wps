@@ -29,10 +29,7 @@ const modelSummariesSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getModelSummariesSuccess(
-      state: State,
-      action: PayloadAction<ModelSummariesForStation[]>
-    ) {
+    getModelSummariesSuccess(state: State, action: PayloadAction<ModelSummariesForStation[]>) {
       state.error = null
       action.payload.forEach(summary => {
         if (summary.station) {
@@ -45,11 +42,7 @@ const modelSummariesSlice = createSlice({
   }
 })
 
-export const {
-  getModelSummariesStart,
-  getModelSummariesFailed,
-  getModelSummariesSuccess
-} = modelSummariesSlice.actions
+export const { getModelSummariesStart, getModelSummariesFailed, getModelSummariesSuccess } = modelSummariesSlice.actions
 
 export default modelSummariesSlice.reducer
 

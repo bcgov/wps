@@ -7,7 +7,11 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended"
   ],
-  "plugins": ["react", "@typescript-eslint", "eslint-plugin-prettier"],
+  "plugins": [
+    "@typescript-eslint",
+    "eslint-plugin-prettier",
+    "eslint-plugin-react"
+  ],
   "env": {
     "browser": true,
     "jasmine": true,
@@ -19,7 +23,13 @@
   "rules": {
     "prettier/prettier": [
       "error",
-      { "singleQuote": true, "semi": false, "printWidth": 90 }
+      {
+        "singleQuote": true,
+        "semi": false,
+        "printWidth": 120,
+        "trailingComma": "none",
+        "arrowParens": "avoid"
+      }
     ],
     "react/prop-types": "off",
     "no-useless-catch": "off",

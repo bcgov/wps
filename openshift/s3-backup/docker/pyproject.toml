@@ -7,12 +7,12 @@ license = "Apache License, Version 2.0, January 2004"
 
 [tool.poetry.dependencies]
 python = ">=3.6.8,<=3.6.15"
-aiobotocore = "^1.4.2"
+aiobotocore = "^2.0.0"
 python-decouple = "^3.5"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.11.1"
-pytest = "^6.2.5"
+pytest = "^7.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

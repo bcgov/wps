@@ -1,7 +1,8 @@
-import { Slider as S, withStyles } from '@material-ui/core'
+import { Slider as S } from '@mui/material'
 
-const sliderBoxShadow =
-  '0 3px 1px rgba(0,0,0,0.1),0 4px 8px rgba(0,0,0,0.13),0 0 0 1px rgba(0,0,0,0.02)'
+import withStyles from '@mui/styles/withStyles'
+
+const sliderBoxShadow = '0 3px 1px rgba(0,0,0,0.1),0 4px 8px rgba(0,0,0,0.13),0 0 0 1px rgba(0,0,0,0.02)'
 
 const Slider = withStyles(theme => ({
   root: {
@@ -19,8 +20,7 @@ const Slider = withStyles(theme => ({
     marginTop: -14,
     marginLeft: -14,
     '&:focus,&:hover,&$active': {
-      boxShadow:
-        '0 3px 1px rgba(0,0,0,0.1),0 4px 8px rgba(0,0,0,0.3),0 0 0 1px rgba(0,0,0,0.02)',
+      boxShadow: '0 3px 1px rgba(0,0,0,0.1),0 4px 8px rgba(0,0,0,0.3),0 0 0 1px rgba(0,0,0,0.02)',
       // Reset on touch devices, it doesn't add specificity
       '@media (hover: none)': {
         boxShadow: sliderBoxShadow

@@ -1,6 +1,5 @@
-import { TextField } from '@material-ui/core'
-import { ClassNameMap } from '@material-ui/core/styles/withStyles'
-import { Autocomplete } from '@material-ui/lab'
+import { TextField, Autocomplete } from '@mui/material'
+import { ClassNameMap } from '@mui/styles'
 import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
@@ -27,11 +26,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
     if (!isEqual(selectedFuelType, value)) {
       setSelectedFuelType(value)
-      const updatedRow = buildUpdatedOptionRow(
-        props.inputRows[props.rowId],
-        'fuelType',
-        value
-      )
+      const updatedRow = buildUpdatedOptionRow(props.inputRows[props.rowId], 'fuelType', value)
       const dispatchRequest = !isGrassCureInvalid(updatedRow)
       updateFBARow(
         props.inputRows,
@@ -51,15 +46,10 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
       autoSelect={true}
       options={props.fuelTypeOptions}
       className={props.classNameMap.fuelType}
-      getOptionSelected={(option, value) => isEqual(option, value)}
+      isOptionEqualToValue={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
       renderInput={params => (
-        <TextField
-          {...params}
-          label={props.value ? '' : emptyLabel}
-          variant="outlined"
-          size="small"
-        />
+        <TextField {...params} label={props.value ? '' : emptyLabel} variant="outlined" size="small" />
       )}
       onChange={changeHandler}
       disabled={props.disabled}

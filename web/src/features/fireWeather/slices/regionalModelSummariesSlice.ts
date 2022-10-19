@@ -29,10 +29,7 @@ const regionalModelSummariesSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getRegionalModelSummariesSuccess(
-      state: State,
-      action: PayloadAction<ModelSummariesForStation[]>
-    ) {
+    getRegionalModelSummariesSuccess(state: State, action: PayloadAction<ModelSummariesForStation[]>) {
       state.error = null
       action.payload.forEach(summary => {
         if (summary.station) {
@@ -45,11 +42,8 @@ const regionalModelSummariesSlice = createSlice({
   }
 })
 
-export const {
-  getRegionalModelSummariesStart,
-  getRegionalModelSummariesFailed,
-  getRegionalModelSummariesSuccess
-} = regionalModelSummariesSlice.actions
+export const { getRegionalModelSummariesStart, getRegionalModelSummariesFailed, getRegionalModelSummariesSuccess } =
+  regionalModelSummariesSlice.actions
 
 export default regionalModelSummariesSlice.reducer
 

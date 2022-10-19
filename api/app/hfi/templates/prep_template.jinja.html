@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>
+      BC Wildfire Service - HFI Calculator - {{ fire_centre_name }} - Prep
+      Period for: {{date_range}}
+    </title>
+  </head>
+  <body>
+    <h1>BC Wildfire Service - HFI Calculator</h1>
+    <h2>{{ fire_centre_name }} - Prep Period for: {{date_range}}</h2>
+    <table>
+      <tr>
+        <td colspan="4"><!-- spacing --></td>
+        {% for day in prep_days %}
+        <th id="weekday" colspan="5">{{ day }}</th>
+        {% endfor %}
+        <td colspan="2"><!-- spacing --></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>Elev</td>
+        <td>Fuel Type</td>
+        <td>Grass Cure</td>
+        {% for day in prep_days %}
+        <td>ROS</td>
+        <td>HFI</td>
+        <td>M/FIG</td>
+        <td>Fire Starts</td>
+        <td>Prep</td>
+        {% endfor %}
+        <td>Highest FIG</td>
+        <td>Prep Level</td>
+      </tr>
+      {% for area in planning_areas %}
+      <tr>
+        <td class="planningArea" colspan="4">
+          <strong>
+            {{ area['planning_area_name'] if area['planning_area_name'] is not
+            none }}
+          </strong>
+        </td>
+        {% for day in prep_days %}
+        <td class="planningArea"><!-- ros space --></td>
+        <td class="planningArea"><!-- hfi space --></td>
+        <td class="planningArea">
+          {{ area['mean_intensity_groups'][loop.index0] if
+          area['mean_intensity_groups'][loop.index0] is not none else 'ND'}}
+        </td>
+        <td class="planningArea">
+          {{ area['fire_starts_labels'][loop.index0] if
+          area['fire_starts_labels'][loop.index0] is not none }}
+        </td>
+        <td
+          class="planningArea{{ ' prepLevel prepLevel{}'.format(area['prep_levels'][loop.index0]) if area['prep_levels'][loop.index0] is not none else '' }}"
+        >
+          {{ area['prep_levels'][loop.index0] if
+          area['prep_levels'][loop.index0] is not none else 'ND' }}
+        </td>
+        <!-- end of prep_days -->
+        {% endfor %}
+        <td class="planningArea">
+          {{ area['highest_daily_intensity_group'] if
+          area['highest_daily_intensity_group'] is not none else 'ND' }}
+        </td>
+        <td class="planningArea{{ ' meanPrepLevel{:1.0f}'.format(area['mean_prep_level']) if area['mean_prep_level'] is not none else ''}}">
+          {{ area['mean_prep_level'] if area['mean_prep_level'] is not none else
+          'ND' }}
+        </td>
+      </tr>
+      {% for code, dailies in area['dailies'].items() %}
+      <tr>
+        <td>
+          {{dailies[0]['station_props']['name'] if
+          dailies[0]['station_props']['name'] is not none}}
+        </td>
+        <td>
+          {{dailies[0]['station_props']['elevation'] if
+          dailies[0]['station_props']['elevation'] is not none else 'ND'}}
+        </td>
+        <td>
+          {{dailies[0]['fuel_type']['abbrev'] if
+          dailies[0]['fuel_type']['abbrev'] is not none}}
+        </td>
+        <td>
+          {{dailies[0]['grass_cure_percentage'] if
+          dailies[0]['grass_cure_percentage'] is not none}}
+        </td>
+        {% for day in range(prep_days|length) %} {% if dailies[day] is defined
+        %}
+        <td>
+          {{dailies[day]['rate_of_spread'] | round(1) if
+          dailies[day]['rate_of_spread'] is not none else 'ND'}}
+        </td>
+
+        <td>
+          {{dailies[day]['hfi'] | round(1) if dailies[day]['hfi'] is not none
+          else 'ND'}}
+        </td>
+        <td>
+          {{dailies[day]['intensity_group'] if dailies[day]['intensity_group']
+          is not none else 'ND'}}
+        </td>
+        {% else %}
+        <td>ND</td>
+        <td>ND</td>
+        <td>ND</td>
+        {% endif %}
+        <td>
+          <!-- fire starts space -->
+        </td>
+        <td>
+          <!-- prep level space -->
+        </td>
+        <!-- end of prep_days -->
+        {% endfor %}
+        <td>
+          <!-- highest fig space -->
+        </td>
+        <td>
+          <!-- prep level space -->
+        </td>
+      </tr>
+      <!-- end of area['dailies'].items() -->
+      {% endfor %}
+      <!-- end of planning areas -->
+      {% endfor %}
+    </table>
+    <p></p>

@@ -1,19 +1,19 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { ClassNameMap } from '@material-ui/styles/withStyles'
-import Paper from '@material-ui/core/Paper'
-import Typography from '@material-ui/core/Typography'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
-import TableRow from '@material-ui/core/TableRow'
-import TableHead from '@material-ui/core/TableHead'
+import makeStyles from '@mui/styles/makeStyles'
+import { ClassNameMap } from '@mui/styles/withStyles'
+import Paper from '@mui/material/Paper'
+import Typography from '@mui/material/Typography'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableRow from '@mui/material/TableRow'
+import TableHead from '@mui/material/TableHead'
 import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
-import { formatDateInUTC00Suffix, formatDateInPST } from 'utils/date'
+import { formatDateInUTC00Suffix, formatDatetimeInPST } from 'utils/date'
 import { calculateAccumulatedPrecip } from 'utils/table'
 import ComparisonTableRow, { DataSource, WeatherVariable } from './ComparisonTableRow'
 
@@ -50,18 +50,11 @@ interface Props {
   allModelsByStation: Record<number, ModelValue[] | undefined>
 }
 
-const findNoonMatch = (
-  noonDate: string,
-  collection: ModelValue[] | undefined
-): ModelValue | undefined => {
+const findNoonMatch = (noonDate: string, collection: ModelValue[] | undefined): ModelValue | undefined => {
   return collection?.find((item: ModelValue) => item.datetime === noonDate)
 }
 
-const SubHeadings = (
-  value: string,
-  index: number,
-  classes: ClassNameMap<'darkColumnHeader' | 'lightColumnHeader'>
-) => {
+const SubHeadings = (value: string, index: number, classes: ClassNameMap<'darkColumnHeader' | 'lightColumnHeader'>) => {
   const className = index % 2 === 0 ? classes.darkColumnHeader : classes.lightColumnHeader
   return [
     <TableCell key={`${value}-observered-${index}`} className={className}>
@@ -89,15 +82,11 @@ const StationComparisonTable = (props: Props) => {
   return (
     <Paper className={classes.paper}>
       <Typography component="div" variant="subtitle2">
-        Station comparison for {formatDateInPST(noonDate)} PDT
+        Station comparison for {formatDatetimeInPST(noonDate)} PDT
       </Typography>
       <Paper>
         <TableContainer>
-          <Table
-            size="small"
-            aria-label="sortable wx table"
-            data-testid="station-comparison-table"
-          >
+          <Table size="small" aria-label="sortable wx table" data-testid="station-comparison-table">
             <TableHead>
               <TableRow>
                 <TableCell></TableCell>
@@ -116,17 +105,13 @@ const StationComparisonTable = (props: Props) => {
                 <TableCell className={classes.darkColumnHeader} colSpan={5}>
                   Precipitation (mm)
                 </TableCell>
-                <TableCell className={classes.lightColumnHeader}>
-                  Dew point (&deg;C)
-                </TableCell>
+                <TableCell className={classes.lightColumnHeader}>Dew point (&deg;C)</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Weather Stations</TableCell>
-                {['temp', 'rh', 'wind speed', 'wind direction', 'precip'].map(
-                  (value, index) => {
-                    return SubHeadings(value, index, classes)
-                  }
-                )}
+                {['temp', 'rh', 'wind speed', 'wind direction', 'precip'].map((value, index) => {
+                  return SubHeadings(value, index, classes)
+                })}
                 {/* Dew Point */}
                 <TableCell className={classes.lightColumnHeader}>Observed</TableCell>
               </TableRow>
@@ -135,35 +120,21 @@ const StationComparisonTable = (props: Props) => {
               {props.stationCodes.map((stationCode: number, idx: number) => {
                 const station = props.stationsByCode[stationCode]
                 const noonForecasts = props.allNoonForecastsByStation[stationCode]
-                const noonForecast = noonForecasts?.find(
-                  forecast => forecast.datetime === noonDate
-                )
+                const noonForecast = noonForecasts?.find(forecast => forecast.datetime === noonDate)
                 const observations = props.observationsByStation[stationCode]
                 const observation = observations?.find(item => item.datetime === noonDate)
-                const accumulatedObservedPrecipitation = calculateAccumulatedPrecip(
-                  noonDate,
-                  observations
-                )
-                const hrdpsModelPrediction = findNoonMatch(
-                  noonDate,
-                  props.allHighResModelsByStation[stationCode]
-                )
+                const accumulatedObservedPrecipitation = calculateAccumulatedPrecip(noonDate, observations)
+                const hrdpsModelPrediction = findNoonMatch(noonDate, props.allHighResModelsByStation[stationCode])
                 const accumulatedHRDPSPrecipitation = calculateAccumulatedPrecip(
                   noonDate,
                   props.allHighResModelsByStation[stationCode]
                 )
-                const rdpsModelPrediction = findNoonMatch(
-                  noonDate,
-                  props.allRegionalModelsByStation[stationCode]
-                )
+                const rdpsModelPrediction = findNoonMatch(noonDate, props.allRegionalModelsByStation[stationCode])
                 const accumulatedRDPSPrecipitation = calculateAccumulatedPrecip(
                   noonDate,
                   props.allRegionalModelsByStation[stationCode]
                 )
-                const gdpsModelPrediction = findNoonMatch(
-                  noonDate,
-                  props.allModelsByStation[stationCode]
-                )
+                const gdpsModelPrediction = findNoonMatch(noonDate, props.allModelsByStation[stationCode])
                 const accumulatedGDPSPrecipitation = calculateAccumulatedPrecip(
                   noonDate,
                   props.allModelsByStation[stationCode]

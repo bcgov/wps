@@ -1,56 +1,67 @@
-# As per https://fastapi.tiangolo.com/deployment/, we use the provided docker image from docker
-# tianglo/uvicorn-gunicorn-fastapi:python3.9
-# see: https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker for available images.
+ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:22.04
+# STAGE 0 : "poetry"
+FROM registry.access.redhat.com/rhel7/rhel-tools AS download
+# We grab the image for step 0 from registry.access.redhat.com because both openshift and your
+# local machine can access it - so it's easy to test in both environments.
+# We can use any image we want here - we just need something to grab the latest poetry installer
+# for us. We don't want to have any dependencies on the final image, that we don't need there
+# and curl is one of those.
+
+RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
+RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+
+# For the final stage, we use ubuntu:22.04
+# Rationale for using ubuntu:22.04:
+# - It's the latest ubuntu LTS release.
+# - It generally has a more recent version of gdal than debian.
+# - It generally has a fairly recent version of python.
+# - It has a more recent version of wkhtmltopdf and supporting libraries than debian.
 #
-# When building in openshift, you'll need the latest image in openshift:
-# 1) get the latest:
-# docker pull tiangolo/uvicorn-gunicorn-fastapi:python3.9
-# 2) tag it for upload:
-# docker tag tiangolo/uvicorn-gunicorn-fastapi:python3.9 image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.9
-# 3) log into openshift:
-# docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
-# 4) push to openshift:
-# docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.9
+# When building local, you can pull direct from docker, instead of artifacts.developer.gov.bc.ca:
+# docker build --build-arg DOCKER_IMAGE=ubuntu:22.04 . --tag=wps-api-base:ubuntu.22.04-latest
+FROM ${DOCKER_IMAGE}
 
+# We don't want to run our app as root, so we define a worker user.
+ARG USERNAME=worker
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
 
-# When building in openshift, you can reference the image in openshift:
-# FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.9
-#
-# When building local, you can reference the docker image:
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9
+# Tell r-base not to wait for interactive input.
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install old (2.4.*; current debian) version of gdal and R
-RUN apt-get -y update
-RUN apt-get -y install libgdal-dev
+# Install pre-requisites
+# - python (we want python!)
+# - gdal (for geospatial)
+# - R (for cffdrs)
+# - xfonts-75dpi, xfonts-base (for wkhtmltopdf)
+RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base xfonts-base xfonts-75dpi
 
-# Install R
-RUN apt-get update --fix-missing && apt-get -y install r-base
+# - wkhtmltopdf (for making pdf's)
+COPY --from=download /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+
 
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
 
-# Install JDK
-RUN apt-get -y install openjdk-11-jdk
+# Create our worker user
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
-# Update pip  
-RUN python -m pip install --upgrade pip
+# When our app is running, we want to allow poetry full access to the workers home directory.
+# +x : to execute the poetry binary
+# +r : to read poetry cache
+RUN chmod a+rx /home/$USERNAME
 
-# According to the stackexchange thread below, we need to install numpy before
-# installing gdal or we could end up missing _gdal_array
-# https://gis.stackexchange.com/questions/153199/import-error-no-module-named-gdal-array
-RUN python -m pip install numpy
+USER $USERNAME
+ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
 
-# Install gdal
-# We don't have much control over what version of gdal we're getting, it's pretty much whatever is
-# available to us. As such, gdal is not installed by poetry, since the version will differ between
-# platforms.
-RUN python -m pip install gdal==$(gdal-config --version)
+# Set the working directory to the user's home directory
+WORKDIR /home/$USERNAME
 
-# Install poetry https://python-poetry.org/docs/#installation
-RUN cd /tmp && \
-    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py > install-poetry.py && \
-    POETRY_HOME=/opt/poetry python install-poetry.py --version 1.1.11 && \
-    cd /usr/local/bin && \
-    ln -s /opt/poetry/bin/poetry && \
-    poetry config virtualenvs.create false && \
-    poetry config experimental.new-installer false
+# Update pip
+RUN python3 -m pip install --upgrade pip
+
+# Install poetry (using installation file from previous stage)
+COPY --from=download /tmp/install.python-poetry.org /tmp/install.python-poetry.org
+RUN cat /tmp/install.python-poetry.org | python3 -

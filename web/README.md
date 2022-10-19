@@ -30,6 +30,11 @@ Installs all dependencies in the node_modules folder.
 
 It's possible to configure cypress to run with an X-server with WSL2 and Windows [see this blog entry](https://nickymeuleman.netlify.app/blog/gui-on-wsl2-cypress)
 
+The short version is:
+
+- Launch VcXsrv (remember to check "Disable access control")
+- `yarn run cypress`
+
 ### Executing program
 
 In the project directory, create `.env` file at root using `.env.example` as a sample, then you can run:
@@ -57,7 +62,7 @@ It correctly bundles React in production mode and optimizes the build for the be
 ##### Running the application in docker:
 
 1. Create `.env` file at root using `.env.example` as a sample
-2. Run `docker-compose build` and then `docker-compose up`
+2. Run `docker compose build` and then `docker compose up`
 3. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 ## Config

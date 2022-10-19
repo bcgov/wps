@@ -1,35 +1,36 @@
-import { TableCell } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
-import { WeatherStation } from 'api/hfiCalcAPI'
+import { TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { fireTableStyles, UNSELECTED_STATION_COLOR } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import React from 'react'
 
 export interface WeeklyROSCellProps {
-  daily: StationDaily
-  station: WeatherStation
+  daily?: StationDaily
+  testId?: string
   error: boolean
   isRowSelected: boolean
+  isFirstDayOfPrepPeriod: boolean
 }
 
 const useStyles = makeStyles({
   ...fireTableStyles,
   unselectedStation: {
-    ...fireTableStyles.sectionSeparatorBorder,
     color: UNSELECTED_STATION_COLOR
   }
 })
-const WeeklyROSCell = ({ daily, station, isRowSelected, error }: WeeklyROSCellProps) => {
+const WeeklyROSCell = ({ daily, testId, isRowSelected, error, isFirstDayOfPrepPeriod }: WeeklyROSCellProps) => {
+  const dataValue = error ? '' : daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)
+
   const classes = useStyles()
   return (
     <TableCell
-      data-testid={`${station.code}-ros`}
-      className={
-        isRowSelected ? classes.sectionSeparatorBorder : classes.unselectedStation
-      }
+      data-testid={testId}
+      className={`${!isRowSelected ? classes.unselectedStation : undefined} ${
+        !isFirstDayOfPrepPeriod ? classes.sectionSeparatorBorder : undefined
+      }`}
     >
-      {error ? '' : daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+      {dataValue}
     </TableCell>
   )
 }

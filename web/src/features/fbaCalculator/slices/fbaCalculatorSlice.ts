@@ -8,6 +8,7 @@ import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
+import { pstFormatter } from 'utils/date'
 
 interface State {
   loading: boolean
@@ -37,10 +38,7 @@ const fireBehaviourStationsSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getFireBehaviourStationsSuccess(
-      state: State,
-      action: PayloadAction<FBAWeatherStationsResponse>
-    ) {
+    getFireBehaviourStationsSuccess(state: State, action: PayloadAction<FBAWeatherStationsResponse>) {
       state.error = null
       state.fireBehaviourResultStations = action.payload.stations
       state.date = DateTime.fromFormat(action.payload.date, 'yyyy/MM/dd')
@@ -52,16 +50,13 @@ const fireBehaviourStationsSlice = createSlice({
   }
 })
 
-export const {
-  getFireBehaviourStationsStart,
-  getFireBehaviourStationsFailed,
-  getFireBehaviourStationsSuccess
-} = fireBehaviourStationsSlice.actions
+export const { getFireBehaviourStationsStart, getFireBehaviourStationsFailed, getFireBehaviourStationsSuccess } =
+  fireBehaviourStationsSlice.actions
 
 export default fireBehaviourStationsSlice.reducer
 
 export const fetchFireBehaviourStations =
-  (date: string, fbcInputRows: FBATableRow[]): AppThunk =>
+  (date: DateTime, fbcInputRows: FBATableRow[]): AppThunk =>
   async dispatch => {
     const fetchableFireStations = fbcInputRows.flatMap(row => {
       const fuelTypeDetails = FuelTypes.lookup(row.fuelType?.value)
@@ -87,7 +82,7 @@ export const fetchFireBehaviourStations =
     try {
       if (!isEmpty(fetchableFireStations)) {
         dispatch(getFireBehaviourStationsStart())
-        const fireBehaviourStations = await postFBAStations(date, fetchableFireStations)
+        const fireBehaviourStations = await postFBAStations(pstFormatter(date), fetchableFireStations)
         dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
       }
     } catch (err) {

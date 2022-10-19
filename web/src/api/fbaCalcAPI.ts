@@ -59,6 +59,9 @@ export async function postFBAStations(
 ): Promise<FBAWeatherStationsResponse> {
   const url = '/fba-calc/stations'
 
+  // Filter out bad data.
+  fireBehaviorStations = fireBehaviorStations.filter(station => !isNaN(station.stationCode))
+
   const { data } = await axios.post(url, {
     date: date.slice(0, 10),
     stations: fireBehaviorStations.map(fireBehaviorStation => ({

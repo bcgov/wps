@@ -1,25 +1,28 @@
 """ Global fixtures """
-
 from datetime import timezone, datetime
 import logging
+from typing import Optional
+from unittest.mock import MagicMock
 import requests
 import pytest
-from alchemy_mock.mocking import UnifiedAlchemyMagicMock
-from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
+from pytest_bdd import then, parsers
+from app.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
 import app.utils.s3
-from app.utils.time import get_pst_tz
+from app.utils.time import get_pst_tz, get_utc_now
 from app import auth
 from app.tests.common import (
     MockJWTDecode, default_aiobotocore_get_session, default_mock_requests_get,
     default_mock_requests_post, default_mock_requests_session_get,
     default_mock_requests_session_post)
-from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
-import app.utils.time as time_utils
+from app.weather_models import ModelEnum, ProjectionEnum
+import app.weather_models.env_canada
+import app.weather_models.process_grib
 from app.schemas.shared import WeatherDataRequest
 import app.wildfire_one.wildfire_fetchers
 import app.utils.redis
+from app.tests import load_json_file
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +82,7 @@ def mock_redis(monkeypatch):
         def __init__(self) -> None:
             """ Mock init """
 
-        def get(self, name):  # pylint: disable=unused-argument, no-self-use
+        def get(self, name):  # pylint: disable=unused-argument
             """ mock get """
             return None
 
@@ -87,6 +90,9 @@ def mock_redis(monkeypatch):
                 name, value,
                 ex=None, px=None, nx=False, xx=False, keepttl=False):  # pylint: disable=invalid-name
             """ mock set """
+
+        def delete(self, name):  # pylint: disable=unused-argument
+            """ mock delete """
 
     def create_mock_redis():
         return MockRedis()
@@ -96,6 +102,7 @@ def mock_redis(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_get_now(monkeypatch):
     """ Patch all calls to app.util.time: get_utc_now and get_pst_now  """
+    # May 21, 2020
     timestamp = 1590076213962 / 1000
 
     # The default value for WeatherDataRequest cannot be mocked out, as it
@@ -110,8 +117,8 @@ def mock_get_now(monkeypatch):
     def mock_pst_now():
         return datetime.fromtimestamp(timestamp, tz=get_pst_tz())
 
-    monkeypatch.setattr(app.utils.time, 'get_utc_now', mock_utc_now)
-    monkeypatch.setattr(app.utils.time, 'get_pst_now', mock_pst_now)
+    monkeypatch.setattr(app.utils.time, '_get_utc_now', mock_utc_now)
+    monkeypatch.setattr(app.utils.time, '_get_pst_now', mock_pst_now)
 
 
 @pytest.fixture(autouse=True)
@@ -129,32 +136,30 @@ def mock_get_pst_today_start_and_end(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_session(monkeypatch):
     """ Ensure that all unit tests mock out the database session by default! """
-    # pylint: disable=unused-argument
+    monkeypatch.setattr(app.db.database, '_get_write_session', MagicMock())
+    monkeypatch.setattr(app.db.database, '_get_read_session', MagicMock())
 
-    def mock_get_session(*args) -> UnifiedAlchemyMagicMock:
-        """ return a session with a bare minimum database that should be good for most unit tests. """
-        prediction_model = PredictionModel(id=1,
-                                           abbreviation='GDPS',
-                                           projection='latlon.15x.15',
-                                           name='Global Deterministic Prediction System')
-        prediction_model_run = PredictionModelRunTimestamp(
-            id=1, prediction_model_id=1, prediction_run_timestamp=time_utils.get_utc_now(),
+    prediction_model = PredictionModel(id=1,
+                                       abbreviation='GDPS',
+                                       projection='latlon.15x.15',
+                                       name='Global Deterministic Prediction System')
+
+    # pylint: disable=unused-argument
+    def mock_get_prediction_model(session, model, projection) -> Optional[PredictionModel]:
+        if model == ModelEnum.GDPS and projection == ProjectionEnum.LATLON_15X_15:
+            return prediction_model
+        return None
+
+    # pylint: disable=unused-argument
+    def mock_get_prediction_run(session, prediction_model_id: int, prediction_run_timestamp: datetime):
+        return PredictionModelRunTimestamp(
+            id=1, prediction_model_id=1, prediction_run_timestamp=get_utc_now(),
             prediction_model=prediction_model, complete=True)
-        session = UnifiedAlchemyMagicMock(data=[
-            (
-                [mock.call.query(PredictionModel),
-                 mock.call.filter(PredictionModel.abbreviation == 'GDPS',
-                                  PredictionModel.projection == 'latlon.15x.15')],
-                [prediction_model],
-            ),
-            (
-                [mock.call.query(PredictionModelRunTimestamp)],
-                [prediction_model_run]
-            )
-        ])
-        return session
-    monkeypatch.setattr(app.db.database, '_get_write_session', mock_get_session)
-    monkeypatch.setattr(app.db.database, '_get_read_session', mock_get_session)
+
+    monkeypatch.setattr(app.weather_models.env_canada, 'get_prediction_model', mock_get_prediction_model)
+    monkeypatch.setattr(app.weather_models.process_grib, 'get_prediction_model', mock_get_prediction_model)
+
+    monkeypatch.setattr(app.weather_models.env_canada, 'get_prediction_run', mock_get_prediction_run)
 
 
 @pytest.fixture()
@@ -188,3 +193,31 @@ def mock_requests_session(monkeypatch):
 def spy_access_logging(mocker: MockerFixture):
     """Spies on access audting logging for tests"""
     return mocker.spy(auth, 'create_api_access_audit_log')
+
+
+@then(parsers.parse('the response status code is {status}'), converters={'status': int})
+def assert_status_code(response, status: int):
+    """ Assert that we receive the expected status code """
+    assert response['response'].status_code == status
+
+
+@then("the response isn't cached")
+def then_response_not_cached(response):
+    """ Check that the response isn't being cached """
+    if response['response'].status_code == 200:
+        assert response['response'].headers.get('cache-control', None) == 'max-age=0'
+
+
+@then(parsers.parse("the response is {response_json}"),
+      converters={'response_json': load_json_file(__file__)})
+def then_response(response, response_json: dict):
+    """ Check entire response """
+    if response_json is not None:
+        # it's very useful having this code hang around:
+        # import json
+        # from app.tests import get_complete_filename
+        # actual = response['response'].json()
+        # actual_filename = get_complete_filename(__file__, 'actual.json')
+        # with open(actual_filename, 'w', encoding="utf-8") as file_pointer:
+        #     json.dump(actual, file_pointer, indent=2)
+        assert response['response'].json() == response_json

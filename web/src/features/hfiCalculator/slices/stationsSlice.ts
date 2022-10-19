@@ -1,19 +1,19 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { FireCentre, getHFIStations, HFIWeatherStationsResponse } from 'api/hfiCalcAPI'
+import { FireCentre, getHFIStations, HFIWeatherStationsResponse } from 'api/hfiCalculatorAPI'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 
 interface State {
   loading: boolean
   error: string | null
-  fireCentres: Record<string, FireCentre>
+  fireCentres: FireCentre[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  fireCentres: {}
+  fireCentres: []
 }
 
 const stationsSlice = createSlice({
@@ -23,16 +23,13 @@ const stationsSlice = createSlice({
     getHFIStationsStart(state: State) {
       state.error = null
       state.loading = true
-      state.fireCentres = {}
+      state.fireCentres = []
     },
     getHFIStationsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getHFIStationsSuccess(
-      state: State,
-      action: PayloadAction<HFIWeatherStationsResponse>
-    ) {
+    getHFIStationsSuccess(state: State, action: PayloadAction<HFIWeatherStationsResponse>) {
       state.error = null
       state.fireCentres = action.payload.fire_centres
       state.loading = false
@@ -40,8 +37,7 @@ const stationsSlice = createSlice({
   }
 })
 
-export const { getHFIStationsStart, getHFIStationsFailed, getHFIStationsSuccess } =
-  stationsSlice.actions
+export const { getHFIStationsStart, getHFIStationsFailed, getHFIStationsSuccess } = stationsSlice.actions
 
 export default stationsSlice.reducer
 

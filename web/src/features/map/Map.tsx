@@ -1,12 +1,12 @@
 import 'ol/ol.css'
 
 import React, { useRef, useState, useEffect, useCallback } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 import * as ol from 'ol'
 import { toLonLat } from 'ol/proj'
 import { FeatureLike } from 'ol/Feature'
 import OLOverlay from 'ol/Overlay'
-import { MapOptions } from 'ol/PluggableMap'
+import View from 'ol/View'
 import { defaults as defaultControls } from 'ol/control'
 
 import { Button, ErrorBoundary } from 'components'
@@ -63,15 +63,7 @@ interface Props {
   redrawFlag?: RedrawCommand
 }
 
-const Map = ({
-  children,
-  center,
-  redrawFlag,
-  isCollapsed,
-  selectedWxVariable,
-  toiFromQuery,
-  setMapCenter
-}: Props) => {
+const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, toiFromQuery, setMapCenter }: Props) => {
   const classes = useStyles()
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -83,15 +75,14 @@ const Map = ({
   useEffect(() => {
     if (!mapRef.current) return
 
-    const options: MapOptions = {
-      view: new ol.View({ zoom, center }),
+    let overlay: OLOverlay | undefined
+
+    const mapObject = new ol.Map({
+      view: new View({ zoom, center }),
       layers: [],
       overlays: [],
       controls: defaultControls()
-    }
-    let overlay: OLOverlay | undefined
-
-    const mapObject = new ol.Map(options)
+    })
     mapObject.setTarget(mapRef.current)
     setMap(mapObject)
 
@@ -100,10 +91,7 @@ const Map = ({
     if (overlayRef.current) {
       overlay = new OLOverlay({
         element: overlayRef.current,
-        autoPan: true,
-        autoPanAnimation: {
-          duration: 250
-        }
+        autoPan: { animation: { duration: 250 } }
       })
 
       mapObject.addOverlay(overlay)
@@ -203,10 +191,7 @@ const Map = ({
       <MapContext.Provider value={map}>
         <div ref={mapRef} className={classes.map} data-testid="map">
           {children}
-          <FireIndicesVectorLayer
-            toiFromQuery={toiFromQuery}
-            selectedWxVariable={selectedWxVariable}
-          />
+          <FireIndicesVectorLayer toiFromQuery={toiFromQuery} selectedWxVariable={selectedWxVariable} />
         </div>
         {renderTooltip && (
           <div ref={overlayRef} className="ol-popup">

@@ -1,0 +1,653 @@
+{
+    "fire_centres": [
+        {
+            "Coastal Fire Centre": {
+                "zones": [
+                    {
+                        "Fraser (V1)": {
+                            "stations": [
+                                {
+                                    "317": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "1055": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "316": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "1144": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "93": {
+                                        "fuel_type": "C5"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Pemberton (V3)": {
+                            "stations": [
+                                {
+                                    "292": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "1283": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "1083": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "83": {
+                                        "fuel_type": "C5"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Sunshine Coast (V5)": {
+                            "stations": [
+                                {
+                                    "1016": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "1218": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "75": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "82": {
+                                        "fuel_type": "C5"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "South Island (V6)": {
+                            "stations": [
+                                {
+                                    "45": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "934": {
+                                        "fuel_type": "C5"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Mid Island (V7)": {
+                            "stations": [
+                                {
+                                    "37": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "56": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "1383": {
+                                        "fuel_type": "C7"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "North Island (V9)": {
+                            "stations": [
+                                {
+                                    "1093": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "21": {
+                                        "fuel_type": "C5"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Mid-Coast (V10)": {
+                            "stations": [
+                                {
+                                    "904": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "233": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "165": {
+                                        "fuel_type": "C3"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "Northwest Fire Centre": {
+                "zones": [
+                    {
+                        "Cassiar (R9)": {
+                            "stations": [
+                                {
+                                    "111": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "445": {
+                                        "fuel_type": "C1"
+                                    },
+                                    "110": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "112": {
+                                        "fuel_type": "C4"
+                                    },
+                                    "108": {
+                                        "fuel_type": "C2"
+                                    },
+                                    "439": {
+                                        "fuel_type": "C2"
+                                    },
+                                    "113": {
+                                        "fuel_type": "C2"
+                                    },
+                                    "444": {
+                                        "fuel_type": "C2"
+                                    },
+                                    "440": {
+                                        "fuel_type": "C2"
+                                    },
+                                    "967": {
+                                        "fuel_type": "C2"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Skeena (R5)": {
+                            "stations": [
+                                {
+                                    "106": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "103": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "105": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "430": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "427": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "432": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "113": {
+                                        "fuel_type": "C5"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Bulkley (R4)": {
+                            "stations": [
+                                {
+                                    "429": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "428": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "157": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "182": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "172": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "169": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "431": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "433": {
+                                        "fuel_type": "C5"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Nadina (R1)": {
+                            "stations": [
+                                {
+                                    "181": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "161": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "170": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "162": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "178": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "180": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "165": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "179": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "173": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "167": {
+                                        "fuel_type": "C3"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "Prince George Fire Centre": {
+                "zones": [
+                    {
+                        "Prince George (G1)": {
+                            "stations": [
+                                {
+                                    "189": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "175": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "187": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "149": {
+                                        "fuel_type": "C3"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Robson Valley (G3)": {
+                            "stations": [
+                                {
+                                    "195": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "200": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "1268": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "1108": {
+                                        "fuel_type": "C3"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "VanJam (G4)": {
+                            "stations": [
+                                {
+                                    "165": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "158": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "146": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "163": {
+                                        "fuel_type": "C3"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Mackenzie (G6)": {
+                            "stations": [
+                                {
+                                    "155": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "141": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "145": {
+                                        "fuel_type": "C3"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Dawson Creek (G7)": {
+                            "stations": [
+                                {
+                                    "132": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "437": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "122": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "127": {
+                                        "fuel_type": "C3"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Fort St John (G8)": {
+                            "stations": [
+                                {
+                                    "1045": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "136": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "120": {
+                                        "fuel_type": "C2"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Fort Nelson (G9)": {
+                            "stations": [
+                                {
+                                    "119": {
+                                        "fuel_type": "C2"
+                                    },
+                                    "117": {
+                                        "fuel_type": "C2"
+                                    },
+                                    "599": {
+                                        "fuel_type": "C2"
+                                    },
+                                    "126": {
+                                        "fuel_type": "C2"
+                                    },
+                                    "118": {
+                                        "fuel_type": "C2"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "Cariboo Fire Centre": {
+                "zones": [
+                    {
+                        "Black Water": {
+                            "stations": [
+                                {
+                                    "165": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "166": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "189": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "221": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "211": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "206": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "229": {
+                                        "fuel_type": "C3"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Chilcotin": {
+                            "stations": [
+                                {
+                                    "213": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "203": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "208": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "226": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "209": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "216": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "222": {
+                                        "fuel_type": "C3"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Fraser": {
+                            "stations": [
+                                {
+                                    "205": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "210": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "225": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "212": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "832": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "236": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "218": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "235": {
+                                        "fuel_type": "C7"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Wet Belt": {
+                            "stations": [
+                                {
+                                    "262": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "228": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "263": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "255": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "227": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "264": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "230": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "234": {
+                                        "fuel_type": "C3"
+                                    },
+                                    "251": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "244": {
+                                        "fuel_type": "C3"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "Southeast Fire Centre": {
+                "zones": [
+                    {
+                        "Boundary (N6)": {
+                            "stations": [
+                                {
+                                    "390": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "392": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "391": {
+                                        "fuel_type": "C5"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "West Kootenay (N5)": {
+                            "stations": [
+                                {
+                                    "380": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "387": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "407": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "396": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "402": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "404": {
+                                        "fuel_type": "C5"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "East Kootenay": {
+                            "stations": [
+                                {
+                                    "412": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "425": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "419": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "417": {
+                                        "fuel_type": "C7"
+                                    },
+                                    "788": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "789": {
+                                        "fuel_type": "C5"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "North Columbia (N4)": {
+                            "stations": [
+                                {
+                                    "919": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "363": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "866": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "367": {
+                                        "fuel_type": "C5"
+                                    },
+                                    "374": {
+                                        "fuel_type": "C5"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

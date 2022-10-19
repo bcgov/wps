@@ -1,10 +1,10 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 
-import IconButton from '@material-ui/core/IconButton'
-import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos'
-import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos'
-import CloseIcon from '@material-ui/icons/Close'
+import IconButton from '@mui/material/IconButton'
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
+import CloseIcon from '@mui/icons-material/Close'
 import { PARTIAL_WIDTH } from 'utils/constants'
 
 const getRootWidth = (props: Props) => {
@@ -19,8 +19,7 @@ const useStyles = makeStyles({
     order: 2,
     width: getRootWidth(props),
     overflowX: 'hidden',
-    boxShadow:
-      '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
+    boxShadow: '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
   }),
   ordering: {
     display: 'flex',
@@ -51,25 +50,18 @@ const ExpandableContainer = (props: Props) => {
   const collapsed = props.currentWidth === PARTIAL_WIDTH
   return (
     <div className={classes.root}>
-      <IconButton
-        value="close"
-        color="primary"
-        aria-label="Close side view"
-        onClick={props.close}
-      >
+      <IconButton value="close" color="primary" aria-label="Close side view" onClick={props.close} size="large">
         <CloseIcon />
       </IconButton>
       <div className={classes.ordering}>
-        <div
-          className={classes.expandCollapse}
-          onClick={collapsed ? props.expand : props.collapse}
-        >
+        <div className={classes.expandCollapse} onClick={collapsed ? props.expand : props.collapse}>
           <IconButton
             value="expand-collapse"
             data-testid="expand-collapse-button"
             color="primary"
             aria-label="Expand side view"
             onClick={collapsed ? props.expand : props.collapse}
+            size="large"
           >
             {collapsed ? <ArrowBackIosIcon /> : <ArrowForwardIosIcon />}
           </IconButton>

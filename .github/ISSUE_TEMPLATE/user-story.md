@@ -1,26 +1,25 @@
 ---
 name: User Story
 about: a value driven statement from the perspective of the user
-title: ''
+title: 'PRODUCT: DESCRIPTIVE TITLE'
 labels: User Story
 assignees: ''
 
 ---
 
-**As a** *(User Type/Persona)* **I want** *(Feature/enhancement)* **So That** *(Value, why is this wanted, what is the user trying to accomplish)*
+**As a** User Type/Persona
 
-**Additional Context**
-- enter text here
-- enter text here
+**I need** Feature/enhancement
+
+**So That** Value, why is this needed, what does the user need to accomplish
 
 **Acceptance Criteria**
 - [ ] Given (Context), When (action carried out), Then (expected outcome)
 - [ ] Given (Context), When (action carried out), Then (expected outcome)
 
+**Additional Context**
+- enter text here
+- enter text here
+
 **Definition of Done**
-- [ ] Ready to Demo in Sprint Review
-- [ ] Does what I have made have appropriate test coverage?
-- [ ] Documentation and/or scientific documentation exists and can be found
-- [ ] Peer Reviewed by 2 people on the team
-- [ ] Manual testing of all PRs in Dev and Prod
-- [ ] Merged
+https://github.com/bcgov/wps/wiki/Definition-of-Done

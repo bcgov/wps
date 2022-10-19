@@ -1,31 +1,30 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
 import math
-from typing import Dict, List, Optional, Final
+from typing import List, Optional, Final, AsyncGenerator
 from datetime import datetime
 import logging
 import asyncio
 from aiohttp import ClientSession, TCPConnector
-import app
 from app import config
-from app.utils.hfi_calculator import get_fire_centre_station_codes
+from app.data.ecodivision_seasons import EcodivisionSeasons
+from app.db.crud.hfi_calc import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
-from app.schemas.hfi_calc import HFIWeatherStationsResponse, StationDaily
+from app.db.models.forecasts import NoonForecast
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.fba import FireCentre
 from app.schemas.stations import (WeatherStation,
                                   WeatherVariables)
-from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_mapper,
+from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_mapper, parse_noon_forecast,
                                              parse_station,
-                                             generate_station_daily,
-                                             parse_hourly,
                                              parse_hourly_actual,
                                              station_list_mapper,
                                              wfwx_station_list_mapper)
-from app.wildfire_one.query_builders import (BuildQueryAllActiveStations,
+from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
+                                             BuildQueryStations,
                                              BuildQueryAllHourliesByRange,
                                              BuildQueryByStationCode,
-                                             BuildQueryDailesByStationCode)
+                                             BuildQueryDailiesByStationCode)
 from app.wildfire_one.util import is_station_valid
 from app.wildfire_one.wildfire_fetchers import (fetch_access_token,
                                                 fetch_detailed_geojson_stations,
@@ -56,23 +55,24 @@ async def get_auth_header(session: ClientSession) -> dict:
 async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
     logger.info('Using WFWX to retrieve stations by code')
-    async with ClientSession() as session:
-        header = await get_auth_header(session)
-        stations = []
-        # 1 week seems a reasonable period to cache stations for.
-        redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
-        # Iterate through "raw" station data.
-        iterator = fetch_paged_response_generator(session,
-                                                  header,
-                                                  BuildQueryByStationCode(station_codes), 'stations',
-                                                  use_cache=True,
-                                                  cache_expiry_seconds=redis_station_cache_expiry)
-        async for raw_station in iterator:
-            # If the station is valid, add it to our list of stations.
-            if is_station_valid(raw_station):
-                stations.append(parse_station(raw_station))
-        logger.debug('total stations: %d', len(stations))
-        return stations
+    with EcodivisionSeasons(','.join([str(code) for code in station_codes])) as eco_division:
+        async with ClientSession() as session:
+            header = await get_auth_header(session)
+            stations = []
+            # 1 week seems a reasonable period to cache stations for.
+            redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
+            # Iterate through "raw" station data.
+            iterator = fetch_paged_response_generator(session,
+                                                      header,
+                                                      BuildQueryByStationCode(station_codes), 'stations',
+                                                      use_cache=True,
+                                                      cache_expiry_seconds=redis_station_cache_expiry)
+            async for raw_station in iterator:
+                # If the station is valid, add it to our list of stations.
+                if is_station_valid(raw_station):
+                    stations.append(parse_station(raw_station, eco_division))
+            logger.debug('total stations: %d', len(stations))
+            return stations
 
 
 async def get_station_data(session: ClientSession,
@@ -86,7 +86,7 @@ async def get_station_data(session: ClientSession,
     # Iterate through "raw" station data.
     raw_stations = fetch_paged_response_generator(session,
                                                   header,
-                                                  BuildQueryAllActiveStations(),
+                                                  BuildQueryStations(),
                                                   'stations',
                                                   use_cache=True,
                                                   cache_expiry_seconds=redis_station_cache_expiry)
@@ -113,7 +113,7 @@ async def get_detailed_stations(time_of_interest: datetime):
             fetch_raw_dailies_for_all_stations(session, header, time_of_interest))
         # Fetch all the stations
         stations_task = asyncio.create_task(fetch_detailed_geojson_stations(
-            session, header, BuildQueryAllActiveStations()))
+            session, header, BuildQueryStations()))
 
         # Await completion of concurrent tasks.
         dailies = await dailies_task
@@ -161,18 +161,66 @@ async def get_hourly_readings(
                                               'stations',
                                               True,
                                               redis_station_cache_expiry)
+    raw_stations = []
+    eco_division_key = ''
+    # not ideal - we iterate through the stations twice. 1'st time to get the list of station codes,
+    # so that we can do an eco division lookup in redis.
+    station_codes = set()
     async for raw_station in iterator:
-        task = asyncio.create_task(
-            fetch_hourlies(session,
-                           raw_station,
-                           header,
-                           start_timestamp,
-                           end_timestamp,
-                           use_cache))
-        tasks.append(task)
+        raw_stations.append(raw_station)
+        station_codes.add(raw_station.get('stationCode'))
+    eco_division_key = ','.join(str(code) for code in station_codes)
+    with EcodivisionSeasons(eco_division_key) as eco_division:
+        for raw_station in raw_stations:
+            task = asyncio.create_task(
+                fetch_hourlies(session,
+                               raw_station,
+                               header,
+                               start_timestamp,
+                               end_timestamp,
+                               use_cache,
+                               eco_division))
+            tasks.append(task)
 
     # Run the tasks concurrently, waiting for them all to complete.
     return await asyncio.gather(*tasks)
+
+
+async def get_noon_forecasts_all_stations(
+        session: ClientSession,
+        header: dict,
+        start_timestamp: datetime) -> List[NoonForecast]:
+    """ Get the noon forecasts for all stations.
+    """
+
+    noon_forecasts: List[NoonForecast] = []
+
+    # Iterate through "raw" forecast data.
+    forecasts_iterator = fetch_paged_response_generator(
+        session, header, BuildQueryAllForecastsByAfterStart(
+            math.floor(start_timestamp.timestamp() * 1000)), 'dailies')
+
+    forecasts = []
+    async for noon_forecast in forecasts_iterator:
+        forecasts.append(noon_forecast)
+
+    stations: List[WFWXWeatherStation] = await get_station_data(
+        session,
+        header,
+        mapper=wfwx_station_list_mapper)
+
+    station_code_dict = {station.wfwx_id: station.code for station in stations}
+
+    for noon_forecast in forecasts:
+        try:
+            station_code = station_code_dict[(noon_forecast['stationId'])]
+            parsed_noon_forecast = parse_noon_forecast(station_code, noon_forecast)
+            if parsed_noon_forecast is not None:
+                noon_forecasts.append(parsed_noon_forecast)
+        except KeyError as exception:
+            logger.warning("Missing noon forecast for station code", exc_info=exception)
+
+    return noon_forecasts
 
 
 async def get_hourly_actuals_all_stations(
@@ -185,17 +233,17 @@ async def get_hourly_actuals_all_stations(
 
     hourly_actuals: List[HourlyActual] = []
 
-    # Iterate through "raw" station data.
+    # Iterate through "raw" hourlies data.
     hourlies_iterator = fetch_paged_response_generator(
         session, header, BuildQueryAllHourliesByRange(
-            math.floor(start_timestamp.timestamp()*1000),
-            math.floor(end_timestamp.timestamp()*1000)), 'hourlies')
+            math.floor(start_timestamp.timestamp() * 1000),
+            math.floor(end_timestamp.timestamp() * 1000)), 'hourlies')
 
     hourlies = []
     async for hourly in hourlies_iterator:
         hourlies.append(hourly)
 
-    stations: List[HFIWeatherStationsResponse] = await get_station_data(
+    stations: List[WFWXWeatherStation] = await get_station_data(
         session,
         header,
         mapper=wfwx_station_list_mapper)
@@ -204,10 +252,9 @@ async def get_hourly_actuals_all_stations(
 
     for hourly in hourlies:
         if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
-            parsed_hourly = parse_hourly(hourly)
             try:
                 station_code = station_code_dict[(hourly['stationId'])]
-                hourly_actual = parse_hourly_actual(station_code, parsed_hourly)
+                hourly_actual = parse_hourly_actual(station_code, hourly)
                 if hourly_actual is not None:
                     hourly_actuals.append(hourly_actual)
             except KeyError as exception:
@@ -215,21 +262,25 @@ async def get_hourly_actuals_all_stations(
     return hourly_actuals
 
 
-async def get_wfwx_stations_from_station_codes(session, header, station_codes: Optional[List[int]]):
-    """ Return the WFWX station ids from WFWX API given a list of station codes. """
+async def get_wfwx_stations_from_station_codes(
+        session: ClientSession,
+        header,
+        station_codes: Optional[List[int]]) -> List[WFWXWeatherStation]:
+    """ Return the WFWX station ids from WFWX API given a list of station codes."""
 
     # All WFWX stations are requested because WFWX returns a malformed JSON response when too
     # many station codes are added as query parameters.
     # IMPORTANT - the two calls below, cannot be made from within the lambda, as they will be
     # be called multiple times!
     wfwx_stations = await get_station_data(session, header, mapper=wfwx_station_list_mapper)
+    # TODO: this is not good. Code in wfwx api shouldn't be filtering on stations codes in hfi....
     fire_centre_station_codes = get_fire_centre_station_codes()
 
     # Default to all known WFWX station ids if no station codes are specified
     if station_codes is None:
         return list(filter(lambda x: (x.code in fire_centre_station_codes),
                            wfwx_stations))
-    requested_stations = []
+    requested_stations: List[WFWXWeatherStation] = []
     station_code_dict = {station.code: station for station in wfwx_stations}
     for station_code in station_codes:
         wfwx_station = station_code_dict.get(station_code)
@@ -241,40 +292,17 @@ async def get_wfwx_stations_from_station_codes(session, header, station_codes: O
     return requested_stations
 
 
-async def get_dailies_lookup_fuel_types(  # pylint: disable=too-many-locals
-        session: ClientSession,
-        header: dict,
-        wfwx_stations: List[WFWXWeatherStation],
-        start_timestamp: int,
-        end_timestamp: int) -> List[StationDaily]:
-    """ Get the daily actuals for the given station ids.
-    Looks up fuel type in our database based on station code.
-    This function is used for HFI calculator, where fuel types are hard-coded for relevant stations.
+async def get_raw_dailies_in_range_generator(session: ClientSession,
+                                             header: dict,
+                                             wfwx_station_ids: List[str],
+                                             start_timestamp: int,
+                                             end_timestamp: int) -> AsyncGenerator[dict, None]:
+    """ Get the raw dailies in range for a list of WFWX station ids.
     """
-
-    wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
-    station_codes = [wfwx_station.code for wfwx_station in wfwx_stations]
-
-    fuel_type_dict: Dict[int, str] = {}
-    with app.db.database.get_read_session_scope() as read_session:
-        result = app.db.crud.hfi_calc.get_stations_with_fuel_types(read_session, station_codes)
-        for (planning_station_record, fuel_type_record) in result:
-            fuel_type_dict[planning_station_record.station_code] = fuel_type_record.abbrev
-
-    dailies_iterator = fetch_paged_response_generator(
-        session, header, BuildQueryDailesByStationCode(
+    return fetch_paged_response_generator(
+        session, header, BuildQueryDailiesByStationCode(
             start_timestamp,
-            end_timestamp, wfwx_station_ids), 'dailies')
-
-    dailies = []
-    station_dict: Dict[str, WFWXWeatherStation] = {station.wfwx_id: station for station in wfwx_stations}
-    async for raw_daily in dailies_iterator:
-        wfwx_id = raw_daily.get('stationId', None)
-        station = station_dict.get(wfwx_id, None)
-        fuel_type = fuel_type_dict.get(station.code, None)
-        daily = generate_station_daily(raw_daily, station, fuel_type)
-        dailies.append(daily)
-    return dailies
+            end_timestamp, wfwx_station_ids), 'dailies', True, 60)
 
 
 async def get_dailies(
@@ -286,16 +314,16 @@ async def get_dailies(
     # build a list of wfwx station id's
     wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
 
-    timestamp_of_intereset = math.floor(time_of_interest.timestamp()*1000)
+    timestamp_of_interset = math.floor(time_of_interest.timestamp() * 1000)
 
     # for local dev, we can use redis to reduce load in prod, and generally just makes development faster.
     # for production, it's more tricky - we don't want to put too much load on the wf1 api, but we don't
     # want stale values either. We default to 5 minutes, or 300 seconds.
-    cache_expiry_seconds = config.get('REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY', 300)
+    cache_expiry_seconds: Final = int(config.get('REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY', 300))
     use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
 
-    dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailesByStationCode(
-        timestamp_of_intereset, timestamp_of_intereset, wfwx_station_ids), 'dailies',
+    dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailiesByStationCode(
+        timestamp_of_interset, timestamp_of_interset, wfwx_station_ids), 'dailies',
         use_cache=use_cache,
         cache_expiry_seconds=cache_expiry_seconds)
 

@@ -1,8 +1,7 @@
 """ A script that downloads weather models from Environment Canada HTTP data server
-TODO: Move this file to app/models/ (not part of this PR as it makes comparing prev. version difficult -
-      there are so many changes, it's picked up as a delete instead of a move.)
+TODO: Move this file to app/jobs/ to live with the rest of the jobs:
+https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5bbe203b8/issues/bcgov/wps/1601
 """
-
 import os
 import sys
 import datetime
@@ -22,7 +21,10 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_model_run_predictions_for_grid,
                                         get_grids_for_coordinate,
                                         get_weather_station_model_prediction,
-                                        delete_model_run_grid_subset_predictions)
+                                        delete_model_run_grid_subset_predictions,
+                                        get_prediction_model,
+                                        get_prediction_run,
+                                        update_prediction_run)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
@@ -317,8 +319,7 @@ def mark_prediction_model_run_processed(session: Session,
                                         model_run_hour: int):
     """ Mark a prediction model run as processed (complete) """
 
-    prediction_model = app.db.crud.weather_models.get_prediction_model(
-        session, model, projection)
+    prediction_model = get_prediction_model(session, model, projection)
     prediction_run_timestamp = datetime.datetime(
         year=now.year,
         month=now.month,
@@ -330,13 +331,12 @@ def mark_prediction_model_run_processed(session: Session,
         hour=model_run_hour)
     logger.info('prediction_model:%s, prediction_run_timestamp:%s',
                 prediction_model, prediction_run_timestamp)
-    prediction_run = app.db.crud.weather_models.get_prediction_run(
-        session,
-        prediction_model.id,
-        prediction_run_timestamp)
+    prediction_run = get_prediction_run(session,
+                                        prediction_model.id,
+                                        prediction_run_timestamp)
     logger.info('prediction run: %s', prediction_run)
     prediction_run.complete = True
-    app.db.crud.weather_models.update_prediction_run(session, prediction_run)
+    update_prediction_run(session, prediction_run)
 
 
 def flag_file_as_processed(url: str, session: Session):

@@ -37,9 +37,12 @@ class StationSourceEnum(enum.Enum):
     We currently have two sources for station listing, local json file, or wildfire one api.
     If the source is unspecified, configuration will govern which is used.
     """
-    UNSPECIFIED = 'unspecified'  # Configuration wins.
-    WILDFIRE_ONE = 'wildfire_one'  # Use wildfire one as source.
-    LOCAL_STORAGE = 'local_storage'  # Use local storage as source.
+    # Configuration wins:
+    UNSPECIFIED = 'unspecified'
+    # Use wildfire one as source, filtering on active stations:
+    WILDFIRE_ONE = 'wildfire_one'
+    # Use local storage as source
+    LOCAL_STORAGE = 'local_storage'
 
 
 def _get_stations_local() -> List[WeatherStation]:

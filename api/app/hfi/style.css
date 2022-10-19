@@ -1,0 +1,77 @@
+@font-face {
+  font-family: "OpenSans";
+  src: url("api/app/hfi/templates/fonts/BCSans-Regular_1.woff") format("woff"),
+    url("api/app/hfi/templates/fonts/BCSans-Regular_1.ttf") format("truetype");
+}
+body {
+  font-family: BC Sans, Noto Sans, Verdana, Arial, sans-serif;
+  font-size: smaller;
+}
+table {
+  border-collapse: collapse;
+  border: 1px solid #000000;
+}
+td {
+  padding: 5px;
+  border: 1px solid #000000;
+  width: 80px;
+}
+th {
+  width: 80px;
+  padding: 5px;
+  border: 1px solid #000000;
+}
+p {
+  page-break-before: always;
+}
+.planningArea {
+  border-top: black 2px solid;
+  background-color: #e9ecf5;
+  border-collapse: collapse;
+  padding: 0;
+}
+.prepLevel {
+  border-width: 2px;
+  border-style: solid;
+  background-color: white;
+  border-collapse: unset;
+}
+.prepLevel1 {
+  border-color: #A0CD63;
+}
+.prepLevel2 {
+  border-color: #4CAFEA;
+}
+.prepLevel3 {
+  border-color: #FFFD54;
+}
+.prepLevel4 {
+  border-color: #F6C142;
+}
+.prepLevel5 {
+  border-color: #EA3223;
+}
+.prepLevel6 {
+  border-color: "#B02318";
+}
+.meanPrepLevel1 {
+  background-color: #A0CD63;
+}
+.meanPrepLevel2 {
+  background-color: #4CAFEA;
+}
+.meanPrepLevel3 {
+  background-color: #FFFD54;
+}
+.meanPrepLevel4 {
+  background-color: #F6C142;
+}
+.meanPrepLevel5 {
+  background-color: #EA3223;
+  color: white;
+}
+.meanPrepLevel6 {
+  background-color: #B02318;
+  color: white;
+}
+

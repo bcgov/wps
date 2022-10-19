@@ -1,19 +1,17 @@
 import { KC_AUTH_URL, KC_REALM, KC_CLIENT } from 'utils/env'
-import { KeycloakInitOptions } from 'types/keycloak'
+import Keycloak, { KeycloakInitOptions } from 'keycloak-js'
 
-export const kcInitOption: KeycloakInitOptions = {
+export const kcInitOptions: KeycloakInitOptions = {
   onLoad: 'login-required',
   checkLoginIframe: false,
-  enableLogging: import.meta.env.NODE_ENV !== 'production'
+  enableLogging: process.env.NODE_ENV !== 'production',
+  pkceMethod: 'S256'
 }
 
-// Let Typescript know we are using the 'native' promise type
-const instance = window.Keycloak
-  ? window.Keycloak({
-      url: KC_AUTH_URL,
-      realm: KC_REALM,
-      clientId: KC_CLIENT
-    })
-  : null
-
-export default instance
+export const getKeycloakInstance = (): Keycloak => {
+  return new Keycloak({
+    url: KC_AUTH_URL,
+    realm: KC_REALM,
+    clientId: KC_CLIENT
+  })
+}

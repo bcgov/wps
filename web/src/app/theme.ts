@@ -1,4 +1,5 @@
-import { createStyles, createTheme } from '@material-ui/core/styles'
+import { createTheme } from '@mui/material/styles'
+import createStyles from '@mui/styles/createStyles'
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
@@ -14,7 +15,7 @@ export const theme = createTheme({
       main: '#FBC02D',
       dark: '#C49000'
     },
-    success: { main: '#44D77A' },
+    success: { main: '#2E8540' },
     error: { main: '#FF3E34' },
     warning: { main: '#FE7921' },
     contrastThreshold: 3,
@@ -33,34 +34,49 @@ export const theme = createTheme({
       lg: 1280,
       xl: 1920
     }
+  },
+  components: {
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: {
+          fontSize: 14
+        }
+      }
+    }
   }
 })
 
 export const fireTableTheme = createTheme({
   ...theme,
-  overrides: {
+  components: {
     MuiTableCell: {
-      root: {
-        padding: 2
-      },
-      head: {
-        fontWeight: 'bold',
-        minWidth: 30,
-        padding: 1,
-        paddingLeft: 7
-      },
-      stickyHeader: {
-        padding: 5
+      styleOverrides: {
+        root: {
+          padding: 2
+        },
+        head: {
+          fontWeight: 'bold',
+          minWidth: 30,
+          padding: 1,
+          paddingLeft: 7
+        },
+        stickyHeader: {
+          padding: 5
+        }
       }
     },
     MuiInputBase: {
-      root: {
-        fontSize: '1em'
+      styleOverrides: {
+        root: {
+          fontSize: '1em'
+        }
       }
     },
     MuiOutlinedInput: {
-      root: {
-        padding: 0
+      styleOverrides: {
+        root: {
+          padding: 0
+        }
       }
     }
   }
@@ -121,6 +137,9 @@ export const fireTableStyles = createStyles({
   },
   leftBorder: {
     borderLeft: '1px solid #C4C4C4'
+  },
+  tableColumnHeader: {
+    fontWeight: 'bold'
   }
 })
 

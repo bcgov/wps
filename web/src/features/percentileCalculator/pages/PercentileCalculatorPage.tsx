@@ -1,31 +1,26 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { useLocation, useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { PercentileHeader, PageTitle, Container, ErrorBoundary } from 'components'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
 import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
-import {
-  fetchPercentiles,
-  resetPercentilesResult
-} from 'features/percentileCalculator/slices/percentilesSlice'
+import { fetchPercentiles, resetPercentilesResult } from 'features/percentileCalculator/slices/percentilesSlice'
 import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
 import PercentileResults from 'features/percentileCalculator/components/PercentileResults'
-import {
-  TimeRangeSlider,
-  yearWhenTheCalculationIsDone
-} from 'features/percentileCalculator/components/TimeRangeSlider'
+import { TimeRangeSlider, yearWhenTheCalculationIsDone } from 'features/percentileCalculator/components/TimeRangeSlider'
 import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 import { getStations, StationSource } from 'api/stationAPI'
+import { AppDispatch } from 'app/store'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
 
 const PercentileCalculatorPage = () => {
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
   const location = useLocation()
-  const history = useHistory()
+  const navigate = useNavigate()
 
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const [stationCodes, setStationCodes] = useState<number[]>(codesFromQuery)
@@ -52,24 +47,11 @@ const PercentileCalculatorPage = () => {
 
   const onCalculateClick = () => {
     // Update the url query with the new station codes
-    history.push({ search: `${stationCodeQueryKey}=${stationCodes.join(',')}` })
-
-    // Create a matomo event, pushing various variables onto the dataLayer
-    // NOTE: This section is proof of concept - strongly consider re-factoring when adding other events.
-    // TODO: Re-evaluate this way of implementing Matomo once we know more about it.
-    if (window._mtm) {
-      // see: https://developer.matomo.org/guides/tagmanager/integration-plugin#supporting-the-data-layer
-      window._mtm.push({
-        event: 'calculatePercentiles',
-        stationCodes,
-        percentile: defaultPercentile,
-        yearRange: yearRange
-      })
-    }
+    navigate({ search: `${stationCodeQueryKey}=${stationCodes.join(',')}` })
   }
 
   const onResetClick = () => {
-    history.replace({ search: undefined })
+    navigate({ search: undefined })
     setTimeRange(defaultTimeRange)
   }
 
@@ -77,10 +59,7 @@ const PercentileCalculatorPage = () => {
 
   return (
     <main data-testid="percentile-calculator-page">
-      <PercentileHeader
-        title="Predictive Services Unit"
-        productName="Percentile Calculator"
-      />
+      <PercentileHeader title="Predictive Services Unit" productName="Percentile Calculator" />
       <PageTitle title="Percentile Calculator" />
       <Container>
         <WxStationDropdown stationCodes={stationCodes} onChange={setStationCodes} />

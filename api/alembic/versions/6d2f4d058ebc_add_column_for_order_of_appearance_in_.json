@@ -1,0 +1,164 @@
+{
+    "fire_centres": [
+        {
+            "Coastal Fire Centre": {
+                "zones": [
+                    {
+                        "Fraser (V1)": {
+                            "order_of_appearance_in_list": 1
+                        }
+                    },
+                    {
+                        "Pemberton (V3)": {
+                            "order_of_appearance_in_list": 2
+                        }
+                    },
+                    {
+                        "Sunshine Coast (V5)": {
+                            "order_of_appearance_in_list": 3
+                        }
+                    },
+                    {
+                        "South Island (V6)": {
+                            "order_of_appearance_in_list": 4
+                        }
+                    },
+                    {
+                        "Mid Island (V7)": {
+                            "order_of_appearance_in_list": 5
+                        }
+                    },
+                    {
+                        "North Island (V9)": {
+                            "order_of_appearance_in_list": 6
+                        }
+                    },
+                    {
+                        "Mid-Coast (V10)": {
+                            "order_of_appearance_in_list": 7
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "Northwest Fire Centre": {
+                "zones": [
+                    {
+                        "Cassiar (R9)": {
+                            "order_of_appearance_in_list": 1
+                        }
+                    },
+                    {
+                        "Skeena (R5)": {
+                            "order_of_appearance_in_list": 2
+                        }
+                    },
+                    {
+                        "Bulkley (R4)": {
+                            "order_of_appearance_in_list": 3
+                        }
+                    },
+                    {
+                        "Nadina (R1)": {
+                            "order_of_appearance_in_list": 4
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "Prince George Fire Centre": {
+                "zones": [
+                    {
+                        "Prince George (G1)": {
+                            "order_of_appearance_in_list": 1
+                        }
+                    },
+                    {
+                        "Robson Valley (G3)": {
+                            "order_of_appearance_in_list": 2
+                        }
+                    },
+                    {
+                        "VanJam (G4)": {
+                            "order_of_appearance_in_list": 3
+                        }
+                    },
+                    {
+                        "Mackenzie (G6)": {
+                            "order_of_appearance_in_list": 4
+                        }
+                    },
+                    {
+                        "Dawson Creek (G7)": {
+                            "order_of_appearance_in_list": 5
+                        }
+                    },
+                    {
+                        "Fort St John (G8)": {
+                            "order_of_appearance_in_list": 6
+                        }
+                    },
+                    {
+                        "Fort Nelson (G9)": {
+                            "order_of_appearance_in_list": 7
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "Cariboo Fire Centre": {
+                "zones": [
+                    {
+                        "Black Water": {
+                            "order_of_appearance_in_list": 1
+                        }
+                    },
+                    {
+                        "Chilcotin": {
+                            "order_of_appearance_in_list": 2
+                        }
+                    },
+                    {
+                        "Fraser": {
+                            "order_of_appearance_in_list": 3
+                        }
+                    },
+                    {
+                        "Wet Belt": {
+                            "order_of_appearance_in_list": 4
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "Southeast Fire Centre": {
+                "zones": [
+                    {
+                        "Boundary (N6)": {
+                            "order_of_appearance_in_list": 1
+                        }
+                    },
+                    {
+                        "West Kootenay (N5)": {
+                            "order_of_appearance_in_list": 2
+                        }
+                    },
+                    {
+                        "East Kootenay": {
+                            "order_of_appearance_in_list": 3
+                        }
+                    },
+                    {
+                        "North Columbia (N4)": {
+                            "order_of_appearance_in_list": 4
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

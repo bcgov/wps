@@ -1,44 +1,30 @@
-import { TableCell, Tooltip } from '@material-ui/core'
-import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
-import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
+import { TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { isUndefined, isNull } from 'lodash'
 import React from 'react'
-import { PlanningArea } from 'api/hfiCalcAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
-import { StationDaily } from 'api/hfiCalculatorAPI'
+import { StationDaily, PlanningArea, FuelType } from 'api/hfiCalculatorAPI'
+import { getSelectedFuelType } from 'features/hfiCalculator/util'
+import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
+import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
   dailies: StationDaily[]
-  selectedStations: number[]
   meanIntensityGroup: number | undefined
+  planningAreaStationInfo: { [key: number]: StationInfo[] }
+  fuelTypes: FuelType[]
 }
 
 const useStyles = makeStyles({
   intensityGroup: {
     ...fireTableStyles.calculatedPlanningCell
-  },
-  alignErrorIcon: {
-    ...fireTableStyles.planningArea,
-    paddingTop: '10px',
-    textAlign: 'center'
   }
 })
 
-const errorIconTheme = createTheme({
-  overrides: {
-    MuiSvgIcon: {
-      root: {
-        fill: '#D8292F'
-      }
-    }
-  }
-})
-
-const grassCureToolTipFirstLine =
-  'Grass Cure % not defined in WFWX for one or more stations.'
-const genericErrorToolTipFirstLine =
-  'Incomplete weather data in WFWX for one or more stations.'
+const grassCureToolTipFirstLine = 'Grass Cure % not defined in WFWX for one or more stations.'
+const genericErrorToolTipFirstLine = 'Incomplete weather data in WFWX for one or more stations.'
 const toolTipSecondLine = ' Cannot calculate Mean FIG.'
 
 const grassCureErrorToolTipElement = (
@@ -57,15 +43,15 @@ const genericErrorToolTipElement = (
 
 const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   const classes = useStyles()
-  const stationMap = new Map(
-    Object.entries(props.area.stations).map(([, station]) => [station.code, station])
-  )
 
   const grassCureError = props.dailies.reduce((prev, stationDaily) => {
-    return (
-      prev ||
-      !isValidGrassCure(stationDaily, stationMap.get(stationDaily.code)?.station_props)
+    const selectedFuelType = getSelectedFuelType(
+      props.planningAreaStationInfo,
+      props.area.id,
+      stationDaily.code,
+      props.fuelTypes
     )
+    return prev || !isValidGrassCure(stationDaily, selectedFuelType)
   }, false)
 
   const genericError = props.dailies.reduce((prev, stationDaily) => {
@@ -75,43 +61,36 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   if (grassCureError) {
     return (
       <TableCell>
-        <ThemeProvider theme={errorIconTheme}>
-          <Tooltip
-            title={grassCureErrorToolTipElement}
-            aria-label={`${grassCureToolTipFirstLine} \n ${toolTipSecondLine}`}
-          >
-            <div className={classes.alignErrorIcon}>
-              <ErrorOutlineIcon
-                data-testid={`zone-${props.area.id}-mig-error`}
-              ></ErrorOutlineIcon>
-            </div>
-          </Tooltip>
-        </ThemeProvider>
+        <ErrorIconWithTooltip
+          testId={`zone-${props.area.id}-mig-error`}
+          tooltipElement={grassCureErrorToolTipElement}
+          tooltipAriaText={[grassCureToolTipFirstLine, toolTipSecondLine]}
+        />
       </TableCell>
     )
   }
-  if (genericError) {
+  const validatedMig =
+    isUndefined(props.meanIntensityGroup) ||
+    isNull(props.meanIntensityGroup) ||
+    isNaN(props.meanIntensityGroup) ||
+    props.meanIntensityGroup === Infinity ||
+    props.meanIntensityGroup === -Infinity
+      ? ''
+      : props.meanIntensityGroup
+  if (genericError || validatedMig === '') {
     return (
-      <ThemeProvider theme={errorIconTheme}>
-        <Tooltip
-          title={genericErrorToolTipElement}
-          aria-label={`${genericErrorToolTipFirstLine} ${toolTipSecondLine}`}
-        >
-          <div className={classes.alignErrorIcon}>
-            <ErrorOutlineIcon
-              data-testid={`zone-${props.area.id}-mig-error`}
-            ></ErrorOutlineIcon>
-          </div>
-        </Tooltip>
-      </ThemeProvider>
+      <TableCell>
+        <ErrorIconWithTooltip
+          testId={`zone-${props.area.id}-mig-error`}
+          tooltipElement={genericErrorToolTipElement}
+          tooltipAriaText={[genericErrorToolTipFirstLine, toolTipSecondLine]}
+        />
+      </TableCell>
     )
   }
   return (
-    <TableCell
-      className={classes.intensityGroup}
-      data-testid={`zone-${props.area.id}-mean-intensity`}
-    >
-      {props.meanIntensityGroup}
+    <TableCell className={classes.intensityGroup} data-testid={`zone-${props.area.id}-mean-intensity`}>
+      {validatedMig}
     </TableCell>
   )
 }

@@ -1,17 +1,14 @@
 import React from 'react'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
-import FormGroup from '@material-ui/core/FormGroup'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import FormControl from '@material-ui/core/FormControl'
-import Select from '@material-ui/core/Select'
-import MenuItem from '@material-ui/core/MenuItem'
-import Switch from '@material-ui/core/Switch'
+import Typography from '@mui/material/Typography'
+import makeStyles from '@mui/styles/makeStyles'
+import FormGroup from '@mui/material/FormGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormControl from '@mui/material/FormControl'
+import Select, { SelectChangeEvent } from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import Switch from '@mui/material/Switch'
 
-import {
-  ToggleValues,
-  SetToggleValues
-} from 'features/fireWeather/components/graphs/useGraphToggles'
+import { ToggleValues, SetToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 
 const useStyles = makeStyles({
   root: {
@@ -38,9 +35,7 @@ interface Props {
   hasBiasAdjModels: boolean
   hasHighResModels: boolean
   hasRegionalModels: boolean
-  handleHoverModeChange: (
-    event: React.ChangeEvent<{ name?: string; value: unknown }>
-  ) => void
+  handleHoverModeChange: (event: SelectChangeEvent<string>) => void
   hoverMode: 'closest' | 'x' | 'x unified'
 }
 
@@ -59,16 +54,6 @@ const WxDataToggles = ({
   const classes = useStyles()
   const handleSwitch = (e: React.ChangeEvent<{ name: string }>, checked: boolean) => {
     setToggleValues(e.target.name as keyof ToggleValues, checked)
-    // Create a matomo event.
-    if (window._mtm) {
-      window._mtm.push({
-        event: 'tempRHGraphToggle',
-        toggle: {
-          name: e.target.name,
-          checked: checked ? 'show' : 'hide' // matomo doesn't play nice with booleans
-        }
-      })
-    }
   }
 
   return (
@@ -194,18 +179,10 @@ const WxDataToggles = ({
           minWidth: '220px'
         }}
       >
-        <Typography
-          className={classes.switchLabel}
-          style={{ lineHeight: '41px' }}
-          variant="body2"
-        >
+        <Typography className={classes.switchLabel} style={{ lineHeight: '41px' }} variant="body2">
           Hover mode:{' '}
           <FormControl size="small">
-            <Select
-              variant="outlined"
-              value={hoverMode as string}
-              onChange={handleHoverModeChange}
-            >
+            <Select variant="outlined" value={hoverMode as string} onChange={handleHoverModeChange}>
               <MenuItem value={'closest'}>Closest</MenuItem>
               <MenuItem value={'x'}>X</MenuItem>
               <MenuItem value={'x unified'}>X Unified</MenuItem>

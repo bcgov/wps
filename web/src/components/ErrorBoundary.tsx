@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import React, { Component } from 'react'
-import WarningSharp from '@material-ui/icons/WarningSharp'
+import WarningSharp from '@mui/icons-material/WarningSharp'
 
 interface Props {
   children: React.ReactNode
@@ -36,8 +36,7 @@ export class ErrorBoundary extends Component<Props, ErrorBoundaryState> {
         >
           <WarningSharp style={{ marginRight: '6px' }} fontSize="small" />
           <span>
-            Unexpected error occurred in this section. You may want to reload the page and
-            try it again.&nbsp;
+            Unexpected error occurred in this section. You may want to reload the page and try it again.&nbsp;
             <span
               style={{ cursor: 'pointer', color: '#0077FF' }}
               onClick={() => {

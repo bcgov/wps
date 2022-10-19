@@ -61,24 +61,9 @@ const PrecipitationGraph = (props: Props) => {
     forecastPrecipColor,
     toggleValues.showForecasts
   )
-  const hrdpsData = populateGraphDataForPrecip(
-    hrdpsModels,
-    'HRDPS',
-    hrdpsPrecipColor,
-    toggleValues.showHrdps
-  )
-  const gdpsData = populateGraphDataForPrecip(
-    gdpsModels,
-    'GDPS',
-    gdpsPrecipColor,
-    toggleValues.showGdps
-  )
-  const rdpsData = populateGraphDataForPrecip(
-    rdpsModels,
-    'RDPS',
-    rdpsPrecipColor,
-    toggleValues.showRdps
-  )
+  const hrdpsData = populateGraphDataForPrecip(hrdpsModels, 'HRDPS', hrdpsPrecipColor, toggleValues.showHrdps)
+  const gdpsData = populateGraphDataForPrecip(gdpsModels, 'GDPS', gdpsPrecipColor, toggleValues.showGdps)
+  const rdpsData = populateGraphDataForPrecip(rdpsModels, 'RDPS', rdpsPrecipColor, toggleValues.showRdps)
 
   const maxY = findMaxNumber([
     observationData.maxAccumPrecip,
@@ -88,12 +73,7 @@ const PrecipitationGraph = (props: Props) => {
     rdpsData.maxAccumPrecip
   ])
   const y2Range = [0, maxY]
-  const timeOfInterestLine = populateTimeOfInterestLineData(
-    timeOfInterest,
-    y2Range[0],
-    y2Range[1],
-    'y2'
-  )
+  const timeOfInterestLine = populateTimeOfInterestLineData(timeOfInterest, y2Range[0], y2Range[1], 'y2')
 
   // Update plotly revision to trigger re-drawing of the plot
   const setRevision = useState(0)[1]

@@ -1,10 +1,16 @@
-import { TextField, Tooltip, makeStyles } from '@material-ui/core'
-import { createTheme, ThemeProvider } from '@material-ui/core/styles'
+import { TextField, Tooltip } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { createTheme, ThemeProvider, Theme, StyledEngineProvider } from '@mui/material/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
+
+declare module '@mui/styles/defaultTheme' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface DefaultTheme extends Theme {}
+}
 
 export interface WindSpeedCellProps {
   inputRows: FBATableRow[]
@@ -22,10 +28,13 @@ const useStyles = makeStyles({
 })
 
 const adjustedTheme = createTheme({
-  overrides: {
+  components: {
     MuiInputBase: {
-      root: {
-        border: '2px solid #460270'
+      styleOverrides: {
+        root: {
+          border: '2px solid #460270',
+          fontSize: '0.875rem'
+        }
       }
     }
   }
@@ -94,7 +103,9 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   )
 
   return props.inputValue && !hasError ? (
-    <ThemeProvider theme={adjustedTheme}>{buildTextField()}</ThemeProvider>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={adjustedTheme}>{buildTextField()}</ThemeProvider>
+    </StyledEngineProvider>
   ) : (
     buildTextField()
   )

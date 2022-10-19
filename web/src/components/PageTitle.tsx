@@ -1,9 +1,9 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-
+import { makeStyles } from '@mui/styles'
+import { theme } from 'app/theme'
 import { Container } from 'components/Container'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   root: (props: Props) => ({
     maxHeight: 60,
     marginBottom: '1rem',
@@ -28,11 +28,7 @@ export const PageTitle: React.FunctionComponent<Props> = (props: Props) => {
 
   return (
     <div className={classes.root}>
-      {maxWidth !== undefined ? (
-        <Container maxWidth={maxWidth}>{title}</Container>
-      ) : (
-        <Container>{title}</Container>
-      )}
+      {maxWidth !== undefined ? <Container maxWidth={maxWidth}>{title}</Container> : <Container>{title}</Container>}
     </div>
   )
 }

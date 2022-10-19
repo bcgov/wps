@@ -3,6 +3,7 @@ the noon_forecasts table in our database.
 """
 import logging
 from collections import defaultdict
+from typing import List
 from datetime import datetime, timezone
 import math
 from app.schemas.forecasts import NoonForecast, NoonForecastResponse, NoonForecastValue
@@ -19,7 +20,7 @@ class StationNotFoundException(Exception):
     """ Custom exception for when a station cannot be found """
 
 
-def parse_table_records_to_noon_forecast_response(data: [app.db.models.forecasts.NoonForecast]):
+def parse_table_records_to_noon_forecast_response(data: List[app.db.models.forecasts.NoonForecast]):
     """ Given a list of table records from the database, parse each record
     (which is a NoonForecast object) and structure it as a NoonForecast
     object, then return the list of NoonForecast objects as a NoonForecastResponse
@@ -36,9 +37,9 @@ def parse_table_records_to_noon_forecast_response(data: [app.db.models.forecasts
                 hour=record.weather_date.hour,
                 tzinfo=timezone.utc).isoformat(),
             temp_valid=record.temp_valid,
-            temperature=record.temperature,
+            temperature=None if math.isnan(record.temperature) else record.temperature,
             rh_valid=record.rh_valid,
-            relative_humidity=record.relative_humidity,
+            relative_humidity=None if math.isnan(record.relative_humidity) else record.relative_humidity,
             wdir_valid=record.wdir_valid,
             wind_direction=None if math.isnan(
                 record.wind_direction) else record.wind_direction,
@@ -53,8 +54,7 @@ def parse_table_records_to_noon_forecast_response(data: [app.db.models.forecasts
             isi=None if math.isnan(record.isi) else record.isi,
             bui=None if math.isnan(record.bui) else record.bui,
             fwi=None if math.isnan(record.fwi) else record.fwi,
-            danger_rating=None if math.isnan(
-                record.danger_rating) else record.danger_rating,
+            danger_rating=None,
             created_at=record.created_at
         )
         noon_forecasts[station_code].append(noon_forecast_value)

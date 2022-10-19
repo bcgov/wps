@@ -1,9 +1,9 @@
-import { TableCell, Tooltip } from '@material-ui/core'
-import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
-import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
+import { TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import React from 'react'
 import { isNull } from 'lodash'
 import { fireTableStyles } from 'app/theme'
+import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 
 export interface GrassCureCellProps {
   value: number | null | undefined
@@ -11,16 +11,6 @@ export interface GrassCureCellProps {
   className: string | undefined
   selected: boolean
 }
-
-const errorIconTheme = createTheme({
-  overrides: {
-    MuiSvgIcon: {
-      root: {
-        fill: '#D8292F'
-      }
-    }
-  }
-})
 
 const useStyles = makeStyles({
   unselectedStation: { ...fireTableStyles.unselectedStation }
@@ -39,20 +29,16 @@ const GrassCureProps = (props: GrassCureCellProps) => {
   const classes = useStyles()
   return isNull(props.value) && props.isGrassFuelType ? (
     <TableCell className={props.className}>
-      <ThemeProvider theme={errorIconTheme}>
-        <Tooltip
-          title={toolTipElement}
-          aria-label={`${toolTipFirstLine} \n ${toolTipSecondLine}`}
-        >
-          <ErrorOutlineIcon data-testid={`grass-cure-error`}></ErrorOutlineIcon>
-        </Tooltip>
-      </ThemeProvider>
+      <ErrorIconWithTooltip
+        testId={`grass-cure-error`}
+        isDataCell={true}
+        tooltipElement={toolTipElement}
+        tooltipAriaText={[toolTipFirstLine, toolTipSecondLine]}
+      />
     </TableCell>
   ) : (
     <TableCell
-      className={`${!props.selected ? classes.unselectedStation : undefined} ${
-        props.className
-      } `}
+      className={`${!props.selected ? classes.unselectedStation : undefined} ${props.className} `}
       data-testid={`grass-cure`}
     >
       {props.value}

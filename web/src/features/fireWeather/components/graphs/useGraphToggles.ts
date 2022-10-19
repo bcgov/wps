@@ -10,14 +10,9 @@ export interface ToggleValues {
   showRdps: boolean
 }
 
-export type SetToggleValues = (
-  key: keyof ToggleValues,
-  value: ValueOf<ToggleValues>
-) => void
+export type SetToggleValues = (key: keyof ToggleValues, value: ValueOf<ToggleValues>) => void
 
-export const useGraphToggles = (
-  initialValues: ToggleValues
-): [ToggleValues, SetToggleValues] => {
+export const useGraphToggles = (initialValues: ToggleValues): [ToggleValues, SetToggleValues] => {
   const [values, setValues] = useState(initialValues)
 
   return [

@@ -26,8 +26,8 @@
             "fire_type": "IC",
             "percentage_crown_fraction_burned": 0.5139695644830541,
             "flame_length": 2.853155413392444,
-            "sixty_minute_fire_size": 3.0949948462569523,
-            "thirty_minute_fire_size": 0.5523370828296822,
+            "sixty_minute_fire_size": 3.0945308518988948,
+            "thirty_minute_fire_size": 0.5522542777515125,
             "critical_hours_hfi_4000": null,
             "critical_hours_hfi_10000": null
         },
@@ -56,8 +56,8 @@
             "fire_type": "IC",
             "percentage_crown_fraction_burned": 0.5139695644830541,
             "flame_length": 2.853155413392444,
-            "sixty_minute_fire_size": 3.0949948462569523,
-            "thirty_minute_fire_size": 0.5523370828296822,
+            "sixty_minute_fire_size": 3.0945308518988948,
+            "thirty_minute_fire_size": 0.5522542777515125,
             "critical_hours_hfi_4000": null,
             "critical_hours_hfi_10000": null
         },
@@ -86,8 +86,8 @@
             "fire_type": "CC",
             "percentage_crown_fraction_burned": 0.9758245180584512,
             "flame_length": 8.767077725742952,
-            "sixty_minute_fire_size": 69.47397717840207,
-            "thirty_minute_fire_size": 12.135517317396566,
+            "sixty_minute_fire_size": 69.45080580015743,
+            "thirty_minute_fire_size": 12.131469806754799,
             "critical_hours_hfi_4000": {
                 "start": 13.0,
                 "end": 0.0

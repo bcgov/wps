@@ -1,7 +1,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: ${NAME}
+  name: ${APP_NAME}-${MODULE_NAME}
   annotations:
     openshift.io/display-name: "wps"
     description: "Wildfire Predictive Services - API"
@@ -12,12 +12,15 @@ metadata:
     openshift.io/documentation-url: "https://github.com/bcgov/wps"
     openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
-  app.kubernetes.io/part-of: "${NAME}"
-  app: ${NAME}-${SUFFIX}
+  app.kubernetes.io/part-of: "${APP_NAME}-${MODULE_NAME}"
+  app: ${APP_NAME}-${SUFFIX}
 parameters:
-  - name: NAME
-    description: Module name
-    value: ${NAME}
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
+    value: wps
+  - name: MODULE_NAME
+    description: Module name (api, web, c-haines, etc. etc.)
+    value: api
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-### or prod
     required: true
@@ -29,7 +32,7 @@ parameters:
   - name: DOCKER_IMAGE
     description: Location of docker image
     required: true
-    value: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:python3.9-latest
+    value: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:ubuntu.22.04-latest
   - name: DOCKER_FILE
     description: Dockerfile to use
     required: true
@@ -41,9 +44,9 @@ objects:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
-        app: ${NAME}-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}
         common: "true"
-      name: ${NAME}-${SUFFIX}
+      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
     spec:
       lookupPolicy:
         local: false
@@ -53,21 +56,22 @@ objects:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
-        app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
     spec:
       completionDeadlineSeconds: 1200 # 20 minutes
+      runPolicy: SerialLatestOnly
       output:
         to:
           kind: ImageStreamTag
-          name: ${NAME}-${SUFFIX}:${SUFFIX}
+          name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}
       resources:
         limits:
-          cpu: "4000m"
-          memory: 6Gi
+          cpu: "0"
+          memory: "0"
         requests:
-          cpu: "2000m"
-          memory: 1Gi
+          cpu: "0"
+          memory: "0"
       source:
         type: Git
         git:
@@ -76,21 +80,6 @@ objects:
         contextDir: ./
       strategy:
         dockerStrategy:
-          # when npm run build executes, it will replace node tags with
-          # python jinja tags using these environment variables.
-          env:
-            - name: "VITE_KEYCLOAK_AUTH_URL"
-              value: "{{VITE_KEYCLOAK_AUTH_URL}}"
-            - name: "VITE_KEYCLOAK_REALM"
-              value: "{{VITE_KEYCLOAK_REALM}}"
-            - name: "VITE_KEYCLOAK_CLIENT"
-              value: "{{VITE_KEYCLOAK_CLIENT}}"
-            - name: "VITE_MATOMO_URL"
-              value: "{{VITE_MATOMO_URL}}"
-            - name: "VITE_MATOMO_SITE_ID"
-              value: "{{VITE_MATOMO_SITE_ID}}"
-            - name: "VITE_MATOMO_CONTAINER"
-              value: "{{VITE_MATOMO_CONTAINER}}"
           buildArgs:
             - name: "DOCKER_IMAGE"
               value: "${{DOCKER_IMAGE}}"

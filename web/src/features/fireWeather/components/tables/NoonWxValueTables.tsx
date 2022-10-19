@@ -9,10 +9,8 @@ import {
   formatRelativeHumidity,
   formatPrecipitation
 } from 'utils/format'
-import { formatDateInPST } from 'utils/date'
-import SortableTableByDatetime, {
-  Column
-} from 'features/fireWeather/components/tables/SortableTableByDatetime'
+import { formatDatetimeInPST } from 'utils/date'
+import SortableTableByDatetime, { Column } from 'features/fireWeather/components/tables/SortableTableByDatetime'
 
 /**
  * Reusable component used to display noon forecasts (issued by forecasters)
@@ -25,7 +23,7 @@ const sharedColumns: Column[] = [
     label: 'Date (PST)',
     minWidth: 120,
     align: 'left',
-    formatDt: (value: string): string => formatDateInPST(value)
+    formatDt: (value: string): string => formatDatetimeInPST(value)
   },
   {
     id: 'temperature',

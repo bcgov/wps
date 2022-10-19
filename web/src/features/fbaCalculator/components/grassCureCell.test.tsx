@@ -1,17 +1,11 @@
 import { render, screen } from '@testing-library/react'
-import GrassCureCell, {
-  GrassCureCellProps
-} from 'features/fbaCalculator/components/GrassCureCell'
+import GrassCureCell, { GrassCureCellProps } from 'features/fbaCalculator/components/GrassCureCell'
 import { FBAFuelType, FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { isNull } from 'lodash'
 import React from 'react'
 describe('GrassCureCell', () => {
-  const buildProps = (
-    inputRow: FBATableRow,
-    rowId: number,
-    value?: number
-  ): GrassCureCellProps => ({
+  const buildProps = (inputRow: FBATableRow, rowId: number, value?: number): GrassCureCellProps => ({
     inputRows: [inputRow],
     updateRow: () => {
       /** no op */
@@ -74,8 +68,7 @@ describe('GrassCureCell', () => {
       const O1ARow = buildTableRow(FuelTypes.lookup('o1a'))
       const props = buildProps(O1ARow, 0, 1)
       render(<GrassCureCell {...props} />)
-      const renderedGrassCureInputField =
-        screen.getByTestId(`grassCureInput-fba-0`).firstChild?.firstChild
+      const renderedGrassCureInputField = screen.getByTestId(`grassCureInput-fba-0`).firstChild?.firstChild
       expect(renderedGrassCureInputField).toHaveValue(1)
       expect(renderedGrassCureInputField).not.toHaveClass('Mui-error')
     })
@@ -83,8 +76,7 @@ describe('GrassCureCell', () => {
       const O1BRow = buildTableRow(FuelTypes.lookup('o1b'))
       const props = buildProps(O1BRow, 0, 1)
       render(<GrassCureCell {...props} />)
-      const renderedGrassCureInputField =
-        screen.getByTestId(`grassCureInput-fba-0`).firstChild?.firstChild
+      const renderedGrassCureInputField = screen.getByTestId(`grassCureInput-fba-0`).firstChild?.firstChild
       expect(renderedGrassCureInputField).toHaveValue(1)
       expect(renderedGrassCureInputField).not.toHaveClass('Mui-error')
     })

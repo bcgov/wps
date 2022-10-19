@@ -1,11 +1,13 @@
 ---
 name: UX Task
 about: This is a Task for UX Research, Design or Testing
-title: ''
+title: 'PRODUCT: DESCRIPTIVE TITLE'
 labels: UX/Research
 assignees: ''
 
 ---
+
+TODO: The intention is for new UX practitioner to review this template prior to use.
 
 **Describe the task**
 basic description of the task, is it focuse on research with users or the business area? is it design focused on either co-design or wireframing? is it User Testing or compiling results?

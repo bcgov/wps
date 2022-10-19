@@ -25,7 +25,8 @@
                     "lastModifiedBy": "DATA_LOAD"
                 },
                 "observationValidInd": "True",
-                "observationValidComment": ""
+                "observationValidComment": "",
+                "lastEntityUpdateTimestamp": 1453062318000
             }
         ]
     }

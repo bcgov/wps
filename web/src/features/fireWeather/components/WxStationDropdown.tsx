@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useLocation } from 'react-router-dom'
-import Autocomplete from '@material-ui/lab/Autocomplete'
-import { TextField } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import Autocomplete from '@mui/material/Autocomplete'
+import { TextField } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getStationCodesFromUrl } from 'utils/url'
@@ -49,14 +49,11 @@ const WxStationDropdown = (props: Props) => {
     selectedStationsByCode,
     stationsByCode
   )
-  const isThereError =
-    !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
-  const allStationOptions: Option[] = (stations as GeoJsonStation[]).map(
-    (station: GeoJsonStation) => ({
-      name: station.properties.name,
-      code: station.properties.code
-    })
-  )
+  const isThereError = !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
+  const allStationOptions: Option[] = (stations as GeoJsonStation[]).map((station: GeoJsonStation) => ({
+    name: station.properties.name,
+    code: station.properties.code
+  }))
 
   useEffect(() => {
     const codesFromQuery = getStationCodesFromUrl(location.search)
@@ -75,7 +72,7 @@ const WxStationDropdown = (props: Props) => {
           multiple
           options={allStationOptions}
           getOptionLabel={option => `${option.name} (${option.code})`}
-          getOptionSelected={(option, value) => option.code === value.code}
+          isOptionEqualToValue={(option, value) => option.code === value.code}
           onChange={(_, options) => {
             dispatch(selectStations(options.map(s => s.code)))
           }}

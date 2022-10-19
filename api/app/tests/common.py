@@ -14,14 +14,14 @@ class MockJWTDecode:
     """ Mock pyjwt module """
 
     def __init__(self):
-        self.decoded_token = {"preferred_username": "test_username"}
+        self.decoded_token = {"idir_username": "test_username"}
 
     def __getitem__(self, key):
         return self.decoded_token[key]
 
     def get(self, key, _):
         "Returns the mock decoded token"
-        return self.decoded_token[key]
+        return self.decoded_token.get(key, {})
 
     def decode(self):
         "Returns the mock decoded token"
@@ -89,7 +89,7 @@ class MockAsyncResponse:
 
 class DefaultMockAioSession:
     """ Mock aiobotocore.session.AioSession """
-    # pylint: disable=unused-argument, no-self-use
+    # pylint: disable=unused-argument
 
     @asynccontextmanager
     async def create_client(self, *args, **kwargs):
@@ -101,7 +101,7 @@ class DefaultMockAioBaseClient:
     """ Stubbed AioBaseClient object
     """
     # It's a stubbed object, so we don't care about pylint warnings:
-    # pylint: disable=unused-argument, missing-function-docstring, too-many-arguments, no-self-use
+    # pylint: disable=unused-argument, missing-function-docstring, too-many-arguments
 
     def __init__(self, *args, **kwargs):
         """ you can set the values below for some default behaviour """
@@ -148,6 +148,7 @@ def get_mock_client_session(url: str, params: dict = None) -> MockClientSession:
     # Get the fixture filename
     fixture_finder = FixtureFinder()
     filename = fixture_finder.get_fixture_path(url, 'get', params)
+    logger.info('using mock client session to load %s, injecting %s', url, filename)
     with open(filename, encoding="utf-8") as fixture_file:
         if is_json(filename):
             return MockClientSession(json=json.load(fixture_file))
@@ -205,3 +206,10 @@ def default_mock_requests_session_post(self, url, data=None, json=None, **kwargs
     """ Return a mocked request response from a request.Session object """
     return default_mock_requests_post(url, data, json, **kwargs)
 # pylint: enable=redefined-outer-name
+
+
+def str2float(value: str):
+    """ Change a string into a floating point number, or a None """
+    if value == 'None':
+        return None
+    return float(value)

@@ -1,68 +1,61 @@
-import { TableCell } from '@material-ui/core'
-import { PlanningArea } from 'api/hfiCalcAPI'
-import { StationDaily } from 'api/hfiCalculatorAPI'
-import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
-import {
-  calculateDailyMeanIntensities,
-  calculateMaxMeanIntensityGroup,
-  calculateMeanIntensityGroupLevel
-} from 'features/hfiCalculator/components/meanIntensity'
+import { TableCell } from '@mui/material'
+import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
-import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
-import { getDailiesForArea } from 'features/hfiCalculator/util'
-import { groupBy, range } from 'lodash'
+import { range } from 'lodash'
 import React from 'react'
+import MeanPrepLevelCell from './MeanPrepLevelCell'
+import { FireStartRange, PlanningAreaResult, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
 
 export interface CalculatedCellsProps {
   testId?: string
   area: PlanningArea
-  dailies: StationDaily[]
   areaName: string
-  selected: number[]
+  planningAreaResult: PlanningAreaResult
+  fireStartsEnabled: boolean
+  setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStartRange) => void
   planningAreaClass: string
+  numPrepDays: number
+  fireStartRanges: FireStartRange[]
+  fuelTypes: FuelType[]
+  planningAreaStationInfo: { [key: number]: StationInfo[] }
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
-  const areaDailies = getDailiesForArea(props.area, props.dailies, props.selected)
-  const utcDict = groupBy(areaDailies, (daily: StationDaily) =>
-    daily.date.toUTC().toMillis()
+  const allPlanningAreaDailies = props.planningAreaResult.daily_results.flatMap(result =>
+    result.dailies.map(validatedDaily => validatedDaily.daily)
   )
-
-  const dailiesByDayUTC = new Map(
-    Object.entries(utcDict).map(entry => [Number(entry[0]), entry[1]])
-  )
-
-  const orderedDayTimestamps = Array.from(dailiesByDayUTC.keys()).sort((a, b) => a - b)
-
-  const dailyMeanIntensityGroups = calculateDailyMeanIntensities(dailiesByDayUTC)
-
-  const highestMeanIntensityGroup = calculateMaxMeanIntensityGroup(
-    dailyMeanIntensityGroups
-  )
-  const meanPrepLevel = calculateMeanIntensityGroupLevel(dailyMeanIntensityGroups)
-
   return (
     <React.Fragment>
-      {range(NUM_WEEK_DAYS).map(day => {
-        const dailies: StationDaily[] | undefined = dailiesByDayUTC.get(
-          orderedDayTimestamps[day]
-        )
-        const meanIntensityGroup = dailyMeanIntensityGroups[day]
+      {range(props.numPrepDays).map(day => {
+        const meanIntensityGroup = props.planningAreaResult.daily_results[day]?.mean_intensity_group
+        const prepLevel = props.planningAreaResult.daily_results[day]?.prep_level
+        const fireStarts = props.planningAreaResult.daily_results[day]?.fire_starts
+
         return (
           <React.Fragment key={`calc-cells-${day}`}>
             <TableCell colSpan={2} className={props.planningAreaClass}></TableCell>
             <MeanIntensityGroupRollup
               area={props.area}
-              dailies={dailies ? dailies : []}
-              selectedStations={props.selected}
+              dailies={allPlanningAreaDailies ? allPlanningAreaDailies : []}
               meanIntensityGroup={meanIntensityGroup}
-            ></MeanIntensityGroupRollup>
-            <FireStartsCell areaName={props.areaName} />
+              planningAreaStationInfo={props.planningAreaStationInfo}
+              fuelTypes={props.fuelTypes}
+            />
+            <TableCell>
+              <FireStartsDropdown
+                fireStarts={fireStarts}
+                fireStartRanges={props.fireStartRanges}
+                areaId={props.planningAreaResult.planning_area_id}
+                dayOffset={day}
+                setFireStarts={props.setNewFireStarts}
+                fireStartsEnabled={props.fireStartsEnabled}
+              />
+            </TableCell>
             <PrepLevelCell
-              meanPrepLevel={false}
-              meanIntensityGroup={meanIntensityGroup}
-              areaName={props.areaName}
+              toolTipText={'Cannot calculate prep level. Please check the daily forecast using the tabs above.'}
+              prepLevel={prepLevel}
             />
           </React.Fragment>
         )
@@ -70,14 +63,15 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
 
       <MeanIntensityGroupRollup
         area={props.area}
-        dailies={areaDailies}
-        selectedStations={props.selected}
-        meanIntensityGroup={highestMeanIntensityGroup}
+        dailies={allPlanningAreaDailies}
+        meanIntensityGroup={props.planningAreaResult.highest_daily_intensity_group}
+        planningAreaStationInfo={props.planningAreaStationInfo}
+        fuelTypes={props.fuelTypes}
       ></MeanIntensityGroupRollup>
-      <PrepLevelCell
-        meanPrepLevel={true}
-        meanIntensityGroup={meanPrepLevel}
+      <MeanPrepLevelCell
         areaName={props.areaName}
+        meanPrepLevel={props.planningAreaResult.mean_prep_level}
+        emptyOrIncompleteForecast={allPlanningAreaDailies.length === 0 || !props.planningAreaResult.all_dailies_valid}
       />
     </React.Fragment>
   )

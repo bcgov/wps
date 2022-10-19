@@ -1,7 +1,6 @@
 [![Issues](https://img.shields.io/github/issues/bcgov/wps.svg?style=for-the-badge)](/../../issues)
 [![MIT License](https://img.shields.io/github/license/bcgov/wps.svg?style=for-the-badge)](/LICENSE)
 [![Lifecycle](https://img.shields.io/badge/Lifecycle-Stable-97ca00?style=for-the-badge)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)
-[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/bcgov/wps)
 [![codecov](https://codecov.io/gh/bcgov/wps/branch/main/graph/badge.svg?token=QZh80UTLpT)](https://codecov.io/gh/bcgov/wps)
 
 # Wildfire Predictive Services
@@ -24,6 +23,14 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 4. Open [http://localhost:8080](http://localhost:8080) to view the front end served up from a static folder by the python api.
 5. Open [http://localhost:3000](http://localhost:3000) to view the front end served up in developer mode by node.
 
+#### Developing the application in a dev container, using vscode:
+
+- Open up the project: `Remote-Containers: Open Folder in Container`, select docker-compose.vscode.yml
+- Sometimes VSCode doesn't pick up you've changed the docker container: `Remote-Containers: Rebuild Container`
+- Install extensions into the container, as needed.
+- You can point the API database to: `host.docker.internal`
+- You can start up other services outside of vscode, e.g.: `docker compose up db` and `docker compose up redis`
+
 #### Running the api alone
 
 Refer to [api/README.md](api/README.md).
@@ -42,7 +49,73 @@ A glossary of terms relating to Wildfire that are relevant to Predictive Service
 
 ## Architecture
 
-![FWI calculator container diagram](./architecture/container_diagram.png)
+*if you're not seeing an architecture diagram below, you need the mermaid plugin*
+
+```mermaid
+graph LR
+
+    datamart["Environment Canada MSC Datamart"]
+
+    wf1["WFWX Fire Weather API</br>[Software System]"]
+
+    wso2["WSO2 API Gateway"]
+
+    sso["Red Hat SSO / Keycloak</br>[Idendity Provider]</br>https://oidc.gov.bc.ca"]
+
+    subgraph Wildfire Predictive Services Unit Web Application
+        FrontEnd["PSU Single Page Application</br>[Container: Javascript, React]"]
+
+        subgraph PSU API's
+            API["API</br>[Container: Python, FastAPI]"]
+            CFFDRS_API["CFFDRS API</br>[Container: Python, FastAPI, R]"]
+        end
+
+        pg_tileserv["pg_tileserv</br>[Software System]"]
+        redis["REDIS</br>[Software System]"]
+
+        subgraph Openshift Cronjobs
+            c-haines["C-Haines</br>[Container: Python]</br>Periodically fetch weather data, process and store relevant subset."]
+            env-canada["Env. Canada Weather</br>[Container: Python]</br> Periodically fetch weather data, process and store relevant subset."]
+            backup["Backup process</br>[Container: Python]"]
+        end
+
+        Database[("Database</br>[Container: PostgreSQL, Patroni]</br></br>Weather model data, audit logs,</br>HFI calculator data")]
+        Files[("Files</br>[Container: json files, shp files, html files]</br></br>Percentile data, diurnal data, jinja templates")]
+
+    end
+
+    subgraph "S3 Compliant, OCIO Object Storage Service"
+        s3[("Object Storage</br>[Container: S3 Compliant]</br>C-Haines, SFMS, Backups etc.")]
+    end
+
+    subgraph WildfireServers
+        SFMS
+    end
+
+    SFMS-."Push GeoTIFF</br>[MultiPartForm/HTTPS]".->API
+
+    API-. "Read</br>[S3/HTTPS]" .->s3
+    API-.->|"Read</br>[psycopg]"|Database
+    API-.->|"Read</br>[JSON/HTTPS]"|CFFDRS_API
+    API-.->|"Uses</br>[Reads from disk]"|Files
+    API-. "Fetch fire weather data</br>[JSON/HTTPS]" .->wso2
+    API-. "Cache WFWX responses" .->redis
+    wso2-. "Proxies" .->wf1
+    pg_tileserv-. "Read geometries" .->Database
+    FrontEnd-.->|"Uses</br>[JSON/HTTPS]"|API
+    FrontEnd-.->|"Uses</br>[HTTPS]"|pg_tileserv
+    FrontEnd-. "Authenticate</br>[HTTPS]" .->sso
+    FrontEnd-. "Read</br>[HTTPS]" .->s3
+    c-haines-. "[S3/HTTPS]" .->s3
+    c-haines-. "Cache Env. Canada GRIB files" .->redis
+    c-haines-. "Download files</br>[GRIB2/HTTPS]" .->datamart
+    env-canada-. "Store weather data</br>[psycopg]" .->Database
+    env-canada-. "Cache Env. Canada GRIB files" .->redis
+    env-canada-. "Download files</br>[GRIB2/HTTPS]" .->datamart
+    backup-. "Read</br>[psycopg]" .->Database
+    backup-. "[S3/HTTPS] " .->s3
+
+```
 
 ### Imagestream flow
 

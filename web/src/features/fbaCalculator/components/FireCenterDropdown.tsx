@@ -1,5 +1,4 @@
-import { TextField } from '@material-ui/core'
-import { Autocomplete } from '@material-ui/lab'
+import { TextField, Autocomplete } from '@mui/material'
 import { FireCenter } from 'api/fbaAPI'
 import { isEqual } from 'lodash'
 import React from 'react'
@@ -23,9 +22,7 @@ const FireCenterDropdown = (props: FireCenterDropdownProps) => {
       data-testid={`fire-center-dropdown`}
       options={props.fireCenterOptions}
       getOptionLabel={option => option?.name}
-      renderInput={params => (
-        <TextField {...params} label="Select Fire Center" variant="outlined" />
-      )}
+      renderInput={params => <TextField {...params} label="Select Fire Center" variant="outlined" />}
       onChange={changeHandler}
       value={props.selectedFireCenter || null}
     />

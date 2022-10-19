@@ -1,8 +1,8 @@
 import React, { ReactElement } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import TableCell from '@material-ui/core/TableCell'
-import TableRow from '@material-ui/core/TableRow'
-import ToolTip from '@material-ui/core/Tooltip'
+import makeStyles from '@mui/styles/makeStyles'
+import TableCell from '@mui/material/TableCell'
+import TableRow from '@mui/material/TableRow'
+import ToolTip from '@mui/material/Tooltip'
 import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ObservedValue } from 'api/observationAPI'
@@ -30,13 +30,7 @@ export type WeatherVariable =
 interface CellFormattingInfo {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formatFn: (source: any, valueClassName: string[]) => ReactElement | void
-  data:
-    | NoonForecastValue
-    | ObservedValue
-    | ModelValue
-    | AccumulatedPrecipitation
-    | number
-    | undefined
+  data: NoonForecastValue | ObservedValue | ModelValue | AccumulatedPrecipitation | number | undefined
   styling: string[]
 }
 
@@ -97,40 +91,22 @@ const useStyles = makeStyles({
   }
 })
 
-const formatWindSpeedForecast = (
-  source: NoonForecastValue | undefined,
-  valueClassName: string[]
-): ReactElement => {
-  return (
-    <div className={valueClassName[0]}>
-      {formatForecastWindSpeedValue(source?.wind_speed)}
-    </div>
-  )
+const formatWindSpeedForecast = (source: NoonForecastValue | undefined, valueClassName: string[]): ReactElement => {
+  return <div className={valueClassName[0]}>{formatForecastWindSpeedValue(source?.wind_speed)}</div>
 }
 
-const formatWindSpeed = (
-  source: ObservedValue | ModelValue | undefined,
-  valueClassName: string[]
-): ReactElement => {
-  return (
-    <div className={valueClassName[0]}>{formatWindSpeedValue(source?.wind_speed)}</div>
-  )
+const formatWindSpeed = (source: ObservedValue | ModelValue | undefined, valueClassName: string[]): ReactElement => {
+  return <div className={valueClassName[0]}>{formatWindSpeedValue(source?.wind_speed)}</div>
 }
 
 const formatWindDirection = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
   valueClassName: string[]
 ): ReactElement => {
-  return (
-    <div className={valueClassName[0]}>
-      {formatWindDirectionValue(source?.wind_direction)}
-    </div>
-  )
+  return <div className={valueClassName[0]}>{formatWindDirectionValue(source?.wind_direction)}</div>
 }
 
-const formatTemperature = (
-  source: NoonForecastValue | ObservedValue | ModelValue | undefined
-): ReactElement => {
+const formatTemperature = (source: NoonForecastValue | ObservedValue | ModelValue | undefined): ReactElement => {
   return <div>{formatTemperatureValue(source?.temperature)}</div>
 }
 
@@ -138,20 +114,11 @@ const formatRelativeHumidity = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
   valueClassName: string[]
 ): ReactElement => {
-  return (
-    <div className={valueClassName[0]}>
-      {formatRelativeHumidityValue(source?.relative_humidity)}
-    </div>
-  )
+  return <div className={valueClassName[0]}>{formatRelativeHumidityValue(source?.relative_humidity)}</div>
 }
 
-const formatPrecipitation = (
-  precipitation: number | null | undefined,
-  valueClassName: string[]
-): ReactElement => {
-  return (
-    <div className={valueClassName[0]}>{formatPrecipitationValue(precipitation)}</div>
-  )
+const formatPrecipitation = (precipitation: number | null | undefined, valueClassName: string[]): ReactElement => {
+  return <div className={valueClassName[0]}>{formatPrecipitationValue(precipitation)}</div>
 }
 
 const formatDewPoint = (observation: ObservedValue | undefined) => {
@@ -173,10 +140,7 @@ const formatModelTemperature = (source: ModelValue): ReactElement => {
   )
 }
 
-const formatModelRelativeHumidity = (
-  source: ModelValue | undefined,
-  valueClassName: string[]
-): ReactElement => {
+const formatModelRelativeHumidity = (source: ModelValue | undefined, valueClassName: string[]): ReactElement => {
   const tooltip = (source as ModelValue)?.model_run_datetime
   return (
     <ToolTip title={`model run time: ${tooltip}`} aria-label="Relative humidity" arrow>
@@ -194,25 +158,21 @@ const formatAccumulatedPrecipitation = (
     if ('delta_precipitation' in value && 'model_run_datetime' in value) {
       title.push(
         <div key={index}>
-          prediction: {value.datetime}, precipitation:{' '}
-          {formatPrecipitationValue(value.delta_precipitation)} (model:{' '}
+          prediction: {value.datetime}, precipitation: {formatPrecipitationValue(value.delta_precipitation)} (model:{' '}
           {value.model_run_datetime})
         </div>
       )
     } else if ('precipitation' in value) {
       title.push(
         <div key={index}>
-          observation: {value.datetime}, precipitation:{' '}
-          {formatPrecipitationValue(value.precipitation)}
+          observation: {value.datetime}, precipitation: {formatPrecipitationValue(value.precipitation)}
         </div>
       )
     }
   })
   return (
     <ToolTip title={title} aria-label="precipitation" arrow>
-      <div className={precipitationClassName[0]}>
-        {formatPrecipitationValue(precipitation?.precipitation)}
-      </div>
+      <div className={precipitationClassName[0]}>{formatPrecipitationValue(precipitation?.precipitation)}</div>
     </ToolTip>
   )
 }
@@ -352,18 +312,13 @@ const ComparisonTableRow = (props: Props) => {
         const colStyle = idx % 2 === 0 ? classes.darkColumn : classes.lightColumn
         return props.subheaders[idx].map((source: DataSource) => {
           const formattingInfo = formattingMap[variable][source]
-          const cellContent = formattingInfo.formatFn(
-            formattingInfo.data,
-            formattingInfo.styling
-          )
+          const cellContent = formattingInfo.formatFn(formattingInfo.data, formattingInfo.styling)
 
           if (cellContent instanceof Object) {
             return (
               <TableCell
                 className={colStyle}
-                data-testid={`${props.testIdRowNumber}-${variable
-                  .split(' ')
-                  .join('-')}-${source}`}
+                data-testid={`${props.testIdRowNumber}-${variable.split(' ').join('-')}-${source}`}
                 key={`${variable}-${source}`}
               >
                 {cellContent}

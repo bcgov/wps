@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { useLocation } from 'react-router-dom'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 
 import { GeneralHeader } from 'components'
 import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
@@ -29,6 +29,7 @@ import StationAccuracyForDate from 'features/fireWeather/components/StationAccur
 import AccuracyVariablePicker, {
   AccuracyWeatherVariableEnum
 } from 'features/fireWeather/components/AccuracyVariablePicker'
+import { AppDispatch } from 'app/store'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -79,15 +80,11 @@ const MoreCastPage = () => {
 
   const shouldInitiallyShowSidePanel = codesFromQuery.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
-  const [sidePanelWidth, setSidePanelWidth] = useState(
-    calculateSidePanelWidth(codesFromQuery)
-  )
+  const [sidePanelWidth, setSidePanelWidth] = useState(calculateSidePanelWidth(codesFromQuery))
   const [selectedAccuracyWxVariable, setSelectedAccuracyWxVariable] = useState(
     AccuracyWeatherVariableEnum['Relative Humidity']
   )
-  const accuracyWxVariableChangeHandler = (
-    event: React.ChangeEvent<{ value: AccuracyWeatherVariableEnum }>
-  ) => {
+  const accuracyWxVariableChangeHandler = (event: React.ChangeEvent<{ value: AccuracyWeatherVariableEnum }>) => {
     setSelectedAccuracyWxVariable(event.target.value)
   }
 
@@ -122,16 +119,13 @@ const MoreCastPage = () => {
   const [showTableView, toggleTableView] = useState(
     codesFromQuery.length > 1 ? SidePanelEnum.Comparison : SidePanelEnum.Tables
   )
-  const handleToggleView = (
-    _: React.MouseEvent<HTMLElement>,
-    newTableView: SidePanelEnum
-  ) => {
+  const handleToggleView = (_: React.MouseEvent<HTMLElement>, newTableView: SidePanelEnum) => {
     if (newTableView !== null) {
       toggleTableView(newTableView)
     }
   }
 
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
   useEffect(() => {
     const codesFromQuery = getStationCodesFromUrl(location.search)
     const toiFromQuery = getTimeOfInterestFromUrl(location.search)
@@ -147,9 +141,7 @@ const MoreCastPage = () => {
       dispatch(fetchGlobalModelSummaries(codesFromQuery, toiFromQuery))
     }
     // Update local state to match with the query url
-    dispatch(
-      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
-    )
+    dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery))
     if (codesFromQuery.length > 1) {
       toggleTableView(SidePanelEnum.Comparison)
       setSidePanelState(true)
@@ -161,11 +153,7 @@ const MoreCastPage = () => {
 
   return (
     <main className={classes.main}>
-      <GeneralHeader
-        spacing={1}
-        title="Predictive Services Unit"
-        productName="MoreCast"
-      />
+      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="MoreCast" />
       <div className={classes.nav}>
         <WxDataForm
           stationCodesQuery={codesFromQuery}
@@ -191,11 +179,7 @@ const MoreCastPage = () => {
           collapse={collapseSidePanel}
           currentWidth={sidePanelWidth}
         >
-          <SidePanel
-            handleToggleView={handleToggleView}
-            showTableView={showTableView}
-            stationCodes={codesFromQuery}
-          >
+          <SidePanel handleToggleView={handleToggleView} showTableView={showTableView} stationCodes={codesFromQuery}>
             <NetworkErrorMessages />
             <WxDataDisplays
               stationCodes={codesFromQuery}

@@ -17,14 +17,7 @@ interface Props {
   selectedWxVariable: AccuracyWeatherVariableEnum
 }
 
-const WeatherMap = ({
-  redrawFlag,
-  center,
-  isCollapsed,
-  toiFromQuery,
-  setMapCenter,
-  selectedWxVariable
-}: Props) => {
+const WeatherMap = ({ redrawFlag, center, isCollapsed, toiFromQuery, setMapCenter, selectedWxVariable }: Props) => {
   return (
     <Map
       center={fromLonLat(center)}

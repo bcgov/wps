@@ -1,7 +1,8 @@
 import React, { forwardRef } from 'react'
 import clsx from 'clsx'
-import { Button as B, ButtonProps, CircularProgress } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { Button as B, ButtonProps, CircularProgress } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { theme } from 'app/theme'
 
 interface CustomProps {
   loading?: boolean
@@ -11,7 +12,7 @@ interface CustomProps {
 
 type Props = CustomProps & ButtonProps
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   root: {
     position: 'relative'
   },
@@ -34,16 +35,9 @@ export const Button = forwardRef<HTMLButtonElement, Props>((props, ref) => {
   const buttonClassName = clsx(classes.root, className)
 
   return (
-    <B
-      {...buttonProps}
-      className={buttonClassName}
-      disabled={disabled || loading}
-      ref={ref}
-    >
+    <B {...buttonProps} className={buttonClassName} disabled={disabled || loading} ref={ref}>
       {buttonProps.children}
-      {loading && hasSpinner && (
-        <CircularProgress size={20} className={classes.spinner} />
-      )}
+      {loading && hasSpinner && <CircularProgress size={20} className={classes.spinner} />}
     </B>
   )
 })

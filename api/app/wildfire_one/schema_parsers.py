@@ -5,17 +5,14 @@ import logging
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
-from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.stations import WeatherStation
-from app.utils import cffdrs
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
-from app.schemas.hfi_calc import StationDaily
-from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
-from app.fba_calculator import calculate_cfb, get_fire_size, get_fire_type
-from app.utils.time import get_julian_date_now
+from app.db.models.forecasts import NoonForecast
+from app.utils.time import get_utc_now
 from app.wildfire_one.util import is_station_valid, is_station_fire_zone_valid, get_zone_code_prefix
+from app.wildfire_one.validation import get_valid_flags
 from app.schemas.fba import FireCentre, FireCenterStation
 
 logger = logging.getLogger(__name__)
@@ -107,13 +104,14 @@ def construct_zone_code(station: any):
     return zone_code
 
 
-def parse_station(station) -> WeatherStation:
+def parse_station(station, eco_division: EcodivisionSeasons) -> WeatherStation:
     """ Transform from the json object returned by wf1, to our station object.
     """
     # pylint: disable=no-member
-    core_seasons = EcodivisionSeasons.instance().get_core_seasons()
-    ecodiv_name = EcodivisionSeasons.instance().get_ecodivision_name(
-        station['stationCode'], station['latitude'], station['longitude'])
+    core_seasons = eco_division.get_core_seasons()
+    ecodiv_name = eco_division.get_ecodivision_name(station['stationCode'],
+                                                    station['latitude'],
+                                                    station['longitude'])
     return WeatherStation(
         zone_code=construct_zone_code(station),
         code=station['stationCode'],
@@ -149,201 +147,80 @@ def parse_hourly(hourly) -> WeatherReading:
     )
 
 
-def calculate_intensity_group(hfi: float) -> int:
-    """ Returns a 1-5 integer value indicating Intensity Group based on HFI.
-    Intensity groupings are:
-
-    HFI             IG
-    0-499            1
-    500-999          2
-    1000-1999        3
-    2000-3999        4
-    4000+            5
+def parse_noon_forecast(station_code, forecast) -> NoonForecast:
+    """ Transform from the raw forecast json object returned by wf1, to our noon forecast object.
     """
-    if hfi < 500:
-        return 1
-    if hfi < 1000:
-        return 2
-    if hfi < 2000:
-        return 3
-    if hfi < 4000:
-        return 4
-    return 5
-
-
-def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
-                           station: WFWXWeatherStation,
-                           fuel_type: str) -> StationDaily:
-    """ Transform from the raw daily json object returned by wf1, to our daily object.
-    """
-    # pylint: disable=invalid-name
-    # we use the fuel type lookup to get default values.
-    pc = FUEL_TYPE_DEFAULTS[fuel_type]["PC"]
-    pdf = FUEL_TYPE_DEFAULTS[fuel_type]["PDF"]
-    cbh = FUEL_TYPE_DEFAULTS[fuel_type]["CBH"]
-    cfl = FUEL_TYPE_DEFAULTS[fuel_type]["CFL"]
-    date = raw_daily.get('weatherTimestamp', None)
-    isi = raw_daily.get('initialSpreadIndex', None)
-    bui = raw_daily.get('buildUpIndex', None)
-    ffmc = raw_daily.get('fineFuelMoistureCode', None)
-    cc = raw_daily.get('grasslandCuring', None)
-
-    # set default values in case the calculation fails (likely due to missing data)
-    fmc, sfc, ros, cfb, hfi, lb_ratio, bros, sixty_minute_fire_size,\
-        fire_type, intensity_group = None, None, None, None, None, None, None, None, None, None
-    try:
-        fmc = cffdrs.foliar_moisture_content(
-            station.lat, station.long, station.elevation, get_julian_date_now())
-        sfc = cffdrs.surface_fuel_consumption(
-            FuelTypeEnum[fuel_type], bui, ffmc, pc)
-        if cc is None:
-            cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
-        ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
-                                    cc=cc,
-                                    pdf=pdf,
-                                    cbh=cbh)
-        if sfc is not None:
-            cfb = calculate_cfb(FuelTypeEnum[fuel_type], fmc, sfc, ros, cbh)
-
-        if ros is not None and cfb is not None and cfl is not None:
-            hfi = cffdrs.head_fire_intensity(fuel_type=FuelTypeEnum[fuel_type],
-                                             percentage_conifer=pc,
-                                             percentage_dead_balsam_fir=pdf,
-                                             ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
-
-        lb_ratio = cffdrs.length_to_breadth_ratio(FuelTypeEnum[fuel_type], raw_daily.get('windSpeed', None))
-        wsv = cffdrs.calculate_wind_speed(FuelTypeEnum[fuel_type],
-                                          ffmc=ffmc,
-                                          bui=bui,
-                                          ws=raw_daily.get('windSpeed', None),
-                                          fmc=fmc,
-                                          sfc=sfc,
-                                          pc=pc,
-                                          cc=raw_daily.get('grasslandCuring', None),
-                                          pdf=pdf,
-                                          cbh=cbh,
-                                          isi=isi)
-
-        bros = cffdrs.back_rate_of_spread(FuelTypeEnum[fuel_type],
-                                          ffmc=ffmc,
-                                          bui=bui,
-                                          wsv=wsv,
-                                          fmc=fmc, sfc=sfc,
-                                          pc=pc,
-                                          cc=raw_daily.get('grasslandCuring', None),
-                                          pdf=pdf,
-                                          cbh=cbh)
-
-        sixty_minute_fire_size = get_fire_size(FuelTypeEnum[fuel_type], ros, bros, 60, cfb, lb_ratio)
-
-        fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
-
-        if hfi is not None:
-            intensity_group = calculate_intensity_group(hfi)
-    # pylint: disable=broad-except
-    except Exception as exc:
-        logger.error('Encountered error while generating StationDaily for station %s', station.code)
-        logger.error(exc, exc_info=True)
-
-    return StationDaily(
-        code=station.code,
-        date=date,
-        status=raw_daily.get('recordType', '').get('id', None),
-        temperature=raw_daily.get('temperature', None),
-        relative_humidity=raw_daily.get('relativeHumidity', None),
-        wind_speed=raw_daily.get('windSpeed', None),
-        wind_direction=raw_daily.get('windDirection', None),
-        precipitation=raw_daily.get('precipitation', None),
-        grass_cure_percentage=raw_daily.get('grasslandCuring', None),
-        ffmc=ffmc,
-        dmc=raw_daily.get('duffMoistureCode', None),
-        dc=raw_daily.get('droughtCode', None),
-        fwi=raw_daily.get('fireWeatherIndex', None),
-        danger_class=raw_daily.get('dailySeverityRating', None),
-        isi=isi,
-        bui=bui,
-        rate_of_spread=ros,
-        hfi=hfi,
-        observation_valid=raw_daily.get('observationValidInd', None),
-        observation_valid_comment=raw_daily.get(
-            'observationValidComment', None),
-        intensity_group=intensity_group,
-        sixty_minute_fire_size=sixty_minute_fire_size,
-        fire_type=fire_type,
-        error=raw_daily.get('observationValidInd', None),
-        error_message=raw_daily.get('observationValidComment', None)
+    timestamp = datetime.fromtimestamp(
+        int(forecast['weatherTimestamp']) / 1000, tz=timezone.utc).isoformat()
+    noon_forecast = NoonForecast(
+        weather_date=timestamp,
+        created_at=get_utc_now(),
+        wfwx_update_date=forecast.get('updateDate', None),
+        station_code=station_code,
+        temperature=forecast.get('temperature', math.nan),
+        relative_humidity=forecast.get('relativeHumidity', math.nan),
+        wind_speed=forecast.get('windSpeed', math.nan),
+        wind_direction=forecast.get('windDirection', math.nan),
+        precipitation=forecast.get('precipitation', math.nan),
+        gc=forecast.get('grasslandCuring', math.nan),
+        ffmc=forecast.get('fineFuelMoistureCode', math.nan),
+        dmc=forecast.get('duffMoistureCode', math.nan),
+        dc=forecast.get('droughtCode', math.nan),
+        isi=forecast.get('initialSpreadIndex', math.nan),
+        bui=forecast.get('buildUpIndex', math.nan),
+        fwi=forecast.get('fireWeatherIndex', math.nan),
     )
+    temp_valid, rh_valid, wdir_valid, wspeed_valid, precip_valid = get_valid_flags(noon_forecast)
+    noon_forecast.temp_valid = temp_valid
+    noon_forecast.rh_valid = rh_valid
+    noon_forecast.wdir_valid = wdir_valid
+    noon_forecast.wspeed_valid = wspeed_valid
+    noon_forecast.precip_valid = precip_valid
+    return noon_forecast
 
 
-def replace_nones_in_hourly_actual_with_nan(hourly_reading: WeatherReading):
-    """ Returns WeatherReading where any and all None values are replaced with math.nan
-    in preparation for entry into database. Have to do this because Postgres doesn't
-    handle None gracefully (it thinks None != None), but it can handle math.nan ok.
-    (See HourlyActual db model) """
-    if hourly_reading.temperature is None:
-        hourly_reading.temperature = math.nan
-    if hourly_reading.relative_humidity is None:
-        hourly_reading.relative_humidity = math.nan
-    if hourly_reading.precipitation is None:
-        hourly_reading.precipitation = math.nan
-    if hourly_reading.wind_direction is None:
-        hourly_reading.wind_direction = math.nan
-    if hourly_reading.wind_speed is None:
-        hourly_reading.wind_speed = math.nan
-    return hourly_reading
+def parse_hourly_actual(station_code: int, hourly):
+    """ Transform from the raw hourly json object returned by wf1, to our hour actual object.
+    """
+    timestamp = datetime.fromtimestamp(
+        int(hourly['weatherTimestamp']) / 1000, tz=timezone.utc).isoformat()
+    hourly_actual = HourlyActual(
+        weather_date=timestamp,
+        station_code=station_code,
+        temperature=hourly.get('temperature', math.nan),
+        relative_humidity=hourly.get('relativeHumidity', math.nan),
+        dewpoint=compute_dewpoint(hourly.get(
+            'temperature'), hourly.get('relativeHumidity')),
+        wind_speed=hourly.get('windSpeed', math.nan),
+        wind_direction=hourly.get('windDirection', math.nan),
+        precipitation=hourly.get('precipitation', math.nan),
+        ffmc=hourly.get('fineFuelMoistureCode', None),
+        isi=hourly.get('initialSpreadIndex', None),
+        fwi=hourly.get('fireWeatherIndex', None),
+    )
+    temp_valid, rh_valid, wdir_valid, wspeed_valid, precip_valid = get_valid_flags(hourly_actual)
+    hourly_actual.temp_valid = temp_valid
+    hourly_actual.rh_valid = rh_valid
+    hourly_actual.wdir_valid = wdir_valid
+    hourly_actual.wspeed_valid = wspeed_valid
+    hourly_actual.precip_valid = precip_valid
 
-
-def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
-    """ Maps WeatherReading to HourlyActual """
-    temp_valid = hourly_reading.temperature is not None
-    rh_valid = hourly_reading.relative_humidity is not None and validate_metric(
-        hourly_reading.relative_humidity, 0, 100)
-    wdir_valid = hourly_reading.wind_direction is not None and validate_metric(
-        hourly_reading.wind_direction, 0, 360)
-    wspeed_valid = hourly_reading.wind_speed is not None and validate_metric(
-        hourly_reading.wind_speed, 0, math.inf)
-    precip_valid = hourly_reading.precipitation is not None and validate_metric(
-        hourly_reading.precipitation, 0, math.inf)
-    hourly_reading = replace_nones_in_hourly_actual_with_nan(hourly_reading)
-
-    is_valid_wfwx = hourly_reading.observation_valid
-    if is_valid_wfwx is False:
+    observation_valid = hourly.get('observationValidInd')
+    observation_valid_comment = hourly.get('observationValidComment')
+    if observation_valid is None or bool(observation_valid) is False:
         logger.warning("Invalid hourly received from WF1 API for station code %s at time %s: %s",
                        station_code,
-                       hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
-                       hourly_reading.observation_valid_comment)
+                       hourly_actual.weather_date,
+                       observation_valid_comment)
 
     is_obs_invalid = not temp_valid and not rh_valid and not wdir_valid\
         and not wspeed_valid and not precip_valid
 
     if is_obs_invalid:
         logger.error("Hourly actual not written to DB for station code %s at time %s: %s",
-                     station_code, hourly_reading.datetime.strftime(
-                         "%b %d %Y %H:%M:%S"),
-                     hourly_reading.observation_valid_comment)
+                     station_code, hourly_actual.weather_date,
+                     observation_valid_comment)
 
     # don't write the HourlyActual to our database if every value is invalid. If even one
     # weather variable observed is valid, write the HourlyActual to DB.
-    return None if is_obs_invalid else HourlyActual(
-        station_code=station_code,
-        weather_date=hourly_reading.datetime,
-        temp_valid=temp_valid,
-        temperature=hourly_reading.temperature,
-        rh_valid=rh_valid,
-        relative_humidity=hourly_reading.relative_humidity,
-        wspeed_valid=wspeed_valid,
-        wind_speed=hourly_reading.wind_speed,
-        wdir_valid=wdir_valid,
-        wind_direction=hourly_reading.wind_direction,
-        precip_valid=precip_valid,
-        precipitation=hourly_reading.precipitation,
-        dewpoint=hourly_reading.dewpoint,
-        ffmc=hourly_reading.ffmc,
-        isi=hourly_reading.isi,
-        fwi=hourly_reading.fwi,
-    )
-
-
-def validate_metric(value, low, high):
-    """ Validate metric with it's range of accepted values """
-    return low <= value <= high
+    return None if is_obs_invalid else hourly_actual

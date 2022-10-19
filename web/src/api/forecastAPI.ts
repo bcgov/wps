@@ -28,10 +28,7 @@ export interface ForecastResponse {
   noon_forecasts: Forecast[]
 }
 
-export async function getNoonForecasts(
-  stationCodes: number[],
-  timeOfInterest: string
-): Promise<Forecast[]> {
+export async function getNoonForecasts(stationCodes: number[], timeOfInterest: string): Promise<Forecast[]> {
   const url = '/forecasts/noon/'
 
   const { data } = await axios.post<ForecastResponse>(url, {

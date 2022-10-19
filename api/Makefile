@@ -8,12 +8,12 @@ endif
 
 define run-api
 	# function to run api
-	${1} uvicorn app.main:app --host 0.0.0.0 --reload --port 8080;
+	${1} uvicorn app.main:app --timeout-keep-alive 120 --host 0.0.0.0 --reload --port 8080;
 endef
 
 define build-static
 	# function to build static content
-	cd ../web; VITE_KEYCLOAK_AUTH_URL="{{VITE_KEYCLOAK_AUTH_URL}}" VITE_MATOMO_URL="{{VITE_MATOMO_URL}}" VITE_MATOMO_SITE_ID="{{VITE_MATOMO_SITE_ID}}" VITE_MATOMO_CONTAINER="{{VITE_MATOMO_CONTAINER}}" npm run build
+	cd ../web; npm run build
 endef
 
 define run-env-canada-model
@@ -49,12 +49,21 @@ test:
 	# useful params for pytest:
 	# -s show stdout
 	# -n numprocesses
-	PYTHONPYCACHEPREFIX=python_cache $(POETRY_RUN) pytest -n 3 app;
+	PYTHONPYCACHEPREFIX=python_cache $(POETRY_RUN) pytest -n 3 -x app;
 	# ImportMismatchError? run: make clean
+
+test-watch:
+	# Use pytest-testmon and pytest-watch to trigger test runs on file changes.
+	# Thanks to: https://stackoverflow.com/questions/35097577/pytest-run-only-the-changed-file
+	# run:
+	# ptw --runner "pytest --testmon"
+	# or, shorthand:
+	# ptw -- --testmon
+	PYTHONPYCACHEPREFIX=python_cache $(POETRY_RUN) ptw -- --testmon
 
 test-verbose:
 	# Run tests with verbose output
-	$(POETRY_RUN) pytest app -n 3 -vv;
+	$(POETRY_RUN) pytest app -n 3 -x -vv;
 
 test-coverage:
 	# run tests with coverate reports
@@ -71,7 +80,7 @@ run-with-tests:
 	# Run the application in the virtual environment (after linting and testing).
 	# Not failing on lint or test - just output so developer knows.
 	-poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
-	-poetry run python -m pytest -n 3 app;
+	-poetry run python -m pytest -x -n 3 app;
 	${call run-api,$(POETRY_RUN)}
 
 run:
@@ -89,26 +98,16 @@ run-env-canada-hrdps:
 run-env-canada-rdps:
 	${call run-env-canada-model,RDPS}
 
-run-donald:
-	# Synonymn for run-env-canada-raw
-	${call run-env-canada}
-
-run-bender:
-	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
-
 run-noon-forecasts:
-	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
+	$(POETRY_RUN) python -m app.jobs.noon_forecasts
 
-run-marvin:
-	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
+run-hourly-actuals:
+	$(POETRY_RUN) python -m app.jobs.hourly_actuals
 
-run-hourly-observed:
-	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
-
-run-all-bots:
+run-all-jobs:
 	# Run hourlies and actuals 1'st - very quick.
-	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
-	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
+	$(POETRY_RUN) python -m app.jobs.hourly_actuals
+	$(POETRY_RUN) python -m app.jobs.noon_forecasts
 	${call run-env-canada}
 	$(POETRY_RUN) python -m app.c_haines.worker
 
@@ -150,7 +149,7 @@ docker-build:
 	# Build dev docker images.
 	# Having issues? try: docker volume prune
 	# Still having issues? try: docker system prune
-	docker-compose build
+	docker compose build
 
 docker-lint:
 	# Run linting in docker (dev instance).
@@ -161,7 +160,7 @@ docker-test:
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
 	# Make sure that your docker pycache doesn't conflict with your local pycache.
-	docker-compose run --rm api pytest -n 3 app
+	docker compose run --rm api pytest -x -n 3 app
 
 docker-test-coverage:
 	# Run tests with coverage in docker (dev instance).
@@ -170,45 +169,46 @@ docker-test-coverage:
 docker-shell:
 	# Shell into the dev container.
 	# docker run -it --env-file app/.env --entrypoint bash wps-api_api:latest
-	docker-compose run --rm api bash
+	docker compose run --rm api bash
 
 docker-run:
 	# Run docker in dev mode.
-	docker-compose up
+	docker compose up
 
 docker-shell-db:
 	# Shell into the db container
-	docker-compose exec db psql -h db -U wps
+	docker compose exec db psql -h db -U wps
 
 docker-redis:
 	# Start up a local Redis service within docker container
-	docker-compose up redis
+	docker compose up redis
 
 docker-run-env-canada:
 	# Run a python script to download model data from Env Canada on docker
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.weather_models.env_canada GDPS
-	docker-compose exec api python -m app.weather_models.env_canada HRDPS
-	docker-compose exec api python -m app.weather_models.env_canada RDPS
+	docker compose exec api python -m app.weather_models.env_canada GDPS
+	docker compose exec api python -m app.weather_models.env_canada HRDPS
+	docker compose exec api python -m app.weather_models.env_canada RDPS
 
-docker-run-donald:
-	# Synonymn for docker-run-env-canada
-	docker-compose exec api python -m app.weather_models.env_canada GDPS
-	docker-compose exec api python -m app.weather_models.env_canada HRDPS
-	docker-compose exec api python -m app.weather_models.env_canada RDPS
-
-docker-run-bender:
+docker-run-noon-forecasts:
 	# Run a python script to download forecast data from BC Wild Fire on docker
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.fireweather_bot.noon_forecasts
+	docker compose exec api python -m app.jobs.noon_forecasts
 
-docker-run-marvin:
+docker-run-hourly-actuals:
 	# Run a python script to download hourly actuals from BC Wild Fire on docker.
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.fireweather_bot.hourly_actuals
+	docker compose exec api python -m app.jobs.hourly_actuals
 
 database-upgrade:
 	PYTHONPATH=. $(POETRY_RUN) alembic upgrade head
 
+database-downgrade:
+	PYTHONPATH=. $(POETRY_RUN) alembic downgrade -1
+
 docker-database-upgrade:
-	docker-compose exec -e PYTHONPATH=. api alembic upgrade head
+	docker compose exec -e PYTHONPATH=. api alembic upgrade head
+
+nats:
+	# Run nats with jetstream
+	docker run -p 4222:4222 -ti nats:latest -js

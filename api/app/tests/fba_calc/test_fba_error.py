@@ -3,13 +3,14 @@ Unit tests for fire behavour calculator.
 """
 from datetime import date
 import logging
-from pytest_bdd import scenario, given, then
+from pytest_bdd import scenario, given, then, parsers
 from app import configure_logging
 from app.schemas.fba_calc import FuelTypeEnum
 from app.utils.time import get_hour_20_from_date
-from app.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
+from app.fire_behaviour.advisory import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
-from app.tests.fba_calc import (str2float, check_metric, acceptable_margin_of_error,
+from app.tests.common import str2float
+from app.tests.fba_calc import (check_metric, acceptable_margin_of_error,
                                 fire_size_acceptable_margin_of_error)
 import pytest
 
@@ -20,40 +21,38 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_fba_error.feature', 'Fire Behaviour Calculation - vs. REDapp',
-          example_converters=dict(elevation=float,
-                                  latitude=float,
-                                  longitude=float,
-                                  percentage_conifer=str2float,
-                                  percentage_dead_balsam_fir=str2float,
-                                  crown_base_height=str2float,
-                                  grass_cure=str2float,
-                                  isi=float,
-                                  bui=float,
-                                  ffmc=float,
-                                  dmc=float,
-                                  dc=float,
-                                  fuel_type=str,
-                                  one_hr_em=float,
-                                  ros_em=float,
-                                  hfi_em=float,
-                                  cfb_em=float,
-                                  time_of_interest=date.fromisoformat,
-                                  wind_direction=str2float,
-                                  wind_speed=float,
-                                  note=str))
+@scenario('test_fba_error.feature', 'Fire Behaviour Calculation - vs. REDapp')
 def test_fire_behaviour_calculator_scenario():
     """ BDD Scenario. """
 
 
-@given("""<elevation>, <latitude>, <longitude>, <time_of_interest>, <wind_speed>, <wind_direction>, """
-       """<percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure>, <crown_base_height>, """
-       """<isi>, <bui>, <ffmc>, <dmc>, <dc>, <fuel_type>""",
-       target_fixture='result')
+@given(
+    parsers.parse("""REDapp input {elevation}, {latitude}, {longitude}, {time_of_interest}, {wind_speed}, {wind_direction}, """
+                  """{percentage_conifer}, {percentage_dead_balsam_fir}, {grass_cure}, {crown_base_height}, """
+                  """{isi}, {bui}, {ffmc}, {dmc}, {dc}, {fuel_type}"""),
+    converters=dict(elevation=float,
+                    latitude=float,
+                    longitude=float,
+                    time_of_interest=date.fromisoformat,
+                    wind_speed=float,
+                    wind_direction=str2float,
+                    percentage_conifer=str2float,
+                    percentage_dead_balsam_fir=str2float,
+                    grass_cure=str2float,
+                    crown_base_height=str2float,
+                    isi=float,
+                    bui=float,
+                    ffmc=float,
+                    dmc=float,
+                    dc=float,
+                    fuel_type=str),
+    target_fixture='result')
 def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name, too-many-locals
                         latitude: float, longitude: float, time_of_interest: date,
                         wind_speed: float, wind_direction: float,
-                        percentage_conifer: float, percentage_dead_balsam_fir: float, grass_cure: float,
+                        percentage_conifer: float,
+                        percentage_dead_balsam_fir: float,
+                        grass_cure: float,
                         crown_base_height: float,
                         isi: float, bui: float, ffmc: float, dmc: float, dc: float, fuel_type: str):
     """ Take input and calculate actual and expected results """
@@ -67,7 +66,7 @@ def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments,
                                                crown_base_height=crown_base_height,
                                                crown_fuel_load=None,
                                                lat=latitude, long=longitude, bui=bui,
-                                               ffmc=ffmc, isi=isi, wind_speed=wind_speed,
+                                               ffmc=ffmc, isi=isi, fwi=None, wind_speed=wind_speed,
                                                wind_direction=wind_direction,
                                                temperature=20.0,  # temporary fix so tests don't break
                                                relative_humidity=20.0,
@@ -102,7 +101,7 @@ def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments,
     expected = {
         'ros': java_fbp.ros_eq,
         'ros_t': java_fbp.ros_t,
-        'cfb': java_fbp.cfb/100.0,  # CFFDRS gives cfb as a fraction
+        'cfb': java_fbp.cfb / 100.0,  # CFFDRS gives cfb as a fraction
         'hfi': java_fbp.hfi,
         'area': java_fbp.area
     }
@@ -119,7 +118,7 @@ def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments,
     }
 
 
-@then("ROS is within <ros_em> (<note>)")
+@then(parsers.parse("ROS is within {ros_em} ({note})"), converters={'ros_em': float, 'note': str})
 def then_ros(result: dict, ros_em: float, note: str):
     """ check the relative error of the ros """
     error = check_metric('ROS',
@@ -131,7 +130,7 @@ def then_ros(result: dict, ros_em: float, note: str):
     result['error']['ros_em'] = error
 
 
-@then("ROS_t is within range (<note>)")
+@then(parsers.parse("ROS_t is within range ({note})"), converters={'note': str})
 def then_ros_t(result: dict, note: str):
     """ check the relative error of the ros """
     check_metric('ROS_t',
@@ -142,7 +141,7 @@ def then_ros_t(result: dict, note: str):
                  note)
 
 
-@then("CFB is within <cfb_em> (<note>)")
+@then(parsers.parse("CFB is within {cfb_em} ({note})"), converters={'cfb_em': float, 'note': str})
 def then_cfb(result: dict, cfb_em: float, note: str):
     """ check the relative error of the cfb """
     error = check_metric('CFB',
@@ -154,7 +153,7 @@ def then_cfb(result: dict, cfb_em: float, note: str):
     result['error']['cfb_em'] = error
 
 
-@then("CFB_t is within range (<note>)")
+@then(parsers.parse("CFB_t is within range ({note})"), converters={'note': str})
 def then_cfb_t(result: dict, note: str):
     """ check the relative error of the ros """
     check_metric('CFB_t',
@@ -165,7 +164,7 @@ def then_cfb_t(result: dict, note: str):
                  note)
 
 
-@then("HFI is within <hfi_em> (<note>)")
+@then(parsers.parse("HFI is within {hfi_em} ({note})"), converters={'hfi_em': float, 'note': str})
 def then_hfi(result: dict, hfi_em: float, note: str):
     """ check the relative error of the hfi """
     error = check_metric('HFI',
@@ -177,7 +176,7 @@ def then_hfi(result: dict, hfi_em: float, note: str):
     result['error']['hfi_em'] = error
 
 
-@then("HFI_t is within range (<note>)")
+@then(parsers.parse("HFI_t is within range ({note})"), converters={'note': str})
 def then_hfi_t(result: dict, note: str):
     """ check the relative error of the ros """
     check_metric('HFI_t',
@@ -188,7 +187,7 @@ def then_hfi_t(result: dict, note: str):
                  note)
 
 
-@then("1 HR Size is within <one_hr_em> (<note>)")
+@then(parsers.parse("1 HR Size is within {one_hr_em} ({note})"), converters={'one_hr_em': float, 'note': str})
 def then_one_hr(result: dict, one_hr_em: float, note: str):
     """ check the relative error of the a hour fire size"""
     error = check_metric('1 HR Size',
@@ -200,7 +199,7 @@ def then_one_hr(result: dict, one_hr_em: float, note: str):
     result['error']['one_hr_em'] = error
 
 
-@then("(1 HR Size)_t is within range (<note>)")
+@then(parsers.parse("(1 HR Size)_t is within range ({note})"), converters={'note': str})
 def then_one_hr_t(result: dict, note: str):
     """ check the relative error of the a hour fire size"""
     check_metric('1 HR Size t',
@@ -231,37 +230,33 @@ def log_it(result: dict):
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_fba_error.feature', 'Fire Behaviour Calculation - vs. Spreadsheet',
-          example_converters=dict(elevation=float,
-                                  latitude=float,
-                                  longitude=float,
-                                  percentage_conifer=str2float,
-                                  percentage_dead_balsam_fir=str2float,
-                                  crown_base_height=str2float,
-                                  grass_cure=str2float,
-                                  isi=float,
-                                  bui=float,
-                                  ffmc=float,
-                                  dmc=float,
-                                  dc=float,
-                                  fuel_type=str,
-                                  ros_em=float,
-                                  hfi_em=float,
-                                  cfb_em=float,
-                                  cfb=str2float,
-                                  hfi=str2float,
-                                  ros=str2float,
-                                  time_of_interest=date.fromisoformat,
-                                  wind_direction=float,
-                                  wind_speed=float,
-                                  note=str))
+@scenario('test_fba_error.feature', 'Fire Behaviour Calculation - vs. Spreadsheet')
 def test_fire_behaviour_calculator_spreadsheet_scenario():
     """ BDD Scenario. """
 
 
-@given("""<elevation>, <latitude>, <longitude>, <time_of_interest>, <wind_speed>, <wind_direction>, """
-       """<percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure>, <crown_base_height>, <isi>, """
-       """<bui>, <ffmc>, <dmc>, <dc>, <fuel_type>, <ros>, <hfi>, <cfb>""",
+@given(parsers.parse("""Spreadsheet input {elevation}, {latitude}, {longitude}, {time_of_interest}, {wind_speed}, {wind_direction}, """
+       """{percentage_conifer}, {percentage_dead_balsam_fir}, {grass_cure}, {crown_base_height}, {isi}, """
+                     """{bui}, {ffmc}, {dmc}, {dc}, {fuel_type}, {ros}, {hfi}, {cfb}"""),
+       converters=dict(elevation=float,
+                       latitude=float,
+                       longitude=float,
+                       percentage_conifer=str2float,
+                       percentage_dead_balsam_fir=str2float,
+                       crown_base_height=str2float,
+                       grass_cure=str2float,
+                       isi=float,
+                       bui=float,
+                       ffmc=float,
+                       dmc=float,
+                       dc=float,
+                       fuel_type=str,
+                       cfb=str2float,
+                       hfi=str2float,
+                       ros=str2float,
+                       time_of_interest=date.fromisoformat,
+                       wind_direction=float,
+                       wind_speed=float),
        target_fixture='result')
 def given_spreadsheet_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name, too-many-locals
                             latitude: float, longitude: float, time_of_interest: str,
@@ -272,6 +267,7 @@ def given_spreadsheet_input(elevation: float,  # pylint: disable=too-many-argume
                             ros: float, hfi: float, cfb: float):
     """ Take input and calculate actual and expected results """
     # get python result:
+    fwi = None
     python_input = FBACalculatorWeatherStation(elevation=elevation,
                                                fuel_type=FuelTypeEnum[fuel_type],
                                                time_of_interest=time_of_interest,
@@ -285,6 +281,7 @@ def given_spreadsheet_input(elevation: float,  # pylint: disable=too-many-argume
                                                bui=bui,
                                                ffmc=ffmc,
                                                isi=isi,
+                                               fwi=fwi,
                                                wind_speed=wind_speed,
                                                wind_direction=wind_direction,
                                                temperature=20.0,  # temporary fix so tests don't break

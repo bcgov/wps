@@ -1,4 +1,4 @@
-import { TableHead, TableRow } from '@material-ui/core'
+import { TableHead, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
 import FireTable from 'components/FireTable'
 import React from 'react'
@@ -10,12 +10,7 @@ describe('FireTable', () => {
     const minHeight = 500
 
     const { getByTestId } = render(
-      <FireTable
-        maxWidth={maxWidth}
-        maxHeight={maxHeight}
-        minHeight={minHeight}
-        ariaLabel={'test-table'}
-      >
+      <FireTable maxWidth={maxWidth} maxHeight={maxHeight} minHeight={minHeight} ariaLabel={'test-table'}>
         <TableHead>
           <TableRow></TableRow>
         </TableHead>

@@ -1,6 +1,6 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab'
+import makeStyles from '@mui/styles/makeStyles'
+import { ToggleButton, ToggleButtonGroup } from '@mui/material'
 
 const useStyles = makeStyles({
   root: {
@@ -54,10 +54,7 @@ const SidePanel = (props: Props) => {
             <ToggleButton value={SidePanelEnum.Tables}>Tables</ToggleButton>
             <ToggleButton value={SidePanelEnum.Graphs}>Graphs</ToggleButton>
             {props.stationCodes.length > 1 && (
-              <ToggleButton
-                value={SidePanelEnum.Comparison}
-                data-testid="station-comparison-button"
-              >
+              <ToggleButton value={SidePanelEnum.Comparison} data-testid="station-comparison-button">
                 Station comparison
               </ToggleButton>
             )}

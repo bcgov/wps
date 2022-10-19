@@ -1,4 +1,5 @@
-import { makeStyles, TableCell } from '@material-ui/core'
+import { TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { fireTableStyles } from 'app/theme'
 import React from 'react'
 
@@ -27,9 +28,7 @@ const IntensityGroupCell = (props: IntensityGroupCellProps) => {
   return (
     <TableCell
       className={`${
-        !props.selected && !props.error && props.value
-          ? classes.unselectedStation
-          : classes.intensityGroupCell
+        !props.selected && !props.error && props.value ? classes.unselectedStation : classes.intensityGroupCell
       }`}
       data-testid={props.testid}
     >

@@ -3,6 +3,8 @@
 See README.md for details on how to run.
 """
 import logging
+from time import perf_counter
+from urllib.request import Request
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
@@ -12,8 +14,10 @@ from app.auth import authentication_required, audit
 from app import config
 from app import health
 from app import hourlies
-from app.frontend import frontend
-from app.routers import fba, forecasts, weather_models, c_haines, stations, hfi_calc, fba_calc
+from app.rocketchat_notifications import send_rocketchat_notification
+from app.routers import (fba, forecasts, fwi_calc, weather_models, c_haines, stations, hfi_calc,
+                         fba_calc, sfms)
+from app.fire_behaviour.cffdrs import CFFDRS
 
 
 configure_logging()
@@ -68,15 +72,25 @@ api = FastAPI(
 app = Starlette()
 
 
-# The order here is important:
-# 1. Mount the /api
-# Technically we could leave the api on the root (/), but then you'd get index.html
-# instead of a 404 if you have a mistake on your api url.
+# Mount the /api
+# In production, / routes to the frontend. (api and front end run in seperate containers, with
+# seperate routing)
 app.mount('/api', app=api)
-# 2. Mount everything else on the root, to the frontend app.
-app.mount('/', app=frontend)
 
 ORIGINS = config.get('ORIGINS')
+
+
+async def catch_exception_middleware(request: Request, call_next):
+    """ Basic middleware to catch all unhandled exceptions and log them to the terminal """
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        logger.error('%s %s %s', request.method, request.url.path, exc, exc_info=True)
+        rc_message = f"Exception occurred {request.method} {request.url.path}"
+        send_rocketchat_notification(rc_message, exc)
+        raise
+
+app.middleware('http')(catch_exception_middleware)
 
 api.add_middleware(
     CORSMiddleware,
@@ -85,14 +99,17 @@ api.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+api.middleware('http')(catch_exception_middleware)
 
-api.include_router(forecasts.router)
-api.include_router(weather_models.router)
-api.include_router(c_haines.router)
-api.include_router(stations.router)
-api.include_router(hfi_calc.router)
-api.include_router(fba_calc.router)
-api.include_router(fba.router)
+api.include_router(forecasts.router, tags=["Forecasts"])
+api.include_router(weather_models.router, tags=["Weather Models"])
+api.include_router(c_haines.router, tags=["C Haines"])
+api.include_router(stations.router, tags=["Stations"])
+api.include_router(hfi_calc.router, tags=["HFI"])
+api.include_router(fba_calc.router, tags=["FBA Calc"])
+api.include_router(fba.router, tags=["Auto Spatial Advisory"])
+api.include_router(fwi_calc.router, tags=["FWI"])
+api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
 
 
 @api.get('/ready')
@@ -110,6 +127,15 @@ async def get_health():
 
         logger.debug('/health - healthy: %s. %s',
                      health_check.get('healthy'), health_check.get('message'))
+
+        # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
+        cffdrs_start = perf_counter()
+        CFFDRS.instance()  # pylint: disable=no-member
+        cffdrs_end = perf_counter()
+        delta = cffdrs_end - cffdrs_start
+        # Any delta below 100 milliseconds is just noise in the logs.
+        if delta > 0.1:
+            logger.info('%f seconds added by CFFDRS startup', delta)
 
         return health_check
     except Exception as exception:

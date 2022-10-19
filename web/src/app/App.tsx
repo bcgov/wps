@@ -1,17 +1,24 @@
 import React from 'react'
-import { CssBaseline } from '@material-ui/core'
-import { ThemeProvider } from '@material-ui/core/styles'
+import { CssBaseline } from '@mui/material'
+import { ThemeProvider, Theme, StyledEngineProvider } from '@mui/material/styles'
 
 import { theme } from 'app/theme'
-import Routes from 'app/Routes'
+import WPSRoutes from 'app/Routes'
+
+declare module '@mui/styles/defaultTheme' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface DefaultTheme extends Theme {}
+}
 
 const App: React.FunctionComponent = () => {
   return (
     <React.StrictMode>
-      <CssBaseline />
-      <ThemeProvider theme={theme}>
-        <Routes />
-      </ThemeProvider>
+      <StyledEngineProvider injectFirst>
+        <CssBaseline />
+        <ThemeProvider theme={theme}>
+          <WPSRoutes />
+        </ThemeProvider>
+      </StyledEngineProvider>
     </React.StrictMode>
   )
 }

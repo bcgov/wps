@@ -31,7 +31,7 @@ objects:
       resources:
         requests:
           storage: 1Gi
-  - apiVersion: batch/v1beta1
+  - apiVersion: batch/v1
     kind: CronJob
     metadata:
       name: certbot

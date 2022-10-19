@@ -4,15 +4,18 @@ on:
   pull_request:
     branches:
       - main
+      - roles
 
 jobs:
   set-description:
     name: Set pull request description
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set description
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         with:
           # reference used to figure out this part:
           # https://docs.github.com/en/rest/reference/pulls#list-pull-requests

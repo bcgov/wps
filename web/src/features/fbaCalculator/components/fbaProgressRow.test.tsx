@@ -1,4 +1,4 @@
-import { TableContainer, Table, TableHead } from '@material-ui/core'
+import { TableContainer, Table, TableHead } from '@mui/material'
 import { render } from '@testing-library/react'
 import { theme } from 'app/theme'
 import React from 'react'
