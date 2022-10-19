@@ -17,11 +17,21 @@
  * @param on is used to hook into various events Cypress emits
  * @param config is the resolved Cypress config
  */
-module.exports = (on, config) => {
-  require('@cypress/code-coverage/task')(on, config)
-  // include any other plugin code...
+const { startDevServer } = require('@cypress/vite-dev-server')
+const codeCoverageTask = require('@cypress/code-coverage/task')
+const istanbul = require('vite-plugin-istanbul')
 
-  // It's IMPORTANT to return the config object
-  // with any changed environment variables
+module.exports = (on, config) => {
+  on('dev-server:start', options =>
+    startDevServer({
+      options,
+      viteConfig: {
+        clearScreen: false,
+        plugins: [istanbul({})]
+      }
+    })
+  )
+
+  codeCoverageTask(on, config)
   return config
 }
