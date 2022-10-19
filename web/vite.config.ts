@@ -1,13 +1,31 @@
 import { defineConfig } from 'vite'
-import tsconfigPaths from 'vite-tsconfig-paths'
 import react from '@vitejs/plugin-react'
+import istanbul from 'vite-plugin-istanbul'
+import tsconfigPaths from 'vite-tsconfig-paths'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  // This changes the out put dir from dist to build
-  // comment this out if that isn't relevant for your project
-  build: {
-    outDir: 'build'
+  server: {
+    port: 3030
   },
-  plugins: [react(), tsconfigPaths()]
+  plugins: [
+    react(),
+    tsconfigPaths(),
+    istanbul({
+      include: 'src/*',
+      exclude: ['node_modules'],
+      extension: ['.tsx', '.ts'],
+      requireEnv: true
+    })
+  ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          lodash: ['lodash'],
+          mui: ['@mui/material']
+        }
+      }
+    }
+  }
 })
