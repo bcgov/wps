@@ -1,11 +1,13 @@
 import React from 'react'
-import { makeStyles, Theme, createStyles } from '@material-ui/core/styles'
-import Alert from '@material-ui/lab/Alert'
-import IconButton from '@material-ui/core/IconButton'
-import Collapse from '@material-ui/core/Collapse'
-import CloseIcon from '@material-ui/icons/Close'
+import makeStyles from '@mui/styles/makeStyles'
+import createStyles from '@mui/styles/createStyles'
+import Alert from '@mui/material/Alert'
+import IconButton from '@mui/material/IconButton'
+import Collapse from '@mui/material/Collapse'
+import CloseIcon from '@mui/icons-material/Close'
+import { theme } from 'app/theme'
 
-const useStyles = makeStyles((theme: Theme) =>
+const useStyles = makeStyles(() =>
   createStyles({
     root: {
       width: '100%',
@@ -43,8 +45,7 @@ const ErrorAlert = (props: ErrorAlertProps) => {
             </IconButton>
           }
         >
-          The following errors have occurred. Please refresh the page. If the problem
-          persists, please&nbsp;
+          The following errors have occurred. Please refresh the page. If the problem persists, please&nbsp;
           <a
             id="contact-fba-error"
             href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - FBA Error`}

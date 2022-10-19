@@ -1,4 +1,4 @@
-# Wildfire Predictive Services Unit FWI Percentile Calculator API
+# Wildfire Predictive Services Unit API
 
 ## Description
 
@@ -10,18 +10,6 @@ Wildfire Predictive Services Unit support decision making in prevention, prepare
 
 - Docker [Mac](https://hub.docker.com/editions/community/docker-ce-desktop-mac/), [Win](https://hub.docker.com/editions/community/docker-ce-desktop-windows/), [Ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Fedora](https://docs.docker.com/install/linux/docker-ce/fedora/)
 
-- Docker Compose
-
-```bash
-brew install docker-compose
-```
-
-OR
-
-```bash
-pip install docker-compose
-```
-
 ### Installing
 
 You will need an environment file. See: .env.example.
@@ -31,7 +19,7 @@ You will need an environment file. See: .env.example.
 For local development, you can copy .env.example to .env.docker.
 
 ```bash
-docker-compose build
+docker compose build
 ```
 
 #### Local machine, running MacOS
@@ -64,38 +52,48 @@ Ensure that the CLASSPATH environment variable points to the jar files in api/li
 brew install gdal
 ```
 
+Note that there are other subsequent steps for gdal installation. See "Install project python requirements".
+
+##### wkhtmltopdf
+
+```bash
+brew install --cask wkhtmltopdf
+```
+
 ##### Poetry
 
-Try to match the latest version of python in our production environment (as of writing, API is on 3.9.7 and C-Haines is on 3.8.10)
+Try to match the latest version of python in our production environment (as of writing, API is on 3.10.4)
 
 ```bash
 brew update
 brew install pyenv
-pyenv install 3.8.10
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+pyenv install 3.10.4
+pyenv local 3.10.4
+curl -sSL https://install.python-poetry.org | python -
 ```
 
 ##### Install project python requirements
 
-`poetry env use 3.8.10` doesn't actually honor the minor version, if you want 3.8.10 exactly, you have
-to find the location of the 3.8.10 binary and point to that.
+`poetry env use 3.10.4` doesn't actually honor the minor version, if you have more than one version
+of 3.10, and you want 3.10.4 exactly, you have to find the location of the 3.10.4 binary and point
+to that.
 
 ```bash
 pyenv which python
 ```
 
 ```bash
-poetry env use [path to python 3.8.10, get this by running 'pyenv which python']
+poetry env use [path to python 3.10.4, get this by running 'pyenv which python']
 poetry run python -m pip install --upgrade pip
 poetry install
 poetry shell
 # we can't include gdal in poetry as we have little control over the version of gdal available on different platforms - we must match whatever version of gdal is available on the system in question.
-pip install gdal==$(gdal-config --version)
+python -m pip install gdal==$(gdal-config --version)
 # on ubuntu, you may have to install pygdal, with the correct version specified.
-pip install pygdal==3.0.4.10
+python -m pip install pygdal==3.0.4.10
 ```
 
-**N.B.: If `poetry env use [version]` returns an `EnvCommandError` saying something like "pyenv: python3.8: command not found", but `pyenv versions` shows that 3.8.10 is installed, you must first run `pyenv shell 3.8.10` and then re-run `poetry env use [path to python 3.8.10]`.**
+**N.B.: If `poetry env use [version]` returns an `EnvCommandError` saying something like "pyenv: python3.10: command not found", but `pyenv versions` shows that 3.10.4 is installed, you must first run `pyenv shell 3.10.4` and then re-run `poetry env use [path to python 3.10.4]`.**
 
 ##### Troubleshooting
 
@@ -187,7 +185,7 @@ make docker-run
 will execute:
 
 ```bash
-docker-compose up
+docker compose up
 ```
 
 #### Local machine, running mac os
@@ -213,11 +211,74 @@ To shell into the Docker container for the database, execute `make docker-shell-
 
 ### Running the database locally
 
+#### In Docker
+
 Executing `make docker-build-dev` followed by `make docker-run-dev` will build and run the Docker container needed to run the application locally. Running the dev container will also spin up a local Postgres service and will create a local copy of the wps database with the necessary schemas.
+
+#### Natively
+
+If you're running Postgresql natively for the first time:
+
+```bash
+brew services start postgresql
+brew services list
+```
+
+should show that the "postgresql" service is running.
+
+```bash
+psql -d postgres
+```
+
+will shell you into your local postgres server.
+
+```psql
+create user wps with password "wps";
+```
+
+(or your desired username/password combo. Make sure to update these in your .env file).
+If successful, this command will output `CREATE ROLE`.
+
+```psql
+create database wps with owner wps;
+```
+
+If successful, this command will output `CREATE DATABASE`.
+
+`\l` should show "wps" in the list of databases.
+
+```psql
+\c wps
+\dx
+```
+
+will show the list of extensions, and "postgis" should be one of them. If it isn't, run
+
+```psql
+create extension postgis;
+```
+
+If successful, this command will output `CREATE EXTENSION`. Re-run `\dx` to confirm the postgis extension has now been added.
+
+From a poetry shell, run
+
+```bash
+PYTHONPATH=. alembic upgrade head
+```
+
+---
 
 To access the local copy of the database, you can shell into it by opening a new terminal window and executing `psql -h localhost -p 5432 -U <db-username>` and enter the local database password when prompted.
 
 ## Maintenance
+
+### Reverting Deployment
+
+To redeploy prod from a previous image:
+
+1. Find the previous working image in openshift and run
+   - `oc -n e1e498-tools tag wps-prod:pr-<last-working-pr-number> wps-prod:prod`
+2. Select "Start rollout" action in openshift
 
 ### Disk space
 
@@ -253,7 +314,20 @@ Run python unit tests before pushing code to the repository:
 make test
 ```
 
+Or run continuously with pytest-testmon and pytest-watch (`ptw --runner "pytest --testmon"` or `ptw -- --testmon`):
+
+```bash
+make test-watch
+```
+
 Or enforce by running [scripts/test.sh](scripts/test.sh) as part of your ci/cd pipeline.
+
+
+#### ModuleNotFoundError: No module named 'pkg_resources'
+
+```bash
+poetry run python -m pip install --upgrade setuptools
+```
 
 ### Making changes to the database
 
@@ -264,6 +338,12 @@ PYTHONPATH=. alembic revision --autogenerate -m "Comment relevant to change"
 ```
 
 You may have to modify the generated code to import geoalchemy2
+
+You may want to have a data import/modification step, where you're not actually changing the database, but want to manage new data. You can create an "empty" migration, and insert data as needed:
+
+```bash
+PYTHONPATH=. alembic revision -m "Comment relevant to change"
+```
 
 Then apply:
 

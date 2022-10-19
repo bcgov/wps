@@ -1,47 +1,44 @@
-import React, { useState } from 'react'
+import React from 'react'
 
-import { TableBody, TableCell, TableHead, TableRow } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { FireCentre, FuelType } from 'api/hfiCalculatorAPI'
 import FireTable from 'components/FireTable'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
 import CalculatedPlanningAreaCells from 'features/hfiCalculator/components/CalculatedPlanningAreaCells'
 import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
-import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
-import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
-import { isEmpty, union } from 'lodash'
-import { StationDaily } from 'api/hfiCalculatorAPI'
-import { getDailiesByStationCode, getZoneFromAreaName } from 'features/hfiCalculator/util'
+import { isEmpty, isUndefined, sortBy } from 'lodash'
+import {
+  calculateNumPrepDays,
+  getDailiesByStationCode,
+  stationCodeSelected,
+  getSelectedFuelType
+} from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
+import { selectAuthentication, selectHFICalculatorState, selectHFIReadyState } from 'app/rootReducer'
+import { useDispatch, useSelector } from 'react-redux'
+import { FireStartRange, PlanningAreaResult, PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
+import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
+import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
+import { ROLES } from 'features/auth/roles'
+import PlanningAreaReadyToggle from 'features/hfiCalculator/components/PlanningAreaReadyToggle'
+import { AppDispatch } from 'app/store'
+import { fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 
 export interface Props {
-  fireCentres: Record<string, FireCentre>
-  dailies: StationDaily[]
-  currentDay: string
+  fireCentre: FireCentre | undefined
   testId?: string
+  dateRange?: PrepDateRange
+  setSelected: (planningAreaId: number, code: number, selected: boolean) => void
+  setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStartRange) => void
+  setFuelType: (planningAreaId: number, code: number, fuelTypeId: number) => void
+  fuelTypes: FuelType[]
 }
-
-export const columnLabelsForEachDayInWeek: string[] = [
-  'ROS (m/min)',
-  'HFI',
-  'M / FIG',
-  'Fire Starts',
-  'Prep Level'
-]
-
-export const weeklyTableColumnLabels: string[] = [
-  'Location',
-  'Elev. (m)',
-  'FBP Fuel Type',
-  'Grass Cure (%)',
-  ...Array(5).fill(columnLabelsForEachDayInWeek).flat(),
-  'Highest Daily FIG',
-  'Calc. Prep'
-]
 
 const useStyles = makeStyles({
   ...fireTableStyles
@@ -49,72 +46,56 @@ const useStyles = makeStyles({
 
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
+  const dispatch: AppDispatch = useDispatch()
 
-  const [selected, setSelected] = useState<number[]>(
-    union(props.dailies.map(daily => daily.code))
-  )
+  const { result } = useSelector(selectHFICalculatorState)
+  const { roles, isAuthenticated } = useSelector(selectAuthentication)
+  const { loading, planningAreaReadyDetails } = useSelector(selectHFIReadyState)
 
-  const stationCodeInSelected = (code: number) => {
-    return selected.includes(code)
-  }
-  const toggleSelectedStation = (code: number) => {
-    const selectedSet = new Set(selected)
-    if (stationCodeInSelected(code)) {
-      // remove station from selected
-      selectedSet.delete(code)
-    } else {
-      // add station to selected
-      selectedSet.add(code)
+  const toggleReady = (planningAreaId: number) => {
+    if (!isUndefined(result) && !isUndefined(result.date_range)) {
+      dispatch(fetchToggleReadyState(result.selected_fire_center_id, planningAreaId, result.date_range))
     }
-    setSelected(Array.from(selectedSet))
+  }
+
+  const stationCodeInSelected = (planningAreaId: number, code: number): boolean => {
+    if (isUndefined(result) || isUndefined(result?.planning_area_station_info)) {
+      return false
+    }
+    return stationCodeSelected(result.planning_area_station_info, planningAreaId, code)
+  }
+  const toggleSelectedStation = (planningAreaId: number, code: number) => {
+    const selected = stationCodeInSelected(planningAreaId, code)
+    props.setSelected(planningAreaId, code, !selected)
+  }
+
+  const numPrepDays = calculateNumPrepDays(props.dateRange)
+
+  if (isUndefined(result)) {
+    return <React.Fragment></React.Fragment>
   }
 
   return (
-    <FireTable
-      maxHeight={700}
-      ariaLabel="weekly table view of HFI by planning area"
-      testId="hfi-calc-weekly-table"
-    >
+    <FireTable maxHeight={700} ariaLabel="weekly table view of HFI by planning area" testId="hfi-calc-weekly-table">
       <TableHead>
         <TableRow>
-          <DayHeaders isoDate={props.currentDay} />
+          <DayHeaders dateRange={props.dateRange} />
           <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>
           <StickyCell left={0} zIndexOffset={12} className={classes.noBottomBorder}>
-            <TableCell className={classes.noBottomBorder}>
-              {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
-            </TableCell>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell className={classes.noBottomBorder}>
+                    {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </StickyCell>
-          <StickyCell left={50} zIndexOffset={12}>
-            <TableCell key="header-location" className={classes.noBottomBorder}>
-              Location
-            </TableCell>
-          </StickyCell>
-          <TableCell key="header-elevation" className={classes.nonstickyHeaderCell}>
-            Elev.
-            <br />
-            (m)
-          </TableCell>
-          <StickyCell left={234} zIndexOffset={12}>
-            <TableCell key="header-fuel-type" className={classes.noBottomBorder}>
-              FBP
-              <br />
-              Fuel
-              <br />
-              Type
-            </TableCell>
-          </StickyCell>
-          <StickyCell left={284} zIndexOffset={12} className={classes.rightBorder}>
-            <TableCell className={classes.noBottomBorder}>
-              Grass
-              <br />
-              Cure
-              <br />
-              (%)
-            </TableCell>
-          </StickyCell>
-          <DayIndexHeaders />
+          <StationDataHeaderCells />
+          <DayIndexHeaders numPrepDays={numPrepDays} />
           <TableCell className={classes.sectionSeparatorBorder}>
             Highest
             <br />
@@ -130,31 +111,30 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
         </TableRow>
       </TableHead>
       <TableBody>
-        {Object.entries(props.fireCentres).map(([centreName, centre]) => {
-          return (
-            <React.Fragment key={`fire-centre-${centreName}`}>
-              <TableRow key={`fire-centre-${centreName}`}>
-                <FireCentreCell centre={centre}></FireCentreCell>
+        {isUndefined(props.fireCentre) ? (
+          <EmptyFireCentreRow colSpan={15} />
+        ) : (
+          <React.Fragment key={`fire-centre-${props.fireCentre.name}`}>
+            <TableRow key={`fire-centre-${props.fireCentre.name}`}>
+              <FireCentreCell centre={props.fireCentre}></FireCentreCell>
+              <HeaderRowCell className={classes.fireCentre} />
+            </TableRow>
+            {sortBy(props.fireCentre.planning_areas, planningArea => planningArea.order_of_appearance_in_list).map(
+              area => {
+                const areaHFIResult: PlanningAreaResult | undefined = result.planning_area_hfi_results.find(
+                  planningAreaResult => planningAreaResult.planning_area_id === area.id
+                )
 
-                <TableCell className={classes.fireCentre} colSpan={28}></TableCell>
-              </TableRow>
-              {Object.entries(centre.planning_areas)
-                .sort((a, b) =>
-                  getZoneFromAreaName(a[1].name) < getZoneFromAreaName(b[1].name) ? -1 : 1
-                ) // sort by zone code
-                .map(([areaName, area]) => {
-                  return (
-                    <React.Fragment key={`zone-${areaName}`}>
+                return (
+                  areaHFIResult && (
+                    <React.Fragment key={`zone-${area.name}`}>
                       <TableRow>
-                        <TableCell
-                          colSpan={42}
-                          className={classes.planningAreaBorder}
-                        ></TableCell>
+                        <HeaderRowCell className={classes.planningAreaBorder} />
                       </TableRow>
                       <TableRow
                         className={classes.planningArea}
-                        key={`zone-${areaName}`}
-                        data-testid={`zone-${areaName}`}
+                        key={`zone-${area.name}`}
+                        data-testid={`zone-${area.name}`}
                       >
                         <StickyCell
                           left={0}
@@ -162,93 +142,104 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           backgroundColor={BACKGROUND_COLOR.backgroundColor}
                           colSpan={2}
                         >
-                          <TableCell className={classes.noBottomBorder}>
-                            {area.name}
-                          </TableCell>
+                          <Table>
+                            <TableBody>
+                              <TableRow>
+                                <TableCell className={classes.noBottomBorder}>
+                                  {area.name}
+                                  <PlanningAreaReadyToggle
+                                    enabled={roles.includes(ROLES.HFI.SET_READY_STATE) && isAuthenticated}
+                                    loading={loading}
+                                    readyDetails={planningAreaReadyDetails[area.id]}
+                                    toggleReady={toggleReady}
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
                         </StickyCell>
-                        <TableCell
-                          className={`${classes.planningArea} ${classes.nonstickyHeaderCell}`}
-                        ></TableCell>
+                        <TableCell className={`${classes.planningArea} ${classes.nonstickyHeaderCell}`}></TableCell>
                         <StickyCell
-                          left={230}
+                          left={227}
                           zIndexOffset={10}
                           className={`${classes.rightBorder} ${classes.defaultBackground}`}
                           colSpan={2}
                         >
-                          <TableCell
-                            className={`${classes.planningArea} ${classes.noBottomBorder}`}
-                          ></TableCell>
+                          <Table>
+                            <TableBody>
+                              <TableRow>
+                                <TableCell className={`${classes.planningArea} ${classes.noBottomBorder}`}></TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
                         </StickyCell>
                         <CalculatedPlanningAreaCells
                           area={area}
-                          areaName={areaName}
-                          dailies={props.dailies}
-                          selected={selected}
+                          areaName={area.name}
+                          planningAreaResult={areaHFIResult}
+                          setNewFireStarts={props.setNewFireStarts}
                           planningAreaClass={classes.planningArea}
+                          numPrepDays={numPrepDays}
+                          fireStartsEnabled={roles.includes(ROLES.HFI.SET_FIRE_STARTS) && isAuthenticated}
+                          fireStartRanges={result.fire_start_ranges}
+                          fuelTypes={props.fuelTypes}
+                          planningAreaStationInfo={result.planning_area_station_info}
                         />
                       </TableRow>
-                      {Object.entries(area.stations)
-                        .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
-                        .map(([stationCode, station]) => {
-                          const dailiesForStation = getDailiesByStationCode(
-                            props.dailies,
-                            station.code
-                          )
-                          const isRowSelected = stationCodeInSelected(station.code)
+                      {sortBy(area.stations, station => station.order_of_appearance_in_planning_area_list).map(
+                        station => {
+                          const dailiesForStation = getDailiesByStationCode(result, station.code)
+                          const isRowSelected = stationCodeInSelected(area.id, station.code)
                           const classNameForRow = !isRowSelected
                             ? classes.unselectedStation
                             : classes.stationCellPlainStyling
-
+                          const stationCode = station.code
+                          const selectedFuelType = getSelectedFuelType(
+                            result.planning_area_station_info,
+                            area.id,
+                            stationCode,
+                            props.fuelTypes
+                          )
+                          if (isUndefined(selectedFuelType)) {
+                            return <React.Fragment></React.Fragment>
+                          }
                           return (
-                            <TableRow
-                              className={classNameForRow}
-                              key={`station-${stationCode}`}
-                            >
+                            <TableRow className={classNameForRow} key={`station-${stationCode}`}>
                               <BaseStationAttributeCells
                                 station={station}
+                                planningAreaId={area.id}
                                 className={classNameForRow}
+                                selectStationEnabled={roles.includes(ROLES.HFI.SELECT_STATION) && isAuthenticated}
+                                isSetFuelTypeEnabled={roles.includes(ROLES.HFI.SET_FUEL_TYPE) && isAuthenticated}
                                 stationCodeInSelected={stationCodeInSelected}
                                 toggleSelectedStation={toggleSelectedStation}
+                                grassCurePercentage={
+                                  !isEmpty(dailiesForStation) ? dailiesForStation[0].grass_cure_percentage : undefined
+                                }
+                                setFuelType={props.setFuelType}
+                                fuelTypes={props.fuelTypes}
+                                selectedFuelType={selectedFuelType}
+                                isRowSelected={isRowSelected}
                               />
-                              <StickyCell
-                                left={284}
-                                zIndexOffset={11}
-                                backgroundColor={'#ffffff'}
-                                className={classes.rightBorder}
-                              >
-                                <GrassCureCell
-                                  value={
-                                    !isEmpty(dailiesForStation)
-                                      ? dailiesForStation[0].grass_cure_percentage
-                                      : undefined
-                                  }
-                                  isGrassFuelType={isGrassFuelType(station.station_props)}
-                                  className={`${classes.noBottomBorder}
-                                    ${
-                                      isRowSelected
-                                        ? classes.stationCellPlainStyling
-                                        : classes.unselectedStation
-                                    }
-                                  `}
-                                  selected={isRowSelected}
-                                />
-                              </StickyCell>
-
                               <StaticCells
+                                numPrepDays={numPrepDays}
                                 dailies={dailiesForStation}
                                 station={station}
                                 classNameForRow={classNameForRow}
                                 isRowSelected={isRowSelected}
+                                selectedFuelType={selectedFuelType}
                               />
                             </TableRow>
                           )
-                        })}
+                        }
+                      )}
                     </React.Fragment>
                   )
-                })}
-            </React.Fragment>
-          )
-        })}
+                )
+              }
+            )}
+          </React.Fragment>
+        )}
       </TableBody>
     </FireTable>
   )

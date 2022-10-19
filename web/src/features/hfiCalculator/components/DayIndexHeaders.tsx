@@ -1,18 +1,21 @@
-import { TableCell } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { fireTableStyles } from 'app/theme'
-import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { range } from 'lodash'
 import React from 'react'
 
 const useStyles = makeStyles({
   ...fireTableStyles
 })
-const DayIndexHeaders = () => {
+
+export interface DayIndexHeadersProps {
+  numPrepDays: number
+}
+const DayIndexHeaders = (props: DayIndexHeadersProps) => {
   const classes = useStyles()
   return (
     <React.Fragment>
-      {range(NUM_WEEK_DAYS).map(i => (
+      {range(props.numPrepDays).map(i => (
         <React.Fragment key={i}>
           <TableCell
             data-testid={`ros-header-${i}`}

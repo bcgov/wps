@@ -1,5 +1,17 @@
 # feeling sad? remember to validate this file!
 # curl --data-binary @codecov.yml https://codecov.io/validate
+
+# Ignore prototype features until matured
+ignore:
+  - "web/src/features/cHaines"
+  - "web/src/features/fwiCalculator"
+  - "web/src/features/fba" # Unstable while we work on ASA prototype
+  - "web/src/api/fbaAPI.ts" # Unstable while we work on ASA prototype
+  - "web/src/utils/env.ts" # Just configuration
+  - "api/app/auto_spatial_advisory" # Unstable while we work on ASA prototype
+  - "api/app/db/crud" # We don't write tests for the crud layer, the crud layer is mocked out in tests.
+  - "api/app/db/database.py" # We don't write tests for the database layer, it's mocked out in tests.
+  - "api/app/tests" # We don't care about coverage of the tests themselves.
 coverage:
   # https://docs.codecov.com/docs/commit-status
   status:
@@ -12,13 +24,14 @@ coverage:
         # target: minimum coverage ratio that the commit must meet
         target: 80%
         # threshold: Allow the coverage to drop by X%, and posting a success status.
-        threshold: 1%
+        threshold: 3%
       # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
       api:
         paths:
           - api/app
+        threshold: 3%
       web:
         paths:
           - web/src
-        # web isn't quite amazing yet - would be nice to push it up to 80&
-        target: 73%
+        # web isn't quite amazing yet - would be nice to push it up to 80%
+        target: 80%

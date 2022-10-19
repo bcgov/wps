@@ -1,4 +1,4 @@
-import { makeStyles } from '@material-ui/core'
+import makeStyles from '@mui/styles/makeStyles'
 import React, { useState, MouseEvent } from 'react'
 
 interface TableHeaderProps {
@@ -70,13 +70,10 @@ const TableHeader = (props: TableHeaderProps) => {
       clone.remove()
       // now we know how wide the text is, we can move it left if it exceeds the container.
       const clientWidth = fireTableContainer.getBoundingClientRect().right
-      const scrollBarWidth =
-        fireTableContainer.offsetWidth - fireTableContainer.clientWidth
+      const scrollBarWidth = fireTableContainer.offsetWidth - fireTableContainer.clientWidth
       const availabeWidth = clientWidth - scrollBarWidth
       if (e.currentTarget.getBoundingClientRect().left + textWidth >= availabeWidth) {
-        setLeft(
-          availabeWidth - (e.currentTarget.getBoundingClientRect().left + textWidth)
-        )
+        setLeft(availabeWidth - (e.currentTarget.getBoundingClientRect().left + textWidth))
       } else {
         setLeft(0)
       }
@@ -91,10 +88,7 @@ const TableHeader = (props: TableHeaderProps) => {
       {...(props.testId ? { 'data-testid': `header-${props.testId}` } : {})}
     >
       {props.text}
-      <span
-        style={{ left: left }}
-        {...(props.testId ? { 'data-testid': `tooltip-${props.testId}` } : {})}
-      >
+      <span style={{ left: left }} {...(props.testId ? { 'data-testid': `tooltip-${props.testId}` } : {})}>
         {props.text}
       </span>
     </div>

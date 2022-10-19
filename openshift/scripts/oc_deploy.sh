@@ -15,7 +15,7 @@ source "$(dirname ${0})/common/common"
 #%
 #% Examples:
 #%
-#%   Provide a PR number. Defaults to a dry-run.
+#%   Provide a PR number. Defaults to a dry-run=client.
 #%   ${THIS_FILE} pr-0
 #%
 #%   Apply when satisfied.
@@ -27,19 +27,20 @@ source "$(dirname ${0})/common/common"
 # Target project override for Dev or Prod deployments
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
+OBJ_NAME="${APP_NAME}-${SUFFIX}"
 
 # Process a template (mostly variable substition)
 #
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DC} \
- -p NAME=${NAME_APP} \
  -p SUFFIX=${SUFFIX} \
  -p PROJECT_NAMESPACE=${PROJ_TARGET} \
- -p POSTGRES_USER=${POSTGRES_USER:-${NAME_APP}} \
- -p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${NAME_APP}} \
- -p POSTGRES_WRITE_HOST=${POSTGRES_WRITE_HOST:-"patroni-${NAME_APP}-${SUFFIX}-leader"} \
- -p POSTGRES_READ_HOST=${POSTGRES_READ_HOST:-"patroni-${NAME_APP}-${SUFFIX}-replica"} \
+ -p POSTGRES_USER=${POSTGRES_USER:-${APP_NAME}} \
+ -p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${APP_NAME}} \
+ -p POSTGRES_WRITE_HOST=${POSTGRES_WRITE_HOST:-"patroni-${APP_NAME}-${SUFFIX}-leader"} \
+ -p POSTGRES_READ_HOST=${POSTGRES_READ_HOST:-"patroni-${APP_NAME}-${SUFFIX}-replica"} \
  -p VANITY_DOMAIN=${VANITY_DOMAIN} \
  ${SECOND_LEVEL_DOMAIN:+ "-p SECOND_LEVEL_DOMAIN=${SECOND_LEVEL_DOMAIN}"} \
+ ${GUNICORN_WORKERS:+ "-p GUNICORN_WORKERS=${GUNICORN_WORKERS}"} \
  ${CPU_REQUEST:+ "-p CPU_REQUEST=${CPU_REQUEST}"} \
  ${CPU_LIMIT:+ "-p CPU_LIMIT=${CPU_LIMIT}"} \
  ${MEMORY_REQUEST:+ "-p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
@@ -50,22 +51,22 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DC} \
  ${ENVIRONMENT:+ "-p ENVIRONMENT=${ENVIRONMENT}"} \
  ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"}"
 
-# Apply a template (apply or use --dry-run)
+# Apply a template (apply or use --dry-run=client)
 #
 OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
-[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run"
+[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
 
 # Cancel all previous deployments
 #
-OC_CANCEL_ALL_PREV_DEPLOY="oc -n ${PROJ_TARGET} rollout cancel dc/${NAME_OBJ} || true"
+OC_CANCEL_ALL_PREV_DEPLOY="oc -n ${PROJ_TARGET} rollout cancel dc/${OBJ_NAME} || true"
 
 # Deploy and follow the progress
 #
-OC_DEPLOY="oc -n ${PROJ_TARGET} rollout latest dc/${NAME_OBJ}"
-OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=1m dc/${NAME_OBJ}"
+OC_DEPLOY="oc -n ${PROJ_TARGET} rollout latest dc/${OBJ_NAME}"
+OC_LOG="oc -n ${PROJ_TARGET} logs -f --pod-running-timeout=2m dc/${OBJ_NAME}"
 if [ ! "${APPLY}" ]; then
   OC_CANCEL_ALL_PREV_DEPLOY=""
-  OC_DEPLOY="${OC_DEPLOY} --dry-run || true" # in case there is no previous rollout
+  OC_DEPLOY="${OC_DEPLOY} --dry-run=client || true" # in case there is no previous rollout
   OC_LOG=""
 fi
 
@@ -81,8 +82,8 @@ if [ "${APPLY}" ]; then
   # Check previous deployment statuses before moving onto new deploying
   while [ $count -le $timeout ]; do
     sleep 1
-    PENDINGS="$(oc -n ${PROJ_TARGET} rollout history dc/${NAME_OBJ} | awk '{print $2}' | grep -c Pending || true)"
-    RUNNINGS="$(oc -n ${PROJ_TARGET} rollout history dc/${NAME_OBJ} | awk '{print $2}' | grep -c Running || true)"
+    PENDINGS="$(oc -n ${PROJ_TARGET} rollout history dc/${OBJ_NAME} | awk '{print $2}' | grep -c Pending || true)"
+    RUNNINGS="$(oc -n ${PROJ_TARGET} rollout history dc/${OBJ_NAME} | awk '{print $2}' | grep -c Running || true)"
     if [ "${PENDINGS}" == 0 ] && [ "${RUNNINGS}" == 0 ]; then
       # No pending or running replica controllers so exit the while loop
       break 2

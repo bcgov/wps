@@ -52,8 +52,7 @@ const highResModelsSlice = createSlice({
   }
 })
 
-export const { getHighResModelsStart, getHighResModelsFailed, getHighResModelsSuccess } =
-  highResModelsSlice.actions
+export const { getHighResModelsStart, getHighResModelsFailed, getHighResModelsSuccess } = highResModelsSlice.actions
 
 export default highResModelsSlice.reducer
 

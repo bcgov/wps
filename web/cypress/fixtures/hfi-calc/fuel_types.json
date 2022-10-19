@@ -1,0 +1,228 @@
+{
+    "fuel_types": [
+        {
+            "id": 252,
+            "abbrev": "BL",
+            "fuel_type_code": "M2",
+            "description": "Boreal mixedwood - green - 25% conifer",
+            "percentage_conifer": 25,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 238,
+            "abbrev": "C1",
+            "fuel_type_code": "C1",
+            "description": "Spruce-lichen woodland",
+            "percentage_conifer": 100,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 3,
+            "abbrev": "C2",
+            "fuel_type_code": "C2",
+            "description": "Boreal spruce",
+            "percentage_conifer": 100,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 240,
+            "abbrev": "C3",
+            "fuel_type_code": "C3",
+            "description": "Mature jack or lodgepole pine",
+            "percentage_conifer": 100,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 241,
+            "abbrev": "C4",
+            "fuel_type_code": "C4",
+            "description": "Immature jack or lodgepole pine",
+            "percentage_conifer": 100,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 242,
+            "abbrev": "C5",
+            "fuel_type_code": "C5",
+            "description": "Red and white pine",
+            "percentage_conifer": 100,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 243,
+            "abbrev": "C6",
+            "fuel_type_code": "C6",
+            "description": "Conifer plantation",
+            "percentage_conifer": 100,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 244,
+            "abbrev": "C7",
+            "fuel_type_code": "C7",
+            "description": "Ponderosa pine/Douglas fir",
+            "percentage_conifer": 100,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 245,
+            "abbrev": "C7B",
+            "fuel_type_code": "C7",
+            "description": "Proposed C7 model with curing: C7B",
+            "percentage_conifer": 100,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 246,
+            "abbrev": "D1",
+            "fuel_type_code": "D1",
+            "description": "Leafless aspen",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 247,
+            "abbrev": "D2",
+            "fuel_type_code": "D2",
+            "description": "Green aspen",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 248,
+            "abbrev": "M1 25%",
+            "fuel_type_code": "M1",
+            "description": "Boreal mixedwood - leafless - 25% conifer",
+            "percentage_conifer": 25,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 249,
+            "abbrev": "M1 50%",
+            "fuel_type_code": "M1",
+            "description": "Boreal mixedwood - leafless - 50% conifer",
+            "percentage_conifer": 50,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 250,
+            "abbrev": "M1 75%",
+            "fuel_type_code": "M1",
+            "description": "Boreal mixedwood - leafless - 75% conifer",
+            "percentage_conifer": 75,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 251,
+            "abbrev": "M2 25%",
+            "fuel_type_code": "M2",
+            "description": "Boreal mixedwood - green - 25% conifer",
+            "percentage_conifer": 25,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 253,
+            "abbrev": "M2 50%",
+            "fuel_type_code": "M2",
+            "description": "Boreal mixedwood - green - 50% conifer",
+            "percentage_conifer": 50,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 254,
+            "abbrev": "M2 75%",
+            "fuel_type_code": "M2",
+            "description": "Boreal mixedwood - green - 75% conifer",
+            "percentage_conifer": 75,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 257,
+            "abbrev": "M3 100%",
+            "fuel_type_code": "M3",
+            "description": "Dead balsam fir mixedwood - leafless - 100% dead fir",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 100
+        },
+        {
+            "id": 255,
+            "abbrev": "M3 30%",
+            "fuel_type_code": "M3",
+            "description": "Dead balsam fir mixedwood - leafless - 30% dead fir",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 30
+        },
+        {
+            "id": 256,
+            "abbrev": "M3 60%",
+            "fuel_type_code": "M3",
+            "description": "Dead balsam fir mixedwood - leafless - 60% dead fir",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 60
+        },
+        {
+            "id": 260,
+            "abbrev": "M4 100%",
+            "fuel_type_code": "M4",
+            "description": "Dead balsam fir mixedwood - green - 100% dead fir",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 100
+        },
+        {
+            "id": 258,
+            "abbrev": "M4 30%",
+            "fuel_type_code": "M4",
+            "description": "Dead balsam fir mixedwood - green - 30% dead fir",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 30
+        },
+        {
+            "id": 259,
+            "abbrev": "M4 60%",
+            "fuel_type_code": "M4",
+            "description": "Dead balsam fir mixedwood - green - 60% dead fir",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 60
+        },
+        {
+            "id": 264,
+            "abbrev": "O1A",
+            "fuel_type_code": "O1A",
+            "description": "Matted grass",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 265,
+            "abbrev": "O1B",
+            "fuel_type_code": "O1B",
+            "description": "Standing grass",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 261,
+            "abbrev": "S1",
+            "fuel_type_code": "S1",
+            "description": "Jack or lodgepole pine slash",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 262,
+            "abbrev": "S2",
+            "fuel_type_code": "S2",
+            "description": "White spruce/balsam slash",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 263,
+            "abbrev": "S3",
+            "fuel_type_code": "S3",
+            "description": "Coastal cedar/hemlock/Douglas fir slash",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 0
+        }
+    ]
+}

@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Radio from '@material-ui/core/Radio'
-import RadioGroup from '@material-ui/core/RadioGroup'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import FormControl from '@material-ui/core/FormControl'
-import Popover from '@material-ui/core/Popover'
-import Fab from '@material-ui/core/Fab'
-import LayersIcon from '@material-ui/icons/Layers'
+import makeStyles from '@mui/styles/makeStyles'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormControl from '@mui/material/FormControl'
+import Popover from '@mui/material/Popover'
+import Fab from '@mui/material/Fab'
+import LayersIcon from '@mui/icons-material/Layers'
 
 const useStyles = makeStyles({
   root: {
@@ -51,12 +51,7 @@ const LayerSwitch = ({ map, value, setValue }: Props) => {
   return (
     <div className={classes.root}>
       <div className={classes.btnWrapper}>
-        <Fab
-          onMouseOver={openPopover}
-          color="primary"
-          size="small"
-          data-testid="layer-switch"
-        >
+        <Fab onMouseOver={openPopover} color="primary" size="small" data-testid="layer-switch">
           <LayersIcon />
         </Fab>
       </div>
@@ -80,14 +75,7 @@ const LayerSwitch = ({ map, value, setValue }: Props) => {
         >
           <RadioGroup aria-label="base-layers" value={value} onChange={handleLayerChange}>
             {Object.keys(map).map(key => {
-              return (
-                <FormControlLabel
-                  key={key}
-                  label={key}
-                  value={map[key]}
-                  control={<Radio size="small" />}
-                />
-              )
+              return <FormControlLabel key={key} label={key} value={map[key]} control={<Radio size="small" />} />
             })}
           </RadioGroup>
         </FormControl>

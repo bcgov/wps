@@ -29,10 +29,7 @@ const highResModelSummariesSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getHighResModelSummariesSuccess(
-      state: State,
-      action: PayloadAction<ModelSummariesForStation[]>
-    ) {
+    getHighResModelSummariesSuccess(state: State, action: PayloadAction<ModelSummariesForStation[]>) {
       state.error = null
       action.payload.forEach(summary => {
         if (summary.station) {
@@ -45,11 +42,8 @@ const highResModelSummariesSlice = createSlice({
   }
 })
 
-export const {
-  getHighResModelSummariesStart,
-  getHighResModelSummariesFailed,
-  getHighResModelSummariesSuccess
-} = highResModelSummariesSlice.actions
+export const { getHighResModelSummariesStart, getHighResModelSummariesFailed, getHighResModelSummariesSuccess } =
+  highResModelSummariesSlice.actions
 
 export default highResModelSummariesSlice.reducer
 

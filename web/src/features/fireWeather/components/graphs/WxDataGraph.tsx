@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 
 import { GeoJsonStation } from 'api/stationAPI'
@@ -11,8 +11,9 @@ import { useGraphToggles } from 'features/fireWeather/components/graphs/useGraph
 import PrecipitationGraph from 'features/fireWeather/components/graphs/PrecipitationGraph'
 import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
 import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
-import { formatDateInPST } from 'utils/date'
+import { formatDatetimeInPST } from 'utils/date'
 import { RedrawCommand } from 'features/map/Map'
+import { SelectChangeEvent } from '@mui/material/Select'
 
 const useStyles = makeStyles({
   display: {
@@ -55,9 +56,7 @@ const WxDataGraph = ({
   const hasModels = gdpsModels.length !== 0
   const hasForecasts = noonForecasts.length !== 0
   const hasBiasAdjModels =
-    gdpsModels.filter(
-      v => v.bias_adjusted_temperature || v.bias_adjusted_relative_humidity
-    ).length !== 0
+    gdpsModels.filter(v => v.bias_adjusted_temperature || v.bias_adjusted_relative_humidity).length !== 0
   const hasHighResModels = hrdpsModels.length !== 0
   const hasRegionalModels = rdpsModels.length !== 0
 
@@ -68,8 +67,8 @@ const WxDataGraph = ({
    * (This is bad by the way since it makes impossible for us to capture the change of the state)
    */
   const initialXAxisRange: [string, string] = [
-    formatDateInPST(DateTime.fromISO(timeOfInterest).minus({ days: 2 })), // prettier-ignore
-    formatDateInPST(DateTime.fromISO(timeOfInterest).plus({ days: 2 })) // prettier-ignore
+    formatDatetimeInPST(DateTime.fromISO(timeOfInterest).minus({ days: 2 })), // prettier-ignore
+    formatDatetimeInPST(DateTime.fromISO(timeOfInterest).plus({ days: 2 })) // prettier-ignore
   ]
   const [sliderRange] = useState(initialXAxisRange)
 
@@ -84,9 +83,7 @@ const WxDataGraph = ({
 
   const [hoverMode, setHoverMode] = useState<'closest' | 'x' | 'x unified'>('closest')
 
-  const handleHoverModeChange = (
-    event: React.ChangeEvent<{ name?: string; value: unknown }>
-  ) => {
+  const handleHoverModeChange = (event: SelectChangeEvent<string>) => {
     switch (event.target.value) {
       case 'closest':
       case 'x':
@@ -95,14 +92,7 @@ const WxDataGraph = ({
     }
   }
 
-  if (
-    !hasObservations &&
-    !hasForecasts &&
-    !hasModels &&
-    !hasBiasAdjModels &&
-    !hasHighResModels &&
-    !hasRegionalModels
-  ) {
+  if (!hasObservations && !hasForecasts && !hasModels && !hasBiasAdjModels && !hasHighResModels && !hasRegionalModels) {
     return null
   }
 

@@ -1,31 +1,10 @@
 """ This module contains pydantic models related to Fire Behaviour Advisory Calculator. """
 
-from enum import Enum
 from typing import List, Optional
 from datetime import date
 from pydantic import BaseModel
 
-
-class FuelTypeEnum(str, Enum):
-    """ Enumerator for all valid fuel types. """
-    C1 = 'C1'
-    C2 = 'C2'
-    C3 = 'C3'
-    C4 = 'C4'
-    C5 = 'C5'
-    C6 = 'C6'
-    C7 = 'C7'
-    D1 = 'D1'
-    D2 = 'D2'
-    M1 = 'M1'
-    M2 = 'M2'
-    M3 = 'M3'
-    M4 = 'M4'
-    O1A = 'O1A'
-    O1B = 'O1B'
-    S1 = 'S1'
-    S2 = 'S2'
-    S3 = 'S3'
+from app.fire_behaviour.fuel_types import FuelTypeEnum
 
 
 class StationRequest(BaseModel):

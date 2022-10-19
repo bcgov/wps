@@ -1,0 +1,19 @@
+{
+    "date_range": {
+        "start_date": "2020-05-21",
+        "end_date": "2020-05-25"
+    },
+    "selected_prep_date": "2020-05-21",
+    "planning_area_station_info": {
+        "1": [
+            {
+                "station_code": 230,
+                "selected": false,
+                "fuel_type_id": 1
+            }
+        ]
+    },
+    "selected_fire_center_id": 1,
+    "planning_area_hfi_results": [],
+    "planning_area_fire_starts": {}
+}

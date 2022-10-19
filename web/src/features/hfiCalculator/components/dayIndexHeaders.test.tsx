@@ -1,18 +1,18 @@
-import { Table, TableBody, TableContainer, TableRow } from '@material-ui/core'
+import { Table, TableBody, TableContainer, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
 import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
 import { range } from 'lodash'
-import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import React from 'react'
 
 describe('DayIndexHeaders', () => {
   it('should render day index headers for each day of the week', () => {
+    const NUM_WEEK_DAYS = 5
     const { getByTestId } = render(
       <TableContainer>
         <Table>
           <TableBody>
             <TableRow>
-              <DayIndexHeaders />
+              <DayIndexHeaders numPrepDays={NUM_WEEK_DAYS} />
             </TableRow>
           </TableBody>
         </Table>

@@ -1,15 +1,15 @@
 {
-  "semi": false,
-  "singleQuote": true,
-  "printWidth": 90,
-  "overrides": [
-    {
-      "files": "*.spec.ts",
-      "options": {
-        "printWidth": 120
-      }
-    }
-  ],
-  "trailingComma": "none",
-  "arrowParens": "avoid"
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 120,
+    "overrides": [
+        {
+            "files": "*.spec.ts",
+            "options": {
+                "printWidth": 120
+            }
+        }
+    ],
+    "trailingComma": "none",
+    "arrowParens": "avoid"
 }

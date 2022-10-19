@@ -2,10 +2,12 @@
 import math
 import logging
 from datetime import datetime
-from typing import Dict, Generator, Tuple, Final
+from typing import AsyncGenerator, Dict, Tuple, Final
 import json
 from urllib.parse import urlencode
 from aiohttp.client import ClientSession, BasicAuth
+from app.data.ecodivision_seasons import EcodivisionSeasons
+from app.rocketchat_notifications import send_rocketchat_notification
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.stations import (DetailedWeatherStationProperties,
                                   GeoJsonDetailedWeatherStation,
@@ -28,19 +30,26 @@ async def _fetch_cached_response(session: ClientSession, headers: dict, url: str
         cached_json = cache.get(key)
     except Exception as error:  # pylint: disable=broad-except
         cached_json = None
-        logger.error(error)
+        logger.error(error, exc_info=error)
     if cached_json:
         logger.info('redis cache hit %s', key)
         response_json = json.loads(cached_json.decode())
     else:
         logger.info('redis cache miss %s', key)
         async with session.get(url, headers=headers, params=params) as response:
-            response_json = await response.json()
+            try:
+                response_json = await response.json()
+            except json.decoder.JSONDecodeError as error:
+                logger.error(error, exc_info=error)
+                text = await response.text()
+                logger.error('response.text() = %s', text)
+                send_rocketchat_notification(f'JSONDecodeError, response.text() = {text}', error)
+                raise
         try:
             if response.status == 200:
                 cache.set(key, json.dumps(response_json).encode(), ex=cache_expiry_seconds)
         except Exception as error:  # pylint: disable=broad-except
-            logger.error(error)
+            logger.error(error, exc_info=error)
     return response_json
 
 
@@ -51,7 +60,7 @@ async def fetch_paged_response_generator(
         content_key: str,
         use_cache: bool = False,
         cache_expiry_seconds: int = 86400
-) -> Generator[dict, None, None]:
+) -> AsyncGenerator[dict, None]:
     """ Asynchronous generator for iterating through responses from the API.
     The response is a paged response, but this generator abstracts that away.
     """
@@ -148,8 +157,8 @@ def prepare_fetch_hourlies_query(raw_station: dict, start_timestamp: datetime, e
     logger.debug('requesting historic data from %s to %s', start_timestamp, end_timestamp)
 
     # Prepare query params and query:
-    query_start_timestamp = math.floor(start_timestamp.timestamp()*1000)
-    query_end_timestamp = math.floor(end_timestamp.timestamp()*1000)
+    query_start_timestamp = math.floor(start_timestamp.timestamp() * 1000)
+    query_end_timestamp = math.floor(end_timestamp.timestamp() * 1000)
 
     station_id = raw_station['id']
     params = {'startTimestamp': query_start_timestamp,
@@ -166,7 +175,7 @@ def prepare_fetch_dailies_for_all_stations_query(time_of_interest: datetime, pag
     stations. """
     base_url = config.get('WFWX_BASE_URL')
     noon_date = _get_noon_date(time_of_interest)
-    timestamp = int(noon_date.timestamp()*1000)
+    timestamp = int(noon_date.timestamp() * 1000)
     # one could filter on recordType.id==FORECAST or recordType.id==ACTUAL but we want it all.
     params = {'query': f'weatherTimestamp=={timestamp}',
               'page': page_count,
@@ -183,15 +192,15 @@ async def fetch_hourlies(
         headers: dict,
         start_timestamp: datetime,
         end_timestamp: datetime,
-        use_cache: bool = False) -> WeatherStationHourlyReadings:
+        use_cache: bool,
+        eco_division: EcodivisionSeasons) -> WeatherStationHourlyReadings:
     """ Fetch hourly weather readings for the specified time range for a give station """
     logger.debug('fetching hourlies for %s(%s)',
                  raw_station['displayLabel'], raw_station['stationCode'])
 
     url, params = prepare_fetch_hourlies_query(raw_station, start_timestamp, end_timestamp)
 
-    cache_expiry_seconds = cache_expiry_seconds = config.get(
-        'REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY', 300)
+    cache_expiry_seconds: Final = int(config.get('REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY', 300))
 
     # Get hourlies
     if use_cache and cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True':
@@ -209,7 +218,9 @@ async def fetch_hourlies(
     logger.debug('fetched %d hourlies for %s(%s)', len(
         hourlies), raw_station['displayLabel'], raw_station['stationCode'])
 
-    return WeatherStationHourlyReadings(values=hourlies, station=parse_station(raw_station))
+    return WeatherStationHourlyReadings(values=hourlies,
+                                        station=parse_station(
+                                            raw_station, eco_division))
 
 
 async def fetch_access_token(session: ClientSession) -> dict:
@@ -227,7 +238,7 @@ async def fetch_access_token(session: ClientSession) -> dict:
         cached_json = cache.get(key)
     except Exception as error:  # pylint: disable=broad-except
         cached_json = None
-        logger.error(error)
+        logger.error(error, exc_info=error)
     if cached_json:
         logger.info('redis cache hit %s', auth_url)
         response_json = json.loads(cached_json.decode())
@@ -244,5 +255,5 @@ async def fetch_access_token(session: ClientSession) -> dict:
                     expires = min(response_json['expires_in'], redis_auth_cache_expiry)
                     cache.set(key, json.dumps(response_json).encode(), ex=expires)
             except Exception as error:  # pylint: disable=broad-except
-                logger.error(error)
+                logger.error(error, exc_info=error)
     return response_json

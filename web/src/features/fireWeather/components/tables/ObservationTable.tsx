@@ -1,9 +1,7 @@
 import React from 'react'
 
 import { ObservedValue } from 'api/observationAPI'
-import SortableTableByDatetime, {
-  Column
-} from 'features/fireWeather/components/tables/SortableTableByDatetime'
+import SortableTableByDatetime, { Column } from 'features/fireWeather/components/tables/SortableTableByDatetime'
 import { FFMC_VALUES_DECIMAL, ISI_VALUES_DECIMAL } from 'utils/constants'
 import {
   formatWindDirection,
@@ -12,7 +10,7 @@ import {
   formatRelativeHumidity,
   formatPrecipitation
 } from 'utils/format'
-import { formatDateInPST } from 'utils/date'
+import { formatDatetimeInPST } from 'utils/date'
 
 export const columns: Column[] = [
   {
@@ -20,7 +18,7 @@ export const columns: Column[] = [
     label: 'Date (PST)',
     minWidth: 135,
     align: 'left',
-    formatDt: (value: string): string => formatDateInPST(value)
+    formatDt: (value: string): string => formatDatetimeInPST(value)
   },
   {
     id: 'temperature',

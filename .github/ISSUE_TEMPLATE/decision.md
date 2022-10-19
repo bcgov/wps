@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+TODO: If this template hasn't been used before December 2022, please delete it.
+
 **Context:**
 (insert the context surrounding the decision to be made, and why it is important)
 

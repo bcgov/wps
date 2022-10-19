@@ -70,27 +70,9 @@ const WindGraph = (props: Props) => {
     forecastLineColor,
     forecastArrowColor
   )
-  const hrdpsData = populateGraphDataForWind(
-    hrdpsModels,
-    'HRDPS',
-    showHrdps,
-    hrdpsLineColor,
-    hrdpsArrowColor
-  )
-  const rdpsData = populateGraphDataForWind(
-    rdpsModels,
-    'RDPS',
-    showRdps,
-    rdpsLineColor,
-    rdpsArrowColor
-  )
-  const gdpsData = populateGraphDataForWind(
-    gdpsModels,
-    'GDPS',
-    showGdps,
-    gdpsLineColor,
-    gdpsArrowColor
-  )
+  const hrdpsData = populateGraphDataForWind(hrdpsModels, 'HRDPS', showHrdps, hrdpsLineColor, hrdpsArrowColor)
+  const rdpsData = populateGraphDataForWind(rdpsModels, 'RDPS', showRdps, rdpsLineColor, rdpsArrowColor)
+  const gdpsData = populateGraphDataForWind(gdpsModels, 'GDPS', showGdps, gdpsLineColor, gdpsArrowColor)
 
   const maxWindSpd = findMaxNumber([
     observationData.maxWindSpd,
@@ -106,11 +88,7 @@ const WindGraph = (props: Props) => {
     rdpsData.minWindSpd,
     hrdpsData.minWindSpd
   ])
-  const timeOfInterestLine = populateTimeOfInterestLineData(
-    timeOfInterest,
-    minWindSpd,
-    maxWindSpd
-  )
+  const timeOfInterestLine = populateTimeOfInterestLineData(timeOfInterest, minWindSpd, maxWindSpd)
 
   // Update plotly revision to trigger re-drawing of the plot
   const setRevision = useState(0)[1]
@@ -172,9 +150,7 @@ const WindGraph = (props: Props) => {
           observationData.windSpdLine
         ]}
         layout={{
-          ...getLayoutConfig(
-            `Wind Speed & Direction - ${station.properties.name} (${station.properties.code})`
-          ),
+          ...getLayoutConfig(`Wind Speed & Direction - ${station.properties.name} (${station.properties.code})`),
           xaxis: {
             range: sliderRange,
             rangeslider: rangeSliderConfig,

@@ -1,9 +1,7 @@
 import React from 'react'
-import { Container as C, ContainerProps } from '@material-ui/core'
+import { Container as C, ContainerProps } from '@mui/material'
 
-export const Container: React.FunctionComponent<ContainerProps> = (
-  props: ContainerProps
-) => {
+export const Container: React.FunctionComponent<ContainerProps> = (props: ContainerProps) => {
   return <C maxWidth="md" {...props} />
 }
 

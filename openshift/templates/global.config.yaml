@@ -32,15 +32,6 @@ parameters:
     displayName: Repication Passsword
     name: PATRONI_REPLICATION_PASSWORD
     required: true
-  - name: BC_FIRE_WEATHER_USER
-    description: Username (idir) to be used for authentication to access BC FireWeather Phase 1
-    required: true
-  - name: BC_FIRE_WEATHER_SECRET
-    description: Password for the BC_FIRE_WEATHER_USER account
-    required: true
-  - name: BC_FIRE_WEATHER_FILTER_ID
-    description: ID of custom-made filter associated with BC_FIRE_WEATHER_USER account, used for querying forecast data for all stations
-    required: true
   - name: STATUS_CHECKER_SECRET
     description: Token for status-checker Openshift service account. Used for /health check
   - name: OPENSHIFT_BASE_URI
@@ -60,10 +51,6 @@ parameters:
   - name: ROCKET_CHANNEL
     description: The name of the Rocketchat channel to post automated notifications to
     required: true
-  - name: MATOMO_URL
-    description: URL for matomo (analytics) site.
-  - name: MATOMO_SITE_ID
-    description: ID of application for matomo (analytics) tracking.
   - name: CERTBOT_SERVER
     description: Certbot server url
   - name: OBJECT_STORE_SERVER
@@ -117,6 +104,16 @@ parameters:
     description: How long to cache env canada downloads for.
     required: True
     value: "21600"
+  - name: GUNICORN_TIMEOUT
+    description: Workers silent for more than this many seconds are killed and restarted. (https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout)
+    required: True
+    value: "180"
+  - name: SFMS_SECRET
+    description: Secret for SFMS process triger
+    required: True
+  - name: NATS_SERVER
+    description: NATS server url
+    required: True
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -134,8 +131,6 @@ objects:
       bc-fire-weather-user: ${BC_FIRE_WEATHER_USER}
       bc-fire-weather-filter-id: ${BC_FIRE_WEATHER_FILTER_ID}
       env.openshift-base-uri: ${OPENSHIFT_BASE_URI}
-      env.matomo-url: ${MATOMO_URL}
-      env.matomo-site-id: ${MATOMO_SITE_ID}
       rocket.chat-channel: ${ROCKET_CHANNEL}
       rocket.chat-url-post-message: ${ROCKET_URL_POST_MESSAGE}
       env.redis-host: ${REDIS_HOST}
@@ -147,6 +142,8 @@ objects:
       env.redis-hourlies-by-station-code-cache-expiry: ${REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY}
       env.redis-cache-env-canada: ${REDIS_CACHE_ENV_CANADA}
       env.redis-env-canada-cache-expiry: ${REDIS_ENV_CANADA_CACHE_EXPIRY}
+      env.gunicorn.timeout: ${GUNICORN_TIMEOUT}
+      env.nats-server: ${NATS_SERVER}
 
   - kind: Secret
     apiVersion: v1
@@ -168,3 +165,4 @@ objects:
       rocket.chat-user-id-secret: ${ROCKET_USER_ID}
       env.openshift-namespace-api: ${OPENSHIFT_NAMESPACE_API}
       certbot-server: ${CERTBOT_SERVER}
+      sfms-secret: ${SFMS_SECRET}

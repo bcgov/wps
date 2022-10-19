@@ -23,10 +23,7 @@ const percentiles = createSlice({
     getPercentilesStart(state: PercentilesState) {
       state.loading = true
     },
-    getPercentilesSuccess(
-      state: PercentilesState,
-      action: PayloadAction<PercentilesResponse>
-    ) {
+    getPercentilesSuccess(state: PercentilesState, action: PayloadAction<PercentilesResponse>) {
       state.result = action.payload
       state.loading = false
       state.error = null
@@ -41,12 +38,8 @@ const percentiles = createSlice({
   }
 })
 
-export const {
-  getPercentilesStart,
-  getPercentilesFailed,
-  getPercentilesSuccess,
-  resetPercentilesResult
-} = percentiles.actions
+export const { getPercentilesStart, getPercentilesFailed, getPercentilesSuccess, resetPercentilesResult } =
+  percentiles.actions
 
 export default percentiles.reducer
 

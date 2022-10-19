@@ -1,4 +1,5 @@
-import { makeStyles, TableCell } from '@material-ui/core'
+import { TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import React from 'react'
 
 interface TextDisplayCellProps {
@@ -17,11 +18,7 @@ const useStyles = makeStyles({
 const TextDisplayCell = (props: TextDisplayCellProps) => {
   const classes = useStyles()
 
-  return (
-    <TableCell className={props.className ? props.className : classes.dataRow}>
-      {props.value}
-    </TableCell>
-  )
+  return <TableCell className={props.className ? props.className : classes.dataRow}>{props.value}</TableCell>
 }
 
 export default React.memo(TextDisplayCell)

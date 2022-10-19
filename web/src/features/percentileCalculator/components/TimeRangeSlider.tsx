@@ -1,7 +1,6 @@
 import React from 'react'
-import { InputLabel, makeStyles } from '@material-ui/core'
-
-import Slider from 'components/Slider'
+import { InputLabel, Slider } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 
 const useStyles = makeStyles({
   root: {
@@ -9,6 +8,9 @@ const useStyles = makeStyles({
   },
   inputLabel: {
     marginBottom: 5
+  },
+  slider: {
+    width: 300
   }
 })
 
@@ -49,6 +51,7 @@ export const TimeRangeSlider: React.FunctionComponent<Props> = (props: Props) =>
     <div className={classes.root} data-testid="time-range-slider">
       <InputLabel className={classes.inputLabel}>Time Range (years)</InputLabel>
       <Slider
+        className={classes.slider}
         aria-label="Time Range"
         marks={TIME_RANGE_OPTIONS}
         max={MAX_YEARS}

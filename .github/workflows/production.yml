@@ -9,10 +9,10 @@ on: deployment
 jobs:
   deploy_to_production:
     name: Deploy to production
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Find PR number
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         with:
           # reference used to figure out this part:
           # https://docs.github.com/en/rest/reference/pulls#list-pull-requests
@@ -20,46 +20,25 @@ jobs:
           # https://github.com/actions/github-script
           script: |
             // get pull requests relating to this commit hash
-            const pulls = (await github.repos.listPullRequestsAssociatedWithCommit({owner: context.repo.owner, repo: context.repo.repo, commit_sha: context.sha }))
+            const pulls = (await github.rest.repos.listPullRequestsAssociatedWithCommit({owner: context.repo.owner, repo: context.repo.repo, commit_sha: context.sha }))
             console.log(pulls)
             // find an open PR (potentially problematic if you have multiple PR's on the same hash open!)
             const pr = pulls.data.find( ({state}) => state === 'open')
             core.exportVariable('SUFFIX', `pr-${pr.number}`);
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Provision to production
         run: |
           echo Login
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_PROD_TOKEN }}"
-          echo Promote
-          bash openshift/scripts/oc_promote.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_promote_ubuntu.sh ${SUFFIX} apply
-          echo Provision database
-          CPU_REQUEST=75m CPU_LIMIT=2000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi PVC_SIZE=45Gi PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_provision_db.sh prod apply
-          echo Deploy API
-          CPU_REQUEST=50m CPU_LIMIT=500m MEMORY_REQUEST=2Gi MEMORY_LIMIT=3Gi REPLICAS=3 PROJ_TARGET=e1e498-prod VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca bash ./openshift/scripts/oc_deploy.sh prod apply
-          echo Env Canada Subscriber
-          PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh prod apply
-          PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh prod apply
-          PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh prod apply
-          echo C-Haines
-          PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_provision_c_haines_cronjob.sh prod apply
-          echo BC FireWeather cronjobs
-          echo "Run forecast at 8h30 PDT and 16h30 PDT (so before and after noon)"
-          PROJ_TARGET=e1e498-prod SCHEDULE="30 15,23 * * *" bash openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply
-          PROJ_TARGET=e1e498-prod SCHEDULE="15 * * * *" bash openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh prod apply
-          echo Configure backups
-          PROJ_TARGET=e1e498-prod CPU_REQUEST=1000m CPU_LIMIT=2000m bash openshift/scripts/oc_provision_backup_s3_postgres_cronjob.sh prod apply
-          PROJ_TARGET=e1e498-prod CPU_REQUEST=50m CPU_LIMIT=500m BACKUP_VOLUME_SIZE=3Gi bash openshift/scripts/oc_provision_backup_mariadb.sh prod apply
-          PROJ_TARGET=e1e498-prod CPU_REQUEST=50m CPU_LIMIT=500m bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh prod apply
-          echo Configure
-          PROJ_TARGET=e1e498-prod CERTBOT_STAGING=false DRYRUN=false bash openshift/scripts/oc_provision_certbot_cronjob.sh prod apply
+          PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_deploy_to_production.sh ${SUFFIX} apply
+
   set_deployment_status_success:
     name: Set production deployment successful
     needs: [deploy_to_production]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Set status to deployed
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         with:
           # reference used to figure out how to set the deployment status:
           # https://docs.github.com/en/rest/reference/repos#deployments
@@ -67,5 +46,5 @@ jobs:
           # https://octokit.github.io/rest.js/v18#repos-create-deployment-status
           script: |
             console.log(context.payload)
-            const status = (await github.repos.createDeploymentStatus({owner: context.repo.owner, repo: context.repo.repo, deployment_id: context.payload.deployment.id, state: 'success'}))
+            const status = (await github.rest.repos.createDeploymentStatus({owner: context.repo.owner, repo: context.repo.repo, deployment_id: context.payload.deployment.id, state: 'success'}))
             console.log(status)

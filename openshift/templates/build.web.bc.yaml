@@ -1,0 +1,80 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: ${APP_NAME}-${MODULE_NAME}
+  annotations:
+    openshift.io/display-name: "wps"
+    description: "Wildfire Predictive Services - WEB"
+    openshift.io/long-description: "Wildfire Predictive Services - WEB"
+    tags: "wps"
+    iconClass: icon-js
+    openshift.io/provider-display-name: "Government of British Columbia"
+    openshift.io/documentation-url: "https://github.com/bcgov/wps"
+    openshift.io/support-url: "https://github.com/bcgov/wps"
+labels:
+  app.kubernetes.io/part-of: "${APP_NAME}-${MODULE_NAME}"
+  app: ${APP_NAME}-${SUFFIX}
+parameters:
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
+    value: wps
+  - name: MODULE_NAME
+    description: Module name (api, web, c-haines, etc. etc.)
+    value: web
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-### or prod
+    required: true
+  - name: GIT_URL
+    value: https://github.com/bcgov/wps.git
+  - name: GIT_BRANCH
+    description: PR branch
+    required: true
+  - name: DOCKER_FILE
+    description: Dockerfile to use
+    required: true
+    value: Dockerfile.web
+objects:
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+        common: "true"
+      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+    spec:
+      lookupPolicy:
+        local: false
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
+    spec:
+      completionDeadlineSeconds: 1200 # 20 minutes
+      runPolicy: SerialLatestOnly
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}
+      resources:
+        limits:
+          cpu: "0"
+          memory: "0"
+        requests:
+          cpu: "0"
+          memory: "0"
+      source:
+        type: Git
+        git:
+          uri: ${GIT_URL}
+          ref: origin/${GIT_BRANCH}
+        contextDir: ./
+      strategy:
+        dockerStrategy:
+          dockerfilePath: ${DOCKER_FILE}
+      triggers: []

@@ -1,12 +1,12 @@
-import {
-  makeStyles,
-  Paper,
-  Table,
-  TableContainer,
-  ThemeProvider
-} from '@material-ui/core'
+import { Paper, Table, TableContainer, ThemeProvider, Theme, StyledEngineProvider } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { fireTableTheme } from 'app/theme'
 import React from 'react'
+
+declare module '@mui/styles/defaultTheme' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface DefaultTheme extends Theme {}
+}
 
 interface FireTableProps {
   ariaLabel: string
@@ -27,13 +27,15 @@ const FireTable = (props: FireTableProps) => {
   }))
   return (
     <Paper elevation={1}>
-      <ThemeProvider theme={fireTableTheme}>
-        <TableContainer data-testid={'fire-table'} className={useStyles().tableContainer}>
-          <Table data-testid={props.testId} stickyHeader>
-            {props.children}
-          </Table>
-        </TableContainer>
-      </ThemeProvider>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={fireTableTheme}>
+          <TableContainer data-testid={'fire-table'} className={useStyles().tableContainer}>
+            <Table data-testid={props.testId} stickyHeader>
+              {props.children}
+            </Table>
+          </TableContainer>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </Paper>
   )
 }

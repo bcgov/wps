@@ -1,5 +1,5 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 import {
   darkGreenColor,
@@ -26,6 +26,7 @@ const useStyles = makeStyles({
   },
   title: {
     height: '20px',
+    fontSize: '0.875rem',
     width: '260px',
     color: 'white',
     textAlign: 'center'

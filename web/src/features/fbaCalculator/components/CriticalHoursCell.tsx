@@ -1,4 +1,5 @@
-import { makeStyles, TableCell } from '@material-ui/core'
+import { TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { CriticalHoursHFI } from 'api/fbaCalcAPI'
 import React from 'react'
 
@@ -15,9 +16,7 @@ const useStyles = makeStyles({
   }
 })
 
-export const formatCriticalHoursAsString = (
-  criticalHours: CriticalHoursHFI | undefined | null
-): string | undefined => {
+export const formatCriticalHoursAsString = (criticalHours: CriticalHoursHFI | undefined | null): string | undefined => {
   if (criticalHours === undefined || criticalHours === null) {
     return undefined
   }

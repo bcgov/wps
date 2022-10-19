@@ -1,0 +1,823 @@
+{
+    "fire_centres": [{
+        "Cariboo Fire Centre": {
+            "zones": [{
+                "Black Water": {
+                    "order_of_appearance_in_list": 1,
+                    "stations": [{
+                        "165": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "166": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C3" 
+                        },
+                        "189": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C3"
+                        },
+                        "221": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C3"
+                        },
+                        "211": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C3"
+                        },
+                        "206": {
+                            "order_of_appearance_in_planning_area_list": 6,
+                            "fuel_type": "C3"
+                        },
+                        "229": {
+                            "order_of_appearance_in_planning_area_list": 7,
+                            "fuel_type": "C3"
+                        }
+                    }]
+                },
+                "Chilcotin": {
+                    "order_of_appearance_in_list": 2,
+                    "stations": [{
+                        "213": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "203": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7"
+                        },
+                        "208": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C3"
+                        },
+                        "226": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C7"
+                        },
+                        "209": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C7"
+                        },
+                        "216": {
+                            "order_of_appearance_in_planning_area_list": 6,
+                            "fuel_type": "C7"
+                        },
+                        "222": {
+                            "order_of_appearance_in_planning_area_list": 7,
+                            "fuel_type": "C3"
+                        }
+                    }]
+                },
+                "Fraser": {
+                    "order_of_appearance_in_list": 3,
+                    "stations": [{
+                        "205": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7"
+                        },
+                        "210": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7"
+                        },
+                        "225": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C7"
+                        },
+                        "212": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C7"
+                        },
+                        "832": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C7"
+                        },
+                        "236": {
+                            "order_of_appearance_in_planning_area_list": 6,
+                            "fuel_type": "C7"
+                        },
+                        "218": {
+                            "order_of_appearance_in_planning_area_list": 7,
+                            "fuel_type": "C7"
+                        },
+                        "235": {
+                            "order_of_appearance_in_planning_area_list": 8,
+                            "fuel_type": "C7"
+                        }
+                    }]
+                },
+                "Wet Belt": {
+                    "order_of_appearance_in_list": 4,
+                    "stations": [{
+                        "262": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "228": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C3"
+                        },
+                        "263": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C5"
+                        },
+                        "255": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C3"
+                        },
+                        "227": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C5"
+                        },
+                        "264": {
+                            "order_of_appearance_in_planning_area_list": 6,
+                            "fuel_type": "C5"
+                        },
+                        "230": {
+                            "order_of_appearance_in_planning_area_list": 7,
+                            "fuel_type": "C3"
+                        },
+                        "234": {
+                            "order_of_appearance_in_planning_area_list": 8,
+                            "fuel_type": "C3"
+                        },
+                        "251": {
+                            "order_of_appearance_in_planning_area_list": 9,
+                            "fuel_type": "C5"
+                        },
+                        "244": {
+                            "order_of_appearance_in_planning_area_list": 10,
+                            "fuel_type": "C3"
+                        }
+                    }]
+                }
+            }]
+        },
+        "Coastal Fire Centre": {
+            "zones": [{
+                "Fraser Zone": {
+                    "order_of_appearance_in_list": 1,
+                    "stations": [{
+                        "317": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "1339": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7"
+                        },
+                        "316": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C5"
+                        },
+                        "1144": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C5"
+                        },
+                        "93": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                },
+                "Pemberton Zone": {
+                    "order_of_appearance_in_list": 2,
+                    "stations": [{
+                        "292": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7"
+                        },
+                        "1283": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C5"
+                        },
+                        "1375": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "BL"
+                        },
+                        "1083": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C5"
+                        },
+                        "83": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                },
+                "Sunshine Coast": {
+                    "order_of_appearance_in_list": 3,
+                    "stations": [{
+                        "1016": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C5"
+                        },
+                        "1218": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C5"
+                        },
+                        "75": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C5"
+                        },
+                        "82": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                },
+                "South Island": {
+                    "order_of_appearance_in_list": 4,
+                    "stations": [{
+                        "45": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7"
+                        },
+                        "934": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                },
+                "Mid Island": {
+                    "order_of_appearance_in_list": 5,
+                    "stations": [{
+                        "59": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "BL"
+                        },
+                        "37": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C5"
+                        },
+                        "1383": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C7"
+                        }
+                    }]
+                },
+                "North Island": {
+                    "order_of_appearance_in_list": 6,
+                    "stations": [{
+                        "1093": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C5"
+                        },
+                        "19": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "BL"
+                        },
+                        "21": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                },
+                "Mid-Coast": {
+                    "order_of_appearance_in_list": 7,
+                    "stations": [{
+                        "904": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C5"
+                        },
+                        "233": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C3"
+                        },
+                        "165": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C3"
+                        }
+                    }]
+                }
+            }]
+        },
+        "Prince George Fire Centre": {
+            "zones": [{
+                "Prince George Zone (G1)": {
+                    "order_of_appearance_in_list": 1,
+                    "stations": [{
+                        "189": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "175": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C3"
+                        },
+                        "187": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C3"
+                        },
+                        "149": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C3"
+                        }
+                    }]
+                },
+                "Robson Valley (G3)": {
+                    "order_of_appearance_in_list": 2,
+                    "stations": [{
+                        "195": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "200": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C3"
+                        },
+                        "1268": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C3"
+                        },
+                        "1108": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C3"
+                        }
+                    }]
+                },
+                "VanJam (G4/5)": {
+                    "order_of_appearance_in_list": 3,
+                    "stations": [{
+                        "165": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "158": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C3"
+                        },
+                        "146": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C3"
+                        },
+                        "163": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C3"
+                        }
+                    }]
+                },
+                "Mackenzie (G6)": {
+                    "order_of_appearance_in_list": 4,
+                    "stations": [{
+                        "155": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "141": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C3"
+                        },
+                        "145": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C3"
+                        }
+                    }]
+                },
+                "Dawson Creek (G7)": {
+                    "order_of_appearance_in_list": 5,
+                    "stations": [{
+                        "132": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "437": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C3"
+                        },
+                        "122": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C3"
+                        },
+                        "127": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C3"
+                        }
+                    }]
+                },
+                "Fort St John (G8)": {
+                    "order_of_appearance_in_list": 6,
+                    "stations": [{
+                        "1045": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "136": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C3"
+                        },
+                        "120": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C2"
+                        }
+                    }]
+                },
+                "Fort Nelson (G9)": {
+                    "order_of_appearance_in_list": 7,
+                    "stations": [{
+                        "119": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C2"
+                        },
+                        "117": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C2" 
+                        },
+                        "599": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C2"
+                        },
+                        "126": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C2"
+                        },
+                        "118": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C2"
+                        }
+                    }]
+                }
+            }]
+        },
+        "Northwest Fire Centre": {
+            "zones": [{
+                "Cassiar Zone": {
+                    "order_of_appearance_in_list": 1,
+                    "stations": [{
+                        "111": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "445": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C1"
+                        },
+                        "110": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C3"
+                        },
+                        "112": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C4"
+                        },
+                        "108": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C2"
+                        },
+                        "113": {
+                            "order_of_appearance_in_planning_area_list": 6,
+                            "fuel_type": "C2"
+                        },
+                        "444": {
+                            "order_of_appearance_in_planning_area_list": 7,
+                            "fuel_type": "C2"
+                        },
+                        "440": {
+                            "order_of_appearance_in_planning_area_list": 8,
+                            "fuel_type": "C2"
+                        },
+                        "967": {
+                            "order_of_appearance_in_planning_area_list": 9,
+                            "fuel_type": "C2"
+                        }
+                    }]
+                },
+                "Skeena Zone": {
+                    "order_of_appearance_in_list": 2,
+                    "stations": [{
+                        "106": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C5"
+                        },
+                        "103": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C3"
+                        },
+                        "105": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C3"
+                        },
+                        "430": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C3"
+                        },
+                        "427": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C5"
+                        },
+                        "432": {
+                            "order_of_appearance_in_planning_area_list": 6,
+                            "fuel_type": "C5"
+                        },
+                        "113": {
+                            "order_of_appearance_in_planning_area_list": 7,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                },
+                "Bulkley Zone": {
+                    "order_of_appearance_in_list": 3,
+                    "stations": [{
+                        "429": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "428": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C3"
+                        },
+                        "157": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C3"
+                        },
+                        "182": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C3"
+                        },
+                        "172": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C3"
+                        },
+                        "169": {
+                            "order_of_appearance_in_planning_area_list": 6,
+                            "fuel_type": "C3"
+                        },
+                        "431": {
+                            "order_of_appearance_in_planning_area_list": 7,
+                            "fuel_type": "C3"
+                        },
+                        "433": {
+                            "order_of_appearance_in_planning_area_list": 8,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                },
+                "Nadina Zone": {
+                    "order_of_appearance_in_list": 4,
+                    "stations": [{
+                        "181": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C3"
+                        },
+                        "161": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C3"
+                        },
+                        "170": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C3"
+                        },
+                        "162": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C3"
+                        },
+                        "178": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C3"
+                        },
+                        "180": {
+                            "order_of_appearance_in_planning_area_list": 6,
+                            "fuel_type": "C3"
+                        },
+                        "165": {
+                            "order_of_appearance_in_planning_area_list": 7,
+                            "fuel_type": "C3"
+                        },
+                        "179": {
+                            "order_of_appearance_in_planning_area_list": 8,
+                            "fuel_type": "C3"
+                        },
+                        "173": {
+                            "order_of_appearance_in_planning_area_list": 9,
+                            "fuel_type": "C3"
+                        },
+                        "167": {
+                            "order_of_appearance_in_planning_area_list": 10,
+                            "fuel_type": "C3"
+                        }
+                    }]
+                }
+            }]
+        },
+        "Southeast Fire Centre": {
+            "zones": [{
+                "Boundary Zone": {
+                    "order_of_appearance_in_list": 1,
+                    "stations": [{
+                        "390": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7"
+                        },
+                        "392": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7"
+                        },
+                        "391": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                },
+                "West Kootenay Zone": {
+                    "order_of_appearance_in_list": 2,
+                    "stations": [{
+                        "380": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C5"
+                        },
+                        "387": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C5"
+                        },
+                        "407": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C5"
+                        },
+                        "396": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C5"
+                        },
+                        "402": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C7"
+                        },
+                        "404": {
+                            "order_of_appearance_in_planning_area_list": 6,
+                            "fuel_type": "C5"
+                        },
+                        "401": {
+                            "order_of_appearance_in_planning_area_list": 7,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                },
+                "East Kootenay Zone": {
+                    "order_of_appearance_in_list": 3,
+                    "stations": [{
+                        "412": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7"
+                        },
+                        "425": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7"
+                        },
+                        "419": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C7"
+                        },
+                        "788": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C5"
+                        },
+                        "417": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C7"
+                        },
+                        "789": {
+                            "order_of_appearance_in_planning_area_list": 6,
+                            "fuel_type": "C5"
+                        },
+                        "865": {
+                            "order_of_appearance_in_planning_area_list": 7,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                },
+                "Columbia Zone": {
+                    "order_of_appearance_in_list": 4,
+                    "stations": [{
+                        "919": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C5"
+                        },
+                        "363": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C5"
+                        },
+                        "866": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C5"
+                        },
+                        "367": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C5"
+                        },
+                        "374": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C5"
+                        },
+                        "873": {
+                            "order_of_appearance_in_planning_area_list": 6,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                }
+            }]
+        },
+        "Kamloops Fire Centre": {
+            "zones": [{
+                "Kamloops (K2)": {
+                    "order_of_appearance_in_list": 1,
+                    "stations": [{
+                        "239": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7" 
+                        },
+                        "266": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C5"
+                        },
+                        "305": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C7B"
+                        },
+                        "322": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "O1B"
+                        },
+                        "1082": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C3"
+                        }
+                    }]
+                },
+                "Vernon (K4)": {
+                    "order_of_appearance_in_list": 2,
+                    "stations": [{
+                        "286": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7B"
+                        },
+                        "298": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7B"
+                        },
+                        "344": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C5"
+                        },
+                        "346": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C7B"
+                        },
+                        "388": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C5"
+                        }
+                    }]
+                },
+                "Penticton (K5)": {
+                    "order_of_appearance_in_list": 3,
+                    "stations": [{
+                        "328": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7B"
+                        },
+                        "334": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7B"
+                        }
+                    }]
+                },
+                "Merritt (K6)": {
+                    "order_of_appearance_in_list": 4,
+                    "stations": [{
+                        "836": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7B"
+                        },
+                        "1399": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7B"
+                        }
+                    }]
+                },
+                "Lillooet (K7)": {
+                    "order_of_appearance_in_list": 5,
+                    "stations": [{
+                        "280": {
+                            "order_of_appearance_in_planning_area_list": 1,
+                            "fuel_type": "C7B"
+                        },
+                        "306": {
+                            "order_of_appearance_in_planning_area_list": 2,
+                            "fuel_type": "C7B"
+                        },
+                        "309": {
+                            "order_of_appearance_in_planning_area_list": 3,
+                            "fuel_type": "C7B"
+                        },
+                        "1029": {
+                            "order_of_appearance_in_planning_area_list": 4,
+                            "fuel_type": "C7B"
+                        },
+                        "1055": {
+                            "order_of_appearance_in_planning_area_list": 5,
+                            "fuel_type": "C7B"
+                        }
+                    }]
+                }
+            }]
+        }
+    }]
+}

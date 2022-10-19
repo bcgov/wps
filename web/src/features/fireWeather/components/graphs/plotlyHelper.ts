@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import { Data, Shape, Layout, RangeSlider, PlotData, BoxPlotData } from 'plotly.js'
 import { WIND_SPEED_VALUES_DECIMAL, PST_UTC_OFFSET } from 'utils/constants'
 import { formatWindDirection } from 'utils/format'
-import { formatDateInPST } from 'utils/date'
+import { formatDatetimeInPST } from 'utils/date'
 
 export const findMaxNumber = (arr: number[]): number => {
   if (arr.length === 0) {
@@ -38,12 +38,7 @@ export const getLayoutConfig = (title: string): Partial<Layout> => ({
   }
 })
 
-export const populateTimeOfInterestLineData = (
-  x: string,
-  y0: number,
-  y1: number,
-  yaxis?: string
-): Data => {
+export const populateTimeOfInterestLineData = (x: string, y0: number, y1: number, yaxis?: string): Data => {
   return {
     x: [x, x],
     y: [y0, y1],
@@ -154,7 +149,7 @@ export const populateGraphDataForTempAndRH = (
       bias_adjusted_temperature,
       bias_adjusted_relative_humidity
     } = value
-    const date = formatDateInPST(datetime)
+    const date = formatDatetimeInPST(datetime)
 
     if (temperature != null) {
       tempDates.push(date)
@@ -428,16 +423,13 @@ export const getDailyAndAccumPrecips = (
   const dates: string[] = []
   const dailyPrecips: number[] = []
   const shouldAggregate =
-    values.length > 0 &&
-    (values[0].precipitation !== undefined || values[0].delta_precipitation !== undefined)
+    values.length > 0 && (values[0].precipitation !== undefined || values[0].delta_precipitation !== undefined)
 
   // if the type of the value is observation or one of weather models, then aggregate hourly data to daily
   if (shouldAggregate) {
     const aggregatedPrecips: { [k: string]: number } = {}
     values.forEach(({ datetime, precipitation, delta_precipitation }) => {
-      const date = DateTime.fromISO(datetime)
-        .setZone(`UTC${PST_UTC_OFFSET}`)
-        .toFormat('yyyy-MM-dd')
+      const date = DateTime.fromISO(datetime).setZone(`UTC${PST_UTC_OFFSET}`).toFormat('yyyy-MM-dd')
       let precip = 0
 
       if (precipitation != null) {
@@ -606,7 +598,7 @@ const createPath = (
     yref: 'y', // we can position these arrows with wind spd values using xanchor & yanchor
     xsizemode: 'pixel', // https://plotly.com/javascript/reference/layout/shapes/#layout-shapes-items-shape-xsizemode
     ysizemode: 'pixel',
-    xanchor: formatDateInPST(datetime),
+    xanchor: formatDatetimeInPST(datetime),
     yanchor: wind_speed,
     line: {
       color: show ? colour : 'transparent'
@@ -639,11 +631,9 @@ export const populateGraphDataForWind = (
 
   values.forEach(({ wind_direction, wind_speed, datetime }) => {
     if (wind_speed != null) {
-      dates.push(formatDateInPST(datetime))
+      dates.push(formatDatetimeInPST(datetime))
       windSpds.push(wind_speed)
-      windSpdsTexts.push(
-        wind_direction != null ? `${formatWindDirection(wind_direction)}` : '-'
-      )
+      windSpdsTexts.push(wind_direction != null ? `${formatWindDirection(wind_direction)}` : '-')
 
       if (wind_direction != null && show) {
         const arrowShape = rotatePoints(arrowPoints, wind_direction)

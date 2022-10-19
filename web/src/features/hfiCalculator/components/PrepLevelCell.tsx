@@ -1,13 +1,14 @@
-import { makeStyles, TableCell } from '@material-ui/core'
+import { TableCell } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { fireTableStyles } from 'app/theme'
-import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
+import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
+import { isNull, isUndefined } from 'lodash'
 import React from 'react'
 
 export interface PrepLevelCellProps {
   testid?: string
-  meanIntensityGroup: number | undefined
-  areaName: string
-  meanPrepLevel: boolean
+  toolTipText: string
+  prepLevel: number | undefined
 }
 
 const prepLevelColours: { [description: string]: string } = {
@@ -52,81 +53,44 @@ const useStyles = makeStyles({
     ...fireTableStyles.calculatedPlanningCell,
     border: '2px solid ' + prepLevelColours.bloodRed,
     background: DAILY_BACKGROUND_COLOR
-  },
-  meanPrepLevel1: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.green
-  },
-  meanPrepLevel2: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.blue
-  },
-  meanPrepLevel3: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.yellow
-  },
-  meanPrepLevel4: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.orange
-  },
-  meanPrepLevel5: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.brightRed,
-    color: 'white'
-  },
-  meanPrepLevel6: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.bloodRed,
-    color: 'white'
   }
 })
 
 const PrepLevelCell = (props: PrepLevelCellProps) => {
   const classes = useStyles()
 
-  const prepLevel = calculatePrepLevel(props.meanIntensityGroup)
-
   const formatPrepLevelByValue = () => {
-    if (!props.meanPrepLevel) {
-      switch (prepLevel) {
-        case 1:
-          return classes.prepLevel1
-        case 2:
-          return classes.prepLevel2
-        case 3:
-          return classes.prepLevel3
-        case 4:
-          return classes.prepLevel4
-        case 5:
-          return classes.prepLevel5
-        case 6:
-          return classes.prepLevel6
-        default:
-          return classes.defaultBackground
-      }
-    } else {
-      switch (prepLevel) {
-        case 1:
-          return classes.meanPrepLevel1
-        case 2:
-          return classes.meanPrepLevel2
-        case 3:
-          return classes.meanPrepLevel3
-        case 4:
-          return classes.meanPrepLevel4
-        case 5:
-          return classes.meanPrepLevel5
-        case 6:
-          return classes.meanPrepLevel6
-        default:
-          return classes.defaultBackground
-      }
+    switch (props.prepLevel) {
+      case 1:
+        return classes.prepLevel1
+      case 2:
+        return classes.prepLevel2
+      case 3:
+        return classes.prepLevel3
+      case 4:
+        return classes.prepLevel4
+      case 5:
+        return classes.prepLevel5
+      case 6:
+        return classes.prepLevel6
+      default:
+        return classes.defaultBackground
     }
   }
 
+  const prepLevelErrorTooltipElement = (toolTipText: string) => <div>{toolTipText}</div>
+
   return (
     <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
-      {prepLevel}
+      {isNull(props.prepLevel) || isUndefined(props.prepLevel) ? (
+        <ErrorIconWithTooltip
+          testId="prep-level-error"
+          tooltipElement={prepLevelErrorTooltipElement(props.toolTipText)}
+          tooltipAriaText={[props.toolTipText]}
+        />
+      ) : (
+        props.prepLevel
+      )}
     </TableCell>
   )
 }

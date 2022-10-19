@@ -124,16 +124,10 @@ describe('Table util functions', () => {
     })
 
     it('should return empty rowIds list when min-max value is null', () => {
-      let minMaxRowIds = getMinMaxValuesRowIds(
-        dummyWeatherDataNoPrecip,
-        correctMinMaxValuesNoPrecip
-      )
+      let minMaxRowIds = getMinMaxValuesRowIds(dummyWeatherDataNoPrecip, correctMinMaxValuesNoPrecip)
       expect(minMaxRowIds).toEqual(correctMinMaxRowIdsNoPrecip)
 
-      minMaxRowIds = getMinMaxValuesRowIds(
-        dummyWeatherDataNoWind,
-        correctMinMaxValuesNoWind
-      )
+      minMaxRowIds = getMinMaxValuesRowIds(dummyWeatherDataNoWind, correctMinMaxValuesNoWind)
       expect(minMaxRowIds).toEqual(correctMinMaxRowIdsNoWind)
     })
   })

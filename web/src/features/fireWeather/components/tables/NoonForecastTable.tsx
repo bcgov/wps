@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 
 import { NoonForecastValue } from 'api/forecastAPI'
-import { formatDateInPST, formatDateInUTC00Suffix } from 'utils/date'
+import { formatDatetimeInPST, formatDateInUTC00Suffix } from 'utils/date'
 import {
   Accordion,
   AccordionDetails,
@@ -16,10 +16,10 @@ import {
   TableRow,
   TableSortLabel,
   Typography
-} from '@material-ui/core'
+} from '@mui/material'
 import { ObservedValue } from 'api/observationAPI'
 import { getDatetimeComparator, Order, calculateAccumulatedPrecip } from 'utils/table'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ComparisonTableRow, { DataSource, WeatherVariable } from './ComparisonTableRow'
 
 interface NoonForecastTableProps {
@@ -84,12 +84,8 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
     return null
   }
 
-  const forecastRowsSortedByDatetime = [...props.noonForecasts].sort(
-    getDatetimeComparator(order)
-  )
-  const observationsRowsSortedByDatetime = [...props.noonObservations].sort(
-    getDatetimeComparator(order)
-  )
+  const forecastRowsSortedByDatetime = [...props.noonForecasts].sort(getDatetimeComparator(order))
+  const observationsRowsSortedByDatetime = [...props.noonObservations].sort(getDatetimeComparator(order))
   const toggleDatetimeOrder = () => {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
@@ -110,10 +106,7 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
 
   return (
     <Accordion defaultExpanded>
-      <AccordionSummary
-        data-testid={`${props.testId}-accordion`}
-        expandIcon={<ExpandMoreIcon />}
-      >
+      <AccordionSummary data-testid={`${props.testId}-accordion`} expandIcon={<ExpandMoreIcon />}>
         <Typography component="div" variant="subtitle2">
           Forecast and Observed noon weather:
         </Typography>
@@ -165,37 +158,28 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {forecastRowsSortedByDatetime.map(
-                  (forecast: NoonForecastValue, idx: number) => {
-                    const observation = observationsRowsSortedByDatetime.find(
-                      obs => obs.datetime === forecast.datetime
-                    )
-                    const forecastDatetime = formatDateInUTC00Suffix(forecast.datetime)
+                {forecastRowsSortedByDatetime.map((forecast: NoonForecastValue, idx: number) => {
+                  const observation = observationsRowsSortedByDatetime.find(obs => obs.datetime === forecast.datetime)
+                  const forecastDatetime = formatDateInUTC00Suffix(forecast.datetime)
 
-                    const accumPrecip = calculateAccumulatedPrecip(
-                      forecastDatetime,
-                      observationsRowsSortedByDatetime
-                    )
+                  const accumPrecip = calculateAccumulatedPrecip(forecastDatetime, observationsRowsSortedByDatetime)
 
-                    const indexCell = (
-                      <TableCell>{formatDateInPST(forecast.datetime)}</TableCell>
-                    )
+                  const indexCell = <TableCell>{formatDatetimeInPST(forecast.datetime)}</TableCell>
 
-                    return (
-                      <ComparisonTableRow
-                        key={idx}
-                        index={indexCell}
-                        headers={headers}
-                        subheaders={subheaders}
-                        observation={observation}
-                        forecast={forecast}
-                        accumulatedObsPrecip={accumPrecip}
-                        testId={`forecast-obs-comparison-table-row`}
-                        testIdRowNumber={idx}
-                      ></ComparisonTableRow>
-                    )
-                  }
-                )}
+                  return (
+                    <ComparisonTableRow
+                      key={idx}
+                      index={indexCell}
+                      headers={headers}
+                      subheaders={subheaders}
+                      observation={observation}
+                      forecast={forecast}
+                      accumulatedObsPrecip={accumPrecip}
+                      testId={`forecast-obs-comparison-table-row`}
+                      testIdRowNumber={idx}
+                    ></ComparisonTableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           </TableContainer>

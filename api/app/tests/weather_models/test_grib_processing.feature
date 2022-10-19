@@ -3,8 +3,12 @@ Feature: Grib file processing
     Scenario: Extract origin and pixel information
         Given a grib file: <filename>
         When I extract the geometry
-        Then I expect <origin>
-        And I expect <pixels>
+        Then I expect origin: <origin>
+        And I expect pixels: <pixels>
+
+        # In gdal 3.2.2 : (-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15)
+        # In gdal 3.4.1 : (179.925, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15) <-- BUG!
+        # In gdal 3.5.1 : (-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15)
 
         Examples:
             | filename                                             | origin             | pixels                       |
@@ -13,8 +17,8 @@ Feature: Grib file processing
     Scenario: Extract the surrounding grid
         Given a grib file: <filename>
         When I get the surrounding grid for <raster_coordinate>
-        Then I expect <points>
-        And I expect <values>
+        Then I expect points: <points>
+        And I expect values: <values>
 
         Examples:
             | filename                                                        | raster_coordinate | points                                               | values                                                                           |
@@ -25,7 +29,7 @@ Feature: Grib file processing
     Scenario: Calculate raster coordinates
         Given a GDAL <geotransform> and <wkt_projection_string>
         When I calculate the raster coordinate for <geographic_coordinate>
-        Then I expect <raster_coordinate>
+        Then I expect raster coordinates: <raster_coordinate>
 
         Examples:
             | geotransform                                                        | wkt_projection_string                            | geographic_coordinate      | raster_coordinate |
@@ -40,7 +44,7 @@ Feature: Grib file processing
     Scenario: Calculate geographic coordinates
         Given a GDAL <geotransform> and <wkt_projection_string>
         When I calculate the geographic coordinate for <raster_coordinate>
-        Then I expect <geographic_coordinate>
+        Then I expect the geographic_coordinate <geographic_coordinate>
 
         Examples:
             | geotransform                                                        | wkt_projection_string                            | raster_coordinate | geographic_coordinate                     |

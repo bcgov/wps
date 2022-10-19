@@ -1,7 +1,7 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { Modal, Card, Button } from '@material-ui/core'
-import InfoIcon from '@material-ui/icons/Info'
+import makeStyles from '@mui/styles/makeStyles'
+import { Modal, Card, Button } from '@mui/material'
+import InfoIcon from '@mui/icons-material/Info'
 
 import PercentileCalculatorPage from 'features/percentileCalculator/pages/PercentileCalculatorPage'
 
@@ -13,7 +13,7 @@ const useStyles = makeStyles({
     alignItems: 'center'
   },
   card: {
-    maxWidth: 600,
+    maxWidth: 800,
     maxHeight: 'calc(100% - 32px)',
     margin: 16,
     overflowY: 'auto',
@@ -39,9 +39,7 @@ interface Props {
   showDisclaimer: boolean
 }
 
-const PercentileCalculatorPageWithDisclaimer: React.FunctionComponent<Props> = (
-  props: Props
-) => {
+const PercentileCalculatorPageWithDisclaimer: React.FunctionComponent<Props> = (props: Props) => {
   const classes = useStyles()
   const [show, setShow] = React.useState(props.showDisclaimer)
 
@@ -62,37 +60,31 @@ const PercentileCalculatorPageWithDisclaimer: React.FunctionComponent<Props> = (
           </div>
           <div className={classes.title}>Warranty Disclaimer</div>
           <p>
-            This 90th Percentile Forest Fire Weather Index (FWI) system software and
-            related documentation is provided as a public service by the Government of
-            British Columbia, Box 9411, Victoria, British Columbia, Canada V8W 9V1.
+            This 90th Percentile Forest Fire Weather Index (FWI) system software and related documentation is provided
+            as a public service by the Government of British Columbia, Box 9411, Victoria, British Columbia, Canada V8W
+            9V1.
           </p>
           <p>
-            This 90th Percentile Forest Fire Weather Index (FWI) system software and
-            related documentation are provided &quot;as is&quot; without warranty of any
-            kind, whether express or implied. Users of this software and documentation do
-            so at their own risk. All implied warranties, including, without limitation,
-            implied warranties of merchantability, fitness for a particular purpose, and
-            non-infringement, are hereby expressly disclaimed. Links and references to any
-            other websites or software are provided for information only and listing shall
-            not be taken as endorsement of any kind.
+            This 90th Percentile Forest Fire Weather Index (FWI) system software and related documentation are provided
+            &quot;as is&quot; without warranty of any kind, whether express or implied. Users of this software and
+            documentation do so at their own risk. All implied warranties, including, without limitation, implied
+            warranties of merchantability, fitness for a particular purpose, and non-infringement, are hereby expressly
+            disclaimed. Links and references to any other websites or software are provided for information only and
+            listing shall not be taken as endorsement of any kind.
           </p>
           <p>
-            The Government of British Columbia is not responsible for the content or
-            reliability of any linked software and websites and does not endorse the
-            content, products, services or views expressed within them. It is the
-            responsibility of all persons who use 90th Percentile Forest Fire Weather
-            Index (FWI) system software and related documentation to independently confirm
-            the accuracy of the data, information, or results obtained through their use.
+            The Government of British Columbia is not responsible for the content or reliability of any linked software
+            and websites and does not endorse the content, products, services or views expressed within them. It is the
+            responsibility of all persons who use 90th Percentile Forest Fire Weather Index (FWI) system software and
+            related documentation to independently confirm the accuracy of the data, information, or results obtained
+            through their use.
           </p>
           <p>
-            Limitation of Liabilities Under no circumstances will the Government of
-            British Columbia be liable to any person or business entity for any direct,
-            indirect, special, incidental, consequential, or other damages based on any
-            use of this software and documentation or any other software to which this
-            site is linked, including, without limitation, any lost profits, business
-            interruption, or loss of programs or information, even if the Government of
-            British Columbia has been specifically advised of the possibility of such
-            damages.
+            Limitation of Liabilities Under no circumstances will the Government of British Columbia be liable to any
+            person or business entity for any direct, indirect, special, incidental, consequential, or other damages
+            based on any use of this software and documentation or any other software to which this site is linked,
+            including, without limitation, any lost profits, business interruption, or loss of programs or information,
+            even if the Government of British Columbia has been specifically advised of the possibility of such damages.
           </p>
           <div className={classes.acceptBtnWrapper}>
             <Button

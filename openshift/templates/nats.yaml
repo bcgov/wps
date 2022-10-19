@@ -1,0 +1,345 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: nats
+  annotations:
+    "openshift.io/display-name": nats
+parameters:
+  - name: POD_NAMESPACE
+    description: The pod namespace
+    value: ${POD_NAMESPACE}
+    required: true
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
+    value: wps
+    required: true
+  - name: IMAGE_REGISTRY
+    description: Location where images are to be pulled
+    value: image-registry.openshift-image-registry.svc:5000
+    required: true
+  - name: IMAGE_NAME
+    required: true
+  - name: IMAGE_TAG
+    required: true
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+    required: true
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+    required: true
+  - name: POSTGRES_WRITE_HOST
+    required: true
+  - name: POSTGRES_READ_HOST
+    required: true
+  - name: POSTGRES_USER
+    required: true
+  - name: POSTGRES_DATABASE
+    required: true
+objects:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: nats-config
+      labels:
+        app: nats
+    data:
+      nats.conf: |-
+        pid_file: "/var/run/nats/nats.pid"
+        http: 8222
+        max_payload: 100Mb
+        max_pending: 120Mb
+        debug: false
+        trace: false
+        trace_verbose: false
+        server_name: $POD_NAME
+        cluster {
+            port: 6222
+            name: wps-nats-cluster
+            routes [
+               nats://nats-0.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://nats-1.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://nats-2.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://nats-3.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://nats-4.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+            ]
+            cluster_advertise: $CLUSTER_ADVERTISE
+            connect_retries: 50
+        }
+        leafnodes {
+          port: 7422
+        }
+        jetstream {
+          store_dir: /data
+          max_file: 5Gi
+        }
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: nats
+      labels:
+        app: nats
+    spec:
+      selector:
+        app: nats
+      clusterIP: None
+      ports:
+        - name: client
+          port: 4222
+        - name: cluster
+          port: 6222
+        - name: monitor
+          port: 8222
+        - name: metrics
+          port: 7777
+        - name: leafnodes
+          port: 7422
+        - name: gateways
+          port: 7522
+
+  - apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      name: nats
+      labels:
+        app: nats
+    spec:
+      selector:
+        matchLabels:
+          app: nats
+      replicas: 5
+      serviceName: "nats"
+      volumeClaimTemplates:
+        - metadata:
+            name: nats-jetstream-wps
+          spec:
+            accessModes:
+              - ReadWriteMany
+            volumeMode: "Filesystem"
+            persistentVolumeReclaimPolicy: Delete
+            resources:
+              requests:
+                storage: 5Gi
+      template:
+        metadata:
+          labels:
+            app: nats
+        spec:
+          # Common volumes for the containers
+          volumes:
+            - name: config-volume
+              configMap:
+                name: nats-config
+            - name: pid
+              emptyDir: {}
+            - name: nats-jetstream-wps
+              persistentVolumeClaim:
+                claimName: nats-jetstream-wps
+
+          # Required to be able to HUP signal and apply config reload
+          # to the server without restarting the pod.
+          shareProcessNamespace: true
+
+          #################
+          #               #
+          #  NATS Server  #
+          #               #
+          #################
+          terminationGracePeriodSeconds: 60
+          containers:
+            - name: nats
+              image: artifacts.developer.gov.bc.ca/docker-remote/nats:2.9.0-alpine
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "256Mi"
+                limits:
+                  cpu: "250m"
+                  memory: "1024Mi"
+              ports:
+                - containerPort: 4222
+                  name: client
+                - containerPort: 7422
+                  name: leafnodes
+                - containerPort: 6222
+                  name: cluster
+                - containerPort: 8222
+                  name: monitor
+                - containerPort: 7777
+                  name: metrics
+              command:
+                - "nats-server"
+                - "--config"
+                - "/etc/nats-config/nats.conf"
+
+              # Required to be able to define an environment variable
+              # that refers to other environment variables.  This env var
+              # is later used as part of the configuration file.
+              env:
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: CLUSTER_ADVERTISE
+                  value: $(POD_NAME).nats.$(POD_NAMESPACE).svc
+                - name: TZ
+                  value: America/Vancouver
+              imagePullPolicy: Always
+              volumeMounts:
+                - mountPath: /etc/nats-config
+                  name: config-volume
+                - mountPath: /var/run/nats
+                  name: pid
+                - mountPath: /data
+                  name: nats-jetstream-wps
+
+        # Liveness/Readiness probes against the monitoring .
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8222
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8222
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+
+        # Gracefully stop NATS Server on pod deletion or image upgrade.
+        #
+        lifecycle:
+          preStop:
+            exec:
+              # Using the alpine based NATS image, we add an extra sleep that is
+              # the same amount as the terminationGracePeriodSeconds to allow
+              # the NATS Server to gracefully terminate the client connections.
+              #
+              command:
+                [
+                  "/bin/sh",
+                  "-c",
+                  "/nats-server -sl=ldm=/var/run/nats/nats.pid && /bin/sleep 60",
+                ]
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: nats-consumer
+      labels:
+        app: nats
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: nats
+      template:
+        metadata:
+          labels:
+            app: nats
+        spec:
+          containers:
+            - name: ${APP_NAME}-nats-consumer
+              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
+              imagePullPolicy: "Always"
+              command:
+                [
+                  "poetry",
+                  "run",
+                  "python",
+                  "-m",
+                  "app.auto_spatial_advisory.nats_consumer",
+                ]
+              env:
+                - name: NATS_STREAM_PREFIX
+                  value: ${APP_NAME}-${SUFFIX}
+                - name: NATS_SERVER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.nats-server
+                - name: POSTGRES_READ_USER
+                  value: ${POSTGRES_USER}
+                - name: POSTGRES_WRITE_USER
+                  value: ${POSTGRES_USER}
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: app-db-password
+                - name: POSTGRES_WRITE_HOST
+                  value: ${POSTGRES_WRITE_HOST}
+                - name: POSTGRES_READ_HOST
+                  value: ${POSTGRES_READ_HOST}
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: ${POSTGRES_DATABASE}
+                - name: TILESERVER_POSTGRES_READ_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.tileserver_postgres_read_host
+                - name: TILESERVER_POSTGRES_WRITE_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.tileserver_postgres_write_host
+                - name: TILESERVER_READ_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserv_read_user
+                - name: TILESERVER_WRITE_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserv_write_user
+                - name: TILESERVER_POSTGRES_WRITE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserver_postgres_write_password
+                - name: TILESERVER_POSTGRES_READ_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: tileserver_postgres_read_password
+                - name: OBJECT_STORE_SERVER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-server
+                - name: OBJECT_STORE_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-user-id
+                - name: OBJECT_STORE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-secret
+                - name: OBJECT_STORE_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-bucket
+              ports:
+                - containerPort: 4222
+                  name: client
+                - containerPort: 7422
+                  name: leafnodes
+                - containerPort: 6222
+                  name: cluster
+                - containerPort: 8222
+                  name: monitor
+                - containerPort: 7777
+                  name: metrics

@@ -1,19 +1,17 @@
 """ Functional testing for /noon_forecasts/summaries/ endpoint.
 """
-
-from datetime import timedelta
+from datetime import timedelta, datetime
 import json
 import logging
-from contextlib import contextmanager
-from typing import List, Generator
-from pytest_bdd import scenario, given, then
+from typing import List
+from pytest_bdd import scenario, given, then, parsers
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 import pytest
 import app.main
 from app.db.models.forecasts import NoonForecast
 import app.utils.time as time_utils
+from app.schemas.stations import StationCodeList
 
 
 logger = logging.getLogger(__name__)
@@ -27,11 +25,13 @@ mock_tmps = [20, 21, 22]
 mock_rhs = [50, 51, 52]
 
 
-def get_session_with_data():
-    """ Create a session with some test data.
-    """
-    session = UnifiedAlchemyMagicMock()
-    station_codes = [209, 322]
+def mock_query_noon_forecast_records(session: Session,
+                                     station_codes: StationCodeList,
+                                     start_date: datetime,
+                                     end_date: datetime
+                                     ):
+    """ Mock some noon forecasts """
+    forecasts = []
     weather_values = []
     for index, tmp in enumerate(mock_tmps):
         weather_values.append({
@@ -39,9 +39,9 @@ def get_session_with_data():
             'rh': mock_rhs[index]
         })
 
-    for code in station_codes:
+    for code in [209, 322]:
         for value in weather_values:
-            session.add(
+            forecasts.append(
                 NoonForecast(
                     station_code=code,
                     weather_date=weather_date,
@@ -50,24 +50,23 @@ def get_session_with_data():
                     relative_humidity=value['rh']
                 )
             )
-    return session
+    return forecasts
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_noon_forecasts_summaries.feature', 'Get noon forecasts summaries(historic)',
-          example_converters=dict(codes=json.loads, status=int, num_summaries=int))
+@scenario('test_noon_forecasts_summaries.feature', 'Get noon forecasts summaries(historic)')
 def test_noon_forecasts():
     """ BDD Scenario. """
 
 
-@given('I request noon forecasts for stations: <codes>', target_fixture='response')
+@given(parsers.parse('I request noon forecasts for stations: {codes}'),
+       target_fixture='response',
+       converters={'codes': json.loads})
 def given_request(monkeypatch, codes: List):
     """ Stub forecasts into the database and make a request """
 
-    @contextmanager
-    def mock_get_session_scope(*_) -> Generator[Session, None, None]:
-        yield get_session_with_data()
-    monkeypatch.setattr(app.db.database, 'get_read_session_scope', mock_get_session_scope)
+    monkeypatch.setattr(app.forecasts.noon_forecasts_summaries,
+                        'query_noon_forecast_records', mock_query_noon_forecast_records)
 
     client = TestClient(app.main.app)
     endpoint = '/api/forecasts/noon/summaries/'
@@ -75,19 +74,21 @@ def given_request(monkeypatch, codes: List):
         endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': codes})
 
 
-@then('the status code of the response is <status>')
+@then(parsers.parse('the status code of the response is {status}'), converters={'status': int})
 def assert_status_code(response, status: int):
     """ Check if we receive the expected status code """
     assert response.status_code == status
 
 
-@then('the response should have <num_summaries> summaries of forecasts')
+@then(parsers.parse('the response should have {num_summaries} summaries of forecasts'),
+      converters={'num_summaries': int})
 def assert_number_of_summaries(response, num_summaries: int):
     """ Check if we receive the expected number of summaries"""
     assert len(response.json()['summaries']) == num_summaries
 
 
-@then('and contain calculated percentiles for available stations <codes>')
+@then(parsers.parse('and contain calculated percentiles for available stations {codes}'),
+      converters={'codes': json.loads})
 def assert_response(response, codes: List):
     """ Check if we calculate correct percentiles based on its noon forecasts """
     result = response.json()

@@ -1,11 +1,11 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 
 const useStyles = makeStyles({
   contact: {
     color: 'white',
     fontStyle: 'bold',
-    fontSize: '1.2em',
+    fontSize: '1.1em',
     textDecoration: 'none',
     cursor: 'pointer',
 
@@ -20,7 +20,7 @@ interface Props {
 }
 
 const Contact = (props: Props) => {
-  const productName = props
+  const productName = props.productName
 
   const classes = useStyles()
 
@@ -30,7 +30,7 @@ const Contact = (props: Props) => {
       className={classes.contact}
       href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - ${productName}`}
     >
-      Contact
+      Contact Predictive Services Unit
     </a>
   )
 }

@@ -45,6 +45,7 @@ describe('RowManager', () => {
 
   const secondInputRow = {
     id: 1,
+    station_code: 2,
     weatherStation: { value: '209', label: 'ALEXIS CREEK' },
     fuelType: { value: 'c2', label: 'C2' },
     grassCure: 2,
@@ -95,7 +96,7 @@ describe('RowManager', () => {
 
   const emptyCalculatedRow: Partial<FBAStation> = {
     id: 2,
-    station_code: undefined,
+    station_code: 1,
     station_name: undefined,
     zone_code: undefined,
     elevation: undefined,
@@ -184,11 +185,7 @@ describe('RowManager', () => {
       expect(sortedRowsAsc[0].elevation).toBe(1)
       expect(sortedRowsAsc[2].elevation).toBe(emptyCalculatedRow.elevation)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.Elevation,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.Elevation, 'desc', mergedRows)
       expect(sortedRowsDesc[0].elevation).toBe(2)
       expect(sortedRowsDesc[2].elevation).toBe(emptyCalculatedRow.elevation)
     })
@@ -197,11 +194,7 @@ describe('RowManager', () => {
       expect(sortedRowsAsc[0].fuel_type).toBe('c1')
       expect(sortedRowsAsc[2].fuel_type).toBe(emptyCalculatedRow.fuel_type)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.FuelType,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.FuelType, 'desc', mergedRows)
       expect(sortedRowsDesc[0].fuel_type).toBe('c2')
       expect(sortedRowsDesc[2].fuel_type).toBe(emptyCalculatedRow.fuel_type)
     })
@@ -210,11 +203,7 @@ describe('RowManager', () => {
       expect(sortedRowsAsc[0].grass_cure).toBe(1)
       expect(sortedRowsAsc[2].grass_cure).toBe(emptyCalculatedRow.grass_cure)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.GrassCure,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.GrassCure, 'desc', mergedRows)
       expect(sortedRowsDesc[0].grass_cure).toBe(2)
       expect(sortedRowsDesc[2].grass_cure).toBe(emptyCalculatedRow.grass_cure)
     })
@@ -228,53 +217,29 @@ describe('RowManager', () => {
       expect(sortedRowsDesc[2].status).toBe(emptyCalculatedRow.status)
     })
     it('sorts by temperature', () => {
-      const sortedRowsAsc = RowManager.sortRows(
-        SortByColumn.Temperature,
-        'asc',
-        mergedRows
-      )
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.Temperature, 'asc', mergedRows)
       expect(sortedRowsAsc[0].temp).toBe(1)
       expect(sortedRowsAsc[2].temp).toBe(emptyCalculatedRow.temp)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.Temperature,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.Temperature, 'desc', mergedRows)
       expect(sortedRowsDesc[0].temp).toBe(2)
       expect(sortedRowsDesc[2].temp).toBe(emptyCalculatedRow.temp)
     })
     it('sorts by rh', () => {
-      const sortedRowsAsc = RowManager.sortRows(
-        SortByColumn.RelativeHumidity,
-        'asc',
-        mergedRows
-      )
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.RelativeHumidity, 'asc', mergedRows)
       expect(sortedRowsAsc[0].rh).toBe(1)
       expect(sortedRowsAsc[2].rh).toBe(emptyCalculatedRow.rh)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.RelativeHumidity,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.RelativeHumidity, 'desc', mergedRows)
       expect(sortedRowsDesc[0].rh).toBe(2)
       expect(sortedRowsDesc[2].rh).toBe(emptyCalculatedRow.rh)
     })
     it('sorts by wind direction', () => {
-      const sortedRowsAsc = RowManager.sortRows(
-        SortByColumn.WindDirection,
-        'asc',
-        mergedRows
-      )
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.WindDirection, 'asc', mergedRows)
       expect(sortedRowsAsc[0].wind_direction).toBe(1)
       expect(sortedRowsAsc[2].wind_direction).toBe(emptyCalculatedRow.wind_direction)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.WindDirection,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.WindDirection, 'desc', mergedRows)
       expect(sortedRowsDesc[0].wind_direction).toBe(2)
       expect(sortedRowsDesc[2].wind_direction).toBe(emptyCalculatedRow.wind_direction)
     })
@@ -283,29 +248,17 @@ describe('RowManager', () => {
       expect(sortedRowsAsc[0].wind_speed).toBe(1)
       expect(sortedRowsAsc[2].wind_speed).toBe(emptyCalculatedRow.wind_speed)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.WindSpeed,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.WindSpeed, 'desc', mergedRows)
       expect(sortedRowsDesc[0].wind_speed).toBe(2)
       expect(sortedRowsDesc[2].wind_speed).toBe(emptyCalculatedRow.wind_speed)
     })
 
     it('sorts by precipitation', () => {
-      const sortedRowsAsc = RowManager.sortRows(
-        SortByColumn.Precipitation,
-        'asc',
-        mergedRows
-      )
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.Precipitation, 'asc', mergedRows)
       expect(sortedRowsAsc[0].precipitation).toBe(1)
       expect(sortedRowsAsc[2].precipitation).toBe(emptyCalculatedRow.precipitation)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.Precipitation,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.Precipitation, 'desc', mergedRows)
       expect(sortedRowsDesc[0].precipitation).toBe(2)
       expect(sortedRowsDesc[2].precipitation).toBe(emptyCalculatedRow.precipitation)
     })
@@ -313,28 +266,20 @@ describe('RowManager', () => {
     it('sorts by ffmc', () => {
       const sortedRowsAsc = RowManager.sortRows(SortByColumn.FFMC, 'asc', mergedRows)
       expect(sortedRowsAsc[0].fine_fuel_moisture_code).toBe(1)
-      expect(sortedRowsAsc[2].fine_fuel_moisture_code).toBe(
-        emptyCalculatedRow.fine_fuel_moisture_code
-      )
+      expect(sortedRowsAsc[2].fine_fuel_moisture_code).toBe(emptyCalculatedRow.fine_fuel_moisture_code)
 
       const sortedRowsDesc = RowManager.sortRows(SortByColumn.FFMC, 'desc', mergedRows)
       expect(sortedRowsDesc[0].fine_fuel_moisture_code).toBe(2)
-      expect(sortedRowsDesc[2].fine_fuel_moisture_code).toBe(
-        emptyCalculatedRow.fine_fuel_moisture_code
-      )
+      expect(sortedRowsDesc[2].fine_fuel_moisture_code).toBe(emptyCalculatedRow.fine_fuel_moisture_code)
     })
     it('sorts by dmc', () => {
       const sortedRowsAsc = RowManager.sortRows(SortByColumn.DMC, 'asc', mergedRows)
       expect(sortedRowsAsc[0].duff_moisture_code).toBe(1)
-      expect(sortedRowsAsc[2].duff_moisture_code).toBe(
-        emptyCalculatedRow.duff_moisture_code
-      )
+      expect(sortedRowsAsc[2].duff_moisture_code).toBe(emptyCalculatedRow.duff_moisture_code)
 
       const sortedRowsDesc = RowManager.sortRows(SortByColumn.DMC, 'desc', mergedRows)
       expect(sortedRowsDesc[0].duff_moisture_code).toBe(2)
-      expect(sortedRowsDesc[2].duff_moisture_code).toBe(
-        emptyCalculatedRow.duff_moisture_code
-      )
+      expect(sortedRowsDesc[2].duff_moisture_code).toBe(emptyCalculatedRow.duff_moisture_code)
     })
     it('sorts by dc', () => {
       const sortedRowsAsc = RowManager.sortRows(SortByColumn.DC, 'asc', mergedRows)
@@ -349,15 +294,11 @@ describe('RowManager', () => {
     it('sorts by isi', () => {
       const sortedRowsAsc = RowManager.sortRows(SortByColumn.ISI, 'asc', mergedRows)
       expect(sortedRowsAsc[0].initial_spread_index).toBe(1)
-      expect(sortedRowsAsc[2].initial_spread_index).toBe(
-        emptyCalculatedRow.initial_spread_index
-      )
+      expect(sortedRowsAsc[2].initial_spread_index).toBe(emptyCalculatedRow.initial_spread_index)
 
       const sortedRowsDesc = RowManager.sortRows(SortByColumn.ISI, 'desc', mergedRows)
       expect(sortedRowsDesc[0].initial_spread_index).toBe(2)
-      expect(sortedRowsDesc[2].initial_spread_index).toBe(
-        emptyCalculatedRow.initial_spread_index
-      )
+      expect(sortedRowsDesc[2].initial_spread_index).toBe(emptyCalculatedRow.initial_spread_index)
     })
     it('sorts by bui', () => {
       const sortedRowsAsc = RowManager.sortRows(SortByColumn.BUI, 'asc', mergedRows)
@@ -371,128 +312,72 @@ describe('RowManager', () => {
     it('sorts by fwi', () => {
       const sortedRowsAsc = RowManager.sortRows(SortByColumn.FWI, 'asc', mergedRows)
       expect(sortedRowsAsc[0].fire_weather_index).toBe(1)
-      expect(sortedRowsAsc[2].fire_weather_index).toBe(
-        emptyCalculatedRow.fire_weather_index
-      )
+      expect(sortedRowsAsc[2].fire_weather_index).toBe(emptyCalculatedRow.fire_weather_index)
 
       const sortedRowsDesc = RowManager.sortRows(SortByColumn.FWI, 'desc', mergedRows)
       expect(sortedRowsDesc[0].fire_weather_index).toBe(2)
-      expect(sortedRowsDesc[2].fire_weather_index).toBe(
-        emptyCalculatedRow.fire_weather_index
-      )
+      expect(sortedRowsDesc[2].fire_weather_index).toBe(emptyCalculatedRow.fire_weather_index)
     })
 
     it('sorts by hfi', () => {
       const sortedRowsAsc = RowManager.sortRows(SortByColumn.HFI, 'asc', mergedRows)
       expect(sortedRowsAsc[0].head_fire_intensity).toBe(1)
-      expect(sortedRowsAsc[2].head_fire_intensity).toBe(
-        emptyCalculatedRow.head_fire_intensity
-      )
+      expect(sortedRowsAsc[2].head_fire_intensity).toBe(emptyCalculatedRow.head_fire_intensity)
 
       const sortedRowsDesc = RowManager.sortRows(SortByColumn.HFI, 'desc', mergedRows)
       expect(sortedRowsDesc[0].head_fire_intensity).toBe(2)
-      expect(sortedRowsDesc[2].head_fire_intensity).toBe(
-        emptyCalculatedRow.head_fire_intensity
-      )
+      expect(sortedRowsDesc[2].head_fire_intensity).toBe(emptyCalculatedRow.head_fire_intensity)
     })
 
     it('sorts by 4000 kW/m critical hours', () => {
-      const sortedRowsAsc = RowManager.sortRows(
-        SortByColumn.CriticalHours4000,
-        'asc',
-        mergedRows
-      )
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.CriticalHours4000, 'asc', mergedRows)
       expect(sortedRowsAsc[0].critical_hours_hfi_4000).toStrictEqual({
         end: 19,
         start: 14
       })
-      expect(sortedRowsAsc[2].critical_hours_hfi_4000).toStrictEqual(
-        emptyCalculatedRow.critical_hours_hfi_4000
-      )
+      expect(sortedRowsAsc[2].critical_hours_hfi_4000).toStrictEqual(emptyCalculatedRow.critical_hours_hfi_4000)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.CriticalHours4000,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.CriticalHours4000, 'desc', mergedRows)
       expect(sortedRowsDesc[0].critical_hours_hfi_4000).toStrictEqual({
         start: 9,
         end: 2
       })
-      expect(sortedRowsDesc[2].critical_hours_hfi_4000).toBe(
-        emptyCalculatedRow.critical_hours_hfi_4000
-      )
+      expect(sortedRowsDesc[2].critical_hours_hfi_4000).toBe(emptyCalculatedRow.critical_hours_hfi_4000)
     })
 
     it('sorts by 10000 kW/m critical hours', () => {
-      const sortedRowsAsc = RowManager.sortRows(
-        SortByColumn.CriticalHours10000,
-        'asc',
-        mergedRows
-      )
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.CriticalHours10000, 'asc', mergedRows)
       expect(sortedRowsAsc[0].critical_hours_hfi_10000).toStrictEqual({
         start: 15.0,
         end: 18.0
       })
-      expect(sortedRowsAsc[2].critical_hours_hfi_10000).toStrictEqual(
-        emptyCalculatedRow.critical_hours_hfi_10000
-      )
+      expect(sortedRowsAsc[2].critical_hours_hfi_10000).toStrictEqual(emptyCalculatedRow.critical_hours_hfi_10000)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.CriticalHours10000,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.CriticalHours10000, 'desc', mergedRows)
       expect(sortedRowsDesc[0].critical_hours_hfi_10000).toStrictEqual({
         start: 14.0,
         end: 18.0
       })
-      expect(sortedRowsDesc[2].critical_hours_hfi_10000).toBe(
-        emptyCalculatedRow.critical_hours_hfi_10000
-      )
+      expect(sortedRowsDesc[2].critical_hours_hfi_10000).toBe(emptyCalculatedRow.critical_hours_hfi_10000)
     })
 
     it('sorts by 30 minute fire size', () => {
-      const sortedRowsAsc = RowManager.sortRows(
-        SortByColumn.ThirtyMinFireSize,
-        'asc',
-        mergedRows
-      )
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.ThirtyMinFireSize, 'asc', mergedRows)
       expect(sortedRowsAsc[0].thirty_minute_fire_size).toBe(1)
-      expect(sortedRowsAsc[2].thirty_minute_fire_size).toBe(
-        emptyCalculatedRow.thirty_minute_fire_size
-      )
+      expect(sortedRowsAsc[2].thirty_minute_fire_size).toBe(emptyCalculatedRow.thirty_minute_fire_size)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.ThirtyMinFireSize,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.ThirtyMinFireSize, 'desc', mergedRows)
       expect(sortedRowsDesc[0].thirty_minute_fire_size).toBe(2)
-      expect(sortedRowsDesc[2].thirty_minute_fire_size).toBe(
-        emptyCalculatedRow.thirty_minute_fire_size
-      )
+      expect(sortedRowsDesc[2].thirty_minute_fire_size).toBe(emptyCalculatedRow.thirty_minute_fire_size)
     })
     it('sorts by 60 minute fire size', () => {
-      const sortedRowsAsc = RowManager.sortRows(
-        SortByColumn.SixtyMinFireSize,
-        'asc',
-        mergedRows
-      )
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.SixtyMinFireSize, 'asc', mergedRows)
       expect(sortedRowsAsc[0].sixty_minute_fire_size).toBe(1)
-      expect(sortedRowsAsc[2].sixty_minute_fire_size).toBe(
-        emptyCalculatedRow.sixty_minute_fire_size
-      )
+      expect(sortedRowsAsc[2].sixty_minute_fire_size).toBe(emptyCalculatedRow.sixty_minute_fire_size)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.SixtyMinFireSize,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.SixtyMinFireSize, 'desc', mergedRows)
       expect(sortedRowsDesc[0].sixty_minute_fire_size).toBe(2)
-      expect(sortedRowsDesc[2].sixty_minute_fire_size).toBe(
-        emptyCalculatedRow.sixty_minute_fire_size
-      )
+      expect(sortedRowsDesc[2].sixty_minute_fire_size).toBe(emptyCalculatedRow.sixty_minute_fire_size)
     })
     it('sorts by rate of spread', () => {
       const sortedRowsAsc = RowManager.sortRows(SortByColumn.ROS, 'asc', mergedRows)
@@ -508,11 +393,7 @@ describe('RowManager', () => {
       expect(sortedRowsAsc[0].fire_type).toBe('a')
       expect(sortedRowsAsc[2].fire_type).toBe(emptyCalculatedRow.fire_type)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.FireType,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.FireType, 'desc', mergedRows)
       expect(sortedRowsDesc[0].fire_type).toBe('b')
       expect(sortedRowsDesc[2].fire_type).toBe(emptyCalculatedRow.fire_type)
     })
@@ -530,19 +411,11 @@ describe('RowManager', () => {
       )
     })
     it('sorts by flame length', () => {
-      const sortedRowsAsc = RowManager.sortRows(
-        SortByColumn.FlameLength,
-        'asc',
-        mergedRows
-      )
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.FlameLength, 'asc', mergedRows)
       expect(sortedRowsAsc[0].flame_length).toBe(1)
       expect(sortedRowsAsc[2].flame_length).toBe(emptyCalculatedRow.flame_length)
 
-      const sortedRowsDesc = RowManager.sortRows(
-        SortByColumn.FlameLength,
-        'desc',
-        mergedRows
-      )
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.FlameLength, 'desc', mergedRows)
       expect(sortedRowsDesc[0].flame_length).toBe(2)
       expect(sortedRowsDesc[2].flame_length).toBe(emptyCalculatedRow.flame_length)
     })

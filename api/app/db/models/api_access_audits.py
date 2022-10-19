@@ -1,7 +1,7 @@
 """ Class model that reflect resources and map to database tables relating audits created
 by authenticated user requests.
 """
-from sqlalchemy import (Column, Integer, String, Boolean, UniqueConstraint)
+from sqlalchemy import (Column, Integer, String, Boolean)
 from app.db.database import Base
 from app.db.models.common import TZTimeStamp
 

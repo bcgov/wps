@@ -1,4 +1,4 @@
-import { TableContainer, Table, TableBody, TableRow } from '@material-ui/core'
+import { TableContainer, Table, TableBody, TableRow } from '@mui/material'
 import { render, screen } from '@testing-library/react'
 import StickyCell from 'components/StickyCell'
 import { theme } from 'app/theme'

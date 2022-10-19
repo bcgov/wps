@@ -1,35 +1,62 @@
-import React, { useState, useEffect } from 'react'
-import { Button, Container, ErrorBoundary, GeneralHeader, PageTitle } from 'components'
-import DatePicker from 'components/DatePicker'
-import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
-import { fetchHFIDailies } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { useEffect } from 'react'
 import { DateTime } from 'luxon'
+import { Container, ErrorBoundary, GeneralHeader } from 'components'
+import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import {
-  selectHFIDailies,
+  FireStartRange,
+  setSelectedFireCentre,
+  fetchSetNewFireStarts,
+  fetchGetPrepDateRange,
+  fetchSetStationSelected,
+  fetchFuelTypes,
+  fetchPDFDownload,
+  fetchSetFuelType,
+  setSelectedPrepDate
+} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { fetchAllReadyStates, fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
+import { useDispatch, useSelector } from 'react-redux'
+import {
   selectHFIStations,
-  selectHFIStationsLoading
+  selectHFIStationsLoading,
+  selectHFICalculatorState,
+  selectAuthentication,
+  selectHFIReadyState
 } from 'app/rootReducer'
-import { CircularProgress, FormControl, makeStyles, Tooltip } from '@material-ui/core'
-import {
-  FileCopyOutlined,
-  CheckOutlined,
-  InfoOutlined,
-  HelpOutlineOutlined
-} from '@material-ui/icons'
-import { getDateRange, pstFormatter } from 'utils/date'
+import { FormControl } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
-import { formControlStyles, theme } from 'app/theme'
-import { AboutDataModal } from 'features/hfiCalculator/components/AboutDataModal'
-import { FormatTableAsCSV } from 'features/hfiCalculator/FormatTableAsCSV'
-import { PST_UTC_OFFSET } from 'utils/constants'
+import { formControlStyles } from 'app/theme'
+import { FireCentre } from 'api/hfiCalculatorAPI'
+import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
+import { isNull, isUndefined } from 'lodash'
+import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
+import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
+import { DateRange } from 'components/dateRangePicker/types'
+import { AppDispatch } from 'app/store'
+import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
+import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin/ManageStationsButton'
+import { ROLES } from 'features/auth/roles'
+import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   ...formControlStyles,
   container: {
     display: 'flex',
     justifyContent: 'center'
+  },
+  controlContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'row',
+    margin: theme.spacing(1),
+    minWidth: 210
+  },
+  actionButtonContainer: {
+    marginLeft: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'row'
   },
   helpIcon: {
     fill: theme.palette.primary.main
@@ -48,161 +75,269 @@ const useStyles = makeStyles(() => ({
   positionStyler: {
     position: 'absolute',
     right: '20px'
+  },
+  prepDays: {
+    margin: theme.spacing(1),
+    minWidth: 100
   }
 }))
-
-const clipboardCopySuccessDuration = 2000 // milliseconds
 
 const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
-  const dispatch = useDispatch()
-  const { dailies, loading } = useSelector(selectHFIDailies)
-  const { fireCentres } = useSelector(selectHFIStations)
+  const dispatch: AppDispatch = useDispatch()
+  const { roles, isAuthenticated } = useSelector(selectAuthentication)
+  const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const [isWeeklyView, toggleTableView] = useState(true)
-  const [modalOpen, setModalOpen] = useState<boolean>(false)
+  const {
+    selectedPrepDate,
+    result,
+    selectedFireCentre,
+    pdfLoading,
+    fuelTypesLoading,
+    fireCentresLoading,
+    stationsUpdateLoading,
+    dateRange,
+    error: hfiError,
+    fuelTypes,
+    updatedPlanningAreaId
+  } = useSelector(selectHFICalculatorState)
+  const { planningAreaReadyDetails } = useSelector(selectHFIReadyState)
 
-  // the DatePicker component requires dateOfInterest to be in string format
-  const [dateOfInterest, setDateOfInterest] = useState(
-    pstFormatter(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
-  )
-  const [isCopied, setIsCopied] = useState(false)
+  const setSelectedStation = (planningAreaId: number, code: number, selected: boolean) => {
+    if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
+      dispatch(
+        fetchSetStationSelected(
+          result.selected_fire_center_id,
+          result.date_range.start_date,
+          result.date_range.end_date,
+          planningAreaId,
+          code,
+          selected,
+          { planning_area_id: planningAreaId }
+        )
+      )
+    }
+  }
 
-  const callDispatch = (start: DateTime, end: DateTime) => {
+  const setFuelType = (planningAreaId: number, code: number, fuel_type_id: number) => {
+    if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
+      dispatch(
+        fetchSetFuelType(
+          result.selected_fire_center_id,
+          result.date_range.start_date,
+          result.date_range.end_date,
+          planningAreaId,
+          code,
+          fuel_type_id,
+          { planning_area_id: planningAreaId }
+        )
+      )
+    }
+  }
+
+  const setNewFireStarts = (planningAreaId: number, dayOffset: number, newFireStarts: FireStartRange) => {
+    if (!isUndefined(result) && !isUndefined(result.date_range)) {
+      dispatch(
+        fetchSetNewFireStarts(
+          result.selected_fire_center_id,
+          result.date_range.start_date,
+          result.date_range.end_date,
+          planningAreaId,
+          DateTime.fromISO(result.date_range.start_date + 'T00:00+00:00', {
+            setZone: true
+          })
+            .plus({ days: dayOffset })
+            .toISODate(),
+          newFireStarts.id,
+          { planning_area_id: planningAreaId }
+        )
+      )
+    }
+  }
+
+  const updatePrepDateRange = (newDateRange: DateRange) => {
+    if (
+      newDateRange !== dateRange &&
+      !isUndefined(selectedFireCentre) &&
+      !isUndefined(result) &&
+      !isUndefined(newDateRange) &&
+      !isUndefined(newDateRange.startDate) &&
+      !isUndefined(newDateRange.endDate)
+    ) {
+      dispatch(
+        fetchGetPrepDateRange(
+          result.selected_fire_center_id,
+          newDateRange.startDate.toISOString().split('T')[0],
+          newDateRange.endDate.toISOString().split('T')[0]
+        )
+      )
+    }
+  }
+
+  const setSelectedFireCentreFromLocalStorage = () => {
+    const findCentre = (name: string | null): FireCentre | undefined => {
+      const fireCentresArray = Object.values(fireCentres)
+      return fireCentresArray.find(centre => centre.name == name)
+    }
+    const storedFireCentre = findCentre(localStorage.getItem('hfiCalcPreferredFireCentre'))
+    if (!isUndefined(storedFireCentre) && storedFireCentre !== selectedFireCentre) {
+      dispatch(setSelectedFireCentre(storedFireCentre))
+    }
+  }
+
+  useEffect(() => {
     dispatch(fetchHFIStations())
-    dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
-  }
-
-  const refreshView = () => {
-    const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
-    callDispatch(start, end)
-  }
-
-  const updateDate = (newDate: string) => {
-    if (newDate !== dateOfInterest) {
-      setDateOfInterest(newDate)
-      const { start, end } = getDateRange(isWeeklyView, newDate)
-      callDispatch(start, end)
-    }
-  }
-
-  const openAboutModal = () => {
-    setModalOpen(true)
-  }
-
-  const copyTable = () => {
-    if (isWeeklyView) {
-      const weeklyViewAsString = FormatTableAsCSV.exportWeeklyRowsAsStrings(
-        fireCentres,
-        dailies
-      )
-      navigator.clipboard.writeText(weeklyViewAsString)
-    } else {
-      const dailyViewAsString = FormatTableAsCSV.exportDailyRowsAsStrings(
-        fireCentres,
-        dailies
-      )
-      navigator.clipboard.writeText(dailyViewAsString)
-    }
-    setIsCopied(true)
-  }
-
-  useEffect(() => {
-    /**  this logic is copied from
-     https://github.com/danoc/react-use-clipboard/blob/master/src/index.tsx 
-     (the react-use-clipboard package was too restrictive for our needs, but the logic for
-      having a timeout on the copy success message is helpful for us)
-    */
-    if (isCopied) {
-      const id = setTimeout(() => {
-        setIsCopied(false)
-      }, clipboardCopySuccessDuration)
-
-      return () => {
-        clearTimeout(id)
-      }
-    }
-  }, [isCopied])
-
-  useEffect(() => {
-    refreshView()
+    dispatch(fetchFuelTypes())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
-    refreshView()
+    if (
+      !isUndefined(result) &&
+      !isUndefined(result.date_range) &&
+      !isNull(updatedPlanningAreaId) &&
+      !isUndefined(planningAreaReadyDetails[updatedPlanningAreaId.planning_area_id]) &&
+      planningAreaReadyDetails[updatedPlanningAreaId.planning_area_id].ready === true
+    ) {
+      dispatch(
+        fetchToggleReadyState(result.selected_fire_center_id, updatedPlanningAreaId.planning_area_id, result.date_range)
+      )
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isWeeklyView])
+  }, [updatedPlanningAreaId])
+
+  useEffect(() => {
+    if (selectedFireCentre && selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')) {
+      localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
+    }
+    if (!isUndefined(selectedFireCentre)) {
+      dispatch(setSelectedPrepDate('')) // do this so that the page automatically toggles
+      // back to "Prep Period" tab instead of a specific date that may no longer be relevant
+      dispatch(fetchGetPrepDateRange(selectedFireCentre.id))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFireCentre])
+
+  useEffect(() => {
+    if (!isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
+      dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange])
+
+  useEffect(() => {
+    if (Object.keys(fireCentres).length > 0) {
+      setSelectedFireCentreFromLocalStorage()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fireCentres])
+
+  useEffect(() => {
+    if (
+      !isNull(updatedPlanningAreaId) &&
+      isUndefined(planningAreaReadyDetails[updatedPlanningAreaId.planning_area_id]) &&
+      !isUndefined(selectedFireCentre) &&
+      !isUndefined(dateRange)
+    ) {
+      // Request all ready states for hfi request unique by date and fire centre
+      dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updatedPlanningAreaId])
+
+  useEffect(() => {
+    if (!stationsUpdateLoading && !isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
+      dispatch(fetchHFIStations())
+      dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stationsUpdateLoading])
+
+  const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
+    dispatch(setSelectedFireCentre(newSelection))
+  }
+
+  const handleDownloadClicked = () => {
+    if (!isUndefined(result)) {
+      if (
+        !isUndefined(result) &&
+        !isUndefined(result.date_range.start_date) &&
+        !isUndefined(result.date_range.end_date)
+      ) {
+        dispatch(
+          fetchPDFDownload(result.selected_fire_center_id, result.date_range.start_date, result.date_range.end_date)
+        )
+      }
+    }
+  }
 
   return (
     <main data-testid="hfi-calculator-page">
-      <GeneralHeader
-        padding="3em"
-        spacing={0.985}
-        title="Predictive Services Unit"
-        productName="HFI Calculator"
+      <GeneralHeader padding="3em" spacing={0.985} title="HFI Calculator" productName="HFI Calculator" />
+      <HFIPageSubHeader
+        fireCentres={fireCentres}
+        setDateRange={updatePrepDateRange}
+        result={result}
+        selectedFireCentre={selectedFireCentre}
+        selectNewFireCentre={selectNewFireCentre}
+        padding="1rem"
       />
-      <PageTitle maxWidth={false} padding="1rem" title="HFI Calculator" />
-      {loading || stationDataLoading ? (
-        <Container className={classes.container}>
-          <CircularProgress />
-        </Container>
-      ) : (
-        <Container maxWidth={'xl'}>
-          <FormControl className={classes.formControl}>
-            <DatePicker date={dateOfInterest} updateDate={updateDate} />
-          </FormControl>
+      <Container maxWidth={'xl'}>
+        <HFILoadingDataContainer
+          pdfLoading={pdfLoading}
+          fuelTypesLoading={fuelTypesLoading}
+          stationDataLoading={stationDataLoading}
+          fireCentresLoading={fireCentresLoading}
+          stationsUpdateLoading={stationsUpdateLoading}
+          fireCentresError={fireCentresError}
+          hfiError={hfiError}
+          selectedFireCentre={selectedFireCentre}
+          dateRange={dateRange}
+        >
+          <React.Fragment>
+            <HFISuccessAlert />
+            <FormControl className={classes.controlContainer}>
+              <ViewSwitcherToggles dateRange={dateRange} selectedPrepDate={selectedPrepDate} />
+              <LastUpdatedHeader
+                dailies={result?.planning_area_hfi_results.flatMap(areaResult =>
+                  areaResult.daily_results.flatMap(dailyResult =>
+                    dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
+                  )
+                )}
+              />
+              <FormControl className={classes.actionButtonContainer}>
+                {!isUndefined(result) && roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && (
+                  <ManageStationsButton
+                    planningAreas={
+                      selectedFireCentre ? fireCentres.find(fc => fc.id === selectedFireCentre.id)?.planning_areas : []
+                    }
+                    planningAreaStationInfo={result.planning_area_station_info}
+                  />
+                )}
+                <DownloadPDFButton onClick={handleDownloadClicked} />
+              </FormControl>
+            </FormControl>
 
-          <FormControl className={classes.formControl}>
-            <ViewSwitcherToggles
-              isWeeklyView={isWeeklyView}
-              toggleTableView={toggleTableView}
-            />
-          </FormControl>
-
-          <FormControl className={classes.formControl}>
-            {isCopied ? (
-              <Button>
-                <CheckOutlined />
-                Copied!
-              </Button>
-            ) : (
-              <Button onClick={copyTable}>
-                <FileCopyOutlined className={classes.clipboardIcon} />
-                Copy Data to Clipboard
-                <Tooltip
-                  title={
-                    'You can paste all table data in Excel. To format: go to the Data tab, use Text to Columns > Delimited > Comma.'
-                  }
-                >
-                  <InfoOutlined className={classes.copyToClipboardInfoIcon} />
-                </Tooltip>
-              </Button>
-            )}
-          </FormControl>
-
-          <FormControl className={classes.positionStyler}>
-            <Button onClick={openAboutModal}>
-              <HelpOutlineOutlined className={classes.helpIcon}></HelpOutlineOutlined>
-              <p className={classes.aboutButtonText}>About this data</p>
-            </Button>
-          </FormControl>
-          <AboutDataModal
-            modalOpen={modalOpen}
-            setModalOpen={setModalOpen}
-          ></AboutDataModal>
-
-          <ErrorBoundary>
-            <ViewSwitcher
-              isWeeklyView={isWeeklyView}
-              fireCentres={fireCentres}
-              dailies={dailies}
-              dateOfInterest={dateOfInterest}
-            />
-          </ErrorBoundary>
-        </Container>
-      )}
+            <ErrorBoundary>
+              {isUndefined(result) ? (
+                <React.Fragment></React.Fragment>
+              ) : (
+                <ViewSwitcher
+                  selectedFireCentre={selectedFireCentre}
+                  dateRange={dateRange}
+                  setSelected={setSelectedStation}
+                  setNewFireStarts={setNewFireStarts}
+                  setFuelType={setFuelType}
+                  selectedPrepDay={selectedPrepDate}
+                  fuelTypes={fuelTypes}
+                  planningAreaStationInfo={result.planning_area_station_info}
+                />
+              )}
+            </ErrorBoundary>
+          </React.Fragment>
+        </HFILoadingDataContainer>
+      </Container>
     </main>
   )
 }

@@ -10,9 +10,9 @@ class NoonForecastValue(BaseModel):
     """ Data structure for a noon forecast retrieved from BC FireWeather Phase 1 """
     datetime: datetime
     temp_valid: bool
-    temperature: int
+    temperature: int = None
     rh_valid: bool
-    relative_humidity: int
+    relative_humidity: int = None
     wdir_valid: bool
     wind_direction: int = None
     wspeed_valid: bool
@@ -27,7 +27,7 @@ class NoonForecastValue(BaseModel):
     bui: float = None
     fwi: float = None
     danger_rating: int = None
-    created_at: datetime  # pylint: disable=undefined-variable
+    created_at: datetime  # pylint: disable=used-before-assignment
 
 
 class NoonForecast(BaseModel):

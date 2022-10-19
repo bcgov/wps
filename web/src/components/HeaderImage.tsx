@@ -1,5 +1,5 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles'
 
 const useStyles = makeStyles({
   logo: {
@@ -14,11 +14,7 @@ const ImageHeader = () => {
 
   return (
     <a href="https://gov.bc.ca">
-      <img
-        className={classes.logo}
-        src={'/images/BCID_H_rgb_rev.svg'}
-        alt="B.C. Government logo"
-      />
+      <img className={classes.logo} src={'/images/BCID_H_rgb_rev.svg'} alt="B.C. Government logo" />
     </a>
   )
 }

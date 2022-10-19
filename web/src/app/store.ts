@@ -1,7 +1,8 @@
-import { configureStore, Action, getDefaultMiddleware } from '@reduxjs/toolkit'
-import { ThunkAction } from 'redux-thunk'
+import { configureStore, AnyAction, ThunkAction } from '@reduxjs/toolkit'
+import thunk, { ThunkMiddleware } from 'redux-thunk'
 import rootReducer, { RootState } from 'app/rootReducer'
 
+const thunkMiddleware: ThunkMiddleware<RootState, AnyAction> = thunk
 const store = configureStore({
   reducer: rootReducer,
   // c-haines data is VERY big - so causes huge slowdowns in development,
@@ -9,11 +10,8 @@ const store = configureStore({
   // and serializableCheck (see below)
   // TODO: see if a better solution can be found: https://reactjs.org/docs/hooks-reference.html#usereducer
   // import { configureStore, Action, getDefaultMiddleware } from '@reduxjs/toolkit'
-  middleware: () =>
-    getDefaultMiddleware({
-      immutableCheck: false,
-      serializableCheck: false
-    })
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware({ immutableCheck: false, serializableCheck: false }).concat(thunkMiddleware)
 })
 
 // if (import.meta.env.NODE_ENV === 'development' && module.hot) {
@@ -29,6 +27,6 @@ const store = configureStore({
 
 export type AppDispatch = typeof store.dispatch
 
-export type AppThunk = ThunkAction<void, RootState, null, Action<string>>
+export type AppThunk = ThunkAction<void, RootState, undefined, AnyAction>
 
 export default store

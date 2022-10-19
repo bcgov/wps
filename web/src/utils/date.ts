@@ -1,21 +1,17 @@
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 
-import { PST_UTC_OFFSET } from './constants'
+import { PST_ISO_TIMEZONE, PST_UTC_OFFSET } from './constants'
 
 const UTC_NOON_HOUR = Math.abs(PST_UTC_OFFSET) + 12
 
-const toISO = (dtDateTime: DateTime): string => {
+export const toISO = (dtDateTime: DateTime): string => {
   // Use for consistent ISO formatting.
   return dtDateTime.toISO({ suppressMilliseconds: true, includeOffset: true })
 }
 
-export const isNoonInPST = (dt: string): boolean =>
-  DateTime.fromISO(dt).setZone('UTC').hour === UTC_NOON_HOUR
+export const isNoonInPST = (dt: string): boolean => DateTime.fromISO(dt).setZone('UTC').hour === UTC_NOON_HOUR
 
-export const formatDateInPST = (
-  dt: string | Date | DateTime,
-  format?: string
-): string => {
+export const formatDatetimeInPST = (dt: string | Date | DateTime, format?: string): string => {
   let datetime = undefined
 
   if (typeof dt === 'string') {
@@ -27,6 +23,12 @@ export const formatDateInPST = (
   }
 
   return datetime.setZone(`UTC${PST_UTC_OFFSET}`).toFormat(format || 'yyyy-MM-dd HH:mm')
+}
+
+export const formatISODateInPST = (dateISOString: string): DateTime => {
+  // Take a datetime ISO string, extract date ISO portion, set PST timezone and return as DateTime
+  // E.g. 2021-08-02T20:00:00+00:00 becomes 2021-08-02T00:00-08:00
+  return DateTime.fromISO(dateISOString.split('T')[0] + PST_ISO_TIMEZONE)
 }
 
 export const formatMonthAndDay = (month: number, day: number): string =>
@@ -56,49 +58,22 @@ export const pstFormatter = (fromDate: DateTime): string => {
   ).toISO()
 }
 
-export const getPrepWeeklyDateRange = (
-  dateOfInterest: string
-): { start: DateTime; end: DateTime } => {
-  const day = DateTime.fromISO(dateOfInterest).weekday
-  let dayOffset = 0
-  switch (day) {
-    case 2: // Tuesday
-      dayOffset = 1
-      break
-    case 3: // Wednesday
-      dayOffset = 2
-      break
-    case 5: // Friday
-      dayOffset = 1
-      break
-    case 6: // Saturday
-      dayOffset = 2
-      break
-    case 7: // Sunday
-      dayOffset = 3
+export const getDaysBetween = (startDate: string, endDate: string): DateTime[] => {
+  const start = DateTime.fromISO(startDate)
+  const end = DateTime.fromISO(endDate)
+  const interval = Interval.fromDateTimes(start, end)
+
+  if (interval.length('days') === 0) {
+    return [start]
   }
-  const start = DateTime.fromISO(dateOfInterest).minus({ days: dayOffset }).startOf('day')
-  const end = DateTime.fromISO(dateOfInterest)
-    .minus({ days: dayOffset })
-    .endOf('day')
-    .plus({ days: 4 })
-  return { start, end }
-}
 
-export const getPrepDailyDateRange = (
-  dateOfInterest: string
-): { start: DateTime; end: DateTime } => {
-  const start = DateTime.fromISO(dateOfInterest).startOf('day')
-  const end = DateTime.fromISO(dateOfInterest).endOf('day')
+  const dates = []
 
-  return { start, end }
-}
+  let cursor = interval.start.startOf('day')
+  while (cursor < interval.end) {
+    dates.push(cursor)
+    cursor = cursor.plus({ days: 1 })
+  }
 
-export const getDateRange = (
-  isWeeklyView: boolean,
-  dateOfInterest: string
-): { start: DateTime; end: DateTime } => {
-  return isWeeklyView
-    ? getPrepWeeklyDateRange(dateOfInterest)
-    : getPrepDailyDateRange(dateOfInterest)
+  return dates
 }

@@ -1,11 +1,11 @@
-import { TableContainer, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
-import { render, screen } from '@testing-library/react'
+import { TableContainer, Table, TableBody, TableRow, TableCell } from '@mui/material'
+import { render, within } from '@testing-library/react'
 import React from 'react'
 import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
 
 describe('SelectionCell', () => {
   it('should be checked', () => {
-    render(
+    const { getByTestId } = render(
       <TableContainer>
         <Table>
           <TableBody>
@@ -26,13 +26,12 @@ describe('SelectionCell', () => {
         </Table>
       </TableContainer>
     )
-    const selectionCell = screen.getByTestId('selection-checkbox-fba').firstChild
-      ?.firstChild
+    const selectionCell = within(getByTestId('selection-checkbox-fba')).getByRole('checkbox') as HTMLInputElement
     expect(selectionCell).toBeChecked()
     expect(selectionCell).not.toBeDisabled()
   })
   it('should be unchecked', () => {
-    render(
+    const { getByTestId } = render(
       <TableContainer>
         <Table>
           <TableBody>
@@ -53,13 +52,12 @@ describe('SelectionCell', () => {
         </Table>
       </TableContainer>
     )
-    const selectionCell = screen.getByTestId('selection-checkbox-fba').firstChild
-      ?.firstChild
+    const selectionCell = within(getByTestId('selection-checkbox-fba')).getByRole('checkbox') as HTMLInputElement
     expect(selectionCell).not.toBeChecked()
     expect(selectionCell).not.toBeDisabled()
   })
   it('should be disabled', () => {
-    render(
+    const { getByTestId } = render(
       <TableContainer>
         <Table>
           <TableBody>
@@ -80,8 +78,7 @@ describe('SelectionCell', () => {
         </Table>
       </TableContainer>
     )
-    const selectionCell = screen.getByTestId('selection-checkbox-fba').firstChild
-      ?.firstChild
+    const selectionCell = within(getByTestId('selection-checkbox-fba')).getByRole('checkbox') as HTMLInputElement
     expect(selectionCell).toBeDisabled()
   })
 })

@@ -1,0 +1,1652 @@
+{
+  "fire_centres": [
+    {
+      "id": 5,
+      "name": "Cariboo Fire Centre",
+      "planning_areas": [
+        {
+          "id": 33,
+          "name": "Chilcotin",
+          "order_of_appearance_in_list": 2,
+          "stations": [
+            {
+              "code": 209,
+              "station_props": {
+                "name": "ALEXIS CREEK",
+                "elevation": 791,
+                "wfwx_station_uuid": "bfe0a6e2-e269-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            },
+            {
+              "code": 213,
+              "station_props": {
+                "name": "ANAHIM LAKE",
+                "elevation": 1096,
+                "wfwx_station_uuid": "bfe0a6e2-e26d-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 222,
+              "station_props": {
+                "name": "GASPARD",
+                "elevation": 1675,
+                "wfwx_station_uuid": "bfe0a6e2-e276-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 7
+            },
+            {
+              "code": 226,
+              "station_props": {
+                "name": "MIDDLE LAKE",
+                "elevation": 915,
+                "wfwx_station_uuid": "bfe0a6e2-e27a-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 216,
+              "station_props": {
+                "name": "NEMIAH",
+                "elevation": 1220,
+                "wfwx_station_uuid": "bfe0a6e2-e270-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 6
+            },
+            {
+              "code": 203,
+              "station_props": {
+                "name": "PUNTZI MOUNTAIN (EC)",
+                "elevation": 910,
+                "wfwx_station_uuid": "bfe0a6e2-e263-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 208,
+              "station_props": {
+                "name": "TATLA LAKE",
+                "elevation": 945,
+                "wfwx_station_uuid": "bfe0a6e2-e268-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            }
+          ]
+        },
+        {
+          "id": 35,
+          "name": "Wet Belt",
+          "order_of_appearance_in_list": 4,
+          "stations": [
+            {
+              "code": 228,
+              "station_props": {
+                "name": "BENSON",
+                "elevation": 1006,
+                "wfwx_station_uuid": "bfe0a6e2-e27c-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 262,
+              "station_props": {
+                "name": "BIG VALLEY",
+                "elevation": 1355,
+                "wfwx_station_uuid": "bfe0a6e2-e29c-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 251,
+              "station_props": {
+                "name": "DECEPTION",
+                "elevation": 1170,
+                "wfwx_station_uuid": "bfe0a6e2-e291-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 9
+            },
+            {
+              "code": 227,
+              "station_props": {
+                "name": "GAVIN",
+                "elevation": 1081,
+                "wfwx_station_uuid": "bfe0a6e2-e27b-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            },
+            {
+              "code": 230,
+              "station_props": {
+                "name": "HORSEFLY",
+                "elevation": 701,
+                "wfwx_station_uuid": "bfe0a6e2-e27e-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 7
+            },
+            {
+              "code": 255,
+              "station_props": {
+                "name": "LIKELY RS",
+                "elevation": 1046,
+                "wfwx_station_uuid": "bfe0a6e2-e295-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 263,
+              "station_props": {
+                "name": "MATHEW",
+                "elevation": 1108,
+                "wfwx_station_uuid": "bfe0a6e2-e29d-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 264,
+              "station_props": {
+                "name": "PRAIRIE CREEK",
+                "elevation": 1015,
+                "wfwx_station_uuid": "bfe0a6e2-e29e-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 6
+            },
+            {
+              "code": 234,
+              "station_props": {
+                "name": "TIMOTHY",
+                "elevation": 1161,
+                "wfwx_station_uuid": "bfe0a6e2-e282-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 8
+            },
+            {
+              "code": 244,
+              "station_props": {
+                "name": "WINDY MOUNTAIN",
+                "elevation": 1580,
+                "wfwx_station_uuid": "bfe0a6e2-e28b-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 10
+            }
+          ]
+        },
+        {
+          "id": 32,
+          "name": "Black Water",
+          "order_of_appearance_in_list": 1,
+          "stations": [
+            {
+              "code": 221,
+              "station_props": {
+                "name": "BALDFACE",
+                "elevation": 1666,
+                "wfwx_station_uuid": "bfe0a6e2-e275-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 166,
+              "station_props": {
+                "name": "KLUSKUS",
+                "elevation": 1137,
+                "wfwx_station_uuid": "bfe0a6e2-e5af-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 211,
+              "station_props": {
+                "name": "NAZKO",
+                "elevation": 910,
+                "wfwx_station_uuid": "bfe0a6e2-e26b-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            },
+            {
+              "code": 229,
+              "station_props": {
+                "name": "QUESNEL (EC)",
+                "elevation": 545,
+                "wfwx_station_uuid": "bfe0a6e2-e27d-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 7
+            },
+            {
+              "code": 206,
+              "station_props": {
+                "name": "TAUTRI",
+                "elevation": 1085,
+                "wfwx_station_uuid": "bfe0a6e2-e266-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 6
+            }
+          ]
+        },
+        {
+          "id": 34,
+          "name": "Fraser",
+          "order_of_appearance_in_list": 3,
+          "stations": [
+            {
+              "code": 832,
+              "station_props": {
+                "name": "CHURN CREEK",
+                "elevation": 1100,
+                "wfwx_station_uuid": "bfe0a6e2-e2dd-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            },
+            {
+              "code": 225,
+              "station_props": {
+                "name": "KNIFE",
+                "elevation": 821,
+                "wfwx_station_uuid": "bfe0a6e2-e279-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 218,
+              "station_props": {
+                "name": "LONE BUTTE",
+                "elevation": 1158,
+                "wfwx_station_uuid": "bfe0a6e2-e272-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 7
+            },
+            {
+              "code": 236,
+              "station_props": {
+                "name": "MEADOW LAKE",
+                "elevation": 1070,
+                "wfwx_station_uuid": "bfe0a6e2-e284-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 6
+            },
+            {
+              "code": 212,
+              "station_props": {
+                "name": "PLACE LAKE",
+                "elevation": 1065,
+                "wfwx_station_uuid": "bfe0a6e2-e26c-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 210,
+              "station_props": {
+                "name": "RISKE CREEK",
+                "elevation": 929,
+                "wfwx_station_uuid": "bfe0a6e2-e26a-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 205,
+              "station_props": {
+                "name": "WILLIAMS LAKE (NC)",
+                "elevation": 940,
+                "wfwx_station_uuid": "bfe0a6e2-e265-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 235,
+              "station_props": {
+                "name": "YOUNG LAKE",
+                "elevation": 1170,
+                "wfwx_station_uuid": "bfe0a6e2-e283-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Coastal Fire Centre",
+      "planning_areas": [
+        {
+          "id": 42,
+          "name": "Mid-Coast",
+          "order_of_appearance_in_list": 7,
+          "stations": [
+            {
+              "code": 904,
+              "station_props": {
+                "name": "HAGENSBORG 2",
+                "elevation": 47,
+                "wfwx_station_uuid": "bfe0a6e2-e30b-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 233,
+              "station_props": {
+                "name": "TALCHAKO",
+                "elevation": 270,
+                "wfwx_station_uuid": "bfe0a6e2-e281-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            }
+          ]
+        },
+        {
+          "id": 36,
+          "name": "Fraser Zone",
+          "order_of_appearance_in_list": 1,
+          "stations": [
+            {
+              "code": 317,
+              "station_props": {
+                "name": "ALLISON PASS",
+                "elevation": 1215,
+                "wfwx_station_uuid": "bfe0a6e2-e3cb-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 1339,
+              "station_props": {
+                "name": "BOOTHROYD",
+                "elevation": 19,
+                "wfwx_station_uuid": "bfe0a6e2-e21b-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 1144,
+              "station_props": {
+                "name": "FORD MOUNTAIN",
+                "elevation": 247,
+                "wfwx_station_uuid": "bfe0a6e2-e188-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 93,
+              "station_props": {
+                "name": "HONNA",
+                "elevation": 21,
+                "wfwx_station_uuid": "bfe0a6e2-e567-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            },
+            {
+              "code": 316,
+              "station_props": {
+                "name": "NAHATLATCH",
+                "elevation": 552,
+                "wfwx_station_uuid": "bfe0a6e2-e3ca-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            }
+          ]
+        },
+        {
+          "id": 38,
+          "name": "Sunshine Coast",
+          "order_of_appearance_in_list": 3,
+          "stations": [
+            {
+              "code": 1218,
+              "station_props": {
+                "name": "POWELL RIVER WEST LAKE",
+                "elevation": 100,
+                "wfwx_station_uuid": "bfe0a6e2-e1bf-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 82,
+              "station_props": {
+                "name": "SCAR CREEK",
+                "elevation": 116,
+                "wfwx_station_uuid": "bfe0a6e2-e55c-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 1016,
+              "station_props": {
+                "name": "SECHELT (EC)",
+                "elevation": 86,
+                "wfwx_station_uuid": "bfe0a6e2-e12c-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 75,
+              "station_props": {
+                "name": "TOBA CAMP",
+                "elevation": 43,
+                "wfwx_station_uuid": "bfe0a6e2-e555-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            }
+          ]
+        },
+        {
+          "id": 37,
+          "name": "Pemberton Zone",
+          "order_of_appearance_in_list": 2,
+          "stations": [
+            {
+              "code": 1283,
+              "station_props": {
+                "name": "CHEAKAMUS",
+                "elevation": 595,
+                "wfwx_station_uuid": "bfe0a6e2-e1f2-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 292,
+              "station_props": {
+                "name": "DARCY",
+                "elevation": 330,
+                "wfwx_station_uuid": "bfe0a6e2-e3b2-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 1375,
+              "station_props": {
+                "name": "FRANK CREEK",
+                "elevation": 305,
+                "wfwx_station_uuid": "bfe0a6e2-e22c-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 1083,
+              "station_props": {
+                "name": "MEAGER CREEK",
+                "elevation": 545,
+                "wfwx_station_uuid": "bfe0a6e2-e15c-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 83,
+              "station_props": {
+                "name": "SQUAMISH AP (EC)",
+                "elevation": 60,
+                "wfwx_station_uuid": "bfe0a6e2-e55d-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            }
+          ]
+        },
+        {
+          "id": 40,
+          "name": "Mid Island",
+          "order_of_appearance_in_list": 5,
+          "stations": [
+            {
+              "code": 37,
+              "station_props": {
+                "name": "BEAVER CREEK",
+                "elevation": 121,
+                "wfwx_station_uuid": "bfe0a6e2-e530-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 59,
+              "station_props": {
+                "name": "CEDAR",
+                "elevation": 30,
+                "wfwx_station_uuid": "bfe0a6e2-e545-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 1383,
+              "station_props": {
+                "name": "CHEF CREEK TEST",
+                "elevation": 456,
+                "wfwx_station_uuid": "bfe0a6e2-e231-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            }
+          ]
+        },
+        {
+          "id": 41,
+          "name": "North Island",
+          "order_of_appearance_in_list": 6,
+          "stations": [
+            {
+              "code": 19,
+              "station_props": {
+                "name": "MENZIES CAMP",
+                "elevation": 438,
+                "wfwx_station_uuid": "bfe0a6e2-e51e-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 1093,
+              "station_props": {
+                "name": "QUINSAM BASE FWX",
+                "elevation": 78,
+                "wfwx_station_uuid": "bfe0a6e2-e165-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 21,
+              "station_props": {
+                "name": "WOSS CAMP",
+                "elevation": 156,
+                "wfwx_station_uuid": "bfe0a6e2-e520-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            }
+          ]
+        },
+        {
+          "id": 39,
+          "name": "South Island",
+          "order_of_appearance_in_list": 4,
+          "stations": [
+            {
+              "code": 934,
+              "station_props": {
+                "name": "MESACHIE 2",
+                "elevation": 183,
+                "wfwx_station_uuid": "bfe0a6e2-e31e-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 45,
+              "station_props": {
+                "name": "SALTSPRING 2",
+                "elevation": 18,
+                "wfwx_station_uuid": "bfe0a6e2-e537-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "Kamloops Fire Centre",
+      "planning_areas": [
+        {
+          "id": 59,
+          "name": "Vernon (K4)",
+          "order_of_appearance_in_list": 2,
+          "stations": [
+            {
+              "code": 298,
+              "station_props": {
+                "name": "FINTRY",
+                "elevation": 670,
+                "wfwx_station_uuid": "bfe0a6e2-e3b8-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 388,
+              "station_props": {
+                "name": "KETTLE 2",
+                "elevation": 1389,
+                "wfwx_station_uuid": "bfe0a6e2-e412-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            },
+            {
+              "code": 346,
+              "station_props": {
+                "name": "SALMON ARM",
+                "elevation": 527,
+                "wfwx_station_uuid": "bfe0a6e2-e3e8-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 344,
+              "station_props": {
+                "name": "SEYMOUR ARM",
+                "elevation": 511,
+                "wfwx_station_uuid": "bfe0a6e2-e3e6-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 286,
+              "station_props": {
+                "name": "TURTLE",
+                "elevation": 640,
+                "wfwx_station_uuid": "bfe0a6e2-e3ac-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            }
+          ]
+        },
+        {
+          "id": 60,
+          "name": "Penticton (K5)",
+          "order_of_appearance_in_list": 3,
+          "stations": [
+            {
+              "code": 334,
+              "station_props": {
+                "name": "MCCUDDY",
+                "elevation": 1067,
+                "wfwx_station_uuid": "bfe0a6e2-e3dc-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 328,
+              "station_props": {
+                "name": "PENTICTON RS",
+                "elevation": 427,
+                "wfwx_station_uuid": "bfe0a6e2-e3d6-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            }
+          ]
+        },
+        {
+          "id": 58,
+          "name": "Kamloops (K2)",
+          "order_of_appearance_in_list": 1,
+          "stations": [
+            {
+              "code": 322,
+              "station_props": {
+                "name": "AFTON",
+                "elevation": 780,
+                "wfwx_station_uuid": "bfe0a6e2-e3d0-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 239,
+              "station_props": {
+                "name": "CLEARWATER HUB",
+                "elevation": 440,
+                "wfwx_station_uuid": "bfe0a6e2-e286-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 1082,
+              "station_props": {
+                "name": "MAYSON",
+                "elevation": 1315,
+                "wfwx_station_uuid": "bfe0a6e2-e15b-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            },
+            {
+              "code": 305,
+              "station_props": {
+                "name": "SPARKS LAKE",
+                "elevation": 972,
+                "wfwx_station_uuid": "bfe0a6e2-e3bf-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 266,
+              "station_props": {
+                "name": "WELLS GRAY",
+                "elevation": 968,
+                "wfwx_station_uuid": "bfe0a6e2-e2a0-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            }
+          ]
+        },
+        {
+          "id": 62,
+          "name": "Lillooet (K7)",
+          "order_of_appearance_in_list": 5,
+          "stations": [
+            {
+              "code": 1029,
+              "station_props": {
+                "name": "FIVE MILE",
+                "elevation": 865,
+                "wfwx_station_uuid": "bfe0a6e2-e137-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 306,
+              "station_props": {
+                "name": "FRENCH BAR",
+                "elevation": 1320,
+                "wfwx_station_uuid": "bfe0a6e2-e3c0-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 309,
+              "station_props": {
+                "name": "GWYNETH LAKE",
+                "elevation": 1205,
+                "wfwx_station_uuid": "bfe0a6e2-e3c3-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 280,
+              "station_props": {
+                "name": "LILLOOET",
+                "elevation": 408,
+                "wfwx_station_uuid": "bfe0a6e2-e2ae-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 1055,
+              "station_props": {
+                "name": "SPLINTLUM",
+                "elevation": 424,
+                "wfwx_station_uuid": "bfe0a6e2-e14c-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            }
+          ]
+        },
+        {
+          "id": 61,
+          "name": "Merritt (K6)",
+          "order_of_appearance_in_list": 4,
+          "stations": [
+            {
+              "code": 836,
+              "station_props": {
+                "name": "AUGUST LAKE",
+                "elevation": 855,
+                "wfwx_station_uuid": "bfe0a6e2-e2df-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 1399,
+              "station_props": {
+                "name": "MERRITT 2 HUB",
+                "elevation": 640,
+                "wfwx_station_uuid": "bfe0a6e2-e23c-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Northwest Fire Centre",
+      "planning_areas": [
+        {
+          "id": 50,
+          "name": "Cassiar Zone",
+          "order_of_appearance_in_list": 1,
+          "stations": [
+            {
+              "code": 111,
+              "station_props": {
+                "name": "ATLIN",
+                "elevation": 729,
+                "wfwx_station_uuid": "bfe0a6e2-e578-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 445,
+              "station_props": {
+                "name": "BOYA LAKE",
+                "elevation": 730,
+                "wfwx_station_uuid": "bfe0a6e2-e44b-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 108,
+              "station_props": {
+                "name": "DEASE LAKE FS",
+                "elevation": 800,
+                "wfwx_station_uuid": "bfe0a6e2-e575-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            },
+            {
+              "code": 440,
+              "station_props": {
+                "name": "FIRESIDE",
+                "elevation": 731,
+                "wfwx_station_uuid": "bfe0a6e2-e446-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 8
+            },
+            {
+              "code": 112,
+              "station_props": {
+                "name": "ISKUT",
+                "elevation": 890,
+                "wfwx_station_uuid": "bfe0a6e2-e579-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 444,
+              "station_props": {
+                "name": "KETCHIKA",
+                "elevation": 687,
+                "wfwx_station_uuid": "bfe0a6e2-e44a-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 7
+            },
+            {
+              "code": 967,
+              "station_props": {
+                "name": "SWIFT RIVER (YFS)",
+                "elevation": 878,
+                "wfwx_station_uuid": "bfe0a6e2-e110-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 9
+            },
+            {
+              "code": 110,
+              "station_props": {
+                "name": "TELEGRAPH CREEK",
+                "elevation": 382,
+                "wfwx_station_uuid": "bfe0a6e2-e577-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            }
+          ]
+        },
+        {
+          "id": 51,
+          "name": "Skeena Zone",
+          "order_of_appearance_in_list": 2,
+          "stations": [
+            {
+              "code": 432,
+              "station_props": {
+                "name": "BELL-IRVING",
+                "elevation": 388,
+                "wfwx_station_uuid": "bfe0a6e2-e43e-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 6
+            },
+            {
+              "code": 113,
+              "station_props": {
+                "name": "BOB QUINN LAKE",
+                "elevation": 609,
+                "wfwx_station_uuid": "bfe0a6e2-e57a-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 7
+            },
+            {
+              "code": 106,
+              "station_props": {
+                "name": "KITPARK",
+                "elevation": 75,
+                "wfwx_station_uuid": "bfe0a6e2-e573-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 427,
+              "station_props": {
+                "name": "NASS CAMP",
+                "elevation": 191,
+                "wfwx_station_uuid": "bfe0a6e2-e439-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            },
+            {
+              "code": 105,
+              "station_props": {
+                "name": "ROSSWOOD",
+                "elevation": 239,
+                "wfwx_station_uuid": "bfe0a6e2-e572-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 103,
+              "station_props": {
+                "name": "TERRACE (EC)",
+                "elevation": 217,
+                "wfwx_station_uuid": "bfe0a6e2-e570-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 430,
+              "station_props": {
+                "name": "VAN DYKE",
+                "elevation": 296,
+                "wfwx_station_uuid": "bfe0a6e2-e43c-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            }
+          ]
+        },
+        {
+          "id": 52,
+          "name": "Bulkley Zone",
+          "order_of_appearance_in_list": 3,
+          "stations": [
+            {
+              "code": 429,
+              "station_props": {
+                "name": "CEDARVALE",
+                "elevation": 274,
+                "wfwx_station_uuid": "bfe0a6e2-e43b-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 433,
+              "station_props": {
+                "name": "CRANBERRY",
+                "elevation": 500,
+                "wfwx_station_uuid": "bfe0a6e2-e43f-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 8
+            },
+            {
+              "code": 182,
+              "station_props": {
+                "name": "GANOKWA",
+                "elevation": 844,
+                "wfwx_station_uuid": "bfe0a6e2-e24f-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 428,
+              "station_props": {
+                "name": "KISPIOX HUB",
+                "elevation": 335,
+                "wfwx_station_uuid": "bfe0a6e2-e43a-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 172,
+              "station_props": {
+                "name": "NILKITKWA",
+                "elevation": 978,
+                "wfwx_station_uuid": "bfe0a6e2-e5b5-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            },
+            {
+              "code": 157,
+              "station_props": {
+                "name": "SMITHERS AP (EC)",
+                "elevation": 522,
+                "wfwx_station_uuid": "bfe0a6e2-e5a6-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 169,
+              "station_props": {
+                "name": "UPPER FULTON",
+                "elevation": 900,
+                "wfwx_station_uuid": "bfe0a6e2-e5b2-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 6
+            },
+            {
+              "code": 431,
+              "station_props": {
+                "name": "UPPER KISPIOX",
+                "elevation": 410,
+                "wfwx_station_uuid": "bfe0a6e2-e43d-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 7
+            }
+          ]
+        },
+        {
+          "id": 53,
+          "name": "Nadina Zone",
+          "order_of_appearance_in_list": 4,
+          "stations": [
+            {
+              "code": 167,
+              "station_props": {
+                "name": "AUGIER LAKE",
+                "elevation": 918,
+                "wfwx_station_uuid": "bfe0a6e2-e5b0-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 10
+            },
+            {
+              "code": 181,
+              "station_props": {
+                "name": "BURNS LAKE 850M",
+                "elevation": 830,
+                "wfwx_station_uuid": "bfe0a6e2-e24e-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 170,
+              "station_props": {
+                "name": "EAST OOTSA",
+                "elevation": 1089,
+                "wfwx_station_uuid": "bfe0a6e2-e5b3-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 161,
+              "station_props": {
+                "name": "GRASSY PLAINS HUB",
+                "elevation": 944,
+                "wfwx_station_uuid": "bfe0a6e2-e5aa-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 162,
+              "station_props": {
+                "name": "HOUSTON",
+                "elevation": 608,
+                "wfwx_station_uuid": "bfe0a6e2-e5ab-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 180,
+              "station_props": {
+                "name": "MCBRIDE LAKE",
+                "elevation": 810,
+                "wfwx_station_uuid": "bfe0a6e2-e24d-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 6
+            },
+            {
+              "code": 179,
+              "station_props": {
+                "name": "NADINA",
+                "elevation": 954,
+                "wfwx_station_uuid": "bfe0a6e2-e24c-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 8
+            },
+            {
+              "code": 173,
+              "station_props": {
+                "name": "NORTH BABINE",
+                "elevation": 951,
+                "wfwx_station_uuid": "bfe0a6e2-e246-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 9
+            },
+            {
+              "code": 178,
+              "station_props": {
+                "name": "PEDEN",
+                "elevation": 747,
+                "wfwx_station_uuid": "bfe0a6e2-e24b-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Prince George Fire Centre",
+      "planning_areas": [
+        {
+          "id": 49,
+          "name": "Fort Nelson (G9)",
+          "order_of_appearance_in_list": 7,
+          "stations": [
+            {
+              "code": 599,
+              "station_props": {
+                "name": "FORT NELSON FS",
+                "elevation": 384,
+                "wfwx_station_uuid": "bfe0a6e2-e4f8-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 118,
+              "station_props": {
+                "name": "HELMUT",
+                "elevation": 598,
+                "wfwx_station_uuid": "bfe0a6e2-e57f-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            },
+            {
+              "code": 119,
+              "station_props": {
+                "name": "NELSON FORKS",
+                "elevation": 604,
+                "wfwx_station_uuid": "bfe0a6e2-e580-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 117,
+              "station_props": {
+                "name": "SIERRA",
+                "elevation": 584,
+                "wfwx_station_uuid": "bfe0a6e2-e57e-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 126,
+              "station_props": {
+                "name": "TOAD RIVER",
+                "elevation": 711,
+                "wfwx_station_uuid": "bfe0a6e2-e587-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            }
+          ]
+        },
+        {
+          "id": 43,
+          "name": "Prince George Zone (G1)",
+          "order_of_appearance_in_list": 1,
+          "stations": [
+            {
+              "code": 149,
+              "station_props": {
+                "name": "BEAR LAKE",
+                "elevation": 739,
+                "wfwx_station_uuid": "bfe0a6e2-e59e-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 175,
+              "station_props": {
+                "name": "BEDNESTI",
+                "elevation": 858,
+                "wfwx_station_uuid": "bfe0a6e2-e248-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 189,
+              "station_props": {
+                "name": "CHILAKO",
+                "elevation": 814,
+                "wfwx_station_uuid": "bfe0a6e2-e255-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 187,
+              "station_props": {
+                "name": "HIXON",
+                "elevation": 615,
+                "wfwx_station_uuid": "bfe0a6e2-e253-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            }
+          ]
+        },
+        {
+          "id": 44,
+          "name": "Robson Valley (G3)",
+          "order_of_appearance_in_list": 2,
+          "stations": [
+            {
+              "code": 1108,
+              "station_props": {
+                "name": "BLUE RIVER 2",
+                "elevation": 695,
+                "wfwx_station_uuid": "bfe0a6e2-e16f-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 195,
+              "station_props": {
+                "name": "MCBRIDE",
+                "elevation": 716,
+                "wfwx_station_uuid": "bfe0a6e2-e25b-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 200,
+              "station_props": {
+                "name": "VALEMOUNT 2",
+                "elevation": 1195,
+                "wfwx_station_uuid": "bfe0a6e2-e260-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 1268,
+              "station_props": {
+                "name": "VALEMOUNT AIRPORT",
+                "elevation": 788,
+                "wfwx_station_uuid": "bfe0a6e2-e1e5-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            }
+          ]
+        },
+        {
+          "id": 45,
+          "name": "VanJam (G4/5)",
+          "order_of_appearance_in_list": 3,
+          "stations": [
+            {
+              "code": 146,
+              "station_props": {
+                "name": "FORT ST JAMES",
+                "elevation": 750,
+                "wfwx_station_uuid": "bfe0a6e2-e59b-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 163,
+              "station_props": {
+                "name": "LOVELL COVE",
+                "elevation": 990,
+                "wfwx_station_uuid": "bfe0a6e2-e5ac-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 165,
+              "station_props": {
+                "name": "MOOSE LAKE",
+                "elevation": 1109,
+                "wfwx_station_uuid": "bfe0a6e2-e5ae-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 158,
+              "station_props": {
+                "name": "VANDERHOOF HUB",
+                "elevation": 678,
+                "wfwx_station_uuid": "bfe0a6e2-e5a7-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            }
+          ]
+        },
+        {
+          "id": 46,
+          "name": "Mackenzie (G6)",
+          "order_of_appearance_in_list": 4,
+          "stations": [
+            {
+              "code": 145,
+              "station_props": {
+                "name": "INGENIKA POINT",
+                "elevation": 680,
+                "wfwx_station_uuid": "bfe0a6e2-e59a-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 155,
+              "station_props": {
+                "name": "MACKENZIE FS",
+                "elevation": 690,
+                "wfwx_station_uuid": "bfe0a6e2-e5a4-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 141,
+              "station_props": {
+                "name": "MANSON",
+                "elevation": 1047,
+                "wfwx_station_uuid": "bfe0a6e2-e596-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            }
+          ]
+        },
+        {
+          "id": 48,
+          "name": "Fort St John (G8)",
+          "order_of_appearance_in_list": 6,
+          "stations": [
+            {
+              "code": 1045,
+              "station_props": {
+                "name": "OSBORN",
+                "elevation": 700,
+                "wfwx_station_uuid": "bfe0a6e2-e143-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 120,
+              "station_props": {
+                "name": "SILVER",
+                "elevation": 835,
+                "wfwx_station_uuid": "bfe0a6e2-e581-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 136,
+              "station_props": {
+                "name": "WONOWON",
+                "elevation": 967,
+                "wfwx_station_uuid": "bfe0a6e2-e591-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            }
+          ]
+        },
+        {
+          "id": 47,
+          "name": "Dawson Creek (G7)",
+          "order_of_appearance_in_list": 5,
+          "stations": [
+            {
+              "code": 122,
+              "station_props": {
+                "name": "CHETWYND (EC)",
+                "elevation": 610,
+                "wfwx_station_uuid": "bfe0a6e2-e583-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 132,
+              "station_props": {
+                "name": "HUDSON HOPE",
+                "elevation": 704,
+                "wfwx_station_uuid": "bfe0a6e2-e58d-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 437,
+              "station_props": {
+                "name": "NOEL",
+                "elevation": 988,
+                "wfwx_station_uuid": "bfe0a6e2-e443-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 127,
+              "station_props": {
+                "name": "TUMBLER HUB",
+                "elevation": 942,
+                "wfwx_station_uuid": "bfe0a6e2-e588-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Southeast Fire Centre",
+      "planning_areas": [
+        {
+          "id": 57,
+          "name": "Columbia Zone",
+          "order_of_appearance_in_list": 4,
+          "stations": [
+            {
+              "code": 866,
+              "station_props": {
+                "name": "BLAEBERRY",
+                "elevation": 861,
+                "wfwx_station_uuid": "bfe0a6e2-e2f4-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 873,
+              "station_props": {
+                "name": "CRAWFORD",
+                "elevation": 887,
+                "wfwx_station_uuid": "bfe0a6e2-e2fa-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 6
+            },
+            {
+              "code": 919,
+              "station_props": {
+                "name": "GOLDSTREAM 2",
+                "elevation": 1333,
+                "wfwx_station_uuid": "bfe0a6e2-e313-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 367,
+              "station_props": {
+                "name": "MARION",
+                "elevation": 1300,
+                "wfwx_station_uuid": "bfe0a6e2-e3fd-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 363,
+              "station_props": {
+                "name": "REVELSTOKE",
+                "elevation": 680,
+                "wfwx_station_uuid": "bfe0a6e2-e3f9-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 374,
+              "station_props": {
+                "name": "SUCCOUR CREEK",
+                "elevation": 1000,
+                "wfwx_station_uuid": "bfe0a6e2-e404-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            }
+          ]
+        },
+        {
+          "id": 54,
+          "name": "Boundary Zone",
+          "order_of_appearance_in_list": 1,
+          "stations": [
+            {
+              "code": 390,
+              "station_props": {
+                "name": "BEAVERDELL",
+                "elevation": 807,
+                "wfwx_station_uuid": "bfe0a6e2-e414-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 391,
+              "station_props": {
+                "name": "EIGHT MILE",
+                "elevation": 1338,
+                "wfwx_station_uuid": "bfe0a6e2-e415-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 392,
+              "station_props": {
+                "name": "GRAND FORKS",
+                "elevation": 630,
+                "wfwx_station_uuid": "bfe0a6e2-e416-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            }
+          ]
+        },
+        {
+          "id": 56,
+          "name": "East Kootenay Zone",
+          "order_of_appearance_in_list": 3,
+          "stations": [
+            {
+              "code": 865,
+              "station_props": {
+                "name": "BRISCO",
+                "elevation": 930,
+                "wfwx_station_uuid": "bfe0a6e2-e2f3-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 7
+            },
+            {
+              "code": 412,
+              "station_props": {
+                "name": "ELKO",
+                "elevation": 775,
+                "wfwx_station_uuid": "bfe0a6e2-e42a-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 425,
+              "station_props": {
+                "name": "EMILY CREEK",
+                "elevation": 1190,
+                "wfwx_station_uuid": "bfe0a6e2-e437-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            },
+            {
+              "code": 419,
+              "station_props": {
+                "name": "JOHNSON LAKE",
+                "elevation": 853,
+                "wfwx_station_uuid": "bfe0a6e2-e431-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 789,
+              "station_props": {
+                "name": "NEGRO CREEK",
+                "elevation": 1572,
+                "wfwx_station_uuid": "bfe0a6e2-e2b7-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 6
+            },
+            {
+              "code": 788,
+              "station_props": {
+                "name": "ROUND PRAIRIE",
+                "elevation": 1647,
+                "wfwx_station_uuid": "bfe0a6e2-e2b6-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 417,
+              "station_props": {
+                "name": "TOBY HUB",
+                "elevation": 894,
+                "wfwx_station_uuid": "bfe0a6e2-e42f-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            }
+          ]
+        },
+        {
+          "id": 55,
+          "name": "West Kootenay Zone",
+          "order_of_appearance_in_list": 2,
+          "stations": [
+            {
+              "code": 401,
+              "station_props": {
+                "name": "GOATFELL",
+                "elevation": 1098,
+                "wfwx_station_uuid": "bfe0a6e2-e41f-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 7
+            },
+            {
+              "code": 407,
+              "station_props": {
+                "name": "NANCY GREEN",
+                "elevation": 1397,
+                "wfwx_station_uuid": "bfe0a6e2-e425-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 3
+            },
+            {
+              "code": 396,
+              "station_props": {
+                "name": "OCTOPUS CREEK",
+                "elevation": 1432,
+                "wfwx_station_uuid": "bfe0a6e2-e41a-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 4
+            },
+            {
+              "code": 402,
+              "station_props": {
+                "name": "PENDOREILLE",
+                "elevation": 725,
+                "wfwx_station_uuid": "bfe0a6e2-e420-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 5
+            },
+            {
+              "code": 380,
+              "station_props": {
+                "name": "POWDER CREEK",
+                "elevation": 1019,
+                "wfwx_station_uuid": "bfe0a6e2-e40a-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 1
+            },
+            {
+              "code": 404,
+              "station_props": {
+                "name": "SMALLWOOD",
+                "elevation": 997,
+                "wfwx_station_uuid": "bfe0a6e2-e422-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 6
+            },
+            {
+              "code": 387,
+              "station_props": {
+                "name": "TROUT LAKE",
+                "elevation": 991,
+                "wfwx_station_uuid": "bfe0a6e2-e411-0210-e053-259e228e58c7"
+              },
+              "order_of_appearance_in_planning_area_list": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

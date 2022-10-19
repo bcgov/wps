@@ -1,0 +1,28 @@
+{
+    "fuel_types": [
+        {
+            "id": 1,
+            "abbrev": "T1",
+            "fuel_type_code": "T1",
+            "description": "blah",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 2,
+            "abbrev": "T2",
+            "fuel_type_code": "T2",
+            "description": "bleep",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 0
+        },
+        {
+            "id": 3,
+            "abbrev": "T3",
+            "fuel_type_code": "T3",
+            "description": "bloop",
+            "percentage_conifer": 0,
+            "percentage_dead_fir": 0
+        }
+    ]
+}

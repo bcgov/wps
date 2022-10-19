@@ -1,12 +1,11 @@
 {
-    "python.pythonPath": "${workspaceFolder}/api/.venv/bin/python",
     "python.defaultInterpreterPath": "${workspaceFolder}/api/.venv/bin/python",
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
     "python.testing.promptToConfigure": true,
     "python.envFile": "${workspaceFolder}/.env",
     "python.formatting.autopep8Args": [
-        "--max-line-length=110",
+        "--max-line-length=120",
         "--ignore=E402"
     ],
     "files.exclude": {
@@ -14,7 +13,8 @@
         "**/.pytest_cache": true,
         "**/__pycache__**": true,
         "web/node_modules": true,
-        "api/python_cache": true
+        "api/python_cache": true,
+        "api/.venv": true
     },
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
@@ -23,31 +23,40 @@
     "eslint.format.enable": true,
     "eslint.validate": [
         "javascript",
-        "typescript"
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
     ],
     "eslint.run": "onSave",
+    "editor.rulers": [
+        100
+    ],
     "[python]": {
-        "editor.rulers": [110]
+        "editor.rulers": [
+            120,
+            100
+        ]
     },
-    "[javascript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.tabSize": 2
-    },
-    "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.tabSize": 2
-    },
-    "[typescriptreact]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.tabSize": 2
+    "[html]": {
+        "editor.formatOnSave": false
     },
     "[yaml]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.insertSpaces": true,
         "editor.tabSize": 2,
-        "editor.formatOnSave": true
+        "editor.formatOnSave": true,
+    },
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
     },
     "python.testing.pytestArgs": [
         "api"
+    ],
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "cSpell.words": [
+        "Albers"
     ]
 }

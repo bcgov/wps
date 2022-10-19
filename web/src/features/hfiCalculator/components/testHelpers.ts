@@ -1,12 +1,10 @@
-import { WeatherStation, WeatherStationProperties } from 'api/hfiCalcAPI'
-import { StationDaily } from 'api/hfiCalculatorAPI'
+import { StationDaily, WeatherStation, WeatherStationProperties } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
 
 const defaultProps: WeatherStationProperties = {
   name: 'name',
   uuid: 'uuid',
-  elevation: null,
-  fuel_type: { abbrev: 'abbrev', description: 'desc' }
+  elevation: null
 }
 
 export const buildStation = (code: number): WeatherStation => {
@@ -37,6 +35,7 @@ export const buildStationDaily = (code: number, intensity_group = 1): StationDai
     intensity_group: intensity_group,
     sixty_minute_fire_size: 1,
     fire_type: 'fire',
-    date: DateTime.fromISO('2021-10-05T17:00:00.000-07:00')
+    date: DateTime.fromISO('2021-10-05T17:00:00.000-07:00'),
+    last_updated: DateTime.fromISO('2021-10-05T17:00:00.000-07:00')
   }
 }
