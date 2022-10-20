@@ -65,7 +65,7 @@
     "serve": "vite preview",
     "coverage": "npm test -- --coverage --watchAll=false",
     "coverage:ci": "CI=true VITE_KEYCLOAK_CLIENT=wps-web npm test -- --coverage --watchAll=false",
-    "cypress:ci": "VITE_COVERAGE=true yarn cypress run --browser=chrome",
+    "cypress:ci": "VITE_COVERAGE=true yarn cypress run",
     "lint": "eslint './src/**/*.{ts,tsx}'",
     "lint:fix": "eslint --fix './src/**/*.{ts,tsx}'",
     "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md)\"",
