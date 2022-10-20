@@ -1,0 +1,19 @@
+apiVersion: ops.gov.bc.ca/v1alpha1
+kind: SysdigTeam
+metadata:
+  name: e1e498-sysdigteam
+  namespace: e1e498-tools
+spec:
+  team:
+    description: The Sysdig Team for the OpenShift Project Set e1e498
+    users:
+      - name: con.brad@gmail.com
+        role: ROLE_TEAM_EDIT
+      - name: conor.brady@gov.bc.ca
+        role: ROLE_TEAM_EDIT
+      - name: andrea.williams@gov.bc.ca
+        role: ROLE_TEAM_EDIT
+      - name: neal.mcloughlin@gov.bc.ca
+        role: ROLE_TEAM_READ
+      - name: nicolas.livanos@gov.bc.ca
+        role: ROLE_TEAM_READ
