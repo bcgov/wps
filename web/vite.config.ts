@@ -17,15 +17,5 @@ export default defineConfig({
       extension: ['.tsx', '.ts'],
       requireEnv: true
     })
-  ],
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          lodash: ['lodash'],
-          mui: ['@mui/material']
-        }
-      }
-    }
-  }
+  ]
 })
