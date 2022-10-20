@@ -195,6 +195,8 @@ jobs:
             **/node_modules
             ~/.cache/Cypress
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - name: Install dri3 extension for cypress on ubuntu
+        run: sudo apt-get -y install libxcb-dri3-dev
       - name: Install node dependencies (web)
         working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'
