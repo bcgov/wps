@@ -59,17 +59,15 @@ async def run():
                                subjects=subjects)
     sfms_sub = await jetstream.pull_subscribe(stream=stream_name,
                                               subject=sfms_file_subject,
-                                              durable=hfi_classify_durable_group,
-                                              config=ConsumerConfig(ack_wait=1800))  # in seconds, 15 minutes allowed for acks
-
+                                              durable=hfi_classify_durable_group)
     while True:
         msgs: List[Msg] = await sfms_sub.fetch(batch=1, timeout=None)
         for msg in msgs:
             logger.info('Msg received - {}\n'.format(msg))
+            await msg.ack()
             run_type, run_date, for_date = parse_nats_message(msg)
             logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
             await process_hfi(run_type, run_date, for_date)
-            await msg.ack()
 
 if __name__ == '__main__':
     configure_logging()
