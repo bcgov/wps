@@ -7,6 +7,7 @@ import json
 import datetime
 import logging
 import nats
+from nats.js.api import StreamConfig, RetentionPolicy
 from nats.aio.msg import Msg
 from app.auto_spatial_advisory.nats import server, stream_name, hfi_classify_group, sfms_file_subject, subjects
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
@@ -54,10 +55,13 @@ async def run():
     async def cb(msg):
         run_type, run_date, for_date = parse_nats_message(msg)
         logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
-        # await process_hfi(run_type, run_date, for_date) TODO: this is turned off for now, since a) writes too much data, b) we don't have a prod tileserverdb
+        # TODO: this is turned off for now, since a) writes too much data, b) we don't have a prod tileserverdb
+        await process_hfi(run_type, run_date, for_date)
 
     # idempotent operation, IFF stream with same configuration is added each time
-    await jetstream.add_stream(name=stream_name, subjects=subjects)
+    await jetstream.add_stream(name=stream_name,
+                               config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE),
+                               subjects=subjects)
     sfms_sub = await jetstream.subscribe(stream=stream_name,
                                          subject=sfms_file_subject,
                                          queue=hfi_classify_group,
