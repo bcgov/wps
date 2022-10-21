@@ -8,7 +8,7 @@ import datetime
 import logging
 from typing import List
 import nats
-from nats.js.api import StreamConfig, RetentionPolicy
+from nats.js.api import StreamConfig, RetentionPolicy, ConsumerConfig
 from nats.aio.msg import Msg
 from app.auto_spatial_advisory.nats import server, stream_name, sfms_file_subject, subjects, hfi_classify_durable_group
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
@@ -59,7 +59,8 @@ async def run():
                                subjects=subjects)
     sfms_sub = await jetstream.pull_subscribe(stream=stream_name,
                                               subject=sfms_file_subject,
-                                              durable=hfi_classify_durable_group)
+                                              durable=hfi_classify_durable_group,
+                                              config=ConsumerConfig(ack_wait=1800))  # in seconds, 15 minutes allowed for acks
 
     while True:
         msgs: List[Msg] = await sfms_sub.fetch(batch=1, timeout=None)
