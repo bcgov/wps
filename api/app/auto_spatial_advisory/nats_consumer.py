@@ -53,12 +53,6 @@ async def run():
     )
     jetstream = nats_connection.jetstream()
 
-    async def cb(msg):
-        run_type, run_date, for_date = parse_nats_message(msg)
-        logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
-        # TODO: this is turned off for now, since a) writes too much data, b) we don't have a prod tileserverdb
-        await process_hfi(run_type, run_date, for_date)
-
     # idempotent operation, IFF stream with same configuration is added each time
     await jetstream.add_stream(name=stream_name,
                                config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE),
