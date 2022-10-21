@@ -6,10 +6,11 @@ import asyncio
 import json
 import datetime
 import logging
+from typing import List
 import nats
 from nats.js.api import StreamConfig, RetentionPolicy
 from nats.aio.msg import Msg
-from app.auto_spatial_advisory.nats import server, stream_name, hfi_classify_group, sfms_file_subject, subjects
+from app.auto_spatial_advisory.nats import server, stream_name, sfms_file_subject, subjects
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
 from app import configure_logging
 
@@ -62,15 +63,17 @@ async def run():
     await jetstream.add_stream(name=stream_name,
                                config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE),
                                subjects=subjects)
-    sfms_sub = await jetstream.subscribe(stream=stream_name,
-                                         subject=sfms_file_subject,
-                                         queue=hfi_classify_group,
-                                         cb=cb)    # pylint: disable=invalid-name
+    sfms_sub = await jetstream.pull_subscribe(stream=stream_name,
+                                              subject=sfms_file_subject)
 
     while True:
-        msg = await sfms_sub.next_msg(timeout=None)
-        logger.info('Msg received - {}\n'.format(msg))
-        await msg.ack()
+        msgs: List[Msg] = await sfms_sub.fetch(batch=1, timeout=None)
+        for msg in msgs:
+            logger.info('Msg received - {}\n'.format(msg))
+            run_type, run_date, for_date = parse_nats_message(msg)
+            logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
+            await process_hfi(run_type, run_date, for_date)
+            await msg.ack()
 
 if __name__ == '__main__':
     configure_logging()
