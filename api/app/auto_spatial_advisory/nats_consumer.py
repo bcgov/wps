@@ -10,7 +10,7 @@ from typing import List
 import nats
 from nats.js.api import StreamConfig, RetentionPolicy
 from nats.aio.msg import Msg
-from app.auto_spatial_advisory.nats import server, stream_name, sfms_file_subject, subjects
+from app.auto_spatial_advisory.nats import server, stream_name, sfms_file_subject, subjects, hfi_classify_durable_group
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
 from app import configure_logging
 
@@ -64,7 +64,8 @@ async def run():
                                config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE),
                                subjects=subjects)
     sfms_sub = await jetstream.pull_subscribe(stream=stream_name,
-                                              subject=sfms_file_subject)
+                                              subject=sfms_file_subject,
+                                              durable=hfi_classify_durable_group)
 
     while True:
         msgs: List[Msg] = await sfms_sub.fetch(batch=1, timeout=None)
