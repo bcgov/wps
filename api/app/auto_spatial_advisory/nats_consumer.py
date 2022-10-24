@@ -7,11 +7,13 @@ import json
 import datetime
 import logging
 from typing import List
+from starlette.background import BackgroundTasks
 import nats
-from nats.js.api import StreamConfig, RetentionPolicy, ConsumerConfig
+from nats.js.api import StreamConfig, RetentionPolicy
 from nats.aio.msg import Msg
 from app.auto_spatial_advisory.nats import server, stream_name, sfms_file_subject, subjects, hfi_classify_durable_group
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
+from app.nats import publish
 from app import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -63,11 +65,17 @@ async def run():
     while True:
         msgs: List[Msg] = await sfms_sub.fetch(batch=1, timeout=None)
         for msg in msgs:
-            logger.info('Msg received - {}\n'.format(msg))
-            await msg.ack()
-            run_type, run_date, for_date = parse_nats_message(msg)
-            logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
-            await process_hfi(run_type, run_date, for_date)
+            try:
+                # logger.info('Msg received - {}\n'.format(msg))
+                # await msg.ack()
+                # run_type, run_date, for_date = parse_nats_message(msg)
+                # logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
+                # await process_hfi(run_type, run_date, for_date)
+                raise Exception("Processing failed")
+            except Exception as e:
+                logger.error("Error processing HFI message, adding back to queue", exc_info=e)
+                background_tasks = BackgroundTasks()
+                background_tasks.add_task(publish, stream_name, sfms_file_subject, msg, subjects)
 
 if __name__ == '__main__':
     configure_logging()
