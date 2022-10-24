@@ -66,12 +66,11 @@ async def run():
         msgs: List[Msg] = await sfms_sub.fetch(batch=1, timeout=None)
         for msg in msgs:
             try:
-                # logger.info('Msg received - {}\n'.format(msg))
-                # await msg.ack()
-                # run_type, run_date, for_date = parse_nats_message(msg)
-                # logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
-                # await process_hfi(run_type, run_date, for_date)
-                raise Exception("Processing failed")
+                logger.info('Msg received - {}\n'.format(msg))
+                await msg.ack()
+                run_type, run_date, for_date = parse_nats_message(msg)
+                logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
+                await process_hfi(run_type, run_date, for_date)
             except Exception as e:
                 logger.error("Error processing HFI message: %s, adding back to queue", msg.data, exc_info=e)
                 background_tasks = BackgroundTasks()
