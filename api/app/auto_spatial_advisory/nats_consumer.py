@@ -73,7 +73,7 @@ async def run():
                 # await process_hfi(run_type, run_date, for_date)
                 raise Exception("Processing failed")
             except Exception as e:
-                logger.error("Error processing HFI message, adding back to queue", exc_info=e)
+                logger.error("Error processing HFI message: %s, adding back to queue", msg.data, exc_info=e)
                 background_tasks = BackgroundTasks()
                 background_tasks.add_task(publish, stream_name, sfms_file_subject, msg, subjects)
 
