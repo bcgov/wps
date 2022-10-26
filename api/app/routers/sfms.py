@@ -8,7 +8,7 @@ from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks
 from app.nats import publish
 from app.utils.s3 import get_client
 from app import config
-from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename, get_date_part
+from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename, get_date_part, is_hfi_file
 from app.auto_spatial_advisory.nats import stream_name, subjects, sfms_file_subject
 from app.schemas.auto_spatial_advisory import SFMSFile
 
@@ -95,8 +95,10 @@ async def upload(file: UploadFile,
         # as a background task.
         # As noted below, the caller will have no idea if anything has gone wrong, which is
         # unfortunate, but we can't do anything about it.
-        message = get_sfms_file_message(file.filename, meta_data)
-        background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
+        if is_hfi_file(filename=file.filename):
+            logger.info("HFI file: %s, putting processing message on queue", file.filename)
+            message = get_sfms_file_message(file.filename, meta_data)
+            background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
     except Exception as exception:  # pylint: disable=broad-except
         logger.error(exception, exc_info=True)
         # Regardless of what happens with putting a message on the queue, we return 200 to the
@@ -151,19 +153,18 @@ async def upload_manual(file: UploadFile,
         # as a background task.
         # As noted below, the caller will have no idea if anything has gone wrong, which is
         # unfortunate, but we can't do anything about it.
-        for_date = get_date_part(file.filename)
-        message = SFMSFile(key=key,
-                           run_type=forecast_or_actual,
-                           last_modified=meta_data.get('last_modified'),
-                           create_time=meta_data.get('create_time'),
-                           run_date=issue_date,
-                           for_date=date(year=int(for_date[0:4]),
-                                         month=int(for_date[4:6]),
-                                         day=int(for_date[6:8])))
-        logger.info('Message created "%s" for date "%s" to put on %s',
-                    message.key, message.for_date, background_tasks.is_async)
-        # TODO: this is turned off for now, since a) writes too much data, b) we don't have a prod tileserverdb
-        # background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
+        if is_hfi_file(filename=file.filename):
+            logger.info("HFI file: %s, putting processing message on queue", file.filename)
+            for_date = get_date_part(file.filename)
+            message = SFMSFile(key=key,
+                               run_type=forecast_or_actual,
+                               last_modified=meta_data.get('last_modified'),
+                               create_time=meta_data.get('create_time'),
+                               run_date=issue_date,
+                               for_date=date(year=int(for_date[0:4]),
+                                             month=int(for_date[4:6]),
+                                             day=int(for_date[6:8])))
+            background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
     except Exception as exception:  # pylint: disable=broad-except
         logger.error(exception, exc_info=True)
         # Regardless of what happens with putting a message on the queue, we return 200 to the
