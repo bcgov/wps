@@ -73,11 +73,11 @@ async def process_cogs(run_type: RunType, run_date: date, for_date: date):
             # in case we need to know about it in the future.
             cogs_key = get_cogs_target_filename(hfi_tiff_key)
             with open(cogs_temp_filename, mode='rb') as file:  # b is important -> binary
-                fileContent = file.read()
+                file_content = file.read()
                 logger.info('Uploading file "%s" to "%s"', cogs_temp_filename, cogs_key)
                 await client.put_object(Bucket=bucket,
                                         Key=cogs_key,
-                                        Body=fileContent)
+                                        Body=file_content)
                 logger.info('Done uploading file')
 
     perf_end = perf_counter()
