@@ -3,7 +3,6 @@
 # pylint: skip-file
 import logging
 import os
-from enum import Enum
 from datetime import date
 from time import perf_counter
 import tempfile
@@ -22,23 +21,10 @@ from app.db.crud.auto_spatial_advisory import (
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.polygonize import polygonize_in_memory
 from app.geospatial import NAD83_BC_ALBERS
+from app.auto_spatial_advisory.common import RunType, get_tiff_key
 
 
 logger = logging.getLogger(__name__)
-
-
-class RunType(Enum):
-    FORECAST = 'forecast'
-    ACTUAL = 'actual'
-
-    @staticmethod
-    def from_str(label):
-        if label in ('forecast', 'Forecast', 'FORECAST'):
-            return RunType.FORECAST
-        elif label in ('actual', 'Actual', 'ACTUAL'):
-            return RunType.ACTUAL
-        else:
-            raise NotImplementedError
 
 
 class UnknownHFiClassification(Exception):
@@ -130,15 +116,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
     logger.info('Processing HFI %s for run date: %s, for date: %s', run_type, run_date, for_date)
     perf_start = perf_counter()
 
-    bucket = config.get('OBJECT_STORE_BUCKET')
-    # TODO what really has to happen, is that we grab the most recent prediction for the given date,
-    # but this method doesn't even belong here, it's just a shortcut for now!
-    for_date_string = f'{for_date.year}{for_date.month:02d}{for_date.day:02d}'
-
-    # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
-    # it's S3 virtual file system driver to read the file.
-    # https://gdal.org/user/virtual_file_systems.html
-    key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_date.isoformat()}/hfi{for_date_string}.tif'
+    key = get_tiff_key(run_type, run_date, for_date)
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(key, temp_filename)

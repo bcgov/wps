@@ -13,6 +13,8 @@ from nats.js.api import StreamConfig, RetentionPolicy
 from nats.aio.msg import Msg
 from app.auto_spatial_advisory.nats import server, stream_name, sfms_file_subject, subjects, hfi_classify_durable_group
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
+from app.auto_spatial_advisory.process_cogs import process_cogs
+
 from app.nats import publish
 from app import configure_logging
 
@@ -71,6 +73,8 @@ async def run():
                 run_type, run_date, for_date = parse_nats_message(msg)
                 logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
                 await process_hfi(run_type, run_date, for_date)
+                logger.info('Awaiting process_cogs({}, {}, {})\n'.format(run_type, run_date, for_date))
+                await process_cogs(run_type, run_date, for_date)
             except Exception as e:
                 logger.error("Error processing HFI message: %s, adding back to queue", msg.data, exc_info=e)
                 background_tasks = BackgroundTasks()
