@@ -48,7 +48,9 @@ class UnknownHFiClassification(Exception):
 async def write_classified_hfi_to_tileserver(session: AsyncSession,
                                              feature: ogr.Feature,
                                              coordinate_transform: osr.CoordinateTransformation,
-                                             date: date,
+                                             for_date: date,
+                                             run_date: date,
+                                             run_type: RunType,
                                              advisory: HfiClassificationThreshold,
                                              warning: HfiClassificationThreshold):
     """
@@ -72,8 +74,8 @@ async def write_classified_hfi_to_tileserver(session: AsyncSession,
     threshold = get_threshold_from_hfi(feature, advisory, warning)
 
     statement = text(
-        'INSERT INTO hfi (hfi, date, geom) VALUES (:hfi, :date, ST_GeomFromText(:geom, 3005))')
-    await session.execute(statement, {'hfi': threshold.description, 'date': date, 'geom': wkt.dumps(polygon)})
+        'INSERT INTO hfi (hfi, for_date, run_date, run_type, geom) VALUES (:hfi, :for_date, :run_date, :run_type, ST_GeomFromText(:geom, 3005))')
+    await session.execute(statement, {'hfi': threshold.description, 'for_date': for_date, 'run_date': run_date, 'run_type': run_type, 'geom': wkt.dumps(polygon)})
 
 
 def get_threshold_from_hfi(feature: ogr.Feature, advisory: HfiClassificationThreshold, warning: HfiClassificationThreshold):
@@ -172,7 +174,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                 logger.info('Writing HFI vectors to tileserv...')
                 for i in range(layer.GetFeatureCount()):
                     feature: ogr.Feature = layer.GetFeature(i)
-                    await write_classified_hfi_to_tileserver(session, feature, coordinate_transform, for_date, advisory, warning)
+                    await write_classified_hfi_to_tileserver(session, feature, coordinate_transform, for_date, run_date, run_type, advisory, warning)
 
     perf_end = perf_counter()
     delta = perf_end - perf_start
