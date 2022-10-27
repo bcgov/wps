@@ -11,7 +11,7 @@ stream_prefix: Final = config.get('NATS_STREAM_PREFIX')
 stream_name: Final = f'{stream_prefix}sfms'
 subjects: Final = ['sfms.*', ]
 
-hfi_classify_group: Final = "hfi_classify"
+hfi_classify_durable_group: Final = "hfi_classify"
 
 
 # SFMS Stream/Subjects
