@@ -12,8 +12,8 @@ import sys
 import asyncio
 from datetime import date
 from .. import common
-from .. import process_hfi
+from .. import process_cogs
 
 if __name__ == '__main__':
-    asyncio.run(process_hfi.process_hfi(common.RunType.ACTUAL, date.fromisoformat(
+    asyncio.run(process_cogs.process_cogs(common.RunType.ACTUAL, date.fromisoformat(
         sys.argv[1]), date.fromisoformat(sys.argv[2])))

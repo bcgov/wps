@@ -5,50 +5,12 @@ from datetime import date
 from typing import Final
 from app.schemas.auto_spatial_advisory import SFMSFile, SFMSRunType
 from app.utils.time import get_hour_20, get_vancouver_now
+from app.auto_spatial_advisory.common import get_prefix, get_date_part
 
 
 def is_hfi_file(filename: str) -> bool:
     "Returns true if filename starts with 'hfi'"
     return filename.startswith("hfi")
-
-
-def get_date_part(filename: str) -> str:
-    """ Get the date part of the filename.
-    Filename example: hfi20220823.tif
-    """
-    return filename[filename.rfind('.') - 8:filename.rfind('.')]
-
-
-def get_prefix(filename: str) -> str:
-    """ Decide whether the file is an actual or forecast file.
-    08h00 PST on the 22nd hfi20220823.tif -> forecast
-    13h00 PST on the 22nd hfi20220823.tif -> forecast
-    08h00 PST on the 23rd hfi20220823.tif -> forecast
-    13h00 PST on the 23rd hfi20220823.tif -> actual
-    """
-    actual: Final = 'actual'
-    forecast: Final = 'forecast'
-    file_date_string = get_date_part(filename)
-    file_date = date(
-        year=int(file_date_string[:4]),
-        month=int(file_date_string[4:6]),
-        day=int(file_date_string[6:8]))
-    now = get_vancouver_now()
-    now_date = now.date()
-
-    if file_date < now_date:
-        # It's from the past - it's an actual.
-        return actual
-    if file_date > now_date:
-        # It's from the future - it's a forecast.
-        return forecast
-    # It's from today - now it gets weird.
-    # If the current time is after solar noon, it's an actual.
-    # If the current time is before solar noon, it's a forecast.
-    solar_noon_today = get_hour_20(now)
-    if now > solar_noon_today:
-        return actual
-    return forecast
 
 
 def get_target_filename(filename: str) -> str:

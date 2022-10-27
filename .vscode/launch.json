@@ -68,6 +68,17 @@
             ]
         },
         {
+            "name": "asa - process cogs",
+            "type": "python",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.local.process_cogs_local",
+            "console": "integratedTerminal",
+            "args": [
+                "2022-10-01",
+                "2022-10-01"
+            ]
+        },
+        {
             "name": "Chrome",
             "type": "pwa-chrome",
             "request": "launch",
