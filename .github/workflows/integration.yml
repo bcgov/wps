@@ -89,7 +89,9 @@ jobs:
       - name: Install ubuntu pre-requisites (api)
         # The python gdal and R component relies on libgdal-dev being installed.
         # The api uses wkhtmltopdf to generate pdf's.
-        run: sudo apt-get -y install libgdal-dev wkhtmltopdf
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install libgdal-dev wkhtmltopdf
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v4
         with:
