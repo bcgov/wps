@@ -1,6 +1,6 @@
 import { FormControl, FormControlLabel, Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { GeneralHeader, Container } from 'components'
+import { GeneralHeader, Container, ErrorBoundary } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
@@ -17,6 +17,12 @@ import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
+import AdvisoryMetadataLabel from 'features/fba/components/AdvisoryMetadataLabel'
+
+enum RunType {
+  FORECAST = 'FORECAST',
+  ACTUAL = 'ACTUAL'
+}
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -51,6 +57,9 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
+  const [runType, setRunType] = useState(RunType.FORECAST)
+  const [runDate, setRunDate] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -64,8 +73,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       localStorage.setItem('preferredFireCenter', fireCenter?.id.toString())
     }
   }, [fireCenter])
-
-  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
 
   const updateDate = (newDate: DateTime) => {
     if (newDate !== dateOfInterest) {
@@ -118,6 +125,11 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 />
               </FormControl>
             </Grid>
+            <ErrorBoundary>
+              <Grid item>
+                <AdvisoryMetadataLabel forDate={dateOfInterest} runDate={runDate} runType={runType.toString()} />
+              </Grid>
+            </ErrorBoundary>
           </Grid>
         </Grid>
       </Container>
