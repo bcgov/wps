@@ -75,6 +75,7 @@ async def write_classified_hfi_to_tileserver(session: AsyncSession,
 
     statement = text(
         'INSERT INTO hfi (hfi, for_date, run_date, run_type, geom) VALUES (:hfi, :for_date, :run_date, :run_type, ST_GeomFromText(:geom, 3005))')
+    logger.info(type(run_type.value), run_type.value)
     await session.execute(statement, {'hfi': threshold.description, 'for_date': for_date, 'run_date': run_date, 'run_type': run_type.value, 'geom': wkt.dumps(polygon)})
 
 
