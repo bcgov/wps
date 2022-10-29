@@ -19,7 +19,7 @@ import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
 import AdvisoryMetadataLabel from 'features/fba/components/AdvisoryMetadataLabel'
 
-enum RunType {
+export enum RunType {
   FORECAST = 'FORECAST',
   ACTUAL = 'ACTUAL'
 }
@@ -57,9 +57,13 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
-  const [runType, setRunType] = useState(RunType.FORECAST)
   const [runDate, setRunDate] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
-  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+  const [dateOfInterest, setDateOfInterest] = useState(
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour > 13
+      ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
+      : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
+  )
+  const [runType, setRunType] = useState(RunType.FORECAST)
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {

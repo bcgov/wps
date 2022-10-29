@@ -10,7 +10,7 @@ describe('FBAMap', () => {
     const { getByTestId } = render(
       <Provider store={store}>
         <FBAMap
-          date={DateTime.fromISO('2016-05-25')}
+          forDate={DateTime.fromISO('2016-05-25')}
           advisoryThreshold={0}
           selectedFireCenter={undefined}
           className={''}

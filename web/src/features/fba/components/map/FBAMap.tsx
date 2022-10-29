@@ -44,19 +44,21 @@ import { LayerControl } from 'features/fba/components/map/layerControl'
 import FBATooltip from 'features/fba/components/map/FBATooltip'
 import { RASTER_SERVER_BASE_URL } from 'utils/env'
 import { EventsKey } from 'ol/events'
+import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
 const TILE_SERVER_URL = 'https://tileserv-dev.apps.silver.devops.gov.bc.ca'
-export const SFMS_MAX_ZOOM = 8 // The SFMS data is so course, there's not much point in zooming in further
+export const SFMS_MAX_ZOOM = 8 // The SFMS data is so coarse, there's not much point in zooming in further
 export const COG_TILE_SIZE = [512, 512] // COG tiffs are 512x512 pixels - reading larger chunks should in theory be faster?
 
 export interface FBAMapProps {
   testId?: string
   className: string
   selectedFireCenter: FireCenter | undefined
-  date: DateTime
+  forDate: DateTime
+  runType: RunType
   advisoryThreshold: number
 }
 
@@ -162,7 +164,9 @@ const FBAMap = (props: FBAMapProps) => {
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.date.toISODate()}'`
+      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.forDate.toISODate()}' AND run_type=${props.runType
+        .toString()
+        .toLowerCase()}`
     }),
     style: hfiStyler,
     zIndex: 100,
@@ -227,7 +231,9 @@ const FBAMap = (props: FBAMapProps) => {
         source: new VectorTileSource({
           attributions: ['BC Wildfire Service'],
           format: new MVT(),
-          url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.date.toISODate()}'`
+          url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.forDate.toISODate()}' AND run_type=${props.runType
+            .toString()
+            .toLowerCase()}`
         }),
         style: hfiStyler,
         zIndex: 100,
@@ -235,18 +241,18 @@ const FBAMap = (props: FBAMapProps) => {
       })
       map.addLayer(latestHFILayer)
     }
-  }, [props.date, showHighHFI]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [props.forDate, showHighHFI]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!map) return
     const layerName = 'hfiRaw'
     removeLayerByName(map, layerName)
     if (showRawHFI) {
-      const isoDate = props.date.toISODate().replaceAll('-', '')
+      const isoDate = props.forDate.toISODate().replaceAll('-', '')
       const layer = hfiTileFactory(`gpdqha/sfms/cog/cog_hfi${isoDate}.tif`, layerName)
       map.addLayer(layer)
     }
-  }, [props.date, showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [props.forDate, showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const addRemoveLayer = (map: ol.Map | null, show: boolean, layerName: string, source: XYZ) => {
     if (!map) return
@@ -363,13 +369,13 @@ const FBAMap = (props: FBAMapProps) => {
       if (overlay) {
         const coordinate = proj.transform(e.coordinate, 'EPSG:3857', 'EPSG:4326')
         // fetch hfi at coordinate
-        dispatch(fetchValuesAtCoordinate(coordinate[1], coordinate[0], props.date))
+        dispatch(fetchValuesAtCoordinate(coordinate[1], coordinate[0], props.forDate))
         overlay.setPosition(e.coordinate)
       }
     })
     setSingleClickKey(newKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.date, map, dispatch])
+  }, [props.forDate, map, dispatch])
 
   useEffect(() => {
     const stationsSource = new VectorSource({
