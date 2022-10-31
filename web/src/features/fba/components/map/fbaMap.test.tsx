@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react'
 import store from 'app/store'
 import FBAMap from 'features/fba/components/map/FBAMap'
+import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { DateTime } from 'luxon'
 import React from 'react'
 import { Provider } from 'react-redux'
@@ -14,6 +15,7 @@ describe('FBAMap', () => {
           advisoryThreshold={0}
           selectedFireCenter={undefined}
           className={''}
+          runType={RunType.FORECAST}
         />
       </Provider>
     )

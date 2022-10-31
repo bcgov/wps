@@ -17,7 +17,7 @@ import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
-import AdvisoryMetadataLabel from 'features/fba/components/AdvisoryMetadataLabel'
+import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -39,7 +39,7 @@ const useStyles = makeStyles(() => ({
     minWidth: 280,
     margin: theme.spacing(1)
   },
-  thresholdDropdown: {
+  forecastActualDropdown: {
     minWidth: 280,
     margin: theme.spacing(1),
     marginLeft: 50
@@ -114,8 +114,21 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 />
               </FormControl>
             </Grid>
+            <ErrorBoundary>
+              <Grid item>
+                <FormControl className={classes.forecastActualDropdown}>
+                  <AdvisoryMetadata
+                    forDate={dateOfInterest}
+                    runDate={runDate}
+                    setRunDate={setRunDate}
+                    runType={runType.toString()}
+                    setRunType={setRunType}
+                  />
+                </FormControl>
+              </Grid>
+            </ErrorBoundary>
             <Grid item>
-              <FormControl className={classes.thresholdDropdown}>
+              <FormControl className={classes.formControl}>
                 <FormControlLabel
                   label="
                 Advisory HFI Threshold of combustible area"
@@ -129,16 +142,12 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 />
               </FormControl>
             </Grid>
-            <ErrorBoundary>
-              <Grid item>
-                <AdvisoryMetadataLabel forDate={dateOfInterest} runDate={runDate} runType={runType.toString()} />
-              </Grid>
-            </ErrorBoundary>
           </Grid>
         </Grid>
       </Container>
       <FBAMap
-        date={dateOfInterest}
+        forDate={dateOfInterest}
+        runType={runType}
         selectedFireCenter={fireCenter}
         advisoryThreshold={advisoryThreshold}
         className={classes.mapContainer}
