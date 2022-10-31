@@ -85,6 +85,10 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }
 
   useEffect(() => {
+    console.log(`New run type: ${runType}`)
+  }, [runType])
+
+  useEffect(() => {
     dispatch(fetchFireCenters())
     dispatch(fetchFireZoneAreas(dateOfInterest.toISODate()))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
