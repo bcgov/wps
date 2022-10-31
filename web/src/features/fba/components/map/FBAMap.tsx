@@ -94,6 +94,7 @@ const removeLayerByName = (map: ol.Map, layerName: string) => {
 }
 
 const FBAMap = (props: FBAMapProps) => {
+  console.log(`New run type from FBAMap: ${props.runType}`)
   const useStyles = makeStyles({
     main: {
       height: '100%',
