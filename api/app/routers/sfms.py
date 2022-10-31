@@ -174,3 +174,54 @@ async def upload_manual(file: UploadFile,
         # put a message on the queue. But, we can't do that because the caller isn't very smart,
         # and can't be given that level of responsibility.
     return Response(status_code=200)
+
+
+@router.post('/manual/msgOnly')
+async def upload_manual(file: UploadFile,
+                        request: Request,
+                        background_tasks: BackgroundTasks):
+    """
+    Trigger the SFMS process to run on the provided file.
+    The header MUST include the SFMS secret key.
+
+    ```
+    curl -X 'POST' \\
+        'https://psu.nrs.gov.bc.ca/api/sfms/upload' \\
+        -H 'accept: application/json' \\
+        -H 'Content-Type: multipart/form-data' \\
+        -H 'Secret: secret' \\
+        -H 'ForecastOrActual: actual' \\
+        -H 'IssueDate: 2022-09-19' \\
+        -F 'file=@hfi20220812.tif;type=image/tiff'
+    ```
+    """
+    logger.info('sfms/manual/msgOnly')
+    forecast_or_actual = request.headers.get('ForecastOrActual')
+    issue_date = date.fromisoformat(request.headers.get('IssueDate'))
+    secret = request.headers.get('Secret')
+    if not secret or secret != config.get('SFMS_SECRET'):
+        return Response(status_code=401)
+    try:
+        key = os.path.join('sfms', 'uploads', forecast_or_actual, issue_date.isoformat()[:10], file.filename)
+        meta_data = get_meta_data(request)
+        if is_hfi_file(filename=file.filename):
+            logger.info("HFI file: %s, putting processing message on queue", file.filename)
+            for_date = get_date_part(file.filename)
+            message = SFMSFile(key=key,
+                               run_type=forecast_or_actual,
+                               last_modified=meta_data.get('last_modified'),
+                               create_time=meta_data.get('create_time'),
+                               run_date=issue_date,
+                               for_date=date(year=int(for_date[0:4]),
+                                             month=int(for_date[4:6]),
+                                             day=int(for_date[6:8])))
+            background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
+    except Exception as exception:  # pylint: disable=broad-except
+        logger.error(exception, exc_info=True)
+        # Regardless of what happens with putting a message on the queue, we return 200 to the
+        # caller. The caller doesn't care that we failed to put a message on the queue. That's
+        # our problem. We have the file, and it's up to us to make sure it gets processed now.
+        # NOTE: Ideally, we'd be able to rely on the caller to retry the upload if we fail to
+        # put a message on the queue. But, we can't do that because the caller isn't very smart,
+        # and can't be given that level of responsibility.
+    return Response(status_code=200)
