@@ -177,9 +177,9 @@ async def upload_manual(file: UploadFile,
 
 
 @router.post('/manual/msgOnly')
-async def upload_manual(file: UploadFile,
-                        request: Request,
-                        background_tasks: BackgroundTasks):
+async def upload_manual_msg(file: UploadFile,
+                            request: Request,
+                            background_tasks: BackgroundTasks):
     """
     Trigger the SFMS process to run on the provided file.
     The header MUST include the SFMS secret key.
