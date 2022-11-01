@@ -232,9 +232,9 @@ const FBAMap = (props: FBAMapProps) => {
         source: new VectorTileSource({
           attributions: ['BC Wildfire Service'],
           format: new MVT(),
-          url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.forDate.toISODate()}' AND run_type=${props.runType
+          url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.forDate.toISODate()}'&run_type='${props.runType
             .toString()
-            .toLowerCase()}`
+            .toLowerCase()}'`
         }),
         style: hfiStyler,
         zIndex: 100,
