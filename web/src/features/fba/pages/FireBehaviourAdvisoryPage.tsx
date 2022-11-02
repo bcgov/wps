@@ -151,6 +151,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       </Container>
       <FBAMap
         forDate={dateOfInterest}
+        runDate={dateOfInterest}
         runType={runType}
         selectedFireCenter={fireCenter}
         advisoryThreshold={advisoryThreshold}
