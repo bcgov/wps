@@ -9379,10 +9379,10 @@ kdbush@^3.0.0:
   resolved "https://registry.yarnpkg.com/kdbush/-/kdbush-3.0.0.tgz#f8484794d47004cc2d85ed3a79353dbe0abc2bf0"
   integrity sha512-hRkd6/XW4HTsA9vjVpY9tuXJYLSlelnkTmVFu4M9/7MIYQtFcHpbugAU7UbOfjOiVSVYl2fqgBuJ32JUmRo5Ew==
 
-keycloak-js@^20.0.0:
-  version "20.0.0"
-  resolved "https://registry.yarnpkg.com/keycloak-js/-/keycloak-js-20.0.0.tgz#5026c0fdf4b01119e9259b70a289d0300d9615ec"
-  integrity sha512-nd84PGuZZaU32iTvNYkHyw8UvmO6b6k9hCu/7kftwSaYTmOytQG9eK3DyL6idHmZQFHwz8QhJnqzEJYUtgmDIQ==
+keycloak-js@^19.0.0:
+  version "19.0.1"
+  resolved "https://registry.yarnpkg.com/keycloak-js/-/keycloak-js-19.0.1.tgz#9df871f6b1aff338139fd870bbe6e8db39592ee5"
+  integrity sha512-/GNJcgCb4OsMW+pI2EEQU8PWd4tkXCABqLHkVHbfU+r7XaU9E+zFkD960TItIEarCR0JP6iD8fhKchgxkV+W8w==
   dependencies:
     base64-js "^1.5.1"
     js-sha256 "^0.9.0"
