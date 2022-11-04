@@ -2,7 +2,7 @@ import { Autocomplete, Box, Grid, TextField, Typography } from '@mui/material'
 import React from 'react'
 import { DateTime } from 'luxon'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
-import { isEqual, isNull } from 'lodash'
+import { isNull } from 'lodash'
 
 export interface AdvisoryMetadataProps {
   testId?: string
@@ -15,7 +15,7 @@ export interface AdvisoryMetadataProps {
 const AdvisoryMetadata = ({ runType, setRunType, forDate, issueDate }: AdvisoryMetadataProps) => {
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    if (!isEqual(runType, value)) {
+    if (!isNull(value)) {
       setRunType(value)
     }
   }

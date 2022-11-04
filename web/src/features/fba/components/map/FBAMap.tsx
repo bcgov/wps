@@ -264,7 +264,7 @@ const FBAMap = (props: FBAMapProps) => {
       })
       map.addLayer(latestHFILayer)
     }
-  }, [props.forDate, showHighHFI, props.setIssueDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [props.forDate, showHighHFI, props.setIssueDate, props.runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!map) return
