@@ -17,6 +17,10 @@ describe('FBAMap', () => {
           selectedFireCenter={undefined}
           className={''}
           runType={RunType.FORECAST}
+          runDate={DateTime.fromISO('2016-05-25')}
+          setIssueDate={function (value: React.SetStateAction<DateTime | null>): void {
+            throw new Error('Function not implemented.')
+          }}
         />
       </Provider>
     )

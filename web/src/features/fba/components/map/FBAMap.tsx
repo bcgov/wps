@@ -59,6 +59,7 @@ export interface FBAMapProps {
   selectedFireCenter: FireCenter | undefined
   forDate: DateTime
   runDate: DateTime
+  setIssueDate: React.Dispatch<React.SetStateAction<DateTime | null>>
   runType: RunType
   advisoryThreshold: number
 }
@@ -229,21 +230,42 @@ const FBAMap = (props: FBAMapProps) => {
     const layerName = 'hfiVector'
     removeLayerByName(map, layerName)
     if (showHighHFI) {
+      const source = new VectorTileSource({
+        attributions: ['BC Wildfire Service'],
+        format: new MVT(),
+        url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.forDate.toISODate()}'&run_type='${props.runType
+          .toString()
+          .toLowerCase()}'&run_date='${props.runDate.toISODate()}'`,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        tileLoadFunction: function (tile: any, url) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          tile.setLoader(function (extent: any, _resolution: any, projection: any) {
+            fetch(url).then(function (response) {
+              response.arrayBuffer().then(function (data) {
+                const format = tile.getFormat()
+                const features = format.readFeatures(data, {
+                  extent: extent,
+                  featureProjection: projection
+                })
+                if (features.length > 0) {
+                  props.setIssueDate(DateTime.fromSQL(features[0].getProperties()['run_date'], { zone: 'utc' }))
+                }
+                tile.setFeatures(features)
+              })
+            })
+          })
+        }
+      })
       const latestHFILayer = new VectorTileLayer({
-        source: new VectorTileSource({
-          attributions: ['BC Wildfire Service'],
-          format: new MVT(),
-          url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.forDate.toISODate()}'&run_type='${props.runType
-            .toString()
-            .toLowerCase()}'&run_date='${props.runDate.toISODate()}'`
-        }),
+        source,
         style: hfiStyler,
         zIndex: 100,
         properties: { name: layerName }
       })
       map.addLayer(latestHFILayer)
+      console.log(latestHFILayer.getProperties())
     }
-  }, [props.forDate, showHighHFI]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [props.forDate, showHighHFI, props.setIssueDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!map) return

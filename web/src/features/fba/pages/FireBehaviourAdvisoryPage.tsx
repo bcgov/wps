@@ -57,7 +57,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
-  const [runDate, setRunDate] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+  const [issueDate, setIssueDate] = useState<DateTime | null>(null)
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
@@ -123,8 +123,8 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 <FormControl className={classes.forecastActualDropdown}>
                   <AdvisoryMetadata
                     forDate={dateOfInterest}
-                    runDate={runDate}
-                    setRunDate={setRunDate}
+                    issueDate={issueDate}
+                    setIssueDate={setIssueDate}
                     runType={runType.toString()}
                     setRunType={setRunType}
                   />
@@ -156,6 +156,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         selectedFireCenter={fireCenter}
         advisoryThreshold={advisoryThreshold}
         className={classes.mapContainer}
+        setIssueDate={setIssueDate}
       />
     </React.Fragment>
   )
