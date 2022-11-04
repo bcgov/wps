@@ -263,7 +263,6 @@ const FBAMap = (props: FBAMapProps) => {
         properties: { name: layerName }
       })
       map.addLayer(latestHFILayer)
-      console.log(latestHFILayer.getProperties())
     }
   }, [props.forDate, showHighHFI, props.setIssueDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
