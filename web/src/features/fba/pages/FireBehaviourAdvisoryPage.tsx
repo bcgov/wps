@@ -151,7 +151,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       </Container>
       <FBAMap
         forDate={dateOfInterest}
-        runDate={dateOfInterest}
+        runDate={dateOfInterest} // default is to retrieve most recent available data
         runType={runType}
         selectedFireCenter={fireCenter}
         advisoryThreshold={advisoryThreshold}

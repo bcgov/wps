@@ -1,4 +1,5 @@
 import axios, { raster } from 'api/axios'
+import { DateTime } from 'luxon'
 
 export interface FireCenterStation {
   code: number
@@ -41,6 +42,18 @@ export async function getFireZoneAreas(
   const url = `/fba/fire-zone-areas/${run_type}/${run_date}/${for_date}`
   const { data } = await axios.get(url, {})
   return data
+}
+
+export async function getMostRecentRunDate(run_type: 'forecast' | 'actual', for_date: string): Promise<DateTime> {
+  const url = `fba/sfms_run_datetimes/${run_type}/${for_date}`
+  const { data } = await axios.get(url, {})
+  return data[0]
+}
+
+export async function getAllRunDates(run_type: 'forecast' | 'actual', for_date: string): Promise<DateTime> {
+  const url = `fba/sfms_run_datetimes/${run_type}/${for_date}`
+  const { data } = await axios.get(url, {})
+  return data[0]
 }
 
 export async function getValueAtCoordinate(

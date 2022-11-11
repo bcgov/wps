@@ -1,5 +1,6 @@
 import enum
-from sqlalchemy import (Integer, Date, DateTime, String, Float, Column, Index, ForeignKey, Enum, UniqueConstraint)
+from sqlalchemy import (Integer, Date, String, Float, Column, Index, ForeignKey, Enum, UniqueConstraint)
+from app.db.models.common import TZTimeStamp
 from geoalchemy2 import Geometry
 from app.db.database import Base
 from app.geospatial import NAD83_BC_ALBERS
@@ -83,7 +84,7 @@ class ClassifiedHfi(Base):
     id = Column(Integer, primary_key=True, index=True)
     threshold = Column(Integer, ForeignKey('advisory_hfi_classification_threshold.id'), nullable=False, index=True)
     run_type = Column(Enum(RunTypeEnum), nullable=False, index=True)
-    run_datetime = Column(DateTime, nullable=False)
+    run_datetime = Column(TZTimeStamp, nullable=False)
     for_date = Column(Date, nullable=False)
     geom = Column(Geometry('POLYGON', spatial_index=False, srid=NAD83_BC_ALBERS))
 

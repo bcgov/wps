@@ -108,3 +108,15 @@ async def get_hfi_area(session: AsyncSession,
     delta = perf_end - perf_start
     logger.info('%f delta count before and after hfi area + zone/area intersection query', delta)
     return all_hfi
+
+
+async def get_run_datetimes(session: AsyncSession, run_type: RunTypeEnum, for_date: date) -> List[Row]:
+    """
+    Retrieve all available run_datetimes for a given run_type and for_date, and return the run_datetimes
+    in descending order (most recent is first)
+    """
+    stmt = select(ClassifiedHfi.id, ClassifiedHfi.run_datetime)\
+        .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date)\
+        .order_by(ClassifiedHfi.run_datetime.desc())
+    result = await session.execute(stmt)
+    return result.all()
