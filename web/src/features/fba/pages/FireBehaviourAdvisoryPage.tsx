@@ -18,6 +18,7 @@ import { AppDispatch } from 'app/store'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
 import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
+import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -86,16 +87,19 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     console.log(`New run type: ${runType}`)
+    dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
   }, [runType])
 
   useEffect(() => {
     dispatch(fetchFireCenters())
     dispatch(fetchFireZoneAreas(dateOfInterest.toISODate()))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+    dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatch(fetchFireZoneAreas(dateOfInterest.toISODate()))
+    dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

@@ -4,6 +4,7 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { getAllRunDates, getMostRecentRunDate } from 'api/fbaAPI'
 import { DateTime } from 'luxon'
+import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 interface State {
   loading: boolean
@@ -46,14 +47,17 @@ export const { getRunDatesStart, getRunDatesFailed, getRunDatesSuccess } = runDa
 
 export default runDatesSlice.reducer
 
-export const fetchFireZoneAreas =
-  (run_type: 'actual' | 'forecast', for_date: string): AppThunk =>
+export const fetchSFMSRunDates =
+  (runType: RunType, forDate: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(getRunDatesStart())
-      const runDates = await getAllRunDates(run_type, for_date)
-      const mostRecentRunDate = await getMostRecentRunDate(run_type, for_date)
+      const runDates = await getAllRunDates(runType, forDate)
+      const mostRecentRunDate = await getMostRecentRunDate(runType, forDate)
       dispatch(getRunDatesSuccess({ runDates: runDates, mostRecentRunDate: mostRecentRunDate }))
+      //   TODO: remove these
+      console.log(`run dates: ${runDates}`)
+      console.log(`most recent run date: ${mostRecentRunDate}`)
     } catch (err) {
       dispatch(getRunDatesFailed((err as Error).toString()))
       logError(err)

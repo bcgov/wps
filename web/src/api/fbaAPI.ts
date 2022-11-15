@@ -1,4 +1,5 @@
 import axios, { raster } from 'api/axios'
+import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { DateTime } from 'luxon'
 
 export interface FireCenterStation {
@@ -44,14 +45,14 @@ export async function getFireZoneAreas(
   return data
 }
 
-export async function getMostRecentRunDate(run_type: 'forecast' | 'actual', for_date: string): Promise<DateTime> {
-  const url = `fba/sfms_run_datetimes/${run_type}/${for_date}`
+export async function getMostRecentRunDate(run_type: RunType, for_date: string): Promise<DateTime> {
+  const url = `fba/sfms_run_datetimes/${run_type.toLowerCase()}/${for_date}`
   const { data } = await axios.get(url, {})
   return data[0]
 }
 
-export async function getAllRunDates(run_type: 'forecast' | 'actual', for_date: string): Promise<DateTime[]> {
-  const url = `fba/sfms_run_datetimes/${run_type}/${for_date}`
+export async function getAllRunDates(run_type: RunType, for_date: string): Promise<DateTime[]> {
+  const url = `fba/sfms_run_datetimes/${run_type.toLowerCase()}/${for_date}`
   const { data } = await axios.get(url, {})
   return data
 }
