@@ -50,10 +50,10 @@ export async function getMostRecentRunDate(run_type: 'forecast' | 'actual', for_
   return data[0]
 }
 
-export async function getAllRunDates(run_type: 'forecast' | 'actual', for_date: string): Promise<DateTime> {
+export async function getAllRunDates(run_type: 'forecast' | 'actual', for_date: string): Promise<DateTime[]> {
   const url = `fba/sfms_run_datetimes/${run_type}/${for_date}`
   const { data } = await axios.get(url, {})
-  return data[0]
+  return data
 }
 
 export async function getValueAtCoordinate(
