@@ -131,7 +131,7 @@ async def upload_manual(file: UploadFile,
     """
     logger.info('sfms/manual')
     forecast_or_actual = request.headers.get('ForecastOrActual')
-    issue_date = date.fromisoformat(str(request.headers.get('IssueDate')))
+    issue_date = datetime.fromisoformat(str(request.headers.get('IssueDate')))
     secret = request.headers.get('Secret')
     if not secret or secret != config.get('SFMS_SECRET'):
         return Response(status_code=401)
@@ -197,7 +197,7 @@ async def upload_manual_msg(file: UploadFile,
     """
     logger.info('sfms/manual/msgOnly')
     forecast_or_actual = request.headers.get('ForecastOrActual')
-    issue_date = date.fromisoformat(request.headers.get('IssueDate'))
+    issue_date = datetime.fromisoformat(request.headers.get('IssueDate'))
     secret = request.headers.get('Secret')
     if not secret or secret != config.get('SFMS_SECRET'):
         return Response(status_code=401)
