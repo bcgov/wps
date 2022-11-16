@@ -112,11 +112,12 @@ async def get_hfi_area(session: AsyncSession,
 
 async def get_run_datetimes(session: AsyncSession, run_type: RunTypeEnum, for_date: date) -> List[Row]:
     """
-    Retrieve all available run_datetimes for a given run_type and for_date, and return the run_datetimes
+    Retrieve all distinct available run_datetimes for a given run_type and for_date, and return the run_datetimes
     in descending order (most recent is first)
     """
     stmt = select(ClassifiedHfi.id, ClassifiedHfi.run_datetime)\
         .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date)\
+        .distinct()\
         .order_by(ClassifiedHfi.run_datetime.desc())
     result = await session.execute(stmt)
     return result.all()
