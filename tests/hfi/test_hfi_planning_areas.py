@@ -6,7 +6,7 @@ from aiohttp import ClientSession
 from sqlalchemy.orm import Session
 from tests.common import default_mock_client_get
 import app.main
-from app.db.models.hfi_calc import PlanningWeatherStation, FireCentre, FuelType, PlanningArea
+from db.models.hfi_calc import PlanningWeatherStation, FireCentre, FuelType, PlanningArea
 import app.routers.hfi_calc
 
 

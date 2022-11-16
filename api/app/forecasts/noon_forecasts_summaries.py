@@ -5,8 +5,8 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 import app.stations
-import app.db.database
-from app.db.crud.forecasts import query_noon_forecast_records
+import db.database
+from db.crud.forecasts import query_noon_forecast_records
 from app.schemas.forecasts import (
     NoonForecastSummariesResponse,
     NoonForecastSummary, NoonForecastSummaryValues
@@ -54,7 +54,7 @@ async def fetch_noon_forecasts_summaries(station_codes: StationCodeList,
                                          ) -> NoonForecastSummariesResponse:
     """ Fetch noon forecasts from the database and parse them,
     then calculate min&max and put them in NoonForecastSummariesResponse """
-    with app.db.database.get_read_session_scope() as session:
+    with db.database.get_read_session_scope() as session:
         records = query_noon_forecast_records(
             session, station_codes, start_date, end_date)
 

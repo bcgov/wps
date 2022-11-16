@@ -5,7 +5,7 @@ from itertools import groupby
 from operator import attrgetter
 from typing import Dict, List, Set, Tuple
 from datetime import datetime
-from app.db.models.hfi_calc import PlanningWeatherStation
+from db.models.hfi_calc import PlanningWeatherStation
 from app.schemas.hfi_calc import HFIAdminAddedStation
 
 

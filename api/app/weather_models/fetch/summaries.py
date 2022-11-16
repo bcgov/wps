@@ -10,9 +10,9 @@ from app.schemas.weather_models import (
     WeatherModelPredictionSummary,
     WeatherModelPredictionSummaryValues,
     WeatherPredictionModel)
-import app.db.database
-from app.db.crud.weather_models import get_station_model_predictions_order_by_prediction_timestamp
-from app.db.models import PredictionModel, WeatherStationModelPrediction
+import db.database
+from db.crud.weather_models import get_station_model_predictions_order_by_prediction_timestamp
+from db.models import PredictionModel, WeatherStationModelPrediction
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ def _build_query_to_get_predictions(
     model.
     """
     # Build the query:
-    with app.db.database.get_read_session_scope() as session:
+    with db.database.get_read_session_scope() as session:
         # We are only interested in the last 5 days.
         back_5_days = time_of_interest - datetime.timedelta(days=5)
         response = get_station_model_predictions_order_by_prediction_timestamp(

@@ -4,7 +4,7 @@ import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from app.schemas.stations import StationCodeList
-from app.db.models.forecasts import NoonForecast
+from db.models.forecasts import NoonForecast
 
 
 def query_noon_forecast_records(session: Session,

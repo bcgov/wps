@@ -12,7 +12,7 @@ from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.stations import (DetailedWeatherStationProperties,
                                   GeoJsonDetailedWeatherStation,
                                   WeatherStationGeometry)
-from app.db.crud.stations import _get_noon_date
+from db.crud.stations import _get_noon_date
 from app.wildfire_one.query_builders import BuildQuery
 from app import config
 from app.wildfire_one.schema_parsers import parse_hourly, parse_station

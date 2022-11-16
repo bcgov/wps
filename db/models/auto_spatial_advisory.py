@@ -1,7 +1,7 @@
 import enum
 from sqlalchemy import (Integer, Date, String, Float, Column, Index, ForeignKey, Enum, UniqueConstraint)
 from geoalchemy2 import Geometry
-from app.db.database import Base
+from db.database import Base
 from app.geospatial import NAD83_BC_ALBERS
 
 

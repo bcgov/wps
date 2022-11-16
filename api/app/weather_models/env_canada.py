@@ -15,16 +15,16 @@ from pyproj import Geod
 from scipy.interpolate import griddata
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
-from app.db.crud.weather_models import (get_processed_file_record,
-                                        get_processed_file_count,
-                                        get_prediction_model_run_timestamp_records,
-                                        get_model_run_predictions_for_grid,
-                                        get_grids_for_coordinate,
-                                        get_weather_station_model_prediction,
-                                        delete_model_run_grid_subset_predictions,
-                                        get_prediction_model,
-                                        get_prediction_run,
-                                        update_prediction_run)
+from db.crud.weather_models import (get_processed_file_record,
+                                    get_processed_file_count,
+                                    get_prediction_model_run_timestamp_records,
+                                    get_model_run_predictions_for_grid,
+                                    get_grids_for_coordinate,
+                                    get_weather_station_model_prediction,
+                                    delete_model_run_grid_subset_predictions,
+                                    get_prediction_model,
+                                    get_prediction_run,
+                                    update_prediction_run)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
@@ -33,9 +33,9 @@ import app.utils.time as time_utils
 from app.utils.redis import create_redis
 from app.stations import get_stations_synchronously
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
-from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
-import app.db.database
+from db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
+                       WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
+import db.database
 from app.rocketchat_notifications import send_rocketchat_notification
 
 # If running as its own process, configure logging appropriately.
@@ -395,7 +395,7 @@ class EnvCanada():
         """
         for url in urls:
             try:
-                with app.db.database.get_write_session_scope() as session:
+                with db.database.get_write_session_scope() as session:
                     # check the database for a record of this file:
                     processed_file_record = get_processed_file_record(session, url)
                     if processed_file_record:
@@ -443,7 +443,7 @@ class EnvCanada():
         self.process_model_run_urls(urls)
 
         # Having completed processing, check if we're all done.
-        with app.db.database.get_write_session_scope() as session:
+        with db.database.get_write_session_scope() as session:
             if check_if_model_run_complete(session, urls):
                 # pylint: disable=consider-using-f-string
                 logger.info(
@@ -697,7 +697,7 @@ def process_models():
     env_canada = EnvCanada(model_type)
     env_canada.process()
 
-    with app.db.database.get_write_session_scope() as session:
+    with db.database.get_write_session_scope() as session:
         # interpolate and machine learn everything that needs interpolating.
         model_value_processor = ModelValueProcessor(session)
         model_value_processor.process(model_type)
@@ -722,7 +722,7 @@ def apply_data_retention_policy():
     """
     We can't keep data forever, we just don't have the space.
     """
-    with app.db.database.get_write_session_scope() as session:
+    with db.database.get_write_session_scope() as session:
         # The easiest target, is the 4 points surrounding a weather station, once it's interpolated
         # and used for machine learning - it's no longer of use.
         # It would be great to keep it forever. we could go back and use historic data to improve

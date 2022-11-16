@@ -1,14 +1,14 @@
 """ Unit tests for api_access_audit_log """
 import unittest
 from unittest.mock import MagicMock, patch
-from app.db.crud.api_access_audits import create_api_access_audit_log
+from db.crud.api_access_audits import create_api_access_audit_log
 
 
 class TestApiAccessAudit(unittest.TestCase):
     """ Access audit test cases """
 
-    @patch('app.db.database._get_write_session', return_value=MagicMock())
-    @patch('app.db.crud.api_access_audits.logger')
+    @patch('db.database._get_write_session', return_value=MagicMock())
+    @patch('db.crud.api_access_audits.logger')
     def test_exception_logged(self, mock_logger, mock_get_write_session):
         # Create a mock object that raises an exception when commit is called.
         mock_session = MagicMock()

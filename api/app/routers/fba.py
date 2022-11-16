@@ -5,10 +5,10 @@ import logging
 from datetime import date
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
-from app.db.database import get_async_read_session_scope
-from app.db.crud.auto_spatial_advisory import get_hfi_area
+from db.database import get_async_read_session_scope
+from db.crud.auto_spatial_advisory import get_hfi_area
 from app.auth import authentication_required, audit
-from app.db.models.auto_spatial_advisory import RunTypeEnum
+from db.models.auto_spatial_advisory import RunTypeEnum
 from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 from auto_spatial_advisory.process_hfi import RunType

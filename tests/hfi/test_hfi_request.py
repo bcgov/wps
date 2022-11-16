@@ -2,7 +2,7 @@
 import pytest
 import os
 import json
-from app.db.models.hfi_calc import PlanningWeatherStation
+from db.models.hfi_calc import PlanningWeatherStation
 from app.hfi.hfi_request import update_result_request
 from app.schemas.hfi_calc import HFIResultRequest
 

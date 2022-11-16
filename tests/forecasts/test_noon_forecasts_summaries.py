@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 import pytest
 import app.main
-from app.db.models.forecasts import NoonForecast
+from db.models.forecasts import NoonForecast
 import app.utils.time as time_utils
 from app.schemas.stations import StationCodeList
 

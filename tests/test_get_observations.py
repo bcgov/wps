@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 import pytest
 import app.main
 import app.utils.time
-from app.db.models.observations import HourlyActual
+from db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
 from tests.common import default_mock_client_get
 import app.wildfire_one.wfwx_api

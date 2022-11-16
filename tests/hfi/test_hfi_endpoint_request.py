@@ -11,8 +11,9 @@ import app.main
 import app.routers.hfi_calc
 from tests.common import default_mock_client_get
 from tests import load_json_file
-from app.db.models.hfi_calc import (PlanningWeatherStation, FuelType, FireCentre, PlanningArea,
-                                    HFIRequest, FireStartRange, FireStartLookup)
+import db
+from db.models.hfi_calc import (PlanningWeatherStation, FuelType, FireCentre, PlanningArea,
+                                HFIRequest, FireStartRange, FireStartLookup)
 
 
 def _setup_mock(monkeypatch: pytest.MonkeyPatch):
@@ -124,7 +125,7 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
         return None
 
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_weather_stations', mock_get_fire_weather_stations)
-    monkeypatch.setattr(app.db.crud.hfi_calc, 'get_all_stations', mock_get_all_stations)
+    monkeypatch.setattr(db.crud.hfi_calc, 'get_all_stations', mock_get_all_stations)
     # TODO: this is problematic, why are we calling get_fire_centre_stations twice?
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_centre_fire_start_ranges',

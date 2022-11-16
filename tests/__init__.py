@@ -7,7 +7,7 @@ import datetime
 import json
 import importlib
 import jsonpickle
-from app.db.models.common import TZTimeStamp
+from db.models.common import TZTimeStamp
 
 
 def get_complete_filename(module_path: str, filename: str):

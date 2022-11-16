@@ -4,8 +4,8 @@ import datetime
 from typing import List
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
-from app.db.models import ModelRunGridSubsetPrediction, PredictionModelRunTimestamp
-from app.db.models.observations import HourlyActual
+from db.models import ModelRunGridSubsetPrediction, PredictionModelRunTimestamp
+from db.models.observations import HourlyActual
 
 
 def get_hourly_actuals(

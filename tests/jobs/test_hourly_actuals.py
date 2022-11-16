@@ -4,7 +4,7 @@ import os
 import logging
 import pytest
 from pytest_mock import MockerFixture
-from app.db.models.observations import HourlyActual
+from db.models.observations import HourlyActual
 from tests.jobs.job_fixtures import mock_wfwx_stations, mock_wfwx_response
 from app.utils.time import get_utc_now
 from app.jobs import hourly_actuals

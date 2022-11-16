@@ -7,10 +7,10 @@ import sys
 from datetime import datetime, timedelta
 from aiohttp.client import ClientSession
 from sqlalchemy.exc import IntegrityError
-import app.db.database
+import db.database
 import app.utils.time
 from app import configure_logging
-from app.db.crud.observations import save_hourly_actual
+from db.crud.observations import save_hourly_actual
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.wildfire_one import wfwx_api
 
@@ -49,7 +49,7 @@ class HourlyActualsJob():
 
             logger.info('Retrieved %s hourly actuals', len(hourly_actuals))
 
-        with app.db.database.get_write_session_scope() as session:
+        with db.database.get_write_session_scope() as session:
             for hourly_actual in hourly_actuals:
                 try:
                     save_hourly_actual(session, hourly_actual)

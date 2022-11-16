@@ -12,13 +12,13 @@ from geoalchemy2.shape import from_shape
 import app.utils.time as time_utils
 import app.weather_models.process_grib
 import app.weather_models.env_canada
-import app.db.crud.weather_models
-from app.db.models import (PredictionModel, ProcessedModelRunUrl,
-                           PredictionModelRunTimestamp, PredictionModelGridSubset)
+import db.crud.weather_models
+from db.models import (PredictionModel, ProcessedModelRunUrl,
+                       PredictionModelRunTimestamp, PredictionModelGridSubset)
 # pylint: disable=unused-import
 from tests.weather_models.test_env_canada_gdps import (MockResponse, mock_get_stations,
-                                                           mock_get_model_run_predictions_for_grid,
-                                                           mock_get_actuals_left_outer_join_with_predictions)
+                                                       mock_get_model_run_predictions_for_grid,
+                                                       mock_get_actuals_left_outer_join_with_predictions)
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ def mock_database(monkeypatch):
                         mock_get_rdps_prediction_model_run_timestamp_records)
     monkeypatch.setattr(app.weather_models.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
     monkeypatch.setattr(app.weather_models.env_canada, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
-    monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
+    monkeypatch.setattr(db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
 @pytest.fixture()

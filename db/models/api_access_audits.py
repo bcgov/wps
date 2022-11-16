@@ -2,8 +2,8 @@
 by authenticated user requests.
 """
 from sqlalchemy import (Column, Integer, String, Boolean)
-from app.db.database import Base
-from app.db.models.common import TZTimeStamp
+from db.database import Base
+from db.models.common import TZTimeStamp
 
 
 class APIAccessAudit(Base):

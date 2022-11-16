@@ -3,7 +3,7 @@
 from itertools import groupby
 import operator
 from typing import List
-from app.db.models.hfi_calc import PlanningWeatherStation
+from db.models.hfi_calc import PlanningWeatherStation
 from app.schemas.hfi_calc import HFIResultRequest, StationInfo
 
 

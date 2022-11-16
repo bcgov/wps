@@ -10,7 +10,7 @@ from app.hfi.hfi_calc import (calculate_hfi_results,
                               calculate_prep_level,
                               validate_date_range,
                               validate_station_daily)
-import app.db.models.hfi_calc as hfi_calc_models
+import db.models.hfi_calc as hfi_calc_models
 from app.schemas.hfi_calc import (DateRange,
                                   FireCentre,
                                   FireStartRange,

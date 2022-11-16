@@ -4,12 +4,12 @@ import math
 import logging
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
-from app.db.models.observations import HourlyActual
+from db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
-from app.db.models.forecasts import NoonForecast
+from db.models.forecasts import NoonForecast
 from app.utils.time import get_utc_now
 from app.wildfire_one.util import is_station_valid, is_station_fire_zone_valid, get_zone_code_prefix
 from app.wildfire_one.validation import get_valid_flags

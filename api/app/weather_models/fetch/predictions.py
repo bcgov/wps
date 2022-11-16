@@ -6,13 +6,13 @@ from typing import List
 import datetime
 from collections import defaultdict
 from sqlalchemy.orm import Session
-import app.db.database
+import db.database
 from app.schemas.weather_models import (WeatherModelPredictionValues, WeatherModelRun,
                                         ModelRunPredictions,
                                         WeatherStationModelRunsPredictions)
-from app.db.models import WeatherStationModelPrediction
-from app.db.crud.weather_models import (get_station_model_predictions,
-                                        get_station_model_prediction_from_previous_model_run)
+from db.models import WeatherStationModelPrediction
+from db.crud.weather_models import (get_station_model_predictions,
+                                    get_station_model_prediction_from_previous_model_run)
 import app.stations
 from app.weather_models import ModelEnum
 
@@ -55,7 +55,7 @@ async def fetch_model_run_predictions_by_station_code(
     end_date = time_of_interest + datetime.timedelta(days=10)
 
     # send the query (ordered by prediction date.)
-    with app.db.database.get_read_session_scope() as session:
+    with db.database.get_read_session_scope() as session:
         historic_predictions = get_station_model_predictions(
             session, station_codes, model, start_date, end_date)
 

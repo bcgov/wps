@@ -17,8 +17,8 @@ from app.schemas.stations import (WeatherStation,
                                   WeatherVariables,
                                   DetailedWeatherStationProperties,
                                   WeatherStationGeometry)
-import app.db.database
-from app.db.crud.stations import get_noon_forecast_observation_union
+import db.database
+from db.crud.stations import get_noon_forecast_observation_union
 from app.wildfire_one import wfwx_api
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_detailed_stations,
@@ -85,7 +85,7 @@ async def _get_detailed_stations(time_of_interest: datetime):
     geojson_stations = []
     # this gets us a list of stations
     stations = await get_stations_asynchronously()
-    with app.db.database.get_read_session_scope() as session:
+    with db.database.get_read_session_scope() as session:
         stations_detailed = get_noon_forecast_observation_union(session, time_of_interest)
         station_lookup = {}
         for station in stations:

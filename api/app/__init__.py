@@ -5,7 +5,7 @@ import json
 import logging
 import logging.config
 # database is used externally by alembic.
-from . import db  # noqa: F401
+import db  # noqa: F401
 
 
 def configure_logging():

@@ -13,9 +13,9 @@ from shapely import wkt
 import app.utils.time as time_utils
 from app.schemas.stations import WeatherStation, Season
 from app.weather_models import env_canada, machine_learning
-import app.db.crud.weather_models
-from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           ModelRunGridSubsetPrediction, PredictionModelGridSubset)
+import db.crud.weather_models
+from db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
+                       ModelRunGridSubsetPrediction, PredictionModelGridSubset)
 from tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 
 
@@ -140,7 +140,7 @@ def mock_database(monkeypatch):
                         mock_get_gdps_prediction_model_run_timestamp_records)
     monkeypatch.setattr(env_canada, 'get_processed_file_record', mock_get_processed_file_record)
     monkeypatch.setattr(env_canada, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
-    monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
+    monkeypatch.setattr(db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
 @pytest.fixture()

@@ -15,9 +15,9 @@ from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from auto_spatial_advisory.db.database.tileserver import get_tileserver_write_session_scope
 from app import config
-from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
-from app.db.database import get_async_read_session_scope, get_async_write_session_scope
-from app.db.crud.auto_spatial_advisory import (
+from db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
+from db.database import get_async_read_session_scope, get_async_write_session_scope
+from db.crud.auto_spatial_advisory import (
     save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum)
 from auto_spatial_advisory.classify_hfi import classify_hfi
 from auto_spatial_advisory.polygonize import polygonize_in_memory

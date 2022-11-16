@@ -6,7 +6,7 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
-from app.db.models.auto_spatial_advisory import (
+from db.models.auto_spatial_advisory import (
     Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType)
 
 
@@ -51,8 +51,8 @@ async def get_combustible_area(session: AsyncSession):
     zone as follows:
 
     ```python
-    from app.db.crud.auto_spatial_advisory import get_combustible_area
-    from app.db.database import get_async_read_session_scope
+    from db.crud.auto_spatial_advisory import get_combustible_area
+    from db.database import get_async_read_session_scope
 
     async with get_async_read_session_scope() as session:
     result = await get_combustible_area(session)

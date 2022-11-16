@@ -17,8 +17,8 @@ from app.schemas.stations import StationCodeList
 import app.main
 from tests.common import default_mock_client_get
 import app.wildfire_one
-import app.db.database
-from app.db.models.forecasts import NoonForecast
+import db.database
+from db.models.forecasts import NoonForecast
 
 logger = logging.getLogger(__name__)
 

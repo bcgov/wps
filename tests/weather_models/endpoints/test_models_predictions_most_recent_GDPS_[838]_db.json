@@ -1,7 +1,7 @@
 [
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -21,7 +21,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -32,7 +32,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -44,7 +44,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -64,7 +64,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -75,7 +75,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -87,7 +87,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -107,7 +107,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -118,7 +118,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -130,7 +130,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -150,7 +150,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -161,7 +161,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -173,7 +173,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -193,7 +193,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -204,7 +204,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -216,7 +216,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -236,7 +236,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -247,7 +247,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -259,7 +259,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -279,7 +279,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -290,7 +290,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -302,7 +302,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -322,7 +322,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -333,7 +333,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -345,7 +345,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -365,7 +365,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -376,7 +376,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -388,7 +388,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -408,7 +408,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -419,7 +419,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -431,7 +431,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -451,7 +451,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -462,7 +462,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -474,7 +474,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -494,7 +494,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -505,7 +505,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -517,7 +517,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -537,7 +537,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -548,7 +548,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -560,7 +560,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -580,7 +580,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -591,7 +591,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -603,7 +603,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -623,7 +623,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -634,7 +634,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -646,7 +646,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -666,7 +666,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -677,7 +677,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -689,7 +689,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -709,7 +709,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -720,7 +720,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -732,7 +732,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -752,7 +752,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -763,7 +763,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -775,7 +775,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -795,7 +795,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -806,7 +806,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -818,7 +818,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -838,7 +838,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -849,7 +849,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -861,7 +861,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -881,7 +881,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -892,7 +892,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -904,7 +904,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -924,7 +924,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -935,7 +935,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -947,7 +947,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -967,7 +967,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -978,7 +978,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -990,7 +990,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1010,7 +1010,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1021,7 +1021,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1033,7 +1033,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1053,7 +1053,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1064,7 +1064,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1076,7 +1076,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1096,7 +1096,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1107,7 +1107,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1119,7 +1119,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1139,7 +1139,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1150,7 +1150,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1162,7 +1162,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1182,7 +1182,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1193,7 +1193,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1205,7 +1205,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1225,7 +1225,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1236,7 +1236,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1248,7 +1248,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1268,7 +1268,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1279,7 +1279,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1291,7 +1291,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1311,7 +1311,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1322,7 +1322,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1334,7 +1334,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1352,7 +1352,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1363,7 +1363,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1375,7 +1375,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1393,7 +1393,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1404,7 +1404,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1416,7 +1416,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1434,7 +1434,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1445,7 +1445,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1457,7 +1457,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1475,7 +1475,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1486,7 +1486,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1498,7 +1498,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1516,7 +1516,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1527,7 +1527,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1539,7 +1539,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1557,7 +1557,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1568,7 +1568,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1580,7 +1580,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1598,7 +1598,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1609,7 +1609,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1621,7 +1621,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1639,7 +1639,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1650,7 +1650,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1662,7 +1662,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1680,7 +1680,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1691,7 +1691,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1703,7 +1703,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1721,7 +1721,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1732,7 +1732,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1744,7 +1744,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1762,7 +1762,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1773,7 +1773,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1785,7 +1785,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1803,7 +1803,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1814,7 +1814,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1826,7 +1826,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1844,7 +1844,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1855,7 +1855,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1867,7 +1867,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1885,7 +1885,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1896,7 +1896,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1908,7 +1908,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1926,7 +1926,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1937,7 +1937,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1949,7 +1949,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -1967,7 +1967,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -1978,7 +1978,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -1990,7 +1990,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2008,7 +2008,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2019,7 +2019,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2031,7 +2031,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2049,7 +2049,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2060,7 +2060,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2072,7 +2072,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2090,7 +2090,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2101,7 +2101,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2113,7 +2113,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2131,7 +2131,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2142,7 +2142,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2154,7 +2154,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2172,7 +2172,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2183,7 +2183,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2195,7 +2195,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2213,7 +2213,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2224,7 +2224,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2236,7 +2236,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2254,7 +2254,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2265,7 +2265,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2277,7 +2277,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2295,7 +2295,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2306,7 +2306,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2318,7 +2318,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2336,7 +2336,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2347,7 +2347,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2359,7 +2359,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2377,7 +2377,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2388,7 +2388,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2400,7 +2400,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2418,7 +2418,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2429,7 +2429,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2441,7 +2441,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2459,7 +2459,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2470,7 +2470,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2482,7 +2482,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2500,7 +2500,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2511,7 +2511,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2523,7 +2523,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2541,7 +2541,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2552,7 +2552,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2564,7 +2564,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2582,7 +2582,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2593,7 +2593,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2605,7 +2605,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2623,7 +2623,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2634,7 +2634,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2646,7 +2646,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2664,7 +2664,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2675,7 +2675,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2687,7 +2687,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2705,7 +2705,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2716,7 +2716,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2728,7 +2728,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2746,7 +2746,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2757,7 +2757,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2769,7 +2769,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2787,7 +2787,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2798,7 +2798,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2810,7 +2810,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2828,7 +2828,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2839,7 +2839,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2851,7 +2851,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2869,7 +2869,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2880,7 +2880,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2892,7 +2892,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2910,7 +2910,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2921,7 +2921,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2933,7 +2933,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2951,7 +2951,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -2962,7 +2962,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -2974,7 +2974,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -2992,7 +2992,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3003,7 +3003,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -3015,7 +3015,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -3033,7 +3033,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3044,7 +3044,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -3056,7 +3056,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -3074,7 +3074,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3085,7 +3085,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -3097,7 +3097,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -3115,7 +3115,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3126,7 +3126,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -3138,7 +3138,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -3156,7 +3156,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3167,7 +3167,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -3179,7 +3179,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -3197,7 +3197,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3208,7 +3208,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -3220,7 +3220,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -3238,7 +3238,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3249,7 +3249,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -3261,7 +3261,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -3279,7 +3279,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3290,7 +3290,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -3302,7 +3302,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -3320,7 +3320,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3331,7 +3331,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -3343,7 +3343,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -3361,7 +3361,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3372,7 +3372,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -3384,7 +3384,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -3402,7 +3402,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3413,7 +3413,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -3425,7 +3425,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -3443,7 +3443,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3454,7 +3454,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -3466,7 +3466,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "apcp_sfc_0": null,
@@ -3484,7 +3484,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModelRunTimestamp",
          "data": {
             "complete": true,
@@ -3495,7 +3495,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",

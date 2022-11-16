@@ -4,7 +4,7 @@ from datetime import date, datetime
 from typing import List, Dict, Tuple
 import pdfkit
 from jinja2 import Environment
-from app.db.models.hfi_calc import FuelType
+from db.models.hfi_calc import FuelType
 from app.schemas.hfi_calc import FireCentre, HFIResultResponse, PlanningArea, WeatherStation
 from app.hfi.pdf_template import PDFTemplateName, CSS_PATH
 from app.hfi.pdf_data_formatter import response_2_daily_jinja_format, response_2_prep_cycle_jinja_format

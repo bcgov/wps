@@ -70,7 +70,7 @@ def mock_responses(mocker: MockFixture):
         """ Returns mocked WFWXWeatherStations codes. """
         return all_station_codes
 
-    mocker.patch('app.db.crud.hfi_calc.get_all_stations', mock_get_fire_centre_station_codes)
+    mocker.patch('db.crud.hfi_calc.get_all_stations', mock_get_fire_centre_station_codes)
     mocker.patch('app.wildfire_one.wfwx_api.get_station_data', mock_get_stations)
 
 

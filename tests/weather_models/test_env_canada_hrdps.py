@@ -11,12 +11,12 @@ from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
 from pytest_mock import MockerFixture
 import app.utils.time as time_utils
-import app.db.database
-import app.db.crud.weather_models
+import db.database
+import db.crud.weather_models
 import app.weather_models.env_canada
 import app.weather_models.process_grib
-from app.db.models import (PredictionModel, ProcessedModelRunUrl,
-                           PredictionModelRunTimestamp, PredictionModelGridSubset)
+from db.models import (PredictionModel, ProcessedModelRunUrl,
+                       PredictionModelRunTimestamp, PredictionModelGridSubset)
 from tests.weather_models.test_env_canada_gdps import MockResponse
 
 
@@ -63,7 +63,7 @@ def mock_database(monkeypatch):
                         mock_get_hrdps_prediction_model_run_timestamp_records)
     monkeypatch.setattr(app.weather_models.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
     monkeypatch.setattr(app.weather_models.env_canada, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
-    monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
+    monkeypatch.setattr(db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
 @pytest.fixture()

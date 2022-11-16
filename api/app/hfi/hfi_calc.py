@@ -7,8 +7,8 @@ from statistics import mean
 from aiohttp.client import ClientSession
 from sqlalchemy.orm import Session
 import app
-from app.db.database import get_read_session_scope
-from app.db.models.hfi_calc import PlanningWeatherStation, FuelType as FuelTypeModel
+from db.database import get_read_session_scope
+from db.models.hfi_calc import PlanningWeatherStation, FuelType as FuelTypeModel
 from app.fire_behaviour.cffdrs import CFFDRSException
 from app.fire_behaviour.prediction import (
     FireBehaviourPredictionInputError, calculate_fire_behaviour_prediction, FireBehaviourPrediction)
@@ -26,11 +26,11 @@ from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import (get_auth_header, get_stations_by_codes,
                                        get_wfwx_stations_from_station_codes,
                                        get_raw_dailies_in_range_generator)
-from app.db.crud.hfi_calc import (get_fire_centre_stations,
-                                  get_fire_weather_stations,
-                                  get_fire_centre_fire_start_ranges,
-                                  get_fire_start_lookup,
-                                  get_fuel_types)
+from db.crud.hfi_calc import (get_fire_centre_stations,
+                              get_fire_weather_stations,
+                              get_fire_centre_fire_start_ranges,
+                              get_fire_start_lookup,
+                              get_fuel_types)
 
 logger = logging.getLogger(__name__)
 

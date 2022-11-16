@@ -1,5 +1,5 @@
 {
-    "module": "app.db.models.weather_models",
+    "module": "db.models.weather_models",
     "class": "WeatherStationModelPrediction",
     "data": {
         "id": 10927138,

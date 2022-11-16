@@ -1,7 +1,7 @@
 [
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "station_code": 322,
@@ -17,7 +17,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -29,7 +29,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "station_code": 322,
@@ -45,7 +45,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -57,7 +57,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "station_code": 322,
@@ -73,7 +73,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -85,7 +85,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "station_code": 322,
@@ -101,7 +101,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -113,7 +113,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "station_code": 322,
@@ -129,7 +129,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -141,7 +141,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "station_code": 322,
@@ -157,7 +157,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
@@ -169,7 +169,7 @@
    ],
    [
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "WeatherStationModelPrediction",
          "data": {
             "station_code": 322,
@@ -185,7 +185,7 @@
          }
       },
       {
-         "module": "app.db.models.weather_models",
+         "module": "db.models.weather_models",
          "class": "PredictionModel",
          "data": {
             "projection": "latlon.15x.15",
