@@ -1,0 +1,140 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: tileserv-test
+  annotations:
+    "openshift.io/display-name": tileserv-test
+parameters:
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
+    value: wps
+    required: true
+  - name: IMAGE_REGISTRY
+    description: Location where images are to be pulled
+    value: image-registry.openshift-image-registry.svc:5000
+    required: true
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+    required: true
+objects:
+  - apiVersion: postgres-operator.crunchydata.com/v1beta1
+    kind: PostgresCluster
+    metadata:
+      name: tileserv-test
+      labels:
+        app: tileserv-test
+    spec:
+      image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres-gis:ubi8-14.5-3.2-1
+      metadata:
+        name: tileserv-test
+        labels:
+          app: tileserv-test
+      postgresVersion: 14
+      instances:
+        - name: primary
+          dataVolumeClaimSpec:
+            accessModes:
+              - "ReadWriteOnce"
+            resources:
+              requests:
+                storage: 1Gi
+            storageClassName: netapp-block-standard
+      backups:
+        pgbackrest:
+          image: registry.developers.crunchydata.com/crunchydata/crunchy-pgbackrest:ubi8-2.40-1
+          repos:
+            - name: repo1
+              volume:
+                volumeClaimSpec:
+                  accessModes:
+                    - "ReadWriteOnce"
+                  resources:
+                    requests:
+                      storage: 1Gi
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        app: tileserv-test
+      name: tileserv-test
+    spec:
+      replicas: 1
+      selector:
+        app: tileserv-test
+      strategy:
+        type: Rolling
+      template:
+        metadata:
+          labels:
+            app: tileserv-test
+            name: tileserv-test
+        spec:
+          containers:
+            - name: nginx
+              image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/nginx-tilecache
+              imagePullPolicy: Always
+              readinessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                successThreshold: 1
+                httpGet:
+                  path: /health
+                  port: 8080
+                timeoutSeconds: 1
+              livenessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                successThreshold: 1
+                httpGet:
+                  path: /health
+                  port: 8080
+                timeoutSeconds: 1
+              ports:
+                - containerPort: 8080
+                  protocol: TCP
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+            - name: pgtileserv
+              image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/pg_tileserv:${PG_TILESERV_IMAGE_TAG}
+              ports:
+                - containerPort: 7800
+                  protocol: TCP
+              env:
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${PASSWORD_KEY_NAME}
+                      key: ${PASSWORD_KEY}
+                - name: DATABASE_URL
+                  value: postgresql://${POSTGRES_USER}:$(POSTGRES_PASSWORD)@${POSTGRES_WRITE_HOST}/${POSTGRES_DATABASE}
+              livenessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 5
+                periodSeconds: 30
+                successThreshold: 1
+                tcpSocket:
+                  port: 7800
+                timeoutSeconds: 5
+              readinessProbe:
+                httpGet:
+                  path: /
+                  port: 7800
+                failureThreshold: 3
+                initialDelaySeconds: 10
+                periodSeconds: 30
+                successThreshold: 1
+                timeoutSeconds: 5
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 200m
+                  memory: 512Mi
