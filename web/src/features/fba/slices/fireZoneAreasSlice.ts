@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FireZoneArea, ZoneAreaListResponse, getFireZoneAreas } from 'api/fbaAPI'
+import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 interface State {
   loading: boolean
@@ -42,7 +43,7 @@ export const { getFireZoneAreasStart, getFireZoneAreasFailed, getFireZoneAreasSu
 export default fireZoneAreasSlice.reducer
 
 export const fetchFireZoneAreas =
-  (for_date: string): AppThunk =>
+  (runType: RunType, for_date: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(getFireZoneAreasStart())
@@ -50,7 +51,7 @@ export const fetchFireZoneAreas =
       // Update Nov 15: we now have this mechanism. Need to plug it in to this - but the run date
       // used won't necessarily be the most recent run date. Future feature will allow users
       // to select which run date they want to view.
-      const fireZoneAreas = await getFireZoneAreas('forecast', for_date, for_date)
+      const fireZoneAreas = await getFireZoneAreas(runType, for_date, for_date)
       dispatch(getFireZoneAreasSuccess(fireZoneAreas))
     } catch (err) {
       dispatch(getFireZoneAreasFailed((err as Error).toString()))

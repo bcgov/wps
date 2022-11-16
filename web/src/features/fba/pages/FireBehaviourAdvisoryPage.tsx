@@ -88,17 +88,18 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   useEffect(() => {
     console.log(`New run type: ${runType}`)
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
-  }, [runType])
+    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
+  }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatch(fetchFireCenters())
-    dispatch(fetchFireZoneAreas(dateOfInterest.toISODate()))
+    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    dispatch(fetchFireZoneAreas(dateOfInterest.toISODate()))
+    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 

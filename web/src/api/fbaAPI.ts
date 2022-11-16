@@ -36,11 +36,11 @@ export async function getFBAFireCenters(): Promise<FBAResponse> {
 }
 
 export async function getFireZoneAreas(
-  run_type: 'forecast' | 'actual',
+  run_type: RunType,
   run_date: string,
   for_date: string
 ): Promise<ZoneAreaListResponse> {
-  const url = `/fba/fire-zone-areas/${run_type}/${run_date}/${for_date}`
+  const url = `/fba/fire-zone-areas/${run_type.toLowerCase()}/${run_date}/${for_date}`
   const { data } = await axios.get(url, {})
   return data
 }
