@@ -53,7 +53,7 @@
         "editor.defaultFormatter": "vscode.json-language-features"
     },
     "python.testing.pytestArgs": [
-        "api"
+        "tests"
     ],
     "typescript.preferences.importModuleSpecifier": "non-relative",
     "cSpell.words": [
