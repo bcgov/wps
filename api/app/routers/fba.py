@@ -11,7 +11,7 @@ from app.auth import authentication_required, audit
 from app.db.models.auto_spatial_advisory import RunTypeEnum
 from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
-from app.auto_spatial_advisory.process_hfi import RunType
+from auto_spatial_advisory.process_hfi import RunType
 
 logger = logging.getLogger(__name__)
 

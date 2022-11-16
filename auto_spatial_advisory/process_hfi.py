@@ -13,14 +13,14 @@ from shapely.geometry import MultiPolygon
 from osgeo import ogr, osr, gdal
 from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.auto_spatial_advisory.db.database.tileserver import get_tileserver_write_session_scope
+from auto_spatial_advisory.db.database.tileserver import get_tileserver_write_session_scope
 from app import config
 from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope
 from app.db.crud.auto_spatial_advisory import (
     save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum)
-from app.auto_spatial_advisory.classify_hfi import classify_hfi
-from app.auto_spatial_advisory.polygonize import polygonize_in_memory
+from auto_spatial_advisory.classify_hfi import classify_hfi
+from auto_spatial_advisory.polygonize import polygonize_in_memory
 from app.geospatial import NAD83_BC_ALBERS
 
 

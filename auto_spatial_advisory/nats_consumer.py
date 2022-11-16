@@ -11,8 +11,8 @@ from starlette.background import BackgroundTasks
 import nats
 from nats.js.api import StreamConfig, RetentionPolicy
 from nats.aio.msg import Msg
-from app.auto_spatial_advisory.nats import server, stream_name, sfms_file_subject, subjects, hfi_classify_durable_group
-from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
+from auto_spatial_advisory.nats import server, stream_name, sfms_file_subject, subjects, hfi_classify_durable_group
+from auto_spatial_advisory.process_hfi import RunType, process_hfi
 from app.nats import publish
 from app import configure_logging
 

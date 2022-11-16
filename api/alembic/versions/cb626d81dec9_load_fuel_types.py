@@ -8,7 +8,7 @@ Create Date: 2022-09-13 10:34:53.098741
 from alembic import op
 import sqlalchemy as sa
 import geoalchemy2
-from app.auto_spatial_advisory.fuel_type_layer import fuel_type_iterator
+from auto_spatial_advisory.fuel_type_layer import fuel_type_iterator
 
 
 # revision identifiers, used by Alembic.

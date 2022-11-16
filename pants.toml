@@ -1,0 +1,13 @@
+[GLOBAL]
+pants_version = "2.13.0"
+use_deprecated_directory_cli_args_semantics = false
+backend_packages = [
+  "pants.backend.python",
+  'pants.backend.python.lint.pylint'
+]
+
+[python]
+lockfile_generator = "poetry"
+
+[anonymous-telemetry]
+enabled = false

@@ -255,7 +255,7 @@ objects:
                   "run",
                   "python",
                   "-m",
-                  "app.auto_spatial_advisory.nats_consumer",
+                  "auto_spatial_advisory.nats_consumer",
                 ]
               env:
                 - name: NATS_STREAM_PREFIX

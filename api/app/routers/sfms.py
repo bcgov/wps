@@ -8,8 +8,8 @@ from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks
 from app.nats import publish
 from app.utils.s3 import get_client
 from app import config
-from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename, get_date_part, is_hfi_file
-from app.auto_spatial_advisory.nats import stream_name, subjects, sfms_file_subject
+from auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename, get_date_part, is_hfi_file
+from auto_spatial_advisory.nats import stream_name, subjects, sfms_file_subject
 from app.schemas.auto_spatial_advisory import SFMSFile
 
 

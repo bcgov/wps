@@ -60,7 +60,7 @@
             "name": "asa - process hfi",
             "type": "python",
             "request": "launch",
-            "module": "app.auto_spatial_advisory.local.process_hfi_local",
+            "module": "auto_spatial_advisory.local.process_hfi_local",
             "console": "integratedTerminal",
             "args": [
                 "2022-10-01",
