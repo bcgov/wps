@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-## Run this to install all project dependencies on a mac
+## Run this to install all project dependencies on a mac via brew
 
 ### homebrew
 curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
@@ -52,3 +52,9 @@ ALTER USER wps WITH SUPERUSER;
 grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;
 "
 echo "finished installing and configuration postgres, run migrations in poetry shell"
+
+### redis
+brew install redis
+brew services start redis
+
+echo "finished installing all local machine dependencies"
