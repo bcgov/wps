@@ -37,7 +37,7 @@ Refer to [api/README.md](api/README.md).
 
 #### Running the front end alone
 
-Refer to [web/README.md](api/README.md)
+Refer to [web/README.md](web/README.md)
 
 ### Documentation
 
