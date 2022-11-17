@@ -2,5 +2,60 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "ignorePaths": [
     "openshift/s3-backup/docker/poetry.lock"
-  ]
+  ],
+  "onboardingConfig": {
+    "extends": [
+      "config:base"
+    ]
+  },
+  "logLevel": "debug",
+  "packageRules": [
+    {
+      "matchManagers": [
+        "npm"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "lockFileMaintenance"
+      ],
+      "groupName": "npm all non-major dependencies",
+      "groupSlug": "npm all-minor-patch"
+    },
+    {
+      "matchManagers": [
+        "poetry"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "lockFileMaintenance"
+      ],
+      "groupName": "poetry all non-major dependencies",
+      "groupSlug": "poetry all-minor-patch"
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "github actions all non-major dependencies",
+      "groupSlug": "github actions all-minor-patch"
+    },
+    {
+      "matchManagers": [
+        "dockerfile",
+        "docker-compose"
+      ],
+      "enabled": false
+    }
+  ],
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "autodiscover": true,
+  "autodiscoverFilter": "bcgov/wps"
 }
