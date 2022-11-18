@@ -10,7 +10,7 @@ labels:
 parameters:
   - name: APP_NAME
     description: Application name (wps - wildfire predictive services)
-    value: wps-tileserv
+    value: tileserv
     required: true
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
@@ -24,8 +24,6 @@ objects:
     kind: PostgresCluster
     metadata:
       name: ${APP_NAME}-${SUFFIX}
-      labels:
-        app: ${APP_NAME}-${SUFFIX}
     spec:
       image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres-gis:ubi8-14.5-3.2-1
       metadata:
@@ -35,12 +33,18 @@ objects:
       postgresVersion: 14
       instances:
         - name: ${APP_NAME}-${SUFFIX}-primary
+          replicas: 3
           dataVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 1Gi
+                storage: 10Gi
+                cpu: 15m
+                memory: 600Mi
+              limits:
+                cpu: 1000m
+                memory: 2Gi
             storageClassName: netapp-block-standard
           walVolumeClaimSpec:
             accessModes:
@@ -111,7 +115,7 @@ objects:
                 limits:
                   cpu: 200m
                   memory: 256Mi
-            - name: pgtileserv-test
+            - name: tileserv
               image: artifacts.developer.gov.bc.ca/docker-remote/pramsey/pg_tileserv:latest
               ports:
                 - containerPort: 7800
