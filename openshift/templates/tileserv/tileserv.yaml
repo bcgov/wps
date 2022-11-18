@@ -81,7 +81,7 @@ objects:
         spec:
           containers:
             - name: ${APP_NAME}-${SUFFIX}-nginx-tileserv
-              image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/${APP_NAME}-${SUFFIX}-nginx-tileserv
+              image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/nginx-tileserv
               imagePullPolicy: Always
               readinessProbe:
                 failureThreshold: 3
