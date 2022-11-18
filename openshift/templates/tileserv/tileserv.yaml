@@ -31,8 +31,11 @@ objects:
         labels:
           app: ${APP_NAME}-${SUFFIX}-pgimage
       postgresVersion: 14
+      databaseInitSQL:
+        key: init-sql
+        name: tileserv-init-${SUFFIX}
       instances:
-        - name: ${APP_NAME}-${SUFFIX}-primary
+        - name: tileserv
           replicas: 3
           dataVolumeClaimSpec:
             accessModes:
@@ -65,6 +68,14 @@ objects:
                   resources:
                     requests:
                       storage: 1Gi
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: tileserv-init-${SUFFIX}
+      labels:
+        app.kubernetes.io/part-of: tileserv
+    data:
+      init-sql: CREATE extension IF NOT EXISTS postgis;
   - apiVersion: v1
     kind: DeploymentConfig
     metadata:
