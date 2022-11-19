@@ -1,0 +1,24 @@
+FROM  --platform=linux/amd64 pramsey/pg_tileserv
+
+FROM  --platform=linux/amd64 ubuntu:22.04
+
+USER 0
+
+WORKDIR /app
+
+COPY --from=0 /app/pg_tileserv /app/
+
+RUN apt-get update -y && apt-get install -y python3 curl pip
+
+RUN python3 -m pip install poetry
+
+# Copy the app:
+COPY . .
+
+RUN poetry install
+
+RUN poetry run alembic --version
+
+EXPOSE 7800
+
+ENTRYPOINT [ "/bin/bash" ]

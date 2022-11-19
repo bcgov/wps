@@ -77,6 +77,38 @@ objects:
     data:
       init-sql: CREATE extension IF NOT EXISTS postgis;
   - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${APP_NAME}-${SUFFIX}
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+        name: ${APP_NAME}-${SUFFIX}
+    spec:
+      ports:
+        - name: 8080-tcp
+          protocol: TCP
+          port: 80
+          targetPort: 8080
+      selector:
+        name: ${APP_NAME}-${SUFFIX}
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: ${APP_NAME}-${SUFFIX}
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+        name: ${APP_NAME}-${SUFFIX}
+    spec:
+      host: ${HOST}
+      port:
+        targetPort: 8080-tcp
+      to:
+        kind: Service
+        name: ${APP_NAME}-${SUFFIX}
+      tls:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect
+  - apiVersion: v1
     kind: DeploymentConfig
     metadata:
       labels:

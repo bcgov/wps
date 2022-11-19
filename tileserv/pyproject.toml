@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "tileserv"
+version = "0.1.0"
+description = "pg_tileserv database migrations"
+authors = ["Conor Brady <con.brad@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+sqlalchemy = "^1.4.44"
+alembic = "^1.8.1"
+psycopg2-binary = "^2.9.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
