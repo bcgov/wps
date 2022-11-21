@@ -6,7 +6,8 @@ You will need an environment file. See: `.env.example`. Contact current maintain
 
 - Automated (mac only):
   - Run `setup/mac.sh` in parent folder
-  - then `poetry_setup.sh`
+  - Follow [lima setup steps](../setup/LIMA.md)
+  - then run `poetry_setup.sh`
 - Manual (linux): See [manual setup](../docs/MANUAL_SETUP.md).
 
 ### Running
