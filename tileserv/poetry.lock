@@ -58,6 +58,14 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "python-decouple"
+version = "3.6"
+description = "Strict separation of settings from code."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "sqlalchemy"
 version = "1.4.44"
 description = "Database Abstraction Library"
@@ -92,7 +100,7 @@ sqlcipher = ["sqlcipher3_binary"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "941d758a5232f4e10c46a9aacf6d53033de25e4c1b21b539e10193d3b5fdb472"
+content-hash = "ca0e2f3a119ff0eaad1231f3696954c4fbbd540754acb18edb921dd6b335d7c2"
 
 [metadata.files]
 alembic = [
@@ -279,6 +287,10 @@ psycopg2-binary = [
     {file = "psycopg2_binary-2.9.5-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:01ad49d68dd8c5362e4bfb4158f2896dc6e0c02e87b8a3770fc003459f1a4425"},
     {file = "psycopg2_binary-2.9.5-cp39-cp39-win32.whl", hash = "sha256:937880290775033a743f4836aa253087b85e62784b63fd099ee725d567a48aa1"},
     {file = "psycopg2_binary-2.9.5-cp39-cp39-win_amd64.whl", hash = "sha256:484405b883630f3e74ed32041a87456c5e0e63a8e3429aa93e8714c366d62bd1"},
+]
+python-decouple = [
+    {file = "python-decouple-3.6.tar.gz", hash = "sha256:2838cdf77a5cf127d7e8b339ce14c25bceb3af3e674e039d4901ba16359968c7"},
+    {file = "python_decouple-3.6-py3-none-any.whl", hash = "sha256:6cf502dc963a5c642ea5ead069847df3d916a6420cad5599185de6bab11d8c2e"},
 ]
 sqlalchemy = [
     {file = "SQLAlchemy-1.4.44-cp27-cp27m-macosx_10_14_x86_64.whl", hash = "sha256:da60b98b0f6f0df9fbf8b72d67d13b73aa8091923a48af79a951d4088530a239"},
