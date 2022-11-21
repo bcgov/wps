@@ -11,6 +11,9 @@ sqlalchemy = "^1.4.44"
 alembic = "^1.8.1"
 psycopg2-binary = "^2.9.5"
 python-decouple = "^3.6"
+fire = "^0.4.0"
+geoalchemy2 = "^0.12.5"
+shapely = "^1.8.5.post1"
 
 
 [build-system]
