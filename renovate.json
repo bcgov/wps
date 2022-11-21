@@ -8,7 +8,6 @@
       "config:base"
     ]
   },
-  "logLevel": "debug",
   "packageRules": [
     {
       "matchManagers": [
