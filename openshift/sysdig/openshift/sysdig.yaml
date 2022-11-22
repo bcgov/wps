@@ -13,6 +13,8 @@ spec:
         role: ROLE_TEAM_EDIT
       - name: andrea.williams@gov.bc.ca
         role: ROLE_TEAM_EDIT
+      - name: darrengboss@gmail.com
+        role: ROLE_TEAM_EDIT
       - name: neal.mcloughlin@gov.bc.ca
         role: ROLE_TEAM_READ
       - name: nicolas.livanos@gov.bc.ca
