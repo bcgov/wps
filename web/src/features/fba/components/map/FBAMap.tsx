@@ -404,12 +404,7 @@ const FBAMap = (props: FBAMapProps) => {
       <MapContext.Provider value={map}>
         <div className={classes.main}>
           <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
-          <FBATooltip
-            ref={overlayRef}
-            valuesAtCoordinate={values}
-            loading={loading}
-            onClose={setOverlayPosition}
-          />
+          <FBATooltip ref={overlayRef} valuesAtCoordinate={values} loading={loading} onClose={setOverlayPosition} />
         </div>
       </MapContext.Provider>
     </ErrorBoundary>

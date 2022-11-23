@@ -40,11 +40,7 @@ const FBATooltip = React.forwardRef((props: FBATooltipProps, ref) => {
         <CircularProgress />
       ) : (
         <div id="popup-content">
-          <IconButton
-            className={classes.popupCloser}
-            onClick={() => props.onClose(undefined)}
-            size="small"
-          >
+          <IconButton className={classes.popupCloser} onClick={() => props.onClose(undefined)} size="small">
             <CloseIcon />
           </IconButton>
           {props.valuesAtCoordinate.map(valueAtCoordinate => {
