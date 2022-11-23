@@ -2,7 +2,7 @@ import { Coordinate } from 'ol/coordinate'
 import CloseIcon from '@mui/icons-material/Close'
 import { Box, CircularProgress, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { IValueAtCoordinate } from 'features/fba/slices/valueAtCoordinateSlice'
 
 export interface FBATooltipProps {
@@ -33,6 +33,15 @@ const FBATooltip = React.forwardRef((props: FBATooltipProps, ref) => {
   })
 
   const classes = useStyles()
+
+  useEffect(() => {
+    const handleEscKey = (e: KeyboardEvent) => {
+      if (e.code === 'Escape') props.onClose(undefined)
+    }
+    document.addEventListener('keydown', handleEscKey)
+    return () => document.removeEventListener('keydown', handleEscKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <Box ref={ref} className={classes.popup}>
