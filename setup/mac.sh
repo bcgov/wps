@@ -11,6 +11,9 @@ brew install openjdk
 ### Symlink it for mac
 sudo ln -sfn /opt/homebrew/opt/openjdk/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
 
+### gh api
+brew install gh
+
 ### gdal
 brew install gdal
 
