@@ -29,6 +29,29 @@ target_metadata = models.Base.metadata
 # ... etc.
 
 
+def exclude_tables_from_config(config_):
+    """ There are tables (e.g. spatial_ref_sys created by postgis), that must be ignored. """
+    tables_ = config_.get("tables", None)
+    if tables_ is not None:
+        tables = tables_.split(",")
+    return tables
+
+
+# load tables to be excluded
+exclude_tables = exclude_tables_from_config(
+    config.get_section('alembic:exclude'))
+
+
+# pylint: disable=redefined-builtin, unused-argument
+def include_object(object, name, type_, reflected, compare_to):
+    """ any tables not in the ignore list, are to be included """
+    if type_ == "table" and name in exclude_tables:
+        return False
+    else:
+        return True
+# pylint: enable=redefined-builtin, unused-argument
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -47,6 +70,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object
     )
 
     with context.begin_transaction():
@@ -68,7 +92,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, target_metadata=target_metadata, include_object=include_object
         )
 
         with context.begin_transaction():
