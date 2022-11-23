@@ -29,7 +29,7 @@ def upgrade() -> None:
                     sa.Column('for_date', TZTimeStamp(), nullable=False),
                     sa.Column('run_type', sa.Enum('FORECAST', 'ACTUAL', name='runtype'), nullable=False),
                     sa.PrimaryKeyConstraint('id'),
-                    comment='The audit log of an authenticated request by a user.'
+                    comment='Processed HFI by run date and time'
                     )
     op.create_index('idx_hfi_geom', 'hfi', ['geom'], unique=False, postgresql_using='gist')
     op.create_index(op.f('ix_hfi_hfi'), 'hfi', ['hfi'], unique=False)
