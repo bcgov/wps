@@ -93,6 +93,35 @@ Index('idx_fire_centres_geom',
       FireCentre.geom, postgresql_using='gist')
 
 
+class FireCentreLabel(Base):
+    """ Class representing table structure of a fire centre label
+    """
+    __tablename__ = 'fire_centres_labels'
+    __table_args__ = (
+        {'comment': 'BC fire centre labels'}
+    )
+    id = Column(Integer, primary_key=True)
+    feature_id = Column(Integer, nullable=False)
+    geom = Column(geoalchemy2.types.Geometry(geometry_type='Point',
+                                             srid=4326,
+                                             spatial_index=False, from_text='ST_GeomFromEWKT', name='geometry'), nullable=False)
+    create_date = Column(TZTimeStamp, nullable=False)
+    update_date = Column(TZTimeStamp, nullable=False)
+    mof_fire_centre_id = Column(Integer)
+    mof_fire_zone_name = Column(String)
+    mof_fire_centre_name = Column(String)
+    objectid = Column(Integer)
+    feature_area_sqm = Column(DOUBLE_PRECISION)
+    feature_length_m = Column(DOUBLE_PRECISION)
+    geometry_area = Column(Integer, name="geometry.area")
+    geometry_len = Column(Integer, name="geometry.len")
+
+
+# Explict creation of index due to issue with alembic + geoalchemy.
+Index('idx_fire_centres_labels_geom',
+      FireCentreLabel.geom, postgresql_using='gist')
+
+
 class FireZone(Base):
     """ Class representing table structure of a fire zone
     """
@@ -123,12 +152,12 @@ Index('idx_fire_zones_geom',
       FireZone.geom, postgresql_using='gist')
 
 
-class FireCentreLabel(Base):
-    """ Class representing table structure of a fire centre label
+class FireZoneLabel(Base):
+    """ Class representing table structure of a fire zone label
     """
-    __tablename__ = 'fire_centres_labels'
+    __tablename__ = 'fire_zones_labels'
     __table_args__ = (
-        {'comment': 'BC fire centre labels'}
+        {'comment': 'BC fire zone labels'}
     )
     id = Column(Integer, primary_key=True)
     feature_id = Column(Integer, nullable=False)
@@ -137,9 +166,10 @@ class FireCentreLabel(Base):
                                              spatial_index=False, from_text='ST_GeomFromEWKT', name='geometry'), nullable=False)
     create_date = Column(TZTimeStamp, nullable=False)
     update_date = Column(TZTimeStamp, nullable=False)
-    mof_fire_centre_id = Column(Integer)
+    mof_fire_zone_id = Column(Integer)
     mof_fire_zone_name = Column(String)
     mof_fire_centre_name = Column(String)
+    headquarters_city_name = Column(String)
     objectid = Column(Integer)
     feature_area_sqm = Column(DOUBLE_PRECISION)
     feature_length_m = Column(DOUBLE_PRECISION)
@@ -148,5 +178,74 @@ class FireCentreLabel(Base):
 
 
 # Explict creation of index due to issue with alembic + geoalchemy.
-Index('idx_fire_centres_labels_geom',
-      FireCentreLabel.geom, postgresql_using='gist')
+Index('idx_fire_zones_labels_geom',
+      FireZoneLabel.geom, postgresql_using='gist')
+
+
+class FireZoneLabelExt(Base):
+    """ Class representing table structure of a fire zone extended label
+    """
+    __tablename__ = 'fire_zones_labels_ext'
+    __table_args__ = (
+        {'comment': 'BC fire zone extended labels'}
+    )
+    id = Column(Integer, primary_key=True)
+    geom = Column(geoalchemy2.types.Geometry(geometry_type='Point',
+                                             srid=4326,
+                                             spatial_index=False, from_text='ST_GeomFromEWKT', name='geometry'), nullable=False)
+    create_date = Column(TZTimeStamp, nullable=False)
+    update_date = Column(TZTimeStamp, nullable=False)
+    fire_zone_feature_id = Column(Integer, nullable=False)
+    fire_zone_mof_fire_zone_id = Column(Integer)
+    fire_zone_mof_fire_zone_name = Column(String)
+    fire_zone_headquarters_city_name = Column(String)
+    fire_zone_mof_fire_centre_name = Column(String)
+    fire_zone_objectid = Column(Integer)
+    fire_zone_feature_area_sqm = Column(DOUBLE_PRECISION)
+    fire_zone_feature_length_m = Column(DOUBLE_PRECISION)
+    fire_zone_geometry_area = Column(Integer, name="fire_zone_geometry.area")
+    fire_zone_geometry_len = Column(Integer, name="fire_zone_geometry.len")
+    fire_centre_feature_id = Column(Integer, nullable=False)
+    fire_centre_mof_fire_centre_id = Column(Integer)
+    fire_centre_mof_fire_centre_name = Column(String)
+    fire_centre_objectid = Column(Integer)
+    fire_centre_feature_area_sqm = Column(DOUBLE_PRECISION)
+    fire_centre_feature_length_m = Column(DOUBLE_PRECISION)
+    fire_centre_geometry_area = Column(Integer, name="fire_centre_geometry.area")
+    fire_centre_geometry_len = Column(Integer, name="fire_centre_geometry.len")
+
+
+# Explict creation of index due to issue with alembic + geoalchemy.
+Index('idx_fire_zones_labels_ext_geom',
+      FireZoneLabelExt.geom, postgresql_using='gist')
+
+
+# CREATE TABLE fire_zones_labels_ext (
+#     id SERIAL PRIMARY KEY,
+#     geom geometry(Point,4326) NOT NULL,
+#     create_date timestamp with time zone NOT NULL,
+#     update_date timestamp with time zone NOT NULL,
+#     fire_zone_feature_id integer NOT NULL,
+#     fire_zone_mof_fire_zone_id integer,
+#     fire_zone_mof_fire_centre_name text,
+#     fire_zone_mof_fire_zone_name text,
+#     fire_zone_headquarters_city_name text,
+#     fire_zone_objectid integer,
+#     fire_zone_feature_area_sqm double precision,
+#     fire_zone_feature_length_m double precision,
+#     "fire_zone_geometry.area" integer,
+#     "fire_zone_geometry.len" integer,
+#     fire_centre_feature_id integer NOT NULL,
+#     fire_centre_mof_fire_centre_id integer,
+#     fire_centre_mof_fire_centre_name text,
+#     fire_centre_objectid integer,
+#     fire_centre_feature_area_sqm double precision,
+#     fire_centre_feature_length_m double precision,
+#     "fire_centre_geometry.area" integer,
+#     "fire_centre_geometry.len" integer
+# );
+
+# -- Indices -------------------------------------------------------
+
+# CREATE UNIQUE INDEX fire_zones_labels_ext_pkey ON fire_zones_labels_ext(id int4_ops);
+# CREATE INDEX idx_fire_zones_labels_ext_geom ON fire_zones_labels_ext USING GIST (geom gist_geometry_ops_2d);
