@@ -89,5 +89,35 @@ class FireCentre(Base):
 
 
 # Explict creation of index due to issue with alembic + geoalchemy.
-Index('idx_fire_centre_geom',
+Index('idx_fire_centres_geom',
       FireCentre.geom, postgresql_using='gist')
+
+
+# class FireZone(Base):
+#     """ Class representing table structure of a fire zone
+#     """
+#     __tablename__ = 'fire_zones'
+#     __table_args__ = (
+#         {'comment': 'BC fire zone boundaries'}
+#     )
+#     id = Column(Integer, primary_key=True)
+#     feature_id = Column(Integer, nullable=False)
+#     geom = Column(geoalchemy2.types.Geometry(geometry_type='MultiPolygon',
+#                                              srid=4326,
+#                                              spatial_index=False, from_text='ST_GeomFromEWKT', name='geometry'), nullable=False)
+#     create_date = Column(TZTimeStamp, nullable=False)
+#     update_date = Column(TZTimeStamp, nullable=False)
+#     mof_fire_zone_id = Column(Integer)
+#     mof_fire_zone_name = Column(String)
+#     mof_fire_centre_name = Column(String)
+#     headquarters_city_name = Column(String)
+#     objectid = Column(Integer)
+#     feature_area_sqm = Column(DOUBLE_PRECISION)
+#     feature_length_m = Column(DOUBLE_PRECISION)
+#     geometry_area = Column(Integer, name="geometry.area")
+#     geometry_len = Column(Integer, name="geometry.len")
+
+
+# # Explict creation of index due to issue with alembic + geoalchemy.
+# Index('idx_fire_zones_geom',
+#       FireCentre.geom, postgresql_using='gist')
