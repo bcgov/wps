@@ -68,7 +68,7 @@ Index('sfms_run_multiindex', HFI.run_date, HFI.for_date, HFI.run_type)
 class FireCentre(Base):
     """ Class representing table structure of a fire centre
     """
-    __tablename__ = 'fire_centre'
+    __tablename__ = 'fire_centres'
     __table_args__ = (
         {'comment': 'BC fire centre boundaries'}
     )
@@ -91,24 +91,3 @@ class FireCentre(Base):
 # Explict creation of index due to issue with alembic + geoalchemy.
 Index('idx_fire_centre_geom',
       FireCentre.geom, postgresql_using='gist')
-
-
-# CREATE TABLE fire_centres (
-#     id SERIAL PRIMARY KEY,
-#     feature_id integer NOT NULL,
-#     geom geometry(Polygon,4326) NOT NULL,
-#     create_date timestamp with time zone NOT NULL,
-#     update_date timestamp with time zone NOT NULL,
-#     mof_fire_centre_id integer,
-#     mof_fire_centre_name text,
-#     objectid integer,
-#     feature_area_sqm double precision,
-#     feature_length_m double precision,
-#     "geometry.area" integer,
-#     "geometry.len" integer
-# );
-
-# -- Indices -------------------------------------------------------
-
-# CREATE UNIQUE INDEX fire_centres_pkey ON fire_centres(id int4_ops);
-# CREATE INDEX idx_fire_centres_geom ON fire_centres USING GIST (geom gist_geometry_ops_2d);
