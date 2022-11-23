@@ -1,4 +1,6 @@
-import { Box, CircularProgress } from '@mui/material'
+import { Coordinate } from 'ol/coordinate'
+import CloseIcon from '@mui/icons-material/Close'
+import { Box, CircularProgress, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import React from 'react'
 import { IValueAtCoordinate } from 'features/fba/slices/valueAtCoordinateSlice'
@@ -7,6 +9,7 @@ export interface FBATooltipProps {
   testId?: string
   valuesAtCoordinate: IValueAtCoordinate[]
   loading: boolean
+  onClose: React.Dispatch<React.SetStateAction<Coordinate | undefined>>
 }
 
 const FBATooltip = React.forwardRef((props: FBATooltipProps, ref) => {
@@ -25,10 +28,7 @@ const FBATooltip = React.forwardRef((props: FBATooltipProps, ref) => {
       textDecoration: 'none',
       position: 'absolute',
       top: 2,
-      right: 8,
-      '&::after': {
-        content: '✖'
-      }
+      right: 2
     }
   })
 
@@ -40,6 +40,13 @@ const FBATooltip = React.forwardRef((props: FBATooltipProps, ref) => {
         <CircularProgress />
       ) : (
         <div id="popup-content">
+          <IconButton
+            className={classes.popupCloser}
+            onClick={() => props.onClose(undefined)}
+            size="small"
+          >
+            <CloseIcon />
+          </IconButton>
           {props.valuesAtCoordinate.map(valueAtCoordinate => {
             return (
               <p key={valueAtCoordinate.description}>
