@@ -1,6 +1,7 @@
 import * as ol from 'ol'
 import * as proj from 'ol/proj'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
+import { Coordinate } from 'ol/coordinate'
 import { fromLonLat } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
@@ -113,6 +114,7 @@ const FBAMap = (props: FBAMapProps) => {
   const [showSfmsAspect, setShowSfmsAspect] = useState(false)
   const [map, setMap] = useState<ol.Map | null>(null)
   const [singleClickKey, setSingleClickKey] = useState<EventsKey | null>(null)
+  const [overlayPosition, setOverlayPosition] = useState<Coordinate | undefined>(undefined)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const [fireZoneVector, setFireZoneVector] = useState(
@@ -364,12 +366,19 @@ const FBAMap = (props: FBAMapProps) => {
         const coordinate = proj.transform(e.coordinate, 'EPSG:3857', 'EPSG:4326')
         // fetch hfi at coordinate
         dispatch(fetchValuesAtCoordinate(coordinate[1], coordinate[0], props.date))
-        overlay.setPosition(e.coordinate)
+        setOverlayPosition(e.coordinate)
       }
     })
     setSingleClickKey(newKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.date, map, dispatch])
+
+  useEffect(() => {
+    if (!map) return
+    const overlay = map.getOverlayById('popup')
+    if (overlay) overlay.setPosition(overlayPosition)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overlayPosition])
 
   useEffect(() => {
     const stationsSource = new VectorSource({
@@ -395,7 +404,7 @@ const FBAMap = (props: FBAMapProps) => {
       <MapContext.Provider value={map}>
         <div className={classes.main}>
           <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
-          <FBATooltip ref={overlayRef} valuesAtCoordinate={values} loading={loading} />
+          <FBATooltip ref={overlayRef} valuesAtCoordinate={values} loading={loading} onClose={setOverlayPosition} />
         </div>
       </MapContext.Provider>
     </ErrorBoundary>
