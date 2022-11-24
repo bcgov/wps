@@ -8,7 +8,7 @@ WORKDIR /app
 
 COPY --from=0 /app/pg_tileserv /app/
 
-RUN apt-get update -y && apt-get install -y python3 curl pip
+RUN apt-get update -y && apt-get install -y python3 curl pip libgeos-dev
 
 RUN python3 -m pip install poetry
 
@@ -21,4 +21,4 @@ RUN poetry run alembic --version
 
 EXPOSE 7800
 
-ENTRYPOINT [ "/bin/bash" ]
+CMD ["./start.sh"]
