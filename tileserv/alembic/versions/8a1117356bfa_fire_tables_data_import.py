@@ -21,6 +21,7 @@ from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely import wkb
+import pytz
 from datetime import datetime
 from models import TZTimeStamp
 
@@ -178,7 +179,7 @@ def save_feature(geom_type: str, geom: BaseGeometry, srid: int, feature: dict,
                 update = True
             break
 
-    values['update_date'] = datetime.now()
+    values['update_date'] = datetime.now(tz=pytz.timezone('America/Vancouver'))
     if update:
         print('record exists, updating')
         session.execute(table_schema.update().where(
@@ -189,14 +190,14 @@ def save_feature(geom_type: str, geom: BaseGeometry, srid: int, feature: dict,
         session.execute(table_schema.insert().values(values))
 
 
-def save_features_to_table(ids, url, session, table_schema, labels_table_schema):
+def save_features_to_table(ids, url, session, geom_type, table_schema, labels_table_schema):
     for object_id in ids:
         obj = fetch_object(object_id, url)
 
         for feature in obj['features']:
             geom = shape(feature['geometry'])
 
-            save_feature('MULTIPOLYGON', geom, srid, feature,
+            save_feature(geom_type, geom, srid, feature,
                          session, table_schema)
 
             if isinstance(geom, Polygon):
@@ -226,8 +227,10 @@ def upgrade() -> None:
     fire_centre_url: Final = "https://maps.gov.bc.ca/arcserver/rest/services/whse/bcgw_pub_whse_legal_admin_boundaries/MapServer/2"
     fire_centre_ids = fetch_object_ids(fire_centre_url)
 
-    save_features_to_table(fire_zone_ids, fire_zone_url, session, fire_zone_table, fire_zone_labels_table)
-    save_features_to_table(fire_centre_ids, fire_centre_url, session, fire_centre_table, fire_centre_labels_table)
+    save_features_to_table(fire_zone_ids, fire_zone_url, session, 'MULTIPOLYGON',
+                           fire_zone_table, fire_zone_labels_table)
+    save_features_to_table(fire_centre_ids, fire_centre_url, session, 'POLYGON',
+                           fire_centre_table, fire_centre_labels_table)
 
     # ### end Alembic commands ###
 
