@@ -74,8 +74,6 @@ objects:
       name: tileserv-init-${SUFFIX}
       labels:
         app.kubernetes.io/part-of: tileserv
-    data:
-      init-sql: CREATE extension IF NOT EXISTS postgis;
   - apiVersion: v1
     kind: Service
     metadata:
@@ -159,7 +157,7 @@ objects:
                   cpu: 200m
                   memory: 256Mi
             - name: tileserv
-              image: artifacts.developer.gov.bc.ca/docker-remote/pramsey/pg_tileserv:latest
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-tileserv-${SUFFIX}:${SUFFIX}
               ports:
                 - containerPort: 7800
                   protocol: TCP
