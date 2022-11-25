@@ -218,34 +218,3 @@ class FireZoneLabelExt(Base):
 # Explict creation of index due to issue with alembic + geoalchemy.
 Index('idx_fire_zones_labels_ext_geom',
       FireZoneLabelExt.geom, postgresql_using='gist')
-
-
-# CREATE TABLE fire_zones_labels_ext (
-#     id SERIAL PRIMARY KEY,
-#     geom geometry(Point,4326) NOT NULL,
-#     create_date timestamp with time zone NOT NULL,
-#     update_date timestamp with time zone NOT NULL,
-#     fire_zone_feature_id integer NOT NULL,
-#     fire_zone_mof_fire_zone_id integer,
-#     fire_zone_mof_fire_centre_name text,
-#     fire_zone_mof_fire_zone_name text,
-#     fire_zone_headquarters_city_name text,
-#     fire_zone_objectid integer,
-#     fire_zone_feature_area_sqm double precision,
-#     fire_zone_feature_length_m double precision,
-#     "fire_zone_geometry.area" integer,
-#     "fire_zone_geometry.len" integer,
-#     fire_centre_feature_id integer NOT NULL,
-#     fire_centre_mof_fire_centre_id integer,
-#     fire_centre_mof_fire_centre_name text,
-#     fire_centre_objectid integer,
-#     fire_centre_feature_area_sqm double precision,
-#     fire_centre_feature_length_m double precision,
-#     "fire_centre_geometry.area" integer,
-#     "fire_centre_geometry.len" integer
-# );
-
-# -- Indices -------------------------------------------------------
-
-# CREATE UNIQUE INDEX fire_zones_labels_ext_pkey ON fire_zones_labels_ext(id int4_ops);
-# CREATE INDEX idx_fire_zones_labels_ext_geom ON fire_zones_labels_ext USING GIST (geom gist_geometry_ops_2d);
