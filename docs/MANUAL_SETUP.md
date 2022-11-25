@@ -259,3 +259,54 @@ Or enforce by running [scripts/test.sh](scripts/test.sh) as part of your ci/cd p
 ```bash
 poetry run python -m pip install --upgrade setuptools
 ```
+
+## New Workstation Setup
+
+### Required Software
+
+The following is a list of required software applications and packages. Some of these can be installed automatically using the `setup/mac.sh` script.
+
+- VS Code (technically there are other options, but this is arguably the best)
+    - using the "Python: select interpreter" command within VS Code, select the `pyenv` Python installation
+- Git CLI
+- GitHub CLI
+- Openshift CLI
+- Docker and Lima
+- Brew (for Mac)
+
+### Optional but Recommended Software
+
+- [Fig (for Mac)](https://fig.io/)
+- [Oh My Zsh](https://ohmyz.sh/)
+- [Zenhub extension for GitHub](https://www.zenhub.com/extension)
+
+### Recommended VS Code Extensions
+
+The extensions listed here are shown exactly as they appear in the VS Code Extensions marketplace.
+
+- Copy without formatting
+- Dev Containers
+- Docker
+- ESLint
+- Fig (not available through the Extensions Marketplace within VS Code, but when Fig is installed via CLI, the Fig extension will automatically be available in VS Code)
+- GitLens - Git supercharged
+- Isort
+- Jupyter
+- Jupyter Cell Tags
+- Jupyter Keymap
+- Jupyter Notebook Renderers
+- Jupyter Slide Show
+- Makefile Tools
+- Markdown All in One
+- markdownlint
+- Markdown Preview Enhanced
+- Markdown+Math
+- Math to Image
+- Prettier - Code formatter
+- Pylance
+- Python
+- R
+- Rainbow Brackets
+- Remote - SSH
+- SonarLint
+- VS Code Counter
