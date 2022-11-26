@@ -2172,10 +2172,10 @@
   resolved "https://registry.yarnpkg.com/@devexpress/dx-core/-/dx-core-4.0.0.tgz#cd18c315c2044e5ca72df291685534584e8adfdd"
   integrity sha512-hhjCHRNQQECq7yHKTcmt4aiiPQ3desUmqqQoXucaMNzSQQ7/lQyrjuXMgw+LtFA7xq1nVh9Spinv9F4IautVqA==
 
-"@devexpress/dx-grid-core@3.0.2":
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/@devexpress/dx-grid-core/-/dx-grid-core-3.0.2.tgz#0f3e13a330b57e04047db483d3c8cf5966a183d0"
-  integrity sha512-v1S6Jj09V2q490N4AEvsBwppPztCaxPpddJd/ptYgksY7dodCh6mLPUjs3gPWECDRBdfodiXJC3z5Ma0pNodGw==
+"@devexpress/dx-grid-core@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@devexpress/dx-grid-core/-/dx-grid-core-4.0.0.tgz#e5b96d3d5fac1e8e53161a97175d2512a3fe6d42"
+  integrity sha512-fbPn9ynqC4eAHICFcYbfqkLO+8r4ltWIvQAMXu+6AomSQDyct3mEvykLTxgQ/VJIRJZ2W2UhASqhZgJ99sy/1Q==
 
 "@devexpress/dx-react-core@^4.0.0":
   version "4.0.0"
@@ -2193,12 +2193,12 @@
     clsx "^1.0.4"
     prop-types "^15.7.2"
 
-"@devexpress/dx-react-grid@^3.0.2":
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/@devexpress/dx-react-grid/-/dx-react-grid-3.0.2.tgz#e8682683fffd3c8121ab78bf81c9b33ef5cc5032"
-  integrity sha512-56taRcVqYDsDakXWHTRuZo3KpllNATbanV/qXtwjaZlUMcj3TAuLRsL2Rfnms9Dp1qJpZAKrp+nXy7gCuZbeSw==
+"@devexpress/dx-react-grid@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@devexpress/dx-react-grid/-/dx-react-grid-4.0.0.tgz#5c36e22b9d0a7c608f05fa16364f718c9ff09528"
+  integrity sha512-IGUc3HcUHeUV05wpcvU7BKyCPbj7k3fuCuQFAHjyYWUZ0ro+WpTDzBIuJsocunTLwaEvoXjk7lfuahksICHhCA==
   dependencies:
-    "@devexpress/dx-grid-core" "3.0.2"
+    "@devexpress/dx-grid-core" "4.0.0"
 
 "@emotion/babel-plugin@^11.7.1":
   version "11.7.2"
