@@ -2185,10 +2185,10 @@
     "@devexpress/dx-core" "4.0.0"
     prop-types "^15.7.2"
 
-"@devexpress/dx-react-grid-material-ui@^3.0.2":
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/@devexpress/dx-react-grid-material-ui/-/dx-react-grid-material-ui-3.0.2.tgz#1f2725878809d81660a7d0985aebc8631f0a751b"
-  integrity sha512-+jF5VDe6PZdnQwR/nFSt6IeD0cW0ZF14XrxQhzS/OVYwLVpFTALzzAwFEHAE9VYhFmm3u1/Qmk/oyOG/byqaEA==
+"@devexpress/dx-react-grid-material-ui@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@devexpress/dx-react-grid-material-ui/-/dx-react-grid-material-ui-4.0.0.tgz#90c715a127c43864a6de5a7ed8973c78d6c4fd95"
+  integrity sha512-azXAIL26Wiv+xwWbyB7h8VSEELVrioyp5gTpJCyRNzT1h4JnGV4vJ2db/Ce4DzCI83DyMxUL6UAxxgJ/uB0kcg==
   dependencies:
     clsx "^1.0.4"
     prop-types "^15.7.2"
