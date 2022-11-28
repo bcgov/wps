@@ -9,6 +9,4 @@ postgres_port = config.get('TILESERV_DB_PORT', '5432')
 postgres_database = config.get('TILESERV_DB', 'tileserv')
 postgres_url = config.get('DATABASE_URL')
 
-# pylint: disable=line-too-long
-DB_WRITE_STRING = f'postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
 DATABASE_URL = postgres_url
