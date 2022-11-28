@@ -55,9 +55,6 @@ export const fetchSFMSRunDates =
       const runDates = await getAllRunDates(runType, forDate)
       const mostRecentRunDate = await getMostRecentRunDate(runType, forDate)
       dispatch(getRunDatesSuccess({ runDates: runDates, mostRecentRunDate: mostRecentRunDate }))
-      //   TODO: remove these
-      console.log(`run dates: ${runDates}`)
-      console.log(`most recent run date: ${mostRecentRunDate}`)
     } catch (err) {
       dispatch(getRunDatesFailed((err as Error).toString()))
       logError(err)
