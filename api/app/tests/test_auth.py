@@ -77,7 +77,7 @@ def given_authenticated_user(monkeypatch, endpoint: str, verb: str):
             endpoint, headers={'Authorization': 'Bearer token'}, json={"stations": []})
     if verb == 'get':
         return client.get(
-            endpoint, headers={'Authorization': 'Bearer token'}, json={"stations": []})
+            endpoint, headers={'Authorization': 'Bearer token'})
     raise NotImplementedError('unexpected verb', verb)
 
 
