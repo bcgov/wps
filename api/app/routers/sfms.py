@@ -148,6 +148,11 @@ async def upload_manual(file: UploadFile,
                                 Body=FileLikeObject(file.file),
                                 Metadata=meta_data)
         logger.info('Done uploading file')
+    return add_msg_to_queue(file, key, forecast_or_actual, meta_data, issue_date, background_tasks)
+
+
+def add_msg_to_queue(file: UploadFile, key: str, forecast_or_actual: str, meta_data: dict,
+                     issue_date: datetime, background_tasks: BackgroundTasks):
     try:
         # We don't want to hold back the response to the client, so we'll publish the message
         # as a background task.
@@ -201,27 +206,6 @@ async def upload_manual_msg(file: UploadFile,
     secret = request.headers.get('Secret')
     if not secret or secret != config.get('SFMS_SECRET'):
         return Response(status_code=401)
-    try:
-        key = os.path.join('sfms', 'uploads', forecast_or_actual, issue_date.isoformat()[:10], file.filename)
-        meta_data = get_meta_data(request)
-        if is_hfi_file(filename=file.filename):
-            logger.info("HFI file: %s, putting processing message on queue", file.filename)
-            for_date = get_date_part(file.filename)
-            message = SFMSFile(key=key,
-                               run_type=forecast_or_actual,
-                               last_modified=meta_data.get('last_modified'),
-                               create_time=meta_data.get('create_time'),
-                               run_date=issue_date,
-                               for_date=date(year=int(for_date[0:4]),
-                                             month=int(for_date[4:6]),
-                                             day=int(for_date[6:8])))
-            background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
-    except Exception as exception:  # pylint: disable=broad-except
-        logger.error(exception, exc_info=True)
-        # Regardless of what happens with putting a message on the queue, we return 200 to the
-        # caller. The caller doesn't care that we failed to put a message on the queue. That's
-        # our problem. We have the file, and it's up to us to make sure it gets processed now.
-        # NOTE: Ideally, we'd be able to rely on the caller to retry the upload if we fail to
-        # put a message on the queue. But, we can't do that because the caller isn't very smart,
-        # and can't be given that level of responsibility.
-    return Response(status_code=200)
+    key = os.path.join('sfms', 'uploads', forecast_or_actual, issue_date.isoformat()[:10], file.filename)
+    meta_data = get_meta_data(request)
+    return add_msg_to_queue(file, key, forecast_or_actual, meta_data, issue_date, background_tasks)
