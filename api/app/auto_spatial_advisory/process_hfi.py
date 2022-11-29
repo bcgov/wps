@@ -4,7 +4,7 @@
 import logging
 import os
 from enum import Enum
-from datetime import date
+from datetime import date, datetime
 from time import perf_counter
 import tempfile
 from shapely import wkb, wkt
@@ -48,7 +48,9 @@ class UnknownHFiClassification(Exception):
 async def write_classified_hfi_to_tileserver(session: AsyncSession,
                                              feature: ogr.Feature,
                                              coordinate_transform: osr.CoordinateTransformation,
-                                             date: date,
+                                             for_date: date,
+                                             run_date: datetime,
+                                             run_type: RunType,
                                              advisory: HfiClassificationThreshold,
                                              warning: HfiClassificationThreshold):
     """
@@ -72,8 +74,8 @@ async def write_classified_hfi_to_tileserver(session: AsyncSession,
     threshold = get_threshold_from_hfi(feature, advisory, warning)
 
     statement = text(
-        'INSERT INTO hfi (hfi, date, geom) VALUES (:hfi, :date, ST_GeomFromText(:geom, 3005))')
-    await session.execute(statement, {'hfi': threshold.description, 'date': date, 'geom': wkt.dumps(polygon)})
+        'INSERT INTO hfi (hfi, for_date, run_date, run_type, geom) VALUES (:hfi, :for_date, :run_date, :run_type, ST_GeomFromText(:geom, 3005))')
+    await session.execute(statement, {'hfi': threshold.description, 'for_date': for_date, 'run_date': run_date, 'run_type': run_type.value, 'geom': wkt.dumps(polygon)})
 
 
 def get_threshold_from_hfi(feature: ogr.Feature, advisory: HfiClassificationThreshold, warning: HfiClassificationThreshold):
@@ -95,7 +97,7 @@ def create_model_object(feature: ogr.Feature,
                         warning: HfiClassificationThreshold,
                         coordinate_transform: osr.CoordinateTransformation,
                         run_type: RunType,
-                        run_date: date,
+                        run_date: datetime,
                         for_date: date) -> ClassifiedHfi:
     threshold = get_threshold_from_hfi(feature, advisory, warning)
     # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Geometry
@@ -113,14 +115,14 @@ def create_model_object(feature: ogr.Feature,
     polygon = make_valid(polygon)
     return ClassifiedHfi(threshold=threshold.id,
                          run_type=RunTypeEnum(run_type.value),
-                         run_date=run_date,
+                         run_datetime=run_date,
                          for_date=for_date,
                          geom=wkb.dumps(polygon,
                                         hex=True,
                                         srid=NAD83_BC_ALBERS))
 
 
-async def process_hfi(run_type: RunType, run_date: date, for_date: date):
+async def process_hfi(run_type: RunType, run_date: datetime, for_date: date):
     """ Create a new hfi record for the given date.
 
     :param run_type: The type of run to process. (is it a forecast or actual run?)
@@ -172,7 +174,7 @@ async def process_hfi(run_type: RunType, run_date: date, for_date: date):
                 logger.info('Writing HFI vectors to tileserv...')
                 for i in range(layer.GetFeatureCount()):
                     feature: ogr.Feature = layer.GetFeature(i)
-                    await write_classified_hfi_to_tileserver(session, feature, coordinate_transform, for_date, advisory, warning)
+                    await write_classified_hfi_to_tileserver(session, feature, coordinate_transform, for_date, run_date, run_type, advisory, warning)
 
     perf_end = perf_counter()
     delta = perf_end - perf_start

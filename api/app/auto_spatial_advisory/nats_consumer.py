@@ -55,10 +55,6 @@ async def run():
     )
     jetstream = nats_connection.jetstream()
 
-    # idempotent operation, IFF stream with same configuration is added each time
-    await jetstream.add_stream(name=stream_name,
-                               config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE),
-                               subjects=subjects)
     sfms_sub = await jetstream.pull_subscribe(stream=stream_name,
                                               subject=sfms_file_subject,
                                               durable=hfi_classify_durable_group)

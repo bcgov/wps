@@ -23,6 +23,7 @@ import fwiSlice from 'features/fwiCalculator/slices/fwiSlice'
 import multiFWISlice from 'features/fwiCalculator/slices/multiFWISlice'
 import fireZoneAreasSlice from 'features/fba/slices/fireZoneAreasSlice'
 import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
+import runDatesSlice from 'features/fba/slices/runDatesSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -46,6 +47,7 @@ const rootReducer = combineReducers({
   fbaCalculatorResults: fbaCalculatorSlice,
   fireCenters: fireCentersSlice,
   fireZoneAreas: fireZoneAreasSlice,
+  runDates: runDatesSlice,
   fwiOutputs: fwiSlice,
   multiFWIOutputs: multiFWISlice,
   valueAtCoordinate: valueAtCoordinateSlice
@@ -78,6 +80,7 @@ export const selectRegionalModelSummaries = (state: RootState) => state.regional
 export const selectHFIStations = (state: RootState) => state.hfiStations
 export const selectFireCenters = (state: RootState) => state.fireCenters
 export const selectFireZoneAreas = (state: RootState) => state.fireZoneAreas
+export const selectRunDates = (state: RootState) => state.runDates
 export const selectFWIOutputs = (state: RootState) => state.fwiOutputs
 export const selectMultiFWIOutputs = (state: RootState) => state.multiFWIOutputs
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
