@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from app.db.models.auto_spatial_advisory import (
-    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType)
+    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType, HighHfiArea)
 
 
 logger = logging.getLogger(__name__)
@@ -121,3 +121,48 @@ async def get_run_datetimes(session: AsyncSession, run_type: RunTypeEnum, for_da
         .order_by(ClassifiedHfi.run_datetime.desc())
     result = await session.execute(stmt)
     return result.all()
+
+
+async def get_high_hfi_area(session: AsyncSession,
+                            run_type: RunTypeEnum,
+                            run_datetime: datetime,
+                            for_date: date) -> List[Row]:
+    """ For each fire zone, get the area of HFI polygons in that zone that fall within the 
+    4000 - 10000 range and the area of HFI polygons that exceed the 10000 threshold.
+    """
+    stmt = select(HighHfiArea.id,
+                  HighHfiArea.source_identifier,
+                  HighHfiArea.advisory_area,
+                  HighHfiArea.warn_area)\
+        .where(HighHfiArea.run_type == run_type,
+               HighHfiArea.for_date == for_date,
+               HighHfiArea.run_datetime == run_datetime)
+    result = await session.execute(stmt)
+    return result.scalars()
+
+
+async def save_high_hfi_area(session: AsyncSession, high_hfi_area: HighHfiArea):
+    session.add(high_hfi_area)
+
+
+async def get_high_hfi_area_calculated(session: AsyncSession,
+                                       run_type: RunTypeEnum,
+                                       run_datetime: datetime,
+                                       for_date: date) -> List[Row]:
+
+    logger.info('starting high HFI by zone intersection query')
+    perf_start = perf_counter()
+    stmt = select(Shape.id,
+                  Shape.source_identifier,
+                  ClassifiedHfi.threshold,
+                  ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area())\
+        .where(ClassifiedHfi.run_type == run_type,
+               ClassifiedHfi.for_date == for_date,
+               ClassifiedHfi.run_datetime == run_datetime)\
+        .group_by(ClassifiedHfi.threshold)
+    result = await session.execute(stmt)
+    all_hfi = result.all()
+    perf_end = perf_counter()
+    delta = perf_end - perf_start
+    logger.info('%f delta count before and after high HFI by zone intersection query', delta)
+    return all_hfi

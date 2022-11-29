@@ -106,3 +106,18 @@ class FuelType(Base):
 
 # Explict creation of index due to issue with alembic + geoalchemy.
 Index('idx_advisory_fuel_types_geom', FuelType.geom, postgresql_using='gist')
+
+
+class HighHfiArea(Base):
+    """ Area exceeding HFI thresholds per fire zone. """
+    __tablename__ = 'hfi_advisory_area'
+    __table_args__ = (
+        {'comment': 'Area under advisory/warning per fire zone.'}
+    )
+    id = Column(Integer, primary_key=True, index=True)
+    source_identifier = Column(String, ForeignKey('advisory_shapes.source_identifier'), nullable=False, index=True)
+    run_type = Column(Enum(RunTypeEnum), nullable=False)
+    run_datetime = Column(TZTimeStamp, nullable=False)
+    for_date = Column(Date, nullable=False)
+    advisory_area = Column(Float, nullable=False)
+    warn_area = Column(Float, nullable=False)

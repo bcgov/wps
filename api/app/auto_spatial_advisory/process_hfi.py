@@ -176,6 +176,10 @@ async def process_hfi(run_type: RunType, run_date: datetime, for_date: date):
                     feature: ogr.Feature = layer.GetFeature(i)
                     await write_classified_hfi_to_tileserver(session, feature, coordinate_transform, for_date, run_date, run_type, advisory, warning)
 
+            async with get_async_read_session_scope() as session:
+                logger.info('Getting high HFI area per zone')
+                # await get_high_hfi_area_calculated(session, run_type, run_date, for_date)
+
     perf_end = perf_counter()
     delta = perf_end - perf_start
     logger.info('%f delta count before and after processing HFI', delta)
