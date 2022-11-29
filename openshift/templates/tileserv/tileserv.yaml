@@ -154,7 +154,7 @@ objects:
                   cpu: 200m
                   memory: 256Mi
             - name: tileserv
-            - image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/${APP_NAME}-tileserv-${SUFFIX}:${SUFFIX}
+              image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/${APP_NAME}-tileserv-${SUFFIX}:${SUFFIX}
               ports:
                 - containerPort: 7800
                   protocol: TCP
