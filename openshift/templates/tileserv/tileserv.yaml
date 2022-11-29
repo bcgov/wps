@@ -10,7 +10,7 @@ labels:
 parameters:
   - name: APP_NAME
     description: Application name (wps - wildfire predictive services)
-    value: tileserv
+    value: wps-tileserv
     required: true
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
