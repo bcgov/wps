@@ -31,9 +31,6 @@ objects:
         labels:
           app: ${APP_NAME}-${SUFFIX}-pgimage
       postgresVersion: 14
-      databaseInitSQL:
-        key: init-sql
-        name: tileserv-init-${SUFFIX}
       instances:
         - name: tileserv
           replicas: 3
@@ -97,7 +94,7 @@ objects:
         app: ${APP_NAME}-${SUFFIX}
         name: ${APP_NAME}-${SUFFIX}
     spec:
-      host: ${HOST}
+      host: wps-${SUFFIX}-tileserv.apps.silver.devops.gov.bc.ca
       port:
         targetPort: 8080-tcp
       to:
@@ -157,7 +154,7 @@ objects:
                   cpu: 200m
                   memory: 256Mi
             - name: tileserv
-            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-tileserv-${SUFFIX}:${SUFFIX}
+            - image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/${APP_NAME}-tileserv-${SUFFIX}:${SUFFIX}
               ports:
                 - containerPort: 7800
                   protocol: TCP
