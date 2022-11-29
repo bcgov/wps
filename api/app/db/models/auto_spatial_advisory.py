@@ -110,7 +110,7 @@ Index('idx_advisory_fuel_types_geom', FuelType.geom, postgresql_using='gist')
 
 class HighHfiArea(Base):
     """ Area exceeding HFI thresholds per fire zone. """
-    __tablename__ = 'hfi_advisory_area'
+    __tablename__ = 'high_hfi_area'
     __table_args__ = (
         {'comment': 'Area under advisory/warning per fire zone.'}
     )
