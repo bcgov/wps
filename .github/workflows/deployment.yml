@@ -97,7 +97,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-            GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=tileserv DOCKER_FILE=openshift/templates/tileserv/Dockerfile PATH_BC=openshift/templates/tileserv/tileserv_build.yaml bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+            GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=tileserv DOCKER_FILE=tileserv/Dockerfile PATH_BC=openshift/templates/tileserv/tileserv_build.yaml bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   deploy-dev:
     name: Deploy to Dev
