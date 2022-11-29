@@ -82,22 +82,22 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
           GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=api bash openshift/scripts/oc_build.sh ${SUFFIX} apply
   build-tileserv-image:
-  name: Build tileserv Image
-  runs-on: ubuntu-22.04
-  steps:
-    - name: Set Variables
-      shell: bash
-      run: |
-        echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+    name: Build tileserv Image
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: Build wps-tileserv Image
-      shell: bash
-      run: |
-        oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=tileserv DOCKER_FILE=openshift/templates/tileserv/Dockerfile PATH_BC=openshift/templates/tileserv/tileserv_build.yaml bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+      - name: Build wps-tileserv Image
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+            GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=tileserv DOCKER_FILE=openshift/templates/tileserv/Dockerfile PATH_BC=openshift/templates/tileserv/tileserv_build.yaml bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   deploy-dev:
     name: Deploy to Dev
@@ -164,7 +164,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: NATS Message Queue
+      - name: Tileserv
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
