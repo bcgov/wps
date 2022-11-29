@@ -131,7 +131,7 @@ async def upload_manual(file: UploadFile,
     """
     logger.info('sfms/manual')
     forecast_or_actual = request.headers.get('ForecastOrActual')
-    issue_date = date.fromisoformat(request.headers.get('IssueDate'))
+    issue_date = datetime.fromisoformat(str(request.headers.get('IssueDate')))
     secret = request.headers.get('Secret')
     if not secret or secret != config.get('SFMS_SECRET'):
         return Response(status_code=401)
@@ -148,6 +148,11 @@ async def upload_manual(file: UploadFile,
                                 Body=FileLikeObject(file.file),
                                 Metadata=meta_data)
         logger.info('Done uploading file')
+    return add_msg_to_queue(file, key, forecast_or_actual, meta_data, issue_date, background_tasks)
+
+
+def add_msg_to_queue(file: UploadFile, key: str, forecast_or_actual: str, meta_data: dict,
+                     issue_date: datetime, background_tasks: BackgroundTasks):
     try:
         # We don't want to hold back the response to the client, so we'll publish the message
         # as a background task.
@@ -174,3 +179,33 @@ async def upload_manual(file: UploadFile,
         # put a message on the queue. But, we can't do that because the caller isn't very smart,
         # and can't be given that level of responsibility.
     return Response(status_code=200)
+
+
+@router.post('/manual/msgOnly')
+async def upload_manual_msg(file: UploadFile,
+                            request: Request,
+                            background_tasks: BackgroundTasks):
+    """
+    Trigger the SFMS process to run on the provided file.
+    The header MUST include the SFMS secret key.
+
+    ```
+    curl -X 'POST' \\
+        'https://psu.nrs.gov.bc.ca/api/sfms/upload' \\
+        -H 'accept: application/json' \\
+        -H 'Content-Type: multipart/form-data' \\
+        -H 'Secret: secret' \\
+        -H 'ForecastOrActual: actual' \\
+        -H 'IssueDate: 2022-09-19' \\
+        -F 'file=@hfi20220812.tif;type=image/tiff'
+    ```
+    """
+    logger.info('sfms/manual/msgOnly')
+    forecast_or_actual = request.headers.get('ForecastOrActual')
+    issue_date = datetime.fromisoformat(request.headers.get('IssueDate'))
+    secret = request.headers.get('Secret')
+    if not secret or secret != config.get('SFMS_SECRET'):
+        return Response(status_code=401)
+    key = os.path.join('sfms', 'uploads', forecast_or_actual, issue_date.isoformat()[:10], file.filename)
+    meta_data = get_meta_data(request)
+    return add_msg_to_queue(file, key, forecast_or_actual, meta_data, issue_date, background_tasks)

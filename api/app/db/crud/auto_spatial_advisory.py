@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from enum import Enum
 import logging
 from time import perf_counter
@@ -34,11 +34,11 @@ async def save_fuel_type(session: AsyncSession, fuel_type: FuelType):
     session.add(fuel_type)
 
 
-async def get_hfi(session: AsyncSession, run_type: RunTypeEnum, run_date: date, for_date: date):
+async def get_hfi(session: AsyncSession, run_type: RunTypeEnum, run_date: datetime, for_date: date):
     stmt = select(ClassifiedHfi).where(
         ClassifiedHfi.run_type == run_type,
         ClassifiedHfi.for_date == for_date,
-        ClassifiedHfi.run_date == run_date)
+        ClassifiedHfi.run_datetime == run_date)
     result = await session.execute(stmt)
     return result.scalars()
 
@@ -82,7 +82,7 @@ async def get_combustible_area(session: AsyncSession):
 
 async def get_hfi_area(session: AsyncSession,
                        run_type: RunTypeEnum,
-                       run_date: date,
+                       run_datetime: datetime,
                        for_date: date) -> List[Row]:
     """ This is slow - but not terribly slow.
 
@@ -100,7 +100,7 @@ async def get_hfi_area(session: AsyncSession,
         .join(ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
         .where(ClassifiedHfi.run_type == run_type,
                ClassifiedHfi.for_date == for_date,
-               ClassifiedHfi.run_date == run_date)\
+               ClassifiedHfi.run_datetime == run_datetime)\
         .group_by(Shape.id)
     result = await session.execute(stmt)
     all_hfi = result.all()
@@ -108,3 +108,16 @@ async def get_hfi_area(session: AsyncSession,
     delta = perf_end - perf_start
     logger.info('%f delta count before and after hfi area + zone/area intersection query', delta)
     return all_hfi
+
+
+async def get_run_datetimes(session: AsyncSession, run_type: RunTypeEnum, for_date: date) -> List[Row]:
+    """
+    Retrieve all distinct available run_datetimes for a given run_type and for_date, and return the run_datetimes
+    in descending order (most recent is first)
+    """
+    stmt = select(ClassifiedHfi.id, ClassifiedHfi.run_datetime)\
+        .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date)\
+        .distinct()\
+        .order_by(ClassifiedHfi.run_datetime.desc())
+    result = await session.execute(stmt)
+    return result.all()
