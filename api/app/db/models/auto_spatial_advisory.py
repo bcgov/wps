@@ -4,6 +4,7 @@ from app.db.models.common import TZTimeStamp
 from geoalchemy2 import Geometry
 from app.db.database import Base
 from app.geospatial import NAD83_BC_ALBERS
+from sqlalchemy.dialects import postgresql
 
 
 class ShapeTypeEnum(enum.Enum):
@@ -115,9 +116,20 @@ class HighHfiArea(Base):
         {'comment': 'Area under advisory/warning per fire zone.'}
     )
     id = Column(Integer, primary_key=True, index=True)
-    source_identifier = Column(String, ForeignKey('advisory_shapes.source_identifier'), nullable=False, index=True)
-    run_type = Column(Enum(RunTypeEnum), nullable=False)
-    run_datetime = Column(TZTimeStamp, nullable=False)
-    for_date = Column(Date, nullable=False)
+    advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False)
+    run_parameters = Column(Integer, ForeignKey('run_parameters.id'), nullable=False)
     advisory_area = Column(Float, nullable=False)
     warn_area = Column(Float, nullable=False)
+
+
+class RunParameters(Base):
+    """ Combination of type of run (actual vs forecast), run datetime and for date."""
+    __tablename__ = 'run_parameters'
+    __table_args__ = (
+        UniqueConstraint('run_type', 'run_datetime', 'for_date'),
+        {'comment': 'A combination of run type, run datetime and for date.'}
+    )
+    id = Column(Integer, primary_key=True, index=True)
+    run_type = Column(postgresql.ENUM(name='runtypeenum', create_type=False), nullable=False)
+    run_datetime = Column(TZTimeStamp, nullable=False)
+    for_date = Column(Date, nullable=False)

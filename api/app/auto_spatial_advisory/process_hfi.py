@@ -15,10 +15,10 @@ from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auto_spatial_advisory.db.database.tileserver import get_tileserver_write_session_scope
 from app import config
-from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
+from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, RunParameters
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope
 from app.db.crud.auto_spatial_advisory import (
-    save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum)
+    save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters)
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.polygonize import polygonize_in_memory
 from app.geospatial import NAD83_BC_ALBERS
@@ -175,6 +175,11 @@ async def process_hfi(run_type: RunType, run_date: datetime, for_date: date):
                 for i in range(layer.GetFeatureCount()):
                     feature: ogr.Feature = layer.GetFeature(i)
                     await write_classified_hfi_to_tileserver(session, feature, coordinate_transform, for_date, run_date, run_type, advisory, warning)
+
+            async with get_async_write_session_scope as session:
+                logger.info('Writing run parameters to API database...')
+                run_parameters = RunParameters(run_type=run_type, run_datetime=run_date, for_date=for_date)
+                await save_run_parameters(session, run_parameters)
 
             async with get_async_read_session_scope() as session:
                 logger.info('Getting high HFI area per zone')

@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from app.db.models.auto_spatial_advisory import (
-    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType, HighHfiArea)
+    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType, HighHfiArea, RunParameters)
 
 
 logger = logging.getLogger(__name__)
@@ -166,3 +166,19 @@ async def get_high_hfi_area_calculated(session: AsyncSession,
     delta = perf_end - perf_start
     logger.info('%f delta count before and after high HFI by zone intersection query', delta)
     return all_hfi
+
+
+async def get_run_parameters_id(session: AsyncSession,
+                                run_type: RunTypeEnum,
+                                run_datetime: datetime,
+                                for_date: date) -> List[Row]:
+    stmt = select(RunParameters.id)\
+        .where(RunParameters.run_type == run_type,
+               RunParameters.run_datetime == run_datetime,
+               RunParameters.for_date == for_date)
+    result = await session.execute(stmt)
+    return result.scalars()
+
+
+async def save_run_parameters(session: AsyncSession, run_parameters: RunParameters):
+    session.add(run_parameters)
