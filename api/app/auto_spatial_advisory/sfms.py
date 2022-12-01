@@ -74,7 +74,7 @@ def get_sfms_file_message(filename: str, meta_data: dict) -> SFMSFile:
     key = get_target_filename(filename)
     prefix = get_prefix(filename)
     run_type = SFMSRunType(prefix)
-    issue_date = get_vancouver_now().date()
+    issue_date = get_vancouver_now()
     for_date = get_date_part(filename)
 
     return SFMSFile(key=key,

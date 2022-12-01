@@ -1,6 +1,6 @@
 import { FormControl, FormControlLabel, Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { GeneralHeader, Container } from 'components'
+import { GeneralHeader, Container, ErrorBoundary } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
@@ -17,6 +17,13 @@ import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
+import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
+import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
+
+export enum RunType {
+  FORECAST = 'FORECAST',
+  ACTUAL = 'ACTUAL'
+}
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -33,7 +40,7 @@ const useStyles = makeStyles(() => ({
     minWidth: 280,
     margin: theme.spacing(1)
   },
-  thresholdDropdown: {
+  forecastActualDropdown: {
     minWidth: 280,
     margin: theme.spacing(1),
     marginLeft: 50
@@ -51,6 +58,13 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
+  const [issueDate, setIssueDate] = useState<DateTime | null>(null)
+  const [dateOfInterest, setDateOfInterest] = useState(
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
+      ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
+      : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
+  )
+  const [runType, setRunType] = useState(RunType.FORECAST)
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -65,8 +79,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
   }, [fireCenter])
 
-  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
-
   const updateDate = (newDate: DateTime) => {
     if (newDate !== dateOfInterest) {
       setDateOfInterest(newDate)
@@ -74,13 +86,21 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }
 
   useEffect(() => {
+    console.log(`New run type: ${runType}`)
+    dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
+    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
+  }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     dispatch(fetchFireCenters())
-    dispatch(fetchFireZoneAreas(dateOfInterest.toISODate()))
+    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+    dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    dispatch(fetchFireZoneAreas(dateOfInterest.toISODate()))
+    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
+    dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -103,8 +123,21 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                 />
               </FormControl>
             </Grid>
+            <ErrorBoundary>
+              <Grid item>
+                <FormControl className={classes.forecastActualDropdown}>
+                  <AdvisoryMetadata
+                    forDate={dateOfInterest}
+                    issueDate={issueDate}
+                    setIssueDate={setIssueDate}
+                    runType={runType.toString()}
+                    setRunType={setRunType}
+                  />
+                </FormControl>
+              </Grid>
+            </ErrorBoundary>
             <Grid item>
-              <FormControl className={classes.thresholdDropdown}>
+              <FormControl className={classes.formControl}>
                 <FormControlLabel
                   label="
                 Advisory HFI Threshold of combustible area"
@@ -122,10 +155,13 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         </Grid>
       </Container>
       <FBAMap
-        date={dateOfInterest}
+        forDate={dateOfInterest}
+        runDate={dateOfInterest} // default is to retrieve most recent available data
+        runType={runType}
         selectedFireCenter={fireCenter}
         advisoryThreshold={advisoryThreshold}
         className={classes.mapContainer}
+        setIssueDate={setIssueDate}
       />
     </React.Fragment>
   )
