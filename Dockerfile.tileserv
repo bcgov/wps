@@ -15,7 +15,7 @@ RUN python3 -m pip install poetry
 # Copy the app:
 ADD tileserv .
 
-RUN poetry install
+RUN poetry install --without dev
 
 RUN poetry run alembic --version
 
