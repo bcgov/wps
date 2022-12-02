@@ -15,6 +15,11 @@ RUN python3 -m pip install poetry
 # Copy the app:
 ADD tileserv .
 
+# We don't know what user poetry is going to run as, so we give everyone write access directories
+# in the app folder. We need write access for .pyc files to be created. .pyc files are good,
+# they speed up python.
+RUN chmod a+w $(find /app -type d)
+
 RUN poetry install --without dev
 
 RUN poetry run alembic --version
