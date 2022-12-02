@@ -55,7 +55,7 @@ matplotlib = "^3"
 pytest-xdist = "^3"
 pytest-mock = "^3"
 rope = "^1"
-jsonpickle = "^2.0.0"
+jsonpickle = "^3.0.0"
 pytest-watch = "^4.2.0"
 pytest-testmon = "^1.2.3"
 
