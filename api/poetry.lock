@@ -874,16 +874,16 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "jsonpickle"
-version = "2.2.0"
+version = "3.0.0"
 description = "Python library for serializing any arbitrary object graph into JSON"
 category = "dev"
 optional = false
-python-versions = ">=2.7"
+python-versions = ">=3.7"
 
 [package.extras]
 docs = ["jaraco.packaging (>=3.2)", "rst.linker (>=1.9)", "sphinx"]
-testing = ["ecdsa", "enum34", "feedparser", "jsonlib", "numpy", "pandas", "pymongo", "pytest (>=3.5,!=3.7.3)", "pytest-black-multipy", "pytest-checkdocs (>=1.2.3)", "pytest-cov", "pytest-flake8 (<1.1.0)", "pytest-flake8 (>=1.1.1)", "scikit-learn", "sqlalchemy"]
-testing-libs = ["simplejson", "ujson", "yajl"]
+testing = ["ecdsa", "feedparser", "gmpy2", "numpy", "pandas", "pymongo", "pytest (>=3.5,!=3.7.3)", "pytest-black-multipy", "pytest-checkdocs (>=1.2.3)", "pytest-cov", "pytest-flake8 (>=1.1.1)", "scikit-learn", "sqlalchemy"]
+testing-libs = ["simplejson", "ujson"]
 
 [[package]]
 name = "jsonschema"
@@ -2431,7 +2431,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10.4,<3.11"
-content-hash = "3c990e974f515d4bf3dcf63dbe2ba27a6b32e489851e08f9580d268fddde196f"
+content-hash = "10b014333773b73a65068a99b7f075b9891d1f9a8e3997243d4dc9068f71282b"
 
 [metadata.files]
 affine = [
@@ -3246,8 +3246,8 @@ joblib = [
     {file = "joblib-1.2.0.tar.gz", hash = "sha256:e1cee4a79e4af22881164f218d4311f60074197fb707e082e803b61f6d137018"},
 ]
 jsonpickle = [
-    {file = "jsonpickle-2.2.0-py2.py3-none-any.whl", hash = "sha256:de7f2613818aa4f234138ca11243d6359ff83ae528b2185efdd474f62bcf9ae1"},
-    {file = "jsonpickle-2.2.0.tar.gz", hash = "sha256:7b272918b0554182e53dc340ddd62d9b7f902fec7e7b05620c04f3ccef479a0e"},
+    {file = "jsonpickle-3.0.0-py2.py3-none-any.whl", hash = "sha256:7c4b13d595ff3520148ed870b9f5917023ebdc55c9ec0cb695688fdc16e90c3e"},
+    {file = "jsonpickle-3.0.0.tar.gz", hash = "sha256:504586e5c0fd52fd76a56f86c36f8c4d29778bdef92dc06d38ca6e2e9fc4f090"},
 ]
 jsonschema = [
     {file = "jsonschema-4.17.1-py3-none-any.whl", hash = "sha256:410ef23dcdbca4eaedc08b850079179883c2ed09378bd1f760d4af4aacfa28d7"},
