@@ -109,38 +109,6 @@ objects:
         termination: edge
         insecureEdgeTerminationPolicy: Redirect
   - apiVersion: v1
-    kind: Pod
-    metadata:
-      name: tileserv-init-${APP_NAME}-${SUFFIX}
-      labels:
-        app: ${APP_NAME}-${SUFFIX}
-    spec:
-      containers:
-        - name: init
-          image: artifacts.developer.gov.bc.ca/docker-remote/alpine
-          command: ["sh", "-c", "echo Migrations ares running! && sleep 3600"]
-      initContainers:
-        - name: init-alembic-migrations
-          image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/${APP_NAME}-${SUFFIX}:${SUFFIX}
-          env:
-            - name: POSTGRES_URI
-              valueFrom:
-                secretKeyRef:
-                  name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-                  key: uri
-            - name: DATABASE_URL
-              value: $(POSTGRES_URI)
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-                  key: user
-            - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-                  key: dbname
-  - apiVersion: v1
     kind: DeploymentConfig
     metadata:
       labels:
