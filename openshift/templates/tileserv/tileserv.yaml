@@ -38,18 +38,18 @@ objects:
       postgresVersion: 14
       instances:
         - name: tileserv
-          replicas: 3
+          replicas: 1
           dataVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 10Gi
+                storage: 1Gi
                 cpu: 15m
-                memory: 600Mi
+                memory: 200Mi
               limits:
-                cpu: 1000m
-                memory: 2Gi
+                cpu: 100m
+                memory: 500Mi
             storageClassName: netapp-block-standard
           walVolumeClaimSpec:
             accessModes:
