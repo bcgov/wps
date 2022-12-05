@@ -69,6 +69,7 @@ objects:
             cluster_advertise: $CLUSTER_ADVERTISE
             connect_retries: 50
         }
+        $SYS { users = [ { user: "cli", pass: "cli" } ] }
         leafnodes {
           port: 7422
         }
