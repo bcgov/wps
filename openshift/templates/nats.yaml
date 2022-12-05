@@ -70,14 +70,13 @@ objects:
             connect_retries: 50
         }
         accounts: {
-            SYS: { 
+            cli: { 
                 jetstream: enable
                 users: [
                     {user: cli, password: cli}
                   ]
             }
         }
-        system_account: SYS
         leafnodes {
           port: 7422
         }
