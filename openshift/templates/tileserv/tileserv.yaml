@@ -30,25 +30,11 @@ objects:
         name: ${APP_NAME}-${SUFFIX}-pgimage
         labels:
           app: ${APP_NAME}-${SUFFIX}-pgimage
-      instances:
-        containers:
-          - name: pgo-${APP_NAME}-${SUFFIX}
-            env:
-              - name: POSTGRES_USER
-                valueFrom:
-                  secretKeyRef:
-                    name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-                    key: user
-              - name: POSTGRES_DB
-                valueFrom:
-                  secretKeyRef:
-                    name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-                    key: dbname
       users:
-        - name: ${POSTGRES_USER}
-          databases:
-            - ${POSTGRES_DB}
-          options: "ALTER USER ${POSTGRES_USER} WITH SUPERUSER;"
+        name: tileserv
+        databases:
+          - postgres
+        options: "SUPERUSER"
       postgresVersion: 14
       instances:
         - name: tileserv
@@ -185,6 +171,16 @@ objects:
                       key: uri
                 - name: DATABASE_URL
                   value: $(POSTGRES_URI)
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: user
+                - name: POSTGRES_DB
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: dbname
               livenessProbe:
                 failureThreshold: 3
                 initialDelaySeconds: 5
