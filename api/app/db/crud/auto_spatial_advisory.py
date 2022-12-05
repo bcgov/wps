@@ -131,12 +131,13 @@ async def get_high_hfi_area(session: AsyncSession,
     4000 - 10000 range and the area of HFI polygons that exceed the 10000 threshold.
     """
     stmt = select(HighHfiArea.id,
-                  HighHfiArea.source_identifier,
+                  HighHfiArea.advisory_shape_id,
                   HighHfiArea.advisory_area,
                   HighHfiArea.warn_area)\
-        .where(HighHfiArea.run_type == run_type,
-               HighHfiArea.for_date == for_date,
-               HighHfiArea.run_datetime == run_datetime)
+        .join(RunParameters)\
+        .where(RunParameters.run_type == run_type,
+               RunParameters.for_date == for_date,
+               RunParameters.run_datetime == run_datetime)
     result = await session.execute(stmt)
     return result.scalars()
 
@@ -145,27 +146,24 @@ async def save_high_hfi_area(session: AsyncSession, high_hfi_area: HighHfiArea):
     session.add(high_hfi_area)
 
 
-async def get_high_hfi_area_calculated(session: AsyncSession,
-                                       run_type: RunTypeEnum,
-                                       run_datetime: datetime,
-                                       for_date: date) -> List[Row]:
-
+async def get_high_hfi_area_calculated(session: AsyncSession, run_parameters_id: int) -> List[Row]:
     logger.info('starting high HFI by zone intersection query')
     perf_start = perf_counter()
     stmt = select(Shape.id,
                   Shape.source_identifier,
                   ClassifiedHfi.threshold,
                   ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area())\
-        .where(ClassifiedHfi.run_type == run_type,
-               ClassifiedHfi.for_date == for_date,
-               ClassifiedHfi.run_datetime == run_datetime)\
+        .join(RunParameters)\
+        .join(ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.gem))\
+        .where(RunParameters.id == run_parameters_id)\
+        .group_by(Shape.id)\
         .group_by(ClassifiedHfi.threshold)
     result = await session.execute(stmt)
-    all_hfi = result.all()
+    all_high_hfi = result.all()
     perf_end = perf_counter()
     delta = perf_end - perf_start
     logger.info('%f delta count before and after high HFI by zone intersection query', delta)
-    return all_hfi
+    return all_high_hfi
 
 
 async def get_run_parameters_id(session: AsyncSession,
