@@ -109,6 +109,34 @@ objects:
         termination: edge
         insecureEdgeTerminationPolicy: Redirect
   - apiVersion: v1
+    kind: Pod
+    metadata:
+      name: tileserv-init
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+    spec:
+      initContainers:
+        - name: init-alembic-migrations
+          image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/${APP_NAME}-${SUFFIX}:${SUFFIX}
+          env:
+            - name: POSTGRES_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                  key: uri
+            - name: DATABASE_URL
+              value: $(POSTGRES_URI)
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                  key: user
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                  key: dbname
+  - apiVersion: v1
     kind: DeploymentConfig
     metadata:
       labels:
@@ -127,101 +155,80 @@ objects:
             name: ${APP_NAME}-${SUFFIX}
         spec:
           containers:
-            initContainers:
-              - name: init-alembic-migrations
-                image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/${APP_NAME}-${SUFFIX}:${SUFFIX}
-                env:
-                  - name: POSTGRES_URI
-                    valueFrom:
-                      secretKeyRef:
-                        name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-                        key: uri
-                  - name: DATABASE_URL
-                    value: $(POSTGRES_URI)
-                  - name: POSTGRES_USER
-                    valueFrom:
-                      secretKeyRef:
-                        name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-                        key: user
-                  - name: POSTGRES_DB
-                    valueFrom:
-                      secretKeyRef:
-                        name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-                        key: dbname
-              - name: ${APP_NAME}-${SUFFIX}-nginx-tileserv
-                image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/nginx-tileserv
-                imagePullPolicy: Always
-                readinessProbe:
-                  failureThreshold: 3
-                  initialDelaySeconds: 10
-                  periodSeconds: 10
-                  successThreshold: 1
-                  httpGet:
-                    path: /health
-                    port: 8080
-                  timeoutSeconds: 1
-                livenessProbe:
-                  failureThreshold: 3
-                  initialDelaySeconds: 10
-                  periodSeconds: 10
-                  successThreshold: 1
-                  httpGet:
-                    path: /health
-                    port: 8080
-                  timeoutSeconds: 1
-                ports:
-                  - containerPort: 8080
-                    protocol: TCP
-                resources:
-                  requests:
-                    cpu: 100m
-                    memory: 128Mi
-                  limits:
-                    cpu: 200m
-                    memory: 256Mi
-              - name: tileserv
-                image: artifacts.developer.gov.bc.ca/docker-remote/pramsey/pg_tileserv
-                ports:
-                  - containerPort: 7800
-                    protocol: TCP
-                env:
-                  - name: POSTGRES_URI
-                    valueFrom:
-                      secretKeyRef:
-                        name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-                        key: uri
-                  - name: DATABASE_URL
-                    value: $(POSTGRES_URI)
-                  - name: POSTGRES_USER
-                    valueFrom:
-                      secretKeyRef:
-                        name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-                        key: user
-                  - name: POSTGRES_DB
-                    valueFrom:
-                      secretKeyRef:
-                        name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-                        key: dbname
-                livenessProbe:
-                  failureThreshold: 3
-                  initialDelaySeconds: 5
-                  periodSeconds: 30
-                  successThreshold: 1
-                  tcpSocket:
-                    port: 7800
-                  timeoutSeconds: 5
-                readinessProbe:
-                  failureThreshold: 3
-                  initialDelaySeconds: 10
-                  periodSeconds: 30
-                  successThreshold: 1
-                  tcpSocket:
-                    port: 7800
-                  timeoutSeconds: 5
-                resources:
-                  requests:
-                    cpu: 100m
-                    memory: 256Mi
-                  limits:
-                    cpu: 200m
-                    memory: 512Mi
+            - name: ${APP_NAME}-${SUFFIX}-nginx-tileserv
+              image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/nginx-tileserv
+              imagePullPolicy: Always
+              readinessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                successThreshold: 1
+                httpGet:
+                  path: /health
+                  port: 8080
+                timeoutSeconds: 1
+              livenessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                successThreshold: 1
+                httpGet:
+                  path: /health
+                  port: 8080
+                timeoutSeconds: 1
+              ports:
+                - containerPort: 8080
+                  protocol: TCP
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+            - name: tileserv
+              image: artifacts.developer.gov.bc.ca/docker-remote/pramsey/pg_tileserv
+              ports:
+                - containerPort: 7800
+                  protocol: TCP
+              env:
+                - name: POSTGRES_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: uri
+                - name: DATABASE_URL
+                  value: $(POSTGRES_URI)
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: user
+                - name: POSTGRES_DB
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: dbname
+              livenessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 5
+                periodSeconds: 30
+                successThreshold: 1
+                tcpSocket:
+                  port: 7800
+                timeoutSeconds: 5
+              readinessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 10
+                periodSeconds: 30
+                successThreshold: 1
+                tcpSocket:
+                  port: 7800
+                timeoutSeconds: 5
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 200m
+                  memory: 512Mi
