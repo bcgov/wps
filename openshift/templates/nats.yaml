@@ -75,8 +75,15 @@ objects:
                 users: [
                     {user: cli, password: cli}
                   ]
-            }
+            },
+            consumer: { 
+                jetstream: enable
+                users: [
+                    {user: consumer, password: consumer}
+                  ]
+            } 
         }
+        no_auth_user: consumer
         leafnodes {
           port: 7422
         }
