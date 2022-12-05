@@ -111,13 +111,13 @@ objects:
   - apiVersion: v1
     kind: Pod
     metadata:
-      name: tileserv-init
+      name: tileserv-init-${APP_NAME}-${SUFFIX}
       labels:
         app: ${APP_NAME}-${SUFFIX}
     spec:
       containers:
         - name: init
-          image: registry.access.redhat.com/ubi8/ubi:latest
+          image: artifacts.developer.gov.bc.ca/docker-remote/alpine
           command: ["sh", "-c", "echo Migrations ares running! && sleep 3600"]
       initContainers:
         - name: init-alembic-migrations
