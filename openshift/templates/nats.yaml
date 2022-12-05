@@ -71,6 +71,7 @@ objects:
         }
         accounts: {
             SYS: { 
+                jetstream: enable
                 users: [
                     {user: cli, password: cli}
                   ]
