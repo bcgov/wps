@@ -30,17 +30,20 @@ objects:
         name: ${APP_NAME}-${SUFFIX}-pgimage
         labels:
           app: ${APP_NAME}-${SUFFIX}-pgimage
-      env:
-        - name: POSTGRES_USER
-          valueFrom:
-            secretKeyRef:
-              name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-              key: user
-        - name: POSTGRES_DB
-          valueFrom:
-            secretKeyRef:
-              name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
-              key: dbname
+      instances:
+        containers:
+          - name: pgo-${APP_NAME}-${SUFFIX}
+            env:
+              - name: POSTGRES_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                    key: user
+              - name: POSTGRES_DB
+                valueFrom:
+                  secretKeyRef:
+                    name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                    key: dbname
       users:
         - name: ${POSTGRES_USER}
           databases:
