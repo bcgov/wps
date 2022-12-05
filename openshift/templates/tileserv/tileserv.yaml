@@ -158,6 +158,27 @@ objects:
             app: ${APP_NAME}-${SUFFIX}
             name: ${APP_NAME}-${SUFFIX}
         spec:
+          initContainers:
+            - name: init-alembic-migrations
+              image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/${APP_NAME}-${SUFFIX}:${SUFFIX}
+              env:
+                - name: POSTGRES_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: uri
+                - name: DATABASE_URL
+                  value: $(POSTGRES_URI)
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: user
+                - name: POSTGRES_DB
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: dbname
           containers:
             - name: ${APP_NAME}-${SUFFIX}-nginx-tileserv
               image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/nginx-tileserv
