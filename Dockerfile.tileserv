@@ -24,6 +24,4 @@ RUN poetry install --without dev
 
 RUN poetry run alembic --version
 
-EXPOSE 7800
-
 CMD ["./start.sh"]

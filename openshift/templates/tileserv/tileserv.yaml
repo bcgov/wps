@@ -148,12 +148,6 @@ objects:
                       secretKeyRef:
                         name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
                         key: dbname
-                command:
-                  [
-                    "sh",
-                    "-c",
-                    "until nslookup myservice.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done",
-                  ]
               - name: ${APP_NAME}-${SUFFIX}-nginx-tileserv
                 image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/nginx-tileserv
                 imagePullPolicy: Always
