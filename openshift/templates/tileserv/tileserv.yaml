@@ -31,10 +31,10 @@ objects:
         labels:
           app: ${APP_NAME}-${SUFFIX}-pgimage
       users:
-        name: tileserv
-        databases:
-          - postgres
-        options: "SUPERUSER"
+        - name: tileserv
+          databases:
+            - postgres
+          options: "SUPERUSER"
       postgresVersion: 14
       instances:
         - name: tileserv
