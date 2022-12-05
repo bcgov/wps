@@ -101,7 +101,8 @@ jobs:
 
   deploy-dev:
     name: Deploy to Dev
-    needs: [build-api-image, build-web-image, prepare-dev-database]
+    needs:
+      [build-api-image, build-web-image, prepare-dev-database, deploy-dev-queue]
     runs-on: ubuntu-22.04
     steps:
       - name: Set Variables
@@ -169,26 +170,26 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_tileserv.sh ${SUFFIX} apply
 
-  # deploy-dev-queue:
-  #   name: Deploy Message Queue to Dev
-  #   runs-on: ubuntu-22.04
-  #   # We need
-  #   # - the image to be built before we can deploy.
-  #   needs: [build-api-image]
-  #   steps:
-  #     - name: Set Variables
-  #       shell: bash
-  #       run: |
-  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+  deploy-dev-queue:
+    name: Deploy Message Queue to Dev
+    runs-on: ubuntu-22.04
+    # We need
+    # - the image to be built before we can deploy.
+    needs: [build-api-image]
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-  #     - name: NATS Message Queue
-  #       shell: bash
-  #       run: |
-  #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-  #         PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_nats.sh ${SUFFIX} apply
+      - name: NATS Message Queue
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_nats.sh ${SUFFIX} apply
 
   scan-dev:
     name: ZAP Baseline Scan Dev
