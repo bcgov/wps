@@ -73,13 +73,13 @@ objects:
             cli: { 
                 jetstream: enable
                 users: [
-                    {user: cli, password: cli}
+                    {user: cli, password: cli, permissions: {publish: ">", subscribe: ">"}}
                   ]
             },
             consumer: { 
                 jetstream: enable
                 users: [
-                    {user: consumer, password: consumer}
+                    {user: consumer, password: consumer, permissions: {publish: ">", subscribe: ">"}}
                   ]
             } 
         }
