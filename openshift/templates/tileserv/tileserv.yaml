@@ -115,6 +115,10 @@ objects:
       labels:
         app: ${APP_NAME}-${SUFFIX}
     spec:
+      containers:
+        - name: myapp-container
+          image: registry.access.redhat.com/ubi8/ubi:latest
+          command: ["sh", "-c", "echo The app is running! && sleep 3600"]
       initContainers:
         - name: init-alembic-migrations
           image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/${APP_NAME}-${SUFFIX}:${SUFFIX}
