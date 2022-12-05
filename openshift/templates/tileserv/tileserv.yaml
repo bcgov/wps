@@ -42,10 +42,10 @@ objects:
               name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
               key: dbname
       users:
-        - name: $(POSTGRES_USER)
+        - name: ${POSTGRES_USER}
           databases:
-            - $(POSTGRES_DB)
-          options: "ALTER USER $(POSTGRES_USER) WITH SUPERUSER;"
+            - ${POSTGRES_DB}
+          options: "ALTER USER ${POSTGRES_USER} WITH SUPERUSER;"
       postgresVersion: 14
       instances:
         - name: tileserv
