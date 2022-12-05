@@ -190,13 +190,12 @@ objects:
                   port: 7800
                 timeoutSeconds: 5
               readinessProbe:
-                httpGet:
-                  path: /
-                  port: 7800
                 failureThreshold: 3
                 initialDelaySeconds: 10
                 periodSeconds: 30
                 successThreshold: 1
+                tcpSocket:
+                  port: 7800
                 timeoutSeconds: 5
               resources:
                 requests:
