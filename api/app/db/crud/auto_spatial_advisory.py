@@ -3,7 +3,7 @@ from enum import Enum
 import logging
 from time import perf_counter
 from typing import List
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from app.db.models.auto_spatial_advisory import (
@@ -146,20 +146,20 @@ async def save_high_hfi_area(session: AsyncSession, high_hfi_area: HighHfiArea):
     session.add(high_hfi_area)
 
 
-async def get_high_hfi_area_calculated(session: AsyncSession, run_parameters_id: int) -> List[Row]:
+async def calculate_high_hfi_areas(session: AsyncSession, run_parameters_id: int) -> List[Row]:
     logger.info('starting high HFI by zone intersection query')
     perf_start = perf_counter()
-    stmt = select(Shape.id,
-                  Shape.source_identifier,
-                  ClassifiedHfi.threshold,
-                  ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area())\
-        .join(RunParameters)\
-        .join(ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.gem))\
-        .where(RunParameters.id == run_parameters_id)\
+    stmt = select(Shape.id.label('shape_id'),
+                  ClassifiedHfi.threshold.label('threshold'),
+                  RunParameters.id.label('run_parameters'),
+                  func.sum(ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area())).label('area')\
+        .join(ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
+        .join(RunParameters, RunParameters.id == run_parameters_id)\
         .group_by(Shape.id)\
         .group_by(ClassifiedHfi.threshold)
+
     result = await session.execute(stmt)
-    all_high_hfi = result.all()
+    all_high_hfi = result.scalars().all()
     perf_end = perf_counter()
     delta = perf_end - perf_start
     logger.info('%f delta count before and after high HFI by zone intersection query', delta)
