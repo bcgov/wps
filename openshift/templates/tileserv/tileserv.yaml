@@ -27,9 +27,9 @@ objects:
     spec:
       image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres-gis:ubi8-14.5-3.2-1
       metadata:
-        name: ${APP_NAME}-${SUFFIX}-pgimage
+        name: ${APP_NAME}-${SUFFIX}
         labels:
-          app: ${APP_NAME}-${SUFFIX}-pgimage
+          app: ${APP_NAME}-${SUFFIX}
       users:
         - name: ${APP_NAME}-${SUFFIX}
           databases:
