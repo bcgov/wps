@@ -9,10 +9,6 @@ USER 0
 
 WORKDIR /app
 
-RUN apt-get update -y && apt-get install -y python3 curl pip libgeos-dev
-
-RUN python3 -m pip install poetry
-
 # Copy the app:
 ADD tileserv .
 
