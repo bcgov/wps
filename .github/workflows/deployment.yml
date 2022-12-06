@@ -81,6 +81,23 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
           GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=api bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+  build-tileserv-image:
+    name: Build tileserv Image
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build wps-tileserv Image
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+            GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=tileserv DOCKER_FILE=Dockerfile.tileserv PATH_BC=openshift/templates/tileserv/tileserv_build.yaml bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   deploy-dev:
     name: Deploy to Dev
@@ -131,6 +148,27 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
+
+  deploy-tileserv:
+    name: Deploy tileserv to Dev
+    runs-on: ubuntu-22.04
+    # We need
+    # - the image to be built before we can deploy.
+    needs: [build-tileserv-image]
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Tileserv
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_tileserv.sh ${SUFFIX} apply
 
   deploy-dev-queue:
     name: Deploy Message Queue to Dev
