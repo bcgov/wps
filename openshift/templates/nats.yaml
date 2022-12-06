@@ -242,7 +242,7 @@ objects:
                   "-c",
                   "/nats-server -sl=ldm=/var/run/nats/nats.pid && /bin/sleep 60",
                 ]
-  - apiVersion: apps/v1
+  - apiVersion: v1
     kind: DeploymentConfig
     metadata:
       name: ${APP_NAME}-nats-${SUFFIX}
