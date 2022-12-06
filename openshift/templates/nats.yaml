@@ -63,8 +63,6 @@ objects:
                nats://nats-0.nats.${POD_NAMESPACE}.svc.cluster.local:6222
                nats://nats-1.nats.${POD_NAMESPACE}.svc.cluster.local:6222
                nats://nats-2.nats.${POD_NAMESPACE}.svc.cluster.local:6222
-               nats://nats-3.nats.${POD_NAMESPACE}.svc.cluster.local:6222
-               nats://nats-4.nats.${POD_NAMESPACE}.svc.cluster.local:6222
             ]
             cluster_advertise: $CLUSTER_ADVERTISE
             connect_retries: 50
@@ -125,7 +123,7 @@ objects:
       selector:
         matchLabels:
           app: nats
-      replicas: 5
+      replicas: 3
       serviceName: "nats"
       volumeClaimTemplates:
         - metadata:
