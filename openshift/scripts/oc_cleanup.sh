@@ -30,7 +30,7 @@ else
 	DELETE_OR_GET="get"
 fi
 OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc -o name -l app=${APP_LABEL}"
-OC_CLEAN_TILESERV="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc -o name -l app=wps-tileserv-${SUFFIX}"
+OC_CLEAN_TILESERV="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc,PostgresCluster -o name -l app=wps-tileserv-${SUFFIX}"
 
 # Execute commands
 #
