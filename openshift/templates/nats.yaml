@@ -45,7 +45,7 @@ objects:
     metadata:
       name: nats-config
       labels:
-        app: nats
+        app: ${APP_NAME}-${SUFFIX}
     data:
       nats.conf: |-
         pid_file: "/var/run/nats/nats.pid"
@@ -92,9 +92,9 @@ objects:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: nats
+      name: ${APP_NAME}-${SUFFIX}
       labels:
-        app: nats
+        app: ${APP_NAME}-${SUFFIX}
     spec:
       selector:
         app: nats
@@ -116,13 +116,13 @@ objects:
   - apiVersion: apps/v1
     kind: StatefulSet
     metadata:
-      name: nats
+      name: ${APP_NAME}-${SUFFIX}
       labels:
-        app: nats
+        app: ${APP_NAME}-${SUFFIX}
     spec:
       selector:
         matchLabels:
-          app: nats
+          app: ${APP_NAME}-${SUFFIX}
       replicas: 3
       serviceName: "nats"
       volumeClaimTemplates:
@@ -139,7 +139,7 @@ objects:
       template:
         metadata:
           labels:
-            app: nats
+            app: ${APP_NAME}-${SUFFIX}
         spec:
           # Common volumes for the containers
           volumes:
@@ -243,11 +243,11 @@ objects:
                   "/nats-server -sl=ldm=/var/run/nats/nats.pid && /bin/sleep 60",
                 ]
   - apiVersion: apps/v1
-    kind: Deployment
+    kind: DeploymentConfig
     metadata:
-      name: nats-consumer
+      name: ${APP_NAME}-nats-${SUFFIX}
       labels:
-        app: nats
+        app: ${APP_NAME}-${SUFFIX}
     spec:
       replicas: 3
       selector:
