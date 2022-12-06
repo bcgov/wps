@@ -1,4 +1,9 @@
-FROM ubuntu:22.04
+ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:ubuntu.22.04-latest
+
+# To build locally, point to a local base image you've already built (see openshift/wps-api-base)
+# e.g. : docker build --build-arg DOCKER_IMAGE=wps-api-base:my-tag .
+
+FROM ${DOCKER_IMAGE}
 
 USER 0
 
