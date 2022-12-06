@@ -44,7 +44,7 @@ objects:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 1Gi
+                storage: 5Gi
                 cpu: 15m
                 memory: 200Mi
               limits:
