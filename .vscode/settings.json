@@ -58,5 +58,6 @@
     "typescript.preferences.importModuleSpecifier": "non-relative",
     "cSpell.words": [
         "Albers"
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "basic"
 }

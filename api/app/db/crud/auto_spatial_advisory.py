@@ -80,6 +80,47 @@ async def get_combustible_area(session: AsyncSession):
     return all_combustible
 
 
+async def get_fuel_types_with_high_hfi(session: AsyncSession,
+                                       run_type: RunTypeEnum,
+                                       run_datetime: datetime,
+                                       for_date: date) -> List[Row]:
+    """
+    Union of fuel types by fuel_type_id (1 multipolygon for each type of fuel)
+    Intersect with union of ClassifiedHfi for given run_type, run_datetime, and for_date
+        for both 4K-10K and 10K+ HFI values
+    Intersection with fire zone geom
+    """
+    logger.info('')
+    # stmt = select(FuelType.fuel_type_id,
+    #               FuelType.geom.ST_Union())\
+    #     .group_by(FuelType.fuel_type_id)
+    # result = await session.execute(stmt)
+    # grouped_fuel_types = result.all()
+
+    # stmt = select(ClassifiedHfi.threshold, ClassifiedHfi.geom.ST_Union())\
+    #     .where(ClassifiedHfi.for_date == for_date,
+    #            ClassifiedHfi.run_datetime == run_datetime,
+    #            ClassifiedHfi.run_type == run_type)\
+    #     .group_by(ClassifiedHfi.threshold)
+    # result = await session.execute(stmt)
+    # grouped_hfi_values = result.all()
+
+    stmt = select(Shape.id,
+                  Shape.source_identifier,
+                  Shape.combustible_area,
+                  Shape.geom.ST_Area().label('zone_area'))\
+        .from (
+        select(
+            select(FuelType.fuel_type_id,
+                   FuelType.geom.ST_Union())
+            .group_by(FuelType.fuel_type_id)
+        )
+    )\
+        .where()
+
+    return
+
+
 async def get_hfi_area(session: AsyncSession,
                        run_type: RunTypeEnum,
                        run_datetime: datetime,
