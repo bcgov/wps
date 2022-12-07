@@ -58,7 +58,7 @@ arch -x86_64 /bin/bash
 pyenv install -v 2.7.18
 ```
 
-If the above option fails on your Mac M1, try this as well (source: https://github.com/pyenv/pyenv/issues/2136)
+If the above option fails on your Mac M1, try this as well ([source](https://github.com/pyenv/pyenv/issues/2136)):
 
 ```bash
 LDFLAGS="-L/opt/homebrew/Cellar/openssl@1.1/1.1.1m/lib" CPPFLAGS="-I/opt/homebrew/Cellar/openssl@1.1/1.1.1m/include" pyenv install 2.7.18
