@@ -25,7 +25,7 @@ limactl start --name=default template://docker
 *b. If there is a default VM but it is not running*
 
 ```bash
-lima start default
+limactl start default
 ```
 
 
