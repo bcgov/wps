@@ -123,12 +123,12 @@ def create_model_object(feature: ogr.Feature,
                                         srid=NAD83_BC_ALBERS))
 
 
-async def write_high_hfi_area(session: AsyncSession, high_hfi_area):
-    row = HighHfiArea(advisory_shape_id=high_hfi_area.shape_id,
-                      run_parameters=high_hfi_area.run_parameters,
-                      threshold=high_hfi_area.threshold,
-                      area=high_hfi_area.area)
-    await save_high_hfi_area(session, row)
+async def write_high_hfi_area(session: AsyncSession, row: any, run_parameters_id: int):
+    high_hfi_area = HighHfiArea(advisory_shape_id=row.shape_id,
+                                run_parameters=run_parameters_id,
+                                advisory_area=row.advisory_area,
+                                warn_area=row.warn_area)
+    await save_high_hfi_area(session, high_hfi_area)
 
 
 async def process_hfi(run_type: RunType, run_date: datetime, for_date: date):
@@ -185,22 +185,24 @@ async def process_hfi(run_type: RunType, run_date: datetime, for_date: date):
                     feature: ogr.Feature = layer.GetFeature(i)
                     await write_classified_hfi_to_tileserver(session, feature, coordinate_transform, for_date, run_date, run_type, advisory, warning)
 
-        async with get_async_write_session_scope() as session:
-            logger.info('Writing run parameters to API database...')
-            run_parameters = RunParameters(run_type=run_type.value, run_datetime=run_date, for_date=for_date)
-            await save_run_parameters(session, run_parameters)
+        async with get_async_read_session_scope() as session:
+            run_parameters_id = await get_run_parameters_id(session, run_type.value, run_date, for_date)
+
+        if run_parameters_id is None:
+            async with get_async_write_session_scope() as session:
+                logger.info('Writing run parameters to API database...')
+                run_parameters = RunParameters(run_type=run_type.value,
+                                               run_datetime=run_date, for_date=for_date)
+                run_parameters_id = await save_run_parameters(session, run_parameters)
 
         async with get_async_read_session_scope() as session:
-            run_parameters_id = await get_run_parameters_id(session, run_type, run_date, for_date)
-
-        async with get_async_read_session_scope() as session:
-            logger.info('Getting high HFI area per zone')
+            logger.info('Getting high HFI area per zone...')
             high_hfi_areas = await calculate_high_hfi_areas(session, run_parameters_id)
 
         async with get_async_write_session_scope() as session:
             logger.info('Writing high HFI areas...')
             for row in high_hfi_areas:
-                await write_high_hfi_area(session, row)
+                await write_high_hfi_area(session, row, run_parameters_id)
 
     perf_end = perf_counter()
     delta = perf_end - perf_start

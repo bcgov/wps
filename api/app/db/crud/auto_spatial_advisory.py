@@ -147,22 +147,49 @@ async def save_high_hfi_area(session: AsyncSession, high_hfi_area: HighHfiArea):
 
 
 async def calculate_high_hfi_areas(session: AsyncSession, run_parameters_id: int) -> List[Row]:
+    """
+        Given a 'run_parameters_id', which represents a unqiue combination of run_type, run_datetime
+        and for_date, individually sum the areas in each firezone with:
+            1. 4000 <= HFI < 10000 (aka 'advisory_area')
+            2. HFI > 10000 (aka 'warn_area')
+    """
     logger.info('starting high HFI by zone intersection query')
     perf_start = perf_counter()
-    stmt = select(Shape.id.label('shape_id'),
-                  ClassifiedHfi.threshold.label('threshold'),
-                  RunParameters.id.label('run_parameters'),
-                  func.sum(ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area())).label('area')\
-        .join(ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
-        .join(RunParameters, RunParameters.id == run_parameters_id)\
-        .group_by(Shape.id)\
-        .group_by(ClassifiedHfi.threshold)
 
+    # TODO - This can be simplified once the ClassifiedHfi table is normalized,
+    # ie. we'll be able to query against ClassifiedHfi.run_parameters in the
+    # cte object below instead of needing a join to this subquery
+    subq = select(RunParameters).where(RunParameters.id == run_parameters_id)\
+        .subquery()
+
+    # Create cte object
+    cte = select(Shape.id,
+                 Shape.source_identifier,
+                 ClassifiedHfi.threshold.label('threshold'),
+                 func.sum(ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area()).label('area'))\
+        .join_from(Shape, ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
+        .join(subq,
+              subq.c.run_type == ClassifiedHfi.run_type,
+              subq.c.run_datetime == ClassifiedHfi.run_datetime,
+              subq.c.for_date == ClassifiedHfi.for_date)\
+        .group_by(Shape.id)\
+        .group_by(ClassifiedHfi.threshold)\
+        .cte()
+
+    # Alias CTE object to allow self join
+    a = cte.alias('a')
+    b = cte.alias('b')
+
+    stmt = select(a.c.id.label('shape_id'),
+                  a.c.source_identifier,
+                  a.c.area.label('warn_area'),
+                  b.c.area.label('advisory_area'))\
+        .join_from(a, b, (a.c.id == b.c.id) & (a.c.threshold < b.c.threshold))
     result = await session.execute(stmt)
-    all_high_hfi = result.scalars().all()
+    all_high_hfi = result.all()
     perf_end = perf_counter()
     delta = perf_end - perf_start
-    logger.info('%f delta count before and after high HFI by zone intersection query', delta)
+    logger.info('%f delta count before and after calculate high HFI by zone intersection query', delta)
     return all_high_hfi
 
 
@@ -175,7 +202,7 @@ async def get_run_parameters_id(session: AsyncSession,
                RunParameters.run_datetime == run_datetime,
                RunParameters.for_date == for_date)
     result = await session.execute(stmt)
-    return result.scalars()
+    return result.scalar()
 
 
 async def save_run_parameters(session: AsyncSession, run_parameters: RunParameters):

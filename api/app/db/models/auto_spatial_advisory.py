@@ -117,9 +117,9 @@ class HighHfiArea(Base):
     )
     id = Column(Integer, primary_key=True, index=True)
     advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False)
-    threshold = Column(Integer, ForeignKey('advisory_hfi_classification_threshold.id'), nullable=False, index=True)
     run_parameters = Column(Integer, ForeignKey('run_parameters.id'), nullable=False)
-    area = Column(Float, nullable=False)
+    advisory_area = Column(Float, nullable=False)
+    warn_area = Column(Float, nullable=False)
 
 
 class RunParameters(Base):
@@ -130,6 +130,6 @@ class RunParameters(Base):
         {'comment': 'A combination of run type, run datetime and for date.'}
     )
     id = Column(Integer, primary_key=True, index=True)
-    run_type = Column(postgresql.ENUM(name='runtypeenum', create_type=False), nullable=False)
+    run_type = Column(postgresql.ENUM('actual', 'forecast', name='runtypeenum', create_type=False), nullable=False)
     run_datetime = Column(TZTimeStamp, nullable=False)
     for_date = Column(Date, nullable=False)
