@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, timedelta
+from typing import List
 
 
 def generate_actual(issue_date: date, for_date: date):
@@ -33,3 +34,16 @@ def generate_forecast(issue_date: date, for_date: date):
                     - forecast 27
                     - forecast 28
      """
+
+
+def get_forecast_dates(issue_date: date) -> List[date]:
+    """
+     Returns list of 3 dates starting from the issue date
+    """
+    dates = []
+    days = range(0, 4)
+
+    for day in days:
+        dates.append(issue_date + timedelta(days=day))
+
+    return dates
