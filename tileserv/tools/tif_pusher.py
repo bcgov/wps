@@ -27,18 +27,16 @@ def main(issue_date: date, for_date: date, tif_dir):
 
     # Iterate over all files in the directory
     for filename in get_filenames(tif_dir):
-        filename = filename.lower()
-        if filename.endswith('tif') or filename.endswith('tiff'):
-            filename = os.path.join(tif_dir, filename)
-            try:
-                # TODO upload logic
-                logger.info(filename)
-            except KeyboardInterrupt:
-                logger.warning('Aborted')
-                sys.exit(1)
-            except Exception as exception:
-                logger.error('Error uploading "%s" with %s', filename, exception, exc_info=True)
-                print(sys.exc_info()[0])
+        filename = os.path.join(tif_dir, filename)
+        try:
+            # TODO upload logic
+            logger.info(filename)
+        except KeyboardInterrupt:
+            logger.warning('Aborted')
+            sys.exit(1)
+        except Exception as exception:
+            logger.error('Error uploading "%s" with %s', filename, exception, exc_info=True)
+            print(sys.exc_info()[0])
 
 
 if __name__ == '__main__':
