@@ -139,7 +139,7 @@ async def get_high_hfi_area(session: AsyncSession,
                RunParameters.for_date == for_date,
                RunParameters.run_datetime == run_datetime)
     result = await session.execute(stmt)
-    return result.scalars()
+    return result.all()
 
 
 async def save_high_hfi_area(session: AsyncSession, high_hfi_area: HighHfiArea):
