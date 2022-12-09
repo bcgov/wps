@@ -11,9 +11,9 @@ from starlette.background import BackgroundTasks
 import nats
 from nats.js.api import StreamConfig, RetentionPolicy
 from nats.aio.msg import Msg
-from app.auto_spatial_advisory.nats import server, stream_name, sfms_file_subject, subjects, hfi_classify_durable_group
+from app.auto_spatial_advisory.nats_config import server, stream_name, sfms_file_subject, subjects, hfi_classify_durable_group
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
-from app.nats import publish
+from app.nats_publish import publish
 from app import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -54,7 +54,11 @@ async def run():
         closed_cb=closed_cb,
     )
     jetstream = nats_connection.jetstream()
-
+    # we create a stream, this is important, we need to messages to stick around for a while!
+    # idempotent operation, IFF stream with same configuration is added each time
+    await jetstream.add_stream(name=stream_name,
+                               config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE),
+                               subjects=subjects)
     sfms_sub = await jetstream.pull_subscribe(stream=stream_name,
                                               subject=sfms_file_subject,
                                               durable=hfi_classify_durable_group)

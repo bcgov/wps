@@ -8,7 +8,7 @@ import nats
 from nats.js.api import StreamConfig, RetentionPolicy
 from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel
-from app.auto_spatial_advisory.nats import server
+from app.auto_spatial_advisory.nats_config import server
 
 
 logger = logging.getLogger(__name__)
