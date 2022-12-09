@@ -43,6 +43,6 @@ def main(issue_date: date, for_date: date, tif_dir):
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
-        print('Usage: python3 sfms.py issue_date for_date tif_dir')
+        print('Usage: python3 tif_pusher.py issue_date for_date tif_dir')
         sys.exit(1)
     main(date.fromisoformat(sys.argv[1]), date.fromisoformat(sys.argv[2]), sys.argv[3])
