@@ -90,35 +90,21 @@ async def get_fuel_types_with_high_hfi(session: AsyncSession,
         for both 4K-10K and 10K+ HFI values
     Intersection with fire zone geom
     """
-    logger.info('')
-    # stmt = select(FuelType.fuel_type_id,
-    #               FuelType.geom.ST_Union())\
-    #     .group_by(FuelType.fuel_type_id)
-    # result = await session.execute(stmt)
-    # grouped_fuel_types = result.all()
+    logger.info('starting fuel types/high hfi/zone intersection query')
+    perf_start = perf_counter()
 
-    # stmt = select(ClassifiedHfi.threshold, ClassifiedHfi.geom.ST_Union())\
-    #     .where(ClassifiedHfi.for_date == for_date,
-    #            ClassifiedHfi.run_datetime == run_datetime,
-    #            ClassifiedHfi.run_type == run_type)\
-    #     .group_by(ClassifiedHfi.threshold)
-    # result = await session.execute(stmt)
-    # grouped_hfi_values = result.all()
+    stmt = select(FuelType.fuel_type_id, Shape.source_identifier, Shape.id, ClassifiedHfi.threshold,
+                  FuelType.geom.ST_Union().ST_Intersection(Shape.geom).ST_Area().label('fuel_type_area'))\
+        .join(Shape, Shape.geom.ST_Intersection(ClassifiedHfi.geom.ST_Union()))\
+        .where(ClassifiedHfi.for_date == for_date, ClassifiedHfi.run_datetime == run_datetime, ClassifiedHfi.run_type == run_type)\
+        .group_by(Shape.id, ClassifiedHfi.threshold, FuelType.fuel_type_id)
 
-    stmt = select(Shape.id,
-                  Shape.source_identifier,
-                  Shape.combustible_area,
-                  Shape.geom.ST_Area().label('zone_area'))\
-        .from (
-        select(
-            select(FuelType.fuel_type_id,
-                   FuelType.geom.ST_Union())
-            .group_by(FuelType.fuel_type_id)
-        )
-    )\
-        .where()
+    result = await session.execute(stmt)
 
-    return
+    perf_end = perf_counter()
+    delta = perf_end - perf_start
+    logger.info('%f delta count before and after fuel types/high hfi/zone intersection query', delta)
+    return result.all()
 
 
 async def get_hfi_area(session: AsyncSession,
