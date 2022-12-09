@@ -26,13 +26,13 @@ def generate_forecast(issue_date: date, for_date: date):
         since that's what we've seen SFMS output
 
         e.g. issue_date: 24
+                    - forecast: 24
                     - forecast: 25
                     - forecast: 26
-                    - forecast: 27
              issue_date: 25
+                    - forecast 25
                     - forecast 26
                     - forecast 27
-                    - forecast 28
      """
 
 
