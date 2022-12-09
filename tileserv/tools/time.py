@@ -19,4 +19,4 @@ def noon_time(issue_date: date):
 
 def evening_time(issue_date: date):
     """ Pin the time of an issue date to evening time, 16:45 """
-    return pin_issue_date_to_time(issue_date, time(16, 45, 0))
+    return pin_issue_date_to_time(issue_date, time(17, 45, 0))
