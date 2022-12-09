@@ -31,6 +31,7 @@ def main(issue_date: date, for_date: date, tif_dir):
         if filename.endswith('tif') or filename.endswith('tiff'):
             filename = os.path.join(tif_dir, filename)
             try:
+                # TODO upload logic
                 logger.info(filename)
             except KeyboardInterrupt:
                 logger.warning('Aborted')
