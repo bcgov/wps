@@ -35,37 +35,9 @@ Cypress.Commands.add('selectStationInDropdown', (code: number | string) => {
       .click()
   }
 
-  return cy
-    .getByTestId('weather-station-dropdown')
-    .find('input')
-    .type(code)
-    .type('{downarrow}')
-    .type('{enter}')
+  return cy.getByTestId('weather-station-dropdown').find('input').type(code).type('{downarrow}').type('{enter}')
 })
 
 Cypress.Commands.add('checkErrorMessage', (msg: string) => {
   cy.getByTestId('error-message').should('contain', msg)
 })
-
-/* Increase this if needed to slow down the test speed */
-const COMMAND_DELAY = 0
-
-for (const command of [
-  'visit',
-  'click',
-  'trigger',
-  'type',
-  'clear',
-  'reload',
-  'contains'
-]) {
-  Cypress.Commands.overwrite(command, (originalFn, ...args) => {
-    const origVal = originalFn(...args)
-
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve(origVal)
-      }, COMMAND_DELAY)
-    })
-  })
-}

@@ -44,7 +44,7 @@ objects:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 1Gi
+                storage: 5Gi
                 cpu: 15m
                 memory: 200Mi
               limits:
@@ -56,7 +56,7 @@ objects:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 1Gi
+                storage: 2Gi
             storageClassName: netapp-block-standard
       backups:
         pgbackrest:
