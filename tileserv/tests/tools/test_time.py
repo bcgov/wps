@@ -21,7 +21,7 @@ def test_pin_to_morning_time():
 
 
 def test_pin_to_noon_time():
-    """ Pinning a date to morning should be 8am PDT """
+    """ Pinning a date to noon should be 1pm PDT """
     noon_datetime = noon_time(input_datetime)
 
     assert noon_datetime.year == 2022
@@ -34,13 +34,13 @@ def test_pin_to_noon_time():
 
 
 def test_pin_to_evening_time():
-    """ Pinning a date to morning should be 8am PDT """
+    """ Pinning a date to evening should be 5:45pm PDT """
     evening_datetime = evening_time(input_datetime)
 
     assert evening_datetime.year == 2022
     assert evening_datetime.month == 12
     assert evening_datetime.day == 1
-    assert evening_datetime.hour == 16
+    assert evening_datetime.hour == 17
     assert evening_datetime.minute == 45
     assert evening_datetime.second == 0
     assert evening_datetime.timetz().tzinfo == timezone_info
