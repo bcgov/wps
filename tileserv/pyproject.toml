@@ -15,6 +15,7 @@ geoalchemy2 = "^0.12.5"
 shapely = "^1.8.5.post1"
 pytz = "^2022.6"
 pytest = "^7.2.0"
+aiobotocore = "^2.4.1"
 
 
 [build-system]
