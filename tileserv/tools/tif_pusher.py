@@ -1,12 +1,18 @@
 import sys
 import asyncio
 import os
+import pytz
+import logging
+from datetime import date, datetime
+import requests
+
+import os
 import logging
 from datetime import date
-from typing import List
+import pandas as pd
 from decouple import config
 
-from s3 import get_client
+from s3 import get_ordered_tifs_for_date
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -17,48 +23,66 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-def get_filenames(tif_dir) -> List[str]:
-    filenames: List[str] = os.listdir(tif_dir)
-    lower_filenames: List[str] = list(map(lambda x: x.lower(), filenames))
-    tif_filenames: List[str] = list(filter(lambda f: f.endswith('tif') or f.endswith('tiff'), lower_filenames))
-    hfi_tif_filenames: List[str] = list(filter(lambda f: os.path.basename(f).startswith('hfi'), tif_filenames))
-    return hfi_tif_filenames
+def get_hfi_objects(objects):
+    tif_objects = list(filter(lambda obj: obj["Key"].endswith('tif')
+                              or obj["Key"].endswith('tiff'), objects))
+    hfi_tif_objects = list(filter(lambda obj: os.path.basename(obj["Key"]).startswith('hfi'), tif_objects))
+    return hfi_tif_objects
 
 
-async def main(issue_date: date, for_date: date, tif_dir):
-    logger.info('Generating SFMS uploads for issue date: "%s" for_date: "%s"',
-                issue_date.isoformat(), for_date.isoformat())
-    config('OBJECT_STORE_SECRET')
-    config('OBJECT_STORE_USER_ID')
-    config('OBJECT_STORE_SERVER')
-    config('OBJECT_STORE_BUCKET')
+def normalize_datetime(last_modified: datetime):
+    """
+        SFMS generates data in the Vancouver timezone, but S3 returns UTC
+    """
+    vancouver_tz = pytz.timezone('America/Vancouver')
+    return vancouver_tz.localize(datetime(year=last_modified.year,
+                                          month=last_modified.month,
+                                          day=last_modified.day,
+                                          hour=last_modified.hour,
+                                          minute=last_modified.minute,
+                                          second=last_modified.second,
+                                          microsecond=last_modified.microsecond))
 
-    async with get_client() as (client, bucket):
-        # We save the Last-modified and Create-time as metadata in the object store - just
-        # in case we need to know about it in the future.
-        logger.info('Client is %s', client.meta.endpoint_url)
-        client.
 
-    # Iterate over all files in the directory
-    # for filename in get_filenames(tif_dir):
-    #     filename = os.path.join(tif_dir, filename)
-    #     try:
-    #         # TODO upload logic
-    #         logger.info(filename)
-    #     except KeyboardInterrupt:
-    #         logger.warning('Aborted')
-    #         sys.exit(1)
-    #     except Exception as exception:
-    #         logger.error('Error uploading "%s" with %s', filename, exception, exc_info=True)
-    #         print(sys.exc_info()[0])
+def buildpost_body_for_tiff(tif_object):
+    key: str = tif_object["Key"]
+    for_date_str: str = tif_object["Key"].split("hfi")[1].split(".")[0]
+    for_date: date = date(year=int(for_date_str[0:4]), month=int(
+        for_date_str[4:6]), day=int(for_date_str[6:8])).isoformat()
+    run_datetime = tif_object["LastModified"]
+    runtype = "forecast" if "forecast" in key else "actual"
+
+    return {"key": key, "for_date": for_date, "runtype": runtype, "run_datetime": run_datetime.isoformat()}
+
+
+async def push_tifs_to_api(start_date: date, end_date: date):
+    """
+        Given a start date and end date, look up forecasts and actuals for each date in order,
+        processing each tif ordered by their last modified timestamp
+    """
+    daterange = pd.date_range(start_date, end_date, freq='D').date
+
+    for current_date in daterange:
+        ordered_tif_objects = await get_ordered_tifs_for_date(current_date)
+        for tif_object in ordered_tif_objects:
+            post_body = buildpost_body_for_tiff(tif_object)
+            logger.info(post_body)
+            response = requests.post(url=config("URL"), json=post_body, headers={
+                "Secret": config("SECRET"), "Content-Type": "application/json"})
+            logger.info(response)
+
+
+async def main(start_date: date, end_date: date):
+    logger.info('Generating SFMS uploads for start date: "%s" end date: "%s"',
+                start_date.isoformat(), end_date.isoformat())
+    await push_tifs_to_api(start_date, end_date)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        print('Usage: python3 tif_pusher.py issue_date for_date tif_dir')
+    if len(sys.argv) != 3:
+        print('Usage: python3 tif_pusher.py start_date end_date')
         sys.exit(1)
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    loop.run_until_complete(main(date.fromisoformat(sys.argv[1]), date.fromisoformat(sys.argv[2]), sys.argv[3]))
-    # main(date.fromisoformat(sys.argv[1]), date.fromisoformat(sys.argv[2]), sys.argv[3])
+    loop.run_until_complete(main(date.fromisoformat(sys.argv[1]), date.fromisoformat(sys.argv[2])))

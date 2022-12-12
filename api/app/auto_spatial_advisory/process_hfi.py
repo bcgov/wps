@@ -122,14 +122,14 @@ def create_model_object(feature: ogr.Feature,
                                         srid=NAD83_BC_ALBERS))
 
 
-async def process_hfi(run_type: RunType, run_date: datetime, for_date: date):
+async def process_hfi(run_type: RunType, run_datetime: datetime, for_date: date):
     """ Create a new hfi record for the given date.
 
     :param run_type: The type of run to process. (is it a forecast or actual run?)
     :param run_date: The date of the run to process. (when was the hfi file created?)
     :param for_date: The date of the hfi to process. (when is the hfi for?)
     """
-    logger.info('Processing HFI %s for run date: %s, for date: %s', run_type, run_date, for_date)
+    logger.info('Processing HFI %s for run date: %s, for date: %s', run_type, run_datetime, for_date)
     perf_start = perf_counter()
 
     bucket = config.get('OBJECT_STORE_BUCKET')
@@ -140,7 +140,7 @@ async def process_hfi(run_type: RunType, run_date: datetime, for_date: date):
     # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
     # it's S3 virtual file system driver to read the file.
     # https://gdal.org/user/virtual_file_systems.html
-    key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_date.isoformat()}/hfi{for_date_string}.tif'
+    key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_datetime.date.isoformat()}/hfi{for_date_string}.tif'
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(key, temp_filename)
@@ -166,7 +166,7 @@ async def process_hfi(run_type: RunType, run_date: datetime, for_date: date):
                                               warning,
                                               coordinate_transform,
                                               run_type,
-                                              run_date,
+                                              run_datetime,
                                               for_date)
                     await save_hfi(session, obj)
 

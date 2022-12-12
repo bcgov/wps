@@ -4,13 +4,13 @@ import logging
 from datetime import datetime, date
 import os
 from tempfile import SpooledTemporaryFile
-from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks
+from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Header
 from app.nats_publish import publish
 from app.utils.s3 import get_client
 from app import config
 from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename, get_date_part, is_hfi_file
 from app.auto_spatial_advisory.nats_config import stream_name, subjects, sfms_file_subject
-from app.schemas.auto_spatial_advisory import SFMSFile
+from app.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
 
 
 logger = logging.getLogger(__name__)
@@ -182,9 +182,9 @@ def add_msg_to_queue(file: UploadFile, key: str, forecast_or_actual: str, meta_d
 
 
 @router.post('/manual/msgOnly')
-async def upload_manual_msg(file: UploadFile,
-                            request: Request,
-                            background_tasks: BackgroundTasks):
+async def upload_manual_msg(message: ManualSFMS,
+                            background_tasks: BackgroundTasks,
+                            secret: str | None = Header(default=None)):
     """
     Trigger the SFMS process to run on the provided file.
     The header MUST include the SFMS secret key.
@@ -193,19 +193,17 @@ async def upload_manual_msg(file: UploadFile,
     curl -X 'POST' \\
         'https://psu.nrs.gov.bc.ca/api/sfms/upload' \\
         -H 'accept: application/json' \\
-        -H 'Content-Type: multipart/form-data' \\
         -H 'Secret: secret' \\
-        -H 'ForecastOrActual: actual' \\
-        -H 'IssueDate: 2022-09-19' \\
-        -F 'file=@hfi20220812.tif;type=image/tiff'
     ```
     """
     logger.info('sfms/manual/msgOnly')
-    forecast_or_actual = request.headers.get('ForecastOrActual')
-    issue_date = datetime.fromisoformat(request.headers.get('IssueDate'))
-    secret = request.headers.get('Secret')
+    logger.info("Received request to process tif: %s", message.key)
     if not secret or secret != config.get('SFMS_SECRET'):
         return Response(status_code=401)
-    key = os.path.join('sfms', 'uploads', forecast_or_actual, issue_date.isoformat()[:10], file.filename)
-    meta_data = get_meta_data(request)
-    return add_msg_to_queue(file, key, forecast_or_actual, meta_data, issue_date, background_tasks)
+    message = SFMSFile(key=message.key,
+                       run_type=message.runtype,
+                       last_modified=message.run_datetime,
+                       create_time=message.run_datetime,
+                       run_date=message.run_datetime.date(),
+                       for_date=message.for_date)
+    # background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
