@@ -1,74 +1,28 @@
 from dateutil.tz import tzutc
 import datetime
 
-from tileserv.tools.s3 import get_hfi_objects, order_objects_by_last_modified
+from tileserv.tools.tif_pusher import build_post_body_for_tiff
 
 utc = tzutc()
 
-test_objects = [
-    {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220903.tif', 'LastModified': datetime.datetime(
-        2022, 9, 7, 18, 6, 26, 556000, tzinfo=utc)},
-    {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220904.tif', 'LastModified': datetime.datetime(
-        2022, 9, 7, 18, 6, 26, 695000, tzinfo=utc)},
-    {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220905.tif', 'LastModified': datetime.datetime(
-        2022, 9, 7, 18, 6, 27, 33000, tzinfo=utc)},
-    {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220906.tif', 'LastModified': datetime.datetime(
-        2022, 9, 7, 18, 6, 27, 513000, tzinfo=utc)},
-]
+
+def test_get_post_body_forecast():
+    run_date = datetime.date(2022, 9, 3)
+    object = {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220904.tif'}
+
+    post_body = build_post_body_for_tiff(object, run_date)
+    assert post_body.get("key") == object.get("Key")
+    assert post_body.get("runtype") == "forecast"
+    assert post_body.get("for_date") == "2022-09-04"
+    assert post_body.get("run_date") == run_date.isoformat()
 
 
-def test_get_objects_only_hfi():
-    objects = [
-        {'Key': 'sfms/uploads/forecast/2022-09-03/bui20220903.tif', 'LastModified': datetime.datetime(
-            2022, 9, 7, 18, 6, 26, 556000, tzinfo=utc)},
-        {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220904.tif', 'LastModified': datetime.datetime(
-            2022, 9, 7, 18, 6, 26, 695000, tzinfo=utc)}
-    ]
-    res = get_hfi_objects(objects)
-    assert res[0] == objects[1]
+def test_get_post_body_actual():
+    run_date = datetime.date(2022, 9, 3)
+    object = {'Key': 'sfms/uploads/actual/2022-09-03/hfi20220904.tif'}
 
-
-def test_get_objects_all_hfi():
-    objects = [
-        {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220903.tif', 'LastModified': datetime.datetime(
-            2022, 9, 7, 18, 6, 26, 556000, tzinfo=utc)},
-        {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220904.tif', 'LastModified': datetime.datetime(
-            2022, 9, 7, 18, 6, 26, 695000, tzinfo=utc)}
-    ]
-    res = get_hfi_objects(objects)
-    assert res == objects
-
-
-def test_get_objects_tif_or_tiff():
-    objects = [
-        {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220903.tiff', 'LastModified': datetime.datetime(
-            2022, 9, 7, 18, 6, 26, 556000, tzinfo=utc)},
-        {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220904.tif', 'LastModified': datetime.datetime(
-            2022, 9, 7, 18, 6, 26, 695000, tzinfo=utc)}
-    ]
-    res = get_hfi_objects(objects)
-    assert res == objects
-
-
-def test_get_objects_ignore_non_tiff():
-    objects = [
-        {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220903.docx', 'LastModified': datetime.datetime(
-            2022, 9, 7, 18, 6, 26, 556000, tzinfo=utc)},
-        {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220904.docx', 'LastModified': datetime.datetime(
-            2022, 9, 7, 18, 6, 26, 695000, tzinfo=utc)}
-    ]
-    res = get_hfi_objects(objects)
-    assert res == []
-
-
-def test_sort_objects_last_modified():
-    forecast_objects = [
-        {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220903.hfi', 'LastModified': datetime.datetime(
-            2022, 10, 7, 18, 6, 26, 556000, tzinfo=utc)}
-    ]
-    actual_objects = [{'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220904.hfi', 'LastModified': datetime.datetime(
-        2022, 9, 7, 18, 6, 26, 695000, tzinfo=utc)}
-    ]
-    res = order_objects_by_last_modified(forecast_objects, actual_objects)
-    assert res[0]["Key"] == actual_objects[0]["Key"]
-    assert res[1]["Key"] == forecast_objects[0]["Key"]
+    post_body = build_post_body_for_tiff(object, run_date)
+    assert post_body.get("key") == object.get("Key")
+    assert post_body.get("runtype") == "actual"
+    assert post_body.get("for_date") == "2022-09-04"
+    assert post_body.get("run_date") == run_date.isoformat()
