@@ -22,11 +22,7 @@ def get_hfi_objects(objects):
     return hfi_tif_objects
 
 
-def order_objects_by_last_modified(forecast_objects, actual_objects):
-    return sorted(forecast_objects + actual_objects, key=lambda obj: obj["LastModified"])
-
-
-async def get_ordered_tifs_for_date(current_date: date):
+async def get_tifs_for_date(current_date: date):
 
     forecast_path = os.path.join('sfms', 'uploads', 'forecast', current_date.isoformat())
     actual_path = os.path.join('sfms', 'uploads', 'actual', current_date.isoformat())
@@ -55,4 +51,4 @@ async def get_ordered_tifs_for_date(current_date: date):
         actual_contents = actual_result.get('Contents', None)
         actual_objects = get_hfi_objects(actual_contents)
 
-        return order_objects_by_last_modified(forecast_objects, actual_objects)
+        return forecast_objects + actual_objects

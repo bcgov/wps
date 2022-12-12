@@ -1,7 +1,7 @@
 from dateutil.tz import tzutc
 import datetime
 
-from tileserv.tools.s3 import get_hfi_objects, order_objects_by_last_modified
+from tileserv.tools.s3 import get_hfi_objects
 
 utc = tzutc()
 
@@ -59,16 +59,3 @@ def test_get_objects_ignore_non_tiff():
     ]
     res = get_hfi_objects(objects)
     assert res == []
-
-
-def test_sort_objects_last_modified():
-    forecast_objects = [
-        {'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220903.hfi', 'LastModified': datetime.datetime(
-            2022, 10, 7, 18, 6, 26, 556000, tzinfo=utc)}
-    ]
-    actual_objects = [{'Key': 'sfms/uploads/forecast/2022-09-03/hfi20220904.hfi', 'LastModified': datetime.datetime(
-        2022, 9, 7, 18, 6, 26, 695000, tzinfo=utc)}
-    ]
-    res = order_objects_by_last_modified(forecast_objects, actual_objects)
-    assert res[0]["Key"] == actual_objects[0]["Key"]
-    assert res[1]["Key"] == forecast_objects[0]["Key"]

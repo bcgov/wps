@@ -196,11 +196,11 @@ async def upload_manual_msg(message: ManualSFMS,
         return Response(status_code=401)
 
     async with get_client() as (client, bucket):
-        object = await client.get_object(Bucket=bucket,
-                                         Key=message.key)
-        logger.info('Found requested object: %s', object)
-        last_modified = datetime.fromisoformat(object["Metadata"]["last_modified"])
-        create_time = datetime.fromisoformat(object["Metadata"]["create_time"])
+        tif_object = await client.get_object(Bucket=bucket,
+                                             Key=message.key)
+        logger.info('Found requested object: %s', tif_object)
+        last_modified = datetime.fromisoformat(tif_object["Metadata"]["last_modified"])
+        create_time = datetime.fromisoformat(tif_object["Metadata"]["create_time"])
         message = SFMSFile(key=message.key,
                            run_type=message.runtype,
                            last_modified=last_modified,

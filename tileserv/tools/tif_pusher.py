@@ -1,18 +1,12 @@
 import sys
 import asyncio
-import os
-import pytz
-import logging
-from datetime import date, datetime
-import requests
-
-import os
 import logging
 from datetime import date
+import requests
 import pandas as pd
 from decouple import config
 
-from tileserv.tools.s3 import get_ordered_tifs_for_date
+from s3 import get_tifs_for_date
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -41,8 +35,8 @@ async def push_tifs_to_api(start_date: date, end_date: date):
     daterange = pd.date_range(start_date, end_date, freq='D').date
 
     for current_date in daterange:
-        ordered_tif_objects = await get_ordered_tifs_for_date(current_date)
-        for tif_object in ordered_tif_objects:
+        tif_objects = await get_tifs_for_date(current_date)
+        for tif_object in tif_objects:
             post_body = build_post_body_for_tiff(tif_object, current_date)
             logger.info(post_body)
             response = requests.post(url=config("URL"), json=post_body, headers={

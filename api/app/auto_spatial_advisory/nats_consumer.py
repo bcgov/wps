@@ -5,6 +5,8 @@ Nats consumer setup for consuming processing messages
 import asyncio
 import json
 import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 import logging
 from typing import List
 from starlette.background import BackgroundTasks
@@ -26,9 +28,9 @@ def parse_nats_message(msg: Msg):
     if msg.subject == sfms_file_subject:
         decoded_msg = json.loads(json.loads(msg.data.decode()))
         run_type = RunType.from_str(decoded_msg['run_type'])
-        run_date = datetime.datetime.strptime(decoded_msg['run_date'], "%Y-%m-%d").date()
-        run_datetime = datetime.datetime.fromisoformat(decoded_msg['create_time'])
-        for_date = datetime.datetime.strptime(decoded_msg['for_date'], "%Y-%m-%d").date()
+        run_date = datetime.strptime(decoded_msg['run_date'], "%Y-%m-%d").date()
+        run_datetime = datetime.fromisoformat(decoded_msg['create_time']).replace(tzinfo=ZoneInfo("America/Vancouver"))
+        for_date = datetime.strptime(decoded_msg['for_date'], "%Y-%m-%d").date()
         return (run_type, run_date, run_datetime, for_date)
 
 
