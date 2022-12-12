@@ -25,4 +25,5 @@ class ManualSFMS(BaseModel):
     key: str  # S3 key
     for_date: date
     runtype: SFMSRunType
-    run_datetime: datetime
+    run_date: date  # The date that this run is on, the date folder path in s3
+    run_datetime: datetime  # The last modified datetime of the s3 object, when it was written

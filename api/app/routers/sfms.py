@@ -204,6 +204,6 @@ async def upload_manual_msg(message: ManualSFMS,
                        run_type=message.runtype,
                        last_modified=message.run_datetime,
                        create_time=message.run_datetime,
-                       run_date=message.run_datetime.date(),
+                       run_date=message.run_date,
                        for_date=message.for_date)
     # background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)

@@ -44,7 +44,7 @@ def normalize_datetime(last_modified: datetime):
                                           microsecond=last_modified.microsecond))
 
 
-def buildpost_body_for_tiff(tif_object):
+def buildpost_body_for_tiff(tif_object, run_date: date):
     key: str = tif_object["Key"]
     for_date_str: str = tif_object["Key"].split("hfi")[1].split(".")[0]
     for_date: date = date(year=int(for_date_str[0:4]), month=int(
@@ -52,7 +52,7 @@ def buildpost_body_for_tiff(tif_object):
     run_datetime = tif_object["LastModified"]
     runtype = "forecast" if "forecast" in key else "actual"
 
-    return {"key": key, "for_date": for_date, "runtype": runtype, "run_datetime": run_datetime.isoformat()}
+    return {"key": key, "for_date": for_date, "runtype": runtype, "run_date": run_date.isoformat(), "run_datetime": run_datetime.isoformat()}
 
 
 async def push_tifs_to_api(start_date: date, end_date: date):
@@ -65,7 +65,7 @@ async def push_tifs_to_api(start_date: date, end_date: date):
     for current_date in daterange:
         ordered_tif_objects = await get_ordered_tifs_for_date(current_date)
         for tif_object in ordered_tif_objects:
-            post_body = buildpost_body_for_tiff(tif_object)
+            post_body = buildpost_body_for_tiff(tif_object, current_date)
             logger.info(post_body)
             response = requests.post(url=config("URL"), json=post_body, headers={
                 "Secret": config("SECRET"), "Content-Type": "application/json"})
