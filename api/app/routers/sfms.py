@@ -186,24 +186,25 @@ async def upload_manual_msg(message: ManualSFMS,
                             background_tasks: BackgroundTasks,
                             secret: str | None = Header(default=None)):
     """
-    Trigger the SFMS process to run on the provided file.
-    The header MUST include the SFMS secret key.
-
-    ```
-    curl -X 'POST' \\
-        'https://psu.nrs.gov.bc.ca/api/sfms/upload' \\
-        -H 'accept: application/json' \\
-        -H 'Secret: secret' \\
-    ```
+    Trigger the SFMS process to run on a tif file that already exists in s3.
+    Client provides, key, for_date, runtype, run_date and an
+    SFMS message is queued up on the message queue.
     """
     logger.info('sfms/manual/msgOnly')
     logger.info("Received request to process tif: %s", message.key)
     if not secret or secret != config.get('SFMS_SECRET'):
         return Response(status_code=401)
-    message = SFMSFile(key=message.key,
-                       run_type=message.runtype,
-                       last_modified=message.run_datetime,
-                       create_time=message.run_datetime,
-                       run_date=message.run_date,
-                       for_date=message.for_date)
+
+    async with get_client() as (client, bucket):
+        object = await client.get_object(Bucket=bucket,
+                                         Key=message.key)
+        logger.info('Found requested object: %s', object)
+        last_modified = datetime.fromisoformat(object["Metadata"]["last_modified"])
+        create_time = datetime.fromisoformat(object["Metadata"]["create_time"])
+        message = SFMSFile(key=message.key,
+                           run_type=message.runtype,
+                           last_modified=last_modified,
+                           create_time=create_time,
+                           run_date=message.run_date,
+                           for_date=message.for_date)
     background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)

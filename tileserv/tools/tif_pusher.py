@@ -49,10 +49,9 @@ def buildpost_body_for_tiff(tif_object, run_date: date):
     for_date_str: str = tif_object["Key"].split("hfi")[1].split(".")[0]
     for_date: date = date(year=int(for_date_str[0:4]), month=int(
         for_date_str[4:6]), day=int(for_date_str[6:8])).isoformat()
-    run_datetime = tif_object["LastModified"]
     runtype = "forecast" if "forecast" in key else "actual"
 
-    return {"key": key, "for_date": for_date, "runtype": runtype, "run_date": run_date.isoformat(), "run_datetime": run_datetime.isoformat()}
+    return {"key": key, "for_date": for_date, "runtype": runtype, "run_date": run_date.isoformat()}
 
 
 async def push_tifs_to_api(start_date: date, end_date: date):

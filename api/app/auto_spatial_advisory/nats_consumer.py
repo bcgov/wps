@@ -27,7 +27,7 @@ def parse_nats_message(msg: Msg):
         decoded_msg = json.loads(json.loads(msg.data.decode()))
         run_type = RunType.from_str(decoded_msg['run_type'])
         run_date = datetime.datetime.strptime(decoded_msg['run_date'], "%Y-%m-%d").date()
-        run_datetime = datetime.datetime.fromisoformat(decoded_msg['last_modified'])
+        run_datetime = datetime.datetime.fromisoformat(decoded_msg['create_time'])
         for_date = datetime.datetime.strptime(decoded_msg['for_date'], "%Y-%m-%d").date()
         return (run_type, run_date, run_datetime, for_date)
 
@@ -71,7 +71,7 @@ async def run():
                 await msg.ack()
                 run_type, run_date, run_datetime, for_date = parse_nats_message(msg)
                 logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
-                await process_hfi(run_type, run_date, for_date)
+                await process_hfi(run_type, run_date, run_datetime, for_date)
             except Exception as e:
                 logger.error("Error processing HFI message: %s, adding back to queue", msg.data, exc_info=e)
                 background_tasks = BackgroundTasks()
