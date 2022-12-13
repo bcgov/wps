@@ -76,6 +76,7 @@ def write_classified_hfi_to_tileserver(session: Session,
         'INSERT INTO hfi (hfi, for_date, run_date, run_type, geom) VALUES (:hfi, :for_date, :run_date, :run_type, ST_GeomFromText(:geom, 3005))')
     session.execute(statement, {'hfi': threshold.description, 'for_date': for_date,
                     'run_date': run_datetime, 'run_type': run_type.value, 'geom': wkt.dumps(polygon)})
+    session.commit()
 
 
 def get_threshold_from_hfi(feature: ogr.Feature, advisory: HfiClassificationThreshold, warning: HfiClassificationThreshold):
