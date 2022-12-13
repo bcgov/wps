@@ -44,14 +44,14 @@ class UnknownHFiClassification(Exception):
     """ Raised when the hfi classification is not one of the expected values. """
 
 
-async def write_classified_hfi_to_tileserver(session: Session,
-                                             feature: ogr.Feature,
-                                             coordinate_transform: osr.CoordinateTransformation,
-                                             for_date: date,
-                                             run_datetime: datetime,
-                                             run_type: RunType,
-                                             advisory: HfiClassificationThreshold,
-                                             warning: HfiClassificationThreshold):
+def write_classified_hfi_to_tileserver(session: Session,
+                                       feature: ogr.Feature,
+                                       coordinate_transform: osr.CoordinateTransformation,
+                                       for_date: date,
+                                       run_datetime: datetime,
+                                       run_type: RunType,
+                                       advisory: HfiClassificationThreshold,
+                                       warning: HfiClassificationThreshold):
     """
     Given an ogr.Feature with an assigned HFI threshold value, write it to the tileserv database as a vector.
     """
@@ -74,7 +74,8 @@ async def write_classified_hfi_to_tileserver(session: Session,
 
     statement = text(
         'INSERT INTO hfi (hfi, for_date, run_date, run_type, geom) VALUES (:hfi, :for_date, :run_date, :run_type, ST_GeomFromText(:geom, 3005))')
-    await session.execute(statement, {'hfi': threshold.description, 'for_date': for_date, 'run_date': run_datetime, 'run_type': run_type.value, 'geom': wkt.dumps(polygon)})
+    session.execute(statement, {'hfi': threshold.description, 'for_date': for_date,
+                    'run_date': run_datetime, 'run_type': run_type.value, 'geom': wkt.dumps(polygon)})
 
 
 def get_threshold_from_hfi(feature: ogr.Feature, advisory: HfiClassificationThreshold, warning: HfiClassificationThreshold):
@@ -173,7 +174,8 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
                 logger.info('Writing HFI vectors to tileserv...')
                 for i in range(layer.GetFeatureCount()):
                     feature: ogr.Feature = layer.GetFeature(i)
-                    await write_classified_hfi_to_tileserver(session, feature, coordinate_transform, for_date, run_datetime, run_type, advisory, warning)
+                    write_classified_hfi_to_tileserver(
+                        session, feature, coordinate_transform, for_date, run_datetime, run_type, advisory, warning)
 
     perf_end = perf_counter()
     delta = perf_end - perf_start
