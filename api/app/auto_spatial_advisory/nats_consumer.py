@@ -5,8 +5,7 @@ Nats consumer setup for consuming processing messages
 import asyncio
 import json
 import datetime
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime
 import logging
 from typing import List
 from starlette.background import BackgroundTasks
@@ -17,6 +16,7 @@ from app.auto_spatial_advisory.nats_config import server, stream_name, sfms_file
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
 from app.nats_publish import publish
 from app import configure_logging
+from app.utils.time import get_utc_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +29,11 @@ def parse_nats_message(msg: Msg):
         decoded_msg = json.loads(json.loads(msg.data.decode()))
         run_type = RunType.from_str(decoded_msg['run_type'])
         run_date = datetime.strptime(decoded_msg['run_date'], "%Y-%m-%d").date()
-        run_datetime = datetime.fromisoformat(decoded_msg['create_time']).replace(tzinfo=ZoneInfo("America/Vancouver"))
         for_date = datetime.strptime(decoded_msg['for_date'], "%Y-%m-%d").date()
+
+        # SFMS doesn't give us a timezone, but from the 2022 data it runs in local time
+        # so we localize it as such then convert it to UTC
+        run_datetime = get_utc_datetime(datetime.fromisoformat(decoded_msg['create_time']))
         return (run_type, run_date, run_datetime, for_date)
 
 

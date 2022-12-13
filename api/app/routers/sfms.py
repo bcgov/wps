@@ -1,7 +1,7 @@
 """ Router for SFMS """
 import io
 import logging
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 import os
 from tempfile import SpooledTemporaryFile
 from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Header
@@ -11,6 +11,7 @@ from app import config
 from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename, get_date_part, is_hfi_file
 from app.auto_spatial_advisory.nats_config import stream_name, subjects, sfms_file_subject
 from app.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
+from app.utils.time import get_utc_datetime
 
 
 logger = logging.getLogger(__name__)
