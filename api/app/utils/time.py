@@ -112,5 +112,6 @@ def get_utc_datetime(input_datetime: datetime):
                                                   hour=input_datetime.hour,
                                                   minute=input_datetime.minute,
                                                   second=input_datetime.second,
-                                                  microsecond=input_datetime.microsecond)).astimezone(pytz.timezone("UTC"))
+                                                  microsecond=input_datetime.microsecond))\
+        .astimezone(pytz.timezone("UTC"))
     return utc_datetime
