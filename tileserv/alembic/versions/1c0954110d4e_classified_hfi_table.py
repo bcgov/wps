@@ -27,7 +27,7 @@ def upgrade() -> None:
                                                                  spatial_index=False, from_text='ST_GeomFromEWKT', name='geometry'), nullable=False),
                     sa.Column('run_date', TZTimeStamp(), nullable=False),
                     sa.Column('for_date', TZTimeStamp(), nullable=False),
-                    sa.Column('run_type', sa.Enum('FORECAST', 'ACTUAL', name='runtype'), nullable=False),
+                    sa.Column('run_type', sa.Enum('forecast', 'actual', name='runtype'), nullable=False),
                     sa.PrimaryKeyConstraint('id'),
                     comment='Processed HFI by run date and time'
                     )

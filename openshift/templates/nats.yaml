@@ -347,6 +347,11 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: object-store-bucket
+                - name: TILESERV_POSTGRES_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-tileserv-${SUFFIX}-pguser-${APP_NAME}-tileserv-${SUFFIX}
+                      key: uri
               ports:
                 - containerPort: 4222
                   name: client
