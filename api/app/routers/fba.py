@@ -34,24 +34,23 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
 
 @router.get('/fire-zone-areas/{run_type}/{run_date}/{for_date}',
             response_model=FireZoneAreaListResponse)
-async def get_zones(run_type: RunType, run_date: date, for_date: date, _=Depends(authentication_required)):
+async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
     """ Return area of each zone, and percentage of area of zone with high hfi. """
     async with get_async_read_session_scope() as session:
         zones = []
 
         rows = await get_hfi_area(session,
                                   RunTypeEnum(run_type.value),
-                                  run_date,
+                                  run_datetime,
                                   for_date)
 
         # Fetch rows.
         for row in rows:
-            combustible_area = row.combustible_area
-            hfi_area = row.hfi_area
-
+            combustible_area = row.combustible_area  # type: ignore
+            hfi_area = row.hfi_area  # type: ignore
             zones.append(FireZoneArea(
-                mof_fire_zone_id=row.source_identifier,
-                elevated_hfi_area=row.hfi_area,
+                mof_fire_zone_id=row.source_identifier,  # type: ignore
+                elevated_hfi_area=row.hfi_area,  # type: ignore
                 elevated_hfi_percentage=hfi_area / combustible_area * 100))
         return FireZoneAreaListResponse(zones=zones)
 
@@ -66,6 +65,6 @@ async def get_run_datetimes_for_date_and_runtype(run_type: RunType, for_date: da
         rows = await get_run_datetimes(session, RunTypeEnum(run_type.value), for_date)
 
         for row in rows:
-            datetimes.append(row.run_datetime)
+            datetimes.append(row.run_datetime)  # type: ignore
 
         return datetimes
