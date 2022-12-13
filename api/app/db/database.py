@@ -18,7 +18,7 @@ postgres_write_host = config.get('POSTGRES_WRITE_HOST', 'localhost')
 postgres_read_host = config.get('POSTGRES_READ_HOST', 'localhost')
 postgres_port = config.get('POSTGRES_PORT', '5432')
 postgres_database = config.get('POSTGRES_DATABASE', 'wps')
-tileserv_db_uri = config.get('TILESERV_POSTGRES_URI', 'localhost')
+tileserv_db_uri = config.get('TILESERV_POSTGRES_URI', 'postgresql://postgres@localhost:5432/postgres')
 
 # pylint: disable=line-too-long
 DB_WRITE_STRING = f'postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
