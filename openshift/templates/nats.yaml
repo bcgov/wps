@@ -39,8 +39,6 @@ parameters:
     required: true
   - name: POSTGRES_DATABASE
     required: true
-  - name: TILESERV_POSTGRES_URI
-    required: true
 objects:
   - apiVersion: v1
     kind: ConfigMap
