@@ -18,6 +18,7 @@ postgres_write_host = config.get('POSTGRES_WRITE_HOST', 'localhost')
 postgres_read_host = config.get('POSTGRES_READ_HOST', 'localhost')
 postgres_port = config.get('POSTGRES_PORT', '5432')
 postgres_database = config.get('POSTGRES_DATABASE', 'wps')
+tileserv_db_uri = config.get('TILESERV_POSTGRES_URI', 'localhost')
 
 # pylint: disable=line-too-long
 DB_WRITE_STRING = f'postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
@@ -34,6 +35,9 @@ ASYNC_DB_WRITE_STRING = f'postgresql+asyncpg://{write_user}:{postgres_password}@
 # connect to database - defaulting to always use utc timezone
 _write_engine = create_engine(DB_WRITE_STRING, connect_args={
                               'options': '-c timezone=utc'})
+# connect to database - defaulting to always use utc timezone
+_tileserv_db_write_engine = create_engine(tileserv_db_uri, connect_args={
+    'options': '-c timezone=utc'})
 # use pre-ping on read, as connections are quite often stale due to how few users we have at the moment.
 _read_engine = create_engine(
     DB_READ_STRING,
@@ -54,6 +58,8 @@ _write_session = sessionmaker(
     autocommit=False, autoflush=False, bind=_write_engine)
 _read_session = sessionmaker(
     autocommit=False, autoflush=False, bind=_read_engine)
+_tileserv_write_session = sessionmaker(
+    autocommit=False, autoflush=False, bind=_tileserv_db_write_engine)
 _async_read_sessionmaker = sessionmaker(
     autocommit=False, autoflush=False, bind=_async_read_engine, class_=AsyncSession)
 _async_write_sessionmaker = sessionmaker(
@@ -71,6 +77,11 @@ def _get_write_session() -> Session:
 def _get_read_session() -> Session:
     """ abstraction used for mocking out a read session """
     return _read_session()
+
+
+def _get_sync_write_tileserv_session() -> Session:
+    """ abstraction used for mocking out a read session """
+    return _tileserv_write_session()
 
 
 def _get_async_read_session() -> AsyncSession:
@@ -105,6 +116,16 @@ async def get_async_write_session_scope() -> AsyncGenerator[AsyncSession, None]:
         raise
     finally:
         await session.close()
+
+
+@contextmanager
+def get_sync_tileserv_db_scope() -> Generator[Session, None, None]:
+    session = _get_sync_write_tileserv_session()
+    try:
+        yield session
+    finally:
+        logger.info('session closed by context manager')
+        session.close()
 
 
 @contextmanager

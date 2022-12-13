@@ -12,11 +12,10 @@ from shapely.validation import make_valid
 from shapely.geometry import MultiPolygon
 from osgeo import ogr, osr
 from sqlalchemy.sql import text
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.auto_spatial_advisory.db.database.tileserver import get_tileserver_write_session_scope
+from sqlalchemy.orm import Session
 from app import config
 from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
-from app.db.database import get_async_read_session_scope, get_async_write_session_scope
+from app.db.database import get_async_read_session_scope, get_async_write_session_scope, get_sync_tileserv_db_scope
 from app.db.crud.auto_spatial_advisory import (
     save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum)
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
@@ -45,7 +44,7 @@ class UnknownHFiClassification(Exception):
     """ Raised when the hfi classification is not one of the expected values. """
 
 
-async def write_classified_hfi_to_tileserver(session: AsyncSession,
+async def write_classified_hfi_to_tileserver(session: Session,
                                              feature: ogr.Feature,
                                              coordinate_transform: osr.CoordinateTransformation,
                                              for_date: date,
@@ -170,7 +169,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
                                               for_date)
                     await save_hfi(session, obj)
 
-            async with get_tileserver_write_session_scope() as session:
+            with get_sync_tileserv_db_scope() as session:
                 logger.info('Writing HFI vectors to tileserv...')
                 for i in range(layer.GetFeatureCount()):
                     feature: ogr.Feature = layer.GetFeature(i)
