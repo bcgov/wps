@@ -350,7 +350,7 @@ objects:
                 - name: TILESERV_POSTGRES_URI
                   valueFrom:
                     secretKeyRef:
-                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      name: ${APP_NAME}-tileserv-${SUFFIX}-pguser-${APP_NAME}-tileserv-${SUFFIX}
                       key: uri
               ports:
                 - containerPort: 4222
