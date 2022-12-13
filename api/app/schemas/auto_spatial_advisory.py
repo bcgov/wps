@@ -19,3 +19,10 @@ class SFMSFile(BaseModel):
     create_time: datetime  # create time as provided by windows file system when uploaded
     run_date: date  # date of the run
     for_date: date  # date of interest
+
+
+class ManualSFMS(BaseModel):
+    key: str  # S3 key
+    for_date: date
+    runtype: SFMSRunType
+    run_date: date  # The date that this run is on, the date folder path in s3
