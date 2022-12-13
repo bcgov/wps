@@ -18,7 +18,6 @@ postgres_write_host = config.get('POSTGRES_WRITE_HOST', 'localhost')
 postgres_read_host = config.get('POSTGRES_READ_HOST', 'localhost')
 postgres_port = config.get('POSTGRES_PORT', '5432')
 postgres_database = config.get('POSTGRES_DATABASE', 'wps')
-tileserv_db_uri = config.get('TILESERV_POSTGRES_URI', 'postgresql://postgres@localhost:5432/postgres')
 
 # pylint: disable=line-too-long
 DB_WRITE_STRING = f'postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
@@ -35,6 +34,9 @@ ASYNC_DB_WRITE_STRING = f'postgresql+asyncpg://{write_user}:{postgres_password}@
 # connect to database - defaulting to always use utc timezone
 _write_engine = create_engine(DB_WRITE_STRING, connect_args={
                               'options': '-c timezone=utc'})
+
+tileserv_db_uri = config.get('TILESERV_POSTGRES_URI', DB_WRITE_STRING)
+
 # connect to database - defaulting to always use utc timezone
 _tileserv_db_write_engine = create_engine(tileserv_db_uri, connect_args={
     'options': '-c timezone=utc'})

@@ -133,7 +133,7 @@ objects:
                 - name: POSTGRES_URI
                   valueFrom:
                     secretKeyRef:
-                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      name: ${APP_NAME}-tileserv-${SUFFIX}-pguser-${APP_NAME}-tileserv-${SUFFIX}
                       key: uri
                 - name: DATABASE_URL
                   value: $(POSTGRES_URI)
