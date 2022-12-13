@@ -20,7 +20,7 @@ logger.addHandler(ch)
 def build_post_body_for_tiff(tif_object, run_date: date):
     key: str = tif_object["Key"]
     for_date_str: str = tif_object["Key"].split("hfi")[1].split(".")[0]
-    for_date: date = date(year=int(for_date_str[0:4]), month=int(
+    for_date: str = date(year=int(for_date_str[0:4]), month=int(
         for_date_str[4:6]), day=int(for_date_str[6:8])).isoformat()
     runtype = "forecast" if "forecast" in key else "actual"
 

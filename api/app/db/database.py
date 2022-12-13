@@ -32,21 +32,19 @@ ASYNC_DB_READ_STRING = f'postgresql+asyncpg://{read_user}:{postgres_password}@{p
 ASYNC_DB_WRITE_STRING = f'postgresql+asyncpg://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
 
 # connect to database - defaulting to always use utc timezone
-_write_engine = create_engine(DB_WRITE_STRING, connect_args={
-                              'options': '-c timezone=utc'})
+connect_args = {'options': '-c timezone=utc'}
+
+_write_engine = create_engine(DB_WRITE_STRING, connect_args)
 
 tileserv_db_uri = config.get('TILESERV_POSTGRES_URI', DB_WRITE_STRING)
 
-# connect to database - defaulting to always use utc timezone
-_tileserv_db_write_engine = create_engine(tileserv_db_uri, connect_args={
-    'options': '-c timezone=utc'})
+_tileserv_db_write_engine = create_engine(tileserv_db_uri, connect_args)
 # use pre-ping on read, as connections are quite often stale due to how few users we have at the moment.
 _read_engine = create_engine(
     DB_READ_STRING,
     pool_size=int(config.get('POSTGRES_POOL_SIZE', 5)),
     max_overflow=int(config.get('POSTGRES_MAX_OVERFLOW', 10)),
-    pool_pre_ping=True, connect_args={
-        'options': '-c timezone=utc'})
+    pool_pre_ping=True, connect_args=connect_args)
 
 # TODO: figure out connection pooling? pre-ping etc.?
 _async_read_engine = create_async_engine(ASYNC_DB_READ_STRING)
