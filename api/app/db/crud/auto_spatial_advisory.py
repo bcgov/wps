@@ -151,7 +151,7 @@ async def calculate_high_hfi_areas(session: AsyncSession, run_parameters_id: int
         Given a 'run_parameters_id', which represents a unqiue combination of run_type, run_datetime
         and for_date, individually sum the areas in each firezone with:
             1. 4000 <= HFI < 10000 (aka 'advisory_area')
-            2. HFI > 10000 (aka 'warn_area')
+            2. HFI >= 10000 (aka 'warn_area')
     """
     logger.info('starting high HFI by zone intersection query')
     perf_start = perf_counter()
