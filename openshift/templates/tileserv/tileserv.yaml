@@ -44,7 +44,7 @@ objects:
       postgresVersion: 14
       instances:
         - name: tileserv
-          replicas: ${REPLICAS}
+          replicas: ${{REPLICAS}}
           dataVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
