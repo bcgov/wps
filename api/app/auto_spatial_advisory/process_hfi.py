@@ -11,6 +11,7 @@ from shapely import wkb, wkt
 from shapely.validation import make_valid
 from shapely.geometry import MultiPolygon
 from osgeo import ogr, osr, gdal
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auto_spatial_advisory.db.database.tileserver import get_tileserver_write_session_scope
@@ -185,15 +186,18 @@ async def process_hfi(run_type: RunType, run_date: datetime, for_date: date):
                     feature: ogr.Feature = layer.GetFeature(i)
                     await write_classified_hfi_to_tileserver(session, feature, coordinate_transform, for_date, run_date, run_type, advisory, warning)
 
-        async with get_async_read_session_scope() as session:
-            run_parameters_id = await get_run_parameters_id(session, run_type.value, run_date, for_date)
-
-        if run_parameters_id is None:
+        try:
             async with get_async_write_session_scope() as session:
                 logger.info('Writing run parameters to API database...')
                 run_parameters = RunParameters(run_type=run_type.value,
                                                run_datetime=run_date, for_date=for_date)
-                run_parameters_id = await save_run_parameters(session, run_parameters)
+                await save_run_parameters(session, run_parameters)
+        except IntegrityError as e:
+            # Catch IntegrityError in case these run parameters already exist and continue processing.
+            logger.error(e)
+
+        async with get_async_read_session_scope() as session:
+            run_parameters_id = await get_run_parameters_id(session, run_type.value, run_date, for_date)
 
         async with get_async_read_session_scope() as session:
             logger.info('Getting high HFI area per zone...')
