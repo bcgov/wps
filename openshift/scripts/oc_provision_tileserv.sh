@@ -29,10 +29,7 @@ OBJ_NAME="tileserv-${SUFFIX}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/tileserv/tileserv.yaml \
--p SUFFIX=${SUFFIX} \
--p REPLICAS=${REPLICAS} \
--p WAL_PVC_SIZE=${WAL_PVC_SIZE} \
--p DATA_PVC_SIZE=${DATA_PVC_SIZE}"
+-p SUFFIX=${SUFFIX}"
 
 # Apply a template (apply or use --dry-run=client)
 #
