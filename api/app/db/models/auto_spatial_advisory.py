@@ -113,11 +113,14 @@ class HighHfiArea(Base):
     """ Area exceeding HFI thresholds per fire zone. """
     __tablename__ = 'high_hfi_area'
     __table_args__ = (
-        {'comment': 'Area under advisory/warning per fire zone.'}
+        {'comment': 'Area under advisory/warning per fire zone. advisory_area refers to the total area '
+                    'in a fire zone with HFI values between 4000 - 10000 and warn_area refers to the total '
+                    'area in a fire zone with HFI values exceeding 10000.'
+         }
     )
     id = Column(Integer, primary_key=True, index=True)
     advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False)
-    run_parameters = Column(Integer, ForeignKey('run_parameters.id'), nullable=False)
+    run_parameters = Column(Integer, ForeignKey('run_parameters.id'), nullable=False, index=True)
     advisory_area = Column(Float, nullable=False)
     warn_area = Column(Float, nullable=False)
 
@@ -130,6 +133,7 @@ class RunParameters(Base):
         {'comment': 'A combination of run type, run datetime and for date.'}
     )
     id = Column(Integer, primary_key=True, index=True)
-    run_type = Column(postgresql.ENUM('actual', 'forecast', name='runtypeenum', create_type=False), nullable=False)
-    run_datetime = Column(TZTimeStamp, nullable=False)
-    for_date = Column(Date, nullable=False)
+    run_type = Column(postgresql.ENUM('actual', 'forecast', name='runtypeenum',
+                      create_type=False), nullable=False, index=True)
+    run_datetime = Column(TZTimeStamp, nullable=False, index=True)
+    for_date = Column(Date, nullable=False, index=True)
