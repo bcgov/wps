@@ -19,6 +19,12 @@ parameters:
     value: image-registry.apps.silver.devops.gov.bc.ca
   - name: IMAGE_NAMESPACE
     value: e1e498-tools
+  - name: DATA_PVC_SIZE
+    required: true
+  - name: WAL_PVC_SIZE
+    required: true
+  - name: REPLICAS
+    required: true
 objects:
   - apiVersion: postgres-operator.crunchydata.com/v1beta1
     kind: PostgresCluster
@@ -38,13 +44,13 @@ objects:
       postgresVersion: 14
       instances:
         - name: tileserv
-          replicas: 1
+          replicas: ${{REPLICAS}}
           dataVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 5Gi
+                storage: ${DATA_PVC_SIZE}
                 cpu: 15m
                 memory: 200Mi
               limits:
@@ -56,7 +62,7 @@ objects:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 2Gi
+                storage: ${WAL_PVC_SIZE}
             storageClassName: netapp-block-standard
       backups:
         pgbackrest:
