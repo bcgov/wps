@@ -168,7 +168,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" DATA_PVC_SIZE=2Gi WAL_PVC_SIZE=2Gi bash openshift/scripts/oc_provision_tileserv.sh ${SUFFIX} apply
+          PROJ_DEV="e1e498-dev" DATA_PVC_SIZE=2Gi WAL_PVC_SIZE=2Gi REPLICAS=2 bash openshift/scripts/oc_provision_tileserv.sh ${SUFFIX} apply
 
   deploy-dev-queue:
     name: Deploy Message Queue to Dev

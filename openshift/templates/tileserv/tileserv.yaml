@@ -23,6 +23,8 @@ parameters:
     required: true
   - name: WAL_PVC_SIZE
     required: true
+  - name: REPLICAS
+    required: true
 objects:
   - apiVersion: postgres-operator.crunchydata.com/v1beta1
     kind: PostgresCluster
@@ -42,7 +44,7 @@ objects:
       postgresVersion: 14
       instances:
         - name: tileserv
-          replicas: 1
+          replicas: ${REPLICAS}
           dataVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
