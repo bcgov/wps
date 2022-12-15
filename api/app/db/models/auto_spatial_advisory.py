@@ -4,6 +4,7 @@ from app.db.models.common import TZTimeStamp
 from geoalchemy2 import Geometry
 from app.db.database import Base
 from app.geospatial import NAD83_BC_ALBERS
+from sqlalchemy.dialects import postgresql
 
 
 class ShapeTypeEnum(enum.Enum):
@@ -106,3 +107,33 @@ class FuelType(Base):
 
 # Explict creation of index due to issue with alembic + geoalchemy.
 Index('idx_advisory_fuel_types_geom', FuelType.geom, postgresql_using='gist')
+
+
+class HighHfiArea(Base):
+    """ Area exceeding HFI thresholds per fire zone. """
+    __tablename__ = 'high_hfi_area'
+    __table_args__ = (
+        {'comment': 'Area under advisory/warning per fire zone. advisory_area refers to the total area '
+                    'in a fire zone with HFI values between 4000 - 10000 and warn_area refers to the total '
+                    'area in a fire zone with HFI values exceeding 10000.'
+         }
+    )
+    id = Column(Integer, primary_key=True, index=True)
+    advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False)
+    run_parameters = Column(Integer, ForeignKey('run_parameters.id'), nullable=False, index=True)
+    advisory_area = Column(Float, nullable=False)
+    warn_area = Column(Float, nullable=False)
+
+
+class RunParameters(Base):
+    """ Combination of type of run (actual vs forecast), run datetime and for date."""
+    __tablename__ = 'run_parameters'
+    __table_args__ = (
+        UniqueConstraint('run_type', 'run_datetime', 'for_date'),
+        {'comment': 'A combination of run type, run datetime and for date.'}
+    )
+    id = Column(Integer, primary_key=True, index=True)
+    run_type = Column(postgresql.ENUM('actual', 'forecast', name='runtypeenum',
+                      create_type=False), nullable=False, index=True)
+    run_datetime = Column(TZTimeStamp, nullable=False, index=True)
+    for_date = Column(Date, nullable=False, index=True)
