@@ -10,14 +10,14 @@ import tempfile
 from shapely import wkb, wkt
 from shapely.validation import make_valid
 from shapely.geometry import MultiPolygon
-from osgeo import ogr, osr, gdal
+from osgeo import ogr, osr
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.auto_spatial_advisory.db.database.tileserver import get_tileserver_write_session_scope
+from sqlalchemy.orm import Session
 from app import config
 from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, RunParameters, HighHfiArea
-from app.db.database import get_async_read_session_scope, get_async_write_session_scope
+from app.db.database import get_async_read_session_scope, get_async_write_session_scope, get_sync_tileserv_db_scope
 from app.db.crud.auto_spatial_advisory import (
     save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters,
     get_run_parameters_id, calculate_high_hfi_areas, save_high_hfi_area)
@@ -47,14 +47,14 @@ class UnknownHFiClassification(Exception):
     """ Raised when the hfi classification is not one of the expected values. """
 
 
-async def write_classified_hfi_to_tileserver(session: AsyncSession,
-                                             feature: ogr.Feature,
-                                             coordinate_transform: osr.CoordinateTransformation,
-                                             for_date: date,
-                                             run_date: datetime,
-                                             run_type: RunType,
-                                             advisory: HfiClassificationThreshold,
-                                             warning: HfiClassificationThreshold):
+def write_classified_hfi_to_tileserver(session: Session,
+                                       feature: ogr.Feature,
+                                       coordinate_transform: osr.CoordinateTransformation,
+                                       for_date: date,
+                                       run_datetime: datetime,
+                                       run_type: RunType,
+                                       advisory: HfiClassificationThreshold,
+                                       warning: HfiClassificationThreshold):
     """
     Given an ogr.Feature with an assigned HFI threshold value, write it to the tileserv database as a vector.
     """
@@ -77,7 +77,9 @@ async def write_classified_hfi_to_tileserver(session: AsyncSession,
 
     statement = text(
         'INSERT INTO hfi (hfi, for_date, run_date, run_type, geom) VALUES (:hfi, :for_date, :run_date, :run_type, ST_GeomFromText(:geom, 3005))')
-    await session.execute(statement, {'hfi': threshold.description, 'for_date': for_date, 'run_date': run_date, 'run_type': run_type.value, 'geom': wkt.dumps(polygon)})
+    session.execute(statement, {'hfi': threshold.description, 'for_date': for_date,
+                    'run_date': run_datetime, 'run_type': run_type.value, 'geom': wkt.dumps(polygon)})
+    session.commit()
 
 
 def get_threshold_from_hfi(feature: ogr.Feature, advisory: HfiClassificationThreshold, warning: HfiClassificationThreshold):
@@ -99,7 +101,7 @@ def create_model_object(feature: ogr.Feature,
                         warning: HfiClassificationThreshold,
                         coordinate_transform: osr.CoordinateTransformation,
                         run_type: RunType,
-                        run_date: datetime,
+                        run_datetime: datetime,
                         for_date: date) -> ClassifiedHfi:
     threshold = get_threshold_from_hfi(feature, advisory, warning)
     # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Geometry
@@ -117,7 +119,7 @@ def create_model_object(feature: ogr.Feature,
     polygon = make_valid(polygon)
     return ClassifiedHfi(threshold=threshold.id,
                          run_type=RunTypeEnum(run_type.value),
-                         run_datetime=run_date,
+                         run_datetime=run_datetime,
                          for_date=for_date,
                          geom=wkb.dumps(polygon,
                                         hex=True,
@@ -132,7 +134,7 @@ async def write_high_hfi_area(session: AsyncSession, row: any, run_parameters_id
     await save_high_hfi_area(session, high_hfi_area)
 
 
-async def process_hfi(run_type: RunType, run_date: datetime, for_date: date):
+async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime, for_date: date):
     """ Create a new hfi record for the given date.
 
     :param run_type: The type of run to process. (is it a forecast or actual run?)
@@ -176,15 +178,16 @@ async def process_hfi(run_type: RunType, run_date: datetime, for_date: date):
                                               warning,
                                               coordinate_transform,
                                               run_type,
-                                              run_date,
+                                              run_datetime,
                                               for_date)
                     await save_hfi(session, obj)
 
-            async with get_tileserver_write_session_scope() as session:
+            with get_sync_tileserv_db_scope() as session:
                 logger.info('Writing HFI vectors to tileserv...')
                 for i in range(layer.GetFeatureCount()):
                     feature: ogr.Feature = layer.GetFeature(i)
-                    await write_classified_hfi_to_tileserver(session, feature, coordinate_transform, for_date, run_date, run_type, advisory, warning)
+                    write_classified_hfi_to_tileserver(
+                        session, feature, coordinate_transform, for_date, run_datetime, run_type, advisory, warning)
 
         try:
             async with get_async_write_session_scope() as session:
