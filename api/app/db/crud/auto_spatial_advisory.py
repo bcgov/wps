@@ -3,11 +3,11 @@ from enum import Enum
 import logging
 from time import perf_counter
 from typing import List
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from app.db.models.auto_spatial_advisory import (
-    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType)
+    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType, HighHfiArea, RunParameters)
 
 
 logger = logging.getLogger(__name__)
@@ -121,3 +121,89 @@ async def get_run_datetimes(session: AsyncSession, run_type: RunTypeEnum, for_da
         .order_by(ClassifiedHfi.run_datetime.desc())
     result = await session.execute(stmt)
     return result.all()
+
+
+async def get_high_hfi_area(session: AsyncSession,
+                            run_type: RunTypeEnum,
+                            run_datetime: datetime,
+                            for_date: date) -> List[Row]:
+    """ For each fire zone, get the area of HFI polygons in that zone that fall within the 
+    4000 - 10000 range and the area of HFI polygons that exceed the 10000 threshold.
+    """
+    stmt = select(HighHfiArea.id,
+                  HighHfiArea.advisory_shape_id,
+                  HighHfiArea.advisory_area,
+                  HighHfiArea.warn_area)\
+        .join(RunParameters)\
+        .where(RunParameters.run_type == run_type,
+               RunParameters.for_date == for_date,
+               RunParameters.run_datetime == run_datetime)
+    result = await session.execute(stmt)
+    return result.all()
+
+
+async def save_high_hfi_area(session: AsyncSession, high_hfi_area: HighHfiArea):
+    session.add(high_hfi_area)
+
+
+async def calculate_high_hfi_areas(session: AsyncSession, run_parameters_id: int) -> List[Row]:
+    """
+        Given a 'run_parameters_id', which represents a unqiue combination of run_type, run_datetime
+        and for_date, individually sum the areas in each firezone with:
+            1. 4000 <= HFI < 10000 (aka 'advisory_area')
+            2. HFI >= 10000 (aka 'warn_area')
+    """
+    logger.info('starting high HFI by zone intersection query')
+    perf_start = perf_counter()
+
+    # TODO - This can be simplified once the ClassifiedHfi table is normalized,
+    # ie. we'll be able to query against ClassifiedHfi.run_parameters in the
+    # cte object below instead of needing a join to this subquery
+    subq = select(RunParameters).where(RunParameters.id == run_parameters_id)\
+        .subquery()
+
+    # Create cte object
+    cte = select(Shape.id,
+                 Shape.source_identifier,
+                 ClassifiedHfi.threshold.label('threshold'),
+                 func.sum(ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area()).label('area'))\
+        .join_from(Shape, ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
+        .join(subq,
+              subq.c.run_type == ClassifiedHfi.run_type,
+              subq.c.run_datetime == ClassifiedHfi.run_datetime,
+              subq.c.for_date == ClassifiedHfi.for_date)\
+        .group_by(Shape.id)\
+        .group_by(ClassifiedHfi.threshold)\
+        .cte()
+
+    # Alias CTE object to allow self join
+    a = cte.alias('a')
+    b = cte.alias('b')
+
+    stmt = select(a.c.id.label('shape_id'),
+                  a.c.source_identifier,
+                  a.c.area.label('warn_area'),
+                  b.c.area.label('advisory_area'))\
+        .join_from(a, b, (a.c.id == b.c.id) & (a.c.threshold < b.c.threshold))
+    result = await session.execute(stmt)
+    all_high_hfi = result.all()
+    perf_end = perf_counter()
+    delta = perf_end - perf_start
+    logger.info('%f delta count before and after calculate high HFI by zone intersection query', delta)
+    return all_high_hfi
+
+
+async def get_run_parameters_id(session: AsyncSession,
+                                run_type: RunTypeEnum,
+                                run_datetime: datetime,
+                                for_date: date) -> List[Row]:
+    stmt = select(RunParameters.id)\
+        .where(RunParameters.run_type == run_type,
+               RunParameters.run_datetime == run_datetime,
+               RunParameters.for_date == for_date)
+    result = await session.execute(stmt)
+    return result.scalar()
+
+
+async def save_run_parameters(session: AsyncSession, run_parameters: RunParameters):
+    session.add(run_parameters)
