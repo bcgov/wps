@@ -50,7 +50,7 @@ import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
-const TILE_SERVER_URL = 'https://tileserv-dev.apps.silver.devops.gov.bc.ca'
+const TILE_SERVER_URL = 'https://wps-pr-2470-tileserv.apps.silver.devops.gov.bc.ca'
 export const SFMS_MAX_ZOOM = 8 // The SFMS data is so coarse, there's not much point in zooming in further
 export const COG_TILE_SIZE = [512, 512] // COG tiffs are 512x512 pixels - reading larger chunks should in theory be faster?
 
@@ -168,7 +168,7 @@ const FBAMap = (props: FBAMapProps) => {
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.forDate.toISODate()}'&run_type=${props.runType
+      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?for_date=${props.forDate.toISODate()}&run_type='${props.runType
         .toString()
         .toLowerCase()}&run_date='${props.runDate.toISODate()}'`
     }),
@@ -234,7 +234,7 @@ const FBAMap = (props: FBAMapProps) => {
       const source = new VectorTileSource({
         attributions: ['BC Wildfire Service'],
         format: new MVT(),
-        url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.forDate.toISODate()}' AND run_type='${props.runType
+        url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?for_date=${props.forDate.toISODate()} AND run_type='${props.runType
           .toString()
           .toLowerCase()}' AND run_date='${props.runDate.toISODate()}'`,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
