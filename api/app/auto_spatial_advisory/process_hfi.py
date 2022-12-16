@@ -199,17 +199,17 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
             # Catch IntegrityError in case these run parameters already exist and continue processing.
             logger.error(e)
 
-        async with get_async_read_session_scope() as session:
-            run_parameters_id = await get_run_parameters_id(session, run_type.value, run_date, for_date)
+        # async with get_async_read_session_scope() as session:
+        #     run_parameters_id = await get_run_parameters_id(session, run_type.value, run_date, for_date)
 
-        async with get_async_read_session_scope() as session:
-            logger.info('Getting high HFI area per zone...')
-            high_hfi_areas = await calculate_high_hfi_areas(session, run_parameters_id)
+        # async with get_async_read_session_scope() as session:
+        #     logger.info('Getting high HFI area per zone...')
+        #     high_hfi_areas = await calculate_high_hfi_areas(session, run_parameters_id)
 
-        async with get_async_write_session_scope() as session:
-            logger.info('Writing high HFI areas...')
-            for row in high_hfi_areas:
-                await write_high_hfi_area(session, row, run_parameters_id)
+        # async with get_async_write_session_scope() as session:
+        #     logger.info('Writing high HFI areas...')
+        #     for row in high_hfi_areas:
+        #         await write_high_hfi_area(session, row, run_parameters_id)
 
     perf_end = perf_counter()
     delta = perf_end - perf_start
