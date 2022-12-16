@@ -56,5 +56,9 @@
     "enabled": true
   },
   "autodiscover": true,
-  "autodiscoverFilter": "bcgov/wps"
+  "autodiscoverFilter": "bcgov/wps",
+  "rebaseWhen": "behind-base-branch",
+  "schedule": [
+    "every weekend"
+  ]
 }
