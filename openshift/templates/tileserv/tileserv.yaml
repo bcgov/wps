@@ -202,7 +202,7 @@ objects:
                     secretKeyRef:
                       name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
                       key: dbname
-                - name: DEBUG
+                - name: TS_DEBUG
                   value: "true"
               livenessProbe:
                 failureThreshold: 3
