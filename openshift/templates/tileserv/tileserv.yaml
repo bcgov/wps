@@ -181,7 +181,7 @@ objects:
                   memory: 256Mi
             - name: tileserv
               image: artifacts.developer.gov.bc.ca/docker-remote/pramsey/pg_tileserv
-              command: ["pg_tileserv", "--debug"]
+              command: ["/app/pg_tileserv", "--debug"]
               ports:
                 - containerPort: 7800
                   protocol: TCP
