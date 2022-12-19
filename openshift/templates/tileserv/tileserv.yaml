@@ -203,7 +203,7 @@ objects:
                       name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
                       key: dbname
                 - name: DEBUG
-                  value: true
+                  value: "true"
               livenessProbe:
                 failureThreshold: 3
                 initialDelaySeconds: 5
