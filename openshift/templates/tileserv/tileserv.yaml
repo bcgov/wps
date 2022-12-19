@@ -151,7 +151,6 @@ objects:
             - name: ${APP_NAME}-${SUFFIX}-nginx-tileserv
               image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/nginx-tileserv
               imagePullPolicy: Always
-              command: "./pg_tileserv --debug"
               readinessProbe:
                 failureThreshold: 3
                 initialDelaySeconds: 10
