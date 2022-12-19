@@ -38,7 +38,7 @@ objects:
       postgresVersion: 14
       instances:
         - name: tileserv
-          replicas: 1
+          replicas: 3
           dataVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
