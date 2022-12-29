@@ -277,9 +277,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       />
                     </TableRow>
                     {sortBy(area.stations, station => station.order_of_appearance_in_planning_area_list).map(
-                      station => {
+                      (station, idx) => {
                         if (isUndefined(result)) {
-                          return <React.Fragment></React.Fragment>
+                          return <React.Fragment key={`daily-empty-res-${idx}`}></React.Fragment>
                         }
                         const daily = getDailyForDay(station.code)
                         const selectedFuelType = getSelectedFuelType(
@@ -289,7 +289,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           props.fuelTypes
                         )
                         if (isUndefined(selectedFuelType)) {
-                          return <React.Fragment></React.Fragment>
+                          return <React.Fragment key={`daily-empty-fuel-type-${idx}`}></React.Fragment>
                         }
                         const grassCureError = !isValidGrassCure(daily, selectedFuelType)
                         const isRowSelected = !isUndefined(area) && stationCodeInSelected(area.id, station.code)
