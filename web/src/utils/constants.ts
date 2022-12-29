@@ -24,6 +24,7 @@ export const C_HAINES_ROUTE = '/c-haines'
 export const FIRE_BEHAVIOR_CALC_ROUTE = '/fire-behaviour-calculator'
 export const FIRE_BEHAVIOUR_ADVISORY_ROUTE = '/auto-spatial-advisory'
 export const FWI_CALC_ROUTE = '/fwi-calculator'
+export const SNOW_COVERAGE_ROUTE = '/snow-coverage'
 
 // ExpandableContainer widths
 export const PARTIAL_WIDTH = 850
