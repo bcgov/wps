@@ -46,7 +46,7 @@ import FBATooltip from 'features/fba/components/map/FBATooltip'
 import { RASTER_SERVER_BASE_URL } from 'utils/env'
 import { EventsKey } from 'ol/events'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
-import { buildCQL } from 'features/fba/cqlBuilder'
+import { buildHFICql } from 'features/fba/cqlBuilder'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -169,11 +169,7 @@ const FBAMap = (props: FBAMapProps) => {
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=${buildCQL(
-        props.forDate,
-        props.runDate,
-        props.runType
-      )}`
+      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?${buildHFICql(props.forDate, props.runDate, props.runType)}`
     }),
     style: hfiStyler,
     zIndex: 100,
@@ -237,7 +233,7 @@ const FBAMap = (props: FBAMapProps) => {
       const source = new VectorTileSource({
         attributions: ['BC Wildfire Service'],
         format: new MVT(),
-        url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=${buildCQL(
+        url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?${buildHFICql(
           props.forDate,
           props.runDate,
           props.runType
