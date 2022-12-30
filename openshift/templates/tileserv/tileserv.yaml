@@ -195,5 +195,5 @@ objects:
                   cpu: 256Mi
                   memory: 1Gi
                 limits:
-                  cpu: 512Mi
-                  memory: 2Gi
+                  cpu: 2Gi
+                  memory: 4Gi
