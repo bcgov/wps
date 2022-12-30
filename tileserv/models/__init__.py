@@ -5,7 +5,7 @@ import enum
 import logging
 from datetime import datetime
 from sqlalchemy.types import TypeDecorator
-from sqlalchemy import (Column, Enum, Index, Integer, String, TIMESTAMP)
+from sqlalchemy import (Boolean, Column, Enum, Index, Integer, String, TIMESTAMP)
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION
 from sqlalchemy.ext.declarative import declarative_base
 import geoalchemy2
@@ -56,6 +56,7 @@ class HFI(Base):
     run_date = Column(TZTimeStamp, nullable=False)
     for_date = Column(TZTimeStamp, nullable=False)
     run_type = Column(Enum(RunType), nullable=False)
+    snow_masked = Column(Boolean, nullable=False)
 
 
 # Explict creation of index due to issue with alembic + geoalchemy.
