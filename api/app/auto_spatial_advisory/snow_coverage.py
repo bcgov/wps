@@ -1,14 +1,19 @@
-from app import config
-from app.utils.s3 import get_client
-from osgeo import gdal
+"""
+Methods related to processing snow coverage data
+"""
+
 import io
 import logging
-import numpy as np
 import os
 import tempfile
+import numpy as np
+from osgeo import gdal
+from app import config
+from app.utils.s3 import get_client
 
 
-BASE_URL = 'https://n5eil02u.ecs.nsidc.org/egi/request?short_name=VNP10A1F&version=1&bounding_box=-139.06,48.3,-114.03,60&page_size=100'
+BASE_URL = 'https://n5eil02u.ecs.nsidc.org/egi/request?' \
+    'short_name=VNP10A1F&version=1&bounding_box=-139.06,48.3,-114.03,60&page_size=100'
 RAW_SNOW_COVERAGE_NAME = 'raw_snow_coverage.tif'
 SNOW_COVERAGE_NAME = 'snow_coverage.tif'
 SNOW_COVERAGE_MASK_NAME = 'snow_coverage_mask.tif'
@@ -90,15 +95,15 @@ def create_snow_coverage_mask(temp_dir: str):
     """
     Given a path to snow coverage data, re-classify the data to act as a mask for future HFI processing.
     A NDSI (ie. snow coverage) value between 0-100 represent snow coverage. Here we define snow coverage
-    between 10-100. We need to consult the literature or data scientists on proper use of NDSI. 
+    between 10-100. We need to consult the literature or data scientists on proper use of NDSI.
     """
     snow_coverage_path = os.path.join(temp_dir, SNOW_COVERAGE_NAME)
     source = gdal.Open(snow_coverage_path, gdal.GA_ReadOnly)
     source_band = source.GetRasterBand(1)
     source_data = source_band.ReadAsArray()
     # In the classified data 0 is assigned to snow covered pixels which will 'cancel' HFI values
-    # when the rasters are multiplied later on. QA values in the original data are assigned a value of 1 so they dont impact HFI
-    # calculations for now.
+    # when the rasters are multiplied later on. QA values in the original data are assigned a value
+    # of 1 so they dont impact HFI calculations for now.
     classified = np.where((source_data > 10) & (source_data <= 100), 0, 1)
     output_driver = gdal.GetDriverByName("GTiff")
     snow_mask_path = os.path.join(temp_dir, SNOW_COVERAGE_MASK_NAME)
@@ -120,4 +125,4 @@ async def write_file_to_s3(key, path):
             await client.put_object(Bucket=bucket,
                                     Key=key,
                                     Body=FileLikeObject(file))
-        logger.info(f'Done uploading file: {path}')
+        logger.info('Done uploading file: "%s"', path)
