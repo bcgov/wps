@@ -3,6 +3,9 @@
   "ignorePaths": [
     "openshift/s3-backup/docker/poetry.lock"
   ],
+  "ignoreDeps": [
+    "axios"
+  ],
   "onboardingConfig": {
     "extends": [
       "config:base"
