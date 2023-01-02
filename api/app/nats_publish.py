@@ -5,9 +5,10 @@ import json
 import asyncio
 from typing import List
 import nats
+from nats.js.api import StreamConfig, RetentionPolicy
 from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel
-from app.auto_spatial_advisory.nats import server
+from app.auto_spatial_advisory.nats_config import server
 
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,9 @@ async def _publish(stream: str, subject: str, payload: BaseModel, subjects: List
         jetstream = connection.jetstream()
         # we create a stream, this is important, we need to messages to stick around for a while!
         # idempotent operation, IFF stream with same configuration is added each time
-        await jetstream.add_stream(name=stream, subjects=subjects)
+        await jetstream.add_stream(name=stream,
+                                   config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE),
+                                   subjects=subjects)
         # we publish the message, using pydantic to serialize the payload.
         ack = await jetstream.publish(subject,
                                       json.dumps(payload.json()).encode(),

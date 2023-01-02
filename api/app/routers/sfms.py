@@ -4,13 +4,13 @@ import logging
 from datetime import datetime, date
 import os
 from tempfile import SpooledTemporaryFile
-from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks
-from app.nats import publish
+from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Header
+from app.nats_publish import publish
 from app.utils.s3 import get_client
 from app import config
-from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename, get_date_part
-from app.auto_spatial_advisory.nats import stream_name, subjects, sfms_file_subject
-from app.schemas.auto_spatial_advisory import SFMSFile
+from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename, get_date_part, is_hfi_file
+from app.auto_spatial_advisory.nats_config import stream_name, subjects, sfms_file_subject
+from app.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
 
 
 logger = logging.getLogger(__name__)
@@ -95,8 +95,10 @@ async def upload(file: UploadFile,
         # as a background task.
         # As noted below, the caller will have no idea if anything has gone wrong, which is
         # unfortunate, but we can't do anything about it.
-        message = get_sfms_file_message(file.filename, meta_data)
-        background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
+        if is_hfi_file(filename=file.filename):
+            logger.info("HFI file: %s, putting processing message on queue", file.filename)
+            message = get_sfms_file_message(file.filename, meta_data)
+            background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
     except Exception as exception:  # pylint: disable=broad-except
         logger.error(exception, exc_info=True)
         # Regardless of what happens with putting a message on the queue, we return 200 to the
@@ -129,7 +131,7 @@ async def upload_manual(file: UploadFile,
     """
     logger.info('sfms/manual')
     forecast_or_actual = request.headers.get('ForecastOrActual')
-    issue_date = date.fromisoformat(request.headers.get('IssueDate'))
+    issue_date = datetime.fromisoformat(str(request.headers.get('IssueDate')))
     secret = request.headers.get('Secret')
     if not secret or secret != config.get('SFMS_SECRET'):
         return Response(status_code=401)
@@ -146,24 +148,28 @@ async def upload_manual(file: UploadFile,
                                 Body=FileLikeObject(file.file),
                                 Metadata=meta_data)
         logger.info('Done uploading file')
+    return add_msg_to_queue(file, key, forecast_or_actual, meta_data, issue_date, background_tasks)
+
+
+def add_msg_to_queue(file: UploadFile, key: str, forecast_or_actual: str, meta_data: dict,
+                     issue_date: datetime, background_tasks: BackgroundTasks):
     try:
         # We don't want to hold back the response to the client, so we'll publish the message
         # as a background task.
         # As noted below, the caller will have no idea if anything has gone wrong, which is
         # unfortunate, but we can't do anything about it.
-        for_date = get_date_part(file.filename)
-        message = SFMSFile(key=key,
-                           run_type=forecast_or_actual,
-                           last_modified=meta_data.get('last_modified'),
-                           create_time=meta_data.get('create_time'),
-                           run_date=issue_date,
-                           for_date=date(year=int(for_date[0:4]),
-                                         month=int(for_date[4:6]),
-                                         day=int(for_date[6:8])))
-        logger.info('Message created "%s" for date "%s" to put on %s',
-                    message.key, message.for_date, background_tasks.is_async)
-        # TODO: this is turned off for now, since a) writes too much data, b) we don't have a prod tileserverdb
-        # background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
+        if is_hfi_file(filename=file.filename):
+            logger.info("HFI file: %s, putting processing message on queue", file.filename)
+            for_date = get_date_part(file.filename)
+            message = SFMSFile(key=key,
+                               run_type=forecast_or_actual,
+                               last_modified=meta_data.get('last_modified'),
+                               create_time=meta_data.get('create_time'),
+                               run_date=issue_date,
+                               for_date=date(year=int(for_date[0:4]),
+                                             month=int(for_date[4:6]),
+                                             day=int(for_date[6:8])))
+            background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
     except Exception as exception:  # pylint: disable=broad-except
         logger.error(exception, exc_info=True)
         # Regardless of what happens with putting a message on the queue, we return 200 to the
@@ -173,3 +179,32 @@ async def upload_manual(file: UploadFile,
         # put a message on the queue. But, we can't do that because the caller isn't very smart,
         # and can't be given that level of responsibility.
     return Response(status_code=200)
+
+
+@router.post('/manual/msgOnly')
+async def upload_manual_msg(message: ManualSFMS,
+                            background_tasks: BackgroundTasks,
+                            secret: str | None = Header(default=None)):
+    """
+    Trigger the SFMS process to run on a tif file that already exists in s3.
+    Client provides, key, for_date, runtype, run_date and an
+    SFMS message is queued up on the message queue.
+    """
+    logger.info('sfms/manual/msgOnly')
+    logger.info("Received request to process tif: %s", message.key)
+    if not secret or secret != config.get('SFMS_SECRET'):
+        return Response(status_code=401)
+
+    async with get_client() as (client, bucket):
+        tif_object = await client.get_object(Bucket=bucket,
+                                             Key=message.key)
+        logger.info('Found requested object: %s', tif_object)
+        last_modified = datetime.fromisoformat(tif_object["Metadata"]["last_modified"])
+        create_time = datetime.fromisoformat(tif_object["Metadata"]["create_time"])
+        message = SFMSFile(key=message.key,
+                           run_type=message.runtype,
+                           last_modified=last_modified,
+                           create_time=create_time,
+                           run_date=message.run_date,
+                           for_date=message.for_date)
+    background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)

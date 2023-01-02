@@ -102,3 +102,16 @@ def get_julian_date_now():
 def get_julian_date(time_of_interest: datetime):
     """ Returns Julian day of year for time_of_interest specified in arg. """
     return time_of_interest.timetuple().tm_yday
+
+
+def get_utc_datetime(input_datetime: datetime):
+    vancouver_tz = pytz.timezone("America/Vancouver")
+    utc_datetime = vancouver_tz.localize(datetime(year=input_datetime.year,
+                                                  month=input_datetime.month,
+                                                  day=input_datetime.day,
+                                                  hour=input_datetime.hour,
+                                                  minute=input_datetime.minute,
+                                                  second=input_datetime.second,
+                                                  microsecond=input_datetime.microsecond))\
+        .astimezone(pytz.timezone("UTC"))
+    return utc_datetime

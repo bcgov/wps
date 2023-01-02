@@ -7,6 +7,11 @@ from app.schemas.auto_spatial_advisory import SFMSFile, SFMSRunType
 from app.utils.time import get_hour_20, get_vancouver_now
 
 
+def is_hfi_file(filename: str) -> bool:
+    "Returns true if filename starts with 'hfi'"
+    return filename.startswith("hfi")
+
+
 def get_date_part(filename: str) -> str:
     """ Get the date part of the filename.
     Filename example: hfi20220823.tif
@@ -69,7 +74,7 @@ def get_sfms_file_message(filename: str, meta_data: dict) -> SFMSFile:
     key = get_target_filename(filename)
     prefix = get_prefix(filename)
     run_type = SFMSRunType(prefix)
-    issue_date = get_vancouver_now().date()
+    issue_date = get_vancouver_now()
     for_date = get_date_part(filename)
 
     return SFMSFile(key=key,

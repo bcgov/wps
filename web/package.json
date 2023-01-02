@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "engines": {
     "node": ">=16.13.1",
-    "npm": "~8.19.0"
+    "npm": "~9.1.0"
   },
   "license": "Apache-2.0",
   "licenses": [
@@ -13,8 +13,8 @@
     }
   ],
   "dependencies": {
-    "@devexpress/dx-react-core": "^3.0.2",
-    "@devexpress/dx-react-grid": "^3.0.2",
+    "@devexpress/dx-react-core": "^4.0.0",
+    "@devexpress/dx-react-grid": "^4.0.0",
     "@devexpress/dx-react-grid-material-ui": "^3.0.2",
     "@emotion/react": "^11.8.2",
     "@emotion/styled": "^11.8.1",
@@ -44,7 +44,7 @@
     "esri-leaflet": "3.0.8",
     "filefy": "^0.1.11",
     "jwt-decode": "^3.1.2",
-    "keycloak-js": "^19.0.0",
+    "keycloak-js": "^20.0.0",
     "leaflet": "^1.7.1",
     "lodash": "^4.17.21",
     "luxon": "^3.0.0",
@@ -94,8 +94,8 @@
     "@types/jest": "^29.0.0",
     "@types/recharts": "^1.8.23",
     "@vitejs/plugin-react": "^2.1.0",
-    "cypress": "^10.6.0",
     "cypress-vite": "^1.2.0",
+    "cypress": "^12.0.0",
     "eslint": "^8.12.0",
     "eslint-plugin-react-hooks": "^4.4.0",
     "react-scripts": "^5.0.1",
