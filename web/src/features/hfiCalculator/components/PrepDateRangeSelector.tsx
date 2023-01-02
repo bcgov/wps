@@ -10,12 +10,15 @@ import {
 } from '@mui/material'
 import * as materialIcons from '@mui/icons-material'
 import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
-import { DateRange } from 'components/dateRangePicker/types'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
 import { makeStyles } from '@mui/styles'
+export interface DateRange {
+  startDate?: Date
+  endDate?: Date
+}
 
 declare module '@mui/styles/defaultTheme' {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
