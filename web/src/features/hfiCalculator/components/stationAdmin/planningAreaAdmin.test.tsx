@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
+import { vi } from 'vitest'
 import React from 'react'
 
 describe('PlanningAreaAdmin', () => {
@@ -10,19 +11,19 @@ describe('PlanningAreaAdmin', () => {
   const stationAdminRow: StationAdminRow = { planningAreaId: 1, rowId: 1 }
   const existingStations: { [key: string]: StationAdminRow[] } = { '1': [stationAdminRow] }
 
-  const mockAdd = jest.fn((): void => {
+  const mockAdd = vi.fn((): void => {
     /** no op */
   })
 
-  const mockRemove = jest.fn((): void => {
+  const mockRemove = vi.fn((): void => {
     /** no op */
   })
 
-  const mockEdit = jest.fn((): void => {
+  const mockEdit = vi.fn((): void => {
     /** no op */
   })
 
-  const mockRemoveExisting = jest.fn((): void => {
+  const mockRemoveExisting = vi.fn((): void => {
     /** no op */
   })
   const adminHandlers: AdminHandlers = {

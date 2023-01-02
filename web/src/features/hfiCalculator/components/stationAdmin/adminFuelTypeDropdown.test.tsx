@@ -3,13 +3,14 @@ import userEvent from '@testing-library/user-event'
 import { FuelType } from 'api/hfiCalculatorAPI'
 import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { AdminFuelTypesDropdown } from 'features/hfiCalculator/components/stationAdmin/AdminFuelTypesDropdown'
+import { vi } from 'vitest'
 import React from 'react'
 
 describe('AdminFuelTypesDropdown', () => {
   it('should call edit handler callback with fuel type option when submitted', async () => {
     const stationAdminRow: StationAdminRow = { planningAreaId: 1, rowId: 1 }
     const fuelTypes: Pick<FuelType, 'id' | 'abbrev'>[] = [{ id: 2, abbrev: 'c2' }]
-    const handleEditStationMock = jest.fn()
+    const handleEditStationMock = vi.fn()
 
     const { getByTestId } = render(
       <AdminFuelTypesDropdown

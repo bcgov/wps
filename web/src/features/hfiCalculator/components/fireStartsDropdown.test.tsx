@@ -1,6 +1,7 @@
 import { render, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
+import { vi } from 'vitest'
 import React from 'react'
 describe('FireStartsDropdown', () => {
   const testAreaId = 1
@@ -10,7 +11,7 @@ describe('FireStartsDropdown', () => {
   const fireStartRanges = [lowestFireStarts, highestFireStarts]
 
   it('should render with the default value', async () => {
-    const setFireStartsMock = jest.fn()
+    const setFireStartsMock = vi.fn()
     const { getByTestId } = render(
       <FireStartsDropdown
         fireStarts={lowestFireStarts}
@@ -28,7 +29,7 @@ describe('FireStartsDropdown', () => {
     await waitFor(() => expect(setFireStartsMock).toBeCalledTimes(0))
   })
   it('should change value on change and call parent callback', async () => {
-    const setFireStartsMock = jest.fn()
+    const setFireStartsMock = vi.fn()
     const { getByTestId } = render(
       <FireStartsDropdown
         fireStarts={lowestFireStarts}
@@ -52,7 +53,7 @@ describe('FireStartsDropdown', () => {
     await waitFor(() => expect(setFireStartsMock).toBeCalledWith(testAreaId, dayOffset, highestFireStarts))
   })
   it('should be disabled when fire starts are not enabled', async () => {
-    const setFireStartsMock = jest.fn()
+    const setFireStartsMock = vi.fn()
     const { getByTestId } = render(
       <FireStartsDropdown
         fireStarts={lowestFireStarts}
