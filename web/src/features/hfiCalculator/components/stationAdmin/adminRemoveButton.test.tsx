@@ -2,12 +2,13 @@ import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import AdminRemoveButton from 'features/hfiCalculator/components/stationAdmin/AdminRemoveButton'
+import { vi } from 'vitest'
 import React from 'react'
 
 describe('AdminRemoveButton', () => {
   it('should call remove handler callback with planning area id and row id', async () => {
     const stationAdminRow: StationAdminRow = { planningAreaId: 1, rowId: 1, station: { code: 1, name: 'test' } }
-    const removeMock = jest.fn()
+    const removeMock = vi.fn()
 
     const { getByTestId } = render(
       <AdminRemoveButton

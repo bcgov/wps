@@ -2,6 +2,7 @@ import { Table, TableBody, TableRow } from '@mui/material'
 import { render, waitFor, screen, within } from '@testing-library/react'
 import { WeatherStation } from 'api/hfiCalculatorAPI'
 import StationSelectCell from 'features/hfiCalculator/components/StationSelectCell'
+import { vi } from 'vitest'
 import React from 'react'
 describe('StationSelectCell', () => {
   const station: WeatherStation = {
@@ -15,7 +16,7 @@ describe('StationSelectCell', () => {
   }
 
   it('should render the checkbox and call click handler when clicked', async () => {
-    const toggleSelectedStationMock = jest.fn()
+    const toggleSelectedStationMock = vi.fn()
     render(
       <Table>
         <TableBody>
@@ -44,7 +45,7 @@ describe('StationSelectCell', () => {
   })
 
   it('should be disabled when station selection and not change checked value when clicked', async () => {
-    const toggleSelectedStationMock = jest.fn()
+    const toggleSelectedStationMock = vi.fn()
     render(
       <Table>
         <TableBody>

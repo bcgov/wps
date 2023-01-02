@@ -2,6 +2,7 @@ import { render } from '@testing-library/react'
 import { format } from 'date-fns'
 import Menu from 'components/dateRangePicker/Menu'
 import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/types'
+import { vi } from 'vitest'
 import React from 'react'
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
@@ -47,26 +48,26 @@ describe('Menu', () => {
   const firstMonth = new Date('2021/2/1')
   const secondMonth = new Date('2021/3/1')
 
-  const inHoverRangeMock = jest.fn((date: Date): boolean => {
+  const inHoverRangeMock = vi.fn((date: Date): boolean => {
     return false
   })
-  const onDayClickMock = jest.fn((date: Date): void => {
+  const onDayClickMock = vi.fn((date: Date): void => {
     /** no op */
   })
-  const onDayHoverMock = jest.fn((date: Date): void => {
+  const onDayHoverMock = vi.fn((date: Date): void => {
     /** no op */
   })
-  const onMonthNavigateMock = jest.fn((marker: symbol, action: NavigationAction): void => {
+  const onMonthNavigateMock = vi.fn((marker: symbol, action: NavigationAction): void => {
     /** no op */
   })
-  const setFirstMonthMock = jest.fn((date: Date): void => {
+  const setFirstMonthMock = vi.fn((date: Date): void => {
     /** no op */
   })
-  const setSecondMonthMock = jest.fn((date: Date): void => {
+  const setSecondMonthMock = vi.fn((date: Date): void => {
     /** no op */
   })
 
-  const resetDateRangeMock = jest.fn((): void => {
+  const resetDateRangeMock = vi.fn((): void => {
     /** no op */
   })
 

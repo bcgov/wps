@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react'
 import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
 import { DateRange } from 'components/dateRangePicker/types'
+import { vi } from 'vitest'
 import React from 'react'
 
 const setup = (open: boolean, toggleMock: () => void, initialDateRange: DateRange, onChangeMock: () => void) => {
@@ -17,10 +18,10 @@ const setup = (open: boolean, toggleMock: () => void, initialDateRange: DateRang
 describe('DateRangePickerWrapper', () => {
   const startDate = new Date('2021/2/21')
   const endDate = new Date('2021/2/25')
-  const toggleMock = jest.fn((): void => {
+  const toggleMock = vi.fn((): void => {
     /** no op */
   })
-  const onChangeMock = jest.fn((): void => {
+  const onChangeMock = vi.fn((): void => {
     /** no op */
   })
 

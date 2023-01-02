@@ -2,6 +2,7 @@ import { render, within, waitFor } from '@testing-library/react'
 import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
 import { FuelType } from 'api/hfiCalculatorAPI'
 import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
 import React from 'react'
 
 describe('FuelTypeDropdown', () => {
@@ -27,7 +28,7 @@ describe('FuelTypeDropdown', () => {
     order_of_appearance_in_planning_area_list: 1
   }
   it('should render with the default value', async () => {
-    const setFuelTypeMock = jest.fn()
+    const setFuelTypeMock = vi.fn()
     const { getByTestId } = render(
       <FuelTypeDropdown
         station={testStation}
@@ -45,7 +46,7 @@ describe('FuelTypeDropdown', () => {
     await waitFor(() => expect(input.value).toBe(fuelType?.abbrev))
   })
   it('should change value on change and call parent callback', async () => {
-    const setFuelTypeMock = jest.fn()
+    const setFuelTypeMock = vi.fn()
     const user = userEvent.setup()
     const { getByTestId } = render(
       <FuelTypeDropdown
@@ -69,7 +70,7 @@ describe('FuelTypeDropdown', () => {
     await waitFor(() => expect(setFuelTypeMock).toBeCalledWith(testStation.code, fuelTypes[5].id))
   })
   it('should be disabled when set fuel type is disabled', async () => {
-    const setFuelTypeMock = jest.fn()
+    const setFuelTypeMock = vi.fn()
     const { getByTestId } = render(
       <FuelTypeDropdown
         station={testStation}
