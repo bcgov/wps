@@ -1,6 +1,7 @@
 import * as ol from 'ol'
 import * as proj from 'ol/proj'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
+import { Coordinate } from 'ol/coordinate'
 import { fromLonLat } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
@@ -44,19 +45,23 @@ import { LayerControl } from 'features/fba/components/map/layerControl'
 import FBATooltip from 'features/fba/components/map/FBATooltip'
 import { RASTER_SERVER_BASE_URL } from 'utils/env'
 import { EventsKey } from 'ol/events'
+import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 const zoom = 6
 const TILE_SERVER_URL = 'https://tileserv-dev.apps.silver.devops.gov.bc.ca'
-export const SFMS_MAX_ZOOM = 8 // The SFMS data is so course, there's not much point in zooming in further
+export const SFMS_MAX_ZOOM = 8 // The SFMS data is so coarse, there's not much point in zooming in further
 export const COG_TILE_SIZE = [512, 512] // COG tiffs are 512x512 pixels - reading larger chunks should in theory be faster?
 
 export interface FBAMapProps {
   testId?: string
   className: string
   selectedFireCenter: FireCenter | undefined
-  date: DateTime
+  forDate: DateTime
+  runDate: DateTime
+  setIssueDate: React.Dispatch<React.SetStateAction<DateTime | null>>
+  runType: RunType
   advisoryThreshold: number
 }
 
@@ -113,6 +118,7 @@ const FBAMap = (props: FBAMapProps) => {
   const [showSfmsAspect, setShowSfmsAspect] = useState(false)
   const [map, setMap] = useState<ol.Map | null>(null)
   const [singleClickKey, setSingleClickKey] = useState<EventsKey | null>(null)
+  const [overlayPosition, setOverlayPosition] = useState<Coordinate | undefined>(undefined)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const [fireZoneVector, setFireZoneVector] = useState(
@@ -162,7 +168,9 @@ const FBAMap = (props: FBAMapProps) => {
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=date='${props.date.toISODate()}'`
+      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.forDate.toISODate()}'&run_type=${props.runType
+        .toString()
+        .toLowerCase()}&run_date='${props.runDate.toISODate()}'`
     }),
     style: hfiStyler,
     zIndex: 100,
@@ -223,30 +231,52 @@ const FBAMap = (props: FBAMapProps) => {
     const layerName = 'hfiVector'
     removeLayerByName(map, layerName)
     if (showHighHFI) {
+      const source = new VectorTileSource({
+        attributions: ['BC Wildfire Service'],
+        format: new MVT(),
+        url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.forDate.toISODate()}' AND run_type='${props.runType
+          .toString()
+          .toLowerCase()}' AND run_date='${props.runDate.toISODate()}'`,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        tileLoadFunction: function (tile: any, url) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          tile.setLoader(function (extent: any, _resolution: any, projection: any) {
+            fetch(url).then(function (response) {
+              response.arrayBuffer().then(function (data) {
+                const format = tile.getFormat()
+                const features = format.readFeatures(data, {
+                  extent: extent,
+                  featureProjection: projection
+                })
+                if (features.length > 0) {
+                  props.setIssueDate(DateTime.fromSQL(features[0].getProperties()['run_date'], { zone: 'utc' }))
+                }
+                tile.setFeatures(features)
+              })
+            })
+          })
+        }
+      })
       const latestHFILayer = new VectorTileLayer({
-        source: new VectorTileSource({
-          attributions: ['BC Wildfire Service'],
-          format: new MVT(),
-          url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=date='${props.date.toISODate()}'`
-        }),
+        source,
         style: hfiStyler,
         zIndex: 100,
         properties: { name: layerName }
       })
       map.addLayer(latestHFILayer)
     }
-  }, [props.date, showHighHFI]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [props.forDate, showHighHFI, props.setIssueDate, props.runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!map) return
     const layerName = 'hfiRaw'
     removeLayerByName(map, layerName)
     if (showRawHFI) {
-      const isoDate = props.date.toISODate().replaceAll('-', '')
+      const isoDate = props.forDate.toISODate().replaceAll('-', '')
       const layer = hfiTileFactory(`gpdqha/sfms/cog/cog_hfi${isoDate}.tif`, layerName)
       map.addLayer(layer)
     }
-  }, [props.date, showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [props.forDate, showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const addRemoveLayer = (map: ol.Map | null, show: boolean, layerName: string, source: XYZ) => {
     if (!map) return
@@ -363,13 +393,20 @@ const FBAMap = (props: FBAMapProps) => {
       if (overlay) {
         const coordinate = proj.transform(e.coordinate, 'EPSG:3857', 'EPSG:4326')
         // fetch hfi at coordinate
-        dispatch(fetchValuesAtCoordinate(coordinate[1], coordinate[0], props.date))
-        overlay.setPosition(e.coordinate)
+        dispatch(fetchValuesAtCoordinate(coordinate[1], coordinate[0], props.forDate))
+        setOverlayPosition(e.coordinate)
       }
     })
     setSingleClickKey(newKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.date, map, dispatch])
+  }, [props.forDate, map, dispatch])
+
+  useEffect(() => {
+    if (!map) return
+    const overlay = map.getOverlayById('popup')
+    if (overlay) overlay.setPosition(overlayPosition)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overlayPosition])
 
   useEffect(() => {
     const stationsSource = new VectorSource({
@@ -395,7 +432,7 @@ const FBAMap = (props: FBAMapProps) => {
       <MapContext.Provider value={map}>
         <div className={classes.main}>
           <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
-          <FBATooltip ref={overlayRef} valuesAtCoordinate={values} loading={loading} />
+          <FBATooltip ref={overlayRef} valuesAtCoordinate={values} loading={loading} onClose={setOverlayPosition} />
         </div>
       </MapContext.Provider>
     </ErrorBoundary>

@@ -69,6 +69,21 @@ objects:
             cluster_advertise: $CLUSTER_ADVERTISE
             connect_retries: 50
         }
+        accounts: {
+            cli: { 
+                jetstream: enable
+                users: [
+                    {user: cli, password: cli, permissions: {publish: ">", subscribe: ">"}}
+                  ]
+            },
+            consumer: { 
+                jetstream: enable
+                users: [
+                    {user: consumer, password: consumer, permissions: {publish: ">", subscribe: ">"}}
+                  ]
+            } 
+        }
+        no_auth_user: consumer
         leafnodes {
           port: 7422
         }
@@ -332,6 +347,11 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: object-store-bucket
+                - name: TILESERV_POSTGRES_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-tileserv-${SUFFIX}-pguser-${APP_NAME}-tileserv-${SUFFIX}
+                      key: uri
               ports:
                 - containerPort: 4222
                   name: client

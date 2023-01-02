@@ -13,6 +13,13 @@
             "justMyCode": false
         },
         {
+            "name": "nats",
+            "type": "python",
+            "request": "launch",
+            "program": "api/app/auto_spatial_advisory/nats_consumer.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "sfms",
             "type": "python",
             "request": "launch",
