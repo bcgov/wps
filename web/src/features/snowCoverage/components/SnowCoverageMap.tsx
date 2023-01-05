@@ -15,6 +15,9 @@ import { RASTER_SERVER_BASE_URL } from 'utils/env'
 import { GeoTIFF } from 'ol/source'
 import TileLayer from 'ol/layer/WebGLTile'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
+import View from 'ol/View';
+import { CENTER_OF_BC } from 'utils/constants' 
+import { fromLonLat } from 'ol/proj'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -68,12 +71,13 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
     // return statement of which this map's target is set to.
-    // The ref is a div of type  HTMLDivElement.
+    // The ref is a div of type HTMLDivElement.
 
     // Pattern copied from web/src/features/map/Map.tsx
     if (!mapRef.current) return
 
     const source = new GeoTIFF({
+      interpolate: false,
       sources: [
         {
           url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/snow_coverage/2022-10-25/snow_coverage_cog.tif?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=nr-wps-dev/20221229/us-east-1/s3/aws4_request&X-Amz-Date=20221229T210006Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=a105de35c47a37746f0147cfb8acda5f927fe8b3e2dcb3aa6bd7d4b49023902e'
@@ -81,13 +85,24 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
       ]
     })
     const snowCoverageLayer = new TileLayer({
-      source: source
+      source: source,
+      style: {
+        color: [
+          'case',
+          ['==', ['band', 2], 0],
+          [0, 0, 0, 0],
+          [255, 255, 255, 0.75]
+        ]
+      }
     })
 
     // Create the map with the options above and set the target
     // To the ref above so that it is rendered in that div
     const mapObject = new ol.Map({
-      view: source.getView(),
+      view: new View({
+        center: fromLonLat(CENTER_OF_BC),
+        zoom: 5
+      }),
       layers: [
         new Tile({
           source: baseMapSource
