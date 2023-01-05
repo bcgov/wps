@@ -1,5 +1,5 @@
 """
-Methods related to processing snow coverage data
+Methods for processing snow coverage data
 """
 
 import io
@@ -7,7 +7,7 @@ import logging
 import os
 import tempfile
 import numpy as np
-from osgeo import gdal
+from osgeo import gdal, osr
 from app import config
 from app.utils.s3 import get_client
 
@@ -17,6 +17,8 @@ BASE_URL = 'https://n5eil02u.ecs.nsidc.org/egi/request?' \
 RAW_SNOW_COVERAGE_NAME = 'raw_snow_coverage.tif'
 SNOW_COVERAGE_NAME = 'snow_coverage.tif'
 SNOW_COVERAGE_MASK_NAME = 'snow_coverage_mask.tif'
+SNOW_COVERAGE_MASK_3857_NAME = 'snow_coverage_mask_3857.tif'
+SNOW_COVERAGE_COG_NAME = 'snow_coverage_cog.tif'
 
 logger = logging.getLogger(__name__)
 
@@ -51,15 +53,17 @@ async def snow_coverage(hfi_path: str, snow_date: str):
     key = f'snow_coverage/{snow_date}'
     with tempfile.TemporaryDirectory() as temp_dir:
         process_snow_coverage(hfi_path, s3_path, temp_dir)
-        await write_file_to_s3(f'{key}/{SNOW_COVERAGE_NAME}', os.path.join(temp_dir, SNOW_COVERAGE_NAME))
+        await write_object_to_s3(f'{key}/{SNOW_COVERAGE_NAME}', os.path.join(temp_dir, SNOW_COVERAGE_NAME))
         create_snow_coverage_mask(temp_dir)
-        await write_file_to_s3(f'{key}/{SNOW_COVERAGE_MASK_NAME}', os.path.join(temp_dir, SNOW_COVERAGE_MASK_NAME))
-        return f'{s3_path}{SNOW_COVERAGE_MASK_NAME}'
+        await write_object_to_s3(f'{key}/{SNOW_COVERAGE_MASK_NAME}', os.path.join(temp_dir, SNOW_COVERAGE_MASK_NAME))
+        create_snow_mask_cog(temp_dir)
+        await write_object_to_s3(f'{key}/{SNOW_COVERAGE_COG_NAME}', os.path.join(temp_dir, SNOW_COVERAGE_COG_NAME))
+    return f'{s3_path}{SNOW_COVERAGE_MASK_NAME}'
 
 
 def process_snow_coverage(hfi_path: str, s3_path: str, temp_dir: str):
     """
-    Given a path to a HFI raster from SFMS and the location a tif containing a mosaic of snow coverage
+    Given a path to a HFI raster from SFMS and the location of a tif containing a mosaic of snow coverage
     data, reproject the snow data tif to Lamber Conformal Conic, clip to the extent of the HFI raster
     and resample to the same resolution as the HFI raster.
     """
@@ -117,7 +121,32 @@ def create_snow_coverage_mask(temp_dir: str):
     snow_mask = None
 
 
-async def write_file_to_s3(key, path):
+def create_snow_mask_cog(temp_dir: str):
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(3857)
+    destination_srs = srs.ExportToWkt()
+    source_path = os.path.join(temp_dir, SNOW_COVERAGE_MASK_NAME)
+    source = gdal.Open(source_path, gdal.GA_ReadOnly)
+    geo_transform = source.GetGeoTransform()
+    x_res = geo_transform[1]
+    y_res = -geo_transform[5]
+    projected_path = os.path.join(temp_dir, SNOW_COVERAGE_MASK_3857_NAME)
+    gdal.Warp(projected_path, source, dstSRS=destination_srs, xRes=x_res, yRes=y_res,
+              resampleAlg=gdal.GRA_NearestNeighbour, dstNodata=1, srcNodata=1)
+    projected_source = gdal.Open(projected_path, gdal.GA_ReadOnly)
+    projected_source.BuildOverviews('NEAREST', [2, 4, 8, 16, 32])
+
+    # create teh cloud optimized geotiff
+    driver = gdal.GetDriverByName('GTiff')
+    output_path = os.path.join(temp_dir, SNOW_COVERAGE_COG_NAME)
+    options = ["COPY_SRC_OVERVIEWS=YES", "TILED=YES", "COMPRESS=LZW"]
+    cog = driver.CreateCopy(output_path, projected_source, options=options)
+    source = None
+    projected_source = None
+    cog = None
+
+
+async def write_object_to_s3(key, path):
     # Get an async S3 client.
     async with get_client() as (client, bucket):
         logger.info('Uploading file "%s" to "%s"', path, key)
