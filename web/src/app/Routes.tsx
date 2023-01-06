@@ -14,13 +14,15 @@ import {
   C_HAINES_ROUTE,
   FIRE_BEHAVIOR_CALC_ROUTE,
   FIRE_BEHAVIOUR_ADVISORY_ROUTE,
-  FWI_CALC_ROUTE
+  FWI_CALC_ROUTE,
+  SNOW_COVERAGE_ROUTE
 } from 'utils/constants'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
 import { FireBehaviourCalculator } from 'features/fbaCalculator/pages/FireBehaviourCalculatorPage'
 import { FireBehaviourAdvisoryPage } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { FWICalculatorPage } from 'features/fwiCalculator/pages/FWICalculatorPage'
+import SnowCoveragePage from 'features/snowCoverage/pages/SnowCoveragePage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
@@ -76,6 +78,7 @@ const WPSRoutes: React.FunctionComponent = () => {
             </AuthWrapper>
           }
         />
+        <Route path={SNOW_COVERAGE_ROUTE} element={<SnowCoveragePage />} />
         <Route path="*" element={<NoMatchPage />} />
       </Routes>
     </Router>
