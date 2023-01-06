@@ -91,7 +91,7 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
           'case',
           ['==', ['band', 2], 0],
           [0, 0, 0, 0],
-          [255, 255, 255, 0.75]
+          [255, 255, 255, 0.85]
         ]
       }
     })
