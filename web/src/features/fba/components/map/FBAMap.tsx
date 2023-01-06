@@ -213,7 +213,6 @@ const FBAMap = (props: FBAMapProps) => {
     maxZoom: 6
   })
 
-
   const source = new GeoTIFF({
     interpolate: false,
     sources: [
@@ -225,12 +224,7 @@ const FBAMap = (props: FBAMapProps) => {
   const snowCoverageLayer = new TileLayer({
     source: source,
     style: {
-      color: [
-        'case',
-        ['==', ['band', 2], 0],
-        [0, 0, 0, 0],
-        [255, 255, 255, 0.85]
-      ]
+      color: ['case', ['==', ['band', 2], 0], [0, 0, 0, 0], [255, 255, 255, 0.85]]
     }
   })
 
