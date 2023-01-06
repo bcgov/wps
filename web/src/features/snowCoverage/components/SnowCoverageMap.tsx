@@ -203,7 +203,7 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
     if (!map) return
     const layerName = 'snowMaskedHfiVector'
     removeLayerByName(map, layerName)
-    if (showHighHFI) {
+    if (showSnowMaskedHighHFI) {
       const source = new VectorTileSource({
         attributions: ['BC Wildfire Service'],
         format: new MVT(),
