@@ -140,6 +140,7 @@ def create_snow_mask_cog(temp_dir: str):
     driver = gdal.GetDriverByName('GTiff')
     output_path = os.path.join(temp_dir, SNOW_COVERAGE_COG_NAME)
     options = ["COPY_SRC_OVERVIEWS=YES", "TILED=YES", "COMPRESS=LZW"]
+    # pylint: disable=unused-variable
     cog = driver.CreateCopy(output_path, projected_source, options=options)
     source = None
     projected_source = None
