@@ -11,6 +11,8 @@ import VectorTileSource from 'ol/source/VectorTile'
 import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
+import { GeoTIFF } from 'ol/source'
+import TileLayer from 'ol/layer/WebGLTile'
 import { useDispatch, useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
@@ -211,6 +213,27 @@ const FBAMap = (props: FBAMapProps) => {
     maxZoom: 6
   })
 
+
+  const source = new GeoTIFF({
+    interpolate: false,
+    sources: [
+      {
+        url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/snow_coverage/2022-10-25/snow_coverage_cog.tif?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=nr-wps-dev/20221229/us-east-1/s3/aws4_request&X-Amz-Date=20221229T210006Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=a105de35c47a37746f0147cfb8acda5f927fe8b3e2dcb3aa6bd7d4b49023902e'
+      }
+    ]
+  })
+  const snowCoverageLayer = new TileLayer({
+    source: source,
+    style: {
+      color: [
+        'case',
+        ['==', ['band', 2], 0],
+        [0, 0, 0, 0],
+        [255, 255, 255, 0.85]
+      ]
+    }
+  })
+
   useEffect(() => {
     if (!map) return
 
@@ -345,7 +368,8 @@ const FBAMap = (props: FBAMapProps) => {
         fireCentreVector,
         // thessianVector,
         fireZoneLabel,
-        fireCentreLabel
+        fireCentreLabel,
+        snowCoverageLayer
       ],
       overlays: [],
       controls: defaultControls().extend([
