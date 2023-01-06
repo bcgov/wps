@@ -170,7 +170,7 @@ const FBAMap = (props: FBAMapProps) => {
       format: new MVT(),
       url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.forDate.toISODate()}'&run_type=${props.runType
         .toString()
-        .toLowerCase()}&run_date='${props.runDate.toISODate()}'`
+        .toLowerCase()}&run_date='${props.runDate.toISODate()}'&snow_masked=false`
     }),
     style: hfiStyler,
     zIndex: 100,
@@ -236,7 +236,7 @@ const FBAMap = (props: FBAMapProps) => {
         format: new MVT(),
         url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?filter=for_date='${props.forDate.toISODate()}' AND run_type='${props.runType
           .toString()
-          .toLowerCase()}' AND run_date='${props.runDate.toISODate()}'`,
+          .toLowerCase()}' AND run_date='${props.runDate.toISODate()}' AND snow_masked=false`,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         tileLoadFunction: function (tile: any, url) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
