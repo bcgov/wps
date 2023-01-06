@@ -76,8 +76,8 @@ async def run():
                 await msg.ack()
                 run_type, run_date, run_datetime, for_date = parse_nats_message(msg)
                 logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
-                await process_hfi(RunType.FORECAST, for_date, for_date, for_date)
-                # await process_hfi_with_snow_coverage(run_type, for_date, for_date, for_date)
+                # await process_hfi(RunType.FORECAST, for_date, for_date, for_date)
+                await process_hfi_with_snow_coverage(run_type, for_date, for_date, for_date)
             except Exception as e:
                 logger.error("Error processing HFI message: %s, adding back to queue", msg.data, exc_info=e)
                 background_tasks = BackgroundTasks()
