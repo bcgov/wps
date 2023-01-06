@@ -91,7 +91,7 @@ export const SnowCoveragePage: React.FunctionComponent = () => {
           </Grid>
         </Grid>
       </Container>
-      <SnowCoverageMap className={classes.mapContainer} />
+      <SnowCoverageMap className={classes.mapContainer} forDate={dateOfInterest} />
     </React.Fragment>
   )
 }
