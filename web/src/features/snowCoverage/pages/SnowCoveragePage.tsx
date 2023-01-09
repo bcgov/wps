@@ -5,12 +5,15 @@ import React, { useEffect, useState } from 'react'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import { DateTime } from 'luxon'
 import { selectFireCenters } from 'app/rootReducer'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { formControlStyles, theme } from 'app/theme'
 import { FireCenter } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import SnowCoverageMap from 'features/snowCoverage/components/SnowCoverageMap'
+import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
+import { AppDispatch } from 'app/store'
+
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -39,6 +42,7 @@ const useStyles = makeStyles(() => ({
 
 export const SnowCoveragePage: React.FunctionComponent = () => {
   const classes = useStyles()
+  const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
@@ -59,6 +63,8 @@ export const SnowCoveragePage: React.FunctionComponent = () => {
   useEffect(() => {
     if (fireCenter?.id) {
       localStorage.setItem('preferredFireCenter', fireCenter?.id.toString())
+    } else if (fireCenter === null) {
+      localStorage.removeItem('preferredFireCenter')
     }
   }, [fireCenter])
 
@@ -67,6 +73,10 @@ export const SnowCoveragePage: React.FunctionComponent = () => {
       setDateOfInterest(newDate)
     }
   }
+
+  useEffect(() => {
+    dispatch(fetchFireCenters())
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <React.Fragment>
@@ -91,7 +101,7 @@ export const SnowCoveragePage: React.FunctionComponent = () => {
           </Grid>
         </Grid>
       </Container>
-      <SnowCoverageMap className={classes.mapContainer} forDate={dateOfInterest} />
+      <SnowCoverageMap className={classes.mapContainer} forDate={dateOfInterest} selectedFireCenter={fireCenter} />
     </React.Fragment>
   )
 }

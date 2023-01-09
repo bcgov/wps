@@ -29,17 +29,21 @@ import {
   hfiStyler
 } from 'features/fba/components/map/featureStylers'
 import { DateTime } from 'luxon'
+import { FireCenter } from 'api/fbaAPI'
+import { extentsMap } from 'features/fba/fireCentreExtents'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
 export const SFMS_MAX_ZOOM = 8 // The SFMS data is so coarse, there's not much point in zooming in further
 export const COG_TILE_SIZE = [512, 512] // COG tiffs are 512x512 pixels - reading larger chunks should in theory be faster?
 const TILE_SERVER_URL = 'https://wps-pr-2500-tileserv.apps.silver.devops.gov.bc.ca'
+const DEFAULT_ZOOM = 6
 
 export interface SnowCoverageMapProps {
   forDate: DateTime
   testId?: string
   className: string
+  selectedFireCenter: FireCenter | undefined
 }
 
 export const hfiSourceFactory = (url: string) => {
@@ -286,6 +290,21 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
       map.addLayer(latestHFILayer)
     }
   }, [props.forDate, showSnowMaskedHighHFI]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!map) return
+
+    if (props.selectedFireCenter) {
+      const fireCentreExtent = extentsMap.get(props.selectedFireCenter.name)
+      if (fireCentreExtent) {
+        map.getView().fit(fireCentreExtent.extent)
+      }
+    } else {
+      // reset map view to full province
+      map.getView().setCenter(fromLonLat(CENTER_OF_BC))
+      map.getView().setZoom(DEFAULT_ZOOM)
+    }
+  }, [props.selectedFireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <ErrorBoundary>
