@@ -21,7 +21,13 @@ import { fromLonLat } from 'ol/proj'
 import MVT from 'ol/format/MVT'
 import VectorTileSource from 'ol/source/VectorTile'
 import VectorTileLayer from 'ol/layer/VectorTile'
-import { hfiStyler } from 'features/fba/components/map/featureStylers'
+import {
+  fireCentreStyler,
+  fireCentreLabelStyler,
+  fireZoneStyler,
+  fireZoneLabelStyler,
+  hfiStyler,
+} from 'features/fba/components/map/featureStylers'
 import { DateTime } from 'luxon'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
@@ -79,6 +85,7 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
   const [showHighHFI, setShowHighHFI] = useState(true)
   const [showSnowMaskedHighHFI, setShowSnowMaskedHighHFI] = useState(false)
   const [showRawHFI, setShowRawHFI] = useState(false)
+  const [showSnowCoverage, setShowSnowCoverage] = useState(true)
   const [showFTL, setShowFTL] = useState(false)
   const [showFTL_M, setShowFTL_M] = useState(false)
   const [showSfmsFtl, setShowSfmsFtl] = useState(false)
@@ -86,6 +93,51 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
   const [overlayPosition, setOverlayPosition] = useState<Coordinate | undefined>(undefined)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const overlayRef = useRef<HTMLDivElement | null>(null)
+
+  const fireZoneVector = new VectorTileLayer({
+    source: new VectorTileSource({
+      attributions: ['BC Wildfire Service'],
+      format: new MVT(),
+      url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
+    }),
+    style: fireZoneStyler,
+    zIndex: 49,
+    properties: { name: 'fireZoneVector' }
+  })
+
+    // Seperate layer for polygons and for labels, to avoid duplicate labels.
+    const fireZoneLabel = new VectorTileLayer({
+      source: new VectorTileSource({
+        attributions: ['BC Wildfire Service'],
+        format: new MVT(),
+        url: `${TILE_SERVER_URL}/public.fire_zones_labels_ext/{z}/{x}/{y}.pbf`
+      }),
+      style: fireZoneLabelStyler,
+      zIndex: 99,
+      minZoom: 6
+    })
+  
+    const fireCentreVector = new VectorTileLayer({
+      source: new VectorTileSource({
+        attributions: ['BC Wildfire Service'],
+        format: new MVT(),
+        url: `${TILE_SERVER_URL}/public.fire_centres/{z}/{x}/{y}.pbf`
+      }),
+      style: fireCentreStyler,
+      zIndex: 50
+    })
+  
+    // Seperate layer for polygons and for labels, to avoid duplicate labels.
+    const fireCentreLabel = new VectorTileLayer({
+      source: new VectorTileSource({
+        attributions: ['BC Wildfire Service'],
+        format: new MVT(),
+        url: `${TILE_SERVER_URL}/public.fire_centres_labels/{z}/{x}/{y}.pbf`
+      }),
+      style: fireCentreLabelStyler,
+      zIndex: 100,
+      maxZoom: 6
+    })
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -95,11 +147,20 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
     // Pattern copied from web/src/features/map/Map.tsx
     if (!mapRef.current) return
 
+    const query_params = [
+      'X-Amz-Algorithm=AWS4-HMAC-SHA256',
+      'X-Amz-Credential=nr-wps-dev/20230106/us-east-1/s3/aws4_request',
+      'X-Amz-Date=20230106T010006Z',
+      'X-Amz-Expires=604800',
+      'X-Amz-SignedHeaders=host',
+      'X-Amz-Signature=a105de35c47a37746f0147cfb8acda5f927fe8b3e2dcb3aa6bd7d4b49023902e'
+    ]
+
     const source = new GeoTIFF({
       interpolate: false,
       sources: [
         {
-          url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/snow_coverage/2022-10-25/snow_coverage_cog.tif?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=nr-wps-dev/20221229/us-east-1/s3/aws4_request&X-Amz-Date=20221229T210006Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=a105de35c47a37746f0147cfb8acda5f927fe8b3e2dcb3aa6bd7d4b49023902e'
+          url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/snow_coverage/2023-01-06/snow_coverage_cog.tif?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=nr-wps-dev/20220106/us-east-1/s3/aws4_request&X-Amz-Date=202T010006Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=a105de35c47a37746f0147cfb8acda5f927fe8b3e2dcb3aa6bd7d4b49023902e'
         }
       ]
     })
@@ -121,16 +182,17 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
         new Tile({
           source: baseMapSource
         }),
-        snowCoverageLayer
-        // fireZoneVector,
-        // fireCentreVector,
+        // snowCoverageLayer,
+        fireZoneVector,
+        fireCentreVector,
         // // thessianVector,
-        // fireZoneLabel,
-        // fireCentreLabel
+        fireZoneLabel,
+        fireCentreLabel
       ],
       overlays: [],
       controls: defaultControls().extend([
         new FullScreen(),
+        LayerControl.buildLayerCheckbox('Snow Coverage', setShowSnowCoverage, showSnowCoverage),
         LayerControl.buildLayerCheckbox('Snow Masked High HFI', setShowSnowMaskedHighHFI, showSnowMaskedHighHFI),
         LayerControl.buildLayerCheckbox('High HFI', setShowHighHFI, showHighHFI),
         LayerControl.buildLayerCheckbox('FTL 2018', setShowFTL, showFTL),
@@ -161,6 +223,40 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
     if (overlay) overlay.setPosition(overlayPosition)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlayPosition])
+
+  useEffect(() => {
+    if (!map) return
+    const layerName = 'snow'
+    removeLayerByName(map, layerName)
+    if (showSnowCoverage) {
+      const query_params = [
+        'X-Amz-Algorithm=AWS4-HMAC-SHA256',
+        'X-Amz-Credential=nr-wps-dev/20230106/us-east-1/s3/aws4_request',
+        'X-Amz-Date=20230106T010006Z',
+        'X-Amz-Expires=604800',
+        'X-Amz-SignedHeaders=host',
+        'X-Amz-Signature=a105de35c47a37746f0147cfb8acda5f927fe8b3e2dcb3aa6bd7d4b49023902e'
+      ]
+  
+      const source = new GeoTIFF({
+        interpolate: false,
+        sources: [
+          {
+            url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/snow_coverage/2023-01-06/snow_coverage_cog.tif?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=nr-wps-dev/20220106/us-east-1/s3/aws4_request&X-Amz-Date=202T010006Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=a105de35c47a37746f0147cfb8acda5f927fe8b3e2dcb3aa6bd7d4b49023902e'
+          }
+        ]
+      })
+      const snowCoverageLayer = new TileLayer({
+        source: source,
+        style: {
+          color: ['case', ['==', ['band', 2], 0], [0, 0, 0, 0], [255, 255, 255, 0.85]]
+        }
+      })
+      snowCoverageLayer.setProperties({name: layerName})
+      map.addLayer(snowCoverageLayer)
+    }
+
+  }, [props.forDate, showSnowCoverage])
 
   useEffect(() => {
     if (!map) return
