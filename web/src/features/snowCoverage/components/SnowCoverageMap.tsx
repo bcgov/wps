@@ -26,7 +26,7 @@ import {
   fireCentreLabelStyler,
   fireZoneStyler,
   fireZoneLabelStyler,
-  hfiStyler,
+  hfiStyler
 } from 'features/fba/components/map/featureStylers'
 import { DateTime } from 'luxon'
 
@@ -101,39 +101,39 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
     properties: { name: 'fireZoneVector' }
   })
 
-    // Seperate layer for polygons and for labels, to avoid duplicate labels.
-    const fireZoneLabel = new VectorTileLayer({
-      source: new VectorTileSource({
-        attributions: ['BC Wildfire Service'],
-        format: new MVT(),
-        url: `${TILE_SERVER_URL}/public.fire_zones_labels_ext/{z}/{x}/{y}.pbf`
-      }),
-      style: fireZoneLabelStyler,
-      zIndex: 99,
-      minZoom: 6
-    })
-  
-    const fireCentreVector = new VectorTileLayer({
-      source: new VectorTileSource({
-        attributions: ['BC Wildfire Service'],
-        format: new MVT(),
-        url: `${TILE_SERVER_URL}/public.fire_centres/{z}/{x}/{y}.pbf`
-      }),
-      style: fireCentreStyler,
-      zIndex: 50
-    })
-  
-    // Seperate layer for polygons and for labels, to avoid duplicate labels.
-    const fireCentreLabel = new VectorTileLayer({
-      source: new VectorTileSource({
-        attributions: ['BC Wildfire Service'],
-        format: new MVT(),
-        url: `${TILE_SERVER_URL}/public.fire_centres_labels/{z}/{x}/{y}.pbf`
-      }),
-      style: fireCentreLabelStyler,
-      zIndex: 100,
-      maxZoom: 6
-    })
+  // Seperate layer for polygons and for labels, to avoid duplicate labels.
+  const fireZoneLabel = new VectorTileLayer({
+    source: new VectorTileSource({
+      attributions: ['BC Wildfire Service'],
+      format: new MVT(),
+      url: `${TILE_SERVER_URL}/public.fire_zones_labels_ext/{z}/{x}/{y}.pbf`
+    }),
+    style: fireZoneLabelStyler,
+    zIndex: 99,
+    minZoom: 6
+  })
+
+  const fireCentreVector = new VectorTileLayer({
+    source: new VectorTileSource({
+      attributions: ['BC Wildfire Service'],
+      format: new MVT(),
+      url: `${TILE_SERVER_URL}/public.fire_centres/{z}/{x}/{y}.pbf`
+    }),
+    style: fireCentreStyler,
+    zIndex: 50
+  })
+
+  // Seperate layer for polygons and for labels, to avoid duplicate labels.
+  const fireCentreLabel = new VectorTileLayer({
+    source: new VectorTileSource({
+      attributions: ['BC Wildfire Service'],
+      format: new MVT(),
+      url: `${TILE_SERVER_URL}/public.fire_centres_labels/{z}/{x}/{y}.pbf`
+    }),
+    style: fireCentreLabelStyler,
+    zIndex: 100,
+    maxZoom: 6
+  })
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -194,7 +194,7 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
     if (!map) return
     const layerName = 'snow'
     removeLayerByName(map, layerName)
-    if (showSnowCoverage) { 
+    if (showSnowCoverage) {
       const source = new GeoTIFF({
         interpolate: false,
         sources: [
@@ -209,11 +209,10 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
           color: ['case', ['==', ['band', 2], 0], [0, 0, 0, 0], [255, 255, 255, 0.85]]
         }
       })
-      snowCoverageLayer.setProperties({name: layerName})
+      snowCoverageLayer.setProperties({ name: layerName })
       map.addLayer(snowCoverageLayer)
     }
-
-  }, [props.forDate, showSnowCoverage])
+  }, [props.forDate, showSnowCoverage, map])
 
   useEffect(() => {
     if (!map) return
