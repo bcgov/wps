@@ -84,11 +84,7 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
   const { values, loading } = useSelector(selectValueAtCoordinate)
   const [showHighHFI, setShowHighHFI] = useState(true)
   const [showSnowMaskedHighHFI, setShowSnowMaskedHighHFI] = useState(false)
-  const [showRawHFI, setShowRawHFI] = useState(false)
   const [showSnowCoverage, setShowSnowCoverage] = useState(true)
-  const [showFTL, setShowFTL] = useState(false)
-  const [showFTL_M, setShowFTL_M] = useState(false)
-  const [showSfmsFtl, setShowSfmsFtl] = useState(false)
   const [map, setMap] = useState<ol.Map | null>(null)
   const [overlayPosition, setOverlayPosition] = useState<Coordinate | undefined>(undefined)
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -147,30 +143,6 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
     // Pattern copied from web/src/features/map/Map.tsx
     if (!mapRef.current) return
 
-    const query_params = [
-      'X-Amz-Algorithm=AWS4-HMAC-SHA256',
-      'X-Amz-Credential=nr-wps-dev/20230106/us-east-1/s3/aws4_request',
-      'X-Amz-Date=20230106T010006Z',
-      'X-Amz-Expires=604800',
-      'X-Amz-SignedHeaders=host',
-      'X-Amz-Signature=a105de35c47a37746f0147cfb8acda5f927fe8b3e2dcb3aa6bd7d4b49023902e'
-    ]
-
-    const source = new GeoTIFF({
-      interpolate: false,
-      sources: [
-        {
-          url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/snow_coverage/2023-01-06/snow_coverage_cog.tif?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=nr-wps-dev/20220106/us-east-1/s3/aws4_request&X-Amz-Date=202T010006Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=a105de35c47a37746f0147cfb8acda5f927fe8b3e2dcb3aa6bd7d4b49023902e'
-        }
-      ]
-    })
-    const snowCoverageLayer = new TileLayer({
-      source: source,
-      style: {
-        color: ['case', ['==', ['band', 2], 0], [0, 0, 0, 0], [255, 255, 255, 0.85]]
-      }
-    })
-
     // Create the map with the options above and set the target
     // To the ref above so that it is rendered in that div
     const mapObject = new ol.Map({
@@ -182,10 +154,8 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
         new Tile({
           source: baseMapSource
         }),
-        // snowCoverageLayer,
         fireZoneVector,
         fireCentreVector,
-        // // thessianVector,
         fireZoneLabel,
         fireCentreLabel
       ],
@@ -194,11 +164,7 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
         new FullScreen(),
         LayerControl.buildLayerCheckbox('Snow Coverage', setShowSnowCoverage, showSnowCoverage),
         LayerControl.buildLayerCheckbox('Snow Masked High HFI', setShowSnowMaskedHighHFI, showSnowMaskedHighHFI),
-        LayerControl.buildLayerCheckbox('High HFI', setShowHighHFI, showHighHFI),
-        LayerControl.buildLayerCheckbox('FTL 2018', setShowFTL, showFTL),
-        LayerControl.buildLayerCheckbox('FTL 2018 M1/M2', setShowFTL_M, showFTL_M),
-        LayerControl.buildLayerCheckbox('FTL SFMS', setShowSfmsFtl, showSfmsFtl),
-        LayerControl.buildLayerCheckbox('Raw HFI', setShowRawHFI, showRawHFI)
+        LayerControl.buildLayerCheckbox('High HFI', setShowHighHFI, showHighHFI)
       ])
     })
 
@@ -228,21 +194,12 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
     if (!map) return
     const layerName = 'snow'
     removeLayerByName(map, layerName)
-    if (showSnowCoverage) {
-      const query_params = [
-        'X-Amz-Algorithm=AWS4-HMAC-SHA256',
-        'X-Amz-Credential=nr-wps-dev/20230106/us-east-1/s3/aws4_request',
-        'X-Amz-Date=20230106T010006Z',
-        'X-Amz-Expires=604800',
-        'X-Amz-SignedHeaders=host',
-        'X-Amz-Signature=a105de35c47a37746f0147cfb8acda5f927fe8b3e2dcb3aa6bd7d4b49023902e'
-      ]
-  
+    if (showSnowCoverage) { 
       const source = new GeoTIFF({
         interpolate: false,
         sources: [
           {
-            url: 'https://nrs.objectstore.gov.bc.ca/gpdqha/snow_coverage/2023-01-06/snow_coverage_cog.tif?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=nr-wps-dev/20220106/us-east-1/s3/aws4_request&X-Amz-Date=202T010006Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=a105de35c47a37746f0147cfb8acda5f927fe8b3e2dcb3aa6bd7d4b49023902e'
+            url: `https://nrs.objectstore.gov.bc.ca/gpdqha/snow_coverage/${props.forDate.toISODate()}/snow_coverage_cog.tif`
           }
         ]
       })
