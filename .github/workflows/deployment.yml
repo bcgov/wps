@@ -101,6 +101,7 @@ jobs:
 
   deploy-dev:
     name: Deploy to Dev
+    if: github.triggering_actor != 'renovate'
     needs:
       [build-api-image, build-web-image, prepare-dev-database, deploy-dev-queue]
     runs-on: ubuntu-22.04
@@ -151,6 +152,7 @@ jobs:
 
   deploy-tileserv:
     name: Deploy tileserv to Dev
+    if: github.triggering_actor != 'renovate'
     runs-on: ubuntu-22.04
     # We need
     # - the image to be built before we can deploy.
@@ -172,6 +174,7 @@ jobs:
 
   deploy-dev-queue:
     name: Deploy Message Queue to Dev
+    if: github.triggering_actor != 'renovate'
     runs-on: ubuntu-22.04
     # We need
     # - the image to be built before we can deploy.
@@ -209,6 +212,7 @@ jobs:
 
   deploy-c-haines:
     name: Deploy c-haines cronjob
+    if: github.triggering_actor != 'renovate'
     runs-on: ubuntu-22.04
     # We need
     # - the image to be built before we can deploy.
@@ -250,6 +254,7 @@ jobs:
 
   deploy-test:
     name: Deploy to Test
+    if: github.triggering_actor != 'renovate'
     needs: [build-api-image, build-web-image, prepare-test-database]
     runs-on: ubuntu-22.04
     steps:
