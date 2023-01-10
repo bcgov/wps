@@ -14,7 +14,6 @@ import SnowCoverageMap from 'features/snowCoverage/components/SnowCoverageMap'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { AppDispatch } from 'app/store'
 
-
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
   listContainer: {
