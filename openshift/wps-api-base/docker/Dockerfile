@@ -1,15 +1,4 @@
 ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:22.04
-# STAGE 0 : "poetry"
-FROM registry.access.redhat.com/rhel7/rhel-tools AS download
-# We grab the image for step 0 from registry.access.redhat.com because both openshift and your
-# local machine can access it - so it's easy to test in both environments.
-# We can use any image we want here - we just need something to grab the latest poetry installer
-# for us. We don't want to have any dependencies on the final image, that we don't need there
-# and curl is one of those.
-
-RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
-RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
-
 # For the final stage, we use ubuntu:22.04
 # Rationale for using ubuntu:22.04:
 # - It's the latest ubuntu LTS release.
@@ -34,12 +23,19 @@ ENV DEBIAN_FRONTEND=noninteractive
 # - gdal (for geospatial)
 # - R (for cffdrs)
 # - xfonts-75dpi, xfonts-base (for wkhtmltopdf)
-RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base xfonts-base xfonts-75dpi
+RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libgdal-dev r-base xfonts-base xfonts-75dpi curl
+
+RUN curl -sSL https://install.python-poetry.org > /tmp/install.python-poetry.org
+RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+# Enable for mac M1
+# RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_arm64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+
 
 # - wkhtmltopdf (for making pdf's)
-COPY --from=download /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
-RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
 
+# Enable for mac M1
+# RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_arm64.deb
+RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
 
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
@@ -62,6 +58,5 @@ WORKDIR /home/$USERNAME
 # Update pip
 RUN python3 -m pip install --upgrade pip
 
-# Install poetry (using installation file from previous stage)
-COPY --from=download /tmp/install.python-poetry.org /tmp/install.python-poetry.org
+# Install poetry
 RUN cat /tmp/install.python-poetry.org | python3 -
