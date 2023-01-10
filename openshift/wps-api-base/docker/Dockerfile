@@ -34,7 +34,7 @@ RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.
 # - wkhtmltopdf (for making pdf's)
 
 # Enable for mac M1
-# RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+# RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_arm64.deb
 RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
 
 # Install cffdrs
