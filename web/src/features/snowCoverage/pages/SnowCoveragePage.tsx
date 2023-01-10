@@ -36,6 +36,9 @@ const useStyles = makeStyles(() => ({
   },
   instructions: {
     textAlign: 'left'
+  },
+  message: {
+    marginTop: 30
   }
 }))
 
@@ -97,6 +100,7 @@ export const SnowCoveragePage: React.FunctionComponent = () => {
                 />
               </FormControl>
             </Grid>
+            <div className={classes.message}>Select June 28, 2022 to view sample HFI data. Snow coverage imagery available the first day of each month.</div>
           </Grid>
         </Grid>
       </Container>
