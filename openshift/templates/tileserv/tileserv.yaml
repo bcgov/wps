@@ -25,7 +25,7 @@ objects:
     metadata:
       name: ${APP_NAME}-${SUFFIX}
     spec:
-      image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres-gis:ubi8-14.5-3.2-1
+      image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres-gis:ubi8-14.5-3.2-1
       metadata:
         name: ${APP_NAME}-${SUFFIX}
         labels:
