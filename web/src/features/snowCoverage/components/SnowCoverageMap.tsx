@@ -199,7 +199,7 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
     const layerName = 'snow'
     removeLayerByName(map, layerName)
     const jan1 = DateTime.local(2023, 1, 1)
-    const displayDate = props.forDate > jan1  ? jan1 : props.forDate
+    const displayDate = props.forDate > jan1 ? jan1 : props.forDate
     if (showSnowCoverage) {
       const source = new GeoTIFF({
         interpolate: false,
