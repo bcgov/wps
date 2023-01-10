@@ -198,12 +198,14 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
     if (!map) return
     const layerName = 'snow'
     removeLayerByName(map, layerName)
+    const jan1 = DateTime.local(2023, 1, 1)
+    const displayDate = props.forDate > jan1  ? jan1 : props.forDate
     if (showSnowCoverage) {
       const source = new GeoTIFF({
         interpolate: false,
         sources: [
           {
-            url: `https://nrs.objectstore.gov.bc.ca/gpdqha/snow_coverage/${props.forDate.toISODate()}/snow_coverage_cog.tif`
+            url: `https://nrs.objectstore.gov.bc.ca/gpdqha/snow_coverage/${displayDate.toISODate()}/snow_coverage_cog.tif`
           }
         ]
       })
