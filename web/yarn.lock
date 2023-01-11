@@ -1272,39 +1272,6 @@
     debug "^3.1.0"
     lodash.once "^4.1.1"
 
-"@devexpress/dx-core@4.0.2":
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/@devexpress/dx-core/-/dx-core-4.0.2.tgz#83442f52eaec9ee9609b5f017611899f3fabfdfb"
-  integrity sha512-0y4RWg3snw2MeziFMRh7pnbosmg+xmzdfYrKLlXfNndvacc7vXql5ZGCIOu2gFL2lFDNG9NP101xGRwledHFjA==
-
-"@devexpress/dx-grid-core@4.0.2":
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/@devexpress/dx-grid-core/-/dx-grid-core-4.0.2.tgz#09a47af702e5466ba02a998f47e7578b23681860"
-  integrity sha512-vtfucXWfaRvtGfM2R927zQi6e+cRosQjhNhBQVXUhbDTqbTQhg7XLMNduxC5pha+ODzfxTH7vnM0Pk+/PDjCEw==
-
-"@devexpress/dx-react-core@^4.0.0":
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/@devexpress/dx-react-core/-/dx-react-core-4.0.2.tgz#85e4cca7d9fdebff2732a9561f2138543651e9f8"
-  integrity sha512-SiTCm6kD1zK+ErTZeAPFJRl5d8qxF/XqrbpTJ2o7L/8nTPV7gXNOh91cHeklPogCbqKZeK4J9y+bwL0iAyKLZA==
-  dependencies:
-    "@devexpress/dx-core" "4.0.2"
-    prop-types "^15.7.2"
-
-"@devexpress/dx-react-grid-material-ui@^3.0.2":
-  version "3.0.6"
-  resolved "https://registry.yarnpkg.com/@devexpress/dx-react-grid-material-ui/-/dx-react-grid-material-ui-3.0.6.tgz#f9556aec706af46d000678e5e633e287899c934a"
-  integrity sha512-hFTy+lZ5+LEdpIm5VBOHERnX+ZBPFsjn4Repf0Mv+lTqXfPBSmtGBfDgaz3T4zw+7DEn18e+qnDy3HDik6ySYA==
-  dependencies:
-    clsx "^1.0.4"
-    prop-types "^15.7.2"
-
-"@devexpress/dx-react-grid@^4.0.0":
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/@devexpress/dx-react-grid/-/dx-react-grid-4.0.2.tgz#22484ee0ca59cd7c10f4520f8d31132c350ba82a"
-  integrity sha512-9B9I5sfxDgbxlvYGVRqwYT0ys2QVpgAz/3+4RDepDckXrIbZzpsTUw34lzVzXx1d1mLKhPN5+d8A+8XPkucPEg==
-  dependencies:
-    "@devexpress/dx-grid-core" "4.0.2"
-
 "@emotion/babel-plugin@^11.10.5":
   version "11.10.5"
   resolved "https://registry.yarnpkg.com/@emotion/babel-plugin/-/babel-plugin-11.10.5.tgz#65fa6e1790ddc9e23cc22658a4c5dea423c55c3c"
@@ -4150,7 +4117,7 @@ cliui@^7.0.2:
     strip-ansi "^6.0.0"
     wrap-ansi "^7.0.0"
 
-clsx@^1.0.4, clsx@^1.1.0, clsx@^1.2.1:
+clsx@^1.1.0, clsx@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/clsx/-/clsx-1.2.1.tgz#0ddc4a20a549b59c93a4116bb26f5294ca17dc12"
   integrity sha512-EcR6r5a8bj6pu3ycsa/E/cKVGuTgZJZdsyUYHOksG/UHIiKfjxzRxYJpyVBwYaQeOvghal9fcc4PidlgzugAQg==
@@ -10303,7 +10270,7 @@ prompts@^2.0.1, prompts@^2.4.2:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-prop-types@^15.6.2, prop-types@^15.7.2, prop-types@^15.8.1:
+prop-types@^15.6.2, prop-types@^15.8.1:
   version "15.8.1"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.8.1.tgz#67d87bf1a694f48435cf332c24af10214a3140b5"
   integrity sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==
