@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
-import { selectValueAtCoordinate } from 'app/rootReducer'
+import { selectFireWeatherStations, selectValueAtCoordinate } from 'app/rootReducer'
 import Tile from 'ol/layer/Tile'
 import { LayerControl } from 'features/fba/components/map/layerControl'
 import FBATooltip from 'features/fba/components/map/FBATooltip'
@@ -26,11 +26,15 @@ import {
   fireCentreLabelStyler,
   fireZoneStyler,
   fireZoneLabelStyler,
-  hfiStyler
+  hfiStyler,
+  stationStyler
 } from 'features/fba/components/map/featureStylers'
 import { DateTime } from 'luxon'
 import { FireCenter } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
+import GeoJSON from 'ol/format/GeoJSON'
+import OLVectorLayer from 'ol/layer/Vector'
+import VectorSource from 'ol/source/Vector'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -86,6 +90,7 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
   })
   const classes = useStyles()
   const { values, loading } = useSelector(selectValueAtCoordinate)
+  const { stations } = useSelector(selectFireWeatherStations)
   const [showHighHFI, setShowHighHFI] = useState(true)
   const [showSnowMaskedHighHFI, setShowSnowMaskedHighHFI] = useState(false)
   const [showSnowCoverage, setShowSnowCoverage] = useState(true)
@@ -307,6 +312,25 @@ const SnowCoverageMap = (props: SnowCoverageMapProps) => {
       map.getView().setZoom(DEFAULT_ZOOM)
     }
   }, [props.selectedFireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const stationsSource = new VectorSource({
+      features: new GeoJSON().readFeatures(
+        { type: 'FeatureCollection', features: stations },
+        {
+          featureProjection: 'EPSG:3857'
+        }
+      )
+    })
+    const stationsLayer = new OLVectorLayer({
+      source: stationsSource,
+      minZoom: 6,
+      style: stationStyler,
+      zIndex: 51
+    })
+
+    map?.addLayer(stationsLayer)
+  }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <ErrorBoundary>
