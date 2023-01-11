@@ -187,7 +187,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         />
                       </TableRow>
                       {sortBy(area.stations, station => station.order_of_appearance_in_planning_area_list).map(
-                        (station, idx) => {
+                        station => {
                           const dailiesForStation = getDailiesByStationCode(result, station.code)
                           const isRowSelected = stationCodeInSelected(area.id, station.code)
                           const classNameForRow = !isRowSelected
@@ -201,7 +201,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             props.fuelTypes
                           )
                           if (isUndefined(selectedFuelType)) {
-                            return <React.Fragment key={`weekly-undefined-fuel-type-${idx}`}></React.Fragment>
+                            return <React.Fragment key={`weekly-undefined-fuel-type-${station.code}`}></React.Fragment>
                           }
                           return (
                             <TableRow className={classNameForRow} key={`station-${stationCode}`}>
