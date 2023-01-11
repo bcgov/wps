@@ -8,6 +8,15 @@ import { Provider } from 'react-redux'
 
 describe('FBAMap', () => {
   it('should render height with height and width properties set', () => {
+    class ResizeObserver {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      observe() {}
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      unobserve() {}
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      disconnect() {}
+    }
+    window.ResizeObserver = ResizeObserver
     const { getByTestId } = render(
       <Provider store={store}>
         <FBAMap
