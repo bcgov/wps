@@ -13,6 +13,8 @@ import WPSDatePicker from 'components/WPSDatePicker'
 import SnowCoverageMap from 'features/snowCoverage/components/SnowCoverageMap'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { AppDispatch } from 'app/store'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { getStations, StationSource } from 'api/stationAPI'
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
@@ -78,6 +80,7 @@ export const SnowCoveragePage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchFireCenters())
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
