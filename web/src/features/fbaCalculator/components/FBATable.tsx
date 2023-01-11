@@ -82,7 +82,35 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-const tableColumnLabels: string[] = [
+export type ColumnLabel =
+  | 'Zone'
+  | 'Weather Station'
+  | 'Elevation'
+  | 'FBP Fuel Type'
+  | 'Grass Cure'
+  | 'Status'
+  | 'Temp'
+  | 'RH'
+  | 'Wind Dir'
+  | 'Wind Speed (km/h)'
+  | 'Precip (mm)'
+  | 'FFMC'
+  | 'DMC'
+  | 'DC'
+  | 'ISI'
+  | 'BUI'
+  | 'FWI'
+  | 'HFI'
+  | 'Critical Hours (4000 kW/m)'
+  | 'Critical Hours (10000 kW/m)'
+  | 'ROS (m/min)'
+  | 'Fire Type'
+  | 'CFB (%)'
+  | 'Flame Length (m)'
+  | '30 min fire size (ha)'
+  | '60 min fire size (ha)'
+
+const tableColumnLabels: ColumnLabel[] = [
   'Zone',
   'Weather Station',
   'Elevation',
@@ -129,7 +157,7 @@ const FBATable = (props: FBATableProps) => {
   const { stations, error: stationsError } = useSelector(selectFireWeatherStations)
   const { fireBehaviourResultStations, loading, error: fbaResultsError } = useSelector(selectFireBehaviourCalcResult)
   const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(fireBehaviourResultStations)
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(tableColumnLabels)
+  const [visibleColumns, setVisibleColumns] = useState<ColumnLabel[]>(tableColumnLabels)
 
   const rowsFromQuery = getRowsFromUrlParams(location.search)
 
@@ -302,7 +330,7 @@ const FBATable = (props: FBATableProps) => {
     setModalOpen(true)
   }
 
-  const filterColumnsCallback = (filterByColumns: string[]) => {
+  const filterColumnsCallback = (filterByColumns: ColumnLabel[]) => {
     setVisibleColumns(filterByColumns)
   }
 

@@ -12,6 +12,7 @@ import {
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Clear } from '@mui/icons-material'
+import { ColumnLabel } from 'features/fbaCalculator/components/FBATable'
 
 export interface ColumnSelectionState {
   label: string
@@ -20,10 +21,10 @@ export interface ColumnSelectionState {
 
 export interface ModalProps {
   testId?: string
-  columns: string[]
+  columns: ColumnLabel[]
   modalOpen: boolean
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>
-  parentCallback: (selectedColumnsLabels: string[]) => void
+  parentCallback: (selectedColumnsLabels: ColumnLabel[]) => void
 }
 
 const useStyles = makeStyles(() => ({
