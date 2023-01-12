@@ -19,8 +19,6 @@ import hfiStationsReducer from 'features/hfiCalculator/slices/stationsSlice'
 import hfiReadyReducer, { HFIReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 import fbaCalculatorSlice from 'features/fbaCalculator/slices/fbaCalculatorSlice'
 import fireCentersSlice from 'features/fbaCalculator/slices/fireCentersSlice'
-import fwiSlice from 'features/fwiCalculator/slices/fwiSlice'
-import multiFWISlice from 'features/fwiCalculator/slices/multiFWISlice'
 import fireZoneAreasSlice from 'features/fba/slices/fireZoneAreasSlice'
 import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
@@ -48,8 +46,6 @@ const rootReducer = combineReducers({
   fireCenters: fireCentersSlice,
   fireZoneAreas: fireZoneAreasSlice,
   runDates: runDatesSlice,
-  fwiOutputs: fwiSlice,
-  multiFWIOutputs: multiFWISlice,
   valueAtCoordinate: valueAtCoordinateSlice
 })
 
@@ -81,8 +77,6 @@ export const selectHFIStations = (state: RootState) => state.hfiStations
 export const selectFireCenters = (state: RootState) => state.fireCenters
 export const selectFireZoneAreas = (state: RootState) => state.fireZoneAreas
 export const selectRunDates = (state: RootState) => state.runDates
-export const selectFWIOutputs = (state: RootState) => state.fwiOutputs
-export const selectMultiFWIOutputs = (state: RootState) => state.multiFWIOutputs
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
 
 export const selectWxDataLoading = (state: RootState): boolean =>
@@ -102,5 +96,3 @@ export const selectHFIStationsLoading = (state: RootState): boolean => state.hfi
 export const selectHFIReadyState = (state: RootState): HFIReadyState => state.hfiReady
 export const selectFireBehaviourStationsLoading = (state: RootState): boolean => state.fbaCalculatorResults.loading
 export const selectFireCentersLoading = (state: RootState): boolean => state.fireCenters.loading
-export const selectFWIOutputsLoading = (state: RootState): boolean => state.fwiOutputs.loading
-export const selectMultiFWIOutputsLoading = (state: RootState): boolean => state.multiFWIOutputs.loading

@@ -5,6 +5,7 @@ Nats consumer setup for consuming processing messages
 import asyncio
 import json
 import datetime
+from datetime import datetime
 import logging
 from typing import List
 from starlette.background import BackgroundTasks
@@ -15,6 +16,7 @@ from app.auto_spatial_advisory.nats_config import server, stream_name, sfms_file
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
 from app.nats_publish import publish
 from app import configure_logging
+from app.utils.time import get_utc_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +28,13 @@ def parse_nats_message(msg: Msg):
     if msg.subject == sfms_file_subject:
         decoded_msg = json.loads(json.loads(msg.data.decode()))
         run_type = RunType.from_str(decoded_msg['run_type'])
-        run_date = datetime.datetime.strptime(decoded_msg['run_date'], "%Y-%m-%d").date()
-        for_date = datetime.datetime.strptime(decoded_msg['for_date'], "%Y-%m-%d").date()
-        return (run_type, run_date, for_date)
+        run_date = datetime.strptime(decoded_msg['run_date'], "%Y-%m-%d").date()
+        for_date = datetime.strptime(decoded_msg['for_date'], "%Y-%m-%d").date()
+
+        # SFMS doesn't give us a timezone, but from the 2022 data it runs in local time
+        # so we localize it as such then convert it to UTC
+        run_datetime = get_utc_datetime(datetime.fromisoformat(decoded_msg['create_time']))
+        return (run_type, run_date, run_datetime, for_date)
 
 
 async def run():
@@ -68,9 +74,9 @@ async def run():
             try:
                 logger.info('Msg received - {}\n'.format(msg))
                 await msg.ack()
-                run_type, run_date, for_date = parse_nats_message(msg)
+                run_type, run_date, run_datetime, for_date = parse_nats_message(msg)
                 logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
-                await process_hfi(run_type, run_date, for_date)
+                await process_hfi(run_type, run_date, run_datetime, for_date)
             except Exception as e:
                 logger.error("Error processing HFI message: %s, adding back to queue", msg.data, exc_info=e)
                 background_tasks = BackgroundTasks()
