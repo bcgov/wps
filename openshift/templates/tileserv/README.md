@@ -34,6 +34,11 @@ https://github.com/CrunchyData/pg_tileserv
 - Run with `docker run -dit -e DATABASE_URL=postgresql://tileserv:tileserv@host.docker.internal/tileserv pg_tileserv`
   Note: May not run with mac m1 machines since `pg_tileserv` is only built for platform `linux/amd64`
 
+### Nginx build
+
+- Shouldn't need to be built often besides updates
+- Make any changes then run `oc -n e1e498-tools start-build nginx-tileserv --from-dir .` while in this folder
+
 ## Deployment
 
 See `deploy-tileserv` job defined in `.github/workflows/deployment.yml`
