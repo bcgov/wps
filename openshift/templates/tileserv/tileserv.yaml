@@ -150,7 +150,7 @@ objects:
           containers:
             - name: tileserv
               image: artifacts.developer.gov.bc.ca/docker-remote/pramsey/pg_tileserv
-              command: ["/app/pg_tileserv", "--debug"]
+              command: ["/app/pg_tileserv"]
               ports:
                 - containerPort: 7800
                   protocol: TCP
@@ -172,8 +172,6 @@ objects:
                     secretKeyRef:
                       name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
                       key: dbname
-                - name: TS_DEBUG
-                  value: "true"
               livenessProbe:
                 failureThreshold: 3
                 initialDelaySeconds: 5
