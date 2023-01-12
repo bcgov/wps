@@ -8,6 +8,18 @@ import { Provider } from 'react-redux'
 
 describe('FBAMap', () => {
   it('should render height with height and width properties set', () => {
+    class ResizeObserver {
+      observe() {
+        // mock no-op
+      }
+      unobserve() {
+        // mock no-op
+      }
+      disconnect() {
+        // mock no-op
+      }
+    }
+    window.ResizeObserver = ResizeObserver
     const { getByTestId } = render(
       <Provider store={store}>
         <FBAMap
