@@ -13,14 +13,12 @@ import {
   HFI_CALC_ROUTE,
   C_HAINES_ROUTE,
   FIRE_BEHAVIOR_CALC_ROUTE,
-  FIRE_BEHAVIOUR_ADVISORY_ROUTE,
-  FWI_CALC_ROUTE
+  FIRE_BEHAVIOUR_ADVISORY_ROUTE
 } from 'utils/constants'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
 import { FireBehaviourCalculator } from 'features/fbaCalculator/pages/FireBehaviourCalculatorPage'
 import { FireBehaviourAdvisoryPage } from 'features/fba/pages/FireBehaviourAdvisoryPage'
-import { FWICalculatorPage } from 'features/fwiCalculator/pages/FWICalculatorPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
@@ -65,14 +63,6 @@ const WPSRoutes: React.FunctionComponent = () => {
           element={
             <AuthWrapper>
               <FireBehaviourAdvisoryPage />
-            </AuthWrapper>
-          }
-        />
-        <Route
-          path={FWI_CALC_ROUTE}
-          element={
-            <AuthWrapper>
-              <FWICalculatorPage />
             </AuthWrapper>
           }
         />
