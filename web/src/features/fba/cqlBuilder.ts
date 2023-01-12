@@ -12,11 +12,10 @@ import { DateTime } from 'luxon'
  * see: https://access.crunchydata.com/documentation/pg_tileserv/1.0.9/usage/cql/
  *
  * @param for_date the date we're interested in
- * @param run_date when the HFI processing was run
  * @param run_type forecast or actual
  * @returns a CQL filter based on the input parameters that pg_tileserv uses in it's query
  */
-export const buildHFICql = (for_date: DateTime, run_date: DateTime, run_type: RunType) => {
+export const buildHFICql = (for_date: DateTime, run_type: RunType) => {
   const queryParams = encodeURIComponent(`for_date=${for_date.toISODate()} AND run_type='${run_type.toLowerCase()}'`)
   return 'filter=' + queryParams
 }

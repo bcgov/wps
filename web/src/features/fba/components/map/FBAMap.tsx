@@ -169,7 +169,7 @@ const FBAMap = (props: FBAMapProps) => {
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?${buildHFICql(props.forDate, props.runDate, props.runType)}`
+      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?${buildHFICql(props.forDate, props.runType)}`
     }),
     style: hfiStyler,
     zIndex: 100,
@@ -233,11 +233,7 @@ const FBAMap = (props: FBAMapProps) => {
       const source = new VectorTileSource({
         attributions: ['BC Wildfire Service'],
         format: new MVT(),
-        url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?${buildHFICql(
-          props.forDate,
-          props.runDate,
-          props.runType
-        )}`,
+        url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?${buildHFICql(props.forDate, props.runType)}`,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         tileLoadFunction: function (tile: any, url) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
