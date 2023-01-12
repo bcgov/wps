@@ -1,5 +1,5 @@
 import React from 'react'
-import TextField from '@mui/material/TextField'
+import TextField, { TextFieldProps } from '@mui/material/TextField'
 import AdapterDateFns from '@mui/lab/AdapterLuxon'
 import LocalizationProvider from '@mui/lab/LocalizationProvider'
 import DatePicker from '@mui/lab/DatePicker'
@@ -23,12 +23,12 @@ const WPSDatePicker = (props: WPSDatePickerProps) => {
         label="Date of Interest (PST-08:00)"
         inputFormat="yyyy/MM/dd"
         value={props.date}
-        onChange={newValue => {
+        onChange={(newValue: DateTime) => {
           if (!isNull(newValue)) {
             props.updateDate(newValue)
           }
         }}
-        renderInput={params => <TextField {...params} />}
+        renderInput={(params: JSX.IntrinsicAttributes & TextFieldProps) => <TextField {...params} />}
       />
     </LocalizationProvider>
   )
