@@ -1,8 +1,8 @@
 import React from 'react'
 import TextField, { TextFieldProps } from '@mui/material/TextField'
-import AdapterDateFns from '@mui/lab/AdapterLuxon'
-import LocalizationProvider from '@mui/lab/LocalizationProvider'
-import DatePicker from '@mui/lab/DatePicker'
+import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
+import { LocalizationProvider } from '@mui/x-date-pickers'
+import { DatePicker } from '@mui/x-date-pickers'
 import { DateTime } from 'luxon'
 import { isNull } from 'lodash'
 
@@ -18,12 +18,12 @@ interface WPSDatePickerProps {
 
 const WPSDatePicker = (props: WPSDatePickerProps) => {
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
+    <LocalizationProvider dateAdapter={AdapterLuxon}>
       <DatePicker
         label="Date of Interest (PST-08:00)"
         inputFormat="yyyy/MM/dd"
         value={props.date}
-        onChange={(newValue: DateTime) => {
+        onChange={newValue => {
           if (!isNull(newValue)) {
             props.updateDate(newValue)
           }
