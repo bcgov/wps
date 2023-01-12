@@ -53,9 +53,9 @@ class HFI(Base):
     geom = Column(geoalchemy2.types.Geometry(geometry_type='MULTIPOLYGON',
                                              srid=3005,
                                              spatial_index=False, from_text='ST_GeomFromEWKT', name='geometry'), nullable=False)
-    run_date = Column(TZTimeStamp, nullable=False)
-    for_date = Column(TZTimeStamp, nullable=False)
-    run_type = Column(Enum(RunType), nullable=False)
+    run_date = Column(TZTimeStamp, nullable=False, index=True)
+    for_date = Column(TZTimeStamp, nullable=False, index=True)
+    run_type = Column(Enum(RunType), nullable=False, index=True)
 
 
 # Explict creation of index due to issue with alembic + geoalchemy.
