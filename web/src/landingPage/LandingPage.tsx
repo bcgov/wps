@@ -5,7 +5,6 @@ import Footer from 'landingPage/Footer'
 import Search from 'landingPage/Search'
 import Sidebar from 'landingPage/Sidebar'
 import { FOOTER_HEIGHT } from 'utils/constants'
-import WPSRoutes from 'app/Routes'
 import ToolCards from 'landingPage/ToolCards'
 
 const useStyles = makeStyles(() => ({
@@ -29,6 +28,7 @@ const useStyles = makeStyles(() => ({
     flexDirection: 'column',
     maxHeight: `calc(100vh - ${FOOTER_HEIGHT}px)`,
     overflowY: 'auto',
+    minWidth: '251px',
     width: '251px'
   }
 }))

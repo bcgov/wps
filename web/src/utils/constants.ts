@@ -30,3 +30,15 @@ export const FULL_WIDTH = 1200
 
 // Map center
 export const CENTER_OF_BC = [-123.3656, 51.4484]
+
+// Application names
+export const C_HAINES_NAME = 'C-Haines'
+export const FIRE_BEHAVIOUR_ADVISORY_NAME = 'Auto Spatial Advisory'
+export const FIRE_BEHAVIOUR_CALC_NAME = 'FBP Go'
+export const HFI_CALC_NAME = 'FireBat'
+export const MORE_CAST_NAME = 'MoreCast'
+export const PERCENTILE_CALC_NAME = 'Percentile Calculator'
+
+// UI constants
+export const FOOTER_HEIGHT = 145
+export const HEADER_HEIGHT = 56

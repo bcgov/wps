@@ -1,13 +1,11 @@
 import React from 'react'
-import Icon from '@mui/material/Icon'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import makeStyles from '@mui/styles/makeStyles'
-import { Link, Navigate } from 'react-router-dom'
-import { toolInfo } from 'landingPage/toolInfo'
+import { toolInfos } from 'landingPage/toolInfo'
 
 const useStyles = makeStyles(() => ({
   icon: {
@@ -20,7 +18,7 @@ const SidebarToolList: React.FunctionComponent = () => {
 
   return (
     <List>
-      {toolInfo.map(item => {
+      {toolInfos.map(item => {
         return (
           <ListItem disablePadding key={item.name}>
             <ListItemButton component={'a'} href={item.route}>
