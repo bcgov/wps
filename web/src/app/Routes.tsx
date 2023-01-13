@@ -13,12 +13,14 @@ import {
   HFI_CALC_ROUTE,
   C_HAINES_ROUTE,
   FIRE_BEHAVIOR_CALC_ROUTE,
-  FIRE_BEHAVIOUR_ADVISORY_ROUTE
+  FIRE_BEHAVIOUR_ADVISORY_ROUTE,
+  LANDING_PAGE_ROUTE
 } from 'utils/constants'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
 import { FireBehaviourCalculator } from 'features/fbaCalculator/pages/FireBehaviourCalculatorPage'
 import { FireBehaviourAdvisoryPage } from 'features/fba/pages/FireBehaviourAdvisoryPage'
+import LandingPage from 'landingPage/LandingPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
@@ -26,7 +28,7 @@ const WPSRoutes: React.FunctionComponent = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to={PERCENTILE_CALC_ROUTE} />} />
+        <Route path={LANDING_PAGE_ROUTE} element={<LandingPage />} />
         <Route
           path={PERCENTILE_CALC_ROUTE}
           element={<PercentileCalculatorPageWithDisclaimer showDisclaimer={shouldShowDisclaimer} />}
