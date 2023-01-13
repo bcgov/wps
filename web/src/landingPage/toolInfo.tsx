@@ -19,10 +19,8 @@ import {
   PERCENTILE_CALC_NAME,
   PERCENTILE_CALC_ROUTE
 } from 'utils/constants'
-import { CardTravelSharp } from '@mui/icons-material'
 
 const ICON_FONT_SIZE = 'large'
-
 interface ToolInfo {
   name: string
   route: string
@@ -78,5 +76,13 @@ export const percentileCalcInfo: ToolInfo = {
   icon: <PercentIcon color="primary" fontSize={ICON_FONT_SIZE} />
 }
 
-// The order of items in this array determines the order of items as they appear in the landing page side bar and order of CardTravelSharp.
-export const toolInfos = [fireBehaviourAdvisoryInfo, cHainesInfo, fireBehaviourCalcInfo, hfiCalcInfo, moreCastInfo, percentileCalcInfo]
+// The order of items in this array determines the order of items as they appear in the landing page
+// side bar and order of CardTravelSharp.
+export const toolInfos = [
+  fireBehaviourAdvisoryInfo,
+  cHainesInfo,
+  fireBehaviourCalcInfo,
+  hfiCalcInfo,
+  moreCastInfo,
+  percentileCalcInfo
+]

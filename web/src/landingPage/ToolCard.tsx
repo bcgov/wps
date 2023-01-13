@@ -1,4 +1,5 @@
 import React from 'react'
+import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardActions from '@mui/material/CardActions'
@@ -6,7 +7,7 @@ import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
-import { theme } from 'app/theme'
+import { Link } from 'react-router-dom'
 
 interface ToolCardProps {
   description: React.ReactNode | string
@@ -15,9 +16,9 @@ interface ToolCardProps {
   route: string
 }
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   button: {
-    height: '3rem',
+    height: '2.5rem',
     width: '11.5rem'
   },
   card: {
@@ -25,7 +26,7 @@ const useStyles = makeStyles(() => ({
     flexDirection: 'column',
     justifyContent: 'space-between',
     maxWidth: '400px',
-    paddingBottom: '1rem'
+    paddingBottom: theme.spacing(1)
   },
   cardActions: {
     display: 'flex',
@@ -36,16 +37,19 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
-    paddingLeft: '2rem',
-    paddingRight: '2rem',
-    paddingTop: '0px'
+    paddingBottom: theme.spacing(1),
+    paddingLeft: theme.spacing(3),
+    paddingRight: theme.spacing(3),
+    paddingTop: 0
   },
   cardDescription: {
     paddingTop: '1rem'
   },
   cardHeader: {
     color: theme.palette.primary.main,
-    textAlign: 'center'
+    fontWeight: 700,
+    textAlign: 'center',
+    textDecoration: 'underline'
   },
   iconContainer: {
     alignItems: 'center',
@@ -54,29 +58,36 @@ const useStyles = makeStyles(() => ({
     borderStyle: 'solid',
     borderWidth: '1px',
     display: 'flex',
-    height: '8.5rem',
+    height: '7.5rem',
     justifyContent: 'center',
-    paddingBottom: '1rem',
-    width: '8.5rem'
+    width: '7.5rem'
+  },
+  link: {
+    color: theme.palette.primary.main
   }
 }))
 
 const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) => {
-    const classes = useStyles()
+  const classes = useStyles()
 
   return (
     <Card className={classes.card}>
-      <CardHeader className={classes.cardHeader}title={props.name}></CardHeader>
+      <CardHeader
+        className={classes.cardHeader}
+        title={<Link className={classes.link} to={props.route} target="_blank">{props.name}</Link>} />
       <CardContent className={classes.cardContent}>
-        <div className={classes.iconContainer}>
-          {props.icon}
-        </div>
+        <Box className={classes.iconContainer}>{props.icon}</Box>
         <Typography className={classes.cardDescription}>{props.description}</Typography>
       </CardContent>
       <CardActions className={classes.cardActions}>
-        <Button color="primary" href={props.route} size='large' variant="contained" sx={{fontSize: '1.125rem', fontWeight: 700}}>
+        <Button
+          color="primary"
+          href={props.route}
+          size="large"
+          variant="contained"
+          sx={{ fontSize: '1.125rem', fontWeight: 700 }}
+        >
           Get Started
-          
         </Button>
       </CardActions>
     </Card>

@@ -10,7 +10,7 @@ const ToolCards: React.FunctionComponent = () => {
       <Grid container spacing={2.5}>
         {toolInfos.map(item => {
           return (
-            <Grid style={{display: 'flex'}} key={item.name} item sm={12} md={6} lg={4}>
+            <Grid style={{ display: 'flex' }} key={item.name} item sm={12} md={6} lg={4}>
               <ToolCard description={item.description} icon={item.icon} route={item.route} name={item.name} />
             </Grid>
           )

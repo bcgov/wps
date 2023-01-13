@@ -23,6 +23,7 @@ export const HFI_CALC_ROUTE = '/hfi-calculator'
 export const C_HAINES_ROUTE = '/c-haines'
 export const FIRE_BEHAVIOR_CALC_ROUTE = '/fire-behaviour-calculator'
 export const FIRE_BEHAVIOUR_ADVISORY_ROUTE = '/auto-spatial-advisory'
+export const LANDING_PAGE_ROUTE = '/'
 
 // ExpandableContainer widths
 export const PARTIAL_WIDTH = 850
@@ -40,5 +41,4 @@ export const MORE_CAST_NAME = 'MoreCast'
 export const PERCENTILE_CALC_NAME = 'Percentile Calculator'
 
 // UI constants
-export const FOOTER_HEIGHT = 145
 export const HEADER_HEIGHT = 56
