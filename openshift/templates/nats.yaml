@@ -45,7 +45,7 @@ objects:
     metadata:
       name: nats-config
       labels:
-        app: ${APP_NAME}-${SUFFIX}-nats
+        app: ${APP_NAME}-${SUFFIX}
     data:
       nats.conf: |-
         pid_file: "/var/run/nats/nats.pid"
@@ -94,10 +94,10 @@ objects:
     metadata:
       name: ${APP_NAME}-${SUFFIX}-nats
       labels:
-        app: ${APP_NAME}-${SUFFIX}-nats
+        app: ${APP_NAME}-${SUFFIX}
     spec:
       selector:
-        app: ${APP_NAME}-${SUFFIX}-nats
+        app: ${APP_NAME}-${SUFFIX}
       clusterIP: None
       ports:
         - name: client
@@ -118,11 +118,11 @@ objects:
     metadata:
       name: ${APP_NAME}-${SUFFIX}-nats
       labels:
-        app: ${APP_NAME}-${SUFFIX}-nats
+        app: ${APP_NAME}-${SUFFIX}
     spec:
       selector:
         matchLabels:
-          app: ${APP_NAME}-${SUFFIX}-nats
+        app: ${APP_NAME}-${SUFFIX}
       replicas: 3
       serviceName: "${APP_NAME}-${SUFFIX}-nats"
       volumeClaimTemplates:
@@ -139,7 +139,7 @@ objects:
       template:
         metadata:
           labels:
-            app: ${APP_NAME}-${SUFFIX}-nats
+            app: ${APP_NAME}-${SUFFIX}
         spec:
           # Common volumes for the containers
           volumes:
@@ -247,16 +247,16 @@ objects:
     metadata:
       name: ${APP_NAME}-${SUFFIX}-nats-consumer
       labels:
-        app: ${APP_NAME}-${SUFFIX}-nats
+        app: ${APP_NAME}-${SUFFIX}
     spec:
       replicas: 3
       selector:
         matchLabels:
-          app: ${APP_NAME}-${SUFFIX}-nats
+          app: ${APP_NAME}-${SUFFIX}
       template:
         metadata:
           labels:
-            app: ${APP_NAME}-${SUFFIX}-nats
+            app: ${APP_NAME}-${SUFFIX}
         spec:
           containers:
             - name: ${APP_NAME}-${SUFFIX}-nats-consumer
