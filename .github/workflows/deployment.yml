@@ -115,8 +115,8 @@ jobs:
       - name: Configure
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_nats_server_config.sh ${SUFFIX} apply
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          bash openshift/scripts/oc_provision_nats_server_config.sh ${SUFFIX} apply
 
   deploy-dev:
     name: Deploy to Dev
