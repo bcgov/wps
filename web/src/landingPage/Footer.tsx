@@ -18,17 +18,15 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const VerticalDivider: React.FunctionComponent = () => {
-  return <div style={{ color: "#FFFFFF" }}>|</div>
+  return <div style={{ color: '#FFFFFF' }}>|</div>
 }
 
-const StyledLink = styled(Link)(
-  ({theme}) => ({
-    color: '#FFFFFF',
-    paddingLeft: theme.spacing(1),
-    paddingRight: theme.spacing(1),
-    textDecoration: 'none'
-  })
-)
+const StyledLink = styled(Link)(({ theme }) => ({
+  color: '#FFFFFF',
+  paddingLeft: theme.spacing(1),
+  paddingRight: theme.spacing(1),
+  textDecoration: 'none'
+}))
 
 const Footer: React.FunctionComponent = () => {
   const classes = useStyles()

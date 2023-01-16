@@ -2,9 +2,7 @@ import React from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import ContentContainer from 'app/ContentContainer'
 import Footer from 'landingPage/Footer'
-import Search from 'landingPage/Search'
 import Sidebar from 'landingPage/Sidebar'
-import { FOOTER_HEIGHT } from 'utils/constants'
 import ToolCards from 'landingPage/ToolCards'
 
 const useStyles = makeStyles(() => ({
@@ -15,7 +13,6 @@ const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
-    margin: 0,
     minHeight: '100vh'
   },
   subcontainer: {
@@ -26,7 +23,6 @@ const useStyles = makeStyles(() => ({
   sidebar: {
     display: 'flex',
     flexDirection: 'column',
-    maxHeight: `calc(100vh - ${FOOTER_HEIGHT}px)`,
     overflowY: 'auto',
     minWidth: '251px',
     width: '251px'
@@ -43,9 +39,8 @@ const LandingPage: React.FunctionComponent = () => {
           <Sidebar />
         </div>
         <div className={classes.subcontainer}>
-          <Search />
           <ContentContainer>
-            {/* Future home of a routing component */}
+            {/* Future home of a routing component once we integrate apps into the landing page */}
             <ToolCards />
           </ContentContainer>
         </div>

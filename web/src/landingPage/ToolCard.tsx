@@ -8,10 +8,12 @@ import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 import { Link } from 'react-router-dom'
+import BetaTag from 'landingPage/BetaTag'
 
 interface ToolCardProps {
   description: React.ReactNode | string
   icon: React.ReactNode
+  isBeta: boolean
   name: string
   route: string
 }
@@ -47,7 +49,6 @@ const useStyles = makeStyles(theme => ({
   },
   cardHeader: {
     color: theme.palette.primary.main,
-    fontWeight: 700,
     textAlign: 'center',
     textDecoration: 'underline'
   },
@@ -63,7 +64,8 @@ const useStyles = makeStyles(theme => ({
     width: '7.5rem'
   },
   link: {
-    color: theme.palette.primary.main
+    color: theme.palette.primary.main,
+    fontWeight: 'bold'
   }
 }))
 
@@ -74,9 +76,18 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
     <Card className={classes.card}>
       <CardHeader
         className={classes.cardHeader}
-        title={<Link className={classes.link} to={props.route} target="_blank">{props.name}</Link>} />
+        title={(
+          <React.Fragment>
+            <Link className={classes.link} to={props.route} target="_blank">
+              {props.name}
+            </Link>
+            {props.isBeta && <BetaTag />}
+          </React.Fragment>
+        )}
+      >
+      </CardHeader>
       <CardContent className={classes.cardContent}>
-        <Box className={classes.iconContainer}>{props.icon}</Box>
+      <Box className={classes.iconContainer}>{props.icon}</Box>
         <Typography className={classes.cardDescription}>{props.description}</Typography>
       </CardContent>
       <CardActions className={classes.cardActions}>

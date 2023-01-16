@@ -9,7 +9,7 @@ import { toolInfos } from 'landingPage/toolInfo'
 
 const useStyles = makeStyles(() => ({
   icon: {
-    minWidth: '36px'
+    minWidth: '3rem'
   }
 }))
 

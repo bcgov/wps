@@ -1,12 +1,12 @@
 import React from 'react'
+import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
-import { theme } from 'app/theme'
 
 interface SubheadingProps {
   title: string
 }
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   root: {
     backgroundColor: theme.palette.primary.main,
     color: theme.palette.primary.contrastText,
@@ -16,12 +16,12 @@ const useStyles = makeStyles(() => ({
     borderTop: '2px',
     borderColor: theme.palette.secondary.main,
     borderTopStyle: 'solid',
-    minHeight: '75px'
+    height: '75px'
   },
   text: {
-    fontSize: '21.6px',
+    fontSize: '1.25rem',
     fontWeight: 700,
-    paddingLeft: '10px'
+    paddingLeft: theme.spacing(1.25)
   }
 }))
 
@@ -29,11 +29,9 @@ const Subheading: React.FunctionComponent<SubheadingProps> = (props: SubheadingP
   const classes = useStyles()
 
   return (
-    <React.Fragment>
-      <div id="sidebar-header" className={classes.root}>
-        <div className={classes.text}>{props.title}</div>
-      </div>
-    </React.Fragment>
+    <div id="sidebar-header" className={classes.root}>
+      <Typography className={classes.text}>{props.title}</Typography>
+    </div>
   )
 }
 

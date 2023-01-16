@@ -1,5 +1,4 @@
 import React from 'react'
-import Divider from '@mui/material/Divider'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
@@ -19,20 +18,25 @@ const msTeamsSprintMeeting =
   'https://teams.microsoft.com/l/meetup-join/19%3ameeting_NDc0MDcwZTMtNTMxMS00MzEwLTg3MmItZGFiMjY2YjRjZWU1%40thread.v2/0?context=%7b%22Tid%22%3a%226fdb5200-3d0d-4a8a-b036-d3685e359adc%22%2c%22Oid%22%3a%22621f41d9-25a1-447c-9edd-9accf5794ad6%22%7d'
 const miroSprintBoard = 'https://miro.com/app/board/o9J_kvUSfDU=/'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   content: {
-    paddingLeft: '1rem',
-    paddingRight: '1rem'
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
+    paddingTop: theme.spacing(2)
+  },
+  email: {
+    fontSize: '0.8rem'
   },
   header: {
     display: 'flex',
     flexDirection: 'column',
-    minHeight: '87px'
+    minHeight: '85px'
   },
   headerText: {
-    fontSize: '18px',
+    fontSize: '1.125rem',
     fontWeight: 700,
-    marginLeft: '60px'
+    marginLeft: '65px',
+    marginTop: '-10px'
   },
   icon: {
     minWidth: '36px'
@@ -79,7 +83,7 @@ export const Sidebar: React.FunctionComponent = () => {
     <Stack className={classes.root}>
       <div className={classes.header} id="sidebar-header">
         <a href="https://gov.bc.ca" target="_blank" rel="noreferrer">
-          <img className={classes.logo} src="images/BCID-192x192.png" alt="B.C. Government logo" />
+          <img src="images/bc-wilderfire-service-logo.png" alt="B.C. Wildfire Service logo" />
         </a>
         <div className={classes.headerText}>Predictive Services</div>
       </div>
@@ -89,8 +93,8 @@ export const Sidebar: React.FunctionComponent = () => {
       {renderCollaborate()}
       <Subheading title="Support" />
       <div className={classes.content}>
-        <Typography variant="body1">To report bugs or receive support on technical issues, please email:</Typography>
-        {/* <a href={'mailto:BCWS.PredictiveServices@gov.bc.ca'}>BCWS.PredictiveServices@gov.bc.ca</a> */}
+        <Typography>To report bugs or receive support on technical issues, please email:</Typography>
+        <a className={classes.email} href={'mailto:BCWS.PredictiveServices@gov.bc.ca'}>BCWS.PredictiveServices@gov.bc.ca</a>
       </div>
     </Stack>
   )

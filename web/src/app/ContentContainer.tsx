@@ -10,7 +10,7 @@ interface ContentContainerProps {
 // be used to host the tool cards or a complete application if we eventually display them within the
 // landing page
 const ContentContainer: React.FunctionComponent<ContentContainerProps> = (props: ContentContainerProps) => {
-  return <Box sx={{ bgcolor: LANDING_BACKGROUND_COLOUR, flex: 1, padding: '2rem' }}>{props.children}</Box>
+  return <Box sx={{ bgcolor: LANDING_BACKGROUND_COLOUR, flex: 1 }}>{props.children}</Box>
 }
 
 export default React.memo(ContentContainer)
