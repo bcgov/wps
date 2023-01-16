@@ -12,9 +12,8 @@ const useStyles = makeStyles(theme => ({
     fontWeight: 700,
     paddingBottom: theme.spacing(1),
     paddingTop: theme.spacing(1)
-    }
   }
-))
+}))
 
 const ToolCards: React.FunctionComponent = () => {
   const classes = useStyles()
@@ -26,7 +25,13 @@ const ToolCards: React.FunctionComponent = () => {
         {toolInfos.map(item => {
           return (
             <Grid style={{ display: 'flex' }} key={item.name} item sm={12} md={6} lg={4}>
-              <ToolCard description={item.description} icon={item.icon} isBeta={item.isBeta} route={item.route} name={item.name} />
+              <ToolCard
+                description={item.description}
+                icon={item.icon}
+                isBeta={item.isBeta}
+                route={item.route}
+                name={item.name}
+              />
             </Grid>
           )
         })}

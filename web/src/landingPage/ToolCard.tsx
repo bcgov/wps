@@ -75,19 +75,18 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
   return (
     <Card className={classes.card}>
       <CardHeader
+      action={props.isBeta && <BetaTag />}
         className={classes.cardHeader}
-        title={(
+        title={
           <React.Fragment>
             <Link className={classes.link} to={props.route} target="_blank">
               {props.name}
             </Link>
-            {props.isBeta && <BetaTag />}
           </React.Fragment>
-        )}
-      >
-      </CardHeader>
+        }
+      />
       <CardContent className={classes.cardContent}>
-      <Box className={classes.iconContainer}>{props.icon}</Box>
+        <Box className={classes.iconContainer}>{props.icon}</Box>
         <Typography className={classes.cardDescription}>{props.description}</Typography>
       </CardContent>
       <CardActions className={classes.cardActions}>
@@ -97,6 +96,7 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
           size="large"
           variant="contained"
           sx={{ fontSize: '1.125rem', fontWeight: 700 }}
+          target="_blank"
         >
           Get Started
         </Button>

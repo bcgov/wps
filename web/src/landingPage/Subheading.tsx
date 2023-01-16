@@ -16,12 +16,18 @@ const useStyles = makeStyles(theme => ({
     borderTop: '2px',
     borderColor: theme.palette.secondary.main,
     borderTopStyle: 'solid',
-    height: '75px'
+    height: '75px',
+    [theme.breakpoints.down('sm')]: {
+      height: '56px'
+    }
   },
   text: {
     fontSize: '1.25rem',
     fontWeight: 700,
-    paddingLeft: theme.spacing(1.25)
+    paddingLeft: theme.spacing(1.25),
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '1rem'
+    }
   }
 }))
 

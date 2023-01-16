@@ -78,7 +78,7 @@ export const percentileCalcInfo: ToolInfo = {
   name: PERCENTILE_CALC_NAME,
   route: PERCENTILE_CALC_ROUTE,
   description:
-    'A tool that helps users identify fire weather indices coinciding with historically uncommon fire danger at weather stations located around the province.',  
+    'A tool that helps users identify fire weather indices coinciding with historically uncommon fire danger at weather stations located around the province.',
   icon: <PercentIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: false
 }

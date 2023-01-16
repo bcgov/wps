@@ -1,6 +1,4 @@
 import React from 'react'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 
 const useStyles = makeStyles(theme => ({
@@ -14,15 +12,12 @@ const useStyles = makeStyles(theme => ({
     paddingRight: theme.spacing(1.25),
     paddingTop: theme.spacing(0.5),
     marginLeft: theme.spacing(2)
-    }
   }
-))
+}))
 
 const BetaTag: React.FunctionComponent = () => {
   const classes = useStyles()
-  return (
-    <span className={classes.root}>Beta</span>
-  )
+  return <span className={classes.root}>Beta</span>
 }
 
 export default React.memo(BetaTag)

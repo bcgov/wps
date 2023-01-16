@@ -1,5 +1,6 @@
 import React from 'react'
-import { styled } from '@mui/material/styles'
+import { styled, useTheme} from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import makeStyles from '@mui/styles/makeStyles'
 import { Link } from 'react-router-dom'
 
@@ -9,7 +10,10 @@ const useStyles = makeStyles(theme => ({
     fontSize: '0.75rem',
     paddingBottom: theme.spacing(2),
     paddingLeft: theme.spacing(1),
-    paddingTop: theme.spacing(2)
+    paddingTop: theme.spacing(2),
+    [theme.breakpoints.down('sm')]: {
+      flexDirection: 'column'
+    }
   },
   root: {
     backgroundColor: theme.palette.primary.main,
@@ -30,20 +34,22 @@ const StyledLink = styled(Link)(({ theme }) => ({
 
 const Footer: React.FunctionComponent = () => {
   const classes = useStyles()
+  const theme = useTheme()
+  const isLarge = useMediaQuery(theme.breakpoints.up('sm'))
 
   return (
     <div className={classes.root}>
       <div className={classes.links}>
         <StyledLink to={{ pathname: '/' }}>Home</StyledLink>
-        <VerticalDivider />
+        { isLarge && <VerticalDivider /> }
         <StyledLink to={{ pathname: '/' }}>Disclaimer</StyledLink>
-        <VerticalDivider />
+        { isLarge && <VerticalDivider /> }
         <StyledLink to={{ pathname: '/' }}>Privacy</StyledLink>
-        <VerticalDivider />
+        { isLarge && <VerticalDivider /> }
         <StyledLink to={{ pathname: '/' }}>Accessibility</StyledLink>
-        <VerticalDivider />
+        { isLarge && <VerticalDivider /> }
         <StyledLink to={{ pathname: '/' }}>Copyright</StyledLink>
-        <VerticalDivider />
+        { isLarge && <VerticalDivider /> }
         <StyledLink to={{ pathname: '/' }}>Contact Us</StyledLink>
       </div>
     </div>
