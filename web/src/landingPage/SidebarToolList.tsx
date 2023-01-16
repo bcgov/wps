@@ -48,11 +48,12 @@ const SidebarToolList: React.FunctionComponent = () => {
                 <ListItemText primary={item.name} secondary={isSmall && item.description} />
                 {item.isBeta && (
                   <div className={classes.beta}>
-                    <BetaTag/>
-                  </div>)}
+                    <BetaTag />
+                  </div>
+                )}
               </ListItemButton>
             </ListItem>
-              { isSmall && <Divider />}
+            {isSmall && <Divider />}
           </div>
         )
       })}

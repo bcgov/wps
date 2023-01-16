@@ -1,5 +1,5 @@
 import React from 'react'
-import { styled, useTheme} from '@mui/material/styles'
+import { styled, useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import makeStyles from '@mui/styles/makeStyles'
 import { Link } from 'react-router-dom'
@@ -41,15 +41,15 @@ const Footer: React.FunctionComponent = () => {
     <div className={classes.root}>
       <div className={classes.links}>
         <StyledLink to={{ pathname: '/' }}>Home</StyledLink>
-        { isLarge && <VerticalDivider /> }
+        {isLarge && <VerticalDivider />}
         <StyledLink to={{ pathname: '/' }}>Disclaimer</StyledLink>
-        { isLarge && <VerticalDivider /> }
+        {isLarge && <VerticalDivider />}
         <StyledLink to={{ pathname: '/' }}>Privacy</StyledLink>
-        { isLarge && <VerticalDivider /> }
+        {isLarge && <VerticalDivider />}
         <StyledLink to={{ pathname: '/' }}>Accessibility</StyledLink>
-        { isLarge && <VerticalDivider /> }
+        {isLarge && <VerticalDivider />}
         <StyledLink to={{ pathname: '/' }}>Copyright</StyledLink>
-        { isLarge && <VerticalDivider /> }
+        {isLarge && <VerticalDivider />}
         <StyledLink to={{ pathname: '/' }}>Contact Us</StyledLink>
       </div>
     </div>

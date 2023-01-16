@@ -75,7 +75,7 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
   return (
     <Card className={classes.card}>
       <CardHeader
-      action={props.isBeta && <BetaTag />}
+        action={props.isBeta && <BetaTag />}
         className={classes.cardHeader}
         title={
           <React.Fragment>

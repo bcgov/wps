@@ -1,6 +1,5 @@
 import React from 'react'
 import Box from '@mui/material/Box'
-import ButtonBase from '@mui/material/ButtonBase'
 import Button from '@mui/material/Button'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
@@ -68,7 +67,7 @@ const useStyles = makeStyles(theme => ({
       flexDirection: 'row',
       minHeight: '56px',
       maxHeight: '56px'
-    },
+    }
   },
   headerText: {
     display: 'flex',
@@ -96,7 +95,7 @@ const useStyles = makeStyles(theme => ({
   },
   supportBox: {
     backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
+    color: theme.palette.primary.contrastText
   },
   supportBoxText: {
     fontSize: '0.75rem',
@@ -116,12 +115,16 @@ export const Sidebar: React.FunctionComponent = () => {
           <Button className={classes.collabItem} href={msTeamsSprintMeeting} target="_blank">
             <SvgIcon component={MsTeamsIcon} fontSize="large" viewBox="0 0 2228.833 2073.333" />
             <Typography className={classes.collabItemTitle}>Teams Meetings</Typography>
-            <Typography className={classes.collabItemContent}>Join our weekly spring reviews or watch the recordings</Typography>
+            <Typography className={classes.collabItemContent}>
+              Join our weekly spring reviews or watch the recordings
+            </Typography>
           </Button>
           <Button className={classes.collabItem} href={miroSprintBoard} target="_blank">
             <SvgIcon component={MiroIcon} fontSize="large" viewBox="0 0 48 48" />
             <Typography className={classes.collabItemTitle}>Miro Board</Typography>
-            <Typography className={classes.collabItemContent}>Checkout our Miro board to see the latest from our sprint reviews</Typography>
+            <Typography className={classes.collabItemContent}>
+              Checkout our Miro board to see the latest from our sprint reviews
+            </Typography>
           </Button>
         </div>
       </Box>
@@ -166,12 +169,14 @@ export const Sidebar: React.FunctionComponent = () => {
           <Subheading title="Collaborate With Us" />
           {renderSmallCollaborate()}
         </Box>
-        <Subheading title="Support"/>
+        <Subheading title="Support" />
         <Box className={classes.supportBox}>
-          <Typography className={classes.supportBoxText}>To report bugs or receive support on technical issues, please email:</Typography>
-            <a className={classes.email} href={'mailto:BCWS.PredictiveServices@gov.bc.ca'}>
-              BCWS.PredictiveServices@gov.bc.ca
-            </a>
+          <Typography className={classes.supportBoxText}>
+            To report bugs or receive support on technical issues, please email:
+          </Typography>
+          <a className={classes.email} href={'mailto:BCWS.PredictiveServices@gov.bc.ca'}>
+            BCWS.PredictiveServices@gov.bc.ca
+          </a>
         </Box>
       </Stack>
     )

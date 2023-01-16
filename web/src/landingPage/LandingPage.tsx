@@ -29,7 +29,7 @@ const useStyles = makeStyles(theme => ({
     [theme.breakpoints.up('sm')]: {
       minWidth: '251px',
       maxWidth: '251px',
-      width: '251px',
+      width: '251px'
     }
   }
 }))
