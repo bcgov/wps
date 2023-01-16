@@ -276,8 +276,8 @@ objects:
                 - name: NATS_SERVER
                   valueFrom:
                     configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.nats-server
+                      name: ${APP_NAME}-${SUFFIX}-nats-server
+                      key: nats.server
                 - name: POSTGRES_READ_USER
                   value: ${POSTGRES_USER}
                 - name: POSTGRES_WRITE_USER
