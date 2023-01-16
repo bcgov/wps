@@ -45,7 +45,7 @@ objects:
     metadata:
       name: nats-config
       labels:
-        app: nats
+        app: ${APP_NAME}-${SUFFIX}-nats
     data:
       nats.conf: |-
         pid_file: "/var/run/nats/nats.pid"
@@ -122,7 +122,7 @@ objects:
     spec:
       selector:
         matchLabels:
-          app: nats
+          app: ${APP_NAME}-${SUFFIX}-nats
       replicas: 3
       serviceName: "${APP_NAME}-${SUFFIX}-nats"
       volumeClaimTemplates:
