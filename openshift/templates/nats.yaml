@@ -58,7 +58,7 @@ objects:
         server_name: $POD_NAME
         cluster {
             port: 6222
-            name: wps-nats-cluster
+            name: ${APP_NAME}-${SUFFIX}-nats-cluster
             routes [
                nats://${APP_NAME}-${SUFFIX}-nats-0.nats.${POD_NAMESPACE}.svc.cluster.local:6222
                nats://${APP_NAME}-${SUFFIX}-nats-1.nats.${POD_NAMESPACE}.svc.cluster.local:6222
