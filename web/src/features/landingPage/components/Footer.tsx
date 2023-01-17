@@ -50,10 +50,15 @@ const Footer: React.FunctionComponent = () => {
         {isLarge && <VerticalDivider />}
         <StyledLink to={{ pathname: '/' }}>Copyright</StyledLink>
         {isLarge && <VerticalDivider />}
-        <StyledLink to="#" onClick={(e) => {
-          window.location.href = 'mailto:BCWS.PredictiveServices@gov.bc.ca'
-          e.preventDefault()
-        }}>Contact Us</StyledLink>
+        <StyledLink
+          to="#"
+          onClick={e => {
+            window.location.href = 'mailto:BCWS.PredictiveServices@gov.bc.ca'
+            e.preventDefault()
+          }}
+        >
+          Contact Us
+        </StyledLink>
       </div>
     </div>
   )
