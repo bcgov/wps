@@ -98,7 +98,6 @@ objects:
     spec:
       selector:
         app: ${APP_NAME}-${SUFFIX}
-      clusterIP: None
       ports:
         - name: client
           port: 4222
