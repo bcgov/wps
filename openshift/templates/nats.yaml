@@ -60,9 +60,9 @@ objects:
             port: 6222
             name: wps-nats-cluster
             routes [
-               nats://nats-0.nats.${POD_NAMESPACE}.svc.cluster.local:6222
-               nats://nats-1.nats.${POD_NAMESPACE}.svc.cluster.local:6222
-               nats://nats-2.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://${APP_NAME}-${SUFFIX}-nats-0.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://${APP_NAME}-${SUFFIX}-nats-1.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://${APP_NAME}-${SUFFIX}-nats-2.nats.${POD_NAMESPACE}.svc.cluster.local:6222
             ]
             cluster_advertise: $CLUSTER_ADVERTISE
             connect_retries: 50
