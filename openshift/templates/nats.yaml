@@ -52,7 +52,7 @@ objects:
         http: 8222
         max_payload: 100Mb
         max_pending: 120Mb
-        debug: true
+        debug: false
         trace: false
         trace_verbose: false
         server_name: $POD_NAME
