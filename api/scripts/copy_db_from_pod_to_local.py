@@ -5,6 +5,8 @@ import subprocess
 import io
 import argparse
 from typing import List
+import openshift as oc
+from openshift.dynamic import DynamicClient
 
 
 class CopyException(Exception):
@@ -32,20 +34,28 @@ def get_first_project() -> str:
     result = subprocess.run(['oc', 'get', 'projects', '-o', 'name'],
                             stdout=subprocess.PIPE, check=True, text=True)
     project = io.StringIO(result.stdout).readline()
-    return project[project.rindex('/')+1:-1]
+    return project[project.rindex('/') + 1:-1]
 
 
 def list_pods(project: str) -> None:
-    """ print list of pods to screen """
-    result = subprocess.run([*oc_n_project(project), 'get', 'pods'],
-                            stdout=subprocess.PIPE, check=True, text=True)
-    print(result.stdout)
+    """ Print list of pods within selected project """
+    with oc.project(project), oc.timeout(10 * 60):
+        pod_selector = oc.selector("pods")
+        # for pod_name in pod_selector.qnames():
+        #     print(pod_name.split('/')[1])
+        for pod_obj in pod_selector.objects():
+            print(pod_obj.name())
+        pod_name = input("enter pod name: ")
+        pod = filter(lambda x: x.name() == pod_name, pod_selector.objects())
+        print(pod)
+        return pod
 
 
 def list_projects() -> None:
-    """ Print list of projects to screen """
-    result = subprocess.run(['oc', 'get', 'projects'], stdout=subprocess.PIPE, check=True, text=True)
-    print(result.stdout)
+    """ Print list of projects """
+    project_selector = oc.selector("projects")
+    for proj_name in project_selector.qnames():
+        print(proj_name.split('/')[1])
 
 
 def list_cluster_members(project: str, pod: str) -> None:
@@ -71,6 +81,14 @@ def list_databases(project: str, pod: str) -> None:
     """ List databases on pod """
     print("fetching list of databases...")
     result = subprocess.run([*oc_rsh(project, pod), 'psql', '-c', '\\l'],
+                            check=True, text=True, capture_output=True)
+    print(result.stdout)
+
+
+def list_tables(project: str, pod: str, database: str) -> None:
+    """ List tables in a database """
+    print("fetching list of tables")
+    result = subprocess.run([*oc_rsh(project, pod), 'psql', '-d', database, '-c', '\\dt'],
                             stdout=subprocess.PIPE, check=True, text=True)
     print(result.stdout)
 
@@ -96,11 +114,16 @@ def delete_lock_file(project: str, pod: str, database: str) -> None:
     print(result.stdout)
 
 
-def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str]:
+def dump_database(project: str, pod: str, database: str, mode: Mode, table: str) -> List[str]:
     """ Dump database to file """
     print('running pg_dump...')
     files = ['/tmp/dump_db.tar', ]
-    if mode == Mode.partial:
+    if table is not None:
+        print('copying {} table'.format(table))
+        result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp/dump_db.tar',
+                                 '--clean', '--table', table, '-Ft', database],
+                                stdout=subprocess.PIPE, check=True, text=True)
+    elif mode == Mode.partial:
         print('(partial dump)')
         result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp/dump_db.tar',
                                  '--clean', '-Ft', database,
@@ -109,13 +132,18 @@ def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str
                                 stdout=subprocess.PIPE, check=True, text=True)
     else:
         print('(complete dump)')
-        result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp/dump_db.tar',
-                                 '--clean', '-Ft', database],
-                                stdout=subprocess.PIPE, check=True, text=True)
+        if table is None:
+            result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp/dump_db.tar',
+                                     '--clean', '-Ft', database],
+                                    stdout=subprocess.PIPE, check=True, text=True)
+        else:
+            result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp_dump_db.tar',
+                                     '--clean', '-Ft', '--table', table, database],
+                                    stdout=subprocess.PIPE, check=True, text=True)
     print(result.stdout)
     process = subprocess.Popen([*oc_rsh(project, pod)], stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    if mode == Mode.partial:
+    if mode == Mode.partial and table is None:
         # partial model data
         tables = ['model_run_grid_subset_predictions', 'weather_station_model_predictions']
         for table in tables:
@@ -204,6 +232,12 @@ def get_database(project, pod) -> str:
     return database
 
 
+def get_table(project, pod, database) -> str:
+    list_tables(project, pod, database)
+    table = input("enter name of table, or leave blank for all: ")
+    return table
+
+
 def main():
     """
     Entry points - assumes you have openshift command line tools installed and are logged in .
@@ -218,9 +252,10 @@ def main():
     project = get_project()
     pod = get_pod(project)
     database = get_database(project, pod)
+    table = get_table(project, pod, database)
     create_lock_file(project, pod, database)
     try:
-        files = dump_database(project, pod, database, mode)
+        files = dump_database(project, pod, database, mode, table)
         copy_files_to_local(project, pod, files)
         delete_remote_files(project, pod, files)
     finally:
