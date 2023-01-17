@@ -123,7 +123,7 @@ objects:
       selector:
         matchLabels:
           app: ${APP_NAME}-${SUFFIX}
-      replicas: 5
+      replicas: 3
       serviceName: "${APP_NAME}-${SUFFIX}-nats"
       volumeClaimTemplates:
         - metadata:
