@@ -59,11 +59,10 @@ objects:
         cluster {
             port: 6222
             name: ${APP_NAME}-${SUFFIX}-nats-cluster
-            listen: localhost:6222
             routes [
-               nats://${APP_NAME}-${SUFFIX}-nats-0.nats.${POD_NAMESPACE}.svc.cluster.local:6222
-               nats://${APP_NAME}-${SUFFIX}-nats-1.nats.${POD_NAMESPACE}.svc.cluster.local:6222
-               nats://${APP_NAME}-${SUFFIX}-nats-2.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://${APP_NAME}-${SUFFIX}-nats-0.${APP_NAME}-${SUFFIX}-nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://${APP_NAME}-${SUFFIX}-nats-1.${APP_NAME}-${SUFFIX}-nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://${APP_NAME}-${SUFFIX}-nats-2.${APP_NAME}-${SUFFIX}-nats.${POD_NAMESPACE}.svc.cluster.local:6222
             ]
             cluster_advertise: $CLUSTER_ADVERTISE
             connect_retries: 50
@@ -124,7 +123,7 @@ objects:
       selector:
         matchLabels:
           app: ${APP_NAME}-${SUFFIX}
-      replicas: 3
+      replicas: 5
       serviceName: "${APP_NAME}-${SUFFIX}-nats"
       volumeClaimTemplates:
         - metadata:
