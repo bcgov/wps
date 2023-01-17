@@ -3,9 +3,9 @@ import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import makeStyles from '@mui/styles/makeStyles'
 import ContentContainer from 'app/ContentContainer'
-import Footer from 'landingPage/Footer'
-import Sidebar from 'landingPage/Sidebar'
-import ToolCards from 'landingPage/ToolCards'
+import Footer from 'features/landingPage/components/Footer'
+import Sidebar from 'features/landingPage/components/Sidebar'
+import ToolCards from 'features/landingPage/components/ToolCards'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -48,7 +48,9 @@ const LandingPage: React.FunctionComponent = () => {
         {!isSmall && (
           <div className={classes.subcontainer}>
             <ContentContainer>
-              {/* Future home of a routing component once we integrate apps into the landing page */}
+              {/* Future home of a routing component once we integrate apps into the landing page
+               *For now the landing page just displays the side bar and tool cards
+               */}
               <ToolCards />
             </ContentContainer>
           </div>

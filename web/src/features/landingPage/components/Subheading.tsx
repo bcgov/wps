@@ -16,7 +16,7 @@ const useStyles = makeStyles(theme => ({
     borderTop: '2px',
     borderColor: theme.palette.secondary.main,
     borderTopStyle: 'solid',
-    height: '75px',
+    height: '65px',
     [theme.breakpoints.down('sm')]: {
       height: '56px'
     }

@@ -8,7 +8,7 @@ import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 import { Link } from 'react-router-dom'
-import BetaTag from 'landingPage/BetaTag'
+import BetaTag from 'features/landingPage/components/BetaTag'
 
 interface ToolCardProps {
   description: React.ReactNode | string

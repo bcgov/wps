@@ -8,8 +8,8 @@ import ListItemText from '@mui/material/ListItemText'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import makeStyles from '@mui/styles/makeStyles'
-import BetaTag from 'landingPage/BetaTag'
-import { toolInfos } from 'landingPage/toolInfo'
+import BetaTag from 'features/landingPage/components/BetaTag'
+import { toolInfos } from 'features/landingPage/toolInfo'
 
 const useStyles = makeStyles(theme => ({
   beta: {

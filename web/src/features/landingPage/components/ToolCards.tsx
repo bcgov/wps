@@ -1,10 +1,10 @@
 import React from 'react'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
-import ToolCard from 'landingPage/ToolCard'
-import { toolInfos } from 'landingPage/toolInfo'
 import { Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import ToolCard from 'features/landingPage/components/ToolCard'
+import { toolInfos } from 'features/landingPage/toolInfo'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -15,7 +15,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const ToolCards: React.FunctionComponent = () => {
+const ToolCardsPage: React.FunctionComponent = () => {
   const classes = useStyles()
 
   return (
@@ -40,4 +40,4 @@ const ToolCards: React.FunctionComponent = () => {
   )
 }
 
-export default ToolCards
+export default ToolCardsPage
