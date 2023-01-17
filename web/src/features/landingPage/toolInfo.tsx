@@ -51,7 +51,7 @@ export const fireBehaviourCalcInfo: ToolInfo = {
   name: FIRE_BEHAVIOUR_CALC_NAME,
   route: FIRE_BEHAVIOR_CALC_ROUTE,
   description:
-    'A mobile application for calculating fire behaviour in the field. Available for downloasd from the Apple and Google Play stores.',
+    'A mobile application for calculating fire behaviour in the field. Available for download from the Apple and Google Play stores.',
   icon: <WhatshotOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: false
 }

@@ -7,6 +7,9 @@ import ToolCard from 'features/landingPage/components/ToolCard'
 import { toolInfos } from 'features/landingPage/toolInfo'
 
 const useStyles = makeStyles(theme => ({
+  grid: {
+    paddingBottom: theme.spacing(2)
+  },
   title: {
     fontSize: '2rem',
     fontWeight: 700,
@@ -21,7 +24,7 @@ const ToolCardsPage: React.FunctionComponent = () => {
   return (
     <Container>
       <Typography className={classes.title}>Decision Support Tools</Typography>
-      <Grid container spacing={2.5}>
+      <Grid className={classes.grid} container spacing={2.5}>
         {toolInfos.map(item => {
           return (
             <Grid style={{ display: 'flex' }} key={item.name} item sm={12} md={6} lg={4}>
