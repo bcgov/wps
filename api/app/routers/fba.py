@@ -33,7 +33,7 @@ async def get_all_fire_centers(_=Depends(authentication_required)):
     return FireCenterListResponse(fire_centers=fire_centers)
 
 
-@router.get('/fire-zone-areas/{run_type}/{run_date}/{for_date}',
+@router.get('/fire-zone-areas/{run_type}/{run_datetime}/{for_date}',
             response_model=FireZoneAreaListResponse)
 async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _=Depends(authentication_required)):
     """ Return area of each zone, and percentage of area of zone with high hfi. """
@@ -56,7 +56,7 @@ async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _
         return FireZoneAreaListResponse(zones=zones)
 
 
-@router.get('/sfms_run_datetimes/{run_type}/{for_date}', response_model=List[datetime])
+@router.get('/sfms-run-datetimes/{run_type}/{for_date}', response_model=List[datetime])
 async def get_run_datetimes_for_date_and_runtype(run_type: RunType, for_date: date, _=Depends(authentication_required)):
     """ Return list of datetimes for which SFMS has run, given a specific for_date and run_type.
     Datetimes should be ordered with most recent first. """

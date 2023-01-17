@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters } from 'app/rootReducer'
+import { selectFireCenters, selectRunDates } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
@@ -65,6 +65,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
+  const { mostRecentRunDate } = useSelector(selectRunDates)
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -86,22 +87,25 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }
 
   useEffect(() => {
-    console.log(`New run type: ${runType}`)
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
-    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
+    dispatch(fetchFireZoneAreas(runType, mostRecentRunDate?.toString(), dateOfInterest.toISODate()))
   }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatch(fetchFireCenters())
-    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
-    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
+    dispatch(fetchFireZoneAreas(runType, mostRecentRunDate?.toString(), dateOfInterest.toISODate()))
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
+    console.log(`most recent run date for date of interest ${dateOfInterest} is ${mostRecentRunDate}`)
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    dispatch(fetchFireZoneAreas(runType, mostRecentRunDate?.toString(), dateOfInterest.toISODate()))
+  }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <React.Fragment>
