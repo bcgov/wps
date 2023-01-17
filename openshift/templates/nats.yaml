@@ -43,7 +43,7 @@ objects:
   - apiVersion: v1
     kind: ConfigMap
     metadata:
-      name: nats-config
+      name: ${APP_NAME}-${SUFFIX}-nats-config
       labels:
         app: ${APP_NAME}-${SUFFIX}
     data:
@@ -60,9 +60,9 @@ objects:
             port: 6222
             name: ${APP_NAME}-${SUFFIX}-nats-cluster
             routes [
-               nats://${APP_NAME}-${SUFFIX}-nats-0.nats.${POD_NAMESPACE}.svc:6222
-               nats://${APP_NAME}-${SUFFIX}-nats-1.nats.${POD_NAMESPACE}.svc:6222
-               nats://${APP_NAME}-${SUFFIX}-nats-2.nats.${POD_NAMESPACE}.svc:6222
+               nats://${APP_NAME}-${SUFFIX}-nats-0.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://${APP_NAME}-${SUFFIX}-nats-1.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://${APP_NAME}-${SUFFIX}-nats-2.nats.${POD_NAMESPACE}.svc.cluster.local:6222
             ]
             cluster_advertise: $CLUSTER_ADVERTISE
             connect_retries: 50
@@ -98,6 +98,7 @@ objects:
     spec:
       selector:
         app: ${APP_NAME}-${SUFFIX}
+      clusterIP: None
       ports:
         - name: client
           port: 4222
@@ -144,7 +145,7 @@ objects:
           volumes:
             - name: config-volume
               configMap:
-                name: nats-config
+                name: ${APP_NAME}-${SUFFIX}-nats-config
             - name: pid
               emptyDir: {}
             - name: ${APP_NAME}-${SUFFIX}-nats
