@@ -59,6 +59,7 @@ objects:
         cluster {
             port: 6222
             name: ${APP_NAME}-${SUFFIX}-nats-cluster
+            listen: localhost:6222
             routes [
                nats://${APP_NAME}-${SUFFIX}-nats-0.nats.${POD_NAMESPACE}.svc.cluster.local:6222
                nats://${APP_NAME}-${SUFFIX}-nats-1.nats.${POD_NAMESPACE}.svc.cluster.local:6222
