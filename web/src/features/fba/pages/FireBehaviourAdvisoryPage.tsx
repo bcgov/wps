@@ -50,6 +50,19 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
+export const dateTimeToPostgresString = (runDate: luxon.DateTime | null | undefined) => {
+  console.log(` in dateTimeToPostgresString() - date = ${runDate}`)
+  console.log(typeof runDate)
+  if (runDate == null || runDate == undefined) {
+    return ''
+  }
+  const dateString = runDate.toSQLDate()
+  // const timeString = ` ${date.hour}:${date.minute}:${date.second}.${date.millisecond}${PST_UTC_OFFSET}`
+  const timeString = ` ${runDate.toSQLTime()}`
+  console.log(dateString.concat(timeString))
+  return dateString.concat(timeString)
+}
+
 export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
@@ -88,23 +101,23 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
-    dispatch(fetchFireZoneAreas(runType, mostRecentRunDate?.toString(), dateOfInterest.toISODate()))
+    console.log(`most recent run date is ${mostRecentRunDate}`)
   }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatch(fetchFireCenters())
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
-    dispatch(fetchFireZoneAreas(runType, mostRecentRunDate?.toString(), dateOfInterest.toISODate()))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+    console.log(`most recent run date is ${mostRecentRunDate}`)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
-    console.log(`most recent run date for date of interest ${dateOfInterest} is ${mostRecentRunDate}`)
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    dispatch(fetchFireZoneAreas(runType, mostRecentRunDate?.toString(), dateOfInterest.toISODate()))
+    dispatch(fetchFireZoneAreas(runType, dateTimeToPostgresString(mostRecentRunDate), dateOfInterest.toISODate()))
+    console.log(`most recent run date for date of interest ${dateOfInterest} is ${mostRecentRunDate}`)
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
