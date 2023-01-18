@@ -6,7 +6,6 @@ import io
 import argparse
 from typing import List
 import openshift as oc
-from openshift.dynamic import DynamicClient
 
 
 class CopyException(Exception):
