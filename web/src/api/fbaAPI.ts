@@ -57,6 +57,12 @@ export async function getAllRunDates(run_type: RunType, for_date: string): Promi
   return data
 }
 
+export async function getHighHFIFields(run_type: RunType, for_date: string, run_datetime: string): Promise<DateTime[]> {
+  const url = `fba/hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}`
+  const { data } = await axios.get(url, {})
+  return data
+}
+
 export async function getValueAtCoordinate(
   layer: string,
   latitude: number,
