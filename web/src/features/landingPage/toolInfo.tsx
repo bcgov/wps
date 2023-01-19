@@ -5,9 +5,12 @@ import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import PercentIcon from '@mui/icons-material/Percent'
 import PublicIcon from '@mui/icons-material/Public'
 import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
+
 import {
   C_HAINES_NAME,
   C_HAINES_ROUTE,
+  FBP_GO_NAME,
+  FBP_GO_ROUTE,
   FIRE_BEHAVIOUR_ADVISORY_NAME,
   FIRE_BEHAVIOUR_ADVISORY_ROUTE,
   FIRE_BEHAVIOUR_CALC_NAME,
@@ -51,7 +54,7 @@ export const fireBehaviourCalcInfo: ToolInfo = {
   name: FIRE_BEHAVIOUR_CALC_NAME,
   route: FIRE_BEHAVIOR_CALC_ROUTE,
   description:
-    'A mobile application for calculating fire behaviour in the field. Available for download from the Apple and Google Play stores.',
+    'A tool that supports the calculation of fire behaviour metrics given forecast or actual weather conditions and user-specified fuel types.',
   icon: <WhatshotOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: false
 }
@@ -60,7 +63,7 @@ export const hfiCalcInfo: ToolInfo = {
   name: HFI_CALC_NAME,
   route: HFI_CALC_ROUTE,
   description:
-    'A tool that supports the calculation of fire behaviour metrics given forecast or actual weather conditions and user-specified fuel types.',
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   icon: <CalculateOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: false
 }
@@ -83,6 +86,15 @@ export const percentileCalcInfo: ToolInfo = {
   isBeta: false
 }
 
+export const fbpGoInfo: ToolInfo = {
+  name: FBP_GO_NAME,
+  route: FBP_GO_ROUTE,
+  description:
+    'A mobile application for calculating fire behaviour in the field. Available for download from the Apple and Google Play stores.',
+  icon: <img style={{ height: '36px', width: '36px' }} src="/images/fbpgo_maskable.png" />,
+  isBeta: false
+}
+
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of CardTravelSharp.
 export const toolInfos = [
@@ -91,5 +103,6 @@ export const toolInfos = [
   cHainesInfo,
   fireBehaviourCalcInfo,
   hfiCalcInfo,
-  percentileCalcInfo
+  percentileCalcInfo,
+  fbpGoInfo
 ]

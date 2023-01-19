@@ -72,19 +72,26 @@ const useStyles = makeStyles(theme => ({
 const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) => {
   const classes = useStyles()
 
+  const renderLink = () => {
+    const path = props.route
+    if (path.startsWith('http')) {
+      return (
+        <a className={classes.link} href={path} rel="noreferrer" target="_blank">
+          {props.name}
+        </a>
+      )
+    } else {
+      return (
+        <Link className={classes.link} to={{ pathname: props.route }} target="_blank">
+          {props.name}
+        </Link>
+      )
+    }
+  }
+
   return (
     <Card className={classes.card}>
-      <CardHeader
-        action={props.isBeta && <BetaTag />}
-        className={classes.cardHeader}
-        title={
-          <React.Fragment>
-            <Link className={classes.link} to={props.route} target="_blank">
-              {props.name}
-            </Link>
-          </React.Fragment>
-        }
-      />
+      <CardHeader action={props.isBeta && <BetaTag />} className={classes.cardHeader} title={renderLink()} />
       <CardContent className={classes.cardContent}>
         <Box className={classes.iconContainer}>{props.icon}</Box>
         <Typography className={classes.cardDescription}>{props.description}</Typography>

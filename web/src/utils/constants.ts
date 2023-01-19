@@ -21,6 +21,7 @@ export const FIRE_WEATHER_ROUTE = '/fire-weather'
 export const MORECAST_ROUTE = '/morecast'
 export const HFI_CALC_ROUTE = '/hfi-calculator'
 export const C_HAINES_ROUTE = '/c-haines'
+export const FBP_GO_ROUTE = 'https://sybrand.github.io/'
 export const FIRE_BEHAVIOR_CALC_ROUTE = '/fire-behaviour-calculator'
 export const FIRE_BEHAVIOUR_ADVISORY_ROUTE = '/auto-spatial-advisory'
 export const LANDING_PAGE_ROUTE = '/'
@@ -34,9 +35,10 @@ export const CENTER_OF_BC = [-123.3656, 51.4484]
 
 // Application names
 export const C_HAINES_NAME = 'C-Haines'
+export const FBP_GO_NAME = 'FBP Go'
 export const FIRE_BEHAVIOUR_ADVISORY_NAME = 'Auto Spatial Advisory'
-export const FIRE_BEHAVIOUR_CALC_NAME = 'FBP Go'
-export const HFI_CALC_NAME = 'FireBat'
+export const FIRE_BEHAVIOUR_CALC_NAME = 'FireBat'
+export const HFI_CALC_NAME = 'HFI Calculator'
 export const MORE_CAST_NAME = 'MoreCast'
 export const PERCENTILE_CALC_NAME = 'Percentile Calculator'
 
