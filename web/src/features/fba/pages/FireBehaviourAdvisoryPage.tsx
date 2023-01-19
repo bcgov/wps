@@ -50,17 +50,20 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const dateTimeToPostgresString = (runDate: luxon.DateTime | null | undefined) => {
-  console.log(` in dateTimeToPostgresString() - date = ${runDate}`)
-  console.log(typeof runDate)
-  if (runDate == null || runDate == undefined) {
-    return ''
+export const dateTimeToPostgresString = (runDateString: string | null) => {
+  if (runDateString !== null && runDateString !== undefined) {
+    console.log(`runDateString = ${runDateString}`)
+    const runDate = DateTime.fromISO(runDateString)
+    console.log(` in dateTimeToPostgresString() - date = ${runDate}`)
+    if (runDate == null || runDate == undefined) {
+      return ''
+    }
+    const dateString = runDate.toSQLDate()
+    const timeString = ` ${runDate.hour}:${runDate.minute}:${runDate.second}.${runDate.millisecond}${PST_UTC_OFFSET}`
+    console.log(dateString.concat(timeString))
+    return dateString.concat(timeString)
   }
-  const dateString = runDate.toSQLDate()
-  // const timeString = ` ${date.hour}:${date.minute}:${date.second}.${date.millisecond}${PST_UTC_OFFSET}`
-  const timeString = ` ${runDate.toSQLTime()}`
-  console.log(dateString.concat(timeString))
-  return dateString.concat(timeString)
+  return ``
 }
 
 export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
@@ -101,14 +104,12 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
-    console.log(`most recent run date is ${mostRecentRunDate}`)
   }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatch(fetchFireCenters())
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-    console.log(`most recent run date is ${mostRecentRunDate}`)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -117,7 +118,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     dispatch(fetchFireZoneAreas(runType, dateTimeToPostgresString(mostRecentRunDate), dateOfInterest.toISODate()))
-    console.log(`most recent run date for date of interest ${dateOfInterest} is ${mostRecentRunDate}`)
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

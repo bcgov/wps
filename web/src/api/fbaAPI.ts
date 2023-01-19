@@ -40,12 +40,12 @@ export async function getFireZoneAreas(
   run_datetime: string,
   for_date: string
 ): Promise<ZoneAreaListResponse> {
-  const url = `/fba/fire-zone-areas/${run_type.toLowerCase()}/${run_datetime}/${for_date}`
+  const url = `/fba/fire-zone-areas/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
   const { data } = await axios.get(url, {})
   return data
 }
 
-export async function getMostRecentRunDate(run_type: RunType, for_date: string): Promise<DateTime> {
+export async function getMostRecentRunDate(run_type: RunType, for_date: string): Promise<string> {
   const url = `fba/sfms-run-datetimes/${run_type.toLowerCase()}/${for_date}`
   const { data } = await axios.get(url, {})
   return data[0]
