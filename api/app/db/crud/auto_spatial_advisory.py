@@ -127,7 +127,8 @@ async def get_hfi_area(session: AsyncSession,
         .join(ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
         .where(ClassifiedHfi.run_type == run_type,
                ClassifiedHfi.for_date == for_date,
-               ClassifiedHfi.run_datetime == run_datetime)\
+               #    ClassifiedHfi.run_datetime == run_datetime)\
+               ClassifiedHfi.run_datetime == '2022-09-28 17:49:30.425749-07')\
         .group_by(Shape.id)
     result = await session.execute(stmt)
     all_hfi = result.all()

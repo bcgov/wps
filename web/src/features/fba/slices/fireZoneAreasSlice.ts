@@ -45,7 +45,7 @@ export default fireZoneAreasSlice.reducer
 export const fetchFireZoneAreas =
   (runType: RunType, run_datetime: string | undefined, for_date: string): AppThunk =>
   async dispatch => {
-    if (run_datetime != undefined) {
+    if (run_datetime != undefined && run_datetime !== ``) {
       try {
         dispatch(getFireZoneAreasStart())
         // TODO: We need a mechanism to request the most recent run date for a given for_date
