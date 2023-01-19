@@ -3,11 +3,11 @@
 
 import logging
 from datetime import date, datetime
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.db.database import get_async_read_session_scope
-from app.db.crud.auto_spatial_advisory import get_hfi_area, get_run_datetimes
+from app.db.crud.auto_spatial_advisory import get_fuel_types_with_high_hfi, get_hfi_area, get_run_datetimes
 from app.auth import authentication_required, audit
 from app.db.models.auto_spatial_advisory import RunTypeEnum
 from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea,\
@@ -54,6 +54,20 @@ async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _
                 elevated_hfi_area=row.hfi_area,  # type: ignore
                 elevated_hfi_percentage=hfi_area / combustible_area * 100))
         return FireZoneAreaListResponse(zones=zones)
+
+
+@router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}', response_model=Optional[datetime])
+async def get_latest_rundatetime(run_type: RunType,
+                                 for_date: date,
+                                 run_datetime: datetime):
+    """
+    Get the fuel types for the run_type, for_date, run_date
+    """
+    logger.info('hfi-fuels/%s/%s/%s', run_type, for_date, run_datetime)
+    async with get_async_read_session_scope() as session:
+        fuel_types_high_hfi = await get_fuel_types_with_high_hfi(session, run_type=RunTypeEnum(run_type.value), for_date=for_date, run_datetime=run_datetime)
+        logger.info(f'Latest rundatetime: {fuel_types_high_hfi}')
+        return None
 
 
 @router.get('/sfms-run-datetimes/{run_type}/{for_date}', response_model=List[datetime])
