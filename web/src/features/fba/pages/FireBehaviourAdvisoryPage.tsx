@@ -15,10 +15,11 @@ import { FireCenter } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
-import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
 import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
+import { isNull, isUndefined } from 'lodash'
+import { fetchHighHFIFuelds } from 'features/fba/slices/metricsSlice'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -116,8 +117,12 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    dispatch(fetchFireZoneAreas(runType, dateTimeToPostgresString(mostRecentRunDate), dateOfInterest.toISODate()))
+    // dispatch(fetchFireZoneAreas(runType, dateTimeToPostgresString(mostRecentRunDate), dateOfInterest.toISODate()))
     console.log(`most recent run date for date of interest ${dateOfInterest} is ${mostRecentRunDate}`)
+    if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
+      console.log(mostRecentRunDate)
+      dispatch(fetchHighHFIFuelds(runType, dateOfInterest.toISODate(), mostRecentRunDate.toString()))
+    }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
