@@ -6,9 +6,7 @@ let ENV = {
   KC_AUTH_URL: process.env.REACT_APP_KEYCLOAK_AUTH_URL as string,
   KC_REALM: process.env.REACT_APP_KEYCLOAK_REALM as string,
   KC_CLIENT: process.env.REACT_APP_KEYCLOAK_CLIENT as string,
-  TEST_AUTH: process.env.TEST_AUTH,
-  MS_TEAMS_SPRINT_REVIEW_URL: process.env.REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL as string,
-  MIRO_SPRINT_REVIEW_BOARD_URL: process.env.REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL as string
+  TEST_AUTH: process.env.TEST_AUTH
 }
 
 // If the app is built using 'npm run build'
@@ -23,9 +21,7 @@ if (process.env.NODE_ENV === 'production') {
     KC_AUTH_URL: window.env.REACT_APP_KEYCLOAK_AUTH_URL,
     KC_REALM: window.env.REACT_APP_KEYCLOAK_REALM,
     KC_CLIENT: window.env.REACT_APP_KEYCLOAK_CLIENT,
-    TEST_AUTH: undefined,
-    MS_TEAMS_SPRINT_REVIEW_URL: window.env.REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL,
-    MIRO_SPRINT_REVIEW_BOARD_URL: window.env.REACT_APP_MIRO_SPRINT_REVIEW_BOARD_URL
+    TEST_AUTH: undefined
   }
 }
 
@@ -37,7 +33,5 @@ export const {
   KC_REALM,
   KC_CLIENT,
   TEST_AUTH,
-  SM_LOGOUT_URL,
-  MS_TEAMS_SPRINT_REVIEW_URL,
-  MIRO_SPRINT_REVIEW_BOARD_URL
+  SM_LOGOUT_URL
 } = ENV

@@ -17,7 +17,10 @@ import SidebarToolList from 'features/landingPage/components/SidebarToolList'
 import Subheading from 'features/landingPage/components/Subheading'
 import { ReactComponent as MsTeamsIcon } from 'features/landingPage/images/msTeams.svg'
 import { ReactComponent as MiroIcon } from 'features/landingPage/images/miro.svg'
-import { MIRO_SPRINT_REVIEW_BOARD_URL, MS_TEAMS_SPRINT_REVIEW_URL } from 'utils/env'
+
+const msTeamsSprintMeeting =
+  'https://teams.microsoft.com/l/meetup-join/19%3ameeting_NDc0MDcwZTMtNTMxMS00MzEwLTg3MmItZGFiMjY2YjRjZWU1%40thread.v2/0?context=%7b%22Tid%22%3a%226fdb5200-3d0d-4a8a-b036-d3685e359adc%22%2c%22Oid%22%3a%22621f41d9-25a1-447c-9edd-9accf5794ad6%22%7d'
+const miroSprintBoard = 'https://miro.com/app/board/o9J_kvUSfDU=/'
 
 const useStyles = makeStyles(theme => ({
   box: {
@@ -109,14 +112,14 @@ export const Sidebar: React.FunctionComponent = () => {
     return (
       <Box className={classes.box}>
         <div className={classes.collab}>
-          <Button className={classes.collabItem} href={MS_TEAMS_SPRINT_REVIEW_URL} target="_blank">
+          <Button className={classes.collabItem} href={msTeamsSprintMeeting} target="_blank">
             <SvgIcon component={MsTeamsIcon} fontSize="large" viewBox="0 0 2228.833 2073.333" />
             <Typography className={classes.collabItemTitle}>Teams Meetings</Typography>
             <Typography className={classes.collabItemContent}>
               Join our weekly sprint reviews or watch the recordings
             </Typography>
           </Button>
-          <Button className={classes.collabItem} href={MIRO_SPRINT_REVIEW_BOARD_URL} target="_blank">
+          <Button className={classes.collabItem} href={miroSprintBoard} target="_blank">
             <SvgIcon component={MiroIcon} fontSize="large" viewBox="0 0 48 48" />
             <Typography className={classes.collabItemTitle}>Miro Board</Typography>
             <Typography className={classes.collabItemContent}>
@@ -132,7 +135,7 @@ export const Sidebar: React.FunctionComponent = () => {
     return (
       <List>
         <ListItem disablePadding>
-          <ListItemButton component={'a'} href={MS_TEAMS_SPRINT_REVIEW_URL} target="_blank">
+          <ListItemButton component={'a'} href={msTeamsSprintMeeting} target="_blank">
             <ListItemIcon className={classes.icon}>
               <SvgIcon component={MsTeamsIcon} viewBox="0 0 2228.833 2073.333" />
             </ListItemIcon>
@@ -140,7 +143,7 @@ export const Sidebar: React.FunctionComponent = () => {
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
-          <ListItemButton className={classes.icon} component={'a'} href={MIRO_SPRINT_REVIEW_BOARD_URL} target="_blank">
+          <ListItemButton className={classes.icon} component={'a'} href={miroSprintBoard} target="_blank">
             <ListItemIcon className={classes.icon}>
               <SvgIcon component={MiroIcon} viewBox="0 0 48 48" />
             </ListItemIcon>
