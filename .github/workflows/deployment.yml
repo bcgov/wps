@@ -81,6 +81,7 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
           GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=api bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+
   build-tileserv-image:
     name: Build tileserv Image
     runs-on: ubuntu-22.04
@@ -99,11 +100,35 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
             GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=tileserv DOCKER_FILE=Dockerfile.tileserv PATH_BC=openshift/templates/tileserv/tileserv_build.yaml bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
+  configure-nats-server-name:
+    name: Configure nats server name
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          bash openshift/scripts/oc_provision_nats_server_config.sh ${SUFFIX} apply
+
   deploy-dev:
     name: Deploy to Dev
     if: github.triggering_actor != 'renovate'
     needs:
-      [build-api-image, build-web-image, prepare-dev-database, deploy-dev-queue]
+      [
+        build-api-image,
+        build-web-image,
+        prepare-dev-database,
+        deploy-dev-queue,
+        configure-nats-server-name,
+      ]
     runs-on: ubuntu-22.04
     steps:
       - name: Set Variables
@@ -179,7 +204,7 @@ jobs:
     # We need
     # - the image to be built before we can deploy.
     # - we need the tileserv database up so we can write to it
-    needs: [build-api-image, deploy-tileserv]
+    needs: [build-api-image, deploy-tileserv, configure-nats-server-name]
     steps:
       - name: Set Variables
         shell: bash
