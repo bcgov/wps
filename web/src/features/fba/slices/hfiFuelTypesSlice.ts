@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { getAllRunDates, getHighHFIFields } from 'api/fbaAPI'
+import { getAllRunDates, getHFIThresholdsFuelTypes } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 interface State {
@@ -15,7 +15,7 @@ const initialState: State = {
   error: null
 }
 
-const runDatesSlice = createSlice({
+const hfiFuelTypesSlice = createSlice({
   name: 'runDates',
   initialState,
   reducers: {
@@ -34,19 +34,18 @@ const runDatesSlice = createSlice({
   }
 })
 
-export const { getHFIFuelsStart, getHFIFuelsFailed, getHFIFuelsStartSuccess } = runDatesSlice.actions
+export const { getHFIFuelsStart, getHFIFuelsFailed, getHFIFuelsStartSuccess } = hfiFuelTypesSlice.actions
 
-export default runDatesSlice.reducer
+export default hfiFuelTypesSlice.reducer
 
-export const fetchHighHFIFuelds =
+export const fetchHighHFIFuels =
   (runType: RunType, forDate: string, runDatetime: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(getHFIFuelsStart())
       const runDates = await getAllRunDates(runType, forDate)
-      const mostRecentRunDate = await getHighHFIFields(runType, forDate, runDatetime)
+      const zonesThresholdsFuelTypes = await getHFIThresholdsFuelTypes(runType, forDate, runDatetime)
       console.log(`runDates: ${runDates}`)
-      console.log(`mostRecentRunDate = ${mostRecentRunDate}`)
       dispatch(getHFIFuelsStartSuccess())
     } catch (err) {
       dispatch(getHFIFuelsFailed((err as Error).toString()))

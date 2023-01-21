@@ -28,6 +28,16 @@ export interface ZoneAreaListResponse {
   zones: FireZoneArea[]
 }
 
+export interface HfiThresholdFuelTypeArea {
+  fuel_type_id: number
+  threshold: number
+  area: number
+}
+export interface FireZoneThresholdFuelTypeResponse {
+  mof_fire_zone_id: number
+  fuel_types: HfiThresholdFuelTypeArea[]
+}
+
 export async function getFBAFireCenters(): Promise<FBAResponse> {
   const url = '/fba/fire-centers'
 
@@ -57,7 +67,11 @@ export async function getAllRunDates(run_type: RunType, for_date: string): Promi
   return data
 }
 
-export async function getHighHFIFields(run_type: RunType, for_date: string, run_datetime: string): Promise<DateTime[]> {
+export async function getHFIThresholdsFuelTypes(
+  run_type: RunType,
+  for_date: string,
+  run_datetime: string
+): Promise<FireZoneThresholdFuelTypeResponse[]> {
   const url = `fba/hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}`
   const { data } = await axios.get(url, {})
   return data
