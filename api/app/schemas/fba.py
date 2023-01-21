@@ -46,3 +46,16 @@ class FireZoneHighHfiAreas(BaseModel):
 class FireZoneHighHfiAreasListResponse(BaseModel):
     """ Response for all fire zones and their areas exceeding high HFI thresholds. """
     zones: List[FireZoneHighHfiAreas]
+
+
+class HfiThresholdAreaByFuelType(BaseModel):
+    """ Total area in sq.m. within HFI threshold for a specific fuel type """
+    fuel_type_id: int
+    threshold: int
+    area: float
+
+
+class FireZoneHfiThresholdsByFuelType(BaseModel):
+    """ A fire zone with the area exceeding HFI thresholds categorized by fuel type id """
+    mof_fire_zone_id: int
+    fuel_types: List[HfiThresholdAreaByFuelType]

@@ -45,6 +45,8 @@ export const fetchHighHFIFuelds =
       dispatch(getHFIFuelsStart())
       const runDates = await getAllRunDates(runType, forDate)
       const mostRecentRunDate = await getHighHFIFields(runType, forDate, runDatetime)
+      console.log(`runDates: ${runDates}`)
+      console.log(`mostRecentRunDate = ${mostRecentRunDate}`)
       dispatch(getHFIFuelsStartSuccess())
     } catch (err) {
       dispatch(getHFIFuelsFailed((err as Error).toString()))
