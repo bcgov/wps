@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters, selectRunDates } from 'app/rootReducer'
+import { selectFireCenters, selectHFIFuelTypes, selectRunDates } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
@@ -19,7 +19,7 @@ import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresho
 import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
-import { fetchHighHFIFuelds } from 'features/fba/slices/metricsSlice'
+import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -71,6 +71,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
+  const { hfiFuelTypes } = useSelector(selectHFIFuelTypes)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
@@ -118,11 +119,8 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // dispatch(fetchFireZoneAreas(runType, dateTimeToPostgresString(mostRecentRunDate), dateOfInterest.toISODate()))
-    console.log(`most recent run date for date of interest ${dateOfInterest} is ${mostRecentRunDate}`)
     if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
-      console.log(mostRecentRunDate)
-      dispatch(fetchHighHFIFuelds(runType, dateOfInterest.toISODate(), mostRecentRunDate.toString()))
+      dispatch(fetchHighHFIFuels(runType, dateOfInterest.toISODate(), mostRecentRunDate.toString()))
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -179,7 +177,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       </Container>
       <FBAMap
         forDate={dateOfInterest}
-        runDate={dateOfInterest} // default is to retrieve most recent available data
+        runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
         runType={runType}
         selectedFireCenter={fireCenter}
         advisoryThreshold={advisoryThreshold}

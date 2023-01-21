@@ -57,9 +57,9 @@ async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _
 
 
 @router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}', response_model=List[FireZoneHfiThresholdsByFuelType])
-async def get_latest_rundatetime(run_type: RunType,
-                                 for_date: date,
-                                 run_datetime: datetime):
+async def get_hfi_thresholds_by_fuel_type(run_type: RunType,
+                                          for_date: date,
+                                          run_datetime: datetime):
     """
     Get the fuel types for the run_type, for_date, run_date
     """
@@ -82,7 +82,7 @@ async def get_latest_rundatetime(run_type: RunType,
                 fuel_types_threshold_areas.append(HfiThresholdAreaByFuelType(
                     fuel_type_id=row[1], threshold=row[2], area=row[3]))
 
-        logger.info(f'Latest rundatetime: {fire_zones_hfi_fuel_types}')
+        logger.info(f'Fuel types results: {fire_zones_hfi_fuel_types}')
         return fire_zones_hfi_fuel_types
 
 
@@ -103,6 +103,7 @@ async def get_run_datetimes_for_date_and_runtype(run_type: RunType, for_date: da
 
 @router.get('/fire-zone-hfi-areas/{run_type}/{run_date}/{for_date}',
             response_model=FireZoneHighHfiAreasListResponse)
+# TODO: this function doesn't appear to be being used, and is calling itself...
 async def get_high_hfi_areas_per_zone(run_type: RunType,
                                       run_date: date,
                                       for_date: date,
