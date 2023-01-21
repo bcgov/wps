@@ -93,11 +93,16 @@ async def get_fuel_types_with_high_hfi(session: AsyncSession,
     logger.info('starting fuel types/high hfi/zone intersection query')
     perf_start = perf_counter()
 
-    stmt = select(FuelType.fuel_type_id, Shape.source_identifier, Shape.id, ClassifiedHfi.threshold,
-                  FuelType.geom.ST_Union().ST_Intersection(Shape.geom).ST_Area().label('fuel_type_area'))\
-        .join(Shape, Shape.geom.ST_Intersection(ClassifiedHfi.geom.ST_Union()))\
-        .where(ClassifiedHfi.for_date == for_date, ClassifiedHfi.run_datetime == run_datetime, ClassifiedHfi.run_type == run_type)\
-        .group_by(Shape.id, ClassifiedHfi.threshold, FuelType.fuel_type_id)
+    stmt = select(Shape.source_identifier, FuelType.fuel_type_id, ClassifiedHfi.threshold, func.sum(FuelType.geom.ST_Intersection(ClassifiedHfi.geom.ST_Intersection(Shape.geom)).ST_Area()).label('area'))\
+        .join_from(ClassifiedHfi, Shape, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
+        .join_from(ClassifiedHfi, FuelType, ClassifiedHfi.geom.ST_Intersects(FuelType.geom))\
+        .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date, ClassifiedHfi.run_datetime == run_datetime)\
+        .group_by(Shape.source_identifier)\
+        .group_by(FuelType.fuel_type_id)\
+        .group_by(ClassifiedHfi.threshold)\
+        .order_by(Shape.source_identifier)\
+        .order_by(FuelType.fuel_type_id)\
+        .order_by(ClassifiedHfi.threshold)
 
     result = await session.execute(stmt)
 
@@ -127,8 +132,7 @@ async def get_hfi_area(session: AsyncSession,
         .join(ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
         .where(ClassifiedHfi.run_type == run_type,
                ClassifiedHfi.for_date == for_date,
-               #    ClassifiedHfi.run_datetime == run_datetime)\
-               ClassifiedHfi.run_datetime == '2022-09-28 17:49:30.425749-07')\
+               ClassifiedHfi.run_datetime == run_datetime)\
         .group_by(Shape.id)
     result = await session.execute(stmt)
     all_hfi = result.all()

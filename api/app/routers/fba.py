@@ -10,8 +10,8 @@ from app.db.database import get_async_read_session_scope
 from app.db.crud.auto_spatial_advisory import get_fuel_types_with_high_hfi, get_hfi_area, get_run_datetimes
 from app.auth import authentication_required, audit
 from app.db.models.auto_spatial_advisory import RunTypeEnum
-from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea,\
-    FireZoneHighHfiAreas, FireZoneHighHfiAreasListResponse
+from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea, FireZoneHfiThresholdsByFuelType,\
+    FireZoneHighHfiAreas, FireZoneHighHfiAreasListResponse, HfiThresholdAreaByFuelType
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 from app.auto_spatial_advisory.process_hfi import RunType
 
@@ -56,18 +56,34 @@ async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _
         return FireZoneAreaListResponse(zones=zones)
 
 
-@router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}', response_model=Optional[datetime])
+@router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}', response_model=List[FireZoneHfiThresholdsByFuelType])
 async def get_latest_rundatetime(run_type: RunType,
                                  for_date: date,
                                  run_datetime: datetime):
     """
     Get the fuel types for the run_type, for_date, run_date
     """
-    logger.info('hfi-fuels/%s/%s/%s', run_type, for_date, run_datetime)
+    logger.info('hfi-fuels/%s/%s/%s', run_type.value, for_date, run_datetime)
     async with get_async_read_session_scope() as session:
         fuel_types_high_hfi = await get_fuel_types_with_high_hfi(session, run_type=RunTypeEnum(run_type.value), for_date=for_date, run_datetime=run_datetime)
-        logger.info(f'Latest rundatetime: {fuel_types_high_hfi}')
-        return None
+        fire_zones_hfi_fuel_types = []
+        current_zone_id = None
+        for row in fuel_types_high_hfi:
+            if current_zone_id is None:
+                current_zone_id = row[0]
+                fuel_types_threshold_areas = []
+            elif row[0] != current_zone_id:
+                fire_zones_hfi_fuel_types.append(FireZoneHfiThresholdsByFuelType(
+                    mof_fire_zone_id=current_zone_id,
+                    fuel_types=fuel_types_threshold_areas))
+                current_zone_id = row[0]
+                fuel_types_threshold_areas = []
+            elif row[0] == current_zone_id:
+                fuel_types_threshold_areas.append(HfiThresholdAreaByFuelType(
+                    fuel_type_id=row[1], threshold=row[2], area=row[3]))
+
+        logger.info(f'Latest rundatetime: {fire_zones_hfi_fuel_types}')
+        return fire_zones_hfi_fuel_types
 
 
 @router.get('/sfms-run-datetimes/{run_type}/{for_date}', response_model=List[datetime])
