@@ -2,6 +2,9 @@
 """
 
 import logging
+import itertools
+from itertools import groupby
+import operator
 from datetime import date, datetime
 from typing import List
 from fastapi import APIRouter, Depends
@@ -72,21 +75,20 @@ async def get_hfi_thresholds_by_fuel_type(run_type: RunType,
             for_date=for_date,
             run_datetime=run_datetime
         )
+
+        fuel_stats_by_fire_zone = groupby(fuel_types_high_hfi, operator.itemgetter(0))  # zone id is 1st in tuple
+        fire_zone_stats = dict((k, list(map(lambda x: x, values)))
+                               for k, values in fuel_stats_by_fire_zone)
+
         fire_zones_hfi_fuel_types = []
-        current_zone_id = None
-        for row in fuel_types_high_hfi:
-            if current_zone_id is None:
-                current_zone_id = row[0]
-                fuel_types_threshold_areas = []
-            elif row[0] != current_zone_id:
-                fire_zones_hfi_fuel_types.append(FireZoneHfiThresholdsByFuelType(
-                    mof_fire_zone_id=current_zone_id,
-                    fuel_types=fuel_types_threshold_areas))
-                current_zone_id = row[0]
-                fuel_types_threshold_areas = []
-            elif row[0] == current_zone_id:
-                fuel_types_threshold_areas.append(HfiThresholdAreaByFuelType(
-                    fuel_type_id=row[1], threshold=row[2], area=row[3]))
+
+        for fire_zone_id in fire_zone_stats:
+            fuel_type_stats = fire_zone_stats[fire_zone_id]
+            threshold_by_fuel_type = [HfiThresholdAreaByFuelType(fuel_type_id=x[1], threshold=x[2], area=x[3])
+                                      for x in fuel_type_stats]
+            fire_zones_hfi_fuel_types.append(FireZoneHfiThresholdsByFuelType(
+                mof_fire_zone_id=fire_zone_id,
+                fuel_types=threshold_by_fuel_type))
 
         return fire_zones_hfi_fuel_types
 
