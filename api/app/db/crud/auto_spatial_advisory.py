@@ -80,6 +80,38 @@ async def get_combustible_area(session: AsyncSession):
     return all_combustible
 
 
+async def get_fuel_types_with_high_hfi(session: AsyncSession,
+                                       run_type: RunTypeEnum,
+                                       run_datetime: datetime,
+                                       for_date: date) -> List[Row]:
+    """
+    Union of fuel types by fuel_type_id (1 multipolygon for each type of fuel)
+    Intersect with union of ClassifiedHfi for given run_type, run_datetime, and for_date
+        for both 4K-10K and 10K+ HFI values
+    Intersection with fire zone geom
+    """
+    logger.info('starting fuel types/high hfi/zone intersection query')
+    perf_start = perf_counter()
+
+    stmt = select(Shape.source_identifier, FuelType.fuel_type_id, ClassifiedHfi.threshold, func.sum(FuelType.geom.ST_Intersection(ClassifiedHfi.geom.ST_Intersection(Shape.geom)).ST_Area()).label('area'))\
+        .join_from(ClassifiedHfi, Shape, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
+        .join_from(ClassifiedHfi, FuelType, ClassifiedHfi.geom.ST_Intersects(FuelType.geom))\
+        .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date, ClassifiedHfi.run_datetime == run_datetime)\
+        .group_by(Shape.source_identifier)\
+        .group_by(FuelType.fuel_type_id)\
+        .group_by(ClassifiedHfi.threshold)\
+        .order_by(Shape.source_identifier)\
+        .order_by(FuelType.fuel_type_id)\
+        .order_by(ClassifiedHfi.threshold)
+
+    result = await session.execute(stmt)
+
+    perf_end = perf_counter()
+    delta = perf_end - perf_start
+    logger.info('%f delta count before and after fuel types/high hfi/zone intersection query', delta)
+    return result.all()
+
+
 async def get_hfi_area(session: AsyncSession,
                        run_type: RunTypeEnum,
                        run_datetime: datetime,
@@ -115,7 +147,7 @@ async def get_run_datetimes(session: AsyncSession, run_type: RunTypeEnum, for_da
     Retrieve all distinct available run_datetimes for a given run_type and for_date, and return the run_datetimes
     in descending order (most recent is first)
     """
-    stmt = select(ClassifiedHfi.id, ClassifiedHfi.run_datetime)\
+    stmt = select(ClassifiedHfi.run_datetime)\
         .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date)\
         .distinct()\
         .order_by(ClassifiedHfi.run_datetime.desc())

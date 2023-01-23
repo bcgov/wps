@@ -43,18 +43,23 @@ export const { getFireZoneAreasStart, getFireZoneAreasFailed, getFireZoneAreasSu
 export default fireZoneAreasSlice.reducer
 
 export const fetchFireZoneAreas =
-  (runType: RunType, for_date: string): AppThunk =>
+  (runType: RunType, run_datetime: string | undefined, for_date: string): AppThunk =>
   async dispatch => {
-    try {
-      dispatch(getFireZoneAreasStart())
-      // TODO: We need a mechanism to request the most recent run date for a given for_date
-      // Update Nov 15: we now have this mechanism. Need to plug it in to this - but the run date
-      // used won't necessarily be the most recent run date. Future feature will allow users
-      // to select which run date they want to view.
-      const fireZoneAreas = await getFireZoneAreas(runType, for_date, for_date)
-      dispatch(getFireZoneAreasSuccess(fireZoneAreas))
-    } catch (err) {
-      dispatch(getFireZoneAreasFailed((err as Error).toString()))
-      logError(err)
+    if (run_datetime != undefined && run_datetime !== ``) {
+      try {
+        dispatch(getFireZoneAreasStart())
+        const fireZoneAreas = await getFireZoneAreas(runType, run_datetime, for_date)
+        dispatch(getFireZoneAreasSuccess(fireZoneAreas))
+      } catch (err) {
+        dispatch(getFireZoneAreasFailed((err as Error).toString()))
+        logError(err)
+      }
+    } else {
+      try {
+        dispatch(getFireZoneAreasFailed('run_datetime cannot be undefined!'))
+      } catch (err) {
+        dispatch(getFireZoneAreasFailed((err as Error).toString()))
+        logError(err)
+      }
     }
   }
