@@ -53,9 +53,3 @@ class HfiThresholdAreaByFuelType(BaseModel):
     fuel_type_id: int
     threshold: int
     area: float
-
-
-class FireZoneHfiThresholdsByFuelType(BaseModel):
-    """ A fire zone with the area exceeding HFI thresholds categorized by fuel type id """
-    mof_fire_zone_id: int
-    fuel_types: List[HfiThresholdAreaByFuelType]

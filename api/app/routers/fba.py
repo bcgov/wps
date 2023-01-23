@@ -1,8 +1,10 @@
 """ Routers for Auto Spatial Advisory
 """
 
+from itertools import groupby
 import logging
 from datetime import date, datetime
+import operator
 from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
@@ -11,8 +13,7 @@ from app.db.crud.auto_spatial_advisory import get_fuel_types_with_high_hfi, get_
 from app.auth import authentication_required, audit
 from app.db.models.auto_spatial_advisory import RunTypeEnum
 from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea,\
-    FireZoneHfiThresholdsByFuelType, FireZoneHighHfiAreas, FireZoneHighHfiAreasListResponse,\
-    HfiThresholdAreaByFuelType
+    FireZoneHighHfiAreas, FireZoneHighHfiAreasListResponse, HfiThresholdAreaByFuelType
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 from app.auto_spatial_advisory.process_hfi import RunType
 
@@ -57,7 +58,7 @@ async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _
         return FireZoneAreaListResponse(zones=zones)
 
 
-@router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}', response_model=List[FireZoneHfiThresholdsByFuelType])
+@router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}', response_model=dict[str, List[HfiThresholdAreaByFuelType]])
 async def get_hfi_thresholds_by_fuel_type(run_type: RunType,
                                           for_date: date,
                                           run_datetime: datetime):
@@ -72,23 +73,18 @@ async def get_hfi_thresholds_by_fuel_type(run_type: RunType,
             for_date=for_date,
             run_datetime=run_datetime
         )
-        fire_zones_hfi_fuel_types = []
-        current_zone_id = None
-        for row in fuel_types_high_hfi:
-            if current_zone_id is None:
-                current_zone_id = row[0]
-                fuel_types_threshold_areas = []
-            elif row[0] != current_zone_id:
-                fire_zones_hfi_fuel_types.append(FireZoneHfiThresholdsByFuelType(
-                    mof_fire_zone_id=current_zone_id,
-                    fuel_types=fuel_types_threshold_areas))
-                current_zone_id = row[0]
-                fuel_types_threshold_areas = []
-            elif row[0] == current_zone_id:
-                fuel_types_threshold_areas.append(HfiThresholdAreaByFuelType(
-                    fuel_type_id=row[1], threshold=row[2], area=row[3]))
 
-        return fire_zones_hfi_fuel_types
+        fuel_stats_by_fire_zone = groupby(fuel_types_high_hfi, operator.itemgetter(0))
+        fire_zone_stats = dict((k, list(map(lambda x: x, values))) for k, values in fuel_stats_by_fire_zone)
+
+        for k, v in fire_zone_stats.items():
+            hfi_areas_for_zone = []
+            for tuple in v:
+                hfi_areas_for_zone.append(HfiThresholdAreaByFuelType(fuel_type_id=tuple[1],
+                                                                     threshold=tuple[2], area=tuple[3]))
+            fire_zone_stats[k] = hfi_areas_for_zone
+
+        return fire_zone_stats
 
 
 @router.get('/sfms-run-datetimes/{run_type}/{for_date}', response_model=List[datetime])
