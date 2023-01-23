@@ -81,8 +81,11 @@ const useStyles = makeStyles(theme => ({
     minWidth: '36px'
   },
   logo: {
-    width: 50,
-    marginLeft: theme.spacing(0.5)
+    width: '66%',
+    [theme.breakpoints.down('sm')]: {
+      height: '56px',
+      width: '100%'
+    }
   },
   root: {
     color: theme.palette.primary.main,
@@ -156,7 +159,7 @@ export const Sidebar: React.FunctionComponent = () => {
       <Stack className={classes.root}>
         <div className={classes.header} id="sidebar-header">
           <a href="https://gov.bc.ca" target="_blank" rel="noreferrer">
-            <img src="images/bc-wilderfire-service-logo.png" alt="B.C. Wildfire Service logo" />
+            <img className={classes.logo} src="images/bc-wilderfire-service-logo.png" alt="B.C. Wildfire Service logo" />
           </a>
           <div className={classes.headerText}>Predictive Services</div>
         </div>
@@ -184,7 +187,7 @@ export const Sidebar: React.FunctionComponent = () => {
       <Stack className={classes.root}>
         <div className={classes.header} id="sidebar-header">
           <a href="https://gov.bc.ca" target="_blank" rel="noreferrer">
-            <img src="images/bc-wilderfire-service-logo.png" alt="B.C. Wildfire Service logo" />
+            <img className={classes.logo} src="images/bc-wilderfire-service-logo.png" alt="B.C. Wildfire Service logo" />
           </a>
           <div className={classes.headerText}>Predictive Services</div>
         </div>

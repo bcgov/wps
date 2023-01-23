@@ -63,7 +63,7 @@ export const hfiCalcInfo: ToolInfo = {
   name: HFI_CALC_NAME,
   route: HFI_CALC_ROUTE,
   description:
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    'An application that informs preparedness levels throughout the province based on anticipated head fire intensities and fire occurrence.',
   icon: <CalculateOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: false
 }

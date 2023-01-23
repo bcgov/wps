@@ -32,6 +32,13 @@ const StyledLink = styled(Link)(({ theme }) => ({
   textDecoration: 'none'
 }))
 
+const StyledA = styled('a')(({ theme }) => ({
+  color: '#FFFFFF',
+  paddingLeft: theme.spacing(1),
+  paddingRight: theme.spacing(1),
+  textDecoration: 'none'
+}))
+
 const Footer: React.FunctionComponent = () => {
   const classes = useStyles()
   const theme = useTheme()
@@ -42,13 +49,21 @@ const Footer: React.FunctionComponent = () => {
       <div className={classes.links}>
         <StyledLink to={{ pathname: '/' }}>Home</StyledLink>
         {isLarge && <VerticalDivider />}
-        <StyledLink to={{ pathname: '/' }}>Disclaimer</StyledLink>
+        <StyledA href="https://www2.gov.bc.ca/gov/content/home/disclaimer" rel="noreferrer" target="_blank">
+          Disclaimer
+        </StyledA>
         {isLarge && <VerticalDivider />}
-        <StyledLink to={{ pathname: '/' }}>Privacy</StyledLink>
+        <StyledA href="https://www2.gov.bc.ca/gov/content/home/privacy" rel="noreferrer" target="_blank">
+          Privacy
+        </StyledA>
         {isLarge && <VerticalDivider />}
-        <StyledLink to={{ pathname: '/' }}>Accessibility</StyledLink>
+        <StyledA href="https://www2.gov.bc.ca/gov/content/home/accessible-government" rel="noreferrer" target="_blank">
+          Accessibility
+        </StyledA>
         {isLarge && <VerticalDivider />}
-        <StyledLink to={{ pathname: '/' }}>Copyright</StyledLink>
+        <StyledA href="https://www2.gov.bc.ca/gov/content/home/copyright" rel="noreferrer" target="_blank">
+          Copyright
+        </StyledA>
         {isLarge && <VerticalDivider />}
         <StyledLink
           to="#"
