@@ -45,7 +45,6 @@ export const fetchHighHFIFuels =
       dispatch(getHFIFuelsStart())
       const runDates = await getAllRunDates(runType, forDate)
       const zonesThresholdsFuelTypes = await getHFIThresholdsFuelTypes(runType, forDate, runDatetime)
-      console.log(`runDates: ${runDates}`)
       dispatch(getHFIFuelsStartSuccess())
     } catch (err) {
       dispatch(getHFIFuelsFailed((err as Error).toString()))
