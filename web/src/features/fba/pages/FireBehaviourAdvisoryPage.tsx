@@ -51,27 +51,12 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const dateTimeToPostgresString = (runDateString: string | null) => {
-  if (runDateString !== null && runDateString !== undefined) {
-    console.log(`runDateString = ${runDateString}`)
-    const runDate = DateTime.fromISO(runDateString)
-    console.log(` in dateTimeToPostgresString() - date = ${runDate}`)
-    if (runDate == null || runDate == undefined) {
-      return ''
-    }
-    const dateString = runDate.toSQLDate()
-    const timeString = ` ${runDate.hour}:${runDate.minute}:${runDate.second}.${runDate.millisecond}${PST_UTC_OFFSET}`
-    console.log(dateString.concat(timeString))
-    return dateString.concat(timeString)
-  }
-  return ``
-}
-
 export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-  const { hfiFuelTypes } = useSelector(selectHFIFuelTypes)
+  // TODO: hook up later
+  // const { hfiFuelTypes } = useSelector(selectHFIFuelTypes)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
