@@ -58,7 +58,8 @@ async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _
         return FireZoneAreaListResponse(zones=zones)
 
 
-@router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}', response_model=dict[str, List[HfiThresholdAreaByFuelType]])
+@router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}',
+            response_model=dict[str, List[HfiThresholdAreaByFuelType]])
 async def get_hfi_thresholds_by_fuel_type(run_type: RunType,
                                           for_date: date,
                                           run_datetime: datetime):
@@ -77,12 +78,12 @@ async def get_hfi_thresholds_by_fuel_type(run_type: RunType,
         fuel_stats_by_fire_zone = groupby(fuel_types_high_hfi, operator.itemgetter(0))
         fire_zone_stats = dict((k, list(map(lambda x: x, values))) for k, values in fuel_stats_by_fire_zone)
 
-        for k, v in fire_zone_stats.items():
+        for zone_id, tuples_list in fire_zone_stats.items():
             hfi_areas_for_zone = []
-            for tuple in v:
-                hfi_areas_for_zone.append(HfiThresholdAreaByFuelType(fuel_type_id=tuple[1],
-                                                                     threshold=tuple[2], area=tuple[3]))
-            fire_zone_stats[k] = hfi_areas_for_zone
+            for record in tuples_list:
+                hfi_areas_for_zone.append(HfiThresholdAreaByFuelType(fuel_type_id=record[1],
+                                                                     threshold=record[2], area=record[3]))
+            fire_zone_stats[zone_id] = hfi_areas_for_zone
 
         return fire_zone_stats
 
