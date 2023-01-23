@@ -3,15 +3,16 @@
 
 import logging
 from datetime import date, datetime
-from typing import List, Optional
+from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.db.database import get_async_read_session_scope
 from app.db.crud.auto_spatial_advisory import get_fuel_types_with_high_hfi, get_hfi_area, get_run_datetimes
 from app.auth import authentication_required, audit
 from app.db.models.auto_spatial_advisory import RunTypeEnum
-from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea, FireZoneHfiThresholdsByFuelType,\
-    FireZoneHighHfiAreas, FireZoneHighHfiAreasListResponse, HfiThresholdAreaByFuelType
+from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea,\
+    FireZoneHfiThresholdsByFuelType, FireZoneHighHfiAreas, FireZoneHighHfiAreasListResponse,\
+    HfiThresholdAreaByFuelType
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 from app.auto_spatial_advisory.process_hfi import RunType
 
@@ -65,7 +66,12 @@ async def get_hfi_thresholds_by_fuel_type(run_type: RunType,
     """
     logger.info('hfi-fuels/%s/%s/%s', run_type.value, for_date, run_datetime)
     async with get_async_read_session_scope() as session:
-        fuel_types_high_hfi = await get_fuel_types_with_high_hfi(session, run_type=RunTypeEnum(run_type.value), for_date=for_date, run_datetime=run_datetime)
+        fuel_types_high_hfi = await get_fuel_types_with_high_hfi(
+            session,
+            run_type=RunTypeEnum(run_type.value),
+            for_date=for_date,
+            run_datetime=run_datetime
+        )
         fire_zones_hfi_fuel_types = []
         current_zone_id = None
         for row in fuel_types_high_hfi:
@@ -82,7 +88,6 @@ async def get_hfi_thresholds_by_fuel_type(run_type: RunType,
                 fuel_types_threshold_areas.append(HfiThresholdAreaByFuelType(
                     fuel_type_id=row[1], threshold=row[2], area=row[3]))
 
-        logger.info(f'Fuel types results: {fire_zones_hfi_fuel_types}')
         return fire_zones_hfi_fuel_types
 
 
