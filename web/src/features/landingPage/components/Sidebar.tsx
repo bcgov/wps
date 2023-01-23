@@ -159,7 +159,11 @@ export const Sidebar: React.FunctionComponent = () => {
       <Stack className={classes.root}>
         <div className={classes.header} id="sidebar-header">
           <a href="https://gov.bc.ca" target="_blank" rel="noreferrer">
-            <img className={classes.logo} src="images/bc-wilderfire-service-logo.png" alt="B.C. Wildfire Service logo" />
+            <img
+              className={classes.logo}
+              src="images/bc-wilderfire-service-logo.png"
+              alt="B.C. Wildfire Service logo"
+            />
           </a>
           <div className={classes.headerText}>Predictive Services</div>
         </div>
@@ -187,7 +191,11 @@ export const Sidebar: React.FunctionComponent = () => {
       <Stack className={classes.root}>
         <div className={classes.header} id="sidebar-header">
           <a href="https://gov.bc.ca" target="_blank" rel="noreferrer">
-            <img className={classes.logo} src="images/bc-wilderfire-service-logo.png" alt="B.C. Wildfire Service logo" />
+            <img
+              className={classes.logo}
+              src="images/bc-wilderfire-service-logo.png"
+              alt="B.C. Wildfire Service logo"
+            />
           </a>
           <div className={classes.headerText}>Predictive Services</div>
         </div>
