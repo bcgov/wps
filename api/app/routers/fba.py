@@ -2,7 +2,6 @@
 """
 
 import logging
-import itertools
 from itertools import groupby
 import operator
 from datetime import date, datetime
