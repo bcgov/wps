@@ -15,6 +15,7 @@ import { DateTime } from 'luxon'
  * @param run_type forecast or actual
  * @returns a CQL filter based on the input parameters that pg_tileserv uses in it's query
  */
+// TODO: add in param for run_date: DateTime
 export const buildHFICql = (for_date: DateTime, run_type: RunType) => {
   const queryParams = encodeURIComponent(`for_date=${for_date.toISODate()} AND run_type='${run_type.toLowerCase()}'`)
   return 'filter=' + queryParams
