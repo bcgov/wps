@@ -1,7 +1,6 @@
 import React from 'react'
 import { CssBaseline } from '@mui/material'
 import { ThemeProvider, Theme, StyledEngineProvider } from '@mui/material/styles'
-
 import { theme } from 'app/theme'
 import WPSRoutes from 'app/Routes'
 
