@@ -34,7 +34,7 @@ export const fireCentreStyler = (): Style => {
 }
 
 const fireZoneTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
-  const text = feature.get('fire_zone_mof_fire_zone_name').replace(' Fire Zone', '\nFire Zone')
+  const text = feature.get('mof_fire_zone_name').replace(' Fire Zone', '\nFire Zone')
   return new Text({
     overflow: true,
     fill: new Fill({ color: 'black' }),
