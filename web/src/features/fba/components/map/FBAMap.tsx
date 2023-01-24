@@ -92,7 +92,6 @@ const FBAMap = (props: FBAMapProps) => {
   })
   const classes = useStyles()
   const { stations } = useSelector(selectFireWeatherStations)
-  const [showRawHFI, setShowRawHFI] = useState(false)
   const [showHighHFI, setShowHighHFI] = useState(true)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -234,17 +233,6 @@ const FBAMap = (props: FBAMapProps) => {
       map.addLayer(latestHFILayer)
     }
   }, [props.forDate, showHighHFI, props.setIssueDate, props.runType]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!map) return
-    const layerName = 'hfiRaw'
-    removeLayerByName(map, layerName)
-    if (showRawHFI) {
-      const isoDate = props.forDate.toISODate().replaceAll('-', '')
-      const layer = hfiTileFactory(`gpdqha/sfms/cog/cog_hfi${isoDate}.tif`, layerName)
-      map.addLayer(layer)
-    }
-  }, [props.forDate, showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
