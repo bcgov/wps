@@ -28,6 +28,16 @@ export interface ZoneAreaListResponse {
   zones: FireZoneArea[]
 }
 
+export interface HfiThresholdFuelTypeArea {
+  fuel_type_id: number
+  threshold: number
+  area: number
+}
+export interface FireZoneThresholdFuelTypeResponse {
+  mof_fire_zone_id: number
+  fuel_types: HfiThresholdFuelTypeArea[]
+}
+
 export async function getFBAFireCenters(): Promise<FBAResponse> {
   const url = '/fba/fire-centers'
 
@@ -37,22 +47,32 @@ export async function getFBAFireCenters(): Promise<FBAResponse> {
 
 export async function getFireZoneAreas(
   run_type: RunType,
-  run_date: string,
+  run_datetime: string,
   for_date: string
 ): Promise<ZoneAreaListResponse> {
-  const url = `/fba/fire-zone-areas/${run_type.toLowerCase()}/${run_date}/${for_date}`
+  const url = `/fba/fire-zone-areas/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
   const { data } = await axios.get(url, {})
   return data
 }
 
-export async function getMostRecentRunDate(run_type: RunType, for_date: string): Promise<DateTime> {
-  const url = `fba/sfms_run_datetimes/${run_type.toLowerCase()}/${for_date}`
+export async function getMostRecentRunDate(run_type: RunType, for_date: string): Promise<string> {
+  const url = `fba/sfms-run-datetimes/${run_type.toLowerCase()}/${for_date}`
   const { data } = await axios.get(url, {})
   return data[0]
 }
 
 export async function getAllRunDates(run_type: RunType, for_date: string): Promise<DateTime[]> {
-  const url = `fba/sfms_run_datetimes/${run_type.toLowerCase()}/${for_date}`
+  const url = `fba/sfms-run-datetimes/${run_type.toLowerCase()}/${for_date}`
+  const { data } = await axios.get(url, {})
+  return data
+}
+
+export async function getHFIThresholdsFuelTypes(
+  run_type: RunType,
+  for_date: string,
+  run_datetime: string
+): Promise<FireZoneThresholdFuelTypeResponse[]> {
+  const url = `fba/hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}`
   const { data } = await axios.get(url, {})
   return data
 }
