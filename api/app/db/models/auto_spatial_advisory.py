@@ -137,3 +137,17 @@ class RunParameters(Base):
                       create_type=False), nullable=False, index=True)
     run_datetime = Column(TZTimeStamp, nullable=False, index=True)
     for_date = Column(Date, nullable=False, index=True)
+
+
+class ShapeElevation(Base):
+    """ Elevation information about each advisory shape"""
+    __tablename__ = 'advisory_shape_elevation'
+    __table_args__ = (
+        {
+            'comment': 'Elevation information/stats about each advisory shape'
+        }
+    )
+    id = Column(Integer, primary_key=True, index=True)
+    advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False)
+    min_elevation = Column(Float, nullable=False)
+    max_elevation = Column(Float, nullable=False)
