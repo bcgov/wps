@@ -54,12 +54,3 @@ def test_get_fire_zone_areas_unauthorized(client: TestClient):
 
     response = client.get(get_fire_zone_areas_url)
     assert response.status_code == 401
-
-
-@patch('app.routers.fba.get_hfi_area', mock_get_hfi_area)
-@patch(decode_fn, mock_admin_role_function)
-def test_get_fire_zone_areas_unauthorized(client: TestClient):
-    """ Forbidden to get fire zone areas when unauthorized"""
-
-    response = client.get(get_fire_zone_areas_url)
-    assert response.status_code == 200

@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters } from 'app/rootReducer'
+import { selectFireCenters, selectRunDates } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
@@ -15,10 +15,11 @@ import { FireCenter } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
-import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
 import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
+import { isNull, isUndefined } from 'lodash'
+import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -54,6 +55,8 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
+  // TODO: hook up later
+  // const { hfiFuelTypes } = useSelector(selectHFIFuelTypes)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
@@ -65,6 +68,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
+  const { mostRecentRunDate } = useSelector(selectRunDates)
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -86,22 +90,24 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }
 
   useEffect(() => {
-    console.log(`New run type: ${runType}`)
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
-    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
   }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatch(fetchFireCenters())
-    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
-    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
+      dispatch(fetchHighHFIFuels(runType, dateOfInterest.toISODate(), mostRecentRunDate.toString()))
+    }
+  }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <React.Fragment>
@@ -156,7 +162,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       </Container>
       <FBAMap
         forDate={dateOfInterest}
-        runDate={dateOfInterest} // default is to retrieve most recent available data
+        runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
         runType={runType}
         selectedFireCenter={fireCenter}
         advisoryThreshold={advisoryThreshold}

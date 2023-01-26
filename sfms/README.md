@@ -51,6 +51,8 @@ poetry install
 
 On M1, `pyenv install 2.7.18` fails, and will never pass (they're not going to bother fixing it, and they shouldn't! it's deprecated).
 
+#### TODO: `pyenv install 2.7.18` and all subsequent commands above worked fine on my M1. Maybe it has been fixed after all?? Confirm with other devs
+
 You CAN however try run a universal binary in x86_64 mode, and get it to work that way!
 
 ```bash
