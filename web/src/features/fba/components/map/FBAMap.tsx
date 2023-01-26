@@ -10,21 +10,14 @@ import OLOverlay from 'ol/Overlay'
 import VectorTileSource from 'ol/source/VectorTile'
 import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
+import Select from 'ol/interaction/Select'
 import GeoJSON from 'ol/format/GeoJSON'
 import { useDispatch, useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectFireZoneAreas, selectValueAtCoordinate } from 'app/rootReducer'
-import {
-  sfmsElevationSource,
-  twelveArcElevationSource,
-  ftlSource,
-  sfmsFtlSource,
-  sfmsSlopeSource,
-  sfmsAspectSource,
-  source as baseMapSource
-} from 'features/fireWeather/components/maps/constants'
+import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
@@ -40,13 +33,16 @@ import {
 import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
 import { AppDispatch } from 'app/store'
-import { fetchValuesAtCoordinate } from 'features/fba/slices/valueAtCoordinateSlice'
 import { LayerControl } from 'features/fba/components/map/layerControl'
 import FBATooltip from 'features/fba/components/map/FBATooltip'
 import { RASTER_SERVER_BASE_URL } from 'utils/env'
 import { EventsKey } from 'ol/events'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildHFICql } from 'features/fba/cqlBuilder'
+import { Style } from 'ol/style'
+import Fill from 'ol/style/Fill'
+import { isNull } from 'lodash'
+import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -108,34 +104,54 @@ const FBAMap = (props: FBAMapProps) => {
   const dispatch: AppDispatch = useDispatch()
   const { stations } = useSelector(selectFireWeatherStations)
   const { values, loading } = useSelector(selectValueAtCoordinate)
-  const [showRawHFI, setShowRawHFI] = useState(false)
-  const [showFTL, setShowFTL] = useState(false)
-  const [showFTL_M, setShowFTL_M] = useState(false)
-  const [showSfmsFtl, setShowSfmsFtl] = useState(false)
   const [showHighHFI, setShowHighHFI] = useState(true)
-  const [showSfmsElevation, setShowSfmsElevation] = useState(false)
-  const [show12arcElevation, setShow12arcElevation] = useState(false)
-  const [showSfmsSlope, setShowSfmsSlope] = useState(false)
-  const [showSfmsAspect, setShowSfmsAspect] = useState(false)
+  const [selectedZoneID, setSelectedZoneID] = useState(undefined)
   const [map, setMap] = useState<ol.Map | null>(null)
   const [singleClickKey, setSingleClickKey] = useState<EventsKey | null>(null)
   const [overlayPosition, setOverlayPosition] = useState<Coordinate | undefined>(undefined)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const overlayRef = useRef<HTMLDivElement | null>(null)
-  const [fireZoneVector, setFireZoneVector] = useState(
+
+  let selectedFireZone: string | number | void | Style | Style[] | undefined = undefined
+
+  const selectedFireZoneStyle = new Style({
+    fill: new Fill({
+      color: 'rgba(200,20,20,0.4)'
+    })
+  })
+
+  const fireZoneVectorSource = new VectorTileSource({
+    attributions: ['BC Wildfire Service'],
+    format: new MVT(),
+    url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
+  })
+
+  const [fireZoneVTL, setFireZoneVector] = useState(
     new VectorTileLayer({
-      source: new VectorTileSource({
-        attributions: ['BC Wildfire Service'],
-        format: new MVT(),
-        url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
-      }),
+      source: fireZoneVectorSource,
       style: fireZoneStyler,
       zIndex: 49,
       properties: { name: 'fireZoneVector' }
     })
   )
 
+  const selectionLayer = new VectorTileLayer({
+    map: !isNull(map) ? map : undefined,
+    renderMode: 'vector',
+    source: fireZoneVectorSource,
+    style: feature => {
+      if (feature.getId() == selectedFireZone) {
+        return selectedFireZoneStyle
+      }
+    }
+  })
+
   const { fireZoneAreas } = useSelector(selectFireZoneAreas)
+
+  useEffect(() => {
+    dispatch(fetchFireZoneAreas(props.runType, props.runDate.toISO(), props.forDate.toISODate()))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.forDate, props.runDate, props.runType])
 
   useEffect(() => {
     if (map) {
@@ -146,9 +162,33 @@ const FBAMap = (props: FBAMapProps) => {
       if (layer) {
         map.removeLayer(layer)
       }
-      map.addLayer(fireZoneVector)
+      map.addLayer(fireZoneVTL)
+
+      map.on('click', event => {
+        fireZoneVTL.getFeatures(event.pixel).then(features => {
+          if (!features.length) {
+            selectedFireZone = undefined
+            selectionLayer.changed()
+            return
+          }
+          const feature = features[0]
+          if (!feature) {
+            return
+          }
+          const fid = feature.getId()
+          selectedFireZone = fid
+          selectionLayer.changed()
+        })
+      })
+
+      // map.on('click', e => {
+      //   map.getFeaturesAtPixel(e.pixel).forEach(feature => {
+      //     console.log(feature.getProperties())
+      //     setSelectedZoneID(feature.get('mof_fire_zone_id'))
+      //   })
+      // })
     }
-  }, [map, fireZoneVector])
+  }, [map, fireZoneVTL]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setFireZoneVector(
@@ -165,7 +205,7 @@ const FBAMap = (props: FBAMapProps) => {
     )
   }, [fireZoneAreas, props.advisoryThreshold])
 
-  const hfiVector = new VectorTileLayer({
+  const hfiVTL = new VectorTileLayer({
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
@@ -177,7 +217,7 @@ const FBAMap = (props: FBAMapProps) => {
   })
 
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
-  const fireZoneLabel = new VectorTileLayer({
+  const fireZoneLabelVTL = new VectorTileLayer({
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
@@ -188,7 +228,7 @@ const FBAMap = (props: FBAMapProps) => {
     minZoom: 6
   })
 
-  const fireCentreVector = new VectorTileLayer({
+  const fireCentreVTL = new VectorTileLayer({
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
@@ -199,7 +239,7 @@ const FBAMap = (props: FBAMapProps) => {
   })
 
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
-  const fireCentreLabel = new VectorTileLayer({
+  const fireCentreLabelVTL = new VectorTileLayer({
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
@@ -265,60 +305,6 @@ const FBAMap = (props: FBAMapProps) => {
   }, [props.forDate, showHighHFI, props.setIssueDate, props.runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!map) return
-    const layerName = 'hfiRaw'
-    removeLayerByName(map, layerName)
-    if (showRawHFI) {
-      const isoDate = props.forDate.toISODate().replaceAll('-', '')
-      const layer = hfiTileFactory(`gpdqha/sfms/cog/cog_hfi${isoDate}.tif`, layerName)
-      map.addLayer(layer)
-    }
-  }, [props.forDate, showRawHFI]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const addRemoveLayer = (map: ol.Map | null, show: boolean, layerName: string, source: XYZ) => {
-    if (!map) return
-    if (show) {
-      map.addLayer(new Tile({ source: source, properties: { name: layerName } }))
-    } else {
-      removeLayerByName(map, layerName)
-    }
-  }
-
-  useEffect(() => {
-    addRemoveLayer(map, showFTL, 'ftl', ftlSource)
-  }, [showFTL]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    addRemoveLayer(map, showSfmsElevation, 'sfmsElevation', sfmsElevationSource)
-  }, [showSfmsElevation]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    addRemoveLayer(map, show12arcElevation, '12arcElevation', twelveArcElevationSource)
-  }, [show12arcElevation]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    addRemoveLayer(map, showSfmsFtl, 'sfmsFtl', sfmsFtlSource)
-  }, [showSfmsFtl]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    addRemoveLayer(map, showSfmsAspect, 'sfmsAspect', sfmsAspectSource)
-  }, [showSfmsAspect]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    addRemoveLayer(map, showSfmsSlope, 'sfmsSlope', sfmsSlopeSource)
-  }, [showSfmsSlope]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!map) return
-    const layerName = 'ftlM'
-    if (showFTL_M) {
-      map.addLayer(new Tile({ source: ftlSourceFactory('m1/m2'), properties: { name: layerName } }))
-    } else {
-      removeLayerByName(map, layerName)
-    }
-  }, [showFTL_M]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
     // The React ref is used to attach to the div rendered in our
     // return statement of which this map's target is set to.
     // The ref is a div of type  HTMLDivElement.
@@ -337,25 +323,17 @@ const FBAMap = (props: FBAMapProps) => {
         new Tile({
           source: baseMapSource
         }),
-        fireZoneVector,
-        hfiVector,
-        fireCentreVector,
+        fireZoneVTL,
+        hfiVTL,
+        fireCentreVTL,
         // thessianVector,
-        fireZoneLabel,
-        fireCentreLabel
+        fireZoneLabelVTL,
+        fireCentreLabelVTL
       ],
       overlays: [],
       controls: defaultControls().extend([
         new FullScreen(),
-        LayerControl.buildLayerCheckbox('FTL 2018', setShowFTL, showFTL),
-        LayerControl.buildLayerCheckbox('FTL 2018 M1/M2', setShowFTL_M, showFTL_M),
-        LayerControl.buildLayerCheckbox('FTL SFMS', setShowSfmsFtl, showSfmsFtl),
-        LayerControl.buildLayerCheckbox('High HFI', setShowHighHFI, showHighHFI),
-        LayerControl.buildLayerCheckbox('Raw HFI', setShowRawHFI, showRawHFI),
-        LayerControl.buildLayerCheckbox('SFMS Elevation', setShowSfmsElevation, showSfmsElevation),
-        LayerControl.buildLayerCheckbox('12 arc Elevation', setShow12arcElevation, show12arcElevation),
-        LayerControl.buildLayerCheckbox('SFMS Slope', setShowSfmsSlope, showSfmsSlope),
-        LayerControl.buildLayerCheckbox('SFMS Aspect', setShowSfmsAspect, showSfmsAspect)
+        LayerControl.buildLayerCheckbox('High HFI', setShowHighHFI, showHighHFI)
       ])
     })
     mapObject.setTarget(mapRef.current)
@@ -379,24 +357,6 @@ const FBAMap = (props: FBAMapProps) => {
 
     setMap(mapObject)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!map) return
-    if (singleClickKey) {
-      map.un('singleclick', singleClickKey.listener)
-    }
-    const newKey = map.on('singleclick', e => {
-      const overlay = map.getOverlayById('popup')
-      if (overlay) {
-        const coordinate = proj.transform(e.coordinate, 'EPSG:3857', 'EPSG:4326')
-        // fetch hfi at coordinate
-        dispatch(fetchValuesAtCoordinate(coordinate[1], coordinate[0], props.forDate))
-        setOverlayPosition(e.coordinate)
-      }
-    })
-    setSingleClickKey(newKey)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.forDate, map, dispatch])
 
   useEffect(() => {
     if (!map) return

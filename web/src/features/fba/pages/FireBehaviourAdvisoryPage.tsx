@@ -20,6 +20,7 @@ import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
+import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -160,15 +161,24 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           </Grid>
         </Grid>
       </Container>
-      <FBAMap
-        forDate={dateOfInterest}
-        runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
-        runType={runType}
-        selectedFireCenter={fireCenter}
-        advisoryThreshold={advisoryThreshold}
-        className={classes.mapContainer}
-        setIssueDate={setIssueDate}
-      />
+      <Container maxWidth={'xl'}>
+        <Grid container direction={'row'}>
+          <Grid item>
+            <ZoneSummaryPanel selectedZoneID={401} />
+          </Grid>
+          <Grid item>
+            <FBAMap
+              forDate={dateOfInterest}
+              runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
+              runType={runType}
+              selectedFireCenter={fireCenter}
+              advisoryThreshold={advisoryThreshold}
+              className={classes.mapContainer}
+              setIssueDate={setIssueDate}
+            />
+          </Grid>
+        </Grid>
+      </Container>
     </React.Fragment>
   )
 }

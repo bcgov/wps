@@ -49,6 +49,10 @@ export const fireZoneStyler = (): Style => {
     stroke: new Stroke({
       color: 'black',
       width: 1
+    }),
+    fill: new Fill({
+      // color: 'rgba(20,20,20,0.9)'
+      color: 'red'
     })
   })
 }
