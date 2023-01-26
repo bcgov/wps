@@ -7,7 +7,8 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from app.db.models.auto_spatial_advisory import (
-    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType, HighHfiArea, RunParameters)
+    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType, HighHfiArea, RunParameters,
+    AdvisoryElevationStats)
 
 
 logger = logging.getLogger(__name__)
@@ -207,3 +208,7 @@ async def get_run_parameters_id(session: AsyncSession,
 
 async def save_run_parameters(session: AsyncSession, run_parameters: RunParameters):
     session.add(run_parameters)
+
+
+async def save_advisory_elevation_stats(session: AsyncSession, advisory_elevation_stats: AdvisoryElevationStats):
+    session.add(advisory_elevation_stats)

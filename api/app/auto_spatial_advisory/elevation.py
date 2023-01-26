@@ -1,31 +1,30 @@
-""" Take a classified HFI image and determine distribution of elevations associated with advisory
+""" Take a classified HFI image and determines the distribution of elevations associated with advisory
 areas per fire zone.
 """
 
 from datetime import date, datetime
 from osgeo import gdal
 from time import perf_counter
+from sqlalchemy.exc import IntegrityError
 import logging
 import numpy as np
 import os
 import tempfile
 from app import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
-from app.auto_spatial_advisory.process_hfi import RunType
-from app.db.crud.auto_spatial_advisory import get_run_parameters_id
-from app.db.database import get_async_read_session_scope, DB_READ_STRING
+from app.auto_spatial_advisory.run_type import RunType
+from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats, save_run_parameters
+from app.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
+from app.db.models.auto_spatial_advisory import AdvisoryElevationStats, RunParameters
+from app.utils.s3 import get_client
 
 
 logger = logging.getLogger(__name__)
-
-
-DEM_PATH = '/Users/dareboss/Documents/elevation/dem_mosaic.tif'
-TEMP_PATH = '/Users/dareboss/Documents/elevation'
-DEM_OUTPUT_PATH = '/Users/dareboss/Documents/elevation/dem'
+DEM_GDAL_SOURCE = None
 
 
 async def process_elevation(run_type: RunType, run_datetime: datetime, for_date: date):
-    """ Create a new elevation statistics record for the given parameters.
+    """ Create new elevation statistics records for the given parameters.
 
     :param run_type: The type of run to process. (is it a forecast or actual run?)
     :param run_datetime: The date and time of the run to process. (when was the hfi file created?)
@@ -34,10 +33,10 @@ async def process_elevation(run_type: RunType, run_datetime: datetime, for_date:
 
     logger.info('Processing elevation stats %s for run date: %s, for date: %s', run_type, run_datetime, for_date)
     perf_start = perf_counter()
+    run_type = RunType.FORECAST
 
     # Get the id from run_parameters associated with the provided runtype, for_date and for_datetime
-    async with get_async_read_session_scope() as session:
-        run_parameters_id = await get_run_parameters_id(session, run_type.value, run_datetime, for_date)
+    run_parameters_id = await get_run_parameters(run_type, for_date, for_date)
 
     bucket = config.get('OBJECT_STORE_BUCKET')
     # TODO what really has to happen, is that we grab the most recent prediction for the given date,
@@ -47,12 +46,12 @@ async def process_elevation(run_type: RunType, run_datetime: datetime, for_date:
     # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
     # it's S3 virtual file system driver to read the file.
     # https://gdal.org/user/virtual_file_systems.html
-    key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_datetime.timeisoformat()}/hfi{for_date_string}.tif'
+    key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{for_date.strftime("%Y-%m-%d")}/hfi{for_date_string}.tif'
     with tempfile.TemporaryDirectory() as temp_dir:
+        await prepare_dem()
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(key, temp_filename)
-        # threshold 1 = 4k-10k
-        # threshold 2 = >10k
+        # thresholds: 1 = 4k-10k, 2 = >10k
         thresholds = [1, 2]
         for threshold in thresholds:
             await process_threshold(threshold, temp_filename, temp_dir, run_parameters_id)
@@ -60,28 +59,57 @@ async def process_elevation(run_type: RunType, run_datetime: datetime, for_date:
     perf_end = perf_counter()
     delta = perf_end - perf_start
     logger.info('%f delta count before and after processing elevation stats', delta)
+    global DEM_GDAL_SOURCE
+    DEM_GDAL_SOURCE = None
 
 
-async def process_threshold(threshold: int, temp_filename: str, temp_dir: str, run_parameters_id: int):
-    threshold_mask_path = create_hfi_threshold_mask(threshold, temp_filename, temp_dir)
+async def prepare_dem():
+    """
+    Fetches a dem from S3 storage, opens it with gdal and assigns it to a global variable
+    for use in other functions. This is a little clunky, but we only want to grab the dem from
+    object storage once because it is a slow process.
+    """
+    async with get_client() as (client, bucket):
+        dem = await client.get_object(Bucket=bucket, Key=f'dem/mosaics/{config.get("DEM_NAME")}')
+        mem_path = '/vsimem/dem.tif'
+        data = await dem['Body'].read()
+        gdal.FileFromMemBuffer(mem_path, data)
+        global DEM_GDAL_SOURCE
+        DEM_GDAL_SOURCE = gdal.Open(mem_path, gdal.GA_ReadOnly)
+        gdal.Unlink(mem_path)
+
+
+async def process_threshold(threshold: int, source_path: str, temp_dir: str, run_parameters_id: int):
+    """
+    Step-by-step processing to extract elevation stats per advisory type per fire zone.
+
+    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k
+    :param source_path: A HFI tif that is classified with 0 = < 4k, 1 = 4k-10k, 2 = > 10k
+    :param temp_dir: A temporary location for storing intermediate files
+    :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
+    """
+    threshold_mask_path = create_hfi_threshold_mask(threshold, source_path, temp_dir)
     upsampled_threshold_mask_path = upsample_threshold_mask(threshold, threshold_mask_path, temp_dir)
     masked_dem_path = apply_threshold_mask_to_dem(threshold, upsampled_threshold_mask_path, temp_dir)
-    await process_elevation_by_firezone(threshold, masked_dem_path, temp_dir, run_parameters_id)
-
-    print('**********')
-    print(threshold_mask_path)
-    print(upsampled_threshold_mask_path)
-    print(masked_dem_path)
+    await process_elevation_by_firezone(threshold, masked_dem_path, run_parameters_id)
 
 
 def create_hfi_threshold_mask(threshold: int, classified_hfi: str, temp_dir: str):
+    """
+    Creates a mask from a classified HFI tif wherein pixels that match the threshold are assigned a value of 1 and 
+    all other pixels = 0.
+
+    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k
+    :param classified_hfi: The path to the classified HFI tif
+    :param temp_dir: A temporary location for storing intermediate files
+    """
     target_path = os.path.join(temp_dir, f'hfi_mask_threshold_{threshold}.tif')
     # Read the source data.
     source_tiff = gdal.Open(classified_hfi, gdal.GA_ReadOnly)
     source_band = source_tiff.GetRasterBand(1)
     source_data = source_band.ReadAsArray()
     # Classify the data according to the given threshold
-    classified = np.where(source_data == threshold, threshold, 0)
+    classified = np.where(source_data == threshold, 1, 0)
 
     # Remove any existing target file.
     if os.path.exists(target_path):
@@ -103,26 +131,39 @@ def create_hfi_threshold_mask(threshold: int, classified_hfi: str, temp_dir: str
 
 
 def upsample_threshold_mask(threshold: int, source_path: str, temp_dir: str):
+    """
+    Increases the resolution of the masked HFI tif to match the DEM. This step is required in order to use raster
+    algebra to multiply the DEM by the output mask.
+
+    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k
+    :param source_path: The path to the mask tif that needs to be upsampled
+    :param temp_dir: A temporary location for storing intermediate files
+    """
     upsampled_threshold_mask_path = os.path.join(temp_dir, f'upsampled_threshold_{threshold}_mask.tif')
-    dem = gdal.Open(DEM_PATH, gdal.GA_ReadOnly)
-    geo_transform = dem.GetGeoTransform()
+    geo_transform = DEM_GDAL_SOURCE.GetGeoTransform()
     x_res = geo_transform[1]
     y_res = -geo_transform[5]
     minx = geo_transform[0]
     maxy = geo_transform[3]
-    maxx = minx + geo_transform[1] * dem.RasterXSize
-    miny = maxy + geo_transform[5] * dem.RasterYSize
+    maxx = minx + geo_transform[1] * DEM_GDAL_SOURCE.RasterXSize
+    miny = maxy + geo_transform[5] * DEM_GDAL_SOURCE.RasterYSize
     extent = [minx, miny, maxx, maxy]
-    gdal.Warp(target_path, source_path, outputBounds=extent,
+    gdal.Warp(upsampled_threshold_mask_path, source_path, outputBounds=extent,
               xRes=x_res, yRes=y_res, resampleAlg=gdal.GRA_NearestNeighbour)
-    dem = None
     return upsampled_threshold_mask_path
 
 
 def apply_threshold_mask_to_dem(threshold: int, mask_path: str, temp_dir: str):
+    """
+    Multiplies the mask of HFI areas by the DEM. The resulting tif has elevation values at pixels where HFI exceeds the
+    specified threshold, all other pixels are 0.
+
+    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k
+    :param mask_path: The path to the mask tif
+    :param temp_dir: A temporary location for storing intermediate files
+    """
     masked_dem_path = os.path.join(temp_dir, f'masked_dem_threshold_{threshold}.tif')
-    dem = gdal.Open(DEM_PATH, gdal.GA_ReadOnly)
-    dem_band = dem.GetRasterBand(1)
+    dem_band = DEM_GDAL_SOURCE.GetRasterBand(1)
     dem_data = dem_band.ReadAsArray()
     mask = gdal.Open(mask_path, gdal.GA_ReadOnly)
     mask_data = mask.GetRasterBand(1).ReadAsArray()
@@ -130,31 +171,49 @@ def apply_threshold_mask_to_dem(threshold: int, mask_path: str, temp_dir: str):
     output_driver = gdal.GetDriverByName("GTiff")
     masked_dem = output_driver.Create(masked_dem_path, xsize=dem_band.XSize,
                                       ysize=dem_band.YSize, bands=1, eType=gdal.GDT_Int16)
-    masked_dem.SetGeoTransform(dem.GetGeoTransform())
-    masked_dem.SetProjection(dem.GetProjection())
+    masked_dem.SetGeoTransform(DEM_GDAL_SOURCE.GetGeoTransform())
+    masked_dem.SetProjection(DEM_GDAL_SOURCE.GetProjection())
     masked_dem_band = masked_dem.GetRasterBand(1)
     masked_dem_band.SetNoDataValue(0)
     masked_dem_band.WriteArray(masked_dem_data)
-    # masked_dem_band.FlushCache()
-    dem = None
     mask = None
     masked_dem = None
     return masked_dem_path
 
 
-async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, temp_dir: str, run_parameters_id: int):
+async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, run_parameters_id: int):
+    """
+    Given a tif that only contains elevations values at pixels where HFI exceeds the threshold, calculate statistics
+    and store them in the API database.
+
+    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k
+    :param mask_dem_path: The path to the dem that has had the upsampled hfi mask applied
+    :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
+    """
     async with get_async_read_session_scope() as session:
         stmt = 'SELECT id, source_identifier FROM advisory_shapes;'
         result = await session.execute(stmt)
         rows = result.all()
         for row in rows:
-            firezone_elevation_threshold_path = intersect_raster_by_firezone(
-                threshold, row[0], row[1], masked_dem_path, temp_dir)
-            stats = get_elevation_stats(firezone_elevation_threshold_path)
-            store_elevation_stats(threshold, row[0], stats, run_parameters_id)
+            # using a temp dir here to prevent accumulation of large rasters as we run through this loop
+            with tempfile.TemporaryDirectory() as temp_dir:
+                firezone_elevation_threshold_path = intersect_raster_by_firezone(threshold, row[0], row[1],
+                                                                                 masked_dem_path, temp_dir)
+                stats = get_elevation_stats(firezone_elevation_threshold_path)
+                await store_elevation_stats(threshold, row[0], stats, run_parameters_id)
 
 
 def intersect_raster_by_firezone(threshold: int, id: int, source_identifier: str, raster_path: str, temp_dir: str):
+    """
+    Given a raster and a fire zone id, use gdal.Warp to clip out a fire zone from which we can 
+    retrieve stats.
+
+    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k
+    :param id: The id of the fire zone (aka advisory_shape object) to clip with
+    :param source_identifier: The source identifer of the fire zone. 
+    :param raster_path: The path to the raster to be clipped.
+    :param temp_dir: A temporary location for storing intermediate files
+    """
     output_path = os.path.join(temp_dir, f'firezone_{source_identifier}_threshold_{threshold}.tif')
     warp_options = gdal.WarpOptions(
         format="GTiff",
@@ -167,61 +226,73 @@ def intersect_raster_by_firezone(threshold: int, id: int, source_identifier: str
 
 
 def get_elevation_stats(source_path: str):
+    """
+    Extracts basic statistics from a raster.
+
+    :param source_path: The path to the raster of interest.
+    """
     source = gdal.Open(source_path, gdal.GA_ReadOnly)
     source_band = source.GetRasterBand(1)
-    stats = source_band.GetStatistics(True, True)
+    source_data = source_band.ReadAsArray()
+    max_elevation = np.max(source_data)
+    if max_elevation == 0:
+        mean = 0
+        median = 0
+        minimum = 0
+        maximum = 0
+        q25 = 0
+        q75 = 0
+    else:
+        mean = np.mean(source_data[source_data != 0])
+        median = np.median(source_data[source_data != 0])
+        minimum = np.min(source_data[source_data != 0])
+        maximum = np.max(source_data[source_data != 0])
+        q25 = np.percentile(source_data[source_data != 0], 25)
+        q75 = np.percentile(source_data[source_data != 0], 75)
     return {
-        'min': stats[0],
-        'max': stats[1]
+        'min': minimum,
+        'max': maximum,
+        'median': median,
+        'mean': mean,
+        'q25': q25,
+        'q75': q75
     }
 
 
-def store_elevation_stats(threshold: int, shape_id: int, stats, run_parameters_id):
-    print()
+async def store_elevation_stats(threshold: int, shape_id: int, stats, run_parameters_id):
+    """
+    Writes elevation statistics to the API database.
+    TODO - We should probably save up a list of objects to add to the database and only call this function once
+    per threhold.
+
+    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k
+    :param shape_id: The advisory shape id.
+    :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
+    """
+    logger.info('Writing firezone hfi elevation stats to API database...')
+    advisory_elevation_stats = AdvisoryElevationStats(advisory_shape_id=shape_id, min_elevation=stats['min'],
+                                                      max_elevation=stats['max'], median=stats['median'],
+                                                      mean=stats['mean'], quartile_25=stats['q25'],
+                                                      quartile_75=stats['q75'], run_parameters=run_parameters_id,
+                                                      threshold=threshold)
+    async with get_async_write_session_scope() as session:
+        await save_advisory_elevation_stats(session, advisory_elevation_stats)
 
 
-# async def process_elevation_distribution(classified_hfi):
-#     with tempfile.TemporaryDirectory() as temp_dir:
-#         temp_dir = TEMP_PATH
-#         mask_4k_path = os.path.join(temp_dir, 'mask_4k.tif')
-#         upsampled_4k_path = os.path.join(temp_dir, 'upsampled_4k.tif')
-#         dem_masked_4k = os.path.join(temp_dir, 'dem_masked_4k.tif')
-#         # create_mask(mask_4k_path, classified_hfi, 1)
-#         # create_mask(mask_10k_path, classified_hfi, 2)
-#         # upsample_hfi_mask(mask_4k_path, upsampled_4k_path)
-#         # apply_dem_mask(upsampled_4k_path, dem_masked_4k)
+async def get_run_parameters(run_type: RunType, run_datetime: datetime, for_date: date):
+    """
+    Given a combination of run_type, for_date and run_datetime, creates a record in the RunParameters table of the 
+    API database if it doesn't already exist, and returns the id associated with the record.
 
-#         async with get_async_read_session_scope() as session:
-#             stmt = 'SELECT id, source_identifier FROM advisory_shapes;'
-#             result = await session.execute(stmt)
-#             rows = result.all()
-#             for row in rows:
-#                 intersect_raster_by_firezone(row[0], row[1], DEM_PATH, DEM_OUTPUT_PATH)
-#         get_raster_stats('/Users/dareboss/Documents/elevation/dem/firezone_401.tif')
-#     print('Done!!!')
-
-
-# def create_mask(target_path, classified_hfi, threshold):
-#     # Read the source data.
-#     source_tiff = gdal.Open(classified_hfi, gdal.GA_ReadOnly)
-#     source_band = source_tiff.GetRasterBand(1)
-#     source_data = source_band.ReadAsArray()
-#     # Classify the data.
-#     classified = np.where(source_data == threshold, threshold, 0)
-
-#     # Remove any existing target file.
-#     if os.path.exists(target_path):
-#         os.remove(target_path)
-#     output_driver = gdal.GetDriverByName("GTiff")
-#     # Create an object with the same dimensions as the input, but with 8 bit unsigned values.
-#     target_tiff = output_driver.Create(target_path, xsize=source_band.XSize,
-#                                        ysize=source_band.YSize, bands=1, eType=gdal.GDT_Byte)
-#     # Set the geotransform and projection to the same as the input.
-#     target_tiff.SetGeoTransform(source_tiff.GetGeoTransform())
-#     target_tiff.SetProjection(source_tiff.GetProjection())
-
-#     # Write the classified data to the band.
-#     target_band = target_tiff.GetRasterBand(1)
-#     target_band.SetNoDataValue(0)
-#     target_band.WriteArray(classified)
-#     target_tiff = None
+    :param run_type: The type of the run ie. actual or forecast
+    :param for_date: The date the run is for
+    :param run_datetime: The date and time the run was performed
+    """
+    async with get_async_read_session_scope() as session:
+        try:
+            run_parameters = RunParameters(run_type=run_type.value, run_datetime=run_datetime, for_date=for_date)
+            await save_run_parameters(session, run_parameters)
+        except IntegrityError:
+            # Swallow the error as a record already exists
+            logger.info('Run parameters already exist')
+        return await get_run_parameters_id(session, run_type.value, run_datetime, for_date)

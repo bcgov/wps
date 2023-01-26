@@ -151,3 +151,26 @@ class ShapeElevation(Base):
     advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False)
     min_elevation = Column(Float, nullable=False)
     max_elevation = Column(Float, nullable=False)
+
+
+class AdvisoryElevationStats(Base):
+    """ 
+    Summary statistics about the elevation of area with high hfi (4k-10k and >10k) per firezone
+    based on the set run_type, for_date and run_datetime.
+    """
+    __tablename__ = 'advisory_elevation_stats'
+    __table_args__ = (
+        {
+            'comment': 'Elevation stats per fire zone by advisory threshold'
+        }
+    )
+    id = Column(Integer, primary_key=True, index=True)
+    advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False)
+    min_elevation = Column(Float, nullable=False)
+    max_elevation = Column(Float, nullable=False)
+    median = Column(Float, nullable=False)
+    mean = Column(Float, nullable=False)
+    quartile_25 = Column(Float, nullable=False)
+    quartile_75 = Column(Float, nullable=False)
+    run_parameters = Column(Integer, ForeignKey('run_parameters.id'), nullable=False, index=True)
+    threshold = Column(Integer, ForeignKey('advisory_hfi_classification_threshold.id'), nullable=False, index=True)

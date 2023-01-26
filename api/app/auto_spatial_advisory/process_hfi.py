@@ -22,25 +22,13 @@ from app.db.crud.auto_spatial_advisory import (
     save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters,
     get_run_parameters_id, calculate_high_hfi_areas, save_high_hfi_area)
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
+from app.auto_spatial_advisory.elevation import process_elevation
 from app.auto_spatial_advisory.polygonize import polygonize_in_memory
+from app.auto_spatial_advisory.run_type import RunType
 from app.geospatial import NAD83_BC_ALBERS
 
 
 logger = logging.getLogger(__name__)
-
-
-class RunType(Enum):
-    FORECAST = 'forecast'
-    ACTUAL = 'actual'
-
-    @staticmethod
-    def from_str(label):
-        if label in ('forecast', 'Forecast', 'FORECAST'):
-            return RunType.FORECAST
-        elif label in ('actual', 'Actual', 'ACTUAL'):
-            return RunType.ACTUAL
-        else:
-            raise NotImplementedError
 
 
 class UnknownHFiClassification(Exception):
@@ -156,6 +144,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(key, temp_filename)
+        await process_elevation(run_type, run_datetime, for_date)
         with polygonize_in_memory(temp_filename) as layer:
 
             spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
