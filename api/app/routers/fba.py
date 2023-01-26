@@ -58,11 +58,11 @@ async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _
         return FireZoneAreaListResponse(zones=zones)
 
 
-@router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}',
+@router.get('/hfi-fuels/{run_type}/{run_datetime}/{for_date}',
             response_model=dict[str, List[HfiThresholdAreaByFuelType]])
 async def get_hfi_thresholds_by_fuel_type(run_type: RunType,
-                                          for_date: date,
-                                          run_datetime: datetime):
+                                          run_datetime: datetime,
+                                          for_date: date):
     """
     Get the fuel types for the run_type, for_date, run_date
     """
