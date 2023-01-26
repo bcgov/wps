@@ -1,3 +1,6 @@
+"""A class representing HFI run types: actual or forecast"""
+
+
 from enum import Enum
 
 
@@ -9,7 +12,6 @@ class RunType(Enum):
     def from_str(label):
         if label in ('forecast', 'Forecast', 'FORECAST'):
             return RunType.FORECAST
-        elif label in ('actual', 'Actual', 'ACTUAL'):
+        if label in ('actual', 'Actual', 'ACTUAL'):
             return RunType.ACTUAL
-        else:
-            raise NotImplementedError
+        raise NotImplementedError

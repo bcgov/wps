@@ -3,13 +3,13 @@ areas per fire zone.
 """
 
 from datetime import date, datetime
-from osgeo import gdal
 from time import perf_counter
-from sqlalchemy.exc import IntegrityError
 import logging
-import numpy as np
 import os
 import tempfile
+import numpy as np
+from osgeo import gdal
+from sqlalchemy.exc import IntegrityError
 from app import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType
@@ -59,7 +59,7 @@ async def process_elevation(run_type: RunType, run_datetime: datetime, for_date:
     perf_end = perf_counter()
     delta = perf_end - perf_start
     logger.info('%f delta count before and after processing elevation stats', delta)
-    global DEM_GDAL_SOURCE
+    global DEM_GDAL_SOURCE  # pylint: disable=global-statement
     DEM_GDAL_SOURCE = None
 
 
@@ -74,7 +74,7 @@ async def prepare_dem():
         mem_path = '/vsimem/dem.tif'
         data = await dem['Body'].read()
         gdal.FileFromMemBuffer(mem_path, data)
-        global DEM_GDAL_SOURCE
+        global DEM_GDAL_SOURCE  # pylint: disable=global-statement
         DEM_GDAL_SOURCE = gdal.Open(mem_path, gdal.GA_ReadOnly)
         gdal.Unlink(mem_path)
 
@@ -96,7 +96,7 @@ async def process_threshold(threshold: int, source_path: str, temp_dir: str, run
 
 def create_hfi_threshold_mask(threshold: int, classified_hfi: str, temp_dir: str):
     """
-    Creates a mask from a classified HFI tif wherein pixels that match the threshold are assigned a value of 1 and 
+    Creates a mask from a classified HFI tif wherein pixels that match the threshold are assigned a value of 1 and
     all other pixels = 0.
 
     :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k
@@ -203,14 +203,14 @@ async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, ru
                 await store_elevation_stats(threshold, row[0], stats, run_parameters_id)
 
 
-def intersect_raster_by_firezone(threshold: int, id: int, source_identifier: str, raster_path: str, temp_dir: str):
+def intersect_raster_by_firezone(threshold: int, advisory_shape_id: int, source_identifier: str, raster_path: str,
+                                 temp_dir: str):
     """
-    Given a raster and a fire zone id, use gdal.Warp to clip out a fire zone from which we can 
-    retrieve stats.
+    Given a raster and a fire zone id, use gdal.Warp to clip out a fire zone from which we can retrieve stats.
 
     :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k
-    :param id: The id of the fire zone (aka advisory_shape object) to clip with
-    :param source_identifier: The source identifer of the fire zone. 
+    :param advisory_shape_id: The id of the fire zone (aka advisory_shape object) to clip with
+    :param source_identifier: The source identifer of the fire zone.
     :param raster_path: The path to the raster to be clipped.
     :param temp_dir: A temporary location for storing intermediate files
     """
@@ -218,7 +218,7 @@ def intersect_raster_by_firezone(threshold: int, id: int, source_identifier: str
     warp_options = gdal.WarpOptions(
         format="GTiff",
         cutlineDSName=DB_READ_STRING,
-        cutlineSQL=f"SELECT geom FROM advisory_shapes WHERE id={id}",
+        cutlineSQL=f"SELECT geom FROM advisory_shapes WHERE id={advisory_shape_id}",
         cropToCutline=True
     )
     gdal.Warp(output_path, raster_path, options=warp_options)
@@ -281,7 +281,7 @@ async def store_elevation_stats(threshold: int, shape_id: int, stats, run_parame
 
 async def get_run_parameters(run_type: RunType, run_datetime: datetime, for_date: date):
     """
-    Given a combination of run_type, for_date and run_datetime, creates a record in the RunParameters table of the 
+    Given a combination of run_type, for_date and run_datetime, creates a record in the RunParameters table of the
     API database if it doesn't already exist, and returns the id associated with the record.
 
     :param run_type: The type of the run ie. actual or forecast
