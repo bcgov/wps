@@ -1,22 +1,19 @@
 import * as ol from 'ol'
-import * as proj from 'ol/proj'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
-import { Coordinate } from 'ol/coordinate'
 import { fromLonLat } from 'ol/proj'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import XYZ from 'ol/source/XYZ'
-import OLOverlay from 'ol/Overlay'
 import VectorTileSource from 'ol/source/VectorTile'
 import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
 import Select from 'ol/interaction/Select'
 import GeoJSON from 'ol/format/GeoJSON'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
-import { selectFireWeatherStations, selectFireZoneAreas, selectValueAtCoordinate } from 'app/rootReducer'
+import { selectFireWeatherStations, selectFireZoneAreas } from 'app/rootReducer'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
 import { FireCenter } from 'api/fbaAPI'
@@ -34,15 +31,14 @@ import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
 import { AppDispatch } from 'app/store'
 import { LayerControl } from 'features/fba/components/map/layerControl'
-import FBATooltip from 'features/fba/components/map/FBATooltip'
 import { RASTER_SERVER_BASE_URL } from 'utils/env'
-import { EventsKey } from 'ol/events'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildHFICql } from 'features/fba/cqlBuilder'
 import { Style } from 'ol/style'
 import Fill from 'ol/style/Fill'
 import { isNull } from 'lodash'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
+import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -101,16 +97,11 @@ const FBAMap = (props: FBAMapProps) => {
     }
   })
   const classes = useStyles()
-  const dispatch: AppDispatch = useDispatch()
   const { stations } = useSelector(selectFireWeatherStations)
-  const { values, loading } = useSelector(selectValueAtCoordinate)
   const [showHighHFI, setShowHighHFI] = useState(true)
   const [selectedZoneID, setSelectedZoneID] = useState(undefined)
   const [map, setMap] = useState<ol.Map | null>(null)
-  const [singleClickKey, setSingleClickKey] = useState<EventsKey | null>(null)
-  const [overlayPosition, setOverlayPosition] = useState<Coordinate | undefined>(undefined)
   const mapRef = useRef<HTMLDivElement | null>(null)
-  const overlayRef = useRef<HTMLDivElement | null>(null)
 
   let selectedFireZone: string | number | void | Style | Style[] | undefined = undefined
 
@@ -125,6 +116,7 @@ const FBAMap = (props: FBAMapProps) => {
     format: new MVT(),
     url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
   })
+  const [hfiTilesLoading, setHFITilesLoading] = useState(false)
 
   const [fireZoneVTL, setFireZoneVector] = useState(
     new VectorTileLayer({
@@ -205,17 +197,6 @@ const FBAMap = (props: FBAMapProps) => {
     )
   }, [fireZoneAreas, props.advisoryThreshold])
 
-  const hfiVTL = new VectorTileLayer({
-    source: new VectorTileSource({
-      attributions: ['BC Wildfire Service'],
-      format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.hfi/{z}/{x}/{y}.pbf?${buildHFICql(props.forDate, props.runType)}`
-    }),
-    style: hfiStyler,
-    zIndex: 100,
-    properties: { name: 'hfiVector' }
-  })
-
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
   const fireZoneLabelVTL = new VectorTileLayer({
     source: new VectorTileSource({
@@ -294,10 +275,17 @@ const FBAMap = (props: FBAMapProps) => {
           })
         }
       })
+      source.on('tileloadstart', function () {
+        setHFITilesLoading(true)
+      })
+      source.on(['tileloadend', 'tileloaderror'], function () {
+        setHFITilesLoading(false)
+      })
       const latestHFILayer = new VectorTileLayer({
         source,
         style: hfiStyler,
         zIndex: 100,
+        minZoom: 6,
         properties: { name: layerName }
       })
       map.addLayer(latestHFILayer)
@@ -324,7 +312,6 @@ const FBAMap = (props: FBAMapProps) => {
           source: baseMapSource
         }),
         fireZoneVTL,
-        hfiVTL,
         fireCentreVTL,
         // thessianVector,
         fireZoneLabelVTL,
@@ -345,25 +332,8 @@ const FBAMap = (props: FBAMapProps) => {
       }
     }
 
-    if (overlayRef.current) {
-      const overlay = new OLOverlay({
-        element: overlayRef.current,
-        autoPan: { animation: { duration: 250 } },
-        id: 'popup'
-      })
-
-      mapObject.addOverlay(overlay)
-    }
-
     setMap(mapObject)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!map) return
-    const overlay = map.getOverlayById('popup')
-    if (overlay) overlay.setPosition(overlayPosition)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [overlayPosition])
 
   useEffect(() => {
     const stationsSource = new VectorSource({
@@ -389,8 +359,8 @@ const FBAMap = (props: FBAMapProps) => {
       <MapContext.Provider value={map}>
         <div className={classes.main}>
           <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
-          <FBATooltip ref={overlayRef} valuesAtCoordinate={values} loading={loading} onClose={setOverlayPosition} />
         </div>
+        <LoadingBackdrop isLoadingWithoutError={hfiTilesLoading} />
       </MapContext.Provider>
     </ErrorBoundary>
   )
