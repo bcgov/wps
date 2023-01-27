@@ -33,39 +33,53 @@ export const fireCentreStyler = (): Style => {
   })
 }
 
-const fireZoneTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
+const fireZoneTextStyler = (feature: RenderFeature | ol.Feature<Geometry>, selectedFireZoneID: number | null): Text => {
   const text = feature.get('mof_fire_zone_name').replace(' Fire Zone', '\nFire Zone')
+  const mof_fire_zone_id = feature.get('mof_fire_zone_id')
+  const selected = selectedFireZoneID && mof_fire_zone_id === selectedFireZoneID ? true : false
   return new Text({
     overflow: true,
-    fill: new Fill({ color: 'black' }),
-    stroke: new Stroke({ color: 'white', width: 2 }),
-    font: 'bold 15px sans-serif',
+    fill: new Fill({
+      color: selected ? 'green' : 'black'
+    }),
+    stroke: new Stroke({
+      color: 'white',
+      width: selected ? 4 : 2
+    }),
+    font: selected ? 'bold 20px sans-serif' : 'bold 15px sans-serif',
     text: text
   })
 }
 
-export const fireZoneStyler = (): Style => {
-  return new Style({
-    stroke: new Stroke({
-      color: 'black',
-      width: 1
-    }),
-    fill: new Fill({
-      // color: 'rgba(20,20,20,0.9)'
-      color: 'red'
+export const fireZoneStyler = (selectedFireZoneID: number | null) => {
+  const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
+    const mof_fire_zone_id = feature.get('mof_fire_zone_id')
+    const selected = selectedFireZoneID && selectedFireZoneID === mof_fire_zone_id ? true : false
+    return new Style({
+      stroke: new Stroke({
+        color: selected ? 'green' : 'black',
+        width: selected ? 8 : 1
+      })
     })
-  })
+  }
+  return a
 }
 
-export const createFireZoneStyler = (fireZoneAreas: FireZoneArea[], advisoryThreshold: number) => {
+export const createFireZoneStyler = (
+  fireZoneAreas: FireZoneArea[],
+  advisoryThreshold: number,
+  selectedFireZoneID: number | null
+) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const mof_fire_zone_id = feature.get('mof_fire_zone_id')
     const fireZoneArea = fireZoneAreas.find(f => f.mof_fire_zone_id === mof_fire_zone_id)
     const advisory = fireZoneArea && fireZoneArea.elevated_hfi_percentage > advisoryThreshold ? true : false
+    const selected = selectedFireZoneID && selectedFireZoneID === mof_fire_zone_id ? true : false
+
     return new Style({
       stroke: new Stroke({
-        color: advisory ? 'red' : 'black',
-        width: 1
+        color: selected ? 'green' : advisory ? 'red' : 'black',
+        width: selected ? 8 : 1
       }),
       fill: advisory ? new Fill({ color: 'rgba(128, 0, 0, 0.4)' }) : undefined
     })
@@ -73,10 +87,13 @@ export const createFireZoneStyler = (fireZoneAreas: FireZoneArea[], advisoryThre
   return a
 }
 
-export const fireZoneLabelStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-  return new Style({
-    text: fireZoneTextStyler(feature)
-  })
+export const createFireZoneLabelStyler = (selectedZoneID: number | null) => {
+  const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
+    return new Style({
+      text: fireZoneTextStyler(feature, selectedZoneID)
+    })
+  }
+  return a
 }
 
 const stationTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {

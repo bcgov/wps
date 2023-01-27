@@ -22,7 +22,7 @@ import {
   fireCentreStyler,
   fireCentreLabelStyler,
   fireZoneStyler,
-  fireZoneLabelStyler,
+  createFireZoneLabelStyler,
   stationStyler,
   hfiStyler,
   createFireZoneStyler
@@ -99,17 +99,9 @@ const FBAMap = (props: FBAMapProps) => {
   const classes = useStyles()
   const { stations } = useSelector(selectFireWeatherStations)
   const [showHighHFI, setShowHighHFI] = useState(true)
-  const [selectedZoneID, setSelectedZoneID] = useState(undefined)
+  const [selectedZoneID, setSelectedZoneID] = useState<number | null>(469)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
-
-  let selectedFireZone: string | number | void | Style | Style[] | undefined = undefined
-
-  const selectedFireZoneStyle = new Style({
-    fill: new Fill({
-      color: 'rgba(200,20,20,0.4)'
-    })
-  })
 
   const fireZoneVectorSource = new VectorTileSource({
     attributions: ['BC Wildfire Service'],
@@ -121,29 +113,13 @@ const FBAMap = (props: FBAMapProps) => {
   const [fireZoneVTL, setFireZoneVector] = useState(
     new VectorTileLayer({
       source: fireZoneVectorSource,
-      style: fireZoneStyler,
+      style: fireZoneStyler(selectedZoneID),
       zIndex: 49,
       properties: { name: 'fireZoneVector' }
     })
   )
 
-  const selectionLayer = new VectorTileLayer({
-    map: !isNull(map) ? map : undefined,
-    renderMode: 'vector',
-    source: fireZoneVectorSource,
-    style: feature => {
-      if (feature.getId() == selectedFireZone) {
-        return selectedFireZoneStyle
-      }
-    }
-  })
-
   const { fireZoneAreas } = useSelector(selectFireZoneAreas)
-
-  useEffect(() => {
-    dispatch(fetchFireZoneAreas(props.runType, props.runDate.toISO(), props.forDate.toISODate()))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.forDate, props.runDate, props.runType])
 
   useEffect(() => {
     if (map) {
@@ -155,46 +131,37 @@ const FBAMap = (props: FBAMapProps) => {
         map.removeLayer(layer)
       }
       map.addLayer(fireZoneVTL)
-
       map.on('click', event => {
         fireZoneVTL.getFeatures(event.pixel).then(features => {
           if (!features.length) {
-            selectedFireZone = undefined
-            selectionLayer.changed()
+            setSelectedZoneID(null)
             return
           }
           const feature = features[0]
           if (!feature) {
             return
           }
-          const fid = feature.getId()
-          selectedFireZone = fid
-          selectionLayer.changed()
+          setSelectedZoneID(feature.get('mof_fire_zone_id'))
         })
       })
-
-      // map.on('click', e => {
-      //   map.getFeaturesAtPixel(e.pixel).forEach(feature => {
-      //     console.log(feature.getProperties())
-      //     setSelectedZoneID(feature.get('mof_fire_zone_id'))
-      //   })
-      // })
     }
   }, [map, fireZoneVTL]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    fetchFireZoneAreas(props.runType, props.runDate.toISO(), props.forDate.toISODate())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.forDate, props.runDate, props.runType])
+
+  useEffect(() => {
     setFireZoneVector(
       new VectorTileLayer({
-        source: new VectorTileSource({
-          attributions: ['BC Wildfire Service'],
-          format: new MVT(),
-          url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
-        }),
-        style: createFireZoneStyler(fireZoneAreas, props.advisoryThreshold),
+        source: fireZoneVectorSource,
+        style: createFireZoneStyler(fireZoneAreas, props.advisoryThreshold, selectedZoneID),
         zIndex: 49,
         properties: { name: 'fireZoneVector' }
       })
     )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireZoneAreas, props.advisoryThreshold])
 
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
@@ -204,7 +171,7 @@ const FBAMap = (props: FBAMapProps) => {
       format: new MVT(),
       url: `${TILE_SERVER_URL}/public.fire_zones_labels/{z}/{x}/{y}.pbf`
     }),
-    style: fireZoneLabelStyler,
+    style: createFireZoneLabelStyler(selectedZoneID),
     zIndex: 99,
     minZoom: 6
   })
@@ -311,7 +278,7 @@ const FBAMap = (props: FBAMapProps) => {
         new Tile({
           source: baseMapSource
         }),
-        fireZoneVTL,
+        // fireZoneVTL,
         fireCentreVTL,
         // thessianVector,
         fireZoneLabelVTL,
