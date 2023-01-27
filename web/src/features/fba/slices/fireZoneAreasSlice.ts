@@ -49,6 +49,7 @@ export const fetchFireZoneAreas =
       try {
         dispatch(getFireZoneAreasStart())
         const fireZoneAreas = await getFireZoneAreas(runType, run_datetime, for_date)
+        console.log(fireZoneAreas)
         dispatch(getFireZoneAreasSuccess(fireZoneAreas))
       } catch (err) {
         dispatch(getFireZoneAreasFailed((err as Error).toString()))

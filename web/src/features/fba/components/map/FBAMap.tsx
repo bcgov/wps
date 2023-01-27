@@ -111,6 +111,20 @@ const FBAMap = (props: FBAMapProps) => {
 
   const { fireZoneAreas } = useSelector(selectFireZoneAreas)
 
+  const buildAdvisoryZones = () => {
+    console.log(fireZoneAreas)
+    return new VectorTileLayer({
+      source: new VectorTileSource({
+        attributions: ['BC Wildfire Service'],
+        format: new MVT(),
+        url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
+      }),
+      style: createFireZoneStyler(fireZoneAreas, props.advisoryThreshold),
+      zIndex: 49,
+      properties: { name: 'fireZoneVector' }
+    })
+  }
+
   useEffect(() => {
     if (map) {
       const layer = map
@@ -120,11 +134,12 @@ const FBAMap = (props: FBAMapProps) => {
       if (layer) {
         map.removeLayer(layer)
       }
-      map.addLayer(fireZoneVector)
+      map.addLayer(buildAdvisoryZones())
     }
   }, [map, fireZoneVector])
 
   useEffect(() => {
+    console.log('Got new advisory zones')
     setFireZoneVector(
       new VectorTileLayer({
         source: new VectorTileSource({

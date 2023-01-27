@@ -63,7 +63,7 @@ export const createFireZoneStyler = (fireZoneAreas: FireZoneArea[], advisoryThre
         color: advisory ? 'red' : 'black',
         width: 1
       }),
-      fill: advisory ? new Fill({ color: 'rgba(128, 0, 0, 0.4)' }) : undefined
+      fill: new Fill({ color: 'rgba(128, 0, 0, 0.4)' })
     })
   }
   return a

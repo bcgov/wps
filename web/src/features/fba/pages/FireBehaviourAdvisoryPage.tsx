@@ -61,7 +61,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
-  const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
+  const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
   const [issueDate, setIssueDate] = useState<DateTime | null>(null)
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13

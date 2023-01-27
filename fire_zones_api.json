@@ -1,0 +1,322 @@
+[
+    {
+        "mof_fire_zone_id": 401,
+        "elevated_hfi_area": 726525535.5871277,
+        "elevated_hfi_percentage": 12.299288001378022
+    },
+    {
+        "mof_fire_zone_id": 402,
+        "elevated_hfi_area": 1893223506.2165582,
+        "elevated_hfi_percentage": 10.108369479495227
+    },
+    {
+        "mof_fire_zone_id": 403,
+        "elevated_hfi_area": 383979633.30416566,
+        "elevated_hfi_percentage": 4.72534626075138
+    },
+    {
+        "mof_fire_zone_id": 404,
+        "elevated_hfi_area": 642380298.0383234,
+        "elevated_hfi_percentage": 5.859008266315192
+    },
+    {
+        "mof_fire_zone_id": 405,
+        "elevated_hfi_area": 487353480.0224697,
+        "elevated_hfi_percentage": 10.775286132467249
+    },
+    {
+        "mof_fire_zone_id": 406,
+        "elevated_hfi_area": 969353940.0993758,
+        "elevated_hfi_percentage": 8.919497163807305
+    },
+    {
+        "mof_fire_zone_id": 407,
+        "elevated_hfi_area": 257349556.22034404,
+        "elevated_hfi_percentage": 4.450018359647896
+    },
+    {
+        "mof_fire_zone_id": 408,
+        "elevated_hfi_area": 726942710.0380535,
+        "elevated_hfi_percentage": 11.54670898831348
+    },
+    {
+        "mof_fire_zone_id": 409,
+        "elevated_hfi_area": 694937839.6892269,
+        "elevated_hfi_percentage": 7.298131517630405
+    },
+    {
+        "mof_fire_zone_id": 410,
+        "elevated_hfi_area": 1114390584.3387852,
+        "elevated_hfi_percentage": 9.62993517881197
+    },
+    {
+        "mof_fire_zone_id": 411,
+        "elevated_hfi_area": 620353721.3628553,
+        "elevated_hfi_percentage": 8.965790110817121
+    },
+    {
+        "mof_fire_zone_id": 412,
+        "elevated_hfi_area": 414516820.3439229,
+        "elevated_hfi_percentage": 3.3480066843322795
+    },
+    {
+        "mof_fire_zone_id": 413,
+        "elevated_hfi_area": 485616913.1263539,
+        "elevated_hfi_percentage": 4.141185154804981
+    },
+    {
+        "mof_fire_zone_id": 414,
+        "elevated_hfi_area": 1295684106.1495304,
+        "elevated_hfi_percentage": 5.9962538478311265
+    },
+    {
+        "mof_fire_zone_id": 415,
+        "elevated_hfi_area": 511372611.5542277,
+        "elevated_hfi_percentage": 1.2969362869621759
+    },
+    {
+        "mof_fire_zone_id": 416,
+        "elevated_hfi_area": 118914615.09911254,
+        "elevated_hfi_percentage": 1.7262578876702266
+    },
+    {
+        "mof_fire_zone_id": 417,
+        "elevated_hfi_area": 827014147.271362,
+        "elevated_hfi_percentage": 2.694285697252871
+    },
+    {
+        "mof_fire_zone_id": 418,
+        "elevated_hfi_area": 1117495665.899043,
+        "elevated_hfi_percentage": 4.7165884586119295
+    },
+    {
+        "mof_fire_zone_id": 419,
+        "elevated_hfi_area": 9837311.614385339,
+        "elevated_hfi_percentage": 0.06814447289892286
+    },
+    {
+        "mof_fire_zone_id": 420,
+        "elevated_hfi_area": 2508451504.235116,
+        "elevated_hfi_percentage": 8.90818354958243
+    },
+    {
+        "mof_fire_zone_id": 421,
+        "elevated_hfi_area": 10836560.349869568,
+        "elevated_hfi_percentage": 0.044211793170819004
+    },
+    {
+        "mof_fire_zone_id": 422,
+        "elevated_hfi_area": 1883353158.273919,
+        "elevated_hfi_percentage": 4.7894952272770155
+    },
+    {
+        "mof_fire_zone_id": 423,
+        "elevated_hfi_area": 3328619373.585889,
+        "elevated_hfi_percentage": 6.9953661482377
+    },
+    {
+        "mof_fire_zone_id": 424,
+        "elevated_hfi_area": 13356197794.14247,
+        "elevated_hfi_percentage": 29.904892170383746
+    },
+    {
+        "mof_fire_zone_id": 425,
+        "elevated_hfi_area": 26706993707.437298,
+        "elevated_hfi_percentage": 33.79264266562073
+    },
+    {
+        "mof_fire_zone_id": 426,
+        "elevated_hfi_area": 51052269.81378081,
+        "elevated_hfi_percentage": 0.04680547349868592
+    },
+    {
+        "mof_fire_zone_id": 427,
+        "elevated_hfi_area": 406725499.80730593,
+        "elevated_hfi_percentage": 3.6485135481533364
+    },
+    {
+        "mof_fire_zone_id": 428,
+        "elevated_hfi_area": 488575152.7210656,
+        "elevated_hfi_percentage": 2.704546222046968
+    },
+    {
+        "mof_fire_zone_id": 429,
+        "elevated_hfi_area": 1621582569.6875935,
+        "elevated_hfi_percentage": 7.906540478746113
+    },
+    {
+        "mof_fire_zone_id": 430,
+        "elevated_hfi_area": 984748666.475238,
+        "elevated_hfi_percentage": 5.079579619300486
+    },
+    {
+        "mof_fire_zone_id": 431,
+        "elevated_hfi_area": 51589668.86610691,
+        "elevated_hfi_percentage": 0.9736544251347592
+    },
+    {
+        "mof_fire_zone_id": 432,
+        "elevated_hfi_area": 187999002.1554861,
+        "elevated_hfi_percentage": 2.551379699002089
+    },
+    {
+        "mof_fire_zone_id": 481,
+        "elevated_hfi_area": 726525535.9033884,
+        "elevated_hfi_percentage": 12.299288043077397
+    },
+    {
+        "mof_fire_zone_id": 482,
+        "elevated_hfi_area": 1893223505.5274742,
+        "elevated_hfi_percentage": 10.108369477934568
+    },
+    {
+        "mof_fire_zone_id": 483,
+        "elevated_hfi_area": 383979632.28343016,
+        "elevated_hfi_percentage": 4.7253462574939595
+    },
+    {
+        "mof_fire_zone_id": 484,
+        "elevated_hfi_area": 642380299.1296916,
+        "elevated_hfi_percentage": 5.859008277408166
+    },
+    {
+        "mof_fire_zone_id": 485,
+        "elevated_hfi_area": 487353480.6131283,
+        "elevated_hfi_percentage": 10.775286133380597
+    },
+    {
+        "mof_fire_zone_id": 486,
+        "elevated_hfi_area": 969353940.3439494,
+        "elevated_hfi_percentage": 8.919497192766759
+    },
+    {
+        "mof_fire_zone_id": 487,
+        "elevated_hfi_area": 257349556.2752014,
+        "elevated_hfi_percentage": 4.450018363661829
+    },
+    {
+        "mof_fire_zone_id": 488,
+        "elevated_hfi_area": 726942709.6571299,
+        "elevated_hfi_percentage": 11.546708992263975
+    },
+    {
+        "mof_fire_zone_id": 489,
+        "elevated_hfi_area": 694937841.0635712,
+        "elevated_hfi_percentage": 7.298131523926823
+    },
+    {
+        "mof_fire_zone_id": 490,
+        "elevated_hfi_area": 1114390583.8593752,
+        "elevated_hfi_percentage": 9.629935164262745
+    },
+    {
+        "mof_fire_zone_id": 491,
+        "elevated_hfi_area": 620353720.67665,
+        "elevated_hfi_percentage": 8.965790101170468
+    },
+    {
+        "mof_fire_zone_id": 492,
+        "elevated_hfi_area": 414516820.1357691,
+        "elevated_hfi_percentage": 3.348006679883607
+    },
+    {
+        "mof_fire_zone_id": 493,
+        "elevated_hfi_area": 406713451.55396634,
+        "elevated_hfi_percentage": 3.6483156190394146
+    },
+    {
+        "mof_fire_zone_id": 494,
+        "elevated_hfi_area": 485616913.2869787,
+        "elevated_hfi_percentage": 4.141185153953225
+    },
+    {
+        "mof_fire_zone_id": 495,
+        "elevated_hfi_area": 1295684106.5533855,
+        "elevated_hfi_percentage": 5.996253840327082
+    },
+    {
+        "mof_fire_zone_id": 496,
+        "elevated_hfi_area": 1621601445.3501723,
+        "elevated_hfi_percentage": 7.9037753063287255
+    },
+    {
+        "mof_fire_zone_id": 497,
+        "elevated_hfi_area": 511372612.4483125,
+        "elevated_hfi_percentage": 1.296935750553984
+    },
+    {
+        "mof_fire_zone_id": 498,
+        "elevated_hfi_area": 984748669.0173033,
+        "elevated_hfi_percentage": 5.080188297102775
+    },
+    {
+        "mof_fire_zone_id": 499,
+        "elevated_hfi_area": 118914615.09911254,
+        "elevated_hfi_percentage": 1.7262578864817788
+    },
+    {
+        "mof_fire_zone_id": 500,
+        "elevated_hfi_area": 827014149.3459717,
+        "elevated_hfi_percentage": 2.694285703503526
+    },
+    {
+        "mof_fire_zone_id": 501,
+        "elevated_hfi_area": 1117495663.3179817,
+        "elevated_hfi_percentage": 4.716588449800998
+    },
+    {
+        "mof_fire_zone_id": 502,
+        "elevated_hfi_area": 9837311.525876813,
+        "elevated_hfi_percentage": 0.06814447231602226
+    },
+    {
+        "mof_fire_zone_id": 503,
+        "elevated_hfi_area": 2508451503.90069,
+        "elevated_hfi_percentage": 8.908183537553546
+    },
+    {
+        "mof_fire_zone_id": 504,
+        "elevated_hfi_area": 10836560.438378166,
+        "elevated_hfi_percentage": 0.04421179351336317
+    },
+    {
+        "mof_fire_zone_id": 505,
+        "elevated_hfi_area": 1883353156.6115153,
+        "elevated_hfi_percentage": 4.789495225561562
+    },
+    {
+        "mof_fire_zone_id": 506,
+        "elevated_hfi_area": 3328619371.6197805,
+        "elevated_hfi_percentage": 6.995366142741337
+    },
+    {
+        "mof_fire_zone_id": 507,
+        "elevated_hfi_area": 13356197805.203308,
+        "elevated_hfi_percentage": 29.90489217524167
+    },
+    {
+        "mof_fire_zone_id": 508,
+        "elevated_hfi_area": 26706993704.156803,
+        "elevated_hfi_percentage": 33.792642666225454
+    },
+    {
+        "mof_fire_zone_id": 509,
+        "elevated_hfi_area": 51052269.606194995,
+        "elevated_hfi_percentage": 0.04680547331762267
+    },
+    {
+        "mof_fire_zone_id": 510,
+        "elevated_hfi_area": 488575149.46672034,
+        "elevated_hfi_percentage": 2.705038483404967
+    },
+    {
+        "mof_fire_zone_id": 511,
+        "elevated_hfi_area": 52107030.6213268,
+        "elevated_hfi_percentage": 0.9836454606731946
+    },
+    {
+        "mof_fire_zone_id": 512,
+        "elevated_hfi_area": 187999002.5182678,
+        "elevated_hfi_percentage": 2.5513789448314124
+    }
+]
