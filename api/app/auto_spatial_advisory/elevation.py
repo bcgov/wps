@@ -32,7 +32,6 @@ async def process_elevation(run_type: RunType, run_datetime: datetime, for_date:
 
     logger.info('Processing elevation stats %s for run date: %s, for date: %s', run_type, run_datetime, for_date)
     perf_start = perf_counter()
-    run_type = RunType.FORECAST
 
     # Get the id from run_parameters associated with the provided runtype, for_date and for_datetime
     run_parameters_id = await get_run_parameters(run_type, for_date, for_date)
@@ -45,7 +44,7 @@ async def process_elevation(run_type: RunType, run_datetime: datetime, for_date:
     # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
     # it's S3 virtual file system driver to read the file.
     # https://gdal.org/user/virtual_file_systems.html
-    key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{for_date.strftime("%Y-%m-%d")}/hfi{for_date_string}.tif'
+    key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_datetime.isoformat()}/hfi{for_date_string}.tif'
     with tempfile.TemporaryDirectory() as temp_dir:
         await prepare_dem()
         temp_filename = os.path.join(temp_dir, 'classified.tif')
