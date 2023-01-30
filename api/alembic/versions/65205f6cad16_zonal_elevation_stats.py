@@ -1,7 +1,7 @@
 """zonal elevation stats
 
 Revision ID: 65205f6cad16
-Revises: 56916d46d8cb
+Revises: 04bc7be60b4f
 Create Date: 2023-01-26 16:51:35.673519
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '65205f6cad16'
-down_revision = '56916d46d8cb'
+down_revision = '04bc7be60b4f'
 branch_labels = None
 depends_on = None
 
