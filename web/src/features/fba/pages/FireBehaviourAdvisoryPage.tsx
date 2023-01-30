@@ -63,6 +63,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
   const [issueDate, setIssueDate] = useState<DateTime | null>(null)
+  const [selectedFireZoneID, setSelectedFireZoneID] = useState<number | null>(null)
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
@@ -164,17 +165,19 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       <Container maxWidth={'xl'}>
         <Grid container direction={'row'}>
           <Grid item>
-            <ZoneSummaryPanel selectedZoneID={401} />
+            <ZoneSummaryPanel selectedZoneID={selectedFireZoneID} />
           </Grid>
           <Grid item>
             <FBAMap
               forDate={dateOfInterest}
               runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
               runType={runType}
+              selectedFireZoneID={selectedFireZoneID}
               selectedFireCenter={fireCenter}
               advisoryThreshold={advisoryThreshold}
               className={classes.mapContainer}
               setIssueDate={setIssueDate}
+              setSelectedFireZoneID={setSelectedFireZoneID}
             />
           </Grid>
         </Grid>

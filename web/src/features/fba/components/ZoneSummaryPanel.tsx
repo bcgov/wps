@@ -48,19 +48,23 @@ export interface Option {
 
 interface Props {
   className?: string
-  selectedZoneID: number
+  selectedZoneID: number | null
 }
 
 const ZoneSummaryPanel = (props: Props) => {
   const classes = useStyles()
 
-  return (
-    <div className={props.className}>
-      <div className={classes.wrapper}>
-        <TextField value={props.selectedZoneID} />
+  if (isNull(props.selectedZoneID)) {
+    return <div></div>
+  } else {
+    return (
+      <div className={props.className}>
+        <div className={classes.wrapper}>
+          <TextField value={props.selectedZoneID} />
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 }
 
 export default React.memo(ZoneSummaryPanel)

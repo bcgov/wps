@@ -33,39 +33,7 @@ export const fireCentreStyler = (): Style => {
   })
 }
 
-const fireZoneTextStyler = (feature: RenderFeature | ol.Feature<Geometry>, selectedFireZoneID: number | null): Text => {
-  const text = feature.get('mof_fire_zone_name').replace(' Fire Zone', '\nFire Zone')
-  const mof_fire_zone_id = feature.get('mof_fire_zone_id')
-  const selected = selectedFireZoneID && mof_fire_zone_id === selectedFireZoneID ? true : false
-  return new Text({
-    overflow: true,
-    fill: new Fill({
-      color: selected ? 'green' : 'black'
-    }),
-    stroke: new Stroke({
-      color: 'white',
-      width: selected ? 4 : 2
-    }),
-    font: selected ? 'bold 20px sans-serif' : 'bold 15px sans-serif',
-    text: text
-  })
-}
-
-export const fireZoneStyler = (selectedFireZoneID: number | null) => {
-  const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const mof_fire_zone_id = feature.get('mof_fire_zone_id')
-    const selected = selectedFireZoneID && selectedFireZoneID === mof_fire_zone_id ? true : false
-    return new Style({
-      stroke: new Stroke({
-        color: selected ? 'green' : 'black',
-        width: selected ? 8 : 1
-      })
-    })
-  }
-  return a
-}
-
-export const createFireZoneStyler = (
+export const fireZoneStyler = (
   fireZoneAreas: FireZoneArea[],
   advisoryThreshold: number,
   selectedFireZoneID: number | null
@@ -81,16 +49,30 @@ export const createFireZoneStyler = (
         color: selected ? 'green' : advisory ? 'red' : 'black',
         width: selected ? 8 : 1
       }),
-      fill: advisory ? new Fill({ color: 'rgba(128, 0, 0, 0.4)' }) : undefined
+      fill: advisory ? new Fill({ color: 'rgba(128, 0, 0, 0.4)' }) : new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
     })
   }
   return a
 }
 
-export const createFireZoneLabelStyler = (selectedZoneID: number | null) => {
+export const fireZoneLabelStyler = (selectedZoneID: number | null) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
+    const text = feature.get('mof_fire_zone_name').replace(' Fire Zone', '\nFire Zone')
+    const mof_fire_zone_id = feature.get('mof_fire_zone_id')
+    const selected = selectedZoneID && mof_fire_zone_id === selectedZoneID ? true : false
     return new Style({
-      text: fireZoneTextStyler(feature, selectedZoneID)
+      text: new Text({
+        overflow: true,
+        fill: new Fill({
+          color: selected ? 'green' : 'black'
+        }),
+        stroke: new Stroke({
+          color: 'white',
+          width: selected ? 4 : 2
+        }),
+        font: selected ? 'bold 20px sans-serif' : 'bold 15px sans-serif',
+        text: text
+      })
     })
   }
   return a
