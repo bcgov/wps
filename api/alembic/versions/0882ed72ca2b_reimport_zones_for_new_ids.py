@@ -1,7 +1,7 @@
 """reimport zones for new ids
 
 Revision ID: 0882ed72ca2b
-Revises: 482c74601042
+Revises: 56916d46d8cb
 Create Date: 2023-01-26 15:23:00.553097
 
 """
@@ -16,7 +16,7 @@ from app.utils import esri
 
 # revision identifiers, used by Alembic.
 revision = '0882ed72ca2b'
-down_revision = '482c74601042'
+down_revision = '56916d46d8cb'
 branch_labels = None
 depends_on = None
 
