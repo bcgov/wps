@@ -63,11 +63,11 @@ def upgrade():
                 polygons.append(Polygon(ring).simplify(1000, preserve_topology=True))
             geom = MultiPolygon(polygons)
             # Insert.
-            shape_table.update().values(
+            update_statement = shape_table.update().values(
                 source_identifier=fire_zone_id,
                 shape_type=shape_type_id,
                 geom=wkb.dumps(geom, hex=True, srid=3005))
-            session.execute(statement)
+            session.execute(update_statement)
     # ### end Alembic commands ###
 
 
