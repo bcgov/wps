@@ -201,7 +201,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             props.fuelTypes
                           )
                           if (isUndefined(selectedFuelType)) {
-                            return <React.Fragment></React.Fragment>
+                            return <React.Fragment key={`weekly-undefined-fuel-type-${station.code}`}></React.Fragment>
                           }
                           return (
                             <TableRow className={classNameForRow} key={`station-${stationCode}`}>

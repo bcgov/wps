@@ -1,0 +1,197 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: ${APP_NAME}-${SUFFIX}
+  annotations:
+    "openshift.io/display-name": ${APP_NAME}-${SUFFIX}
+labels:
+  app.kubernetes.io/part-of: "${APP_NAME}"
+  app: ${APP_NAME}-${SUFFIX}
+parameters:
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
+    value: wps-tileserv
+    required: true
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: IMAGE_REGISTRY
+    value: image-registry.apps.silver.devops.gov.bc.ca
+  - name: IMAGE_NAMESPACE
+    value: e1e498-tools
+objects:
+  - apiVersion: postgres-operator.crunchydata.com/v1beta1
+    kind: PostgresCluster
+    metadata:
+      name: ${APP_NAME}-${SUFFIX}
+    spec:
+      image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres-gis:ubi8-14.5-3.2-1
+      metadata:
+        name: ${APP_NAME}-${SUFFIX}
+        labels:
+          app: ${APP_NAME}-${SUFFIX}
+      users:
+        - name: ${APP_NAME}-${SUFFIX}
+          databases:
+            - postgres
+          options: "SUPERUSER"
+      postgresVersion: 14
+      instances:
+        - name: tileserv
+          replicas: 3
+          dataVolumeClaimSpec:
+            accessModes:
+              - "ReadWriteOnce"
+            resources:
+              requests:
+                storage: 5Gi
+                cpu: 15m
+                memory: 200Mi
+              limits:
+                cpu: 100m
+                memory: 500Mi
+            storageClassName: netapp-block-standard
+          walVolumeClaimSpec:
+            accessModes:
+              - "ReadWriteOnce"
+            resources:
+              requests:
+                storage: 2Gi
+            storageClassName: netapp-block-standard
+      backups:
+        pgbackrest:
+          image: registry.developers.crunchydata.com/crunchydata/crunchy-pgbackrest:ubi8-2.40-1
+          repos:
+            - name: repo1
+              volume:
+                volumeClaimSpec:
+                  accessModes:
+                    - "ReadWriteOnce"
+                  resources:
+                    requests:
+                      storage: 1Gi
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: tileserv-init-${SUFFIX}
+      labels:
+        app.kubernetes.io/part-of: tileserv
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${APP_NAME}-${SUFFIX}
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+        name: ${APP_NAME}-${SUFFIX}
+    spec:
+      ports:
+        - name: 7800-tcp
+          protocol: TCP
+          port: 80
+          targetPort: 7800
+      selector:
+        name: ${APP_NAME}-${SUFFIX}
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: ${APP_NAME}-${SUFFIX}
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+        name: ${APP_NAME}-${SUFFIX}
+    spec:
+      host: wps-${SUFFIX}-tileserv.apps.silver.devops.gov.bc.ca
+      port:
+        targetPort: 7800-tcp
+      to:
+        kind: Service
+        name: ${APP_NAME}-${SUFFIX}
+      tls:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${SUFFIX}
+    spec:
+      replicas: 1
+      selector:
+        app: ${APP_NAME}-${SUFFIX}
+      strategy:
+        type: Rolling
+      template:
+        metadata:
+          labels:
+            app: ${APP_NAME}-${SUFFIX}
+            name: ${APP_NAME}-${SUFFIX}
+        spec:
+          initContainers:
+            - name: init-alembic-migrations
+              image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/${APP_NAME}-${SUFFIX}:${SUFFIX}
+              env:
+                - name: POSTGRES_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: uri
+                - name: DATABASE_URL
+                  value: $(POSTGRES_URI)
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: user
+                - name: POSTGRES_DB
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: dbname
+          containers:
+            - name: tileserv
+              image: artifacts.developer.gov.bc.ca/docker-remote/pramsey/pg_tileserv
+              command: ["/app/pg_tileserv"]
+              ports:
+                - containerPort: 7800
+                  protocol: TCP
+              env:
+                - name: POSTGRES_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: uri
+                - name: DATABASE_URL
+                  value: $(POSTGRES_URI)
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: user
+                - name: POSTGRES_DB
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
+                      key: dbname
+              livenessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 5
+                periodSeconds: 30
+                successThreshold: 1
+                tcpSocket:
+                  port: 7800
+                timeoutSeconds: 5
+              readinessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 10
+                periodSeconds: 30
+                successThreshold: 1
+                tcpSocket:
+                  port: 7800
+                timeoutSeconds: 5
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 200m
+                  memory: 512Mi

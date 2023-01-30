@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FireZoneArea, ZoneAreaListResponse, getFireZoneAreas } from 'api/fbaAPI'
+import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 interface State {
   loading: boolean
@@ -42,15 +43,23 @@ export const { getFireZoneAreasStart, getFireZoneAreasFailed, getFireZoneAreasSu
 export default fireZoneAreasSlice.reducer
 
 export const fetchFireZoneAreas =
-  (for_date: string): AppThunk =>
+  (runType: RunType, run_datetime: string | undefined, for_date: string): AppThunk =>
   async dispatch => {
-    try {
-      dispatch(getFireZoneAreasStart())
-      // TODO: We need a mechanism to request the most recent run date for a given for_date
-      const fireZoneAreas = await getFireZoneAreas('forecast', for_date, for_date)
-      dispatch(getFireZoneAreasSuccess(fireZoneAreas))
-    } catch (err) {
-      dispatch(getFireZoneAreasFailed((err as Error).toString()))
-      logError(err)
+    if (run_datetime != undefined && run_datetime !== ``) {
+      try {
+        dispatch(getFireZoneAreasStart())
+        const fireZoneAreas = await getFireZoneAreas(runType, run_datetime, for_date)
+        dispatch(getFireZoneAreasSuccess(fireZoneAreas))
+      } catch (err) {
+        dispatch(getFireZoneAreasFailed((err as Error).toString()))
+        logError(err)
+      }
+    } else {
+      try {
+        dispatch(getFireZoneAreasFailed('run_datetime cannot be undefined!'))
+      } catch (err) {
+        dispatch(getFireZoneAreasFailed((err as Error).toString()))
+        logError(err)
+      }
     }
   }

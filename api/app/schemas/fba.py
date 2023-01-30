@@ -34,3 +34,22 @@ class FireZoneArea(BaseModel):
 class FireZoneAreaListResponse(BaseModel):
     """ Response for all planning areas, in a list """
     zones: List[FireZoneArea]
+
+
+class FireZoneHighHfiAreas(BaseModel):
+    """ A fire zone and the area exceeding HFI thresholds. """
+    mof_fire_zone_id: int
+    advisory_area: float
+    warn_area: float
+
+
+class FireZoneHighHfiAreasListResponse(BaseModel):
+    """ Response for all fire zones and their areas exceeding high HFI thresholds. """
+    zones: List[FireZoneHighHfiAreas]
+
+
+class HfiThresholdAreaByFuelType(BaseModel):
+    """ Total area in sq.m. within HFI threshold for a specific fuel type """
+    fuel_type_id: int
+    threshold: int
+    area: float

@@ -4,13 +4,13 @@ import logging
 from datetime import datetime, date
 import os
 from tempfile import SpooledTemporaryFile
-from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks
-from app.nats import publish
+from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Header
+from app.nats_publish import publish
 from app.utils.s3 import get_client
 from app import config
 from app.auto_spatial_advisory.sfms import get_sfms_file_message, get_target_filename, get_date_part, is_hfi_file
-from app.auto_spatial_advisory.nats import stream_name, subjects, sfms_file_subject
-from app.schemas.auto_spatial_advisory import SFMSFile
+from app.auto_spatial_advisory.nats_config import stream_name, subjects, sfms_file_subject
+from app.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
 
 
 logger = logging.getLogger(__name__)
@@ -131,7 +131,7 @@ async def upload_manual(file: UploadFile,
     """
     logger.info('sfms/manual')
     forecast_or_actual = request.headers.get('ForecastOrActual')
-    issue_date = date.fromisoformat(request.headers.get('IssueDate'))
+    issue_date = datetime.fromisoformat(str(request.headers.get('IssueDate')))
     secret = request.headers.get('Secret')
     if not secret or secret != config.get('SFMS_SECRET'):
         return Response(status_code=401)
@@ -148,6 +148,11 @@ async def upload_manual(file: UploadFile,
                                 Body=FileLikeObject(file.file),
                                 Metadata=meta_data)
         logger.info('Done uploading file')
+    return add_msg_to_queue(file, key, forecast_or_actual, meta_data, issue_date, background_tasks)
+
+
+def add_msg_to_queue(file: UploadFile, key: str, forecast_or_actual: str, meta_data: dict,
+                     issue_date: datetime, background_tasks: BackgroundTasks):
     try:
         # We don't want to hold back the response to the client, so we'll publish the message
         # as a background task.
@@ -174,3 +179,32 @@ async def upload_manual(file: UploadFile,
         # put a message on the queue. But, we can't do that because the caller isn't very smart,
         # and can't be given that level of responsibility.
     return Response(status_code=200)
+
+
+@router.post('/manual/msgOnly')
+async def upload_manual_msg(message: ManualSFMS,
+                            background_tasks: BackgroundTasks,
+                            secret: str | None = Header(default=None)):
+    """
+    Trigger the SFMS process to run on a tif file that already exists in s3.
+    Client provides, key, for_date, runtype, run_date and an
+    SFMS message is queued up on the message queue.
+    """
+    logger.info('sfms/manual/msgOnly')
+    logger.info("Received request to process tif: %s", message.key)
+    if not secret or secret != config.get('SFMS_SECRET'):
+        return Response(status_code=401)
+
+    async with get_client() as (client, bucket):
+        tif_object = await client.get_object(Bucket=bucket,
+                                             Key=message.key)
+        logger.info('Found requested object: %s', tif_object)
+        last_modified = datetime.fromisoformat(tif_object["Metadata"]["last_modified"])
+        create_time = datetime.fromisoformat(tif_object["Metadata"]["create_time"])
+        message = SFMSFile(key=message.key,
+                           run_type=message.runtype,
+                           last_modified=last_modified,
+                           create_time=create_time,
+                           run_date=message.run_date,
+                           for_date=message.for_date)
+    background_tasks.add_task(publish, stream_name, sfms_file_subject, message, subjects)
