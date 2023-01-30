@@ -1,5 +1,4 @@
-""" Take a classified HFI image and determines the distribution of elevations associated with advisory
-areas per fire zone.
+""" Takes a classified HFI image and calculates basic elevation statistics associated with advisory areas per fire zone.
 """
 
 from datetime import date, datetime
@@ -236,26 +235,23 @@ def get_elevation_stats(source_path: str):
     source_data = source_band.ReadAsArray()
     max_elevation = np.max(source_data)
     if max_elevation == 0:
-        mean = 0
         median = 0
         minimum = 0
         maximum = 0
-        q25 = 0
-        q75 = 0
+        quartile_25 = 0
+        quartile_75 = 0
     else:
-        mean = np.mean(source_data[source_data != 0])
         median = np.median(source_data[source_data != 0])
         minimum = np.min(source_data[source_data != 0])
         maximum = np.max(source_data[source_data != 0])
-        q25 = np.percentile(source_data[source_data != 0], 25)
-        q75 = np.percentile(source_data[source_data != 0], 75)
+        quartile_25 = np.percentile(source_data[source_data != 0], 25)
+        quartile_75 = np.percentile(source_data[source_data != 0], 75)
     return {
-        'min': minimum,
-        'max': maximum,
+        'minimum': minimum,
+        'maximum': maximum,
         'median': median,
-        'mean': mean,
-        'q25': q25,
-        'q75': q75
+        'quartile_25': quartile_25,
+        'quartile_75': quartile_75
     }
 
 
@@ -270,11 +266,11 @@ async def store_elevation_stats(threshold: int, shape_id: int, stats, run_parame
     :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
     """
     logger.info('Writing firezone hfi elevation stats to API database...')
-    advisory_elevation_stats = AdvisoryElevationStats(advisory_shape_id=shape_id, min_elevation=stats['min'],
-                                                      max_elevation=stats['max'], median=stats['median'],
-                                                      mean=stats['mean'], quartile_25=stats['q25'],
-                                                      quartile_75=stats['q75'], run_parameters=run_parameters_id,
-                                                      threshold=threshold)
+    advisory_elevation_stats = AdvisoryElevationStats(advisory_shape_id=shape_id, minimum=stats['minimum'],
+                                                      maximum=stats['maximum'], median=stats['median'],
+                                                      quartile_25=stats['quartile_25'],
+                                                      quartile_75=stats['quartile_75'],
+                                                      run_parameters=run_parameters_id, threshold=threshold)
     async with get_async_write_session_scope() as session:
         await save_advisory_elevation_stats(session, advisory_elevation_stats)
 

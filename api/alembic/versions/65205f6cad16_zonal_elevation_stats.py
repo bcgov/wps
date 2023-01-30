@@ -1,8 +1,8 @@
-"""advisory elevation stats
+"""zonal elevation stats
 
-Revision ID: f352113baf50
+Revision ID: 65205f6cad16
 Revises: 56916d46d8cb
-Create Date: 2023-01-25 11:15:17.021308
+Create Date: 2023-01-26 16:51:35.673519
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'f352113baf50'
+revision = '65205f6cad16'
 down_revision = '56916d46d8cb'
 branch_labels = None
 depends_on = None
@@ -21,34 +21,35 @@ def upgrade():
     op.create_table('advisory_elevation_stats',
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('advisory_shape_id', sa.Integer(), nullable=False),
-                    sa.Column('min_elevation', sa.Float(), nullable=False),
-                    sa.Column('max_elevation', sa.Float(), nullable=False),
-                    sa.Column('median', sa.Float(), nullable=False),
-                    sa.Column('mean', sa.Float(), nullable=False),
-                    sa.Column('quartile_25', sa.Float(), nullable=False),
-                    sa.Column('quartile_75', sa.Float(), nullable=False),
-                    sa.Column('run_parameters', sa.Integer(), nullable=False),
                     sa.Column('threshold', sa.Integer(), nullable=False),
+                    sa.Column('run_parameters', sa.Integer(), nullable=False),
+                    sa.Column('minimum', sa.Float(), nullable=False),
+                    sa.Column('quartile_25', sa.Float(), nullable=False),
+                    sa.Column('median', sa.Float(), nullable=False),
+                    sa.Column('quartile_75', sa.Float(), nullable=False),
+                    sa.Column('maximum', sa.Float(), nullable=False),
                     sa.ForeignKeyConstraint(['advisory_shape_id'], ['advisory_shapes.id'], ),
                     sa.ForeignKeyConstraint(['run_parameters'], ['run_parameters.id'], ),
                     sa.ForeignKeyConstraint(['threshold'], ['advisory_hfi_classification_threshold.id'], ),
                     sa.PrimaryKeyConstraint('id'),
                     comment='Elevation stats per fire zone by advisory threshold'
                     )
+    op.create_index(op.f('ix_advisory_elevation_stats_advisory_shape_id'),
+                    'advisory_elevation_stats', ['advisory_shape_id'], unique=False)
     op.create_index(op.f('ix_advisory_elevation_stats_id'), 'advisory_elevation_stats', ['id'], unique=False)
     op.create_index(op.f('ix_advisory_elevation_stats_run_parameters'),
                     'advisory_elevation_stats', ['run_parameters'], unique=False)
-    op.create_index(op.f('ix_advisory_elevation_stats_threshold'),
-                    'advisory_elevation_stats', ['threshold'], unique=False)
     op.create_table('advisory_shape_elevation',
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('advisory_shape_id', sa.Integer(), nullable=False),
-                    sa.Column('min_elevation', sa.Float(), nullable=False),
-                    sa.Column('max_elevation', sa.Float(), nullable=False),
+                    sa.Column('minimum', sa.Float(), nullable=False),
+                    sa.Column('maximum', sa.Float(), nullable=False),
                     sa.ForeignKeyConstraint(['advisory_shape_id'], ['advisory_shapes.id'], ),
                     sa.PrimaryKeyConstraint('id'),
                     comment='Elevation information/stats about each advisory shape'
                     )
+    op.create_index(op.f('ix_advisory_shape_elevation_advisory_shape_id'),
+                    'advisory_shape_elevation', ['advisory_shape_id'], unique=False)
     op.create_index(op.f('ix_advisory_shape_elevation_id'), 'advisory_shape_elevation', ['id'], unique=False)
     op.create_index(op.f('ix_high_hfi_area_run_parameters'), 'high_hfi_area', ['run_parameters'], unique=False)
     op.create_table_comment(
@@ -76,9 +77,10 @@ def downgrade():
     )
     op.drop_index(op.f('ix_high_hfi_area_run_parameters'), table_name='high_hfi_area')
     op.drop_index(op.f('ix_advisory_shape_elevation_id'), table_name='advisory_shape_elevation')
+    op.drop_index(op.f('ix_advisory_shape_elevation_advisory_shape_id'), table_name='advisory_shape_elevation')
     op.drop_table('advisory_shape_elevation')
-    op.drop_index(op.f('ix_advisory_elevation_stats_threshold'), table_name='advisory_elevation_stats')
     op.drop_index(op.f('ix_advisory_elevation_stats_run_parameters'), table_name='advisory_elevation_stats')
     op.drop_index(op.f('ix_advisory_elevation_stats_id'), table_name='advisory_elevation_stats')
+    op.drop_index(op.f('ix_advisory_elevation_stats_advisory_shape_id'), table_name='advisory_elevation_stats')
     op.drop_table('advisory_elevation_stats')
     # ### end Alembic commands ###
