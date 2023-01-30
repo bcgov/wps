@@ -9,7 +9,8 @@ from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.db.database import get_async_read_session_scope
-from app.db.crud.auto_spatial_advisory import get_fuel_types_with_high_hfi, get_hfi_area, get_run_datetimes, get_zonal_elevation_stats
+from app.db.crud.auto_spatial_advisory import (get_fuel_types_with_high_hfi, get_hfi_area, get_run_datetimes,
+                                               get_zonal_elevation_stats)
 from app.auth import authentication_required, audit
 from app.db.models.auto_spatial_advisory import RunTypeEnum
 from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea, HfiThresholdAreaByFuelType,\
