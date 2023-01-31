@@ -29,6 +29,7 @@ describe('FBAMap', () => {
           selectedFireCenter={undefined}
           selectedFireZoneID={null}
           className={''}
+          fireZoneAreas={[]}
           runType={RunType.FORECAST}
           setIssueDate={function (): void {
             throw new Error('Function not implemented.')
