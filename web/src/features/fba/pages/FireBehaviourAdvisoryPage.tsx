@@ -20,7 +20,6 @@ import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
-import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -107,7 +106,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   useEffect(() => {
     if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
       dispatch(fetchHighHFIFuels(runType, dateOfInterest.toISODate(), mostRecentRunDate.toString()))
-      dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), dateOfInterest.toISODate()))
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
