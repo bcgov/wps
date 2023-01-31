@@ -33,9 +33,7 @@ import { RASTER_SERVER_BASE_URL } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildHFICql } from 'features/fba/cqlBuilder'
 import { isUndefined } from 'lodash'
-import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
-import { FeatureStylerBuilder } from 'features/fba/components/map/FeatureStylerBuilder'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -114,7 +112,7 @@ const FBAMap = (props: FBAMapProps) => {
   })
   const [hfiTilesLoading, setHFITilesLoading] = useState(false)
 
-  const [fireZoneVTL, setFireZoneVTL] = useState(
+  const [fireZoneVTL] = useState(
     new VectorTileLayer({
       source: fireZoneVectorSource,
       style: fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZoneID),
@@ -124,7 +122,7 @@ const FBAMap = (props: FBAMapProps) => {
   )
 
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
-  const [fireZoneLabelVTL, setFireZoneLabelVTL] = useState(
+  const [fireZoneLabelVTL] = useState(
     new VectorTileLayer({
       source: fireZoneLabelVectorSource,
       style: fireZoneLabelStyler(props.selectedFireZoneID),
@@ -205,11 +203,7 @@ const FBAMap = (props: FBAMapProps) => {
     if (!map) return
 
     fireZoneVTL.setStyle(
-      FeatureStylerBuilder.createZoneStyler(
-        cloneDeep(props.fireZoneAreas),
-        props.advisoryThreshold,
-        props.selectedFireZoneID
-      )
+      fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZoneID)
     )
     fireZoneLabelVTL.setStyle(fireZoneLabelStyler(props.selectedFireZoneID))
     fireZoneVTL.changed()
