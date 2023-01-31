@@ -9,6 +9,7 @@ from typing import Final
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.orm.session import Session
+from sqlalchemy.dialects.postgresql import insert
 import geoalchemy2
 from shapely.geometry import MultiPolygon, Polygon
 from shapely import wkb
@@ -62,12 +63,15 @@ def upgrade():
                 # Simplify each polygon to 1000 meters, preserving topology.
                 polygons.append(Polygon(ring).simplify(1000, preserve_topology=True))
             geom = MultiPolygon(polygons)
-            # Insert.
-            update_statement = shape_table.update().values(
+            # Insert, ignore if already exists
+            insert_statement = insert(shape_table).values(
                 source_identifier=fire_zone_id,
                 shape_type=shape_type_id,
                 geom=wkb.dumps(geom, hex=True, srid=3005))
-            session.execute(update_statement)
+            stmt = insert_statement.on_conflict_do_nothing(
+                constraint="advisory_shapes_source_identifier_shape_type_key",
+            )
+            session.execute(stmt)
     # ### end Alembic commands ###
 
 
