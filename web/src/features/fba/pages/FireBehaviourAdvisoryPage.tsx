@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters, selectRunDates } from 'app/rootReducer'
+import { selectFireCenters, selectHFIFuelTypes, selectRunDates } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
@@ -56,8 +56,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-  // TODO: hook up later
-  // const { hfiFuelTypes } = useSelector(selectHFIFuelTypes)
+  const { hfiFuelTypes } = useSelector(selectHFIFuelTypes)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
@@ -165,7 +164,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       <Container maxWidth={'xl'}>
         <Grid container direction={'row'}>
           <Grid item>
-            <ZoneSummaryPanel selectedFireZone={selectedFireZone} />
+            <ZoneSummaryPanel selectedFireZone={selectedFireZone} fuelTypeInfo={hfiFuelTypes} />
           </Grid>
           <Grid item>
             <FBAMap

@@ -53,3 +53,10 @@ class HfiThresholdAreaByFuelType(BaseModel):
     fuel_type_id: int
     threshold: int
     area: float
+
+
+class HfiThreshold(BaseModel):
+    """ An HFI Classification threshold """
+    id: int
+    name: str
+    description: str

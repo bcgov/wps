@@ -9,10 +9,10 @@ from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.db.database import get_async_read_session_scope
-from app.db.crud.auto_spatial_advisory import get_fuel_types_with_high_hfi, get_hfi_area, get_run_datetimes
+from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_fuel_types_with_high_hfi, get_hfi_area, get_run_datetimes
 from app.auth import authentication_required, audit
 from app.db.models.auto_spatial_advisory import RunTypeEnum
-from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea,\
+from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea, HfiThreshold,\
     HfiThresholdAreaByFuelType
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 from app.auto_spatial_advisory.process_hfi import RunType
@@ -56,6 +56,22 @@ async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _
                 elevated_hfi_area=row.hfi_area,  # type: ignore
                 elevated_hfi_percentage=hfi_area / combustible_area * 100))
         return FireZoneAreaListResponse(zones=zones)
+
+
+@router.get('/hfi-thresholds/', response_model=List[HfiThreshold])
+async def get_hfi_thresholds():
+    """
+    Get all HFI classification threshold types from database
+    """
+    logger.info('/hfi-thresholds/')
+    thresholds = []
+    async with get_async_read_session_scope() as session:
+        threshold_rows = await get_all_hfi_thresholds(session)
+
+        for row in threshold_rows:
+            thresholds.append(HfiThreshold(id=row[0], description=row[1], name=row[2]))
+
+        return thresholds
 
 
 @router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}',

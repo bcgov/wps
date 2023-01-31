@@ -80,6 +80,16 @@ async def get_combustible_area(session: AsyncSession):
     return all_combustible
 
 
+async def get_all_hfi_thresholds(session: AsyncSession) -> List[Row]:
+    """
+    Retrieve all HfiClassificationThreshold records from DB.
+    """
+    logger.info('retrieving HFI classification thresholds data')
+    stmt = select(HfiClassificationThreshold)
+    result = await session.execute(stmt)
+    return result.all()
+
+
 async def get_fuel_types_with_high_hfi(session: AsyncSession,
                                        run_type: RunTypeEnum,
                                        run_datetime: datetime,
