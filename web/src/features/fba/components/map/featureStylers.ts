@@ -43,10 +43,16 @@ export const fireZoneStyler = (
     const fireZoneArea = fireZoneAreas.find(f => f.mof_fire_zone_id === mof_fire_zone_id)
     const advisory = fireZoneArea && fireZoneArea.elevated_hfi_percentage > advisoryThreshold ? true : false
     const selected = selectedFireZoneID && selectedFireZoneID === mof_fire_zone_id ? true : false
+    let strokeValue = 'black'
+    if (selected) {
+      strokeValue = 'green'
+    } else if (advisory) {
+      strokeValue = 'red'
+    }
 
     return new Style({
       stroke: new Stroke({
-        color: selected ? 'green' : advisory ? 'red' : 'black',
+        color: strokeValue,
         width: selected ? 8 : 1
       }),
       fill: advisory ? new Fill({ color: 'rgba(128, 0, 0, 0.4)' }) : new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
@@ -111,8 +117,6 @@ export const stationStyler = (feature: RenderFeature | ol.Feature<Geometry>): St
   return new Style({})
 }
 
-const thessianPolygonStyle = new Style({})
-
 /**
  * Throwaway code, just for demo purposes.
  *
@@ -121,12 +125,6 @@ const thessianPolygonStyle = new Style({})
 const hfiColors = [new Fill({ color: 'rgba(255, 0, 0, 0.4)' }), new Fill({ color: 'rgba(255, 128, 0, 0.4)' })].concat(
   range(20).flatMap(() => new Fill({ color: 'rgba(0, 0, 0, 0)' }))
 )
-
-export const thessianPolygonStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-  const colorIdx = Math.floor(feature.get('code') % (hfiColors.length - 1))
-  thessianPolygonStyle.setFill(hfiColors[colorIdx])
-  return thessianPolygonStyle
-}
 
 const hfiStyle = new Style({})
 
