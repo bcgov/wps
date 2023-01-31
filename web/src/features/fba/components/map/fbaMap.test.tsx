@@ -27,13 +27,13 @@ describe('FBAMap', () => {
           runDate={DateTime.fromISO('2016-05-25')}
           advisoryThreshold={0}
           selectedFireCenter={undefined}
-          selectedFireZoneID={null}
+          selectedFireZone={undefined}
           className={''}
           runType={RunType.FORECAST}
           setIssueDate={function (): void {
             throw new Error('Function not implemented.')
           }}
-          setSelectedFireZoneID={function (): void {
+          setSelectedFireZone={function (): void {
             throw new Error('Function not implemented.')
           }}
         />

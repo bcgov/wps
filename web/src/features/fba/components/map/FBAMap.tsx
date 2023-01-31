@@ -15,7 +15,7 @@ import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectFireZoneAreas } from 'app/rootReducer'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
-import { FireCenter } from 'api/fbaAPI'
+import { FireCenter, FireZone } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
 import {
   fireCentreStyler,
@@ -46,11 +46,11 @@ export interface FBAMapProps {
   testId?: string
   className: string
   selectedFireCenter: FireCenter | undefined
-  selectedFireZoneID: number | null
+  selectedFireZone: FireZone | undefined
   forDate: DateTime
   runDate: DateTime
   setIssueDate: React.Dispatch<React.SetStateAction<DateTime | null>>
-  setSelectedFireZoneID: React.Dispatch<React.SetStateAction<number | null>>
+  setSelectedFireZone: React.Dispatch<React.SetStateAction<FireZone | undefined>>
   runType: RunType
   advisoryThreshold: number
 }
@@ -116,7 +116,7 @@ const FBAMap = (props: FBAMapProps) => {
   const [fireZoneVTL, setFireZoneVTL] = useState(
     new VectorTileLayer({
       source: fireZoneVectorSource,
-      style: fireZoneStyler(fireZoneAreas, props.advisoryThreshold, props.selectedFireZoneID),
+      style: fireZoneStyler(fireZoneAreas, props.advisoryThreshold, props.selectedFireZone),
       zIndex: 49,
       properties: { name: 'fireZoneVector' }
     })
@@ -126,7 +126,7 @@ const FBAMap = (props: FBAMapProps) => {
   const [fireZoneLabelVTL, setFireZoneLabelVTL] = useState(
     new VectorTileLayer({
       source: fireZoneLabelVectorSource,
-      style: fireZoneLabelStyler(props.selectedFireZoneID),
+      style: fireZoneLabelStyler(props.selectedFireZone),
       zIndex: 99,
       minZoom: 6
     })
@@ -146,7 +146,7 @@ const FBAMap = (props: FBAMapProps) => {
       map.on('click', event => {
         fireZoneVTL.getFeatures(event.pixel).then(features => {
           if (!features.length) {
-            props.setSelectedFireZoneID(null)
+            props.setSelectedFireZone(undefined)
             return
           }
           const feature = features[0]
@@ -157,7 +157,13 @@ const FBAMap = (props: FBAMapProps) => {
           if (!isUndefined(zoneExtent)) {
             map.getView().fit(zoneExtent)
           }
-          props.setSelectedFireZoneID(feature.get('mof_fire_zone_id'))
+          const fireZone: FireZone = {
+            mof_fire_zone_id: feature.get('mof_fire_zone_id'),
+            mof_fire_zone_name: feature.get('mof_fire_zone_name'),
+            mof_fire_centre_name: feature.get('mof_fire_centre_name'),
+            area_sqm: feature.get('feature_area_sqm')
+          }
+          props.setSelectedFireZone(fireZone)
         })
       })
     }
@@ -172,7 +178,7 @@ const FBAMap = (props: FBAMapProps) => {
     setFireZoneVTL(
       new VectorTileLayer({
         source: fireZoneVectorSource,
-        style: fireZoneStyler(fireZoneAreas, props.advisoryThreshold, props.selectedFireZoneID),
+        style: fireZoneStyler(fireZoneAreas, props.advisoryThreshold, props.selectedFireZone),
         zIndex: 49,
         properties: { name: 'fireZoneVector' }
       })
@@ -180,7 +186,7 @@ const FBAMap = (props: FBAMapProps) => {
     setFireZoneLabelVTL(
       new VectorTileLayer({
         source: fireZoneLabelVectorSource,
-        style: fireZoneLabelStyler(props.selectedFireZoneID),
+        style: fireZoneLabelStyler(props.selectedFireZone),
         zIndex: 49,
         properties: { name: 'fireZoneLabelVector' },
         minZoom: 6
@@ -229,12 +235,12 @@ const FBAMap = (props: FBAMapProps) => {
   useEffect(() => {
     if (!map) return
 
-    fireZoneVTL.setStyle(fireZoneStyler(fireZoneAreas, props.advisoryThreshold, props.selectedFireZoneID))
-    fireZoneLabelVTL.setStyle(fireZoneLabelStyler(props.selectedFireZoneID))
+    fireZoneVTL.setStyle(fireZoneStyler(fireZoneAreas, props.advisoryThreshold, props.selectedFireZone))
+    fireZoneLabelVTL.setStyle(fireZoneLabelStyler(props.selectedFireZone))
     fireZoneVTL.changed()
     fireZoneLabelVTL.changed()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedFireZoneID])
+  }, [props.selectedFireZone])
 
   useEffect(() => {
     if (!map) return

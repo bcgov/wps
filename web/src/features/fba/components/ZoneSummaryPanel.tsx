@@ -1,7 +1,8 @@
 import React from 'react'
 import { TextField } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { isNull } from 'lodash'
+import { isUndefined } from 'lodash'
+import { FireZone } from 'api/fbaAPI'
 
 const useStyles = makeStyles({
   wrapper: {
@@ -11,19 +12,19 @@ const useStyles = makeStyles({
 
 interface Props {
   className?: string
-  selectedZoneID: number | null
+  selectedFireZone: FireZone | undefined
 }
 
 const ZoneSummaryPanel = (props: Props) => {
   const classes = useStyles()
 
-  if (isNull(props.selectedZoneID)) {
+  if (isUndefined(props.selectedFireZone)) {
     return <div></div>
   } else {
     return (
       <div className={props.className}>
         <div className={classes.wrapper}>
-          <TextField value={props.selectedZoneID} />
+          <TextField value={props.selectedFireZone.mof_fire_zone_name} />
         </div>
       </div>
     )

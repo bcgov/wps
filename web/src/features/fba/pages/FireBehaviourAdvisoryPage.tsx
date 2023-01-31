@@ -11,7 +11,7 @@ import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice
 import { formControlStyles, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
-import { FireCenter } from 'api/fbaAPI'
+import { FireCenter, FireZone } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
@@ -63,7 +63,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
   const [issueDate, setIssueDate] = useState<DateTime | null>(null)
-  const [selectedFireZoneID, setSelectedFireZoneID] = useState<number | null>(null)
+  const [selectedFireZone, setSelectedFireZone] = useState<FireZone | undefined>(undefined)
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
@@ -165,19 +165,19 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       <Container maxWidth={'xl'}>
         <Grid container direction={'row'}>
           <Grid item>
-            <ZoneSummaryPanel selectedZoneID={selectedFireZoneID} />
+            <ZoneSummaryPanel selectedFireZone={selectedFireZone} />
           </Grid>
           <Grid item>
             <FBAMap
               forDate={dateOfInterest}
               runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
               runType={runType}
-              selectedFireZoneID={selectedFireZoneID}
+              selectedFireZone={selectedFireZone}
               selectedFireCenter={fireCenter}
               advisoryThreshold={advisoryThreshold}
               className={classes.mapContainer}
               setIssueDate={setIssueDate}
-              setSelectedFireZoneID={setSelectedFireZoneID}
+              setSelectedFireZone={setSelectedFireZone}
             />
           </Grid>
         </Grid>

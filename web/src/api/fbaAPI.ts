@@ -14,6 +14,13 @@ export interface FireCenter {
   stations: FireCenterStation[]
 }
 
+export interface FireZone {
+  mof_fire_zone_id: number
+  mof_fire_zone_name: string
+  mof_fire_centre_name?: string
+  area_sqm?: number
+}
+
 export interface FBAResponse {
   fire_centers: FireCenter[]
 }

@@ -4,8 +4,8 @@ import Geometry from 'ol/geom/Geometry'
 import CircleStyle from 'ol/style/Circle'
 import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
-import { range, startCase, lowerCase } from 'lodash'
-import { FireZoneArea } from 'api/fbaAPI'
+import { range, startCase, lowerCase, isUndefined } from 'lodash'
+import { FireZone, FireZoneArea } from 'api/fbaAPI'
 
 const fireCentreTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
   const text = feature.get('mof_fire_centre_name').replace(' Fire Centre', '\nFire Centre')
@@ -36,13 +36,14 @@ export const fireCentreStyler = (): Style => {
 export const fireZoneStyler = (
   fireZoneAreas: FireZoneArea[],
   advisoryThreshold: number,
-  selectedFireZoneID: number | null
+  selectedFireZone: FireZone | undefined
 ) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const mof_fire_zone_id = feature.get('mof_fire_zone_id')
-    const fireZoneArea = fireZoneAreas.find(f => f.mof_fire_zone_id === mof_fire_zone_id)
+    const feature_mof_fire_zone_id = feature.get('mof_fire_zone_id')
+    const fireZoneArea = fireZoneAreas.find(f => f.mof_fire_zone_id === feature_mof_fire_zone_id)
     const advisory = fireZoneArea && fireZoneArea.elevated_hfi_percentage > advisoryThreshold ? true : false
-    const selected = selectedFireZoneID && selectedFireZoneID === mof_fire_zone_id ? true : false
+    const selected =
+      !isUndefined(selectedFireZone) && selectedFireZone.mof_fire_zone_id === feature_mof_fire_zone_id ? true : false
     let strokeValue = 'black'
     if (selected) {
       strokeValue = 'green'
@@ -61,11 +62,12 @@ export const fireZoneStyler = (
   return a
 }
 
-export const fireZoneLabelStyler = (selectedZoneID: number | null) => {
+export const fireZoneLabelStyler = (selectedFireZone: FireZone | undefined) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const text = feature.get('mof_fire_zone_name').replace(' Fire Zone', '\nFire Zone')
-    const mof_fire_zone_id = feature.get('mof_fire_zone_id')
-    const selected = selectedZoneID && mof_fire_zone_id === selectedZoneID ? true : false
+    const feature_mof_fire_zone_id = feature.get('mof_fire_zone_id')
+    const selected =
+      !isUndefined(selectedFireZone) && feature_mof_fire_zone_id === selectedFireZone.mof_fire_zone_id ? true : false
     return new Style({
       text: new Text({
         overflow: true,
