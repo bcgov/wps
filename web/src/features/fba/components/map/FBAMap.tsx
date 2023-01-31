@@ -11,7 +11,6 @@ import GeoJSON from 'ol/format/GeoJSON'
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'components'
-import { cloneDeep } from 'lodash'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
@@ -31,7 +30,7 @@ import { LayerControl } from 'features/fba/components/map/layerControl'
 import { RASTER_SERVER_BASE_URL } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildHFICql } from 'features/fba/cqlBuilder'
-import { isUndefined } from 'lodash'
+import { isUndefined, cloneDeep } from 'lodash'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
@@ -201,7 +200,7 @@ const FBAMap = (props: FBAMapProps) => {
     fireZoneVTL.changed()
     fireZoneLabelVTL.changed()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedFireZoneID, props.fireZoneAreas])
+  }, [props.selectedFireZoneID, props.fireZoneAreas, props.advisoryThreshold])
 
   useEffect(() => {
     if (!map) return
