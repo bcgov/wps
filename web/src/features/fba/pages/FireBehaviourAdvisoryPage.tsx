@@ -20,6 +20,7 @@ import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
+import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -62,6 +63,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
   const [issueDate, setIssueDate] = useState<DateTime | null>(null)
+  const [selectedFireZoneID, setSelectedFireZoneID] = useState<number | null>(null)
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
@@ -160,15 +162,26 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           </Grid>
         </Grid>
       </Container>
-      <FBAMap
-        forDate={dateOfInterest}
-        runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
-        runType={runType}
-        selectedFireCenter={fireCenter}
-        advisoryThreshold={advisoryThreshold}
-        className={classes.mapContainer}
-        setIssueDate={setIssueDate}
-      />
+      <Container maxWidth={'xl'}>
+        <Grid container direction={'row'}>
+          <Grid item>
+            <ZoneSummaryPanel selectedZoneID={selectedFireZoneID} />
+          </Grid>
+          <Grid item>
+            <FBAMap
+              forDate={dateOfInterest}
+              runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
+              runType={runType}
+              selectedFireZoneID={selectedFireZoneID}
+              selectedFireCenter={fireCenter}
+              advisoryThreshold={advisoryThreshold}
+              className={classes.mapContainer}
+              setIssueDate={setIssueDate}
+              setSelectedFireZoneID={setSelectedFireZoneID}
+            />
+          </Grid>
+        </Grid>
+      </Container>
     </React.Fragment>
   )
 }
