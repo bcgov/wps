@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters, selectRunDates } from 'app/rootReducer'
+import { selectFireCenters, selectFireZoneAreas, selectRunDates } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
@@ -72,6 +72,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
   const { mostRecentRunDate } = useSelector(selectRunDates)
+  const { fireZoneAreas } = useSelector(selectFireZoneAreas)
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -180,6 +181,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               className={classes.mapContainer}
               setIssueDate={setIssueDate}
               setSelectedFireZoneID={setSelectedFireZoneID}
+              fireZoneAreas={fireZoneAreas}
             />
           </Grid>
         </Grid>
