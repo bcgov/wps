@@ -10,7 +10,6 @@ import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectFireZoneAreas } from 'app/rootReducer'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
@@ -87,13 +86,6 @@ const removeLayerByName = (map: ol.Map, layerName: string) => {
 }
 
 const FBAMap = (props: FBAMapProps) => {
-  const useStyles = makeStyles({
-    main: {
-      height: '100%',
-      width: '100%'
-    }
-  })
-  const classes = useStyles()
   const { stations } = useSelector(selectFireWeatherStations)
   const [showHighHFI, setShowHighHFI] = useState(true)
   const [map, setMap] = useState<ol.Map | null>(null)
@@ -344,9 +336,7 @@ const FBAMap = (props: FBAMapProps) => {
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
-        <div className={classes.main}>
-          <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
-        </div>
+        <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
         <LoadingBackdrop isLoadingWithoutError={hfiTilesLoading} />
       </MapContext.Provider>
     </ErrorBoundary>
