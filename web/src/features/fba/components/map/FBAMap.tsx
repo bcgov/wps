@@ -10,7 +10,6 @@ import VectorSource from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
 import { ErrorBoundary } from 'components'
 import { selectFireWeatherStations, selectFireZoneAreas } from 'app/rootReducer'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
@@ -23,8 +22,7 @@ import {
   fireZoneStyler,
   fireZoneLabelStyler,
   stationStyler,
-  hfiStyler,
-  createFireZoneStyler
+  hfiStyler
 } from 'features/fba/components/map/featureStylers'
 import { CENTER_OF_BC } from 'utils/constants'
 import { DateTime } from 'luxon'
@@ -32,6 +30,8 @@ import { LayerControl } from 'features/fba/components/map/layerControl'
 import { RASTER_SERVER_BASE_URL } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildHFICql } from 'features/fba/cqlBuilder'
+import { isUndefined } from 'lodash'
+import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
@@ -45,9 +45,11 @@ export interface FBAMapProps {
   testId?: string
   className: string
   selectedFireCenter: FireCenter | undefined
+  selectedFireZoneID: number | null
   forDate: DateTime
   runDate: DateTime
   setIssueDate: React.Dispatch<React.SetStateAction<DateTime | null>>
+  setSelectedFireZoneID: React.Dispatch<React.SetStateAction<number | null>>
   runType: RunType
   advisoryThreshold: number
 }
@@ -84,32 +86,43 @@ const removeLayerByName = (map: ol.Map, layerName: string) => {
 }
 
 const FBAMap = (props: FBAMapProps) => {
-  const useStyles = makeStyles({
-    main: {
-      height: '100%',
-      width: '100%'
-    }
-  })
-  const classes = useStyles()
   const { stations } = useSelector(selectFireWeatherStations)
   const [showHighHFI, setShowHighHFI] = useState(true)
   const [map, setMap] = useState<ol.Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
+
+  const fireZoneVectorSource = new VectorTileSource({
+    attributions: ['BC Wildfire Service'],
+    format: new MVT(),
+    url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
+  })
+  const fireZoneLabelVectorSource = new VectorTileSource({
+    attributions: ['BC Wildfire Service'],
+    format: new MVT(),
+    url: `${TILE_SERVER_URL}/public.fire_zones_labels/{z}/{x}/{y}.pbf`
+  })
   const [hfiTilesLoading, setHFITilesLoading] = useState(false)
-  const [fireZoneVector, setFireZoneVector] = useState(
+
+  const { fireZoneAreas } = useSelector(selectFireZoneAreas)
+
+  const [fireZoneVTL, setFireZoneVTL] = useState(
     new VectorTileLayer({
-      source: new VectorTileSource({
-        attributions: ['BC Wildfire Service'],
-        format: new MVT(),
-        url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
-      }),
-      style: fireZoneStyler,
+      source: fireZoneVectorSource,
+      style: fireZoneStyler(fireZoneAreas, props.advisoryThreshold, props.selectedFireZoneID),
       zIndex: 49,
       properties: { name: 'fireZoneVector' }
     })
   )
 
-  const { fireZoneAreas } = useSelector(selectFireZoneAreas)
+  // Seperate layer for polygons and for labels, to avoid duplicate labels.
+  const [fireZoneLabelVTL, setFireZoneLabelVTL] = useState(
+    new VectorTileLayer({
+      source: fireZoneLabelVectorSource,
+      style: fireZoneLabelStyler(props.selectedFireZoneID),
+      zIndex: 99,
+      minZoom: 6
+    })
+  )
 
   useEffect(() => {
     if (map) {
@@ -120,38 +133,55 @@ const FBAMap = (props: FBAMapProps) => {
       if (layer) {
         map.removeLayer(layer)
       }
-      map.addLayer(fireZoneVector)
+      map.addLayer(fireZoneVTL)
+      map.addLayer(fireZoneLabelVTL)
+      map.on('click', event => {
+        fireZoneVTL.getFeatures(event.pixel).then(features => {
+          if (!features.length) {
+            props.setSelectedFireZoneID(null)
+            return
+          }
+          const feature = features[0]
+          if (!feature) {
+            return
+          }
+          const zoneExtent = feature.getGeometry()?.getExtent()
+          if (!isUndefined(zoneExtent)) {
+            map.getView().fit(zoneExtent)
+          }
+          props.setSelectedFireZoneID(feature.get('mof_fire_zone_id'))
+        })
+      })
     }
-  }, [map, fireZoneVector])
+  }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    setFireZoneVector(
+    fetchFireZoneAreas(props.runType, props.runDate.toISO(), props.forDate.toISODate())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.forDate, props.runDate, props.runType])
+
+  useEffect(() => {
+    setFireZoneVTL(
       new VectorTileLayer({
-        source: new VectorTileSource({
-          attributions: ['BC Wildfire Service'],
-          format: new MVT(),
-          url: `${TILE_SERVER_URL}/public.fire_zones/{z}/{x}/{y}.pbf`
-        }),
-        style: createFireZoneStyler(fireZoneAreas, props.advisoryThreshold),
+        source: fireZoneVectorSource,
+        style: fireZoneStyler(fireZoneAreas, props.advisoryThreshold, props.selectedFireZoneID),
         zIndex: 49,
         properties: { name: 'fireZoneVector' }
       })
     )
+    setFireZoneLabelVTL(
+      new VectorTileLayer({
+        source: fireZoneLabelVectorSource,
+        style: fireZoneLabelStyler(props.selectedFireZoneID),
+        zIndex: 49,
+        properties: { name: 'fireZoneLabelVector' },
+        minZoom: 6
+      })
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireZoneAreas, props.advisoryThreshold])
 
-  // Seperate layer for polygons and for labels, to avoid duplicate labels.
-  const fireZoneLabel = new VectorTileLayer({
-    source: new VectorTileSource({
-      attributions: ['BC Wildfire Service'],
-      format: new MVT(),
-      url: `${TILE_SERVER_URL}/public.fire_zones_labels_ext/{z}/{x}/{y}.pbf`
-    }),
-    style: fireZoneLabelStyler,
-    zIndex: 99,
-    minZoom: 6
-  })
-
-  const fireCentreVector = new VectorTileLayer({
+  const fireCentreVTL = new VectorTileLayer({
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
@@ -162,7 +192,7 @@ const FBAMap = (props: FBAMapProps) => {
   })
 
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
-  const fireCentreLabel = new VectorTileLayer({
+  const fireCentreLabelVTL = new VectorTileLayer({
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
       format: new MVT(),
@@ -187,6 +217,16 @@ const FBAMap = (props: FBAMapProps) => {
       map.getView().setZoom(zoom)
     }
   }, [props.selectedFireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!map) return
+
+    fireZoneVTL.setStyle(fireZoneStyler(fireZoneAreas, props.advisoryThreshold, props.selectedFireZoneID))
+    fireZoneLabelVTL.setStyle(fireZoneLabelStyler(props.selectedFireZoneID))
+    fireZoneVTL.changed()
+    fireZoneLabelVTL.changed()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.selectedFireZoneID])
 
   useEffect(() => {
     if (!map) return
@@ -253,11 +293,8 @@ const FBAMap = (props: FBAMapProps) => {
         new Tile({
           source: baseMapSource
         }),
-        fireZoneVector,
-        fireCentreVector,
-        // thessianVector,
-        fireZoneLabel,
-        fireCentreLabel
+        fireCentreVTL,
+        fireCentreLabelVTL
       ],
       overlays: [],
       controls: defaultControls().extend([
@@ -299,9 +336,7 @@ const FBAMap = (props: FBAMapProps) => {
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
-        <div className={classes.main}>
-          <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
-        </div>
+        <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
         <LoadingBackdrop isLoadingWithoutError={hfiTilesLoading} />
       </MapContext.Provider>
     </ErrorBoundary>
