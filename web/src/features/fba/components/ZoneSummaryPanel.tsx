@@ -4,45 +4,10 @@ import makeStyles from '@mui/styles/makeStyles'
 import { isNull } from 'lodash'
 
 const useStyles = makeStyles({
-  autocomplete: {
-    width: '100%',
-    color: 'white'
-  },
   wrapper: {
     minWidth: 300
-  },
-  fireCentreTextField: {
-    color: 'white',
-    '& .MuiAutocomplete-clearIndicator': {
-      color: 'white'
-    },
-    '& .MuiAutocomplete-popupIndicator': {
-      color: 'white'
-    },
-    '& .MuiAutocomplete-endAdornment': {
-      right: -3,
-      top: -3
-    },
-    '& .MuiInputLabel-root': {
-      color: 'white'
-    },
-    '& .MuiOutlinedInput-root': {
-      '& fieldset': {
-        borderColor: 'white'
-      },
-      '&:hover fieldset': {
-        borderColor: 'white'
-      },
-      '&.Mui-focused fieldset': {
-        borderColor: 'white'
-      }
-    }
   }
 })
-
-export interface Option {
-  name: string
-}
 
 interface Props {
   className?: string
