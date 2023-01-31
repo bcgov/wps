@@ -46,6 +46,9 @@ export interface HfiThreshold {
   name: string
   description: string
 }
+
+export interface FuelType {}
+
 export interface FireZoneThresholdFuelTypeResponse {
   mof_fire_zone_id: number
   fuel_types: HfiThresholdFuelTypeArea[]
