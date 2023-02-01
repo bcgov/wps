@@ -1,0 +1,122 @@
+[
+    {
+        "grid_value": 1,
+        "descriptive_name": "Spruce-Lichen Woodland",
+        "fuel_type": "C-1",
+        "r": 209,
+        "g": 255,
+        "b": "115"
+    },
+    {
+        "grid_value": 2,
+        "descriptive_name": "Boreal Spruce",
+        "fuel_type": "C-2",
+        "r": 34,
+        "g": 102,
+        "b": "51"
+    },
+    {
+        "grid_value": 3,
+        "descriptive_name": "Mature Jack or Lodgepole Pine",
+        "fuel_type": "C-3",
+        "r": 131,
+        "g": 199,
+        "b": "149"
+    },
+    {
+        "grid_value": 4,
+        "descriptive_name": "Immature Jack or Lodgepole Pine or densely stocked Ponderosa Pine or Douglas Fir",
+        "fuel_type": "C-4",
+        "r": 112,
+        "g": 168,
+        "b": "0"
+    },
+    {
+        "grid_value": 5,
+        "descriptive_name": "Red and White Pine",
+        "fuel_type": "C-5",
+        "r": 223,
+        "g": 184,
+        "b": "230"
+    },
+    {
+        "grid_value": 6,
+        "descriptive_name": "Conifer Plantation",
+        "fuel_type": "C-6",
+        "r": 172,
+        "g": 102,
+        "b": "237"
+    },
+    {
+        "grid_value": 7,
+        "descriptive_name": "Ponderosa Pine or Douglas Fir",
+        "fuel_type": "C-7",
+        "r": 112,
+        "g": 12,
+        "b": "242"
+    },
+    {
+        "grid_value": 8,
+        "descriptive_name": "Leafless or Green Aspen or Deciduous shrub",
+        "fuel_type": "D-1/D-2",
+        "r": 137,
+        "g": 112,
+        "b": "68"
+    },
+    {
+        "grid_value": 9,
+        "descriptive_name": "Jack or Lodgepole Pine slash",
+        "fuel_type": "S-1",
+        "r": 251,
+        "g": 190,
+        "b": "185"
+    },
+    {
+        "grid_value": 10,
+        "descriptive_name": "White Spruce or Balsam slash",
+        "fuel_type": "S-2",
+        "r": 247,
+        "g": 104,
+        "b": "161"
+    },
+    {
+        "grid_value": 11,
+        "descriptive_name": "Coastal Cedar or Hemlock or Douglas Fir slash",
+        "fuel_type": "S-3",
+        "r": 174,
+        "g": 1,
+        "b": "126"
+    },
+    {
+        "grid_value": 12,
+        "descriptive_name": "Matted or Standing Grass",
+        "fuel_type": "O-1a/O-1b",
+        "r": 255,
+        "g": 255,
+        "b": "190"
+    },
+    {
+        "grid_value": 14,
+        "descriptive_name": "Boreal Mixedwood - Leafless or Green",
+        "fuel_type": "M-1/M-2",
+        "r": 255,
+        "g": 211,
+        "b": "127"
+    },
+    {
+        "grid_value": 99,
+        "descriptive_name": "Non-fuel",
+        "fuel_type": "Non-fuel",
+        "r": 156,
+        "g": 156,
+        "b": "156"
+    },
+    {
+        "grid_value": 102,
+        "descriptive_name": "Water",
+        "fuel_type": "Non-fuel",
+        "r": 115,
+        "g": 223,
+        "b": "255grid_value"
+    }
+]
