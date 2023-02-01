@@ -40,14 +40,11 @@ export const fireZoneStyler = (
 ) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const mof_fire_zone_id = feature.get('mof_fire_zone_id')
-    const fireZoneArea = fireZoneAreas.find(f => f.mof_fire_zone_id === mof_fire_zone_id)
-    const advisory = fireZoneArea && fireZoneArea.elevated_hfi_percentage > advisoryThreshold ? true : false
+    const fireZoneAreaByThreshold = fireZoneAreas.filter(f => f.mof_fire_zone_id === mof_fire_zone_id)
     const selected = selectedFireZoneID && selectedFireZoneID === mof_fire_zone_id ? true : false
     let strokeValue = 'black'
     if (selected) {
       strokeValue = 'green'
-    } else if (advisory) {
-      strokeValue = 'red'
     }
 
     return new Style({
@@ -55,24 +52,26 @@ export const fireZoneStyler = (
         color: strokeValue,
         width: selected ? 8 : 1
       }),
-      fill: getAdvisoryFill(advisoryThreshold, fireZoneArea)
+      fill: getAdvisoryColors(advisoryThreshold, fireZoneAreaByThreshold)
     })
   }
   return a
 }
 
-export const getAdvisoryFill = (advisoryThreshold: number, fireZoneArea?: FireZoneArea) => {
+export const getAdvisoryColors = (advisoryThreshold: number, fireZoneArea?: FireZoneArea[]) => {
   if (isUndefined(fireZoneArea)) {
     return new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
   }
 
   let fill = new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
-  if (fireZoneArea.threshold == 1 && fireZoneArea.elevated_hfi_percentage > advisoryThreshold) {
+  const advisoryThresholdArea = fireZoneArea.find(area => area.threshold == 1)
+  if (advisoryThresholdArea && advisoryThresholdArea.elevated_hfi_percentage > advisoryThreshold) {
     // advisory color orange
     fill = new Fill({ color: 'rgba(255, 147, 38, 0.4)' })
   }
 
-  if (fireZoneArea.threshold == 2 && fireZoneArea.elevated_hfi_percentage > advisoryThreshold) {
+  const warningThresholdArea = fireZoneArea.find(area => area.threshold == 2)
+  if (warningThresholdArea && warningThresholdArea.elevated_hfi_percentage > advisoryThreshold) {
     // advisory color red
     fill = new Fill({ color: 'rgba(128, 0, 0, 0.4)' })
   }
