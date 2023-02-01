@@ -4,7 +4,7 @@ import Geometry from 'ol/geom/Geometry'
 import CircleStyle from 'ol/style/Circle'
 import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
-import { range, startCase, lowerCase } from 'lodash'
+import { range, startCase, lowerCase, isUndefined } from 'lodash'
 import { FireZoneArea } from 'api/fbaAPI'
 
 const fireCentreTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
@@ -55,10 +55,28 @@ export const fireZoneStyler = (
         color: strokeValue,
         width: selected ? 8 : 1
       }),
-      fill: advisory ? new Fill({ color: 'rgba(128, 0, 0, 0.4)' }) : new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
+      fill: getAdvisoryFill(advisoryThreshold, fireZoneArea)
     })
   }
   return a
+}
+
+export const getAdvisoryFill = (advisoryThreshold: number, fireZoneArea?: FireZoneArea) => {
+  if (isUndefined(fireZoneArea)) {
+    return new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
+  }
+
+  if (fireZoneArea.threshold == 1 && fireZoneArea.elevated_hfi_percentage > advisoryThreshold) {
+    // advisory color orange
+    return new Fill({ color: 'rgba(255, 147, 38, 0.4)' })
+  }
+
+  if (fireZoneArea.threshold == 2 && fireZoneArea.elevated_hfi_percentage > advisoryThreshold) {
+    // advisory color orange
+    return new Fill({ color: 'rgba(128, 0, 0, 0.4)' })
+  }
+
+  return new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
 }
 
 export const fireZoneLabelStyler = (selectedZoneID: number | null) => {

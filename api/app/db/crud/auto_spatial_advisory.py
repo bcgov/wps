@@ -128,12 +128,14 @@ async def get_hfi_area(session: AsyncSession,
                   Shape.source_identifier,
                   Shape.combustible_area,
                   Shape.geom.ST_Area().label('zone_area'),
+                  ClassifiedHfi.threshold,
                   ClassifiedHfi.geom.ST_Union().ST_Intersection(Shape.geom).ST_Area().label('hfi_area'))\
         .join(ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
         .where(ClassifiedHfi.run_type == run_type,
                ClassifiedHfi.for_date == for_date,
                ClassifiedHfi.run_datetime == run_datetime)\
-        .group_by(Shape.id)
+        .group_by(Shape.id)\
+        .group_by(ClassifiedHfi.threshold)
     result = await session.execute(stmt)
     all_hfi = result.all()
     perf_end = perf_counter()
