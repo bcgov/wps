@@ -66,17 +66,18 @@ export const getAdvisoryFill = (advisoryThreshold: number, fireZoneArea?: FireZo
     return new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
   }
 
+  let fill = new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
   if (fireZoneArea.threshold == 1 && fireZoneArea.elevated_hfi_percentage > advisoryThreshold) {
     // advisory color orange
-    return new Fill({ color: 'rgba(255, 147, 38, 0.4)' })
+    fill = new Fill({ color: 'rgba(255, 147, 38, 0.4)' })
   }
 
   if (fireZoneArea.threshold == 2 && fireZoneArea.elevated_hfi_percentage > advisoryThreshold) {
-    // advisory color orange
-    return new Fill({ color: 'rgba(128, 0, 0, 0.4)' })
+    // advisory color red
+    fill = new Fill({ color: 'rgba(128, 0, 0, 0.4)' })
   }
 
-  return new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
+  return fill
 }
 
 export const fireZoneLabelStyler = (selectedZoneID: number | null) => {
