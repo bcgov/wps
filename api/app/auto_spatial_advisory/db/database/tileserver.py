@@ -20,7 +20,7 @@ TILESERVER_READ_STRING = f'postgresql+asyncpg://{tileserver_read_user}:{tileserv
 TILESERVER_WRITE_STRING = f'postgresql+asyncpg://{tileserver_write_user}:{tileserver_postgres_write_password}@{tileserver_postgres_write_host}:{postgres_port}/{tileserver_postgres_database}'
 
 # TODO: figure out connection pooling?
-tile_server_read_engine = create_async_engine(TILESERVER_READ_STRING)
+tile_server_read_engine = create_async_engine(TILESERVER_READ_STRING, connect_args={"timeout": 30})
 
 tile_server_write_engine = create_async_engine(TILESERVER_WRITE_STRING)
 
