@@ -109,6 +109,16 @@ class FuelType(Base):
 Index('idx_advisory_fuel_types_geom', FuelType.geom, postgresql_using='gist')
 
 
+class SFMSFuelType(Base):
+    """ Fuel types used by SFMS system """
+    __tablename__ = 'sfms_fuel_types'
+    __table_args__ = ({'comment': 'Fuel types used by SFMS to calculate HFI spatially'})
+    id = Column(Integer, primary_key=True, index=True)
+    fuel_type_id = Column(Integer, nullable=False, index=True)
+    fuel_type_code = Column(String, nullable=False)
+    description = Column(String)
+
+
 class HighHfiArea(Base):
     """ Area exceeding HFI thresholds per fire zone. """
     __tablename__ = 'high_hfi_area'
