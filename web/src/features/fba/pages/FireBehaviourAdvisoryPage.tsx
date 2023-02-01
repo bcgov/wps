@@ -33,14 +33,13 @@ const useStyles = makeStyles(() => ({
     width: 700,
     height: 700
   },
-  mapContainer: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute'
-  },
   fireCenter: {
     minWidth: 280,
     margin: theme.spacing(1)
+  },
+  flex: {
+    display: 'flex',
+    flex: 1
   },
   forecastActualDropdown: {
     minWidth: 280,
@@ -49,6 +48,11 @@ const useStyles = makeStyles(() => ({
   },
   instructions: {
     textAlign: 'left'
+  },
+  root: {
+    height: '100vh',
+    display: 'flex',
+    flexDirection: 'column'
   }
 }))
 
@@ -111,9 +115,9 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <React.Fragment>
+    <div className={classes.root}>
       <GeneralHeader spacing={1} title="Predictive Services Unit" productName="Fire Behaviour Advisory Tool" />
-      <Container maxWidth={'xl'}>
+      <Container disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
           <Grid container spacing={1}>
             <Grid item>
@@ -161,12 +165,12 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           </Grid>
         </Grid>
       </Container>
-      <Container maxWidth={'xl'}>
-        <Grid container direction={'row'}>
+      <Container className={classes.flex} disableGutters maxWidth={'xl'}>
+        <Grid className={classes.flex} container direction={'row'}>
           <Grid item>
             <ZoneSummaryPanel selectedFireZone={selectedFireZone} fuelTypeInfo={hfiFuelTypes} />
           </Grid>
-          <Grid item>
+          <Grid className={classes.flex} item>
             <FBAMap
               forDate={dateOfInterest}
               runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
@@ -174,14 +178,14 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               selectedFireZone={selectedFireZone}
               selectedFireCenter={fireCenter}
               advisoryThreshold={advisoryThreshold}
-              className={classes.mapContainer}
+              className={classes.flex}
               setIssueDate={setIssueDate}
               setSelectedFireZone={setSelectedFireZone}
             />
           </Grid>
         </Grid>
       </Container>
-    </React.Fragment>
+    </div>
   )
 }
 
