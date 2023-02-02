@@ -141,6 +141,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
     # it's S3 virtual file system driver to read the file.
     # https://gdal.org/user/virtual_file_systems.html
     key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_date.isoformat()}/hfi{for_date_string}.tif'
+    logger.info(f'Key to HFI in object storage: {key}')
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(key, temp_filename)
