@@ -7,7 +7,8 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from app.db.models.auto_spatial_advisory import (
-    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType, HighHfiArea, RunParameters)
+    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType, HighHfiArea, RunParameters,
+    AdvisoryElevationStats)
 
 
 logger = logging.getLogger(__name__)
@@ -239,3 +240,23 @@ async def get_run_parameters_id(session: AsyncSession,
 
 async def save_run_parameters(session: AsyncSession, run_parameters: RunParameters):
     session.add(run_parameters)
+
+
+async def save_advisory_elevation_stats(session: AsyncSession, advisory_elevation_stats: AdvisoryElevationStats):
+    session.add(advisory_elevation_stats)
+
+
+async def get_zonal_elevation_stats(session: AsyncSession,
+                                    fire_zone_id: int,
+                                    run_type: RunTypeEnum,
+                                    run_datetime: datetime,
+                                    for_date: date) -> List[Row]:
+    run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+
+    stmt = select(AdvisoryElevationStats.advisory_shape_id, AdvisoryElevationStats.minimum,
+                  AdvisoryElevationStats.quartile_25, AdvisoryElevationStats.mean, AdvisoryElevationStats.quartile_75,
+                  AdvisoryElevationStats.maximum)\
+        .where(AdvisoryElevationStats.advisory_shape_id == fire_zone_id, AdvisoryElevationStats.run_parameters == run_parameters_id)\
+        .orderby(AdvisoryElevationStats.HfiClassificationThreshold)
+
+    return await session.execute(stmt)
