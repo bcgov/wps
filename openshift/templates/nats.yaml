@@ -350,6 +350,11 @@ objects:
                     secretKeyRef:
                       name: ${APP_NAME}-tileserv-${SUFFIX}-pguser-${APP_NAME}-tileserv-${SUFFIX}
                       key: uri
+                - name: DEM_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.dem_name
               ports:
                 - containerPort: 4222
                   name: client

@@ -9,11 +9,12 @@ from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.db.database import get_async_read_session_scope
-from app.db.crud.auto_spatial_advisory import get_fuel_types_with_high_hfi, get_hfi_area, get_run_datetimes
+from app.db.crud.auto_spatial_advisory import (get_fuel_types_with_high_hfi, get_hfi_area, get_run_datetimes,
+                                               get_zonal_elevation_stats)
 from app.auth import authentication_required, audit
 from app.db.models.auto_spatial_advisory import RunTypeEnum
-from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea,\
-    HfiThresholdAreaByFuelType
+from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea, HfiThresholdAreaByFuelType,\
+    FireZoneElevationStats, FireZoneElevationStatsByThreshold, FireZoneElevationStatsListResponse
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 from app.auto_spatial_advisory.process_hfi import RunType
 
@@ -101,3 +102,23 @@ async def get_run_datetimes_for_date_and_runtype(run_type: RunType, for_date: da
             datetimes.append(row.run_datetime)  # type: ignore
 
         return datetimes
+
+
+@router.get('/fire-zone-elevation-stats/{fire_zone_id}/{run_type}/{run_datetime}/{for_date}',
+            response_model=FireZoneElevationStatsListResponse)
+async def get_fire_zone_elevation_stats(fire_zone_id: int, run_type: RunType, run_datetime: datetime, for_date: date,
+                                        _=Depends(authentication_required)):
+    """ Return the elevation statistics for each advisory threshold """
+    async with get_async_read_session_scope() as session:
+        data = []
+        rows = get_zonal_elevation_stats(session, fire_zone_id, RunTypeEnum(run_type.value), run_datetime, for_date)
+        for row in rows:
+            stats = FireZoneElevationStats(
+                minimum=row.minimum,
+                quartile_25=row.quartile_25,
+                median=row.median,
+                quartile_75=row.quartile_75,
+                maximum=row.maximum)
+            stats_by_threshold = FireZoneElevationStatsByThreshold(threshold=row.threshold, stats=stats)
+            data.append(stats_by_threshold)
+        return FireZoneElevationStatsListResponse(data=data)
