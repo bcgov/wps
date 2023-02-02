@@ -283,11 +283,12 @@ async def get_run_parameters(run_type: RunType, run_datetime: datetime, for_date
     :param for_date: The date the run is for
     :param run_datetime: The date and time the run was performed
     """
-    async with get_async_read_session_scope() as session:
+    async with get_async_write_session_scope() as session:
         try:
             run_parameters = RunParameters(run_type=run_type.value, run_datetime=run_datetime, for_date=for_date)
             await save_run_parameters(session, run_parameters)
         except IntegrityError:
             # Swallow the error as a record already exists
             logger.info('Run parameters already exist')
+    async with get_async_read_session_scope() as session:
         return await get_run_parameters_id(session, run_type.value, run_datetime, for_date)
