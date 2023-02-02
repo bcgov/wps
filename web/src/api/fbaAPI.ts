@@ -25,6 +25,12 @@ export interface FBAResponse {
   fire_centers: FireCenter[]
 }
 
+export interface FireZoneThresholdFuelTypeArea {
+  fuel_type: FuelType
+  threshold: HfiThreshold
+  area: number
+}
+
 export interface FireZoneArea {
   mof_fire_zone_id: number
   elevated_hfi_area: number
@@ -47,11 +53,10 @@ export interface HfiThreshold {
   description: string
 }
 
-export interface FuelType {}
-
-export interface FireZoneThresholdFuelTypeResponse {
-  mof_fire_zone_id: number
-  fuel_types: HfiThresholdFuelTypeArea[]
+export interface FuelType {
+  fuel_type_id: number
+  fuel_type_code: string
+  description: string
 }
 
 export async function getFBAFireCenters(): Promise<FBAResponse> {
@@ -87,14 +92,31 @@ export async function getHFIThresholdsFuelTypes(
   run_type: RunType,
   for_date: string,
   run_datetime: string
-): Promise<Record<number, FireZoneThresholdFuelTypeResponse[]>> {
+): Promise<Record<number, HfiThresholdFuelTypeArea[]>> {
   const url = `fba/hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}`
+  const { data } = await axios.get(url, {})
+  return data
+}
+
+export async function getHFIThresholdsFuelTypesForZone(
+  run_type: RunType,
+  for_date: string,
+  run_datetime: string,
+  zone_id: number
+): Promise<Record<number, FireZoneThresholdFuelTypeArea[]>> {
+  const url = `fba/hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${zone_id}`
   const { data } = await axios.get(url, {})
   return data
 }
 
 export async function getHFIThresholds(): Promise<HfiThreshold[]> {
   const url = `fba/hfi-thresholds/`
+  const { data } = await axios.get(url, {})
+  return data
+}
+
+export async function getHFIFuelTypes(): Promise<FuelType[]> {
+  const url = `fba/sfms-fuel-types/`
   const { data } = await axios.get(url, {})
   return data
 }

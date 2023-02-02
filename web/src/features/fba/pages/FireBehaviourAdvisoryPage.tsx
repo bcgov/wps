@@ -60,7 +60,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-  const { hfiFuelTypes } = useSelector(selectHFIFuelTypes)
+  const { hfiThresholdsFuelTypes } = useSelector(selectHFIFuelTypes)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
@@ -109,10 +109,17 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
-      dispatch(fetchHighHFIFuels(runType, dateOfInterest.toISODate(), mostRecentRunDate.toString()))
+    if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate) && !isUndefined(selectedFireZone)) {
+      dispatch(
+        fetchHighHFIFuels(
+          runType,
+          dateOfInterest.toISODate(),
+          mostRecentRunDate.toString(),
+          selectedFireZone.mof_fire_zone_id
+        )
+      )
     }
-  }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mostRecentRunDate, selectedFireZone]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={classes.root}>
@@ -168,7 +175,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       <Container className={classes.flex} disableGutters maxWidth={'xl'}>
         <Grid className={classes.flex} container direction={'row'}>
           <Grid item>
-            <ZoneSummaryPanel selectedFireZone={selectedFireZone} fuelTypeInfo={hfiFuelTypes} />
+            <ZoneSummaryPanel selectedFireZone={selectedFireZone} fuelTypeInfo={hfiThresholdsFuelTypes} />
           </Grid>
           <Grid className={classes.flex} item>
             <FBAMap

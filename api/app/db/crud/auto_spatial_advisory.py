@@ -7,7 +7,8 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from app.db.models.auto_spatial_advisory import (
-    Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType, HighHfiArea, RunParameters)
+    Shape, ClassifiedHfi, HfiClassificationThreshold, SFMSFuelType, RunTypeEnum,
+    FuelType, HighHfiArea, RunParameters)
 
 
 logger = logging.getLogger(__name__)
@@ -90,6 +91,49 @@ async def get_all_hfi_thresholds(session: AsyncSession) -> List[Row]:
     return result.all()
 
 
+async def get_all_sfms_fuel_types(session: AsyncSession) -> List[Row]:
+    """
+    Retrieve all records from sfms_fuel_types table
+    """
+    logger.info('retrieving SFMS fuel types info...')
+    stmt = select(SFMSFuelType)
+    result = await session.execute(stmt)
+    return result.all()
+
+
+async def get_high_hfi_fuel_types_for_zone(session: AsyncSession,
+                                           run_type: RunTypeEnum,
+                                           run_datetime: datetime,
+                                           for_date: date,
+                                           zone_id: int) -> List[Row]:
+    """
+    Union of fuel types by fuel_type_id (1 multipolygon for each fuel type)
+    Intersected with union of ClassifiedHfi for given run_type, run_datetime, and for_date
+        for both 4K-10K and 10K+ HFI values
+    Intersected with fire zone geom for a specific fire zone identified by ID
+    """
+    logger.info('starting fuel types/high hfi/zone intersection query for fire zone %s', str(zone_id))
+    perf_start = perf_counter()
+
+    stmt = select(Shape.source_identifier, FuelType.fuel_type_id, ClassifiedHfi.threshold,
+                  func.sum(FuelType.geom.ST_Intersection(ClassifiedHfi.geom.ST_Intersection(Shape.geom)).ST_Area()).label('area'))\
+        .join_from(ClassifiedHfi, Shape, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
+        .join_from(ClassifiedHfi, FuelType, ClassifiedHfi.geom.ST_Intersects(FuelType.geom))\
+        .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date,
+               ClassifiedHfi.run_datetime == run_datetime, Shape.source_identifier == str(zone_id))\
+        .group_by(Shape.source_identifier)\
+        .group_by(FuelType.fuel_type_id)\
+        .group_by(ClassifiedHfi.threshold)\
+        .order_by(FuelType.fuel_type_id)\
+        .order_by(ClassifiedHfi.threshold)
+
+    result = await session.execute(stmt)
+    perf_end = perf_counter()
+    delta = perf_end - perf_start
+    logger.info('%f delta count before and after fuel types/high hfi/zone intersection query', delta)
+    return result.all()
+
+
 async def get_fuel_types_with_high_hfi(session: AsyncSession,
                                        run_type: RunTypeEnum,
                                        run_datetime: datetime,
@@ -103,7 +147,8 @@ async def get_fuel_types_with_high_hfi(session: AsyncSession,
     logger.info('starting fuel types/high hfi/zone intersection query')
     perf_start = perf_counter()
 
-    stmt = select(Shape.source_identifier, FuelType.fuel_type_id, ClassifiedHfi.threshold, func.sum(FuelType.geom.ST_Intersection(ClassifiedHfi.geom.ST_Intersection(Shape.geom)).ST_Area()).label('area'))\
+    stmt = select(Shape.source_identifier, FuelType.fuel_type_id, ClassifiedHfi.threshold,
+                  func.sum(FuelType.geom.ST_Intersection(ClassifiedHfi.geom.ST_Intersection(Shape.geom)).ST_Area()).label('area'))\
         .join_from(ClassifiedHfi, Shape, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
         .join_from(ClassifiedHfi, FuelType, ClassifiedHfi.geom.ST_Intersects(FuelType.geom))\
         .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date, ClassifiedHfi.run_datetime == run_datetime)\

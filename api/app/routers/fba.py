@@ -9,11 +9,11 @@ from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.db.database import get_async_read_session_scope
-from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_fuel_types_with_high_hfi, get_hfi_area, get_run_datetimes
+from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sfms_fuel_types, get_fuel_types_with_high_hfi, get_hfi_area, get_high_hfi_fuel_types_for_zone, get_run_datetimes
 from app.auth import authentication_required, audit
 from app.db.models.auto_spatial_advisory import RunTypeEnum
-from app.schemas.fba import FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea, HfiThreshold,\
-    HfiThresholdAreaByFuelType
+from app.schemas.fba import ClassifiedHfiThresholdFuelTypeArea, FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea, HfiThreshold,\
+    HfiThresholdAreaByFuelType, SFMSFuelType
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 from app.auto_spatial_advisory.process_hfi import RunType
 
@@ -69,9 +69,64 @@ async def get_hfi_thresholds():
         threshold_rows = await get_all_hfi_thresholds(session)
 
         for row in threshold_rows:
-            thresholds.append(HfiThreshold(id=row[0], description=row[1], name=row[2]))
+            threshold_object = row[0]
+            thresholds.append(HfiThreshold(id=threshold_object.id,
+                                           description=threshold_object.description,
+                                           name=threshold_object.name))
 
         return thresholds
+
+
+@router.get('/sfms-fuel-types/', response_model=List[SFMSFuelType])
+async def get_sfms_fuel_types():
+    """
+    Get mapping of fuel_type_id (as used by SFMS) to fuel type code/abbreviation as commonly used.
+    """
+    logger.info('/sfms-fuel-types/')
+    fuel_types = []
+    async with get_async_read_session_scope() as session:
+        rows = await get_all_sfms_fuel_types(session)
+
+        for row in rows:
+            fuel_type_object = row[0]
+            fuel_types.append(SFMSFuelType(fuel_type_id=fuel_type_object.fuel_type_id,
+                                           fuel_type_code=fuel_type_object.fuel_type_code,
+                                           description=fuel_type_object.description))
+
+        return fuel_types
+
+
+@router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}/{zone_id}', response_model=dict[int, List[ClassifiedHfiThresholdFuelTypeArea]])
+async def get_hfi_fuels_data_for_fire_zone(run_type: RunType, for_date: date, run_datetime: datetime, zone_id: int):
+    """
+    """
+    logger.info('hfi-fuels/%s/%s/%s/%s', run_type.value, for_date, run_datetime, zone_id)
+    # get thresholds data
+    thresholds = await get_hfi_thresholds()
+    # get fuel type ids data
+    fuel_types = await get_sfms_fuel_types()
+
+    async with get_async_read_session_scope() as session:
+
+        # get HFI/fuels data for specific zone
+        hfi_fuel_type_ids_for_zone = await get_high_hfi_fuel_types_for_zone(session,
+                                                                            run_type=RunTypeEnum(run_type.value),
+                                                                            for_date=for_date,
+                                                                            run_datetime=run_datetime,
+                                                                            zone_id=zone_id)
+        data = []
+
+        for record in hfi_fuel_type_ids_for_zone:
+            fuel_type_id = record[1]
+            threshold_id = record[2]
+            # area is stored in square metres in DB. For user convenience, convert to hectares
+            # 1 ha = 10,000 sq.m.
+            area = record[3] / 10000
+            fuel_type_obj = next(filter(lambda ft: ft.fuel_type_id == fuel_type_id, fuel_types), None)
+            threshold_obj = next(filter(lambda t: t.id == threshold_id, thresholds), None)
+            data.append(ClassifiedHfiThresholdFuelTypeArea(fuel_type=fuel_type_obj, threshold=threshold_obj, area=area))
+
+        return {zone_id: data}
 
 
 @router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}',
@@ -80,7 +135,7 @@ async def get_hfi_thresholds_by_fuel_type(run_type: RunType,
                                           for_date: date,
                                           run_datetime: datetime):
     """
-    Get the fuel types for the run_type, for_date, run_date
+    Get the fuel type IDs for the run_type, for_date, run_date
     """
     logger.info('hfi-fuels/%s/%s/%s', run_type.value, for_date, run_datetime)
     async with get_async_read_session_scope() as session:

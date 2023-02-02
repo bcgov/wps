@@ -60,3 +60,19 @@ class HfiThreshold(BaseModel):
     id: int
     name: str
     description: str
+
+
+class SFMSFuelType(BaseModel):
+    """ Data for fuel types used by SFMS system to calculate HFI spatially. """
+    fuel_type_id: int
+    fuel_type_code: str
+    description: str
+
+
+class ClassifiedHfiThresholdFuelTypeArea(BaseModel):
+    """ Collection of data objects recording the area within an advisory shape
+    that meets a particular HfiThreshold for a specific SFMSFuelType
+    """
+    fuel_type: SFMSFuelType
+    threshold: HfiThreshold
+    area: float

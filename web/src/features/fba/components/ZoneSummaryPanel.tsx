@@ -2,8 +2,7 @@ import React from 'react'
 import { TextField } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { isNull, isUndefined } from 'lodash'
-import { FireZone, FireZoneThresholdFuelTypeResponse } from 'api/fbaAPI'
-import { Dictionary } from '@reduxjs/toolkit'
+import { FireZone, FireZoneThresholdFuelTypeArea, FuelType, HfiThreshold, HfiThresholdFuelTypeArea } from 'api/fbaAPI'
 
 const useStyles = makeStyles({
   wrapper: {
@@ -20,20 +19,13 @@ const useStyles = makeStyles({
 interface Props {
   className?: string
   selectedFireZone: FireZone | undefined
-  fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeResponse[]> | null
+  fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
 }
 
 const ZoneSummaryPanel = (props: Props) => {
   const classes = useStyles()
 
   console.log(props.fuelTypeInfo)
-  let fireZoneFuelTypesData: FireZoneThresholdFuelTypeResponse[] = []
-
-  if (!isNull(props.fuelTypeInfo) && !isUndefined(props.selectedFireZone)) {
-    fireZoneFuelTypesData = props.fuelTypeInfo[props.selectedFireZone.mof_fire_zone_id]
-  }
-
-  console.log(fireZoneFuelTypesData)
 
   if (isUndefined(props.selectedFireZone)) {
     return <div></div>
@@ -44,9 +36,7 @@ const ZoneSummaryPanel = (props: Props) => {
           <TextField className={classes.zoneName} value={props.selectedFireZone.mof_fire_zone_name} />
           <TextField className={classes.centreName} value={props.selectedFireZone.mof_fire_centre_name} />
         </div>
-        <div className={classes.wrapper}>
-          <TextField value={fireZoneFuelTypesData} />
-        </div>
+        <div className={classes.wrapper}>{/* <TextField value={fireZoneFuelTypesData} /> */}</div>
       </div>
     )
   }
