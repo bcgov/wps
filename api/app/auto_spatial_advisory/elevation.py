@@ -8,13 +8,12 @@ import os
 import tempfile
 import numpy as np
 from osgeo import gdal
-from sqlalchemy.exc import IntegrityError
 from app import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType
-from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats, save_run_parameters
+from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
-from app.db.models.auto_spatial_advisory import AdvisoryElevationStats, RunParameters
+from app.db.models.auto_spatial_advisory import AdvisoryElevationStats
 from app.utils.s3 import get_client
 
 
