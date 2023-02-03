@@ -4,8 +4,10 @@ import logging
 from time import perf_counter
 from typing import List
 from sqlalchemy import select, func
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
+from app.auto_spatial_advisory.run_type import RunType
 from app.db.models.auto_spatial_advisory import (
     Shape, ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, FuelType, HighHfiArea, RunParameters,
     AdvisoryElevationStats)
@@ -165,8 +167,8 @@ async def get_high_hfi_area(session: AsyncSession,
     """
     stmt = select(HighHfiArea.id,
                   HighHfiArea.advisory_shape_id,
-                  HighHfiArea.advisory_area,
-                  HighHfiArea.warn_area)\
+                  HighHfiArea.area,
+                  HighHfiArea.threshold)\
         .join(RunParameters)\
         .where(RunParameters.run_type == run_type,
                RunParameters.for_date == for_date,
@@ -195,11 +197,9 @@ async def calculate_high_hfi_areas(session: AsyncSession, run_parameters_id: int
     subq = select(RunParameters).where(RunParameters.id == run_parameters_id)\
         .subquery()
 
-    # Create cte object
-    cte = select(Shape.id,
-                 Shape.source_identifier,
-                 ClassifiedHfi.threshold.label('threshold'),
-                 func.sum(ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area()).label('area'))\
+    stmt = select(Shape.id.label('shape_id'),
+                  ClassifiedHfi.threshold.label('threshold'),
+                  func.sum(ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area()).label('area'))\
         .join_from(Shape, ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
         .join(subq,
               subq.c.run_type == ClassifiedHfi.run_type,
@@ -207,17 +207,7 @@ async def calculate_high_hfi_areas(session: AsyncSession, run_parameters_id: int
               subq.c.for_date == ClassifiedHfi.for_date)\
         .group_by(Shape.id)\
         .group_by(ClassifiedHfi.threshold)\
-        .cte()
 
-    # Alias CTE object to allow self join
-    a = cte.alias('a')
-    b = cte.alias('b')
-
-    stmt = select(a.c.id.label('shape_id'),
-                  a.c.source_identifier,
-                  a.c.area.label('warn_area'),
-                  b.c.area.label('advisory_area'))\
-        .join_from(a, b, (a.c.id == b.c.id) & (a.c.threshold < b.c.threshold))
     result = await session.execute(stmt)
     all_high_hfi = result.all()
     perf_end = perf_counter()
@@ -227,19 +217,22 @@ async def calculate_high_hfi_areas(session: AsyncSession, run_parameters_id: int
 
 
 async def get_run_parameters_id(session: AsyncSession,
-                                run_type: RunTypeEnum,
+                                run_type: RunType,
                                 run_datetime: datetime,
                                 for_date: date) -> List[Row]:
     stmt = select(RunParameters.id)\
-        .where(RunParameters.run_type == run_type,
+        .where(RunParameters.run_type == run_type.value,
                RunParameters.run_datetime == run_datetime,
                RunParameters.for_date == for_date)
     result = await session.execute(stmt)
     return result.scalar()
 
 
-async def save_run_parameters(session: AsyncSession, run_parameters: RunParameters):
-    session.add(run_parameters)
+async def save_run_parameters(session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date):
+    stmt = insert(RunParameters)\
+        .values(run_type=run_type.value, run_datetime=run_datetime, for_date=for_date)\
+        .on_conflict_do_nothing()
+    await session.execute(stmt)
 
 
 async def save_advisory_elevation_stats(session: AsyncSession, advisory_elevation_stats: AdvisoryElevationStats):
@@ -248,7 +241,7 @@ async def save_advisory_elevation_stats(session: AsyncSession, advisory_elevatio
 
 async def get_zonal_elevation_stats(session: AsyncSession,
                                     fire_zone_id: int,
-                                    run_type: RunTypeEnum,
+                                    run_type: RunType,
                                     run_datetime: datetime,
                                     for_date: date) -> List[Row]:
     run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
