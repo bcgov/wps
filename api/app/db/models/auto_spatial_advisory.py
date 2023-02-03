@@ -130,9 +130,9 @@ class HighHfiArea(Base):
     )
     id = Column(Integer, primary_key=True, index=True)
     advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False)
+    threshold = Column(Integer, ForeignKey('advisory_hfi_classification_threshold.id'), nullable=False)
     run_parameters = Column(Integer, ForeignKey('run_parameters.id'), nullable=False, index=True)
-    advisory_area = Column(Float, nullable=False)
-    warn_area = Column(Float, nullable=False)
+    area = Column(Float, nullable=False)
 
 
 class RunParameters(Base):

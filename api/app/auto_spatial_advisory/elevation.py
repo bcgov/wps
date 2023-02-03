@@ -34,7 +34,8 @@ async def process_elevation(run_type: RunType, run_datetime: datetime, for_date:
     perf_start = perf_counter()
 
     # Get the id from run_parameters associated with the provided runtype, for_date and for_datetime
-    run_parameters_id = await get_run_parameters(run_type, for_date, for_date)
+    async with get_async_read_session_scope() as session:
+        run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
     bucket = config.get('OBJECT_STORE_BUCKET')
     # TODO what really has to happen, is that we grab the most recent prediction for the given date,
@@ -264,7 +265,6 @@ async def store_elevation_stats(threshold: int, shape_id: int, stats, run_parame
     :param shape_id: The advisory shape id.
     :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
     """
-    logger.info('Writing firezone hfi elevation stats to API database...')
     advisory_elevation_stats = AdvisoryElevationStats(advisory_shape_id=shape_id, minimum=stats['minimum'],
                                                       maximum=stats['maximum'], median=stats['median'],
                                                       quartile_25=stats['quartile_25'],
@@ -272,23 +272,3 @@ async def store_elevation_stats(threshold: int, shape_id: int, stats, run_parame
                                                       run_parameters=run_parameters_id, threshold=threshold)
     async with get_async_write_session_scope() as session:
         await save_advisory_elevation_stats(session, advisory_elevation_stats)
-
-
-async def get_run_parameters(run_type: RunType, run_datetime: datetime, for_date: date):
-    """
-    Given a combination of run_type, for_date and run_datetime, creates a record in the RunParameters table of the
-    API database if it doesn't already exist, and returns the id associated with the record.
-
-    :param run_type: The type of the run ie. actual or forecast
-    :param for_date: The date the run is for
-    :param run_datetime: The date and time the run was performed
-    """
-    async with get_async_write_session_scope() as session:
-        try:
-            run_parameters = RunParameters(run_type=run_type.value, run_datetime=run_datetime, for_date=for_date)
-            await save_run_parameters(session, run_parameters)
-        except IntegrityError:
-            # Swallow the error as a record already exists
-            logger.info('Run parameters already exist')
-    async with get_async_read_session_scope() as session:
-        return await get_run_parameters_id(session, run_type.value, run_datetime, for_date)
