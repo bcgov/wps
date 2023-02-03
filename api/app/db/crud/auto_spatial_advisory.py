@@ -229,6 +229,8 @@ async def get_run_parameters_id(session: AsyncSession,
 
 
 async def save_run_parameters(session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date):
+    logger.info(
+        f'Writing run parameters. RunType: {run_type.value}; run_datetime: {run_datetime.isoformat()}; for_date: {for_date.isoformat()}')
     stmt = insert(RunParameters)\
         .values(run_type=run_type.value, run_datetime=run_datetime, for_date=for_date)\
         .on_conflict_do_nothing()
