@@ -7,6 +7,9 @@ from app.geospatial import NAD83_BC_ALBERS
 from sqlalchemy.dialects import postgresql
 
 
+ADVISORY_HFI_CLASSIFICATION_THRESHOLD_ID = 'advisory_hfi_classification_threshold.id'
+
+
 class ShapeTypeEnum(enum.Enum):
     """ Define different shape types. e.g. "Zone", "Fire Centre" - later we may add
     "Incident"/"Fire", "Custom" etc. etc. """
@@ -83,7 +86,7 @@ class ClassifiedHfi(Base):
         {'comment': 'HFI classification for some forecast/advisory run on some day, for some date'}
     )
     id = Column(Integer, primary_key=True, index=True)
-    threshold = Column(Integer, ForeignKey('advisory_hfi_classification_threshold.id'), nullable=False, index=True)
+    threshold = Column(Integer, ForeignKey(ADVISORY_HFI_CLASSIFICATION_THRESHOLD_ID), nullable=False, index=True)
     run_type = Column(Enum(RunTypeEnum), nullable=False, index=True)
     run_datetime = Column(TZTimeStamp, nullable=False)
     for_date = Column(Date, nullable=False)
@@ -130,7 +133,7 @@ class HighHfiArea(Base):
     )
     id = Column(Integer, primary_key=True, index=True)
     advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False)
-    threshold = Column(Integer, ForeignKey('advisory_hfi_classification_threshold.id'), nullable=False)
+    threshold = Column(Integer, ForeignKey(ADVISORY_HFI_CLASSIFICATION_THRESHOLD_ID), nullable=False)
     run_parameters = Column(Integer, ForeignKey('run_parameters.id'), nullable=False, index=True)
     area = Column(Float, nullable=False)
 
@@ -162,7 +165,7 @@ class AdvisoryElevationStats(Base):
     )
     id = Column(Integer, primary_key=True, index=True)
     advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False, index=True)
-    threshold = Column(Integer, ForeignKey('advisory_hfi_classification_threshold.id'), nullable=False)
+    threshold = Column(Integer, ForeignKey(ADVISORY_HFI_CLASSIFICATION_THRESHOLD_ID), nullable=False)
     run_parameters = Column(Integer, ForeignKey('run_parameters.id'), nullable=False, index=True)
     minimum = Column(Float, nullable=False)
     quartile_25 = Column(Float, nullable=False)
