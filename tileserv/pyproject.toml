@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-sqlalchemy = "^1.4.44"
+sqlalchemy = "^2.0.0"
 alembic = "^1.8.1"
 psycopg2-binary = "^2.9.5"
 python-decouple = "^3.6"
