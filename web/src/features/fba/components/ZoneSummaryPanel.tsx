@@ -138,7 +138,7 @@ const ZoneSummaryPanel = (props: Props) => {
                       label={renderCustomizedLabel}
                     >
                       {advisories.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLOURS[index % COLOURS.length]} />
+                        <Cell key={`cell-${entry.fuel_type_code}`} fill={COLOURS[index % COLOURS.length]} />
                       ))}
                     </Pie>
                   </PieChart>
@@ -159,7 +159,7 @@ const ZoneSummaryPanel = (props: Props) => {
                       label={renderCustomizedLabel}
                     >
                       {warnings.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLOURS[index % COLOURS.length]} />
+                        <Cell key={`cell-${entry.fuel_type_code}`} fill={COLOURS[index % COLOURS.length]} />
                       ))}
                     </Pie>
                   </PieChart>
