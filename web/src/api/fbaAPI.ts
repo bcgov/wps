@@ -20,6 +20,8 @@ export interface FBAResponse {
 
 export interface FireZoneArea {
   mof_fire_zone_id: number
+  threshold: number
+  combustible_area: number
   elevated_hfi_area: number
   elevated_hfi_percentage: number
 }

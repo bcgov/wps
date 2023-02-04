@@ -119,30 +119,16 @@ async def get_hfi_area(session: AsyncSession,
                        run_type: RunTypeEnum,
                        run_datetime: datetime,
                        for_date: date) -> List[Row]:
-    """ This is slow - but not terribly slow.
-
-    For each fire zone, it gives you the area of the fire zone, and the area of hfi polygons
-    within that fire zone. Using those two values, you can then calculate the percentage of the
-    zone that has a high hfi.
-    """
-    logger.info('starting zone/area intersection query')
-    perf_start = perf_counter()
-    stmt = select(Shape.id,
-                  Shape.source_identifier,
-                  Shape.combustible_area,
-                  Shape.geom.ST_Area().label('zone_area'),
-                  ClassifiedHfi.geom.ST_Union().ST_Intersection(Shape.geom).ST_Area().label('hfi_area'))\
-        .join(ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
-        .where(ClassifiedHfi.run_type == run_type,
-               ClassifiedHfi.for_date == for_date,
-               ClassifiedHfi.run_datetime == run_datetime)\
-        .group_by(Shape.id)
+    logger.info('gathering hfi area data')
+    stmt = select(Shape.id, Shape.source_identifier, Shape.combustible_area, HighHfiArea.id,
+                  HighHfiArea.advisory_shape_id, HighHfiArea.threshold, HighHfiArea.area.label('hfi_area'))\
+        .join(HighHfiArea, HighHfiArea.advisory_shape_id == Shape.id)\
+        .join(RunParameters, RunParameters.id == HighHfiArea.run_parameters)\
+        .where(RunParameters.run_type == run_type.value,
+               RunParameters.for_date == for_date,
+               RunParameters.run_datetime == run_datetime)
     result = await session.execute(stmt)
-    all_hfi = result.all()
-    perf_end = perf_counter()
-    delta = perf_end - perf_start
-    logger.info('%f delta count before and after hfi area + zone/area intersection query', delta)
-    return all_hfi
+    return result.all()
 
 
 async def get_run_datetimes(session: AsyncSession, run_type: RunTypeEnum, for_date: date) -> List[Row]:
