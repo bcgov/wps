@@ -1,19 +1,35 @@
 import React from 'react'
-import { Grid, TextField } from '@mui/material'
+import { Grid, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { isUndefined } from 'lodash'
 import { FireZone, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
-import { PieChart, Pie, ResponsiveContainer, Label, Cell } from 'recharts'
+import { PieChart, Pie, ResponsiveContainer, Cell } from 'recharts'
 
 const useStyles = makeStyles({
   wrapper: {
-    minWidth: 300
+    minWidth: 400
   },
   zoneName: {
-    fontSize: '2rem'
+    fontSize: '2rem',
+    textAlign: 'center',
+    variant: 'h2'
   },
   centreName: {
-    fontSize: '1.2rem'
+    fontSize: '1rem',
+    textAlign: 'right',
+    variant: 'h6'
+  },
+  fuelTypesPaper: {
+    padding: '20px 10px'
+  },
+  fuelTypesHeader: {
+    fontSize: '1.3rem',
+    textAlign: 'center',
+    variant: 'h3'
+  },
+  pieChartHeader: {
+    fontSize: '1rem',
+    variant: 'h4'
   }
 })
 
@@ -69,21 +85,19 @@ const ZoneSummaryPanel = (props: Props) => {
     if (percent * 100 < 5) {
       return (
         <text x={x} y={y} fontSize={'10pt'} fill="black">
-          {`${fuel_type_code} - (${(percent * 100).toFixed(0)}%)`}
+          {`${fuel_type_code} (${(percent * 100).toFixed(0)}%)`}
         </text>
       )
     }
 
     return (
       <text x={x} y={y} fontSize={'10pt'} fill="black" textAnchor={x > cx ? 'start' : 'end'}>
-        {`${fuel_type_code} - ${area.toFixed(0)} ha (${(percent * 100).toFixed(0)}%)`}
+        {`${fuel_type_code}: ${area.toLocaleString(undefined, { maximumFractionDigits: 0 })} ha (${(
+          percent * 100
+        ).toFixed(0)}%)`}
       </text>
     )
   }
-
-  // const renderCustomizedLabel = entry => {
-  //   return `${entry.name} - ${entry.value.toFixed(0)}`
-  // }
 
   if (isUndefined(props.selectedFireZone) || isUndefined(props.fuelTypeInfo[props.selectedFireZone.mof_fire_zone_id])) {
     return <div></div>
@@ -100,53 +114,59 @@ const ZoneSummaryPanel = (props: Props) => {
     return (
       <div className={props.className}>
         <Grid item>
-          <div className={classes.wrapper}>
-            <TextField className={classes.zoneName} value={props.selectedFireZone.mof_fire_zone_name} />
-            <TextField className={classes.centreName} value={props.selectedFireZone.mof_fire_centre_name} />
-          </div>
-          <div>
-            <Label>Advisories</Label>
-            <ResponsiveContainer width="100%" aspect={2}>
-              <PieChart>
-                <Pie
-                  data={advisories}
-                  dataKey={'area'}
-                  nameKey={'fuel_type_code'}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#8884d8"
-                  labelLine={false}
-                  label={renderCustomizedLabel}
-                >
-                  {advisories.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLOURS[index % COLOURS.length]} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div>
-            <Label>Warnings</Label>
-            <ResponsiveContainer width="100%" aspect={2}>
-              <PieChart>
-                <Pie
-                  data={warnings}
-                  dataKey={'area'}
-                  nameKey={'fuel_type_code'}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  labelLine={false}
-                  label={renderCustomizedLabel}
-                >
-                  {warnings.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLOURS[index % COLOURS.length]} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <Paper>
+            <div className={classes.wrapper}>
+              <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
+              <Typography className={classes.centreName}>{props.selectedFireZone.mof_fire_centre_name}</Typography>
+            </div>
+            <Paper className={classes.fuelTypesPaper}>
+              <Typography className={classes.fuelTypesHeader}>HFI by Fuel Type</Typography>
+
+              <div>
+                <Typography className={classes.pieChartHeader}>Advisories (HFI: 4,000-10,000 kW/m)</Typography>
+                <ResponsiveContainer width="100%" aspect={2}>
+                  <PieChart>
+                    <Pie
+                      data={advisories}
+                      dataKey={'area'}
+                      nameKey={'fuel_type_code'}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      fill="#8884d8"
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                    >
+                      {advisories.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLOURS[index % COLOURS.length]} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div>
+                <Typography className={classes.pieChartHeader}>Warnings (HFI: +10,000 kW/m)</Typography>
+                <ResponsiveContainer width="100%" aspect={2}>
+                  <PieChart>
+                    <Pie
+                      data={warnings}
+                      dataKey={'area'}
+                      nameKey={'fuel_type_code'}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                    >
+                      {warnings.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLOURS[index % COLOURS.length]} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </Paper>
+          </Paper>
         </Grid>
       </div>
     )
