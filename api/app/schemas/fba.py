@@ -76,3 +76,23 @@ class ClassifiedHfiThresholdFuelTypeArea(BaseModel):
     fuel_type: SFMSFuelType
     threshold: HfiThreshold
     area: float
+
+
+class FireZoneElevationStats(BaseModel):
+    """ Basic elevation statistics for a firezone """
+    minimum: float
+    quartile_25: float
+    median: float
+    quartile_75: float
+    maximum: float
+
+
+class FireZoneElevationStatsByThreshold(BaseModel):
+    """ Elevation statistics for a firezone by threshold"""
+    threshold: int
+    stats: FireZoneElevationStats
+
+
+class FireZoneElevationStatsListResponse(BaseModel):
+    """ Response for a firezone that includes elevation statistics by threshold for the run parameters of interest """
+    data: List[FireZoneElevationStatsByThreshold]
