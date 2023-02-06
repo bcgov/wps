@@ -9,12 +9,18 @@ from typing import List
 from fastapi import APIRouter, Depends
 from aiohttp.client import ClientSession
 from app.db.database import get_async_read_session_scope
-from app.db.crud.auto_spatial_advisory import get_all_hfi_thresholds, get_all_sfms_fuel_types, get_fuel_types_with_high_hfi, get_hfi_area, get_high_hfi_fuel_types_for_zone, get_run_datetimes
-from app.db.models.auto_spatial_advisory import RunTypeEnum
-from app.schemas.fba import ClassifiedHfiThresholdFuelTypeArea, FireCenterListResponse, FireZoneAreaListResponse, FireZoneArea, HfiThreshold,\
-    HfiThresholdAreaByFuelType, SFMSFuelType, FireZoneElevationStats, FireZoneElevationStatsByThreshold, FireZoneElevationStatsListResponse
-from app.db.crud.auto_spatial_advisory import (get_fuel_types_with_high_hfi, get_hfi_area, get_run_datetimes,
+from app.db.crud.auto_spatial_advisory import (get_all_hfi_thresholds,
+                                               get_all_sfms_fuel_types,
+                                               get_fuel_types_with_high_hfi,
+                                               get_hfi_area,
+                                               get_high_hfi_fuel_types_for_zone,
+                                               get_run_datetimes,
                                                get_zonal_elevation_stats)
+from app.db.models.auto_spatial_advisory import RunTypeEnum
+from app.schemas.fba import (ClassifiedHfiThresholdFuelTypeArea, FireCenterListResponse, FireZoneAreaListResponse,
+                             FireZoneArea, HfiThreshold, HfiThresholdAreaByFuelType, SFMSFuelType,
+                             FireZoneElevationStats, FireZoneElevationStatsByThreshold,
+                             FireZoneElevationStatsListResponse)
 from app.auth import authentication_required, audit
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 from app.auto_spatial_advisory.process_hfi import RunType
@@ -98,9 +104,14 @@ async def get_sfms_fuel_types():
         return fuel_types
 
 
-@router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}/{zone_id}', response_model=dict[int, List[ClassifiedHfiThresholdFuelTypeArea]])
-async def get_hfi_fuels_data_for_fire_zone(run_type: RunType, for_date: date, run_datetime: datetime, zone_id: int):
+@router.get('/hfi-fuels/{run_type}/{for_date}/{run_datetime}/{zone_id}',
+            response_model=dict[int, List[ClassifiedHfiThresholdFuelTypeArea]])
+async def get_hfi_fuels_data_for_fire_zone(run_type: RunType,
+                                           for_date: date,
+                                           run_datetime: datetime,
+                                           zone_id: int):
     """
+    Fetch rollup of fuel type/HFI threshold/area data for a specified fire zone.
     """
     logger.info('hfi-fuels/%s/%s/%s/%s', run_type.value, for_date, run_datetime, zone_id)
     # get thresholds data
@@ -119,13 +130,13 @@ async def get_hfi_fuels_data_for_fire_zone(run_type: RunType, for_date: date, ru
         data = []
 
         for record in hfi_fuel_type_ids_for_zone:
-            fuel_type_id = record[1]
-            threshold_id = record[2]
+            fuel_type = record[1]
+            threshold = record[2]
             # area is stored in square metres in DB. For user convenience, convert to hectares
             # 1 ha = 10,000 sq.m.
             area = record[3] / 10000
-            fuel_type_obj = next(filter((lambda ft: ft.fuel_type_id == fuel_type_id)(fuel_type_id), fuel_types), None)
-            threshold_obj = next(filter((lambda t: t.id == threshold_id)(threshold_id), thresholds), None)
+            fuel_type_obj = next(filter((lambda ft: ft.fuel_type_id == fuel_type), fuel_types), None)
+            threshold_obj = next(filter((lambda t: t.id == threshold), thresholds), None)
             data.append(ClassifiedHfiThresholdFuelTypeArea(fuel_type=fuel_type_obj, threshold=threshold_obj, area=area))
 
         return {zone_id: data}
