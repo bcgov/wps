@@ -20,7 +20,6 @@ from app.db.crud.auto_spatial_advisory import (
     save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters,
     get_run_parameters_id, calculate_high_hfi_areas, save_high_hfi_area)
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
-from app.auto_spatial_advisory.elevation import process_elevation
 from app.auto_spatial_advisory.polygonize import polygonize_in_memory
 from app.auto_spatial_advisory.run_type import RunType
 from app.geospatial import NAD83_BC_ALBERS
