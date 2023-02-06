@@ -132,7 +132,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
 
     # Skip if we already have this run
     async with get_async_read_session_scope() as session:
-        existing_run = await get_run_parameters_id(run_type, run_datetime, for_date)
+        existing_run = await get_run_parameters_id(session, run_type, run_datetime, for_date)
         if existing_run is not None:
             logger.info(
                 (
