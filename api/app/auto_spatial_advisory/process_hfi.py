@@ -171,11 +171,10 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
             target_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
             coordinate_transform = osr.CoordinateTransformation(spatial_reference, target_srs)
 
-            async with get_async_read_session_scope() as session:
+            async with get_async_write_session_scope() as session:
                 advisory = await get_hfi_classification_threshold(session, HfiClassificationThresholdEnum.ADVISORY)
                 warning = await get_hfi_classification_threshold(session, HfiClassificationThresholdEnum.WARNING)
 
-            async with get_async_write_session_scope() as session:
                 logger.info('Writing HFI advisory zones to API database...')
                 for i in range(layer.GetFeatureCount()):
                     # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Feature
@@ -189,24 +188,21 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
                                               for_date)
                     await save_hfi(session, obj)
 
-            with get_sync_tileserv_db_scope() as session:
-                logger.info('Writing HFI vectors to tileserv...')
-                for i in range(layer.GetFeatureCount()):
-                    feature: ogr.Feature = layer.GetFeature(i)
-                    write_classified_hfi_to_tileserver(
-                        session, feature, coordinate_transform, for_date, run_datetime, run_type, advisory, warning)
+                run_parameters_id = await get_run_parameters_id(session, run_type, run_date, for_date)
 
-        async with get_async_read_session_scope() as session:
-            run_parameters_id = await get_run_parameters_id(session, run_type, run_date, for_date)
+                logger.info('Getting high HFI area per zone...')
+                high_hfi_areas = await calculate_high_hfi_areas(session, run_parameters_id)
 
-        async with get_async_read_session_scope() as session:
-            logger.info('Getting high HFI area per zone...')
-            high_hfi_areas = await calculate_high_hfi_areas(session, run_parameters_id)
+                logger.info('Writing high HFI areas...')
+                for row in high_hfi_areas:
+                    await write_high_hfi_area(session, row, run_parameters_id)
 
-        async with get_async_write_session_scope() as session:
-            logger.info('Writing high HFI areas...')
-            for row in high_hfi_areas:
-                await write_high_hfi_area(session, row, run_parameters_id)
+                with get_sync_tileserv_db_scope() as session:
+                    logger.info('Writing HFI vectors to tileserv...')
+                    for i in range(layer.GetFeatureCount()):
+                        feature: ogr.Feature = layer.GetFeature(i)
+                        write_classified_hfi_to_tileserver(
+                            session, feature, coordinate_transform, for_date, run_datetime, run_type, advisory, warning)
 
     perf_end = perf_counter()
     delta = perf_end - perf_start
