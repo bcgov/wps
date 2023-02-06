@@ -3,7 +3,6 @@
 # pylint: skip-file
 import logging
 import os
-from enum import Enum
 from datetime import date, datetime
 from time import perf_counter
 import tempfile
@@ -11,12 +10,11 @@ from shapely import wkb, wkt
 from shapely.validation import make_valid
 from shapely.geometry import MultiPolygon
 from osgeo import ogr, osr
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from app import config
-from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, RunParameters, HighHfiArea
+from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, HighHfiArea
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope, get_sync_tileserv_db_scope
 from app.db.crud.auto_spatial_advisory import (
     save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters,
@@ -145,10 +143,6 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
     logger.info('Processing HFI %s for run date: %s, for date: %s', run_type, run_date, for_date)
     perf_start = perf_counter()
 
-    # Store the unqiue combination of run type, run datetime and for date in the run_parameters table
-    async with get_async_write_session_scope() as session:
-        await save_run_parameters(session, run_type, run_datetime, for_date)
-
     bucket = config.get('OBJECT_STORE_BUCKET')
     # TODO what really has to happen, is that we grab the most recent prediction for the given date,
     # but this method doesn't even belong here, it's just a shortcut for now!
@@ -196,6 +190,9 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
                 logger.info('Writing high HFI areas...')
                 for row in high_hfi_areas:
                     await write_high_hfi_area(session, row, run_parameters_id)
+
+                # Store the unqiue combination of run type, run datetime and for date in the run_parameters table
+                await save_run_parameters(session, run_type, run_datetime, for_date)
 
                 with get_sync_tileserv_db_scope() as session:
                     logger.info('Writing HFI vectors to tileserv...')
