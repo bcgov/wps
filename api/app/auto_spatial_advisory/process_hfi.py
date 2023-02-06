@@ -129,11 +129,21 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
     :param run_date: The date of the run to process. (when was the hfi file created?)
     :param for_date: The date of the hfi to process. (when is the hfi for?)
     """
+
+    # Skip if we already have this run
+    async with get_async_read_session_scope() as session:
+        existing_run = await get_run_parameters_id(run_type, run_datetime, for_date)
+        if existing_run is not None:
+            logger.info(
+                (
+                    f'Skipping run, already processed for run_type:{run_type}'
+                    f'run_datetime:{run_datetime},'
+                    f'for_date:{for_date}'
+                ))
+            return
+
     logger.info('Processing HFI %s for run date: %s, for date: %s', run_type, run_date, for_date)
     perf_start = perf_counter()
-    run_type = RunType.FORECAST
-    run_date = for_date
-    run_datetime = for_date
 
     # Store the unqiue combination of run type, run datetime and for date in the run_parameters table
     async with get_async_write_session_scope() as session:
