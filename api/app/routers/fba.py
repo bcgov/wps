@@ -135,8 +135,8 @@ async def get_hfi_fuels_data_for_fire_zone(run_type: RunType,
             # area is stored in square metres in DB. For user convenience, convert to hectares
             # 1 ha = 10,000 sq.m.
             area = record[3] / 10000
-            fuel_type_obj = next(filter((lambda ft: ft.fuel_type_id == fuel_type_id)(fuel_type_id), fuel_types), None)
-            threshold_obj = next(filter((lambda t: t.id == threshold_id)(threshold_id), thresholds), None)
+            fuel_type_obj = next(filter((lambda ft: ft.fuel_type_id == fuel_type_id), fuel_types), None)
+            threshold_obj = next(filter((lambda t: t.id == threshold_id), thresholds), None)
             data.append(ClassifiedHfiThresholdFuelTypeArea(fuel_type=fuel_type_obj, threshold=threshold_obj, area=area))
 
         return {zone_id: data}
