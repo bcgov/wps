@@ -113,7 +113,7 @@ async def get_fire_zone_elevation_stats(fire_zone_id: int, run_type: RunType, ru
     """ Return the elevation statistics for each advisory threshold """
     async with get_async_read_session_scope() as session:
         data = []
-        rows = get_zonal_elevation_stats(session, fire_zone_id, RunTypeEnum(run_type.value), run_datetime, for_date)
+        rows = get_zonal_elevation_stats(session, fire_zone_id, run_type, run_datetime, for_date)
         for row in rows:
             stats = FireZoneElevationStats(
                 minimum=row.minimum,
