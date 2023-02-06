@@ -13,7 +13,7 @@ from osgeo import ogr, osr
 from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-from app import config
+from app.auto_spatial_advisory.common import get_s3_key
 from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, HighHfiArea
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope, get_sync_tileserv_db_scope
 from app.db.crud.auto_spatial_advisory import (
@@ -143,20 +143,11 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
     logger.info('Processing HFI %s for run date: %s, for date: %s', run_type, run_date, for_date)
     perf_start = perf_counter()
 
-    bucket = config.get('OBJECT_STORE_BUCKET')
-    # TODO what really has to happen, is that we grab the most recent prediction for the given date,
-    # but this method doesn't even belong here, it's just a shortcut for now!
-    for_date_string = f'{for_date.year}{for_date.month:02d}{for_date.day:02d}'
-
-    # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
-    # it's S3 virtual file system driver to read the file.
-    # https://gdal.org/user/virtual_file_systems.html
-    key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_date.isoformat()}/hfi{for_date_string}.tif'
+    key = get_s3_key(run_type, run_date, for_date)
     logger.info(f'Key to HFI in object storage: {key}')
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(key, temp_filename)
-        await process_elevation(key, run_type, run_datetime, for_date)
         with polygonize_in_memory(temp_filename) as layer:
 
             spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
