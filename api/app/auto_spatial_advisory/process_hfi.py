@@ -162,7 +162,7 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_filename = os.path.join(temp_dir, 'classified.tif')
         classify_hfi(key, temp_filename)
-        await process_elevation(run_type, run_datetime, for_date)
+        await process_elevation(key, run_type, run_datetime, for_date)
         with polygonize_in_memory(temp_filename) as layer:
 
             spatial_reference: osr.SpatialReference = layer.GetSpatialRef()

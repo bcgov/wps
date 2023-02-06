@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 DEM_GDAL_SOURCE = None
 
 
-async def process_elevation(run_type: RunType, run_datetime: datetime, for_date: date):
+async def process_elevation(source_path: str, run_type: RunType, run_datetime: datetime, for_date: date):
     """ Create new elevation statistics records for the given parameters.
 
     :param run_type: The type of run to process. (is it a forecast or actual run?)
@@ -36,29 +36,23 @@ async def process_elevation(run_type: RunType, run_datetime: datetime, for_date:
     async with get_async_read_session_scope() as session:
         run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
-    bucket = config.get('OBJECT_STORE_BUCKET')
-    # TODO what really has to happen, is that we grab the most recent prediction for the given date,
-    # but this method doesn't even belong here, it's just a shortcut for now!
-    for_date_string = f'{for_date.year}{for_date.month:02d}{for_date.day:02d}'
+        # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
+        # it's S3 virtual file system driver to read the file.
+        # https://gdal.org/user/virtual_file_systems.html
+        with tempfile.TemporaryDirectory() as temp_dir:
+            await prepare_dem()
+            temp_filename = os.path.join(temp_dir, 'classified.tif')
+            classify_hfi(source_path, temp_filename)
+            # thresholds: 1 = 4k-10k, 2 = >10k
+            thresholds = [1, 2]
+            for threshold in thresholds:
+                await process_threshold(threshold, temp_filename, temp_dir, run_parameters_id)
 
-    # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
-    # it's S3 virtual file system driver to read the file.
-    # https://gdal.org/user/virtual_file_systems.html
-    key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_datetime.isoformat()}/hfi{for_date_string}.tif'
-    with tempfile.TemporaryDirectory() as temp_dir:
-        await prepare_dem()
-        temp_filename = os.path.join(temp_dir, 'classified.tif')
-        classify_hfi(key, temp_filename)
-        # thresholds: 1 = 4k-10k, 2 = >10k
-        thresholds = [1, 2]
-        for threshold in thresholds:
-            await process_threshold(threshold, temp_filename, temp_dir, run_parameters_id)
-
-    perf_end = perf_counter()
-    delta = perf_end - perf_start
-    logger.info('%f delta count before and after processing elevation stats', delta)
-    global DEM_GDAL_SOURCE  # pylint: disable=global-statement
-    DEM_GDAL_SOURCE = None
+        perf_end = perf_counter()
+        delta = perf_end - perf_start
+        logger.info('%f delta count before and after processing elevation stats', delta)
+        global DEM_GDAL_SOURCE  # pylint: disable=global-statement
+        DEM_GDAL_SOURCE = None
 
 
 async def prepare_dem():
