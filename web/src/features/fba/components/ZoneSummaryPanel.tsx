@@ -114,11 +114,11 @@ const ZoneSummaryPanel = (props: Props) => {
   } else {
     const advisories: FuelTypeDataForPieChart[] = []
     const warnings: FuelTypeDataForPieChart[] = []
-    props.fuelTypeInfo[props.selectedFireZone?.mof_fire_zone_id].forEach(thing => {
-      if (thing.threshold.id === 1) {
-        advisories.push({ area: thing.area, fuel_type_code: thing.fuel_type.fuel_type_code })
-      } else if (thing.threshold.id === 2) {
-        warnings.push({ area: thing.area, fuel_type_code: thing.fuel_type.fuel_type_code })
+    props.fuelTypeInfo[props.selectedFireZone?.mof_fire_zone_id].forEach(record => {
+      if (record.threshold.id === 1) {
+        advisories.push({ area: record.area, fuel_type_code: record.fuel_type.fuel_type_code })
+      } else if (record.threshold.id === 2) {
+        warnings.push({ area: record.area, fuel_type_code: record.fuel_type.fuel_type_code })
       }
     })
     return (

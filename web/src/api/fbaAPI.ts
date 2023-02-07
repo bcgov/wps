@@ -88,16 +88,6 @@ export async function getAllRunDates(run_type: RunType, for_date: string): Promi
   return data
 }
 
-export async function getHFIThresholdsFuelTypes(
-  run_type: RunType,
-  for_date: string,
-  run_datetime: string
-): Promise<Record<number, HfiThresholdFuelTypeArea[]>> {
-  const url = `fba/hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}`
-  const { data } = await axios.get(url, {})
-  return data
-}
-
 export async function getHFIThresholdsFuelTypesForZone(
   run_type: RunType,
   for_date: string,
@@ -105,18 +95,6 @@ export async function getHFIThresholdsFuelTypesForZone(
   zone_id: number
 ): Promise<Record<number, FireZoneThresholdFuelTypeArea[]>> {
   const url = `fba/hfi-fuels/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${zone_id}`
-  const { data } = await axios.get(url, {})
-  return data
-}
-
-export async function getHFIThresholds(): Promise<HfiThreshold[]> {
-  const url = `fba/hfi-thresholds/`
-  const { data } = await axios.get(url, {})
-  return data
-}
-
-export async function getHFIFuelTypes(): Promise<FuelType[]> {
-  const url = `fba/sfms-fuel-types/`
   const { data } = await axios.get(url, {})
   return data
 }

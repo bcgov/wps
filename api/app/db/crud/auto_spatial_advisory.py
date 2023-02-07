@@ -10,7 +10,6 @@ from app.db.models.auto_spatial_advisory import (
     Shape, ClassifiedHfi, HfiClassificationThreshold, SFMSFuelType, RunTypeEnum,
     FuelType, HighHfiArea, RunParameters, AdvisoryElevationStats)
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +19,8 @@ class HfiClassificationThresholdEnum(Enum):
     WARNING = 'warning'
 
 
-async def get_hfi_classification_threshold(session: AsyncSession, name: HfiClassificationThresholdEnum) -> HfiClassificationThreshold:
+async def get_hfi_classification_threshold(session: AsyncSession,
+                                           name: HfiClassificationThresholdEnum) -> HfiClassificationThreshold:
     stmt = select(HfiClassificationThreshold).where(
         HfiClassificationThreshold.name == name.value)
     result = await session.execute(stmt)
@@ -81,24 +81,42 @@ async def get_combustible_area(session: AsyncSession):
     return all_combustible
 
 
-async def get_all_hfi_thresholds(session: AsyncSession) -> List[Row]:
+async def get_all_hfi_thresholds(session: AsyncSession) -> List[HfiClassificationThreshold]:
     """
-    Retrieve all HfiClassificationThreshold records from DB.
+    Retrieve all records from advisory_hfi_classification_threshold table.
     """
-    logger.info('retrieving HFI classification thresholds data')
+    logger.info('retrieving HFI classification threshold info...')
     stmt = select(HfiClassificationThreshold)
     result = await session.execute(stmt)
-    return result.all()
+
+    thresholds = []
+
+    for row in result.all():
+        threshold_object = row[0]
+        thresholds.append(HfiClassificationThreshold(id=threshold_object.id,
+                                                     description=threshold_object.description,
+                                                     name=threshold_object.name))
+
+    return thresholds
 
 
-async def get_all_sfms_fuel_types(session: AsyncSession) -> List[Row]:
+async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
     """
     Retrieve all records from sfms_fuel_types table
     """
     logger.info('retrieving SFMS fuel types info...')
     stmt = select(SFMSFuelType)
     result = await session.execute(stmt)
-    return result.all()
+
+    fuel_types = []
+
+    for row in result.all():
+        fuel_type_object = row[0]
+        fuel_types.append(SFMSFuelType(fuel_type_id=fuel_type_object.fuel_type_id,
+                                       fuel_type_code=fuel_type_object.fuel_type_code,
+                                       description=fuel_type_object.description))
+
+    return fuel_types
 
 
 async def get_high_hfi_fuel_types_for_zone(session: AsyncSession,
