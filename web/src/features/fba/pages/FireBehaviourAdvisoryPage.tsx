@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters, selectRunDates } from 'app/rootReducer'
+import { selectFireCenters, selectFireZoneAreas, selectRunDates } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
@@ -20,6 +20,7 @@ import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
+import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
 
 export enum RunType {
@@ -65,7 +66,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
-  const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
+  const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
   const [issueDate, setIssueDate] = useState<DateTime | null>(null)
   const [selectedFireZoneID, setSelectedFireZoneID] = useState<number | null>(null)
   const [dateOfInterest, setDateOfInterest] = useState(
@@ -75,6 +76,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
   const { mostRecentRunDate } = useSelector(selectRunDates)
+  const { fireZoneAreas } = useSelector(selectFireZoneAreas)
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -112,6 +114,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   useEffect(() => {
     if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
       dispatch(fetchHighHFIFuels(runType, dateOfInterest.toISODate(), mostRecentRunDate.toString()))
+      dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), dateOfInterest.toISODate()))
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -182,6 +185,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               className={classes.flex}
               setIssueDate={setIssueDate}
               setSelectedFireZoneID={setSelectedFireZoneID}
+              fireZoneAreas={fireZoneAreas}
             />
           </Grid>
         </Grid>
