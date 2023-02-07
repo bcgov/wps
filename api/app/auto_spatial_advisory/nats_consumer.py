@@ -79,7 +79,7 @@ async def run():
                 run_type, run_date, run_datetime, for_date = parse_nats_message(msg)
                 logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
                 await process_hfi(run_type, run_date, run_datetime, for_date)
-                # await process_hfi_elevation(run_type, run_date, run_datetime, for_date)
+                await process_hfi_elevation(run_type, run_date, run_datetime, for_date)
                 # await process_high_hfi_area(run_type, run_datetime, for_date)
             except Exception as e:
                 logger.error("Error processing HFI message: %s, adding back to queue", msg.data, exc_info=e)
