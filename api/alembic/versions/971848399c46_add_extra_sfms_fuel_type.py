@@ -1,7 +1,7 @@
 """Add extra SFMS fuel type
 
 Revision ID: 971848399c46
-Revises: 0dd8306467a9
+Revises: 0961883640ef
 Create Date: 2023-02-03 15:20:04.140023
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '971848399c46'
-down_revision = '298f400dfa64'
+down_revision = '0961883640ef'
 branch_labels = None
 depends_on = None
 

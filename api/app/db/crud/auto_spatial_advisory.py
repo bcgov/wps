@@ -4,8 +4,10 @@ import logging
 from time import perf_counter
 from typing import List
 from sqlalchemy import select, func
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
+from app.auto_spatial_advisory.run_type import RunType
 from app.db.models.auto_spatial_advisory import (
     Shape, ClassifiedHfi, HfiClassificationThreshold, SFMSFuelType, RunTypeEnum,
     FuelType, HighHfiArea, RunParameters, AdvisoryElevationStats)
@@ -189,30 +191,16 @@ async def get_hfi_area(session: AsyncSession,
                        run_type: RunTypeEnum,
                        run_datetime: datetime,
                        for_date: date) -> List[Row]:
-    """ This is slow - but not terribly slow.
-
-    For each fire zone, it gives you the area of the fire zone, and the area of hfi polygons
-    within that fire zone. Using those two values, you can then calculate the percentage of the
-    zone that has a high hfi.
-    """
-    logger.info('starting zone/area intersection query')
-    perf_start = perf_counter()
-    stmt = select(Shape.id,
-                  Shape.source_identifier,
-                  Shape.combustible_area,
-                  Shape.geom.ST_Area().label('zone_area'),
-                  ClassifiedHfi.geom.ST_Union().ST_Intersection(Shape.geom).ST_Area().label('hfi_area'))\
-        .join(ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
-        .where(ClassifiedHfi.run_type == run_type,
-               ClassifiedHfi.for_date == for_date,
-               ClassifiedHfi.run_datetime == run_datetime)\
-        .group_by(Shape.id)
+    logger.info('gathering hfi area data')
+    stmt = select(Shape.id, Shape.source_identifier, Shape.combustible_area, HighHfiArea.id,
+                  HighHfiArea.advisory_shape_id, HighHfiArea.threshold, HighHfiArea.area.label('hfi_area'))\
+        .join(HighHfiArea, HighHfiArea.advisory_shape_id == Shape.id)\
+        .join(RunParameters, RunParameters.id == HighHfiArea.run_parameters)\
+        .where(RunParameters.run_type == run_type.value,
+               RunParameters.for_date == for_date,
+               RunParameters.run_datetime == run_datetime)
     result = await session.execute(stmt)
-    all_hfi = result.all()
-    perf_end = perf_counter()
-    delta = perf_end - perf_start
-    logger.info('%f delta count before and after hfi area + zone/area intersection query', delta)
-    return all_hfi
+    return result.all()
 
 
 async def get_run_datetimes(session: AsyncSession, run_type: RunTypeEnum, for_date: date) -> List[Row]:
@@ -237,8 +225,8 @@ async def get_high_hfi_area(session: AsyncSession,
     """
     stmt = select(HighHfiArea.id,
                   HighHfiArea.advisory_shape_id,
-                  HighHfiArea.advisory_area,
-                  HighHfiArea.warn_area)\
+                  HighHfiArea.area,
+                  HighHfiArea.threshold)\
         .join(RunParameters)\
         .where(RunParameters.run_type == run_type,
                RunParameters.for_date == for_date,
@@ -251,7 +239,8 @@ async def save_high_hfi_area(session: AsyncSession, high_hfi_area: HighHfiArea):
     session.add(high_hfi_area)
 
 
-async def calculate_high_hfi_areas(session: AsyncSession, run_parameters_id: int) -> List[Row]:
+async def calculate_high_hfi_areas(session: AsyncSession, run_type: RunType, run_datetime: datetime,
+                                   for_date: date) -> List[Row]:
     """
         Given a 'run_parameters_id', which represents a unqiue combination of run_type, run_datetime
         and for_date, individually sum the areas in each firezone with:
@@ -261,35 +250,16 @@ async def calculate_high_hfi_areas(session: AsyncSession, run_parameters_id: int
     logger.info('starting high HFI by zone intersection query')
     perf_start = perf_counter()
 
-    # TODO - This can be simplified once the ClassifiedHfi table is normalized,
-    # ie. we'll be able to query against ClassifiedHfi.run_parameters in the
-    # cte object below instead of needing a join to this subquery
-    subq = select(RunParameters).where(RunParameters.id == run_parameters_id)\
-        .subquery()
-
-    # Create cte object
-    cte = select(Shape.id,
-                 Shape.source_identifier,
-                 ClassifiedHfi.threshold.label('threshold'),
-                 func.sum(ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area()).label('area'))\
+    stmt = select(Shape.id.label('shape_id'),
+                  ClassifiedHfi.threshold.label('threshold'),
+                  func.sum(ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area()).label('area'))\
         .join_from(Shape, ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
-        .join(subq,
-              subq.c.run_type == ClassifiedHfi.run_type,
-              subq.c.run_datetime == ClassifiedHfi.run_datetime,
-              subq.c.for_date == ClassifiedHfi.for_date)\
+        .where(ClassifiedHfi.run_type == run_type.value)\
+        .where(ClassifiedHfi.run_datetime == run_datetime)\
+        .where(ClassifiedHfi.for_date == for_date)\
         .group_by(Shape.id)\
-        .group_by(ClassifiedHfi.threshold)\
-        .cte()
+        .group_by(ClassifiedHfi.threshold)
 
-    # Alias CTE object to allow self join
-    a = cte.alias('a')
-    b = cte.alias('b')
-
-    stmt = select(a.c.id.label('shape_id'),
-                  a.c.source_identifier,
-                  a.c.area.label('warn_area'),
-                  b.c.area.label('advisory_area'))\
-        .join_from(a, b, (a.c.id == b.c.id) & (a.c.threshold < b.c.threshold))
     result = await session.execute(stmt)
     all_high_hfi = result.all()
     perf_end = perf_counter()
@@ -299,19 +269,24 @@ async def calculate_high_hfi_areas(session: AsyncSession, run_parameters_id: int
 
 
 async def get_run_parameters_id(session: AsyncSession,
-                                run_type: RunTypeEnum,
+                                run_type: RunType,
                                 run_datetime: datetime,
                                 for_date: date) -> List[Row]:
     stmt = select(RunParameters.id)\
-        .where(RunParameters.run_type == run_type,
+        .where(RunParameters.run_type == run_type.value,
                RunParameters.run_datetime == run_datetime,
                RunParameters.for_date == for_date)
     result = await session.execute(stmt)
     return result.scalar()
 
 
-async def save_run_parameters(session: AsyncSession, run_parameters: RunParameters):
-    session.add(run_parameters)
+async def save_run_parameters(session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date):
+    logger.info(
+        f'Writing run parameters. RunType: {run_type.value}; run_datetime: {run_datetime.isoformat()}; for_date: {for_date.isoformat()}')
+    stmt = insert(RunParameters)\
+        .values(run_type=run_type.value, run_datetime=run_datetime, for_date=for_date)\
+        .on_conflict_do_nothing()
+    await session.execute(stmt)
 
 
 async def save_advisory_elevation_stats(session: AsyncSession, advisory_elevation_stats: AdvisoryElevationStats):
@@ -320,7 +295,7 @@ async def save_advisory_elevation_stats(session: AsyncSession, advisory_elevatio
 
 async def get_zonal_elevation_stats(session: AsyncSession,
                                     fire_zone_id: int,
-                                    run_type: RunTypeEnum,
+                                    run_type: RunType,
                                     run_datetime: datetime,
                                     for_date: date) -> List[Row]:
     run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)

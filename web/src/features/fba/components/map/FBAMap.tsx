@@ -11,10 +11,10 @@ import GeoJSON from 'ol/format/GeoJSON'
 import { useSelector } from 'react-redux'
 import React, { useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'components'
-import { selectFireWeatherStations, selectFireZoneAreas } from 'app/rootReducer'
+import { selectFireWeatherStations } from 'app/rootReducer'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import Tile from 'ol/layer/Tile'
-import { FireCenter, FireZone } from 'api/fbaAPI'
+import { FireCenter, FireZone, FireZoneArea } from 'api/fbaAPI'
 import { extentsMap } from 'features/fba/fireCentreExtents'
 import {
   fireCentreStyler,
@@ -30,8 +30,7 @@ import { LayerControl } from 'features/fba/components/map/layerControl'
 import { RASTER_SERVER_BASE_URL } from 'utils/env'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildHFICql } from 'features/fba/cqlBuilder'
-import { isUndefined } from 'lodash'
-import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
+import { isUndefined, cloneDeep } from 'lodash'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
@@ -50,6 +49,7 @@ export interface FBAMapProps {
   runDate: DateTime
   setIssueDate: React.Dispatch<React.SetStateAction<DateTime | null>>
   setSelectedFireZone: React.Dispatch<React.SetStateAction<FireZone | undefined>>
+  fireZoneAreas: FireZoneArea[]
   runType: RunType
   advisoryThreshold: number
 }
@@ -103,19 +103,17 @@ const FBAMap = (props: FBAMapProps) => {
   })
   const [hfiTilesLoading, setHFITilesLoading] = useState(false)
 
-  const { fireZoneAreas } = useSelector(selectFireZoneAreas)
-
-  const [fireZoneVTL, setFireZoneVTL] = useState(
+  const [fireZoneVTL] = useState(
     new VectorTileLayer({
       source: fireZoneVectorSource,
-      style: fireZoneStyler(fireZoneAreas, props.advisoryThreshold, props.selectedFireZone),
+      style: fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone),
       zIndex: 49,
       properties: { name: 'fireZoneVector' }
     })
   )
 
   // Seperate layer for polygons and for labels, to avoid duplicate labels.
-  const [fireZoneLabelVTL, setFireZoneLabelVTL] = useState(
+  const [fireZoneLabelVTL] = useState(
     new VectorTileLayer({
       source: fireZoneLabelVectorSource,
       style: fireZoneLabelStyler(props.selectedFireZone),
@@ -161,32 +159,6 @@ const FBAMap = (props: FBAMapProps) => {
     }
   }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    fetchFireZoneAreas(props.runType, props.runDate.toISO(), props.forDate.toISODate())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.forDate, props.runDate, props.runType])
-
-  useEffect(() => {
-    setFireZoneVTL(
-      new VectorTileLayer({
-        source: fireZoneVectorSource,
-        style: fireZoneStyler(fireZoneAreas, props.advisoryThreshold, props.selectedFireZone),
-        zIndex: 49,
-        properties: { name: 'fireZoneVector' }
-      })
-    )
-    setFireZoneLabelVTL(
-      new VectorTileLayer({
-        source: fireZoneLabelVectorSource,
-        style: fireZoneLabelStyler(props.selectedFireZone),
-        zIndex: 49,
-        properties: { name: 'fireZoneLabelVector' },
-        minZoom: 6
-      })
-    )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fireZoneAreas, props.advisoryThreshold])
-
   const fireCentreVTL = new VectorTileLayer({
     source: new VectorTileSource({
       attributions: ['BC Wildfire Service'],
@@ -227,12 +199,14 @@ const FBAMap = (props: FBAMapProps) => {
   useEffect(() => {
     if (!map) return
 
-    fireZoneVTL.setStyle(fireZoneStyler(fireZoneAreas, props.advisoryThreshold, props.selectedFireZone))
+    fireZoneVTL.setStyle(
+      fireZoneStyler(cloneDeep(props.fireZoneAreas), props.advisoryThreshold, props.selectedFireZone)
+    )
     fireZoneLabelVTL.setStyle(fireZoneLabelStyler(props.selectedFireZone))
     fireZoneVTL.changed()
     fireZoneLabelVTL.changed()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedFireZone])
+  }, [props.selectedFireZone, props.fireZoneAreas, props.advisoryThreshold])
 
   useEffect(() => {
     if (!map) return
