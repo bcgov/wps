@@ -20,7 +20,7 @@ const CombustibleAreaViz = ({ fireZoneAreas }: AdvisoryMetadataProps) => {
         <XAxis dataKey="threshold_label" />
         <YAxis label={{ value: '% of combustible land', angle: -90, position: 'center' }} />
         <Tooltip />
-        <Bar dataKey="elevated_hfi_percentage" fill="rgba(255, 128, 0, 0.4)" />
+        <Bar dataKey="elevated_hfi_percentage" fill="#1E90FF" />
       </BarChart>
     </ResponsiveContainer>
   )
