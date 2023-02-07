@@ -8,6 +8,7 @@ import os
 import tempfile
 import numpy as np
 from osgeo import gdal
+from sqlalchemy.ext.asyncio import AsyncSession
 from app import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType
@@ -31,28 +32,28 @@ async def process_elevation(source_path: str, run_type: RunType, run_datetime: d
 
     logger.info('Processing elevation stats %s for run date: %s, for date: %s', run_type, run_datetime, for_date)
     perf_start = perf_counter()
+    await prepare_dem()
 
     # Get the id from run_parameters associated with the provided runtype, for_date and for_datetime
     async with get_async_read_session_scope() as session:
         run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
-        # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
-        # it's S3 virtual file system driver to read the file.
-        # https://gdal.org/user/virtual_file_systems.html
-        with tempfile.TemporaryDirectory() as temp_dir:
-            await prepare_dem()
-            temp_filename = os.path.join(temp_dir, 'classified.tif')
-            classify_hfi(source_path, temp_filename)
-            # thresholds: 1 = 4k-10k, 2 = >10k
-            thresholds = [1, 2]
-            for threshold in thresholds:
-                await process_threshold(threshold, temp_filename, temp_dir, run_parameters_id)
+    # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
+    # it's S3 virtual file system driver to read the file.
+    # https://gdal.org/user/virtual_file_systems.html
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_filename = os.path.join(temp_dir, 'classified.tif')
+        classify_hfi(source_path, temp_filename)
+        # thresholds: 1 = 4k-10k, 2 = >10k
+        thresholds = [1, 2]
+        for threshold in thresholds:
+            await process_threshold(threshold, temp_filename, temp_dir, run_parameters_id)
 
-        perf_end = perf_counter()
-        delta = perf_end - perf_start
-        logger.info('%f delta count before and after processing elevation stats', delta)
-        global DEM_GDAL_SOURCE  # pylint: disable=global-statement
-        DEM_GDAL_SOURCE = None
+    perf_end = perf_counter()
+    delta = perf_end - perf_start
+    logger.info('%f delta count before and after processing elevation stats', delta)
+    global DEM_GDAL_SOURCE  # pylint: disable=global-statement
+    DEM_GDAL_SOURCE = None
 
 
 async def prepare_dem():
@@ -182,7 +183,7 @@ async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, ru
     :param mask_dem_path: The path to the dem that has had the upsampled hfi mask applied
     :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
     """
-    async with get_async_read_session_scope() as session:
+    async with get_async_write_session_scope() as session:
         stmt = 'SELECT id, source_identifier FROM advisory_shapes;'
         result = await session.execute(stmt)
         rows = result.all()
@@ -192,7 +193,7 @@ async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, ru
                 firezone_elevation_threshold_path = intersect_raster_by_firezone(threshold, row[0], row[1],
                                                                                  masked_dem_path, temp_dir)
                 stats = get_elevation_stats(firezone_elevation_threshold_path)
-                await store_elevation_stats(threshold, row[0], stats, run_parameters_id)
+                await store_elevation_stats(session, threshold, row[0], stats, run_parameters_id)
 
 
 def intersect_raster_by_firezone(threshold: int, advisory_shape_id: int, source_identifier: str, raster_path: str,
@@ -248,7 +249,7 @@ def get_elevation_stats(source_path: str):
     }
 
 
-async def store_elevation_stats(threshold: int, shape_id: int, stats, run_parameters_id):
+async def store_elevation_stats(session: AsyncSession, threshold: int, shape_id: int, stats, run_parameters_id):
     """
     Writes elevation statistics to the API database.
     TODO - We should probably save up a list of objects to add to the database and only call this function once
@@ -263,5 +264,4 @@ async def store_elevation_stats(threshold: int, shape_id: int, stats, run_parame
                                                       quartile_25=stats['quartile_25'],
                                                       quartile_75=stats['quartile_75'],
                                                       run_parameters=run_parameters_id, threshold=threshold)
-    async with get_async_write_session_scope() as session:
-        await save_advisory_elevation_stats(session, advisory_elevation_stats)
+    await save_advisory_elevation_stats(session, advisory_elevation_stats)

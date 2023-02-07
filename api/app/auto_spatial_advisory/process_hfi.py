@@ -11,7 +11,6 @@ from shapely.validation import make_valid
 from shapely.geometry import MultiPolygon
 from osgeo import ogr, osr
 from sqlalchemy.sql import text
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from app.auto_spatial_advisory.common import get_s3_key
 from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
