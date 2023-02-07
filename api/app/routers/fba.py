@@ -16,7 +16,7 @@ from app.db.crud.auto_spatial_advisory import (get_all_sfms_fuel_types,
 from app.db.models.auto_spatial_advisory import RunTypeEnum
 from app.schemas.fba import (ClassifiedHfiThresholdFuelTypeArea, FireCenterListResponse, FireZoneAreaListResponse,
                              FireZoneArea, FireZoneElevationStats, FireZoneElevationStatsByThreshold,
-                             FireZoneElevationStatsListResponse)
+                             FireZoneElevationStatsListResponse, SFMSFuelType, HfiThreshold)
 from app.auth import authentication_required, audit
 from app.wildfire_one.wfwx_api import (get_auth_header, get_fire_centers)
 from app.auto_spatial_advisory.process_hfi import RunType
@@ -95,7 +95,17 @@ async def get_hfi_fuels_data_for_fire_zone(run_type: RunType,
             area = record[3] / 10000
             fuel_type_obj = next((ft for ft in fuel_types if ft.fuel_type_id == fuel_type_id), None)
             threshold_obj = next((th for th in thresholds if th.id == threshold_id), None)
-            data.append(ClassifiedHfiThresholdFuelTypeArea(fuel_type=fuel_type_obj, threshold=threshold_obj, area=area))
+            data.append(ClassifiedHfiThresholdFuelTypeArea(
+                fuel_type=SFMSFuelType(
+                    fuel_type_id=fuel_type_obj.fuel_type_id,
+                    fuel_type_code=fuel_type_obj.fuel_type_code,
+                    description=fuel_type_obj.description
+                ),
+                threshold=HfiThreshold(
+                    id=threshold_obj.id,
+                    name=threshold_obj.name,
+                    description=threshold_obj.description),
+                area=area))
 
         return {zone_id: data}
 
