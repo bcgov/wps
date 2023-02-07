@@ -14,11 +14,11 @@ from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from app.auto_spatial_advisory.common import get_s3_key
-from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum, HighHfiArea
+from app.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope, get_sync_tileserv_db_scope
 from app.db.crud.auto_spatial_advisory import (
     save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters,
-    get_run_parameters_id, calculate_high_hfi_areas, save_high_hfi_area)
+    get_run_parameters_id)
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.polygonize import polygonize_in_memory
 from app.auto_spatial_advisory.run_type import RunType
@@ -111,14 +111,6 @@ def create_model_object(feature: ogr.Feature,
                                         srid=NAD83_BC_ALBERS))
 
 
-async def write_high_hfi_area(session: AsyncSession, row: any, run_parameters_id: int):
-    high_hfi_area = HighHfiArea(advisory_shape_id=row.shape_id,
-                                run_parameters=run_parameters_id,
-                                area=row.area,
-                                threshold=row.threshold)
-    await save_high_hfi_area(session, high_hfi_area)
-
-
 async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime, for_date: date):
     """ Create a new hfi record for the given date.
 
@@ -171,15 +163,6 @@ async def process_hfi(run_type: RunType, run_date: date, run_datetime: datetime,
                                               run_datetime,
                                               for_date)
                     await save_hfi(session, obj)
-
-                run_parameters_id = await get_run_parameters_id(session, run_type, run_date, for_date)
-
-                logger.info('Getting high HFI area per zone...')
-                high_hfi_areas = await calculate_high_hfi_areas(session, run_parameters_id)
-
-                logger.info('Writing high HFI areas...')
-                for row in high_hfi_areas:
-                    await write_high_hfi_area(session, row, run_parameters_id)
 
                 # Store the unqiue combination of run type, run datetime and for date in the run_parameters table
                 await save_run_parameters(session, run_type, run_datetime, for_date)

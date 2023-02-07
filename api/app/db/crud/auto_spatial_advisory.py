@@ -167,7 +167,8 @@ async def save_high_hfi_area(session: AsyncSession, high_hfi_area: HighHfiArea):
     session.add(high_hfi_area)
 
 
-async def calculate_high_hfi_areas(session: AsyncSession, run_parameters_id: int) -> List[Row]:
+async def calculate_high_hfi_areas(session: AsyncSession, run_type: RunType, run_datetime: datetime,
+                                   for_date: date) -> List[Row]:
     """
         Given a 'run_parameters_id', which represents a unqiue combination of run_type, run_datetime
         and for_date, individually sum the areas in each firezone with:
@@ -177,22 +178,15 @@ async def calculate_high_hfi_areas(session: AsyncSession, run_parameters_id: int
     logger.info('starting high HFI by zone intersection query')
     perf_start = perf_counter()
 
-    # TODO - This can be simplified once the ClassifiedHfi table is normalized,
-    # ie. we'll be able to query against ClassifiedHfi.run_parameters in the
-    # cte object below instead of needing a join to this subquery
-    subq = select(RunParameters).where(RunParameters.id == run_parameters_id)\
-        .subquery()
-
     stmt = select(Shape.id.label('shape_id'),
                   ClassifiedHfi.threshold.label('threshold'),
                   func.sum(ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area()).label('area'))\
         .join_from(Shape, ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
-        .join(subq,
-              subq.c.run_type == ClassifiedHfi.run_type,
-              subq.c.run_datetime == ClassifiedHfi.run_datetime,
-              subq.c.for_date == ClassifiedHfi.for_date)\
+        .where(ClassifiedHfi.run_type == run_type.value)\
+        .where(ClassifiedHfi.run_datetime == run_datetime)\
+        .where(ClassifiedHfi.for_date == for_date)\
         .group_by(Shape.id)\
-        .group_by(ClassifiedHfi.threshold)\
+        .group_by(ClassifiedHfi.threshold)
 
     result = await session.execute(stmt)
     all_high_hfi = result.all()
