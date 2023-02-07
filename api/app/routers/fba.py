@@ -54,6 +54,8 @@ async def get_zones(run_type: RunType, run_datetime: datetime, for_date: date, _
             hfi_area = row.hfi_area  # type: ignore
             zones.append(FireZoneArea(
                 mof_fire_zone_id=row.source_identifier,  # type: ignore
+                threshold=row.threshold,
+                combustible_area=row.combustible_area,
                 elevated_hfi_area=row.hfi_area,  # type: ignore
                 elevated_hfi_percentage=hfi_area / combustible_area * 100))
         return FireZoneAreaListResponse(zones=zones)

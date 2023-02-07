@@ -1,0 +1,29 @@
+import React from 'react'
+import { FireZoneArea } from 'api/fbaAPI'
+import { BarChart, CartesianGrid, XAxis, YAxis, Bar, Tooltip, ResponsiveContainer } from 'recharts'
+
+export interface AdvisoryMetadataProps {
+  testId?: string
+  fireZoneAreas: FireZoneArea[]
+}
+const CombustibleAreaViz = ({ fireZoneAreas }: AdvisoryMetadataProps) => {
+  const labelledFireZones = fireZoneAreas.map(area => ({
+    ...area,
+    threshold_label: area.threshold == 1 ? 'Advisory' : 'Warning',
+    advisory_hfi_percentage: area.threshold == 1 ? area.elevated_hfi_percentage : undefined,
+    warning_hfi_percentage: area.threshold == 2 ? area.elevated_hfi_percentage : undefined
+  }))
+  return (
+    <ResponsiveContainer width={400} height={250}>
+      <BarChart data={labelledFireZones}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="threshold_label" />
+        <YAxis label={{ value: '% of combustible land', angle: -90, position: 'center' }} />
+        <Tooltip />
+        <Bar dataKey="elevated_hfi_percentage" fill="rgba(255, 128, 0, 0.4)" />
+      </BarChart>
+    </ResponsiveContainer>
+  )
+}
+
+export default React.memo(CombustibleAreaViz)
