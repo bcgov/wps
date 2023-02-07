@@ -74,6 +74,16 @@ const ZoneSummaryPanel = (props: Props) => {
     fuel_type_code,
     area,
     index
+  }: {
+    cx: number
+    cy: number
+    midAngle: number
+    innerRadius: number
+    outerRadius: number
+    percent: number
+    fuel_type_code: string
+    area: number
+    index: number
   }) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5
     const x = cx + radius * Math.cos(-midAngle * RADIAN)
