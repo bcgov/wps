@@ -1,5 +1,5 @@
 import React from 'react'
-import { Grid, Paper, Typography } from '@mui/material'
+import { Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { isUndefined } from 'lodash'
 import { FireZone, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
@@ -19,6 +19,7 @@ const useStyles = makeStyles({
   },
   pieChartHeader: {
     fontSize: '1rem',
+    textAlign: 'center',
     variant: 'h4'
   }
 })
@@ -62,6 +63,7 @@ const FuelTypesBreakdown = (props: Props) => {
     outerRadius,
     percent,
     fuel_type_code,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     area,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     index
@@ -104,57 +106,48 @@ const FuelTypesBreakdown = (props: Props) => {
       }
     })
     return (
-      <div className={props.className}>
-        <Grid item>
-          <Paper className={classes.fuelTypesPaper}>
-            <Typography className={classes.fuelTypesHeader}>HFI by Fuel Type</Typography>
-
-            <div>
-              <Typography className={classes.pieChartHeader}>Advisories (HFI: 4,000-10,000 kW/m)</Typography>
-              <ResponsiveContainer width="100%" aspect={2}>
-                <PieChart>
-                  <Pie
-                    data={advisories}
-                    dataKey={'area'}
-                    nameKey={'fuel_type_code'}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    fill="#8884d8"
-                    labelLine={false}
-                    label={renderCustomizedLabel}
-                  >
-                    {advisories.map((entry, index) => (
-                      <Cell key={`cell-${entry.fuel_type_code}`} fill={COLOURS[index % COLOURS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div>
-              <Typography className={classes.pieChartHeader}>Warnings (HFI: +10,000 kW/m)</Typography>
-              <ResponsiveContainer width="100%" aspect={2}>
-                <PieChart>
-                  <Pie
-                    data={warnings}
-                    dataKey={'area'}
-                    nameKey={'fuel_type_code'}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    labelLine={false}
-                    label={renderCustomizedLabel}
-                  >
-                    {warnings.map((entry, index) => (
-                      <Cell key={`cell-${entry.fuel_type_code}`} fill={COLOURS[index % COLOURS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </Paper>
-        </Grid>
-      </div>
+      <>
+        <Typography className={classes.fuelTypesHeader}>HFI by Fuel Type</Typography>
+        <Typography className={classes.pieChartHeader}>Advisories (HFI: 4,000-10,000 kW/m)</Typography>
+        <ResponsiveContainer width={400} height={250}>
+          <PieChart>
+            <Pie
+              data={advisories}
+              dataKey={'area'}
+              nameKey={'fuel_type_code'}
+              cx="50%"
+              cy="50%"
+              outerRadius={80}
+              fill="#8884d8"
+              labelLine={false}
+              label={renderCustomizedLabel}
+            >
+              {advisories.map((entry, index) => (
+                <Cell key={`cell-${entry.fuel_type_code}`} fill={COLOURS[index % COLOURS.length]} />
+              ))}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+        <Typography className={classes.pieChartHeader}>Warnings (HFI: +10,000 kW/m)</Typography>
+        <ResponsiveContainer width={400} height={250}>
+          <PieChart>
+            <Pie
+              data={warnings}
+              dataKey={'area'}
+              nameKey={'fuel_type_code'}
+              cx="50%"
+              cy="50%"
+              outerRadius={80}
+              labelLine={false}
+              label={renderCustomizedLabel}
+            >
+              {warnings.map((entry, index) => (
+                <Cell key={`cell-${entry.fuel_type_code}`} fill={COLOURS[index % COLOURS.length]} />
+              ))}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+      </>
     )
   }
 }
