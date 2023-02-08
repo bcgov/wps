@@ -183,7 +183,11 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       <Container className={classes.flex} disableGutters maxWidth={'xl'}>
         <Grid className={classes.flex} container direction={'row'}>
           <Grid item>
-            <ZoneSummaryPanel selectedFireZone={selectedFireZone} fuelTypeInfo={hfiThresholdsFuelTypes} />
+            <ZoneSummaryPanel
+              selectedFireZone={selectedFireZone}
+              fuelTypeInfo={hfiThresholdsFuelTypes}
+              fireZoneAreas={fireZoneAreas}
+            />
           </Grid>
           <Grid className={classes.flex} item>
             <FBAMap

@@ -1,13 +1,17 @@
 import React from 'react'
-import { Grid, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { FireZoneArea, FireZone, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
+import CombustibleAreaViz from 'features/fba/components/viz/CombustibleAreaViz'
+import { Grid, Typography } from '@mui/material'
 import { isUndefined } from 'lodash'
-import { FireZone, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
-import FuelTypesBreakdown from 'features/fba/components/FuelTypesBreakdown'
+import FuelTypesBreakdown from 'features/fba/components/viz/FuelTypesBreakdown'
 
 const useStyles = makeStyles({
   wrapper: {
     minWidth: 400
+  },
+  header: {
+    margin: 10
   },
   zoneName: {
     fontSize: '2rem',
@@ -16,7 +20,7 @@ const useStyles = makeStyles({
   },
   centreName: {
     fontSize: '1rem',
-    textAlign: 'right',
+    textAlign: 'center',
     variant: 'h6'
   }
 })
@@ -25,6 +29,7 @@ interface Props {
   className?: string
   selectedFireZone: FireZone | undefined
   fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
+  fireZoneAreas: FireZoneArea[]
 }
 
 const ZoneSummaryPanel = (props: Props) => {
@@ -34,17 +39,28 @@ const ZoneSummaryPanel = (props: Props) => {
     return <div></div>
   } else {
     return (
-      <div className={props.className}>
+      <Grid
+        container
+        alignItems={'center'}
+        direction={'column'}
+        spacing={2}
+        className={`${props.className} ${classes.wrapper}`}
+      >
         <Grid item>
-          <Paper>
-            <div className={classes.wrapper}>
-              <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
-              <Typography className={classes.centreName}>{props.selectedFireZone.mof_fire_centre_name}</Typography>
-            </div>
-            <FuelTypesBreakdown selectedFireZone={props.selectedFireZone} fuelTypeInfo={props.fuelTypeInfo} />
-          </Paper>
+          <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
+          <Typography className={classes.centreName}>{props.selectedFireZone.mof_fire_centre_name}</Typography>
         </Grid>
-      </div>
+        <Grid item>
+          <CombustibleAreaViz
+            fireZoneAreas={props.fireZoneAreas.filter(
+              area => area.mof_fire_zone_id == props.selectedFireZone?.mof_fire_zone_id
+            )}
+          />
+        </Grid>
+        <Grid item>
+          <FuelTypesBreakdown selectedFireZone={props.selectedFireZone} fuelTypeInfo={props.fuelTypeInfo} />
+        </Grid>
+      </Grid>
     )
   }
 }
