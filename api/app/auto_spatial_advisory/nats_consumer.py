@@ -77,6 +77,9 @@ async def run():
                 logger.info('Msg received - {}\n'.format(msg))
                 await msg.ack()
                 run_type, run_date, run_datetime, for_date = parse_nats_message(msg)
+                run_datetime = for_date
+                run_date = for_date
+                run_type = RunType.FORECAST
                 logger.info('Awaiting process_hfi({}, {}, {})\n'.format(run_type, run_date, for_date))
                 await process_hfi(run_type, run_date, run_datetime, for_date)
                 await process_hfi_elevation(run_type, run_date, run_datetime, for_date)

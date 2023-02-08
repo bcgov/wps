@@ -21,6 +21,7 @@ import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
+import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice' 
 import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
 
 export enum RunType {
@@ -115,6 +116,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
       dispatch(fetchHighHFIFuels(runType, dateOfInterest.toISODate(), mostRecentRunDate.toString()))
       dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), dateOfInterest.toISODate()))
+      dispatch(fetchfireZoneElevationInfo('500', runType, dateOfInterest.toISODate(), mostRecentRunDate.toString()))
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 

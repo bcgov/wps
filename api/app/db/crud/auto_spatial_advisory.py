@@ -231,9 +231,9 @@ async def get_zonal_elevation_stats(session: AsyncSession,
     shape_id = await session.execute(stmt)
 
     stmt = select(AdvisoryElevationStats.advisory_shape_id, AdvisoryElevationStats.minimum,
-                  AdvisoryElevationStats.quartile_25, AdvisoryElevationStats.mean, AdvisoryElevationStats.quartile_75,
-                  AdvisoryElevationStats.maximum)\
+                  AdvisoryElevationStats.quartile_25, AdvisoryElevationStats.quartile_75,
+                  AdvisoryElevationStats.maximum, AdvisoryElevationStats.threshold)\
         .where(AdvisoryElevationStats.advisory_shape_id == shape_id, AdvisoryElevationStats.run_parameters == run_parameters_id)\
-        .orderby(AdvisoryElevationStats.HfiClassificationThreshold)
+        .order_by(AdvisoryElevationStats.threshold)
 
     return await session.execute(stmt)
