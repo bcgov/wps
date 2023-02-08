@@ -63,7 +63,7 @@ const ZoneSummaryPanel = (props: Props) => {
           <FuelTypesBreakdown selectedFireZone={props.selectedFireZone} fuelTypeInfo={props.fuelTypeInfo} />
         </Grid>
         <Grid item>
-            <ElevationInfoViz selectedFireZone={props.selectedFireZone} hfiElevationInfo={props.hfiElevationInfo} />
+          <ElevationInfoViz selectedFireZone={props.selectedFireZone} hfiElevationInfo={props.hfiElevationInfo} />
         </Grid>
       </Grid>
     )
