@@ -44,11 +44,11 @@ describe('FireStartsDropdown', () => {
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
     autocomplete.focus()
-    userEvent.type(autocomplete, '2')
+    await userEvent.type(autocomplete, '2')
 
     await waitFor(() => expect(input.value).toBe('2'))
 
-    userEvent.type(autocomplete, '{enter}')
+    await userEvent.type(autocomplete, '{enter}')
     await waitFor(() => expect(setFireStartsMock).toBeCalledTimes(1))
     await waitFor(() => expect(setFireStartsMock).toBeCalledWith(testAreaId, dayOffset, highestFireStarts))
   })

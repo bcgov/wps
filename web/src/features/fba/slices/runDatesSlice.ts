@@ -10,7 +10,7 @@ interface State {
   loading: boolean
   error: string | null
   runDates: DateTime[]
-  mostRecentRunDate: DateTime | null
+  mostRecentRunDate: string | null
 }
 
 const initialState: State = {
@@ -34,7 +34,7 @@ const runDatesSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getRunDatesSuccess(state: State, action: PayloadAction<{ runDates: DateTime[]; mostRecentRunDate: DateTime }>) {
+    getRunDatesSuccess(state: State, action: PayloadAction<{ runDates: DateTime[]; mostRecentRunDate: string }>) {
       state.error = null
       state.runDates = action.payload.runDates
       state.mostRecentRunDate = action.payload.mostRecentRunDate

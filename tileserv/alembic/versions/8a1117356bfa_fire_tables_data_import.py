@@ -208,7 +208,7 @@ def save_features_to_table(ids, url, session, geom_type, table_schema, labels_ta
                 # for it. So we have to drop them all.
                 session.execute(labels_table_schema.delete(
                     labels_table_schema.c.feature_id == feature['id']))
-                for polygon in geom:
+                for polygon in geom.geoms:
                     save_feature('POINT', polygon.centroid, srid,
                                  feature, session, labels_table_schema, allow_update=False)
             else:

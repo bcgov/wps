@@ -26,6 +26,8 @@ RUN_TYPE=$2
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 set -ex
+echo Configure
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_nats_server_config.sh prod ${RUN_TYPE}
 echo Promote
 MODULE_NAME=api bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 MODULE_NAME=web bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}

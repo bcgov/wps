@@ -358,8 +358,8 @@ objects:
                 - name: NATS_SERVER
                   valueFrom:
                     configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.nats-server
+                      name: ${APP_NAME}-${SUFFIX}-nats-server
+                      key: nats.server
               ports:
                 - containerPort: 8080
                   protocol: TCP

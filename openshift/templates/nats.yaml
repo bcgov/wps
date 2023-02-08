@@ -43,9 +43,9 @@ objects:
   - apiVersion: v1
     kind: ConfigMap
     metadata:
-      name: nats-config
+      name: ${APP_NAME}-${SUFFIX}-nats-config
       labels:
-        app: nats
+        app: ${APP_NAME}-${SUFFIX}
     data:
       nats.conf: |-
         pid_file: "/var/run/nats/nats.pid"
@@ -58,13 +58,11 @@ objects:
         server_name: $POD_NAME
         cluster {
             port: 6222
-            name: wps-nats-cluster
+            name: ${APP_NAME}-${SUFFIX}-nats-cluster
             routes [
-               nats://nats-0.nats.${POD_NAMESPACE}.svc.cluster.local:6222
-               nats://nats-1.nats.${POD_NAMESPACE}.svc.cluster.local:6222
-               nats://nats-2.nats.${POD_NAMESPACE}.svc.cluster.local:6222
-               nats://nats-3.nats.${POD_NAMESPACE}.svc.cluster.local:6222
-               nats://nats-4.nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://${APP_NAME}-${SUFFIX}-nats-0.${APP_NAME}-${SUFFIX}-nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://${APP_NAME}-${SUFFIX}-nats-1.${APP_NAME}-${SUFFIX}-nats.${POD_NAMESPACE}.svc.cluster.local:6222
+               nats://${APP_NAME}-${SUFFIX}-nats-2.${APP_NAME}-${SUFFIX}-nats.${POD_NAMESPACE}.svc.cluster.local:6222
             ]
             cluster_advertise: $CLUSTER_ADVERTISE
             connect_retries: 50
@@ -94,12 +92,12 @@ objects:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: nats
+      name: ${APP_NAME}-${SUFFIX}-nats
       labels:
-        app: nats
+        app: ${APP_NAME}-${SUFFIX}
     spec:
       selector:
-        app: nats
+        app: ${APP_NAME}-${SUFFIX}
       clusterIP: None
       ports:
         - name: client
@@ -118,18 +116,18 @@ objects:
   - apiVersion: apps/v1
     kind: StatefulSet
     metadata:
-      name: nats
+      name: ${APP_NAME}-${SUFFIX}-nats
       labels:
-        app: nats
+        app: ${APP_NAME}-${SUFFIX}
     spec:
       selector:
         matchLabels:
-          app: nats
-      replicas: 5
-      serviceName: "nats"
+          app: ${APP_NAME}-${SUFFIX}
+      replicas: 3
+      serviceName: "${APP_NAME}-${SUFFIX}-nats"
       volumeClaimTemplates:
         - metadata:
-            name: nats-jetstream-wps
+            name: ${APP_NAME}-${SUFFIX}-nats
           spec:
             accessModes:
               - ReadWriteMany
@@ -141,18 +139,18 @@ objects:
       template:
         metadata:
           labels:
-            app: nats
+            app: ${APP_NAME}-${SUFFIX}
         spec:
           # Common volumes for the containers
           volumes:
             - name: config-volume
               configMap:
-                name: nats-config
+                name: ${APP_NAME}-${SUFFIX}-nats-config
             - name: pid
               emptyDir: {}
-            - name: nats-jetstream-wps
+            - name: ${APP_NAME}-${SUFFIX}-nats
               persistentVolumeClaim:
-                claimName: nats-jetstream-wps
+                claimName: ${APP_NAME}-${SUFFIX}-nats
 
           # Required to be able to HUP signal and apply config reload
           # to the server without restarting the pod.
@@ -165,7 +163,7 @@ objects:
           #################
           terminationGracePeriodSeconds: 60
           containers:
-            - name: nats
+            - name: ${APP_NAME}-${SUFFIX}-nats
               image: artifacts.developer.gov.bc.ca/docker-remote/nats:2.9.0-alpine
               resources:
                 requests:
@@ -213,7 +211,7 @@ objects:
                 - mountPath: /var/run/nats
                   name: pid
                 - mountPath: /data
-                  name: nats-jetstream-wps
+                  name: ${APP_NAME}-${SUFFIX}-nats
 
         # Liveness/Readiness probes against the monitoring .
         livenessProbe:
@@ -247,21 +245,21 @@ objects:
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
-      name: nats-consumer
+      name: ${APP_NAME}-${SUFFIX}-nats-consumer
       labels:
-        app: nats
+        app: ${APP_NAME}-${SUFFIX}
     spec:
       replicas: 3
       selector:
         matchLabels:
-          app: nats
+          app: ${APP_NAME}-${SUFFIX}
       template:
         metadata:
           labels:
-            app: nats
+            app: ${APP_NAME}-${SUFFIX}
         spec:
           containers:
-            - name: ${APP_NAME}-nats-consumer
+            - name: ${APP_NAME}-${SUFFIX}-nats-consumer
               image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
               imagePullPolicy: "Always"
               command:
@@ -278,8 +276,8 @@ objects:
                 - name: NATS_SERVER
                   valueFrom:
                     configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.nats-server
+                      name: ${APP_NAME}-${SUFFIX}-nats-server
+                      key: nats.server
                 - name: POSTGRES_READ_USER
                   value: ${POSTGRES_USER}
                 - name: POSTGRES_WRITE_USER
@@ -352,6 +350,11 @@ objects:
                     secretKeyRef:
                       name: ${APP_NAME}-tileserv-${SUFFIX}-pguser-${APP_NAME}-tileserv-${SUFFIX}
                       key: uri
+                - name: DEM_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.dem_name
               ports:
                 - containerPort: 4222
                   name: client

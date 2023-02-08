@@ -4,8 +4,8 @@ import Geometry from 'ol/geom/Geometry'
 import CircleStyle from 'ol/style/Circle'
 import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
-import { range, startCase, lowerCase } from 'lodash'
-import { FireZoneArea } from 'api/fbaAPI'
+import { range, startCase, lowerCase, isUndefined } from 'lodash'
+import { FireZone, FireZoneArea } from 'api/fbaAPI'
 
 const fireCentreTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
   const text = feature.get('mof_fire_centre_name').replace(' Fire Centre', '\nFire Centre')
@@ -33,46 +33,75 @@ export const fireCentreStyler = (): Style => {
   })
 }
 
-const fireZoneTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
-  const text = feature.get('fire_zone_mof_fire_zone_name').replace(' Fire Zone', '\nFire Zone')
-  return new Text({
-    overflow: true,
-    fill: new Fill({ color: 'black' }),
-    stroke: new Stroke({ color: 'white', width: 2 }),
-    font: 'bold 15px sans-serif',
-    text: text
-  })
-}
-
-export const fireZoneStyler = (): Style => {
-  return new Style({
-    stroke: new Stroke({
-      color: 'black',
-      width: 1
-    })
-  })
-}
-
-export const createFireZoneStyler = (fireZoneAreas: FireZoneArea[], advisoryThreshold: number) => {
+export const fireZoneStyler = (
+  fireZoneAreas: FireZoneArea[],
+  advisoryThreshold: number,
+  selectedFireZone: FireZone | undefined
+) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const mof_fire_zone_id = feature.get('mof_fire_zone_id')
-    const fireZoneArea = fireZoneAreas.find(f => f.mof_fire_zone_id === mof_fire_zone_id)
-    const advisory = fireZoneArea && fireZoneArea.elevated_hfi_percentage > advisoryThreshold ? true : false
+    const fireZoneAreaByThreshold = fireZoneAreas.filter(f => f.mof_fire_zone_id === mof_fire_zone_id)
+    const selected =
+      selectedFireZone?.mof_fire_zone_id && selectedFireZone.mof_fire_zone_id === mof_fire_zone_id ? true : false
+    let strokeValue = 'black'
+    if (selected) {
+      strokeValue = 'green'
+    }
+
     return new Style({
       stroke: new Stroke({
-        color: advisory ? 'red' : 'black',
-        width: 1
+        color: strokeValue,
+        width: selected ? 8 : 1
       }),
-      fill: advisory ? new Fill({ color: 'rgba(128, 0, 0, 0.4)' }) : undefined
+      fill: getAdvisoryColors(advisoryThreshold, fireZoneAreaByThreshold)
     })
   }
   return a
 }
 
-export const fireZoneLabelStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-  return new Style({
-    text: fireZoneTextStyler(feature)
-  })
+export const getAdvisoryColors = (advisoryThreshold: number, fireZoneArea?: FireZoneArea[]) => {
+  if (isUndefined(fireZoneArea)) {
+    return new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
+  }
+
+  let fill = new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
+  const advisoryThresholdArea = fireZoneArea.find(area => area.threshold == 1)
+  if (advisoryThresholdArea && advisoryThresholdArea.elevated_hfi_percentage > advisoryThreshold) {
+    // advisory color orange
+    fill = new Fill({ color: 'rgba(255, 147, 38, 0.4)' })
+  }
+
+  const warningThresholdArea = fireZoneArea.find(area => area.threshold == 2)
+  if (warningThresholdArea && warningThresholdArea.elevated_hfi_percentage > advisoryThreshold) {
+    // advisory color red
+    fill = new Fill({ color: 'rgba(128, 0, 0, 0.4)' })
+  }
+
+  return fill
+}
+
+export const fireZoneLabelStyler = (selectedFireZone: FireZone | undefined) => {
+  const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
+    const text = feature.get('mof_fire_zone_name').replace(' Fire Zone', '\nFire Zone')
+    const feature_mof_fire_zone_id = feature.get('mof_fire_zone_id')
+    const selected =
+      !isUndefined(selectedFireZone) && feature_mof_fire_zone_id === selectedFireZone.mof_fire_zone_id ? true : false
+    return new Style({
+      text: new Text({
+        overflow: true,
+        fill: new Fill({
+          color: selected ? 'green' : 'black'
+        }),
+        stroke: new Stroke({
+          color: 'white',
+          width: selected ? 4 : 2
+        }),
+        font: selected ? 'bold 20px sans-serif' : 'bold 15px sans-serif',
+        text: text
+      })
+    })
+  }
+  return a
 }
 
 const stationTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
@@ -108,8 +137,6 @@ export const stationStyler = (feature: RenderFeature | ol.Feature<Geometry>): St
   return new Style({})
 }
 
-const thessianPolygonStyle = new Style({})
-
 /**
  * Throwaway code, just for demo purposes.
  *
@@ -118,12 +145,6 @@ const thessianPolygonStyle = new Style({})
 const hfiColors = [new Fill({ color: 'rgba(255, 0, 0, 0.4)' }), new Fill({ color: 'rgba(255, 128, 0, 0.4)' })].concat(
   range(20).flatMap(() => new Fill({ color: 'rgba(0, 0, 0, 0)' }))
 )
-
-export const thessianPolygonStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-  const colorIdx = Math.floor(feature.get('code') % (hfiColors.length - 1))
-  thessianPolygonStyle.setFill(hfiColors[colorIdx])
-  return thessianPolygonStyle
-}
 
 const hfiStyle = new Style({})
 

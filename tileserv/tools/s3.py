@@ -16,9 +16,13 @@ logger.addHandler(ch)
 
 
 def get_hfi_objects(objects):
+    if objects is None:
+        return []
     tif_objects = list(filter(lambda obj: obj["Key"].endswith('tif')
                               or obj["Key"].endswith('tiff'), objects))
+    logger.info("Retrieved tifs: %s", tif_objects)
     hfi_tif_objects = list(filter(lambda obj: os.path.basename(obj["Key"]).startswith('hfi'), tif_objects))
+    logger.info("Retrieved hfi tifs: %s", hfi_tif_objects)
     return hfi_tif_objects
 
 
