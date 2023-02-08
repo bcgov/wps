@@ -4,7 +4,7 @@ import { FireZoneArea, FireZone, FireZoneThresholdFuelTypeArea } from 'api/fbaAP
 import CombustibleAreaViz from 'features/fba/components/viz/CombustibleAreaViz'
 import { Grid, Paper, Typography } from '@mui/material'
 import { isUndefined } from 'lodash'
-import FuelTypesBreakdown from 'features/fba/components/FuelTypesBreakdown'
+import FuelTypesBreakdown from 'features/fba/components/viz/FuelTypesBreakdown'
 
 const useStyles = makeStyles({
   wrapper: {

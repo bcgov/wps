@@ -37,7 +37,6 @@ describe('FBAMap', () => {
           setSelectedFireZone={function (): void {
             throw new Error('Function not implemented.')
           }}
-          fireZoneAreas={[]}
         />
       </Provider>
     )

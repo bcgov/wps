@@ -63,6 +63,7 @@ const FuelTypesBreakdown = (props: Props) => {
     percent,
     fuel_type_code,
     area,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     index
   }: {
     cx: number
@@ -82,19 +83,10 @@ const FuelTypesBreakdown = (props: Props) => {
     if (percent * 100 < 2) {
       return
     }
-    if (percent * 100 < 5) {
-      return (
-        <text x={x} y={y} fontSize={'10pt'} fill="black">
-          {`${fuel_type_code} (${(percent * 100).toFixed(0)}%)`}
-        </text>
-      )
-    }
 
     return (
       <text x={x} y={y} fontSize={'10pt'} fill="black" textAnchor={x > cx ? 'start' : 'end'}>
-        {`${fuel_type_code}: ${area.toLocaleString(undefined, { maximumFractionDigits: 0 })} ha (${(
-          percent * 100
-        ).toFixed(0)}%)`}
+        {`${fuel_type_code} (${(percent * 100).toFixed(0)}%)`}
       </text>
     )
   }
