@@ -119,7 +119,7 @@ export async function getHFIThresholdsFuelTypesForZone(
 }
 
 export async function getFireZoneElevationInfo(
-  fire_zone_id: string,
+  fire_zone_id: number,
   run_type: RunType,
   run_datetime: string,
   for_date: string

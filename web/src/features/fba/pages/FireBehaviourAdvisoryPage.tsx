@@ -5,7 +5,13 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters, selectHFIFuelTypes, selectRunDates, selectFireZoneAreas } from 'app/rootReducer'
+import {
+  selectFireZoneElevationInfo,
+  selectFireCenters,
+  selectHFIFuelTypes,
+  selectRunDates,
+  selectFireZoneAreas
+} from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
@@ -21,7 +27,7 @@ import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
-import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice' 
+import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
 
 export enum RunType {
@@ -63,6 +69,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
   const { hfiThresholdsFuelTypes } = useSelector(selectHFIFuelTypes)
+  const { fireZoneElevationInfo } = useSelector(selectFireZoneElevationInfo)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
@@ -122,7 +129,14 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         )
       )
       dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), dateOfInterest.toISODate()))
-      dispatch(fetchfireZoneElevationInfo('500', runType, dateOfInterest.toISODate(), mostRecentRunDate.toString()))
+      dispatch(
+        fetchfireZoneElevationInfo(
+          selectedFireZone.mof_fire_zone_id,
+          runType,
+          dateOfInterest.toISODate(),
+          mostRecentRunDate.toString()
+        )
+      )
     }
   }, [mostRecentRunDate, selectedFireZone]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -180,7 +194,11 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       <Container className={classes.flex} disableGutters maxWidth={'xl'}>
         <Grid className={classes.flex} container direction={'row'}>
           <Grid item>
-            <ZoneSummaryPanel selectedFireZone={selectedFireZone} fuelTypeInfo={hfiThresholdsFuelTypes} />
+            <ZoneSummaryPanel
+              selectedFireZone={selectedFireZone}
+              fuelTypeInfo={hfiThresholdsFuelTypes}
+              hfiElevationInfo={fireZoneElevationInfo}
+            />
           </Grid>
           <Grid className={classes.flex} item>
             <FBAMap

@@ -2,19 +2,19 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FireZoneElevationInfoResponse, getFireZoneElevationInfo } from 'api/fbaAPI'
+import { ElevationInfoByThreshold, FireZoneElevationInfoResponse, getFireZoneElevationInfo } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 interface State {
   loading: boolean
   error: string | null
-  fireZoneElevationInfo: any
+  fireZoneElevationInfo: ElevationInfoByThreshold[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  fireZoneElevationInfo: null
+  fireZoneElevationInfo: []
 }
 
 const fireZoneElevationInfoSlice = createSlice({
@@ -23,7 +23,7 @@ const fireZoneElevationInfoSlice = createSlice({
   reducers: {
     getFireZoneElevationInfoStart(state: State) {
       state.error = null
-      state.fireZoneElevationInfo = null
+      state.fireZoneElevationInfo = []
       state.loading = true
     },
     getFireZoneElevationInfoFailed(state: State, action: PayloadAction<string>) {
@@ -38,12 +38,13 @@ const fireZoneElevationInfoSlice = createSlice({
   }
 })
 
-export const { getFireZoneElevationInfoStart, getFireZoneElevationInfoFailed, getFireZoneElevationInfoStartSuccess } = fireZoneElevationInfoSlice.actions
+export const { getFireZoneElevationInfoStart, getFireZoneElevationInfoFailed, getFireZoneElevationInfoStartSuccess } =
+  fireZoneElevationInfoSlice.actions
 
 export default fireZoneElevationInfoSlice.reducer
 
 export const fetchfireZoneElevationInfo =
-  (fire_zone_id: string, runType: RunType, forDate: string, runDatetime: string): AppThunk =>
+  (fire_zone_id: number, runType: RunType, forDate: string, runDatetime: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(getFireZoneElevationInfoStart())
