@@ -8,13 +8,13 @@ import os
 import tempfile
 import numpy as np
 from osgeo import gdal
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 from app import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType
-from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats, save_run_parameters
+from app.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats
 from app.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
-from app.db.models.auto_spatial_advisory import AdvisoryElevationStats, RunParameters
+from app.db.models.auto_spatial_advisory import AdvisoryElevationStats
 from app.utils.s3 import get_client
 
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 DEM_GDAL_SOURCE = None
 
 
-async def process_elevation(run_type: RunType, run_datetime: datetime, for_date: date):
+async def process_elevation(source_path: str, run_type: RunType, run_datetime: datetime, for_date: date):
     """ Create new elevation statistics records for the given parameters.
 
     :param run_type: The type of run to process. (is it a forecast or actual run?)
@@ -32,23 +32,18 @@ async def process_elevation(run_type: RunType, run_datetime: datetime, for_date:
 
     logger.info('Processing elevation stats %s for run date: %s, for date: %s', run_type, run_datetime, for_date)
     perf_start = perf_counter()
+    await prepare_dem()
 
     # Get the id from run_parameters associated with the provided runtype, for_date and for_datetime
-    run_parameters_id = await get_run_parameters(run_type, for_date, for_date)
-
-    bucket = config.get('OBJECT_STORE_BUCKET')
-    # TODO what really has to happen, is that we grab the most recent prediction for the given date,
-    # but this method doesn't even belong here, it's just a shortcut for now!
-    for_date_string = f'{for_date.year}{for_date.month:02d}{for_date.day:02d}'
+    async with get_async_read_session_scope() as session:
+        run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
     # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
     # it's S3 virtual file system driver to read the file.
     # https://gdal.org/user/virtual_file_systems.html
-    key = f'/vsis3/{bucket}/sfms/uploads/{run_type.value}/{run_datetime.isoformat()}/hfi{for_date_string}.tif'
     with tempfile.TemporaryDirectory() as temp_dir:
-        await prepare_dem()
         temp_filename = os.path.join(temp_dir, 'classified.tif')
-        classify_hfi(key, temp_filename)
+        classify_hfi(source_path, temp_filename)
         # thresholds: 1 = 4k-10k, 2 = >10k
         thresholds = [1, 2]
         for threshold in thresholds:
@@ -188,7 +183,7 @@ async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, ru
     :param mask_dem_path: The path to the dem that has had the upsampled hfi mask applied
     :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
     """
-    async with get_async_read_session_scope() as session:
+    async with get_async_write_session_scope() as session:
         stmt = 'SELECT id, source_identifier FROM advisory_shapes;'
         result = await session.execute(stmt)
         rows = result.all()
@@ -198,7 +193,7 @@ async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, ru
                 firezone_elevation_threshold_path = intersect_raster_by_firezone(threshold, row[0], row[1],
                                                                                  masked_dem_path, temp_dir)
                 stats = get_elevation_stats(firezone_elevation_threshold_path)
-                await store_elevation_stats(threshold, row[0], stats, run_parameters_id)
+                await store_elevation_stats(session, threshold, row[0], stats, run_parameters_id)
 
 
 def intersect_raster_by_firezone(threshold: int, advisory_shape_id: int, source_identifier: str, raster_path: str,
@@ -254,7 +249,7 @@ def get_elevation_stats(source_path: str):
     }
 
 
-async def store_elevation_stats(threshold: int, shape_id: int, stats, run_parameters_id):
+async def store_elevation_stats(session: AsyncSession, threshold: int, shape_id: int, stats, run_parameters_id):
     """
     Writes elevation statistics to the API database.
     TODO - We should probably save up a list of objects to add to the database and only call this function once
@@ -264,30 +259,9 @@ async def store_elevation_stats(threshold: int, shape_id: int, stats, run_parame
     :param shape_id: The advisory shape id.
     :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
     """
-    logger.info('Writing firezone hfi elevation stats to API database...')
     advisory_elevation_stats = AdvisoryElevationStats(advisory_shape_id=shape_id, minimum=stats['minimum'],
                                                       maximum=stats['maximum'], median=stats['median'],
                                                       quartile_25=stats['quartile_25'],
                                                       quartile_75=stats['quartile_75'],
                                                       run_parameters=run_parameters_id, threshold=threshold)
-    async with get_async_write_session_scope() as session:
-        await save_advisory_elevation_stats(session, advisory_elevation_stats)
-
-
-async def get_run_parameters(run_type: RunType, run_datetime: datetime, for_date: date):
-    """
-    Given a combination of run_type, for_date and run_datetime, creates a record in the RunParameters table of the
-    API database if it doesn't already exist, and returns the id associated with the record.
-
-    :param run_type: The type of the run ie. actual or forecast
-    :param for_date: The date the run is for
-    :param run_datetime: The date and time the run was performed
-    """
-    async with get_async_read_session_scope() as session:
-        try:
-            run_parameters = RunParameters(run_type=run_type.value, run_datetime=run_datetime, for_date=for_date)
-            await save_run_parameters(session, run_parameters)
-        except IntegrityError:
-            # Swallow the error as a record already exists
-            logger.info('Run parameters already exist')
-        return await get_run_parameters_id(session, run_type.value, run_datetime, for_date)
+    await save_advisory_elevation_stats(session, advisory_elevation_stats)

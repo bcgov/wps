@@ -5,13 +5,13 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters, selectFireZoneAreas, selectRunDates } from 'app/rootReducer'
+import { selectFireCenters, selectHFIFuelTypes, selectRunDates, selectFireZoneAreas } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
-import { FireCenter } from 'api/fbaAPI'
+import { FireCenter, FireZone } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
@@ -20,8 +20,8 @@ import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
 import { isNull, isUndefined } from 'lodash'
 import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
-import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
+import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -61,14 +61,13 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-  // TODO: hook up later
-  // const { hfiFuelTypes } = useSelector(selectHFIFuelTypes)
+  const { hfiThresholdsFuelTypes } = useSelector(selectHFIFuelTypes)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
-  const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
+  const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
   const [issueDate, setIssueDate] = useState<DateTime | null>(null)
-  const [selectedFireZoneID, setSelectedFireZoneID] = useState<number | null>(null)
+  const [selectedFireZone, setSelectedFireZone] = useState<FireZone | undefined>(undefined)
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
@@ -112,11 +111,18 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
-      dispatch(fetchHighHFIFuels(runType, dateOfInterest.toISODate(), mostRecentRunDate.toString()))
+    if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate) && !isUndefined(selectedFireZone)) {
+      dispatch(
+        fetchHighHFIFuels(
+          runType,
+          dateOfInterest.toISODate(),
+          mostRecentRunDate.toString(),
+          selectedFireZone.mof_fire_zone_id
+        )
+      )
       dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), dateOfInterest.toISODate()))
     }
-  }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mostRecentRunDate, selectedFireZone]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={classes.root}>
@@ -172,19 +178,23 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       <Container className={classes.flex} disableGutters maxWidth={'xl'}>
         <Grid className={classes.flex} container direction={'row'}>
           <Grid item>
-            <ZoneSummaryPanel selectedZoneID={selectedFireZoneID} fireZoneAreas={fireZoneAreas} />
+            <ZoneSummaryPanel
+              selectedFireZone={selectedFireZone}
+              fuelTypeInfo={hfiThresholdsFuelTypes}
+              fireZoneAreas={fireZoneAreas}
+            />
           </Grid>
           <Grid className={classes.flex} item>
             <FBAMap
               forDate={dateOfInterest}
               runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
               runType={runType}
-              selectedFireZoneID={selectedFireZoneID}
+              selectedFireZone={selectedFireZone}
               selectedFireCenter={fireCenter}
               advisoryThreshold={advisoryThreshold}
               className={classes.flex}
               setIssueDate={setIssueDate}
-              setSelectedFireZoneID={setSelectedFireZoneID}
+              setSelectedFireZone={setSelectedFireZone}
               fireZoneAreas={fireZoneAreas}
             />
           </Grid>
