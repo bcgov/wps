@@ -203,6 +203,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               selectedFireZone={selectedFireZone}
               fuelTypeInfo={hfiThresholdsFuelTypes}
               hfiElevationInfo={fireZoneElevationInfo}
+              fireZoneAreas={fireZoneAreas}
             />
           </Grid>
           <Grid className={classes.flex} item>
