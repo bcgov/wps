@@ -197,7 +197,7 @@ async def calculate_high_hfi_areas(session: AsyncSession, run_type: RunType, run
 
 
 async def get_run_parameters_id(session: AsyncSession,
-                                run_type: RunType,
+                                run_type: RunTypeEnum,
                                 run_datetime: datetime,
                                 for_date: date) -> List[Row]:
     stmt = select(RunParameters.id)\
@@ -223,15 +223,17 @@ async def save_advisory_elevation_stats(session: AsyncSession, advisory_elevatio
 
 async def get_zonal_elevation_stats(session: AsyncSession,
                                     fire_zone_id: int,
-                                    run_type: RunType,
+                                    run_type: RunTypeEnum,
                                     run_datetime: datetime,
                                     for_date: date) -> List[Row]:
     run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+    stmt = select(Shape.id).where(Shape.source_identifier == fire_zone_id)
+    shape_id = await session.execute(stmt)
 
     stmt = select(AdvisoryElevationStats.advisory_shape_id, AdvisoryElevationStats.minimum,
                   AdvisoryElevationStats.quartile_25, AdvisoryElevationStats.mean, AdvisoryElevationStats.quartile_75,
                   AdvisoryElevationStats.maximum)\
-        .where(AdvisoryElevationStats.advisory_shape_id == fire_zone_id, AdvisoryElevationStats.run_parameters == run_parameters_id)\
+        .where(AdvisoryElevationStats.advisory_shape_id == shape_id, AdvisoryElevationStats.run_parameters == run_parameters_id)\
         .orderby(AdvisoryElevationStats.HfiClassificationThreshold)
 
     return await session.execute(stmt)
