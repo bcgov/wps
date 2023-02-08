@@ -40,7 +40,6 @@ export interface ElevationInfoByThreshold {
 }
 
 export interface FireZoneElevationInfoResponse {
-  mof_fire_zone_id: number
   hfi_elevation_info: ElevationInfoByThreshold[]
 }
 
@@ -103,7 +102,7 @@ export async function getFireZoneElevationInfo(
   run_datetime: string,
   for_date: string
 ): Promise<FireZoneElevationInfoResponse> {
-  const url = `fba/fire-zone-elevation-info/${fire_zone_id}/${run_type.toLowerCase()}/${run_datetime}/${for_date}`
+  const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
   const { data } = await axios.get(url, {})
   return data
 }

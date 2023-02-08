@@ -74,4 +74,4 @@ class FireZoneElevationStatsByThreshold(BaseModel):
 
 class FireZoneElevationStatsListResponse(BaseModel):
     """ Response for a firezone that includes elevation statistics by threshold for the run parameters of interest """
-    data: List[FireZoneElevationStatsByThreshold]
+    hfi_elevation_info: List[FireZoneElevationStatsByThreshold]

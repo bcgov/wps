@@ -106,14 +106,14 @@ async def get_run_datetimes_for_date_and_runtype(run_type: RunType, for_date: da
         return datetimes
 
 
-@router.get('/fire-zone-elevation-info/{fire_zone_id}/{run_type}/{for_date}/{run_datetime}',
+@router.get('/fire-zone-elevation-info/{run_type}/{for_date}/{run_datetime}/{fire_zone_id}',
             response_model=FireZoneElevationStatsListResponse)
 async def get_fire_zone_elevation_stats(fire_zone_id: int, run_type: RunType, run_datetime: datetime, for_date: date,
                                         _=Depends(authentication_required)):
     """ Return the elevation statistics for each advisory threshold """
     async with get_async_read_session_scope() as session:
         data = []
-        rows = await get_zonal_elevation_stats(session, fire_zone_id, run_type.value, run_datetime, for_date)
+        rows = await get_zonal_elevation_stats(session, fire_zone_id, run_type, run_datetime, for_date)
         for row in rows:
             stats = FireZoneElevationStats(
                 minimum=row.minimum,
@@ -121,6 +121,6 @@ async def get_fire_zone_elevation_stats(fire_zone_id: int, run_type: RunType, ru
                 median=row.median,
                 quartile_75=row.quartile_75,
                 maximum=row.maximum)
-            stats_by_threshold = FireZoneElevationStatsByThreshold(threshold=row.threshold, stats=stats)
+            stats_by_threshold = FireZoneElevationStatsByThreshold(threshold=row.threshold, elevation_info=stats)
             data.append(stats_by_threshold)
-        return FireZoneElevationStatsListResponse(data=data)
+        return FireZoneElevationStatsListResponse(hfi_elevation_info=data)
