@@ -8,6 +8,7 @@ import { FBATableRow, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { isUndefined } from 'lodash'
 import React from 'react'
 import { Order } from 'utils/table'
+import { ColumnLabel } from 'features/fbaCalculator/components/FBATable'
 
 interface FBATableHeadProps {
   toggleSorting: (selectedColumn: SortByColumn) => void
@@ -17,7 +18,7 @@ interface FBATableHeadProps {
   setHeaderSelect: (value: React.SetStateAction<boolean>) => void
   setSelected: (value: React.SetStateAction<number[]>) => void
   loading: boolean
-  visibleColumns: string[]
+  visibleColumns: ColumnLabel[]
 }
 
 const useStyles = makeStyles({
@@ -63,7 +64,7 @@ const FBATableHead = ({
     </div>
   )
 
-  const columnHeaderComponentsDict: { [key: string]: React.ReactFragment } = {
+  const columnHeaderComponentsDict = {
     Zone: (
       <TableCell className={classes.headerCell} key="header-zone" sortDirection={order}>
         <TableSortLabel

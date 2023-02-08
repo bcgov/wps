@@ -8,6 +8,18 @@ import { Provider } from 'react-redux'
 
 describe('FBAMap', () => {
   it('should render height with height and width properties set', () => {
+    class ResizeObserver {
+      observe() {
+        // mock no-op
+      }
+      unobserve() {
+        // mock no-op
+      }
+      disconnect() {
+        // mock no-op
+      }
+    }
+    window.ResizeObserver = ResizeObserver
     const { getByTestId } = render(
       <Provider store={store}>
         <FBAMap
@@ -15,9 +27,14 @@ describe('FBAMap', () => {
           runDate={DateTime.fromISO('2016-05-25')}
           advisoryThreshold={0}
           selectedFireCenter={undefined}
+          selectedFireZone={undefined}
           className={''}
+          fireZoneAreas={[]}
           runType={RunType.FORECAST}
           setIssueDate={function (): void {
+            throw new Error('Function not implemented.')
+          }}
+          setSelectedFireZone={function (): void {
             throw new Error('Function not implemented.')
           }}
         />

@@ -25,7 +25,7 @@ objects:
     metadata:
       name: ${APP_NAME}-${SUFFIX}
     spec:
-      image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres-gis:ubi8-14.5-3.2-1
+      image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres-gis:ubi8-14.5-3.2-1
       metadata:
         name: ${APP_NAME}-${SUFFIX}
         labels:
@@ -38,7 +38,7 @@ objects:
       postgresVersion: 14
       instances:
         - name: tileserv
-          replicas: 1
+          replicas: 3
           dataVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
@@ -85,10 +85,10 @@ objects:
         name: ${APP_NAME}-${SUFFIX}
     spec:
       ports:
-        - name: 8080-tcp
+        - name: 7800-tcp
           protocol: TCP
           port: 80
-          targetPort: 8080
+          targetPort: 7800
       selector:
         name: ${APP_NAME}-${SUFFIX}
   - apiVersion: route.openshift.io/v1
@@ -101,7 +101,7 @@ objects:
     spec:
       host: wps-${SUFFIX}-tileserv.apps.silver.devops.gov.bc.ca
       port:
-        targetPort: 8080-tcp
+        targetPort: 7800-tcp
       to:
         kind: Service
         name: ${APP_NAME}-${SUFFIX}
@@ -148,39 +148,9 @@ objects:
                       name: ${APP_NAME}-${SUFFIX}-pguser-${APP_NAME}-${SUFFIX}
                       key: dbname
           containers:
-            - name: ${APP_NAME}-${SUFFIX}-nginx-tileserv
-              image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/nginx-tileserv
-              imagePullPolicy: Always
-              readinessProbe:
-                failureThreshold: 3
-                initialDelaySeconds: 10
-                periodSeconds: 10
-                successThreshold: 1
-                httpGet:
-                  path: /health
-                  port: 8080
-                timeoutSeconds: 1
-              livenessProbe:
-                failureThreshold: 3
-                initialDelaySeconds: 10
-                periodSeconds: 10
-                successThreshold: 1
-                httpGet:
-                  path: /health
-                  port: 8080
-                timeoutSeconds: 1
-              ports:
-                - containerPort: 8080
-                  protocol: TCP
-              resources:
-                requests:
-                  cpu: 100m
-                  memory: 128Mi
-                limits:
-                  cpu: 200m
-                  memory: 256Mi
             - name: tileserv
               image: artifacts.developer.gov.bc.ca/docker-remote/pramsey/pg_tileserv
+              command: ["/app/pg_tileserv"]
               ports:
                 - containerPort: 7800
                   protocol: TCP

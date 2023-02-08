@@ -5,20 +5,30 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters } from 'app/rootReducer'
+import {
+  selectFireZoneElevationInfo,
+  selectFireCenters,
+  selectHFIFuelTypes,
+  selectRunDates,
+  selectFireZoneAreas
+} from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
-import { FireCenter } from 'api/fbaAPI'
+import { FireCenter, FireZone } from 'api/fbaAPI'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
-import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
 import AdvisoryMetadata from 'features/fba/components/AdvisoryMetadata'
 import { fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
+import { isNull, isUndefined } from 'lodash'
+import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
+import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
+import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
+import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -31,14 +41,13 @@ const useStyles = makeStyles(() => ({
     width: 700,
     height: 700
   },
-  mapContainer: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute'
-  },
   fireCenter: {
     minWidth: 280,
     margin: theme.spacing(1)
+  },
+  flex: {
+    display: 'flex',
+    flex: 1
   },
   forecastActualDropdown: {
     minWidth: 280,
@@ -47,6 +56,11 @@ const useStyles = makeStyles(() => ({
   },
   instructions: {
     textAlign: 'left'
+  },
+  root: {
+    height: '100vh',
+    display: 'flex',
+    flexDirection: 'column'
   }
 }))
 
@@ -54,17 +68,22 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
+  const { hfiThresholdsFuelTypes } = useSelector(selectHFIFuelTypes)
+  const { fireZoneElevationInfo } = useSelector(selectFireZoneElevationInfo)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
 
-  const [advisoryThreshold, setAdvisoryThreshold] = useState(10)
+  const [advisoryThreshold, setAdvisoryThreshold] = useState(20)
   const [issueDate, setIssueDate] = useState<DateTime | null>(null)
+  const [selectedFireZone, setSelectedFireZone] = useState<FireZone | undefined>(undefined)
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   )
   const [runType, setRunType] = useState(RunType.FORECAST)
+  const { mostRecentRunDate } = useSelector(selectRunDates)
+  const { fireZoneAreas } = useSelector(selectFireZoneAreas)
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -86,27 +105,50 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }
 
   useEffect(() => {
-    console.log(`New run type: ${runType}`)
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
-    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
   }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatch(fetchFireCenters())
-    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
-    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    dispatch(fetchFireZoneAreas(runType, dateOfInterest.toISODate()))
     dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate) && !isUndefined(selectedFireZone)) {
+      dispatch(
+        fetchHighHFIFuels(
+          runType,
+          dateOfInterest.toISODate(),
+          mostRecentRunDate.toString(),
+          selectedFireZone.mof_fire_zone_id
+        )
+      )
+      dispatch(
+        fetchfireZoneElevationInfo(
+          selectedFireZone.mof_fire_zone_id,
+          runType,
+          dateOfInterest.toISODate(),
+          mostRecentRunDate.toString()
+        )
+      )
+    }
+  }, [mostRecentRunDate, selectedFireZone]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
+      dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), dateOfInterest.toISODate()))
+    }
+  }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
-    <React.Fragment>
+    <div className={classes.root}>
       <GeneralHeader spacing={1} title="Predictive Services Unit" productName="Fire Behaviour Advisory Tool" />
-      <Container maxWidth={'xl'}>
+      <Container disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
           <Grid container spacing={1}>
             <Grid item>
@@ -154,16 +196,33 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           </Grid>
         </Grid>
       </Container>
-      <FBAMap
-        forDate={dateOfInterest}
-        runDate={dateOfInterest} // default is to retrieve most recent available data
-        runType={runType}
-        selectedFireCenter={fireCenter}
-        advisoryThreshold={advisoryThreshold}
-        className={classes.mapContainer}
-        setIssueDate={setIssueDate}
-      />
-    </React.Fragment>
+      <Container className={classes.flex} disableGutters maxWidth={'xl'}>
+        <Grid className={classes.flex} container direction={'row'}>
+          <Grid item>
+            <ZoneSummaryPanel
+              selectedFireZone={selectedFireZone}
+              fuelTypeInfo={hfiThresholdsFuelTypes}
+              hfiElevationInfo={fireZoneElevationInfo}
+              fireZoneAreas={fireZoneAreas}
+            />
+          </Grid>
+          <Grid className={classes.flex} item>
+            <FBAMap
+              forDate={dateOfInterest}
+              runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
+              runType={runType}
+              selectedFireZone={selectedFireZone}
+              selectedFireCenter={fireCenter}
+              advisoryThreshold={advisoryThreshold}
+              className={classes.flex}
+              setIssueDate={setIssueDate}
+              setSelectedFireZone={setSelectedFireZone}
+              fireZoneAreas={fireZoneAreas}
+            />
+          </Grid>
+        </Grid>
+      </Container>
+    </div>
   )
 }
 

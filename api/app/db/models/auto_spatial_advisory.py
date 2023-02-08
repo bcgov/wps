@@ -7,6 +7,9 @@ from app.geospatial import NAD83_BC_ALBERS
 from sqlalchemy.dialects import postgresql
 
 
+ADVISORY_HFI_CLASSIFICATION_THRESHOLD_ID = 'advisory_hfi_classification_threshold.id'
+
+
 class ShapeTypeEnum(enum.Enum):
     """ Define different shape types. e.g. "Zone", "Fire Centre" - later we may add
     "Incident"/"Fire", "Custom" etc. etc. """
@@ -83,7 +86,7 @@ class ClassifiedHfi(Base):
         {'comment': 'HFI classification for some forecast/advisory run on some day, for some date'}
     )
     id = Column(Integer, primary_key=True, index=True)
-    threshold = Column(Integer, ForeignKey('advisory_hfi_classification_threshold.id'), nullable=False, index=True)
+    threshold = Column(Integer, ForeignKey(ADVISORY_HFI_CLASSIFICATION_THRESHOLD_ID), nullable=False, index=True)
     run_type = Column(Enum(RunTypeEnum), nullable=False, index=True)
     run_datetime = Column(TZTimeStamp, nullable=False)
     for_date = Column(Date, nullable=False)
@@ -109,6 +112,16 @@ class FuelType(Base):
 Index('idx_advisory_fuel_types_geom', FuelType.geom, postgresql_using='gist')
 
 
+class SFMSFuelType(Base):
+    """ Fuel types used by SFMS system """
+    __tablename__ = 'sfms_fuel_types'
+    __table_args__ = ({'comment': 'Fuel types used by SFMS to calculate HFI spatially'})
+    id = Column(Integer, primary_key=True, index=True)
+    fuel_type_id = Column(Integer, nullable=False, index=True)
+    fuel_type_code = Column(String, nullable=False)
+    description = Column(String)
+
+
 class HighHfiArea(Base):
     """ Area exceeding HFI thresholds per fire zone. """
     __tablename__ = 'high_hfi_area'
@@ -120,9 +133,9 @@ class HighHfiArea(Base):
     )
     id = Column(Integer, primary_key=True, index=True)
     advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False)
+    threshold = Column(Integer, ForeignKey(ADVISORY_HFI_CLASSIFICATION_THRESHOLD_ID), nullable=False)
     run_parameters = Column(Integer, ForeignKey('run_parameters.id'), nullable=False, index=True)
-    advisory_area = Column(Float, nullable=False)
-    warn_area = Column(Float, nullable=False)
+    area = Column(Float, nullable=False)
 
 
 class RunParameters(Base):
@@ -137,3 +150,25 @@ class RunParameters(Base):
                       create_type=False), nullable=False, index=True)
     run_datetime = Column(TZTimeStamp, nullable=False, index=True)
     for_date = Column(Date, nullable=False, index=True)
+
+
+class AdvisoryElevationStats(Base):
+    """ 
+    Summary statistics about the elevation of area with high hfi (4k-10k and >10k) per firezone
+    based on the set run_type, for_date and run_datetime.
+    """
+    __tablename__ = 'advisory_elevation_stats'
+    __table_args__ = (
+        {
+            'comment': 'Elevation stats per fire zone by advisory threshold'
+        }
+    )
+    id = Column(Integer, primary_key=True, index=True)
+    advisory_shape_id = Column(Integer, ForeignKey('advisory_shapes.id'), nullable=False, index=True)
+    threshold = Column(Integer, ForeignKey(ADVISORY_HFI_CLASSIFICATION_THRESHOLD_ID), nullable=False)
+    run_parameters = Column(Integer, ForeignKey('run_parameters.id'), nullable=False, index=True)
+    minimum = Column(Float, nullable=False)
+    quartile_25 = Column(Float, nullable=False)
+    median = Column(Float, nullable=False)
+    quartile_75 = Column(Float, nullable=False)
+    maximum = Column(Float, nullable=False)

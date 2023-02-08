@@ -27,6 +27,8 @@ class FireCenterListResponse(BaseModel):
 class FireZoneArea(BaseModel):
     """ A zone is a grouping of planning areas within a fire centre. """
     mof_fire_zone_id: int
+    threshold: int
+    combustible_area: int
     elevated_hfi_area: float
     elevated_hfi_percentage: float
 
@@ -46,3 +48,53 @@ class FireZoneHighHfiAreas(BaseModel):
 class FireZoneHighHfiAreasListResponse(BaseModel):
     """ Response for all fire zones and their areas exceeding high HFI thresholds. """
     zones: List[FireZoneHighHfiAreas]
+
+
+class HfiThresholdAreaByFuelType(BaseModel):
+    """ Total area in sq.m. within HFI threshold for a specific fuel type """
+    fuel_type_id: int
+    threshold: int
+    area: float
+
+
+class HfiThreshold(BaseModel):
+    """ An HFI Classification threshold """
+    id: int
+    name: str
+    description: str
+
+
+class SFMSFuelType(BaseModel):
+    """ Data for fuel types used by SFMS system to calculate HFI spatially. """
+    fuel_type_id: int
+    fuel_type_code: str
+    description: str
+
+
+class ClassifiedHfiThresholdFuelTypeArea(BaseModel):
+    """ Collection of data objects recording the area within an advisory shape
+    that meets a particular HfiThreshold for a specific SFMSFuelType
+    """
+    fuel_type: SFMSFuelType
+    threshold: HfiThreshold
+    area: float
+
+
+class FireZoneElevationStats(BaseModel):
+    """ Basic elevation statistics for a firezone """
+    minimum: float
+    quartile_25: float
+    median: float
+    quartile_75: float
+    maximum: float
+
+
+class FireZoneElevationStatsByThreshold(BaseModel):
+    """ Elevation statistics for a firezone by threshold"""
+    threshold: int
+    elevation_info: FireZoneElevationStats
+
+
+class FireZoneElevationStatsListResponse(BaseModel):
+    """ Response for a firezone that includes elevation statistics by threshold for the run parameters of interest """
+    hfi_elevation_info: List[FireZoneElevationStatsByThreshold]
