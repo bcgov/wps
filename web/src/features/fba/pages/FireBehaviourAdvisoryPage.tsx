@@ -128,7 +128,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           selectedFireZone.mof_fire_zone_id
         )
       )
-      dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), dateOfInterest.toISODate()))
       dispatch(
         fetchfireZoneElevationInfo(
           selectedFireZone.mof_fire_zone_id,
@@ -139,6 +138,12 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       )
     }
   }, [mostRecentRunDate, selectedFireZone]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
+      dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), dateOfInterest.toISODate()))
+    }
+  }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={classes.root}>
