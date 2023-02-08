@@ -69,7 +69,7 @@ class FireZoneElevationStats(BaseModel):
 class FireZoneElevationStatsByThreshold(BaseModel):
     """ Elevation statistics for a firezone by threshold"""
     threshold: int
-    stats: FireZoneElevationStats
+    elevation_info: FireZoneElevationStats
 
 
 class FireZoneElevationStatsListResponse(BaseModel):
