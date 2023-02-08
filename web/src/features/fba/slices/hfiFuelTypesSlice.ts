@@ -2,17 +2,19 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { getAllRunDates, getHFIThresholdsFuelTypes } from 'api/fbaAPI'
+import { FireZoneThresholdFuelTypeArea, getHFIThresholdsFuelTypesForZone } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 
 interface State {
   loading: boolean
   error: string | null
+  hfiThresholdsFuelTypes: Record<number, FireZoneThresholdFuelTypeArea[]>
 }
 
 const initialState: State = {
   loading: false,
-  error: null
+  error: null,
+  hfiThresholdsFuelTypes: {}
 }
 
 const hfiFuelTypesSlice = createSlice({
@@ -22,13 +24,15 @@ const hfiFuelTypesSlice = createSlice({
     getHFIFuelsStart(state: State) {
       state.error = null
       state.loading = true
+      state.hfiThresholdsFuelTypes = {}
     },
     getHFIFuelsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getHFIFuelsStartSuccess(state: State) {
+    getHFIFuelsStartSuccess(state: State, action: PayloadAction<Record<number, FireZoneThresholdFuelTypeArea[]>>) {
       state.error = null
+      state.hfiThresholdsFuelTypes = action.payload
       state.loading = false
     }
   }
@@ -39,13 +43,12 @@ export const { getHFIFuelsStart, getHFIFuelsFailed, getHFIFuelsStartSuccess } = 
 export default hfiFuelTypesSlice.reducer
 
 export const fetchHighHFIFuels =
-  (runType: RunType, forDate: string, runDatetime: string): AppThunk =>
+  (runType: RunType, forDate: string, runDatetime: string, zoneID: number): AppThunk =>
   async dispatch => {
     try {
       dispatch(getHFIFuelsStart())
-      const runDates = await getAllRunDates(runType, forDate)
-      const zonesThresholdsFuelTypes = await getHFIThresholdsFuelTypes(runType, forDate, runDatetime)
-      dispatch(getHFIFuelsStartSuccess())
+      const data = await getHFIThresholdsFuelTypesForZone(runType, forDate, runDatetime, zoneID)
+      dispatch(getHFIFuelsStartSuccess(data))
     } catch (err) {
       dispatch(getHFIFuelsFailed((err as Error).toString()))
       logError(err)
