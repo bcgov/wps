@@ -121,10 +121,13 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         )
       )
     }
-    if (!isNull(mostRecentRunDate)) {
+  }, [mostRecentRunDate, selectedFireZone]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
       dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), dateOfInterest.toISODate()))
     }
-  }, [mostRecentRunDate, selectedFireZone]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={classes.root}>
