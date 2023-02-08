@@ -126,6 +126,9 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   useEffect(() => {
     if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
       dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), dateOfInterest.toISODate()))
+      setIssueDate(DateTime.fromISO(mostRecentRunDate))
+    } else {
+      setIssueDate(null)
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -155,7 +158,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                   <AdvisoryMetadata
                     forDate={dateOfInterest}
                     issueDate={issueDate}
-                    setIssueDate={setIssueDate}
                     runType={runType.toString()}
                     setRunType={setRunType}
                   />
