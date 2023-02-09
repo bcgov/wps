@@ -10,7 +10,6 @@ export interface AdvisoryMetadataProps {
   setRunType: React.Dispatch<React.SetStateAction<RunType>>
   forDate: DateTime
   issueDate: DateTime | null
-  setIssueDate: React.Dispatch<React.SetStateAction<DateTime | null>>
 }
 const AdvisoryMetadata = ({ runType, setRunType, forDate, issueDate }: AdvisoryMetadataProps) => {
   // eslint-disable-next-line
