@@ -94,7 +94,9 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
       <CardHeader action={props.isBeta && <BetaTag />} className={classes.cardHeader} title={renderLink()} />
       <CardContent className={classes.cardContent}>
         <Box className={classes.iconContainer}>{props.icon}</Box>
-        <Typography className={classes.cardDescription}>{props.description}</Typography>
+        <div className={classes.cardDescription}>
+          {props.description}
+        </div>
       </CardContent>
       <CardActions className={classes.cardActions}>
         <Button

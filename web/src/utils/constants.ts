@@ -44,3 +44,13 @@ export const PERCENTILE_CALC_NAME = 'Percentile Calculator'
 
 // UI constants
 export const HEADER_HEIGHT = 56
+
+// Document titles
+export const LANDING_PAGE_DOC_TITLE = 'Decision Support Tools | BC Wildfire Predictive Services'
+export const ASA_DOC_TITLE = 'Automated Spatial Advisory | BCWS PSU'
+export const MORECAST_DOC_TITLE = 'MoreCast | BCWS PSU'
+export const C_HAINES_DOC_TITLE = 'C-Haines | BCWS PSU'
+export const FIREBAT_DOC_TITLE = 'FireBat | BCWS PSU'
+export const HFI_CALC_DOC_TITLE = 'HFI Calculator | BCWS PSU'
+export const PERCENTILE_CALC_DOC_TITLE = 'Percentile Calculator | BCWS PSU'
+
