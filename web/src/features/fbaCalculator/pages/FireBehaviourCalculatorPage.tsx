@@ -1,8 +1,7 @@
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Paper } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Container, GeneralHeader } from 'components'
-import React from 'react'
 import FBATable from 'features/fbaCalculator/components/FBATable'
 import { FIREBAT_DOC_TITLE } from 'utils/constants'
 
