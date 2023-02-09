@@ -20,6 +20,7 @@ class ModelEnum(str, Enum):
     GDPS = 'GDPS'
     RDPS = 'RDPS'
     HRDPS = 'HRDPS'
+    GFS = 'GFS'
 
 
 class ProjectionEnum(str, Enum):
@@ -30,6 +31,7 @@ class ProjectionEnum(str, Enum):
     LATLON_15X_15 = 'latlon.15x.15'
     HIGH_RES_CONTINENTAL = 'ps2.5km'
     REGIONAL_PS = 'ps10km'
+    GFS_LONLAT = 'lonlat.0.5deg'
 
 
 def interpolate_between_two_points(  # pylint: disable=invalid-name
@@ -80,9 +82,9 @@ def interpolate_bearing(time_a: datetime, time_b: datetime, target_time: datetim
     if abs(direction_a - direction_b) > 180:
         # We want to interpolate along the acute angle between the two directions
         if direction_a < direction_b:
-            y_axis = (direction_a+360, direction_b)
+            y_axis = (direction_a + 360, direction_b)
         else:
-            y_axis = (direction_a, direction_b+360)
+            y_axis = (direction_a, direction_b + 360)
     else:
         y_axis = (direction_a, direction_b)
 
