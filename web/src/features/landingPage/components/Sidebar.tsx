@@ -8,15 +8,15 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Stack from '@mui/material/Stack'
 import { useTheme } from '@mui/material/styles'
-import SvgIcon from '@mui/material/SvgIcon'
+// import SvgIcon from '@mui/material/SvgIcon'
 import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import makeStyles from '@mui/styles/makeStyles'
 import { LANDING_BACKGROUND_COLOUR } from 'app/theme'
 import SidebarToolList from 'features/landingPage/components/SidebarToolList'
 import Subheading from 'features/landingPage/components/Subheading'
-import { ReactComponent as MsTeamsIcon } from 'features/landingPage/images/msTeams.svg'
-import { ReactComponent as MiroIcon } from 'features/landingPage/images/miro.svg'
+// import { ReactComponent as MsTeamsIcon } from 'features/landingPage/images/msTeams.svg'
+// import { ReactComponent as MiroIcon } from 'features/landingPage/images/miro.svg'
 import { MIRO_SPRINT_REVIEW_BOARD_URL, MS_TEAMS_SPRINT_REVIEW_URL } from 'utils/env'
 
 const useStyles = makeStyles(theme => ({
@@ -113,14 +113,14 @@ export const Sidebar: React.FunctionComponent = () => {
       <Box className={classes.box}>
         <div className={classes.collab}>
           <Button className={classes.collabItem} href={MS_TEAMS_SPRINT_REVIEW_URL} target="_blank">
-            <SvgIcon component={MsTeamsIcon} fontSize="large" viewBox="0 0 2228.833 2073.333" />
+            {/* <SvgIcon component={MsTeamsIcon} fontSize="large" viewBox="0 0 2228.833 2073.333" /> */}
             <Typography className={classes.collabItemTitle}>Teams Meetings</Typography>
             <Typography className={classes.collabItemContent}>
               Join our weekly sprint reviews or watch the recordings
             </Typography>
           </Button>
           <Button className={classes.collabItem} href={MIRO_SPRINT_REVIEW_BOARD_URL} target="_blank">
-            <SvgIcon component={MiroIcon} fontSize="large" viewBox="0 0 48 48" />
+            {/* <SvgIcon component={MiroIcon} fontSize="large" viewBox="0 0 48 48" /> */}
             <Typography className={classes.collabItemTitle}>Miro Board</Typography>
             <Typography className={classes.collabItemContent}>
               Checkout our Miro board to see the latest from our sprint reviews
@@ -137,7 +137,7 @@ export const Sidebar: React.FunctionComponent = () => {
         <ListItem disablePadding>
           <ListItemButton component={'a'} href={MS_TEAMS_SPRINT_REVIEW_URL} target="_blank">
             <ListItemIcon className={classes.icon}>
-              <SvgIcon component={MsTeamsIcon} viewBox="0 0 2228.833 2073.333" />
+              {/* <SvgIcon component={MsTeamsIcon} viewBox="0 0 2228.833 2073.333" /> */}
             </ListItemIcon>
             <ListItemText primary="Join Our Weekly Meetings" />
           </ListItemButton>
@@ -145,7 +145,7 @@ export const Sidebar: React.FunctionComponent = () => {
         <ListItem disablePadding>
           <ListItemButton className={classes.icon} component={'a'} href={MIRO_SPRINT_REVIEW_BOARD_URL} target="_blank">
             <ListItemIcon className={classes.icon}>
-              <SvgIcon component={MiroIcon} viewBox="0 0 48 48" />
+              {/* <SvgIcon component={MiroIcon} viewBox="0 0 48 48" /> */}
             </ListItemIcon>
             <ListItemText primary="Miro Board" />
           </ListItemButton>
