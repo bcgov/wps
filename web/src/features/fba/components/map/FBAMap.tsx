@@ -228,9 +228,6 @@ const FBAMap = (props: FBAMapProps) => {
                   extent: extent,
                   featureProjection: projection
                 })
-                if (features.length > 0) {
-                  props.setIssueDate(DateTime.fromSQL(features[0].getProperties()['run_date'], { zone: 'utc' }))
-                }
                 tile.setFeatures(features)
               })
             })
