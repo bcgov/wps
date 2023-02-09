@@ -53,4 +53,3 @@ export const C_HAINES_DOC_TITLE = 'C-Haines | BCWS PSU'
 export const FIREBAT_DOC_TITLE = 'FireBat | BCWS PSU'
 export const HFI_CALC_DOC_TITLE = 'HFI Calculator | BCWS PSU'
 export const PERCENTILE_CALC_DOC_TITLE = 'Percentile Calculator | BCWS PSU'
-

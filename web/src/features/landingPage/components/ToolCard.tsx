@@ -5,7 +5,6 @@ import Card from '@mui/material/Card'
 import CardActions from '@mui/material/CardActions'
 import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
-import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 import { Link } from 'react-router-dom'
 import BetaTag from 'features/landingPage/components/BetaTag'
@@ -94,9 +93,7 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
       <CardHeader action={props.isBeta && <BetaTag />} className={classes.cardHeader} title={renderLink()} />
       <CardContent className={classes.cardContent}>
         <Box className={classes.iconContainer}>{props.icon}</Box>
-        <div className={classes.cardDescription}>
-          {props.description}
-        </div>
+        <div className={classes.cardDescription}>{props.description}</div>
       </CardContent>
       <CardActions className={classes.cardActions}>
         <Button

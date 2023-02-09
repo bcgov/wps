@@ -113,11 +113,7 @@ export const Sidebar: React.FunctionComponent = () => {
     return (
       <Box className={classes.box}>
         <div className={classes.collab}>
-          <Tooltip
-              arrow
-              placement="bottom"
-              title="Wednesdays at 1:00 PM on non-pay weeks"
-          >
+          <Tooltip arrow placement="bottom" title="Wednesdays at 1:00 PM on non-pay weeks">
             <Button className={classes.collabItem} href={MS_TEAMS_SPRINT_REVIEW_URL} target="_blank">
               <SvgIcon component={MsTeamsIcon} fontSize="large" viewBox="0 0 2228.833 2073.333" />
               <Typography className={classes.collabItemTitle}>Teams Meetings</Typography>
@@ -142,11 +138,7 @@ export const Sidebar: React.FunctionComponent = () => {
     return (
       <List>
         <ListItem disablePadding>
-          <Tooltip
-            arrow
-            placement="right"
-            title="Wednesdays at 1:00 PM on non-pay weeks"
-          >
+          <Tooltip arrow placement="right" title="Wednesdays at 1:00 PM on non-pay weeks">
             <ListItemButton component={'a'} href={MS_TEAMS_SPRINT_REVIEW_URL} target="_blank">
               <ListItemIcon className={classes.icon}>
                 <SvgIcon component={MsTeamsIcon} viewBox="0 0 2228.833 2073.333" />
