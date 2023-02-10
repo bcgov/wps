@@ -23,6 +23,7 @@ import fireZoneAreasSlice from 'features/fba/slices/fireZoneAreasSlice'
 import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
 import hfiFuelTypesSlice from 'features/fba/slices/hfiFuelTypesSlice'
+import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -48,7 +49,8 @@ const rootReducer = combineReducers({
   fireZoneAreas: fireZoneAreasSlice,
   runDates: runDatesSlice,
   valueAtCoordinate: valueAtCoordinateSlice,
-  hfiFuelTypes: hfiFuelTypesSlice
+  hfiFuelTypes: hfiFuelTypesSlice,
+  fireZoneElevationInfo: fireZoneElevationInfoSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -81,6 +83,7 @@ export const selectFireZoneAreas = (state: RootState) => state.fireZoneAreas
 export const selectRunDates = (state: RootState) => state.runDates
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
 export const selectHFIFuelTypes = (state: RootState) => state.hfiFuelTypes
+export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
 
 export const selectWxDataLoading = (state: RootState): boolean =>
   state.observations.loading ||

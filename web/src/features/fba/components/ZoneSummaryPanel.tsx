@@ -1,9 +1,10 @@
 import React from 'react'
 import makeStyles from '@mui/styles/makeStyles'
-import { FireZoneArea, FireZone, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import CombustibleAreaViz from 'features/fba/components/viz/CombustibleAreaViz'
 import { Grid, Typography } from '@mui/material'
 import { isUndefined } from 'lodash'
+import { ElevationInfoByThreshold, FireZone, FireZoneArea, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
+import ElevationInfoViz from 'features/fba/components/viz/ElevationInfoViz'
 import FuelTypesBreakdown from 'features/fba/components/viz/FuelTypesBreakdown'
 
 const useStyles = makeStyles({
@@ -29,6 +30,7 @@ interface Props {
   className?: string
   selectedFireZone: FireZone | undefined
   fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
+  hfiElevationInfo: ElevationInfoByThreshold[]
   fireZoneAreas: FireZoneArea[]
 }
 
@@ -59,6 +61,9 @@ const ZoneSummaryPanel = (props: Props) => {
         </Grid>
         <Grid item>
           <FuelTypesBreakdown selectedFireZone={props.selectedFireZone} fuelTypeInfo={props.fuelTypeInfo} />
+        </Grid>
+        <Grid item>
+          <ElevationInfoViz selectedFireZone={props.selectedFireZone} hfiElevationInfo={props.hfiElevationInfo} />
         </Grid>
       </Grid>
     )
