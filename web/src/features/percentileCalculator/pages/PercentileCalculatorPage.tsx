@@ -13,6 +13,7 @@ import { TimeRangeSlider, yearWhenTheCalculationIsDone } from 'features/percenti
 import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 import { getStations, StationSource } from 'api/stationAPI'
 import { AppDispatch } from 'app/store'
+import { PERCENTILE_CALC_DOC_TITLE } from 'utils/constants'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
@@ -56,6 +57,10 @@ const PercentileCalculatorPage = () => {
   }
 
   const shouldCalcBtnDisabled = stationCodes.length === 0
+
+  useEffect(() => {
+    document.title = PERCENTILE_CALC_DOC_TITLE
+  }, [])
 
   return (
     <main data-testid="percentile-calculator-page">

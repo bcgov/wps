@@ -25,6 +25,7 @@ import {
   getCHainesModelKMLURI
 } from 'api/cHainesAPI'
 import { AppDispatch } from 'app/store'
+import { C_HAINES_DOC_TITLE } from 'utils/constants'
 
 const useStyles = makeStyles({
   map: {
@@ -508,6 +509,10 @@ const CHainesPage = () => {
   const KMLFilename = `${selected_model_abbreviation}-${encodeURIComponent(
     selected_model_run_timestamp
   )}-${encodeURIComponent(selected_prediction_timestamp)}.kml`
+
+  useEffect(() => {
+    document.title = C_HAINES_DOC_TITLE
+  }, [])
 
   return (
     <main>
