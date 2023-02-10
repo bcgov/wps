@@ -57,6 +57,12 @@
             ]
         },
         {
+            "name": "app.jobs.noaa",
+            "type": "python",
+            "request": "launch",
+            "module": "app.jobs.noaa"
+        },
+        {
             "name": "backup unit tests",
             "type": "python",
             "request": "launch",
