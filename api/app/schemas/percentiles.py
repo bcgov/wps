@@ -1,6 +1,6 @@
 """ This module contains pydandict schemas relating to the percentile calculator for the API.
 """
-from typing import List, Dict
+from typing import List, Dict, Optional
 from pydantic import BaseModel
 from app.schemas.stations import WeatherStation
 
@@ -20,23 +20,23 @@ class PercentileRequest(BaseModel):
 
 class StationSummary(BaseModel):
     """ The summary of daily weather data for a given station. """
-    ffmc: float = None
-    isi: float = None
-    bui: float = None
+    ffmc: Optional[float] = None
+    isi: Optional[float] = None
+    bui: Optional[float] = None
     years: List[int]
     station: WeatherStation
 
 
 class MeanValues(BaseModel):
     """ The mean percentile values for set of stations. """
-    ffmc: float = None
-    isi: float = None
-    bui: float = None
+    ffmc: Optional[float] = None
+    isi: Optional[float] = None
+    bui: Optional[float] = None
 
 
 class CalculatedResponse(BaseModel):
     """ The combined response for a set of stations. """
     stations: Dict[int, StationSummary] = {}
-    mean_values: MeanValues = None
+    mean_values: Optional[MeanValues] = None
     year_range: YearRange
     percentile: int
