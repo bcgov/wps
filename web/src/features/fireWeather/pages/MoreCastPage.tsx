@@ -23,7 +23,7 @@ import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMe
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
-import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
+import { MORECAST_DOC_TITLE, PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
 import StationAccuracyForDate from 'features/fireWeather/components/StationAccuracyForDate'
 import AccuracyVariablePicker, {
@@ -150,6 +150,10 @@ const MoreCastPage = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location])
+
+  useEffect(() => {
+    document.title = MORECAST_DOC_TITLE
+  }, [])
 
   return (
     <main className={classes.main}>
