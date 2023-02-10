@@ -235,6 +235,16 @@ jobs:
           # Do not return failure on warnings - TODO: this has to be resolved!
           cmd_options: "-I"
 
+  fuzz-dev:
+    name: Fuzz Dev API
+    needs: [deploy-dev]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: schemathesis/action@v1
+        with:
+          schema: "https://wps-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca/api/openapi.json"
+          token: ${{ secrets.SCHEMATHESIS_TOKEN }}
+
   deploy-c-haines:
     name: Deploy c-haines cronjob
     if: github.triggering_actor != 'renovate'
