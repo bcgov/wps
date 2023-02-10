@@ -5,6 +5,8 @@ import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import PercentIcon from '@mui/icons-material/Percent'
 import PublicIcon from '@mui/icons-material/Public'
 import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
+import Link from '@mui/material/Link'
+import Typography from '@mui/material/Typography'
 
 import {
   C_HAINES_NAME,
@@ -35,8 +37,12 @@ interface ToolInfo {
 export const fireBehaviourAdvisoryInfo: ToolInfo = {
   name: FIRE_BEHAVIOUR_ADVISORY_NAME,
   route: FIRE_BEHAVIOUR_ADVISORY_ROUTE,
-  description:
-    'A spatial analysis that automates the continuous monitoring, updating, and communication of anticipated fire behaviour that will challenge direct suppression efforts and put the safety of responders at risk.',
+  description: (
+    <Typography>
+      A spatial analysis that automates the continuous monitoring, updating, and communication of anticipated fire
+      behaviour that will challenge direct suppression efforts and put the safety of responders at risk.
+    </Typography>
+  ),
   icon: <LocalFireDepartmentIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: true
 }
@@ -44,8 +50,12 @@ export const fireBehaviourAdvisoryInfo: ToolInfo = {
 export const cHainesInfo: ToolInfo = {
   name: C_HAINES_NAME,
   route: C_HAINES_ROUTE,
-  description:
-    'A provincial map that animates forecasted atmospheric stability and potential for pyro-convection in the form of the Continuous Haines Index.',
+  description: (
+    <Typography>
+      A provincial map that animates forecasted atmospheric stability and potential for pyro-convection in the form of
+      the Continuous Haines Index.
+    </Typography>
+  ),
   icon: <PublicIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: false
 }
@@ -53,8 +63,12 @@ export const cHainesInfo: ToolInfo = {
 export const fireBehaviourCalcInfo: ToolInfo = {
   name: FIRE_BEHAVIOUR_CALC_NAME,
   route: FIRE_BEHAVIOR_CALC_ROUTE,
-  description:
-    'A tool that supports the calculation of fire behaviour metrics given forecast or actual weather conditions and user-specified fuel types.',
+  description: (
+    <Typography>
+      A tool that supports the calculation of fire behaviour metrics given forecast or actual weather conditions and
+      user-specified fuel types.
+    </Typography>
+  ),
   icon: <WhatshotOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: false
 }
@@ -62,8 +76,12 @@ export const fireBehaviourCalcInfo: ToolInfo = {
 export const hfiCalcInfo: ToolInfo = {
   name: HFI_CALC_NAME,
   route: HFI_CALC_ROUTE,
-  description:
-    'An application that informs preparedness levels throughout the province based on anticipated head fire intensities and fire occurrence.',
+  description: (
+    <Typography>
+      An application that informs preparedness levels throughout the province based on anticipated head fire intensities
+      and fire occurrence.
+    </Typography>
+  ),
   icon: <CalculateOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: false
 }
@@ -71,8 +89,12 @@ export const hfiCalcInfo: ToolInfo = {
 export const moreCastInfo: ToolInfo = {
   name: MORE_CAST_NAME,
   route: MORECAST_ROUTE,
-  description:
-    'A system that skill scores numerical weather models and enables selection, bias correction, and integration of weather forecast information with others applications.',
+  description: (
+    <Typography>
+      A system that skill scores numerical weather models and enables selection, bias correction, and integration of
+      weather forecast information with other applications.
+    </Typography>
+  ),
   icon: <AirOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: true
 }
@@ -80,8 +102,12 @@ export const moreCastInfo: ToolInfo = {
 export const percentileCalcInfo: ToolInfo = {
   name: PERCENTILE_CALC_NAME,
   route: PERCENTILE_CALC_ROUTE,
-  description:
-    'A tool that helps users identify fire weather indices coinciding with historically uncommon fire danger at weather stations located around the province.',
+  description: (
+    <Typography>
+      A tool that helps users identify fire weather indices coinciding with historically uncommon fire danger at weather
+      stations located around the province.
+    </Typography>
+  ),
   icon: <PercentIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: false
 }
@@ -89,8 +115,21 @@ export const percentileCalcInfo: ToolInfo = {
 export const fbpGoInfo: ToolInfo = {
   name: FBP_GO_NAME,
   route: FBP_GO_ROUTE,
-  description:
-    'A mobile application for calculating fire behaviour in the field. Available for download from the Apple and Google Play stores.',
+  description: (
+    <>
+      <Typography>
+        A mobile application for calculating fire behaviour in the field. Available for download from the&nbsp;
+        <Link href="https://apps.apple.com/app/fbp-go/id1605675034" rel="noreferrer" target="_blank">
+          Apple
+        </Link>
+        &nbsp;and&nbsp;
+        <Link href="https://play.google.com/store/apps/details?id=ca.bc.gov.FBPGo" rel="noreferrer" target="_blank">
+          Google Play
+        </Link>
+        &nbsp;stores.
+      </Typography>
+    </>
+  ),
   icon: <img style={{ height: '36px', width: '36px' }} src="/images/fbpgo_maskable.png" />,
   isBeta: false
 }

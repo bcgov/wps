@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import makeStyles from '@mui/styles/makeStyles'
@@ -6,6 +6,7 @@ import ContentContainer from 'app/ContentContainer'
 import Footer from 'features/landingPage/components/Footer'
 import Sidebar from 'features/landingPage/components/Sidebar'
 import ToolCards from 'features/landingPage/components/ToolCards'
+import { LANDING_PAGE_DOC_TITLE } from 'utils/constants'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -38,6 +39,10 @@ const LandingPage: React.FunctionComponent = () => {
   const theme = useTheme()
   const classes = useStyles()
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
+
+  useEffect(() => {
+    document.title = LANDING_PAGE_DOC_TITLE
+  }, [])
 
   return (
     <div className={classes.root}>
