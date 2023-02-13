@@ -16,7 +16,7 @@ from app import health
 from app import hourlies
 from app.rocketchat_notifications import send_rocketchat_notification
 from app.routers import (fba, forecasts, fwi_calc, weather_models, c_haines, stations, hfi_calc,
-                         fba_calc, sfms)
+                         fba_calc, sfms, morecast_v2)
 from app.fire_behaviour.cffdrs import CFFDRS
 
 
@@ -110,6 +110,7 @@ api.include_router(fba_calc.router, tags=["FBA Calc"])
 api.include_router(fba.router, tags=["Auto Spatial Advisory"])
 api.include_router(fwi_calc.router, tags=["FWI"])
 api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
+api.include_router(morecast_v2.router, tags=["Morecast v2"])
 
 
 @api.get('/ready')
