@@ -44,15 +44,13 @@ objects:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 2Gi
-            storageClassName: scratch-storage-class
+                ephemeral-storage: 2Gi
           walVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 5Gi
-            storageClassName: scratch-storage-class
+                ephemeral-storage: 5Gi
       backups:
         pgbackrest:
           image: registry.developers.crunchydata.com/crunchydata/crunchy-pgbackrest:ubi8-2.40-1
@@ -64,8 +62,7 @@ objects:
                     - "ReadWriteOnce"
                   resources:
                     requests:
-                      storage: 2Gi
-                  storageClassName: scratch-storage-class
+                      ephemeral-storage: 2Gi
   - apiVersion: v1
     kind: ConfigMap
     metadata:
