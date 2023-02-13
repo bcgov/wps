@@ -85,13 +85,7 @@ const useStyles = makeStyles(theme => ({
     width: '66%',
     [theme.breakpoints.down('sm')]: {
       height: '56px',
-      width: '100%'
-    }
-  },
-  logoContainer: {
-    [theme.breakpoints.down('sm')]: {
-      height: '56px',
-      width: '100%'
+      width: 'auto'
     }
   },
   root: {
@@ -202,7 +196,7 @@ export const Sidebar: React.FunctionComponent = () => {
     return (
       <Stack className={classes.root}>
         <div className={classes.header} id="sidebar-header">
-          <a className={classes.logoContainer} href={homeUrl} target="_blank" rel="noreferrer">
+          <a href={homeUrl} target="_blank" rel="noreferrer">
             <img
               className={classes.logo}
               src="images/bc-wilderfire-service-logo.png"
