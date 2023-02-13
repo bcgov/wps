@@ -7,7 +7,7 @@
 
 ## Description
 
-Wildfire Predictive Services to support decision making in prevention, preparedness, response and recovery.
+The Wildfire Predictive Services Unit (PSU) supports decision making in prevention, preparedness, response and recovery. An Agile software development team is supporting innovation and software solutions for the PSU
 
 ## Getting Started
 
