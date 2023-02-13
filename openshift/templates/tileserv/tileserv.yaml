@@ -44,20 +44,15 @@ objects:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 5Gi
-                cpu: 15m
-                memory: 200Mi
-              limits:
-                cpu: 100m
-                memory: 500Mi
-            storageClassName: netapp-block-standard
+                storage: 2Gi
+            storageClassName: scratch-storage-class
           walVolumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 2Gi
-            storageClassName: netapp-block-standard
+                storage: 5Gi
+            storageClassName: scratch-storage-class
       backups:
         pgbackrest:
           image: registry.developers.crunchydata.com/crunchydata/crunchy-pgbackrest:ubi8-2.40-1
@@ -69,7 +64,8 @@ objects:
                     - "ReadWriteOnce"
                   resources:
                     requests:
-                      storage: 1Gi
+                      storage: 2Gi
+                  storageClassName: scratch-storage-class
   - apiVersion: v1
     kind: ConfigMap
     metadata:
