@@ -92,3 +92,8 @@ async def auth_with_set_fuel_type_role_required(token=Depends(authentication_req
 async def auth_with_set_ready_state_required(token=Depends(authentication_required)):
     """ Only return requests that have set ready state permission """
     return await check_token_for_role('hfi_set_ready_state', token)
+
+
+async def auth_with_forecaster_role_required(token=Depends(authentication_required)):
+    """ Only return requests that have forecaster permission """
+    return await check_token_for_role('forecaster', token)
