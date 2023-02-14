@@ -27,8 +27,10 @@ async def get_forecast(response: Response, _=Depends(authentication_required)):
 
 
 @router.post("/forecast")
-async def save_forecast(forecasts: List[MorecastForecast], response: Response, _=Depends(auth_with_forecaster_role_required)):
+async def save_forecast(forecasts: List[MorecastForecast],
+                        response: Response,
+                        _=Depends(auth_with_forecaster_role_required)):
     """ Persist a forecast """
     logger.info('/forecast')
     response.headers["Cache-Control"] = no_cache
-    logger.info(f'Saving {len(forecasts)} forecasts')
+    logger.info('Saving %s forecasts', len(forecasts))
