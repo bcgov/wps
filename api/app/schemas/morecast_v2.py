@@ -46,7 +46,7 @@ class ForecastedWindDirection(BaseModel):
 class MorecastForecast(BaseModel):
     """ Forecasted daily """
     station_code: int
-    utcTimestampInMillis: int
+    utc_timestamp_in_millis: int
     temp: ForecastedTemperature
     rh: ForecastedRH
     precip: ForecastedPrecip
