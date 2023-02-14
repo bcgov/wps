@@ -18,7 +18,7 @@ import hfiCalculatorDailiesReducer, { HFICalculatorState } from 'features/hfiCal
 import hfiStationsReducer from 'features/hfiCalculator/slices/stationsSlice'
 import hfiReadyReducer, { HFIReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 import fbaCalculatorSlice from 'features/fbaCalculator/slices/fbaCalculatorSlice'
-import fireCentersSlice from 'features/fbaCalculator/slices/fireCentersSlice'
+import fireCentersSlice from 'commonSlices/fireCentersSlice'
 import fireZoneAreasSlice from 'features/fba/slices/fireZoneAreasSlice'
 import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'

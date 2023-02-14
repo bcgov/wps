@@ -3,7 +3,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { GeneralHeader, Container, ErrorBoundary } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
-import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
+import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
 import {
   selectFireZoneElevationInfo,
@@ -13,7 +13,7 @@ import {
   selectFireZoneAreas
 } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
+import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
