@@ -4,6 +4,7 @@ import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import PercentIcon from '@mui/icons-material/Percent'
 import PublicIcon from '@mui/icons-material/Public'
+import RocketLaunch from '@mui/icons-material/RocketLaunch'
 import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
@@ -22,11 +23,13 @@ import {
   MORE_CAST_NAME,
   MORECAST_ROUTE,
   PERCENTILE_CALC_NAME,
-  PERCENTILE_CALC_ROUTE
+  PERCENTILE_CALC_ROUTE,
+  MORE_CAST_2_NAME,
+  MORE_CAST_2_ROUTE
 } from 'utils/constants'
 
 const ICON_FONT_SIZE = 'large'
-interface ToolInfo {
+export interface ToolInfo {
   name: string
   route: string
   description: React.ReactNode | string
@@ -99,6 +102,20 @@ export const moreCastInfo: ToolInfo = {
   isBeta: true
 }
 
+export const moreCast2Info: ToolInfo = {
+  name: MORE_CAST_2_NAME,
+  route: MORE_CAST_2_ROUTE,
+  description: (
+    <Typography>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
+      magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+      consequat.
+    </Typography>
+  ),
+  icon: <RocketLaunch color="primary" fontSize={ICON_FONT_SIZE} />,
+  isBeta: true
+}
+
 export const percentileCalcInfo: ToolInfo = {
   name: PERCENTILE_CALC_NAME,
   route: PERCENTILE_CALC_ROUTE,
@@ -136,12 +153,25 @@ export const fbpGoInfo: ToolInfo = {
 
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of CardTravelSharp.
-export const toolInfos = [
-  fireBehaviourAdvisoryInfo,
-  moreCastInfo,
-  cHainesInfo,
-  fireBehaviourCalcInfo,
-  hfiCalcInfo,
-  percentileCalcInfo,
-  fbpGoInfo
-]
+// Temporarily exclude MoreCast 2.0 from prod
+export const toolInfos =
+  process.env.NODE_ENV !== 'production'
+    ? [
+        moreCast2Info,
+        fireBehaviourAdvisoryInfo,
+        moreCastInfo,
+        cHainesInfo,
+        fireBehaviourCalcInfo,
+        hfiCalcInfo,
+        percentileCalcInfo,
+        fbpGoInfo
+      ]
+    : [
+        fireBehaviourAdvisoryInfo,
+        moreCastInfo,
+        cHainesInfo,
+        fireBehaviourCalcInfo,
+        hfiCalcInfo,
+        percentileCalcInfo,
+        fbpGoInfo
+      ]
