@@ -24,7 +24,7 @@ export const C_HAINES_ROUTE = '/c-haines'
 export const FBP_GO_ROUTE = 'https://sybrand.github.io/'
 export const FIRE_BEHAVIOR_CALC_ROUTE = '/fire-behaviour-calculator'
 export const FIRE_BEHAVIOUR_ADVISORY_ROUTE = '/auto-spatial-advisory'
-export const MORE_CAST_2_ROUTE = '/more-cast-2'
+export const MORE_CAST_2_ROUTE = '/morecast-2'
 export const LANDING_PAGE_ROUTE = '/'
 
 // ExpandableContainer widths

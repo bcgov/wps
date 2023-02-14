@@ -14,7 +14,7 @@ module.exports = async ({ github, context }) => {
     let body = pr.data.body === null ? "" : pr.data.body;
     body += "\n# Test Links:\n";
     body += `[Landing Page](${prBaseUrl}/)\n`
-    body += `[More Cast 2.0](${prBaseUrl}/more-cast-2)\n`;
+    body += `[MoreCast 2.0](${prBaseUrl}/morecast-2)\n`;
     body += `[Percentile Calculator](${prBaseUrl}/percentile-calculator)\n`;
     body += `[MoreCast](${prBaseUrl}/morecast)\n`;
     body += `[C-Haines](${prBaseUrl}/c-haines)\n`;
