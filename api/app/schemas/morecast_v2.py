@@ -7,6 +7,7 @@ from pydantic import BaseModel
 class ModelChoice(str, Enum):
     """ Enumerator for all valid forecasted value types """
     GDPS = 'GDPS'
+    GFS = 'GFS'
     HRDPS = 'HRDPS'
     RDPS = 'RDPS'
     MANUAL = 'MANUAL'
