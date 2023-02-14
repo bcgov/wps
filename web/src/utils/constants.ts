@@ -46,7 +46,7 @@ export const PERCENTILE_CALC_NAME = 'Percentile Calculator'
 export const HEADER_HEIGHT = 56
 
 // Document titles
-export const LANDING_PAGE_DOC_TITLE = 'Decision Support Tools | BC Wildfire Predictive Services'
+export const LANDING_PAGE_DOC_TITLE = 'Decision Support Tools | BCWS PSU'
 export const ASA_DOC_TITLE = 'Automated Spatial Advisory | BCWS PSU'
 export const MORECAST_DOC_TITLE = 'MoreCast | BCWS PSU'
 export const C_HAINES_DOC_TITLE = 'C-Haines | BCWS PSU'

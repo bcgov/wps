@@ -85,7 +85,7 @@ const useStyles = makeStyles(theme => ({
     width: '66%',
     [theme.breakpoints.down('sm')]: {
       height: '56px',
-      width: '100%'
+      width: 'auto'
     }
   },
   root: {
@@ -108,6 +108,7 @@ export const Sidebar: React.FunctionComponent = () => {
   const theme = useTheme()
   const classes = useStyles()
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
+  const homeUrl = 'https://www2.gov.bc.ca/gov/content/safety/wildfire-status'
 
   const renderSmallCollaborate = () => {
     return (
@@ -163,7 +164,7 @@ export const Sidebar: React.FunctionComponent = () => {
     return (
       <Stack className={classes.root}>
         <div className={classes.header} id="sidebar-header">
-          <a href="https://gov.bc.ca" target="_blank" rel="noreferrer">
+          <a href={homeUrl} target="_blank" rel="noreferrer">
             <img
               className={classes.logo}
               src="images/bc-wilderfire-service-logo.png"
@@ -195,7 +196,7 @@ export const Sidebar: React.FunctionComponent = () => {
     return (
       <Stack className={classes.root}>
         <div className={classes.header} id="sidebar-header">
-          <a href="https://www2.gov.bc.ca/gov/content/safety/wildfire-status" target="_blank" rel="noreferrer">
+          <a href={homeUrl} target="_blank" rel="noreferrer">
             <img
               className={classes.logo}
               src="images/bc-wilderfire-service-logo.png"

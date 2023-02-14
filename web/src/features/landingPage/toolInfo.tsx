@@ -39,7 +39,7 @@ export const fireBehaviourAdvisoryInfo: ToolInfo = {
   route: FIRE_BEHAVIOUR_ADVISORY_ROUTE,
   description: (
     <Typography>
-      A spatial analysis that automates the continuous monitoring, updating, and communication of anticipated fire
+      A spatial analysis tool that automates the continuous monitoring, updating, and communication of anticipated fire
       behaviour that will challenge direct suppression efforts and put the safety of responders at risk.
     </Typography>
   ),
