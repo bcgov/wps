@@ -1,5 +1,6 @@
 """ Routes for Morecast v2 """
 import logging
+from typing import List
 from fastapi import APIRouter, Response, Depends
 from app.auth import (auth_with_forecaster_role_required,
                       authentication_required,
@@ -18,7 +19,7 @@ router = APIRouter(
 )
 
 
-@router.get("/forecast")
+@router.get("/forecasts")
 async def get_forecast(response: Response, _=Depends(authentication_required)):
     """ Return forecasts """
     logger.info('/forecasts/')
@@ -26,8 +27,8 @@ async def get_forecast(response: Response, _=Depends(authentication_required)):
 
 
 @router.post("/forecast")
-async def save_forecast(forecast: MorecastForecast, response: Response, _=Depends(auth_with_forecaster_role_required)):
+async def save_forecast(forecasts: List[MorecastForecast], response: Response, _=Depends(auth_with_forecaster_role_required)):
     """ Persist a forecast """
     logger.info('/forecast')
     response.headers["Cache-Control"] = no_cache
-    logger.info(f'Forecasting for station: {forecast.station_code}')
+    logger.info(f'Saving {len(forecasts)} forecasts')
