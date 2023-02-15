@@ -11,7 +11,7 @@ morecast_v2_get_url = '/api/morecast-v2/forecasts'
 decode_fn = "jwt.decode"
 
 forecast = MorecastForecast(station_code=1,
-                            utc_timestamp_in_millis=1,
+                            for_date=1,
                             temp=ForecastedTemperature(
                                 temp=10.0, choice=ModelChoice.GDPS),
                             rh=ForecastedRH(rh=40.5, choice=ModelChoice.HRDPS),
