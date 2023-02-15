@@ -86,5 +86,9 @@ per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" =
     "F811",
 ], "app/tests/weather_models/test_env_canada_gdps.py" = [
     "F811",
+], "app/db/models/__init__.py" = [
+    "F401",
+    "E402",
+    "F811",
 ] }
 line-length = 185

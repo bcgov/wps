@@ -3,7 +3,6 @@
 from logging.config import fileConfig
 import sqlalchemy
 from alembic import context
-import app
 from app.db.database import DB_WRITE_STRING
 from app.db.models import Base
 
