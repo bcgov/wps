@@ -20,8 +20,8 @@ def get_hourly_actuals(
     query = session.query(HourlyActual)\
         .filter(HourlyActual.station_code.in_(station_codes))\
         .filter(HourlyActual.weather_date >= start_date)\
-        .filter(HourlyActual.temp_valid is True)\
-        .filter(HourlyActual.rh_valid is True)
+        .filter(HourlyActual.temp_valid == True)\
+        .filter(HourlyActual.rh_valid == True)
     if end_date is not None:
         query = query.filter(HourlyActual.weather_date <= end_date)
     query = query.order_by(HourlyActual.station_code)\
@@ -46,8 +46,8 @@ def get_actuals_left_outer_join_with_predictions(
                         PredictionModelRunTimestamp.prediction_model_id == model_id))\
         .filter(HourlyActual.station_code == station_code)\
         .filter(HourlyActual.weather_date >= start_date)\
-        .filter(HourlyActual.temp_valid is True)\
-        .filter(HourlyActual.rh_valid is True)\
+        .filter(HourlyActual.temp_valid == True)\
+        .filter(HourlyActual.rh_valid == True)\
         .filter(HourlyActual.weather_date <= end_date)\
         .order_by(HourlyActual.station_code)\
         .order_by(HourlyActual.weather_date)\
