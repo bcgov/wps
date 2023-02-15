@@ -1,7 +1,7 @@
 """ Some crud responses used to mock our calls to app.db.crud
 """
 from datetime import datetime
-from app.db.models import ModelRunGridSubsetPrediction
+from app.db.models.weather_models import ModelRunGridSubsetPrediction
 from app.db.models.observations import HourlyActual
 
 

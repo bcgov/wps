@@ -16,7 +16,7 @@ import rasterio
 from rasterio.io import DatasetReader
 from app.geospatial import NAD83_CRS
 from app.stations import get_stations_synchronously
-from app.db.models import (
+from app.db.models.weather_models import (
     PredictionModel, PredictionModelRunTimestamp, ModelRunGridSubsetPrediction)
 from app.db.crud.weather_models import (
     get_prediction_model, get_or_create_prediction_run, get_or_create_grid_subset)

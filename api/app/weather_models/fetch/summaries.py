@@ -12,7 +12,7 @@ from app.schemas.weather_models import (
     WeatherPredictionModel)
 import app.db.database
 from app.db.crud.weather_models import get_station_model_predictions_order_by_prediction_timestamp
-from app.db.models import PredictionModel, WeatherStationModelPrediction
+from app.db.models.weather_models import PredictionModel, WeatherStationModelPrediction
 
 
 logger = logging.getLogger(__name__)

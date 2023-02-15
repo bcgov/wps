@@ -10,7 +10,7 @@ from scipy.interpolate import griddata
 import numpy as np
 from sqlalchemy.orm import Session
 from app.weather_models import SCALAR_MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
-from app.db.models import (
+from app.db.models.weather_models import (
     PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction)
 from app.db.models.observations import HourlyActual
 from app.db.crud.observations import get_actuals_left_outer_join_with_predictions

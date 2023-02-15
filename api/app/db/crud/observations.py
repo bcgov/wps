@@ -4,7 +4,7 @@ import datetime
 from typing import List
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
-from app.db.models import ModelRunGridSubsetPrediction, PredictionModelRunTimestamp
+from app.db.models.weather_models import ModelRunGridSubsetPrediction, PredictionModelRunTimestamp
 from app.db.models.observations import HourlyActual
 
 

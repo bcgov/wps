@@ -14,7 +14,7 @@ from app.hfi.fire_centre_cache import (clear_cached_hydrated_fire_centres,
 from app.hfi.hfi_admin import get_unique_planning_area_ids, update_stations
 from app.hfi.hfi_request import update_result_request
 from app.utils.time import get_pst_now, get_utc_now
-from app.hfi import calculate_latest_hfi_results, hydrate_fire_centres
+from app.hfi.hfi_calc import calculate_latest_hfi_results, hydrate_fire_centres
 from app.hfi.pdf_generator import generate_pdf
 from app.hfi.pdf_template import get_template
 from app.hfi.hfi_calc import (initialize_planning_area_fire_starts,

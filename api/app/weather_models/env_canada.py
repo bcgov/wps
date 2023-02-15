@@ -33,8 +33,8 @@ import app.utils.time as time_utils
 from app.utils.redis import create_redis
 from app.stations import get_stations_synchronously
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
-from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
+from app.db.models.weather_models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
+                                          WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
 from app.rocketchat_notifications import send_rocketchat_notification
 

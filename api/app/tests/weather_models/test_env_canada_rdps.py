@@ -13,8 +13,8 @@ import app.utils.time as time_utils
 import app.weather_models.process_grib
 import app.weather_models.env_canada
 import app.db.crud.weather_models
-from app.db.models import (PredictionModel, ProcessedModelRunUrl,
-                           PredictionModelRunTimestamp, PredictionModelGridSubset)
+from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
+                                          PredictionModelRunTimestamp, PredictionModelGridSubset)
 # pylint: disable=unused-import
 from app.tests.weather_models.test_env_canada_gdps import (MockResponse)
 
@@ -114,10 +114,7 @@ def test_get_rdps_download_urls():
 
 @pytest.mark.usefixtures('mock_get_processed_file_record')
 def test_process_rdps(mock_download,
-                      mock_database,
-                      mock_get_model_run_predictions_for_grid,
-                      mock_get_actuals_left_outer_join_with_predictions,
-                      mock_get_stations):
+                      mock_database):
     """ run main method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
