@@ -1,13 +1,13 @@
 """ Routes for Morecast v2 """
 import logging
 from typing import List
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Response, Depends, status
 from datetime import date
 from app.auth import (auth_with_forecaster_role_required,
                       authentication_required,
                       audit)
 from app.db.crud.morecast_v2 import get_user_forecasts_for_date, save_all_forecasts
-from app.db.database import get_async_read_session_scope, get_async_write_session_scope
+from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
 from app.schemas.morecast_v2 import MorecastForecastRequest, MorecastForecastResponse
 from app.utils.time import get_datetime_from_utc_timestamp, get_utc_now
@@ -34,11 +34,11 @@ async def get_forecast(for_date: date,
 
     username = token.get('idir_username', None)
 
-    with get_async_read_session_scope() as db_session:
+    with get_read_session_scope() as db_session:
         return get_user_forecasts_for_date(db_session, username, for_date)
 
 
-@router.post("/forecast")
+@router.post("/forecast", status_code=status.HTTP_201_CREATED)
 async def save_forecast(forecasts: List[MorecastForecastRequest],
                         response: Response,
                         token=Depends(auth_with_forecaster_role_required)) -> List[MorecastForecastResponse]:
@@ -61,7 +61,7 @@ async def save_forecast(forecasts: List[MorecastForecastRequest],
                                                 create_timestamp=now,
                                                 update_user=username,
                                                 update_timestamp=now) for forecast in forecasts]
-    with get_async_write_session_scope() as db_session:
+    with get_write_session_scope() as db_session:
         save_all_forecasts(db_session, forecasts_to_save)
         return [MorecastForecastResponse(station_code=forecast.station_code,
                                          for_date=forecast.for_date,

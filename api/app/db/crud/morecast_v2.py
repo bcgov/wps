@@ -1,4 +1,4 @@
-""" CRUD operations relating to HFI Calculator
+""" CRUD operations relating to Morecast v2
 """
 from typing import List
 from sqlalchemy.orm import Session
