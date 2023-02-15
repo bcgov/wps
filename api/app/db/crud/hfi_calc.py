@@ -1,6 +1,6 @@
 """ CRUD operations relating to HFI Calculator
 """
-from typing import List, Optional
+from typing import List
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, insert, update
@@ -18,7 +18,7 @@ def get_fire_weather_stations(session: Session) -> CursorResult:
         .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
         .join(FireCentre, FireCentre.id == PlanningArea.fire_centre_id)\
-        .filter(PlanningWeatherStation.is_deleted == False)
+        .filter(PlanningWeatherStation.is_deleted is False)
 
 
 def get_all_stations(session: Session) -> CursorResult:
@@ -43,7 +43,7 @@ def get_fire_centre_stations(session, fire_centre_id: int) -> CursorResult:
     return session.query(PlanningWeatherStation, FuelType)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
         .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)\
-        .filter(PlanningWeatherStation.is_deleted == False)\
+        .filter(PlanningWeatherStation.is_deleted is False)\
         .filter(PlanningArea.fire_centre_id == fire_centre_id)
 
 
@@ -52,7 +52,7 @@ def get_planning_weather_stations(session, fire_centre_id: int) -> List[Planning
     return session.query(PlanningWeatherStation)\
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
         .filter(PlanningArea.fire_centre_id == fire_centre_id)\
-        .filter(PlanningWeatherStation.is_deleted == False)\
+        .filter(PlanningWeatherStation.is_deleted is False)\
         .all()
 
 
@@ -135,7 +135,7 @@ def get_last_station_in_planning_area(session: Session, planning_area_id: int) -
     """ Get the last station in a planning area """
     return session.query(PlanningWeatherStation)\
         .filter(PlanningWeatherStation.planning_area_id == planning_area_id)\
-        .filter(PlanningWeatherStation.is_deleted == False)\
+        .filter(PlanningWeatherStation.is_deleted is False)\
         .order_by(desc(PlanningWeatherStation.order_of_appearance_in_planning_area_list))\
         .first()
 
@@ -172,7 +172,7 @@ def get_stations_for_affected_planning_areas(session: Session, request: HFIAdmin
 
     return session.query(PlanningWeatherStation)\
         .filter(PlanningWeatherStation.planning_area_id.in_(affected_planning_area_ids))\
-        .filter(PlanningWeatherStation.is_deleted == False)\
+        .filter(PlanningWeatherStation.is_deleted is False)\
         .order_by(PlanningWeatherStation.order_of_appearance_in_planning_area_list)\
         .all()
 

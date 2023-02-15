@@ -225,7 +225,7 @@ def generate_kml_prediction(result: Iterator[list], model: ModelEnum, model_run_
     prev_severity = None
     for poly, severity in result:
         if severity != prev_severity:
-            if not prev_severity is None:
+            if prev_severity is not None:
                 kml.append(close_placemark())
             prev_severity = severity
             kml.append(open_placemark(model, SeverityEnum(severity), prediction_timestamp))
@@ -233,7 +233,7 @@ def generate_kml_prediction(result: Iterator[list], model: ModelEnum, model_run_
 
         yield "\n".join(kml)
         kml = []
-    if not prev_severity is None:
+    if prev_severity is not None:
         kml.append(close_placemark())
     kml.append(f'{FOLDER_CLOSE}')
     kml.append('</Document>')

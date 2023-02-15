@@ -16,9 +16,7 @@ import app.db.crud.weather_models
 from app.db.models import (PredictionModel, ProcessedModelRunUrl,
                            PredictionModelRunTimestamp, PredictionModelGridSubset)
 # pylint: disable=unused-import
-from app.tests.weather_models.test_env_canada_gdps import (MockResponse, mock_get_stations,
-                                                           mock_get_model_run_predictions_for_grid,
-                                                           mock_get_actuals_left_outer_join_with_predictions)
+from app.tests.weather_models.test_env_canada_gdps import (MockResponse)
 
 logger = logging.getLogger(__name__)
 

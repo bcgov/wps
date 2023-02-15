@@ -36,7 +36,7 @@ ready_state_json = {
 mock_hfi_request = HFIRequest(id=1, request=json.dumps(request_json))
 mock_latest_ready_records = [HFIReady(id=1, **ready_state_json)]
 get_ready_states_url = "/api/hfi-calc/fire_centre/5/2022-05-01/2022-05-01/ready"
-post_toggle_ready_state_url = f'/api/hfi-calc/fire_centre/5/planning_area/1/2022-05-01/2022-05-01/ready'
+post_toggle_ready_state_url = '/api/hfi-calc/fire_centre/5/planning_area/1/2022-05-01/2022-05-01/ready'
 
 
 @pytest.fixture()

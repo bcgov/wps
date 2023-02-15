@@ -1,5 +1,4 @@
 """ Code common to app.weather_models.fetch """
-import math
 from datetime import datetime
 from enum import Enum
 from typing import List

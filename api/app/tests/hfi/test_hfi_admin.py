@@ -226,7 +226,7 @@ def test_remove_station():
 
     assert stations_to_remove[0].planning_area_id == removals[0].planning_area_id
     assert stations_to_remove[0].station_code == removals[0].station_code
-    assert stations_to_remove[0].order_of_appearance_in_planning_area_list == None
+    assert stations_to_remove[0].order_of_appearance_in_planning_area_list is None
 
     assert len(stations_with_order_updates) == 2
     assert stations_with_order_updates[0].planning_area_id == all_planning_area_stations[1].planning_area_id
@@ -259,11 +259,11 @@ def test_remove_stations():
     assert len(stations_to_remove) == 2
     assert stations_to_remove[0].planning_area_id == removals[0].planning_area_id
     assert stations_to_remove[0].station_code == removals[0].station_code
-    assert stations_to_remove[0].order_of_appearance_in_planning_area_list == None
+    assert stations_to_remove[0].order_of_appearance_in_planning_area_list is None
 
     assert stations_to_remove[1].planning_area_id == removals[1].planning_area_id
     assert stations_to_remove[1].station_code == removals[1].station_code
-    assert stations_to_remove[1].order_of_appearance_in_planning_area_list == None
+    assert stations_to_remove[1].order_of_appearance_in_planning_area_list is None
 
     assert len(stations_with_order_updates) == 1
     assert stations_with_order_updates[0].planning_area_id == all_planning_area_stations[2].planning_area_id

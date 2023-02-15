@@ -1,13 +1,11 @@
 """ Unit tests for the fireweather noon forecats job """
 import os
 import logging
-import datetime
 import pytest
 from pytest_mock import MockerFixture
 from app.jobs import noon_forecasts
 from app.tests.jobs.job_fixtures import mock_wfwx_stations, mock_wfwx_response
 from app.wildfire_one import wfwx_api
-import app.utils.time
 
 logger = logging.getLogger(__name__)
 

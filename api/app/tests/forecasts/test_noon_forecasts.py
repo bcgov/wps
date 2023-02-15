@@ -5,8 +5,7 @@ NOTE: This test currently only handles one station.
 import json
 import os
 import logging
-from contextlib import contextmanager
-from typing import List, Generator
+from typing import List
 from datetime import datetime
 from sqlalchemy.orm import Session
 import pytest

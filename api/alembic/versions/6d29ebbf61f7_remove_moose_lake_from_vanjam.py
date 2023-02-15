@@ -42,7 +42,7 @@ moose_lake = 165
 
 def get_vanjam_planning_area_id(session: Session):
     res = session.query(planning_areas_table) \
-        .filter(planning_areas_table.c.name.ilike(f'VanJam%'))
+        .filter(planning_areas_table.c.name.ilike('VanJam%'))
     return int(res.first().id)
 
 
