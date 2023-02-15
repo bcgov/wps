@@ -4,13 +4,14 @@ from logging.config import fileConfig
 import sqlalchemy
 from alembic import context
 import app
+from app.db.database import DB_WRITE_STRING
 
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 # sqlalchemy.url uses variables from .env file
 config = context.config
-config.set_main_option('sqlalchemy.url', app.db.database.DB_WRITE_STRING)
+config.set_main_option('sqlalchemy.url', DB_WRITE_STRING)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
