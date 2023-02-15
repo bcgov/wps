@@ -4,7 +4,6 @@ import logging
 from typing import Generator, AsyncGenerator
 from contextlib import contextmanager, asynccontextmanager
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from .. import config
@@ -64,9 +63,6 @@ _async_read_sessionmaker = sessionmaker(
     autocommit=False, autoflush=False, bind=_async_read_engine, class_=AsyncSession)
 _async_write_sessionmaker = sessionmaker(
     autocommit=False, autoflush=False, bind=_async_write_engine, class_=AsyncSession)
-
-# constructing a base class for declarative class definitions
-Base = declarative_base()
 
 
 def _get_write_session() -> Session:
