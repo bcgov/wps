@@ -104,6 +104,10 @@ def get_julian_date(time_of_interest: datetime):
     return time_of_interest.timetuple().tm_yday
 
 
+def get_datetime_from_utc_timestamp(utc_timestamp: int):
+    return datetime.utcfromtimestamp(utc_timestamp)
+
+
 def get_utc_datetime(input_datetime: datetime):
     vancouver_tz = pytz.timezone("America/Vancouver")
     utc_datetime = vancouver_tz.localize(datetime(year=input_datetime.year,
