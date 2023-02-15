@@ -159,20 +159,9 @@ def get_closest_index(coordinate: List, points: List):
 def mark_prediction_model_run_processed(session: Session,
                                         model: ModelEnum,
                                         projection: ProjectionEnum,
-                                        now: datetime.datetime,
-                                        model_cycle: str):
+                                        prediction_run_timestamp: datetime.datetime):
     """ Mark a prediction model run as processed (complete) """
-
     prediction_model = get_prediction_model(session, model, projection)
-    prediction_run_timestamp = datetime.datetime(
-        year=now.year,
-        month=now.month,
-        day=now.day,
-        hour=now.hour, tzinfo=datetime.timezone.utc)
-    prediction_run_timestamp = adjust_model_day(
-        prediction_run_timestamp, model_cycle)
-    prediction_run_timestamp = prediction_run_timestamp.replace(
-        hour=model_cycle)
     logger.info('prediction_model:%s, prediction_run_timestamp:%s',
                 prediction_model, prediction_run_timestamp)
     prediction_run = get_prediction_run(session,
@@ -209,6 +198,22 @@ def check_if_model_run_complete(session: Session, urls):
     return actual_count == expected_count
 
 
+def parse_url_for_timestamps(url: str):
+    """ Interpret the model_run_timestamp and prediction_timestamp from a model's URL """
+    # only need the substring after the final '/'
+    timestamp_info = url.split('/')[-1]
+    # timestamp_info has format 'gfs_4_{model run date yyyymmdd}_{model run hour xxxx}_{forecast hour xxx}.grb2'
+    forecast_hour = timestamp_info[-8:-5]
+    model_run_hour = timestamp_info[-13:-9]
+    model_run_date = timestamp_info[6:14]
+    model_run_datetime_str = model_run_date + ' ' + model_run_hour
+    model_run_timestamp = datetime.datetime.strptime(model_run_datetime_str, '%Y%m%d %H%M')
+    model_run_timestamp = model_run_timestamp.replace(tzinfo=datetime.timezone.utc)
+    prediction_timestamp = model_run_timestamp + datetime.timedelta(hours=int(forecast_hour))
+
+    return (model_run_timestamp, prediction_timestamp)
+
+
 class GFS():
     """ Class that orchestrates downloading and processing of GFS weather model grib files from NOAA.
     """
@@ -238,8 +243,9 @@ class GFS():
                         # NOTE: changing this to logger.debug causes too much noise in unit tests.
                         logger.debug('file already processed %s', url)
                     else:
-                        # TODO: parse url to get metadata for model_run_timestamp and prediction_timestamp
-                        model_info = ModelRunInfo(model_enum=ModelEnum.GFS, projection=ProjectionEnum.GFS_LONLAT)
+                        model_run_timestamp, prediction_timestamp = parse_url_for_timestamps(url)
+                        model_info = ModelRunInfo(ModelEnum.GFS, ProjectionEnum.GFS_LONLAT,
+                                                  model_run_timestamp, prediction_timestamp)
                         # download the file:
                         with tempfile.TemporaryDirectory() as temporary_path:
                             downloaded = download(url, temporary_path)
@@ -271,7 +277,7 @@ class GFS():
             self.model_type, model_cycle))
 
         # Get the urls for the current model run.
-        urls = get_gfs_model_run_download_urls(self.now, model_cycle)
+        urls = list(get_gfs_model_run_download_urls(self.now, model_cycle))
 
         # Process all the urls.
         self.process_model_run_urls(urls)
@@ -282,9 +288,9 @@ class GFS():
                 # pylint: disable=consider-using-f-string
                 logger.info(
                     '{} model run {} completed with SUCCESS'.format(self.model_type, model_cycle))
-
+                prediction_run_timestamp, _ = parse_url_for_timestamps(url=urls[0])
                 mark_prediction_model_run_processed(
-                    session, self.model_type, self.projection, self.now, model_cycle)
+                    session, self.model_type, self.projection, prediction_run_timestamp)
 
     def process(self):
         """ Entry point for downloading and processing weather model grib files """
