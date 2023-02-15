@@ -187,7 +187,7 @@ def process_request_without_observation(requested_station: StationRequest,
 
 
 @router.post('/stations', response_model=StationsListResponse)
-async def get_stations_data(  # pylint:disable=too-many-locals
+async def get_stations_data(
         request: StationListRequest,
         _=Depends(authentication_required)
 ):
