@@ -90,5 +90,7 @@ per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" =
     "F401",
     "E402",
     "F811",
+], "app/db/crud/hfi_calc.py" = [
+    "E712",
 ] }
 line-length = 185
