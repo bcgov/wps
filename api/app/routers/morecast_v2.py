@@ -1,8 +1,8 @@
 """ Routes for Morecast v2 """
 import logging
 from typing import List
-from fastapi import APIRouter, Response, Depends, status
 from datetime import date, datetime
+from fastapi import APIRouter, Response, Depends, status
 from app.auth import (auth_with_forecaster_role_required,
                       authentication_required,
                       audit)
