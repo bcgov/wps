@@ -2,7 +2,7 @@
 import logging
 from typing import List
 from fastapi import APIRouter, Response, Depends, status
-from datetime import date
+from datetime import date, datetime
 from app.auth import (auth_with_forecaster_role_required,
                       authentication_required,
                       audit)
@@ -10,7 +10,7 @@ from app.db.crud.morecast_v2 import get_user_forecasts_for_date, save_all_foreca
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
 from app.schemas.morecast_v2 import MorecastForecastRequest, MorecastForecastResponse
-from app.utils.time import get_datetime_from_utc_timestamp, get_utc_now
+from app.utils.time import get_utc_now
 
 
 logger = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ async def save_forecast(forecasts: List[MorecastForecastRequest],
     now = get_utc_now()
 
     forecasts_to_save = [MorecastForecastRecord(station_code=forecast.station_code,
-                                                for_date=get_datetime_from_utc_timestamp(forecast.for_date),
+                                                for_date=datetime.utcfromtimestamp(forecast.for_date),
                                                 temp=forecast.temp,
                                                 rh=forecast.rh,
                                                 precip=forecast.precip,
