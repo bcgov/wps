@@ -32,7 +32,7 @@ class ProjectionEnum(str, Enum):
     REGIONAL_PS = 'ps10km'
 
 
-def interpolate_between_two_points(  # pylint: disable=invalid-name
+def interpolate_between_two_points(
         x1: int, x2: int, y1: List[float], y2: List[float], xn: int):
     """ Interpolate values between two points in time.
     :param x1: X coordinate of the 1st value.

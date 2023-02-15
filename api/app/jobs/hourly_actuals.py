@@ -73,7 +73,7 @@ def main():
 
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
-    except Exception as exception:  # pylint: disable=broad-except
+    except Exception as exception:
         # Exit non 0 - failure.
         logger.error('Failed to retrieve hourly actuals.', exc_info=exception)
         rc_message = ':scream: Encountered error retrieving hourly actuals'

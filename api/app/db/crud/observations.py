@@ -17,7 +17,6 @@ def get_hourly_actuals(
 
     :param end_date: If specified, return up to and including the end_date
     """
-    # pylint: disable=singleton-comparison
     query = session.query(HourlyActual)\
         .filter(HourlyActual.station_code.in_(station_codes))\
         .filter(HourlyActual.weather_date >= start_date)\
@@ -30,14 +29,13 @@ def get_hourly_actuals(
     return query
 
 
-def get_actuals_left_outer_join_with_predictions(  # pylint: disable=too-many-arguments
+def get_actuals_left_outer_join_with_predictions(
         session: Session, model_id: int, grid_id: int, station_code: int,
         start_date: datetime, end_date: datetime):
     """
     NOTE: Can improve this query by only returning the most recent prediction, maybe using nested
     queries. It works for now - but things could be faster.
     """
-    # pylint: disable=singleton-comparison
     return session.query(HourlyActual, ModelRunGridSubsetPrediction)\
         .outerjoin(ModelRunGridSubsetPrediction,
                    and_(ModelRunGridSubsetPrediction.prediction_timestamp == HourlyActual.weather_date,

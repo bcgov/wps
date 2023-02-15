@@ -4,7 +4,7 @@ from typing import Optional
 from app.fire_behaviour import cffdrs
 
 
-def fwi_bui(dmc: Optional[float], dc: Optional[float]):  # pylint: disable=invalid-name
+def fwi_bui(dmc: Optional[float], dc: Optional[float]):
     """ Guard wrapper for CCFDRS BUI method """
     if dmc is None or dc is None:
         return None
@@ -30,7 +30,7 @@ def fwi_ffmc(
     """ Guard wrapper for CCFDRS FFMC method """
     if ffmc is None \
             or temperature is None \
-        or relative_humidity is None \
+    or relative_humidity is None \
             or precipitation is None \
             or wind_speed is None:
         return None

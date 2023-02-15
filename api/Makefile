@@ -74,12 +74,12 @@ test-coverage:
 
 lint:
 	# Run lint.
-	$(POETRY_RUN) pylint --rcfile=.pylintrc app/*.py app/**/*.py;
+	$(POETRY_RUN) ruff app/*.py app/**/*.py;
 
 run-with-tests:
 	# Run the application in the virtual environment (after linting and testing).
 	# Not failing on lint or test - just output so developer knows.
-	-poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
+	-poetry run ruff app/*.py app/**/*.py;
 	-poetry run python -m pytest -x -n 3 app;
 	${call run-api,$(POETRY_RUN)}
 

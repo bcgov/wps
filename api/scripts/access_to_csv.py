@@ -9,7 +9,7 @@ TODO: Remove this script once API is talking directly to the final Wildfire API.
 import csv
 import os
 
-import pyodbc  # pylint: disable=import-error
+import pyodbc
 
 # This module contains some very basic code for exporting CSV files from an access database.
 
@@ -18,9 +18,7 @@ import pyodbc  # pylint: disable=import-error
 # Do a visual check for access odbc drivers:
 # i had to install the 32bit driver (https://www.microsoft.com/en-US/download/details.aspx?id=13255) to get
 # accdb
-# pylint: disable=c-extension-no-member
 DRIVERS = [x for x in pyodbc.drivers() if x.startswith('Microsoft Access Driver')]
-# pylint: enable=c-extension-no-member
 print(DRIVERS)
 
 

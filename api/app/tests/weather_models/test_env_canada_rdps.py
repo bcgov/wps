@@ -15,7 +15,6 @@ import app.weather_models.env_canada
 import app.db.crud.weather_models
 from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
                                           PredictionModelRunTimestamp, PredictionModelGridSubset)
-# pylint: disable=unused-import
 from app.tests.weather_models.test_env_canada_gdps import (MockResponse)
 
 logger = logging.getLogger(__name__)
@@ -120,5 +119,3 @@ def test_process_rdps(mock_download,
     # be processed.
     sys.argv = ["argv", "RDPS"]
     assert app.weather_models.env_canada.process_models() == 1
-
-# pylint: enable=unused-import

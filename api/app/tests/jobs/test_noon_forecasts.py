@@ -23,7 +23,7 @@ def mock_noon_forecasts(mocker: MockerFixture):
                  return_value=iter(wfwx_hourlies))
 
 
-def test_noon_forecasts_bot(monkeypatch, mocker: MockerFixture, mock_noon_forecasts):  # pylint: disable=unused-argument
+def test_noon_forecasts_bot(monkeypatch, mocker: MockerFixture, mock_noon_forecasts):
     """ Very simple test that checks that:
     - the bot exits with a success code
     - the expected number of records are saved.
@@ -43,7 +43,7 @@ def test_noon_forecasts_bot(monkeypatch, mocker: MockerFixture, mock_noon_foreca
 
 
 def test_noon_forecasts_bot_fail(mocker: MockerFixture,
-                                 monkeypatch):  # pylint: disable=unused-argument
+                                 monkeypatch):
     """
     Test that when the bot fails a message is sent to
     rocket-chat, and our exit code is 1.

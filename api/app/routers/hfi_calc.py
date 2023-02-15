@@ -70,7 +70,6 @@ def get_prepared_request(
 
     TODO: give this function a better name.
     """
-    # pylint: disable=too-many-locals
     fire_centre_fire_start_ranges = list(load_fire_start_ranges(session, fire_centre_id))
     if date_range:
         stored_request = get_most_recent_updated_hfi_request(session,
@@ -467,7 +466,7 @@ async def admin_update_stations(request: HFIAdminStationUpdateRequest,
         except IntegrityError as exception:
             logger.info(exception, exc_info=exception)
             db_session.rollback()
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,  # pylint: disable=raise-missing-from
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="Station already exists in planning area")
 
 

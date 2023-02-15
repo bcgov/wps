@@ -18,7 +18,6 @@ def is_station_valid(station) -> bool:
         return False
     if station['latitude'] is None or station['longitude'] is None:
         # We can't use a station if it doesn't have a latitude and longitude.
-        # pylint: disable=fixme
         # TODO : Decide if a station is valid if we can't determine its ecodivision and/or core fire season
         return False
     return True

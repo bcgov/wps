@@ -148,7 +148,6 @@ class GribFileProcessor():
 
             yield (points, values)
 
-    # pylint: disable=too-many-arguments
     def store_bounding_values(self,
                               points,
                               values,
@@ -167,7 +166,6 @@ class GribFileProcessor():
             session, self.prediction_model, geographic_points)
 
         # Load the record if it exists.
-        # pylint: disable=no-member
         prediction = session.query(ModelRunGridSubsetPrediction).\
             filter(
                 ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id == preduction_model_run.id).\

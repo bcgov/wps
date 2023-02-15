@@ -84,7 +84,7 @@ def test_get_all_ready_records_unauthorized(client: TestClient):
 def test_toggle_ready_authorized(client: TestClient, monkeypatch: pytest.MonkeyPatch):
     """ set_hfi_ready_record role required for toggling ready state"""
 
-    def mock_fire_start_role_function(*_, **__):  # pylint: disable=unused-argument
+    def mock_fire_start_role_function(*_, **__):
         return MockJWTDecodeWithRole('hfi_set_ready_state')
 
     monkeypatch.setattr("jwt.decode", mock_fire_start_role_function)

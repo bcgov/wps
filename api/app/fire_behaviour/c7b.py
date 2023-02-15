@@ -13,7 +13,7 @@ def rate_of_spread(ffmc: float,  # excel column: C29
                    bui: float,  # excel column: C30
                    wind_speed: float,  # excel column: C37
                    percentage_slope: float,  # excel column: C38
-                   cc: float,  # excel column: C17 (% curing) # pylint: disable=invalid-name
+                   cc: float,  # excel column: C17 (% curing)
                    ):
     ''' Compute the rate of spread for the C7b fuel type
     Based on:
@@ -24,7 +24,6 @@ def rate_of_spread(ffmc: float,  # excel column: C29
     from the standard cffdrs R calculations.
     '''
     # we're using weird variable names to make debugging against excel spreadsheet easier:
-    # pylint: disable=invalid-name
 
     # Calculated Curing Factor
     # C25: =1.25924/(1+EXP(-0.075*(C17-82)))

@@ -1,6 +1,5 @@
 """ Code relating to processing HFI GeoTIFF files, and storing resultant data.
 """
-# pylint: skip-file
 import logging
 import os
 from datetime import date, datetime

@@ -9,7 +9,6 @@ from decouple import config
 
 async def fetch_file_list(client, bucket) -> List:
     """ Fetch the list of files from Object Store. (it comes back sorted)"""
-    # pylint: disable=invalid-name
     PG_HOSTNAME = config('PG_HOSTNAME')
     PG_DATABASE = config('PG_DATABASE')
     folder = f'backup/{PG_HOSTNAME}_{PG_DATABASE}'
@@ -36,7 +35,7 @@ def extract_datetime(filename) -> datetime:
     return datetime.strptime(date_part, '%Y-%m-%d_%H-%M-%S')
 
 
-class Desire:  # pylint: disable=too-few-public-methods
+class Desire:
     """ Structure for defining and keeping track of desired backups """
 
     def __init__(self, desired_backups: int, interval: timedelta) -> None:

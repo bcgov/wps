@@ -19,16 +19,12 @@ postgres_read_host = config.get('POSTGRES_READ_HOST', 'localhost')
 postgres_port = config.get('POSTGRES_PORT', '5432')
 postgres_database = config.get('POSTGRES_DATABASE', 'wps')
 
-# pylint: disable=line-too-long
 DB_WRITE_STRING = f'postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
 
-# pylint: disable=line-too-long
 DB_READ_STRING = f'postgresql://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}'
 
-# pylint: disable=line-too-long
 ASYNC_DB_READ_STRING = f'postgresql+asyncpg://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}'
 
-# pylint: disable=line-too-long
 ASYNC_DB_WRITE_STRING = f'postgresql+asyncpg://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
 
 # connect to database - defaulting to always use utc timezone

@@ -15,7 +15,6 @@ configure_logging()
 @pytest.fixture()
 def mock_download(monkeypatch):
     """ fixture for env_canada.download """
-    # pylint: disable=unused-argument
     def mock_requests_get(*args, **kwargs):
         """ mock env_canada download method """
         dirname = os.path.dirname(os.path.realpath(__file__))
@@ -60,5 +59,5 @@ def test_c_haines_worker():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(app.c_haines.worker.main())
-    except Exception as exception:  # pylint: disable=broad-except
+    except Exception as exception:
         pytest.fail(exception)
