@@ -6,7 +6,7 @@ from datetime import date, datetime, time
 from app.db.models.morecast_v2 import MorecastForecastRecord
 
 
-def save_all_forecasts(session: Session, forecasts: MorecastForecastRecord):
+def save_all_forecasts(session: Session, forecasts: List[MorecastForecastRecord]):
     session.bulk_save_objects(forecasts)
     session.commit()
 
