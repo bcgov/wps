@@ -7,6 +7,7 @@ import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Stack from '@mui/material/Stack'
+import Tooltip from '@mui/material/Tooltip'
 import { useTheme } from '@mui/material/styles'
 import SvgIcon from '@mui/material/SvgIcon'
 import Typography from '@mui/material/Typography'
@@ -84,7 +85,7 @@ const useStyles = makeStyles(theme => ({
     width: '66%',
     [theme.breakpoints.down('sm')]: {
       height: '56px',
-      width: '100%'
+      width: 'auto'
     }
   },
   root: {
@@ -107,18 +108,21 @@ export const Sidebar: React.FunctionComponent = () => {
   const theme = useTheme()
   const classes = useStyles()
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
+  const homeUrl = 'https://www2.gov.bc.ca/gov/content/safety/wildfire-status'
 
   const renderSmallCollaborate = () => {
     return (
       <Box className={classes.box}>
         <div className={classes.collab}>
-          <Button className={classes.collabItem} href={MS_TEAMS_SPRINT_REVIEW_URL} target="_blank">
-            <SvgIcon component={MsTeamsIcon} fontSize="large" viewBox="0 0 2228.833 2073.333" />
-            <Typography className={classes.collabItemTitle}>Teams Meetings</Typography>
-            <Typography className={classes.collabItemContent}>
-              Join our weekly sprint reviews or watch the recordings
-            </Typography>
-          </Button>
+          <Tooltip arrow placement="bottom" title="Wednesdays at 1:00 PM on non-pay weeks">
+            <Button className={classes.collabItem} href={MS_TEAMS_SPRINT_REVIEW_URL} target="_blank">
+              <SvgIcon component={MsTeamsIcon} fontSize="large" viewBox="0 0 2228.833 2073.333" />
+              <Typography className={classes.collabItemTitle}>Teams Meetings</Typography>
+              <Typography className={classes.collabItemContent}>
+                Join our sprint reviews or watch the recordings
+              </Typography>
+            </Button>
+          </Tooltip>
           <Button className={classes.collabItem} href={MIRO_SPRINT_REVIEW_BOARD_URL} target="_blank">
             <SvgIcon component={MiroIcon} fontSize="large" viewBox="0 0 48 48" />
             <Typography className={classes.collabItemTitle}>Miro Board</Typography>
@@ -135,12 +139,14 @@ export const Sidebar: React.FunctionComponent = () => {
     return (
       <List>
         <ListItem disablePadding>
-          <ListItemButton component={'a'} href={MS_TEAMS_SPRINT_REVIEW_URL} target="_blank">
-            <ListItemIcon className={classes.icon}>
-              <SvgIcon component={MsTeamsIcon} viewBox="0 0 2228.833 2073.333" />
-            </ListItemIcon>
-            <ListItemText primary="Join Our Weekly Meetings" />
-          </ListItemButton>
+          <Tooltip arrow placement="right" title="Wednesdays at 1:00 PM on non-pay weeks">
+            <ListItemButton component={'a'} href={MS_TEAMS_SPRINT_REVIEW_URL} target="_blank">
+              <ListItemIcon className={classes.icon}>
+                <SvgIcon component={MsTeamsIcon} viewBox="0 0 2228.833 2073.333" />
+              </ListItemIcon>
+              <ListItemText primary="Join Our Sprint Reviews" />
+            </ListItemButton>
+          </Tooltip>
         </ListItem>
         <ListItem disablePadding>
           <ListItemButton className={classes.icon} component={'a'} href={MIRO_SPRINT_REVIEW_BOARD_URL} target="_blank">
@@ -158,7 +164,7 @@ export const Sidebar: React.FunctionComponent = () => {
     return (
       <Stack className={classes.root}>
         <div className={classes.header} id="sidebar-header">
-          <a href="https://gov.bc.ca" target="_blank" rel="noreferrer">
+          <a href={homeUrl} target="_blank" rel="noreferrer">
             <img
               className={classes.logo}
               src="images/bc-wilderfire-service-logo.png"
@@ -190,7 +196,7 @@ export const Sidebar: React.FunctionComponent = () => {
     return (
       <Stack className={classes.root}>
         <div className={classes.header} id="sidebar-header">
-          <a href="https://gov.bc.ca" target="_blank" rel="noreferrer">
+          <a href={homeUrl} target="_blank" rel="noreferrer">
             <img
               className={classes.logo}
               src="images/bc-wilderfire-service-logo.png"

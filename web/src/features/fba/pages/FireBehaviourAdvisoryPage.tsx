@@ -3,7 +3,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { GeneralHeader, Container, ErrorBoundary } from 'components'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
-import FireCenterDropdown from 'features/fbaCalculator/components/FireCenterDropdown'
+import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
 import {
   selectFireZoneElevationInfo,
@@ -13,12 +13,12 @@ import {
   selectFireZoneAreas
 } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchFireCenters } from 'features/fbaCalculator/slices/fireCentersSlice'
+import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { formControlStyles, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { FireCenter, FireZone } from 'api/fbaAPI'
-import { PST_UTC_OFFSET } from 'utils/constants'
+import { ASA_DOC_TITLE, PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
@@ -147,6 +147,10 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       setIssueDate(null)
     }
   }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    document.title = ASA_DOC_TITLE
+  }, [])
 
   return (
     <div className={classes.root}>

@@ -14,13 +14,15 @@ import {
   C_HAINES_ROUTE,
   FIRE_BEHAVIOR_CALC_ROUTE,
   FIRE_BEHAVIOUR_ADVISORY_ROUTE,
-  LANDING_PAGE_ROUTE
+  LANDING_PAGE_ROUTE,
+  MORE_CAST_2_ROUTE
 } from 'utils/constants'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
 import { FireBehaviourCalculator } from 'features/fbaCalculator/pages/FireBehaviourCalculatorPage'
 import { FireBehaviourAdvisoryPage } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import LandingPage from 'features/landingPage/pages/LandingPage'
+import MoreCast2Page from 'features/moreCast2/pages/MoreCast2Page'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
@@ -65,6 +67,14 @@ const WPSRoutes: React.FunctionComponent = () => {
           element={
             <AuthWrapper>
               <FireBehaviourAdvisoryPage />
+            </AuthWrapper>
+          }
+        />
+        <Route
+          path={MORE_CAST_2_ROUTE}
+          element={
+            <AuthWrapper>
+              <MoreCast2Page />
             </AuthWrapper>
           }
         />
