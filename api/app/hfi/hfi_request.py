@@ -31,7 +31,7 @@ def update_result_request(result_request: HFIResultRequest,
             station_info: StationInfo = StationInfo(
                 station_code=station.station_code,
                 selected=request_station.selected if request_station is not None else True,
-                fuel_type_id=request_station.fuel_type_id if request_station is not None else station.fuel_type_id)  # pylint: disable=line-too-long
+                fuel_type_id=request_station.fuel_type_id if request_station is not None else station.fuel_type_id)
 
             updated_station_info_list.append(station_info)
         updated_result_request.planning_area_station_info[planning_area_id] = updated_station_info_list

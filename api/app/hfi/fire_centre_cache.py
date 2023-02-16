@@ -19,7 +19,7 @@ async def get_cached_hydrated_fire_centres() -> Optional[HFIWeatherStationsRespo
     cache = create_redis()
     try:
         cached_json = cache.get(key)
-    except Exception as error:  # pylint: disable=broad-except
+    except Exception as error:
         cached_json = None
         logger.error(error, exc_info=error)
     if cached_json:
@@ -37,7 +37,7 @@ async def put_cached_hydrated_fire_centres(response: HFIWeatherStationsResponse)
     cache = create_redis()
     try:
         cache.set(key, response.json().encode(), ex=cache_expiry_seconds)
-    except Exception as error:  # pylint: disable=broad-except
+    except Exception as error:
         logger.error(error, exc_info=error)
 
 

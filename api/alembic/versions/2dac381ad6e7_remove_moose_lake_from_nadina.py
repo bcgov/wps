@@ -42,7 +42,7 @@ moose_lake = 165
 
 def get_nadina_planning_area_id(session: Session):
     res = session.query(planning_areas_table) \
-        .filter(planning_areas_table.c.name.ilike(f'Nadina Zone%'))
+        .filter(planning_areas_table.c.name.ilike('Nadina Zone%'))
     return int(res.first().id)
 
 

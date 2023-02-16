@@ -62,7 +62,6 @@ def check_metric(metric: str,
                  note: str = None) -> float:
     """ Check relative error of a metric """
     # logging with %s became unreadable:
-    # pylint: disable=logging-fstring-interpolation
     if comparison_value is None:
         logger.warning('Skipping %s! (%s) - note: %s', metric, comparison_value, note)
     elif comparison_value < 0:

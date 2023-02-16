@@ -52,7 +52,7 @@ class EcodivisionSeasons:
                 else:
                     logger.info('redis cache hit %s', self.cache_key)
                     self.name_lookup = json.loads(self.name_lookup)
-            except Exception as error:  # pylint: disable=broad-except
+            except Exception as error:
                 # set the look to an empty dictionary.
                 self.name_lookup = {}
                 # set the cache object to None, so that we don't try to use
@@ -67,7 +67,7 @@ class EcodivisionSeasons:
             # cache the result for a day
             try:
                 self.cache.set(self.cache_key, json.dumps(self.name_lookup), ex=86400)
-            except Exception as error:  # pylint: disable=broad-except
+            except Exception as error:
                 # redis cache failing isn't a critical failure. we log it and keep
                 # going.
                 logger.error(error)

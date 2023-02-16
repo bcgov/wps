@@ -73,7 +73,7 @@ async def calculate_actual(session: ClientSession, request, time_of_interest):
         dailies_today[0].wind_speed)
     isi = fwi_isi(ffmc, dailies_today[0].wind_speed)
     dmc = dailies_today[0].dmc
-    dc = dailies_today[0].dc  # pylint: disable=invalid-name
+    dc = dailies_today[0].dc
     bui = fwi_bui(dailies_yesterday[0].dmc, dailies_yesterday[0].dc)
     fwi = fwi_fwi(isi, bui)
     yesterday_indices = YesterdayIndices(
@@ -99,7 +99,7 @@ async def calculate_adjusted(request: FWIRequest):
         request.input.todayWindspeed)
     isi = fwi_isi(ffmc, request.input.todayWindspeed)
     dmc = request.input.yesterdayDMC
-    dc = request.input.yesterdayDC  # pylint: disable=invalid-name
+    dc = request.input.yesterdayDC
     bui = fwi_bui(dmc, dc)
     fwi = fwi_fwi(isi, bui)
     return FWIIndices(
@@ -143,7 +143,6 @@ async def multi_calculate_actual(
         station_code: int,
         time_of_interest):
     """ Calculates actual FWI values based on date range """
-    # pylint: disable=too-many-locals
     header = await get_auth_header(session)
 
     wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, [station_code])
@@ -186,7 +185,7 @@ async def multi_calculate_actual(
         wind_speed_input)
     isi = fwi_isi(ffmc, wind_speed_input)
     dmc = dailies_today[0].dmc
-    dc = dailies_today[0].dc  # pylint: disable=invalid-name
+    dc = dailies_today[0].dc
     bui = fwi_bui(dailies_yesterday[0].dmc, dailies_yesterday[0].dc)
     fwi = fwi_fwi(isi, bui)
     output = MultiFWIOutput(id=multi_fwi_input.id,

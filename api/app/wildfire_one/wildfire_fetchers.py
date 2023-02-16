@@ -28,7 +28,7 @@ async def _fetch_cached_response(session: ClientSession, headers: dict, url: str
     key = f'{url}?{urlencode(params)}'
     try:
         cached_json = cache.get(key)
-    except Exception as error:  # pylint: disable=broad-except
+    except Exception as error:
         cached_json = None
         logger.error(error, exc_info=error)
     if cached_json:
@@ -48,7 +48,7 @@ async def _fetch_cached_response(session: ClientSession, headers: dict, url: str
         try:
             if response.status == 200:
                 cache.set(key, json.dumps(response_json).encode(), ex=cache_expiry_seconds)
-        except Exception as error:  # pylint: disable=broad-except
+        except Exception as error:
             logger.error(error, exc_info=error)
     return response_json
 
@@ -236,7 +236,7 @@ async def fetch_access_token(session: ClientSession) -> dict:
     key = f'{auth_url}?{urlencode(params)}'
     try:
         cached_json = cache.get(key)
-    except Exception as error:  # pylint: disable=broad-except
+    except Exception as error:
         cached_json = None
         logger.error(error, exc_info=error)
     if cached_json:
@@ -254,6 +254,6 @@ async def fetch_access_token(session: ClientSession) -> dict:
                     redis_auth_cache_expiry: Final = int(config.get('REDIS_AUTH_CACHE_EXPIRY', 600))
                     expires = min(response_json['expires_in'], redis_auth_cache_expiry)
                     cache.set(key, json.dumps(response_json).encode(), ex=expires)
-            except Exception as error:  # pylint: disable=broad-except
+            except Exception as error:
                 logger.error(error, exc_info=error)
     return response_json

@@ -1,11 +1,11 @@
 """ Code common to app.weather_models.fetch """
-import math
 from datetime import datetime
 from enum import Enum
 from typing import List
 import logging
 from scipy.interpolate import interp1d
-from app.db.models import ModelRunGridSubsetPrediction
+
+from app.db.models.weather_models import ModelRunGridSubsetPrediction
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class ProjectionEnum(str, Enum):
     REGIONAL_PS = 'ps10km'
 
 
-def interpolate_between_two_points(  # pylint: disable=invalid-name
+def interpolate_between_two_points(
         x1: int, x2: int, y1: List[float], y2: List[float], xn: int):
     """ Interpolate values between two points in time.
     :param x1: X coordinate of the 1st value.
@@ -80,9 +80,9 @@ def interpolate_bearing(time_a: datetime, time_b: datetime, target_time: datetim
     if abs(direction_a - direction_b) > 180:
         # We want to interpolate along the acute angle between the two directions
         if direction_a < direction_b:
-            y_axis = (direction_a+360, direction_b)
+            y_axis = (direction_a + 360, direction_b)
         else:
-            y_axis = (direction_a, direction_b+360)
+            y_axis = (direction_a, direction_b + 360)
     else:
         y_axis = (direction_a, direction_b)
 

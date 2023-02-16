@@ -5,7 +5,7 @@ from datetime import datetime
 import pytest
 from pytest_bdd import scenario, given, parsers, then, when
 from app.tests import _load_json_file
-from app.db.models import PredictionModel, PredictionModelGridSubset
+from app.db.models.weather_models import PredictionModel, PredictionModelGridSubset
 from app.weather_models import machine_learning
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 from app.tests.common import str2float
