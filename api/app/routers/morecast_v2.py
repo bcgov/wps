@@ -25,9 +25,9 @@ router = APIRouter(
 
 
 @router.get("/forecasts/{for_date}")
-async def get_forecast(for_date: date,
-                       response: Response,
-                       token=Depends(authentication_required)) -> List[MorecastForecastResponse]:
+async def get_forecasts_for_date_and_user(for_date: date,
+                                          response: Response,
+                                          token=Depends(authentication_required)) -> List[MorecastForecastResponse]:
     """ Return forecasts """
     logger.info('/forecasts/')
     response.headers["Cache-Control"] = no_cache
@@ -40,8 +40,8 @@ async def get_forecast(for_date: date,
 
 @router.post("/forecast", status_code=status.HTTP_201_CREATED)
 async def save_forecasts(forecasts: List[MorecastForecastRequest],
-                        response: Response,
-                        token=Depends(auth_with_forecaster_role_required)) -> List[MorecastForecastResponse]:
+                         response: Response,
+                         token=Depends(auth_with_forecaster_role_required)) -> List[MorecastForecastResponse]:
     """ Persist a forecast """
     logger.info('/forecast')
     response.headers["Cache-Control"] = no_cache
