@@ -9,32 +9,42 @@ import { selectFireCenters } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { GeneralHeader } from 'components'
-import FireCenterDropdown from 'components/FireCenterDropdown'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
+import NextCastDataGrid from 'features/moreCast2/components/NextCastDataGrid'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { WeatherModel, WeatherModelEnum, WeatherModels } from 'features/moreCast2/constants'
+import { ForecastRow } from 'features/moreCast2/components/NextCastDataGrid'
 
 const useStyles = makeStyles(theme => ({
   content: {
     display: 'flex',
     flexGrow: 1,
-    borderTop: '1px solid black'
+    maxHeight: 'calc(100vh - 71.5px)',
+    borderTop: '1px solid black',
+    overflowY: 'hidden'
   },
   formControl: {
     minWidth: 280,
     margin: theme.spacing(1)
   },
+  observations: {
+    display: 'flex',
+    flexGrow: 1,
+    flexDirection: 'column'
+  },
   root: {
     display: 'flex',
     flexDirection: 'column',
-    minHeight: '100vh'
+    minHeight: '100vh',
+    overflowY: 'hidden'
   },
   sidePanel: {
     display: 'flex',
     width: '375px',
-    borderRight: '1px solid black'
+    borderRight: '1px solid black',
+    overflowY: 'auto'
   }
 }))
 
@@ -65,7 +75,7 @@ const MoreCast2Page = () => {
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
-      return fireCenters.find(center => center.id.toString() == id)
+      return fireCenters.find((center: FireCenter) => center.id.toString() == id)
     }
     if (fireCenters.length) {
       setFireCenter(findCenter(localStorage.getItem(PREFERRED_FIRE_CENTER_KEY)))
@@ -87,46 +97,91 @@ const MoreCast2Page = () => {
     }
   }, [defaultWeatherModel])
 
+  const sampleRows: ForecastRow[] = [
+    { id: 1, station: 'Akton', for_date: 1676318400000, temp: 5, rh: 90, windDirection: 175, windSpeed: 10, precip: 2 },
+    { id: 2, station: 'Akton', for_date: 1676404800000, temp: 6, rh: 90, windDirection: 185, windSpeed: 15, precip: 1 },
+    { id: 3, station: 'Akton', for_date: 1676491200000, temp: 5, rh: 90, windDirection: 190, windSpeed: 25, precip: 1 },
+    {
+      id: 4,
+      station: 'Ashnola',
+      for_date: 1676318400000,
+      temp: 3,
+      rh: 95,
+      windDirection: 160,
+      windSpeed: 5,
+      precip: 25
+    },
+    {
+      id: 5,
+      station: 'Ashnola',
+      for_date: 1676404800000,
+      temp: 2,
+      rh: 95,
+      windDirection: 145,
+      windSpeed: 10,
+      precip: 15
+    },
+    {
+      id: 6,
+      station: 'Ashnola',
+      for_date: 1676491200000,
+      temp: 1,
+      rh: 95,
+      windDirection: 95,
+      windSpeed: 10,
+      precip: 20
+    },
+    {
+      id: 7,
+      station: 'Cahily',
+      for_date: 1676318400000,
+      temp: 4,
+      rh: 75,
+      windDirection: 355,
+      windSpeed: 25,
+      precip: 0
+    },
+    { id: 8, station: 'Cahily', for_date: 1676404800000, temp: 4, rh: 75, windDirection: 5, windSpeed: 35, precip: 0 },
+    { id: 9, station: 'Cahily', for_date: 1676491200000, temp: 5, rh: 75, windDirection: 10, windSpeed: 45, precip: 5 }
+  ]
+
   return (
     <div className={classes.root} data-testid="more-cast-2-page">
       <GeneralHeader padding="3em" spacing={0.985} title={MORE_CAST_2_NAME} productName={MORE_CAST_2_NAME} />
-      <Grid container spacing={1}>
-        <Grid item xs={2}>
-          <FormControl className={classes.formControl}>
-            <FireCenterDropdown
-              fireCenterOptions={fireCenters}
-              selectedFireCenter={fireCenter}
-              setSelectedFireCenter={setFireCenter}
-            />
-          </FormControl>
-        </Grid>
-        <Grid item xs={2}>
-          <FormControl className={classes.formControl}>
-            <WeatherModelDropdown
-              weatherModelOptions={WeatherModels}
-              selectedWeatherModel={defaultWeatherModel}
-              setSelectedWeatherModel={setDefaultWeatherModel}
-            />
-          </FormControl>
-        </Grid>
-        <Grid item xs={2}>
-          <FormControl className={classes.formControl}>
-            <WPSDatePicker date={fromDate} label="From" updateDate={setFromDate} />
-          </FormControl>
-        </Grid>
-        <Grid item xs={2}>
-          <FormControl className={classes.formControl}>
-            <WPSDatePicker date={toDate} label="To" updateDate={setToDate} />
-          </FormControl>
-        </Grid>
-      </Grid>
       <div className={classes.content}>
         <div className={classes.sidePanel}>
           <StationPanel
             fireCenter={fireCenter}
+            fireCenters={fireCenters}
             selectedStations={selectedStations}
+            setFireCenter={setFireCenter}
             setSelectedStations={setSelectedStations}
           />
+        </div>
+        <div className={classes.observations}>
+          <Typography variant="h5">Observations</Typography>
+          <Grid container spacing={1}>
+            <Grid item xs={3}>
+              <FormControl className={classes.formControl}>
+                <WeatherModelDropdown
+                  weatherModelOptions={WeatherModels}
+                  selectedWeatherModel={defaultWeatherModel}
+                  setSelectedWeatherModel={setDefaultWeatherModel}
+                />
+              </FormControl>
+            </Grid>
+            <Grid item xs={3}>
+              <FormControl className={classes.formControl}>
+                <WPSDatePicker date={fromDate} label="From" updateDate={setFromDate} />
+              </FormControl>
+            </Grid>
+            <Grid item xs={3}>
+              <FormControl className={classes.formControl}>
+                <WPSDatePicker date={toDate} label="To" updateDate={setToDate} />
+              </FormControl>
+            </Grid>
+          </Grid>
+          <NextCastDataGrid rows={sampleRows} />
         </div>
       </div>
     </div>

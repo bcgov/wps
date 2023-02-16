@@ -19,6 +19,7 @@
     "@mui/lab": "^5.0.0-alpha.75",
     "@mui/material": "^5.5.3",
     "@mui/styles": "^5.5.3",
+    "@mui/x-data-grid": "^5.17.23",
     "@mui/x-date-pickers": "^5.0.13",
     "@reduxjs/toolkit": "^1.8.0",
     "@types/esri-leaflet": "^2.1.6",
