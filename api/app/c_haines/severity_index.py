@@ -20,9 +20,9 @@ from app.utils.s3 import object_exists, object_exists_v2
 import app.utils.time as time_utils
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.geospatial import WGS84
-from app.weather_models.env_canada import (get_model_run_hours,
-                                           get_file_date_part, adjust_model_day, download,
-                                           UnhandledPredictionModelType)
+from app.jobs.env_canada import (get_model_run_hours,
+                                 get_file_date_part, adjust_model_day, download,
+                                 UnhandledPredictionModelType)
 from app.utils.s3 import get_client
 from app.c_haines import get_severity_string
 from app.c_haines.c_haines_index import CHainesGenerator

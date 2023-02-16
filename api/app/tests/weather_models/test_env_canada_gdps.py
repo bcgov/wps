@@ -10,9 +10,10 @@ import requests
 from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
 from shapely import wkt
+from app.jobs import env_canada
 import app.utils.time as time_utils
 from app.schemas.stations import WeatherStation, Season
-from app.weather_models import env_canada, machine_learning
+from app.weather_models import machine_learning
 import app.db.crud.weather_models
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            ModelRunGridSubsetPrediction, PredictionModelGridSubset)

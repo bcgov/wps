@@ -26,7 +26,9 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Use a random time if schedule not specified.
-SCHEDULE="${SCHEDULE:-$((9 + $RANDOM % 50)) * * * *}"
+# Specify a default schedule to run every 4 hours, since GFS data retrieval
+# and processing can easily take multiple hours
+SCHEDULE="${SCHEDULE:-$((7 + $RANDOM % 49)) */4 * * *}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/noaa_gfs.cronjob.yaml \

@@ -17,7 +17,7 @@ from app.tests.common import (
     default_mock_requests_session_post)
 import app.db.database
 from app.weather_models import ModelEnum, ProjectionEnum
-import app.weather_models.env_canada
+import app.jobs.env_canada
 import app.weather_models.process_grib
 from app.schemas.shared import WeatherDataRequest
 import app.wildfire_one.wildfire_fetchers
@@ -156,10 +156,10 @@ def mock_session(monkeypatch):
             id=1, prediction_model_id=1, prediction_run_timestamp=get_utc_now(),
             prediction_model=prediction_model, complete=True)
 
-    monkeypatch.setattr(app.weather_models.env_canada, 'get_prediction_model', mock_get_prediction_model)
+    monkeypatch.setattr(app.jobs.env_canada, 'get_prediction_model', mock_get_prediction_model)
     monkeypatch.setattr(app.weather_models.process_grib, 'get_prediction_model', mock_get_prediction_model)
 
-    monkeypatch.setattr(app.weather_models.env_canada, 'get_prediction_run', mock_get_prediction_run)
+    monkeypatch.setattr(app.jobs.env_canada, 'get_prediction_run', mock_get_prediction_run)
 
 
 @pytest.fixture()

@@ -13,7 +13,7 @@ from pytest_mock import MockerFixture
 import app.utils.time as time_utils
 import app.db.database
 import app.db.crud.weather_models
-import app.weather_models.env_canada
+import app.jobs.env_canada
 import app.weather_models.process_grib
 from app.db.models import (PredictionModel, ProcessedModelRunUrl,
                            PredictionModelRunTimestamp, PredictionModelGridSubset)
@@ -59,10 +59,10 @@ def mock_database(monkeypatch):
         return hrdps_prediction_model_run
 
     monkeypatch.setattr(app.weather_models.process_grib, 'get_prediction_model', mock_get_prediction_model)
-    monkeypatch.setattr(app.weather_models.env_canada, 'get_prediction_model_run_timestamp_records',
+    monkeypatch.setattr(app.jobs.env_canada, 'get_prediction_model_run_timestamp_records',
                         mock_get_hrdps_prediction_model_run_timestamp_records)
-    monkeypatch.setattr(app.weather_models.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
-    monkeypatch.setattr(app.weather_models.env_canada, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
+    monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
+    monkeypatch.setattr(app.jobs.env_canada, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
     monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
@@ -78,7 +78,7 @@ def mock_get_processed_file_record(monkeypatch):
         called = True
         return None
 
-    monkeypatch.setattr(app.weather_models.env_canada, 'get_processed_file_record', get_processed_file_record)
+    monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', get_processed_file_record)
 
 
 @pytest.fixture()
@@ -98,8 +98,8 @@ def mock_download(monkeypatch):
 def test_get_hrdps_download_urls():
     """ test to see if get_download_urls methods gives the correct number of urls """
     # -1 because 000 hour has no APCP_SFC_0
-    total_num_of_urls = 49 * len(app.weather_models.env_canada.GRIB_LAYERS) - 1
-    assert len(list(app.weather_models.env_canada.get_high_res_model_run_download_urls(
+    total_num_of_urls = 49 * len(app.jobs.env_canada.GRIB_LAYERS) - 1
+    assert len(list(app.jobs.env_canada.get_high_res_model_run_download_urls(
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
@@ -109,7 +109,7 @@ def test_process_hrdps(mock_download, mock_database):
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
     sys.argv = ["argv", "HRDPS"]
-    assert app.weather_models.env_canada.process_models() == 1
+    assert app.jobs.env_canada.process_models() == 1
 
 
 def test_main_fail(mocker: MockerFixture, monkeypatch):
@@ -119,11 +119,11 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     def mock_process_models():
         raise Exception()
 
-    rocket_chat_spy = mocker.spy(app.weather_models.env_canada, 'send_rocketchat_notification')
-    monkeypatch.setattr(app.weather_models.env_canada, 'process_models', mock_process_models)
+    rocket_chat_spy = mocker.spy(app.jobs.env_canada, 'send_rocketchat_notification')
+    monkeypatch.setattr(app.jobs.env_canada, 'process_models', mock_process_models)
 
     with pytest.raises(SystemExit) as excinfo:
-        app.weather_models.env_canada.main()
+        app.jobs.env_canada.main()
 
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_SOFTWARE
