@@ -96,3 +96,4 @@ per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" =
     "E712",
 ] }
 line-length = 185
+ignore = ["E712"]
