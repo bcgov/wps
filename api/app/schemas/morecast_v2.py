@@ -43,8 +43,8 @@ class ForecastedWindDirection(BaseModel):
     choice: ModelChoice
 
 
-class MorecastForecast(BaseModel):
-    """ Forecasted daily """
+class MorecastForecastRequest(BaseModel):
+    """ Forecasted daily request """
     station_code: int
     for_date: int
     temp: ForecastedTemperature
@@ -52,3 +52,8 @@ class MorecastForecast(BaseModel):
     precip: ForecastedPrecip
     wind_speed: ForecastedWindSpeed
     wind_direction: ForecastedWindDirection
+
+
+class MorecastForecastResponse(MorecastForecastRequest):
+    """ Forecasted daily response """
+    update_timestamp: int
