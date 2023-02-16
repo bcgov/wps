@@ -20,7 +20,7 @@ def get_fuel_type_id(fuel_type):
     # Helper function to get fuel_types.id
     conn = op.get_bind()
     if fuel_type == 'M2_25':
-        cursor = conn.execute(f"SELECT id FROM fuel_types WHERE abbrev = 'M2' AND percentage_conifer = 25")
+        cursor = conn.execute("SELECT id FROM fuel_types WHERE abbrev = 'M2' AND percentage_conifer = 25")
     else:
         cursor = conn.execute(f"SELECT id FROM fuel_types WHERE abbrev = '{fuel_type}'")
     result = cursor.fetchall()

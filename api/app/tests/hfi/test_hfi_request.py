@@ -21,7 +21,7 @@ def test_no_new_stations(result_request):
     result = update_result_request(result_request, [])
     assert len(result.planning_area_station_info[1]) == 1
     assert result.planning_area_station_info[1][0].station_code == 230
-    assert result.planning_area_station_info[1][0].selected == False
+    assert result.planning_area_station_info[1][0].selected is False
     assert result.planning_area_station_info[1][0].fuel_type_id == 1
 
 
@@ -41,7 +41,7 @@ def test_existing_station_state(result_request):
     result = update_result_request(result_request, latest_stations)
     assert len(result.planning_area_station_info[1]) == 1
     assert result.planning_area_station_info[1][0].station_code == 230
-    assert result.planning_area_station_info[1][0].selected == False
+    assert result.planning_area_station_info[1][0].selected is False
     assert result.planning_area_station_info[1][0].fuel_type_id == 1
 
 

@@ -1,6 +1,6 @@
 """ CRUD operations relating to HFI Calculator
 """
-from typing import List, Optional
+from typing import List
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, insert, update

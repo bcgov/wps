@@ -1,7 +1,6 @@
 """
 Nats consumer setup for consuming processing messages
 """
-# pylint: skip-file
 import asyncio
 import json
 import datetime

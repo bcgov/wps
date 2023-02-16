@@ -35,12 +35,11 @@ from app.db.crud.hfi_calc import (get_fire_centre_stations,
 logger = logging.getLogger(__name__)
 
 
-def generate_station_daily(raw_daily: dict,  # pylint: disable=too-many-locals
+def generate_station_daily(raw_daily: dict,
                            station: WFWXWeatherStation,
                            fuel_type: FuelTypeModel) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
-    # pylint: disable=invalid-name
     pc = fuel_type.percentage_conifer
     pdf = fuel_type.percentage_dead_fir
     # we use the fuel type lookup to get default values.
@@ -116,7 +115,6 @@ def get_prep_day_dailies(dailies_date: date, area_dailies: List[StationDaily]) -
 async def hydrate_fire_centres():
     """Get detailed fire_centres from db and WFWX"""
 
-    # pylint: disable=too-many-locals, too-many-branches
     with get_read_session_scope() as session:
         # Fetch all fire weather stations from the database.
         station_query = get_fire_weather_stations(session)
@@ -137,7 +135,6 @@ async def hydrate_fire_centres():
                     description=fuel_type_record.description,
                     percentage_conifer=fuel_type_record.percentage_conifer,
                     percentage_dead_fir=fuel_type_record.percentage_dead_fir),
-                # pylint: disable=line-too-long
                 'order_of_appearance_in_planning_area_list': station_record.order_of_appearance_in_planning_area_list,
                 'planning_area': planning_area_record,
                 'fire_centre': fire_centre_record
@@ -189,7 +186,7 @@ async def hydrate_fire_centres():
                 station_info['station'] = weather_station
                 for planning_station in station_info_dict[wfwx_station.code]:
                     existing_station_codes = [
-                        s.code for s in planning_areas_dict[planning_station['planning_area'].id]['station_objects']]  # pylint: disable=line-too-long
+                        s.code for s in planning_areas_dict[planning_station['planning_area'].id]['station_objects']]
 
                     if weather_station.code not in existing_station_codes:
                         planning_areas_dict[planning_station['planning_area'].id]['station_objects'].append(
@@ -229,7 +226,6 @@ async def calculate_latest_hfi_results(
         valid_date_range.start_date).timestamp() * 1000)
     end_timestamp = int(app.utils.time.get_hour_20_from_date(valid_date_range.end_date).timestamp() * 1000)
 
-    # pylint: disable=too-many-locals
     async with ClientSession() as session:
         header = await get_auth_header(session)
         # Fetching dailies is an expensive operation. When a user is clicking and unclicking stations

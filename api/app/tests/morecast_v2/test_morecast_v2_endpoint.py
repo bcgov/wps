@@ -45,7 +45,7 @@ def test_get_forecast_unauthorized(client: TestClient):
 def test_get_forecast_authorized(client: TestClient, monkeypatch: pytest.MonkeyPatch):
     """ forecast role required for persisting a forecast """
 
-    def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
+    def mock_admin_role_function(*_, **__):
         return MockJWTDecodeWithRole('forecaster')
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
@@ -65,7 +65,7 @@ def test_post_forecast_authorized(client: TestClient,
                                   monkeypatch: pytest.MonkeyPatch):
     """ Allowed to post station changes with correct role"""
 
-    def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
+    def mock_admin_role_function(*_, **__):
         return MockJWTDecodeWithRole('forecaster')
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
@@ -78,7 +78,7 @@ def test_post_forecast_authorized_with_body(client: TestClient,
                                             monkeypatch: pytest.MonkeyPatch):
     """ Allowed to post station changes with correct role"""
 
-    def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
+    def mock_admin_role_function(*_, **__):
         return MockJWTDecodeWithRole('forecaster')
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)

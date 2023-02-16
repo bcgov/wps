@@ -33,8 +33,8 @@ import app.utils.time as time_utils
 from app.utils.redis import create_redis
 from app.stations import get_stations_synchronously
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
-from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
+from app.db.models.weather_models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
+                                          WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
 from app.rocketchat_notifications import send_rocketchat_notification
 
@@ -110,7 +110,6 @@ def parse_env_canada_filename(filename):
     """ Take a grib filename, as per file name nomenclature defined at
     https://weather.gc.ca/grib/grib2_glb_25km_e.html, and parse into a meaningful object.
     """
-    # pylint: disable=too-many-locals
     base = os.path.basename(filename)
     parts = base.split('_')
     model = parts[1]
@@ -185,7 +184,6 @@ def get_global_model_run_download_urls(now: datetime.datetime,
 
     # hh: model run start, in UTC [00, 12]
     # hhh: prediction hour [000, 003, 006, ..., 240]
-    # pylint: disable=invalid-name
     hh = f"{model_run_hour:02d}"
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
     for h in range(0, 241, 3):
@@ -203,7 +201,6 @@ def get_global_model_run_download_urls(now: datetime.datetime,
 
 def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
     """ Yield urls to download HRDPS (high-res) model runs """
-    # pylint: disable=invalid-name
     hh = f"{hour:02d}"
     # For the high-res model, predictions are at 1 hour intervals up to 48 hours.
     for h in range(0, 49):
@@ -221,7 +218,6 @@ def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> G
 
 def get_regional_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
     """ Yield urls to download RDPS model runs """
-    # pylint: disable=invalid-name
     hh = f"{hour:02d}"
     # For the RDPS model, predictions are at 1 hour intervals up to 84 hours.
     for h in range(0, 85):
@@ -258,7 +254,7 @@ def download(url: str, path: str) -> str:
         cache = create_redis()
         try:
             cached_object = cache.get(url)
-        except Exception as error:  # pylint: disable=broad-except
+        except Exception as error:
             cached_object = None
             logger.error(error)
     else:
@@ -350,14 +346,12 @@ def flag_file_as_processed(url: str, session: Session):
             url=url,
             create_date=time_utils.get_utc_now())
     processed_file.update_date = time_utils.get_utc_now()
-    # pylint: disable=no-member
     session.add(processed_file)
     session.commit()
 
 
 def check_if_model_run_complete(session: Session, urls):
     """ Check if a particular model run is complete """
-    # pylint: disable=no-member
     actual_count = get_processed_file_count(session, urls)
     expected_count = len(urls)
     logger.info('we have processed %s/%s files',
@@ -370,7 +364,6 @@ class EnvCanada():
     Canada.
     """
 
-    # pylint: disable=too-many-instance-attributes
     def __init__(self, model_type: ModelEnum):
         """ Prep variables """
         self.files_downloaded = 0
@@ -421,7 +414,6 @@ class EnvCanada():
                                 finally:
                                     # delete the file when done.
                                     os.remove(downloaded)
-            # pylint: disable=broad-except
             except Exception as exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
@@ -432,7 +424,6 @@ class EnvCanada():
 
     def process_model_run(self, model_run_hour):
         """ Process a particular model run """
-        # pylint: disable=consider-using-f-string
         logger.info('Processing {} model run {:02d}'.format(
             self.model_type, model_run_hour))
 
@@ -445,7 +436,6 @@ class EnvCanada():
         # Having completed processing, check if we're all done.
         with app.db.database.get_write_session_scope() as session:
             if check_if_model_run_complete(session, urls):
-                # pylint: disable=consider-using-f-string
                 logger.info(
                     '{} model run {:02d}:00 completed with SUCCESS'.format(self.model_type, model_run_hour))
 
@@ -457,7 +447,6 @@ class EnvCanada():
         for hour in get_model_run_hours(self.model_type):
             try:
                 self.process_model_run(hour)
-            # pylint: disable=broad-except
             except Exception as exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
@@ -494,7 +483,7 @@ class ModelValueProcessor:
         self.session.commit()
         logger.info('done commit.')
 
-    def _process_prediction(self,  # pylint: disable=too-many-arguments
+    def _process_prediction(self,
                             prediction: ModelRunGridSubsetPrediction,
                             station: WeatherStation,
                             model_run: PredictionModelRunTimestamp,
@@ -570,8 +559,7 @@ class ModelValueProcessor:
                 points, prediction.apcp_sfc_0, coordinate, method='linear')[0]
         # Calculate the delta_precipitation based on station's previous prediction_timestamp
         # for the same model run
-        # For some reason pylint doesn't think session has a flush!
-        self.session.flush()  # pylint: disable=no-member
+        self.session.flush()
         station_prediction.delta_precip = self._calculate_delta_precip(
             station, model_run, prediction, station_prediction)
 
@@ -631,7 +619,6 @@ class ModelValueProcessor:
             # Convert the grid database object to a polygon object.
             poly = to_shape(grid.geom)
             # Extract the vertices of the polygon.
-            # pylint: disable=no-member
             points = list(poly.exterior.coords)[:-1]
 
             machine = StationMachineLearning(
@@ -741,7 +728,7 @@ def main():
     except CompletedWithSomeExceptions:
         logger.warning('completed processing with some exceptions')
         sys.exit(os.EX_SOFTWARE)
-    except Exception as exception:  # pylint: disable=broad-except
+    except Exception as exception:
         # We catch and log any exceptions we may have missed.
         logger.error('unexpected exception processing', exc_info=exception)
         rc_message = f':poop: Encountered error retrieving {sys.argv[1]} model data from Env Canada'

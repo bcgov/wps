@@ -2,7 +2,6 @@
 """
 from typing import IO, Any, Callable, Optional, Tuple
 import os
-import sys
 import datetime
 import json
 import importlib

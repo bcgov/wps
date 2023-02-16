@@ -145,7 +145,6 @@ def make_model_run_download_urls(model: ModelEnum,
     # hh: model run start, in UTC [00, 12]
     # hhh: prediction hour [000, 003, 006, ..., 240]
     levels: Final = make_model_levels(model)
-    # pylint: disable=invalid-name
     hh = f'{model_run_hour:02d}'
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
     hhh = format(prediction_hour, '03d')

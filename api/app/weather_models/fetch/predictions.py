@@ -10,7 +10,7 @@ import app.db.database
 from app.schemas.weather_models import (WeatherModelPredictionValues, WeatherModelRun,
                                         ModelRunPredictions,
                                         WeatherStationModelRunsPredictions)
-from app.db.models import WeatherStationModelPrediction
+from app.db.models.weather_models import WeatherStationModelPrediction
 from app.db.crud.weather_models import (get_station_model_predictions,
                                         get_station_model_prediction_from_previous_model_run)
 import app.stations

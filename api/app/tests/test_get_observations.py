@@ -42,7 +42,6 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx: bool, mock_redis_
         result.set_result(stations)
         return result
 
-    # pylint: disable=unused-argument
     def mock_get_hourly_actuals(
             session: Session,
             station_codes: List[int],
@@ -58,13 +57,13 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx: bool, mock_redis_
     class MockRedis():
         """ Mock class"""
 
-        def get(self, *args, **kwargs):  # pylint: disable=unused-argument
+        def get(self, *args, **kwargs):
             """ Mock function """
             if mock_redis_exception:
                 raise Exception('explode')
             return {}
 
-        def set(self, *args, **kwargs):  # pylint: disable=unused-argument
+        def set(self, *args, **kwargs):
             """ Mock function """
             if mock_redis_exception:
                 raise Exception('explode')

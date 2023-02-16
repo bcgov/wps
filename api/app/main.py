@@ -131,7 +131,7 @@ async def get_health():
 
         # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
         cffdrs_start = perf_counter()
-        CFFDRS.instance()  # pylint: disable=no-member
+        CFFDRS.instance()
         cffdrs_end = perf_counter()
         delta = cffdrs_end - cffdrs_start
         # Any delta below 100 milliseconds is just noise in the logs.
