@@ -62,7 +62,7 @@ async def get_model_values_for_date_range(
     start_time = datetime.combine(start_date, time.min)
     end_time = datetime.combine(end_date, time.max)
 
-    station_predictions = await fetch_model_run_predictions_by_station_code_and_date_range(
+    station_predictions = fetch_model_run_predictions_by_station_code_and_date_range(
         model, request.stations, start_time, end_time)
 
     return WeatherStationsModelRunsPredictionsResponse(
