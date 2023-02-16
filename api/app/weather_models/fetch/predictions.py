@@ -53,7 +53,7 @@ async def fetch_model_run_predictions_by_station_code(
     # We're interested in the 5 days prior to and 10 days following the time_of_interest.
     start_date = time_of_interest - datetime.timedelta(days=5)
     end_date = time_of_interest + datetime.timedelta(days=10)
-    return fetch_model_run_predictions_by_station_code_and_date_range(model, station_codes, start_date, end_date)
+    return await fetch_model_run_predictions_by_station_code_and_date_range(model, station_codes, start_date, end_date)
 
 
 async def fetch_model_run_predictions_by_station_code_and_date_range(
