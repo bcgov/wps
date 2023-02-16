@@ -19,7 +19,7 @@ def test_post_forecast_unauthorized_date_range(client: TestClient, monkeypatch: 
     """ requests model date by user and date range unauthorized """
 
     monkeypatch.setattr(app.routers.weather_models,
-                        'fetch_model_run_predictions_by_station_code_and_date_range', lambda *_: [])
+                        'fetch_latest_daily_model_run_predictions_by_station_code_and_date_range', lambda *_: [])
 
     for model in ModelEnum:
         weather_models_post_url = f'/api/weather_models/{model.value}/predictions/most_recent/2022-09-01/2022-09-02'
@@ -32,7 +32,7 @@ def test_post_forecast_authorized_date_range(client: TestClient, monkeypatch: py
     """ requests model date by user and date range authorized """
 
     monkeypatch.setattr(app.routers.weather_models,
-                        'fetch_model_run_predictions_by_station_code_and_date_range', lambda *_: [])
+                        'fetch_latest_daily_model_run_predictions_by_station_code_and_date_range', lambda *_: [])
 
     for model in ModelEnum:
         weather_models_post_url = f'/api/weather_models/{model.value}/predictions/most_recent/2022-09-01/2022-09-02'

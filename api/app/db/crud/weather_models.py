@@ -3,7 +3,7 @@
 import logging
 import datetime
 from typing import List, Union
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from sqlalchemy.orm import Session
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models.weather_models import (
@@ -238,6 +238,27 @@ def get_station_model_predictions(
         order_by(WeatherStationModelPrediction.station_code).\
         order_by(WeatherStationModelPrediction.prediction_timestamp).\
         order_by(PredictionModelRunTimestamp.prediction_run_timestamp.asc())
+    return query
+
+
+def get_latest_station_model_prediction_per_day(session: Session,
+                                                station_codes: List,
+                                                model: str,
+                                                start_date: datetime.datetime,
+                                                end_date: datetime.datetime):
+
+    query = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
+        filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
+        filter(WeatherStationModelPrediction.prediction_timestamp >= start_date).\
+        filter(WeatherStationModelPrediction.prediction_timestamp <= end_date).\
+        filter(PredictionModelRunTimestamp.id ==
+               WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
+        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
+               PredictionModel.abbreviation == model).\
+        order_by(WeatherStationModelPrediction.station_code).\
+        order_by(WeatherStationModelPrediction.prediction_timestamp).\
+        group_by(func.date(WeatherStationModelPrediction.prediction_timestamp)).\
+        having(func.max(PredictionModelRunTimestamp.prediction_run_timestamp))
     return query
 
 
