@@ -27,15 +27,11 @@ router = APIRouter(
 async def get_model_prediction_summaries(
         model: ModelEnum, request: WeatherDataRequest):
     """ Returns a summary of predictions for a given model. """
-    try:
-        logger.info('/weather_models/%s/predictions/summaries/', model.name)
+    logger.info('/weather_models/%s/predictions/summaries/', model.name)
 
-        summaries = await fetch_model_prediction_summaries(model, request.stations, request.time_of_interest)
+    summaries = await fetch_model_prediction_summaries(model, request.stations, request.time_of_interest)
 
-        return WeatherModelPredictionSummaryResponse(summaries=summaries)
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
+    return WeatherModelPredictionSummaryResponse(summaries=summaries)
 
 
 @router.post('/{model}/predictions/most_recent/',
@@ -45,17 +41,13 @@ async def get_most_recent_model_values(
     """ Returns the weather values for the last model prediction that was issued
     for the station before actual weather readings became available.
     """
-    try:
-        logger.info('/weather_models/%s/predictions/most_recent/', model.name)
+    logger.info('/weather_models/%s/predictions/most_recent/', model.name)
 
-        station_predictions = await fetch_model_run_predictions_by_station_code(
-            model, request.stations, request.time_of_interest)
+    station_predictions = await fetch_model_run_predictions_by_station_code(
+        model, request.stations, request.time_of_interest)
 
-        return WeatherStationsModelRunsPredictionsResponse(
-            stations=station_predictions)
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
+    return WeatherStationsModelRunsPredictionsResponse(
+        stations=station_predictions)
 
 
 @router.post('/{model}/predictions/most_recent/{start_date}/{end_date}',
