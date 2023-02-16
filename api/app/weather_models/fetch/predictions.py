@@ -53,11 +53,21 @@ async def fetch_model_run_predictions_by_station_code(
     # We're interested in the 5 days prior to and 10 days following the time_of_interest.
     start_date = time_of_interest - datetime.timedelta(days=5)
     end_date = time_of_interest + datetime.timedelta(days=10)
+    return fetch_model_run_predictions_by_station_code_and_date_range(model, station_codes, start_date, end_date)
 
+
+async def fetch_model_run_predictions_by_station_code_and_date_range(
+        model: ModelEnum,
+        station_codes: List[int],
+        start_time: datetime.datetime,
+        end_time: datetime.datetime) -> List[WeatherStationModelRunsPredictions]:
+    """ Fetch model predictions from database based on list of station codes and date range.
+    Predictions are grouped by station and model run.
+    """
     # send the query (ordered by prediction date.)
     with app.db.database.get_read_session_scope() as session:
         historic_predictions = get_station_model_predictions(
-            session, station_codes, model, start_date, end_date)
+            session, station_codes, model, start_time, end_time)
 
         # Helper dictionary.
         station_predictions = defaultdict(dict)
