@@ -39,7 +39,7 @@ async def get_forecast(for_date: date,
 
 
 @router.post("/forecast", status_code=status.HTTP_201_CREATED)
-async def save_forecast(forecasts: List[MorecastForecastRequest],
+async def save_forecasts(forecasts: List[MorecastForecastRequest],
                         response: Response,
                         token=Depends(auth_with_forecaster_role_required)) -> List[MorecastForecastResponse]:
     """ Persist a forecast """
