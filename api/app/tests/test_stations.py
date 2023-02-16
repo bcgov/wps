@@ -64,7 +64,7 @@ def minimum_200_active_weather_stations(response):
 
 @then(parsers.parse("there is a station with {code}, {name}, {lat} and {long}"),
       converters=dict(code=int, name=str, lat=float, long=float))
-def there_is_a_station(response, code, name, lat, long):  # pylint: disable=too-many-arguments
+def there_is_a_station(response, code, name, lat, long):
     """ We expect a station to have a code, name, lat and long. """
     station = next(x for x in response['response'].json()['features'] if x['properties']['code'] == code)
 

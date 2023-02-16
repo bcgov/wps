@@ -5,7 +5,7 @@ from sqlalchemy import (Boolean, Column, Integer,
                         Sequence, ForeignKey, UniqueConstraint, Index)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql.sqltypes import String, Date, JSON
-from app.db.database import Base
+from app.db.models import Base
 from app.db.models.common import TZTimeStamp
 
 

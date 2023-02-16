@@ -1,4 +1,4 @@
-from app.auto_spatial_advisory.sfms import get_prefix, is_hfi_file
+from app.auto_spatial_advisory.sfms import is_hfi_file
 
 
 def test_is_hfi_file():

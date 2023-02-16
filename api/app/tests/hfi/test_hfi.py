@@ -135,7 +135,7 @@ def test_calculate_mean_intensity_basic():
 def test_calculate_mean_intensity_empty():
     """ Calculates mean intensity with empty list """
     result = calculate_mean_intensity([], 0)
-    assert result == None
+    assert result is None
 
 
 def test_calculate_mean_intensity_round_down():
@@ -190,7 +190,7 @@ def test_max_mean_intensity_basic():
 def test_max_mean_intensity_empty():
     """ Calculates max mean intensity with empty list """
     result = calculate_max_intensity_group([])
-    assert result == None
+    assert result is None
 
 
 def test_max_mean_intensity_with_none():
@@ -201,7 +201,7 @@ def test_max_mean_intensity_with_none():
 
 def test_calculate_prep_level_empty():
     """ Calculates prep level of empty case """
-    assert calculate_prep_level(None, FireStartRange(id=1, label='blah'), None) == None
+    assert calculate_prep_level(None, FireStartRange(id=1, label="blah"), None) is None
 
 
 def test_valid_daily():
@@ -217,7 +217,7 @@ def test_valid_daily():
         intensity_group=1
     )
     result = validate_station_daily(daily)
-    assert result.valid == True
+    assert result.valid is True
 
 
 def test_valid_daily():
@@ -236,7 +236,7 @@ def test_valid_daily():
         daily = StationDaily(**base_daily.__dict__)
         setattr(daily, field, None)
         result = validate_station_daily(daily)
-        assert result.valid == False
+        assert result.valid is False
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")

@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class WFWXWeatherStation():
     """ A WFWX station includes a code and WFWX API specific id """
 
-    def __init__(self,  # pylint: disable=too-many-arguments
+    def __init__(self,
                  wfwx_id: str, code: int, latitude: float, longitude: float, elevation: int,
                  name: str, zone_code: Optional[str]):
         self.wfwx_id = wfwx_id
@@ -107,7 +107,6 @@ def construct_zone_code(station: any):
 def parse_station(station, eco_division: EcodivisionSeasons) -> WeatherStation:
     """ Transform from the json object returned by wf1, to our station object.
     """
-    # pylint: disable=no-member
     core_seasons = eco_division.get_core_seasons()
     ecodiv_name = eco_division.get_ecodivision_name(station['stationCode'],
                                                     station['latitude'],

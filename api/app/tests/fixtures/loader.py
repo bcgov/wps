@@ -3,7 +3,7 @@ import os
 from collections import defaultdict
 import json
 import logging
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlsplit
 from pathlib import Path
 from app import config
 

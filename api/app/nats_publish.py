@@ -22,7 +22,7 @@ async def _publish(stream: str, subject: str, payload: BaseModel, subjects: List
     try:
         # connect to nats server.
         logger.info("Connecting to NATS server %s...", server)
-        connection = await nats.connect(server)  # pylint: disable=no-member
+        connection = await nats.connect(server)
         # we need to use a jetstream, so that we have a message context.
         logger.info('Creating JetStream context...')
         jetstream = connection.jetstream()
@@ -38,7 +38,7 @@ async def _publish(stream: str, subject: str, payload: BaseModel, subjects: List
         logger.info("Ack: stream=%s, sequence=%s", ack.stream, ack.seq)
         await connection.flush()
         await connection.close()
-    except Exception as exception:  # pylint: disable=broad-except
+    except Exception as exception:
         logger.error(exception, exc_info=True)
 
 

@@ -164,7 +164,7 @@ def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):
             "Returns the mock decoded token"
             return self.decoded_token
 
-    def mock_fire_start_role_function(*args, **kwargs):  # pylint: disable=unused-argument
+    def mock_fire_start_role_function(*args, **kwargs):
         return MockJWTDecodeWithRole(role)
 
     if (role != 'None'):

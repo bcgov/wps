@@ -15,8 +15,8 @@ import app.db.database
 import app.db.crud.weather_models
 import app.weather_models.env_canada
 import app.weather_models.process_grib
-from app.db.models import (PredictionModel, ProcessedModelRunUrl,
-                           PredictionModelRunTimestamp, PredictionModelGridSubset)
+from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
+                                          PredictionModelRunTimestamp, PredictionModelGridSubset)
 from app.tests.weather_models.test_env_canada_gdps import MockResponse
 
 
