@@ -3,32 +3,20 @@
 import os
 import sys
 import datetime
-from typing import Generator, List
+from typing import Generator
 import logging
 import tempfile
-from scipy.interpolate import griddata
-from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
 from app.db.crud.weather_models import (get_processed_file_record,
-                                        get_prediction_model_run_timestamp_records,
-                                        get_model_run_predictions_for_grid,
-                                        get_grids_for_coordinate,
-                                        get_weather_station_model_prediction,
-                                        delete_model_run_grid_subset_predictions,
                                         get_prediction_model,
                                         get_prediction_run,
                                         update_prediction_run)
-from app.jobs.common_model_fetchers import (CompletedWithSomeExceptions, ModelValueProcessor, apply_data_retention_policy, check_if_model_run_complete,
-                                            download, flag_file_as_processed, get_closest_index)
-from app.weather_models.machine_learning import StationMachineLearning
-from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
-from app.schemas.stations import WeatherStation
+from app.jobs.common_model_fetchers import (CompletedWithSomeExceptions, ModelValueProcessor,
+                                            apply_data_retention_policy, check_if_model_run_complete,
+                                            download, flag_file_as_processed)
 from app import configure_logging
 import app.utils.time as time_utils
-from app.stations import get_stations_synchronously
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
-from app.db.models import (PredictionModelRunTimestamp,
-                           WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
 from app.rocketchat_notifications import send_rocketchat_notification
 

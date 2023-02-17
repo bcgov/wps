@@ -4,33 +4,22 @@ https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5b
 import os
 import sys
 import datetime
-from typing import Generator, List
+from typing import Generator
 from urllib.parse import urlparse
 import logging
 import tempfile
-from scipy.interpolate import griddata
-from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
 from app.db.crud.weather_models import (get_processed_file_record,
-                                        get_prediction_model_run_timestamp_records,
-                                        get_model_run_predictions_for_grid,
-                                        get_grids_for_coordinate,
-                                        get_weather_station_model_prediction,
-                                        delete_model_run_grid_subset_predictions,
                                         get_prediction_model,
                                         get_prediction_run,
                                         update_prediction_run)
-from app.jobs.common_model_fetchers import (CompletedWithSomeExceptions, ModelValueProcessor, UnhandledPredictionModelType, apply_data_retention_policy,
-                                            check_if_model_run_complete, download, flag_file_as_processed, get_closest_index)
-from app.weather_models.machine_learning import StationMachineLearning
-from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
-from app.schemas.stations import WeatherStation
+from app.jobs.common_model_fetchers import (CompletedWithSomeExceptions, ModelValueProcessor, UnhandledPredictionModelType,
+                                            apply_data_retention_policy,
+                                            check_if_model_run_complete, download, flag_file_as_processed)
+from app.weather_models import ModelEnum, ProjectionEnum
 from app import configure_logging
 import app.utils.time as time_utils
-from app.stations import get_stations_synchronously
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
-from app.db.models import (PredictionModelRunTimestamp,
-                           WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
 from app.rocketchat_notifications import send_rocketchat_notification
 
@@ -98,7 +87,6 @@ def parse_env_canada_filename(filename):
     """ Take a grib filename, as per file name nomenclature defined at
     https://weather.gc.ca/grib/grib2_glb_25km_e.html, and parse into a meaningful object.
     """
-    # pylint: disable=too-many-locals
     base = os.path.basename(filename)
     parts = base.split('_')
     model = parts[1]
@@ -173,7 +161,6 @@ def get_global_model_run_download_urls(now: datetime.datetime,
 
     # hh: model run start, in UTC [00, 12]
     # hhh: prediction hour [000, 003, 006, ..., 240]
-    # pylint: disable=invalid-name
     hh = f"{model_run_hour:02d}"
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
     for h in range(0, 241, 3):
@@ -191,7 +178,6 @@ def get_global_model_run_download_urls(now: datetime.datetime,
 
 def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
     """ Yield urls to download HRDPS (high-res) model runs """
-    # pylint: disable=invalid-name
     hh = f"{hour:02d}"
     # For the high-res model, predictions are at 1 hour intervals up to 48 hours.
     for h in range(0, 49):
@@ -209,7 +195,6 @@ def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> G
 
 def get_regional_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
     """ Yield urls to download RDPS model runs """
-    # pylint: disable=invalid-name
     hh = f"{hour:02d}"
     # For the RDPS model, predictions are at 1 hour intervals up to 84 hours.
     for h in range(0, 85):
@@ -257,7 +242,6 @@ class EnvCanada():
     Canada.
     """
 
-    # pylint: disable=too-many-instance-attributes
     def __init__(self, model_type: ModelEnum):
         """ Prep variables """
         self.files_downloaded = 0
@@ -309,7 +293,6 @@ class EnvCanada():
                                 finally:
                                     # delete the file when done.
                                     os.remove(downloaded)
-            # pylint: disable=broad-except
             except Exception as exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
@@ -320,7 +303,6 @@ class EnvCanada():
 
     def process_model_run(self, model_run_hour):
         """ Process a particular model run """
-        # pylint: disable=consider-using-f-string
         logger.info('Processing {} model run {:02d}'.format(
             self.model_type, model_run_hour))
 
@@ -333,7 +315,6 @@ class EnvCanada():
         # Having completed processing, check if we're all done.
         with app.db.database.get_write_session_scope() as session:
             if check_if_model_run_complete(session, urls):
-                # pylint: disable=consider-using-f-string
                 logger.info(
                     '{} model run {:02d}:00 completed with SUCCESS'.format(self.model_type, model_run_hour))
 
@@ -345,7 +326,6 @@ class EnvCanada():
         for hour in get_model_run_hours(self.model_type):
             try:
                 self.process_model_run(hour)
-            # pylint: disable=broad-except
             except Exception as exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
@@ -397,7 +377,7 @@ def main():
     except CompletedWithSomeExceptions:
         logger.warning('completed processing with some exceptions')
         sys.exit(os.EX_SOFTWARE)
-    except Exception as exception:  # pylint: disable=broad-except
+    except Exception as exception:
         # We catch and log any exceptions we may have missed.
         logger.error('unexpected exception processing', exc_info=exception)
         rc_message = f':poop: Encountered error retrieving {sys.argv[1]} model data from Env Canada'
