@@ -9,57 +9,57 @@ import { parseModelsForStationsHelper } from 'features/moreCast2/slices/parseMod
 interface State {
   loading: boolean
   error: string | null
-  stationPredictionsHRDPS: ModelsForStation[]
+  stationPredictions: ModelsForStation[]
   stationPredictionsAsNextCastForecastRows: NextCastForecastRow[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  stationPredictionsHRDPS: [],
+  stationPredictions: [],
   stationPredictionsAsNextCastForecastRows: []
 }
 
-const HRDPSSlice = createSlice({
-  name: 'HRDPSStationPredictions',
+const modelSlice = createSlice({
+  name: 'ModelSlice',
   initialState,
   reducers: {
-    getHRDPSStationPredictionsStart(state: State) {
+    getModelStationPredictionsStart(state: State) {
       state.error = null
-      state.stationPredictionsHRDPS = []
+      state.stationPredictions = []
       state.stationPredictionsAsNextCastForecastRows = []
       state.loading = true
     },
-    getHRDPSStationPredictionsFailed(state: State, action: PayloadAction<string>) {
+    getModelStationPredictionsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getHRDPSStationPredictionsSuccess(state: State, action: PayloadAction<ModelsForStation[]>) {
+    getModelStationPredictionsSuccess(state: State, action: PayloadAction<ModelsForStation[]>) {
       state.error = null
-      state.stationPredictionsHRDPS = action.payload
+      state.stationPredictions = action.payload
       state.stationPredictionsAsNextCastForecastRows = parseModelsForStationsHelper(action.payload)
       state.loading = false
     }
   }
 })
 
-export const { getHRDPSStationPredictionsStart, getHRDPSStationPredictionsFailed, getHRDPSStationPredictionsSuccess } =
-  HRDPSSlice.actions
+export const { getModelStationPredictionsStart, getModelStationPredictionsFailed, getModelStationPredictionsSuccess } =
+  modelSlice.actions
 
-export default HRDPSSlice.reducer
+export default modelSlice.reducer
 
-export const getHRDPSStationPredictions =
+export const getModelStationPredictions =
   (stationCodes: number[], model: ModelType, fromDate: number, toDate: number): AppThunk =>
   async dispatch => {
     try {
-      dispatch(getHRDPSStationPredictionsStart())
+      dispatch(getModelStationPredictionsStart())
       let stationPredictions: ModelsForStation[] = []
       if (stationCodes.length) {
         stationPredictions = await getModelPredictions(stationCodes, model, fromDate, toDate)
       }
-      dispatch(getHRDPSStationPredictionsSuccess(stationPredictions))
+      dispatch(getModelStationPredictionsSuccess(stationPredictions))
     } catch (err) {
-      dispatch(getHRDPSStationPredictionsFailed((err as Error).toString()))
+      dispatch(getModelStationPredictionsFailed((err as Error).toString()))
       logError(err)
     }
   }

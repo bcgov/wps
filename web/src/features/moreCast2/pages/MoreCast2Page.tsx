@@ -16,7 +16,7 @@ import NextCastDataGrid from 'features/moreCast2/components/NextCastDataGrid'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { NextCastForecastRow } from 'features/moreCast2/interfaces'
-import { getHRDPSStationPredictions } from 'features/moreCast2/slices/HRDPSSlice'
+import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -69,11 +69,7 @@ const MoreCast2Page = () => {
 
   const fetchStationPredictions = (model: ModelType) => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
-    switch (model) {
-      case ModelChoice.HRDPS: {
-        dispatch(getHRDPSStationPredictions(stationCodes, model, fromDate.toMillis(), toDate.toMillis()))
-      }
-    }
+    dispatch(getModelStationPredictions(stationCodes, model, fromDate.toMillis(), toDate.toMillis()))
   }
 
   useEffect(() => {
