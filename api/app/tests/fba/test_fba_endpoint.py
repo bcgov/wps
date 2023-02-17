@@ -9,19 +9,19 @@ get_fire_zone_areas_url = '/api/fba/fire-zone-areas/forecast/2022-09-27/2022-09-
 decode_fn = "jwt.decode"
 
 
-async def mock_get_fire_centres(*_, **__):  # pylint: disable=unused-argument
+async def mock_get_fire_centres(*_, **__):
     return []
 
 
-async def mock_get_hfi_area(*_, **__):  # pylint: disable=unused-argument
+async def mock_get_hfi_area(*_, **__):
     return []
 
 
-async def mock_get_auth_header(*_, **__):  # pylint: disable=unused-argument
+async def mock_get_auth_header(*_, **__):
     return {}
 
 
-def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
+def mock_admin_role_function(*_, **__):
     return MockJWTDecodeWithRole('hfi_station_admin')
 
 

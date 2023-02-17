@@ -1,9 +1,9 @@
 ## Coding conventions
 
 Code must be [PEP8](https://www.python.org/dev/peps/pep-0008/) compliant with the exception of allowing for line lengths up to 110 characters.
-Compliance is enforced using [Pylint](https://www.pylint.org/) and a [.pylintrc](.pylintrc) file.
+Compliance is enforced using [ruff](https://beta.ruff.rs/docs/)
 
-Run pylint to check that your code conforms before pushing code to the repository:
+Run ruff to check that your code conforms before pushing code to the repository:
 
 ```bash
 make lint

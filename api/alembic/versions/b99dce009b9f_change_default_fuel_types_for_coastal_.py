@@ -80,7 +80,7 @@ stations_to_update = [
 
 def get_m2_25_fuel_type_id(session: Session):
     res = session.query(fuel_types_table) \
-        .filter(fuel_types_table.c.abbrev.ilike(f'M2 25%'))
+        .filter(fuel_types_table.c.abbrev.ilike('M2 25%'))
     return int(res.first().id)
 
 

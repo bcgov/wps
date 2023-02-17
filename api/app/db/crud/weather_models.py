@@ -6,7 +6,7 @@ from typing import List, Union
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.weather_models import ModelEnum, ProjectionEnum
-from app.db.models import (
+from app.db.models.weather_models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
     ModelRunGridSubsetPrediction, WeatherStationModelPrediction)
 import app.utils.time as time_utils

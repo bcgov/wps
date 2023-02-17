@@ -19,7 +19,6 @@ postgres = "^4"
 python-decouple = "^3"
 uvicorn = "^0"
 geopandas = "^0"
-pylint = "^2"
 alembic = "^1"
 requests_ntlm = "^1"
 scipy = "^1"
@@ -58,7 +57,39 @@ rope = "^1"
 jsonpickle = "^3.0.0"
 pytest-watch = "^4.2.0"
 pytest-testmon = "^1.2.3"
+ruff = "^0.0.246"
 
 [build-system]
 requires = ["poetry>=1.1.11"]
 build-backend = "poetry.masonry.api"
+
+[tool.ruff]
+per-file-ignores = { "alembic/versions/00df3c7b5cba_rethink_classification.py" = [
+    "E501",
+], "alembic/versions/39806f02cdec_wfwx_update_date_part_of_unique_.py" = [
+    "E501",
+], "alembic/versions/56916d46d8cb_high_hfi_area.py" = [
+    "E501",
+], "alembic/versions/ac65354014bd_remove_bear_lake_station.py" = [
+    "E501",
+], "app/auto_spatial_advisory/db/database/tileserver.py" = [
+    "E501",
+], "app/tests/fba_calc/test_fba_error.py" = [
+    "E501",
+], "app/tests/hfi/test_hfi.py" = [
+    "F811",
+], "app/auto_spatial_advisory/nats_consumer.py" = [
+    "F811",
+], "app/tests/hfi/test_pdf_formatter.py" = [
+    "F811",
+], "app/tests/hfi/test_pdf_generator.py" = [
+    "F811",
+], "app/tests/weather_models/test_env_canada_gdps.py" = [
+    "F811",
+], "app/db/models/__init__.py" = [
+    "F401",
+    "E402",
+    "F811",
+] }
+line-length = 185
+ignore = ["E712"]

@@ -52,7 +52,7 @@ async def process_elevation(source_path: str, run_type: RunType, run_datetime: d
     perf_end = perf_counter()
     delta = perf_end - perf_start
     logger.info('%f delta count before and after processing elevation stats', delta)
-    global DEM_GDAL_SOURCE  # pylint: disable=global-statement
+    global DEM_GDAL_SOURCE
     DEM_GDAL_SOURCE = None
 
 
@@ -67,7 +67,7 @@ async def prepare_dem():
         mem_path = '/vsimem/dem.tif'
         data = await dem['Body'].read()
         gdal.FileFromMemBuffer(mem_path, data)
-        global DEM_GDAL_SOURCE  # pylint: disable=global-statement
+        global DEM_GDAL_SOURCE
         DEM_GDAL_SOURCE = gdal.Open(mem_path, gdal.GA_ReadOnly)
         gdal.Unlink(mem_path)
 

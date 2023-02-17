@@ -2,7 +2,7 @@ import enum
 from sqlalchemy import (Integer, Date, String, Float, Column, Index, ForeignKey, Enum, UniqueConstraint)
 from app.db.models.common import TZTimeStamp
 from geoalchemy2 import Geometry
-from app.db.database import Base
+from app.db.models import Base
 from app.geospatial import NAD83_BC_ALBERS
 from sqlalchemy.dialects import postgresql
 

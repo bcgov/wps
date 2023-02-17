@@ -187,8 +187,7 @@ make run
 will execute:
 
 ```bash
-poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
-poetry run python -m pytest -n 3 app;
+poetry run ruff .
 cd app; \
 poetry run uvicorn main:app --reload --port 8080;
 ```
@@ -267,7 +266,7 @@ poetry run python -m pip install --upgrade setuptools
 The following is a list of required software applications and packages. Some of these can be installed automatically using the `setup/mac.sh` script.
 
 - VS Code (technically there are other options, but this is arguably the best)
-    - using the "Python: select interpreter" command within VS Code, select the `pyenv` Python installation
+  - using the "Python: select interpreter" command within VS Code, select the `pyenv` Python installation
 - Git CLI
 - GitHub CLI
 - Openshift CLI

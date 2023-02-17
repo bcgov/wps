@@ -1,10 +1,7 @@
 import os
-import sys
 import datetime
-from typing import Generator, List
-from urllib.parse import urlparse
+from typing import List
 import logging
-import tempfile
 import requests
 import numpy
 from pyproj import Geod
@@ -17,22 +14,17 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_model_run_predictions_for_grid,
                                         get_grids_for_coordinate,
                                         get_weather_station_model_prediction,
-                                        delete_model_run_grid_subset_predictions,
-                                        get_prediction_model,
-                                        get_prediction_run,
-                                        update_prediction_run)
+                                        delete_model_run_grid_subset_predictions)
 from app.weather_models.machine_learning import StationMachineLearning
-from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
+from app.weather_models import ModelEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
 from app import config, configure_logging
 import app.utils.time as time_utils
 from app.utils.redis import create_redis
 from app.stations import get_stations_synchronously
-from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
-from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
+from app.db.models.weather_models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
+                                          WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
-from app.rocketchat_notifications import send_rocketchat_notification
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -70,7 +62,7 @@ def download(url: str, path: str, config_cache_var: str, config_cache_expiry_var
         cache = create_redis()
         try:
             cached_object = cache.get(url)
-        except Exception as error:  # pylint: disable=broad-except
+        except Exception as error:
             cached_object = None
             logger.error(error)
     else:
@@ -135,14 +127,12 @@ def flag_file_as_processed(url: str, session: Session):
             url=url,
             create_date=time_utils.get_utc_now())
     processed_file.update_date = time_utils.get_utc_now()
-    # pylint: disable=no-member
     session.add(processed_file)
     session.commit()
 
 
 def check_if_model_run_complete(session: Session, urls):
     """ Check if a particular model run is complete """
-    # pylint: disable=no-member
     actual_count = get_processed_file_count(session, urls)
     expected_count = len(urls)
     logger.info('we have processed %s/%s files',
@@ -192,7 +182,7 @@ class ModelValueProcessor:
         self.session.commit()
         logger.info('done commit.')
 
-    def _process_prediction(self,  # pylint: disable=too-many-arguments
+    def _process_prediction(self,
                             prediction: ModelRunGridSubsetPrediction,
                             station: WeatherStation,
                             model_run: PredictionModelRunTimestamp,
@@ -268,8 +258,7 @@ class ModelValueProcessor:
                 points, prediction.apcp_sfc_0, coordinate, method='linear')[0]
         # Calculate the delta_precipitation based on station's previous prediction_timestamp
         # for the same model run
-        # For some reason pylint doesn't think session has a flush!
-        self.session.flush()  # pylint: disable=no-member
+        self.session.flush()
         station_prediction.delta_precip = self._calculate_delta_precip(
             station, model_run, prediction, station_prediction)
 
@@ -329,7 +318,6 @@ class ModelValueProcessor:
             # Convert the grid database object to a polygon object.
             poly = to_shape(grid.geom)
             # Extract the vertices of the polygon.
-            # pylint: disable=no-member
             points = list(poly.exterior.coords)[:-1]
 
             machine = StationMachineLearning(

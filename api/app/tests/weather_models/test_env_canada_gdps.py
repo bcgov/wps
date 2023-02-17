@@ -15,8 +15,8 @@ import app.utils.time as time_utils
 from app.schemas.stations import WeatherStation, Season
 from app.weather_models import machine_learning
 import app.db.crud.weather_models
-from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           ModelRunGridSubsetPrediction, PredictionModelGridSubset)
+from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
+                                          ModelRunGridSubsetPrediction, PredictionModelGridSubset)
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 
 

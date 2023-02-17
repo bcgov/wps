@@ -47,7 +47,7 @@ def test_fire_behaviour_calculator_scenario():
                     dc=float,
                     fuel_type=str),
     target_fixture='result')
-def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name, too-many-locals
+def given_red_app_input(elevation: float,
                         latitude: float, longitude: float, time_of_interest: date,
                         wind_speed: float, wind_direction: float,
                         percentage_conifer: float,
@@ -258,7 +258,7 @@ def test_fire_behaviour_calculator_spreadsheet_scenario():
                        wind_direction=float,
                        wind_speed=float),
        target_fixture='result')
-def given_spreadsheet_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name, too-many-locals
+def given_spreadsheet_input(elevation: float,
                             latitude: float, longitude: float, time_of_interest: str,
                             wind_speed: float, wind_direction: float,
                             percentage_conifer: float, percentage_dead_balsam_fir: float, grass_cure: float,

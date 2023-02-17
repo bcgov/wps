@@ -57,7 +57,6 @@ def generate_pdf(result: HFIResultResponse,
                                                       jinja_env,
                                                       fuel_types)
 
-    # pylint: disable=line-too-long
     left_footer = f'Exported on {datetime_generated.isoformat()} by {idir} | https://psu.nrs.gov.bc.ca/hfi-calculator'
     options = {
         'page-size': 'Letter',

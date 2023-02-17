@@ -82,16 +82,16 @@ def mock_redis(monkeypatch):
         def __init__(self) -> None:
             """ Mock init """
 
-        def get(self, name):  # pylint: disable=unused-argument
+        def get(self, name):
             """ mock get """
             return None
 
-        def set(self,  # pylint: disable=unused-argument, invalid-name, unused-argument, too-many-arguments
+        def set(self,
                 name, value,
-                ex=None, px=None, nx=False, xx=False, keepttl=False):  # pylint: disable=invalid-name
+                ex=None, px=None, nx=False, xx=False, keepttl=False):
             """ mock set """
 
-        def delete(self, name):  # pylint: disable=unused-argument
+        def delete(self, name):
             """ mock delete """
 
     def create_mock_redis():
@@ -144,13 +144,11 @@ def mock_session(monkeypatch):
                                        projection='latlon.15x.15',
                                        name='Global Deterministic Prediction System')
 
-    # pylint: disable=unused-argument
     def mock_get_prediction_model(session, model, projection) -> Optional[PredictionModel]:
         if model == ModelEnum.GDPS and projection == ProjectionEnum.LATLON_15X_15:
             return prediction_model
         return None
 
-    # pylint: disable=unused-argument
     def mock_get_prediction_run(session, prediction_model_id: int, prediction_run_timestamp: datetime):
         return PredictionModelRunTimestamp(
             id=1, prediction_model_id=1, prediction_run_timestamp=get_utc_now(),
@@ -172,7 +170,6 @@ def mock_env_with_use_wfwx(monkeypatch):
 def mock_jwt_decode(monkeypatch):
     """ Mock pyjwt's decode method """
 
-    # pylint: disable=unused-argument
     def mock_function(*args, **kwargs):
         return MockJWTDecode()
 

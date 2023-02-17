@@ -1,11 +1,11 @@
 """ Code common to app.weather_models.fetch """
-import math
 from datetime import datetime
 from enum import Enum
 from typing import List
 import logging
 from scipy.interpolate import interp1d
-from app.db.models import ModelRunGridSubsetPrediction
+
+from app.db.models.weather_models import ModelRunGridSubsetPrediction
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class ProjectionEnum(str, Enum):
     GFS_LONLAT = 'lonlat.0.5deg'
 
 
-def interpolate_between_two_points(  # pylint: disable=invalid-name
+def interpolate_between_two_points(
         x1: int, x2: int, y1: List[float], y2: List[float], xn: int):
     """ Interpolate values between two points in time.
     :param x1: X coordinate of the 1st value.

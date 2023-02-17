@@ -27,7 +27,7 @@ class NoonForecastValue(BaseModel):
     bui: float = None
     fwi: float = None
     danger_rating: int = None
-    created_at: datetime  # pylint: disable=used-before-assignment
+    created_at: datetime
 
 
 class NoonForecast(BaseModel):

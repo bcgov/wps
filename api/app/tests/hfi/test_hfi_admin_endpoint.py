@@ -50,7 +50,7 @@ def test_post_stations_unauthorized(client: TestClient):
 def test_post_stations_authorized(client: TestClient, monkeypatch: pytest.MonkeyPatch):
     """ Allowed to post station changes with correct role"""
 
-    def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
+    def mock_admin_role_function(*_, **__):
         return MockJWTDecodeWithRole('hfi_station_admin')
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
@@ -62,7 +62,7 @@ def test_post_stations_authorized(client: TestClient, monkeypatch: pytest.Monkey
 def test_post_stations_authorized_with_date_range(client: TestClient, monkeypatch: pytest.MonkeyPatch):
     """ Update stations with date range"""
 
-    def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
+    def mock_admin_role_function(*_, **__):
         return MockJWTDecodeWithRole('hfi_station_admin')
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
@@ -86,7 +86,7 @@ def test_post_stations_authorized_with_date_range(client: TestClient, monkeypatc
 def test_post_stations_wrong_role(client: TestClient, monkeypatch: pytest.MonkeyPatch):
     """ Should not be allowed to post station changes with incorrect role"""
 
-    def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
+    def mock_admin_role_function(*_, **__):
         return MockJWTDecodeWithRole('hfi_set_ready_state')
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
@@ -98,10 +98,10 @@ def test_post_stations_wrong_role(client: TestClient, monkeypatch: pytest.Monkey
 def test_post_stations_duplicate_station(client: TestClient, monkeypatch: pytest.MonkeyPatch):
     """ Duplicate error should return a 400 """
 
-    def mock_admin_role_function(*_, **__):  # pylint: disable=unused-argument
+    def mock_admin_role_function(*_, **__):
         return MockJWTDecodeWithRole('hfi_station_admin')
 
-    def mock_db_integrity_error(*_, **__):  # pylint: disable=unused-argument
+    def mock_db_integrity_error(*_, **__):
         raise IntegrityError(MagicMock(), MagicMock(), MagicMock())
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)

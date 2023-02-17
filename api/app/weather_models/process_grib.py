@@ -16,7 +16,7 @@ import rasterio
 from rasterio.io import DatasetReader
 from app.geospatial import NAD83_CRS
 from app.stations import get_stations_synchronously
-from app.db.models import (
+from app.db.models.weather_models import (
     PredictionModel, PredictionModelRunTimestamp, ModelRunGridSubsetPrediction)
 from app.db.crud.weather_models import (
     get_prediction_model, get_or_create_prediction_run, get_or_create_grid_subset)
@@ -207,8 +207,6 @@ class GribFileProcessor():
                 logger.warning('coordinate not in u/v wind rasters - %s', station)
                 continue
 
-    # pylint: disable=too-many-arguments
-
     def store_bounding_values(self,
                               points,
                               values,
@@ -227,7 +225,6 @@ class GribFileProcessor():
             session, self.prediction_model, geographic_points)
 
         # Load the record if it exists.
-        # pylint: disable=no-member
         prediction = session.query(ModelRunGridSubsetPrediction).\
             filter(
                 ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id == preduction_model_run.id).\
