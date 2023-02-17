@@ -48,8 +48,28 @@ def get_gfs_model_run_hours():
 
 def get_gfs_model_run_download_urls(now: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
     """ Yield urls to download GFS model runs """
-    # GFS model makes predictions at 3-hour intervals up to 384 hours in advance.
-    for fcst_hour in range(0, 385, 3):
+    # GFS model makes predictions at 3-hour intervals up to 384 hours (16 days) in advance.
+    # Morecast 2.0 only needs predictions 10 days in advance (240 hours) and only for noon PST
+    # but GFS model run timestamps are in UTC. 12:00 PST = 20:00 UTC, so we need to pull
+    # data for the 18:00 and 21:00 UTC model runs, then perform linear interpolation to
+    # calculate noon values.
+    if model_cycle == '0000':
+        before_noon = list(range(18, 235, 24))
+        after_noon = list(range(21, 238, 24))
+    elif model_cycle == '0600':
+        before_noon = list(range(12, 229, 24))
+        after_noon = list(range(15, 232, 24))
+    elif model_cycle == '1200':
+        before_noon = list(range(6, 223, 24))
+        after_noon = list(range(9, 226, 24))
+    elif model_cycle == '1800':
+        before_noon = list(range(0, 217, 24))
+        after_noon = list(range(3, 220, 24))
+
+    all_hours = before_noon + after_noon
+    # sort list purely for human convenience when debugging. Functionally it doesn't matter
+    all_hours.sort()
+    for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')
         year_mo = f"{now.year}" + format(now.month, '02d')
         year_mo_date = f"{year_mo}" + format((now - datetime.timedelta(days=3)).day, '02d')
