@@ -5,7 +5,8 @@ import makeStyles from '@mui/styles/makeStyles'
 import { isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
-import { selectFireCenters } from 'app/rootReducer'
+import { ModelChoice, ModelChoices, ModelType } from 'api/nextCastAPI'
+import { selectFireCenters, selectStationPredictionsAsNextCastForecastRows } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { GeneralHeader } from 'components'
@@ -14,8 +15,8 @@ import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
 import NextCastDataGrid from 'features/moreCast2/components/NextCastDataGrid'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import StationPanel from 'features/moreCast2/components/StationPanel'
-import { WeatherModel, WeatherModelEnum, WeatherModels } from 'features/moreCast2/constants'
-import { ForecastRow } from 'features/moreCast2/components/NextCastDataGrid'
+import { NextCastForecastRow } from 'features/moreCast2/interfaces'
+import { getHRDPSStationPredictions } from 'features/moreCast2/slices/HRDPSSlice'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -48,29 +49,37 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const DEFAULT_WEATHER_MODEL_KEY = 'defaultWeatherModel'
-const PREFERRED_FIRE_CENTER_KEY = 'preferredMoreCast2FireCenter'
+const DEFAULT_MODEL_TYPE_KEY = 'defaultModelType'
+const DEFAULT_FIRE_CENTER_KEY = 'preferredMoreCast2FireCenter'
+const DEFAULT_MODEL_TYPE: ModelType = ModelChoice.HRDPS
 
 const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
+  const { stationPredictionsAsNextCastForecastRows } = useSelector(selectStationPredictionsAsNextCastForecastRows)
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
   const [selectedStations, setSelectedStations] = useState<FireCenterStation[]>([])
-  const [defaultWeatherModel, setDefaultWeatherModel] = useState<WeatherModel | undefined>(undefined)
+  const [modelType, setModelType] = useState<ModelType>(
+    (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE
+  )
   const [fromDate, setFromDate] = useState<DateTime>(DateTime.now())
   const [toDate, setToDate] = useState<DateTime>(DateTime.now().plus({ days: 3 }))
+  const [forecastRows, setForecastRows] = useState<NextCastForecastRow[]>([])
+
+  const fetchStationPredictions = (model: ModelType) => {
+    const stationCodes = fireCenter?.stations.map(station => station.code) || []
+    switch (model) {
+      case ModelChoice.HRDPS: {
+        dispatch(getHRDPSStationPredictions(stationCodes, model, fromDate.toMillis(), toDate.toMillis()))
+      }
+    }
+  }
 
   useEffect(() => {
     dispatch(fetchFireCenters())
     document.title = MORE_CAST_2_DOC_TITLE
-
-    const findDefaultWeatherModel = (name: string) => {
-      return WeatherModels.find(model => model.name === name)
-    }
-
-    const model = localStorage.getItem(DEFAULT_WEATHER_MODEL_KEY) || WeatherModelEnum.HRDPS
-    setDefaultWeatherModel(findDefaultWeatherModel(model))
+    fetchStationPredictions(modelType)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -78,72 +87,37 @@ const MoreCast2Page = () => {
       return fireCenters.find((center: FireCenter) => center.id.toString() == id)
     }
     if (fireCenters.length) {
-      setFireCenter(findCenter(localStorage.getItem(PREFERRED_FIRE_CENTER_KEY)))
+      setFireCenter(findCenter(localStorage.getItem(DEFAULT_FIRE_CENTER_KEY)))
     }
   }, [fireCenters])
 
   useEffect(() => {
-    if (fireCenter?.id) {
-      localStorage.setItem(PREFERRED_FIRE_CENTER_KEY, fireCenter?.id.toString())
-    }
     if (fireCenter?.stations && fireCenter.stations.length && (isNull(fireCenter) || isUndefined(fireCenter))) {
-      localStorage.removeItem(PREFERRED_FIRE_CENTER_KEY)
+      localStorage.removeItem(DEFAULT_FIRE_CENTER_KEY)
+      return
     }
-  }, [fireCenter])
+    if (!isUndefined(fireCenter)) {
+      localStorage.setItem(DEFAULT_FIRE_CENTER_KEY, fireCenter.id.toString())
+    }
+
+    setSelectedStations(fireCenter?.stations || [])
+    fetchStationPredictions(modelType)
+  }, [fireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!isUndefined(defaultWeatherModel)) {
-      localStorage.setItem(DEFAULT_WEATHER_MODEL_KEY, defaultWeatherModel.name)
+    if (!isUndefined(modelType)) {
+      localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
+      fetchStationPredictions(modelType)
     }
-  }, [defaultWeatherModel])
+  }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const sampleRows: ForecastRow[] = [
-    { id: 1, station: 'Akton', for_date: 1676318400000, temp: 5, rh: 90, windDirection: 175, windSpeed: 10, precip: 2 },
-    { id: 2, station: 'Akton', for_date: 1676404800000, temp: 6, rh: 90, windDirection: 185, windSpeed: 15, precip: 1 },
-    { id: 3, station: 'Akton', for_date: 1676491200000, temp: 5, rh: 90, windDirection: 190, windSpeed: 25, precip: 1 },
-    {
-      id: 4,
-      station: 'Ashnola',
-      for_date: 1676318400000,
-      temp: 3,
-      rh: 95,
-      windDirection: 160,
-      windSpeed: 5,
-      precip: 25
-    },
-    {
-      id: 5,
-      station: 'Ashnola',
-      for_date: 1676404800000,
-      temp: 2,
-      rh: 95,
-      windDirection: 145,
-      windSpeed: 10,
-      precip: 15
-    },
-    {
-      id: 6,
-      station: 'Ashnola',
-      for_date: 1676491200000,
-      temp: 1,
-      rh: 95,
-      windDirection: 95,
-      windSpeed: 10,
-      precip: 20
-    },
-    {
-      id: 7,
-      station: 'Cahily',
-      for_date: 1676318400000,
-      temp: 4,
-      rh: 75,
-      windDirection: 355,
-      windSpeed: 25,
-      precip: 0
-    },
-    { id: 8, station: 'Cahily', for_date: 1676404800000, temp: 4, rh: 75, windDirection: 5, windSpeed: 35, precip: 0 },
-    { id: 9, station: 'Cahily', for_date: 1676491200000, temp: 5, rh: 75, windDirection: 10, windSpeed: 45, precip: 5 }
-  ]
+  useEffect(() => {
+    console.log(stationPredictionsAsNextCastForecastRows)
+    const visibleForecastRows = stationPredictionsAsNextCastForecastRows.filter(
+      row => selectedStations.filter(station => station.code === row.stationCode).length
+    )
+    setForecastRows(visibleForecastRows)
+  }, [stationPredictionsAsNextCastForecastRows, selectedStations])
 
   return (
     <div className={classes.root} data-testid="more-cast-2-page">
@@ -164,9 +138,9 @@ const MoreCast2Page = () => {
             <Grid item xs={3}>
               <FormControl className={classes.formControl}>
                 <WeatherModelDropdown
-                  weatherModelOptions={WeatherModels}
-                  selectedWeatherModel={defaultWeatherModel}
-                  setSelectedWeatherModel={setDefaultWeatherModel}
+                  weatherModelOptions={ModelChoices}
+                  selectedModelType={modelType}
+                  setSelectedModelType={setModelType}
                 />
               </FormControl>
             </Grid>
@@ -181,7 +155,7 @@ const MoreCast2Page = () => {
               </FormControl>
             </Grid>
           </Grid>
-          <NextCastDataGrid rows={sampleRows} />
+          <NextCastDataGrid rows={forecastRows} setForecastRows={setForecastRows} />
         </div>
       </div>
     </div>
