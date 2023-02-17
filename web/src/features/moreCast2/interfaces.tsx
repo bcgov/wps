@@ -1,38 +1,19 @@
-import { ModelChoice } from 'api/nextCastAPI'
+import { DateTime } from 'luxon'
+import { ModelType } from 'api/nextCastAPI'
 
-export interface ForecastedPrecip {
-  choice: ModelChoice
-  precip: number
-}
-
-export interface ForecastedRH {
-  choice: ModelChoice
-  rh: number
-}
-
-export interface ForcastedTemperature {
-  choice: ModelChoice
-  temp: number
-}
-
-export interface ForecastedWindDirection {
-  choice: ModelChoice
-  wind_direction: number
-}
-
-export interface ForecastedWindSpeed {
-  choice: ModelChoice
-  wind_speed: number
+export interface PredictionItem {
+  choice: ModelType
+  value: number
 }
 
 export interface NextCastForecastRow {
-  id: string
-  for_date: number
-  precip: ForecastedPrecip
-  rh: ForecastedRH
-  station_code: number
-  station_name: string
-  temp: ForcastedTemperature
-  wind_direction: ForecastedWindDirection
-  wind_speed: ForecastedWindSpeed
+  id: number
+  forDate: DateTime
+  precip: PredictionItem
+  rh: PredictionItem
+  stationCode: number
+  stationName: string
+  temp: PredictionItem
+  windDirection: PredictionItem
+  windSpeed: PredictionItem
 }

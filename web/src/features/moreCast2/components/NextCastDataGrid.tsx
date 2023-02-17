@@ -1,9 +1,13 @@
 import React from 'react'
 import makeStyles from '@mui/styles/makeStyles'
-import { DataGrid, GridColDef } from '@mui/x-data-grid'
+import { DataGrid, GridColDef, GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid'
+import { isNumber } from 'lodash'
+import { DateTime } from 'luxon'
+import { NextCastForecastRow } from 'features/moreCast2/interfaces'
 
 interface NextCastDataGridProps {
-  rows: ForecastRow[]
+  rows: NextCastForecastRow[]
+  setForecastRows: React.Dispatch<React.SetStateAction<NextCastForecastRow[]>>
 }
 
 const useStyles = makeStyles({
@@ -13,90 +17,81 @@ const useStyles = makeStyles({
   }
 })
 
-export interface ForecastRow {
-  id: number
-  station: string
-  for_date: number
-  temp: number
-  rh: number
-  windDirection: number
-  windSpeed: number
-  precip: number
-}
-
-const columns: GridColDef[] = [
-  { field: 'station', headerName: 'Station', width: 120 },
-  {
-    field: 'for_date',
-    disableColumnMenu: true,
-    disableReorder: true,
-    headerName: 'Date',
-    sortable: false,
-    width: 120
-    // valueFormatter: (params: GridValueGetterParams<number>) => {
-    //   if (isNull(params.value) || isUndefined(params.value)) {
-    //     return DateTime.now().toISO()
-    //   }
-    //   return DateTime.fromSeconds(params.value / 1000).toISO()
-    // }
-  },
-  {
-    field: 'temp',
-    disableColumnMenu: true,
-    disableReorder: true,
-    editable: true,
-    headerName: 'Temp',
-    sortable: false,
-    type: 'number',
-    width: 120
-  },
-  {
-    field: 'rh',
-    disableColumnMenu: true,
-    disableReorder: true,
-    editable: true,
-    headerName: 'RH',
-    sortable: false,
-    type: 'number',
-    width: 120
-  },
-  {
-    field: 'windDirection',
-    disableColumnMenu: true,
-    disableReorder: true,
-    editable: true,
-    headerName: 'Wind Dir',
-    sortable: false,
-    type: 'number',
-    width: 120
-  },
-  {
-    field: 'windSpeed',
-    disableColumnMenu: true,
-    disableReorder: true,
-    editable: true,
-    headerName: 'Wind Speed',
-    sortable: false,
-    type: 'number',
-    width: 120
-  },
-  {
-    field: 'precip',
-    disableColumnMenu: true,
-    disableReorder: true,
-    editable: true,
-    headerName: 'Precip',
-    sortable: false,
-    type: 'number',
-    width: 120
-  }
-]
-
 const NextCastDataGrid = (props: NextCastDataGridProps) => {
   const classes = useStyles()
+  const predictionItemValueGetter = (params: GridValueGetterParams) => {
+    const value = params?.value?.value
+    return isNumber(value) ? value : 'Nan'
+  }
+
+  const columns: GridColDef[] = [
+    { field: 'stationName', headerName: 'Station', width: 120 },
+    {
+      field: 'forDate',
+      disableColumnMenu: true,
+      disableReorder: true,
+      headerName: 'Date',
+      sortable: false,
+      width: 250,
+      valueFormatter: (params: GridValueFormatterParams<number>) => {
+        return DateTime.fromSeconds(params.value / 1000).toISO()
+      }
+    },
+    {
+      field: 'temp',
+      disableColumnMenu: true,
+      disableReorder: true,
+      headerName: 'Temp',
+      sortable: false,
+      type: 'number',
+      width: 120,
+      valueGetter: predictionItemValueGetter
+    },
+    {
+      field: 'rh',
+      disableColumnMenu: true,
+      disableReorder: true,
+      headerName: 'RH',
+      sortable: false,
+      type: 'number',
+      width: 120,
+      valueGetter: predictionItemValueGetter
+    },
+    {
+      field: 'windDirection',
+      disableColumnMenu: true,
+      disableReorder: true,
+      headerName: 'Wind Dir',
+      sortable: false,
+      type: 'number',
+      width: 120,
+      valueGetter: predictionItemValueGetter
+    },
+    {
+      field: 'windSpeed',
+      disableColumnMenu: true,
+      disableReorder: true,
+      headerName: 'Wind Speed',
+      sortable: false,
+      type: 'number',
+      width: 120,
+      valueGetter: predictionItemValueGetter
+    },
+    {
+      field: 'precip',
+      disableColumnMenu: true,
+      disableReorder: true,
+      headerName: 'Precip',
+      sortable: false,
+      type: 'number',
+      width: 120,
+      valueGetter: predictionItemValueGetter
+    }
+  ]
+
   return (
     <div className={classes.root}>
-      <DataGrid columns={columns} rows={props.rows} experimentalFeatures={{ newEditingApi: true }}></DataGrid>
+      <DataGrid columns={columns} rows={props.rows}></DataGrid>
     </div>
   )
 }
