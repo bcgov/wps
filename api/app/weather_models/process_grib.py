@@ -205,7 +205,6 @@ class GribFileProcessor():
                         yield (u_points, wind_sp_values)
             else:
                 logger.warning('coordinate not in u/v wind rasters - %s', station)
-                continue
 
     def store_bounding_values(self,
                               points,

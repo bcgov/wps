@@ -16,6 +16,7 @@ from app.jobs.common_model_fetchers import (CompletedWithSomeExceptions, ModelVa
                                             download, flag_file_as_processed)
 from app import configure_logging
 import app.utils.time as time_utils
+from app.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
 import app.db.database
 from app.rocketchat_notifications import send_rocketchat_notification
@@ -102,7 +103,6 @@ class GFS():
     """ Class that orchestrates downloading and processing of GFS weather model grib files from NOAA.
     """
 
-    # pylint: disable=too-many-instance-attributes
     def __init__(self):
         """ Prep variables """
         self.files_downloaded = 0
@@ -145,7 +145,6 @@ class GFS():
                                 finally:
                                     # delete the file when done.
                                     os.remove(downloaded)
-            # pylint: disable=broad-except
             except Exception as exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
@@ -156,7 +155,6 @@ class GFS():
 
     def process_model_run(self, model_cycle: str):
         """ Process a particular model run """
-        # pylint: disable=consider-using-f-string
         logger.info('Processing {} model run cycle {}'.format(
             self.model_type, model_cycle))
 
@@ -169,7 +167,6 @@ class GFS():
         # Having completed processing, check if we're all done.
         with app.db.database.get_write_session_scope() as session:
             if check_if_model_run_complete(session, urls):
-                # pylint: disable=consider-using-f-string
                 logger.info(
                     '{} model run {} completed with SUCCESS'.format(self.model_type, model_cycle))
                 prediction_run_timestamp, _ = parse_url_for_timestamps(url=urls[0])
@@ -181,7 +178,6 @@ class GFS():
         for hour in get_gfs_model_run_hours():
             try:
                 self.process_model_run(hour)
-            # pylint: disable=broad-except
             except Exception as exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
@@ -229,7 +225,7 @@ def main():
     except CompletedWithSomeExceptions:
         logger.warning('completed processing with some exceptions')
         sys.exit(os.EX_SOFTWARE)
-    except Exception as exception:  # pylint: disable=broad-except
+    except Exception as exception:
         # We catch and log any exceptions we may have missed.
         logger.error('unexpected exception processing', exc_info=exception)
         rc_message = f':poop: Encountered error retrieving GFS model data from NOAA'
