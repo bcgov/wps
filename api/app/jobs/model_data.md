@@ -1,6 +1,26 @@
+<!-- omit in toc -->
 # Fetching & Interpreting Weather Model Data
 
+<!-- omit in toc -->
 ## Table of Contents
+
+- [Introduction](#introduction)
+- [GRIB Files](#grib-files)
+- [Data Sources](#data-sources)
+  - [Environment Canada](#environment-canada)
+    - [Relevant Data Links](#relevant-data-links)
+      - [GDPS](#gdps)
+      - [RDPS](#rdps)
+      - [HRDPS](#hrdps)
+    - [Relevant Weather Variables](#relevant-weather-variables)
+  - [NOAA](#noaa)
+      - [Model Run Cycles](#model-run-cycles)
+- [Downloading Data](#downloading-data)
+- [Linear Interpolation](#linear-interpolation)
+  - [From grids to fire weather stations](#from-grids-to-fire-weather-stations)
+  - [To 12:00 PST (13:00 PDT)](#to-1200-pst-1300-pdt)
+- [Cronjobs](#cronjobs)
+
 
 ## Introduction
 
@@ -50,6 +70,29 @@ We fetch [GFS model data from NCEP-NOAA](https://www.ncei.noaa.gov/products/weat
 
 Specifically, we fetch GFS model data on a 0.5&deg; scale, based on the request of staff forecasters. We fetch the data from [this server](https://www.ncei.noaa.gov/data/global-forecast-system/access/grid-004-0.5-degree/forecast/).
 
+##### Model Run Cycles
+
+NOAA runs the GFS model 4 times a day at 00:00, 06:00, 12:00, and 18:00 UTC. For each of these model runs, the model predicts weather at 3-hour intervals for 384 hours (16 days) in advance. Since Morecast users have indicated that they make forecasts up to a maximum of 10 days in advance, we only fetch GFS model data up to 240 hours (10 days) in advance.
+
+Additionally, GFS model data is only relevant to Morecast users for the 12:00 PST (13:00 PDT) timeframe - this is the time of day that a fire weather forecast is issued for. Noon PST corresponds to 20:00 UTC, but the GFS model has no output for this hour. We therefore fetch data for the 18:00 and 21:00 UTC hours, and subsequently perform linear interpolation to calculate approximate weather values for 20:00 UTC.
+
+The filename convention that NOAA uses when publishing GFS model data follows this pattern (as an example):
+
+> gfs_4_20230214_0600_003.grb2
+
+where '20230214' is the date that the model was run (in YYYYMMDD format), '0600' is the time at which the model was run (06:00 UTC), and '003' indicates that the weather prediction is for 003 hours after the model run time, which would be 09:00 UTC on Feb 14, 2023.
+
+Therefore, to predict weather for 12:00 PST, we must fetch the following model run cycles:
+
+- run time 0000: hours 018 and 021
+- run time 0600: hours 012 and 015
+- run time 1200: hours 006 and 009
+- run time 1800: hours 000 and 003
+
+## Downloading Data
+
+There is a lot of data to download and analyze for these weather models, so to ensure that we don't duplicate work, we track which URLs and model runs have already completed download and interpolation in the `processed_model_run_urls` and `prediction_model_run_timestamps` tables in our database.
+
 ## Linear Interpolation
 
 ### From grids to fire weather stations
@@ -60,13 +103,18 @@ Once the `model_run_grid_subset_predictions` table has been populated for a give
 
 For example, a small portion of the grid for a temperature raster band of a GRIB file might look like the image below. In this example, each point on the grid is spaced 5km apart. You can see that a fire weather station is located within one cell of this grid, where the 4 corners of the cell have temperature values of 3.1&deg;, 2.4&deg;, 2.7&deg;, and 2.7&deg;C. In order to approximate the predicted temperature at the weather station's exact location, we perform linear interpolation of the 4 temperature values listed above, where the weight of each data point is inversely proportional to the distance from the weather station to that point on the grid. Consequently, the 2.4&deg;C from the top right corner of the cell will have the highest weight as it is closest to the weather station, and the 2.7&deg;C from the bottom left corner will have the lowest weight as it is the furthest away.
 
-
 ![Location-based linear interpolation for a weather station](../../../docs/images/Grid_wx_station.png)
 
 This linear interpolation process is repeated for each of the weather variables in a model run, and for each of the weather stations in BC. These calculations are stored in the `weather_station_model_predictions` table.
 
 At the present time we are only performing linear interpolation from grid subsets to weather stations based on geographic distance (because it is the simplest method of interpolation). Forecasters have requested that we also perform linear interpolation based on station elevation as the results may be more accurate - this is a pending story in our backlog.
 
-### To 13:00 PDT
+### To 12:00 PST (13:00 PDT)
+
+Fire weather forecasters in the BC Wildfire Service create daily "noon forecasts", where 'noon' refers to 12:00 PST, but during the fire weather season, most of BC is on Daylight Savings Time, so 12:00 PST = 13:00 PDT = 20:00 UTC. As explained above in the [NOAA section](#noaa), there is no model data specifically for 20:00 UTC, so instead we fetch the data for 18:00 and 21:00 UTC, and then perform additional linear interpolation (on top of the interpolation done for weather station locations) to predict weather behaviour for 20:00 UTC. This means that the modelled weather values for 21:00 UTC are weighted twice as heavily as those for 18:00 UTC, since the former is twice as close to our target time of 20:00.
+
+This time-based linear interpolation is done as part of the data analysis process performed when the model data is retrieved from our third-party sources. See `process_grib.py`
 
 ## Cronjobs
+
+We have created a separate cronjob for each model, to retrieve the data from source at various times of day, depending on how often each model is run. Our cronjobs are set to execute at randomly selected minutes within the set hour, as a courtesy to our third-party data sources so that their servers are not overwhelmed with many simultaneous requests.
