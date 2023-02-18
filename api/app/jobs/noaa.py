@@ -228,7 +228,7 @@ def main():
     except Exception as exception:
         # We catch and log any exceptions we may have missed.
         logger.error('unexpected exception processing', exc_info=exception)
-        rc_message = f':poop: Encountered error retrieving GFS model data from NOAA'
+        rc_message = ':poop: Encountered error retrieving GFS model data from NOAA'
         send_rocketchat_notification(rc_message, exception)
         # Exit with a failure code.
         sys.exit(os.EX_SOFTWARE)
