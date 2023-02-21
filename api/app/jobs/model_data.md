@@ -15,6 +15,7 @@
     - [Relevant Weather Variables](#relevant-weather-variables)
   - [NOAA](#noaa)
       - [Model Run Cycles](#model-run-cycles)
+    - [Relevant Weather Variables](#relevant-weather-variables-1)
 - [Downloading Data](#downloading-data)
 - [Linear Interpolation](#linear-interpolation)
   - [From grids to fire weather stations](#from-grids-to-fire-weather-stations)
@@ -30,7 +31,7 @@ Some of the core functionalities of Morecast (versions 1 and 2) require that we 
 
 All weather model produce outputs in GRIB file format. [Refer here for a description of what a GRIB file is](https://weather.gc.ca/grib/what_is_GRIB_e.html).
 
-A GRIB file contains one or more raster bands, in which weather data is presented in a grid format. Each raster band corresponds to one weather variable. (For example, temperature data points will be stored in a different raster band to wind speed data points.) In order to coalesce the points on the data grid with geographic locations (such as lat/long coordinates), a geographic coordinate transformation must be applied. This coordinate transformation is performed in our backend, using metadata supplied by the source of the GRIB file.
+A GRIB file contains one or more raster bands, in which weather data is presented in a grid format. Each raster band corresponds to one weather variable. (For example, temperature data points will be stored in a different raster band to wind speed data points.) When we fetch a specific raster band from a data grid (using gdal's `GetRasterBand(<band_id>)`), we get a 2-dimensional array of numeric values (usually floats) containing the values for the relevant weather variable. In order to coalesce the points on the data grid with geographic locations (such as lat/long coordinates), a geographic coordinate transformation must be applied. This coordinate transformation is performed in our backend, using metadata supplied by the source of the GRIB file.
 
 ## Data Sources
 
@@ -74,7 +75,7 @@ Specifically, we fetch GFS model data on a 0.5&deg; scale, based on the request 
 
 NOAA runs the GFS model 4 times a day at 00:00, 06:00, 12:00, and 18:00 UTC. For each of these model runs, the model predicts weather at 3-hour intervals for 384 hours (16 days) in advance. Since Morecast users have indicated that they make forecasts up to a maximum of 10 days in advance, we only fetch GFS model data up to 240 hours (10 days) in advance.
 
-Additionally, GFS model data is only relevant to Morecast users for the 12:00 PST (13:00 PDT) timeframe - this is the time of day that a fire weather forecast is issued for. Noon PST corresponds to 20:00 UTC, but the GFS model has no output for this hour. We therefore fetch data for the 18:00 and 21:00 UTC hours, and subsequently perform linear interpolation to calculate approximate weather values for 20:00 UTC.
+Additionally, GFS model data is only relevant to Morecast users for the 12:00 PST (13:00 PDT) timeframe - this is the time of day that a fire weather forecast is issued for. Noon PST corresponds to 20:00 UTC, but the GFS model has no output for this hour. We therefore fetch predicted weather values for the 18:00 and 21:00 UTC hours for each model run cycle, and subsequently perform linear interpolation to calculate approximate weather values for 20:00 UTC. Note that we are fetching these predicted weather values for each of the 4 GFS model run cycles that happen each day, since the values may change slightly with each model run.
 
 The filename convention that NOAA uses when publishing GFS model data follows this pattern (as an example):
 
@@ -90,6 +91,10 @@ Therefore, to predict weather for 12:00 PST, we must fetch the following model r
 - run time 1800: hours 000 and 003
 
 NOAA has a delay of approximately 2.5 days when publishing GFS model data. (For example, on Feb 21 2023 at 18:30 UTC, the most recently available data is for 20230219, and only the 0000 and 0600 run times are available.) Due to this delay, `get_gfs_model_run_download_urls()` in `app.jobs.noaa` generates URLs for the date 3 days prior to the current date.
+
+#### Relevant Weather Variables
+
+To be consistent with the weather variables that we pull from the Environment Canada models, for GFS we use comparable weather variables. There is a slight exception for wind direction and speed: Env Canada models output the separate U and V components for wind, but they also output the calculated wind speed and direction using those U, V components. NOAA only outputs the U,V components for wind - we must do the wind direction and wind speed calculations ourselves.
 
 ## Downloading Data
 

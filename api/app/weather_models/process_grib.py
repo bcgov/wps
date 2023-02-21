@@ -202,11 +202,11 @@ class GribFileProcessor():
                     if u_points == v_points:
                         yield (u_points, wind_dir_values)
                 elif variable == 'wind_tgl_10':
-                    wind_sp_values = []
+                    wind_speed_values = []
                     for u, v in zip(u_values, v_values):
-                        wind_sp_values.append(self.calculate_wind_speed_from_u_v(u, v))
+                        wind_speed_values.append(self.calculate_wind_speed_from_u_v(u, v))
                     if u_points == v_points:
-                        yield (u_points, wind_sp_values)
+                        yield (u_points, wind_speed_values)
             else:
                 logger.warning('coordinate not in u/v wind rasters - %s', station)
 

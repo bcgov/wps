@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
 from shapely import wkt
 from app.jobs import env_canada
+from app.jobs import common_model_fetchers
 import app.utils.time as time_utils
 from app.schemas.stations import WeatherStation, Season
 from app.weather_models import machine_learning
@@ -137,7 +138,7 @@ def mock_database(monkeypatch):
     def mock_get_prediction_run(*args, **kwargs):
         return gdps_prediction_model_run
 
-    monkeypatch.setattr(env_canada, 'get_prediction_model_run_timestamp_records',
+    monkeypatch.setattr(common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_gdps_prediction_model_run_timestamp_records)
     monkeypatch.setattr(env_canada, 'get_processed_file_record', mock_get_processed_file_record)
     monkeypatch.setattr(env_canada, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
