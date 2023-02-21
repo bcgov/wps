@@ -101,9 +101,11 @@ const MoreCast2Page = () => {
   }, [fireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!isUndefined(modelType)) {
+    if (!isUndefined(modelType) && !isNull(modelType)) {
       localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
       fetchStationPredictions(modelType)
+    } else {
+      setForecastRows([])
     }
   }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
 
