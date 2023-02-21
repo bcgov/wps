@@ -5,17 +5,17 @@ import makeStyles from '@mui/styles/makeStyles'
 import { isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
-import { ModelChoice, ModelChoices, ModelType } from 'api/nextCastAPI'
-import { selectFireCenters, selectStationPredictionsAsNextCastForecastRows } from 'app/rootReducer'
+import { ModelChoice, ModelChoices, ModelType } from 'api/moreCast2API'
+import { selectFireCenters, selectStationPredictionsAsMoreCast2ForecastRows } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { GeneralHeader } from 'components'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
-import NextCastDataGrid from 'features/moreCast2/components/NextCastDataGrid'
+import MoreCast2DataGrid from 'features/moreCast2/components/MoreCast2DataGrid'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import StationPanel from 'features/moreCast2/components/StationPanel'
-import { NextCastForecastRow } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice'
 
 const useStyles = makeStyles(theme => ({
@@ -57,7 +57,7 @@ const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-  const { stationPredictionsAsNextCastForecastRows } = useSelector(selectStationPredictionsAsNextCastForecastRows)
+  const { stationPredictionsAsMoreCast2ForecastRows } = useSelector(selectStationPredictionsAsMoreCast2ForecastRows)
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
   const [selectedStations, setSelectedStations] = useState<FireCenterStation[]>([])
   const [modelType, setModelType] = useState<ModelType>(
@@ -65,7 +65,7 @@ const MoreCast2Page = () => {
   )
   const [fromDate, setFromDate] = useState<DateTime>(DateTime.now())
   const [toDate, setToDate] = useState<DateTime>(DateTime.now().plus({ days: 3 }))
-  const [forecastRows, setForecastRows] = useState<NextCastForecastRow[]>([])
+  const [forecastRows, setForecastRows] = useState<MoreCast2ForecastRow[]>([])
 
   const fetchStationPredictions = (model: ModelType) => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
@@ -110,11 +110,11 @@ const MoreCast2Page = () => {
   }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const visibleForecastRows = stationPredictionsAsNextCastForecastRows.filter(
+    const visibleForecastRows = stationPredictionsAsMoreCast2ForecastRows.filter(
       row => selectedStations.filter(station => station.code === row.stationCode).length
     )
     setForecastRows(visibleForecastRows)
-  }, [stationPredictionsAsNextCastForecastRows, selectedStations])
+  }, [stationPredictionsAsMoreCast2ForecastRows, selectedStations])
 
   return (
     <div className={classes.root} data-testid="more-cast-2-page">
@@ -152,7 +152,7 @@ const MoreCast2Page = () => {
               </FormControl>
             </Grid>
           </Grid>
-          <NextCastDataGrid rows={forecastRows} setForecastRows={setForecastRows} />
+          <MoreCast2DataGrid rows={forecastRows} setForecastRows={setForecastRows} />
         </div>
       </div>
     </div>

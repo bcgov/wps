@@ -1,13 +1,13 @@
 import { DateTime } from 'luxon'
-import { ModelType } from 'api/nextCastAPI'
+import { ModelType } from 'api/moreCast2API'
 
 export interface PredictionItem {
   choice: ModelType
   value: number
 }
 
-export interface NextCastForecastRow {
-  id: number
+export interface MoreCast2ForecastRow {
+  id: string
   forDate: DateTime
   precip: PredictionItem
   rh: PredictionItem
