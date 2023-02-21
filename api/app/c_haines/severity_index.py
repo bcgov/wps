@@ -371,7 +371,8 @@ class CHainesSeverityGenerator():
             for key in make_model_levels(model):
                 # Try to download this file.
                 # TODO: would be nice to make the file download async
-                filename = download(urls[key], temporary_path)
+                filename = download(urls[key], temporary_path,
+                                    'REDIS_CACHE_ENV_CANADA', 'REDIS_ENV_CANADA_CACHE_EXPIRY')
                 if not filename:
                     # If we fail to download one of files, quit, don't try the others.
                     logger.warning('failed to download %s', urls[key])
