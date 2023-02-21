@@ -92,7 +92,7 @@ const MoreCast2Page = () => {
       localStorage.removeItem(DEFAULT_FIRE_CENTER_KEY)
       return
     }
-    if (!isUndefined(fireCenter)) {
+    if (!isUndefined(fireCenter) && !isNull(fireCenter)) {
       localStorage.setItem(DEFAULT_FIRE_CENTER_KEY, fireCenter.id.toString())
     }
 
