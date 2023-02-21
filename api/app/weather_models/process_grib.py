@@ -178,7 +178,11 @@ class GribFileProcessor():
 
     def yield_uv_wind_data_for_stations(self, u_raster_band: gdal.Dataset, v_raster_band: gdal.Dataset, variable: str):
         """ Given a list of stations and 2 gdal datasets (one for u-component of wind, one for v-component
-        of wind), yield relevant data """
+        of wind), yield relevant data 
+
+        What the heck is going on here?! See
+        http://colaweb.gmu.edu/dev/clim301/lectures/wind/wind-uv
+        """
         for station in self.stations:
             longitude = station.long
             latitude = station.lat

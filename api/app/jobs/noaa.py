@@ -61,6 +61,7 @@ def get_gfs_model_run_download_urls(now: datetime.datetime, model_cycle: str) ->
     for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')
         year_mo = f"{now.year}" + format(now.month, '02d')
+        # Fetch data from 3 days ago - see model_data.md for explanation
         year_mo_date = f"{year_mo}" + format((now - datetime.timedelta(days=3)).day, '02d')
         base_url = "https://www.ncei.noaa.gov/data/global-forecast-system/access/grid-004-0.5-degree/forecast/"
         filename = f'{year_mo}/{year_mo_date}/gfs_4_{year_mo_date}_{model_cycle}_{hhh}.grb2'

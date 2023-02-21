@@ -89,6 +89,8 @@ Therefore, to predict weather for 12:00 PST, we must fetch the following model r
 - run time 1200: hours 006 and 009
 - run time 1800: hours 000 and 003
 
+NOAA has a delay of approximately 2.5 days when publishing GFS model data. (For example, on Feb 21 2023 at 18:30 UTC, the most recently available data is for 20230219, and only the 0000 and 0600 run times are available.) Due to this delay, `get_gfs_model_run_download_urls()` in `app.jobs.noaa` generates URLs for the date 3 days prior to the current date.
+
 ## Downloading Data
 
 There is a lot of data to download and analyze for these weather models, so to ensure that we don't duplicate work, we track which URLs and model runs have already completed download and interpolation in the `processed_model_run_urls` and `prediction_model_run_timestamps` tables in our database.
