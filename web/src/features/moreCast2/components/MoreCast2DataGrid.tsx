@@ -3,11 +3,11 @@ import makeStyles from '@mui/styles/makeStyles'
 import { DataGrid, GridColDef, GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid'
 import { isNumber } from 'lodash'
 import { DateTime } from 'luxon'
-import { NextCastForecastRow } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 
-interface NextCastDataGridProps {
-  rows: NextCastForecastRow[]
-  setForecastRows: React.Dispatch<React.SetStateAction<NextCastForecastRow[]>>
+interface MoreCast2DataGridProps {
+  rows: MoreCast2ForecastRow[]
+  setForecastRows: React.Dispatch<React.SetStateAction<MoreCast2ForecastRow[]>>
 }
 
 const useStyles = makeStyles({
@@ -17,7 +17,7 @@ const useStyles = makeStyles({
   }
 })
 
-const NextCastDataGrid = (props: NextCastDataGridProps) => {
+const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
   const classes = useStyles()
   const predictionItemValueGetter = (params: GridValueGetterParams) => {
     const value = params?.value?.value
@@ -96,4 +96,4 @@ const NextCastDataGrid = (props: NextCastDataGridProps) => {
   )
 }
 
-export default NextCastDataGrid
+export default MoreCast2DataGrid

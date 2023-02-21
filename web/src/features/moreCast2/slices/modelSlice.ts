@@ -1,23 +1,23 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { ModelType, getModelPredictions } from 'api/nextCastAPI'
+import { ModelType, getModelPredictions } from 'api/moreCast2API'
 import { ModelsForStation } from 'api/modelAPI'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { NextCastForecastRow } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { parseModelsForStationsHelper } from 'features/moreCast2/slices/parseModelsForStationsHelper'
 
 interface State {
   loading: boolean
   error: string | null
   stationPredictions: ModelsForStation[]
-  stationPredictionsAsNextCastForecastRows: NextCastForecastRow[]
+  stationPredictionsAsMoreCast2ForecastRows: MoreCast2ForecastRow[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
   stationPredictions: [],
-  stationPredictionsAsNextCastForecastRows: []
+  stationPredictionsAsMoreCast2ForecastRows: []
 }
 
 // TODO - Remove raw stationPredictions from State. I think we only need the formatted data.
@@ -28,7 +28,7 @@ const modelSlice = createSlice({
     getModelStationPredictionsStart(state: State) {
       state.error = null
       state.stationPredictions = []
-      state.stationPredictionsAsNextCastForecastRows = []
+      state.stationPredictionsAsMoreCast2ForecastRows = []
       state.loading = true
     },
     getModelStationPredictionsFailed(state: State, action: PayloadAction<string>) {
@@ -38,7 +38,7 @@ const modelSlice = createSlice({
     getModelStationPredictionsSuccess(state: State, action: PayloadAction<ModelsForStation[]>) {
       state.error = null
       state.stationPredictions = action.payload
-      state.stationPredictionsAsNextCastForecastRows = parseModelsForStationsHelper(action.payload)
+      state.stationPredictionsAsMoreCast2ForecastRows = parseModelsForStationsHelper(action.payload)
       state.loading = false
     }
   }

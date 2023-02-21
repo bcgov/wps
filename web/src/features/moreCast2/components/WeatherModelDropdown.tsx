@@ -1,7 +1,7 @@
 import React from 'react'
 import { TextField, Autocomplete } from '@mui/material'
 import { isEqual } from 'lodash'
-import { ModelType } from 'api/nextCastAPI'
+import { ModelType } from 'api/moreCast2API'
 
 interface WeatherModelDropdownProps {
   selectedModelType: ModelType
