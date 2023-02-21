@@ -73,9 +73,11 @@ Specifically, we fetch GFS model data on a 0.5&deg; scale, based on the request 
 
 ##### Model Run Cycles
 
-NOAA runs the GFS model 4 times a day at 00:00, 06:00, 12:00, and 18:00 UTC. For each of these model runs, the model predicts weather at 3-hour intervals for 384 hours (16 days) in advance. Since Morecast users have indicated that they make forecasts up to a maximum of 10 days in advance, we only fetch GFS model data up to 240 hours (10 days) in advance.
+NOAA runs the GFS model 4 times a day at 00:00, 06:00, 12:00, and 18:00 UTC. For each of these model runs, the model predicts weather at 3-hour intervals for 384 hours (16 days) in advance. This means that for any given day, the GFS model makes weather predictions that correspond to 00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, and 21:00 UTC.
 
-Additionally, GFS model data is only relevant to Morecast users for the 12:00 PST (13:00 PDT) timeframe - this is the time of day that a fire weather forecast is issued for. Noon PST corresponds to 20:00 UTC, but the GFS model has no output for this hour. We therefore fetch predicted weather values for the 18:00 and 21:00 UTC hours for each model run cycle, and subsequently perform linear interpolation to calculate approximate weather values for 20:00 UTC. Note that we are fetching these predicted weather values for each of the 4 GFS model run cycles that happen each day, since the values may change slightly with each model run.
+Since Morecast users have indicated that they make forecasts up to a maximum of 10 days in advance, we only fetch GFS model data up to 240 hours (10 days) in advance.
+
+Additionally, GFS model data is only relevant to Morecast users for the 12:00 PST (13:00 PDT) timeframe - this is the time of day that a fire weather forecast is issued for. Noon PST corresponds to 20:00 UTC, but the GFS model has no output for this hour. We therefore fetch predicted weather values at the time intervals of each model run cycle that correspond to 18:00 and 21:00 UTC, and subsequently perform linear interpolation to calculate approximate weather values for 20:00 UTC. Note that we are fetching these predicted weather values for each of the 4 GFS model run cycles that happen each day, since the values may change slightly with each model run.
 
 The filename convention that NOAA uses when publishing GFS model data follows this pattern (as an example):
 

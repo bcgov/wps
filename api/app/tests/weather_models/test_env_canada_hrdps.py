@@ -63,7 +63,7 @@ def mock_database(monkeypatch):
     monkeypatch.setattr(app.jobs.common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_hrdps_prediction_model_run_timestamp_records)
     monkeypatch.setattr(app.jobs.env_canada, 'get_processed_file_record', mock_get_processed_file_record)
-    monkeypatch.setattr(app.jobs.env_canada, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
+    monkeypatch.setattr(app.jobs.common_model_fetchers, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
     monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
 
