@@ -9,9 +9,12 @@ describe('More Cast 2 Page', () => {
 
   it('Renders the initial page', () => {
     cy.getByTestId('fire-center-dropdown').should('be.visible')
+    cy.getByTestId('morecast2-data-grid').should('be.visible')
+    cy.getByTestId('morecast2-station-panel').should('be.visible')
+    cy.getByTestId('weather-model-dropdown').should('be.visible')
   })
 
-  it('Writes typed fire center to local stoarge', () => {
+  it('Writes typed fire center to local storage', () => {
     cy.clearLocalStorage()
     cy.getByTestId('fire-center-dropdown').should('be.visible').type('North').type('{downarrow}').type('{enter}')
     cy.getAllLocalStorage().then(result => {
@@ -23,7 +26,7 @@ describe('More Cast 2 Page', () => {
     })
   })
 
-  it('Writes clicked fire center to local stoarge', () => {
+  it('Writes clicked fire center to local storage', () => {
     cy.clearLocalStorage()
     cy.getByTestId('fire-center-dropdown').should('be.visible').click().get('li[data-option-index="1"').click()
     cy.getAllLocalStorage().then(result => {

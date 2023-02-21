@@ -19,9 +19,9 @@ const useStyles = makeStyles({
 
 const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
   const classes = useStyles()
-  const predictionItemValueGetter = (params: GridValueGetterParams) => {
+  const predictionItemValueGetter = (params: GridValueGetterParams, precision: number) => {
     const value = params?.value?.value
-    return isNumber(value) ? value : 'Nan'
+    return isNumber(value) ? value.toFixed(precision) : 'Nan'
   }
 
   const columns: GridColDef[] = [
@@ -45,7 +45,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       sortable: false,
       type: 'number',
       width: 120,
-      valueGetter: predictionItemValueGetter
+      valueGetter: params => predictionItemValueGetter(params, 0)
     },
     {
       field: 'rh',
@@ -55,7 +55,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       sortable: false,
       type: 'number',
       width: 120,
-      valueGetter: predictionItemValueGetter
+      valueGetter: params => predictionItemValueGetter(params, 0)
     },
     {
       field: 'windDirection',
@@ -65,7 +65,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       sortable: false,
       type: 'number',
       width: 120,
-      valueGetter: predictionItemValueGetter
+      valueGetter: params => predictionItemValueGetter(params, 0)
     },
     {
       field: 'windSpeed',
@@ -75,7 +75,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       sortable: false,
       type: 'number',
       width: 120,
-      valueGetter: predictionItemValueGetter
+      valueGetter: params => predictionItemValueGetter(params, 0)
     },
     {
       field: 'precip',
@@ -85,12 +85,12 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       sortable: false,
       type: 'number',
       width: 120,
-      valueGetter: predictionItemValueGetter
+      valueGetter: params => predictionItemValueGetter(params, 1)
     }
   ]
 
   return (
-    <div className={classes.root}>
+    <div className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid columns={columns} rows={props.rows}></DataGrid>
     </div>
   )
