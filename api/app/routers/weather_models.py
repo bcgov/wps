@@ -3,6 +3,7 @@
 import logging
 from fastapi import APIRouter, Depends
 from datetime import date, datetime, time
+import pytz
 from app.auth import authentication_required, audit
 from app.weather_models import ModelEnum
 from app.schemas.weather_models import (
@@ -59,10 +60,12 @@ async def get_model_values_for_date_range(
     """
     logger.info('/weather_models/%s/predictions/most_recent/%s/%s', model.name, start_date, end_date)
 
-    start_time = datetime.combine(start_date, time.min)
-    end_time = datetime.combine(end_date, time.max)
+    vancouver_tz = pytz.timezone("America/Vancouver")
 
-    station_predictions = fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(
+    start_time = vancouver_tz.localize(datetime.combine(start_date, time.min))
+    end_time = vancouver_tz.localize(datetime.combine(end_date, time.max))
+
+    station_predictions = await fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(
         model, request.stations, start_time, end_time)
 
     return WeatherStationsModelRunsPredictionsResponse(

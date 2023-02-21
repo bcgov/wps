@@ -255,16 +255,14 @@ def get_latest_station_model_prediction_per_day(session: Session,
                WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
         filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
                PredictionModel.abbreviation == model).\
+        group_by(PredictionModel.id,
+                 PredictionModelRunTimestamp.id,
+                 WeatherStationModelPrediction.id,
+                 WeatherStationModelPrediction.station_code, func.date(
+                     WeatherStationModelPrediction.prediction_timestamp)).\
         order_by(WeatherStationModelPrediction.station_code).\
         order_by(WeatherStationModelPrediction.prediction_timestamp).\
-        group_by(WeatherStationModelPrediction.station_code, func.date(WeatherStationModelPrediction.prediction_timestamp)).\
-        having(
-            WeatherStationModelPrediction.prediction_timestamp == session.query(
-                func.max(WeatherStationModelPrediction.prediction_timestamp))
-            .filter(func.date(WeatherStationModelPrediction.prediction_timestamp) == func.date(WeatherStationModelPrediction.prediction_timestamp))
-            .filter(WeatherStationModelPrediction.station_code == WeatherStationModelPrediction.station_code)
-            .subquery()
-            .c.prediction_timestamp)
+        order_by(PredictionModelRunTimestamp.prediction_run_timestamp.asc())
     return query
 
 
