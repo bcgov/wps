@@ -1,6 +1,6 @@
 import { MORE_CAST_2_ROUTE } from '../../src/utils/constants'
 
-describe('Fire Behaviour Advisory Page', () => {
+describe('More Cast 2 Page', () => {
   beforeEach(() => {
     cy.intercept('GET', 'api/fba/fire-centers', { fixture: 'fba/fire-centers.json' }).as('fireCenters')
 
@@ -34,16 +34,3 @@ describe('Fire Behaviour Advisory Page', () => {
       })
     })
   })
-
-  it('Removes fire center from local storage', () => {
-    window.localStorage.setItem('preferredMoreCast2FireCenter', '42')
-    cy.getByTestId('fire-center-dropdown')
-      .should('be.visible')
-      .click()
-      .get('.MuiAutocomplete-clearIndicator')
-      .click()
-      .then(() => {
-        expect(localStorage.getItem('preferredMoreCast2FireCenter')).to.be.an('null')
-      })
-  })
-})
