@@ -1,5 +1,4 @@
-import axios from 'api/axios'
-import { BiasAdjModelResponse, ModelsForStation } from 'api/modelAPI'
+import { ModelsForStation } from 'api/modelAPI'
 import { Station } from 'api/stationAPI'
 
 export enum ModelChoice {
@@ -48,29 +47,36 @@ export const ModelChoices: ModelType[] = [
  * @param from_date The first date (epoch time) for which predictions will be returned
  * @param to_date The last date (epoch time) for which predictions will be returned
  */
-export async function getModelPredictionsWIP(
-  stationCodes: number[],
-  model: ModelType,
-  startDate: number,
-  endDate: number
-): Promise<ModelsForStation[]> {
-  const url = `/weather_models/${model}/predictions/most_recent/${startDate}/${endDate}`
-  const { data } = await axios.post<BiasAdjModelResponse>(url, {
-    stations: stationCodes
-  })
+// TODO - Uncomment once we're wired up to the API
+// export async function getModelPredictionsWIP(
+//   stationCodes: number[],
+//   model: ModelType,
+//   startDate: number,
+//   endDate: number
+// ): Promise<ModelsForStation[]> {
+//   const url = `/weather_models/${model}/predictions/most_recent/${startDate}/${endDate}`
+//   const { data } = await axios.post<BiasAdjModelResponse>(url, {
+//     stations: stationCodes
+//   })
 
-  return data.stations
-}
+//   return data.stations
+// }
 
+// TODO - To be removed once we're wired up to the API
 export async function getModelPredictions(
   stationCodes: number[],
   model: ModelType,
   startDate: number,
   endDate: number
 ): Promise<ModelsForStation[]> {
-  return sampleAPIData.stations
+  if (model === ModelChoice.HRDPS) {
+    return sampleAPIData.stations
+  } else {
+    return []
+  }
 }
 
+// TODO - To be removed once we're wired up to the API
 const sampleAPIData = {
   stations: [
     {
