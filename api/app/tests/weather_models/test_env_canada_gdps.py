@@ -48,7 +48,7 @@ def mock_get_processed_file_count(monkeypatch):
     """ Mocked out get processed file count """
     def mock_get_count(*args):
         return 162
-    monkeypatch.setattr(env_canada, 'get_processed_file_count', mock_get_count)
+    monkeypatch.setattr(common_model_fetchers, 'get_processed_file_count', mock_get_count)
 
 
 @pytest.fixture()

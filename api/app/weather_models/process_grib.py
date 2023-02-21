@@ -254,20 +254,34 @@ class GribFileProcessor():
             self.store_bounding_values(
                 points, values, prediction_run, grib_info, session)
 
-    def process_noaa_grib_file(self, session: Session, dataset, grib_info: ModelRunInfo,
-                               prediction_run: PredictionModelRunTimestamp):
-        precip_raster_band = None
-        if (grib_info.model_run_timestamp - grib_info.prediction_timestamp).total_seconds() == 0:
+    def get_raster_bands(self, dataset, grib_info: ModelRunInfo):
+        """ Returns raster bands of dataset for temperature, RH, U/V wind components, and 
+        accumulated precip, depending on which interval of the model run we're analyzing. """
+        # model_run_intervals is the number of hours difference between the prediction_timestamp and the
+        # model_run_timestamp.
+        # Need to know this to know which raster band ID we should use for GFS
+        # grib files. Also, there won't be an accumulated precip band for the 000 interval.
+        model_run_interval = (grib_info.prediction_timestamp -
+                              grib_info.model_run_timestamp).total_seconds() / (60 * 60)
+        if model_run_interval == 0:
             tmp_raster_band = dataset.GetRasterBand(GFS_000_HOURS_RASTER_BANDS.get('tmp_tgl_2'))
             rh_raster_band = dataset.GetRasterBand(GFS_000_HOURS_RASTER_BANDS.get('rh_tgl_2'))
             u_wind_raster_band = dataset.GetRasterBand(GFS_000_HOURS_RASTER_BANDS.get('u_comp_wind_10m'))
             v_wind_raster_band = dataset.GetRasterBand(GFS_000_HOURS_RASTER_BANDS.get('v_comp_wind_10m'))
-        elif (grib_info.prediction_timestamp - grib_info.model_run_timestamp).total_seconds() > 0:
+            precip_raster_band = None
+        else:
             tmp_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get('tmp_tgl_2'))
             rh_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get('rh_tgl_2'))
             u_wind_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get('u_comp_wind_10m'))
             v_wind_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get('v_comp_wind_10m'))
             precip_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get('apcp_sfc_0'))
+
+        return (tmp_raster_band, rh_raster_band, u_wind_raster_band, v_wind_raster_band, precip_raster_band)
+
+    def process_noaa_grib_file(self, session: Session, dataset, grib_info: ModelRunInfo,
+                               prediction_run: PredictionModelRunTimestamp):
+        tmp_raster_band, rh_raster_band, u_wind_raster_band, v_wind_raster_band, precip_raster_band = self.get_raster_bands(
+            dataset, grib_info)
 
         for (points, values) in self.yield_data_for_stations(tmp_raster_band):
             grib_info.variable_name = 'tmp_tgl_2'
