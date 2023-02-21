@@ -64,7 +64,7 @@ const StationPanel = (props: StationPanelProps) => {
 
   // TODO: Add an add/remove all button
   return (
-    <div className={classes.root}>
+    <div className={classes.root} data-testid={`morecast2-station-panel`}>
       <div className={classes.header}>
         <Typography variant="h5">Stations</Typography>
       </div>
