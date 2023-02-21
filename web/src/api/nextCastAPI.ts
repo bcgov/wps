@@ -1,4 +1,5 @@
-import { ModelsForStation } from 'api/modelAPI'
+import axios from 'api/axios'
+import { BiasAdjModelResponse, ModelsForStation } from 'api/modelAPI'
 import { Station } from 'api/stationAPI'
 
 export enum ModelChoice {
@@ -69,6 +70,15 @@ export async function getModelPredictions(
   startDate: number,
   endDate: number
 ): Promise<ModelsForStation[]> {
+  try {
+    const url = `/weather_models/${model}/predictions/most_recent/${startDate}/${endDate}`
+    await axios.post<BiasAdjModelResponse>(url, {
+      stations: stationCodes
+    })
+  } catch {
+    console.log('Not expecting the API to work yet.')
+  }
+
   if (model === ModelChoice.HRDPS) {
     return sampleAPIData.stations
   } else {

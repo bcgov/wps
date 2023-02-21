@@ -110,7 +110,6 @@ const MoreCast2Page = () => {
   }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    console.log(stationPredictionsAsNextCastForecastRows)
     const visibleForecastRows = stationPredictionsAsNextCastForecastRows.filter(
       row => selectedStations.filter(station => station.code === row.stationCode).length
     )
