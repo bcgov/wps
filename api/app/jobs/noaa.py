@@ -38,22 +38,22 @@ def get_gfs_model_run_hours():
 def get_gfs_model_run_download_urls(now: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
     """ Yield urls to download GFS model runs """
     # GFS model makes predictions at 3-hour intervals up to 384 hours (16 days) in advance.
-    # Morecast 2.0 only needs predictions 10 days in advance (240 hours) and only for noon PST
+    # Morecast 2.0 only needs predictions 10 days in advance (264 hours) and only for noon PST
     # but GFS model run timestamps are in UTC. 12:00 PST = 20:00 UTC, so we need to pull
     # data for the 18:00 and 21:00 UTC model runs, then perform linear interpolation to
     # calculate noon values.
     if model_cycle == '0000':
-        before_noon = list(range(18, 235, 24))
-        after_noon = list(range(21, 238, 24))
+        before_noon = list(range(18, 265, 24))
+        after_noon = list(range(21, 265, 24))
     elif model_cycle == '0600':
-        before_noon = list(range(12, 229, 24))
-        after_noon = list(range(15, 232, 24))
+        before_noon = list(range(12, 253, 24))
+        after_noon = list(range(15, 256, 24))
     elif model_cycle == '1200':
-        before_noon = list(range(6, 223, 24))
-        after_noon = list(range(9, 226, 24))
+        before_noon = list(range(6, 247, 24))
+        after_noon = list(range(9, 250, 24))
     elif model_cycle == '1800':
-        before_noon = list(range(0, 217, 24))
-        after_noon = list(range(3, 220, 24))
+        before_noon = list(range(0, 241, 24))
+        after_noon = list(range(3, 244, 24))
 
     all_hours = before_noon + after_noon
     # sort list purely for human convenience when debugging. Functionally it doesn't matter
