@@ -191,7 +191,7 @@ const completeSampleData = {
               relative_humidity: 71.29874737038071,
               bias_adjusted_relative_humidity: null,
               wind_speed: 1.2912720441818237,
-              wind_direction: 144.62246704101562,
+              wind_direction: 144.6224562,
               delta_precipitation: 0.0
             },
             {
@@ -598,7 +598,7 @@ const completeSampleData = {
               datetime: '2023-02-18T03:00:00+00:00',
               temperature: -4.203843383380217,
               bias_adjusted_temperature: -2.4,
-              relative_humidity: 95.42117309570312,
+              relative_humidity: 95.70312,
               bias_adjusted_relative_humidity: 99.0,
               wind_speed: 0.7839865684509277,
               wind_direction: 117.41352081298828,
@@ -771,7 +771,7 @@ const completeSampleData = {
               relative_humidity: 64.77392139240602,
               bias_adjusted_relative_humidity: null,
               wind_speed: 0.553402304649353,
-              wind_direction: 235.47268676757812,
+              wind_direction: 235.757812,
               delta_precipitation: 0.0
             },
             {
@@ -901,7 +901,7 @@ const completeSampleData = {
               relative_humidity: 60.09617470902474,
               bias_adjusted_relative_humidity: null,
               wind_speed: 1.4757394790649414,
-              wind_direction: 230.21536254882812,
+              wind_direction: 230.215312,
               delta_precipitation: 0.0
             },
             {
@@ -911,7 +911,7 @@ const completeSampleData = {
               relative_humidity: 65.56457090338343,
               bias_adjusted_relative_humidity: null,
               wind_speed: 1.256684422492981,
-              wind_direction: 225.60366821289062,
+              wind_direction: 225.609062,
               delta_precipitation: 0.0
             },
             {
@@ -961,7 +961,7 @@ const completeSampleData = {
               relative_humidity: 89.07817519378823,
               bias_adjusted_relative_humidity: null,
               wind_speed: 0.4611685872077942,
-              wind_direction: 250.13784790039062,
+              wind_direction: 250.10039062,
               delta_precipitation: 0.23898849797784652
             },
             {
@@ -1111,7 +1111,7 @@ const completeSampleData = {
               relative_humidity: 58.7934709103002,
               bias_adjusted_relative_humidity: 14.0,
               wind_speed: 2.2712552547454834,
-              wind_direction: 249.03103637695312,
+              wind_direction: 249.0310312,
               delta_precipitation: 0.0013586939390146102
             },
             {
@@ -1261,7 +1261,7 @@ const completeSampleData = {
               relative_humidity: 65.21814622971182,
               bias_adjusted_relative_humidity: null,
               wind_speed: 0.5130500793457031,
-              wind_direction: 139.36514282226562,
+              wind_direction: 139.365562,
               delta_precipitation: 0.0
             },
             {
@@ -1511,7 +1511,7 @@ const completeSampleData = {
               relative_humidity: 66.53921085113487,
               bias_adjusted_relative_humidity: null,
               wind_speed: 0.4611685872077942,
-              wind_direction: 134.10781860351562,
+              wind_direction: 134.10781562,
               delta_precipitation: 0.0006571409584364616
             },
             {
@@ -1551,7 +1551,7 @@ const completeSampleData = {
               relative_humidity: 68.60133711061701,
               bias_adjusted_relative_humidity: null,
               wind_speed: 0.253642737865448,
-              wind_direction: 129.95730590820312,
+              wind_direction: 129.957820312,
               delta_precipitation: 0.0
             }
           ]
@@ -1741,7 +1741,7 @@ const completeSampleData = {
               relative_humidity: 71.77719726909814,
               bias_adjusted_relative_humidity: 68.0,
               wind_speed: 0.8646910786628723,
-              wind_direction: 155.13711547851562,
+              wind_direction: 155.137851562,
               delta_precipitation: 0.0
             },
             {
@@ -1751,7 +1751,7 @@ const completeSampleData = {
               relative_humidity: 75.13296943397938,
               bias_adjusted_relative_humidity: 67.0,
               wind_speed: 0.807045042514801,
-              wind_direction: 150.98660278320312,
+              wind_direction: 150.986600312,
               delta_precipitation: 0.0
             },
             {
