@@ -40,7 +40,7 @@ def mock_get_stations(monkeypatch):
             code=123, name='Test', lat=50.7, long=-120.425, ecodivision_name='Test',
             core_season=Season(
                 start_month=5, start_day=1, end_month=9, end_day=21)), ]
-    monkeypatch.setattr(env_canada, 'get_stations_synchronously', mock_get)
+    monkeypatch.setattr(common_model_fetchers, 'get_stations_synchronously', mock_get)
 
 
 @pytest.fixture()
@@ -63,7 +63,7 @@ def mock_get_processed_file_record(monkeypatch):
         called = True
         return None
 
-    monkeypatch.setattr(env_canada, 'get_processed_file_record', get_processed_file_record)
+    monkeypatch.setattr(common_model_fetchers, 'get_processed_file_record', get_processed_file_record)
 
 
 @pytest.fixture()
@@ -95,7 +95,7 @@ def mock_get_model_run_predictions_for_grid(monkeypatch):
         ]
         return result
     monkeypatch.setattr(
-        env_canada, 'get_model_run_predictions_for_grid', mock_get)
+        common_model_fetchers, 'get_model_run_predictions_for_grid', mock_get)
 
 
 @pytest.fixture()
@@ -140,7 +140,7 @@ def mock_database(monkeypatch):
 
     monkeypatch.setattr(common_model_fetchers, 'get_prediction_model_run_timestamp_records',
                         mock_get_gdps_prediction_model_run_timestamp_records)
-    monkeypatch.setattr(env_canada, 'get_processed_file_record', mock_get_processed_file_record)
+    monkeypatch.setattr(common_model_fetchers, 'get_processed_file_record', mock_get_processed_file_record)
     monkeypatch.setattr(common_model_fetchers, 'get_grids_for_coordinate', mock_get_grids_for_coordinate)
     monkeypatch.setattr(app.db.crud.weather_models, 'get_prediction_run', mock_get_prediction_run)
 
