@@ -132,6 +132,27 @@ def get_transformer(crs_from, crs_to):
     return Transformer.from_crs(crs_from, crs_to, always_xy=True)
 
 
+def calculate_wind_speed_from_u_v(u: float, v: float):
+    """ Return calculated wind speed from u and v components using formula
+    wind_speed = sqrt(u^2 + v^2)
+
+    What the heck is going on here?! See
+    http://colaweb.gmu.edu/dev/clim301/lectures/wind/wind-uv
+    """
+    return math.sqrt(math.pow(u, 2) + math.pow(v, 2))
+
+
+def calculate_wind_dir_from_u_v(u: float, v: float):
+    """ Return calculated wind direction from u and v components using formula
+    wind_direction = arctan(u, v) * 180/pi (in degrees)
+
+    What the heck is going on here?! See
+    http://colaweb.gmu.edu/dev/clim301/lectures/wind/wind-uv
+    """
+    calc = math.atan2(v, u) * 180 / math.pi
+    return calc if calc > 0 else calc + 360
+
+
 class GribFileProcessor():
     """ Instances of this object can be used to process and ingest a grib file.
     """
@@ -163,25 +184,9 @@ class GribFileProcessor():
 
             yield (points, values)
 
-    def calculate_wind_speed_from_u_v(self, u: float, v: float):
-        """ Return calculated wind speed from u and v components using formula
-        wind_speed = sqrt(u^2 + v^2)
-        """
-        return math.sqrt(math.pow(u, 2) + math.pow(v, 2))
-
-    def calculate_wind_dir_from_u_v(self, u: float, v: float):
-        """ Return calculated wind direction from u and v components using formula
-        wind_direction = arctan(u, v) * 180/pi (in degrees)
-        """
-        calc = math.atan2(v, u) * 180 / math.pi
-        return calc if calc > 0 else calc + 360
-
     def yield_uv_wind_data_for_stations(self, u_raster_band: gdal.Dataset, v_raster_band: gdal.Dataset, variable: str):
         """ Given a list of stations and 2 gdal datasets (one for u-component of wind, one for v-component
         of wind), yield relevant data 
-
-        What the heck is going on here?! See
-        http://colaweb.gmu.edu/dev/clim301/lectures/wind/wind-uv
         """
         for station in self.stations:
             longitude = station.long
@@ -198,13 +203,13 @@ class GribFileProcessor():
                 if variable == 'wdir_tgl_10':
                     wind_dir_values = []
                     for u, v in zip(u_values, v_values):
-                        wind_dir_values.append(self.calculate_wind_dir_from_u_v(u, v))
+                        wind_dir_values.append(calculate_wind_dir_from_u_v(u, v))
                     if u_points == v_points:
                         yield (u_points, wind_dir_values)
                 elif variable == 'wind_tgl_10':
                     wind_speed_values = []
                     for u, v in zip(u_values, v_values):
-                        wind_speed_values.append(self.calculate_wind_speed_from_u_v(u, v))
+                        wind_speed_values.append(calculate_wind_speed_from_u_v(u, v))
                     if u_points == v_points:
                         yield (u_points, wind_speed_values)
             else:

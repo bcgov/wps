@@ -144,3 +144,32 @@ def calculate_geographic_coordinate(data, raster_coordinate):
 def assert_geographic_coordinate(data, geographic_coordinate):
     """ assert that geographic_coordinate matches the expected value """
     assert list(data['geographic_coordinate']) == geographic_coordinate
+
+
+@scenario('test_grib_processing.feature', 'Calculate wind speed and direction from U,V components')
+def test_calculate_wind_speed_direction():
+    """ BDD Scenario for testing calculation of wind speed and wind direction from U,V components """
+
+
+@when(parsers.parse('I calculate the wind speed'))
+def when_calculate_wind_speed(u_float, v_float):
+    """ calculate the wind speed from U,V components """
+    actual_wind_speed = process_grib.calculate_wind_speed_from_u_v(u_float, v_float)
+
+
+@when(parsers.parse('I calculate the wind direction'))
+def when_calculate_wind_direction(u_float, v_float):
+    """ calculate the wind direction from U,V components """
+    actual_wind_dir = process_grib.calculate_wind_dir_from_u_v(u_float, v_float)
+
+
+@then(parsers.parse('I expect a calculated wind speed of {expected_wind_speed}'), converters={'expected_wind_speed': json.loads})
+def assert_wind_speed(actual_wind_speed, expected_wind_speed):
+    """ assert that calculated wind speed matches the expected value """
+    assert actual_wind_speed == expected_wind_speed
+
+
+@then(parsers.parse('I expect a calculated wind direction of {expected_wind_dir}'), converters={'expected_wind_dir': json.loads})
+def assert_wind_direction(actual_wind_dir, expected_wind_dir):
+    """ assert that calculated wind direction matches the expected value """
+    assert actual_wind_dir == expected_wind_dir

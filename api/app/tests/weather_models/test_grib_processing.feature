@@ -54,3 +54,15 @@ Feature: Grib file processing
             | [-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15]            | CMC_glb_latlon.15x.15_projection_wkt.txt         | [370, 330]        | [-124.57499999999999, 40.575]             |
             | [-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15]            | CMC_glb_latlon.15x.15_projection_wkt.txt         | [315, 455]        | [-132.825, 21.825000000000003]            |
             | [-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15]            | CMC_glb_latlon.15x.15_projection_wkt.txt         | [427, 245]        | [-116.02499999999998, 53.325]             |
+
+
+    Scenario: Calculate wind speed and direction from U,V components
+        Given a U value <u_float> and V value <v_float>
+        When I calculate the wind speed
+        And I calculate the wind direction
+        Then I expect a calculated wind speed of <expected_wind_speed> 
+        And I expect a calculated wind direction of <expected_wind_dir>
+
+        Examples:
+            | u_float   | v_float   | expected_wind_speed   | expected_wind_dir |
+            | 
