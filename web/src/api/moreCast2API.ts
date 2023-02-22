@@ -81,9 +81,9 @@ export async function getModelPredictions(
 
   if (model === ModelChoice.HRDPS) {
     return completeSampleData.stations
-  } else {
-    return []
   }
+
+  return []
 }
 
 const completeSampleData = {
