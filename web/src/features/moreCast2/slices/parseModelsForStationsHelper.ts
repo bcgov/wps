@@ -11,9 +11,13 @@ export const parseModelsForStationsHelper = (stations: ModelsForStation[]) => {
   stations.forEach(station => {
     const station_code = station.station.code
     const station_name = station.station.name
-    const model: ModelType = station.model_runs[0].model_run.abbreviation as ModelType
-    const values = station.model_runs[0].values
-    values.forEach((modelValue: ModelValue) => {
+    const most_recent_model_run = station.model_runs.reduce((a, b) => {
+      return DateTime.fromISO(a.model_run.datetime) > DateTime.fromISO(b.model_run.datetime) ? a : b
+    })
+    const filteredValues = most_recent_model_run.values.filter(value => value.datetime.endsWith('T12:00:00+00:00'))
+
+    const model: ModelType = most_recent_model_run.model_run.abbreviation as ModelType
+    filteredValues.forEach((modelValue: ModelValue) => {
       const row: MoreCast2ForecastRow = {
         id: window.crypto.randomUUID(),
         forDate: DateTime.fromISO(modelValue.datetime),
