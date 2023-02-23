@@ -7,7 +7,7 @@ import datetime
 from collections import defaultdict
 from sqlalchemy.orm import Session
 import app.db.database
-from app.schemas.weather_models import (WeatherModelPredictionValues, WeatherModelRun,
+from app.schemas.weather_models import (StationWeatherModelPrediction, WeatherModelPredictionValues, WeatherModelRun,
                                         ModelRunPredictions,
                                         WeatherStationModelRunsPredictions)
 from app.db.models.weather_models import WeatherStationModelPrediction
@@ -80,12 +80,28 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
     """ Fetch the latest model prediction for each day from database based on
         list of station codes and date range. Predictions are grouped by station and model run.
     """
+    latest_predictions: List[StationWeatherModelPrediction] = []
+
     # send the query (ordered by prediction date.)
     with app.db.database.get_read_session_scope() as session:
         latest_prediction_per_day = get_latest_station_model_prediction_per_day(
             session, station_codes, model, start_time, end_time)
 
-        return await marshall_predictions(session, model, station_codes, latest_prediction_per_day)
+        for id, timestamp, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, delta_precip, wind_dir, wind_speed, run_timestamp, _ in latest_prediction_per_day:
+            latest_predictions.append(StationWeatherModelPrediction(
+                id=str(id),
+                station_code=station_code,
+                temperature=temp,
+                bias_adjusted_temperature=bias_adjusted_temp,
+                relative_humidity=rh,
+                bias_adjusted_relative_humidity=bias_adjusted_rh,
+                delta_precipitation=delta_precip,
+                wind_speed=wind_speed,
+                wind_direction=wind_dir,
+                datetime=timestamp,
+                run_timestamp=run_timestamp
+            ))
+        return latest_predictions
 
 
 async def marshall_predictions(session: Session, model: ModelEnum, station_codes: List[int], query):

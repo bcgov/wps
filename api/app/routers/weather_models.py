@@ -1,12 +1,14 @@
 """ Routers for weather_models.
 """
 import logging
+from typing import List
 from fastapi import APIRouter, Depends
 from datetime import date, datetime, time
 import pytz
 from app.auth import authentication_required, audit
 from app.weather_models import ModelEnum
 from app.schemas.weather_models import (
+    StationWeatherModelPrediction,
     WeatherModelPredictionSummaryResponse,
     WeatherStationsModelRunsPredictionsResponse)
 from app.schemas.shared import ModelDataRequest, WeatherDataRequest
@@ -52,7 +54,7 @@ async def get_most_recent_model_values(
 
 
 @router.post('/{model}/predictions/most_recent/{start_date}/{end_date}',
-             response_model=WeatherStationsModelRunsPredictionsResponse)
+             response_model=List[StationWeatherModelPrediction])
 async def get_model_values_for_date_range(
         model: ModelEnum, start_date: date, end_date: date, request: ModelDataRequest):
     """ Returns the weather values for the last model prediction for the 
@@ -68,5 +70,4 @@ async def get_model_values_for_date_range(
     station_predictions = await fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(
         model, request.stations, start_time, end_time)
 
-    return WeatherStationsModelRunsPredictionsResponse(
-        stations=station_predictions)
+    return station_predictions
