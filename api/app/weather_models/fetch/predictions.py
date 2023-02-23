@@ -7,7 +7,7 @@ import datetime
 from collections import defaultdict
 from sqlalchemy.orm import Session
 import app.db.database
-from app.schemas.weather_models import (StationWeatherModelPrediction, WeatherModelPredictionValues, WeatherModelRun,
+from app.schemas.weather_models import (WeatherStationModelPredictionValues, WeatherModelPredictionValues, WeatherModelRun,
                                         ModelRunPredictions,
                                         WeatherStationModelRunsPredictions)
 from app.db.models.weather_models import WeatherStationModelPrediction
@@ -80,7 +80,7 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
     """ Fetch the latest model prediction for each day from database based on
         list of station codes and date range. Predictions are grouped by station and model run.
     """
-    latest_predictions: List[StationWeatherModelPrediction] = []
+    latest_predictions: List[WeatherStationModelPredictionValues] = []
 
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
 
@@ -90,19 +90,20 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
             session, station_codes, model, start_time, end_time)
 
         for id, timestamp, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, delta_precip, wind_dir, wind_speed, run_timestamp, _ in latest_prediction_per_day:
-            latest_predictions.append(StationWeatherModelPrediction(
-                id=str(id),
-                station=stations[station_code],
-                temperature=temp,
-                bias_adjusted_temperature=bias_adjusted_temp,
-                relative_humidity=rh,
-                bias_adjusted_relative_humidity=bias_adjusted_rh,
-                delta_precipitation=delta_precip,
-                wind_speed=wind_speed,
-                wind_direction=wind_dir,
-                datetime=timestamp,
-                run_timestamp=run_timestamp
-            ))
+            latest_predictions.append(
+                WeatherStationModelPredictionValues(
+                    id=str(id),
+                    station=stations[station_code],
+                    temperature=temp,
+                    bias_adjusted_temperature=bias_adjusted_temp,
+                    relative_humidity=rh,
+                    bias_adjusted_relative_humidity=bias_adjusted_rh,
+                    delta_precipitation=delta_precip,
+                    wind_speed=wind_speed,
+                    wind_direction=wind_dir,
+                    datetime=timestamp,
+                    run_timestamp=run_timestamp
+                ))
 
         return latest_predictions
 

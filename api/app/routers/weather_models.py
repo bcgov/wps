@@ -8,7 +8,7 @@ import pytz
 from app.auth import authentication_required, audit
 from app.weather_models import ModelEnum
 from app.schemas.weather_models import (
-    StationWeatherModelPrediction,
+    WeatherStationModelPredictionValues,
     WeatherModelPredictionSummaryResponse,
     WeatherStationsModelRunsPredictionsResponse)
 from app.schemas.shared import ModelDataRequest, WeatherDataRequest
@@ -54,7 +54,7 @@ async def get_most_recent_model_values(
 
 
 @router.post('/{model}/predictions/most_recent/{start_date}/{end_date}',
-             response_model=List[StationWeatherModelPrediction])
+             response_model=List[WeatherStationModelPredictionValues])
 async def get_model_values_for_date_range(
         model: ModelEnum, start_date: date, end_date: date, request: ModelDataRequest):
     """ Returns the weather values for the last model prediction for the 

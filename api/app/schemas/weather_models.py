@@ -67,7 +67,7 @@ class WeatherModelPredictionValues(BaseModel):
     delta_precipitation: float = None
 
 
-class StationWeatherModelPrediction(WeatherModelPredictionValues):
+class WeatherStationModelPredictionValues(WeatherModelPredictionValues):
     """ The predicted weather values for a station. """
     id: str
     station: WeatherStation
