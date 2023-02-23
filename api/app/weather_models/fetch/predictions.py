@@ -84,7 +84,6 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
 
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
 
-    # send the query (ordered by prediction date.)
     with app.db.database.get_read_session_scope() as session:
         latest_prediction_per_day = get_latest_station_model_prediction_per_day(
             session, station_codes, model, start_time, end_time)
