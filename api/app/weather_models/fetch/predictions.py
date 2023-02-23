@@ -82,6 +82,8 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
     """
     latest_predictions: List[StationWeatherModelPrediction] = []
 
+    stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
+
     # send the query (ordered by prediction date.)
     with app.db.database.get_read_session_scope() as session:
         latest_prediction_per_day = get_latest_station_model_prediction_per_day(
@@ -90,7 +92,7 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
         for id, timestamp, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, delta_precip, wind_dir, wind_speed, run_timestamp, _ in latest_prediction_per_day:
             latest_predictions.append(StationWeatherModelPrediction(
                 id=str(id),
-                station_code=station_code,
+                station=stations[station_code],
                 temperature=temp,
                 bias_adjusted_temperature=bias_adjusted_temp,
                 relative_humidity=rh,
@@ -101,6 +103,7 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
                 datetime=timestamp,
                 run_timestamp=run_timestamp
             ))
+
         return latest_predictions
 
 
