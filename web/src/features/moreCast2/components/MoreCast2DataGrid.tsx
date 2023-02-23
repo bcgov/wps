@@ -34,7 +34,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       sortable: false,
       width: 250,
       valueFormatter: (params: GridValueFormatterParams<number>) => {
-        return DateTime.fromSeconds(params.value / 1000).toISO()
+        return DateTime.fromSeconds(params.value / 1000).toLocaleString(DateTime.DATETIME_FULL)
       }
     },
     {
@@ -45,7 +45,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       sortable: false,
       type: 'number',
       width: 120,
-      valueGetter: params => predictionItemValueGetter(params, 0)
+      valueGetter: params => predictionItemValueGetter(params, 1)
     },
     {
       field: 'rh',
@@ -75,7 +75,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       sortable: false,
       type: 'number',
       width: 120,
-      valueGetter: params => predictionItemValueGetter(params, 0)
+      valueGetter: params => predictionItemValueGetter(params, 1)
     },
     {
       field: 'precip',
