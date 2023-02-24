@@ -242,7 +242,7 @@ def get_station_model_predictions(
 
 
 def get_latest_station_model_prediction_per_day(session: Session,
-                                                station_codes: List,
+                                                station_codes: List[int],
                                                 model: str,
                                                 start_date: datetime.datetime,
                                                 end_date: datetime.datetime):
