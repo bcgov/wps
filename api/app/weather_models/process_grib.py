@@ -149,8 +149,13 @@ def calculate_wind_dir_from_u_v(u: float, v: float):
     What the heck is going on here?! See
     http://colaweb.gmu.edu/dev/clim301/lectures/wind/wind-uv
     """
-    calc = math.atan2(v, u) * 180 / math.pi
-    return calc if calc > 0 else calc + 360
+    calc = math.atan2(u, v) * 180 / math.pi
+    # convert to meteorological convention of direction wind is coming from rather than
+    # direction wind is going to
+    calc += 180
+    # must convert from trig coordinates to cardinal coordinates
+    calc = 90 - calc
+    return calc if calc > 0 else 360 + calc
 
 
 class GribFileProcessor():

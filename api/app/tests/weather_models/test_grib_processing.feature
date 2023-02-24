@@ -60,9 +60,12 @@ Feature: Grib file processing
         Given a U value <u_float> and V value <v_float>
         When I calculate the wind speed
         And I calculate the wind direction
-        Then I expect a calculated wind speed of <expected_wind_speed> 
+        Then I expect a calculated wind speed of <expected_wind_speed>
         And I expect a calculated wind direction of <expected_wind_dir>
 
         Examples:
-            | u_float   | v_float   | expected_wind_speed   | expected_wind_dir |
-            | 
+            | u_float | v_float | expected_wind_speed | expected_wind_dir |
+            | -3.711  | -1.471  | 3.99                | 22                |
+            | 2.93    | 4.06    | 5.01                | 234               |
+            | -1.77   | 1.95    | 2.63                | 312               |
+            | 6.04    | -0.31   | 6.05                | 177               |
