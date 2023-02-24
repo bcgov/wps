@@ -67,6 +67,14 @@ class WeatherModelPredictionValues(BaseModel):
     delta_precipitation: float = None
 
 
+class WeatherStationModelPredictionValues(WeatherModelPredictionValues):
+    """ The predicted weather values for a station. """
+    id: str
+    abbreviation: str
+    station: WeatherStation
+    run_timestamp: datetime
+
+
 class WeatherModelRun(BaseModel):
     """ Detail about the model run """
     datetime: datetime
