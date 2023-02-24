@@ -4,7 +4,6 @@ import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import PercentIcon from '@mui/icons-material/Percent'
 import PublicIcon from '@mui/icons-material/Public'
-import RocketLaunch from '@mui/icons-material/RocketLaunch'
 import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
@@ -94,8 +93,8 @@ export const moreCastInfo: ToolInfo = {
   route: MORECAST_ROUTE,
   description: (
     <Typography>
-      A system that skill scores numerical weather models and enables selection, bias correction, and integration of
-      weather forecast information with other applications.
+      A system that uses weather station observations to skill score temperature and relative humidity values forecasted
+      by three numerical weather models.
     </Typography>
   ),
   icon: <AirOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
@@ -107,12 +106,11 @@ export const moreCast2Info: ToolInfo = {
   route: MORE_CAST_2_ROUTE,
   description: (
     <Typography>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-      magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-      consequat.
+      A system that enhances how the predictive services team creates weather forecasts and integrates this information
+      with other applications.
     </Typography>
   ),
-  icon: <RocketLaunch color="primary" fontSize={ICON_FONT_SIZE} />,
+  icon: <AirOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: true
 }
 
@@ -154,24 +152,13 @@ export const fbpGoInfo: ToolInfo = {
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of CardTravelSharp.
 // Temporarily exclude MoreCast 2.0 from prod
-export const toolInfos =
-  process.env.NODE_ENV !== 'production'
-    ? [
-        moreCast2Info,
-        fireBehaviourAdvisoryInfo,
-        moreCastInfo,
-        cHainesInfo,
-        fireBehaviourCalcInfo,
-        hfiCalcInfo,
-        percentileCalcInfo,
-        fbpGoInfo
-      ]
-    : [
-        fireBehaviourAdvisoryInfo,
-        moreCastInfo,
-        cHainesInfo,
-        fireBehaviourCalcInfo,
-        hfiCalcInfo,
-        percentileCalcInfo,
-        fbpGoInfo
-      ]
+export const toolInfos = [
+  moreCast2Info,
+  fireBehaviourAdvisoryInfo,
+  moreCastInfo,
+  cHainesInfo,
+  fireBehaviourCalcInfo,
+  hfiCalcInfo,
+  percentileCalcInfo,
+  fbpGoInfo
+]
