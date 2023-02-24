@@ -70,6 +70,7 @@ class WeatherModelPredictionValues(BaseModel):
 class WeatherStationModelPredictionValues(WeatherModelPredictionValues):
     """ The predicted weather values for a station. """
     id: str
+    abbreviation: str
     station: WeatherStation
     run_timestamp: datetime
 

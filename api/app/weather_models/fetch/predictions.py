@@ -92,6 +92,7 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
             latest_predictions.append(
                 WeatherStationModelPredictionValues(
                     id=str(id),
+                    abbreviation=model.value,
                     station=stations[station_code],
                     temperature=temp,
                     bias_adjusted_temperature=bias_adjusted_temp,
