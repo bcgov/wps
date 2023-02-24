@@ -64,12 +64,12 @@ const MoreCast2Page = () => {
     (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE
   )
   const [fromDate, setFromDate] = useState<DateTime>(DateTime.now())
-  const [toDate, setToDate] = useState<DateTime>(DateTime.now().plus({ days: 3 }))
+  const [toDate, setToDate] = useState<DateTime>(DateTime.now().plus({ days: 2 }))
   const [forecastRows, setForecastRows] = useState<MoreCast2ForecastRow[]>([])
 
   const fetchStationPredictions = (model: ModelType) => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
-    dispatch(getModelStationPredictions(stationCodes, model, fromDate.toMillis(), toDate.toMillis()))
+    dispatch(getModelStationPredictions(stationCodes, model, fromDate.toISODate(), toDate.toISODate()))
   }
 
   useEffect(() => {

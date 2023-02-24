@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { ModelType, getModelPredictions } from 'api/moreCast2API'
-import { ModelsForStation } from 'api/modelAPI'
+import { ModelType, getModelPredictions, StationPrediction } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
@@ -9,7 +8,7 @@ import { parseModelsForStationsHelper } from 'features/moreCast2/slices/parseMod
 interface State {
   loading: boolean
   error: string | null
-  stationPredictions: ModelsForStation[]
+  stationPredictions: StationPrediction[]
   stationPredictionsAsMoreCast2ForecastRows: MoreCast2ForecastRow[]
 }
 
@@ -35,7 +34,7 @@ const modelSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getModelStationPredictionsSuccess(state: State, action: PayloadAction<ModelsForStation[]>) {
+    getModelStationPredictionsSuccess(state: State, action: PayloadAction<StationPrediction[]>) {
       state.error = null
       state.stationPredictions = action.payload
       state.stationPredictionsAsMoreCast2ForecastRows = parseModelsForStationsHelper(action.payload)
@@ -50,11 +49,11 @@ export const { getModelStationPredictionsStart, getModelStationPredictionsFailed
 export default modelSlice.reducer
 
 export const getModelStationPredictions =
-  (stationCodes: number[], model: ModelType, fromDate: number, toDate: number): AppThunk =>
+  (stationCodes: number[], model: ModelType, fromDate: string, toDate: string): AppThunk =>
   async dispatch => {
     try {
       dispatch(getModelStationPredictionsStart())
-      let stationPredictions: ModelsForStation[] = []
+      let stationPredictions: StationPrediction[] = []
       if (stationCodes.length) {
         stationPredictions = await getModelPredictions(stationCodes, model, fromDate, toDate)
       }

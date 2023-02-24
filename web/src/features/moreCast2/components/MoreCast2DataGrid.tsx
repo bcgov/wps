@@ -34,7 +34,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       sortable: false,
       width: 250,
       valueFormatter: (params: GridValueFormatterParams<number>) => {
-        return DateTime.fromSeconds(params.value / 1000).toLocaleString(DateTime.DATETIME_FULL)
+        return DateTime.fromSeconds(params.value / 1000).toLocaleString(DateTime.DATE_MED)
       }
     },
     {
