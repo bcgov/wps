@@ -241,6 +241,82 @@ def get_station_model_predictions(
     return query
 
 
+def get_latest_station_model_prediction_per_day(session: Session,
+                                                station_codes: List[int],
+                                                model: str,
+                                                start_date: datetime.datetime,
+                                                end_date: datetime.datetime):
+    result = session.execute(f"""
+                    SELECT DISTINCT ON (unique_day)
+                    weather_station_model_predictions.id,
+                    max(weather_station_model_predictions.prediction_timestamp) AS latest_prediction_timestamp,
+                    weather_station_model_predictions.station_code,
+                    weather_station_model_predictions.rh_tgl_2,
+                    weather_station_model_predictions.tmp_tgl_2,
+                    weather_station_model_predictions.bias_adjusted_temperature,
+                    weather_station_model_predictions.bias_adjusted_rh,
+                    weather_station_model_predictions.delta_precip,
+                    weather_station_model_predictions.wdir_tgl_10,
+                    weather_station_model_predictions.wind_tgl_10,
+                    max(latest_timestamp) AS latest_run_timestamp,
+                    date(latest_timestamp) AS unique_day
+                FROM
+                    weather_station_model_predictions
+                    JOIN (
+                        SELECT
+                            prediction_model_run_timestamps.id AS latest_timestamp_id,
+                            max(prediction_run_timestamp) AS latest_timestamp,
+                            date(prediction_run_timestamp) AS day,
+                            weather_station_model_predictions.station_code
+                        FROM
+                            prediction_model_run_timestamps,
+                            weather_station_model_predictions
+                        WHERE
+                            prediction_model_id IN (SELECT id FROM prediction_models WHERE abbreviation = '{model}')
+                            AND station_code IN ({",".join(str(s) for s in station_codes)})
+                            AND prediction_run_timestamp >= '{start_date.isoformat()}'
+                            AND prediction_run_timestamp <= '{end_date.isoformat()}'
+                        GROUP BY
+                            day,
+                            station_code,
+                            prediction_model_run_timestamps.id) AS latest_model_runs 
+                        ON weather_station_model_predictions.prediction_model_run_timestamp_id = latest_model_runs.latest_timestamp_id
+                    JOIN (
+                        SELECT
+                            weather_station_model_predictions.id,
+                            max(prediction_timestamp) AS latest_prediction_timestamp,
+                            date(prediction_timestamp) AS day,
+                            weather_station_model_predictions.station_code
+                        FROM
+                            weather_station_model_predictions
+                        WHERE
+                            station_code IN ({",".join(str(s) for s in station_codes)})
+                            AND prediction_timestamp >= '{start_date.isoformat()}'
+                            AND prediction_timestamp <= '{end_date.isoformat()}'
+                        GROUP BY
+                            day,
+                            station_code,
+                            weather_station_model_predictions.id) AS latest_prediction_runs 
+                        ON weather_station_model_predictions.prediction_timestamp = latest_prediction_runs.latest_prediction_timestamp
+                    AND weather_station_model_predictions.station_code IN ({",".join(str(s) for s in station_codes)})
+                    AND weather_station_model_predictions.prediction_timestamp >= '{start_date.isoformat()}'
+                    AND weather_station_model_predictions.prediction_timestamp <= '{end_date.isoformat()}'
+                GROUP BY
+                    unique_day,
+                    weather_station_model_predictions.id,
+                    weather_station_model_predictions.station_code,
+                    weather_station_model_predictions.tmp_tgl_2,
+                    weather_station_model_predictions.rh_tgl_2,
+                    weather_station_model_predictions.bias_adjusted_temperature,
+                    weather_station_model_predictions.bias_adjusted_rh,
+                    weather_station_model_predictions.delta_precip,
+                    weather_station_model_predictions.wdir_tgl_10,
+                    weather_station_model_predictions.wind_tgl_10;
+
+    """)
+    return result
+
+
 def get_station_model_prediction_from_previous_model_run(
         session: Session,
         station_code: int,
