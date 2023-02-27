@@ -67,7 +67,6 @@ async def get_model_values_for_date_range(
     start_time = vancouver_tz.localize(datetime.combine(start_date, time.min))
     end_time = vancouver_tz.localize(datetime.combine(end_date, time.max))
 
-    station_predictions = await fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(
-        model, request.stations, start_time, end_time)
+    station_predictions = await fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(model, request.stations, start_time, end_time)
 
     return station_predictions

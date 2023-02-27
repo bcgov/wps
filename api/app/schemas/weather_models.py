@@ -72,7 +72,7 @@ class WeatherStationModelPredictionValues(WeatherModelPredictionValues):
     id: str
     abbreviation: str
     station: WeatherStation
-    run_timestamp: datetime
+    update_date: datetime
 
 
 class WeatherModelRun(BaseModel):

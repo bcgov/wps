@@ -1,10 +1,13 @@
 """ Code for fetching data for API.
 """
 
+from itertools import groupby
 import logging
 from typing import List
 import datetime
+from datetime import time
 from collections import defaultdict
+import pytz
 from sqlalchemy.orm import Session
 import app.db.database
 from app.schemas.weather_models import (WeatherStationModelPredictionValues, WeatherModelPredictionValues, WeatherModelRun,
@@ -14,6 +17,7 @@ from app.db.models.weather_models import WeatherStationModelPrediction
 from app.db.crud.weather_models import (get_latest_station_model_prediction_per_day, get_station_model_predictions,
                                         get_station_model_prediction_from_previous_model_run)
 import app.stations
+from app.utils.time import get_days_from_range
 from app.weather_models import ModelEnum
 
 logger = logging.getLogger(__name__)
@@ -72,40 +76,49 @@ async def fetch_model_run_predictions_by_station_code_and_date_range(
         return await marshall_predictions(session, model, station_codes, historic_predictions)
 
 
-async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(
-        model: ModelEnum,
-        station_codes: List[int],
-        start_time: datetime.datetime,
-        end_time: datetime.datetime) -> List[WeatherStationModelRunsPredictions]:
-    """ Fetch the latest model prediction for each day from database based on
-        list of station codes and date range. Predictions are grouped by station and model run.
-    """
-    latest_predictions: List[WeatherStationModelPredictionValues] = []
-
+async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(model: ModelEnum,
+                                                                                  station_codes: List[int],
+                                                                                  start_time: datetime.datetime,
+                                                                                  end_time: datetime.datetime) -> List[WeatherStationModelRunsPredictions]:
+    results = []
+    days = get_days_from_range(start_time, end_time)
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
 
     with app.db.database.get_read_session_scope() as session:
-        latest_prediction_per_day = get_latest_station_model_prediction_per_day(
-            session, station_codes, model, start_time, end_time)
 
-        for id, timestamp, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, delta_precip, wind_dir, wind_speed, run_timestamp, _ in latest_prediction_per_day:
-            latest_predictions.append(
-                WeatherStationModelPredictionValues(
-                    id=str(id),
-                    abbreviation=model.value,
-                    station=stations[station_code],
-                    temperature=temp,
-                    bias_adjusted_temperature=bias_adjusted_temp,
-                    relative_humidity=rh,
-                    bias_adjusted_relative_humidity=bias_adjusted_rh,
-                    delta_precipitation=delta_precip,
-                    wind_speed=wind_speed,
-                    wind_direction=wind_dir,
-                    datetime=timestamp,
-                    run_timestamp=run_timestamp
-                ))
+        for day in days:
+            day_results = []
+            vancouver_tz = pytz.timezone("America/Vancouver")
 
-        return latest_predictions
+            day_start = vancouver_tz.localize(datetime.datetime.combine(day, time.min))
+            day_end = vancouver_tz.localize(datetime.datetime.combine(day, time.max))
+            daily_result = get_latest_station_model_prediction_per_day(
+                session, station_codes, model, day_start, day_end)
+            for id, timestamp, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, delta_precip, wind_dir, wind_speed, update_date in daily_result:
+                day_results.append(
+                    WeatherStationModelPredictionValues(
+                        id=str(id),
+                        abbreviation=model.value,
+                        station=stations[station_code],
+                        temperature=temp,
+                        bias_adjusted_temperature=bias_adjusted_temp,
+                        relative_humidity=rh,
+                        bias_adjusted_relative_humidity=bias_adjusted_rh,
+                        delta_precipitation=delta_precip,
+                        wind_speed=wind_speed,
+                        wind_direction=wind_dir,
+                        datetime=timestamp,
+                        update_date=update_date
+                    ))
+            # sort the list by station_code
+            day_results.sort(key=lambda x: x.station.code)
+
+            # group the list by station_code
+            groups = groupby(day_results, key=lambda x: x.station.code)
+            for station_code, station_predictions in groups:
+                latest_for_station = max(station_predictions, key=lambda x: x.update_date)
+                results.append(latest_for_station)
+        return results
 
 
 async def marshall_predictions(session: Session, model: ModelEnum, station_codes: List[int], query):
