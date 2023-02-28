@@ -250,9 +250,10 @@ def get_latest_station_model_prediction_per_day(session: Session,
     All predictions for a given day for each station, ordered by update_timestamp
     """
     result = session.execute(f"""
-            SELECT
+        SELECT
             t.id,
             t.prediction_timestamp,
+            prediction_run_timestamps.abbreviation,
             t.station_code,
             t.rh_tgl_2,
             t.tmp_tgl_2,
@@ -281,11 +282,20 @@ def get_latest_station_model_prediction_per_day(session: Session,
                     unique_day) latest ON t.station_code = latest.station_code
             JOIN (
                 SELECT
-                    id
+                    prediction_model_run_timestamps.id,
+                    selected_model.abbreviation
                 FROM
                     prediction_model_run_timestamps
-                WHERE
-                    prediction_model_id = 3) AS selected_model ON t.prediction_model_run_timestamp_id = selected_model.id
+                    JOIN (
+                        SELECT
+                            id,
+                            abbreviation
+                        FROM
+                            prediction_models
+                        WHERE
+                            prediction_models.abbreviation = '{model}') selected_model ON prediction_model_run_timestamps.prediction_model_id = selected_model.id
+                    WHERE
+                        prediction_model_id = 3) AS prediction_run_timestamps ON t.prediction_model_run_timestamp_id = prediction_run_timestamps.id
             AND date(t.prediction_timestamp) = latest.unique_day
             AND t.prediction_timestamp = latest.latest_prediction
         ORDER BY

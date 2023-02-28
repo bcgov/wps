@@ -94,11 +94,11 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
             day_end = vancouver_tz.localize(datetime.datetime.combine(day, time.max))
             daily_result = get_latest_station_model_prediction_per_day(
                 session, station_codes, model, day_start, day_end)
-            for id, timestamp, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, delta_precip, wind_dir, wind_speed, update_date in daily_result:
+            for id, timestamp, model_abbrev, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, delta_precip, wind_dir, wind_speed, update_date in daily_result:
                 day_results.append(
                     WeatherStationModelPredictionValues(
                         id=str(id),
-                        abbreviation=model.value,
+                        abbreviation=model_abbrev,
                         station=stations[station_code],
                         temperature=temp,
                         bias_adjusted_temperature=bias_adjusted_temp,
