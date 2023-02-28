@@ -283,6 +283,7 @@ def get_latest_station_model_prediction_per_day(session: Session,
                         station_code IN ({",".join(str(s) for s in station_codes)})
                         AND prediction_timestamp >= '{day_start.isoformat()}'
                         AND prediction_timestamp < '{day_end.isoformat()}'
+                        AND date_part('hour', prediction_timestamp) = 20
                     GROUP BY
                         station_code,
                         unique_day) latest ON t.station_code = latest.station_code
