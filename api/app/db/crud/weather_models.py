@@ -250,18 +250,18 @@ def get_latest_station_model_prediction_per_day(session: Session,
     All predictions for a given day for each station, ordered by update_timestamp
     """
     result = session.execute(f"""
-    SELECT
-        t.id,
-        t.prediction_timestamp,
-        t.station_code,
-        t.rh_tgl_2,
-        t.tmp_tgl_2,
-        t.bias_adjusted_temperature,
-        t.bias_adjusted_rh,
-        t.delta_precip,
-        t.wdir_tgl_10,
-        t.wind_tgl_10,
-        t.update_date
+            SELECT
+            t.id,
+            t.prediction_timestamp,
+            t.station_code,
+            t.rh_tgl_2,
+            t.tmp_tgl_2,
+            t.bias_adjusted_temperature,
+            t.bias_adjusted_rh,
+            t.delta_precip,
+            t.wdir_tgl_10,
+            t.wind_tgl_10,
+            t.update_date
         FROM
             weather_station_model_predictions t
             JOIN (
@@ -271,22 +271,21 @@ def get_latest_station_model_prediction_per_day(session: Session,
                     date(prediction_timestamp) AS unique_day
                 FROM
                     weather_station_model_predictions
-                    JOIN (
-                        SELECT
-                            id
-                        FROM
-                            prediction_model_run_timestamps
-                        WHERE
-                            prediction_model_id = 3) as model
-                        ON weather_station_model_predictions.prediction_model_run_timestamp_id = model.id
-                    WHERE
-                        station_code IN ({",".join(str(s) for s in station_codes)})
-                        AND prediction_timestamp >= '{day_start.isoformat()}'
-                        AND prediction_timestamp <= '{day_end.isoformat()}'
-                        AND date_part('hour', prediction_timestamp) = 20
-                    GROUP BY
-                        station_code,
-                        unique_day) latest ON t.station_code = latest.station_code
+                WHERE
+                    station_code IN ({",".join(str(s) for s in station_codes)})
+                    AND prediction_timestamp >= '{day_start.isoformat()}'
+                    AND prediction_timestamp <= '{day_end.isoformat()}'
+                    AND date_part('hour', prediction_timestamp) = 20
+                GROUP BY
+                    station_code,
+                    unique_day) latest ON t.station_code = latest.station_code
+            JOIN (
+                SELECT
+                    id
+                FROM
+                    prediction_model_run_timestamps
+                WHERE
+                    prediction_model_id = 3) AS selected_model ON t.prediction_model_run_timestamp_id = selected_model.id
             AND date(t.prediction_timestamp) = latest.unique_day
             AND t.prediction_timestamp = latest.latest_prediction
         ORDER BY
