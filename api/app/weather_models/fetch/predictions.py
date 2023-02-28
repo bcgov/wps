@@ -95,7 +95,7 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
 
             daily_result = get_latest_station_model_prediction_per_day(
                 session, station_codes, model, day_start, day_end)
-            for id, timestamp, model_abbrev, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, delta_precip, wind_dir, wind_speed, update_date in daily_result:
+            for id, timestamp, model_abbrev, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, precip_24hours, wind_dir, wind_speed, update_date in daily_result:
                 day_results.append(
                     WeatherStationModelPredictionValues(
                         id=str(id),
@@ -105,7 +105,7 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
                         bias_adjusted_temperature=bias_adjusted_temp,
                         relative_humidity=rh,
                         bias_adjusted_relative_humidity=bias_adjusted_rh,
-                        delta_precipitation=delta_precip,
+                        precip_24hours=precip_24hours,
                         wind_speed=wind_speed,
                         wind_direction=wind_dir,
                         datetime=timestamp,

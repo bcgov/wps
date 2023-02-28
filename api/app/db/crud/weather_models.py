@@ -287,7 +287,7 @@ def get_latest_station_model_prediction_per_day(session: Session,
         WeatherStationModelPrediction.tmp_tgl_2,
         WeatherStationModelPrediction.bias_adjusted_temperature,
         WeatherStationModelPrediction.bias_adjusted_rh,
-        WeatherStationModelPrediction.delta_precip,
+        WeatherStationModelPrediction.apcp_sfc_0,
         WeatherStationModelPrediction.wdir_tgl_10,
         WeatherStationModelPrediction.wind_tgl_10,
         WeatherStationModelPrediction.update_date)\

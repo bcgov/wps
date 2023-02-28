@@ -55,7 +55,7 @@ class WeatherModelPredictionSummaryResponse(BaseModel):
     summaries: List[WeatherModelPredictionSummary]
 
 
-class WeatherModelPredictionValues(BaseModel):
+class BaseWeatherPredictionValues(BaseModel):
     """ The predicted weather values. """
     datetime: datetime
     temperature: float = None
@@ -64,13 +64,18 @@ class WeatherModelPredictionValues(BaseModel):
     bias_adjusted_relative_humidity: float = None
     wind_speed: float = None
     wind_direction: float = None
+
+
+class WeatherModelPredictionValues(BaseWeatherPredictionValues):
+    """ The predicted weather values with delta precipitation. """
     delta_precipitation: float = None
 
 
-class WeatherStationModelPredictionValues(WeatherModelPredictionValues):
-    """ The predicted weather values for a station. """
+class WeatherStationModelPredictionValues(BaseWeatherPredictionValues):
+    """ The predicted weather values for a station with 24 hour precipitation. """
     id: str
     abbreviation: str
+    precip_24hours: float = None
     station: WeatherStation
     update_date: datetime
 
