@@ -118,4 +118,4 @@ def get_utc_datetime(input_datetime: datetime):
 
 
 def get_days_from_range(start_time: datetime, end_time: datetime) -> List[datetime]:
-    return [start_time + timedelta(days=x) for x in range((end_time - start_time).days)]
+    return [start_time + timedelta(days=x) for x in range((end_time - start_time).days + 1)]

@@ -116,7 +116,8 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
             # group the list by station_code
             groups = groupby(day_results, key=lambda x: x.station.code)
             for station_code, station_predictions in groups:
-                latest_for_station = max(station_predictions, key=lambda x: x.update_date)
+                prediction_list = list(station_predictions)
+                latest_for_station = max(prediction_list, key=lambda x: x.update_date)
                 results.append(latest_for_station)
         return results
 
