@@ -63,7 +63,7 @@ def mock_get_processed_file_record(monkeypatch):
         called = True
         return None
 
-    monkeypatch.setattr(common_model_fetchers, 'get_processed_file_record', get_processed_file_record)
+    monkeypatch.setattr(env_canada, 'get_processed_file_record', get_processed_file_record)
 
 
 @pytest.fixture()

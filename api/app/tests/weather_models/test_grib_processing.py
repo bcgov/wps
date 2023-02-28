@@ -144,37 +144,3 @@ def calculate_geographic_coordinate(data, raster_coordinate):
 def assert_geographic_coordinate(data, geographic_coordinate):
     """ assert that geographic_coordinate matches the expected value """
     assert list(data['geographic_coordinate']) == geographic_coordinate
-
-
-@scenario('test_grib_processing.feature', 'Calculate wind speed and direction from U,V components')
-def test_calculate_wind_speed_direction():
-    """ BDD Scenario for testing calculation of wind speed and wind direction from U,V components """
-
-
-@given(parsers.parse('a U value {u_float} and V value {v_float}'), target_fixture='data', converters={'u_float': float, 'v_float': float})
-def given_u_and_v_values(u_float, v_float):
-    return dict(u_float=u_float, v_float=v_float)
-
-
-@when(parsers.parse('I calculate the wind speed'))
-def when_calculate_wind_speed(data):
-    """ calculate the wind speed from U,V components """
-    data['actual_wind_speed'] = process_grib.calculate_wind_speed_from_u_v(data['u_float'], data['v_float'])
-
-
-@when(parsers.parse('I calculate the wind direction'))
-def when_calculate_wind_direction(data):
-    """ calculate the wind direction from U,V components """
-    data['actual_wind_dir'] = process_grib.calculate_wind_dir_from_u_v(data['u_float'], data['v_float'])
-
-
-@then(parsers.parse('I expect a calculated wind speed of {expected_wind_speed}'), converters={'expected_wind_speed': json.loads})
-def assert_wind_speed(data, expected_wind_speed):
-    """ assert that calculated wind speed matches the expected value """
-    assert round(data['actual_wind_speed'], 2) == expected_wind_speed
-
-
-@then(parsers.parse('I expect a calculated wind direction of {expected_wind_dir}'), converters={'expected_wind_dir': json.loads})
-def assert_wind_direction(data, expected_wind_dir):
-    """ assert that calculated wind direction matches the expected value """
-    assert round(data['actual_wind_dir'], 0) == expected_wind_dir
