@@ -247,7 +247,17 @@ def get_latest_station_model_prediction_per_day(session: Session,
                                                 day_start: datetime.datetime,
                                                 day_end: datetime.datetime):
     """
-    All predictions for a given day for each station, ordered by update_timestamp
+    All weather station model predictions for:
+     - a given day
+     - a given model
+     - each station in the given list
+    ordered by update_timestamp
+
+    This is done by joining the predictions on their runs, 
+    that are filtered by the day and the 20:00UTC predictions. 
+
+    In turn prediction runs are filtered via a join
+    by runs that are for the selected model.
     """
     result = session.execute(f"""
         SELECT
