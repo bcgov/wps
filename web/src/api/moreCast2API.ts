@@ -25,10 +25,6 @@ export interface StationPrediction {
   wind_speed: number
 }
 
-interface ModelPredictionResponse {
-  predictions: StationPrediction[]
-}
-
 export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'MANUAL' | 'NAM' | 'RDPS'
 
 export const ModelChoices: ModelType[] = [
