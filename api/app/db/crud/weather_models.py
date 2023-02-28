@@ -293,9 +293,8 @@ def get_latest_station_model_prediction_per_day(session: Session,
                         FROM
                             prediction_models
                         WHERE
-                            prediction_models.abbreviation = '{model}') selected_model ON prediction_model_run_timestamps.prediction_model_id = selected_model.id
-                    WHERE
-                        prediction_model_id = 3) AS prediction_run_timestamps ON t.prediction_model_run_timestamp_id = prediction_run_timestamps.id
+                            prediction_models.abbreviation = '{model}') selected_model 
+                            ON prediction_model_run_timestamps.prediction_model_id = selected_model.id) AS prediction_run_timestamps ON t.prediction_model_run_timestamp_id = prediction_run_timestamps.id
             AND date(t.prediction_timestamp) = latest.unique_day
             AND t.prediction_timestamp = latest.latest_prediction
         ORDER BY
