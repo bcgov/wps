@@ -207,20 +207,28 @@ class GribFileProcessor():
 
                 assert u_points == v_points
 
+                zipped_uv_values = zip(u_values, v_values)
+
                 if variable == 'wdir_tgl_10':
-                    wind_dir_values = []
-                    for u, v in zip(u_values, v_values):
-                        wind_dir_values.append(calculate_wind_dir_from_u_v(u, v))
-                    # if u_points == v_points:
-                    yield (u_points, wind_dir_values)
+                    self.yield_wind_dir_values(u_points, zipped_uv_values)
                 elif variable == 'wind_tgl_10':
-                    wind_speed_values = []
-                    for u, v in zip(u_values, v_values):
-                        wind_speed_values.append(calculate_wind_speed_from_u_v(u, v))
-                    # if u_points == v_points:
-                    yield (u_points, wind_speed_values)
+                    self.yield_wind_speed_values(u_points, zipped_uv_values)
             else:
                 logger.warning('coordinate not in u/v wind rasters - %s', station)
+
+    def yield_wind_dir_values(self, u_points: List[int], zipped_uv_values: zip[tuple[float, float]]):
+        """ Yield calculated wind direction values for list of points and zipped u,v values """
+        wind_dir_values = []
+        for u, v in zipped_uv_values:
+            wind_dir_values.append(calculate_wind_dir_from_u_v(u, v))
+            yield (u_points, wind_dir_values)
+
+    def yield_wind_speed_values(self, u_points: List[int], zipped_uv_values: zip[tuple[float, float]]):
+        """ Yield calculated wind speed values for list of points and zipped u,v values """
+        wind_speed_values = []
+        for u, v in zipped_uv_values:
+            wind_speed_values.append(calculate_wind_speed_from_u_v(u, v))
+        yield (u_points, wind_speed_values)
 
     def store_bounding_values(self,
                               points,
