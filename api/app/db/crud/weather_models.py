@@ -257,7 +257,7 @@ def get_latest_station_model_prediction_per_day(session: Session,
     that are filtered by the day and the 20:00UTC predictions. 
 
     In turn prediction runs are filtered via a join
-    by runs that are for the selected model.
+    on runs that are for the selected model.
     """
     result = session.execute(f"""
         SELECT
