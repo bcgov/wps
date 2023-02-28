@@ -205,18 +205,20 @@ class GribFileProcessor():
                 u_points, u_values = get_surrounding_grid(u_raster_band, x_coordinate, y_coordinate)
                 v_points, v_values = get_surrounding_grid(v_raster_band, x_coordinate, y_coordinate)
 
+                assert u_points == v_points
+
                 if variable == 'wdir_tgl_10':
                     wind_dir_values = []
                     for u, v in zip(u_values, v_values):
                         wind_dir_values.append(calculate_wind_dir_from_u_v(u, v))
-                    if u_points == v_points:
-                        yield (u_points, wind_dir_values)
+                    # if u_points == v_points:
+                    yield (u_points, wind_dir_values)
                 elif variable == 'wind_tgl_10':
                     wind_speed_values = []
                     for u, v in zip(u_values, v_values):
                         wind_speed_values.append(calculate_wind_speed_from_u_v(u, v))
-                    if u_points == v_points:
-                        yield (u_points, wind_speed_values)
+                    # if u_points == v_points:
+                    yield (u_points, wind_speed_values)
             else:
                 logger.warning('coordinate not in u/v wind rasters - %s', station)
 
