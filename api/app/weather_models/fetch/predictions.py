@@ -7,6 +7,7 @@ from typing import List
 import datetime
 from datetime import time
 from collections import defaultdict
+import pytz
 from sqlalchemy.orm import Session
 import app.db.database
 from app.schemas.weather_models import (WeatherStationModelPredictionValues, WeatherModelPredictionValues, WeatherModelRun,
@@ -87,9 +88,11 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
 
         for day in days:
             day_results = []
+            vancouver_tz = pytz.timezone("America/Vancouver")
 
-            day_start = datetime.datetime.combine(day, time.min)
-            day_end = datetime.datetime.combine(day, time.max)
+            day_start = vancouver_tz.localize(datetime.datetime.combine(day, time.min))
+            day_end = vancouver_tz.localize(datetime.datetime.combine(day, time.max))
+
             daily_result = get_latest_station_model_prediction_per_day(
                 session, station_codes, model, day_start, day_end)
             for id, timestamp, model_abbrev, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, delta_precip, wind_dir, wind_speed, update_date in daily_result:
