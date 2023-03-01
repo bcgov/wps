@@ -18,7 +18,7 @@ import app.db.crud.weather_models
 from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
                                           ModelRunGridSubsetPrediction, PredictionModelGridSubset)
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
-from app.tests.weather_models.test_models_common import (MockResponse, mock_get_processed_file_record)
+from app.tests.weather_models.test_models_common import (MockResponse, mock_get_processed_file_count, mock_get_stations)
 
 logger = logging.getLogger(__name__)
 
@@ -148,13 +148,23 @@ def test_get_gdps_download_urls():
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
+@pytest.fixture()
+def mock_get_processed_file_count(monkeypatch):
+    monkeypatch.setattr(app.db.crud.weather_models, 'get_processed_file_count', mock_get_processed_file_count)
+
+
+@pytest.fixture()
+def mock_get_stations_synchronously(monkeypatch):
+    monkeypatch.setattr(common_model_fetchers, 'get_stations_synchronously', mock_get_stations)
+
+
 @pytest.mark.usefixtures('mock_get_processed_file_record')
 def test_process_gdps(mock_download,
                       mock_database,
-                      mock_get_processed_file_count,
                       mock_get_model_run_predictions_for_grid,
                       mock_get_actuals_left_outer_join_with_predictions,
-                      mock_get_stations):
+                      mock_get_stations_synchronously,
+                      mock_get_processed_file_count):
     """ run main method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
