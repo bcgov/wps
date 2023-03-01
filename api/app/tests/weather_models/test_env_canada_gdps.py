@@ -7,7 +7,6 @@ import datetime
 from datetime import datetime
 import pytest
 import requests
-from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
 from shapely import wkt
 from app.jobs import env_canada
@@ -18,7 +17,7 @@ import app.db.crud.weather_models
 from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
                                           ModelRunGridSubsetPrediction, PredictionModelGridSubset)
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
-from app.tests.weather_models.test_models_common import MockResponse, mock_get_stations, mock_get_processed_file_count, mock_get_processed_file_record
+from app.tests.weather_models.test_models_common import (MockResponse, mock_get_processed_file_record)
 
 logger = logging.getLogger(__name__)
 
