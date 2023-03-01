@@ -14,7 +14,7 @@ export interface StationPrediction {
   bias_adjusted_relative_humidity: number | null
   bias_adjusted_temperature: number | null
   datetime: string
-  delta_precipitation: number
+  precip_24hours: number
   id: string
   model: ModelType
   relative_humidity: number
