@@ -16,7 +16,7 @@ export const parseModelsForStationsHelper = (predictions: StationPrediction[]) =
       forDate: DateTime.fromISO(prediction.datetime),
       precip: {
         choice: model,
-        value: isNumber(prediction.delta_precipitation) ? prediction.delta_precipitation : NaN
+        value: isNumber(prediction.precip_24hours) ? prediction.precip_24hours : NaN
       },
       rh: {
         choice: model,

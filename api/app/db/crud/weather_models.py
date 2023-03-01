@@ -3,7 +3,7 @@
 import logging
 import datetime
 from typing import List, Union
-from sqlalchemy import or_
+from sqlalchemy import or_, and_, func
 from sqlalchemy.orm import Session
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models.weather_models import (
@@ -259,58 +259,45 @@ def get_latest_station_model_prediction_per_day(session: Session,
     In turn prediction runs are filtered via a join
     on runs that are for the selected model.
     """
-    result = session.execute(f"""
-        SELECT
-            t.id,
-            t.prediction_timestamp,
-            prediction_run_timestamps.abbreviation,
-            t.station_code,
-            t.rh_tgl_2,
-            t.tmp_tgl_2,
-            t.bias_adjusted_temperature,
-            t.bias_adjusted_rh,
-            t.delta_precip,
-            t.wdir_tgl_10,
-            t.wind_tgl_10,
-            t.update_date
-        FROM
-            weather_station_model_predictions t
-            JOIN (
-                SELECT
-                    max(prediction_timestamp) AS latest_prediction,
-                    station_code,
-                    date(prediction_timestamp) AS unique_day
-                FROM
-                    weather_station_model_predictions
-                WHERE
-                    station_code IN ({",".join(str(s) for s in station_codes)})
-                    AND prediction_timestamp >= '{day_start.isoformat()}'
-                    AND prediction_timestamp <= '{day_end.isoformat()}'
-                    AND date_part('hour', prediction_timestamp) = 20
-                GROUP BY
-                    station_code,
-                    unique_day) latest ON t.station_code = latest.station_code
-            JOIN (
-                SELECT
-                    prediction_model_run_timestamps.id,
-                    selected_model.abbreviation
-                FROM
-                    prediction_model_run_timestamps
-                    JOIN (
-                        SELECT
-                            id,
-                            abbreviation
-                        FROM
-                            prediction_models
-                        WHERE
-                            prediction_models.abbreviation = '{model}') selected_model 
-                            ON prediction_model_run_timestamps.prediction_model_id = selected_model.id) AS prediction_run_timestamps 
-                            ON t.prediction_model_run_timestamp_id = prediction_run_timestamps.id
-            AND date(t.prediction_timestamp) = latest.unique_day
-            AND t.prediction_timestamp = latest.latest_prediction
-        ORDER BY
-            update_date DESC;
-    """)
+    subquery = (
+        session.query(
+            func.max(WeatherStationModelPrediction.prediction_timestamp).label('latest_prediction'),
+            WeatherStationModelPrediction.station_code,
+            func.date(WeatherStationModelPrediction.prediction_timestamp).label('unique_day')
+        )
+        .filter(
+            WeatherStationModelPrediction.station_code.in_(station_codes),
+            WeatherStationModelPrediction.prediction_timestamp >= day_start,
+            WeatherStationModelPrediction.prediction_timestamp <= day_end,
+            func.date_part('hour', WeatherStationModelPrediction.prediction_timestamp) == 20
+        )
+        .group_by(
+            WeatherStationModelPrediction.station_code,
+            func.date(WeatherStationModelPrediction.prediction_timestamp).label('unique_day')
+        )
+        .subquery('latest')
+    )
+
+    result = session.query(
+        WeatherStationModelPrediction.id,
+        WeatherStationModelPrediction.prediction_timestamp,
+        PredictionModel.abbreviation,
+        WeatherStationModelPrediction.station_code,
+        WeatherStationModelPrediction.rh_tgl_2,
+        WeatherStationModelPrediction.tmp_tgl_2,
+        WeatherStationModelPrediction.bias_adjusted_temperature,
+        WeatherStationModelPrediction.bias_adjusted_rh,
+        WeatherStationModelPrediction.apcp_sfc_0,
+        WeatherStationModelPrediction.wdir_tgl_10,
+        WeatherStationModelPrediction.wind_tgl_10,
+        WeatherStationModelPrediction.update_date)\
+        .join(PredictionModelRunTimestamp, WeatherStationModelPrediction.prediction_model_run_timestamp_id == PredictionModelRunTimestamp.id)\
+        .join(PredictionModel, PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id)\
+        .join(subquery, and_(
+            WeatherStationModelPrediction.prediction_timestamp == subquery.c.latest_prediction,
+            WeatherStationModelPrediction.station_code == subquery.c.station_code))\
+        .filter(PredictionModel.abbreviation == model)\
+        .order_by(WeatherStationModelPrediction.update_date.desc())
     return result
 
 
