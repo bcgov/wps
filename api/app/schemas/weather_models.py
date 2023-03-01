@@ -1,7 +1,7 @@
 """ This module contains pydandict schemas relating to weather models for the API.
 """
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from app.schemas.stations import WeatherStation
 
@@ -55,22 +55,27 @@ class WeatherModelPredictionSummaryResponse(BaseModel):
     summaries: List[WeatherModelPredictionSummary]
 
 
-class WeatherModelPredictionValues(BaseModel):
+class BaseWeatherPredictionValues(BaseModel):
     """ The predicted weather values. """
     datetime: datetime
-    temperature: float = None
-    bias_adjusted_temperature: float = None
-    relative_humidity: float = None
-    bias_adjusted_relative_humidity: float = None
-    wind_speed: float = None
-    wind_direction: float = None
-    delta_precipitation: float = None
+    temperature: Optional[float] = None
+    bias_adjusted_temperature: Optional[float] = None
+    relative_humidity: Optional[float] = None
+    bias_adjusted_relative_humidity: Optional[float] = None
+    wind_speed: Optional[float] = None
+    wind_direction: Optional[float] = None
 
 
-class WeatherStationModelPredictionValues(WeatherModelPredictionValues):
-    """ The predicted weather values for a station. """
+class WeatherModelPredictionValues(BaseWeatherPredictionValues):
+    """ The predicted weather values with delta precipitation. """
+    delta_precipitation: Optional[float] = None
+
+
+class WeatherStationModelPredictionValues(BaseWeatherPredictionValues):
+    """ The predicted weather values for a station with 24 hour precipitation. """
     id: str
     abbreviation: str
+    precip_24hours: Optional[float] = None
     station: WeatherStation
     update_date: datetime
 
