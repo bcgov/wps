@@ -35,6 +35,17 @@ def get_gfs_model_run_hours():
         yield hour_str
 
 
+def get_date_for_download(now: datetime.datetime) -> tuple[str, str]:
+    """ Returns formatted strings for year_month and year_month_date, dated 2.5 days prior to 
+    the current time, to be used for GFS download URLs"""
+    # Fetch data from 2.5 days (60 hours) ago - see model_data.md for explanation
+    sixty_hours_prior = now - datetime.timedelta(hours=60)
+    year_mo = f"{sixty_hours_prior.year}" + format(sixty_hours_prior.month, '02d')
+    year_mo_date = f"{year_mo}" + format(sixty_hours_prior.day, '02d')
+
+    return (year_mo, year_mo_date)
+
+
 def get_gfs_model_run_download_urls(now: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
     """ Yield urls to download GFS model runs """
     # GFS model makes predictions at 3-hour intervals up to 384 hours (16 days) in advance.
@@ -60,9 +71,7 @@ def get_gfs_model_run_download_urls(now: datetime.datetime, model_cycle: str) ->
     all_hours.sort()
     for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')
-        year_mo = f"{now.year}" + format(now.month, '02d')
-        # Fetch data from 3 days ago - see model_data.md for explanation
-        year_mo_date = f"{year_mo}" + format((now - datetime.timedelta(days=3)).day, '02d')
+        year_mo, year_mo_date = get_date_for_download(now)
         base_url = "https://www.ncei.noaa.gov/data/global-forecast-system/access/grid-004-0.5-degree/forecast/"
         filename = f'{year_mo}/{year_mo_date}/gfs_4_{year_mo_date}_{model_cycle}_{hhh}.grb2'
         yield base_url + filename

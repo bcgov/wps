@@ -110,3 +110,28 @@ def test_parse_url_for_timestamps_complex():
     actual_model_run_timestamp, actual_prediction_timestamp = noaa.parse_url_for_timestamps(url)
     assert expected_model_run_timestamp == actual_model_run_timestamp
     assert expected_prediction_timestamp == actual_prediction_timestamp
+
+
+def test_get_date_for_download():
+    test_cases = [
+        {
+            'current_time': datetime(2023, 3, 1, 12, 0, tzinfo=timezone.utc),
+            'expected_year_mo': '202302',
+            'expected_year_mo_date': '20230227'
+        },
+        {
+            'current_time': datetime(2023, 3, 1, 3, 0, tzinfo=timezone.utc),
+            'expected_year_mo': '202302',
+            'expected_year_mo_date': '20230226'
+        },
+        {
+            'current_time': datetime(2023, 3, 9, 8, 0, tzinfo=timezone.utc),
+            'expected_year_mo': '202303',
+            'expected_year_mo_date': '20230306'
+        }
+    ]
+
+    for case in test_cases:
+        actual_year_mo, actual_year_mo_date = noaa.get_date_for_download(case.get('current_time'))
+        assert actual_year_mo == case.get('expected_year_mo')
+        assert actual_year_mo_date == case.get('expected_year_mo_date')
