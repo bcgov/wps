@@ -67,15 +67,15 @@ const MoreCast2Page = () => {
   const [toDate, setToDate] = useState<DateTime>(DateTime.now().plus({ days: 2 }))
   const [forecastRows, setForecastRows] = useState<MoreCast2ForecastRow[]>([])
 
-  const fetchStationPredictions = (model: ModelType) => {
+  const fetchStationPredictions = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
-    dispatch(getModelStationPredictions(stationCodes, model, fromDate.toISODate(), toDate.toISODate()))
+    dispatch(getModelStationPredictions(stationCodes, modelType, fromDate.toISODate(), toDate.toISODate()))
   }
 
   useEffect(() => {
     dispatch(fetchFireCenters())
     document.title = MORE_CAST_2_DOC_TITLE
-    fetchStationPredictions(modelType)
+    fetchStationPredictions()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -97,17 +97,26 @@ const MoreCast2Page = () => {
     }
 
     setSelectedStations(fireCenter?.stations || [])
-    fetchStationPredictions(modelType)
+    fetchStationPredictions()
   }, [fireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isUndefined(modelType) && !isNull(modelType)) {
       localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
-      fetchStationPredictions(modelType)
+      fetchStationPredictions()
     } else {
       setForecastRows([])
     }
   }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isUndefined(modelType) && !isNull(modelType)) {
+      localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
+      fetchStationPredictions()
+    } else {
+      setForecastRows([])
+    }
+  }, [fromDate, toDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const visibleForecastRows = stationPredictionsAsMoreCast2ForecastRows.filter(
