@@ -1,7 +1,6 @@
 """ Unit tests for app/jobs/noaa.py """
 
 import os
-import sys
 import logging
 from datetime import datetime, timezone
 import pytest
