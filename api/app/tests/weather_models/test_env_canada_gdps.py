@@ -8,6 +8,7 @@ from datetime import datetime
 import pytest
 import requests
 from geoalchemy2.shape import from_shape
+from sqlalchemy.orm import Session
 from shapely import wkt
 from app.jobs import env_canada
 from app.jobs import common_model_fetchers
@@ -27,7 +28,14 @@ def mock_get_processed_file_record(monkeypatch):
     """ Mock "get_processed_file_record" to only return the None on the 1st call. """
     called = False
 
-    monkeypatch.setattr(env_canada, 'get_processed_file_record', mock_get_processed_file_record(called))
+    def get_processed_file_record(session: Session, url: str):
+        nonlocal called
+        if called:
+            return ProcessedModelRunUrl()
+        called = True
+        return None
+
+    monkeypatch.setattr(env_canada, 'get_processed_file_record', get_processed_file_record)
 
 
 @pytest.fixture()
