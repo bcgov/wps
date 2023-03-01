@@ -25,14 +25,15 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
   }
 
   const columns: GridColDef[] = [
-    { field: 'stationName', headerName: 'Station', width: 120 },
+    { field: 'stationName', flex: 1, headerName: 'Station', maxWidth: 200 },
     {
       field: 'forDate',
       disableColumnMenu: true,
       disableReorder: true,
+      flex: 1,
       headerName: 'Date',
+      maxWidth: 250,
       sortable: false,
-      width: 250,
       valueFormatter: (params: GridValueFormatterParams<number>) => {
         return DateTime.fromSeconds(params.value / 1000).toLocaleString(DateTime.DATE_MED)
       }
@@ -91,7 +92,15 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
 
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>
-      <DataGrid columns={columns} rows={props.rows}></DataGrid>
+      <DataGrid
+        columns={columns}
+        rows={props.rows}
+        initialState={{
+          sorting: {
+            sortModel: [{ field: 'stationName', sort: 'asc' }]
+          }
+        }}
+      ></DataGrid>
     </div>
   )
 }
