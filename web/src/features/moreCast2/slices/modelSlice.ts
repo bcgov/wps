@@ -15,7 +15,6 @@ const initialState: State = {
   stationPredictions: []
 }
 
-// TODO - Remove raw stationPredictions from State. I think we only need the formatted data.
 const modelSlice = createSlice({
   name: 'ModelSlice',
   initialState,
