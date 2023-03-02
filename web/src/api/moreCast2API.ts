@@ -14,14 +14,14 @@ export interface StationPrediction {
   bias_adjusted_relative_humidity: number | null
   bias_adjusted_temperature: number | null
   datetime: string
-  precip_24hours: number
+  precip_24hours: number | null
   id: string
   model: ModelType
-  relative_humidity: number
+  relative_humidity: number | null
   station: Station
-  temperature: number
-  wind_direction: number
-  wind_speed: number
+  temperature: number | null
+  wind_direction: number | null
+  wind_speed: number | null
 }
 
 export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'MANUAL' | 'NAM' | 'RDPS'
