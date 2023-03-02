@@ -21,7 +21,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
   const classes = useStyles()
   const predictionItemValueGetter = (params: GridValueGetterParams, precision: number) => {
     const value = params?.value?.value
-    return isNumber(value) ? value.toFixed(precision) : 'Nan'
+    return isNumber(value) && !isNaN(value) ? value.toFixed(precision) : 'N/A'
   }
 
   const columns: GridColDef[] = [
@@ -34,8 +34,8 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       headerName: 'Date',
       maxWidth: 250,
       sortable: false,
-      valueFormatter: (params: GridValueFormatterParams<number>) => {
-        return DateTime.fromSeconds(params.value / 1000).toLocaleString(DateTime.DATE_MED)
+      valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
+        return params.value.toLocaleString(DateTime.DATE_MED)
       }
     },
     {
@@ -92,15 +92,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
 
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>
-      <DataGrid
-        columns={columns}
-        rows={props.rows}
-        initialState={{
-          sorting: {
-            sortModel: [{ field: 'stationName', sort: 'asc' }]
-          }
-        }}
-      ></DataGrid>
+      <DataGrid columns={columns} rows={props.rows}></DataGrid>
     </div>
   )
 }

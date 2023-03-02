@@ -52,8 +52,7 @@ const rootReducer = combineReducers({
   valueAtCoordinate: valueAtCoordinateSlice,
   hfiFuelTypes: hfiFuelTypesSlice,
   fireZoneElevationInfo: fireZoneElevationInfoSlice,
-  stationPredictions: modelSlice,
-  stationPredictionsAsMoreCast2ForecastRows: modelSlice
+  stationPredictions: modelSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -88,8 +87,6 @@ export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordi
 export const selectHFIFuelTypes = (state: RootState) => state.hfiFuelTypes
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
 export const selectModelStationPredictions = (state: RootState) => state.stationPredictions
-export const selectStationPredictionsAsMoreCast2ForecastRows = (state: RootState) =>
-  state.stationPredictionsAsMoreCast2ForecastRows
 
 export const selectWxDataLoading = (state: RootState): boolean =>
   state.observations.loading ||

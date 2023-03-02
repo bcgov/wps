@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from 'react-redux'
 import { FormControl, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { isNull, isUndefined } from 'lodash'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
-import { ModelChoice, ModelChoices, ModelType } from 'api/moreCast2API'
-import { selectFireCenters, selectStationPredictionsAsMoreCast2ForecastRows } from 'app/rootReducer'
+import { ModelChoice, ModelChoices, ModelType, StationPrediction } from 'api/moreCast2API'
+import { selectFireCenters, selectModelStationPredictions } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { GeneralHeader } from 'components'
@@ -17,6 +17,7 @@ import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDrop
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice'
+import { parseModelsForStationsHelper } from 'features/moreCast2/parseModelsForStationsHelper'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -57,7 +58,7 @@ const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-  const { stationPredictionsAsMoreCast2ForecastRows } = useSelector(selectStationPredictionsAsMoreCast2ForecastRows)
+  const { stationPredictions } = useSelector(selectModelStationPredictions)
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
   const [selectedStations, setSelectedStations] = useState<FireCenterStation[]>([])
   const [modelType, setModelType] = useState<ModelType>(
@@ -66,10 +67,63 @@ const MoreCast2Page = () => {
   const [fromDate, setFromDate] = useState<DateTime>(DateTime.now())
   const [toDate, setToDate] = useState<DateTime>(DateTime.now().plus({ days: 2 }))
   const [forecastRows, setForecastRows] = useState<MoreCast2ForecastRow[]>([])
+  const [stationPredictionsAsMoreCast2ForecastRows, setStationPredictionsAsMoreCast2ForecastRows] = useState<
+    MoreCast2ForecastRow[]
+  >([])
+  const [dateInterval, setDateInterval] = useState<string[]>([])
 
   const fetchStationPredictions = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
     dispatch(getModelStationPredictions(stationCodes, modelType, fromDate.toISODate(), toDate.toISODate()))
+  }
+
+  const createEmptyStationPrediction = (code: number, datetime: string, name: string): StationPrediction => {
+    const prediction = {
+      bias_adjusted_relative_humidity: NaN,
+      bias_adjusted_temperature: NaN,
+      datetime: datetime,
+      precip_24hours: NaN,
+      id: window.crypto.randomUUID(),
+      model: modelType,
+      relative_humidity: NaN,
+      station: {
+        code,
+        name,
+        lat: NaN,
+        long: NaN,
+        ecodivision_name: null,
+        core_season: {
+          start_month: NaN,
+          start_day: NaN,
+          end_month: NaN,
+          end_day: NaN
+        }
+      },
+      temperature: NaN,
+      wind_direction: NaN,
+      wind_speed: NaN
+    }
+
+    return prediction
+  }
+
+  const fillInTheBlanks = () => {
+    const missingPredictions: StationPrediction[] = []
+    // Iterate through all the station codes and the expected date strings to ensure there is an
+    // item in the array for each unique combination
+    fireCenter?.stations.forEach(station => {
+      dateInterval.forEach(date => {
+        const filteredPrediction = stationPredictions.filter(
+          p => p.station.code === station.code && p.datetime === date
+        )
+        if (!filteredPrediction.length) {
+          missingPredictions.push(createEmptyStationPrediction(station.code, date, station.name))
+        }
+      })
+    })
+    // Use .slice() to create a shallow copy of the predictions from the API and add the missing predictions
+    const completeStationPredictions: StationPrediction[] = [...missingPredictions, ...stationPredictions.slice()]
+    return completeStationPredictions
   }
 
   useEffect(() => {
@@ -110,6 +164,16 @@ const MoreCast2Page = () => {
   }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    // Create an array of UTC datetime strings inclusive of the user selected from/to dates
+    // This range of UTC datetimes is needed to help determine when a station is missing a
+    // row of predictions
+    const interval = Interval.fromDateTimes(fromDate, toDate.plus({ days: 1 }))
+    const dateTimeArray = interval.splitBy({ day: 1 }).map(d => d.start)
+    const dates = dateTimeArray.map(date => {
+      return `${date.toISODate()}T20:00:00+00:00`
+    })
+    setDateInterval(dates)
+
     if (!isUndefined(modelType) && !isNull(modelType)) {
       localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
       fetchStationPredictions()
@@ -124,6 +188,12 @@ const MoreCast2Page = () => {
     )
     setForecastRows(visibleForecastRows)
   }, [stationPredictionsAsMoreCast2ForecastRows, selectedStations])
+
+  useEffect(() => {
+    const predictions = fillInTheBlanks()
+    const newRows = parseModelsForStationsHelper(predictions)
+    setStationPredictionsAsMoreCast2ForecastRows(newRows)
+  }, [stationPredictions]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={classes.root} data-testid="more-cast-2-page">

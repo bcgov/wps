@@ -18,7 +18,6 @@ export interface StationPrediction {
   id: string
   model: ModelType
   relative_humidity: number
-  run_timestamp: string
   station: Station
   temperature: number
   wind_direction: number

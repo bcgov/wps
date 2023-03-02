@@ -4,7 +4,7 @@ import { ModelType, StationPrediction } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 
 // Convert the model predictions from the API to a format that can be used by the data grid
-export const parseModelsForStationsHelper = (predictions: StationPrediction[]) => {
+export const parseModelsForStationsHelper = (predictions: StationPrediction[]): MoreCast2ForecastRow[] => {
   const rows: MoreCast2ForecastRow[] = []
 
   predictions.forEach(prediction => {
@@ -39,5 +39,5 @@ export const parseModelsForStationsHelper = (predictions: StationPrediction[]) =
     }
     rows.push(row)
   })
-  return rows
+  return rows.sort((a, b) => a.stationName.localeCompare(b.stationName))
 }
