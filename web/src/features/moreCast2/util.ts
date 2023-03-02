@@ -11,7 +11,7 @@ export const parseModelsForStationsHelper = (predictions: StationPrediction[]): 
   predictions.forEach(prediction => {
     const station_code = prediction.station.code
     const station_name = prediction.station.name
-    const model = prediction.model as ModelType
+    const model = prediction.model
     const row: MoreCast2ForecastRow = {
       id: prediction.id,
       forDate: DateTime.fromISO(prediction.datetime),
