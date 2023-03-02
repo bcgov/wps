@@ -6,7 +6,7 @@ import { isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
 import { ModelChoice, ModelChoices, ModelType } from 'api/moreCast2API'
-import { selectFireCenters, selectStationPredictionsAsMoreCast2ForecastRows } from 'app/rootReducer'
+import { selectFireCenters, selectModelStationPredictions } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { GeneralHeader } from 'components'
@@ -17,6 +17,7 @@ import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDrop
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice'
+import { createDateInterval, fillInTheBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -57,7 +58,7 @@ const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
-  const { stationPredictionsAsMoreCast2ForecastRows } = useSelector(selectStationPredictionsAsMoreCast2ForecastRows)
+  const { stationPredictions } = useSelector(selectModelStationPredictions)
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
   const [selectedStations, setSelectedStations] = useState<FireCenterStation[]>([])
   const [modelType, setModelType] = useState<ModelType>(
@@ -66,6 +67,10 @@ const MoreCast2Page = () => {
   const [fromDate, setFromDate] = useState<DateTime>(DateTime.now())
   const [toDate, setToDate] = useState<DateTime>(DateTime.now().plus({ days: 2 }))
   const [forecastRows, setForecastRows] = useState<MoreCast2ForecastRow[]>([])
+  const [stationPredictionsAsMoreCast2ForecastRows, setStationPredictionsAsMoreCast2ForecastRows] = useState<
+    MoreCast2ForecastRow[]
+  >([])
+  const [dateInterval, setDateInterval] = useState<string[]>([])
 
   const fetchStationPredictions = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
@@ -110,6 +115,9 @@ const MoreCast2Page = () => {
   }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    const dates = createDateInterval(fromDate, toDate)
+    setDateInterval(dates)
+
     if (!isUndefined(modelType) && !isNull(modelType)) {
       localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
       fetchStationPredictions()
@@ -124,6 +132,12 @@ const MoreCast2Page = () => {
     )
     setForecastRows(visibleForecastRows)
   }, [stationPredictionsAsMoreCast2ForecastRows, selectedStations])
+
+  useEffect(() => {
+    const predictions = fillInTheBlanks(fireCenter?.stations || [], stationPredictions, dateInterval, modelType)
+    const newRows = parseModelsForStationsHelper(predictions)
+    setStationPredictionsAsMoreCast2ForecastRows(newRows)
+  }, [stationPredictions]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={classes.root} data-testid="more-cast-2-page">
