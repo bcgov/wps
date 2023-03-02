@@ -1,16 +1,20 @@
 """ Routes for Morecast v2 """
 import logging
+from aiohttp.client import ClientSession
 from typing import List
-from datetime import date, datetime
+from datetime import date, datetime, time, timedelta
 from fastapi import APIRouter, Response, Depends, status
+import pytz
 from app.auth import (auth_with_forecaster_role_required,
                       authentication_required,
                       audit)
 from app.db.crud.morecast_v2 import get_user_forecasts_for_date, save_all_forecasts
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.schemas.morecast_v2 import MorecastForecastRequest, MorecastForecastResponse
+from app.morecast_2.morecast_2 import yesterday_observation_list_mapper
+from app.schemas.morecast_v2 import MorecastForecastRequest, MorecastForecastResponse, YesterdayDaily, YesterdayObservationStations, YesterdayObservationStationsResponse
 from app.utils.time import get_utc_now
+from app.wildfire_one.wfwx_api import get_auth_header, get_dailies, get_wfwx_stations_from_station_codes
 
 
 logger = logging.getLogger(__name__)
@@ -71,3 +75,24 @@ async def save_forecasts(forecasts: List[MorecastForecastRequest],
                                          wind_speed=forecast.wind_speed,
                                          wind_direction=forecast.wind_direction,
                                          update_timestamp=int(now.timestamp() * 1000)) for forecast in forecasts]
+
+
+@router.get('/persistent/{today}',
+            response_model=List[YesterdayObservationStationsResponse])
+async def get_yesterdays_model_values(today: date, request: YesterdayObservationStations):
+    """ Returns the weather values for the last model prediction for the 
+    requested stations within the requested date range.
+    """
+    # logger.info('/weather_models/%s/predictions/most_recent/%s/%s', model.name, start_date, end_date)
+
+    vancouver_tz = pytz.timezone("America/Vancouver")
+    local_today = vancouver_tz.localize(datetime.combine(today, time.min))
+    prev_day = local_today - timedelta(days=1)
+
+    async with ClientSession() as session:
+        header = await get_auth_header(session)
+
+        wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, request.station_codes)
+        observations: List[YesterdayDaily] = await yesterday_observation_list_mapper(
+            await get_dailies(session, header, wfwx_stations, prev_day))
+        return YesterdayObservationStationsResponse(observations=observations)
