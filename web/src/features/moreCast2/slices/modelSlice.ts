@@ -2,24 +2,19 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { ModelType, getModelPredictions, StationPrediction } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
-import { parseModelsForStationsHelper } from 'features/moreCast2/slices/parseModelsForStationsHelper'
 
 interface State {
   loading: boolean
   error: string | null
   stationPredictions: StationPrediction[]
-  stationPredictionsAsMoreCast2ForecastRows: MoreCast2ForecastRow[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  stationPredictions: [],
-  stationPredictionsAsMoreCast2ForecastRows: []
+  stationPredictions: []
 }
 
-// TODO - Remove raw stationPredictions from State. I think we only need the formatted data.
 const modelSlice = createSlice({
   name: 'ModelSlice',
   initialState,
@@ -27,7 +22,6 @@ const modelSlice = createSlice({
     getModelStationPredictionsStart(state: State) {
       state.error = null
       state.stationPredictions = []
-      state.stationPredictionsAsMoreCast2ForecastRows = []
       state.loading = true
     },
     getModelStationPredictionsFailed(state: State, action: PayloadAction<string>) {
@@ -37,7 +31,6 @@ const modelSlice = createSlice({
     getModelStationPredictionsSuccess(state: State, action: PayloadAction<StationPrediction[]>) {
       state.error = null
       state.stationPredictions = action.payload
-      state.stationPredictionsAsMoreCast2ForecastRows = parseModelsForStationsHelper(action.payload)
       state.loading = false
     }
   }
