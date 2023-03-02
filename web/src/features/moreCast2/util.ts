@@ -1,5 +1,5 @@
 import { isNumber } from 'lodash'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 import { FireCenterStation } from 'api/fbaAPI'
 import { ModelType, StationPrediction } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
@@ -98,4 +98,16 @@ const createEmptyStationPrediction = (
   }
 
   return prediction
+}
+
+export const createDateInterval = (fromDate: DateTime, toDate: DateTime) => {
+  // Create an array of UTC datetime strings inclusive of the user selected from/to dates
+  // This range of UTC datetimes is needed to help determine when a station is missing a
+  // row of predictions
+  const interval = Interval.fromDateTimes(fromDate, toDate.plus({ days: 1 }))
+  const dateTimeArray = interval.splitBy({ day: 1 }).map(d => d.start)
+  const dates = dateTimeArray.map(date => {
+    return `${date.toISODate()}T20:00:00+00:00`
+  })
+  return dates
 }

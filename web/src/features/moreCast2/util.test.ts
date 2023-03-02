@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { ModelChoice, StationPrediction } from 'api/moreCast2API'
-import { fillInTheBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
+import { createDateInterval, fillInTheBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
 
 const TEST_NUMBER = 7
 const TEST_MODEL = ModelChoice.HRDPS
@@ -86,7 +86,7 @@ describe('parseModelsForStationHelper', () => {
 describe('fillInTheBlanks', () => {
   const fireCenterStations = [{ code: TEST_CODE, name: TEST_NAME }]
   const stationPredictions = createStationPredictionArray(TEST_NUMBER)
-  window.it('should not create rows when date interval array is empty', () => {
+  it('should not create rows when date interval array is empty', () => {
     const dateInterval: string[] = []
     const results = fillInTheBlanks(fireCenterStations, stationPredictions, dateInterval, TEST_MODEL)
     expect(results).toBeDefined()
@@ -123,5 +123,24 @@ describe('fillInTheBlanks', () => {
       const dateInterval = [TEST_DATE]
       const results = fillInTheBlanks(fireCenterStations, [], dateInterval, TEST_MODEL)
       expect(results[0].model).toEqual(TEST_MODEL)
+    })
+})
+
+describe('createDateInterval', () => {
+  it('should return array with single date when fromDate and toDate are the same', () => {
+    const result = createDateInterval(DateTime.fromISO(TEST_DATE), DateTime.fromISO(TEST_DATE))
+    expect(result).toBeDefined()
+    expect(result.length).toEqual(1)
+  }),
+    it('should return array inclusive of toDate', () => {
+      const result = createDateInterval(DateTime.fromISO(TEST_DATE), DateTime.fromISO(TEST_DATE2))
+      expect(result).toBeDefined()
+      expect(result.length).toEqual(2)
+      expect(result[1]).toEqual(TEST_DATE2)
+    }),
+    it('should return empty array if toDate is before fromDate', () => {
+      const result = createDateInterval(DateTime.fromISO(TEST_DATE2), DateTime.fromISO(TEST_DATE))
+      expect(result).toBeDefined()
+      expect(result.length).toEqual(0)
     })
 })

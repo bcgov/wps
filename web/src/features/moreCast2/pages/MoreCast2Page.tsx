@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { FormControl, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { isNull, isUndefined } from 'lodash'
-import { DateTime, Interval } from 'luxon'
+import { DateTime } from 'luxon'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
 import { ModelChoice, ModelChoices, ModelType } from 'api/moreCast2API'
 import { selectFireCenters, selectModelStationPredictions } from 'app/rootReducer'
@@ -17,7 +17,7 @@ import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDrop
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice'
-import { fillInTheBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
+import { createDateInterval, fillInTheBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -115,14 +115,7 @@ const MoreCast2Page = () => {
   }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // Create an array of UTC datetime strings inclusive of the user selected from/to dates
-    // This range of UTC datetimes is needed to help determine when a station is missing a
-    // row of predictions
-    const interval = Interval.fromDateTimes(fromDate, toDate.plus({ days: 1 }))
-    const dateTimeArray = interval.splitBy({ day: 1 }).map(d => d.start)
-    const dates = dateTimeArray.map(date => {
-      return `${date.toISODate()}T20:00:00+00:00`
-    })
+    const dates = createDateInterval(fromDate, toDate)
     setDateInterval(dates)
 
     if (!isUndefined(modelType) && !isNull(modelType)) {
