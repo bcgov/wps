@@ -265,18 +265,16 @@ async def get_hourly_actuals_all_stations(
 async def get_daily_actuals_for_stations(
         session: ClientSession,
         header: dict,
-        time_of_interest: datetime,
+        start_datetime: datetime,
+        end_datetime: datetime,
         stations: List[WeatherStation]):
     """ Get the daily actuals for each station.
     """
 
-    start_time = datetime.combine(time_of_interest, time.min)
-    end_time = datetime.combine(time_of_interest, time.max)
-
     wfwx_station_ids = [station.wfwx_station_uuid for station in stations]
 
-    start_timestamp = math.floor(start_time.timestamp() * 1000)
-    end_timestamp = math.floor(end_time.timestamp() * 1000)
+    start_timestamp = math.floor(start_datetime.timestamp() * 1000)
+    end_timestamp = math.floor(end_datetime.timestamp() * 1000)
 
     cache_expiry_seconds: Final = int(config.get('REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY', 300))
     use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
