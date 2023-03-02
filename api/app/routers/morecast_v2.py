@@ -14,7 +14,8 @@ from app.db.models.morecast_v2 import MorecastForecastRecord
 from app.morecast_2.morecast_2 import yesterday_observation_list_mapper
 from app.schemas.morecast_v2 import MorecastForecastRequest, MorecastForecastResponse, YesterdayDaily, YesterdayObservationStations, YesterdayObservationStationsResponse
 from app.utils.time import get_utc_now
-from app.wildfire_one.wfwx_api import get_auth_header, get_dailies, get_wfwx_stations_from_station_codes
+from app.wildfire_one.schema_parsers import wfwx_station_list_mapper
+from app.wildfire_one.wfwx_api import get_auth_header, get_dailies, get_daily_actuals_for_stations, get_station_data, get_stations_by_codes, get_wfwx_stations_from_station_codes
 
 
 logger = logging.getLogger(__name__)
@@ -92,7 +93,8 @@ async def get_yesterdays_model_values(today: date, request: YesterdayObservation
     async with ClientSession() as session:
         header = await get_auth_header(session)
 
-        wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, request.station_codes)
-        observations: List[YesterdayDaily] = await yesterday_observation_list_mapper(
-            await get_dailies(session, header, wfwx_stations, prev_day))
-        return YesterdayObservationStationsResponse(observations=observations)
+        wfwx_stations = await get_stations_by_codes(request.station_codes)
+
+        raw_dailies = await get_daily_actuals_for_stations(session, header, prev_day, wfwx_stations)
+
+        return YesterdayObservationStationsResponse(observations=[])
