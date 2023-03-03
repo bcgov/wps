@@ -3,7 +3,7 @@
 import os
 import sys
 import datetime
-from typing import Generator
+from typing import Generator, List
 import logging
 import tempfile
 from sqlalchemy.orm import Session
@@ -35,15 +35,21 @@ def get_gfs_model_run_hours():
         yield hour_str
 
 
-def get_date_for_download(now: datetime.datetime) -> tuple[str, str]:
-    """ Returns formatted strings for year_month and year_month_date, dated 2.5 days prior to 
-    the current time, to be used for GFS download URLs"""
+def get_date_for_download(now: datetime.datetime) -> List[tuple[str, str]]:
+    """ Returns list of 2 tuples of formatted strings for year_month and year_month_date.
+    NOAA publishes GFS model data 2.5 - 3 days behind schedule, so need to build GFS download URLs
+    based on both timeframes, in case the run from 2.5 days ago (60 hours) isn't available yet.
+    """
     # Fetch data from 2.5 days (60 hours) ago - see model_data.md for explanation
     sixty_hours_prior = now - datetime.timedelta(hours=60)
-    year_mo = f"{sixty_hours_prior.year}" + format(sixty_hours_prior.month, '02d')
-    year_mo_date = f"{year_mo}" + format(sixty_hours_prior.day, '02d')
+    year_mo_60hrs = f"{sixty_hours_prior.year}" + format(sixty_hours_prior.month, '02d')
+    year_mo_date_60hrs = f"{year_mo_60hrs}" + format(sixty_hours_prior.day, '02d')
 
-    return (year_mo, year_mo_date)
+    three_days_prior = now - datetime.timedelta(days=3)
+    year_mo_3days = f"{three_days_prior.year}" + format(three_days_prior.month, '02d')
+    year_mo_date_3days = f"{year_mo_3days}" + format(three_days_prior.day, '02d')
+
+    return [(year_mo_60hrs, year_mo_date_60hrs), (year_mo_3days, year_mo_date_3days)]
 
 
 def get_gfs_model_run_download_urls(now: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
@@ -71,10 +77,10 @@ def get_gfs_model_run_download_urls(now: datetime.datetime, model_cycle: str) ->
     all_hours.sort()
     for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')
-        year_mo, year_mo_date = get_date_for_download(now)
-        base_url = "https://www.ncei.noaa.gov/data/global-forecast-system/access/grid-004-0.5-degree/forecast/"
-        filename = f'{year_mo}/{year_mo_date}/gfs_4_{year_mo_date}_{model_cycle}_{hhh}.grb2'
-        yield base_url + filename
+        for year_mo, year_mo_date in get_date_for_download(now):
+            base_url = "https://www.ncei.noaa.gov/data/global-forecast-system/access/grid-004-0.5-degree/forecast/"
+            filename = f'{year_mo}/{year_mo_date}/gfs_4_{year_mo_date}_{model_cycle}_{hhh}.grb2'
+            yield base_url + filename
 
 
 def parse_url_for_timestamps(url: str):

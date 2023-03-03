@@ -79,14 +79,16 @@ def mock_download(monkeypatch):
 
 
 def test_get_gfs_model_run_download_urls_for_0000_utc():
-    # for a given date and model run cycle, there should be 2 time intervals * 10 days into future
-    expected_num_of_urls = 2 * 11
+    # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total) * 2 model run dates
+    # (for 2.5 days ago and 3 days ago)
+    expected_num_of_urls = 2 * 11 * 2
     assert len(list(noaa.get_gfs_model_run_download_urls(time_utils.get_utc_now(), '0000'))) == expected_num_of_urls
 
 
 def test_get_gfs_model_run_download_urls_for_0600_utc():
     # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total incl. today)
-    expected_num_of_urls = 2 * 11
+    # * 2 model run dates (for 2.5 days ago and 3 days ago)
+    expected_num_of_urls = 2 * 11 * 2
     assert len(list(noaa.get_gfs_model_run_download_urls(time_utils.get_utc_now(), '0600'))) == expected_num_of_urls
 
 
@@ -116,22 +118,46 @@ def test_get_date_for_download():
     test_cases = [
         {
             'current_time': datetime(2023, 3, 1, 12, 0, tzinfo=timezone.utc),
-            'expected_year_mo': '202302',
-            'expected_year_mo_date': '20230227'
+            'expected_year_mo_60hrs': '202302',
+            'expected_year_mo_date_60hrs': '20230227',
+            'expected_year_mo_3days': '202302',
+            'expected_year_mo_date_3days': '20230226'
         },
         {
             'current_time': datetime(2023, 3, 1, 3, 0, tzinfo=timezone.utc),
-            'expected_year_mo': '202302',
-            'expected_year_mo_date': '20230226'
+            'expected_year_mo_60hrs': '202302',
+            'expected_year_mo_date_60hrs': '20230226',
+            'expected_year_mo_3days': '202302',
+            'expected_year_mo_date_3days': '20230226'
+        },
+        {
+            'current_time': datetime(2023, 3, 3, 14, 0, tzinfo=timezone.utc),
+            'expected_year_mo_60hrs': '202303',
+            'expected_year_mo_date_60hrs': '20230301',
+            'expected_year_mo_3days': '202302',
+            'expected_year_mo_date_3days': '20230228'
         },
         {
             'current_time': datetime(2023, 3, 9, 8, 0, tzinfo=timezone.utc),
-            'expected_year_mo': '202303',
-            'expected_year_mo_date': '20230306'
+            'expected_year_mo_60hrs': '202303',
+            'expected_year_mo_date_60hrs': '20230306',
+            'expected_year_mo_3days': '202303',
+            'expected_year_mo_date_3days': '20230306'
+        },
+        {
+            'current_time': datetime(2023, 3, 9, 8, 0, tzinfo=timezone.utc),
+            'expected_year_mo_60hrs': '202303',
+            'expected_year_mo_date_60hrs': '20230306',
+            'expected_year_mo_3days': '202303',
+            'expected_year_mo_date_3days': '20230306'
         }
     ]
 
     for case in test_cases:
-        actual_year_mo, actual_year_mo_date = noaa.get_date_for_download(case.get('current_time'))
-        assert actual_year_mo == case.get('expected_year_mo')
-        assert actual_year_mo_date == case.get('expected_year_mo_date')
+        results = noaa.get_date_for_download(case.get('current_time'))
+        actual_year_mo_60hrs, actual_year_mo_date_60hrs = results[0]
+        actual_year_mo_3days, actual_year_mo_date_3days = results[1]
+        assert actual_year_mo_60hrs == case.get('expected_year_mo_60hrs')
+        assert actual_year_mo_date_60hrs == case.get('expected_year_mo_date_60hrs')
+        assert actual_year_mo_3days == case.get('expected_year_mo_3days')
+        assert actual_year_mo_date_3days == case.get('expected_year_mo_date_3days')
