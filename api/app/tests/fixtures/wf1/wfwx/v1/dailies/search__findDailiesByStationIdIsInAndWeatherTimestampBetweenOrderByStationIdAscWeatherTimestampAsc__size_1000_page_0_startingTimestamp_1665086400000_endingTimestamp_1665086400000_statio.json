@@ -1,0 +1,581 @@
+{
+  "_embedded": {
+    "dailies": [
+      {
+        "id": "9dccebf5-c0b0-49ad-9074-cfde7e6d71f9",
+        "createdBy": "GPEARCE",
+        "lastEntityUpdateTimestamp": 1665087010888,
+        "updateDate": "2022-10-06T20:10:10.000+0000",
+        "lastModifiedBy": "WFWX_WEATHER_API",
+        "archive": false,
+        "station": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bfe0a6e2-e269-0210-e053-259e228e58c7",
+        "stationId": "bfe0a6e2-e269-0210-e053-259e228e58c7",
+        "stationData": {
+          "id": "bfe0a6e2-e269-0210-e053-259e228e58c7",
+          "displayLabel": "ALEXIS CREEK",
+          "createdBy": "LEGACY_DATA_LOAD",
+          "lastModifiedBy": "WFWX_WEATHER_API",
+          "lastEntityUpdateTimestamp": 1677961862675,
+          "updateDate": "2023-03-04T20:31:02.000+0000",
+          "stationCode": 209,
+          "stationAcronym": "FAC",
+          "stationStatus": {
+            "id": "ACTIVE",
+            "displayLabel": "Active",
+            "displayOrder": 1,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000"
+          },
+          "dataSource": {
+            "id": "AUTO_CALLR",
+            "displayLabel": "Auto-Caller",
+            "displayOrder": 1,
+            "effectiveDate": "1950-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "dataLoggerType": {
+            "id": "FWS12S",
+            "displayLabel": "FWS12S",
+            "displayOrder": 6,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "siteType": {
+            "id": "WXSTN_GOES",
+            "displayLabel": "Weather Station - GOES",
+            "displayOrder": 5,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "weatherZone": {
+            "id": 17,
+            "displayLabel": "Zone 17",
+            "dangerRegion": 2,
+            "displayOrder": 17
+          },
+          "stationAccessTypeCode": {
+            "id": "4WD",
+            "displayLabel": "4 Wheel Drive",
+            "displayOrder": 1,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "hourly": true,
+          "pluvioSnowGuage": false,
+          "latitude": 52.08377,
+          "longitude": -123.2732667,
+          "geometry": {
+            "crs": {
+              "type": "name",
+              "properties": {
+                "name": "EPSG:4326"
+              }
+            },
+            "coordinates": [
+              -123.2732667,
+              52.08377
+            ],
+            "type": "Point"
+          },
+          "elevation": 791,
+          "windspeedAdjRoughness": 1.0,
+          "windspeedHeight": {
+            "id": "9.0_11.9",
+            "displayLabel": "9.0 - 11.9 (m)",
+            "displayOrder": 7,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "surfaceType": null,
+          "overWinterPrecipAdj": true,
+          "influencingSlope": 2,
+          "installationDate": 315558000000,
+          "decommissionDate": null,
+          "influencingAspect": null,
+          "owner": {
+            "id": "a9843bb7-0f44-4a80-8a62-79cca2a5c758",
+            "displayLabel": "BC Wildfire Service",
+            "displayOrder": 2,
+            "ownerName": "BCWS",
+            "ownerDisplayName": "BC Wildfire Service",
+            "ownerComment": null,
+            "createdBy": "DATA_LOAD",
+            "lastModifiedBy": "DATAFIX - WFWX-891",
+            "effectiveDate": "1950-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000"
+          },
+          "fireCentre": {
+            "id": 2,
+            "displayLabel": "Cariboo Fire Centre",
+            "alias": 7,
+            "expiryDate": "9999-12-31T08:00:00.000+0000"
+          },
+          "zone": {
+            "id": 7,
+            "displayLabel": "Chilcotin Zone",
+            "alias": 5,
+            "fireCentre": "Cariboo Fire Centre",
+            "fireCentreAlias": 7,
+            "expiryDate": "9999-12-31T08:00:00.000+0000"
+          },
+          "comments": "1st Daily 19800501; coordinates updated 2007/10/03 (P2)",
+          "ecccFileBaseUrlTemplate": null,
+          "lastProcessedSourceTime": "2023-03-04T12:31:02",
+          "crdStationName": null,
+          "stationAccessDescription": "Alexis creek Wx station is located 150M N/W of the Chilcolin FLNRO field office.  Head west on Highway 20 from Williams Lake for an hour and thirty minutes or 112 Kilometers turning right on to Stum Lake Road for 100m and turn right again."
+        },
+        "weatherTimestamp": 1665086400000,
+        "temperature": 18.7,
+        "dewPoint": 5.8,
+        "temperatureMin": null,
+        "temperatureMax": null,
+        "relativeHumidity": 43.0,
+        "relativeHumidityMin": null,
+        "relativeHumidityMax": null,
+        "windSpeed": 6.2,
+        "adjustedWindSpeed": 6.2,
+        "precipitation": 0.0,
+        "dangerForest": 4,
+        "dangerGrassland": 1,
+        "dangerScrub": 5,
+        "recordType": {
+          "id": "ACTUAL",
+          "displayLabel": "Actual",
+          "displayOrder": 1,
+          "createdBy": "DATA_LOAD",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "windDirection": 163.0,
+        "fineFuelMoistureCode": 89.849,
+        "duffMoistureCode": 117.819,
+        "droughtCode": 874.588,
+        "initialSpreadIndex": 5.734,
+        "buildUpIndex": 176.272,
+        "fireWeatherIndex": 26.261,
+        "dailySeverityRating": null,
+        "grasslandCuring": null,
+        "observationValidInd": true,
+        "observationValidComment": null,
+        "missingHourlyData": false,
+        "previousState": null,
+        "businessKey": "1665086400000-bfe0a6e2-e269-0210-e053-259e228e58c7",
+        "_links": {
+          "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/9dccebf5-c0b0-49ad-9074-cfde7e6d71f9"
+          },
+          "daily": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/9dccebf5-c0b0-49ad-9074-cfde7e6d71f9"
+          },
+          "station": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bfe0a6e2-e269-0210-e053-259e228e58c7"
+          }
+        }
+      },
+      {
+        "id": "535ce76b-e485-41a8-bd42-7400bc98ae83",
+        "createdBy": "GPEARCE",
+        "lastEntityUpdateTimestamp": 1665087635657,
+        "updateDate": "2022-10-06T20:20:35.000+0000",
+        "lastModifiedBy": "WFWX_WEATHER_API",
+        "archive": false,
+        "station": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bfe0a6e2-e26b-0210-e053-259e228e58c7",
+        "stationId": "bfe0a6e2-e26b-0210-e053-259e228e58c7",
+        "stationData": {
+          "id": "bfe0a6e2-e26b-0210-e053-259e228e58c7",
+          "displayLabel": "NAZKO",
+          "createdBy": "LEGACY_DATA_LOAD",
+          "lastModifiedBy": "WFWX_WEATHER_API",
+          "lastEntityUpdateTimestamp": 1677961870471,
+          "updateDate": "2023-03-04T20:31:10.000+0000",
+          "stationCode": 211,
+          "stationAcronym": "FNZ",
+          "stationStatus": {
+            "id": "ACTIVE",
+            "displayLabel": "Active",
+            "displayOrder": 1,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000"
+          },
+          "dataSource": {
+            "id": "AUTO_CALLR",
+            "displayLabel": "Auto-Caller",
+            "displayOrder": 1,
+            "effectiveDate": "1950-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "dataLoggerType": {
+            "id": "FWS12S",
+            "displayLabel": "FWS12S",
+            "displayOrder": 6,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "siteType": {
+            "id": "WXSTN_GOES",
+            "displayLabel": "Weather Station - GOES",
+            "displayOrder": 5,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "weatherZone": {
+            "id": 17,
+            "displayLabel": "Zone 17",
+            "dangerRegion": 2,
+            "displayOrder": 17
+          },
+          "stationAccessTypeCode": {
+            "id": "4WD",
+            "displayLabel": "4 Wheel Drive",
+            "displayOrder": 1,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "hourly": true,
+          "pluvioSnowGuage": false,
+          "latitude": 52.9575,
+          "longitude": -123.5958,
+          "geometry": {
+            "crs": {
+              "type": "name",
+              "properties": {
+                "name": "EPSG:4326"
+              }
+            },
+            "coordinates": [
+              -123.5958,
+              52.9575
+            ],
+            "type": "Point"
+          },
+          "elevation": 910,
+          "windspeedAdjRoughness": 1.0,
+          "windspeedHeight": {
+            "id": "9.0_11.9",
+            "displayLabel": "9.0 - 11.9 (m)",
+            "displayOrder": 7,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "surfaceType": null,
+          "overWinterPrecipAdj": true,
+          "influencingSlope": 0,
+          "installationDate": 801122400000,
+          "decommissionDate": null,
+          "influencingAspect": null,
+          "owner": {
+            "id": "a9843bb7-0f44-4a80-8a62-79cca2a5c758",
+            "displayLabel": "BC Wildfire Service",
+            "displayOrder": 2,
+            "ownerName": "BCWS",
+            "ownerDisplayName": "BC Wildfire Service",
+            "ownerComment": null,
+            "createdBy": "DATA_LOAD",
+            "lastModifiedBy": "DATAFIX - WFWX-891",
+            "effectiveDate": "1950-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000"
+          },
+          "fireCentre": {
+            "id": 2,
+            "displayLabel": "Cariboo Fire Centre",
+            "alias": 7,
+            "expiryDate": "9999-12-31T08:00:00.000+0000"
+          },
+          "zone": {
+            "id": 3,
+            "displayLabel": "Quesnel Zone",
+            "alias": 1,
+            "fireCentre": "Cariboo Fire Centre",
+            "fireCentreAlias": 7,
+            "expiryDate": "9999-12-31T08:00:00.000+0000"
+          },
+          "comments": "1st daily 19810501; CRMP- GOES  NESID BCF594CA F6 LOGGER (1M SP)",
+          "ecccFileBaseUrlTemplate": null,
+          "lastProcessedSourceTime": "2023-03-04T12:31:10",
+          "crdStationName": null,
+          "stationAccessDescription": "Nazko highway out of Quesnel."
+        },
+        "weatherTimestamp": 1665086400000,
+        "temperature": 15.6,
+        "dewPoint": 6.4,
+        "temperatureMin": null,
+        "temperatureMax": null,
+        "relativeHumidity": 54.0,
+        "relativeHumidityMin": null,
+        "relativeHumidityMax": null,
+        "windSpeed": 5.9,
+        "adjustedWindSpeed": 5.9,
+        "precipitation": 0.0,
+        "dangerForest": 3,
+        "dangerGrassland": 1,
+        "dangerScrub": 5,
+        "recordType": {
+          "id": "ACTUAL",
+          "displayLabel": "Actual",
+          "displayOrder": 1,
+          "createdBy": "DATA_LOAD",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "windDirection": 318.0,
+        "fineFuelMoistureCode": 87.996,
+        "duffMoistureCode": 60.072,
+        "droughtCode": 600.487,
+        "initialSpreadIndex": 4.329,
+        "buildUpIndex": 96.108,
+        "fireWeatherIndex": 17.102,
+        "dailySeverityRating": null,
+        "grasslandCuring": null,
+        "observationValidInd": true,
+        "observationValidComment": null,
+        "missingHourlyData": false,
+        "previousState": null,
+        "businessKey": "1665086400000-bfe0a6e2-e26b-0210-e053-259e228e58c7",
+        "_links": {
+          "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/535ce76b-e485-41a8-bd42-7400bc98ae83"
+          },
+          "daily": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/535ce76b-e485-41a8-bd42-7400bc98ae83"
+          },
+          "station": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bfe0a6e2-e26b-0210-e053-259e228e58c7"
+          }
+        }
+      },
+      {
+        "id": "5ae182a2-1ec6-4324-b9f0-9c4c6f7a1416",
+        "createdBy": "WFWX_WEATHER_API",
+        "lastEntityUpdateTimestamp": 1665086701632,
+        "updateDate": "2022-10-06T20:05:01.000+0000",
+        "lastModifiedBy": "WFWX_WEATHER_API",
+        "archive": true,
+        "station": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bfe0a6e2-e3bc-0210-e053-259e228e58c7",
+        "stationId": "bfe0a6e2-e3bc-0210-e053-259e228e58c7",
+        "stationData": {
+          "id": "bfe0a6e2-e3bc-0210-e053-259e228e58c7",
+          "displayLabel": "ASPEN GROVE",
+          "createdBy": "LEGACY_DATA_LOAD",
+          "lastModifiedBy": "WFWX_WEATHER_API",
+          "lastEntityUpdateTimestamp": 1677961854286,
+          "updateDate": "2023-03-04T20:30:54.000+0000",
+          "stationCode": 302,
+          "stationAcronym": "FSG",
+          "stationStatus": {
+            "id": "ACTIVE",
+            "displayLabel": "Active",
+            "displayOrder": 1,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000"
+          },
+          "dataSource": {
+            "id": "AUTO_CALLR",
+            "displayLabel": "Auto-Caller",
+            "displayOrder": 1,
+            "effectiveDate": "1950-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "dataLoggerType": {
+            "id": "FWS12S",
+            "displayLabel": "FWS12S",
+            "displayOrder": 6,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "siteType": {
+            "id": "WXSTN_CELL",
+            "displayLabel": "Weather Station - Cell",
+            "displayOrder": 6,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "weatherZone": {
+            "id": 20,
+            "displayLabel": "Zone 20",
+            "dangerRegion": 3,
+            "displayOrder": 20
+          },
+          "stationAccessTypeCode": {
+            "id": "4WD",
+            "displayLabel": "4 Wheel Drive",
+            "displayOrder": 1,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "hourly": true,
+          "pluvioSnowGuage": false,
+          "latitude": 49.94811,
+          "longitude": -120.62107,
+          "geometry": {
+            "crs": {
+              "type": "name",
+              "properties": {
+                "name": "EPSG:4326"
+              }
+            },
+            "coordinates": [
+              -120.62107,
+              49.94811
+            ],
+            "type": "Point"
+          },
+          "elevation": 1065,
+          "windspeedAdjRoughness": 1.0,
+          "windspeedHeight": {
+            "id": "9.0_11.9",
+            "displayLabel": "9.0 - 11.9 (m)",
+            "displayOrder": 7,
+            "effectiveDate": "2000-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000",
+            "createdBy": "DATA_LOAD",
+            "createdDate": "2020-02-25T08:00:00.000+0000",
+            "lastModifiedBy": "DATA_LOAD",
+            "lastModifiedDate": "2020-02-25T08:00:00.000+0000"
+          },
+          "surfaceType": null,
+          "overWinterPrecipAdj": false,
+          "influencingSlope": 0,
+          "installationDate": 912322800000,
+          "decommissionDate": null,
+          "influencingAspect": null,
+          "owner": {
+            "id": "a9843bb7-0f44-4a80-8a62-79cca2a5c758",
+            "displayLabel": "BC Wildfire Service",
+            "displayOrder": 2,
+            "ownerName": "BCWS",
+            "ownerDisplayName": "BC Wildfire Service",
+            "ownerComment": null,
+            "createdBy": "DATA_LOAD",
+            "lastModifiedBy": "DATAFIX - WFWX-891",
+            "effectiveDate": "1950-01-01T08:00:00.000+0000",
+            "expiryDate": "9999-12-31T08:00:00.000+0000"
+          },
+          "fireCentre": {
+            "id": 25,
+            "displayLabel": "Kamloops Fire Centre",
+            "alias": 5,
+            "expiryDate": "9999-12-31T08:00:00.000+0000"
+          },
+          "zone": {
+            "id": 31,
+            "displayLabel": "Merritt Zone",
+            "alias": 6,
+            "fireCentre": "Kamloops Fire Centre",
+            "fireCentreAlias": 5,
+            "expiryDate": "9999-12-31T08:00:00.000+0000"
+          },
+          "comments": "Installed Cell Modem June 2021.",
+          "ecccFileBaseUrlTemplate": null,
+          "lastProcessedSourceTime": "2023-03-04T12:30:54",
+          "crdStationName": null,
+          "stationAccessDescription": "Just off Hwy #5A by Aspen Grove near the junction with 97C, through the cattle gate over guard, 200m to site."
+        },
+        "weatherTimestamp": 1665086400000,
+        "temperature": 19.5,
+        "dewPoint": 4.3,
+        "temperatureMin": -60.0,
+        "temperatureMax": 55.0,
+        "relativeHumidity": 37.0,
+        "relativeHumidityMin": 0.0,
+        "relativeHumidityMax": 105.0,
+        "windSpeed": 10.6,
+        "adjustedWindSpeed": 10.6,
+        "precipitation": 0.0,
+        "dangerForest": 4,
+        "dangerGrassland": 1,
+        "dangerScrub": 5,
+        "recordType": {
+          "id": "ACTUAL",
+          "displayLabel": "Actual",
+          "displayOrder": 1,
+          "createdBy": "DATA_LOAD",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "windDirection": 5.0,
+        "fineFuelMoistureCode": 91.439,
+        "duffMoistureCode": 104.704,
+        "droughtCode": 778.345,
+        "initialSpreadIndex": 8.981,
+        "buildUpIndex": 156.707,
+        "fireWeatherIndex": 34.633,
+        "dailySeverityRating": null,
+        "grasslandCuring": null,
+        "observationValidInd": true,
+        "observationValidComment": null,
+        "missingHourlyData": false,
+        "previousState": null,
+        "businessKey": "1665086400000-bfe0a6e2-e3bc-0210-e053-259e228e58c7",
+        "_links": {
+          "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/5ae182a2-1ec6-4324-b9f0-9c4c6f7a1416"
+          },
+          "daily": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/5ae182a2-1ec6-4324-b9f0-9c4c6f7a1416"
+          },
+          "station": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bfe0a6e2-e3bc-0210-e053-259e228e58c7"
+          }
+        }
+      }
+    ]
+  },
+  "_links": {
+    "self": {
+      "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/search/findDailiesByStationIdIsInAndWeatherTimestampBetweenOrderByStationIdAscWeatherTimestampAsc?stationIds=bfe0a6e2-e269-0210-e053-259e228e58c7,bfe0a6e2-e26b-0210-e053-259e228e58c7,bfe0a6e2-e3bc-0210-e053-259e228e58c7&startingTimestamp=1665086400000&endingTimestamp=1665086400000"
+    }
+  }
+}

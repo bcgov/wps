@@ -78,8 +78,8 @@ async def save_forecasts(forecasts: List[MorecastForecastRequest],
                                          update_timestamp=int(now.timestamp() * 1000)) for forecast in forecasts]
 
 
-@router.get('/yesterday-dailies/{today}',
-            response_model=YesterdayStationDailiesResponse)
+@router.post('/yesterday-dailies/{today}',
+             response_model=YesterdayStationDailiesResponse)
 async def get_yesterdays_model_values(today: date, request: YesterdayStationDailies):
     """ Returns the weather values for the last model prediction for the 
     requested stations within the requested date range.
@@ -95,4 +95,4 @@ async def get_yesterdays_model_values(today: date, request: YesterdayStationDail
 
         yeserday_dailies = await get_dailies_for_stations_and_date(session, header, time_of_interest, unique_station_codes)
 
-        return YesterdayStationDailiesResponse(observations=yeserday_dailies)
+        return YesterdayStationDailiesResponse(dailies=yeserday_dailies)

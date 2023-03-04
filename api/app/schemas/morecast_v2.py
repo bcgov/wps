@@ -79,4 +79,4 @@ class YesterdayDaily(BaseModel):
 
 class YesterdayStationDailiesResponse(BaseModel):
     """ Yesterday station dailies response """
-    observations: List[YesterdayDaily]
+    dailies: List[YesterdayDaily]
