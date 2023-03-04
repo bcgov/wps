@@ -137,7 +137,7 @@ def check_if_model_run_complete(session: Session, urls):
     expected_count = len(urls)
     logger.info('we have processed %s/%s files',
                 actual_count, expected_count)
-    return actual_count == expected_count
+    return actual_count == expected_count and actual_count > 0
 
 
 def apply_data_retention_policy():

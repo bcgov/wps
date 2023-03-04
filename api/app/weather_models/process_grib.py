@@ -207,28 +207,28 @@ class GribFileProcessor():
 
                 assert u_points == v_points
 
-                zipped_uv_values = zip(u_values, v_values)
+                zipped_uv_values = list(zip(u_values, v_values))
 
                 if variable == 'wdir_tgl_10':
-                    self.yield_wind_dir_values(u_points, zipped_uv_values)
+                    return self.get_wind_dir_values(u_points, zipped_uv_values)
                 elif variable == 'wind_tgl_10':
-                    self.yield_wind_speed_values(u_points, zipped_uv_values)
+                    return self.get_wind_speed_values(u_points, zipped_uv_values)
             else:
                 logger.warning('coordinate not in u/v wind rasters - %s', station)
 
-    def yield_wind_dir_values(self, u_points: List[int], zipped_uv_values):
-        """ Yield calculated wind direction values for list of points and zipped u,v values """
+    def get_wind_dir_values(self, u_points: List[int], zipped_uv_values):
+        """ Get calculated wind direction values for list of points and zipped u,v values """
         wind_dir_values = []
         for u, v in zipped_uv_values:
             wind_dir_values.append(calculate_wind_dir_from_u_v(u, v))
-            yield (u_points, wind_dir_values)
+        return (u_points, wind_dir_values)
 
-    def yield_wind_speed_values(self, u_points: List[int], zipped_uv_values):
-        """ Yield calculated wind speed values for list of points and zipped u,v values """
+    def get_wind_speed_values(self, u_points: List[int], zipped_uv_values):
+        """ Get calculated wind speed values for list of points and zipped u,v values """
         wind_speed_values = []
         for u, v in zipped_uv_values:
             wind_speed_values.append(calculate_wind_speed_from_u_v(u, v))
-        yield (u_points, wind_speed_values)
+        return (u_points, wind_speed_values)
 
     def store_bounding_values(self,
                               points,
@@ -303,22 +303,22 @@ class GribFileProcessor():
         tmp_raster_band, rh_raster_band, u_wind_raster_band, v_wind_raster_band, precip_raster_band = self.get_raster_bands(
             dataset, grib_info)
 
-        for (points, values) in self.yield_data_for_stations(tmp_raster_band):
+        for (tmp_points, tmp_values) in self.yield_data_for_stations(tmp_raster_band):
             grib_info.variable_name = 'tmp_tgl_2'
-            self.store_bounding_values(points, values, prediction_run, grib_info, session)
-        for (points, values) in self.yield_data_for_stations(rh_raster_band):
+            self.store_bounding_values(tmp_points, tmp_values, prediction_run, grib_info, session)
+        for (rh_points, rh_values) in self.yield_data_for_stations(rh_raster_band):
             grib_info.variable_name = 'rh_tgl_2'
-            self.store_bounding_values(points, values, prediction_run, grib_info, session)
+            self.store_bounding_values(rh_points, rh_values, prediction_run, grib_info, session)
         if precip_raster_band:
-            for (points, values) in self.yield_data_for_stations(precip_raster_band):
+            for (apcp_points, apcp_values) in self.yield_data_for_stations(precip_raster_band):
                 grib_info.variable_name = 'apcp_sfc_0'
-                self.store_bounding_values(points, values, prediction_run, grib_info, session)
-        for (points, values) in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, 'wdir_tgl_10'):
+                self.store_bounding_values(apcp_points, apcp_values, prediction_run, grib_info, session)
+        for wdir_points, wdir_values in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, 'wdir_tgl_10'):
             grib_info.variable_name = 'wdir_tgl_10'
-            self.store_bounding_values(points, values, prediction_run, grib_info, session)
-        for (points, values) in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, 'wind_tgl_10'):
+            self.store_bounding_values(wdir_points, wdir_values, prediction_run, grib_info, session)
+        for (wind_points, wind_values) in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, 'wind_tgl_10'):
             grib_info.variable_name = 'wind_tgl_10'
-            self.store_bounding_values(points, values, prediction_run, grib_info, session)
+            self.store_bounding_values(wind_points, wind_values, prediction_run, grib_info, session)
 
     def process_grib_file(self, filename, grib_info: ModelRunInfo, session: Session):
         """ Process a grib file, extracting and storing relevant information. """

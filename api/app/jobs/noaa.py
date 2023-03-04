@@ -6,6 +6,7 @@ import datetime
 from typing import Generator, List
 import logging
 import tempfile
+import requests
 from sqlalchemy.orm import Session
 from app.db.crud.weather_models import (get_processed_file_record,
                                         get_prediction_model,
@@ -27,6 +28,8 @@ if __name__ == "__main__":
 
 logger = logging.getLogger(__name__)
 
+GFS_BASE_URL = "https://www.ncei.noaa.gov/data/global-forecast-system/access/grid-004-0.5-degree/forecast/"
+
 
 def get_gfs_model_run_hours():
     """ Yield GFS model run hours ("0000", "0600", "1200", "1800") """
@@ -35,21 +38,30 @@ def get_gfs_model_run_hours():
         yield hour_str
 
 
-def get_date_for_download(now: datetime.datetime) -> List[tuple[str, str]]:
-    """ Returns list of 2 tuples of formatted strings for year_month and year_month_date.
-    NOAA publishes GFS model data 2.5 - 3 days behind schedule, so need to build GFS download URLs
-    based on both timeframes, in case the run from 2.5 days ago (60 hours) isn't available yet.
+def get_date_for_download(now: datetime.datetime) -> tuple[str, str]:
+    """ Returns tuple of formatted strings for year_month and year_month_date.
+    NOAA publishes GFS model data several days behind schedule, so we need to 
+    determine the most recent date for which GFS data is available to download.
     """
-    # Fetch data from 2.5 days (60 hours) ago - see model_data.md for explanation
-    sixty_hours_prior = now - datetime.timedelta(hours=60)
-    year_mo_60hrs = f"{sixty_hours_prior.year}" + format(sixty_hours_prior.month, '02d')
-    year_mo_date_60hrs = f"{year_mo_60hrs}" + format(sixty_hours_prior.day, '02d')
+    year_mo = f"{now.year}" + format(now.month, '02d')
+    year_mo_date = year_mo + format(now.day, '02d')
+    days_backward = 0
+    while assert_gfs_folder_exists(year_mo, year_mo_date) is False:
+        logger.warning('GFS data folder for %s not found on NOAA server', year_mo_date)
+        days_backward += 1
+        previous_day = now - datetime.timedelta(days=days_backward)
+        year_mo = f"{previous_day.year}" + format(previous_day.month, '02d')
+        year_mo_date = year_mo + format(previous_day.day, '02d')
 
-    three_days_prior = now - datetime.timedelta(days=3)
-    year_mo_3days = f"{three_days_prior.year}" + format(three_days_prior.month, '02d')
-    year_mo_date_3days = f"{year_mo_3days}" + format(three_days_prior.day, '02d')
+    return (year_mo, year_mo_date)
 
-    return [(year_mo_60hrs, year_mo_date_60hrs), (year_mo_3days, year_mo_date_3days)]
+
+def assert_gfs_folder_exists(year_mo: str, year_mo_date: str) -> bool:
+    """ Returns boolean value indicating whether the GFS data folder exists on the NOAA HTTPS server
+    for the given year_month_date string """
+    url = GFS_BASE_URL + f'{year_mo}/{year_mo_date}'
+    response = requests.get(url, timeout=60)
+    return response.status_code == 200
 
 
 def get_gfs_model_run_download_urls(now: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
@@ -75,12 +87,13 @@ def get_gfs_model_run_download_urls(now: datetime.datetime, model_cycle: str) ->
     all_hours = before_noon + after_noon
     # sort list purely for human convenience when debugging. Functionally it doesn't matter
     all_hours.sort()
+
+    year_mo, year_mo_date = get_date_for_download(now)
+
     for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')
-        for year_mo, year_mo_date in get_date_for_download(now):
-            base_url = "https://www.ncei.noaa.gov/data/global-forecast-system/access/grid-004-0.5-degree/forecast/"
-            filename = f'{year_mo}/{year_mo_date}/gfs_4_{year_mo_date}_{model_cycle}_{hhh}.grb2'
-            yield base_url + filename
+        filename = f'{year_mo}/{year_mo_date}/gfs_4_{year_mo_date}_{model_cycle}_{hhh}.grb2'
+        yield GFS_BASE_URL + filename
 
 
 def parse_url_for_timestamps(url: str):
