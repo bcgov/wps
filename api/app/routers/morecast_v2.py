@@ -2,20 +2,20 @@
 import logging
 from aiohttp.client import ClientSession
 from typing import List
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Response, Depends, status
-import pytz
 from app.auth import (auth_with_forecaster_role_required,
-                      authentication_required,
-                      audit)
+                      audit,
+                      authentication_required)
 from app.db.crud.morecast_v2 import get_user_forecasts_for_date, save_all_forecasts
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.morecast_2.morecast_2 import yesterday_observation_list_mapper
-from app.schemas.morecast_v2 import MorecastForecastRequest, MorecastForecastResponse, YesterdayDaily, YesterdayObservationStations, YesterdayObservationStationsResponse
-from app.utils.time import get_utc_now
-from app.wildfire_one.schema_parsers import wfwx_station_list_mapper
-from app.wildfire_one.wfwx_api import get_auth_header, get_dailies, get_daily_actuals_for_stations, get_station_data, get_stations_by_codes, get_wfwx_stations_from_station_codes
+from app.schemas.morecast_v2 import (MorecastForecastRequest,
+                                     MorecastForecastResponse,
+                                     YesterdayStationDailies,
+                                     YesterdayStationDailiesResponse)
+from app.utils.time import get_hour_20_from_date, get_utc_now
+from app.wildfire_one.wfwx_api import get_auth_header, get_dailies_for_stations_and_date
 
 
 logger = logging.getLogger(__name__)
@@ -78,23 +78,21 @@ async def save_forecasts(forecasts: List[MorecastForecastRequest],
                                          update_timestamp=int(now.timestamp() * 1000)) for forecast in forecasts]
 
 
-@router.get('/persistent/{today}',
-            response_model=YesterdayObservationStationsResponse)
-async def get_yesterdays_model_values(today: date, request: YesterdayObservationStations):
+@router.get('/yesterday-dailies/{today}',
+            response_model=YesterdayStationDailiesResponse)
+async def get_yesterdays_model_values(today: date, request: YesterdayStationDailies):
     """ Returns the weather values for the last model prediction for the 
     requested stations within the requested date range.
     """
-    # logger.info('/weather_models/%s/predictions/most_recent/%s/%s', model.name, start_date, end_date)
+    logger.info('/yesterday-dailies/%s/', today)
 
-    vancouver_tz = pytz.timezone("America/Vancouver")
-    local_today = vancouver_tz.localize(datetime.combine(today, time.min))
-    prev_day = local_today - timedelta(days=1)
+    unique_station_codes = list(set(request.station_codes))
+
+    time_of_interest = get_hour_20_from_date(today) - timedelta(days=1)
 
     async with ClientSession() as session:
         header = await get_auth_header(session)
 
-        wfwx_stations = await get_stations_by_codes(request.station_codes)
+        yeserday_dailies = await get_dailies_for_stations_and_date(session, header, time_of_interest, unique_station_codes)
 
-        raw_dailies = await get_daily_actuals_for_stations(session, header, prev_day, prev_day, wfwx_stations)
-
-        return YesterdayObservationStationsResponse(observations=[])
+        return YesterdayStationDailiesResponse(observations=yeserday_dailies)

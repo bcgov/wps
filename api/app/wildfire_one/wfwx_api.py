@@ -2,7 +2,7 @@
 """
 import math
 from typing import List, Optional, Final, AsyncGenerator
-from datetime import datetime, time
+from datetime import datetime
 import logging
 import asyncio
 from aiohttp import ClientSession, TCPConnector
@@ -19,7 +19,7 @@ from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_map
                                              parse_station,
                                              parse_hourly_actual,
                                              station_list_mapper,
-                                             wfwx_station_list_mapper)
+                                             wfwx_station_list_mapper, yesterday_dailies_list_mapper)
 from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
                                              BuildQueryStations,
                                              BuildQueryAllHourliesByRange,
@@ -262,7 +262,7 @@ async def get_hourly_actuals_all_stations(
     return hourly_actuals
 
 
-async def get_daily_actuals_for_stations(
+async def get_daily_actuals_for_stations_between_dates(
         session: ClientSession,
         header: dict,
         start_datetime: datetime,
@@ -335,7 +335,7 @@ async def get_raw_dailies_in_range_generator(session: ClientSession,
             end_timestamp, wfwx_station_ids), 'dailies', True, 60)
 
 
-async def get_dailies(
+async def get_dailies_generator(
         session: ClientSession,
         header: dict,
         wfwx_stations: List[WFWXWeatherStation],
@@ -364,3 +364,18 @@ async def get_fire_centers(session: ClientSession, header: dict,) -> List[FireCe
     """ Get the fire centers from WFWX. """
     wfwx_fire_centers = await get_station_data(session, header, mapper=fire_center_mapper)
     return list(wfwx_fire_centers.values())
+
+
+async def get_dailies_for_stations_and_date(session: ClientSession,
+                                            header: dict,
+                                            time_of_interest: datetime,
+                                            unique_station_codes: List[int],
+                                            mapper=yesterday_dailies_list_mapper):
+    # get station information from the wfwx api
+    wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
+    # get the dailies for all the stations
+    raw_dailies = await get_dailies_generator(session, header, wfwx_stations, time_of_interest)
+
+    yesterday_dailies = await mapper(raw_dailies)
+
+    return yesterday_dailies

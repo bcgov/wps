@@ -3,6 +3,7 @@
 from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel
+from datetime import datetime
 
 
 class ModelChoice(str, Enum):
@@ -60,19 +61,22 @@ class MorecastForecastResponse(MorecastForecastRequest):
     update_timestamp: int
 
 
-class YesterdayObservationStations(BaseModel):
-    """ Yesterday station observation request """
+class YesterdayStationDailies(BaseModel):
+    """ Yesterday station dailies request """
     station_codes: List[int]
 
 
 class YesterdayDaily(BaseModel):
+    """ Yesterday station daily data """
+    station_code: int
+    utcTimestamp: datetime
     temperature: Optional[float] = None
-    status: Optional[float] = None
     relative_humidity: Optional[float] = None
     precipitation: Optional[float] = None
     wind_direction: Optional[float] = None
     wind_speed: Optional[float] = None
 
 
-class YesterdayObservationStationsResponse(BaseModel):
+class YesterdayStationDailiesResponse(BaseModel):
+    """ Yesterday station dailies response """
     observations: List[YesterdayDaily]
