@@ -68,7 +68,6 @@ class YesterdayStationDailies(BaseModel):
 
 class YesterdayDaily(BaseModel):
     """ Yesterday station daily data """
-    id: str
     station_code: int
     station_name: str
     utcTimestamp: datetime

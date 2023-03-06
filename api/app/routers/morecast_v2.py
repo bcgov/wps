@@ -80,9 +80,8 @@ async def save_forecasts(forecasts: List[MorecastForecastRequest],
 
 @router.post('/yesterday-dailies/{today}',
              response_model=YesterdayStationDailiesResponse)
-async def get_yesterdays_model_values(today: date, request: YesterdayStationDailies):
-    """ Returns the weather values for the last model prediction for the 
-    requested stations within the requested date range.
+async def get_yesterdays_actual_dailies(today: date, request: YesterdayStationDailies):
+    """ Returns the daily actuals for the day before the requested day.
     """
     logger.info('/yesterday-dailies/%s/', today)
 

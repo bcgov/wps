@@ -49,11 +49,14 @@ export const getYesterdayStationDailies =
   async dispatch => {
     try {
       dispatch(getModelStationPredictionsStart())
-      let yesterdayDailies: YesterdayDaily[] = []
       if (stationCodes.length) {
-        yesterdayDailies = await getYesterdayDailies(stationCodes, fromDate)
+        const yesterdayDailiesResponse = await getYesterdayDailies(stationCodes, fromDate)
+        const yesterdayDailies: YesterdayDaily[] = yesterdayDailiesResponse.map(daily => ({
+          ...daily,
+          id: window.crypto.randomUUID()
+        }))
+        dispatch(getYesterdayDailiesSuccess(yesterdayDailies))
       }
-      dispatch(getYesterdayDailiesSuccess(yesterdayDailies))
     } catch (err) {
       dispatch(getYesterdayDailiesFailed((err as Error).toString()))
       logError(err)

@@ -10,12 +10,11 @@ export enum ModelChoice {
   YESTERDAY = 'YESTERDAY'
 }
 
-export interface YesterdayDailyResponse {
-  dailies: YesterdayDaily[]
+export interface YesterdayDailiesResponse {
+  dailies: YesterdayDailyResponse[]
 }
 
-export interface YesterdayDaily {
-  id: string
+export interface YesterdayDailyResponse {
   station_code: number
   station_name: string
   utcTimestamp: string
@@ -24,6 +23,10 @@ export interface YesterdayDaily {
   precipitation: number | null
   wind_direction: number | null
   wind_speed: number | null
+}
+
+export interface YesterdayDaily extends YesterdayDailyResponse {
+  id: string
 }
 
 export interface StationPrediction {
@@ -80,12 +83,15 @@ export async function getModelPredictions(
  * @param stationCodes A list of station codes of interest
  * @param startDate The first date for which we ask for the day before
  */
-export async function getYesterdayDailies(stationCodes: number[], startDate: string): Promise<YesterdayDaily[]> {
+export async function getYesterdayDailies(
+  stationCodes: number[],
+  startDate: string
+): Promise<YesterdayDailyResponse[]> {
   if (stationCodes.length === 0) {
     return []
   }
   const url = `/morecast-v2/yesterday-dailies/${startDate}`
-  const { data } = await axios.post<YesterdayDailyResponse>(url, {
+  const { data } = await axios.post<YesterdayDailiesResponse>(url, {
     station_codes: stationCodes
   })
 
