@@ -29,6 +29,22 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
   const classes = useStyles()
   const { rows } = props
 
+  const gridColumnDefGenerator = (field: string, headerName: string, precision: number) => {
+    return {
+      field: field,
+      disableColumnMenu: true,
+      disableReorder: true,
+      editable: true,
+      headerName: headerName,
+      sortable: false,
+      type: 'number',
+      width: 120,
+      valueFormatter: (params: GridValueFormatterParams) => predictionItemValueFormatter(params, precision),
+      valueGetter: (params: GridValueGetterParams) => predictionItemValueGetter(params),
+      valueSetter: (params: GridValueSetterParams) => predictionItemValueSetter(params, field)
+    }
+  }
+
   const predictionItemValueFormatter = (params: GridValueFormatterParams, precision: number) => {
     const value = params?.value
     return isNumber(value) && !isNaN(value) ? value.toFixed(precision) : NOT_AVAILABLE
@@ -68,71 +84,11 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
         return params.value.toLocaleString(DateTime.DATE_MED)
       }
     },
-    {
-      field: 'temp',
-      disableColumnMenu: true,
-      disableReorder: true,
-      editable: true,
-      headerName: 'Temp',
-      sortable: false,
-      type: 'number',
-      width: 120,
-      valueFormatter: params => predictionItemValueFormatter(params, 1),
-      valueGetter: params => predictionItemValueGetter(params),
-      valueSetter: params => predictionItemValueSetter(params, 'temp')
-    },
-    {
-      field: 'rh',
-      disableColumnMenu: true,
-      disableReorder: true,
-      editable: true,
-      headerName: 'RH',
-      sortable: false,
-      type: 'number',
-      width: 120,
-      valueFormatter: params => predictionItemValueFormatter(params, 0),
-      valueGetter: params => predictionItemValueGetter(params),
-      valueSetter: params => predictionItemValueSetter(params, 'rh')
-    },
-    {
-      field: 'windDirection',
-      disableColumnMenu: true,
-      disableReorder: true,
-      editable: true,
-      headerName: 'Wind Dir',
-      sortable: false,
-      type: 'number',
-      width: 120,
-      valueFormatter: params => predictionItemValueFormatter(params, 0),
-      valueGetter: params => predictionItemValueGetter(params),
-      valueSetter: params => predictionItemValueSetter(params, 'windDirection')
-    },
-    {
-      field: 'windSpeed',
-      disableColumnMenu: true,
-      disableReorder: true,
-      editable: true,
-      headerName: 'Wind Speed',
-      sortable: false,
-      type: 'number',
-      width: 120,
-      valueFormatter: params => predictionItemValueFormatter(params, 1),
-      valueGetter: params => predictionItemValueGetter(params),
-      valueSetter: params => predictionItemValueSetter(params, 'windSpeed')
-    },
-    {
-      field: 'precip',
-      disableColumnMenu: true,
-      disableReorder: true,
-      editable: true,
-      headerName: 'Precip',
-      sortable: false,
-      type: 'number',
-      width: 120,
-      valueFormatter: params => predictionItemValueFormatter(params, 1),
-      valueGetter: params => predictionItemValueGetter(params),
-      valueSetter: params => predictionItemValueSetter(params, 'precip')
-    }
+    gridColumnDefGenerator('temp', 'Temp', 1),
+    gridColumnDefGenerator('rh', 'RH', 0),
+    gridColumnDefGenerator('windDirection', 'Wind Dir', 0),
+    gridColumnDefGenerator('windSpeed', 'Wind Speed', 1),
+    gridColumnDefGenerator('precip', 'Precip', 1)
   ]
 
   return (
