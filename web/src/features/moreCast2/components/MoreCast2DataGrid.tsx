@@ -137,7 +137,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
 
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>
-      <DataGrid columns={columns} experimentalFeatures={{ newEditingApi: true }} rows={rows}></DataGrid>
+      <DataGrid columns={columns} rows={rows}></DataGrid>
     </div>
   )
 }
