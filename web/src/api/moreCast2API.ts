@@ -7,6 +7,7 @@ export enum ModelChoice {
   HRDPS = 'HRDPS',
   NAM = 'NAM',
   RDPS = 'RDPS',
+  MANUAL = 'MANUAL',
   YESTERDAY = 'YESTERDAY'
 }
 
@@ -30,12 +31,12 @@ export interface YesterdayDaily extends YesterdayDailyResponse {
 }
 
 export interface StationPrediction {
+  abbreviation: ModelType
   bias_adjusted_relative_humidity: number | null
   bias_adjusted_temperature: number | null
   datetime: string
   precip_24hours: number | null
   id: string
-  model: ModelType
   relative_humidity: number | null
   station: Station
   temperature: number | null
@@ -43,7 +44,7 @@ export interface StationPrediction {
   wind_speed: number | null
 }
 
-export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'YESTERDAY' | 'NAM' | 'RDPS'
+export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'YESTERDAY' | 'NAM' | 'RDPS' | 'MANUAL'
 
 export const ModelChoices: ModelType[] = [
   ModelChoice.GDPS,
