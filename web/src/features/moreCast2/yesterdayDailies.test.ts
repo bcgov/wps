@@ -63,16 +63,9 @@ describe('yesterdayDailies', () => {
       ])
 
       expect(result.length).toEqual(2)
-      const resultStart = DateTime.fromISO(result[0].utcTimestamp)
-      const resultEnd = DateTime.fromISO(result[1].utcTimestamp)
 
-      expect(resultStart.year).toEqual(2023)
-      expect(resultStart.month).toEqual(2)
-      expect(resultStart.day).toEqual(16)
-
-      expect(resultEnd.year).toEqual(2023)
-      expect(resultEnd.month).toEqual(2)
-      expect(resultEnd.day).toEqual(17)
+      expect(DateTime.fromISO(result[0].utcTimestamp)).toEqual(DateTime.fromISO(START_DATE))
+      expect(DateTime.fromISO(result[1].utcTimestamp)).toEqual(DateTime.fromISO(END_DATE))
     })
   })
 
