@@ -80,7 +80,11 @@ const MoreCast2Page = () => {
 
   const fetchStationPredictions = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
-    if (modelType == 'YESTERDAY') {
+    if (toDate <= fromDate) {
+      setForecastRows([])
+      return
+    }
+    if (modelType == ModelChoice.YESTERDAY) {
       dispatch(getYesterdayStationDailies(stationCodes, fromDate.toISODate()))
     } else {
       dispatch(getModelStationPredictions(stationCodes, modelType, fromDate.toISODate(), toDate.toISODate()))
