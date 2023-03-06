@@ -2,6 +2,7 @@
 
 import math
 import logging
+from uuid import uuid4
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
@@ -51,7 +52,9 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
 async def yesterday_dailies_list_mapper(raw_dailies: Generator[dict, None, None]):
     """ Maps raw dailies to yesterday dailies list"""
     yesterday_dailies = [YesterdayDaily(
+        id=str(uuid4()),
         station_code=raw_daily.get('stationData').get('stationCode'),
+        station_name=raw_daily.get('stationData').get('displayLabel'),
         utcTimestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),
         temperature=raw_daily.get('temperature'),
         relative_humidity=raw_daily.get('relativeHumidity'),

@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { ModelChoice, StationPrediction } from 'api/moreCast2API'
-import { createDateInterval, fillInTheBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
+import { createDateInterval, fillInTheModelBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
 
 const TEST_NUMBER = 7
 const TEST_MODEL = ModelChoice.HRDPS
@@ -88,40 +88,40 @@ describe('fillInTheBlanks', () => {
   const stationPredictions = createStationPredictionArray(TEST_NUMBER)
   it('should not create rows when date interval array is empty', () => {
     const dateInterval: string[] = []
-    const results = fillInTheBlanks(fireCenterStations, stationPredictions, dateInterval, TEST_MODEL)
+    const results = fillInTheModelBlanks(fireCenterStations, stationPredictions, dateInterval, TEST_MODEL)
     expect(results).toBeDefined()
     expect(results.length).toEqual(stationPredictions.length)
   })
   it('should not replace existing rows', () => {
     const dateInterval = [TEST_DATE]
-    const results = fillInTheBlanks(fireCenterStations, stationPredictions, dateInterval, TEST_MODEL)
+    const results = fillInTheModelBlanks(fireCenterStations, stationPredictions, dateInterval, TEST_MODEL)
     expect(results.length).toEqual(stationPredictions.length)
     expect(results[0]).toEqual(stationPredictions[0])
   })
   it('should add row for station missing data', () => {
     const dateInterval = [TEST_DATE]
     const stations = [...fireCenterStations, { code: 37, name: 'test' }]
-    const results = fillInTheBlanks(stations, stationPredictions, dateInterval, TEST_MODEL)
+    const results = fillInTheModelBlanks(stations, stationPredictions, dateInterval, TEST_MODEL)
     expect(results.length).toEqual(stationPredictions.length + 1)
     expect(results.filter(x => x.station.code === 37).length).toEqual(1)
   })
   it('should add row for each station missing data for one day', () => {
     const dateInterval = [TEST_DATE]
     const stations = [...fireCenterStations, { code: 37, name: 'test' }]
-    const results = fillInTheBlanks(stations, stationPredictions, dateInterval, TEST_MODEL)
+    const results = fillInTheModelBlanks(stations, stationPredictions, dateInterval, TEST_MODEL)
     expect(results.length).toEqual(stationPredictions.length + 1)
     expect(results.filter(x => x.station.code === 37).length).toEqual(1)
   })
   it('should add rows for each station missing data for each date interval', () => {
     const dateInterval = [TEST_DATE, TEST_DATE2]
-    const results = fillInTheBlanks(fireCenterStations, [], dateInterval, TEST_MODEL)
+    const results = fillInTheModelBlanks(fireCenterStations, [], dateInterval, TEST_MODEL)
     expect(results.length).toEqual(dateInterval.length)
     expect(results.filter(x => x.datetime === TEST_DATE).length).toEqual(1)
     expect(results.filter(x => x.datetime === TEST_DATE2).length).toEqual(1)
   })
   it('should set model type properly in new row', () => {
     const dateInterval = [TEST_DATE]
-    const results = fillInTheBlanks(fireCenterStations, [], dateInterval, TEST_MODEL)
+    const results = fillInTheModelBlanks(fireCenterStations, [], dateInterval, TEST_MODEL)
     expect(results[0].model).toEqual(TEST_MODEL)
   })
 })
