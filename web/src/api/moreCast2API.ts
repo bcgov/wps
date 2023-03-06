@@ -11,12 +11,12 @@ export enum ModelChoice {
 }
 
 export interface StationPrediction {
+  abbreviation: ModelType
   bias_adjusted_relative_humidity: number | null
   bias_adjusted_temperature: number | null
   datetime: string
   precip_24hours: number | null
   id: string
-  model: ModelType
   relative_humidity: number | null
   station: Station
   temperature: number | null
