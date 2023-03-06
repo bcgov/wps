@@ -12,12 +12,12 @@ const TEST_NAME = 'Victoria'
 
 const createStationPredictionArray = (predictionValue: number | null) => {
   const stationPrediction = {
+    abbreviation: TEST_MODEL,
     bias_adjusted_relative_humidity: predictionValue,
     bias_adjusted_temperature: predictionValue,
     datetime: TEST_DATE,
     precip_24hours: predictionValue,
     id: TEST_ID,
-    model: TEST_MODEL,
     relative_humidity: predictionValue,
     station: {
       code: TEST_CODE,
@@ -122,7 +122,7 @@ describe('fillInTheBlanks', () => {
   it('should set model type properly in new row', () => {
     const dateInterval = [TEST_DATE]
     const results = fillInTheBlanks(fireCenterStations, [], dateInterval, TEST_MODEL)
-    expect(results[0].model).toEqual(TEST_MODEL)
+    expect(results[0].abbreviation).toEqual(TEST_MODEL)
   })
 })
 
