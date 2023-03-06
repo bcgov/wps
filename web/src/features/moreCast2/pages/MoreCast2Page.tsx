@@ -17,13 +17,11 @@ import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDrop
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice'
+import { createDateInterval, fillInTheModelBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
 import {
-  createDateInterval,
-  fillInTheModelBlanks,
   fillInTheYesterdayDailyBlanks,
-  parseModelsForStationsHelper,
   parseYesterdayDailiesForStationsHelper
-} from 'features/moreCast2/util'
+} from 'features/moreCast2/yesterdayDailies'
 import { getYesterdayStationDailies } from 'features/moreCast2/slices/yesterdayDailiesSlice'
 
 const useStyles = makeStyles(theme => ({
