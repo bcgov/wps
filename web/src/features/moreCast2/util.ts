@@ -43,7 +43,7 @@ export const parseModelsForStationsHelper = (predictions: StationPrediction[]): 
   return rows.sort((a, b) => a.stationName.localeCompare(b.stationName))
 }
 
-export const fillInTheBlanks = (
+export const fillInTheModelBlanks = (
   stations: FireCenterStation[],
   stationPredictions: StationPrediction[],
   dateInterval: string[],

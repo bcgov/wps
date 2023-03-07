@@ -17,7 +17,7 @@ from app.schemas.fwi_calc import (FWIIndices,
                                   MultiFWIOutputResponse,
                                   MultiFWIRequest, YesterdayIndices)
 from app.wildfire_one.wfwx_api import (get_auth_header,
-                                       get_dailies,
+                                       get_dailies_generator,
                                        get_wfwx_stations_from_station_codes)
 
 logger = logging.getLogger(__name__)
@@ -56,11 +56,11 @@ async def calculate_actual(session: ClientSession, request, time_of_interest):
 
     wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, [request.input.stationCode])
     dailies_today: List[Daily] = await dailies_list_mapper(
-        await get_dailies(session, header, wfwx_stations, time_of_interest))
+        await get_dailies_generator(session, header, wfwx_stations, time_of_interest))
 
     prev_day = time_of_interest - timedelta(days=1)
     dailies_yesterday: List[Daily] = await dailies_list_mapper(
-        await get_dailies(session, header, wfwx_stations, prev_day))
+        await get_dailies_generator(session, header, wfwx_stations, prev_day))
 
     if len(dailies_today) == 0:
         return None, None
@@ -147,11 +147,11 @@ async def multi_calculate_actual(
 
     wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, [station_code])
     dailies_today: List[Daily] = await dailies_list_mapper(
-        await get_dailies(session, header, wfwx_stations, time_of_interest))
+        await get_dailies_generator(session, header, wfwx_stations, time_of_interest))
 
     prev_day = time_of_interest - timedelta(days=1)
     dailies_yesterday: List[Daily] = await dailies_list_mapper(
-        await get_dailies(session, header, wfwx_stations, prev_day))
+        await get_dailies_generator(session, header, wfwx_stations, prev_day))
 
     if len(dailies_today) == 0 or len(dailies_yesterday) == 0:
         return FWIIndices(
