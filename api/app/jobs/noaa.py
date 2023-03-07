@@ -3,7 +3,7 @@
 import os
 import sys
 import datetime
-from typing import Generator, List
+from typing import Generator
 import logging
 import tempfile
 import requests
