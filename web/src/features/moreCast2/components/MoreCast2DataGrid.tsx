@@ -11,6 +11,9 @@ import { isNumber } from 'lodash'
 import { DateTime } from 'luxon'
 import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { LinearProgress } from '@mui/material'
+import { useSelector } from 'react-redux'
+import { selectMorecast2TableLoading } from 'app/rootReducer'
 
 interface MoreCast2DataGridProps {
   rows: MoreCast2ForecastRow[]
@@ -28,6 +31,7 @@ const NOT_AVAILABLE = 'N/A'
 const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
   const classes = useStyles()
   const { rows } = props
+  const loading = useSelector(selectMorecast2TableLoading)
 
   const gridColumnDefGenerator = (field: string, headerName: string, precision: number) => {
     return {
@@ -93,7 +97,14 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
 
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>
-      <DataGrid columns={columns} rows={rows}></DataGrid>
+      <DataGrid
+        components={{
+          LoadingOverlay: LinearProgress
+        }}
+        loading={loading}
+        columns={columns}
+        rows={rows}
+      ></DataGrid>
     </div>
   )
 }

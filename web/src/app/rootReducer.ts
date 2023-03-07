@@ -25,6 +25,7 @@ import runDatesSlice from 'features/fba/slices/runDatesSlice'
 import hfiFuelTypesSlice from 'features/fba/slices/hfiFuelTypesSlice'
 import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
 import modelSlice from 'features/moreCast2/slices/modelSlice'
+import yesterdayDailiesSlice from 'features/moreCast2/slices/yesterdayDailiesSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -52,7 +53,8 @@ const rootReducer = combineReducers({
   valueAtCoordinate: valueAtCoordinateSlice,
   hfiFuelTypes: hfiFuelTypesSlice,
   fireZoneElevationInfo: fireZoneElevationInfoSlice,
-  stationPredictions: modelSlice
+  stationPredictions: modelSlice,
+  yesterdayDailies: yesterdayDailiesSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -87,6 +89,9 @@ export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordi
 export const selectHFIFuelTypes = (state: RootState) => state.hfiFuelTypes
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
 export const selectModelStationPredictions = (state: RootState) => state.stationPredictions
+export const selectYesterdayDailies = (state: RootState) => state.yesterdayDailies
+export const selectMorecast2TableLoading = (state: RootState) =>
+  state.yesterdayDailies.loading || state.stationPredictions.loading
 
 export const selectWxDataLoading = (state: RootState): boolean =>
   state.observations.loading ||
