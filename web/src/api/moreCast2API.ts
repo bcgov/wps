@@ -51,6 +51,7 @@ export const ModelChoices: ModelType[] = [
   ModelChoice.GFS,
   ModelChoice.HRDPS,
   ModelChoice.YESTERDAY,
+  ModelChoice.MANUAL,
   ModelChoice.NAM,
   ModelChoice.RDPS
 ]
