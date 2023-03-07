@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "engines": {
     "node": ">=16.13.1",
-    "npm": "~9.5.0"
+    "npm": "~9.6.0"
   },
   "license": "Apache-2.0",
   "licenses": [
@@ -19,7 +19,7 @@
     "@mui/lab": "^5.0.0-alpha.75",
     "@mui/material": "^5.5.3",
     "@mui/styles": "^5.5.3",
-    "@mui/x-data-grid": "^5.17.23",
+    "@mui/x-data-grid": "^6.0.0",
     "@mui/x-date-pickers": "^5.0.13",
     "@reduxjs/toolkit": "^1.8.0",
     "@types/esri-leaflet": "^2.1.6",
@@ -101,7 +101,7 @@
     "eslint": "^8.12.0",
     "eslint-plugin-react-hooks": "^4.4.0",
     "react-scripts": "^5.0.1",
-    "start-server-and-test": "^1.11.4",
+    "start-server-and-test": "^2.0.0",
     "ts-sinon": "^2.0.2"
   },
   "jest": {
