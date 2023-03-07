@@ -5,5 +5,8 @@ export const ROLES = {
     STATION_ADMIN: 'hfi_station_admin',
     SET_FUEL_TYPE: 'hfi_set_fuel_type',
     SET_READY_STATE: 'hfi_set_ready_state'
+  },
+  MORECAST_2: {
+    WRITE_FORECAST: 'morecast2_write_forecast'
   }
 }
