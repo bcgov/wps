@@ -11,9 +11,10 @@ import { isNumber } from 'lodash'
 import { DateTime } from 'luxon'
 import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
-import { LinearProgress } from '@mui/material'
+import { LinearProgress, Menu, MenuItem } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { selectMorecast2TableLoading } from 'app/rootReducer'
+import ApplyFunctionMenuItem from 'features/moreCast2/components/ApplyFunctionMenuItem'
 
 interface MoreCast2DataGridProps {
   rows: MoreCast2ForecastRow[]
@@ -31,9 +32,31 @@ const NOT_AVAILABLE = 'N/A'
 const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
   const classes = useStyles()
   const { rows } = props
+  const [currentRows, setRows] = React.useState(rows)
+  const [selectedRow, setSelectedRow] = React.useState<number>()
+
+  if (rows !== currentRows) {
+    setRows(rows)
+  }
+
+  const [contextMenu, setContextMenu] = React.useState<{
+    mouseX: number
+    mouseY: number
+  } | null>(null)
+
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault()
+    setSelectedRow(Number(event.currentTarget.getAttribute('data-id')))
+    setContextMenu(contextMenu === null ? { mouseX: event.clientX - 2, mouseY: event.clientY - 4 } : null)
+  }
+
+  const handleClose = () => {
+    setContextMenu(null)
+  }
+
   const loading = useSelector(selectMorecast2TableLoading)
 
-  const gridColumnDefGenerator = (field: string, headerName: string, precision: number) => {
+  const gridColumnDefGenerator = (field: string, headerName: string, precision: number): GridColDef => {
     return {
       field: field,
       disableColumnMenu: true,
@@ -101,10 +124,38 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
         components={{
           LoadingOverlay: LinearProgress
         }}
+        slotProps={{
+          row: {
+            onContextMenu: handleContextMenu,
+            style: { cursor: 'context-menu' }
+          }
+        }}
         loading={loading}
         columns={columns}
-        rows={rows}
+        rows={currentRows}
       ></DataGrid>
+      <Menu
+        open={contextMenu !== null}
+        onClose={handleClose}
+        anchorReference="anchorPosition"
+        anchorPosition={contextMenu !== null ? { top: contextMenu.mouseY, left: contextMenu.mouseX } : undefined}
+        slotProps={{
+          root: {
+            onContextMenu: e => {
+              e.preventDefault()
+              handleClose()
+            }
+          }
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            console.log('Menu item 1')
+          }}
+        >
+          <ApplyFunctionMenuItem />
+        </MenuItem>
+      </Menu>
     </div>
   )
 }
