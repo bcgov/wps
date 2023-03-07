@@ -6,7 +6,12 @@ import { isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
 import { ModelChoice, ModelChoices, ModelType } from 'api/moreCast2API'
-import { selectFireCenters, selectModelStationPredictions } from 'app/rootReducer'
+import {
+  selectAuthentication,
+  selectFireCenters,
+  selectModelStationPredictions,
+  selectYesterdayDailies
+} from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { GeneralHeader } from 'components'
@@ -17,7 +22,14 @@ import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDrop
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice'
-import { createDateInterval, fillInTheBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
+import { createDateInterval, fillInTheModelBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
+import {
+  fillInTheYesterdayDailyBlanks,
+  parseYesterdayDailiesForStationsHelper
+} from 'features/moreCast2/yesterdayDailies'
+import { getYesterdayStationDailies } from 'features/moreCast2/slices/yesterdayDailiesSlice'
+import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
+import { ROLES } from 'features/auth/roles'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -47,6 +59,9 @@ const useStyles = makeStyles(theme => ({
     width: '375px',
     borderRight: '1px solid black',
     overflowY: 'auto'
+  },
+  actionButtonContainer: {
+    marginTop: 15
   }
 }))
 
@@ -59,6 +74,9 @@ const MoreCast2Page = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
   const { stationPredictions } = useSelector(selectModelStationPredictions)
+  const { yesterdayDailies } = useSelector(selectYesterdayDailies)
+  const { roles, isAuthenticated } = useSelector(selectAuthentication)
+
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
   const [selectedStations, setSelectedStations] = useState<FireCenterStation[]>([])
   const [modelType, setModelType] = useState<ModelType>(
@@ -74,7 +92,15 @@ const MoreCast2Page = () => {
 
   const fetchStationPredictions = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
-    dispatch(getModelStationPredictions(stationCodes, modelType, fromDate.toISODate(), toDate.toISODate()))
+    if (toDate <= fromDate) {
+      setForecastRows([])
+      return
+    }
+    if (modelType == ModelChoice.YESTERDAY) {
+      dispatch(getYesterdayStationDailies(stationCodes, fromDate.toISODate()))
+    } else {
+      dispatch(getModelStationPredictions(stationCodes, modelType, fromDate.toISODate(), toDate.toISODate()))
+    }
   }
 
   useEffect(() => {
@@ -134,10 +160,16 @@ const MoreCast2Page = () => {
   }, [stationPredictionsAsMoreCast2ForecastRows, selectedStations])
 
   useEffect(() => {
-    const predictions = fillInTheBlanks(fireCenter?.stations || [], stationPredictions, dateInterval, modelType)
+    const predictions = fillInTheModelBlanks(fireCenter?.stations || [], stationPredictions, dateInterval, modelType)
     const newRows = parseModelsForStationsHelper(predictions)
     setStationPredictionsAsMoreCast2ForecastRows(newRows)
   }, [stationPredictions]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const completeDailies = fillInTheYesterdayDailyBlanks(fireCenter?.stations || [], yesterdayDailies, dateInterval)
+    const newRows = parseYesterdayDailiesForStationsHelper(completeDailies)
+    setStationPredictionsAsMoreCast2ForecastRows(newRows)
+  }, [yesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={classes.root} data-testid="more-cast-2-page">
@@ -153,7 +185,7 @@ const MoreCast2Page = () => {
           />
         </div>
         <div className={classes.observations}>
-          <Typography variant="h5">Observations</Typography>
+          <Typography variant="h5">Forecasts</Typography>
           <Grid container spacing={1}>
             <Grid item xs={3}>
               <FormControl className={classes.formControl}>
@@ -174,8 +206,13 @@ const MoreCast2Page = () => {
                 <WPSDatePicker date={toDate} label="To" updateDate={setToDate} />
               </FormControl>
             </Grid>
+            <Grid item xs={2}>
+              <FormControl className={classes.actionButtonContainer}>
+                <SaveForecastButton enabled={roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) && isAuthenticated} />
+              </FormControl>
+            </Grid>
           </Grid>
-          <MoreCast2DataGrid rows={forecastRows} setForecastRows={setForecastRows} />
+          <MoreCast2DataGrid rows={forecastRows} />
         </div>
       </div>
     </div>

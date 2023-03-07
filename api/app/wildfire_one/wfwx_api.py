@@ -19,7 +19,7 @@ from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_map
                                              parse_station,
                                              parse_hourly_actual,
                                              station_list_mapper,
-                                             wfwx_station_list_mapper)
+                                             wfwx_station_list_mapper, yesterday_dailies_list_mapper)
 from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
                                              BuildQueryStations,
                                              BuildQueryAllHourliesByRange,
@@ -262,6 +262,36 @@ async def get_hourly_actuals_all_stations(
     return hourly_actuals
 
 
+async def get_daily_actuals_for_stations_between_dates(
+        session: ClientSession,
+        header: dict,
+        start_datetime: datetime,
+        end_datetime: datetime,
+        stations: List[WeatherStation]):
+    """ Get the daily actuals for each station.
+    """
+
+    wfwx_station_ids = [station.wfwx_station_uuid for station in stations]
+
+    start_timestamp = math.floor(start_datetime.timestamp() * 1000)
+    end_timestamp = math.floor(end_datetime.timestamp() * 1000)
+
+    cache_expiry_seconds: Final = int(config.get('REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY', 300))
+    use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
+
+    # Iterate through "raw" hourlies data.
+    dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailiesByStationCode(
+        start_timestamp, end_timestamp, wfwx_station_ids), 'dailies',
+        use_cache=use_cache,
+        cache_expiry_seconds=cache_expiry_seconds)
+
+    dailies = []
+    async for daily in dailies_iterator:
+        dailies.append(daily)
+
+    return dailies
+
+
 async def get_wfwx_stations_from_station_codes(
         session: ClientSession,
         header,
@@ -305,7 +335,7 @@ async def get_raw_dailies_in_range_generator(session: ClientSession,
             end_timestamp, wfwx_station_ids), 'dailies', True, 60)
 
 
-async def get_dailies(
+async def get_dailies_generator(
         session: ClientSession,
         header: dict,
         wfwx_stations: List[WFWXWeatherStation],
@@ -334,3 +364,18 @@ async def get_fire_centers(session: ClientSession, header: dict,) -> List[FireCe
     """ Get the fire centers from WFWX. """
     wfwx_fire_centers = await get_station_data(session, header, mapper=fire_center_mapper)
     return list(wfwx_fire_centers.values())
+
+
+async def get_dailies_for_stations_and_date(session: ClientSession,
+                                            header: dict,
+                                            time_of_interest: datetime,
+                                            unique_station_codes: List[int],
+                                            mapper=yesterday_dailies_list_mapper):
+    # get station information from the wfwx api
+    wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
+    # get the dailies for all the stations
+    raw_dailies = await get_dailies_generator(session, header, wfwx_stations, time_of_interest)
+
+    yesterday_dailies = await mapper(raw_dailies)
+
+    return yesterday_dailies

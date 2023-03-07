@@ -20,13 +20,13 @@ describe('WeatherModelDropdown', () => {
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
     autocomplete.focus()
-    userEvent.type(autocomplete, ModelChoice.RDPS)
+    userEvent.type(autocomplete, ModelChoice.YESTERDAY)
     userEvent.type(autocomplete, '{arrowdown}')
     userEvent.type(autocomplete, '{enter}')
 
-    await waitFor(() => expect(input.value).toBe(ModelChoice.RDPS))
+    await waitFor(() => expect(input.value).toBe(ModelChoice.YESTERDAY))
     await waitFor(() => expect(handleSelectedModelTypeMock).toBeCalledTimes(1))
 
-    await waitFor(() => expect(handleSelectedModelTypeMock).toBeCalledWith(ModelChoice.RDPS))
+    await waitFor(() => expect(handleSelectedModelTypeMock).toBeCalledWith(ModelChoice.YESTERDAY))
   })
 })
