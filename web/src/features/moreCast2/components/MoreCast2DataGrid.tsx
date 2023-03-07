@@ -10,7 +10,7 @@ import {
 import { isNumber } from 'lodash'
 import { DateTime } from 'luxon'
 import { ModelChoice } from 'api/moreCast2API'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow, PredictionItem } from 'features/moreCast2/interfaces'
 import { LinearProgress, Menu, MenuItem } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { selectMorecast2TableLoading } from 'app/rootReducer'
@@ -46,7 +46,15 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
 
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault()
-    setSelectedRow(Number(event.currentTarget.getAttribute('data-id')))
+    const column = event.currentTarget.attributes.getNamedItem('data-field')?.value
+    if (column) {
+      const rowsToAdjust = rows.map(r => {
+        ;(r[column as keyof MoreCast2ForecastRow] as PredictionItem).value *= 2
+        return r
+      })
+      console.log(rowsToAdjust)
+    }
+
     setContextMenu(contextMenu === null ? { mouseX: event.clientX - 2, mouseY: event.clientY - 4 } : null)
   }
 
@@ -125,16 +133,19 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
           LoadingOverlay: LinearProgress
         }}
         slotProps={{
-          row: {
-            onContextMenu: handleContextMenu,
-            style: { cursor: 'context-menu' }
+          // row: {
+          //   onContextMenu: handleContextMenu,
+          //   style: { cursor: 'context-menu' }
+          // },
+          cell: {
+            onMouseDown: handleContextMenu
           }
         }}
         loading={loading}
         columns={columns}
         rows={currentRows}
       ></DataGrid>
-      <Menu
+      {/* <Menu
         open={contextMenu !== null}
         onClose={handleClose}
         anchorReference="anchorPosition"
@@ -155,7 +166,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
         >
           <ApplyFunctionMenuItem />
         </MenuItem>
-      </Menu>
+      </Menu> */}
     </div>
   )
 }
