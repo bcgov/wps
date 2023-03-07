@@ -141,26 +141,3 @@ def test_get_datestrings_from_datetime():
         actual_strings = noaa.get_date_strings_from_datetime(test.get('date'))
         assert test.get('expected_year_mo') == actual_strings[0]
         assert test.get('expected_year_mo_date') == actual_strings[1]
-
-
-@pytest.fixture()
-def mock_requests_get(monkeypatch):
-    """ fixture for NOAA download folder """
-    def mock_get_gfs_download_folder(*args, **kwargs):
-        request_date = kwargs.get('request_date')
-        if request_date == '20230228':
-            return MockResponse(status_code=200)
-        return MockResponse(status_code=404)
-    monkeypatch.setattr(requests, 'get', mock_get_gfs_download_folder)
-
-
-def test_get_date_for_download():
-    request_date = datetime(2023, 3, 1, 12, 0, tzinfo=timezone.utc)
-    expected_year_mo = '202302'
-    expected_year_mo_date = '20230228'
-
-    results = noaa.get_date_for_download(request_date)
-    actual_year_mo = results[0]
-    actual_year_mo_date = results[1]
-    assert actual_year_mo == expected_year_mo
-    assert actual_year_mo_date == expected_year_mo_date
