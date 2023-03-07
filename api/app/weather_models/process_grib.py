@@ -210,9 +210,9 @@ class GribFileProcessor():
                 zipped_uv_values = list(zip(u_values, v_values))
 
                 if variable == 'wdir_tgl_10':
-                    return self.get_wind_dir_values(u_points, zipped_uv_values)
+                    yield self.get_wind_dir_values(u_points, zipped_uv_values)
                 elif variable == 'wind_tgl_10':
-                    return self.get_wind_speed_values(u_points, zipped_uv_values)
+                    yield self.get_wind_speed_values(u_points, zipped_uv_values)
             else:
                 logger.warning('coordinate not in u/v wind rasters - %s', station)
 

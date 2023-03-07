@@ -79,17 +79,22 @@ def mock_download(monkeypatch):
 
 
 def test_get_gfs_model_run_download_urls_for_0000_utc():
-    # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total) * 2 model run dates
-    # (for 2.5 days ago and 3 days ago)
-    expected_num_of_urls = 2 * 11 * 2
-    assert len(list(noaa.get_gfs_model_run_download_urls(time_utils.get_utc_now(), '0000'))) == expected_num_of_urls
+    # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total)
+    expected_num_of_urls = 2 * 11
+    actual_urls = list(noaa.get_gfs_model_run_download_urls(datetime(2023, 3, 2, 20), '0000'))
+    assert len(actual_urls) == expected_num_of_urls
+    assert actual_urls[0] == noaa.GFS_BASE_URL + '202303/20230302/gfs_4_20230302_0000_018.grb2'
+    assert actual_urls[-1] == noaa.GFS_BASE_URL + '202303/20230302/gfs_4_20230302_0000_261.grb2'
 
 
 def test_get_gfs_model_run_download_urls_for_0600_utc():
     # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total incl. today)
-    # * 2 model run dates (for 2.5 days ago and 3 days ago)
-    expected_num_of_urls = 2 * 11 * 2
-    assert len(list(noaa.get_gfs_model_run_download_urls(time_utils.get_utc_now(), '0600'))) == expected_num_of_urls
+    expected_num_of_urls = 2 * 11
+    actual_urls = list(noaa.get_gfs_model_run_download_urls(datetime(2023, 2, 15, 0), '0600'))
+    assert len(actual_urls) == expected_num_of_urls
+    assert actual_urls[0] == noaa.GFS_BASE_URL + '202302/20230215/gfs_4_20230215_0600_012.grb2'
+    assert actual_urls[1] == noaa.GFS_BASE_URL + '202302/20230215/gfs_4_20230215_0600_015.grb2'
+    assert actual_urls[-1] == noaa.GFS_BASE_URL + '202302/20230215/gfs_4_20230215_0600_255.grb2'
 
 
 def test_parse_url_for_timestamps_simple():
@@ -114,50 +119,48 @@ def test_parse_url_for_timestamps_complex():
     assert expected_prediction_timestamp == actual_prediction_timestamp
 
 
-def test_get_date_for_download():
+def test_get_datestrings_from_datetime():
     test_cases = [
         {
-            'current_time': datetime(2023, 3, 1, 12, 0, tzinfo=timezone.utc),
-            'expected_year_mo_60hrs': '202302',
-            'expected_year_mo_date_60hrs': '20230227',
-            'expected_year_mo_3days': '202302',
-            'expected_year_mo_date_3days': '20230226'
+            'date': datetime(2023, 2, 14, 0, tzinfo=timezone.utc),
+            'expected_year_mo': '202302',
+            'expected_year_mo_date': '20230214'
         },
         {
-            'current_time': datetime(2023, 3, 1, 3, 0, tzinfo=timezone.utc),
-            'expected_year_mo_60hrs': '202302',
-            'expected_year_mo_date_60hrs': '20230226',
-            'expected_year_mo_3days': '202302',
-            'expected_year_mo_date_3days': '20230226'
+            'date': datetime(2023, 6, 5, 0, tzinfo=timezone.utc),
+            'expected_year_mo': '202306',
+            'expected_year_mo_date': '20230605'
         },
         {
-            'current_time': datetime(2023, 3, 3, 14, 0, tzinfo=timezone.utc),
-            'expected_year_mo_60hrs': '202303',
-            'expected_year_mo_date_60hrs': '20230301',
-            'expected_year_mo_3days': '202302',
-            'expected_year_mo_date_3days': '20230228'
+            'date': datetime(2023, 10, 31, 20, tzinfo=timezone.utc),
+            'expected_year_mo': '202310',
+            'expected_year_mo_date': '20231031'
         },
-        {
-            'current_time': datetime(2023, 3, 9, 8, 0, tzinfo=timezone.utc),
-            'expected_year_mo_60hrs': '202303',
-            'expected_year_mo_date_60hrs': '20230306',
-            'expected_year_mo_3days': '202303',
-            'expected_year_mo_date_3days': '20230306'
-        },
-        {
-            'current_time': datetime(2023, 3, 9, 8, 0, tzinfo=timezone.utc),
-            'expected_year_mo_60hrs': '202303',
-            'expected_year_mo_date_60hrs': '20230306',
-            'expected_year_mo_3days': '202303',
-            'expected_year_mo_date_3days': '20230306'
-        }
     ]
+    for test in test_cases:
+        actual_strings = noaa.get_date_strings_from_datetime(test.get('date'))
+        assert test.get('expected_year_mo') == actual_strings[0]
+        assert test.get('expected_year_mo_date') == actual_strings[1]
 
-    for case in test_cases:
-        results = noaa.get_date_for_download(case.get('current_time'))
-        actual_year_mo_60hrs, actual_year_mo_date_60hrs = results[0]
-        actual_year_mo_3days, actual_year_mo_date_3days = results[1]
-        assert actual_year_mo_60hrs == case.get('expected_year_mo_60hrs')
-        assert actual_year_mo_date_60hrs == case.get('expected_year_mo_date_60hrs')
-        assert actual_year_mo_3days == case.get('expected_year_mo_3days')
-        assert actual_year_mo_date_3days == case.get('expected_year_mo_date_3days')
+
+@pytest.fixture()
+def mock_requests_get(monkeypatch):
+    """ fixture for NOAA download folder """
+    def mock_get_gfs_download_folder(*args, **kwargs):
+        request_date = kwargs.get('request_date')
+        if request_date == '20230228':
+            return MockResponse(status_code=200)
+        return MockResponse(status_code=404)
+    monkeypatch.setattr(requests, 'get', mock_get_gfs_download_folder)
+
+
+def test_get_date_for_download():
+    request_date = datetime(2023, 3, 1, 12, 0, tzinfo=timezone.utc)
+    expected_year_mo = '202302'
+    expected_year_mo_date = '20230228'
+
+    results = noaa.get_date_for_download(request_date)
+    actual_year_mo = results[0]
+    actual_year_mo_date = results[1]
+    assert actual_year_mo == expected_year_mo
+    assert actual_year_mo_date == expected_year_mo_date

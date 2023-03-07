@@ -38,22 +38,28 @@ def get_gfs_model_run_hours():
         yield hour_str
 
 
+def get_date_strings_from_datetime(datetime: datetime.datetime) -> tuple[str, str]:
+    """ Returns strings for year_mo and year_mo_date to be used when requesting
+    grib files from NOAA"""
+    year_mo = f"{datetime.year}" + format(datetime.month, '02d')
+    year_mo_date = year_mo + format(datetime.day, '02d')
+    return (year_mo, year_mo_date)
+
+
 def get_date_for_download(now: datetime.datetime) -> tuple[str, str]:
     """ Returns tuple of formatted strings for year_month and year_month_date.
     NOAA publishes GFS model data several days behind schedule, so we need to 
     determine the most recent date for which GFS data is available to download.
     """
-    year_mo = f"{now.year}" + format(now.month, '02d')
-    year_mo_date = year_mo + format(now.day, '02d')
+    year_mo, year_mo_date = get_date_strings_from_datetime(now)
     days_backward = 0
     while assert_gfs_folder_exists(year_mo, year_mo_date) is False:
         logger.warning('GFS data folder for %s not found on NOAA server', year_mo_date)
         days_backward += 1
         previous_day = now - datetime.timedelta(days=days_backward)
-        year_mo = f"{previous_day.year}" + format(previous_day.month, '02d')
-        year_mo_date = year_mo + format(previous_day.day, '02d')
+        year_mo, year_mo_date = get_date_strings_from_datetime(previous_day)
 
-    return (year_mo, year_mo_date)
+    return previous_day
 
 
 def assert_gfs_folder_exists(year_mo: str, year_mo_date: str) -> bool:
@@ -64,7 +70,7 @@ def assert_gfs_folder_exists(year_mo: str, year_mo_date: str) -> bool:
     return response.status_code == 200
 
 
-def get_gfs_model_run_download_urls(now: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
+def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
     """ Yield urls to download GFS model runs """
     # GFS model makes predictions at 3-hour intervals up to 384 hours (16 days) in advance.
     # Morecast 2.0 only needs predictions 10 days in advance (264 hours) and only for noon PST
@@ -88,7 +94,7 @@ def get_gfs_model_run_download_urls(now: datetime.datetime, model_cycle: str) ->
     # sort list purely for human convenience when debugging. Functionally it doesn't matter
     all_hours.sort()
 
-    year_mo, year_mo_date = get_date_for_download(now)
+    year_mo, year_mo_date = get_date_strings_from_datetime(download_date)
 
     for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')
@@ -187,8 +193,9 @@ class GFS():
         logger.info('Processing {} model run cycle {}'.format(
             self.model_type, model_cycle))
 
+        download_date = get_date_for_download(self.now)
         # Get the urls for the current model run.
-        urls = list(get_gfs_model_run_download_urls(self.now, model_cycle))
+        urls = list(get_gfs_model_run_download_urls(download_date, model_cycle))
 
         # Process all the urls.
         self.process_model_run_urls(urls)
