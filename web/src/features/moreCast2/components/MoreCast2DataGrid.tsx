@@ -33,11 +33,11 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
   const { rows } = props
   const loading = useSelector(selectMorecast2TableLoading)
 
+  // Rounds the value to the number of decimal places specified by precision
   const numFormatter = (value: number, precision: number) => {
     if (isUndefined(value) || isNaN(value)) {
       return NaN
     }
-
     const multiplier = Math.pow(10, precision || 0)
     return Math.round(value * multiplier) / multiplier
   }
@@ -62,7 +62,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
     if (isNaN(oldValue) && isNaN(newValue)) {
       return { ...params.row }
     }
-
+    // Check if the user has edited the value. If so, update the value and choice to reflect the Manual edit.
     if (newValue !== numFormatter(params.row[field].value, precision)) {
       params.row[field].choice = ModelChoice.MANUAL
       params.row[field].value = newValue
