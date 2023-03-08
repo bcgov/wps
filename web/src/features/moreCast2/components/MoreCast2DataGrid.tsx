@@ -33,18 +33,10 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
   const { rows } = props
   const loading = useSelector(selectMorecast2TableLoading)
 
-  // Rounds the value to the number of decimal places specified by precision
-  const numFormatter = (value: number, precision: number) => {
-    if (isUndefined(value) || isNaN(value)) {
-      return NaN
-    }
-    const multiplier = Math.pow(10, precision || 0)
-    return Math.round(value * multiplier) / multiplier
-  }
-
   const predictionItemValueFormatter = (params: GridValueFormatterParams, precision: number) => {
-    const value = params?.value
-    return isNumber(value) && !isNaN(value) ? value.toFixed(precision) : NOT_AVAILABLE
+    const value = Number.parseFloat(params?.value)
+
+    return isNaN(value) ? NOT_AVAILABLE : value.toFixed(precision)
   }
 
   const predictionItemValueGetter = (params: GridValueGetterParams, precision: number) => {
@@ -52,7 +44,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
     if (isNaN(value)) {
       return 'NaN'
     }
-    return numFormatter(params?.value?.value, precision)
+    return value.toFixed(precision)
   }
 
   const predictionItemValueSetter = (params: GridValueSetterParams, field: string, precision: number) => {
@@ -63,7 +55,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       return { ...params.row }
     }
     // Check if the user has edited the value. If so, update the value and choice to reflect the Manual edit.
-    if (newValue !== numFormatter(params.row[field].value, precision)) {
+    if (newValue.toFixed(precision) !== params.row[field].value.toFixed(precision)) {
       params.row[field].choice = ModelChoice.MANUAL
       params.row[field].value = newValue
     }
