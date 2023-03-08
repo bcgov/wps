@@ -92,7 +92,7 @@ const MoreCast2Page = () => {
 
   const fetchStationPredictions = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
-    if (toDate <= fromDate) {
+    if (toDate.startOf('day') < fromDate.startOf('day')) {
       setForecastRows([])
       return
     }
