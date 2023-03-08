@@ -7,7 +7,6 @@ import {
   GridValueGetterParams,
   GridValueSetterParams
 } from '@mui/x-data-grid'
-import { isNumber, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
