@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { DateTime } from 'luxon'
@@ -15,15 +15,33 @@ interface WPSDatePickerProps {
 }
 
 const WPSDatePicker = (props: WPSDatePickerProps) => {
+  const [selectedDate, setSelectedDate] = useState<DateTime | null>(props.date)
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      event.stopPropagation()
+      if (selectedDate?.isValid) {
+        props.updateDate(selectedDate)
+      }
+    }
+  }
+
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <DatePicker
         label={props.label || 'Date of Interest (PST-08:00)'}
         format="yyyy/MM/dd"
-        value={props.date}
-        onChange={newValue => {
-          if (!isNull(newValue)) {
+        value={selectedDate}
+        onAccept={(newValue: DateTime | null) => {
+          if (!isNull(newValue) && newValue.isValid) {
             props.updateDate(newValue)
+          }
+        }}
+        onChange={newValue => setSelectedDate(newValue)}
+        slotProps={{
+          textField: {
+            onKeyDown: handleKeyDown
           }
         }}
       />
