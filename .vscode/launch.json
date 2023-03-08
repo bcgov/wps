@@ -39,19 +39,28 @@
             "module": "app.jobs.hourly_actuals"
         },
         {
-            "name": "app.weather_models.env_canada RDPS",
+            "name": "app.jobs.env_canada GDPS",
             "type": "python",
             "request": "launch",
-            "module": "app.weather_models.env_canada",
+            "module": "app.jobs.env_canada",
+            "args": [
+                "GDPS"
+            ]
+        },
+        {
+            "name": "app.jobs.env_canada RDPS",
+            "type": "python",
+            "request": "launch",
+            "module": "app.jobs.env_canada",
             "args": [
                 "RDPS"
             ]
         },
         {
-            "name": "app.weather_models.env_canada HRDPS",
+            "name": "app.jobs.env_canada HRDPS",
             "type": "python",
             "request": "launch",
-            "module": "app.weather_models.env_canada",
+            "module": "app.jobs.env_canada",
             "args": [
                 "HRDPS"
             ]

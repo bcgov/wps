@@ -1,15 +1,13 @@
-from fastapi.testclient import TestClient
 import pytest
+import os
+from osgeo import gdal
+from datetime import datetime, timezone
+import requests
 
 from app.weather_models import process_grib
-
-
-@pytest.fixture()
-def client():
-    from app.main import app as test_app
-
-    with TestClient(test_app) as test_client:
-        yield test_client
+from app.weather_models import ModelEnum, ProjectionEnum
+from app.jobs import noaa
+from app.tests.weather_models.test_models_common import MockResponse
 
 
 sample_values_json = [{
