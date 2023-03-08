@@ -11,7 +11,7 @@ export const parseModelsForStationsHelper = (predictions: StationPrediction[]): 
   predictions.forEach(prediction => {
     const station_code = prediction.station.code
     const station_name = prediction.station.name
-    const model = prediction.model
+    const model = prediction.abbreviation
     const row: MoreCast2ForecastRow = {
       id: prediction.id,
       forDate: DateTime.fromISO(prediction.datetime),
@@ -43,7 +43,7 @@ export const parseModelsForStationsHelper = (predictions: StationPrediction[]): 
   return rows.sort((a, b) => a.stationName.localeCompare(b.stationName))
 }
 
-export const fillInTheBlanks = (
+export const fillInTheModelBlanks = (
   stations: FireCenterStation[],
   stationPredictions: StationPrediction[],
   dateInterval: string[],
@@ -72,12 +72,12 @@ const createEmptyStationPrediction = (
   modelType: ModelType
 ): StationPrediction => {
   const prediction = {
+    abbreviation: modelType,
     bias_adjusted_relative_humidity: NaN,
     bias_adjusted_temperature: NaN,
     datetime: datetime,
     precip_24hours: NaN,
     id: window.crypto.randomUUID(),
-    model: modelType,
     relative_humidity: NaN,
     station: {
       code,

@@ -7,16 +7,36 @@ export enum ModelChoice {
   HRDPS = 'HRDPS',
   NAM = 'NAM',
   RDPS = 'RDPS',
-  MANUAL = 'MANUAL'
+  MANUAL = 'MANUAL',
+  YESTERDAY = 'YESTERDAY'
+}
+
+export interface YesterdayDailiesResponse {
+  dailies: YesterdayDailyResponse[]
+}
+
+export interface YesterdayDailyResponse {
+  station_code: number
+  station_name: string
+  utcTimestamp: string
+  temperature: number | null
+  relative_humidity: number | null
+  precipitation: number | null
+  wind_direction: number | null
+  wind_speed: number | null
+}
+
+export interface YesterdayDaily extends YesterdayDailyResponse {
+  id: string
 }
 
 export interface StationPrediction {
+  abbreviation: ModelType
   bias_adjusted_relative_humidity: number | null
   bias_adjusted_temperature: number | null
   datetime: string
   precip_24hours: number | null
   id: string
-  model: ModelType
   relative_humidity: number | null
   station: Station
   temperature: number | null
@@ -24,12 +44,13 @@ export interface StationPrediction {
   wind_speed: number | null
 }
 
-export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'MANUAL' | 'NAM' | 'RDPS'
+export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'YESTERDAY' | 'NAM' | 'RDPS' | 'MANUAL'
 
 export const ModelChoices: ModelType[] = [
   ModelChoice.GDPS,
   ModelChoice.GFS,
   ModelChoice.HRDPS,
+  ModelChoice.YESTERDAY,
   ModelChoice.MANUAL,
   ModelChoice.NAM,
   ModelChoice.RDPS
@@ -39,8 +60,8 @@ export const ModelChoices: ModelType[] = [
  * Get noon model predictions for the specified date range
  * @param stationCodes A list of station codes of interest
  * @param model The weather model abbreviation
- * @param fromDate The first date for which predictions will be returned
- * @param toDate The last date for which predictions will be returned
+ * @param startDate The first date for which predictions will be returned
+ * @param endDate The last date for which predictions will be returned
  */
 export async function getModelPredictions(
   stationCodes: number[],
@@ -57,4 +78,24 @@ export async function getModelPredictions(
   })
 
   return data
+}
+
+/**
+ * Get noon yesterday dailies for the specified date
+ * @param stationCodes A list of station codes of interest
+ * @param startDate The first date for which we ask for the day before
+ */
+export async function getYesterdayDailies(
+  stationCodes: number[],
+  startDate: string
+): Promise<YesterdayDailyResponse[]> {
+  if (stationCodes.length === 0) {
+    return []
+  }
+  const url = `/morecast-v2/yesterday-dailies/${startDate}`
+  const { data } = await axios.post<YesterdayDailiesResponse>(url, {
+    station_codes: stationCodes
+  })
+
+  return data.dailies
 }
