@@ -7,7 +7,6 @@ import {
   GridValueGetterParams,
   GridValueSetterParams
 } from '@mui/x-data-grid'
-import { isNumber } from 'lodash'
 import { DateTime } from 'luxon'
 import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
@@ -33,6 +32,36 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
   const { rows } = props
   const loading = useSelector(selectMorecast2TableLoading)
 
+  const predictionItemValueFormatter = (params: GridValueFormatterParams, precision: number) => {
+    const value = Number.parseFloat(params?.value)
+
+    return isNaN(value) ? NOT_AVAILABLE : value.toFixed(precision)
+  }
+
+  const predictionItemValueGetter = (params: GridValueGetterParams, precision: number) => {
+    const value = params?.value?.value
+    if (isNaN(value)) {
+      return 'NaN'
+    }
+    return value.toFixed(precision)
+  }
+
+  const predictionItemValueSetter = (params: GridValueSetterParams, field: string, precision: number) => {
+    const oldValue = params.row[field].value
+    const newValue = Number(params.value)
+
+    if (isNaN(oldValue) && isNaN(newValue)) {
+      return { ...params.row }
+    }
+    // Check if the user has edited the value. If so, update the value and choice to reflect the Manual edit.
+    if (newValue.toFixed(precision) !== params.row[field].value.toFixed(precision)) {
+      params.row[field].choice = ModelChoice.MANUAL
+      params.row[field].value = newValue
+    }
+
+    return { ...params.row }
+  }
+
   const gridColumnDefGenerator = (field: string, headerName: string, precision: number) => {
     return {
       field: field,
@@ -44,34 +73,9 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       type: 'number',
       width: 120,
       valueFormatter: (params: GridValueFormatterParams) => predictionItemValueFormatter(params, precision),
-      valueGetter: (params: GridValueGetterParams) => predictionItemValueGetter(params),
-      valueSetter: (params: GridValueSetterParams) => predictionItemValueSetter(params, field)
+      valueGetter: (params: GridValueGetterParams) => predictionItemValueGetter(params, precision),
+      valueSetter: (params: GridValueSetterParams) => predictionItemValueSetter(params, field, precision)
     }
-  }
-
-  const predictionItemValueFormatter = (params: GridValueFormatterParams, precision: number) => {
-    const value = params?.value
-    return isNumber(value) && !isNaN(value) ? value.toFixed(precision) : NOT_AVAILABLE
-  }
-
-  const predictionItemValueGetter = (params: GridValueGetterParams) => {
-    return params?.value?.value
-  }
-
-  const predictionItemValueSetter = (params: GridValueSetterParams, field: string) => {
-    const oldValue = params.row[field].value
-    const newValue = Number(params.value)
-
-    if (isNaN(oldValue) && isNaN(newValue)) {
-      return { ...params.row }
-    }
-
-    if (newValue !== params.row[field].value) {
-      params.row[field].choice = ModelChoice.MANUAL
-      params.row[field].value = newValue
-    }
-
-    return { ...params.row }
   }
 
   const columns: GridColDef[] = [
