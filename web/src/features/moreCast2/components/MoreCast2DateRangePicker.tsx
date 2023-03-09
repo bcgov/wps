@@ -1,13 +1,8 @@
-import { createTheme, ThemeProvider, Theme, StyledEngineProvider } from '@mui/material'
+import { createTheme, ThemeProvider, StyledEngineProvider } from '@mui/material'
 import { DateRange } from 'components/dateRangePicker/types'
 import { DateTime } from 'luxon'
 import React from 'react'
 import DateRangeSelector from 'components/DateRangeSelector'
-
-declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends Theme {}
-}
 
 export interface MoreCase2DateRangePickerProps {
   dateRange?: DateRange
@@ -61,7 +56,7 @@ const MoreCase2DateRangePicker = ({ dateRange, setDateRange }: MoreCase2DateRang
           <DateRangeSelector
             dateRange={dateRange}
             minDate={DateTime.now().toJSDate()}
-            maxDate={DateTime.now().plus({ days: 11 }).toJSDate()}
+            maxDate={DateTime.now().plus({ days: 10 }).toJSDate()}
             maxDayOffset={11}
             dateDisplayFormat={'yyyy/MM/dd'}
             setDateRange={setDateRange}

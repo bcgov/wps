@@ -31,7 +31,7 @@ const DateRangePickerWrapper: React.FunctionComponent<DateRangePickerWrapperProp
   const handleKeyPress = (event: any) => event?.key === 'Escape' && handleToggle()
 
   const minDate = initialDateRange.startDate || new Date()
-  const maxDate = DateTime.fromJSDate(minDate).plus({ days: 11 }).toJSDate()
+  const maxDate = DateTime.fromJSDate(minDate).plus({ days: 10 }).toJSDate()
 
   return (
     <div data-testid="date-range-picker-wrapper">
