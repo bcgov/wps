@@ -15,7 +15,6 @@ import {
 import { AppDispatch } from 'app/store'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { GeneralHeader } from 'components'
-import WPSDatePicker from 'components/WPSDatePicker'
 import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
 import MoreCast2DataGrid from 'features/moreCast2/components/MoreCast2DataGrid'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
@@ -29,7 +28,9 @@ import {
 } from 'features/moreCast2/yesterdayDailies'
 import { getYesterdayStationDailies } from 'features/moreCast2/slices/yesterdayDailiesSlice'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
+import MoreCase2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import { ROLES } from 'features/auth/roles'
+import { DateRange } from 'components/dateRangePicker/types'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -82,8 +83,10 @@ const MoreCast2Page = () => {
   const [modelType, setModelType] = useState<ModelType>(
     (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE
   )
-  const [fromDate, setFromDate] = useState<DateTime>(DateTime.now())
-  const [toDate, setToDate] = useState<DateTime>(DateTime.now().plus({ days: 2 }))
+  const [fromTo, setFromTo] = useState<DateRange>({
+    startDate: DateTime.now().toJSDate(),
+    endDate: DateTime.now().plus({ days: 2 }).toJSDate()
+  })
   const [forecastRows, setForecastRows] = useState<MoreCast2ForecastRow[]>([])
   const [stationPredictionsAsMoreCast2ForecastRows, setStationPredictionsAsMoreCast2ForecastRows] = useState<
     MoreCast2ForecastRow[]
@@ -92,14 +95,21 @@ const MoreCast2Page = () => {
 
   const fetchStationPredictions = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
-    if (toDate.startOf('day') < fromDate.startOf('day')) {
+    if (isUndefined(fromTo.startDate) || isUndefined(fromTo.endDate)) {
       setForecastRows([])
       return
     }
     if (modelType == ModelChoice.YESTERDAY) {
-      dispatch(getYesterdayStationDailies(stationCodes, fromDate.toISODate()))
+      dispatch(getYesterdayStationDailies(stationCodes, DateTime.fromJSDate(fromTo.startDate).toISODate()))
     } else {
-      dispatch(getModelStationPredictions(stationCodes, modelType, fromDate.toISODate(), toDate.toISODate()))
+      dispatch(
+        getModelStationPredictions(
+          stationCodes,
+          modelType,
+          DateTime.fromJSDate(fromTo.startDate).toISODate(),
+          DateTime.fromJSDate(fromTo.endDate).toISODate()
+        )
+      )
     }
   }
 
@@ -141,8 +151,10 @@ const MoreCast2Page = () => {
   }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const dates = createDateInterval(fromDate, toDate)
-    setDateInterval(dates)
+    if (!isUndefined(fromTo.startDate) && !isUndefined(fromTo.endDate)) {
+      const dates = createDateInterval(DateTime.fromJSDate(fromTo.startDate), DateTime.fromJSDate(fromTo.endDate))
+      setDateInterval(dates)
+    }
 
     if (!isUndefined(modelType) && !isNull(modelType)) {
       localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
@@ -150,7 +162,7 @@ const MoreCast2Page = () => {
     } else {
       setForecastRows([])
     }
-  }, [fromDate, toDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fromTo.startDate, fromTo.endDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const visibleForecastRows = stationPredictionsAsMoreCast2ForecastRows.filter(
@@ -198,12 +210,7 @@ const MoreCast2Page = () => {
             </Grid>
             <Grid item xs={3}>
               <FormControl className={classes.formControl}>
-                <WPSDatePicker date={fromDate} label="From" updateDate={setFromDate} />
-              </FormControl>
-            </Grid>
-            <Grid item xs={3}>
-              <FormControl className={classes.formControl}>
-                <WPSDatePicker date={toDate} label="To" updateDate={setToDate} />
+                <MoreCase2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
               </FormControl>
             </Grid>
             <Grid item xs={2}>

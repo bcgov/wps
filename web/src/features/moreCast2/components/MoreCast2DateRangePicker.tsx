@@ -1,0 +1,77 @@
+import { createTheme, ThemeProvider, Theme, StyledEngineProvider } from '@mui/material'
+import { DateRange } from 'components/dateRangePicker/types'
+import { DateTime } from 'luxon'
+import React from 'react'
+import DateRangeSelector from 'components/DateRangeSelector'
+
+declare module '@mui/styles/defaultTheme' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface DefaultTheme extends Theme {}
+}
+
+export interface MoreCase2DateRangePickerProps {
+  dateRange?: DateRange
+  setDateRange: (newDateRange: DateRange) => void
+}
+
+export const dateRangePickerTheme = createTheme({
+  components: {
+    MuiOutlinedInput: {
+      styleOverrides: {
+        input: {
+          '&.Mui-disabled': {
+            color: 'rgba(0, 0, 0, 0.6);',
+            WebkitTextFillColor: 'rgba(0, 0, 0, 0.6);'
+          }
+        }
+      }
+    },
+    MuiFormLabel: {
+      styleOverrides: {
+        root: {
+          '&.Mui-disabled': {
+            color: 'rgba(0, 0, 0, 0.6);'
+          }
+        }
+      }
+    },
+    MuiSvgIcon: {
+      styleOverrides: {
+        root: {
+          fill: 'rgba(0, 0, 0, 0.6);'
+        }
+      }
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          paddingLeft: 0,
+          paddingRight: 12
+        }
+      }
+    }
+  }
+})
+
+const MoreCase2DateRangePicker = ({ dateRange, setDateRange }: MoreCase2DateRangePickerProps) => {
+  return (
+    <React.Fragment>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={dateRangePickerTheme}>
+          <DateRangeSelector
+            dateRange={dateRange}
+            minDate={DateTime.now().toJSDate()}
+            maxDate={DateTime.now().plus({ days: 11 }).toJSDate()}
+            maxDayOffset={11}
+            dateDisplayFormat={'yyyy/MM/dd'}
+            setDateRange={setDateRange}
+            size="medium"
+            label={'Date Range'}
+          />
+        </ThemeProvider>
+      </StyledEngineProvider>
+    </React.Fragment>
+  )
+}
+
+export default React.memo(MoreCase2DateRangePicker)
