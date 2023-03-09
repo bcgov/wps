@@ -36,14 +36,6 @@ export const dateRangePickerTheme = createTheme({
           fill: 'rgba(0, 0, 0, 0.6);'
         }
       }
-    },
-    MuiIconButton: {
-      styleOverrides: {
-        root: {
-          paddingLeft: 0,
-          paddingRight: 12
-        }
-      }
     }
   }
 })
