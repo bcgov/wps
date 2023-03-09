@@ -141,7 +141,9 @@ objects:
       env.redis-dailies-by-station-code-expiry: ${REDIS_DAILIES_BY_STATION_CODE_EXPIRY}
       env.redis-hourlies-by-station-code-cache-expiry: ${REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY}
       env.redis-cache-env-canada: ${REDIS_CACHE_ENV_CANADA}
+      env.redis-cache-noaa: ${REDIS_CACHE_NOAA}
       env.redis-env-canada-cache-expiry: ${REDIS_ENV_CANADA_CACHE_EXPIRY}
+      env.redis-noaa-cache-expiry: ${REDIS_NOAA_CACHE_EXPIRY}
       env.gunicorn.timeout: ${GUNICORN_TIMEOUT}
       env.nats-server: ${NATS_SERVER}
 

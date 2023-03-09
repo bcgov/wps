@@ -20,6 +20,7 @@ class ModelEnum(str, Enum):
     GDPS = 'GDPS'
     RDPS = 'RDPS'
     HRDPS = 'HRDPS'
+    GFS = 'GFS'
 
 
 class ProjectionEnum(str, Enum):
@@ -30,6 +31,7 @@ class ProjectionEnum(str, Enum):
     LATLON_15X_15 = 'latlon.15x.15'
     HIGH_RES_CONTINENTAL = 'ps2.5km'
     REGIONAL_PS = 'ps10km'
+    GFS_LONLAT = 'lonlat.0.5deg'
 
 
 def interpolate_between_two_points(
