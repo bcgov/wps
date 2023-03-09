@@ -36,11 +36,9 @@ const DateRangeSelector = ({ dateRange, dateDisplayFormat, size, label, setDateR
         value={
           isUndefined(dateRange) || isUndefined(dateRange.startDate) || isUndefined(dateRange.endDate)
             ? ''
-            : `${DateTime.fromJSDate(dateRange.startDate).toFormat(dateDisplayFormat).trim()} - ${DateTime.fromJSDate(
+            : `${DateTime.fromJSDate(dateRange.startDate).toFormat(dateDisplayFormat)} - ${DateTime.fromJSDate(
                 dateRange.endDate
-              )
-                .toFormat(dateDisplayFormat)
-                .trim()}
+              ).toFormat(dateDisplayFormat)}
                         `
         }
         InputProps={{
