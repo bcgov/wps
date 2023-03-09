@@ -3,8 +3,8 @@ apiVersion: template.openshift.io/v1
 metadata:
   name: ${JOB_NAME}-cronjob-template
   annotations:
-    description: "Scheduled task to download and process weather data from the MSC Datamart through http protocol."
-    tags: "cronjob,env-canada,rdps"
+    description: "Scheduled task to download and process weather data from NCEP-NOAA through https protocol."
+    tags: "cronjob,noaa"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
   app: ${NAME}-${SUFFIX}
@@ -21,7 +21,7 @@ parameters:
   - name: PROJ_TOOLS
     value: e1e498-tools
   - name: JOB_NAME
-    value: env-canada
+    value: noaa
   - name: IMAGE_REGISTRY
     required: true
     value: image-registry.openshift-image-registry.svc:5000
@@ -49,9 +49,8 @@ objects:
     metadata:
       name: ${JOB_NAME}
     spec:
-      # Don't run on the hour - as a courtesy to env canada, pick a random
-      # number so that not everyone hits env. canada at the same time.
-      # Run cronjob every 2nd hour because one run takes > 1 hour.
+      # Don't run on the hour - as a courtesy to NOAA, pick a random
+      # number so that not everyone hits NOAA at the same time.
       schedule: ${SCHEDULE}
       # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
       # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
@@ -70,15 +69,7 @@ objects:
                 - name: ${JOB_NAME}
                   image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-api-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
-                  command:
-                    [
-                      "poetry",
-                      "run",
-                      "python",
-                      "-m",
-                      "app.jobs.env_canada",
-                      "RDPS",
-                    ]
+                  command: ["poetry", "run", "python", "-m", "app.jobs.noaa"]
                   env:
                     - name: POSTGRES_READ_USER
                       value: ${POSTGRES_USER}
@@ -117,33 +108,6 @@ objects:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
                           key: rocket.chat-auth-token-secret
-                    - name: USE_WFWX
-                      valueFrom:
-                        configMapKeyRef:
-                          name: ${GLOBAL_NAME}
-                          key: env.use-wfwx
-                    - name: WFWX_MAX_PAGE_SIZE
-                      value: ${WFWX_MAX_PAGE_SIZE}
-                    - name: WFWX_AUTH_URL
-                      valueFrom:
-                        configMapKeyRef:
-                          name: ${GLOBAL_NAME}
-                          key: env.wfwx-auth-url
-                    - name: WFWX_BASE_URL
-                      valueFrom:
-                        configMapKeyRef:
-                          name: ${GLOBAL_NAME}
-                          key: env.wfwx-base-url
-                    - name: WFWX_USER
-                      valueFrom:
-                        configMapKeyRef:
-                          name: ${GLOBAL_NAME}
-                          key: env.wfwx-user
-                    - name: WFWX_SECRET
-                      valueFrom:
-                        secretKeyRef:
-                          name: ${GLOBAL_NAME}
-                          key: wfwx-secret
                     - name: REDIS_HOST
                       valueFrom:
                         configMapKeyRef:
@@ -179,16 +143,16 @@ objects:
                         configMapKeyRef:
                           name: ${GLOBAL_NAME}
                           key: env.redis-dailies-by-station-code-expiry
-                    - name: REDIS_CACHE_ENV_CANADA
+                    - name: REDIS_CACHE_NOAA
                       valueFrom:
                         configMapKeyRef:
                           name: ${GLOBAL_NAME}
-                          key: env.redis-cache-env-canada
+                          key: env.redis-cache-noaa
                   resources:
                     limits:
                       cpu: "1"
-                      memory: 512Mi
+                      memory: 1024Mi
                     requests:
                       cpu: "500m"
-                      memory: 256Mi
+                      memory: 512Mi
               restartPolicy: OnFailure

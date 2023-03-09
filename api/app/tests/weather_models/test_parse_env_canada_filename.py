@@ -1,7 +1,7 @@
 """ BDD tests for processing file from env. Canada. """
 import logging
 from pytest_bdd import scenario, given, then, parsers
-from app.weather_models.env_canada import parse_env_canada_filename
+from app.jobs.env_canada import parse_env_canada_filename
 from app.weather_models.process_grib import ModelRunInfo
 
 logger = logging.getLogger(__name__)

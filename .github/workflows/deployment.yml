@@ -175,6 +175,12 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
+      - name: NOAA GFS cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_noaa_gfs_cronjob.sh ${SUFFIX} apply
+
   deploy-tileserv:
     name: Deploy tileserv to Dev
     if: github.triggering_actor != 'renovate'
