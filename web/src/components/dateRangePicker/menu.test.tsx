@@ -17,7 +17,8 @@ const setup = (
   setFirstMonthMock: Setter<Date>,
   secondMonth: Date,
   setSecondMonthMock: Setter<Date>,
-  resetDateRangeMock: () => void
+  resetDateRangeMock: () => void,
+  toggleMock: () => void
 ) => {
   const { getByTestId, getByRole } = render(
     <Menu
@@ -31,7 +32,8 @@ const setup = (
         onDayClick: onDayClickMock,
         onDayHover: onDayHoverMock,
         onMonthNavigate: onMonthNavigateMock,
-        resetDateRange: resetDateRangeMock
+        resetDateRange: resetDateRangeMock,
+        toggle: toggleMock
       }}
       firstMonth={firstMonth}
       secondMonth={secondMonth}
@@ -70,6 +72,10 @@ describe('Menu', () => {
     /** no op */
   })
 
+  const toggleMock = jest.fn((): void => {
+    /** no op */
+  })
+
   beforeEach(() => {
     // Reset all stubs
     inHoverRangeMock.mockReset()
@@ -79,6 +85,7 @@ describe('Menu', () => {
     setFirstMonthMock.mockReset()
     setSecondMonthMock.mockReset()
     resetDateRangeMock.mockReset()
+    toggleMock.mockReset()
   })
 
   it('should render the start and end dates', () => {
@@ -95,7 +102,8 @@ describe('Menu', () => {
       setFirstMonthMock,
       secondMonth,
       setSecondMonthMock,
-      resetDateRangeMock
+      resetDateRangeMock,
+      toggleMock
     )
     const startDateLabel = getByTestId('menu-start-date')
     const endDateLabel = getByTestId('menu-end-date')
@@ -126,7 +134,8 @@ describe('Menu', () => {
       setFirstMonthMock,
       secondMonth,
       setSecondMonthMock,
-      resetDateRangeMock
+      resetDateRangeMock,
+      toggleMock
     )
     const startDateLabel = getByTestId('menu-start-date')
     const endDateLabel = getByTestId('menu-end-date')
