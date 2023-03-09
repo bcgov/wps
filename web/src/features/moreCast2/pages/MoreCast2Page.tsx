@@ -83,9 +83,12 @@ const MoreCast2Page = () => {
   const [modelType, setModelType] = useState<ModelType>(
     (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE
   )
+
+  const startDateTime = DateTime.now().startOf('day')
+  const endDateTime = DateTime.now().plus({ days: 2 }).startOf('day')
   const [fromTo, setFromTo] = useState<DateRange>({
-    startDate: DateTime.now().toJSDate(),
-    endDate: DateTime.now().plus({ days: 2 }).toJSDate()
+    startDate: startDateTime.toJSDate(),
+    endDate: endDateTime.toJSDate()
   })
   const [forecastRows, setForecastRows] = useState<MoreCast2ForecastRow[]>([])
   const [stationPredictionsAsMoreCast2ForecastRows, setStationPredictionsAsMoreCast2ForecastRows] = useState<
