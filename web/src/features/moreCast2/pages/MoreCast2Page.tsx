@@ -85,7 +85,7 @@ const MoreCast2Page = () => {
   )
 
   const startDateTime = DateTime.now().startOf('day')
-  const endDateTime = DateTime.now().plus({ days: 2 }).startOf('day')
+  const endDateTime = startDateTime.plus({ days: 2 })
   const [fromTo, setFromTo] = useState<DateRange>({
     startDate: startDateTime.toJSDate(),
     endDate: endDateTime.toJSDate()
