@@ -19,13 +19,15 @@ export interface DateRangePickerProps {
   definedRanges?: DefinedRange[]
   minDate: Date
   maxDate: Date
+  maxDayOffset?: number
   onChange: (dateRange: DateRange) => void
+  toggle: () => void
 }
 
 const DateRangePicker: React.FunctionComponent<DateRangePickerProps> = (props: DateRangePickerProps) => {
   const today = new Date()
 
-  const { open, onChange, initialDateRange, maxDate } = props
+  const { open, onChange, toggle, initialDateRange, maxDate, maxDayOffset } = props
 
   const minDateValid = addYears(today, -10)
   const maxDateValid = parseOptionalDate(maxDate, addYears(today, 10))
@@ -58,7 +60,7 @@ const DateRangePicker: React.FunctionComponent<DateRangePickerProps> = (props: D
       setDateRange(newRange)
     } else {
       setDateRange({ startDate: day, endDate: undefined })
-      const newMaxDate = DateTime.fromJSDate(day).plus({ days: 6 })
+      const newMaxDate = DateTime.fromJSDate(day).plus({ days: maxDayOffset ? maxDayOffset : 10 })
       setCurrentMaxDate(newMaxDate.toJSDate())
     }
     setHoverDay(day)
@@ -103,7 +105,8 @@ const DateRangePicker: React.FunctionComponent<DateRangePickerProps> = (props: D
     onDayClick,
     onDayHover,
     onMonthNavigate,
-    resetDateRange
+    resetDateRange,
+    toggle
   }
 
   return open ? (

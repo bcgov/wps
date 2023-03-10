@@ -23,6 +23,7 @@ const WeatherModelDropdown = (props: WeatherModelDropdownProps) => {
       options={props.weatherModelOptions}
       renderInput={params => <TextField {...params} label="Select Default Weather Model" variant="outlined" />}
       onChange={changeHandler}
+      isOptionEqualToValue={(option, value) => isEqual(option, value)}
       value={props.selectedModelType || null}
     />
   )
