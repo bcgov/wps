@@ -4,19 +4,21 @@ import {
   DataGrid,
   GridColDef,
   GridEventListener,
+  GridRenderCellParams,
   GridValueFormatterParams,
   GridValueGetterParams,
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { DateTime } from 'luxon'
-import { ModelChoice } from 'api/moreCast2API'
+import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
-import { LinearProgress, Menu, MenuItem } from '@mui/material'
+import { LinearProgress, Menu, MenuItem, TextField } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { selectMorecast2TableLoading } from 'app/rootReducer'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 
 interface MoreCast2DataGridProps {
+  modelType: ModelType
   rows: MoreCast2ForecastRow[]
 }
 
@@ -94,6 +96,9 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       sortable: false,
       type: 'number',
       width: 120,
+      renderCell: (params: GridRenderCellParams) => (
+        <TextField size="small" label={props.modelType} value={params.value}></TextField>
+      ),
       valueFormatter: (params: GridValueFormatterParams) => predictionItemValueFormatter(params, precision),
       valueGetter: (params: GridValueGetterParams) => predictionItemValueGetter(params, precision),
       valueSetter: (params: GridValueSetterParams) => predictionItemValueSetter(params, field, precision)
