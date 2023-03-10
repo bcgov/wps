@@ -40,6 +40,7 @@ interface MenuProps {
     onDayClick: (day: Date) => void
     onDayHover: (day: Date) => void
     onMonthNavigate: (marker: symbol, action: NavigationAction) => void
+    toggle: () => void
     resetDateRange: () => void
   }
 }
@@ -99,12 +100,15 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
         </Grid>
         <div className={classes.divider} />
       </Grid>
-      <Grid justifyContent="space-between" container className={classes.footer}>
-        <Grid item></Grid>
-
+      <Grid justifyContent="right" container spacing={1} className={classes.footer}>
         <Grid item>
           <Button data-testid="date-range-reset-button" variant="outlined" onClick={handlers.resetDateRange}>
             Reset
+          </Button>
+        </Grid>
+        <Grid item>
+          <Button data-testid="date-range-close-button" variant="outlined" onClick={handlers.toggle}>
+            Close
           </Button>
         </Grid>
       </Grid>
