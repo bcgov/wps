@@ -147,6 +147,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
         }}
       >
         <MenuItem
+          disableRipple
           sx={{
             '&:hover': {
               backgroundColor: 'transparent' // remove the background color on hover
