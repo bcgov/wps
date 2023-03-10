@@ -10,6 +10,7 @@ export enum ModelChoice {
   MANUAL = 'MANUAL',
   YESTERDAY = 'YESTERDAY'
 }
+export const DEFAULT_MODEL_TYPE: ModelType = ModelChoice.HRDPS
 
 export interface YesterdayDailiesResponse {
   dailies: YesterdayDailyResponse[]

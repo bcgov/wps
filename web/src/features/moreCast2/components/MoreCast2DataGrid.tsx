@@ -3,17 +3,18 @@ import makeStyles from '@mui/styles/makeStyles'
 import {
   DataGrid,
   GridColDef,
+  GridEventListener,
   GridValueFormatterParams,
   GridValueGetterParams,
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { DateTime } from 'luxon'
 import { ModelChoice } from 'api/moreCast2API'
-import { MoreCast2ForecastRow, PredictionItem } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { LinearProgress, Menu, MenuItem } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { selectMorecast2TableLoading } from 'app/rootReducer'
-import ApplyFunctionMenuItem from 'features/moreCast2/components/ApplyFunctionMenuItem'
+import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 
 interface MoreCast2DataGridProps {
   rows: MoreCast2ForecastRow[]
@@ -32,8 +33,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
   const classes = useStyles()
   const { rows } = props
   const [currentRows, setRows] = React.useState(rows)
-  const [selectedRow, setSelectedRow] = React.useState<number>()
-
+  const [clickedColDef, setClickedColDef] = React.useState<GridColDef | null>(null)
   if (rows !== currentRows) {
     setRows(rows)
   }
@@ -43,18 +43,9 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
     mouseY: number
   } | null>(null)
 
-  const handleContextMenu = (event: React.MouseEvent) => {
-    event.preventDefault()
-    const column = event.currentTarget.attributes.getNamedItem('data-field')?.value
-    if (column) {
-      const rowsToAdjust = rows.map(r => {
-        ;(r[column as keyof MoreCast2ForecastRow] as PredictionItem).value *= 2
-        return r
-      })
-      console.log(rowsToAdjust)
-    }
-
-    setContextMenu(contextMenu === null ? { mouseX: event.clientX - 2, mouseY: event.clientY - 4 } : null)
+  const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
+    setClickedColDef(params.colDef)
+    setContextMenu(contextMenu === null ? { mouseX: event.clientX, mouseY: event.clientY } : null)
   }
 
   const handleClose = () => {
@@ -136,20 +127,12 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
         components={{
           LoadingOverlay: LinearProgress
         }}
-        slotProps={{
-          // row: {
-          //   onContextMenu: handleContextMenu,
-          //   style: { cursor: 'context-menu' }
-          // },
-          cell: {
-            onMouseDown: handleContextMenu
-          }
-        }}
+        onColumnHeaderClick={handleColumnHeaderClick}
         loading={loading}
         columns={columns}
         rows={currentRows}
       ></DataGrid>
-      {/* <Menu
+      <Menu
         open={contextMenu !== null}
         onClose={handleClose}
         anchorReference="anchorPosition"
@@ -163,14 +146,10 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
           }
         }}
       >
-        <MenuItem
-          onClick={() => {
-            console.log('Menu item 1')
-          }}
-        >
-          <ApplyFunctionMenuItem />
+        <MenuItem>
+          <ApplyToColumnMenu colDef={clickedColDef} />
         </MenuItem>
-      </Menu> */}
+      </Menu>
     </div>
   )
 }

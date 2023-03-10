@@ -4,6 +4,7 @@ import { isEqual } from 'lodash'
 import { ModelType } from 'api/moreCast2API'
 
 interface WeatherModelDropdownProps {
+  label?: string
   selectedModelType: ModelType
   weatherModelOptions: ModelType[]
   setSelectedModelType: React.Dispatch<React.SetStateAction<ModelType>>
@@ -21,7 +22,9 @@ const WeatherModelDropdown = (props: WeatherModelDropdownProps) => {
     <Autocomplete
       data-testid={`weather-model-dropdown`}
       options={props.weatherModelOptions}
-      renderInput={params => <TextField {...params} label="Select Default Weather Model" variant="outlined" />}
+      renderInput={params => (
+        <TextField {...params} label={props.label ? props.label : 'Select Default Weather Model'} variant="outlined" />
+      )}
       onChange={changeHandler}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
       value={props.selectedModelType || null}

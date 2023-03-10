@@ -68,7 +68,6 @@ const useStyles = makeStyles(theme => ({
 
 const DEFAULT_MODEL_TYPE_KEY = 'defaultModelType'
 const DEFAULT_FIRE_CENTER_KEY = 'preferredMoreCast2FireCenter'
-const DEFAULT_MODEL_TYPE: ModelType = ModelChoice.HRDPS
 
 const MoreCast2Page = () => {
   const classes = useStyles()
@@ -81,7 +80,7 @@ const MoreCast2Page = () => {
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
   const [selectedStations, setSelectedStations] = useState<FireCenterStation[]>([])
   const [modelType, setModelType] = useState<ModelType>(
-    (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE
+    (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE_KEY
   )
 
   const startDateTime = DateTime.now().startOf('day')
