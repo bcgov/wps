@@ -97,7 +97,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       type: 'number',
       width: 120,
       renderCell: (params: GridRenderCellParams) => (
-        <TextField size="small" label={props.modelType} value={params.value}></TextField>
+        <TextField size="small" label={params.row[field].choice} value={params.row[field].value}></TextField>
       ),
       valueFormatter: (params: GridValueFormatterParams) => predictionItemValueFormatter(params, precision),
       valueGetter: (params: GridValueGetterParams) => predictionItemValueGetter(params, precision),
