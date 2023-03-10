@@ -20,6 +20,7 @@ const WeatherModelDropdown = (props: WeatherModelDropdownProps) => {
 
   return (
     <Autocomplete
+      sx={{ minWidth: 280 }}
       data-testid={`weather-model-dropdown`}
       options={props.weatherModelOptions}
       renderInput={params => (

@@ -13,7 +13,7 @@ export interface ApplyFunctionMenuItemProps {
 const ApplyToColumnMenu = ({ colDef }: ApplyFunctionMenuItemProps) => {
   const [selectedColumnModel, setSelectedColumnModel] = React.useState<ModelType>(DEFAULT_MODEL_TYPE)
   return (
-    <FormControl size="medium">
+    <FormControl>
       <Grid container direction={'column'} alignContent="center" alignItems={'center'} spacing={1} rowSpacing={1}>
         <Grid item>
           <WeatherModelDropdown

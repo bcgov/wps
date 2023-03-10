@@ -146,7 +146,16 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
           }
         }}
       >
-        <MenuItem>
+        <MenuItem
+          sx={{
+            '&:hover': {
+              backgroundColor: 'transparent' // remove the background color on hover
+            },
+            '&.Mui-selected': {
+              backgroundColor: 'transparent' // remove the background color when selected
+            }
+          }}
+        >
           <ApplyToColumnMenu colDef={clickedColDef} />
         </MenuItem>
       </Menu>
