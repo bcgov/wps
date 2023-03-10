@@ -212,9 +212,7 @@ const MoreCast2Page = () => {
               </FormControl>
             </Grid>
             <Grid item xs={3}>
-              <FormControl className={classes.formControl}>
-                <MoreCase2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
-              </FormControl>
+              <MoreCase2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
             </Grid>
             <Grid item xs={2}>
               <FormControl className={classes.actionButtonContainer}>

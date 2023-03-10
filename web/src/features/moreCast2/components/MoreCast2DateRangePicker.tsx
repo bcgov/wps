@@ -1,6 +1,7 @@
-import { createTheme, ThemeProvider, StyledEngineProvider } from '@mui/material'
+import { createTheme, ThemeProvider, StyledEngineProvider, Box } from '@mui/material'
 import { DateRange } from 'components/dateRangePicker/types'
 import { DateTime } from 'luxon'
+import makeStyles from '@mui/styles/makeStyles'
 import React from 'react'
 import DateRangeSelector from 'components/DateRangeSelector'
 
@@ -40,9 +41,16 @@ export const dateRangePickerTheme = createTheme({
   }
 })
 
+const useStyles = makeStyles(theme => ({
+  container: {
+    margin: theme.spacing(1)
+  }
+}))
+
 const MoreCase2DateRangePicker = ({ dateRange, setDateRange }: MoreCase2DateRangePickerProps) => {
+  const classes = useStyles()
   return (
-    <React.Fragment>
+    <Box className={classes.container}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={dateRangePickerTheme}>
           <DateRangeSelector
@@ -57,7 +65,7 @@ const MoreCase2DateRangePicker = ({ dateRange, setDateRange }: MoreCase2DateRang
           />
         </ThemeProvider>
       </StyledEngineProvider>
-    </React.Fragment>
+    </Box>
   )
 }
 

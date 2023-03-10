@@ -28,6 +28,7 @@ const DateRangeSelector = ({ dateRange, dateDisplayFormat, size, label, setDateR
     <React.Fragment>
       <TextField
         data-testid="date-range-picker-text-field"
+        sx={{ minWidth: 280 }}
         size={size}
         variant="outlined"
         disabled={true}

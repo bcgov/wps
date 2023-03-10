@@ -28,15 +28,13 @@ const DateRangePickerWrapper: React.FunctionComponent<DateRangePickerWrapperProp
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleKeyPress = (event: any) => event?.key === 'Escape' && handleToggle()
+  const handleKeyPress = (event: any) => open && event?.key === 'Escape' && handleToggle()
 
   const minDate = initialDateRange.startDate || new Date()
   const maxDate = DateTime.fromJSDate(minDate).plus({ days: 10 }).toJSDate()
 
   return (
-    <div data-testid="date-range-picker-wrapper">
-      {open && <div onKeyDown={handleKeyPress} onClick={handleToggle} />}
-
+    <div data-testid="date-range-picker-wrapper" onKeyDown={handleKeyPress}>
       <div>
         <DateRangePicker {...props} minDate={minDate} maxDate={maxDate} maxDayOffset={maxDayOffset} />
       </div>
