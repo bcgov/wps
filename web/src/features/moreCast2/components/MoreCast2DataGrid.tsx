@@ -188,7 +188,11 @@ const MoreCast2DataGrid = ({ rows, setRows, fromTo }: MoreCast2DataGridProps) =>
             }
           }}
         >
-          <ApplyToColumnMenu colDef={clickedColDef} updateColumnWithModel={updateColumnWithModel} />
+          <ApplyToColumnMenu
+            colDef={clickedColDef}
+            handleClose={handleClose}
+            updateColumnWithModel={updateColumnWithModel}
+          />
         </MenuItem>
       </Menu>
     </div>

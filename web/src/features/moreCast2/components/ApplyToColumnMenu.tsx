@@ -10,9 +10,10 @@ export interface ApplyFunctionMenuItemProps {
   testId?: string
   colDef: GridColDef | null
   updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
+  handleClose: () => void
 }
 
-const ApplyToColumnMenu = ({ colDef, updateColumnWithModel }: ApplyFunctionMenuItemProps) => {
+const ApplyToColumnMenu = ({ colDef, handleClose, updateColumnWithModel }: ApplyFunctionMenuItemProps) => {
   const [selectedColumnModel, setSelectedColumnModel] = React.useState<ModelType>(DEFAULT_MODEL_TYPE)
   return (
     <FormControl>
@@ -33,6 +34,7 @@ const ApplyToColumnMenu = ({ colDef, updateColumnWithModel }: ApplyFunctionMenuI
             onClick={() => {
               if (!isNull(colDef)) {
                 updateColumnWithModel(selectedColumnModel, colDef)
+                handleClose()
               }
             }}
           >
