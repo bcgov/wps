@@ -4,13 +4,15 @@ import { Button, FormControl, Grid } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import { ModelChoices, DEFAULT_MODEL_TYPE, ModelType, ModelChoice } from 'api/moreCast2API'
+import { isNull } from 'lodash'
 
 export interface ApplyFunctionMenuItemProps {
   testId?: string
   colDef: GridColDef | null
+  updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
 }
 
-const ApplyToColumnMenu = ({ colDef }: ApplyFunctionMenuItemProps) => {
+const ApplyToColumnMenu = ({ colDef, updateColumnWithModel }: ApplyFunctionMenuItemProps) => {
   const [selectedColumnModel, setSelectedColumnModel] = React.useState<ModelType>(DEFAULT_MODEL_TYPE)
   return (
     <FormControl>
@@ -29,7 +31,9 @@ const ApplyToColumnMenu = ({ colDef }: ApplyFunctionMenuItemProps) => {
             data-testid={'apply-model-to-column-button'}
             startIcon={<SaveIcon />}
             onClick={() => {
-              console.log('Applied')
+              if (!isNull(colDef)) {
+                updateColumnWithModel(selectedColumnModel, colDef)
+              }
             }}
           >
             Apply {selectedColumnModel} to {colDef ? colDef.headerName : 'column'}

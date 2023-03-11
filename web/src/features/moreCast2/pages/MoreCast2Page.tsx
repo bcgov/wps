@@ -219,7 +219,7 @@ const MoreCast2Page = () => {
               </FormControl>
             </Grid>
           </Grid>
-          <MoreCast2DataGrid modelType={modelType} rows={forecastRows} />
+          <MoreCast2DataGrid fromTo={fromTo} modelType={modelType} rows={forecastRows} setRows={setForecastRows} />
         </div>
       </div>
     </div>

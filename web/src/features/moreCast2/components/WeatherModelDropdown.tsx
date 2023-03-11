@@ -22,6 +22,7 @@ const WeatherModelDropdown = (props: WeatherModelDropdownProps) => {
     <Autocomplete
       sx={{ minWidth: 280 }}
       data-testid={`weather-model-dropdown`}
+      disableClearable
       options={props.weatherModelOptions}
       renderInput={params => (
         <TextField {...params} label={props.label ? props.label : 'Select Default Weather Model'} variant="outlined" />

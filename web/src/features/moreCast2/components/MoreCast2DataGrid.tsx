@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   DataGrid,
@@ -13,13 +13,19 @@ import { DateTime } from 'luxon'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { LinearProgress, Menu, MenuItem, TextField } from '@mui/material'
-import { useSelector } from 'react-redux'
-import { selectMorecast2TableLoading } from 'app/rootReducer'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectColumnModelStationPredictions, selectMorecast2TableLoading } from 'app/rootReducer'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
+import { AppDispatch } from 'app/store'
+import { isNull } from 'lodash'
+import { getColumnModelStationPredictions } from 'features/moreCast2/slices/columnModelSlice'
+import { DateRange } from 'components/dateRangePicker/types'
 
 interface MoreCast2DataGridProps {
+  fromTo: DateRange
   modelType: ModelType
   rows: MoreCast2ForecastRow[]
+  setRows: React.Dispatch<React.SetStateAction<MoreCast2ForecastRow[]>>
 }
 
 const useStyles = makeStyles({
@@ -31,19 +37,39 @@ const useStyles = makeStyles({
 
 const NOT_AVAILABLE = 'N/A'
 
-const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
+const MoreCast2DataGrid = ({ rows, setRows, fromTo }: MoreCast2DataGridProps) => {
   const classes = useStyles()
-  const { rows } = props
-  const [currentRows, setRows] = React.useState(rows)
+  const dispatch: AppDispatch = useDispatch()
+
+  const { stationPredictions, colField } = useSelector(selectColumnModelStationPredictions)
   const [clickedColDef, setClickedColDef] = React.useState<GridColDef | null>(null)
-  if (rows !== currentRows) {
-    setRows(rows)
+  const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
+    dispatch(
+      getColumnModelStationPredictions(
+        rows.map(r => r.stationCode),
+        modelType,
+        colDef,
+        DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate(),
+        DateTime.fromJSDate(fromTo.endDate ? fromTo.endDate : new Date()).toISODate()
+      )
+    )
   }
 
   const [contextMenu, setContextMenu] = React.useState<{
     mouseX: number
     mouseY: number
   } | null>(null)
+
+  useEffect(() => {
+    if (!isNull(colField)) {
+      const newRows = rows.map(r => ({ ...r }))
+      newRows.forEach(row => {
+        // @ts-ignore
+        row[colField as keyof MoreCast2ForecastRow] = 42
+      })
+      setRows(newRows)
+    }
+  }, [stationPredictions, colField]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
     setClickedColDef(params.colDef)
@@ -97,7 +123,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
       type: 'number',
       width: 120,
       renderCell: (params: GridRenderCellParams) => (
-        <TextField size="small" label={params.row[field].choice} value={params.row[field].value}></TextField>
+        <TextField size="small" label={params.row[field].choice} value={params.formattedValue}></TextField>
       ),
       valueFormatter: (params: GridValueFormatterParams) => predictionItemValueFormatter(params, precision),
       valueGetter: (params: GridValueGetterParams) => predictionItemValueGetter(params, precision),
@@ -135,7 +161,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
         onColumnHeaderClick={handleColumnHeaderClick}
         loading={loading}
         columns={columns}
-        rows={currentRows}
+        rows={rows}
       ></DataGrid>
       <Menu
         open={contextMenu !== null}
@@ -162,7 +188,7 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
             }
           }}
         >
-          <ApplyToColumnMenu colDef={clickedColDef} />
+          <ApplyToColumnMenu colDef={clickedColDef} updateColumnWithModel={updateColumnWithModel} />
         </MenuItem>
       </Menu>
     </div>
