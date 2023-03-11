@@ -11,7 +11,7 @@ import {
 } from '@mui/x-data-grid'
 import { DateTime } from 'luxon'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow, PredictionItem } from 'features/moreCast2/interfaces'
 import { LinearProgress, Menu, MenuItem, TextField } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectColumnModelStationPredictions, selectMorecast2TableLoading } from 'app/rootReducer'
@@ -41,7 +41,7 @@ const MoreCast2DataGrid = ({ rows, setRows, fromTo }: MoreCast2DataGridProps) =>
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
 
-  const { stationPredictions, colField } = useSelector(selectColumnModelStationPredictions)
+  const { stationPredictions, colField, modelType } = useSelector(selectColumnModelStationPredictions)
   const [clickedColDef, setClickedColDef] = React.useState<GridColDef | null>(null)
   const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
     dispatch(
@@ -61,15 +61,16 @@ const MoreCast2DataGrid = ({ rows, setRows, fromTo }: MoreCast2DataGridProps) =>
   } | null>(null)
 
   useEffect(() => {
-    if (!isNull(colField)) {
+    if (!isNull(colField) && !isNull(modelType)) {
       const newRows = rows.map(r => ({ ...r }))
+      const predictionItem: PredictionItem = { value: 42, choice: modelType }
       newRows.forEach(row => {
         // @ts-ignore
-        row[colField as keyof MoreCast2ForecastRow] = 42
+        row[colField as keyof MoreCast2ForecastRow] = { ...predictionItem }
       })
       setRows(newRows)
     }
-  }, [stationPredictions, colField]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [stationPredictions, colField, modelType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
     setClickedColDef(params.colDef)

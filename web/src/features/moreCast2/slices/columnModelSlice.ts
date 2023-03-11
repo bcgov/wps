@@ -1,6 +1,6 @@
 import { GridColDef } from '@mui/x-data-grid'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { ModelType, getModelPredictions, StationPrediction, ModelChoice } from 'api/moreCast2API'
+import { ModelType, getModelPredictions, StationPrediction } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 
@@ -8,7 +8,7 @@ interface State {
   loading: boolean
   error: string | null
   colField: string | null
-  modelChoice: ModelChoice | null
+  modelType: ModelType | null
   stationPredictions: StationPrediction[]
 }
 
@@ -16,7 +16,7 @@ const initialState: State = {
   loading: false,
   error: null,
   colField: null,
-  modelChoice: null,
+  modelType: null,
   stationPredictions: []
 }
 
@@ -35,11 +35,12 @@ const columnModelSlice = createSlice({
     },
     getColumnModelStationPredictionsSuccess(
       state: State,
-      action: PayloadAction<{ colField: string; predictions: StationPrediction[] }>
+      action: PayloadAction<{ colField: string; modelType: ModelType; predictions: StationPrediction[] }>
     ) {
       state.error = null
       state.stationPredictions = action.payload.predictions
       state.colField = action.payload.colField
+      state.modelType = action.payload.modelType
       state.loading = false
     }
   }
@@ -62,7 +63,13 @@ export const getColumnModelStationPredictions =
       if (stationCodes.length) {
         stationPredictions = await getModelPredictions(stationCodes, model, fromDate, toDate)
       }
-      dispatch(getColumnModelStationPredictionsSuccess({ colField: colDef.field, predictions: stationPredictions }))
+      dispatch(
+        getColumnModelStationPredictionsSuccess({
+          colField: colDef.field,
+          modelType: model,
+          predictions: stationPredictions
+        })
+      )
     } catch (err) {
       dispatch(getColumnModelStationPredictionsFailed((err as Error).toString()))
       logError(err)
