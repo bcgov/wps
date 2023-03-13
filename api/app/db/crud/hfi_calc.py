@@ -21,7 +21,7 @@ def get_fire_weather_stations(session: Session) -> CursorResult:
         .filter(PlanningWeatherStation.is_deleted == False)
 
 
-def get_all_stations(session: Session) -> CursorResult:
+def get_all_stations(session: Session):
     """ Get all known planning weather stations """
     return session.query(PlanningWeatherStation.station_code).all()
 
@@ -32,11 +32,7 @@ def get_fire_centre_station_codes() -> List[int]:
     station_codes = []
     with get_read_session_scope() as session:
         station_query = get_all_stations(session)
-        type1 = type(station_query)
-        print(type1)
         for station in station_query:
-            type2 = type(station)
-            print(type2)
             station_codes.append(int(station._mapping['station_code']))
 
     return station_codes
