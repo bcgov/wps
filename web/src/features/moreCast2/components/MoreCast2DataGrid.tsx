@@ -3,6 +3,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import {
   DataGrid,
   GridColDef,
+  GridColumnHeaderParams,
   GridEventListener,
   GridRenderCellParams,
   GridValueFormatterParams,
@@ -12,12 +13,12 @@ import {
 import { DateTime } from 'luxon'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { MoreCast2ForecastRow, PredictionItem } from 'features/moreCast2/interfaces'
-import { LinearProgress, Menu, MenuItem, TextField } from '@mui/material'
+import { Button, LinearProgress, Menu, MenuItem, TextField } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectColumnModelStationPredictions, selectMorecast2TableLoading } from 'app/rootReducer'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { AppDispatch } from 'app/store'
-import { isNull } from 'lodash'
+import { isEqual, isNull } from 'lodash'
 import { getColumnModelStationPredictions } from 'features/moreCast2/slices/columnModelSlice'
 import { DateRange } from 'components/dateRangePicker/types'
 
@@ -73,8 +74,10 @@ const MoreCast2DataGrid = ({ rows, setRows, fromTo }: MoreCast2DataGridProps) =>
   }, [stationPredictions, colField, modelType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
-    setClickedColDef(params.colDef)
-    setContextMenu(contextMenu === null ? { mouseX: event.clientX, mouseY: event.clientY } : null)
+    if (!isEqual(params.colDef.field, 'stationName') && !isEqual(params.colDef.field, 'forDate')) {
+      setClickedColDef(params.colDef)
+      setContextMenu(contextMenu === null ? { mouseX: event.clientX, mouseY: event.clientY } : null)
+    }
   }
 
   const handleClose = () => {
@@ -123,6 +126,9 @@ const MoreCast2DataGrid = ({ rows, setRows, fromTo }: MoreCast2DataGridProps) =>
       sortable: false,
       type: 'number',
       width: 120,
+      renderHeader: (params: GridColumnHeaderParams) => {
+        return <Button>{params.colDef.headerName}</Button>
+      },
       renderCell: (params: GridRenderCellParams) => (
         <TextField size="small" label={params.row[field].choice} value={params.formattedValue}></TextField>
       ),
