@@ -140,7 +140,7 @@ const MoreCast2Page = () => {
       localStorage.setItem(DEFAULT_FIRE_CENTER_KEY, fireCenter.id.toString())
     }
 
-    setSelectedStations(fireCenter?.stations || [])
+    setSelectedStations(fireCenter?.stations ? fireCenter.stations.slice(0, 1) : [])
     fetchStationPredictions()
   }, [fireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
 
