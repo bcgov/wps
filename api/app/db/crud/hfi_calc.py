@@ -32,7 +32,11 @@ def get_fire_centre_station_codes() -> List[int]:
     station_codes = []
     with get_read_session_scope() as session:
         station_query = get_all_stations(session)
+        type1 = type(station_query)
+        print(type1)
         for station in station_query:
+            type2 = type(station)
+            print(type2)
             station_codes.append(int(station._mapping['station_code']))
 
     return station_codes
