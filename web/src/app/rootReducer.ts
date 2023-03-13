@@ -27,6 +27,7 @@ import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInf
 import modelSlice from 'features/moreCast2/slices/modelSlice'
 import yesterdayDailiesSlice from 'features/moreCast2/slices/yesterdayDailiesSlice'
 import columnModelSlice from 'features/moreCast2/slices/columnModelSlice'
+import columnYesterdaySlice from 'features/moreCast2/slices/columnYesterdaySlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -56,6 +57,7 @@ const rootReducer = combineReducers({
   fireZoneElevationInfo: fireZoneElevationInfoSlice,
   stationPredictions: modelSlice,
   columnStationPredictions: columnModelSlice,
+  columnYesterdayDailies: columnYesterdaySlice,
   yesterdayDailies: yesterdayDailiesSlice
 })
 
@@ -93,8 +95,12 @@ export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneE
 export const selectModelStationPredictions = (state: RootState) => state.stationPredictions
 export const selectYesterdayDailies = (state: RootState) => state.yesterdayDailies
 export const selectColumnModelStationPredictions = (state: RootState) => state.columnStationPredictions
+export const selectColumnYesterdayDailies = (state: RootState) => state.columnYesterdayDailies
 export const selectMorecast2TableLoading = (state: RootState) =>
-  state.yesterdayDailies.loading || state.stationPredictions.loading || state.columnStationPredictions.loading
+  state.yesterdayDailies.loading ||
+  state.stationPredictions.loading ||
+  state.columnStationPredictions.loading ||
+  state.columnYesterdayDailies.loading
 
 export const selectWxDataLoading = (state: RootState): boolean =>
   state.observations.loading ||

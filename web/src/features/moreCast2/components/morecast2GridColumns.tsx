@@ -10,6 +10,15 @@ import {
 } from '@mui/x-data-grid'
 import { DateTime } from 'luxon'
 import { ModelChoice } from 'api/moreCast2API'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
+import { fillInTheModelBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
+import { ColYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
+import {
+  fillInTheYesterdayDailyBlanks,
+  parseYesterdayDailiesForStationsHelper
+} from 'features/moreCast2/yesterdayDailies'
+import { FireCenterStation } from 'api/fbaAPI'
 
 const NOT_AVAILABLE = 'N/A'
 
@@ -272,3 +281,62 @@ export const MORECAST2_GRID_COLUMNS: ForecastField[] = [
   WindSpeedForecastField.getInstance(),
   PrecipForecastField.getInstance()
 ]
+
+export const replaceColumnValuesFromPrediction = (
+  existingRows: MoreCast2ForecastRow[],
+  fireCentreStations: FireCenterStation[],
+  dateInterval: string[],
+  colPrediction: ColPrediction
+) => {
+  const filledIn = fillInTheModelBlanks(
+    fireCentreStations,
+    colPrediction.stationPredictions,
+    dateInterval,
+    colPrediction.modelType
+  )
+  const morecast2ForecastRows = parseModelsForStationsHelper(filledIn)
+
+  return existingRows.flatMap(row => {
+    const newPred = morecast2ForecastRows.find(pred => pred.id === row.id)
+    if (newPred) {
+      return {
+        ...row,
+        [colPrediction.colField]: newPred[colPrediction.colField]
+      }
+    } else {
+      return {
+        ...row,
+        [colPrediction.colField]: { value: NaN, choice: colPrediction.modelType }
+      }
+    }
+  })
+}
+
+export const replaceColumnValuesFromYesterdayDaily = (
+  existingRows: MoreCast2ForecastRow[],
+  fireCentreStations: FireCenterStation[],
+  dateInterval: string[],
+  colYesterdayDaily: ColYesterdayDailies
+) => {
+  const completeDailies = fillInTheYesterdayDailyBlanks(
+    fireCentreStations,
+    colYesterdayDaily.yesterdayDailies,
+    dateInterval
+  )
+  const morecast2ForecastRows = parseYesterdayDailiesForStationsHelper(completeDailies)
+
+  return existingRows.flatMap(row => {
+    const newPred = morecast2ForecastRows.find(pred => pred.id === row.id)
+    if (newPred) {
+      return {
+        ...row,
+        [colYesterdayDaily.colField]: newPred[colYesterdayDaily.colField]
+      }
+    } else {
+      return {
+        ...row,
+        [colYesterdayDaily.colField]: { value: NaN, choice: colYesterdayDaily.modelType }
+      }
+    }
+  })
+}

@@ -1,8 +1,17 @@
 import { difference, differenceWith, groupBy, isEmpty, isEqual, isNumber, sortBy } from 'lodash'
 import { DateTime } from 'luxon'
-import { ModelChoice, YesterdayDaily } from 'api/moreCast2API'
+import { ModelChoice, YesterdayDaily, YesterdayDailyResponse } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { FireCenterStation } from 'api/fbaAPI'
+import { rowIDHasher } from 'features/moreCast2/util'
+
+export const parseYesterdayDailiesFromResponse = (
+  yesterdayDailiesResponse: YesterdayDailyResponse[]
+): YesterdayDaily[] =>
+  yesterdayDailiesResponse.map(daily => ({
+    ...daily,
+    id: rowIDHasher(daily.station_code, daily.utcTimestamp)
+  }))
 
 export const parseYesterdayDailiesForStationsHelper = (yesterdayDailies: YesterdayDaily[]): MoreCast2ForecastRow[] => {
   const rows: MoreCast2ForecastRow[] = []
@@ -92,7 +101,7 @@ export const extendDailiesForStations = (yesterdayDailies: YesterdayDaily[], exp
     const yesterdayDaily = dailies[0]
     const missingDailies: YesterdayDaily[] = missingDates.map(date => ({
       ...yesterdayDaily,
-      id: window.crypto.randomUUID(),
+      id: rowIDHasher(yesterdayDaily.station_code, date.toISO()),
       utcTimestamp: date.toISO()
     }))
     yesterdayDailiesByStation[stationCode] = [...dailies, ...missingDailies]
@@ -119,7 +128,7 @@ export const defaultsForMissingDailies = (
 
   const missingYesterdayDailies: YesterdayDaily[] = missingStations.flatMap(station =>
     dateInterval.map(date => ({
-      id: window.crypto.randomUUID(),
+      id: rowIDHasher(station.code, date),
       station_code: station.code,
       station_name: station.name,
       utcTimestamp: date,

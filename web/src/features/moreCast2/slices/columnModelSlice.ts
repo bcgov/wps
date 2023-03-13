@@ -1,11 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { ModelType, getModelPredictions, StationPrediction } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { ColField, MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { rowIDHasher } from 'features/moreCast2/util'
 import { logError } from 'utils/error'
 
 export interface ColPrediction {
-  colField: keyof MoreCast2ForecastRow
+  colField: ColField
   modelType: ModelType
   stationPredictions: StationPrediction[]
 }
@@ -34,14 +35,7 @@ const columnModelSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getColumnModelStationPredictionsSuccess(
-      state: State,
-      action: PayloadAction<{
-        colField: keyof MoreCast2ForecastRow
-        modelType: ModelType
-        stationPredictions: StationPrediction[]
-      }>
-    ) {
+    getColumnModelStationPredictionsSuccess(state: State, action: PayloadAction<ColPrediction>) {
       state.error = null
       state.colPrediction = action.payload
       state.loading = false
@@ -70,7 +64,10 @@ export const getColumnModelStationPredictions =
       dispatch(getColumnModelStationPredictionsStart())
       let stationPredictions: StationPrediction[] = []
       if (stationCodes.length) {
-        stationPredictions = await getModelPredictions(stationCodes, model, fromDate, toDate)
+        stationPredictions = (await getModelPredictions(stationCodes, model, fromDate, toDate)).map(pred => ({
+          ...pred,
+          id: rowIDHasher(pred.station.code, pred.datetime)
+        }))
       }
       dispatch(
         getColumnModelStationPredictionsSuccess({

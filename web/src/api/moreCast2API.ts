@@ -1,5 +1,6 @@
 import axios from 'api/axios'
 import { Station } from 'api/stationAPI'
+import { rowIDHasher } from 'features/moreCast2/util'
 
 export enum ModelChoice {
   GDPS = 'GDPS',
@@ -78,7 +79,7 @@ export async function getModelPredictions(
     stations: stationCodes
   })
 
-  return data
+  return data.map(d => ({ ...d, id: rowIDHasher(d.station.code, d.datetime) }))
 }
 
 /**

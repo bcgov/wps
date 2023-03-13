@@ -1,0 +1,81 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { FireCenterStation } from 'api/fbaAPI'
+import { ModelType, getYesterdayDailies, YesterdayDaily } from 'api/moreCast2API'
+import { AppThunk } from 'app/store'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { fillInTheYesterdayDailyBlanks, parseYesterdayDailiesFromResponse } from 'features/moreCast2/yesterdayDailies'
+import { logError } from 'utils/error'
+
+export interface ColYesterdayDailies {
+  colField: keyof MoreCast2ForecastRow
+  modelType: ModelType
+  yesterdayDailies: YesterdayDaily[]
+}
+
+interface State {
+  loading: boolean
+  error: string | null
+  colYesterdayDailies: ColYesterdayDailies | null
+}
+
+const initialState: State = {
+  loading: false,
+  error: null,
+  colYesterdayDailies: null
+}
+
+const columnYesterdaySlice = createSlice({
+  name: 'ColumnYesterdaySlice',
+  initialState,
+  reducers: {
+    getColumnYesterdayDailiesStart(state: State) {
+      state.error = null
+      state.loading = true
+    },
+    getColumnYesterdayDailiesFailed(state: State, action: PayloadAction<string>) {
+      state.error = action.payload
+      state.loading = false
+    },
+    getColumnYesterdayDailiessSuccess(state: State, action: PayloadAction<ColYesterdayDailies>) {
+      state.error = null
+      state.colYesterdayDailies = action.payload
+      state.loading = false
+    }
+  }
+})
+
+export const { getColumnYesterdayDailiesStart, getColumnYesterdayDailiesFailed, getColumnYesterdayDailiessSuccess } =
+  columnYesterdaySlice.actions
+
+export default columnYesterdaySlice.reducer
+
+export const getColumnYesterdayDailies =
+  (
+    stationCodes: number[],
+    fireCentreStations: FireCenterStation[],
+    dateInterval: string[],
+    model: ModelType,
+    colField: keyof MoreCast2ForecastRow,
+    fromDate: string
+  ): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getColumnYesterdayDailiesStart())
+      let yesterdayDailies: YesterdayDaily[] = []
+      if (stationCodes.length) {
+        const yesterdayDailiesResponse = await getYesterdayDailies(stationCodes, fromDate)
+        const dailies: YesterdayDaily[] = parseYesterdayDailiesFromResponse(yesterdayDailiesResponse)
+        yesterdayDailies = fillInTheYesterdayDailyBlanks(fireCentreStations, dailies, dateInterval)
+      }
+      dispatch(
+        getColumnYesterdayDailiessSuccess({
+          colField: colField,
+          modelType: model,
+          yesterdayDailies
+        })
+      )
+    } catch (err) {
+      dispatch(getColumnYesterdayDailiesFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
