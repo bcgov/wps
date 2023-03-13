@@ -7,6 +7,7 @@ Create Date: 2022-02-09 11:14:13.773005
 """
 from alembic import op
 import json
+from sqlalchemy import text
 
 
 # revision identifiers, used by Alembic.
@@ -20,11 +21,12 @@ def get_fuel_type_id(fuel_type):
     # Helper function to get fuel_types.id
     conn = op.get_bind()
     if fuel_type == 'M2_25':
-        cursor = conn.execute("SELECT id FROM fuel_types WHERE abbrev = 'M2' AND percentage_conifer = 25")
+        cursor = conn.execute(text("SELECT id FROM fuel_types WHERE abbrev = 'M2' AND percentage_conifer = 25"))
     else:
-        cursor = conn.execute(f"SELECT id FROM fuel_types WHERE abbrev = '{fuel_type}'")
+        cursor = conn.execute(text("SELECT id FROM fuel_types WHERE abbrev = '{fuel_type}'"))
     result = cursor.fetchall()
     return result[0][0]
+
 
 def upgrade():
     conn = op.get_bind()
@@ -43,7 +45,7 @@ def upgrade():
     for centre in fire_centres:
         for key, values in centre.items():
             fire_centre_name = '\'' + key + '\''
-            res = conn.execute(f"SELECT id FROM fire_centres WHERE name LIKE {fire_centre_name}")
+            res = conn.execute(text(f"SELECT id FROM fire_centres WHERE name LIKE {fire_centre_name}"))
             fire_centre_id = res.fetchall()[0][0]
 
             for area in values['zones']:
@@ -53,7 +55,7 @@ def upgrade():
 
                     op.execute(f"INSERT INTO planning_areas (name, fire_centre_id, order_of_appearance_in_list)\
                         VALUES ({planning_area_name}, {fire_centre_id}, {order})")
-                    result = conn.execute(f"SELECT id FROM planning_areas WHERE name LIKE {planning_area_name}")
+                    result = conn.execute(text("SELECT id FROM planning_areas WHERE name LIKE {planning_area_name}"))
                     planning_area_id = result.fetchall()[0][0]
 
                     for station in area[pa_key]['stations']:
@@ -64,7 +66,6 @@ def upgrade():
                             op.execute(f"INSERT INTO planning_weather_stations (station_code, fuel_type_id,\
                                 planning_area_id, order_of_appearance_in_planning_area_list) VALUES\
                                 ({station_code}, {fuel_type_id}, {planning_area_id}, {station_order})")
-                    
 
 
 def downgrade():
