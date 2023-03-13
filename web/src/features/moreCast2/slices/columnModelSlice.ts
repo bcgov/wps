@@ -1,23 +1,25 @@
-import { GridColDef } from '@mui/x-data-grid'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { ModelType, getModelPredictions, StationPrediction } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { logError } from 'utils/error'
+
+export interface ColPrediction {
+  colField: keyof MoreCast2ForecastRow
+  modelType: ModelType
+  stationPredictions: StationPrediction[]
+}
 
 interface State {
   loading: boolean
   error: string | null
-  colField: string | null
-  modelType: ModelType | null
-  stationPredictions: StationPrediction[]
+  colPrediction: ColPrediction | null
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  colField: null,
-  modelType: null,
-  stationPredictions: []
+  colPrediction: null
 }
 
 const columnModelSlice = createSlice({
@@ -26,7 +28,6 @@ const columnModelSlice = createSlice({
   reducers: {
     getColumnModelStationPredictionsStart(state: State) {
       state.error = null
-      state.stationPredictions = []
       state.loading = true
     },
     getColumnModelStationPredictionsFailed(state: State, action: PayloadAction<string>) {
@@ -35,12 +36,14 @@ const columnModelSlice = createSlice({
     },
     getColumnModelStationPredictionsSuccess(
       state: State,
-      action: PayloadAction<{ colField: string; modelType: ModelType; predictions: StationPrediction[] }>
+      action: PayloadAction<{
+        colField: keyof MoreCast2ForecastRow
+        modelType: ModelType
+        stationPredictions: StationPrediction[]
+      }>
     ) {
       state.error = null
-      state.stationPredictions = action.payload.predictions
-      state.colField = action.payload.colField
-      state.modelType = action.payload.modelType
+      state.colPrediction = action.payload
       state.loading = false
     }
   }
@@ -55,7 +58,13 @@ export const {
 export default columnModelSlice.reducer
 
 export const getColumnModelStationPredictions =
-  (stationCodes: number[], model: ModelType, colDef: GridColDef, fromDate: string, toDate: string): AppThunk =>
+  (
+    stationCodes: number[],
+    model: ModelType,
+    colField: keyof MoreCast2ForecastRow,
+    fromDate: string,
+    toDate: string
+  ): AppThunk =>
   async dispatch => {
     try {
       dispatch(getColumnModelStationPredictionsStart())
@@ -65,9 +74,9 @@ export const getColumnModelStationPredictions =
       }
       dispatch(
         getColumnModelStationPredictionsSuccess({
-          colField: colDef.field,
+          colField: colField,
           modelType: model,
-          predictions: stationPredictions
+          stationPredictions
         })
       )
     } catch (err) {
