@@ -36,7 +36,7 @@ const columnYesterdaySlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getColumnYesterdayDailiessSuccess(state: State, action: PayloadAction<ColYesterdayDailies>) {
+    getColumnYesterdayDailiesSuccess(state: State, action: PayloadAction<ColYesterdayDailies>) {
       state.error = null
       state.colYesterdayDailies = action.payload
       state.loading = false
