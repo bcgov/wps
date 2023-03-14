@@ -12,7 +12,7 @@ export interface ForecastField {
   generateColDef: () => GridColDef
 }
 
-class StationForecastField implements ForecastField {
+export class StationForecastField implements ForecastField {
   private static instance: StationForecastField
 
   readonly field = 'stationName'
@@ -35,7 +35,7 @@ class StationForecastField implements ForecastField {
   }
 }
 
-class DateForecastField implements ForecastField {
+export class DateForecastField implements ForecastField {
   private static instance: DateForecastField
 
   readonly field = 'forDate'
@@ -68,7 +68,7 @@ class DateForecastField implements ForecastField {
   }
 }
 
-class TempForecastField extends GridNumberRenderer implements ForecastField {
+export class TempForecastField extends GridNumberRenderer implements ForecastField {
   private static instance: TempForecastField
 
   readonly field = 'temp'
@@ -91,7 +91,7 @@ class TempForecastField extends GridNumberRenderer implements ForecastField {
   }
 }
 
-class RHForecastField extends GridNumberRenderer implements ForecastField {
+export class RHForecastField extends GridNumberRenderer implements ForecastField {
   private static instance: RHForecastField
 
   readonly field = 'rh'
@@ -114,7 +114,7 @@ class RHForecastField extends GridNumberRenderer implements ForecastField {
   }
 }
 
-class WindDirForecastField extends GridNumberRenderer implements ForecastField {
+export class WindDirForecastField extends GridNumberRenderer implements ForecastField {
   private static instance: WindDirForecastField
 
   readonly field = 'windDirection'
@@ -137,7 +137,7 @@ class WindDirForecastField extends GridNumberRenderer implements ForecastField {
   }
 }
 
-class WindSpeedForecastField extends GridNumberRenderer implements ForecastField {
+export class WindSpeedForecastField extends GridNumberRenderer implements ForecastField {
   private static instance: WindSpeedForecastField
 
   readonly field = 'windSpeed'
@@ -159,7 +159,7 @@ class WindSpeedForecastField extends GridNumberRenderer implements ForecastField
   }
 }
 
-class PrecipForecastField extends GridNumberRenderer implements ForecastField {
+export class PrecipForecastField extends GridNumberRenderer implements ForecastField {
   private static instance: PrecipForecastField
 
   readonly field = 'precip'
