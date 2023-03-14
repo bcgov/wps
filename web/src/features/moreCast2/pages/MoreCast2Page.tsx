@@ -5,7 +5,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
-import { ModelChoice, ModelChoices, ModelType } from 'api/moreCast2API'
+import { DEFAULT_MODEL_TYPE, ModelChoice, ModelChoices, ModelType } from 'api/moreCast2API'
 import {
   selectAuthentication,
   selectFireCenters,
@@ -80,7 +80,7 @@ const MoreCast2Page = () => {
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
   const [selectedStations, setSelectedStations] = useState<FireCenterStation[]>([])
   const [modelType, setModelType] = useState<ModelType>(
-    (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE_KEY
+    (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE
   )
 
   const startDateTime = DateTime.now().startOf('day')
