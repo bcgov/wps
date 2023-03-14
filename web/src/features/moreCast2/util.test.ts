@@ -1,12 +1,16 @@
 import { DateTime } from 'luxon'
 import { ModelChoice, StationPrediction } from 'api/moreCast2API'
-import { createDateInterval, fillInTheModelBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
+import {
+  createDateInterval,
+  fillInTheModelBlanks,
+  parseModelsForStationsHelper,
+  rowIDHasher
+} from 'features/moreCast2/util'
 
 const TEST_NUMBER = 7
 const TEST_MODEL = ModelChoice.HRDPS
 const TEST_DATE = '2023-02-16T20:00:00+00:00'
 const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
-const TEST_ID = 'test'
 const TEST_CODE = 209
 const TEST_NAME = 'Victoria'
 
@@ -17,7 +21,7 @@ const createStationPredictionArray = (predictionValue: number | null) => {
     bias_adjusted_temperature: predictionValue,
     datetime: TEST_DATE,
     precip_24hours: predictionValue,
-    id: TEST_ID,
+    id: rowIDHasher(TEST_CODE, TEST_DATE),
     relative_humidity: predictionValue,
     station: {
       code: TEST_CODE,
@@ -52,7 +56,6 @@ describe('parseModelsForStationHelper', () => {
     expect(result).toBeDefined()
     expect(result.length).toEqual(1)
     expect(result[0].forDate).toEqual(DateTime.fromISO(TEST_DATE))
-    expect(result[0].id).toEqual(TEST_ID)
     expect(result[0].precip.value).toEqual(TEST_NUMBER)
     expect(result[0].precip.choice).toEqual(TEST_MODEL)
     expect(result[0].rh.value).toEqual(TEST_NUMBER)
@@ -72,7 +75,6 @@ describe('parseModelsForStationHelper', () => {
     expect(result).toBeDefined()
     expect(result.length).toEqual(1)
     expect(result[0].forDate).toEqual(DateTime.fromISO(TEST_DATE))
-    expect(result[0].id).toEqual(TEST_ID)
     expect(result[0].precip.value).toEqual(NaN)
     expect(result[0].rh.value).toEqual(NaN)
     expect(result[0].temp.value).toEqual(NaN)
