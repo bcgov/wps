@@ -92,6 +92,9 @@ const MoreCast2DataGrid = ({
             },
             '&.Mui-selected': {
               backgroundColor: 'transparent' // remove the background color when selected
+            },
+            '&.Mui-focusVisible': {
+              backgroundColor: 'transparent' // remove the background color when fovused
             }
           }}
         >
