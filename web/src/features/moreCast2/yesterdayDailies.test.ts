@@ -102,15 +102,12 @@ describe('yesterdayDailies', () => {
   })
   describe('replaceColumnValuesFromPrediction', () => {
     it('should replace the correct row', () => {
-      const TEST_DATE = '2023-02-16T20:00:00+00:00'
-      const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
-
       const existingRows: MoreCast2ForecastRow[] = [
         {
-          id: rowIDHasher(1, TEST_DATE),
+          id: rowIDHasher(1, START_DATE),
           stationCode: 1,
           stationName: 'one',
-          forDate: DateTime.fromISO(TEST_DATE),
+          forDate: DateTime.fromISO(START_DATE),
           temp: { value: 1, choice: ModelChoice.GDPS },
           rh: { value: 1, choice: ModelChoice.GDPS },
           precip: { value: 1, choice: ModelChoice.GDPS },
@@ -118,10 +115,10 @@ describe('yesterdayDailies', () => {
           windDirection: { value: 1, choice: ModelChoice.GDPS }
         },
         {
-          id: rowIDHasher(2, TEST_DATE2),
+          id: rowIDHasher(2, END_DATE),
           stationCode: 2,
           stationName: 'two',
-          forDate: DateTime.fromISO(TEST_DATE2),
+          forDate: DateTime.fromISO(END_DATE),
           temp: { value: 1, choice: ModelChoice.GDPS },
           rh: { value: 1, choice: ModelChoice.GDPS },
           precip: { value: 1, choice: ModelChoice.GDPS },
@@ -135,8 +132,8 @@ describe('yesterdayDailies', () => {
         modelType: 'YESTERDAY',
         yesterdayDailies: [
           {
-            id: rowIDHasher(1, TEST_DATE),
-            utcTimestamp: TEST_DATE,
+            id: rowIDHasher(1, START_DATE),
+            utcTimestamp: START_DATE,
             precipitation: 2,
             relative_humidity: 2,
             station_code: 1,
@@ -146,8 +143,8 @@ describe('yesterdayDailies', () => {
             wind_speed: 2
           },
           {
-            id: rowIDHasher(2, TEST_DATE2),
-            utcTimestamp: TEST_DATE2,
+            id: rowIDHasher(2, END_DATE),
+            utcTimestamp: END_DATE,
             precipitation: 2,
             relative_humidity: 2,
             station_code: 2,
@@ -164,14 +161,14 @@ describe('yesterdayDailies', () => {
           { code: 1, name: 'one' },
           { code: 2, name: 'two' }
         ],
-        [TEST_DATE, TEST_DATE2],
+        [START_DATE, END_DATE],
         colPrediction
       )
       expect(result).toHaveLength(2)
       expect(result[0].id).toEqual(existingRows[0].id)
       expect(result[0].stationCode).toEqual(existingRows[0].stationCode)
       expect(result[0].stationName).toEqual(existingRows[0].stationName)
-      expect(result[0].forDate).toEqual(DateTime.fromISO(TEST_DATE))
+      expect(result[0].forDate.toISO()).toEqual(DateTime.fromISO(START_DATE).toISO())
       expect(result[0].temp).toEqual({ value: 2, choice: ModelChoice.YESTERDAY })
 
       // Other rows remain unchanged
@@ -183,7 +180,7 @@ describe('yesterdayDailies', () => {
       expect(result[1].id).toEqual(existingRows[1].id)
       expect(result[1].stationCode).toEqual(existingRows[1].stationCode)
       expect(result[1].stationName).toEqual(existingRows[1].stationName)
-      expect(result[1].forDate).toEqual(DateTime.fromISO(TEST_DATE2))
+      expect(result[1].forDate).toEqual(DateTime.fromISO(END_DATE))
       expect(result[1].temp).toEqual({ value: 2, choice: ModelChoice.YESTERDAY })
 
       // Other rows remain unchanged

@@ -46,6 +46,31 @@ const createStationPredictionArray = (predictionValue: number | null) => {
   return [stationPrediction]
 }
 
+export const generateExistingRows = (): MoreCast2ForecastRow[] => [
+  {
+    id: rowIDHasher(1, TEST_DATE),
+    stationCode: 1,
+    stationName: 'one',
+    forDate: DateTime.fromISO(TEST_DATE),
+    temp: { value: 1, choice: ModelChoice.GDPS },
+    rh: { value: 1, choice: ModelChoice.GDPS },
+    precip: { value: 1, choice: ModelChoice.GDPS },
+    windSpeed: { value: 1, choice: ModelChoice.GDPS },
+    windDirection: { value: 1, choice: ModelChoice.GDPS }
+  },
+  {
+    id: rowIDHasher(2, TEST_DATE2),
+    stationCode: 2,
+    stationName: 'two',
+    forDate: DateTime.fromISO(TEST_DATE2),
+    temp: { value: 1, choice: ModelChoice.GDPS },
+    rh: { value: 1, choice: ModelChoice.GDPS },
+    precip: { value: 1, choice: ModelChoice.GDPS },
+    windSpeed: { value: 1, choice: ModelChoice.GDPS },
+    windDirection: { value: 1, choice: ModelChoice.GDPS }
+  }
+]
+
 describe('parseModelsForStationHelper', () => {
   it('should return an empty array when length of stationPredictions array is zero', () => {
     const stationPredictions: StationPrediction[] = []
@@ -159,30 +184,7 @@ describe('rowIDHasher', () => {
 
 describe('replaceColumnValuesFromPrediction', () => {
   it('should replace the correct row', () => {
-    const existingRows: MoreCast2ForecastRow[] = [
-      {
-        id: rowIDHasher(1, TEST_DATE),
-        stationCode: 1,
-        stationName: 'one',
-        forDate: DateTime.fromISO(TEST_DATE),
-        temp: { value: 1, choice: ModelChoice.GDPS },
-        rh: { value: 1, choice: ModelChoice.GDPS },
-        precip: { value: 1, choice: ModelChoice.GDPS },
-        windSpeed: { value: 1, choice: ModelChoice.GDPS },
-        windDirection: { value: 1, choice: ModelChoice.GDPS }
-      },
-      {
-        id: rowIDHasher(2, TEST_DATE2),
-        stationCode: 2,
-        stationName: 'two',
-        forDate: DateTime.fromISO(TEST_DATE2),
-        temp: { value: 1, choice: ModelChoice.GDPS },
-        rh: { value: 1, choice: ModelChoice.GDPS },
-        precip: { value: 1, choice: ModelChoice.GDPS },
-        windSpeed: { value: 1, choice: ModelChoice.GDPS },
-        windDirection: { value: 1, choice: ModelChoice.GDPS }
-      }
-    ]
+    const existingRows: MoreCast2ForecastRow[] = generateExistingRows()
 
     const colPrediction: ColPrediction = {
       colField: 'temp',
