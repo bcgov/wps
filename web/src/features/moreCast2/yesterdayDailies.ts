@@ -4,6 +4,7 @@ import { ModelChoice, YesterdayDaily, YesterdayDailyResponse } from 'api/moreCas
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { FireCenterStation } from 'api/fbaAPI'
 import { rowIDHasher } from 'features/moreCast2/util'
+import { ColYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
 
 export const parseYesterdayDailiesFromResponse = (
   yesterdayDailiesResponse: YesterdayDailyResponse[]
@@ -140,4 +141,33 @@ export const defaultsForMissingDailies = (
     }))
   )
   return missingYesterdayDailies
+}
+
+export const replaceColumnValuesFromYesterdayDaily = (
+  existingRows: MoreCast2ForecastRow[],
+  fireCentreStations: FireCenterStation[],
+  dateInterval: string[],
+  colYesterdayDaily: ColYesterdayDailies
+) => {
+  const completeDailies = fillInTheYesterdayDailyBlanks(
+    fireCentreStations,
+    colYesterdayDaily.yesterdayDailies,
+    dateInterval
+  )
+  const morecast2ForecastRows = parseYesterdayDailiesForStationsHelper(completeDailies)
+
+  return existingRows.flatMap(row => {
+    const newPred = morecast2ForecastRows.find(pred => pred.id === row.id)
+    if (newPred) {
+      return {
+        ...row,
+        [colYesterdayDaily.colField]: newPred[colYesterdayDaily.colField]
+      }
+    } else {
+      return {
+        ...row,
+        [colYesterdayDaily.colField]: { value: NaN, choice: colYesterdayDaily.modelType }
+      }
+    }
+  })
 }

@@ -146,3 +146,10 @@ describe('createDateInterval', () => {
     expect(result.length).toEqual(0)
   })
 })
+
+describe('rowIDHasher', () => {
+  it('should station code and timestamp as ID', () => {
+    const result = rowIDHasher(TEST_CODE, TEST_DATE)
+    expect(result).toEqual(`${TEST_CODE}${TEST_DATE}`)
+  })
+})

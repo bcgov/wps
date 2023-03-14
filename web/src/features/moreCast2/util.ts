@@ -3,6 +3,7 @@ import { DateTime, Interval } from 'luxon'
 import { FireCenterStation } from 'api/fbaAPI'
 import { ModelType, StationPrediction } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
 
 // Convert the model predictions from the API to a format that can be used by a MoreCast2DataGrid data grid
 export const parseModelsForStationsHelper = (predictions: StationPrediction[]): MoreCast2ForecastRow[] => {
@@ -65,6 +66,36 @@ export const fillInTheModelBlanks = (
   return completeStationPredictions
 }
 
+export const replaceColumnValuesFromPrediction = (
+  existingRows: MoreCast2ForecastRow[],
+  fireCentreStations: FireCenterStation[],
+  dateInterval: string[],
+  colPrediction: ColPrediction
+) => {
+  const filledIn = fillInTheModelBlanks(
+    fireCentreStations,
+    colPrediction.stationPredictions,
+    dateInterval,
+    colPrediction.modelType
+  )
+  const morecast2ForecastRows = parseModelsForStationsHelper(filledIn)
+
+  return existingRows.flatMap(row => {
+    const newPred = morecast2ForecastRows.find(pred => pred.id === row.id)
+    if (newPred) {
+      return {
+        ...row,
+        [colPrediction.colField]: newPred[colPrediction.colField]
+      }
+    } else {
+      return {
+        ...row,
+        [colPrediction.colField]: { value: NaN, choice: colPrediction.modelType }
+      }
+    }
+  })
+}
+
 const createEmptyStationPrediction = (
   code: number,
   datetime: string,
@@ -100,6 +131,12 @@ const createEmptyStationPrediction = (
   return prediction
 }
 
+/**
+ * Returns a unique ID by simply concatenating stationCode and timestamp
+ * @param stationCode
+ * @param timestamp
+ * @returns String concatenation of stationCode and timestamp as an ID
+ */
 export const rowIDHasher = (stationCode: number, timestamp: string) => `${stationCode}${timestamp}`
 
 export const createDateInterval = (fromDate: DateTime, toDate: DateTime) => {

@@ -16,13 +16,11 @@ import { AppDispatch } from 'app/store'
 import { isEqual, isNull } from 'lodash'
 import { getColumnModelStationPredictions } from 'features/moreCast2/slices/columnModelSlice'
 import { DateRange } from 'components/dateRangePicker/types'
-import {
-  MORECAST2_GRID_COLUMNS,
-  replaceColumnValuesFromPrediction,
-  replaceColumnValuesFromYesterdayDaily
-} from 'features/moreCast2/components/morecast2GridColumns'
 import { FireCenterStation } from 'api/fbaAPI'
 import { getColumnYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
+import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
+import { replaceColumnValuesFromPrediction } from 'features/moreCast2/util'
+import { replaceColumnValuesFromYesterdayDaily } from 'features/moreCast2/yesterdayDailies'
 
 interface MoreCast2DataGridProps {
   fromTo: DateRange
@@ -105,7 +103,7 @@ const MoreCast2DataGrid = ({ rows, setRows, fromTo, fireCentreStations, dateInte
 
   const loading = useSelector(selectMorecast2TableLoading)
 
-  const columns: GridColDef[] = MORECAST2_GRID_COLUMNS.map(field => field.generateColDef())
+  const columns: GridColDef[] = MORECAST2_FIELDS.map(field => field.generateColDef())
 
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>
