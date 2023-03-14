@@ -1,31 +1,24 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
-import { DateTime } from 'luxon'
-import { ModelChoice, ModelType } from 'api/moreCast2API'
+import { ModelType } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { LinearProgress, Menu, MenuItem } from '@mui/material'
-import { useDispatch, useSelector } from 'react-redux'
-import {
-  selectColumnModelStationPredictions,
-  selectColumnYesterdayDailies,
-  selectMorecast2TableLoading
-} from 'app/rootReducer'
+import { useSelector } from 'react-redux'
+import { selectMorecast2TableLoading } from 'app/rootReducer'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
-import { AppDispatch } from 'app/store'
-import { isEqual, isNull } from 'lodash'
-import { getColumnModelStationPredictions } from 'features/moreCast2/slices/columnModelSlice'
+import { isEqual } from 'lodash'
 import { DateRange } from 'components/dateRangePicker/types'
 import { FireCenterStation } from 'api/fbaAPI'
-import { getColumnYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
 import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
-import { replaceColumnValuesFromPrediction } from 'features/moreCast2/util'
-import { replaceColumnValuesFromYesterdayDaily } from 'features/moreCast2/yesterdayDailies'
 
 interface MoreCast2DataGridProps {
   fromTo: DateRange
   modelType: ModelType
   rows: MoreCast2ForecastRow[]
+  clickedColDef: GridColDef | null
+  setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
+  updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
   fireCentreStations: FireCenterStation[]
   dateInterval: string[]
   setRows: React.Dispatch<React.SetStateAction<MoreCast2ForecastRow[]>>
@@ -38,57 +31,18 @@ const useStyles = makeStyles({
   }
 })
 
-const MoreCast2DataGrid = ({ rows, setRows, fromTo, fireCentreStations, dateInterval }: MoreCast2DataGridProps) => {
+const MoreCast2DataGrid = ({
+  rows,
+  clickedColDef,
+  updateColumnWithModel,
+  setClickedColDef
+}: MoreCast2DataGridProps) => {
   const classes = useStyles()
-  const dispatch: AppDispatch = useDispatch()
-
-  const { colPrediction } = useSelector(selectColumnModelStationPredictions)
-  const { colYesterdayDailies } = useSelector(selectColumnYesterdayDailies)
-
-  const [clickedColDef, setClickedColDef] = React.useState<GridColDef | null>(null)
-  const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
-    if (modelType == ModelChoice.YESTERDAY) {
-      dispatch(
-        getColumnYesterdayDailies(
-          fireCentreStations.map(s => s.code),
-          fireCentreStations,
-          dateInterval,
-          modelType,
-          colDef.field as keyof MoreCast2ForecastRow,
-          DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate()
-        )
-      )
-    } else {
-      dispatch(
-        getColumnModelStationPredictions(
-          fireCentreStations.map(s => s.code),
-          modelType,
-          colDef.field as keyof MoreCast2ForecastRow,
-          DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate(),
-          DateTime.fromJSDate(fromTo.endDate ? fromTo.endDate : new Date()).toISODate()
-        )
-      )
-    }
-  }
 
   const [contextMenu, setContextMenu] = React.useState<{
     mouseX: number
     mouseY: number
   } | null>(null)
-
-  useEffect(() => {
-    if (!isNull(colPrediction)) {
-      const newRows = replaceColumnValuesFromPrediction(rows, fireCentreStations, dateInterval, colPrediction)
-      setRows(newRows)
-    }
-  }, [colPrediction]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!isNull(colYesterdayDailies)) {
-      const newRows = replaceColumnValuesFromYesterdayDaily(rows, fireCentreStations, dateInterval, colYesterdayDailies)
-      setRows(newRows)
-    }
-  }, [colYesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
     if (!isEqual(params.colDef.field, 'stationName') && !isEqual(params.colDef.field, 'forDate')) {

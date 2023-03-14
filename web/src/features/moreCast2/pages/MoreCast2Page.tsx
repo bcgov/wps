@@ -8,6 +8,8 @@ import { FireCenter, FireCenterStation } from 'api/fbaAPI'
 import { DEFAULT_MODEL_TYPE, ModelChoice, ModelChoices, ModelType } from 'api/moreCast2API'
 import {
   selectAuthentication,
+  selectColumnModelStationPredictions,
+  selectColumnYesterdayDailies,
   selectFireCenters,
   selectModelStationPredictions,
   selectYesterdayDailies
@@ -21,16 +23,25 @@ import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDrop
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice'
-import { createDateInterval, fillInTheModelBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
+import {
+  createDateInterval,
+  fillInTheModelBlanks,
+  parseModelsForStationsHelper,
+  replaceColumnValuesFromPrediction
+} from 'features/moreCast2/util'
 import {
   fillInTheYesterdayDailyBlanks,
-  parseYesterdayDailiesForStationsHelper
+  parseYesterdayDailiesForStationsHelper,
+  replaceColumnValuesFromYesterdayDaily
 } from 'features/moreCast2/yesterdayDailies'
 import { getYesterdayStationDailies } from 'features/moreCast2/slices/yesterdayDailiesSlice'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
 import MoreCase2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import { ROLES } from 'features/auth/roles'
 import { DateRange } from 'components/dateRangePicker/types'
+import { GridColDef } from '@mui/x-data-grid'
+import { getColumnModelStationPredictions } from 'features/moreCast2/slices/columnModelSlice'
+import { getColumnYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -95,6 +106,35 @@ const MoreCast2Page = () => {
   >([])
   const [dateInterval, setDateInterval] = useState<string[]>([])
 
+  const { colPrediction } = useSelector(selectColumnModelStationPredictions)
+  const { colYesterdayDailies } = useSelector(selectColumnYesterdayDailies)
+
+  const [clickedColDef, setClickedColDef] = React.useState<GridColDef | null>(null)
+  const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
+    if (modelType == ModelChoice.YESTERDAY) {
+      dispatch(
+        getColumnYesterdayDailies(
+          stationPredictionsAsMoreCast2ForecastRows.map(s => s.stationCode),
+          selectedStations,
+          dateInterval,
+          modelType,
+          colDef.field as keyof MoreCast2ForecastRow,
+          DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate()
+        )
+      )
+    } else {
+      dispatch(
+        getColumnModelStationPredictions(
+          stationPredictionsAsMoreCast2ForecastRows.map(s => s.stationCode),
+          modelType,
+          colDef.field as keyof MoreCast2ForecastRow,
+          DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate(),
+          DateTime.fromJSDate(fromTo.endDate ? fromTo.endDate : new Date()).toISODate()
+        )
+      )
+    }
+  }
+
   const fetchStationPredictions = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
     if (isUndefined(fromTo.startDate) || isUndefined(fromTo.endDate)) {
@@ -120,6 +160,30 @@ const MoreCast2Page = () => {
     document.title = MORE_CAST_2_DOC_TITLE
     fetchStationPredictions()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isNull(colPrediction)) {
+      const newRows = replaceColumnValuesFromPrediction(
+        stationPredictionsAsMoreCast2ForecastRows,
+        selectedStations,
+        dateInterval,
+        colPrediction
+      )
+      setStationPredictionsAsMoreCast2ForecastRows(newRows)
+    }
+  }, [colPrediction]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isNull(colYesterdayDailies)) {
+      const newRows = replaceColumnValuesFromYesterdayDaily(
+        stationPredictionsAsMoreCast2ForecastRows,
+        selectedStations,
+        dateInterval,
+        colYesterdayDailies
+      )
+      setStationPredictionsAsMoreCast2ForecastRows(newRows)
+    }
+  }, [colYesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -224,8 +288,11 @@ const MoreCast2Page = () => {
             modelType={modelType}
             rows={forecastRows}
             setRows={setForecastRows}
-            fireCentreStations={fireCenter ? fireCenter.stations : []}
+            fireCentreStations={selectedStations}
             dateInterval={dateInterval}
+            clickedColDef={clickedColDef}
+            updateColumnWithModel={updateColumnWithModel}
+            setClickedColDef={setClickedColDef}
           />
         </div>
       </div>
