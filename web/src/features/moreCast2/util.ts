@@ -79,8 +79,7 @@ export const replaceColumnValuesFromPrediction = (
     colPrediction.modelType
   )
   const morecast2ForecastRows = parseModelsForStationsHelper(filledIn)
-
-  return existingRows.flatMap(row => {
+  return existingRows.map(row => {
     const newPred = morecast2ForecastRows.find(pred => pred.id === row.id)
     if (newPred) {
       return {

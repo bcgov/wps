@@ -4,8 +4,11 @@ import {
   createDateInterval,
   fillInTheModelBlanks,
   parseModelsForStationsHelper,
+  replaceColumnValuesFromPrediction,
   rowIDHasher
 } from 'features/moreCast2/util'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
 
 const TEST_NUMBER = 7
 const TEST_MODEL = ModelChoice.HRDPS
@@ -151,5 +154,124 @@ describe('rowIDHasher', () => {
   it('should station code and timestamp as ID', () => {
     const result = rowIDHasher(TEST_CODE, TEST_DATE)
     expect(result).toEqual(`${TEST_CODE}${TEST_DATE}`)
+  })
+})
+
+describe('replaceColumnValuesFromPrediction', () => {
+  it('should replace the correct row', () => {
+    const existingRows: MoreCast2ForecastRow[] = [
+      {
+        id: rowIDHasher(1, TEST_DATE),
+        stationCode: 1,
+        stationName: 'one',
+        forDate: DateTime.fromISO(TEST_DATE),
+        temp: { value: 1, choice: ModelChoice.GDPS },
+        rh: { value: 1, choice: ModelChoice.GDPS },
+        precip: { value: 1, choice: ModelChoice.GDPS },
+        windSpeed: { value: 1, choice: ModelChoice.GDPS },
+        windDirection: { value: 1, choice: ModelChoice.GDPS }
+      },
+      {
+        id: rowIDHasher(2, TEST_DATE2),
+        stationCode: 2,
+        stationName: 'two',
+        forDate: DateTime.fromISO(TEST_DATE2),
+        temp: { value: 1, choice: ModelChoice.GDPS },
+        rh: { value: 1, choice: ModelChoice.GDPS },
+        precip: { value: 1, choice: ModelChoice.GDPS },
+        windSpeed: { value: 1, choice: ModelChoice.GDPS },
+        windDirection: { value: 1, choice: ModelChoice.GDPS }
+      }
+    ]
+
+    const colPrediction: ColPrediction = {
+      colField: 'temp',
+      modelType: 'HRDPS',
+      stationPredictions: [
+        {
+          abbreviation: ModelChoice.HRDPS,
+          bias_adjusted_relative_humidity: null,
+          bias_adjusted_temperature: null,
+          datetime: TEST_DATE,
+          precip_24hours: 2,
+          id: '1',
+          relative_humidity: 2,
+          station: {
+            code: 1,
+            name: 'one',
+            lat: 1,
+            long: 1,
+            ecodivision_name: null,
+            core_season: {
+              start_month: 1,
+              start_day: 1,
+              end_month: 1,
+              end_day: 1
+            }
+          },
+          temperature: 2,
+          wind_direction: 2,
+          wind_speed: 2
+        },
+        {
+          abbreviation: ModelChoice.HRDPS,
+          bias_adjusted_relative_humidity: null,
+          bias_adjusted_temperature: null,
+          datetime: TEST_DATE2,
+          precip_24hours: 2,
+          id: '2',
+          relative_humidity: 2,
+          station: {
+            code: 2,
+            name: 'two',
+            lat: 1,
+            long: 1,
+            ecodivision_name: null,
+            core_season: {
+              start_month: 1,
+              start_day: 1,
+              end_month: 1,
+              end_day: 1
+            }
+          },
+          temperature: 2,
+          wind_direction: 2,
+          wind_speed: 2
+        }
+      ]
+    }
+    const result = replaceColumnValuesFromPrediction(
+      existingRows,
+      [
+        { code: 1, name: 'one' },
+        { code: 2, name: 'two' }
+      ],
+      [TEST_DATE, TEST_DATE2],
+      colPrediction
+    )
+    expect(result).toHaveLength(2)
+    expect(result[0].id).toEqual(existingRows[0].id)
+    expect(result[0].stationCode).toEqual(existingRows[0].stationCode)
+    expect(result[0].stationName).toEqual(existingRows[0].stationName)
+    expect(result[0].forDate).toEqual(DateTime.fromISO(TEST_DATE))
+    expect(result[0].temp).toEqual({ value: 2, choice: ModelChoice.HRDPS })
+
+    // Other rows remain unchanged
+    expect(result[0].rh).toEqual(existingRows[0].rh)
+    expect(result[0].precip).toEqual(existingRows[0].precip)
+    expect(result[0].windSpeed).toEqual(existingRows[0].windSpeed)
+    expect(result[0].windDirection).toEqual(existingRows[0].windDirection)
+
+    expect(result[1].id).toEqual(existingRows[1].id)
+    expect(result[1].stationCode).toEqual(existingRows[1].stationCode)
+    expect(result[1].stationName).toEqual(existingRows[1].stationName)
+    expect(result[1].forDate).toEqual(DateTime.fromISO(TEST_DATE2))
+    expect(result[1].temp).toEqual({ value: 2, choice: ModelChoice.HRDPS })
+
+    // Other rows remain unchanged
+    expect(result[1].rh).toEqual(existingRows[1].rh)
+    expect(result[1].precip).toEqual(existingRows[1].precip)
+    expect(result[1].windSpeed).toEqual(existingRows[1].windSpeed)
+    expect(result[1].windDirection).toEqual(existingRows[1].windDirection)
   })
 })

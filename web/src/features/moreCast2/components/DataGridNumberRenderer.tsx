@@ -12,10 +12,10 @@ import { Morecast2Field } from 'features/moreCast2/components/MoreCast2Field'
 
 const NOT_AVAILABLE = 'N/A'
 export class GridNumberRenderer {
-  protected renderHeaderWith = (params: GridColumnHeaderParams) => {
+  renderHeaderWith = (params: GridColumnHeaderParams) => {
     return <Button>{params.colDef.headerName}</Button>
   }
-  protected renderCellWith = (params: GridRenderCellParams, field: Morecast2Field) => (
+  renderCellWith = (params: GridRenderCellParams, field: Morecast2Field) => (
     <TextField size="small" label={params.row[field].choice} value={params.formattedValue}></TextField>
   )
 
