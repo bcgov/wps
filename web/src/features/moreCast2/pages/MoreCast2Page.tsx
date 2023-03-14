@@ -284,12 +284,7 @@ const MoreCast2Page = () => {
             </Grid>
           </Grid>
           <MoreCast2DataGrid
-            fromTo={fromTo}
-            modelType={modelType}
             rows={forecastRows}
-            setRows={setForecastRows}
-            fireCentreStations={selectedStations}
-            dateInterval={dateInterval}
             clickedColDef={clickedColDef}
             updateColumnWithModel={updateColumnWithModel}
             setClickedColDef={setClickedColDef}

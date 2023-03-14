@@ -8,20 +8,13 @@ import { useSelector } from 'react-redux'
 import { selectMorecast2TableLoading } from 'app/rootReducer'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { isEqual } from 'lodash'
-import { DateRange } from 'components/dateRangePicker/types'
-import { FireCenterStation } from 'api/fbaAPI'
 import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
 
 interface MoreCast2DataGridProps {
-  fromTo: DateRange
-  modelType: ModelType
   rows: MoreCast2ForecastRow[]
   clickedColDef: GridColDef | null
   setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
   updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
-  fireCentreStations: FireCenterStation[]
-  dateInterval: string[]
-  setRows: React.Dispatch<React.SetStateAction<MoreCast2ForecastRow[]>>
 }
 
 const useStyles = makeStyles({
