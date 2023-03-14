@@ -44,7 +44,7 @@ const columnYesterdaySlice = createSlice({
   }
 })
 
-export const { getColumnYesterdayDailiesStart, getColumnYesterdayDailiesFailed, getColumnYesterdayDailiessSuccess } =
+export const { getColumnYesterdayDailiesStart, getColumnYesterdayDailiesFailed, getColumnYesterdayDailiesSuccess } =
   columnYesterdaySlice.actions
 
 export default columnYesterdaySlice.reducer
@@ -68,7 +68,7 @@ export const getColumnYesterdayDailies =
         yesterdayDailies = fillInTheYesterdayDailyBlanks(fireCentreStations, dailies, dateInterval)
       }
       dispatch(
-        getColumnYesterdayDailiessSuccess({
+        getColumnYesterdayDailiesSuccess({
           colField: colField,
           modelType: model,
           yesterdayDailies
