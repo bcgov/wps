@@ -23,7 +23,7 @@ def get_fuel_type_id(fuel_type):
     if fuel_type == 'M2_25':
         cursor = conn.execute(text("SELECT id FROM fuel_types WHERE abbrev = 'M2' AND percentage_conifer = 25"))
     else:
-        cursor = conn.execute(text("SELECT id FROM fuel_types WHERE abbrev = '{fuel_type}'"))
+        cursor = conn.execute(text(f"SELECT id FROM fuel_types WHERE abbrev = '{fuel_type}'"))
     result = cursor.fetchall()
     return result[0][0]
 
@@ -55,7 +55,7 @@ def upgrade():
 
                     op.execute(f"INSERT INTO planning_areas (name, fire_centre_id, order_of_appearance_in_list)\
                         VALUES ({planning_area_name}, {fire_centre_id}, {order})")
-                    result = conn.execute(text("SELECT id FROM planning_areas WHERE name LIKE {planning_area_name}"))
+                    result = conn.execute(text(f"SELECT id FROM planning_areas WHERE name LIKE {planning_area_name}"))
                     planning_area_id = result.fetchall()[0][0]
 
                     for station in area[pa_key]['stations']:
