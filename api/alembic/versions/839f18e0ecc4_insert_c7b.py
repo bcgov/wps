@@ -24,7 +24,7 @@ station_code_list_string = ','.join(str(x) for x in stations_with_c7b)
 def get_fuel_type_id(fuel_type):
     # Helper function to get fuel_types.id
     conn = op.get_bind()
-    cursor = conn.execute(text("SELECT id FROM fuel_types WHERE abbrev = '{fuel_type}'"))
+    cursor = conn.execute(text(f"SELECT id FROM fuel_types WHERE abbrev = '{fuel_type}'"))
     result = cursor.fetchall()
     return result[0][0]
 
