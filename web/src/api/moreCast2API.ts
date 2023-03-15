@@ -1,5 +1,8 @@
 import axios from 'api/axios'
 import { Station } from 'api/stationAPI'
+import { rowIDHasher } from 'features/moreCast2/util'
+import { isEqual } from 'lodash'
+import { DateTime } from 'luxon'
 
 export enum ModelChoice {
   GDPS = 'GDPS',
@@ -10,6 +13,7 @@ export enum ModelChoice {
   MANUAL = 'MANUAL',
   YESTERDAY = 'YESTERDAY'
 }
+export const DEFAULT_MODEL_TYPE: ModelType = ModelChoice.HRDPS
 
 export interface YesterdayDailiesResponse {
   dailies: YesterdayDailyResponse[]
@@ -56,6 +60,8 @@ export const ModelChoices: ModelType[] = [
   ModelChoice.RDPS
 ]
 
+export const ModelOptions: ModelType[] = ModelChoices.filter(choice => !isEqual(choice, ModelChoice.MANUAL))
+
 /**
  * Get noon model predictions for the specified date range
  * @param stationCodes A list of station codes of interest
@@ -77,7 +83,7 @@ export async function getModelPredictions(
     stations: stationCodes
   })
 
-  return data
+  return data.map(d => ({ ...d, id: rowIDHasher(d.station.code, DateTime.fromISO(d.datetime)) }))
 }
 
 /**

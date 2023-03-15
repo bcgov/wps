@@ -1,21 +1,20 @@
 import React from 'react'
 import makeStyles from '@mui/styles/makeStyles'
-import {
-  DataGrid,
-  GridColDef,
-  GridValueFormatterParams,
-  GridValueGetterParams,
-  GridValueSetterParams
-} from '@mui/x-data-grid'
-import { DateTime } from 'luxon'
-import { ModelChoice } from 'api/moreCast2API'
+import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
+import { ModelType } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
-import { LinearProgress } from '@mui/material'
+import { LinearProgress, Menu, MenuItem } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { selectMorecast2TableLoading } from 'app/rootReducer'
+import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
+import { isEqual } from 'lodash'
+import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
 
 interface MoreCast2DataGridProps {
   rows: MoreCast2ForecastRow[]
+  clickedColDef: GridColDef | null
+  setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
+  updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
 }
 
 const useStyles = makeStyles({
@@ -25,79 +24,33 @@ const useStyles = makeStyles({
   }
 })
 
-const NOT_AVAILABLE = 'N/A'
-
-const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
+const MoreCast2DataGrid = ({
+  rows,
+  clickedColDef,
+  updateColumnWithModel,
+  setClickedColDef
+}: MoreCast2DataGridProps) => {
   const classes = useStyles()
-  const { rows } = props
+
+  const [contextMenu, setContextMenu] = React.useState<{
+    mouseX: number
+    mouseY: number
+  } | null>(null)
+
+  const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
+    if (!isEqual(params.colDef.field, 'stationName') && !isEqual(params.colDef.field, 'forDate')) {
+      setClickedColDef(params.colDef)
+      setContextMenu(contextMenu === null ? { mouseX: event.clientX, mouseY: event.clientY } : null)
+    }
+  }
+
+  const handleClose = () => {
+    setContextMenu(null)
+  }
+
   const loading = useSelector(selectMorecast2TableLoading)
 
-  const predictionItemValueFormatter = (params: GridValueFormatterParams, precision: number) => {
-    const value = Number.parseFloat(params?.value)
-
-    return isNaN(value) ? NOT_AVAILABLE : value.toFixed(precision)
-  }
-
-  const predictionItemValueGetter = (params: GridValueGetterParams, precision: number) => {
-    const value = params?.value?.value
-    if (isNaN(value)) {
-      return 'NaN'
-    }
-    return value.toFixed(precision)
-  }
-
-  const predictionItemValueSetter = (params: GridValueSetterParams, field: string, precision: number) => {
-    const oldValue = params.row[field].value
-    const newValue = Number(params.value)
-
-    if (isNaN(oldValue) && isNaN(newValue)) {
-      return { ...params.row }
-    }
-    // Check if the user has edited the value. If so, update the value and choice to reflect the Manual edit.
-    if (newValue.toFixed(precision) !== params.row[field].value.toFixed(precision)) {
-      params.row[field].choice = ModelChoice.MANUAL
-      params.row[field].value = newValue
-    }
-
-    return { ...params.row }
-  }
-
-  const gridColumnDefGenerator = (field: string, headerName: string, precision: number) => {
-    return {
-      field: field,
-      disableColumnMenu: true,
-      disableReorder: true,
-      editable: true,
-      headerName: headerName,
-      sortable: false,
-      type: 'number',
-      width: 120,
-      valueFormatter: (params: GridValueFormatterParams) => predictionItemValueFormatter(params, precision),
-      valueGetter: (params: GridValueGetterParams) => predictionItemValueGetter(params, precision),
-      valueSetter: (params: GridValueSetterParams) => predictionItemValueSetter(params, field, precision)
-    }
-  }
-
-  const columns: GridColDef[] = [
-    { field: 'stationName', flex: 1, headerName: 'Station', maxWidth: 200 },
-    {
-      field: 'forDate',
-      disableColumnMenu: true,
-      disableReorder: true,
-      flex: 1,
-      headerName: 'Date',
-      maxWidth: 250,
-      sortable: false,
-      valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
-        return params.value.toLocaleString(DateTime.DATE_MED)
-      }
-    },
-    gridColumnDefGenerator('temp', 'Temp', 1),
-    gridColumnDefGenerator('rh', 'RH', 0),
-    gridColumnDefGenerator('windDirection', 'Wind Dir', 0),
-    gridColumnDefGenerator('windSpeed', 'Wind Speed', 1),
-    gridColumnDefGenerator('precip', 'Precip', 1)
-  ]
+  const columns: GridColDef[] = MORECAST2_FIELDS.map(field => field.generateColDef())
 
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>
@@ -105,10 +58,46 @@ const MoreCast2DataGrid = (props: MoreCast2DataGridProps) => {
         components={{
           LoadingOverlay: LinearProgress
         }}
+        onColumnHeaderClick={handleColumnHeaderClick}
         loading={loading}
         columns={columns}
         rows={rows}
       ></DataGrid>
+      <Menu
+        open={contextMenu !== null}
+        onClose={handleClose}
+        anchorReference="anchorPosition"
+        anchorPosition={contextMenu !== null ? { top: contextMenu.mouseY, left: contextMenu.mouseX } : undefined}
+        slotProps={{
+          root: {
+            onContextMenu: e => {
+              e.preventDefault()
+              handleClose()
+            }
+          }
+        }}
+      >
+        <MenuItem
+          disableRipple
+          sx={{
+            '&:hover': {
+              backgroundColor: 'transparent' // remove the background color on hover
+            },
+            '&.Mui-selected': {
+              backgroundColor: 'transparent' // remove the background color when selected
+            },
+            '&.Mui-focusVisible': {
+              backgroundColor: 'transparent' // remove the background color when fovused
+            }
+          }}
+        >
+          <ApplyToColumnMenu
+            colDef={clickedColDef}
+            handleClose={handleClose}
+            updateColumnWithModel={updateColumnWithModel}
+          />
+        </MenuItem>
+      </Menu>
     </div>
   )
 }
