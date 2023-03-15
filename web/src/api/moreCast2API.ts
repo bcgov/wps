@@ -2,6 +2,7 @@ import axios from 'api/axios'
 import { Station } from 'api/stationAPI'
 import { rowIDHasher } from 'features/moreCast2/util'
 import { isEqual } from 'lodash'
+import { DateTime } from 'luxon'
 
 export enum ModelChoice {
   GDPS = 'GDPS',
@@ -82,7 +83,7 @@ export async function getModelPredictions(
     stations: stationCodes
   })
 
-  return data.map(d => ({ ...d, id: rowIDHasher(d.station.code, d.datetime) }))
+  return data.map(d => ({ ...d, id: rowIDHasher(d.station.code, DateTime.fromISO(d.datetime)) }))
 }
 
 /**

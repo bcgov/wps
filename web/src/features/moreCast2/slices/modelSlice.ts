@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { ModelType, getModelPredictions, StationPrediction } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
 import { rowIDHasher } from 'features/moreCast2/util'
+import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
 
 interface State {
@@ -51,7 +52,7 @@ export const getModelStationPredictions =
       if (stationCodes.length) {
         stationPredictions = (await getModelPredictions(stationCodes, model, fromDate, toDate)).map(pred => ({
           ...pred,
-          id: rowIDHasher(pred.station.code, pred.datetime)
+          id: rowIDHasher(pred.station.code, DateTime.fromISO(pred.datetime))
         }))
       }
       dispatch(getModelStationPredictionsSuccess(stationPredictions))

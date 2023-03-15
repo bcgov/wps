@@ -14,7 +14,7 @@ export const parseModelsForStationsHelper = (predictions: StationPrediction[]): 
     const station_name = prediction.station.name
     const model = prediction.abbreviation
     const row: MoreCast2ForecastRow = {
-      id: rowIDHasher(prediction.station.code, prediction.datetime),
+      id: rowIDHasher(prediction.station.code, DateTime.fromISO(prediction.datetime)),
       forDate: DateTime.fromISO(prediction.datetime),
       precip: {
         choice: model,
@@ -107,7 +107,7 @@ const createEmptyStationPrediction = (
     bias_adjusted_temperature: NaN,
     datetime: datetime,
     precip_24hours: NaN,
-    id: rowIDHasher(code, datetime),
+    id: rowIDHasher(code, DateTime.fromISO(datetime)),
     relative_humidity: NaN,
     station: {
       code,
@@ -136,7 +136,8 @@ const createEmptyStationPrediction = (
  * @param timestamp
  * @returns String concatenation of stationCode and timestamp as an ID
  */
-export const rowIDHasher = (stationCode: number, timestamp: string) => `${stationCode}${timestamp}`
+export const rowIDHasher = (stationCode: number, timestamp: DateTime) =>
+  `${stationCode}${timestamp.startOf('day').toISODate()}`
 
 export const createDateInterval = (fromDate: DateTime, toDate: DateTime) => {
   // Create an array of UTC datetime strings inclusive of the user selected from/to dates

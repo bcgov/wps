@@ -3,6 +3,7 @@ import { ModelType, getModelPredictions, StationPrediction } from 'api/moreCast2
 import { AppThunk } from 'app/store'
 import { ColField, MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { rowIDHasher } from 'features/moreCast2/util'
+import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
 
 export interface ColPrediction {
@@ -66,7 +67,7 @@ export const getColumnModelStationPredictions =
       if (stationCodes.length) {
         stationPredictions = (await getModelPredictions(stationCodes, model, fromDate, toDate)).map(pred => ({
           ...pred,
-          id: rowIDHasher(pred.station.code, pred.datetime)
+          id: rowIDHasher(pred.station.code, DateTime.fromISO(pred.datetime))
         }))
       }
       dispatch(

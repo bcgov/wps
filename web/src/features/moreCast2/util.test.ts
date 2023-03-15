@@ -24,7 +24,7 @@ const createStationPredictionArray = (predictionValue: number | null) => {
     bias_adjusted_temperature: predictionValue,
     datetime: TEST_DATE,
     precip_24hours: predictionValue,
-    id: rowIDHasher(TEST_CODE, TEST_DATE),
+    id: rowIDHasher(TEST_CODE, DateTime.fromISO(TEST_DATE)),
     relative_humidity: predictionValue,
     station: {
       code: TEST_CODE,
@@ -48,7 +48,7 @@ const createStationPredictionArray = (predictionValue: number | null) => {
 
 export const generateExistingRows = (): MoreCast2ForecastRow[] => [
   {
-    id: rowIDHasher(1, TEST_DATE),
+    id: rowIDHasher(1, DateTime.fromISO(TEST_DATE)),
     stationCode: 1,
     stationName: 'one',
     forDate: DateTime.fromISO(TEST_DATE),
@@ -59,7 +59,7 @@ export const generateExistingRows = (): MoreCast2ForecastRow[] => [
     windDirection: { value: 1, choice: ModelChoice.GDPS }
   },
   {
-    id: rowIDHasher(2, TEST_DATE2),
+    id: rowIDHasher(2, DateTime.fromISO(TEST_DATE2)),
     stationCode: 2,
     stationName: 'two',
     forDate: DateTime.fromISO(TEST_DATE2),
@@ -177,8 +177,8 @@ describe('createDateInterval', () => {
 
 describe('rowIDHasher', () => {
   it('should station code and timestamp as ID', () => {
-    const result = rowIDHasher(TEST_CODE, TEST_DATE)
-    expect(result).toEqual(`${TEST_CODE}${TEST_DATE}`)
+    const result = rowIDHasher(TEST_CODE, DateTime.fromISO(TEST_DATE))
+    expect(result).toEqual(`${TEST_CODE}${DateTime.fromISO(TEST_DATE).toISODate()}`)
   })
 })
 

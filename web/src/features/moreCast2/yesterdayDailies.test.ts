@@ -104,7 +104,7 @@ describe('yesterdayDailies', () => {
     it('should replace the correct row', () => {
       const existingRows: MoreCast2ForecastRow[] = [
         {
-          id: rowIDHasher(1, START_DATE),
+          id: rowIDHasher(1, DateTime.fromISO(START_DATE)),
           stationCode: 1,
           stationName: 'one',
           forDate: DateTime.fromISO(START_DATE),
@@ -115,7 +115,7 @@ describe('yesterdayDailies', () => {
           windDirection: { value: 1, choice: ModelChoice.GDPS }
         },
         {
-          id: rowIDHasher(2, END_DATE),
+          id: rowIDHasher(2, DateTime.fromISO(END_DATE)),
           stationCode: 2,
           stationName: 'two',
           forDate: DateTime.fromISO(END_DATE),
@@ -132,7 +132,7 @@ describe('yesterdayDailies', () => {
         modelType: 'YESTERDAY',
         yesterdayDailies: [
           {
-            id: rowIDHasher(1, START_DATE),
+            id: rowIDHasher(1, DateTime.fromISO(START_DATE)),
             utcTimestamp: START_DATE,
             precipitation: 2,
             relative_humidity: 2,
@@ -143,7 +143,7 @@ describe('yesterdayDailies', () => {
             wind_speed: 2
           },
           {
-            id: rowIDHasher(2, END_DATE),
+            id: rowIDHasher(2, DateTime.fromISO(END_DATE)),
             utcTimestamp: END_DATE,
             precipitation: 2,
             relative_humidity: 2,

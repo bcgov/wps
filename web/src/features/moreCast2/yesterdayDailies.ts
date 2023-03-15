@@ -11,7 +11,7 @@ export const parseYesterdayDailiesFromResponse = (
 ): YesterdayDaily[] =>
   yesterdayDailiesResponse.map(daily => ({
     ...daily,
-    id: rowIDHasher(daily.station_code, daily.utcTimestamp)
+    id: rowIDHasher(daily.station_code, DateTime.fromISO(daily.utcTimestamp))
   }))
 
 export const parseYesterdayDailiesForStationsHelper = (yesterdayDailies: YesterdayDaily[]): MoreCast2ForecastRow[] => {
@@ -102,7 +102,7 @@ export const extendDailiesForStations = (yesterdayDailies: YesterdayDaily[], exp
     const yesterdayDaily = dailies[0]
     const missingDailies: YesterdayDaily[] = missingDates.map(date => ({
       ...yesterdayDaily,
-      id: rowIDHasher(yesterdayDaily.station_code, date.toISO()),
+      id: rowIDHasher(yesterdayDaily.station_code, date),
       utcTimestamp: date.toISO()
     }))
     yesterdayDailiesByStation[stationCode] = [...dailies, ...missingDailies]
@@ -129,7 +129,7 @@ export const defaultsForMissingDailies = (
 
   const missingYesterdayDailies: YesterdayDaily[] = missingStations.flatMap(station =>
     dateInterval.map(date => ({
-      id: rowIDHasher(station.code, date),
+      id: rowIDHasher(station.code, DateTime.fromISO(date)),
       station_code: station.code,
       station_name: station.name,
       utcTimestamp: date,
