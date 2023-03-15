@@ -5,7 +5,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
-import { DEFAULT_MODEL_TYPE, ModelChoice, ModelChoices, ModelType } from 'api/moreCast2API'
+import { DEFAULT_MODEL_TYPE, ModelChoice, ModelOptions, ModelType } from 'api/moreCast2API'
 import {
   selectAuthentication,
   selectColumnModelStationPredictions,
@@ -268,7 +268,7 @@ const MoreCast2Page = () => {
             <Grid item xs={3}>
               <FormControl className={classes.formControl}>
                 <WeatherModelDropdown
-                  weatherModelOptions={ModelChoices}
+                  weatherModelOptions={ModelOptions}
                   selectedModelType={modelType}
                   setSelectedModelType={setModelType}
                 />

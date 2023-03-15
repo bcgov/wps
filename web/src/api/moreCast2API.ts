@@ -1,6 +1,7 @@
 import axios from 'api/axios'
 import { Station } from 'api/stationAPI'
 import { rowIDHasher } from 'features/moreCast2/util'
+import { isEqual } from 'lodash'
 
 export enum ModelChoice {
   GDPS = 'GDPS',
@@ -57,6 +58,8 @@ export const ModelChoices: ModelType[] = [
   ModelChoice.NAM,
   ModelChoice.RDPS
 ]
+
+export const ModelOptions: ModelType[] = ModelChoices.filter(choice => !isEqual(choice, ModelChoice.MANUAL))
 
 /**
  * Get noon model predictions for the specified date range
