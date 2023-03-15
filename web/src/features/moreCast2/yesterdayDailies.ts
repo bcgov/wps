@@ -1,8 +1,18 @@
 import { difference, differenceWith, groupBy, isEmpty, isEqual, isNumber, sortBy } from 'lodash'
 import { DateTime } from 'luxon'
-import { ModelChoice, YesterdayDaily } from 'api/moreCast2API'
+import { ModelChoice, YesterdayDaily, YesterdayDailyResponse } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { FireCenterStation } from 'api/fbaAPI'
+import { rowIDHasher } from 'features/moreCast2/util'
+import { ColYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
+
+export const parseYesterdayDailiesFromResponse = (
+  yesterdayDailiesResponse: YesterdayDailyResponse[]
+): YesterdayDaily[] =>
+  yesterdayDailiesResponse.map(daily => ({
+    ...daily,
+    id: rowIDHasher(daily.station_code, DateTime.fromISO(daily.utcTimestamp))
+  }))
 
 export const parseYesterdayDailiesForStationsHelper = (yesterdayDailies: YesterdayDaily[]): MoreCast2ForecastRow[] => {
   const rows: MoreCast2ForecastRow[] = []
@@ -92,7 +102,7 @@ export const extendDailiesForStations = (yesterdayDailies: YesterdayDaily[], exp
     const yesterdayDaily = dailies[0]
     const missingDailies: YesterdayDaily[] = missingDates.map(date => ({
       ...yesterdayDaily,
-      id: window.crypto.randomUUID(),
+      id: rowIDHasher(yesterdayDaily.station_code, date),
       utcTimestamp: date.toISO()
     }))
     yesterdayDailiesByStation[stationCode] = [...dailies, ...missingDailies]
@@ -119,7 +129,7 @@ export const defaultsForMissingDailies = (
 
   const missingYesterdayDailies: YesterdayDaily[] = missingStations.flatMap(station =>
     dateInterval.map(date => ({
-      id: window.crypto.randomUUID(),
+      id: rowIDHasher(station.code, DateTime.fromISO(date)),
       station_code: station.code,
       station_name: station.name,
       utcTimestamp: date,
@@ -131,4 +141,33 @@ export const defaultsForMissingDailies = (
     }))
   )
   return missingYesterdayDailies
+}
+
+export const replaceColumnValuesFromYesterdayDaily = (
+  existingRows: MoreCast2ForecastRow[],
+  fireCentreStations: FireCenterStation[],
+  dateInterval: string[],
+  colYesterdayDaily: ColYesterdayDailies
+) => {
+  const completeDailies = fillInTheYesterdayDailyBlanks(
+    fireCentreStations,
+    colYesterdayDaily.yesterdayDailies,
+    dateInterval
+  )
+  const morecast2ForecastRows = parseYesterdayDailiesForStationsHelper(completeDailies)
+
+  return existingRows.flatMap(row => {
+    const newPred = morecast2ForecastRows.find(pred => pred.id === row.id)
+    if (newPred) {
+      return {
+        ...row,
+        [colYesterdayDaily.colField]: newPred[colYesterdayDaily.colField]
+      }
+    } else {
+      return {
+        ...row,
+        [colYesterdayDaily.colField]: { value: NaN, choice: colYesterdayDaily.modelType }
+      }
+    }
+  })
 }

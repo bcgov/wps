@@ -4,9 +4,13 @@ import {
   defaultsForMissingDailies,
   extendDailiesForStations,
   fillInTheYesterdayDailyBlanks,
-  parseYesterdayDailiesForStationsHelper
+  parseYesterdayDailiesForStationsHelper,
+  replaceColumnValuesFromYesterdayDaily
 } from 'features/moreCast2/yesterdayDailies'
 import { FireCenterStation } from 'api/fbaAPI'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { rowIDHasher } from 'features/moreCast2/util'
+import { ColYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
 
 const START_DATE = '2023-02-16T20:00:00+00:00'
 const END_DATE = '2023-02-17T20:00:00+00:00'
@@ -94,6 +98,96 @@ describe('yesterdayDailies', () => {
       expect(DateTime.fromISO(result[2].utcTimestamp)).toEqual(DateTime.fromISO('2023-02-16T20:00:00+00:00'))
       expect(result[3].station_code).toBe(stations[1].code)
       expect(DateTime.fromISO(result[3].utcTimestamp)).toEqual(DateTime.fromISO('2023-02-17T20:00:00+00:00'))
+    })
+  })
+  describe('replaceColumnValuesFromPrediction', () => {
+    it('should replace the correct row', () => {
+      const existingRows: MoreCast2ForecastRow[] = [
+        {
+          id: rowIDHasher(1, DateTime.fromISO(START_DATE)),
+          stationCode: 1,
+          stationName: 'one',
+          forDate: DateTime.fromISO(START_DATE),
+          temp: { value: 1, choice: ModelChoice.GDPS },
+          rh: { value: 1, choice: ModelChoice.GDPS },
+          precip: { value: 1, choice: ModelChoice.GDPS },
+          windSpeed: { value: 1, choice: ModelChoice.GDPS },
+          windDirection: { value: 1, choice: ModelChoice.GDPS }
+        },
+        {
+          id: rowIDHasher(2, DateTime.fromISO(END_DATE)),
+          stationCode: 2,
+          stationName: 'two',
+          forDate: DateTime.fromISO(END_DATE),
+          temp: { value: 1, choice: ModelChoice.GDPS },
+          rh: { value: 1, choice: ModelChoice.GDPS },
+          precip: { value: 1, choice: ModelChoice.GDPS },
+          windSpeed: { value: 1, choice: ModelChoice.GDPS },
+          windDirection: { value: 1, choice: ModelChoice.GDPS }
+        }
+      ]
+
+      const colPrediction: ColYesterdayDailies = {
+        colField: 'temp',
+        modelType: 'YESTERDAY',
+        yesterdayDailies: [
+          {
+            id: rowIDHasher(1, DateTime.fromISO(START_DATE)),
+            utcTimestamp: START_DATE,
+            precipitation: 2,
+            relative_humidity: 2,
+            station_code: 1,
+            station_name: 'one',
+            temperature: 2,
+            wind_direction: 2,
+            wind_speed: 2
+          },
+          {
+            id: rowIDHasher(2, DateTime.fromISO(END_DATE)),
+            utcTimestamp: END_DATE,
+            precipitation: 2,
+            relative_humidity: 2,
+            station_code: 2,
+            station_name: 'two',
+            temperature: 2,
+            wind_direction: 2,
+            wind_speed: 2
+          }
+        ]
+      }
+      const result = replaceColumnValuesFromYesterdayDaily(
+        existingRows,
+        [
+          { code: 1, name: 'one' },
+          { code: 2, name: 'two' }
+        ],
+        [START_DATE, END_DATE],
+        colPrediction
+      )
+      expect(result).toHaveLength(2)
+      expect(result[0].id).toEqual(existingRows[0].id)
+      expect(result[0].stationCode).toEqual(existingRows[0].stationCode)
+      expect(result[0].stationName).toEqual(existingRows[0].stationName)
+      expect(result[0].forDate.toISO()).toEqual(DateTime.fromISO(START_DATE).toISO())
+      expect(result[0].temp).toEqual({ value: 2, choice: ModelChoice.YESTERDAY })
+
+      // Other rows remain unchanged
+      expect(result[0].rh).toEqual(existingRows[0].rh)
+      expect(result[0].precip).toEqual(existingRows[0].precip)
+      expect(result[0].windSpeed).toEqual(existingRows[0].windSpeed)
+      expect(result[0].windDirection).toEqual(existingRows[0].windDirection)
+
+      expect(result[1].id).toEqual(existingRows[1].id)
+      expect(result[1].stationCode).toEqual(existingRows[1].stationCode)
+      expect(result[1].stationName).toEqual(existingRows[1].stationName)
+      expect(result[1].forDate).toEqual(DateTime.fromISO(END_DATE))
+      expect(result[1].temp).toEqual({ value: 2, choice: ModelChoice.YESTERDAY })
+
+      // Other rows remain unchanged
+      expect(result[1].rh).toEqual(existingRows[1].rh)
+      expect(result[1].precip).toEqual(existingRows[1].precip)
+      expect(result[1].windSpeed).toEqual(existingRows[1].windSpeed)
+      expect(result[1].windDirection).toEqual(existingRows[1].windDirection)
     })
   })
 })
