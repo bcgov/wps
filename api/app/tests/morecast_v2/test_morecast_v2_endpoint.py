@@ -4,7 +4,6 @@ from datetime import datetime
 from aiohttp import ClientSession
 from app.tests.common import default_mock_client_get
 from app.schemas.morecast_v2 import (MoreCastForecastInput,
-                                     ModelChoice,
                                      MoreCastForecastRequest, YesterdayDaily)
 import app.routers.morecast_v2
 from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
@@ -19,7 +18,7 @@ morecast_v2_post_yesterday_dailies_url = f'/api/morecast-v2/yesterday-dailies/{t
 decode_fn = "jwt.decode"
 
 forecast = MoreCastForecastRequest(forecasts=[MoreCastForecastInput(
-    station_code=1, for_date=1, temp=10.0, rh=40.5, precip=70.2, wind_speed=20.3, wind_direction=40)])
+    station_code=1, for_date=1, temp=10.0, rh=40, precip=70.2, wind_speed=20.3, wind_direction=40)])
 
 
 @pytest.fixture()
@@ -64,7 +63,9 @@ def test_post_forecast_authorized(client: TestClient,
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
 
-    response = client.post(morecast_v2_post_url, json=[forecast.dict()])
+    print(forecast)
+
+    response = client.post(morecast_v2_post_url, json=forecast.dict())
     assert response.status_code == 201
 
 
@@ -77,7 +78,7 @@ def test_post_forecast_authorized_with_body(client: TestClient,
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
 
-    response = client.post(morecast_v2_post_url, json=[forecast.dict()])
+    response = client.post(morecast_v2_post_url, json=forecast.dict())
     assert response.status_code == 201
 
 
