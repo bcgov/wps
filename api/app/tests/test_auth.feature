@@ -13,8 +13,6 @@ Feature: Authentication
             | just_token   | 401    | /api/weather_models/GDPS/predictions/most_recent/ | post | test_auth_stations_payload.json |
             | Bearer token | 401    | /api/weather_models/GDPS/predictions/most_recent/ | post | test_auth_stations_payload.json |
             | just_token   | 401    | /api/stations/details/                            | get  | test_auth_stations_payload.json |
-            | Bearer token | 401    | /api/fwi-calc/                                    | post | test_auth_fwi_payload.json      |
-            | just_token   | 401    | /api/fwi-calc/                                    | post | test_auth_fwi_payload.json      |
 
     Scenario: Verifying authenticated users
         Given utc_time: <utc_time>
