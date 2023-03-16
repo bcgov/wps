@@ -3,6 +3,7 @@ import { Station } from 'api/stationAPI'
 import { rowIDHasher } from 'features/moreCast2/util'
 import { isEqual } from 'lodash'
 import { DateTime } from 'luxon'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 
 export enum ModelChoice {
   GDPS = 'GDPS',
@@ -61,6 +62,50 @@ export const ModelChoices: ModelType[] = [
 ]
 
 export const ModelOptions: ModelType[] = ModelChoices.filter(choice => !isEqual(choice, ModelChoice.MANUAL))
+interface MoreCast2ForecastRecord {
+  station_code: number
+  for_date: number
+  temp: number
+  rh: number
+  precip: number
+  wind_speed: number
+  wind_direction: number
+}
+
+const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[]) => {
+  const forecastRecords: MoreCast2ForecastRecord[] = forecasts.map(forecast => {
+    return {
+      station_code: forecast.stationCode,
+      for_date: forecast.forDate.toMillis(),
+      precip: forecast.precip.value,
+      rh: forecast.rh.value,
+      temp: forecast.temp.value,
+      wind_direction: forecast.windDirection.value,
+      wind_speed: forecast.windSpeed.value
+    }
+  })
+  return forecastRecords
+}
+
+/**
+ * POSTs a batch of forecasts.
+ * @param forecasts The raw forecast model data.
+ * @returns True if the response is a 201, otherwise false.
+ */
+export async function submitMoreCastForecastRecords(forecasts: MoreCast2ForecastRow[]): Promise<boolean> {
+  const forecastRecords = marshalMoreCast2ForecastRecords(forecasts)
+  const url = `/morecast-v2/forecast`
+  try {
+    const { status } = await axios.post<MoreCast2ForecastRecord[]>(url, {
+      forecasts: forecastRecords
+    })
+    return status === 201
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error(error.message || error)
+    return false
+  }
+}
 
 /**
  * Get noon model predictions for the specified date range
