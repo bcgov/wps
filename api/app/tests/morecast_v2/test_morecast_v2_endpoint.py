@@ -3,10 +3,7 @@ import pytest
 from datetime import datetime
 from aiohttp import ClientSession
 from app.tests.common import default_mock_client_get
-from app.schemas.morecast_v2 import (ForecastedPrecip, ForecastedRH,
-                                     ForecastedTemperature,
-                                     ForecastedWindDirection,
-                                     ForecastedWindSpeed,
+from app.schemas.morecast_v2 import (MoreCastForecastInput,
                                      ModelChoice,
                                      MoreCastForecastRequest, YesterdayDaily)
 import app.routers.morecast_v2
@@ -21,17 +18,8 @@ morecast_v2_post_yesterday_dailies_url = f'/api/morecast-v2/yesterday-dailies/{t
 
 decode_fn = "jwt.decode"
 
-forecast = MoreCastForecastRequest(station_code=1,
-                                   for_date=1,
-                                   temp=ForecastedTemperature(
-                                       temp=10.0, choice=ModelChoice.GDPS),
-                                   rh=ForecastedRH(rh=40.5, choice=ModelChoice.HRDPS),
-                                   precip=ForecastedPrecip(
-                                       precip=70.2, choice=ModelChoice.MANUAL),
-                                   wind_speed=ForecastedWindSpeed(
-                                       wind_speed=20.3, choice=ModelChoice.RDPS),
-                                   wind_direction=ForecastedWindDirection(wind_direction=40,
-                                                                          choice=ModelChoice.GDPS))
+forecast = MoreCastForecastRequest(forecasts=[MoreCastForecastInput(
+    station_code=1, for_date=1, temp=10.0, rh=40.5, precip=70.2, wind_speed=20.3, wind_direction=40)])
 
 
 @pytest.fixture()
@@ -52,7 +40,7 @@ def test_get_forecast_authorized(client: TestClient, monkeypatch: pytest.MonkeyP
     """ forecast role required for persisting a forecast """
 
     def mock_admin_role_function(*_, **__):
-        return MockJWTDecodeWithRole('forecaster')
+        return MockJWTDecodeWithRole('morecast2_write_forecast')
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
     monkeypatch.setattr(app.routers.morecast_v2, 'get_user_forecasts_for_date', lambda *_: [])
@@ -72,7 +60,7 @@ def test_post_forecast_authorized(client: TestClient,
     """ Allowed to post station changes with correct role"""
 
     def mock_admin_role_function(*_, **__):
-        return MockJWTDecodeWithRole('forecaster')
+        return MockJWTDecodeWithRole('morecast2_write_forecast')
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
 
@@ -85,7 +73,7 @@ def test_post_forecast_authorized_with_body(client: TestClient,
     """ Allowed to post station changes with correct role"""
 
     def mock_admin_role_function(*_, **__):
-        return MockJWTDecodeWithRole('forecaster')
+        return MockJWTDecodeWithRole('morecast2_write_forecast')
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
 
@@ -102,7 +90,7 @@ def test_get_yesterday_dailies_unauthorized(client: TestClient):
 def test_get_yesterday_dailies_authorized(client: TestClient, monkeypatch: pytest.MonkeyPatch):
     """ user must be authenticated to retrieve yesterday dailies """
     def mock_admin_role_function(*_, **__):
-        return MockJWTDecodeWithRole('forecaster')
+        return MockJWTDecodeWithRole('morecast2_write_forecast')
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
