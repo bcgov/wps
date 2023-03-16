@@ -88,9 +88,9 @@ const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[]) => {
 }
 
 /**
- *
+ * POSTs a batch of forecasts.
  * @param forecasts The raw forecast model data.
- * @returns
+ * @returns True if the response is a 201, otherwise false.
  */
 export async function submitMoreCastForecastRecords(forecasts: MoreCast2ForecastRow[]): Promise<boolean> {
   const forecastRecords = marshalMoreCast2ForecastRecords(forecasts)
