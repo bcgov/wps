@@ -8,7 +8,7 @@ from app.schemas.morecast_v2 import (ForecastedPrecip, ForecastedRH,
                                      ForecastedWindDirection,
                                      ForecastedWindSpeed,
                                      ModelChoice,
-                                     MorecastForecastRequest, YesterdayDaily)
+                                     MoreCastForecastRequest, YesterdayDaily)
 import app.routers.morecast_v2
 from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
@@ -21,7 +21,7 @@ morecast_v2_post_yesterday_dailies_url = f'/api/morecast-v2/yesterday-dailies/{t
 
 decode_fn = "jwt.decode"
 
-forecast = MorecastForecastRequest(station_code=1,
+forecast = MoreCastForecastRequest(station_code=1,
                                    for_date=1,
                                    temp=ForecastedTemperature(
                                        temp=10.0, choice=ModelChoice.GDPS),
