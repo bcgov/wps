@@ -32,6 +32,7 @@ class ProjectionEnum(str, Enum):
     HIGH_RES_CONTINENTAL = 'ps2.5km'
     REGIONAL_PS = 'ps10km'
     GFS_LONLAT = 'lonlat.0.5deg'
+    HRDPS_LATLON = 'RLatLon0.0225'
 
 
 def interpolate_between_two_points(

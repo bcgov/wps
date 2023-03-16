@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 GRIB_LAYERS = ('TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0', 'WDIR_TGL_10', 'WIND_TGL_10')
+HRDPS_GRIB_LAYERS = ('TMP_AGL-2m', 'APCP_Sfc', 'WDIR_AGL-10m', 'WIND_AGL-10m', 'RH_AGL-2m')
 
 
 def parse_gdps_rdps_filename(filename):
@@ -58,53 +59,54 @@ def parse_gdps_rdps_filename(filename):
     return model, variable_name, projection, model_run_timestamp, prediction_timestamp
 
 
-def parse_high_res_model_filename(filename):
+def parse_high_res_model_url(url):
     """ Parse filename for HRDPS grib file to extract metadata """
-    base = os.path.basename(filename)
-    parts = base.split('_')
-    model = '_'.join([parts[1], parts[2]])
-    variable = parts[3]
-    level_type = parts[4]
-    level = parts[5]
+    base = os.path.basename(url)
+    base_parts = base.split('_')
+    url_parts = url.split('/')
+    variable = base_parts[3]
+    level = base_parts[4]
     variable_name = '_'.join(
-        [variable, level_type, level])
-    projection = ProjectionEnum(parts[6])
-    prediction_start = parts[7][:-2]
-    run_time = parts[7][-2:]
+        [variable, level])
+    projection = ProjectionEnum.HIGH_RES_CONTINENTAL
+    run_date_str = base_parts[0][:-4]
+    run_hour_str = url_parts[6]
     model_run_timestamp = datetime.datetime(
-        year=int(prediction_start[:4]),
-        month=int(prediction_start[4:6]),
-        day=int(prediction_start[6:8]),
-        hour=int(run_time), tzinfo=datetime.timezone.utc)
-    last_part = parts[8].split('.')
-    prediction_hour = last_part[0][1:4]
+        year=int(run_date_str[:4]),
+        month=int(run_date_str[4:6]),
+        day=int(run_date_str[6:8]),
+        hour=int(run_hour_str),
+        tzinfo=datetime.timezone.utc
+    )
+    prediction_hour = url_parts[7]
     prediction_timestamp = model_run_timestamp + \
         datetime.timedelta(hours=int(prediction_hour))
-    return model, variable_name, projection, model_run_timestamp, prediction_timestamp
+    return variable_name, projection, model_run_timestamp, prediction_timestamp
 
 
-def parse_env_canada_filename(filename):
-    """ Take a grib filename, as per file name nomenclature defined at
+def parse_env_canada_filename(url):
+    """ Take a grib url, as per file name nomenclature defined at
     https://weather.gc.ca/grib/grib2_glb_25km_e.html, and parse into a meaningful object.
     """
+    filename = os.path.basename(urlparse(url).path)
     base = os.path.basename(filename)
     parts = base.split('_')
-    model = parts[1]
-    if model == 'glb':
+    # model = parts[1]
+    if 'glb' in parts:
         model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
             parse_gdps_rdps_filename(filename)
         model_enum = ModelEnum.GDPS
-    elif model == 'hrdps':
-        model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
-            parse_high_res_model_filename(filename)
+    elif 'HRDPS' in parts:
+        variable_name, projection, model_run_timestamp, prediction_timestamp = \
+            parse_high_res_model_url(url)
         model_enum = ModelEnum.HRDPS
-    elif model == 'reg':
+    elif 'reg' in parts:
         model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
             parse_gdps_rdps_filename(filename)
         model_enum = ModelEnum.RDPS
     else:
         raise UnhandledPredictionModelType(
-            'Unhandled prediction model type found', model)
+            'Unhandled prediction model type found', filename)
 
     info = ModelRunInfo()
     info.model_enum = model_enum
@@ -126,11 +128,13 @@ def adjust_model_day(now, model_run_hour) -> datetime:
     return now
 
 
-def get_file_date_part(now, model_run_hour) -> str:
+def get_file_date_part(now, model_run_hour, is_hrdps: bool = False) -> str:
     """ Construct the part of the filename that contains the model run date
     """
     adjusted = adjust_model_day(now, model_run_hour)
     date = f"{adjusted.year}{adjusted.month:02d}{adjusted.day:02d}"
+    if is_hrdps:
+        date = date + f"T{model_run_hour:02d}Z"
     return date
 
 
@@ -182,13 +186,13 @@ def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> G
     # For the high-res model, predictions are at 1 hour intervals up to 48 hours.
     for h in range(0, 49):
         hhh = format(h, '03d')
-        for level in GRIB_LAYERS:
+        for level in HRDPS_GRIB_LAYERS:
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
-            if (hhh == '000' and level == 'APCP_SFC_0'):
+            if (hhh == '000' and level == 'APCP_Sfc'):
                 continue
-            base_url = f'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{hh}/{hhh}/'
-            date = get_file_date_part(now, hour)
-            filename = f'CMC_hrdps_continental_{level}_ps2.5km_{date}{hh}_P{hhh}-00.grib2'
+            base_url = f'https://dd.weather.gc.ca/model_hrdps/continental/2.5km/{hh}/{hhh}/'
+            date = get_file_date_part(now, hour, True)
+            filename = f'{date}_MSC_HRDPS_{level}_RLatLon0.0225_PT{hhh}H.grib2'
             url = base_url + filename
             yield url
 
@@ -274,9 +278,8 @@ class EnvCanada():
                         # NOTE: changing this to logger.debug causes too much noise in unit tests.
                         logger.debug('file already processed %s', url)
                     else:
-                        # extract model info from filename:
-                        filename = os.path.basename(urlparse(url).path)
-                        model_info = parse_env_canada_filename(filename)
+                        # extract model info from URL:
+                        model_info = parse_env_canada_filename(url)
                         # download the file:
                         with tempfile.TemporaryDirectory() as temporary_path:
                             downloaded = download(url, temporary_path, 'REDIS_CACHE_ENV_CANADA',
