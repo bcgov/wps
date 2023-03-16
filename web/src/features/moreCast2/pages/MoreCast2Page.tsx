@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { FormControl, Grid, Typography } from '@mui/material'
+import { AlertColor, FormControl, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
-import { DEFAULT_MODEL_TYPE, ModelChoice, ModelOptions, ModelType } from 'api/moreCast2API'
+import {
+  DEFAULT_MODEL_TYPE,
+  ModelChoice,
+  ModelOptions,
+  ModelType,
+  submitMoreCastForecastRecords
+} from 'api/moreCast2API'
 import {
   selectAuthentication,
   selectColumnModelStationPredictions,
@@ -42,6 +48,7 @@ import { DateRange } from 'components/dateRangePicker/types'
 import { GridColDef } from '@mui/x-data-grid'
 import { getColumnModelStationPredictions } from 'features/moreCast2/slices/columnModelSlice'
 import { getColumnYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
+import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -80,6 +87,10 @@ const useStyles = makeStyles(theme => ({
 const DEFAULT_MODEL_TYPE_KEY = 'defaultModelType'
 const DEFAULT_FIRE_CENTER_KEY = 'preferredMoreCast2FireCenter'
 
+const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
+const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved.'
+const FORECAST_WARN_MESSAGE = 'A forecast cannot contain N/A values.'
+
 const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
@@ -93,6 +104,9 @@ const MoreCast2Page = () => {
   const [modelType, setModelType] = useState<ModelType>(
     (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE
   )
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success')
 
   const startDateTime = DateTime.now().startOf('day')
   const endDateTime = startDateTime.plus({ days: 2 })
@@ -249,6 +263,41 @@ const MoreCast2Page = () => {
     setStationPredictionsAsMoreCast2ForecastRows(newRows)
   }, [yesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // A valid, submittable forecast can't contain NaN for any values
+  const forecastIsValid = () => {
+    for (const forecastRow of forecastRows) {
+      if (
+        isNaN(forecastRow.precip.value) ||
+        isNaN(forecastRow.rh.value) ||
+        isNaN(forecastRow.temp.value) ||
+        isNaN(forecastRow.windDirection.value) ||
+        isNaN(forecastRow.windSpeed.value)
+      ) {
+        return false
+      }
+    }
+    return true
+  }
+
+  const handleSaveClick = async () => {
+    if (forecastIsValid()) {
+      const result = await submitMoreCastForecastRecords(forecastRows)
+      if (result) {
+        setSnackbarMessage(FORECAST_SAVED_MESSAGE)
+        setSnackbarSeverity('success')
+        setSnackbarOpen(true)
+      } else {
+        setSnackbarMessage(FORECAST_ERROR_MESSAGE)
+        setSnackbarSeverity('error')
+        setSnackbarOpen(true)
+      }
+    } else {
+      setSnackbarMessage(FORECAST_WARN_MESSAGE)
+      setSnackbarSeverity('warning')
+      setSnackbarOpen(true)
+    }
+  }
+
   return (
     <div className={classes.root} data-testid="more-cast-2-page">
       <GeneralHeader padding="3em" spacing={0.985} title={MORE_CAST_2_NAME} productName={MORE_CAST_2_NAME} />
@@ -279,7 +328,12 @@ const MoreCast2Page = () => {
             </Grid>
             <Grid item xs={2}>
               <FormControl className={classes.actionButtonContainer}>
-                <SaveForecastButton enabled={roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) && isAuthenticated} />
+                <SaveForecastButton
+                  enabled={
+                    roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) && isAuthenticated && forecastRows.length > 0
+                  }
+                  onClick={handleSaveClick}
+                />
               </FormControl>
             </Grid>
           </Grid>
@@ -288,6 +342,13 @@ const MoreCast2Page = () => {
             clickedColDef={clickedColDef}
             updateColumnWithModel={updateColumnWithModel}
             setClickedColDef={setClickedColDef}
+          />
+          <MoreCast2Snackbar
+            autoHideDuration={6000}
+            handleClose={() => setSnackbarOpen(!snackbarOpen)}
+            open={snackbarOpen}
+            message={snackbarMessage}
+            severity={snackbarSeverity}
           />
         </div>
       </div>
