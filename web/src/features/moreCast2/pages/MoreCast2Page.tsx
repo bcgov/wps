@@ -87,8 +87,8 @@ const useStyles = makeStyles(theme => ({
 const DEFAULT_MODEL_TYPE_KEY = 'defaultModelType'
 const DEFAULT_FIRE_CENTER_KEY = 'preferredMoreCast2FireCenter'
 
-const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred'
-const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved'
+const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
+const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved.'
 const FORECAST_WARN_MESSAGE = 'A forecast cannot contain N/A values.'
 
 const MoreCast2Page = () => {
@@ -329,7 +329,9 @@ const MoreCast2Page = () => {
             <Grid item xs={2}>
               <FormControl className={classes.actionButtonContainer}>
                 <SaveForecastButton
-                  enabled={roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) && isAuthenticated}
+                  enabled={
+                    roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) && isAuthenticated && forecastRows.length > 0
+                  }
                   onClick={handleSaveClick}
                 />
               </FormControl>
