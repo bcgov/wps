@@ -5,9 +5,11 @@ import makeStyles from '@mui/styles/makeStyles'
 import { isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
-import { ModelChoice, ModelChoices, ModelType } from 'api/moreCast2API'
+import { DEFAULT_MODEL_TYPE, ModelChoice, ModelOptions, ModelType } from 'api/moreCast2API'
 import {
   selectAuthentication,
+  selectColumnModelStationPredictions,
+  selectColumnYesterdayDailies,
   selectFireCenters,
   selectModelStationPredictions,
   selectYesterdayDailies
@@ -15,21 +17,31 @@ import {
 import { AppDispatch } from 'app/store'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { GeneralHeader } from 'components'
-import WPSDatePicker from 'components/WPSDatePicker'
 import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
 import MoreCast2DataGrid from 'features/moreCast2/components/MoreCast2DataGrid'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice'
-import { createDateInterval, fillInTheModelBlanks, parseModelsForStationsHelper } from 'features/moreCast2/util'
+import {
+  createDateInterval,
+  fillInTheModelBlanks,
+  parseModelsForStationsHelper,
+  replaceColumnValuesFromPrediction
+} from 'features/moreCast2/util'
 import {
   fillInTheYesterdayDailyBlanks,
-  parseYesterdayDailiesForStationsHelper
+  parseYesterdayDailiesForStationsHelper,
+  replaceColumnValuesFromYesterdayDaily
 } from 'features/moreCast2/yesterdayDailies'
 import { getYesterdayStationDailies } from 'features/moreCast2/slices/yesterdayDailiesSlice'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
+import MoreCase2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import { ROLES } from 'features/auth/roles'
+import { DateRange } from 'components/dateRangePicker/types'
+import { GridColDef } from '@mui/x-data-grid'
+import { getColumnModelStationPredictions } from 'features/moreCast2/slices/columnModelSlice'
+import { getColumnYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -67,7 +79,6 @@ const useStyles = makeStyles(theme => ({
 
 const DEFAULT_MODEL_TYPE_KEY = 'defaultModelType'
 const DEFAULT_FIRE_CENTER_KEY = 'preferredMoreCast2FireCenter'
-const DEFAULT_MODEL_TYPE: ModelType = ModelChoice.HRDPS
 
 const MoreCast2Page = () => {
   const classes = useStyles()
@@ -82,24 +93,65 @@ const MoreCast2Page = () => {
   const [modelType, setModelType] = useState<ModelType>(
     (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE
   )
-  const [fromDate, setFromDate] = useState<DateTime>(DateTime.now())
-  const [toDate, setToDate] = useState<DateTime>(DateTime.now().plus({ days: 2 }))
+
+  const startDateTime = DateTime.now().startOf('day')
+  const endDateTime = startDateTime.plus({ days: 2 })
+  const [fromTo, setFromTo] = useState<DateRange>({
+    startDate: startDateTime.toJSDate(),
+    endDate: endDateTime.toJSDate()
+  })
   const [forecastRows, setForecastRows] = useState<MoreCast2ForecastRow[]>([])
   const [stationPredictionsAsMoreCast2ForecastRows, setStationPredictionsAsMoreCast2ForecastRows] = useState<
     MoreCast2ForecastRow[]
   >([])
   const [dateInterval, setDateInterval] = useState<string[]>([])
 
+  const { colPrediction } = useSelector(selectColumnModelStationPredictions)
+  const { colYesterdayDailies } = useSelector(selectColumnYesterdayDailies)
+
+  const [clickedColDef, setClickedColDef] = React.useState<GridColDef | null>(null)
+  const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
+    if (modelType == ModelChoice.YESTERDAY) {
+      dispatch(
+        getColumnYesterdayDailies(
+          stationPredictionsAsMoreCast2ForecastRows.map(s => s.stationCode),
+          selectedStations,
+          dateInterval,
+          modelType,
+          colDef.field as keyof MoreCast2ForecastRow,
+          DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate()
+        )
+      )
+    } else {
+      dispatch(
+        getColumnModelStationPredictions(
+          stationPredictionsAsMoreCast2ForecastRows.map(s => s.stationCode),
+          modelType,
+          colDef.field as keyof MoreCast2ForecastRow,
+          DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate(),
+          DateTime.fromJSDate(fromTo.endDate ? fromTo.endDate : new Date()).toISODate()
+        )
+      )
+    }
+  }
+
   const fetchStationPredictions = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
-    if (toDate.startOf('day') < fromDate.startOf('day')) {
+    if (isUndefined(fromTo.startDate) || isUndefined(fromTo.endDate)) {
       setForecastRows([])
       return
     }
     if (modelType == ModelChoice.YESTERDAY) {
-      dispatch(getYesterdayStationDailies(stationCodes, fromDate.toISODate()))
+      dispatch(getYesterdayStationDailies(stationCodes, DateTime.fromJSDate(fromTo.startDate).toISODate()))
     } else {
-      dispatch(getModelStationPredictions(stationCodes, modelType, fromDate.toISODate(), toDate.toISODate()))
+      dispatch(
+        getModelStationPredictions(
+          stationCodes,
+          modelType,
+          DateTime.fromJSDate(fromTo.startDate).toISODate(),
+          DateTime.fromJSDate(fromTo.endDate).toISODate()
+        )
+      )
     }
   }
 
@@ -108,6 +160,30 @@ const MoreCast2Page = () => {
     document.title = MORE_CAST_2_DOC_TITLE
     fetchStationPredictions()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isNull(colPrediction)) {
+      const newRows = replaceColumnValuesFromPrediction(
+        stationPredictionsAsMoreCast2ForecastRows,
+        selectedStations,
+        dateInterval,
+        colPrediction
+      )
+      setStationPredictionsAsMoreCast2ForecastRows(newRows)
+    }
+  }, [colPrediction]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isNull(colYesterdayDailies)) {
+      const newRows = replaceColumnValuesFromYesterdayDaily(
+        stationPredictionsAsMoreCast2ForecastRows,
+        selectedStations,
+        dateInterval,
+        colYesterdayDailies
+      )
+      setStationPredictionsAsMoreCast2ForecastRows(newRows)
+    }
+  }, [colYesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCenter | undefined => {
@@ -127,7 +203,7 @@ const MoreCast2Page = () => {
       localStorage.setItem(DEFAULT_FIRE_CENTER_KEY, fireCenter.id.toString())
     }
 
-    setSelectedStations(fireCenter?.stations || [])
+    setSelectedStations(fireCenter?.stations ? fireCenter.stations.slice(0, 1) : [])
     fetchStationPredictions()
   }, [fireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -141,8 +217,10 @@ const MoreCast2Page = () => {
   }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const dates = createDateInterval(fromDate, toDate)
-    setDateInterval(dates)
+    if (!isUndefined(fromTo.startDate) && !isUndefined(fromTo.endDate)) {
+      const dates = createDateInterval(DateTime.fromJSDate(fromTo.startDate), DateTime.fromJSDate(fromTo.endDate))
+      setDateInterval(dates)
+    }
 
     if (!isUndefined(modelType) && !isNull(modelType)) {
       localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
@@ -150,7 +228,7 @@ const MoreCast2Page = () => {
     } else {
       setForecastRows([])
     }
-  }, [fromDate, toDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fromTo.startDate, fromTo.endDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const visibleForecastRows = stationPredictionsAsMoreCast2ForecastRows.filter(
@@ -190,21 +268,14 @@ const MoreCast2Page = () => {
             <Grid item xs={3}>
               <FormControl className={classes.formControl}>
                 <WeatherModelDropdown
-                  weatherModelOptions={ModelChoices}
+                  weatherModelOptions={ModelOptions}
                   selectedModelType={modelType}
                   setSelectedModelType={setModelType}
                 />
               </FormControl>
             </Grid>
             <Grid item xs={3}>
-              <FormControl className={classes.formControl}>
-                <WPSDatePicker date={fromDate} label="From" updateDate={setFromDate} />
-              </FormControl>
-            </Grid>
-            <Grid item xs={3}>
-              <FormControl className={classes.formControl}>
-                <WPSDatePicker date={toDate} label="To" updateDate={setToDate} />
-              </FormControl>
+              <MoreCase2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
             </Grid>
             <Grid item xs={2}>
               <FormControl className={classes.actionButtonContainer}>
@@ -212,7 +283,12 @@ const MoreCast2Page = () => {
               </FormControl>
             </Grid>
           </Grid>
-          <MoreCast2DataGrid rows={forecastRows} />
+          <MoreCast2DataGrid
+            rows={forecastRows}
+            clickedColDef={clickedColDef}
+            updateColumnWithModel={updateColumnWithModel}
+            setClickedColDef={setClickedColDef}
+          />
         </div>
       </div>
     </div>
