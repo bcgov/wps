@@ -292,7 +292,6 @@ const MoreCast2Page = () => {
         setSnackbarOpen(true)
       }
     } else {
-      // TODO - Maybe highlight invalid values in the datagrid?
       setSnackbarMessage(FORECAST_WARN_MESSAGE)
       setSnackbarSeverity('warning')
       setSnackbarOpen(true)
