@@ -63,8 +63,6 @@ def test_post_forecast_authorized(client: TestClient,
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
 
-    print(forecast)
-
     response = client.post(morecast_v2_post_url, json=forecast.dict())
     assert response.status_code == 201
 
