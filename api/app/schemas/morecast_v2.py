@@ -45,20 +45,30 @@ class ForecastedWindDirection(BaseModel):
     choice: ModelChoice
 
 
-class MorecastForecastRequest(BaseModel):
+class MoreCastForecastInput(BaseModel):
     """ Forecasted daily request """
     station_code: int
     for_date: int
-    temp: ForecastedTemperature
-    rh: ForecastedRH
-    precip: ForecastedPrecip
-    wind_speed: ForecastedWindSpeed
-    wind_direction: ForecastedWindDirection
+    temp: float
+    rh: int
+    precip: float
+    wind_speed: float
+    wind_direction: int
 
 
-class MorecastForecastResponse(MorecastForecastRequest):
-    """ Forecasted daily response """
+class MoreCastForecastRequest(BaseModel):
+    """ Incoming daily forecasts to be saved """
+    forecasts: List[MoreCastForecastInput]
+
+
+class MoreCastForecastOutput(MoreCastForecastInput):
+    """ Outgoing forecast daily response item """
     update_timestamp: int
+
+
+class MorecastForecastResponse(BaseModel):
+    """ Outgoing forecast daily response """
+    forecasts: List[MoreCastForecastOutput]
 
 
 class YesterdayStationDailies(BaseModel):

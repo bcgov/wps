@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { getYesterdayDailies, YesterdayDaily } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
+import { parseYesterdayDailiesFromResponse } from 'features/moreCast2/yesterdayDailies'
 
 interface State {
   loading: boolean
@@ -51,10 +52,7 @@ export const getYesterdayStationDailies =
       dispatch(getModelStationPredictionsStart())
       if (stationCodes.length) {
         const yesterdayDailiesResponse = await getYesterdayDailies(stationCodes, fromDate)
-        const yesterdayDailies: YesterdayDaily[] = yesterdayDailiesResponse.map(daily => ({
-          ...daily,
-          id: window.crypto.randomUUID()
-        }))
+        const yesterdayDailies: YesterdayDaily[] = parseYesterdayDailiesFromResponse(yesterdayDailiesResponse)
         dispatch(getYesterdayDailiesSuccess(yesterdayDailies))
       }
     } catch (err) {

@@ -3,6 +3,7 @@ import { DateTime, Interval } from 'luxon'
 import { FireCenterStation } from 'api/fbaAPI'
 import { ModelType, StationPrediction } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
 
 // Convert the model predictions from the API to a format that can be used by a MoreCast2DataGrid data grid
 export const parseModelsForStationsHelper = (predictions: StationPrediction[]): MoreCast2ForecastRow[] => {
@@ -13,7 +14,7 @@ export const parseModelsForStationsHelper = (predictions: StationPrediction[]): 
     const station_name = prediction.station.name
     const model = prediction.abbreviation
     const row: MoreCast2ForecastRow = {
-      id: prediction.id,
+      id: rowIDHasher(prediction.station.code, DateTime.fromISO(prediction.datetime)),
       forDate: DateTime.fromISO(prediction.datetime),
       precip: {
         choice: model,
@@ -65,6 +66,35 @@ export const fillInTheModelBlanks = (
   return completeStationPredictions
 }
 
+export const replaceColumnValuesFromPrediction = (
+  existingRows: MoreCast2ForecastRow[],
+  fireCentreStations: FireCenterStation[],
+  dateInterval: string[],
+  colPrediction: ColPrediction
+) => {
+  const filledIn = fillInTheModelBlanks(
+    fireCentreStations,
+    colPrediction.stationPredictions,
+    dateInterval,
+    colPrediction.modelType
+  )
+  const morecast2ForecastRows = parseModelsForStationsHelper(filledIn)
+  return existingRows.map(row => {
+    const newPred = morecast2ForecastRows.find(pred => pred.id === row.id)
+    if (newPred) {
+      return {
+        ...row,
+        [colPrediction.colField]: newPred[colPrediction.colField]
+      }
+    } else {
+      return {
+        ...row,
+        [colPrediction.colField]: { value: NaN, choice: colPrediction.modelType }
+      }
+    }
+  })
+}
+
 const createEmptyStationPrediction = (
   code: number,
   datetime: string,
@@ -77,7 +107,7 @@ const createEmptyStationPrediction = (
     bias_adjusted_temperature: NaN,
     datetime: datetime,
     precip_24hours: NaN,
-    id: window.crypto.randomUUID(),
+    id: rowIDHasher(code, DateTime.fromISO(datetime)),
     relative_humidity: NaN,
     station: {
       code,
@@ -99,6 +129,15 @@ const createEmptyStationPrediction = (
 
   return prediction
 }
+
+/**
+ * Returns a unique ID by simply concatenating stationCode and timestamp
+ * @param stationCode
+ * @param timestamp
+ * @returns String concatenation of stationCode and timestamp as an ID
+ */
+export const rowIDHasher = (stationCode: number, timestamp: DateTime) =>
+  `${stationCode}${timestamp.startOf('day').toISODate()}`
 
 export const createDateInterval = (fromDate: DateTime, toDate: DateTime) => {
   // Create an array of UTC datetime strings inclusive of the user selected from/to dates

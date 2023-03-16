@@ -8,7 +8,7 @@ describe('SaveForecastButton', () => {
   it('should render the button as enabled', () => {
     const { getByTestId } = render(
       <Provider store={store}>
-        <SaveForecastButton enabled={true} />
+        <SaveForecastButton enabled={true} onClick={() => undefined} />
       </Provider>
     )
 
@@ -19,7 +19,7 @@ describe('SaveForecastButton', () => {
   it('should render the button as disabled', () => {
     const { getByTestId } = render(
       <Provider store={store}>
-        <SaveForecastButton enabled={false} />
+        <SaveForecastButton enabled={false} onClick={() => undefined} />
       </Provider>
     )
 
