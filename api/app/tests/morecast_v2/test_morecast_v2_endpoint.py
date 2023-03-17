@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 import pytest
 from datetime import datetime
 from aiohttp import ClientSession
+from app.schemas.shared import StationsRequest
 from app.tests.common import default_mock_client_get
 from app.schemas.morecast_v2 import (MoreCastForecastInput,
                                      MoreCastForecastRequest, YesterdayDaily)
@@ -11,6 +12,7 @@ from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
 morecast_v2_post_url = '/api/morecast-v2/forecast'
 morecast_v2_get_url = f'/api/morecast-v2/forecasts/{1}'
+morecast_v2_post_by_date_range_url = "/api/morecast-v2/forecasts/2023-03-15/2023-03-19"
 today = '2022-10-7'
 morecast_v2_post_yesterday_dailies_url = f'/api/morecast-v2/yesterday-dailies/{today}'
 
@@ -19,6 +21,8 @@ decode_fn = "jwt.decode"
 
 forecast = MoreCastForecastRequest(forecasts=[MoreCastForecastInput(
     station_code=1, for_date=1, temp=10.0, rh=40, precip=70.2, wind_speed=20.3, wind_direction=40)])
+
+stations = StationsRequest(stations=[1, 2])
 
 
 @pytest.fixture()
@@ -78,6 +82,25 @@ def test_post_forecast_authorized_with_body(client: TestClient,
 
     response = client.post(morecast_v2_post_url, json=forecast.dict())
     assert response.status_code == 201
+
+
+def test_post_forecasts_by_date_range_unauthorized(client: TestClient):
+    """ forecast role required for persisting a forecast """
+    response = client.post(morecast_v2_post_by_date_range_url, json=[])
+    assert response.status_code == 401
+
+
+def test_post_forecast_by_date_range_authorized(client: TestClient,
+                                                monkeypatch: pytest.MonkeyPatch):
+    """ Allowed to post station changes with correct role"""
+
+    def mock_admin_role_function(*_, **__):
+        return MockJWTDecodeWithRole('morecast2_write_forecast')
+
+    monkeypatch.setattr(decode_fn, mock_admin_role_function)
+
+    response = client.post(morecast_v2_post_by_date_range_url, json=stations.dict())
+    assert response.status_code == 200
 
 
 def test_get_yesterday_dailies_unauthorized(client: TestClient):
