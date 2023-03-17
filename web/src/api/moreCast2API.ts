@@ -62,7 +62,8 @@ export const ModelChoices: ModelType[] = [
 ]
 
 export const ModelOptions: ModelType[] = ModelChoices.filter(choice => !isEqual(choice, ModelChoice.MANUAL))
-interface MoreCast2ForecastRecord {
+
+export interface MoreCast2ForecastRecord {
   station_code: number
   for_date: number
   temp: number
@@ -70,6 +71,11 @@ interface MoreCast2ForecastRecord {
   precip: number
   wind_speed: number
   wind_direction: number
+  update_timestamp?: number
+}
+
+interface MoreCast2ForecastRecordResponse {
+  forecasts: MoreCast2ForecastRecord[]
 }
 
 const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[]) => {
@@ -105,6 +111,24 @@ export async function submitMoreCastForecastRecords(forecasts: MoreCast2Forecast
     console.error(error.message || error)
     return false
   }
+}
+
+/**
+ * Retrieve a batch of forecasts for a specified date range and array of stations
+ * @param startDate The start of the date range
+ * @param endDate The end of the date range (inclusive)
+ * @param stations The stations of interest
+ */
+export async function getMoreCast2ForecastRecordsByDateRange(
+  startDate: DateTime,
+  endDate: DateTime,
+  stations: number[]
+): Promise<MoreCast2ForecastRecord[]> {
+  const url = `/morecast-v2/forecasts/${startDate.toISODate()}/${endDate.toISODate()}`
+  const { forecasts } = await axios.post<number[], MoreCast2ForecastRecordResponse>(url, {
+    stations
+  })
+  return forecasts
 }
 
 /**
