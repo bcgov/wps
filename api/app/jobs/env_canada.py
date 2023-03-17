@@ -38,7 +38,6 @@ def parse_gdps_rdps_filename(filename):
     """ Parse filename for GDPS grib file to extract metadata """
     base = os.path.basename(filename)
     parts = base.split('_')
-    model = parts[1]
     variable = parts[2]
     level_type = parts[3]
     level = parts[4]
@@ -56,7 +55,7 @@ def parse_gdps_rdps_filename(filename):
     prediction_hour = last_part[0][1:]
     prediction_timestamp = model_run_timestamp + \
         datetime.timedelta(hours=int(prediction_hour))
-    return model, variable_name, projection, model_run_timestamp, prediction_timestamp
+    return variable_name, projection, model_run_timestamp, prediction_timestamp
 
 
 def parse_high_res_model_url(url):
@@ -91,9 +90,8 @@ def parse_env_canada_filename(url):
     filename = os.path.basename(urlparse(url).path)
     base = os.path.basename(filename)
     parts = base.split('_')
-    # model = parts[1]
     if 'glb' in parts:
-        model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
+        variable_name, projection, model_run_timestamp, prediction_timestamp = \
             parse_gdps_rdps_filename(filename)
         model_enum = ModelEnum.GDPS
     elif 'HRDPS' in parts:
@@ -101,7 +99,7 @@ def parse_env_canada_filename(url):
             parse_high_res_model_url(url)
         model_enum = ModelEnum.HRDPS
     elif 'reg' in parts:
-        model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
+        variable_name, projection, model_run_timestamp, prediction_timestamp = \
             parse_gdps_rdps_filename(filename)
         model_enum = ModelEnum.RDPS
     else:
