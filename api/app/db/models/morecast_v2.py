@@ -1,5 +1,5 @@
 from app.db.models import Base
-from sqlalchemy import (Column, Integer, String, Sequence)
+from sqlalchemy import (Column, Float, Integer, String, Sequence)
 from app.db.models.common import TZTimeStamp
 
 
@@ -11,10 +11,10 @@ class MorecastForecastRecord(Base):
                 primary_key=True, nullable=False, index=True)
     station_code = Column(Integer, nullable=False, index=True)
     for_date = Column(TZTimeStamp, nullable=False, index=True)
-    temp = Column(Integer, nullable=False, index=True)
+    temp = Column(Float, nullable=False, index=True)
     rh = Column(Integer, nullable=False, index=True)
-    precip = Column(Integer, nullable=False, index=True)
-    wind_speed = Column(Integer, nullable=False, index=True)
+    precip = Column(Float, nullable=False, index=True)
+    wind_speed = Column(Float, nullable=False, index=True)
     wind_direction = Column(Integer, nullable=False, index=True)
     create_timestamp = Column(TZTimeStamp, nullable=False, index=True)
     create_user = Column(String, nullable=False)

@@ -96,4 +96,4 @@ async def auth_with_set_ready_state_required(token=Depends(authentication_requir
 
 async def auth_with_forecaster_role_required(token=Depends(authentication_required)):
     """ Only return requests that have forecaster permission """
-    return await check_token_for_role('forecaster', token)
+    return await check_token_for_role('morecast2_write_forecast', token)
