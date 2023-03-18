@@ -31,8 +31,8 @@ def mock_database(monkeypatch):
             " -120.525 50.62500000000001, -120.525 50.77500000000001))")
     shape = shapely.wkt.loads(geom)
 
-    hrdps_url = 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/00/007/' \
-        + 'CMC_hrdps_continental_TMP_TGL_2_ps2.5km_2020052100_P007-00.grib2'
+    hrdps_url = 'https://dd.weather.gc.ca/model_hrdps/continental/2.5km/' \
+        '18/001/20200521T18Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT001H.grib2'
     hrdps_processed_model_run = ProcessedModelRunUrl(url=hrdps_url)
     hrdps_prediction_model = PredictionModel(id=3, abbreviation='HRDPS', projection='ps2.5km',
                                              name='High Resolution Deterministic Prediction System')
@@ -89,7 +89,7 @@ def mock_download(monkeypatch):
         """ mock env_canada download method for HRDPS """
         dirname = os.path.dirname(os.path.realpath(__file__))
         filename = os.path.join(
-            dirname, 'CMC_hrdps_continental_RH_TGL_2_ps2.5km_2020100700_P007-00.grib2')
+            dirname, '20230317T18Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT001H.grib2')
         with open(filename, 'rb') as file:
             content = file.read()
         return MockResponse(status_code=200, content=content)
@@ -99,7 +99,7 @@ def mock_download(monkeypatch):
 def test_get_hrdps_download_urls():
     """ test to see if get_download_urls methods gives the correct number of urls """
     # -1 because 000 hour has no APCP_SFC_0
-    total_num_of_urls = 49 * len(app.jobs.env_canada.GRIB_LAYERS) - 1
+    total_num_of_urls = 49 * len(app.jobs.env_canada.HRDPS_GRIB_LAYERS) - 1
     assert len(list(app.jobs.env_canada.get_high_res_model_run_download_urls(
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
