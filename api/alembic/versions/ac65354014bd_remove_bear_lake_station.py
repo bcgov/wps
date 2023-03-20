@@ -8,7 +8,7 @@ Create Date: 2022-05-12 12:31:45.944743
 
 """
 from alembic import op
-
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision = 'ac65354014bd'
@@ -25,12 +25,12 @@ def downgrade():
     conn = op.get_bind()
 
     # default fuel type for Bear Lake is C3
-    res = conn.execute('SELECT id FROM fuel_types WHERE abbrev LIKE \'C3\'')
+    res = conn.execute(text('SELECT id FROM fuel_types WHERE abbrev LIKE \'C3\''))
     results = res.fetchall()
     fuel_type_id = str(results[0]).replace('(', '').replace(',', '').replace(')', '')
 
     # fire centre is Prince George FC, planning area is Prince George Zone
-    res = conn.execute('SELECT id FROM planning_areas WHERE name LIKE {}'.format('\'Prince George Zone%%\''))
+    res = conn.execute(text('SELECT id FROM planning_areas WHERE name LIKE {}'.format('\'Prince George Zone%%\'')))
     results = res.fetchall()
     planning_area_id = results[0][0]
 
