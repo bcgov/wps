@@ -7,6 +7,7 @@ Create Date: 2021-06-01 15:51:27.767517
 """
 import json
 from alembic import op
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision = '1caf3488a340'
@@ -43,7 +44,7 @@ def upgrade():
             # insert into planning_areas table list of zone_name-fire_centre_id pairs
             for zone_dict in values['zones']:
                 zone_name = '\'' + list(zone_dict.keys())[0] + '\''
-                res = conn.execute('SELECT id FROM fire_centres WHERE name LIKE {}'.format(fire_centre_name))
+                res = conn.execute(text('SELECT id FROM fire_centres WHERE name LIKE {}'.format(fire_centre_name)))
                 results = res.fetchall()
                 fire_centre_id = str(results[0]).replace('(', '').replace(')', '').replace(',', '')
                 op.execute('INSERT INTO planning_areas (name, fire_centre_id) VALUES ({}, {})'.format(
@@ -54,12 +55,12 @@ def upgrade():
                     station_code = int(station_code)
                     fuel_type_abbrev = '\'' + fuel_type_dict['fuel_type'] + '\''
                     fuel_type_query = conn.execute(
-                        'SELECT id FROM fuel_types WHERE abbrev LIKE {}'.format(fuel_type_abbrev))
+                        text('SELECT id FROM fuel_types WHERE abbrev LIKE {}'.format(fuel_type_abbrev)))
                     fuel_type_results = fuel_type_query.fetchall()
                     fuel_type_id = str(fuel_type_results[0]).replace(
                         '(', '').replace(')', '').replace(',', '')
                     planning_area_query = conn.execute(
-                        'SELECT id FROM planning_areas WHERE name LIKE {}'.format(zone_name))
+                        text('SELECT id FROM planning_areas WHERE name LIKE {}'.format(zone_name)))
                     planning_area_results = planning_area_query.fetchall()
                     planning_area_id = str(planning_area_results[0]).replace(
                         '(', '').replace(')', '').replace(',', '')

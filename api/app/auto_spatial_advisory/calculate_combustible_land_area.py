@@ -69,6 +69,6 @@ def calculate_combustible_area_by_fire_zone(fuel_types_layer, zones) -> Generato
         # get intersection
         intersection = buffered_geom_collection.Intersection(zone_geom)
         if intersection is not None and intersection.GetArea() > 0:
-            yield (str(zone['source_identifier']), intersection.GetArea())
+            yield (str(zone.source_identifier), intersection.GetArea())
         else:
             yield (None, None)

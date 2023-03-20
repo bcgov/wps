@@ -45,6 +45,6 @@ def downgrade():
                     nullable=True)
 
     conn = op.get_bind()
-    res = conn.execute('SELECT id FROM fire_centres WHERE name LIKE \'Kamloops Fire Centre\'')
+    res = conn.execute(sa.text('SELECT id FROM fire_centres WHERE name LIKE \'Kamloops Fire Centre\''))
     kfc_id = int(str(res.fetchall()[0]).replace('(', '').replace(',', '').replace(')', ''))
     op.execute('UPDATE planning_areas SET order_of_appearance_in_list = NULL WHERE fire_centre_id = {}'.format(kfc_id))
