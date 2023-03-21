@@ -83,9 +83,7 @@ describe('MoreCast Page', () => {
     cy.getByTestId('map').find('.ol-zoom')
 
     // Should be able to find an attribution for the base map layer
-    cy.getByTestId('map')
-      .find('.ol-attribution')
-      .click()
+    cy.getByTestId('map').find('.ol-attribution').click()
   })
 
   it('Should display the station accuracy for date label', () => {
@@ -108,9 +106,7 @@ describe('MoreCast Page', () => {
     })
 
     it('should load with an observation table', () => {
-      cy.getByTestId(`observations-table-${stationCode}`)
-        .find('tbody > tr')
-        .should('have.length', numOfObservations)
+      cy.getByTestId(`observations-table-${stationCode}`).find('tbody > tr').should('have.length', numOfObservations)
 
       // expect the sidepanel to be partially expanded (we compare the calculated width, and expect
       // it to match the width of our browser window)
@@ -121,9 +117,7 @@ describe('MoreCast Page', () => {
     })
 
     it('should load a table comparing forecasts to noon observations', () => {
-      cy.getByTestId(`noon-forecasts-obs-table-${stationCode}`)
-        .find('tbody > tr')
-        .should('have.length', numOfForecasts)
+      cy.getByTestId(`noon-forecasts-obs-table-${stationCode}`).find('tbody > tr').should('have.length', numOfForecasts)
 
       cy.getByTestId(`expand-collapse-button`).click({ force: true })
       cy.getByTestId(`noon-forecasts-obs-table-${stationCode}`)
@@ -182,9 +176,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('expandable-container-content').should('have.css', 'width', '1000px')
 
       // expecting 2 rows, one for each station.
-      cy.getByTestId('station-comparison-table')
-        .find('tbody > tr')
-        .should('have.length', 2)
+      cy.getByTestId('station-comparison-table').find('tbody > tr').should('have.length', 2)
 
       // expect some observed data
       cy.getByTestId(`${stationCode}-Temperature-Observed`).should('contain', '-3.8')
@@ -261,9 +253,7 @@ describe('MoreCast Page', () => {
         checkWindDirectionFormattingAndLength(tableName)
       }
 
-      cy.getByTestId(`observations-table-${stationCode}`)
-        .find('tbody > tr')
-        .should('have.length', numOfObservations)
+      cy.getByTestId(`observations-table-${stationCode}`).find('tbody > tr').should('have.length', numOfObservations)
 
       // Check if the sorting functionality works
       const day = 26
@@ -284,47 +274,33 @@ describe('MoreCast Page', () => {
       checkTableCellHighlighting('observations-table')
 
       // Check num of interpolated noon GDPS rows
-      cy.getByTestId(`noon-gdps-table-${stationCode}`)
-        .find('tbody > tr')
-        .should('have.length', 14)
+      cy.getByTestId(`noon-gdps-table-${stationCode}`).find('tbody > tr').should('have.length', 14)
       checkTableCellHighlighting('noon-gdps-table')
 
       // Check num of noon forecasts rows
-      cy.getByTestId(`noon-forecasts-obs-table-${stationCode}`)
-        .find('tbody > tr')
-        .should('have.length', numOfForecasts)
+      cy.getByTestId(`noon-forecasts-obs-table-${stationCode}`).find('tbody > tr').should('have.length', numOfForecasts)
 
       // Check that collapse and expand functionality works
       cy.getByTestId(`observations-table-${stationCode}-accordion`).click() // Collapse Observations table
       cy.wait(500)
-      cy.getByTestId(`observations-table-${stationCode}`)
-        .find('.MuiTableSortLabel-icon')
-        .should('not.be.visible')
+      cy.getByTestId(`observations-table-${stationCode}`).find('.MuiTableSortLabel-icon').should('not.be.visible')
 
       cy.getByTestId(`noon-gdps-table-${stationCode}-accordion`).click() // Collapse Interpolated GDPS noon values table
       cy.wait(500)
-      cy.getByTestId(`noon-gdps-table-${stationCode}`)
-        .find('.MuiTableContainer-root')
-        .should('not.be.visible')
+      cy.getByTestId(`noon-gdps-table-${stationCode}`).find('.MuiTableContainer-root').should('not.be.visible')
     })
     it('Should show the legend', () => {
       cy.getByTestId('legend').should('be.visible')
     })
     it('Should expand the side panel when it is collapsed, and hide the legend', () => {
       cy.getByTestId(`expand-collapse-button`).click({ force: true })
-      cy.getByTestId('expandable-container-content')
-        .invoke('width')
-        .should('be.gt', PARTIAL_WIDTH)
+      cy.getByTestId('expandable-container-content').invoke('width').should('be.gt', PARTIAL_WIDTH)
 
       cy.getByTestId('legend').should('not.exist')
     })
     it('Should collapse the side panel when it is expanded and the legend should be visible', () => {
-      cy.getByTestId(`expand-collapse-button`)
-        .click({ force: true })
-        .click({ force: true })
-      cy.getByTestId('expandable-container-content')
-        .invoke('width')
-        .should('be.lte', PARTIAL_WIDTH)
+      cy.getByTestId(`expand-collapse-button`).click({ force: true }).click({ force: true })
+      cy.getByTestId('expandable-container-content').invoke('width').should('be.lte', PARTIAL_WIDTH)
 
       cy.getByTestId('legend').should('be.visible')
     })
@@ -456,7 +432,7 @@ describe('MoreCast Page', () => {
       it('Wind speed & direction graph should be displayed', () => {
         const checkNumOfArrows = (num: number) => {
           cy.getByTestId('wind-spd-dir-graph')
-            .find(`.layer-above > .shapelayer > path`)
+            .find(`.layer-above > .shapelayer > .shape-group > path`)
             .should('have.length', num)
         }
         const checkNumOfLegends = (num: number) => {
@@ -491,9 +467,7 @@ describe('MoreCast Page', () => {
       })
       it('Can toggle back to tables', () => {
         cy.contains('Tables').click()
-        cy.getByTestId(`observations-table-${stationCode}`)
-          .find('tbody > tr')
-          .should('have.length', numOfObservations)
+        cy.getByTestId(`observations-table-${stationCode}`).find('tbody > tr').should('have.length', numOfObservations)
       })
     })
   })
