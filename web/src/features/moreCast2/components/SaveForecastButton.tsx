@@ -3,11 +3,12 @@ import SaveIcon from '@mui/icons-material/Save'
 import { Button } from '@mui/material'
 
 export interface SubmitForecastButtonProps {
-  onClick: () => void
   enabled: boolean
+  label: string
+  onClick: () => void
 }
 
-const SaveForecastButton = ({ enabled, onClick }: SubmitForecastButtonProps) => {
+const SaveForecastButton = ({ enabled, label, onClick }: SubmitForecastButtonProps) => {
   return (
     <Button
       variant="contained"
@@ -16,7 +17,7 @@ const SaveForecastButton = ({ enabled, onClick }: SubmitForecastButtonProps) => 
       onClick={onClick}
       startIcon={<SaveIcon />}
     >
-      Save Forecast
+      {label}
     </Button>
   )
 }
