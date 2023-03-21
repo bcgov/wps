@@ -6,6 +6,7 @@ Create Date: 2022-02-01 13:54:20.342071
 
 """
 from alembic import op
+from sqlalchemy import text
 
 
 # revision identifiers, used by Alembic.
@@ -23,7 +24,7 @@ station_code_list_string = ','.join(str(x) for x in stations_with_c7b)
 def get_fuel_type_id(fuel_type):
     # Helper function to get fuel_types.id
     conn = op.get_bind()
-    cursor = conn.execute(f"SELECT id FROM fuel_types WHERE abbrev = '{fuel_type}'")
+    cursor = conn.execute(text(f"SELECT id FROM fuel_types WHERE abbrev = '{fuel_type}'"))
     result = cursor.fetchall()
     return result[0][0]
 
@@ -31,9 +32,9 @@ def get_fuel_type_id(fuel_type):
 def get_planning_areas(fire_centre_name):
     conn = op.get_bind()
     cursor = conn.execute(
-        "SELECT planning_areas.id FROM planning_areas "
-        "INNER JOIN fire_centres on fire_centres.id = planning_areas.fire_centre_id "
-        f"WHERE fire_centres.name = '{fire_centre_name}'")
+        text("SELECT planning_areas.id FROM planning_areas "
+             "INNER JOIN fire_centres on fire_centres.id = planning_areas.fire_centre_id "
+             f"WHERE fire_centres.name = '{fire_centre_name}'"))
     result = cursor.fetchall()
     return ','.join(str(x[0]) for x in result)
 
