@@ -2394,11 +2394,6 @@ category = "dev"
 optional = false
 python-versions = "*"
 
-[package.dependencies]
-asttokens = ">=2.1.0"
-executing = ">=1.2.0"
-pure-eval = "*"
-
 [package.extras]
 tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 
