@@ -1,16 +1,14 @@
 import React from 'react'
 import SaveIcon from '@mui/icons-material/Save'
 import { Button } from '@mui/material'
-import { ForecastActionChoice, ForecastActionType } from 'api/moreCast2API'
 
 export interface SubmitForecastButtonProps {
   enabled: boolean
-  mode: ForecastActionType
+  label: string
   onClick: () => void
 }
 
-const SaveForecastButton = ({ enabled, mode, onClick }: SubmitForecastButtonProps) => {
-  const buttonText = mode === ForecastActionChoice.CREATE ? 'Save Forecast' : 'Update Forecast'
+const SaveForecastButton = ({ enabled, label, onClick }: SubmitForecastButtonProps) => {
   return (
     <Button
       variant="contained"
@@ -19,7 +17,7 @@ const SaveForecastButton = ({ enabled, mode, onClick }: SubmitForecastButtonProp
       onClick={onClick}
       startIcon={<SaveIcon />}
     >
-      {buttonText}
+      {label}
     </Button>
   )
 }

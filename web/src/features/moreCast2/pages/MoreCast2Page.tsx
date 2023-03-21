@@ -398,7 +398,7 @@ const MoreCast2Page = () => {
                     forecastRows.length > 0 &&
                     (forecastAction === ForecastActionChoice.CREATE || forecastIsDirty)
                   }
-                  mode={forecastAction}
+                  label={forecastAction === ForecastActionChoice.CREATE ? 'Save Forecast' : 'Update Forecast'}
                   onClick={handleSaveClick}
                 />
               </FormControl>
