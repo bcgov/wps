@@ -1,13 +1,14 @@
 """ Routes for Morecast v2 """
 import logging
 from aiohttp.client import ClientSession
+import pytz
 from typing import List
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from fastapi import APIRouter, Response, Depends, status
 from app.auth import (auth_with_forecaster_role_required,
                       audit,
                       authentication_required)
-from app.db.crud.morecast_v2 import get_user_forecasts_for_date, save_all_forecasts
+from app.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_for_date, save_all_forecasts
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
 from app.schemas.morecast_v2 import (MoreCastForecastOutput,
@@ -15,12 +16,12 @@ from app.schemas.morecast_v2 import (MoreCastForecastOutput,
                                      MorecastForecastResponse,
                                      YesterdayStationDailies,
                                      YesterdayStationDailiesResponse)
+from app.schemas.shared import StationsRequest
 from app.utils.time import get_hour_20_from_date, get_utc_now
 from app.wildfire_one.wfwx_api import get_auth_header, get_dailies_for_stations_and_date
 
 
 logger = logging.getLogger(__name__)
-
 
 no_cache = "max-age=0"  # don't let the browser cache this
 
@@ -42,6 +43,30 @@ async def get_forecasts_for_date_and_user(for_date: date,
 
     with get_read_session_scope() as db_session:
         return get_user_forecasts_for_date(db_session, username, for_date)
+
+
+@router.post("/forecasts/{start_date}/{end_date}")
+async def get_forecasts_by_date_range(start_date: date, end_date: date, request: StationsRequest, response: Response):
+    """ Return forecasts for the specified date range and stations """
+    logger.info(f"/forecast/{start_date}/{end_date}")
+    response.headers["Cache-Control"] = no_cache
+
+    vancouver_tz = pytz.timezone("America/Vancouver")
+
+    start_time = vancouver_tz.localize(datetime.combine(start_date, time.min))
+    end_time = vancouver_tz.localize(datetime.combine(end_date, time.max))
+
+    with get_read_session_scope() as db_session:
+        result = get_forecasts_in_range(db_session, start_time, end_time, request.stations)
+        morecast_forecast_outputs = [MoreCastForecastOutput(station_code=forecast.station_code,
+                                                            for_date=forecast.for_date.timestamp() * 1000,
+                                                            temp=forecast.temp,
+                                                            rh=forecast.rh,
+                                                            precip=forecast.precip,
+                                                            wind_speed=forecast.wind_speed,
+                                                            wind_direction=forecast.wind_direction,
+                                                            update_timestamp=forecast.update_timestamp.timestamp()) for forecast in result]
+    return MorecastForecastResponse(forecasts=morecast_forecast_outputs)
 
 
 @router.post("/forecast", status_code=status.HTTP_201_CREATED)

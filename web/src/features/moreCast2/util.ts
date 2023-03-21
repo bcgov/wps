@@ -1,9 +1,47 @@
 import { isNumber } from 'lodash'
 import { DateTime, Interval } from 'luxon'
 import { FireCenterStation } from 'api/fbaAPI'
-import { ModelType, StationPrediction } from 'api/moreCast2API'
+import { ModelChoice, ModelType, MoreCast2ForecastRecord, StationPrediction } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
+
+export const parseForecastsHelper = (
+  forecasts: MoreCast2ForecastRecord[],
+  stations: FireCenterStation[]
+): MoreCast2ForecastRow[] => {
+  const rows: MoreCast2ForecastRow[] = []
+
+  forecasts.forEach(forecast => {
+    const row: MoreCast2ForecastRow = {
+      id: rowIDHasher(forecast.station_code, DateTime.fromMillis(forecast.for_date)),
+      forDate: DateTime.fromMillis(forecast.for_date),
+      precip: {
+        choice: ModelChoice.FORECAST,
+        value: forecast.precip
+      },
+      rh: {
+        choice: ModelChoice.FORECAST,
+        value: forecast.rh
+      },
+      stationCode: forecast.station_code,
+      stationName: stations.find(station => station.code === forecast.station_code)?.name || '',
+      temp: {
+        choice: ModelChoice.FORECAST,
+        value: forecast.temp
+      },
+      windDirection: {
+        choice: ModelChoice.FORECAST,
+        value: forecast.wind_direction
+      },
+      windSpeed: {
+        choice: ModelChoice.FORECAST,
+        value: forecast.wind_speed
+      }
+    }
+    rows.push(row)
+  })
+  return rows
+}
 
 // Convert the model predictions from the API to a format that can be used by a MoreCast2DataGrid data grid
 export const parseModelsForStationsHelper = (predictions: StationPrediction[]): MoreCast2ForecastRow[] => {
@@ -149,4 +187,25 @@ export const createDateInterval = (fromDate: DateTime, toDate: DateTime) => {
     return `${date.toISODate()}T20:00:00+00:00`
   })
   return dates
+}
+
+/**
+ * Filters an array of MoreCast2ForecastRows to the subset of elements that contains a property
+ * with a model choice that matches the specified model type. Example use, can be used to check
+ * if a row has been manually edited by searching for precip, rh, temp, wind direction or wind speed
+ * that has a choice === ModelChoice.MANUAL.
+ * @param rows The array of MoreCast2ForecastRows to filter
+ * @param choice The ModelType to filter by
+ * @returns A filtered array of MoreCast2ForecastRows
+ */
+export const filterRowsByModelType = (rows: MoreCast2ForecastRow[], choice: ModelType) => {
+  const filteredRows = rows.filter(
+    row =>
+      row.precip.choice === choice ||
+      row.rh.choice === choice ||
+      row.temp.choice === choice ||
+      row.windDirection.choice === choice ||
+      row.windSpeed.choice === choice
+  )
+  return filteredRows
 }
