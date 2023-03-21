@@ -6,6 +6,7 @@ import { DateTime } from 'luxon'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 
 export enum ModelChoice {
+  FORECAST = 'FORECAST',
   GDPS = 'GDPS',
   GFS = 'GFS',
   HRDPS = 'HRDPS',
@@ -14,7 +15,20 @@ export enum ModelChoice {
   MANUAL = 'MANUAL',
   YESTERDAY = 'YESTERDAY'
 }
+
 export const DEFAULT_MODEL_TYPE: ModelType = ModelChoice.HRDPS
+
+export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'YESTERDAY' | 'NAM' | 'RDPS' | 'MANUAL' | 'FORECAST'
+
+export const ModelChoices: ModelType[] = [
+  ModelChoice.GDPS,
+  ModelChoice.GFS,
+  ModelChoice.HRDPS,
+  ModelChoice.YESTERDAY,
+  ModelChoice.MANUAL,
+  ModelChoice.NAM,
+  ModelChoice.RDPS
+]
 
 export interface YesterdayDailiesResponse {
   dailies: YesterdayDailyResponse[]
@@ -49,20 +63,18 @@ export interface StationPrediction {
   wind_speed: number | null
 }
 
-export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'YESTERDAY' | 'NAM' | 'RDPS' | 'MANUAL'
+export enum ForecastActionChoice {
+  CREATE = 'Create Forecast',
+  EDIT = 'View/Edit Forecast'
+}
 
-export const ModelChoices: ModelType[] = [
-  ModelChoice.GDPS,
-  ModelChoice.GFS,
-  ModelChoice.HRDPS,
-  ModelChoice.YESTERDAY,
-  ModelChoice.MANUAL,
-  ModelChoice.NAM,
-  ModelChoice.RDPS
-]
+export type ForecastActionType = 'Create Forecast' | 'View/Edit Forecast'
+
+export const ForecastActionChoices: ForecastActionType[] = [ForecastActionChoice.CREATE, ForecastActionChoice.EDIT]
 
 export const ModelOptions: ModelType[] = ModelChoices.filter(choice => !isEqual(choice, ModelChoice.MANUAL))
-interface MoreCast2ForecastRecord {
+
+export interface MoreCast2ForecastRecord {
   station_code: number
   for_date: number
   temp: number
@@ -70,6 +82,11 @@ interface MoreCast2ForecastRecord {
   precip: number
   wind_speed: number
   wind_direction: number
+  update_timestamp?: number
+}
+
+interface MoreCast2ForecastRecordResponse {
+  forecasts: MoreCast2ForecastRecord[]
 }
 
 const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[]) => {
@@ -105,6 +122,24 @@ export async function submitMoreCastForecastRecords(forecasts: MoreCast2Forecast
     console.error(error.message || error)
     return false
   }
+}
+
+/**
+ * Retrieve a batch of forecasts for a specified date range and array of stations
+ * @param startDate The start of the date range
+ * @param endDate The end of the date range (inclusive)
+ * @param stations The stations of interest
+ */
+export async function getMoreCast2ForecastRecordsByDateRange(
+  startDate: DateTime,
+  endDate: DateTime,
+  stations: number[]
+): Promise<MoreCast2ForecastRecord[]> {
+  const url = `/morecast-v2/forecasts/${startDate.toISODate()}/${endDate.toISODate()}`
+  const { data } = await axios.post<MoreCast2ForecastRecordResponse>(url, {
+    stations
+  })
+  return data.forecasts
 }
 
 /**

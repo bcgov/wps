@@ -13,8 +13,8 @@ class WeatherDataRequest(BaseModel):
     time_of_interest: datetime = time_utils.get_utc_now()
 
 
-class ModelDataRequest(BaseModel):
-    """ A request for weather data for a given set of stations with a time of interest. """
+class StationsRequest(BaseModel):
+    """ A request for data related to a set of weather stations. """
     stations: List[int]
 
 

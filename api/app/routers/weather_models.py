@@ -11,7 +11,7 @@ from app.schemas.weather_models import (
     WeatherStationModelPredictionValues,
     WeatherModelPredictionSummaryResponse,
     WeatherStationsModelRunsPredictionsResponse)
-from app.schemas.shared import ModelDataRequest, WeatherDataRequest
+from app.schemas.shared import StationsRequest, WeatherDataRequest
 from app.weather_models.fetch.summaries import fetch_model_prediction_summaries
 from app.weather_models.fetch.predictions import (
     fetch_latest_daily_model_run_predictions_by_station_code_and_date_range,
@@ -56,7 +56,7 @@ async def get_most_recent_model_values(
 @router.post('/{model}/predictions/most_recent/{start_date}/{end_date}',
              response_model=List[WeatherStationModelPredictionValues])
 async def get_model_values_for_date_range(
-        model: ModelEnum, start_date: date, end_date: date, request: ModelDataRequest):
+        model: ModelEnum, start_date: date, end_date: date, request: StationsRequest):
     """ Returns the weather values for the last model prediction for the 
     requested stations within the requested date range.
     """

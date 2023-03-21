@@ -13,6 +13,7 @@ import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
 interface MoreCast2DataGridProps {
   rows: MoreCast2ForecastRow[]
   clickedColDef: GridColDef | null
+  onCellEditStop: (value: boolean) => void
   setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
   updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
 }
@@ -27,8 +28,9 @@ const useStyles = makeStyles({
 const MoreCast2DataGrid = ({
   rows,
   clickedColDef,
-  updateColumnWithModel,
-  setClickedColDef
+  onCellEditStop,
+  setClickedColDef,
+  updateColumnWithModel
 }: MoreCast2DataGridProps) => {
   const classes = useStyles()
 
@@ -59,6 +61,7 @@ const MoreCast2DataGrid = ({
           LoadingOverlay: LinearProgress
         }}
         onColumnHeaderClick={handleColumnHeaderClick}
+        onCellEditStop={() => onCellEditStop(true)}
         loading={loading}
         columns={columns}
         rows={rows}

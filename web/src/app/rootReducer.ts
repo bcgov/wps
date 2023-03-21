@@ -28,6 +28,7 @@ import modelSlice from 'features/moreCast2/slices/modelSlice'
 import yesterdayDailiesSlice from 'features/moreCast2/slices/yesterdayDailiesSlice'
 import columnModelSlice from 'features/moreCast2/slices/columnModelSlice'
 import columnYesterdaySlice from 'features/moreCast2/slices/columnYesterdaySlice'
+import moreCast2ForecastReducer from 'features/moreCast2/slices/moreCast2ForecastsSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -58,7 +59,8 @@ const rootReducer = combineReducers({
   stationPredictions: modelSlice,
   columnStationPredictions: columnModelSlice,
   columnYesterdayDailies: columnYesterdaySlice,
-  yesterdayDailies: yesterdayDailiesSlice
+  yesterdayDailies: yesterdayDailiesSlice,
+  moreCast2Forecasts: moreCast2ForecastReducer
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -96,6 +98,7 @@ export const selectModelStationPredictions = (state: RootState) => state.station
 export const selectYesterdayDailies = (state: RootState) => state.yesterdayDailies
 export const selectColumnModelStationPredictions = (state: RootState) => state.columnStationPredictions
 export const selectColumnYesterdayDailies = (state: RootState) => state.columnYesterdayDailies
+export const selectMoreCast2Forecasts = (state: RootState) => state.moreCast2Forecasts
 export const selectMorecast2TableLoading = (state: RootState) =>
   state.yesterdayDailies.loading ||
   state.stationPredictions.loading ||
@@ -119,3 +122,4 @@ export const selectHFIStationsLoading = (state: RootState): boolean => state.hfi
 export const selectHFIReadyState = (state: RootState): HFIReadyState => state.hfiReady
 export const selectFireBehaviourStationsLoading = (state: RootState): boolean => state.fbaCalculatorResults.loading
 export const selectFireCentersLoading = (state: RootState): boolean => state.fireCenters.loading
+export const selectMoreCast2ForecastsLoading = (state: RootState): boolean => state.moreCast2Forecasts.loading
