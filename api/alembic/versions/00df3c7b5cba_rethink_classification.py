@@ -53,7 +53,7 @@ def upgrade():
     # ### end Alembic commands ###
     # Advisory shapes was missing an SRID:
     session = Session(bind=op.get_bind())
-    session.execute("SELECT UpdateGeometrySRID('advisory_shapes','geom',3005);")
+    session.execute(sa.text("SELECT UpdateGeometrySRID('advisory_shapes','geom',3005);"))
 
 
 def downgrade():
