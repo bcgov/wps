@@ -32,7 +32,7 @@ def mock_database(monkeypatch):
     shape = shapely.wkt.loads(geom)
 
     hrdps_url = 'https://dd.weather.gc.ca/model_hrdps/continental/2.5km/' \
-        '18/001/20200521T18Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT001H.grib2'
+        '00/001/20200521T18Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT001H.grib2'
     hrdps_processed_model_run = ProcessedModelRunUrl(url=hrdps_url)
     hrdps_prediction_model = PredictionModel(id=3, abbreviation='HRDPS', projection='ps2.5km',
                                              name='High Resolution Deterministic Prediction System')
@@ -104,8 +104,7 @@ def test_get_hrdps_download_urls():
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
-@pytest.mark.usefixtures('mock_get_processed_file_record')
-def test_process_hrdps(mock_download, mock_database):
+def test_process_hrdps(mock_download, mock_database, mock_get_processed_file_record):
     """ run process method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
