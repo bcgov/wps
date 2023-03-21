@@ -45,7 +45,7 @@ async def get_forecasts_for_date_and_user(for_date: date,
         return get_user_forecasts_for_date(db_session, username, for_date)
 
 
-@router.post("/forecasts/{start_date}/{end_date}")  # , response_model=MorecastForecastResponse)
+@router.post("/forecasts/{start_date}/{end_date}")
 async def get_forecasts_by_date_range(start_date: date, end_date: date, request: StationsRequest, response: Response):
     """ Return forecasts for the specified date range and stations """
     logger.info(f"/forecast/{start_date}/{end_date}")
