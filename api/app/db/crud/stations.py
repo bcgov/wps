@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy.engine.cursor import CursorResult
 from app.utils.time import get_hour_20
+from sqlalchemy import text
 
 
 def _get_noon_date(date_of_interest: datetime) -> datetime:
@@ -60,4 +61,4 @@ hourly_actuals.temperature, hourly_actuals.relative_humidity
 from hourly_actuals
 where hourly_actuals.weather_date = :weather_date
 -- order by hourly_actuals.station_code"""
-    return session.execute(query, {"weather_date": noon_date})
+    return session.execute(text(query), {"weather_date": noon_date})
