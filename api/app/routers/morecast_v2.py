@@ -59,7 +59,7 @@ async def get_forecasts_by_date_range(start_date: date, end_date: date, request:
     with get_read_session_scope() as db_session:
         result = get_forecasts_in_range(db_session, start_time, end_time, request.stations)
         morecast_forecast_outputs = [MoreCastForecastOutput(station_code=forecast.station_code,
-                                                            for_date=forecast.for_date.timestamp(),
+                                                            for_date=forecast.for_date.timestamp() * 1000,
                                                             temp=forecast.temp,
                                                             rh=forecast.rh,
                                                             precip=forecast.precip,

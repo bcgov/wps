@@ -6,6 +6,7 @@ import { DateTime } from 'luxon'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 
 export enum ModelChoice {
+  FORECAST = 'FORECAST',
   GDPS = 'GDPS',
   GFS = 'GFS',
   HRDPS = 'HRDPS',
@@ -14,7 +15,20 @@ export enum ModelChoice {
   MANUAL = 'MANUAL',
   YESTERDAY = 'YESTERDAY'
 }
+
 export const DEFAULT_MODEL_TYPE: ModelType = ModelChoice.HRDPS
+
+export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'YESTERDAY' | 'NAM' | 'RDPS' | 'MANUAL' | 'FORECAST'
+
+export const ModelChoices: ModelType[] = [
+  ModelChoice.GDPS,
+  ModelChoice.GFS,
+  ModelChoice.HRDPS,
+  ModelChoice.YESTERDAY,
+  ModelChoice.MANUAL,
+  ModelChoice.NAM,
+  ModelChoice.RDPS
+]
 
 export interface YesterdayDailiesResponse {
   dailies: YesterdayDailyResponse[]
@@ -49,17 +63,14 @@ export interface StationPrediction {
   wind_speed: number | null
 }
 
-export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'YESTERDAY' | 'NAM' | 'RDPS' | 'MANUAL'
+export enum ForecastActionChoice {
+  CREATE = 'Create Forecast',
+  EDIT = 'View/Edit Forecast'
+}
 
-export const ModelChoices: ModelType[] = [
-  ModelChoice.GDPS,
-  ModelChoice.GFS,
-  ModelChoice.HRDPS,
-  ModelChoice.YESTERDAY,
-  ModelChoice.MANUAL,
-  ModelChoice.NAM,
-  ModelChoice.RDPS
-]
+export type ForecastActionType = 'Create Forecast' | 'View/Edit Forecast'
+
+export const ForecastActionChoices: ForecastActionType[] = [ForecastActionChoice.CREATE, ForecastActionChoice.EDIT]
 
 export const ModelOptions: ModelType[] = ModelChoices.filter(choice => !isEqual(choice, ModelChoice.MANUAL))
 
@@ -125,10 +136,10 @@ export async function getMoreCast2ForecastRecordsByDateRange(
   stations: number[]
 ): Promise<MoreCast2ForecastRecord[]> {
   const url = `/morecast-v2/forecasts/${startDate.toISODate()}/${endDate.toISODate()}`
-  const { forecasts } = await axios.post<number[], MoreCast2ForecastRecordResponse>(url, {
+  const { data } = await axios.post<MoreCast2ForecastRecordResponse>(url, {
     stations
   })
-  return forecasts
+  return data.forecasts
 }
 
 /**

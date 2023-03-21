@@ -37,7 +37,7 @@ describe('norecast2ForecastsSlice', () => {
       ]
       expect(moreCast2ForecastsReducer(initialState, getMoreCast2ForecastsSuccess(forecasts))).toEqual({
         ...initialState,
-        forecasts: forecasts
+        moreCast2Forecasts: forecasts
       })
     })
     it('should set a value for error state when fetchFuelTypesFailed is called', () => {

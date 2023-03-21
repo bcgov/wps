@@ -8,13 +8,13 @@ import { logError } from 'utils/error'
 interface State {
   loading: boolean
   error: string | null
-  forecasts: MoreCast2ForecastRecord[]
+  moreCast2Forecasts: MoreCast2ForecastRecord[]
 }
 
 export const initialState: State = {
   loading: false,
   error: null,
-  forecasts: []
+  moreCast2Forecasts: []
 }
 
 const moreCast2ForecastsSlice = createSlice({
@@ -23,7 +23,7 @@ const moreCast2ForecastsSlice = createSlice({
   reducers: {
     getMoreCast2ForecastsStart(state: State) {
       state.error = null
-      state.forecasts = []
+      state.moreCast2Forecasts = []
       state.loading = true
     },
     getMoreCast2ForecastsFailed(state: State, action: PayloadAction<string>) {
@@ -32,7 +32,7 @@ const moreCast2ForecastsSlice = createSlice({
     },
     getMoreCast2ForecastsSuccess(state: State, action: PayloadAction<MoreCast2ForecastRecord[]>) {
       state.error = null
-      state.forecasts = action.payload
+      state.moreCast2Forecasts = action.payload
       state.loading = false
     }
   }

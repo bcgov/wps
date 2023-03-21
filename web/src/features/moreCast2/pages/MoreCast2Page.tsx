@@ -7,6 +7,9 @@ import { DateTime } from 'luxon'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
 import {
   DEFAULT_MODEL_TYPE,
+  ForecastActionChoice,
+  ForecastActionChoices,
+  ForecastActionType,
   ModelChoice,
   ModelOptions,
   ModelType,
@@ -18,6 +21,7 @@ import {
   selectColumnYesterdayDailies,
   selectFireCenters,
   selectModelStationPredictions,
+  selectMoreCast2Forecasts,
   selectYesterdayDailies
 } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
@@ -32,6 +36,8 @@ import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice
 import {
   createDateInterval,
   fillInTheModelBlanks,
+  filterRowsByModelType,
+  parseForecastsHelper,
   parseModelsForStationsHelper,
   replaceColumnValuesFromPrediction
 } from 'features/moreCast2/util'
@@ -48,7 +54,9 @@ import { DateRange } from 'components/dateRangePicker/types'
 import { GridColDef } from '@mui/x-data-grid'
 import { getColumnModelStationPredictions } from 'features/moreCast2/slices/columnModelSlice'
 import { getColumnYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
+import { getMoreCast2Forecasts } from 'features/moreCast2/slices/moreCast2ForecastsSlice'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
+import ForecastActionDropdown from 'features/moreCast2/components/ForecastActionDropdown'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -97,6 +105,7 @@ const MoreCast2Page = () => {
   const { fireCenters } = useSelector(selectFireCenters)
   const { stationPredictions } = useSelector(selectModelStationPredictions)
   const { yesterdayDailies } = useSelector(selectYesterdayDailies)
+  const { moreCast2Forecasts } = useSelector(selectMoreCast2Forecasts)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
@@ -118,6 +127,9 @@ const MoreCast2Page = () => {
   const [stationPredictionsAsMoreCast2ForecastRows, setStationPredictionsAsMoreCast2ForecastRows] = useState<
     MoreCast2ForecastRow[]
   >([])
+  const [forecastAction, setForecastAction] = useState<ForecastActionType>(ForecastActionChoices[0])
+  const [forecastIsDirty, setForecastIsDirty] = useState(false)
+  const [forecastsAsMoreCast2ForecastRows, setForecastsAsMoreCast2ForecastRows] = useState<MoreCast2ForecastRow[]>([])
   const [dateInterval, setDateInterval] = useState<string[]>([])
 
   const { colPrediction } = useSelector(selectColumnModelStationPredictions)
@@ -149,6 +161,7 @@ const MoreCast2Page = () => {
     }
   }
 
+  // Fecthes observed/predicted values while in Create Forecast mode
   const fetchStationPredictions = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
     if (isUndefined(fromTo.startDate) || isUndefined(fromTo.endDate)) {
@@ -167,6 +180,18 @@ const MoreCast2Page = () => {
         )
       )
     }
+  }
+
+  // Fetches previously submitted forecasts from the API database while in View/Edit Forecast mode
+  const fetchForecasts = () => {
+    const stationCodes = fireCenter?.stations.map(station => station.code) || []
+    if (isUndefined(fromTo.startDate) || isUndefined(fromTo.endDate)) {
+      setForecastRows([])
+      return
+    }
+    dispatch(
+      getMoreCast2Forecasts(DateTime.fromJSDate(fromTo.startDate), DateTime.fromJSDate(fromTo.endDate), stationCodes)
+    )
   }
 
   useEffect(() => {
@@ -236,20 +261,29 @@ const MoreCast2Page = () => {
       setDateInterval(dates)
     }
 
-    if (!isUndefined(modelType) && !isNull(modelType)) {
-      localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
-      fetchStationPredictions()
+    if (forecastAction === ForecastActionChoice.CREATE) {
+      if (!isUndefined(modelType) && !isNull(modelType)) {
+        localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
+        fetchStationPredictions()
+      } else {
+        setForecastRows([])
+      }
     } else {
-      setForecastRows([])
+      // We're in view/edit mode
+      fetchForecasts()
     }
   }, [fromTo.startDate, fromTo.endDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const visibleForecastRows = stationPredictionsAsMoreCast2ForecastRows.filter(
+    const workingRows =
+      forecastAction === ForecastActionChoice.CREATE
+        ? stationPredictionsAsMoreCast2ForecastRows
+        : forecastsAsMoreCast2ForecastRows
+    const visibleForecastRows = workingRows.filter(
       row => selectedStations.filter(station => station.code === row.stationCode).length
     )
     setForecastRows(visibleForecastRows)
-  }, [stationPredictionsAsMoreCast2ForecastRows, selectedStations])
+  }, [forecastsAsMoreCast2ForecastRows, stationPredictionsAsMoreCast2ForecastRows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const predictions = fillInTheModelBlanks(fireCenter?.stations || [], stationPredictions, dateInterval, modelType)
@@ -262,6 +296,16 @@ const MoreCast2Page = () => {
     const newRows = parseYesterdayDailiesForStationsHelper(completeDailies)
     setStationPredictionsAsMoreCast2ForecastRows(newRows)
   }, [yesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    // Handle the switch from create to edit mode and vice versa
+    forecastAction === ForecastActionChoice.CREATE ? fetchStationPredictions() : fetchForecasts()
+  }, [forecastAction]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const newRows = parseForecastsHelper(moreCast2Forecasts, fireCenter?.stations || [])
+    setForecastsAsMoreCast2ForecastRows(newRows)
+  }, [moreCast2Forecasts]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // A valid, submittable forecast can't contain NaN for any values
   const forecastIsValid = () => {
@@ -280,8 +324,13 @@ const MoreCast2Page = () => {
   }
 
   const handleSaveClick = async () => {
+    const rowsToSave: MoreCast2ForecastRow[] =
+      forecastAction === ForecastActionChoice.CREATE
+        ? forecastRows
+        : filterRowsByModelType(forecastRows, ModelChoice.MANUAL)
+
     if (forecastIsValid()) {
-      const result = await submitMoreCastForecastRecords(forecastRows)
+      const result = await submitMoreCastForecastRecords(rowsToSave)
       if (result) {
         setSnackbarMessage(FORECAST_SAVED_MESSAGE)
         setSnackbarSeverity('success')
@@ -316,13 +365,27 @@ const MoreCast2Page = () => {
           <Grid container spacing={1}>
             <Grid item xs={3}>
               <FormControl className={classes.formControl}>
-                <WeatherModelDropdown
-                  weatherModelOptions={ModelOptions}
-                  selectedModelType={modelType}
-                  setSelectedModelType={setModelType}
+                <ForecastActionDropdown
+                  forecastActionOptions={ForecastActionChoices}
+                  selectedForecastAction={forecastAction}
+                  setForecastAction={setForecastAction}
                 />
               </FormControl>
             </Grid>
+            {
+              // Only show the weather model dropdown when creating new forecasts
+              forecastAction === ForecastActionChoice.CREATE && (
+                <Grid item xs={3}>
+                  <FormControl className={classes.formControl}>
+                    <WeatherModelDropdown
+                      weatherModelOptions={ModelOptions}
+                      selectedModelType={modelType}
+                      setSelectedModelType={setModelType}
+                    />
+                  </FormControl>
+                </Grid>
+              )
+            }
             <Grid item xs={3}>
               <MoreCase2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
             </Grid>
@@ -330,8 +393,12 @@ const MoreCast2Page = () => {
               <FormControl className={classes.actionButtonContainer}>
                 <SaveForecastButton
                   enabled={
-                    roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) && isAuthenticated && forecastRows.length > 0
+                    roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
+                    isAuthenticated &&
+                    forecastRows.length > 0 &&
+                    (forecastAction === ForecastActionChoice.CREATE || forecastIsDirty)
                   }
+                  mode={forecastAction}
                   onClick={handleSaveClick}
                 />
               </FormControl>
@@ -340,8 +407,9 @@ const MoreCast2Page = () => {
           <MoreCast2DataGrid
             rows={forecastRows}
             clickedColDef={clickedColDef}
-            updateColumnWithModel={updateColumnWithModel}
+            onCellEditStop={setForecastIsDirty}
             setClickedColDef={setClickedColDef}
+            updateColumnWithModel={updateColumnWithModel}
           />
           <MoreCast2Snackbar
             autoHideDuration={6000}
