@@ -71,6 +71,12 @@ def fetch_object(object_id: int, url: str, out_sr: str = str(NAD83_BC_ALBERS), r
 
     encode_params = urllib.parse.urlencode(params).encode("utf-8")
     logger.info('%s/query?%s', object_id, encode_params.decode())
-    with urllib.request.urlopen(f'{url}/query?', encode_params) as response:
-        json_data = json.loads(response.read())
+    try:
+        with urllib.request.urlopen(f'{url}/query?', encode_params) as response:
+            json_data = json.loads(response.read())
+    except Exception:
+        logger.error('An error occurred while fetching feature with id: %s', object_id)
+    else:
+        logger.info('Successfully fetched fetaure with id: %s', object_id)
+
     return json_data
