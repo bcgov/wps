@@ -63,24 +63,28 @@ def parse_high_res_model_url(url):
     base = os.path.basename(url)
     base_parts = base.split('_')
     url_parts = url.split('/')
-    variable = base_parts[3]
-    level = base_parts[4]
-    variable_name = '_'.join(
-        [variable, level])
-    projection = ProjectionEnum.HIGH_RES_CONTINENTAL
-    run_date_str = base_parts[0][:-4]
-    run_hour_str = url_parts[6]
-    model_run_timestamp = datetime.datetime(
-        year=int(run_date_str[:4]),
-        month=int(run_date_str[4:6]),
-        day=int(run_date_str[6:8]),
-        hour=int(run_hour_str),
-        tzinfo=datetime.timezone.utc
-    )
-    prediction_hour = url_parts[7]
-    prediction_timestamp = model_run_timestamp + \
-        datetime.timedelta(hours=int(prediction_hour))
-    return variable_name, projection, model_run_timestamp, prediction_timestamp
+    try:
+        variable = base_parts[3]
+        level = base_parts[4]
+        variable_name = '_'.join(
+            [variable, level])
+        projection = ProjectionEnum.HIGH_RES_CONTINENTAL
+        run_date_str = base_parts[0][:-4]
+        run_hour_str = url_parts[6]
+        model_run_timestamp = datetime.datetime(
+            year=int(run_date_str[:4]),
+            month=int(run_date_str[4:6]),
+            day=int(run_date_str[6:8]),
+            hour=int(run_hour_str),
+            tzinfo=datetime.timezone.utc
+        )
+        prediction_hour = url_parts[7]
+        prediction_timestamp = model_run_timestamp + \
+            datetime.timedelta(hours=int(prediction_hour))
+        return variable_name, projection, model_run_timestamp, prediction_timestamp
+    except Exception as exc:
+        logger.error('HRDPS URL %s is not in the expected format', url)
+        logger.error(exc_info=exc)
 
 
 def parse_env_canada_filename(url):

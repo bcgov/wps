@@ -7,6 +7,7 @@ from typing import Optional
 import pytest
 import requests
 import shapely
+import datetime
 from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
 from pytest_mock import MockerFixture
@@ -16,6 +17,7 @@ import app.db.crud.weather_models
 import app.jobs.env_canada
 import app.jobs.common_model_fetchers
 import app.weather_models.process_grib
+from app.weather_models import ProjectionEnum
 from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
                                           PredictionModelRunTimestamp, PredictionModelGridSubset)
 from app.tests.weather_models.test_env_canada_gdps import MockResponse
@@ -129,3 +131,63 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
     assert rocket_chat_spy.call_count == 1
+
+
+def test_parse_high_res_model_url_correct_format():
+    """ Given a grib file download URL in the correct format, env_canada.parse_high_res_model_url
+    should return the correct info pulled from the URL """
+    test_cases = [
+        {
+            'url': 'https://dd.weather.gc.ca/model_hrdps/continental/2.5km/06/012/20230322T06Z_MSC_HRDPS_TMP_AGL-2m_RLatLon0.0225_PT012.grib2',
+            'variable_name': 'TMP_AGL-2m',
+            'projection': ProjectionEnum.HIGH_RES_CONTINENTAL,
+            'model_run_timestamp': datetime.datetime(2023, 3, 22, 6, 0, tzinfo=datetime.timezone.utc),
+            'prediction_timestamp': datetime.datetime(2023, 3, 22, 18, 0, tzinfo=datetime.timezone.utc)
+        },
+        {
+            'url': 'https://dd.weather.gc.ca/model_hrdps/continental/2.5km/06/012/20230322T06Z_MSC_HRDPS_WIND_AGL-10m_RLatLon0.0225_PT012.grib2',
+            'variable_name': 'WIND_AGL-10m',
+            'projection': ProjectionEnum.HIGH_RES_CONTINENTAL,
+            'model_run_timestamp': datetime.datetime(2023, 3, 22, 6, 0, tzinfo=datetime.timezone.utc),
+            'prediction_timestamp': datetime.datetime(2023, 3, 22, 18, 0, tzinfo=datetime.timezone.utc)
+        },
+        {
+            'url': 'https://dd.weather.gc.ca/model_hrdps/continental/2.5km/06/012/20230322T06Z_MSC_HRDPS_APCP_Sfc_RLatLon0.0225_PT012.grib2',
+            'variable_name': 'APCP_Sfc',
+            'projection': ProjectionEnum.HIGH_RES_CONTINENTAL,
+            'model_run_timestamp': datetime.datetime(2023, 3, 22, 6, 0, tzinfo=datetime.timezone.utc),
+            'prediction_timestamp': datetime.datetime(2023, 3, 22, 18, 0, tzinfo=datetime.timezone.utc)
+        },
+        {
+            'url': 'https://dd.weather.gc.ca/model_hrdps/continental/2.5km/12/084/20230322T12Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT084.grib2',
+            'variable_name': 'RH_AGL-2m',
+            'projection': ProjectionEnum.HIGH_RES_CONTINENTAL,
+            'model_run_timestamp': datetime.datetime(2023, 3, 22, 12, 0, tzinfo=datetime.timezone.utc),
+            'prediction_timestamp': datetime.datetime(2023, 3, 26, 0, 0, tzinfo=datetime.timezone.utc)
+        },
+    ]
+
+    for case in test_cases:
+        actual_variable_name, actual_projection, actual_model_run_timestamp, actual_prediction_timestamp \
+            = app.jobs.env_canada.parse_high_res_model_url(
+                case['url'])
+        assert actual_variable_name == case['variable_name']
+        assert actual_projection == case['projection']
+        assert actual_model_run_timestamp == case['model_run_timestamp']
+        assert actual_prediction_timestamp == case['prediction_timestamp']
+
+
+def test_part_high_res_model_url_incorrect_format():
+    """ Tests basic functionality to detect issues in HRDPS URL formats - Exceptions should be raised
+    because given URLs are missing vital pieces of info """
+    bad_urls = [
+        'https://dd.weather.gc.ca/bad_format',
+        'https://dd.weather.gc.ca/model_hrdps/moo',
+        'https://dd.weather.gc.ca/model_hrdps/continental/25km/',
+        'https://dd.weather.gc.ca/model_hrps/wrong_model_name',
+        'https://dd.weather.gc.ca/model_hrdps/continental/2.5km/00/MSC_ASDF_ASDFASDF.grib2'
+    ]
+
+    for test_case in bad_urls:
+        with pytest.raises(Exception):
+            app.jobs.env_canada.parse_high_res_model_url(test_case)
