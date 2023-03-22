@@ -62,6 +62,7 @@ def parse_high_res_model_filename(filename):
     """ Parse filename for HRDPS grib file to extract metadata """
     base = os.path.basename(filename)
     parts = base.split('_')
+
     model = '_'.join([parts[1], parts[2]])
     variable = parts[3]
     level_type = parts[4]
