@@ -347,6 +347,9 @@ const MoreCast2Page = () => {
     }
   }
 
+  const displayForecastRows = [...forecastRows]
+  displayForecastRows.sort((a, b) => (a.forDate > b.forDate ? 1 : -1))
+
   return (
     <div className={classes.root} data-testid="more-cast-2-page">
       <GeneralHeader padding="3em" spacing={0.985} title={MORE_CAST_2_NAME} productName={MORE_CAST_2_NAME} />
@@ -395,7 +398,7 @@ const MoreCast2Page = () => {
                   enabled={
                     roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
                     isAuthenticated &&
-                    forecastRows.length > 0 &&
+                    displayForecastRows.length > 0 &&
                     (forecastAction === ForecastActionChoice.CREATE || forecastIsDirty)
                   }
                   label={forecastAction === ForecastActionChoice.CREATE ? 'Save Forecast' : 'Update Forecast'}
@@ -405,7 +408,7 @@ const MoreCast2Page = () => {
             </Grid>
           </Grid>
           <MoreCast2DataGrid
-            rows={forecastRows}
+            rows={displayForecastRows}
             clickedColDef={clickedColDef}
             onCellEditStop={setForecastIsDirty}
             setClickedColDef={setClickedColDef}
