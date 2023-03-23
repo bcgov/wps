@@ -230,6 +230,29 @@ class GribFileProcessor():
             wind_speed_values.append(calculate_wind_speed_from_u_v(u, v))
         return (u_points, wind_speed_values)
 
+    def get_variable_name(self, grib_info: ModelRunInfo) -> str:
+        """ Return the name of the weather variable as it is used in our database,
+        depending on which type of model is being processed """
+        variable_name = ''
+        # March 2023: variable names used by Env.Can. for HRDPS model are no longer consistent
+        # with the names used for RDPS and GDPS models, or with our database table. Quick and dirty
+        # fix is to manually change the variable names as below
+        if grib_info.model_enum == ModelEnum.HRDPS:
+            if grib_info.variable_name == 'TMP_AGL-2m':
+                variable_name = 'tmp_tgl_2'
+            elif grib_info.variable_name == 'RH_AGL-2m':
+                variable_name = 'rh_tgl_2'
+            elif grib_info.variable_name == 'WDIR_AGL-10m':
+                variable_name = 'wdir_tgl_10'
+            elif grib_info.variable_name == 'WIND_AGL-10m':
+                variable_name = 'wind_tgl_10'
+            elif grib_info.variable_name == 'APCP_Sfc':
+                variable_name = 'apcp_sfc_0'
+        else:
+            variable_name = grib_info.variable_name.lower()
+
+        return variable_name
+
     def store_bounding_values(self,
                               points,
                               values,
@@ -261,7 +284,8 @@ class GribFileProcessor():
             prediction.prediction_timestamp = grib_info.prediction_timestamp
             prediction.prediction_model_grid_subset_id = grid_subset.id
 
-        setattr(prediction, grib_info.variable_name.lower(), array(values))
+        variable_name = self.get_variable_name(grib_info)
+        setattr(prediction, variable_name, array(values))
         session.add(prediction)
         session.commit()
 

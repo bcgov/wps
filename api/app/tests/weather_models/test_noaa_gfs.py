@@ -78,6 +78,18 @@ def mock_download(monkeypatch):
     monkeypatch.setattr(requests, 'get', mock_requests_get_gfs)
 
 
+@pytest.fixture()
+def mock_assert_folder_exists(monkeypatch):
+    """ fixture for NOAA download folder """
+    def mock_assert_gfs_folder_exists(*args, **kwargs):
+        """ MockResponse with status code 404 or 200 depending on date specified """
+        request_date = kwargs.get('request_date')
+        if request_date == '20230228':
+            return MockResponse(status_code=200)
+        return MockResponse(status_code=404)
+    monkeypatch.setattr(noaa, 'assert_gfs_folder_exists', mock_assert_gfs_folder_exists)
+
+
 def test_get_gfs_model_run_download_urls_for_0000_utc():
     # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total)
     expected_num_of_urls = 2 * 11
