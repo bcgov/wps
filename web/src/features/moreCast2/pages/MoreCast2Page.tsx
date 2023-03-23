@@ -282,6 +282,7 @@ const MoreCast2Page = () => {
     const visibleForecastRows = workingRows.filter(
       row => selectedStations.filter(station => station.code === row.stationCode).length
     )
+    visibleForecastRows.sort((a, b) => (a.forDate > b.forDate ? 1 : -1))
     setForecastRows(visibleForecastRows)
   }, [forecastsAsMoreCast2ForecastRows, stationPredictionsAsMoreCast2ForecastRows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -347,9 +348,6 @@ const MoreCast2Page = () => {
     }
   }
 
-  const displayForecastRows = [...forecastRows]
-  displayForecastRows.sort((a, b) => (a.forDate > b.forDate ? 1 : -1))
-
   return (
     <div className={classes.root} data-testid="more-cast-2-page">
       <GeneralHeader padding="3em" spacing={0.985} title={MORE_CAST_2_NAME} productName={MORE_CAST_2_NAME} />
@@ -398,7 +396,7 @@ const MoreCast2Page = () => {
                   enabled={
                     roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
                     isAuthenticated &&
-                    displayForecastRows.length > 0 &&
+                    forecastRows.length > 0 &&
                     (forecastAction === ForecastActionChoice.CREATE || forecastIsDirty)
                   }
                   label={forecastAction === ForecastActionChoice.CREATE ? 'Save Forecast' : 'Update Forecast'}
@@ -408,7 +406,7 @@ const MoreCast2Page = () => {
             </Grid>
           </Grid>
           <MoreCast2DataGrid
-            rows={displayForecastRows}
+            rows={forecastRows}
             clickedColDef={clickedColDef}
             onCellEditStop={setForecastIsDirty}
             setClickedColDef={setClickedColDef}
