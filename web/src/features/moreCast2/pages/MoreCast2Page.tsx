@@ -117,8 +117,14 @@ const MoreCast2Page = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success')
 
-  const startDateTime = DateTime.now().startOf('day')
-  const endDateTime = startDateTime.plus({ days: 2 })
+  const currentTimeIsBeforeNoon = DateTime.now().hour < 13 ? true : false
+  let startDateTime
+  if (currentTimeIsBeforeNoon) {
+    startDateTime = DateTime.now().minus({ days: 3 })
+  } else {
+    startDateTime = DateTime.now().minus({ days: 2 })
+  }
+  const endDateTime = DateTime.now().plus({ days: 2 })
   const [fromTo, setFromTo] = useState<DateRange>({
     startDate: startDateTime.toJSDate(),
     endDate: endDateTime.toJSDate()
