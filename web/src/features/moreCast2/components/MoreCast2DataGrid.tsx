@@ -60,6 +60,11 @@ const MoreCast2DataGrid = ({
         components={{
           LoadingOverlay: LinearProgress
         }}
+        initialState={{
+          sorting: {
+            sortModel: [{ field: 'stationName', sort: 'asc' }]
+          }
+        }}
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellEditStop={() => onCellEditStop(true)}
         loading={loading}

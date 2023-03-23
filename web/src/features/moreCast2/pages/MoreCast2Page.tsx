@@ -282,6 +282,7 @@ const MoreCast2Page = () => {
     const visibleForecastRows = workingRows.filter(
       row => selectedStations.filter(station => station.code === row.stationCode).length
     )
+    visibleForecastRows.sort((a, b) => (a.forDate > b.forDate ? 1 : -1))
     setForecastRows(visibleForecastRows)
   }, [forecastsAsMoreCast2ForecastRows, stationPredictionsAsMoreCast2ForecastRows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
