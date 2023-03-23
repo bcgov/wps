@@ -77,6 +77,6 @@ def fetch_object(object_id: int, url: str, out_sr: str = str(NAD83_BC_ALBERS), r
     except Exception:
         logger.error('An error occurred while fetching feature with id: %s', object_id)
     else:
-        logger.info('Successfully fetched fetaure with id: %s', object_id)
+        logger.info('Successfully fetched feature with id: %s', object_id)
 
     return json_data
