@@ -53,7 +53,7 @@ class MoreCastForecastInput(BaseModel):
     rh: int
     precip: float
     wind_speed: float
-    wind_direction: int
+    wind_direction: int | None
 
 
 class MoreCastForecastRequest(BaseModel):

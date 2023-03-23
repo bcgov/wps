@@ -15,7 +15,7 @@ class MorecastForecastRecord(Base):
     rh = Column(Integer, nullable=False, index=True)
     precip = Column(Float, nullable=False, index=True)
     wind_speed = Column(Float, nullable=False, index=True)
-    wind_direction = Column(Integer, nullable=False, index=True)
+    wind_direction = Column(Integer, nullable=True, index=True)
     create_timestamp = Column(TZTimeStamp, nullable=False, index=True)
     create_user = Column(String, nullable=False)
     update_timestamp = Column(TZTimeStamp, nullable=False, index=True)

@@ -314,7 +314,6 @@ const MoreCast2Page = () => {
         isNaN(forecastRow.precip.value) ||
         isNaN(forecastRow.rh.value) ||
         isNaN(forecastRow.temp.value) ||
-        isNaN(forecastRow.windDirection.value) ||
         isNaN(forecastRow.windSpeed.value)
       ) {
         return false

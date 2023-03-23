@@ -31,7 +31,7 @@ export const parseForecastsHelper = (
       },
       windDirection: {
         choice: ModelChoice.FORECAST,
-        value: forecast.wind_direction
+        value: forecast.wind_direction || NaN
       },
       windSpeed: {
         choice: ModelChoice.FORECAST,
