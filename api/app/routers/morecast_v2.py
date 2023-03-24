@@ -14,8 +14,8 @@ from app.db.models.morecast_v2 import MorecastForecastRecord
 from app.schemas.morecast_v2 import (MoreCastForecastOutput,
                                      MoreCastForecastRequest,
                                      MorecastForecastResponse,
-                                     YesterdayStationDailies,
-                                     YesterdayStationDailiesResponse)
+                                     ObservedDailiesForStations,
+                                     ObservedStationDailiesResponse)
 from app.schemas.shared import StationsRequest
 from app.utils.time import get_hour_20_from_date, get_utc_now
 from app.wildfire_one.wfwx_api import get_auth_header, get_dailies_for_stations_and_date
@@ -107,8 +107,8 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
 
 
 @router.post('/yesterday-dailies/{today}',
-             response_model=YesterdayStationDailiesResponse)
-async def get_yesterdays_actual_dailies(today: date, request: YesterdayStationDailies):
+             response_model=ObservedStationDailiesResponse)
+async def get_yesterdays_actual_dailies(today: date, request: ObservedDailiesForStations):
     """ Returns the daily actuals for the day before the requested day.
     """
     logger.info('/yesterday-dailies/%s/', today)
@@ -120,6 +120,29 @@ async def get_yesterdays_actual_dailies(today: date, request: YesterdayStationDa
     async with ClientSession() as session:
         header = await get_auth_header(session)
 
-        yeserday_dailies = await get_dailies_for_stations_and_date(session, header, time_of_interest, unique_station_codes)
+        yeserday_dailies = await get_dailies_for_stations_and_date(session, header, time_of_interest,
+                                                                   time_of_interest, unique_station_codes)
 
-        return YesterdayStationDailiesResponse(dailies=yeserday_dailies)
+        return ObservedStationDailiesResponse(dailies=yeserday_dailies)
+
+
+@router.post('/observed-dailies/{start_date}',
+             response_model=ObservedStationDailiesResponse)
+async def get_observed_dailies(start_date: date, request: ObservedDailiesForStations):
+    """ Returns the daily observations for the requested station codes, from the given start_date to the
+    most recent date where daily observation data is available.
+    """
+    logger.info('/observed-dailies/%s/', start_date)
+
+    unique_station_codes = list(set(request.station_codes))
+
+    start_date_of_interest = get_hour_20_from_date(start_date)
+    end_date_of_interest = get_hour_20_from_date(datetime.now())
+
+    async with ClientSession() as session:
+        header = await get_auth_header(session)
+        observed_dailies = await get_dailies_for_stations_and_date(session, header,
+                                                                   start_date_of_interest, end_date_of_interest,
+                                                                   unique_station_codes)
+
+        return ObservedStationDailiesResponse(dailies=observed_dailies)

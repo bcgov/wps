@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
-from app.schemas.morecast_v2 import YesterdayDaily
+from app.schemas.morecast_v2 import ObservedDaily
 from app.schemas.stations import WeatherStation
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
@@ -51,7 +51,7 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
 async def yesterday_dailies_list_mapper(raw_dailies: Generator[dict, None, None]):
     """ Maps raw dailies to yesterday dailies list"""
     yesterday_dailies = [
-        YesterdayDaily(
+        ObservedDaily(
             station_code=raw_daily.get('stationData').get('stationCode'),
             station_name=raw_daily.get('stationData').get('displayLabel'),
             utcTimestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),

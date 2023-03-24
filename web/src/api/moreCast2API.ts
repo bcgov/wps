@@ -178,7 +178,7 @@ export async function getYesterdayDailies(
   if (stationCodes.length === 0) {
     return []
   }
-  const url = `/morecast-v2/yesterday-dailies/${startDate}`
+  const url = `/morecast-v2/observed-dailies/${startDate}`
   const { data } = await axios.post<YesterdayDailiesResponse>(url, {
     station_codes: stationCodes
   })
