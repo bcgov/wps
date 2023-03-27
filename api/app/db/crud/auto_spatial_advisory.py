@@ -139,7 +139,7 @@ async def get_high_hfi_fuel_types_for_zone(session: AsyncSession,
                   func.sum(FuelType.geom.ST_Intersection(ClassifiedHfi.geom.ST_Intersection(Shape.geom)).ST_Area()).label('area'))\
         .join_from(ClassifiedHfi, Shape, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
         .join_from(ClassifiedHfi, FuelType, ClassifiedHfi.geom.ST_Intersects(FuelType.geom))\
-        .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date,
+        .where(ClassifiedHfi.run_type == run_type.value, ClassifiedHfi.for_date == for_date,
                ClassifiedHfi.run_datetime == run_datetime, Shape.source_identifier == str(zone_id))\
         .group_by(Shape.source_identifier)\
         .group_by(FuelType.fuel_type_id)\
@@ -171,7 +171,7 @@ async def get_fuel_types_with_high_hfi(session: AsyncSession,
                   func.sum(FuelType.geom.ST_Intersection(ClassifiedHfi.geom.ST_Intersection(Shape.geom)).ST_Area()).label('area'))\
         .join_from(ClassifiedHfi, Shape, ClassifiedHfi.geom.ST_Intersects(Shape.geom))\
         .join_from(ClassifiedHfi, FuelType, ClassifiedHfi.geom.ST_Intersects(FuelType.geom))\
-        .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date, ClassifiedHfi.run_datetime == run_datetime)\
+        .where(ClassifiedHfi.run_type == run_type.value, ClassifiedHfi.for_date == for_date, ClassifiedHfi.run_datetime == run_datetime)\
         .group_by(Shape.source_identifier)\
         .group_by(FuelType.fuel_type_id)\
         .group_by(ClassifiedHfi.threshold)\
@@ -209,7 +209,7 @@ async def get_run_datetimes(session: AsyncSession, run_type: RunTypeEnum, for_da
     in descending order (most recent is first)
     """
     stmt = select(ClassifiedHfi.run_datetime)\
-        .where(ClassifiedHfi.run_type == run_type, ClassifiedHfi.for_date == for_date)\
+        .where(ClassifiedHfi.run_type == run_type.value, ClassifiedHfi.for_date == for_date)\
         .distinct()\
         .order_by(ClassifiedHfi.run_datetime.desc())
     result = await session.execute(stmt)
@@ -228,7 +228,7 @@ async def get_high_hfi_area(session: AsyncSession,
                   HighHfiArea.area,
                   HighHfiArea.threshold)\
         .join(RunParameters)\
-        .where(RunParameters.run_type == run_type,
+        .where(RunParameters.run_type == run_type.value,
                RunParameters.for_date == for_date,
                RunParameters.run_datetime == run_datetime)
     result = await session.execute(stmt)
