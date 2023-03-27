@@ -386,6 +386,7 @@ async def get_dailies_for_stations_and_date(session: ClientSession,
 
 
 async def get_station_groups(mapper=weather_station_group_mapper):
+    """ Get the station groups created by all users from Wild Fire One internal API. """
     async with ClientSession() as session:
         header = await get_auth_header(session)
         all_station_groups = fetch_paged_response_generator(session,
@@ -400,9 +401,9 @@ async def get_station_groups(mapper=weather_station_group_mapper):
 
 
 async def get_stations_by_group_id(group_id: str, mapper=weather_stations_mapper):
+    """ Get all the stations in the specified group from the Wild Fire One internal API. """
     async with ClientSession() as session:
         headers = await get_auth_header(session)
-        stations_task = asyncio.create_task(fetch_stations_by_group_id(session, headers, group_id))
-        stations = await stations_task
+        stations = await fetch_stations_by_group_id(session, headers, group_id)
         stations_in_group = mapper(stations)
         return stations_in_group

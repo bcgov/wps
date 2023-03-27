@@ -4,7 +4,8 @@ import pytest
 from pytest_mock import MockFixture
 from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
                                              BuildQueryAllHourliesByRange,
-                                             BuildQueryDailiesByStationCode)
+                                             BuildQueryDailiesByStationCode,
+                                             BuildQueryStationGroups)
 from app.wildfire_one.wfwx_api import (WFWXWeatherStation,
                                        get_wfwx_stations_from_station_codes)
 
@@ -46,6 +47,18 @@ def test_build_dailies_by_station_code():
                           'startingTimestamp': 0,
                           'endingTimestamp': 1,
                           'stationIds': ['1', '2']
+                      })
+
+
+def test_build_station_groups_query():
+    """ Verifies the query builder returns the correct url and parameters for a station groups query"""
+    query_builder = BuildQueryStationGroups()
+    result = query_builder.query(0)
+    assert result == ('https://wf1/wfwx/v1/stationGroups',
+                      {
+                          'size': '1000',
+                          'page': 0,
+                          'sort': 'groupOwnerUserId,asc'
                       })
 
 

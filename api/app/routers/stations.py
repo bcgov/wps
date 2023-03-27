@@ -68,7 +68,7 @@ async def get_stations(response: Response,
 
 
 @router.get('/groups', response_model=WeatherStationGroupsResponse)
-async def get_station_groups(response: Response):
+async def get_station_groups(response: Response, _=Depends(authentication_required)):
     """ Return a list of all station groups available in from WildFireOne
         Groups are retrieved from an undocumented stationGroups endpoint.
     """
@@ -83,8 +83,8 @@ async def get_station_groups(response: Response):
 
 
 @router.get('/groups/{group_id}/members', response_model=WeatherStationGroupMembersResponse)
-async def get_stations_by_group_id(group_id: str, response: Response):
-    """ Return a list of stations that are part of teh specified group """
+async def get_stations_by_group_id(group_id: str, response: Response, _=Depends(authentication_required)):
+    """ Return a list of stations that are part of the specified group """
     try:
         logger.info('/stations/groups/.../members}')
         stations = await wfwx_api.get_stations_by_group_id(group_id)
