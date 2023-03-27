@@ -55,4 +55,4 @@ PROJ_TARGET=${PROJ_TARGET} SCHEDULE="15 * * * *" bash $(dirname ${0})/oc_provisi
 echo Configure backups
 PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=1000m CPU_LIMIT=2000m bash $(dirname ${0})/oc_provision_backup_s3_postgres_cronjob.sh prod ${RUN_TYPE}
 echo Configure
-PROJ_TARGET=${PROJ_TARGET} CERTBOT_STAGING=false DRYRUN=false DEBUG=true bash $(dirname ${0})/oc_provision_certbot_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} CERTBOT_STAGING=false DRYRUN=false bash $(dirname ${0})/oc_provision_certbot_cronjob.sh
