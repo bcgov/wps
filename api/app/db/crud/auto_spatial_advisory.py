@@ -273,7 +273,7 @@ async def get_run_parameters_id(session: AsyncSession,
                                 run_datetime: datetime,
                                 for_date: date) -> List[Row]:
     stmt = select(RunParameters.id)\
-        .where(RunParameters.run_type == run_type.value,
+        .where(RunParameters.run_type == run_type,
                RunParameters.run_datetime == run_datetime,
                RunParameters.for_date == for_date)
     result = await session.execute(stmt)
