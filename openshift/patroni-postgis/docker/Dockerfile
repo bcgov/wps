@@ -8,16 +8,11 @@ ENV POSTGIS_VERSION 3.3.1+dfsg-1.pgdg100+1
 # Switch to root user for package installs
 USER 0
 
-# PostGIS requirements taken from https://github.com/postgis/docker-postgis
 RUN apt-get update \
-    && apt-cache showpkg postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR \
-    && apt-get install -y --no-install-recommends \
-    postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR=$POSTGIS_VERSION \
-    postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR-scripts=$POSTGIS_VERSION \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y postgis postgresql-12-postgis-3
 
 # pgbackrest 
-RUN apt-get install -y --no-install-recommends pgbackrest
+RUN apt-get install -y pgbackrest
 
 # Add the POSTGIS command to the end of the post_init script.
 COPY init_postgis /usr/share/scripts/patroni/
