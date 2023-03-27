@@ -4,6 +4,18 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
+class FireZone(BaseModel):
+    id: int
+    display_label: str
+    fire_centre: str
+
+
+class StationFireCentre(BaseModel):
+    """ The fire centre associated with a station """
+    id: int
+    display_label: str
+
+
 class Season(BaseModel):
     """ A fire season consists of a start date (month and day) and an end date (month and day). """
     start_month: int
@@ -80,3 +92,46 @@ class DetailedWeatherStationsResponse(BaseModel):
 class StationCodeList(BaseModel):
     """ List of station codes. """
     stations: List[int]
+
+
+class WeatherStationGroupInfo(BaseModel):
+    """ Info about a WFWX group """
+    id: str
+    display_label: str
+    group_description: str | None
+
+
+class WeatherStationGroupsByOwner(BaseModel):
+    """ WFWX groups belonging to a user ID and GUID pair """
+    group_owner_guid: str
+    group_owner_id: str
+    groups: List[WeatherStationGroupInfo]
+
+
+class WeatherStationGroupsResponse(BaseModel):
+    """ Response to a request for all WFWX groups"""
+    groups_by_owner: List[WeatherStationGroupsByOwner]
+
+
+class WeatherStationGroupMember(BaseModel):
+    """ Description of a station in a group"""
+    id: str
+    display_label: str
+    fire_centre: StationFireCentre
+    fire_zone: FireZone
+    station_code: int
+    station_status: str
+
+
+class WeatherStationGroupMembersResponse(BaseModel):
+    """ Response to a request for the stations in a group """
+    stations: List[WeatherStationGroupMember]
+
+
+class RawWeatherStationGroup(BaseModel):
+    """ Helper object for parsing group info from the WFWX API"""
+    display_label: str
+    group_description: str | None
+    group_owner_user_guid: str
+    group_owner_user_id: str
+    id: str

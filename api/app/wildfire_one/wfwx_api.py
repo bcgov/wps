@@ -19,18 +19,22 @@ from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_map
                                              parse_station,
                                              parse_hourly_actual,
                                              station_list_mapper,
-                                             wfwx_station_list_mapper, yesterday_dailies_list_mapper)
+                                             wfwx_station_list_mapper, yesterday_dailies_list_mapper,
+                                             weather_station_group_mapper,
+                                             weather_stations_mapper)
 from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
                                              BuildQueryStations,
                                              BuildQueryAllHourliesByRange,
                                              BuildQueryByStationCode,
-                                             BuildQueryDailiesByStationCode)
+                                             BuildQueryDailiesByStationCode,
+                                             BuildQueryStationGroups)
 from app.wildfire_one.util import is_station_valid
 from app.wildfire_one.wildfire_fetchers import (fetch_access_token,
                                                 fetch_detailed_geojson_stations,
                                                 fetch_paged_response_generator,
                                                 fetch_hourlies,
-                                                fetch_raw_dailies_for_all_stations)
+                                                fetch_raw_dailies_for_all_stations,
+                                                fetch_stations_by_group_id)
 
 
 logger = logging.getLogger(__name__)
@@ -379,3 +383,26 @@ async def get_dailies_for_stations_and_date(session: ClientSession,
     yesterday_dailies = await mapper(raw_dailies)
 
     return yesterday_dailies
+
+
+async def get_station_groups(mapper=weather_station_group_mapper):
+    async with ClientSession() as session:
+        header = await get_auth_header(session)
+        all_station_groups = fetch_paged_response_generator(session,
+                                                            header,
+                                                            BuildQueryStationGroups(),
+                                                            'stationGroups',
+                                                            use_cache=False)
+        # Map list of stations into desired shape
+        mapped_station_groups = await mapper(all_station_groups)
+        logger.debug('total station groups: %d', len(mapped_station_groups))
+        return mapped_station_groups
+
+
+async def get_stations_by_group_id(group_id: str, mapper=weather_stations_mapper):
+    async with ClientSession() as session:
+        headers = await get_auth_header(session)
+        stations_task = asyncio.create_task(fetch_stations_by_group_id(session, headers, group_id))
+        stations = await stations_task
+        stations_in_group = mapper(stations)
+        return stations_in_group

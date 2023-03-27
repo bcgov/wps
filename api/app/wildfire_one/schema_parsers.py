@@ -1,12 +1,14 @@
 """ Parsers that extract fields from WFWX API responses and build ours"""
 
+from itertools import groupby
 import math
 import logging
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
 from app.schemas.morecast_v2 import YesterdayDaily
-from app.schemas.stations import WeatherStation
+from app.schemas.stations import (RawWeatherStationGroup, WeatherStation, WeatherStationGroupsByOwner,
+                                  WeatherStationGroupInfo, WeatherStationGroupMember, FireZone, StationFireCentre)
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
@@ -240,3 +242,51 @@ def parse_hourly_actual(station_code: int, hourly):
     # don't write the HourlyActual to our database if every value is invalid. If even one
     # weather variable observed is valid, write the HourlyActual to DB.
     return None if is_obs_invalid else hourly_actual
+
+
+async def weather_station_group_mapper(raw_station_groups_by_owner: Generator[dict, None, None]) -> List[WeatherStationGroupsByOwner]:
+    """ Maps raw weather station groups to WeatherStationGroupsByOwner"""
+    flat_weather_station_groups = []
+    async for raw_group in raw_station_groups_by_owner:
+        flat_weather_station_groups.append(RawWeatherStationGroup(
+            display_label=raw_group['displayLabel'],
+            group_description=raw_group['groupDescription'],
+            group_owner_user_guid=raw_group['groupOwnerUserGuid'],
+            group_owner_user_id=raw_group['groupOwnerUserId'],
+            id=raw_group['id']))
+    sorted_groups = sorted(flat_weather_station_groups, key=lambda group: group.group_owner_user_id)
+    grouped_groups = groupby(sorted_groups, lambda group: (group.group_owner_user_id, group.group_owner_user_guid))
+    weather_station_groups = dict((k, list(map(lambda x: x, values))) for k, values in grouped_groups)
+    weather_station_groups_by_owner = []
+    for k, v in weather_station_groups.items():
+        groups_for_owner = WeatherStationGroupsByOwner(
+            group_owner_id=k[0],
+            group_owner_guid=k[1],
+            groups=[WeatherStationGroupInfo(
+                id=group.id,
+                display_label=group.display_label,
+                group_description=group.group_description
+            ) for group in v]
+        )
+        weather_station_groups_by_owner.append(groups_for_owner)
+
+    return weather_station_groups_by_owner
+
+
+def weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
+    mapped_stations = []
+    for item in stations:
+        station = item['station']
+        weather_station = WeatherStationGroupMember(
+            id=station['id'],
+            display_label=station['displayLabel'],
+            fire_centre=StationFireCentre(id=station['fireCentre']['id'],
+                                          display_label=station['fireCentre']['displayLabel']),
+            fire_zone=FireZone(id=station['zone']['id'], display_label=station['zone']['displayLabel'],
+                               fire_centre=station['zone']['fireCentre']),
+            station_code=station['stationCode'],
+            station_status=station['stationStatus']['id']
+        )
+        mapped_stations.append(weather_station)
+
+    return mapped_stations
