@@ -16,7 +16,7 @@ parameters:
   - name: SUFFIX
   - name: VERSION
     description: Output version
-    value: "v12-latest"
+    value: "v12-pgbackrest"
   - name: GIT_URI
     value: https://github.com/bcgov/wps.git
   - name: GIT_REF
