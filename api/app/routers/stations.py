@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import APIRouter, Response, Depends
 from app.auth import authentication_required, audit
 from app.utils.time import get_utc_now, get_hour_20
-from app.schemas.stations import (WeatherStationsResponse, DetailedWeatherStationsResponse, WeatherStationGroupsResponse,
+from app.schemas.stations import (WeatherStationGroupsMemberRequest, WeatherStationsResponse, DetailedWeatherStationsResponse, WeatherStationGroupsResponse,
                                   WeatherStationGroupMembersResponse)
 from app.stations import StationSourceEnum, get_stations_as_geojson, fetch_detailed_stations_as_geojson
 from app.wildfire_one import wfwx_api
@@ -88,6 +88,19 @@ async def get_stations_by_group_id(group_id: str, response: Response, _=Depends(
     try:
         logger.info('/stations/groups/.../members}')
         stations = await wfwx_api.get_stations_by_group_id(group_id)
+        response.headers["Cache-Control"] = "max-age=0"
+        return WeatherStationGroupMembersResponse(stations=stations)
+    except Exception as exception:
+        logger.critical(exception, exc_info=True)
+        raise
+
+
+@router.post('/groups/members', response_model=WeatherStationGroupMembersResponse)
+async def get_stations_by_group_ids(groups_request: WeatherStationGroupsMemberRequest, response: Response, _=Depends(authentication_required)):
+    """ Return a list of stations that are part of the specified group """
+    try:
+        logger.info('/stations/groups/.../members}')
+        stations = await wfwx_api.get_stations_by_group_ids([id for id in groups_request.group_ids])
         response.headers["Cache-Control"] = "max-age=0"
         return WeatherStationGroupMembersResponse(stations=stations)
     except Exception as exception:

@@ -135,3 +135,8 @@ class RawWeatherStationGroup(BaseModel):
 class WeatherStationGroupsResponse(BaseModel):
     """ Response to a request for all WFWX groups"""
     groups: List[RawWeatherStationGroup]
+
+
+class WeatherStationGroupsMemberRequest(BaseModel):
+    """ Request for all station members of all groups by group ids"""
+    group_ids: List[str]

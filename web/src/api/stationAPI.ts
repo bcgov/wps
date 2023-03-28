@@ -70,6 +70,30 @@ export interface StationGroupsResponse {
   groups: StationGroup[]
 }
 
+export interface FireZone {
+  id: string
+  display_label: string
+  fire_centre: string
+}
+
+export interface StationFireCentre {
+  id: string
+  display_label: string
+}
+
+export interface StationGroupMember {
+  id: string
+  display_label: string
+  fire_centre: StationFireCentre
+  fire_zone: FireZone
+  station_code: number
+  station_status: number
+}
+
+export interface StationGroupMembersResponse {
+  stations: StationGroupMember[]
+}
+
 export enum StationSource {
   unspecified = 'unspecified',
   local_storage = 'local_storage',
@@ -104,4 +128,13 @@ export async function getStationGroups(): Promise<StationGroup[]> {
   const { data } = await axios.get<StationGroupsResponse>(groupUrl)
 
   return data.groups
+}
+
+export async function getStationGroupsMembers(groupIds: string[]): Promise<StationGroupMember[]> {
+  const groupUrl = `${url}groups/members`
+  const { data } = await axios.post<StationGroupMembersResponse>(groupUrl, {
+    group_ids: groupIds
+  })
+
+  return data.stations
 }

@@ -17,7 +17,7 @@ const initialState: State = {
 }
 
 const stationGroupsSlice = createSlice({
-  name: 'fireCenters',
+  name: 'stationGroups',
   initialState,
   reducers: {
     getStationGroupsStart(state: State) {

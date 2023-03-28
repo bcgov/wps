@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AlertColor, FormControl, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { isNull, isUndefined } from 'lodash'
+import { isEmpty, isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
 import {
@@ -23,6 +23,7 @@ import {
   selectModelStationPredictions,
   selectMoreCast2Forecasts,
   selectStationGroups,
+  selectStationGroupsMembers,
   selectYesterdayDailies
 } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
@@ -59,7 +60,8 @@ import { getMoreCast2Forecasts } from 'features/moreCast2/slices/moreCast2Foreca
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import ForecastActionDropdown from 'features/moreCast2/components/ForecastActionDropdown'
 import { fetchStationGroups } from 'commonSlices/stationGroupsSlice'
-import { StationGroup } from 'api/stationAPI'
+import { getStationGroupsMembers, StationGroup } from 'api/stationAPI'
+import { fetchStationGroupsMembers } from 'commonSlices/selectedStationGroupMembers'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -107,6 +109,8 @@ const MoreCast2Page = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
   const { groups } = useSelector(selectStationGroups)
+  const { members } = useSelector(selectStationGroupsMembers)
+
   const { stationPredictions } = useSelector(selectModelStationPredictions)
   const { yesterdayDailies } = useSelector(selectYesterdayDailies)
   const { moreCast2Forecasts } = useSelector(selectMoreCast2Forecasts)
@@ -261,6 +265,12 @@ const MoreCast2Page = () => {
       setForecastRows([])
     }
   }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isEmpty(selectedStationGroups)) {
+      dispatch(fetchStationGroupsMembers(selectedStationGroups.map(group => group.id)))
+    }
+  }, [selectedStationGroups]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isUndefined(fromTo.startDate) && !isUndefined(fromTo.endDate)) {

@@ -406,3 +406,15 @@ async def get_stations_by_group_id(group_id: str, mapper=weather_stations_mapper
         stations = await fetch_stations_by_group_id(session, headers, group_id)
         stations_in_group = mapper(stations)
         return stations_in_group
+
+
+async def get_stations_by_group_ids(group_ids: List[str], mapper=weather_stations_mapper):
+    """ Get all the stations in the specified group from the Wild Fire One internal API. """
+    stations_in_groups = []
+    async with ClientSession() as session:
+        headers = await get_auth_header(session)
+        for group_id in group_ids:
+            stations = await fetch_stations_by_group_id(session, headers, group_id)
+            stations_in_group = mapper(stations)
+            stations_in_groups.extend(stations_in_group)
+        return stations_in_groups
