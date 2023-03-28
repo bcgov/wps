@@ -29,6 +29,7 @@ import yesterdayDailiesSlice from 'features/moreCast2/slices/yesterdayDailiesSli
 import columnModelSlice from 'features/moreCast2/slices/columnModelSlice'
 import columnYesterdaySlice from 'features/moreCast2/slices/columnYesterdaySlice'
 import moreCast2ForecastReducer from 'features/moreCast2/slices/moreCast2ForecastsSlice'
+import observedDailiesSlice from 'features/moreCast2/slices/observedDailiesSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -60,6 +61,7 @@ const rootReducer = combineReducers({
   columnStationPredictions: columnModelSlice,
   columnYesterdayDailies: columnYesterdaySlice,
   yesterdayDailies: yesterdayDailiesSlice,
+  observedDailies: observedDailiesSlice,
   moreCast2Forecasts: moreCast2ForecastReducer
 })
 
@@ -96,11 +98,13 @@ export const selectHFIFuelTypes = (state: RootState) => state.hfiFuelTypes
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
 export const selectModelStationPredictions = (state: RootState) => state.stationPredictions
 export const selectYesterdayDailies = (state: RootState) => state.yesterdayDailies
+export const selectObservedDailies = (state: RootState) => state.observedDailies
 export const selectColumnModelStationPredictions = (state: RootState) => state.columnStationPredictions
 export const selectColumnYesterdayDailies = (state: RootState) => state.columnYesterdayDailies
 export const selectMoreCast2Forecasts = (state: RootState) => state.moreCast2Forecasts
 export const selectMorecast2TableLoading = (state: RootState) =>
   state.yesterdayDailies.loading ||
+  state.observedDailies.loading ||
   state.stationPredictions.loading ||
   state.columnStationPredictions.loading ||
   state.columnYesterdayDailies.loading

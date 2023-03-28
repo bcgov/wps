@@ -22,6 +22,7 @@ import {
   selectFireCenters,
   selectModelStationPredictions,
   selectMoreCast2Forecasts,
+  selectObservedDailies,
   selectYesterdayDailies
 } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
@@ -39,6 +40,8 @@ import {
   filterRowsByModelType,
   parseForecastsHelper,
   parseModelsForStationsHelper,
+  parseObservedDailiesForStationsHelper,
+  parseObservedDailiesFromResponse,
   replaceColumnValuesFromPrediction
 } from 'features/moreCast2/util'
 import {
@@ -47,6 +50,7 @@ import {
   replaceColumnValuesFromYesterdayDaily
 } from 'features/moreCast2/yesterdayDailies'
 import { getYesterdayStationDailies } from 'features/moreCast2/slices/yesterdayDailiesSlice'
+import { getObservedStationDailies } from 'features/moreCast2/slices/observedDailiesSlice'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
 import MoreCase2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import { ROLES } from 'features/auth/roles'
@@ -57,6 +61,7 @@ import { getColumnYesterdayDailies } from 'features/moreCast2/slices/columnYeste
 import { getMoreCast2Forecasts } from 'features/moreCast2/slices/moreCast2ForecastsSlice'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import ForecastActionDropdown from 'features/moreCast2/components/ForecastActionDropdown'
+import { objectTraps } from 'immer/dist/internal'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -105,6 +110,7 @@ const MoreCast2Page = () => {
   const { fireCenters } = useSelector(selectFireCenters)
   const { stationPredictions } = useSelector(selectModelStationPredictions)
   const { yesterdayDailies } = useSelector(selectYesterdayDailies)
+  const { observedDailies } = useSelector(selectObservedDailies)
   const { moreCast2Forecasts } = useSelector(selectMoreCast2Forecasts)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
 
@@ -133,6 +139,8 @@ const MoreCast2Page = () => {
   const [stationPredictionsAsMoreCast2ForecastRows, setStationPredictionsAsMoreCast2ForecastRows] = useState<
     MoreCast2ForecastRow[]
   >([])
+  const [observedRows, setObservedRows] = useState<MoreCast2ForecastRow[]>([])
+  const [rowsToDisplay, setRowsToDisplay] = useState<MoreCast2ForecastRow[]>([])
   const [forecastAction, setForecastAction] = useState<ForecastActionType>(ForecastActionChoices[0])
   const [forecastIsDirty, setForecastIsDirty] = useState(false)
   const [forecastsAsMoreCast2ForecastRows, setForecastsAsMoreCast2ForecastRows] = useState<MoreCast2ForecastRow[]>([])
@@ -167,7 +175,7 @@ const MoreCast2Page = () => {
     }
   }
 
-  // Fecthes observed/predicted values while in Create Forecast mode
+  // Fetches observed/predicted values while in Create Forecast mode
   const fetchStationPredictions = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
     if (isUndefined(fromTo.startDate) || isUndefined(fromTo.endDate)) {
@@ -188,6 +196,13 @@ const MoreCast2Page = () => {
     }
   }
 
+  const fetchStationObservedDailies = () => {
+    const stationCodes = fireCenter?.stations.map(station => station.code) || []
+    if (!isUndefined(fromTo.startDate)) {
+      dispatch(getObservedStationDailies(stationCodes, DateTime.fromJSDate(fromTo.startDate).toISODate()))
+    }
+  }
+
   // Fetches previously submitted forecasts from the API database while in View/Edit Forecast mode
   const fetchForecasts = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
@@ -203,8 +218,38 @@ const MoreCast2Page = () => {
   useEffect(() => {
     dispatch(fetchFireCenters())
     document.title = MORE_CAST_2_DOC_TITLE
+    fetchStationObservedDailies()
     fetchStationPredictions()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const workingRows = observedRows
+    let uniqueArray = []
+    const rowMatches = (row1: MoreCast2ForecastRow, row2: MoreCast2ForecastRow) =>
+      row1.forDate === row2.forDate && row1.stationCode === row2.stationCode
+    if (forecastAction === ForecastActionChoice.CREATE) {
+      workingRows.concat(stationPredictionsAsMoreCast2ForecastRows)
+      uniqueArray = workingRows.reduce((accumulator, currentObject) => {
+        const objectExists = accumulator.some(rowMatches(currentObject))
+        if (!objectExists) {
+          return [...accumulator, currentObject]
+        }
+        return accumulator
+      }, [])
+    } else {
+      forecastsAsMoreCast2ForecastRows.forEach(row => {
+        const item = workingRows.find(obs => obs.forDate === row.forDate && obs.stationCode === row.stationCode)
+        if (isUndefined(item)) {
+          workingRows.push(row)
+        }
+      })
+    }
+    const visibleForecastRows = workingRows.filter(
+      row => selectedStations.filter(station => station.code === row.stationCode).length
+    )
+    visibleForecastRows.sort((a, b) => (a.forDate > b.forDate ? 1 : -1))
+    setRowsToDisplay(visibleForecastRows)
+  }, [forecastRows, observedRows, stationPredictionsAsMoreCast2ForecastRows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isNull(colPrediction)) {
@@ -250,6 +295,7 @@ const MoreCast2Page = () => {
 
     setSelectedStations(fireCenter?.stations ? fireCenter.stations.slice(0, 1) : [])
     fetchStationPredictions()
+    fetchStationObservedDailies()
   }, [fireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -270,6 +316,7 @@ const MoreCast2Page = () => {
     if (forecastAction === ForecastActionChoice.CREATE) {
       if (!isUndefined(modelType) && !isNull(modelType)) {
         localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
+        fetchStationObservedDailies()
         fetchStationPredictions()
       } else {
         setForecastRows([])
@@ -279,18 +326,6 @@ const MoreCast2Page = () => {
       fetchForecasts()
     }
   }, [fromTo.startDate, fromTo.endDate]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const workingRows =
-      forecastAction === ForecastActionChoice.CREATE
-        ? stationPredictionsAsMoreCast2ForecastRows
-        : forecastsAsMoreCast2ForecastRows
-    const visibleForecastRows = workingRows.filter(
-      row => selectedStations.filter(station => station.code === row.stationCode).length
-    )
-    visibleForecastRows.sort((a, b) => (a.forDate > b.forDate ? 1 : -1))
-    setForecastRows(visibleForecastRows)
-  }, [forecastsAsMoreCast2ForecastRows, stationPredictionsAsMoreCast2ForecastRows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const predictions = fillInTheModelBlanks(fireCenter?.stations || [], stationPredictions, dateInterval, modelType)
@@ -303,6 +338,12 @@ const MoreCast2Page = () => {
     const newRows = parseYesterdayDailiesForStationsHelper(completeDailies)
     setStationPredictionsAsMoreCast2ForecastRows(newRows)
   }, [yesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const completeDailies = fillInTheYesterdayDailyBlanks(fireCenter?.stations || [], observedDailies, dateInterval)
+    const newRows = parseObservedDailiesForStationsHelper(completeDailies)
+    setObservedRows(newRows)
+  }, [observedDailies]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Handle the switch from create to edit mode and vice versa
@@ -411,7 +452,7 @@ const MoreCast2Page = () => {
             </Grid>
           </Grid>
           <MoreCast2DataGrid
-            rows={forecastRows}
+            rows={rowsToDisplay}
             clickedColDef={clickedColDef}
             onCellEditStop={setForecastIsDirty}
             setClickedColDef={setClickedColDef}

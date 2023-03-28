@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { ModelChoice, YesterdayDaily } from 'api/moreCast2API'
+import { ModelChoice, ObservedDaily } from 'api/moreCast2API'
 import {
   defaultsForMissingDailies,
   extendDailiesForStations,
@@ -15,9 +15,10 @@ import { ColYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySl
 const START_DATE = '2023-02-16T20:00:00+00:00'
 const END_DATE = '2023-02-17T20:00:00+00:00'
 
-const yesterdayDailies: YesterdayDaily[] = [
+const yesterdayDailies: ObservedDaily[] = [
   {
     id: '1',
+    data_type: 'YESTERDAY',
     station_code: 1,
     station_name: 'test',
     utcTimestamp: START_DATE,
@@ -133,6 +134,7 @@ describe('yesterdayDailies', () => {
         yesterdayDailies: [
           {
             id: rowIDHasher(1, DateTime.fromISO(START_DATE)),
+            data_type: 'YESTERDAY',
             utcTimestamp: START_DATE,
             precipitation: 2,
             relative_humidity: 2,
@@ -144,6 +146,7 @@ describe('yesterdayDailies', () => {
           },
           {
             id: rowIDHasher(2, DateTime.fromISO(END_DATE)),
+            data_type: 'YESTERDAY',
             utcTimestamp: END_DATE,
             precipitation: 2,
             relative_humidity: 2,

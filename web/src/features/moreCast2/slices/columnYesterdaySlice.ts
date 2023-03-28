@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { FireCenterStation } from 'api/fbaAPI'
-import { ModelType, getYesterdayDailies, YesterdayDaily } from 'api/moreCast2API'
+import { ModelType, getYesterdayDailies, ObservedDaily } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { fillInTheYesterdayDailyBlanks, parseYesterdayDailiesFromResponse } from 'features/moreCast2/yesterdayDailies'
@@ -9,7 +9,7 @@ import { logError } from 'utils/error'
 export interface ColYesterdayDailies {
   colField: keyof MoreCast2ForecastRow
   modelType: ModelType
-  yesterdayDailies: YesterdayDaily[]
+  yesterdayDailies: ObservedDaily[]
 }
 
 interface State {
@@ -61,10 +61,10 @@ export const getColumnYesterdayDailies =
   async dispatch => {
     try {
       dispatch(getColumnYesterdayDailiesStart())
-      let yesterdayDailies: YesterdayDaily[] = []
+      let yesterdayDailies: ObservedDaily[] = []
       if (stationCodes.length) {
         const yesterdayDailiesResponse = await getYesterdayDailies(stationCodes, fromDate)
-        const dailies: YesterdayDaily[] = parseYesterdayDailiesFromResponse(yesterdayDailiesResponse)
+        const dailies: ObservedDaily[] = parseYesterdayDailiesFromResponse(yesterdayDailiesResponse)
         yesterdayDailies = fillInTheYesterdayDailyBlanks(fireCentreStations, dailies, dateInterval)
       }
       dispatch(

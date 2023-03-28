@@ -1,20 +1,19 @@
 import { difference, differenceWith, groupBy, isEmpty, isEqual, isNumber, sortBy } from 'lodash'
 import { DateTime } from 'luxon'
-import { ModelChoice, YesterdayDaily, YesterdayDailyResponse } from 'api/moreCast2API'
+import { ModelChoice, ObservedDaily, ObservedDailyResponse } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { FireCenterStation } from 'api/fbaAPI'
 import { rowIDHasher } from 'features/moreCast2/util'
 import { ColYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
 
-export const parseYesterdayDailiesFromResponse = (
-  yesterdayDailiesResponse: YesterdayDailyResponse[]
-): YesterdayDaily[] =>
+export const parseYesterdayDailiesFromResponse = (yesterdayDailiesResponse: ObservedDailyResponse[]): ObservedDaily[] =>
   yesterdayDailiesResponse.map(daily => ({
     ...daily,
-    id: rowIDHasher(daily.station_code, DateTime.fromISO(daily.utcTimestamp))
+    id: rowIDHasher(daily.station_code, DateTime.fromISO(daily.utcTimestamp)),
+    data_type: 'YESTERDAY'
   }))
 
-export const parseYesterdayDailiesForStationsHelper = (yesterdayDailies: YesterdayDaily[]): MoreCast2ForecastRow[] => {
+export const parseYesterdayDailiesForStationsHelper = (yesterdayDailies: ObservedDaily[]): MoreCast2ForecastRow[] => {
   const rows: MoreCast2ForecastRow[] = []
 
   yesterdayDailies.forEach(daily => {
@@ -64,14 +63,14 @@ export const parseYesterdayDailiesForStationsHelper = (yesterdayDailies: Yesterd
  */
 export const fillInTheYesterdayDailyBlanks = (
   stations: FireCenterStation[],
-  yesterdayDailies: YesterdayDaily[],
+  yesterdayDailies: ObservedDaily[],
   dateInterval: string[]
-): YesterdayDaily[] => {
+): ObservedDaily[] => {
   const expectedDates = dateInterval.map(date => DateTime.fromISO(date))
 
   const yesterdayDailiesExtendedToDateRange = extendDailiesForStations(yesterdayDailies, expectedDates)
 
-  const missingYesterdayDailies: YesterdayDaily[] = defaultsForMissingDailies(stations, yesterdayDailies, dateInterval)
+  const missingYesterdayDailies: ObservedDaily[] = defaultsForMissingDailies(stations, yesterdayDailies, dateInterval)
 
   const completeYesterdayDailies = [...yesterdayDailiesExtendedToDateRange, ...missingYesterdayDailies]
   if (!isEmpty(dateInterval)) {
@@ -86,8 +85,8 @@ export const fillInTheYesterdayDailyBlanks = (
  * @param expectedDates the date range
  * @returns existing dailies for yesterday and dailies for the rest of the range
  */
-export const extendDailiesForStations = (yesterdayDailies: YesterdayDaily[], expectedDates: DateTime[]) => {
-  const yesterdayDailiesExtendedToDateRange: YesterdayDaily[] = []
+export const extendDailiesForStations = (yesterdayDailies: ObservedDaily[], expectedDates: DateTime[]) => {
+  const yesterdayDailiesExtendedToDateRange: ObservedDaily[] = []
 
   // Dictionary of stationId -> daily, in theory there should be one yesterday daily for each station
   const yesterdayDailiesByStation = groupBy(yesterdayDailies, daily => daily.station_code)
@@ -100,7 +99,7 @@ export const extendDailiesForStations = (yesterdayDailies: YesterdayDaily[], exp
     const missingDates = differenceWith(expectedDates, dailyDates, isEqual)
 
     const yesterdayDaily = dailies[0]
-    const missingDailies: YesterdayDaily[] = missingDates.map(date => ({
+    const missingDailies: ObservedDaily[] = missingDates.map(date => ({
       ...yesterdayDaily,
       id: rowIDHasher(yesterdayDaily.station_code, date),
       utcTimestamp: date.toISO()
@@ -119,17 +118,18 @@ export const extendDailiesForStations = (yesterdayDailies: YesterdayDaily[], exp
  */
 export const defaultsForMissingDailies = (
   stations: FireCenterStation[],
-  yesterdayDailies: YesterdayDaily[],
+  yesterdayDailies: ObservedDaily[],
   dateInterval: string[]
-): YesterdayDaily[] => {
+): ObservedDaily[] => {
   const expectedStationIds = stations.map(station => station.code)
   const stationIdsWithDailies = yesterdayDailies.map(daily => daily.station_code)
   const missingStationIds = new Set(difference(expectedStationIds, stationIdsWithDailies))
   const missingStations = stations.filter(station => missingStationIds.has(station.code))
 
-  const missingYesterdayDailies: YesterdayDaily[] = missingStations.flatMap(station =>
+  const missingYesterdayDailies: ObservedDaily[] = missingStations.flatMap(station =>
     dateInterval.map(date => ({
       id: rowIDHasher(station.code, DateTime.fromISO(date)),
+      data_type: 'YESTERDAY',
       station_code: station.code,
       station_name: station.name,
       utcTimestamp: date,

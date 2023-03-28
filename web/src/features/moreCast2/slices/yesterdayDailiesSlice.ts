@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { getYesterdayDailies, YesterdayDaily } from 'api/moreCast2API'
+import { getYesterdayDailies, ObservedDaily } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { parseYesterdayDailiesFromResponse } from 'features/moreCast2/yesterdayDailies'
@@ -7,7 +7,7 @@ import { parseYesterdayDailiesFromResponse } from 'features/moreCast2/yesterdayD
 interface State {
   loading: boolean
   error: string | null
-  yesterdayDailies: YesterdayDaily[]
+  yesterdayDailies: ObservedDaily[]
 }
 
 const initialState: State = {
@@ -29,7 +29,7 @@ const yesterdayDailiesSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getYesterdayDailiesSuccess(state: State, action: PayloadAction<YesterdayDaily[]>) {
+    getYesterdayDailiesSuccess(state: State, action: PayloadAction<ObservedDaily[]>) {
       state.error = null
       state.yesterdayDailies = action.payload
       state.loading = false
@@ -52,7 +52,7 @@ export const getYesterdayStationDailies =
       dispatch(getModelStationPredictionsStart())
       if (stationCodes.length) {
         const yesterdayDailiesResponse = await getYesterdayDailies(stationCodes, fromDate)
-        const yesterdayDailies: YesterdayDaily[] = parseYesterdayDailiesFromResponse(yesterdayDailiesResponse)
+        const yesterdayDailies: ObservedDaily[] = parseYesterdayDailiesFromResponse(yesterdayDailiesResponse)
         dispatch(getYesterdayDailiesSuccess(yesterdayDailies))
       }
     } catch (err) {

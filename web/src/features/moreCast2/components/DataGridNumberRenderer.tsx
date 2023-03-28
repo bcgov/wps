@@ -16,7 +16,12 @@ export class GridNumberRenderer {
     return <Button>{params.colDef.headerName}</Button>
   }
   renderCellWith = (params: GridRenderCellParams, field: Morecast2Field) => (
-    <TextField size="small" label={params.row[field].choice} value={params.formattedValue}></TextField>
+    <TextField
+      disabled={params.row[field].choice === 'ACTUAL' ? true : false}
+      size="small"
+      label={params.row[field].choice}
+      value={params.formattedValue}
+    ></TextField>
   )
 
   predictionItemValueSetter = (params: GridValueSetterParams, field: Morecast2Field, precision: number) => {

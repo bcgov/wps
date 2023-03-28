@@ -1,7 +1,14 @@
 import { isNumber } from 'lodash'
 import { DateTime, Interval } from 'luxon'
 import { FireCenterStation } from 'api/fbaAPI'
-import { ModelChoice, ModelType, MoreCast2ForecastRecord, StationPrediction } from 'api/moreCast2API'
+import {
+  ModelChoice,
+  ModelType,
+  MoreCast2ForecastRecord,
+  ObservedDailyResponse,
+  ObservedDaily,
+  StationPrediction
+} from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
 
@@ -42,6 +49,65 @@ export const parseForecastsHelper = (
   })
   return rows
 }
+
+export const parseObservedDailiesFromResponse = (observedDailiesResponse: ObservedDailyResponse[]): ObservedDaily[] =>
+  observedDailiesResponse.map(daily => ({
+    ...daily,
+    id: rowIDHasher(daily.station_code, DateTime.fromISO(daily.utcTimestamp)),
+    data_type: 'ACTUAL'
+  }))
+
+export const parseObservedDailiesForStationsHelper = (observedDailies: ObservedDaily[]): MoreCast2ForecastRow[] => {
+  const rows: MoreCast2ForecastRow[] = []
+
+  observedDailies.forEach(daily => {
+    const station_code = daily.station_code
+    const station_name = daily.station_name
+    const model = ModelChoice.ACTUAL
+    const row: MoreCast2ForecastRow = {
+      id: daily.id,
+      forDate: DateTime.fromISO(daily.utcTimestamp),
+      precip: {
+        choice: model,
+        value: isNumber(daily.precipitation) ? daily.precipitation : NaN
+      },
+      rh: {
+        choice: model,
+        value: isNumber(daily.relative_humidity) ? daily.relative_humidity : NaN
+      },
+      stationCode: station_code,
+      stationName: station_name,
+      temp: {
+        choice: model,
+        value: isNumber(daily.temperature) ? daily.temperature : NaN
+      },
+      windDirection: {
+        choice: model,
+        value: isNumber(daily.wind_direction) ? daily.wind_direction : NaN
+      },
+      windSpeed: {
+        choice: model,
+        value: isNumber(daily.wind_speed) ? daily.wind_speed : NaN
+      }
+    }
+    rows.push(row)
+  })
+  return rows.sort((a, b) => a.stationName.localeCompare(b.stationName))
+}
+
+// export const parseObservedDailiesForDatesByStation = (
+//   observedDailies: ObservedDaily[],
+//   requestedStartDate: DateTime,
+//   requestedEndDate: DateTime
+// ): { [stationCode: number]: DateTime } => {
+//   const datesByStation = {}
+
+//   observedDailies.forEach(daily => {
+
+//   })
+
+//   return datesByStation
+// }
 
 // Convert the model predictions from the API to a format that can be used by a MoreCast2DataGrid data grid
 export const parseModelsForStationsHelper = (predictions: StationPrediction[]): MoreCast2ForecastRow[] => {
