@@ -2,9 +2,9 @@ import { difference, differenceWith, groupBy, isEmpty, isEqual, isNumber, sortBy
 import { DateTime } from 'luxon'
 import { ModelChoice, YesterdayDaily, YesterdayDailyResponse } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
-import { FireCenterStation } from 'api/fbaAPI'
 import { rowIDHasher } from 'features/moreCast2/util'
 import { ColYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
+import { StationGroupMember } from 'api/stationAPI'
 
 export const parseYesterdayDailiesFromResponse = (
   yesterdayDailiesResponse: YesterdayDailyResponse[]
@@ -63,7 +63,7 @@ export const parseYesterdayDailiesForStationsHelper = (yesterdayDailies: Yesterd
  * @param dateInterval the dates we expect to have yesterday dailies for each station
  */
 export const fillInTheYesterdayDailyBlanks = (
-  stations: FireCenterStation[],
+  stations: StationGroupMember[],
   yesterdayDailies: YesterdayDaily[],
   dateInterval: string[]
 ): YesterdayDaily[] => {
@@ -118,20 +118,20 @@ export const extendDailiesForStations = (yesterdayDailies: YesterdayDaily[], exp
  * @returns default yesterday dailies for stations that have no dailies
  */
 export const defaultsForMissingDailies = (
-  stations: FireCenterStation[],
+  stations: StationGroupMember[],
   yesterdayDailies: YesterdayDaily[],
   dateInterval: string[]
 ): YesterdayDaily[] => {
-  const expectedStationIds = stations.map(station => station.code)
+  const expectedStationIds = stations.map(station => station.station_code)
   const stationIdsWithDailies = yesterdayDailies.map(daily => daily.station_code)
   const missingStationIds = new Set(difference(expectedStationIds, stationIdsWithDailies))
-  const missingStations = stations.filter(station => missingStationIds.has(station.code))
+  const missingStations = stations.filter(station => missingStationIds.has(station.station_code))
 
   const missingYesterdayDailies: YesterdayDaily[] = missingStations.flatMap(station =>
     dateInterval.map(date => ({
-      id: rowIDHasher(station.code, DateTime.fromISO(date)),
-      station_code: station.code,
-      station_name: station.name,
+      id: rowIDHasher(station.station_code, DateTime.fromISO(date)),
+      station_code: station.station_code,
+      station_name: station.display_label,
       utcTimestamp: date,
       temperature: null,
       relative_humidity: null,
@@ -145,7 +145,7 @@ export const defaultsForMissingDailies = (
 
 export const replaceColumnValuesFromYesterdayDaily = (
   existingRows: MoreCast2ForecastRow[],
-  fireCentreStations: FireCenterStation[],
+  fireCentreStations: StationGroupMember[],
   dateInterval: string[],
   colYesterdayDaily: ColYesterdayDailies
 ) => {

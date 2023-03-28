@@ -7,10 +7,10 @@ import {
   parseYesterdayDailiesForStationsHelper,
   replaceColumnValuesFromYesterdayDaily
 } from 'features/moreCast2/yesterdayDailies'
-import { FireCenterStation } from 'api/fbaAPI'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { rowIDHasher } from 'features/moreCast2/util'
 import { ColYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
+import { StationGroupMember } from 'api/stationAPI'
 
 const START_DATE = '2023-02-16T20:00:00+00:00'
 const END_DATE = '2023-02-17T20:00:00+00:00'
@@ -29,14 +29,22 @@ const yesterdayDailies: YesterdayDaily[] = [
   }
 ]
 
-const stations: FireCenterStation[] = [
+const stations: StationGroupMember[] = [
   {
-    code: 1,
-    name: 'one'
+    id: '1',
+    fire_centre: { id: '1', display_label: 'test' },
+    fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
+    station_status: 1,
+    station_code: 1,
+    display_label: 'one'
   },
   {
-    code: 2,
-    name: 'two'
+    id: '2',
+    fire_centre: { id: '1', display_label: 'test' },
+    fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
+    station_status: 1,
+    station_code: 2,
+    display_label: 'two'
   }
 ]
 
@@ -78,9 +86,9 @@ describe('yesterdayDailies', () => {
       const result = defaultsForMissingDailies(stations, yesterdayDailies, [START_DATE, END_DATE])
       expect(yesterdayDailies).toHaveLength(1)
       expect(result).toHaveLength(2)
-      expect(result[0].station_code).toBe(stations[1].code)
+      expect(result[0].station_code).toBe(stations[1].station_code)
       expect(result[0].utcTimestamp).toBe('2023-02-16T20:00:00+00:00')
-      expect(result[1].station_code).toBe(stations[1].code)
+      expect(result[1].station_code).toBe(stations[1].station_code)
       expect(result[1].utcTimestamp).toBe('2023-02-17T20:00:00+00:00')
     })
   })
@@ -89,14 +97,14 @@ describe('yesterdayDailies', () => {
       const result = fillInTheYesterdayDailyBlanks(stations, yesterdayDailies, [START_DATE, END_DATE])
       expect(yesterdayDailies).toHaveLength(1)
       expect(result).toHaveLength(4)
-      expect(result[0].station_code).toBe(stations[0].code)
+      expect(result[0].station_code).toBe(stations[0].station_code)
       expect(DateTime.fromISO(result[0].utcTimestamp)).toEqual(DateTime.fromISO('2023-02-16T20:00:00+00:00'))
-      expect(result[1].station_code).toBe(stations[0].code)
+      expect(result[1].station_code).toBe(stations[0].station_code)
       expect(DateTime.fromISO(result[1].utcTimestamp)).toEqual(DateTime.fromISO('2023-02-17T20:00:00+00:00'))
 
-      expect(result[2].station_code).toBe(stations[1].code)
+      expect(result[2].station_code).toBe(stations[1].station_code)
       expect(DateTime.fromISO(result[2].utcTimestamp)).toEqual(DateTime.fromISO('2023-02-16T20:00:00+00:00'))
-      expect(result[3].station_code).toBe(stations[1].code)
+      expect(result[3].station_code).toBe(stations[1].station_code)
       expect(DateTime.fromISO(result[3].utcTimestamp)).toEqual(DateTime.fromISO('2023-02-17T20:00:00+00:00'))
     })
   })
@@ -158,8 +166,22 @@ describe('yesterdayDailies', () => {
       const result = replaceColumnValuesFromYesterdayDaily(
         existingRows,
         [
-          { code: 1, name: 'one' },
-          { code: 2, name: 'two' }
+          {
+            id: '1',
+            fire_centre: { id: '1', display_label: 'test' },
+            fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
+            station_status: 1,
+            station_code: 1,
+            display_label: 'one'
+          },
+          {
+            id: '2',
+            fire_centre: { id: '1', display_label: 'test' },
+            fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
+            station_status: 1,
+            station_code: 2,
+            display_label: 'two'
+          }
         ],
         [START_DATE, END_DATE],
         colPrediction

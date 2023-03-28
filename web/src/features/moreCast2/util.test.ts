@@ -10,6 +10,7 @@ import {
 } from 'features/moreCast2/util'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
+import { StationGroupMember } from 'api/stationAPI'
 
 const TEST_NUMBER = 7
 const TEST_MODEL = ModelChoice.HRDPS
@@ -72,6 +73,15 @@ export const generateExistingRows = (): MoreCast2ForecastRow[] => [
   }
 ]
 
+const generateStationGroupMember = (code: number, name: string) => ({
+  id: '1',
+  fire_centre: { id: '1', display_label: 'test' },
+  fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
+  station_status: 1,
+  station_code: code,
+  display_label: name
+})
+
 describe('parseModelsForStationHelper', () => {
   it('should return an empty array when length of stationPredictions array is zero', () => {
     const stationPredictions: StationPrediction[] = []
@@ -115,7 +125,16 @@ describe('parseModelsForStationHelper', () => {
 })
 
 describe('fillInTheBlanks', () => {
-  const fireCenterStations = [{ code: TEST_CODE, name: TEST_NAME }]
+  const fireCenterStations: StationGroupMember[] = [
+    {
+      id: '1',
+      fire_centre: { id: '1', display_label: 'test' },
+      fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
+      station_status: 1,
+      station_code: TEST_CODE,
+      display_label: TEST_NAME
+    }
+  ]
   const stationPredictions: StationPrediction[] = createStationPredictionArray(TEST_NUMBER)
   it('should not create rows when date interval array is empty', () => {
     const dateInterval: string[] = []
@@ -131,14 +150,14 @@ describe('fillInTheBlanks', () => {
   })
   it('should add row for station missing data', () => {
     const dateInterval = [TEST_DATE]
-    const stations = [...fireCenterStations, { code: 37, name: 'test' }]
+    const stations = [...fireCenterStations, generateStationGroupMember(37, 'test')]
     const results = fillInTheModelBlanks(stations, stationPredictions, dateInterval, TEST_MODEL)
     expect(results.length).toEqual(stationPredictions.length + 1)
     expect(results.filter(x => x.station.code === 37).length).toEqual(1)
   })
   it('should add row for each station missing data for one day', () => {
     const dateInterval = [TEST_DATE]
-    const stations = [...fireCenterStations, { code: 37, name: 'test' }]
+    const stations = [...fireCenterStations, generateStationGroupMember(37, 'test')]
     const results = fillInTheModelBlanks(stations, stationPredictions, dateInterval, TEST_MODEL)
     expect(results.length).toEqual(stationPredictions.length + 1)
     expect(results.filter(x => x.station.code === 37).length).toEqual(1)
@@ -245,10 +264,7 @@ describe('replaceColumnValuesFromPrediction', () => {
     }
     const result = replaceColumnValuesFromPrediction(
       existingRows,
-      [
-        { code: 1, name: 'one' },
-        { code: 2, name: 'two' }
-      ],
+      [generateStationGroupMember(1, 'one'), generateStationGroupMember(2, 'two')],
       [TEST_DATE, TEST_DATE2],
       colPrediction
     )
