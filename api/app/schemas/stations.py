@@ -108,11 +108,6 @@ class WeatherStationGroupsByOwner(BaseModel):
     groups: List[WeatherStationGroupInfo]
 
 
-class WeatherStationGroupsResponse(BaseModel):
-    """ Response to a request for all WFWX groups"""
-    groups_by_owner: List[WeatherStationGroupsByOwner]
-
-
 class WeatherStationGroupMember(BaseModel):
     """ Description of a station in a group"""
     id: str
@@ -135,3 +130,8 @@ class RawWeatherStationGroup(BaseModel):
     group_owner_user_guid: str
     group_owner_user_id: str
     id: str
+
+
+class WeatherStationGroupsResponse(BaseModel):
+    """ Response to a request for all WFWX groups"""
+    groups: List[RawWeatherStationGroup]

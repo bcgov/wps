@@ -273,6 +273,20 @@ async def weather_station_group_mapper(raw_station_groups_by_owner: Generator[di
     return weather_station_groups_by_owner
 
 
+async def weather_station_flat_group_mapper(raw_station_groups_by_owner: Generator[dict, None, None]) -> List[RawWeatherStationGroup]:
+    """ Maps raw weather station groups to WeatherStationGroupsByOwner"""
+    flat_weather_station_groups = []
+    async for raw_group in raw_station_groups_by_owner:
+        flat_weather_station_groups.append(RawWeatherStationGroup(
+            display_label=raw_group['displayLabel'],
+            group_description=raw_group['groupDescription'],
+            group_owner_user_guid=raw_group['groupOwnerUserGuid'],
+            group_owner_user_id=raw_group['groupOwnerUserId'],
+            id=raw_group['id']))
+
+    return flat_weather_station_groups
+
+
 def weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
     mapped_stations = []
     for item in stations:

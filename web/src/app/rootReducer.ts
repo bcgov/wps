@@ -29,6 +29,7 @@ import yesterdayDailiesSlice from 'features/moreCast2/slices/yesterdayDailiesSli
 import columnModelSlice from 'features/moreCast2/slices/columnModelSlice'
 import columnYesterdaySlice from 'features/moreCast2/slices/columnYesterdaySlice'
 import moreCast2ForecastReducer from 'features/moreCast2/slices/moreCast2ForecastsSlice'
+import stationGroupsSlice from 'commonSlices/stationGroupsSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -60,7 +61,8 @@ const rootReducer = combineReducers({
   columnStationPredictions: columnModelSlice,
   columnYesterdayDailies: columnYesterdaySlice,
   yesterdayDailies: yesterdayDailiesSlice,
-  moreCast2Forecasts: moreCast2ForecastReducer
+  moreCast2Forecasts: moreCast2ForecastReducer,
+  stationGroups: stationGroupsSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -123,3 +125,5 @@ export const selectHFIReadyState = (state: RootState): HFIReadyState => state.hf
 export const selectFireBehaviourStationsLoading = (state: RootState): boolean => state.fbaCalculatorResults.loading
 export const selectFireCentersLoading = (state: RootState): boolean => state.fireCenters.loading
 export const selectMoreCast2ForecastsLoading = (state: RootState): boolean => state.moreCast2Forecasts.loading
+export const selectStationGroupsLoading = (state: RootState): boolean => state.stationGroups.loading
+export const selectStationGroups = (state: RootState) => state.stationGroups

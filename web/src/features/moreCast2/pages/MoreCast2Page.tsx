@@ -22,6 +22,7 @@ import {
   selectFireCenters,
   selectModelStationPredictions,
   selectMoreCast2Forecasts,
+  selectStationGroups,
   selectYesterdayDailies
 } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
@@ -57,6 +58,8 @@ import { getColumnYesterdayDailies } from 'features/moreCast2/slices/columnYeste
 import { getMoreCast2Forecasts } from 'features/moreCast2/slices/moreCast2ForecastsSlice'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import ForecastActionDropdown from 'features/moreCast2/components/ForecastActionDropdown'
+import { fetchStationGroups } from 'commonSlices/stationGroupsSlice'
+import { StationGroup } from 'api/stationAPI'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -103,10 +106,13 @@ const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
+  const { groups } = useSelector(selectStationGroups)
   const { stationPredictions } = useSelector(selectModelStationPredictions)
   const { yesterdayDailies } = useSelector(selectYesterdayDailies)
   const { moreCast2Forecasts } = useSelector(selectMoreCast2Forecasts)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
+
+  const [selectedStationGroups, setSelectedStationGroups] = useState<StationGroup[]>([])
 
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
   const [selectedStations, setSelectedStations] = useState<FireCenterStation[]>([])
@@ -196,6 +202,7 @@ const MoreCast2Page = () => {
 
   useEffect(() => {
     dispatch(fetchFireCenters())
+    dispatch(fetchStationGroups())
     document.title = MORE_CAST_2_DOC_TITLE
     fetchStationPredictions()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -358,6 +365,9 @@ const MoreCast2Page = () => {
             selectedStations={selectedStations}
             setFireCenter={setFireCenter}
             setSelectedStations={setSelectedStations}
+            stationGroups={groups}
+            selectedStationGroups={selectedStationGroups}
+            setSelectedStationGroups={setSelectedStationGroups}
           />
         </div>
         <div className={classes.observations}>

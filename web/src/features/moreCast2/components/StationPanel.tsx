@@ -13,12 +13,17 @@ import {
 import makeStyles from '@mui/styles/makeStyles'
 import { FireCenter, FireCenterStation } from 'api/fbaAPI'
 import FireCenterDropdown from 'components/FireCenterDropdown'
+import StationGroupDropdown from 'components/StationGroupDropdown'
+import { StationGroup } from 'api/stationAPI'
 
 interface StationPanelProps {
   fireCenter: FireCenter | undefined
   fireCenters: FireCenter[]
+  stationGroups: StationGroup[]
+  selectedStationGroups: StationGroup[]
   selectedStations: FireCenterStation[]
   setFireCenter: React.Dispatch<React.SetStateAction<FireCenter | undefined>>
+  setSelectedStationGroups: React.Dispatch<React.SetStateAction<StationGroup[]>>
   setSelectedStations: React.Dispatch<React.SetStateAction<FireCenterStation[]>>
 }
 
@@ -49,7 +54,18 @@ const useStyles = makeStyles(theme => ({
 
 const StationPanel = (props: StationPanelProps) => {
   const classes = useStyles()
-  const { fireCenter, fireCenters, selectedStations, setFireCenter, setSelectedStations } = { ...props }
+  const {
+    fireCenter,
+    fireCenters,
+    selectedStations,
+    selectedStationGroups,
+    stationGroups,
+    setFireCenter,
+    setSelectedStationGroups: setSelectedStationGroup,
+    setSelectedStations
+  } = {
+    ...props
+  }
 
   const handleStationClick = (station: FireCenterStation) => {
     const newSelectedStations = selectedStations.map(station => station)
@@ -68,13 +84,22 @@ const StationPanel = (props: StationPanelProps) => {
       <div className={classes.header}>
         <Typography variant="h5">Stations</Typography>
       </div>
-      <Grid container spacing={1}>
+      <Grid container spacing={1} direction="column">
         <Grid item xs={2}>
           <FormControl className={classes.formControl}>
             <FireCenterDropdown
               fireCenterOptions={fireCenters}
               selectedFireCenter={fireCenter}
               setSelectedFireCenter={setFireCenter}
+            />
+          </FormControl>
+        </Grid>
+        <Grid item xs={2}>
+          <FormControl className={classes.formControl}>
+            <StationGroupDropdown
+              stationGroupOptions={stationGroups}
+              selectedStationGroups={selectedStationGroups}
+              setSelectedStationGroup={setSelectedStationGroup}
             />
           </FormControl>
         </Grid>

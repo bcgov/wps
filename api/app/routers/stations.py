@@ -76,7 +76,7 @@ async def get_station_groups(response: Response, _=Depends(authentication_requir
         logger.info('/stations/groups')
         groups = await wfwx_api.get_station_groups()
         response.headers["Cache-Control"] = "max-age=0"
-        return WeatherStationGroupsResponse(groups_by_owner=groups)
+        return WeatherStationGroupsResponse(groups=groups)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise

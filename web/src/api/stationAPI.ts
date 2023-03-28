@@ -54,6 +54,22 @@ export interface DetailedStationsResponse {
   features: DetailedGeoJsonStation[]
 }
 
+export interface StationGroup {
+  display_label: string
+  group_description: string | null
+  group_owner_user_guid: string
+  group_owner_user_id: string
+  id: string
+}
+export interface OwnedStationGroups {
+  group_owner_guid: string
+  group_owner_id: string
+  groups: StationGroup[]
+}
+export interface StationGroupsResponse {
+  groups: StationGroup[]
+}
+
 export enum StationSource {
   unspecified = 'unspecified',
   local_storage = 'local_storage',
@@ -81,4 +97,11 @@ export async function getDetailedStations(
   })
 
   return data.features
+}
+
+export async function getStationGroups(): Promise<StationGroup[]> {
+  const groupUrl = `${url}groups`
+  const { data } = await axios.get<StationGroupsResponse>(groupUrl)
+
+  return data.groups
 }
