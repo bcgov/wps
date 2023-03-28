@@ -1,6 +1,7 @@
-import { TextField, Autocomplete } from '@mui/material'
+import { TextField, Autocomplete, FilterOptionsState } from '@mui/material'
 import { StationGroup } from 'api/stationAPI'
 import { isEqual } from 'lodash'
+import { matchSorter, rankings } from 'match-sorter'
 import React from 'react'
 
 interface StationGroupDropdownProps {
@@ -17,10 +18,17 @@ const StationGroupDropdown = (props: StationGroupDropdownProps) => {
     }
   }
 
+  const filterOptions = (options: StationGroup[], { inputValue }: FilterOptionsState<StationGroup>) =>
+    matchSorter(options, inputValue, {
+      keys: ['group_owner_user_id', 'display_label', 'group_description'],
+      threshold: rankings.NO_MATCH
+    })
+
   return (
     <Autocomplete
       data-testid={`station-group-dropdown`}
       multiple
+      filterOptions={filterOptions}
       filterSelectedOptions
       options={props.stationGroupOptions}
       groupBy={option => option.group_owner_user_id}
