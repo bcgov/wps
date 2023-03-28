@@ -16,6 +16,8 @@ router = APIRouter(
     prefix="/stations",
 )
 
+no_cache = "max-age=0"  # don't let the browser cache this
+
 
 @router.get('/details/', response_model=DetailedWeatherStationsResponse)
 async def get_detailed_stations(response: Response,
@@ -30,7 +32,7 @@ async def get_detailed_stations(response: Response,
     """
     try:
         logger.info('/stations/details/')
-        response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
+        response.headers["Cache-Control"] = no_cache
         if toi is None:
             # NOTE: Don't be tempted to move this into the function definition. It's not possible
             # to mock a function if it's part of the function definition, and will cause
@@ -59,7 +61,7 @@ async def get_stations(response: Response,
         logger.info('/stations/')
 
         weather_stations = await get_stations_as_geojson(source)
-        response.headers["Cache-Control"] = "max-age=0"  # let browsers to cache the data for 12 hours
+        response.headers["Cache-Control"] = no_cache
 
         return WeatherStationsResponse(features=weather_stations)
     except Exception as exception:
@@ -88,7 +90,7 @@ async def get_stations_by_group_id(group_id: str, response: Response, _=Depends(
     try:
         logger.info('/stations/groups/.../members}')
         stations = await wfwx_api.get_stations_by_group_id(group_id)
-        response.headers["Cache-Control"] = "max-age=0"
+        response.headers["Cache-Control"] = no_cache
         return WeatherStationGroupMembersResponse(stations=stations)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
@@ -101,7 +103,7 @@ async def get_stations_by_group_ids(groups_request: WeatherStationGroupsMemberRe
     try:
         logger.info('/stations/groups/.../members}')
         stations = await wfwx_api.get_stations_by_group_ids([id for id in groups_request.group_ids])
-        response.headers["Cache-Control"] = "max-age=0"
+        response.headers["Cache-Control"] = no_cache
         return WeatherStationGroupMembersResponse(stations=stations)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
