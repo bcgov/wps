@@ -56,6 +56,21 @@ objects:
     status:
       loadBalancer: {}
   - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: ${APP_NAME}-${SUFFIX}-patroni-config
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+    data:
+      nats.conf: |-
+        postgresql:
+          parameters:
+            max_connections: 100
+            max_locks_per_transaction: 64
+            max_prepared_transactions: 0
+            log_level: OFF
+          use_pg_rewind: true
+  - apiVersion: v1
     kind: Service
     metadata:
       creationTimestamp: null
@@ -209,6 +224,8 @@ objects:
               volumeMounts:
                 - mountPath: /home/postgres/pgdata
                   name: postgresql
+                - name: patroni-config
+                  mountPath: /etc/patroni/
           dnsPolicy: ClusterFirst
           restartPolicy: Always
           schedulerName: default-scheduler
@@ -219,6 +236,9 @@ objects:
             - name: postgresql
               persistentVolumeClaim:
                 claimName: ${NAME}
+            - name: patroni-config
+              configMap:
+                name: ${APP_NAME}-${SUFFIX}-patroni-config
       updateStrategy:
         type: RollingUpdate
       volumeClaimTemplates:
