@@ -18,7 +18,7 @@ from app.schemas.stations import (WeatherStation,
 from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_mapper, parse_noon_forecast,
                                              parse_station,
                                              parse_hourly_actual,
-                                             station_list_mapper, weather_station_flat_group_mapper,
+                                             station_list_mapper, unique_weather_stations_mapper, weather_station_flat_group_mapper,
                                              wfwx_station_list_mapper, yesterday_dailies_list_mapper,
                                              weather_stations_mapper)
 from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
@@ -408,7 +408,7 @@ async def get_stations_by_group_id(group_id: str, mapper=weather_stations_mapper
         return stations_in_group
 
 
-async def get_stations_by_group_ids(group_ids: List[str], mapper=weather_stations_mapper):
+async def get_stations_by_group_ids(group_ids: List[str], mapper=unique_weather_stations_mapper):
     """ Get all the stations in the specified group from the Wild Fire One internal API. """
     stations_in_groups = []
     async with ClientSession() as session:

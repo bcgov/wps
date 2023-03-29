@@ -304,3 +304,16 @@ def weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
         mapped_stations.append(weather_station)
 
     return mapped_stations
+
+
+def unique_weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
+    all_stations = weather_stations_mapper(stations)
+    unique_stations = []
+    stations_added = set()
+
+    for station in all_stations:
+        if station.station_code not in stations_added:
+            unique_stations.append(station)
+            stations_added.add(station.station_code)
+
+    return unique_stations
