@@ -62,7 +62,7 @@ objects:
       labels:
         app: ${APP_NAME}-${SUFFIX}
     data:
-      nats.conf: |-
+      patroni.yaml: |-
         postgresql:
           parameters:
             max_connections: 100
