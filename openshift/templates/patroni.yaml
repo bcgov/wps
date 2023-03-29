@@ -185,7 +185,7 @@ objects:
                       apiVersion: v1
                       fieldPath: metadata.name
                 - name: PATRONI_LOG_LEVEL
-                  value: WARNING
+                  value: CRITICAL
                 - name: PATRONI_POSTGRESQL_DATA_DIR
                   value: /home/postgres/pgdata/pgroot/data
                 - name: PATRONI_POSTGRESQL_PGPASS
@@ -224,8 +224,8 @@ objects:
               volumeMounts:
                 - mountPath: /home/postgres/pgdata
                   name: postgresql
-                - name: patroni-config
-                  mountPath: /home/postgres
+                # - name: patroni-config
+                #   mountPath: /home/postgres
           dnsPolicy: ClusterFirst
           restartPolicy: Always
           schedulerName: default-scheduler
