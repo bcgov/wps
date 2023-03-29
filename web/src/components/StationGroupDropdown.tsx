@@ -23,7 +23,6 @@ const StationGroupDropdown = ({
 
   useEffect(() => {
     if (onlyMine && !isUndefined(idir)) {
-      console.log(`Filtering station groups for ${idir}`)
       const myGroups = options.filter(option => option.group_owner_user_id.toLowerCase().includes(idir.toLowerCase()))
       setOptions(myGroups)
     } else {

@@ -104,7 +104,7 @@ const FORECAST_WARN_MESSAGE = 'A forecast cannot contain N/A values.'
 const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
-  const { groups } = useSelector(selectStationGroups)
+  const { groups, loading } = useSelector(selectStationGroups)
   const { members } = useSelector(selectStationGroupsMembers)
 
   const { stationPredictions } = useSelector(selectModelStationPredictions)
@@ -354,6 +354,7 @@ const MoreCast2Page = () => {
         <div className={classes.sidePanel}>
           <StationPanel
             idir={idir}
+            loading={loading}
             selectedStations={selectedStations}
             setSelectedStations={setSelectedStations}
             stationGroups={groups}

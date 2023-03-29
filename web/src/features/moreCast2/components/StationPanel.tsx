@@ -8,7 +8,8 @@ import {
   ListItemButton,
   ListItemText,
   ListItemIcon,
-  Typography
+  Typography,
+  CircularProgress
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import StationGroupDropdown from 'components/StationGroupDropdown'
@@ -16,6 +17,7 @@ import { StationGroup, StationGroupMember } from 'api/stationAPI'
 
 interface StationPanelProps {
   idir?: string
+  loading: boolean
   stationGroups: StationGroup[]
   selectedStationGroups: StationGroup[]
   selectedStations: StationGroupMember[]
@@ -53,6 +55,7 @@ const StationPanel = (props: StationPanelProps) => {
   const classes = useStyles()
   const {
     idir,
+    loading,
     selectedStations,
     selectedStationGroups,
     stationGroups,
@@ -80,34 +83,40 @@ const StationPanel = (props: StationPanelProps) => {
       <div className={classes.header}>
         <Typography variant="h5">Stations</Typography>
       </div>
-      <Grid container spacing={1} direction="column">
-        <Grid item xs={2}>
-          <FormControl className={classes.formControl}>
-            <StationGroupDropdown
-              idir={idir}
-              stationGroupOptions={stationGroups}
-              selectedStationGroups={selectedStationGroups}
-              setSelectedStationGroup={setSelectedStationGroup}
-            />
-          </FormControl>
-        </Grid>
-      </Grid>
-      <div className={classes.stationContainer}>
-        <List dense={true}>
-          {stationGroupMembers.map(station => {
-            return (
-              <ListItem disablePadding key={station.station_code}>
-                <ListItemButton onClick={() => handleStationClick(station)}>
-                  <ListItemIcon>
-                    <Checkbox checked={selectedStations.indexOf(station) > -1}></Checkbox>
-                  </ListItemIcon>
-                  <ListItemText>{station.display_label}</ListItemText>
-                </ListItemButton>
-              </ListItem>
-            )
-          })}
-        </List>
-      </div>
+      {!loading ? (
+        <>
+          <Grid container spacing={1} direction="column">
+            <Grid item xs={2}>
+              <FormControl className={classes.formControl}>
+                <StationGroupDropdown
+                  idir={idir}
+                  stationGroupOptions={stationGroups}
+                  selectedStationGroups={selectedStationGroups}
+                  setSelectedStationGroup={setSelectedStationGroup}
+                />
+              </FormControl>
+            </Grid>
+          </Grid>
+          <div className={classes.stationContainer}>
+            <List dense={true}>
+              {stationGroupMembers.map(station => {
+                return (
+                  <ListItem disablePadding key={station.station_code}>
+                    <ListItemButton onClick={() => handleStationClick(station)}>
+                      <ListItemIcon>
+                        <Checkbox checked={selectedStations.indexOf(station) > -1}></Checkbox>
+                      </ListItemIcon>
+                      <ListItemText>{station.display_label}</ListItemText>
+                    </ListItemButton>
+                  </ListItem>
+                )
+              })}
+            </List>
+          </div>
+        </>
+      ) : (
+        <CircularProgress />
+      )}
     </div>
   )
 }
