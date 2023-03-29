@@ -225,7 +225,7 @@ objects:
                 - mountPath: /home/postgres/pgdata
                   name: postgresql
                 - name: patroni-config
-                  mountPath: /etc/patroni
+                  mountPath: /home/postgres
           dnsPolicy: ClusterFirst
           restartPolicy: Always
           schedulerName: default-scheduler
