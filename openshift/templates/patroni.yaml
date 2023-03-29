@@ -58,7 +58,7 @@ objects:
   - apiVersion: v1
     kind: ConfigMap
     metadata:
-      name: ${APP_NAME}-${SUFFIX}-patroni-config
+      name: patroni-config
       labels:
         app: ${APP_NAME}-${SUFFIX}
     data:
@@ -238,7 +238,7 @@ objects:
                 claimName: ${NAME}
             - name: patroni-config
               configMap:
-                name: ${APP_NAME}-${SUFFIX}-patroni-config
+                name: patroni-config
       updateStrategy:
         type: RollingUpdate
       volumeClaimTemplates:
