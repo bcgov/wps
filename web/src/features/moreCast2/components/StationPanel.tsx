@@ -16,6 +16,7 @@ import StationGroupDropdown from 'components/StationGroupDropdown'
 import { StationGroup, StationGroupMember } from 'api/stationAPI'
 
 interface StationPanelProps {
+  idir?: string
   fireCenters: FireCenter[]
   stationGroups: StationGroup[]
   selectedStationGroups: StationGroup[]
@@ -53,6 +54,7 @@ const useStyles = makeStyles(theme => ({
 const StationPanel = (props: StationPanelProps) => {
   const classes = useStyles()
   const {
+    idir,
     selectedStations,
     selectedStationGroups,
     stationGroups,
@@ -84,6 +86,7 @@ const StationPanel = (props: StationPanelProps) => {
         <Grid item xs={2}>
           <FormControl className={classes.formControl}>
             <StationGroupDropdown
+              idir={idir}
               stationGroupOptions={stationGroups}
               selectedStationGroups={selectedStationGroups}
               setSelectedStationGroup={setSelectedStationGroup}

@@ -1,21 +1,44 @@
-import { TextField, Autocomplete, FilterOptionsState } from '@mui/material'
+import { TextField, Autocomplete, FilterOptionsState, Box, Checkbox, FormControlLabel } from '@mui/material'
 import { StationGroup } from 'api/stationAPI'
-import { isEqual } from 'lodash'
+import { isEqual, isUndefined } from 'lodash'
 import { matchSorter, rankings } from 'match-sorter'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 interface StationGroupDropdownProps {
+  idir?: string
   selectedStationGroups: StationGroup[]
   stationGroupOptions: StationGroup[]
   setSelectedStationGroup: React.Dispatch<React.SetStateAction<StationGroup[]>>
 }
 
-const StationGroupDropdown = (props: StationGroupDropdownProps) => {
+const StationGroupDropdown = ({
+  idir,
+  stationGroupOptions,
+  selectedStationGroups,
+  setSelectedStationGroup
+}: StationGroupDropdownProps) => {
+  const [onlyMine, toggleOnlyMine] = useState<boolean>(false)
+  const [options, setOptions] = useState<StationGroup[]>([...stationGroupOptions])
+
+  useEffect(() => {
+    if (onlyMine && !isUndefined(idir)) {
+      console.log(`Filtering station groups for ${idir}`)
+      const myGroups = options.filter(option => option.group_owner_user_id.toLowerCase().includes(idir.toLowerCase()))
+      setOptions(myGroups)
+    } else {
+      setOptions([...stationGroupOptions])
+    }
+  }, [onlyMine]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    if (!isEqual(props.selectedStationGroups, value)) {
-      props.setSelectedStationGroup(value)
+    if (!isEqual(selectedStationGroups, value)) {
+      setSelectedStationGroup(value)
     }
+  }
+
+  const checkBoxChangeHandler = () => {
+    toggleOnlyMine(!onlyMine)
   }
 
   const filterOptions = (options: StationGroup[], { inputValue }: FilterOptionsState<StationGroup>) =>
@@ -25,18 +48,24 @@ const StationGroupDropdown = (props: StationGroupDropdownProps) => {
     })
 
   return (
-    <Autocomplete
-      data-testid={`station-group-dropdown`}
-      multiple
-      filterOptions={filterOptions}
-      filterSelectedOptions
-      options={props.stationGroupOptions}
-      groupBy={option => option.group_owner_user_id}
-      getOptionLabel={option => option?.display_label}
-      renderInput={params => <TextField {...params} label="Select Station Group(s)" variant="outlined" />}
-      onChange={changeHandler}
-      value={props.selectedStationGroups}
-    />
+    <Box>
+      <FormControlLabel
+        control={<Checkbox checked={onlyMine} onChange={checkBoxChangeHandler} />}
+        label="Show only my groups"
+      />
+      <Autocomplete
+        data-testid={`station-group-dropdown`}
+        multiple
+        filterOptions={filterOptions}
+        filterSelectedOptions
+        options={options}
+        groupBy={option => option.group_owner_user_id}
+        getOptionLabel={option => option?.display_label}
+        renderInput={params => <TextField {...params} label="Select Station Group(s)" variant="outlined" />}
+        onChange={changeHandler}
+        value={selectedStationGroups}
+      />
+    </Box>
   )
 }
 

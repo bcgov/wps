@@ -114,6 +114,7 @@ const MoreCast2Page = () => {
   const { yesterdayDailies } = useSelector(selectYesterdayDailies)
   const { moreCast2Forecasts } = useSelector(selectMoreCast2Forecasts)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
+  const { idir } = useSelector(selectAuthentication)
 
   const [selectedStationGroups, setSelectedStationGroups] = useState<StationGroup[]>([])
 
@@ -356,6 +357,7 @@ const MoreCast2Page = () => {
       <div className={classes.content}>
         <div className={classes.sidePanel}>
           <StationPanel
+            idir={idir}
             fireCenters={fireCenters}
             selectedStations={selectedStations}
             setSelectedStations={setSelectedStations}
