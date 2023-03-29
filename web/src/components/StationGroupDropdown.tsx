@@ -1,5 +1,6 @@
-import { TextField, Autocomplete, FilterOptionsState, Box, Checkbox, FormControlLabel } from '@mui/material'
+import { TextField, Autocomplete, FilterOptionsState, Box, Checkbox, FormControlLabel, Chip } from '@mui/material'
 import { StationGroup } from 'api/stationAPI'
+import StationGroupChipLabel from 'components/StationGroupChipLabel'
 import { isEqual, isUndefined } from 'lodash'
 import { matchSorter, rankings } from 'match-sorter'
 import React, { useEffect, useState } from 'react'
@@ -62,6 +63,23 @@ const StationGroupDropdown = ({
         groupBy={option => option.group_owner_user_id}
         getOptionLabel={option => option?.display_label}
         renderInput={params => <TextField {...params} label="Select Station Group(s)" variant="outlined" />}
+        renderTags={(value: readonly StationGroup[], getTagProps) =>
+          value.map((option: StationGroup, index: number) => (
+            <Chip
+              variant="outlined"
+              sx={{
+                height: 'auto',
+                '& .MuiChip-label': {
+                  display: 'block',
+                  whiteSpace: 'normal'
+                }
+              }}
+              label={<StationGroupChipLabel idir={option.group_owner_user_id} groupName={option.display_label} />}
+              {...getTagProps({ index })}
+              key={`chip-${option.id}`}
+            />
+          ))
+        }
         onChange={changeHandler}
         value={selectedStationGroups}
       />

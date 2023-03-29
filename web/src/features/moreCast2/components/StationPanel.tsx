@@ -11,13 +11,11 @@ import {
   Typography
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { FireCenter } from 'api/fbaAPI'
 import StationGroupDropdown from 'components/StationGroupDropdown'
 import { StationGroup, StationGroupMember } from 'api/stationAPI'
 
 interface StationPanelProps {
   idir?: string
-  fireCenters: FireCenter[]
   stationGroups: StationGroup[]
   selectedStationGroups: StationGroup[]
   selectedStations: StationGroupMember[]

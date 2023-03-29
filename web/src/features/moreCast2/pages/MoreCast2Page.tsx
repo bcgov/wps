@@ -18,7 +18,6 @@ import {
   selectAuthentication,
   selectColumnModelStationPredictions,
   selectColumnYesterdayDailies,
-  selectFireCenters,
   selectModelStationPredictions,
   selectMoreCast2Forecasts,
   selectStationGroups,
@@ -26,7 +25,6 @@ import {
   selectYesterdayDailies
 } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
-import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { GeneralHeader } from 'components'
 import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
 import MoreCast2DataGrid from 'features/moreCast2/components/MoreCast2DataGrid'
@@ -106,7 +104,6 @@ const FORECAST_WARN_MESSAGE = 'A forecast cannot contain N/A values.'
 const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
-  const { fireCenters } = useSelector(selectFireCenters)
   const { groups } = useSelector(selectStationGroups)
   const { members } = useSelector(selectStationGroupsMembers)
 
@@ -204,9 +201,8 @@ const MoreCast2Page = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchFireCenters())
-    dispatch(fetchStationGroups())
     document.title = MORE_CAST_2_DOC_TITLE
+    dispatch(fetchStationGroups())
     fetchStationPredictions()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -358,7 +354,6 @@ const MoreCast2Page = () => {
         <div className={classes.sidePanel}>
           <StationPanel
             idir={idir}
-            fireCenters={fireCenters}
             selectedStations={selectedStations}
             setSelectedStations={setSelectedStations}
             stationGroups={groups}
