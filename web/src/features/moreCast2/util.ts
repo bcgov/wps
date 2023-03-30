@@ -1,6 +1,5 @@
 import { isNumber } from 'lodash'
 import { DateTime, Interval } from 'luxon'
-import { FireCenterStation } from 'api/fbaAPI'
 import { ModelChoice, ModelType, MoreCast2ForecastRecord, StationPrediction } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
@@ -8,7 +7,7 @@ import { StationGroupMember } from 'api/stationAPI'
 
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
-  stations: FireCenterStation[]
+  stations: StationGroupMember[]
 ): MoreCast2ForecastRow[] => {
   const rows: MoreCast2ForecastRow[] = []
 
@@ -25,7 +24,7 @@ export const parseForecastsHelper = (
         value: forecast.rh
       },
       stationCode: forecast.station_code,
-      stationName: stations.find(station => station.code === forecast.station_code)?.name || '',
+      stationName: stations.find(station => station.station_code === forecast.station_code)?.display_label || '',
       temp: {
         choice: ModelChoice.FORECAST,
         value: forecast.temp

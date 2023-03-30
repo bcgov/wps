@@ -129,7 +129,7 @@ const MoreCast2Page = () => {
     startDate: startDateTime.toJSDate(),
     endDate: endDateTime.toJSDate()
   })
-  const [selectesGroupsMembers, setSelectedGroupsMembers] = useState([...members])
+  const [selectedGroupsMembers, setSelectedGroupsMembers] = useState([...members])
   const [forecastRows, setForecastRows] = useState<MoreCast2ForecastRow[]>([])
   const [stationPredictionsAsMoreCast2ForecastRows, setStationPredictionsAsMoreCast2ForecastRows] = useState<
     MoreCast2ForecastRow[]
@@ -170,7 +170,7 @@ const MoreCast2Page = () => {
 
   // Fecthes observed/predicted values while in Create Forecast mode
   const fetchStationPredictions = () => {
-    const stationCodes = selectesGroupsMembers.map(member => member.station_code)
+    const stationCodes = selectedGroupsMembers.map(member => member.station_code)
     if (isUndefined(fromTo.startDate) || isUndefined(fromTo.endDate)) {
       setForecastRows([])
       return
@@ -191,7 +191,7 @@ const MoreCast2Page = () => {
 
   // Fetches previously submitted forecasts from the API database while in View/Edit Forecast mode
   const fetchForecasts = () => {
-    const stationCodes = selectesGroupsMembers.map(member => member.station_code)
+    const stationCodes = selectedGroupsMembers.map(member => member.station_code)
     if (isUndefined(fromTo.startDate) || isUndefined(fromTo.endDate)) {
       setForecastRows([])
       return
@@ -253,6 +253,7 @@ const MoreCast2Page = () => {
       dispatch(fetchStationGroupsMembers(selectedStationGroups.map(group => group.id)))
     } else {
       setSelectedGroupsMembers([])
+      setForecastRows([])
     }
   }, [selectedStationGroups]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -288,13 +289,13 @@ const MoreCast2Page = () => {
   }, [forecastsAsMoreCast2ForecastRows, stationPredictionsAsMoreCast2ForecastRows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const predictions = fillInTheModelBlanks(selectesGroupsMembers, stationPredictions, dateInterval, modelType)
+    const predictions = fillInTheModelBlanks(selectedGroupsMembers, stationPredictions, dateInterval, modelType)
     const newRows = parseModelsForStationsHelper(predictions)
     setStationPredictionsAsMoreCast2ForecastRows(newRows)
   }, [stationPredictions]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const completeDailies = fillInTheYesterdayDailyBlanks(selectesGroupsMembers, yesterdayDailies, dateInterval)
+    const completeDailies = fillInTheYesterdayDailyBlanks(selectedGroupsMembers, yesterdayDailies, dateInterval)
     const newRows = parseYesterdayDailiesForStationsHelper(completeDailies)
     setStationPredictionsAsMoreCast2ForecastRows(newRows)
   }, [yesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -305,10 +306,7 @@ const MoreCast2Page = () => {
   }, [forecastAction]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const newRows = parseForecastsHelper(
-      moreCast2Forecasts,
-      selectesGroupsMembers.map(member => ({ code: member.station_code, name: member.display_label }))
-    )
+    const newRows = parseForecastsHelper(moreCast2Forecasts, selectedGroupsMembers)
     setForecastsAsMoreCast2ForecastRows(newRows)
   }, [moreCast2Forecasts]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -364,7 +362,7 @@ const MoreCast2Page = () => {
             stationGroups={groups}
             selectedStationGroups={selectedStationGroups}
             setSelectedStationGroups={setSelectedStationGroups}
-            stationGroupMembers={selectesGroupsMembers}
+            stationGroupMembers={selectedGroupsMembers}
           />
         </div>
         <div className={classes.observations}>
