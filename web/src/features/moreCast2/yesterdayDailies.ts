@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import { ModelChoice, ObservedDaily, ObservedDailyResponse } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { FireCenterStation } from 'api/fbaAPI'
-import { rowIDHasher } from 'features/moreCast2/util'
+import { buildMoreCast2ForecastRow, rowIDHasher } from 'features/moreCast2/util'
 import { ColYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
 
 export const parseYesterdayDailiesFromResponse = (yesterdayDailiesResponse: ObservedDailyResponse[]): ObservedDaily[] =>
@@ -17,35 +17,8 @@ export const parseYesterdayDailiesForStationsHelper = (yesterdayDailies: Observe
   const rows: MoreCast2ForecastRow[] = []
 
   yesterdayDailies.forEach(daily => {
-    const station_code = daily.station_code
-    const station_name = daily.station_name
     const model = ModelChoice.YESTERDAY
-    const row: MoreCast2ForecastRow = {
-      id: daily.id,
-      forDate: DateTime.fromISO(daily.utcTimestamp),
-      precip: {
-        choice: model,
-        value: isNumber(daily.precipitation) ? daily.precipitation : NaN
-      },
-      rh: {
-        choice: model,
-        value: isNumber(daily.relative_humidity) ? daily.relative_humidity : NaN
-      },
-      stationCode: station_code,
-      stationName: station_name,
-      temp: {
-        choice: model,
-        value: isNumber(daily.temperature) ? daily.temperature : NaN
-      },
-      windDirection: {
-        choice: model,
-        value: isNumber(daily.wind_direction) ? daily.wind_direction : NaN
-      },
-      windSpeed: {
-        choice: model,
-        value: isNumber(daily.wind_speed) ? daily.wind_speed : NaN
-      }
-    }
+    const row = buildMoreCast2ForecastRow(daily, model)
     rows.push(row)
   })
   return rows.sort((a, b) => a.stationName.localeCompare(b.stationName))

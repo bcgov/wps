@@ -109,35 +109,8 @@ export const parseObservedDailiesForStationsHelper = (observedDailies: ObservedD
   const rows: MoreCast2ForecastRow[] = []
 
   observedDailies.forEach(daily => {
-    const station_code = daily.station_code
-    const station_name = daily.station_name
     const model = ModelChoice.ACTUAL
-    const row: MoreCast2ForecastRow = {
-      id: daily.id,
-      forDate: DateTime.fromISO(daily.utcTimestamp),
-      precip: {
-        choice: model,
-        value: isNumber(daily.precipitation) ? daily.precipitation : NaN
-      },
-      rh: {
-        choice: model,
-        value: isNumber(daily.relative_humidity) ? daily.relative_humidity : NaN
-      },
-      stationCode: station_code,
-      stationName: station_name,
-      temp: {
-        choice: model,
-        value: isNumber(daily.temperature) ? daily.temperature : NaN
-      },
-      windDirection: {
-        choice: model,
-        value: isNumber(daily.wind_direction) ? daily.wind_direction : NaN
-      },
-      windSpeed: {
-        choice: model,
-        value: isNumber(daily.wind_speed) ? daily.wind_speed : NaN
-      }
-    }
+    const row = buildMoreCast2ForecastRow(daily, model)
     rows.push(row)
   })
   return rows.sort((a, b) => a.stationName.localeCompare(b.stationName))
@@ -180,6 +153,36 @@ export const parseModelsForStationsHelper = (predictions: StationPrediction[]): 
     rows.push(row)
   })
   return rows.sort((a, b) => a.stationName.localeCompare(b.stationName))
+}
+
+export const buildMoreCast2ForecastRow = (dailyWeather: ObservedDaily, model: ModelChoice): MoreCast2ForecastRow => {
+  const row: MoreCast2ForecastRow = {
+    id: dailyWeather.id,
+    forDate: DateTime.fromISO(dailyWeather.utcTimestamp),
+    precip: {
+      value: isNumber(dailyWeather.precipitation) ? dailyWeather.precipitation : NaN,
+      choice: model
+    },
+    temp: {
+      value: isNumber(dailyWeather.temperature) ? dailyWeather.temperature : NaN,
+      choice: model
+    },
+    rh: {
+      value: isNumber(dailyWeather.relative_humidity) ? dailyWeather.relative_humidity : NaN,
+      choice: model
+    },
+    windDirection: {
+      value: isNumber(dailyWeather.wind_direction) ? dailyWeather.wind_direction : NaN,
+      choice: model
+    },
+    windSpeed: {
+      value: isNumber(dailyWeather.wind_speed) ? dailyWeather.wind_speed : NaN,
+      choice: model
+    },
+    stationName: dailyWeather.station_name,
+    stationCode: dailyWeather.station_code
+  }
+  return row
 }
 
 export const fillInTheModelBlanks = (
