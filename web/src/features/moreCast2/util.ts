@@ -9,11 +9,7 @@ import {
   ObservedDaily,
   StationPrediction
 } from 'api/moreCast2API'
-import {
-  MoreCast2ForecastRow,
-  MoreCast2ForecastRowCollectionByStationCode,
-  MoreCast2ForecastRowsByDate
-} from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow, MoreCast2ForecastRowsByDate } from 'features/moreCast2/interfaces'
 import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
 
 export const parseForecastsHelper = (
@@ -146,20 +142,6 @@ export const parseObservedDailiesForStationsHelper = (observedDailies: ObservedD
   })
   return rows.sort((a, b) => a.stationName.localeCompare(b.stationName))
 }
-
-// export const parseObservedDailiesForDatesByStation = (
-//   observedDailies: ObservedDaily[],
-//   requestedStartDate: DateTime,
-//   requestedEndDate: DateTime
-// ): { [stationCode: number]: DateTime } => {
-//   const datesByStation = {}
-
-//   observedDailies.forEach(daily => {
-
-//   })
-
-//   return datesByStation
-// }
 
 // Convert the model predictions from the API to a format that can be used by a MoreCast2DataGrid data grid
 export const parseModelsForStationsHelper = (predictions: StationPrediction[]): MoreCast2ForecastRow[] => {

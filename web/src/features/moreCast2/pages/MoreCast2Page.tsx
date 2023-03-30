@@ -43,7 +43,6 @@ import {
   parseForecastsHelper,
   parseModelsForStationsHelper,
   parseObservedDailiesForStationsHelper,
-  parseObservedDailiesFromResponse,
   replaceColumnValuesFromPrediction
 } from 'features/moreCast2/util'
 import {
