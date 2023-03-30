@@ -74,37 +74,16 @@ async def get_station_groups(response: Response, _=Depends(authentication_requir
     """ Return a list of all station groups available in from WildFireOne
         Groups are retrieved from an undocumented stationGroups endpoint.
     """
-    try:
-        logger.info('/stations/groups')
-        groups = await wfwx_api.get_station_groups()
-        response.headers["Cache-Control"] = "max-age=0"
-        return WeatherStationGroupsResponse(groups=groups)
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
-
-
-@router.get('/groups/{group_id}/members', response_model=WeatherStationGroupMembersResponse)
-async def get_stations_by_group_id(group_id: str, response: Response, _=Depends(authentication_required)):
-    """ Return a list of stations that are part of the specified group """
-    try:
-        logger.info('/stations/groups/.../members}')
-        stations = await wfwx_api.get_stations_by_group_id(group_id)
-        response.headers["Cache-Control"] = no_cache
-        return WeatherStationGroupMembersResponse(stations=stations)
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
+    logger.info('/stations/groups')
+    groups = await wfwx_api.get_station_groups()
+    response.headers["Cache-Control"] = "max-age=0"
+    return WeatherStationGroupsResponse(groups=groups)
 
 
 @router.post('/groups/members', response_model=WeatherStationGroupMembersResponse)
 async def get_stations_by_group_ids(groups_request: WeatherStationGroupsMemberRequest, response: Response, _=Depends(authentication_required)):
-    """ Return a list of stations that are part of the specified group """
-    try:
-        logger.info('/stations/groups/.../members}')
-        stations = await wfwx_api.get_stations_by_group_ids([id for id in groups_request.group_ids])
-        response.headers["Cache-Control"] = no_cache
-        return WeatherStationGroupMembersResponse(stations=stations)
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
+    """ Return a list of stations that are part of the specified group(s) """
+    logger.info('/stations/groups/members')
+    stations = await wfwx_api.get_stations_by_group_ids([id for id in groups_request.group_ids])
+    response.headers["Cache-Control"] = no_cache
+    return WeatherStationGroupMembersResponse(stations=stations)
