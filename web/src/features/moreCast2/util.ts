@@ -1,4 +1,4 @@
-import { isNumber } from 'lodash'
+import { isNumber, isUndefined } from 'lodash'
 import { DateTime, Interval } from 'luxon'
 import { FireCenterStation } from 'api/fbaAPI'
 import {
@@ -9,7 +9,11 @@ import {
   ObservedDaily,
   StationPrediction
 } from 'api/moreCast2API'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import {
+  MoreCast2ForecastRow,
+  MoreCast2ForecastRowCollectionByStationCode,
+  MoreCast2ForecastRowsByDate
+} from 'features/moreCast2/interfaces'
 import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
 
 export const parseForecastsHelper = (
@@ -48,6 +52,54 @@ export const parseForecastsHelper = (
     rows.push(row)
   })
   return rows
+}
+
+export const marshalAllMoreCast2ForecastRowsByStationAndDate = (
+  observedRows: MoreCast2ForecastRow[],
+  predictionRows: MoreCast2ForecastRow[]
+): { [stationCode: number]: MoreCast2ForecastRowsByDate[] } => {
+  const allRows = [...observedRows, ...predictionRows]
+  const stationsDict: { [stationCode: number]: MoreCast2ForecastRowsByDate[] } = {}
+  allRows.forEach(row => {
+    const rowsForStation = stationsDict[row.stationCode]
+    if (isUndefined(rowsForStation)) {
+      stationsDict[row.stationCode] = [{ dateString: row.forDate.toString(), rows: [row] }]
+    } else {
+      const relevantDate = stationsDict[row.stationCode].filter(
+        rowsByDate => rowsByDate.dateString === row.forDate.toString()
+      )
+      if (relevantDate.length === 0) {
+        stationsDict[row.stationCode].push({ dateString: row.forDate.toString(), rows: [row] })
+      } else {
+        relevantDate[0].rows.push(row)
+      }
+    }
+  })
+
+  return stationsDict
+}
+
+export const buildListOfRowsToDisplay = (
+  stationCodesDict: { [stationCode: number]: MoreCast2ForecastRowsByDate[] },
+  selectedStations: FireCenterStation[]
+): MoreCast2ForecastRow[] => {
+  const rowsToDisplay: MoreCast2ForecastRow[] = []
+
+  selectedStations.forEach(station => {
+    stationCodesDict[station.code]?.forEach(rowsForDate => {
+      if (rowsForDate.rows.length === 1) {
+        rowsToDisplay.push(rowsForDate.rows[0])
+      } else {
+        const forecastRows = rowsForDate.rows
+        const actualsRow = forecastRows.filter(row => row.temp.choice === 'ACTUAL')[0]
+        if (!isUndefined(actualsRow)) {
+          rowsToDisplay.push(actualsRow)
+        }
+      }
+    })
+  })
+
+  return rowsToDisplay
 }
 
 export const parseObservedDailiesFromResponse = (observedDailiesResponse: ObservedDailyResponse[]): ObservedDaily[] =>

@@ -32,12 +32,14 @@ import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
 import MoreCast2DataGrid from 'features/moreCast2/components/MoreCast2DataGrid'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import StationPanel from 'features/moreCast2/components/StationPanel'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow, MoreCast2ForecastRowsByDate } from 'features/moreCast2/interfaces'
 import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice'
 import {
+  buildListOfRowsToDisplay,
   createDateInterval,
   fillInTheModelBlanks,
   filterRowsByModelType,
+  marshalAllMoreCast2ForecastRowsByStationAndDate,
   parseForecastsHelper,
   parseModelsForStationsHelper,
   parseObservedDailiesForStationsHelper,
@@ -61,7 +63,6 @@ import { getColumnYesterdayDailies } from 'features/moreCast2/slices/columnYeste
 import { getMoreCast2Forecasts } from 'features/moreCast2/slices/moreCast2ForecastsSlice'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import ForecastActionDropdown from 'features/moreCast2/components/ForecastActionDropdown'
-import { objectTraps } from 'immer/dist/internal'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -223,32 +224,21 @@ const MoreCast2Page = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const workingRows = observedRows
-    let uniqueArray = []
-    const rowMatches = (row1: MoreCast2ForecastRow, row2: MoreCast2ForecastRow) =>
-      row1.forDate === row2.forDate && row1.stationCode === row2.stationCode
+    let rows: MoreCast2ForecastRow[] = []
+    let stationsDict: { [stationCode: number]: MoreCast2ForecastRowsByDate[] } = {}
     if (forecastAction === ForecastActionChoice.CREATE) {
-      workingRows.concat(stationPredictionsAsMoreCast2ForecastRows)
-      uniqueArray = workingRows.reduce((accumulator, currentObject) => {
-        const objectExists = accumulator.some(rowMatches(currentObject))
-        if (!objectExists) {
-          return [...accumulator, currentObject]
-        }
-        return accumulator
-      }, [])
+      // for dates where an observation is available, want to only display the observation
+      // only include stationPredictions for dates/stationCode combos when its
+      // observation data isn't available
+      stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(
+        observedRows,
+        stationPredictionsAsMoreCast2ForecastRows
+      )
     } else {
-      forecastsAsMoreCast2ForecastRows.forEach(row => {
-        const item = workingRows.find(obs => obs.forDate === row.forDate && obs.stationCode === row.stationCode)
-        if (isUndefined(item)) {
-          workingRows.push(row)
-        }
-      })
+      stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(observedRows, forecastsAsMoreCast2ForecastRows)
     }
-    const visibleForecastRows = workingRows.filter(
-      row => selectedStations.filter(station => station.code === row.stationCode).length
-    )
-    visibleForecastRows.sort((a, b) => (a.forDate > b.forDate ? 1 : -1))
-    setRowsToDisplay(visibleForecastRows)
+    rows = buildListOfRowsToDisplay(stationsDict, selectedStations)
+    setRowsToDisplay(rows)
   }, [forecastRows, observedRows, stationPredictionsAsMoreCast2ForecastRows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -340,8 +330,7 @@ const MoreCast2Page = () => {
   }, [yesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const completeDailies = fillInTheYesterdayDailyBlanks(fireCenter?.stations || [], observedDailies, dateInterval)
-    const newRows = parseObservedDailiesForStationsHelper(completeDailies)
+    const newRows = parseObservedDailiesForStationsHelper(observedDailies)
     setObservedRows(newRows)
   }, [observedDailies]) // eslint-disable-line react-hooks/exhaustive-deps
 
