@@ -11,7 +11,7 @@ station_groups_members_post_url = '/api/stations/groups/members'
 async def async_client():
     from app.main import app as test_app
 
-    async with AsyncClient(app=test_app, base_url="http://test") as test_client:
+    async with AsyncClient(app=test_app, base_url="https://test") as test_client:
         yield test_client
 
 
