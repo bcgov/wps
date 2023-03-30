@@ -113,7 +113,7 @@ const MoreCast2Page = () => {
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { idir } = useSelector(selectAuthentication)
 
-  const [selectedStationGroups, setSelectedStationGroups] = useState<StationGroup[]>([])
+  const [selectedStationGroup, setSelectedStationGroup] = useState<StationGroup>()
 
   const [selectedStations, setSelectedStations] = useState<StationGroupMember[]>([])
   const [modelType, setModelType] = useState<ModelType>(
@@ -249,13 +249,13 @@ const MoreCast2Page = () => {
   }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!isEmpty(selectedStationGroups)) {
-      dispatch(fetchStationGroupsMembers(selectedStationGroups.map(group => group.id)))
+    if (!isEmpty(selectedStationGroup)) {
+      dispatch(fetchStationGroupsMembers([selectedStationGroup.id]))
     } else {
       setSelectedGroupsMembers([])
       setForecastRows([])
     }
-  }, [selectedStationGroups]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedStationGroup]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isUndefined(fromTo.startDate) && !isUndefined(fromTo.endDate)) {
@@ -360,8 +360,8 @@ const MoreCast2Page = () => {
             selectedStations={selectedStations}
             setSelectedStations={setSelectedStations}
             stationGroups={groups}
-            selectedStationGroups={selectedStationGroups}
-            setSelectedStationGroups={setSelectedStationGroups}
+            selectedStationGroup={selectedStationGroup}
+            setSelectedStationGroup={setSelectedStationGroup}
             stationGroupMembers={selectedGroupsMembers}
           />
         </div>

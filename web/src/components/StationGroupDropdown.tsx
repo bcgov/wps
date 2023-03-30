@@ -7,15 +7,15 @@ import React, { useEffect, useState } from 'react'
 
 interface StationGroupDropdownProps {
   idir?: string
-  selectedStationGroups: StationGroup[]
+  selectedStationGroup?: StationGroup
   stationGroupOptions: StationGroup[]
-  setSelectedStationGroup: React.Dispatch<React.SetStateAction<StationGroup[]>>
+  setSelectedStationGroup: React.Dispatch<React.SetStateAction<StationGroup | undefined>>
 }
 
 const StationGroupDropdown = ({
   idir,
   stationGroupOptions,
-  selectedStationGroups,
+  selectedStationGroup,
   setSelectedStationGroup
 }: StationGroupDropdownProps) => {
   const [onlyMine, toggleOnlyMine] = useState<boolean>(false)
@@ -32,7 +32,7 @@ const StationGroupDropdown = ({
 
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    if (!isEqual(selectedStationGroups, value)) {
+    if (!isEqual(selectedStationGroup, value)) {
       setSelectedStationGroup(value)
     }
   }
@@ -55,7 +55,6 @@ const StationGroupDropdown = ({
       />
       <Autocomplete
         data-testid={`station-group-dropdown`}
-        multiple
         filterOptions={filterOptions}
         filterSelectedOptions
         options={options}
@@ -80,7 +79,7 @@ const StationGroupDropdown = ({
           ))
         }
         onChange={changeHandler}
-        value={selectedStationGroups}
+        value={selectedStationGroup}
       />
     </Box>
   )

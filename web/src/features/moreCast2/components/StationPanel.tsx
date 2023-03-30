@@ -19,10 +19,10 @@ interface StationPanelProps {
   idir?: string
   loading: boolean
   stationGroups: StationGroup[]
-  selectedStationGroups: StationGroup[]
+  selectedStationGroup?: StationGroup
   selectedStations: StationGroupMember[]
   stationGroupMembers: StationGroupMember[]
-  setSelectedStationGroups: React.Dispatch<React.SetStateAction<StationGroup[]>>
+  setSelectedStationGroup: React.Dispatch<React.SetStateAction<StationGroup | undefined>>
   setSelectedStations: React.Dispatch<React.SetStateAction<StationGroupMember[]>>
 }
 
@@ -57,10 +57,10 @@ const StationPanel = (props: StationPanelProps) => {
     idir,
     loading,
     selectedStations,
-    selectedStationGroups,
+    selectedStationGroup,
     stationGroups,
     stationGroupMembers,
-    setSelectedStationGroups: setSelectedStationGroup,
+    setSelectedStationGroup,
     setSelectedStations
   } = {
     ...props
@@ -91,7 +91,7 @@ const StationPanel = (props: StationPanelProps) => {
                 <StationGroupDropdown
                   idir={idir}
                   stationGroupOptions={stationGroups}
-                  selectedStationGroups={selectedStationGroups}
+                  selectedStationGroup={selectedStationGroup}
                   setSelectedStationGroup={setSelectedStationGroup}
                 />
               </FormControl>

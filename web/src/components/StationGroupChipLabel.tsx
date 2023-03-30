@@ -10,20 +10,20 @@ interface StationGroupChipProps {
 const StationGroupChipLabel = ({ idir, groupName }: StationGroupChipProps) => {
   return (
     <Box>
-      <Typography paragraph variant="caption" sx={{ padding: 0, margin: 0, color: theme.palette.grey[500] }}>
-        <Box
-          sx={{
-            margin: 0,
-            padding: 0,
-            marginTop: 0.5,
-            border: 1,
-            borderRadius: '5%',
-            borderColor: theme.palette.grey[500]
-          }}
-        >
+      <Box
+        sx={{
+          margin: 0,
+          padding: 0,
+          marginTop: 0.5,
+          border: 1,
+          borderRadius: '5%',
+          borderColor: theme.palette.grey[500]
+        }}
+      >
+        <Typography paragraph variant="caption" sx={{ padding: 0, margin: 0, color: theme.palette.grey[500] }}>
           {idir}
-        </Box>
-      </Typography>
+        </Typography>
+      </Box>
       <Typography paragraph variant="body2" sx={{ padding: 0, margin: 0 }}>
         {groupName}
       </Typography>
