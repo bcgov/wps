@@ -1,4 +1,4 @@
-import { difference, differenceWith, groupBy, isEmpty, isEqual, isNumber, sortBy } from 'lodash'
+import { difference, differenceWith, groupBy, isEmpty, isEqual, sortBy } from 'lodash'
 import { DateTime } from 'luxon'
 import { ModelChoice, ObservedDaily, ObservedDailyResponse } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
