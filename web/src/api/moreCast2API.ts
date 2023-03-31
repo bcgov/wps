@@ -51,6 +51,11 @@ export interface ObservedDaily extends ObservedDailyResponse {
   data_type: string
 }
 
+export interface ObservedAndYesterdayDailiesResponse {
+  observedDailies: ObservedDaily[]
+  yesterdayDailies: ObservedDaily[]
+}
+
 export interface StationPrediction {
   abbreviation: ModelType
   bias_adjusted_relative_humidity: number | null

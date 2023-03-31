@@ -87,6 +87,9 @@ export const buildListOfRowsToDisplay = (
         rowsToDisplay.push(rowsForDate.rows[0])
       } else {
         const forecastRows = rowsForDate.rows
+        // possibly incomplete logic. Atm we want to prioritize Actuals over any other data source
+        // Later on we will probably want additional logic for further prioritization of data sources
+        // (e.g., HRDPS takes precedence over GDPS)
         const actualsRow = forecastRows.filter(row => row.temp.choice === 'ACTUAL')[0]
         if (!isUndefined(actualsRow)) {
           rowsToDisplay.push(actualsRow)
@@ -104,6 +107,44 @@ export const parseObservedDailiesFromResponse = (observedDailiesResponse: Observ
     id: rowIDHasher(daily.station_code, DateTime.fromISO(daily.utcTimestamp)),
     data_type: 'ACTUAL'
   }))
+
+export const buildYesterdayDailiesFromObserved = (
+  observedDailies: ObservedDaily[],
+  toDate: string
+): ObservedDaily[] => {
+  const yesterdayDailies: ObservedDaily[] = []
+
+  const stationCodes = Array.from(new Set(observedDailies.map(daily => daily.station_code)))
+
+  stationCodes.forEach(stationCode => {
+    const observationsForStation = observedDailies.filter(daily => daily.station_code === stationCode)
+    const mostRecentObservation = observationsForStation.reduce((a, b) => {
+      return DateTime.fromISO(a.utcTimestamp) > DateTime.fromISO(b.utcTimestamp) ? a : b
+    })
+    if (!isUndefined(mostRecentObservation)) {
+      // build a list of dates to bridge the gap between mostRecentObservation.utcTimestamp and toDate
+      const dates: DateTime[] = []
+      let nextDay = DateTime.fromISO(mostRecentObservation.utcTimestamp).plus({ days: 1 })
+      while (nextDay <= DateTime.fromISO(toDate).set({ hour: 20 })) {
+        dates.push(nextDay)
+        nextDay = nextDay.plus({ days: 1 })
+      }
+
+      dates.forEach(date => {
+        // We want to make a deep copy of mostRecentObservation to modify the data_type and utcTimestamp.
+        // To make a deep copy, need to convert mostRecentObservation to a JSON string, then parse the
+        // JSON string to create a new object. Silly Javascript!
+        const yesterdayDaily = JSON.parse(JSON.stringify(mostRecentObservation))
+        yesterdayDaily.data_type = 'YESTERDAY'
+        yesterdayDaily.utcTimestamp = date.set({ hour: 13 }).toISO()
+        yesterdayDaily.id = rowIDHasher(yesterdayDaily.station_code, DateTime.fromISO(yesterdayDaily.utcTimestamp))
+        yesterdayDailies.push(yesterdayDaily)
+      })
+    }
+  })
+
+  return yesterdayDailies
+}
 
 export const parseObservedDailiesForStationsHelper = (observedDailies: ObservedDaily[]): MoreCast2ForecastRow[] => {
   const rows: MoreCast2ForecastRow[] = []

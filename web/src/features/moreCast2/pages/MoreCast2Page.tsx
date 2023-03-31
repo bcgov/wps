@@ -22,8 +22,7 @@ import {
   selectFireCenters,
   selectModelStationPredictions,
   selectMoreCast2Forecasts,
-  selectObservedDailies,
-  selectYesterdayDailies
+  selectObservedDailies
 } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
@@ -50,7 +49,6 @@ import {
   parseYesterdayDailiesForStationsHelper,
   replaceColumnValuesFromYesterdayDaily
 } from 'features/moreCast2/yesterdayDailies'
-import { getYesterdayStationDailies } from 'features/moreCast2/slices/yesterdayDailiesSlice'
 import { getObservedStationDailies } from 'features/moreCast2/slices/observedDailiesSlice'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
 import MoreCase2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
@@ -109,8 +107,8 @@ const MoreCast2Page = () => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
   const { stationPredictions } = useSelector(selectModelStationPredictions)
-  const { yesterdayDailies } = useSelector(selectYesterdayDailies)
-  const { observedDailies } = useSelector(selectObservedDailies)
+  // const { yesterdayDailies } = useSelector(selectYesterdayDailies)
+  const { observedDailies, yesterdayDailies } = useSelector(selectObservedDailies)
   const { moreCast2Forecasts } = useSelector(selectMoreCast2Forecasts)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
 
@@ -182,24 +180,26 @@ const MoreCast2Page = () => {
       setForecastRows([])
       return
     }
-    if (modelType == ModelChoice.YESTERDAY) {
-      dispatch(getYesterdayStationDailies(stationCodes, DateTime.fromJSDate(fromTo.startDate).toISODate()))
-    } else {
-      dispatch(
-        getModelStationPredictions(
-          stationCodes,
-          modelType,
-          DateTime.fromJSDate(fromTo.startDate).toISODate(),
-          DateTime.fromJSDate(fromTo.endDate).toISODate()
-        )
+    dispatch(
+      getModelStationPredictions(
+        stationCodes,
+        modelType,
+        DateTime.fromJSDate(fromTo.startDate).toISODate(),
+        DateTime.fromJSDate(fromTo.endDate).toISODate()
       )
-    }
+    )
   }
 
   const fetchStationObservedDailies = () => {
     const stationCodes = fireCenter?.stations.map(station => station.code) || []
-    if (!isUndefined(fromTo.startDate)) {
-      dispatch(getObservedStationDailies(stationCodes, DateTime.fromJSDate(fromTo.startDate).toISODate()))
+    if (!isUndefined(fromTo.startDate) && !isUndefined(fromTo.endDate)) {
+      dispatch(
+        getObservedStationDailies(
+          stationCodes,
+          DateTime.fromJSDate(fromTo.startDate).toISODate(),
+          DateTime.fromJSDate(fromTo.endDate).toISODate()
+        )
+      )
     }
   }
 
