@@ -34,6 +34,7 @@ const StationGroupDropdown = ({
 
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
+    // Solution for: https://github.com/facebook/react/issues/6222#issuecomment-1188729134
     setLocalSelectedGroup(value)
     setSelectedStationGroup(value)
   }
