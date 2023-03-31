@@ -20,6 +20,7 @@ import {
   selectColumnYesterdayDailies,
   selectModelStationPredictions,
   selectMoreCast2Forecasts,
+  selectMorecast2TableLoading,
   selectStationGroups,
   selectStationGroupsMembers,
   selectYesterdayDailies
@@ -104,7 +105,8 @@ const FORECAST_WARN_MESSAGE = 'A forecast cannot contain N/A values.'
 const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
-  const { groups, loading } = useSelector(selectStationGroups)
+  const { groups, loading: groupsLoading } = useSelector(selectStationGroups)
+  const tableLoading = useSelector(selectMorecast2TableLoading)
   const { members } = useSelector(selectStationGroupsMembers)
 
   const { stationPredictions } = useSelector(selectModelStationPredictions)
@@ -170,7 +172,7 @@ const MoreCast2Page = () => {
 
   // Fecthes observed/predicted values while in Create Forecast mode
   const fetchStationPredictions = () => {
-    const stationCodes = selectedGroupsMembers.map(member => member.station_code)
+    const stationCodes = members.map(member => member.station_code)
     if (isUndefined(fromTo.startDate) || isUndefined(fromTo.endDate)) {
       setForecastRows([])
       return
@@ -356,7 +358,7 @@ const MoreCast2Page = () => {
         <div className={classes.sidePanel}>
           <StationPanel
             idir={idir}
-            loading={loading}
+            loading={groupsLoading}
             selectedStations={selectedStations}
             setSelectedStations={setSelectedStations}
             stationGroups={groups}
@@ -410,6 +412,7 @@ const MoreCast2Page = () => {
             </Grid>
           </Grid>
           <MoreCast2DataGrid
+            loading={tableLoading}
             rows={forecastRows}
             clickedColDef={clickedColDef}
             onCellEditStop={setForecastIsDirty}
