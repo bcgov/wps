@@ -16,12 +16,6 @@ async def async_client():
 
 
 @pytest.mark.anyio
-async def test_root(anyio_backend, async_client: AsyncClient):
-    response = await async_client.get(station_groups_get_url)
-    assert response.status_code == 401
-
-
-@pytest.mark.anyio
 async def test_get_station_groups_unauthorized(anyio_backend, async_client: AsyncClient):
     """ unauthenticated clients have no access """
     response = await async_client.get(station_groups_get_url)
