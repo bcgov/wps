@@ -34,7 +34,7 @@ const stations: StationGroupMember[] = [
     id: '1',
     fire_centre: { id: '1', display_label: 'test' },
     fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
-    station_status: 1,
+    station_status: 'ACTIVE',
     station_code: 1,
     display_label: 'one'
   },
@@ -42,7 +42,7 @@ const stations: StationGroupMember[] = [
     id: '2',
     fire_centre: { id: '1', display_label: 'test' },
     fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
-    station_status: 1,
+    station_status: 'ACTIVE',
     station_code: 2,
     display_label: 'two'
   }
@@ -170,7 +170,7 @@ describe('yesterdayDailies', () => {
             id: '1',
             fire_centre: { id: '1', display_label: 'test' },
             fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
-            station_status: 1,
+            station_status: 'ACTIVE',
             station_code: 1,
             display_label: 'one'
           },
@@ -178,7 +178,7 @@ describe('yesterdayDailies', () => {
             id: '2',
             fire_centre: { id: '1', display_label: 'test' },
             fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
-            station_status: 1,
+            station_status: 'ACTIVE',
             station_code: 2,
             display_label: 'two'
           }

@@ -9,7 +9,7 @@ describe('stationAPI', () => {
       fire_centre: { id: '', display_label: '' },
       fire_zone: { id: '', display_label: '', fire_centre: '' },
       station_code: 0,
-      station_status: 0
+      station_status: 'ACTIVE'
     }
     axios.post = jest.fn().mockResolvedValue({ data: { stations: [mockMemberStation] } })
     const res = await getStationGroupsMembers(['1'])

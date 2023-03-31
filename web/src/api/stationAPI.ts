@@ -1,5 +1,6 @@
 import axios from 'api/axios'
 import { FireSeason } from 'api/percentileAPI'
+import { sortBy } from 'lodash'
 
 export interface Station {
   code: number
@@ -82,7 +83,7 @@ export interface StationGroupMember {
   fire_centre: StationFireCentre
   fire_zone: FireZone
   station_code: number
-  station_status: number
+  station_status: string
 }
 
 export interface StationGroupMembersResponse {
@@ -131,5 +132,5 @@ export async function getStationGroupsMembers(groupIds: string[]): Promise<Stati
     group_ids: groupIds
   })
 
-  return data.stations
+  return sortBy(data.stations, station => station.display_label)
 }

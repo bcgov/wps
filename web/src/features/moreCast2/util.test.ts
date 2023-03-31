@@ -77,7 +77,7 @@ const generateStationGroupMember = (code: number, name: string) => ({
   id: '1',
   fire_centre: { id: '1', display_label: 'test' },
   fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
-  station_status: 1,
+  station_status: 'ACTIVE',
   station_code: code,
   display_label: name
 })
@@ -130,7 +130,7 @@ describe('fillInTheBlanks', () => {
       id: '1',
       fire_centre: { id: '1', display_label: 'test' },
       fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
-      station_status: 1,
+      station_status: 'ACTIVE',
       station_code: TEST_CODE,
       display_label: TEST_NAME
     }

@@ -40,7 +40,7 @@ describe('StationPanel', () => {
             {
               id: '1',
               station_code: 1,
-              station_status: 1,
+              station_status: 'ACTIVE',
               display_label: '1',
               fire_centre: { id: '1', display_label: '1' },
               fire_zone: { id: '1', display_label: '1', fire_centre: '1' }
