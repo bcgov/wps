@@ -12,7 +12,7 @@ import {
   CircularProgress
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import StationGroupDropdown from 'components/StationGroupDropdown'
+import StationGroupDropdown from 'features/moreCast2/components/StationGroupDropdown'
 import { StationGroup, StationGroupMember } from 'api/stationAPI'
 
 interface StationPanelProps {

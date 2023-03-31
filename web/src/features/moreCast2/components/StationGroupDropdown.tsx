@@ -52,7 +52,7 @@ const StationGroupDropdown = ({
   return (
     <Box>
       <FormControlLabel
-        control={<Checkbox checked={onlyMine} onChange={checkBoxChangeHandler} />}
+        control={<Checkbox data-testid="only-my-groups" checked={onlyMine} onChange={checkBoxChangeHandler} />}
         label="Show only my groups"
       />
       <Autocomplete
