@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture
 def anyio_backend():
+    """ Specifies asyncio as the anyio backend """
     return 'asyncio'
 
 
