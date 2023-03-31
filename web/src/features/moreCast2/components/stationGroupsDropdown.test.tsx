@@ -55,7 +55,7 @@ describe('StationGroupsDropdown', () => {
     await waitFor(() => expect(setSelectedStationGroup).toBeCalledTimes(1))
     await waitFor(() => expect(setSelectedStationGroup).toBeCalledWith(stationGroups[0]))
   })
-  it('should show all group options', async () => {
+  it('should show all groups', async () => {
     const setSelectedStationGroup = jest.fn()
     const { getByTestId, findAllByRole } = render(
       <StationGroupDropdown
@@ -80,6 +80,6 @@ describe('StationGroupsDropdown', () => {
     autocomplete.focus()
     await userEvent.click(open)
     const myOptions = await findAllByRole('option')
-    await waitFor(() => expect(myOptions).toHaveLength(1))
+    await waitFor(() => expect(myOptions).toHaveLength(2))
   })
 })
