@@ -1,7 +1,6 @@
-import { TextField, Autocomplete, FilterOptionsState, Box, Checkbox, FormControlLabel, Chip } from '@mui/material'
+import { TextField, Autocomplete, FilterOptionsState, Box, Checkbox, FormControlLabel } from '@mui/material'
 import { StationGroup } from 'api/stationAPI'
-import StationGroupChipLabel from 'components/StationGroupChipLabel'
-import { isEqual, isUndefined } from 'lodash'
+import { isUndefined } from 'lodash'
 import { matchSorter, rankings } from 'match-sorter'
 import React, { useEffect, useState } from 'react'
 
@@ -20,6 +19,9 @@ const StationGroupDropdown = ({
 }: StationGroupDropdownProps) => {
   const [onlyMine, toggleOnlyMine] = useState<boolean>(false)
   const [options, setOptions] = useState<StationGroup[]>([...stationGroupOptions])
+  const [localSelectedGroup, setLocalSelectedGroup] = useState<StationGroup | null>(
+    selectedStationGroup ? selectedStationGroup : null
+  )
 
   useEffect(() => {
     if (onlyMine && !isUndefined(idir)) {
@@ -32,9 +34,8 @@ const StationGroupDropdown = ({
 
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    if (!isEqual(selectedStationGroup, value)) {
-      setSelectedStationGroup(value)
-    }
+    setLocalSelectedGroup(value)
+    setSelectedStationGroup(value)
   }
 
   const checkBoxChangeHandler = () => {
@@ -60,26 +61,16 @@ const StationGroupDropdown = ({
         options={options}
         groupBy={option => option.group_owner_user_id}
         getOptionLabel={option => option?.display_label}
-        renderInput={params => <TextField {...params} label="Select Station Group(s)" variant="outlined" />}
-        renderTags={(value: readonly StationGroup[], getTagProps) =>
-          value.map((option: StationGroup, index: number) => (
-            <Chip
-              variant="outlined"
-              sx={{
-                height: 'auto',
-                '& .MuiChip-label': {
-                  display: 'block',
-                  whiteSpace: 'normal'
-                }
-              }}
-              label={<StationGroupChipLabel idir={option.group_owner_user_id} groupName={option.display_label} />}
-              {...getTagProps({ index })}
-              key={`chip-${option.id}`}
-            />
-          ))
-        }
+        isOptionEqualToValue={(option, value) => option.id === value.id}
+        renderInput={params => (
+          <TextField
+            {...params}
+            label={selectedStationGroup ? selectedStationGroup.group_owner_user_id : `Select an option`}
+            variant="outlined"
+          />
+        )}
         onChange={changeHandler}
-        value={selectedStationGroup}
+        value={localSelectedGroup}
       />
     </Box>
   )
