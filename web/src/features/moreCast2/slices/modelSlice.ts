@@ -11,7 +11,7 @@ interface State {
   stationPredictions: StationPrediction[]
 }
 
-const initialState: State = {
+export const initialState: State = {
   loading: false,
   error: null,
   stationPredictions: []
