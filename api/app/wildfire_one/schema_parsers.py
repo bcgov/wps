@@ -1,14 +1,13 @@
 """ Parsers that extract fields from WFWX API responses and build ours"""
 
-from itertools import groupby
 import math
 import logging
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
 from app.schemas.morecast_v2 import YesterdayDaily
-from app.schemas.stations import (RawWeatherStationGroup, WeatherStation, WeatherStationGroupsByOwner,
-                                  WeatherStationGroupInfo, WeatherStationGroupMember, FireZone, StationFireCentre)
+from app.schemas.stations import (WeatherStationGroup, WeatherStation,
+                                  WeatherStationGroupMember, FireZone, StationFireCentre)
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
@@ -244,47 +243,18 @@ def parse_hourly_actual(station_code: int, hourly):
     return None if is_obs_invalid else hourly_actual
 
 
-async def weather_station_group_mapper(raw_station_groups_by_owner: Generator[dict, None, None]) -> List[WeatherStationGroupsByOwner]:
-    """ Maps raw weather station groups to WeatherStationGroupsByOwner"""
-    flat_weather_station_groups = []
+async def weather_station_group_mapper(raw_station_groups_by_owner: Generator[dict, None, None]) -> List[WeatherStationGroup]:
+    """ Maps raw weather station groups to WeatherStationGroup"""
+    weather_station_groups = []
     async for raw_group in raw_station_groups_by_owner:
-        flat_weather_station_groups.append(RawWeatherStationGroup(
-            display_label=raw_group['displayLabel'],
-            group_description=raw_group['groupDescription'],
-            group_owner_user_guid=raw_group['groupOwnerUserGuid'],
-            group_owner_user_id=raw_group['groupOwnerUserId'],
-            id=raw_group['id']))
-    sorted_groups = sorted(flat_weather_station_groups, key=lambda group: group.group_owner_user_id)
-    grouped_groups = groupby(sorted_groups, lambda group: (group.group_owner_user_id, group.group_owner_user_guid))
-    weather_station_groups = dict((k, list(map(lambda x: x, values))) for k, values in grouped_groups)
-    weather_station_groups_by_owner = []
-    for k, v in weather_station_groups.items():
-        groups_for_owner = WeatherStationGroupsByOwner(
-            group_owner_id=k[0],
-            group_owner_guid=k[1],
-            groups=[WeatherStationGroupInfo(
-                id=group.id,
-                display_label=group.display_label,
-                group_description=group.group_description
-            ) for group in v]
-        )
-        weather_station_groups_by_owner.append(groups_for_owner)
-
-    return weather_station_groups_by_owner
-
-
-async def weather_station_flat_group_mapper(raw_station_groups_by_owner: Generator[dict, None, None]) -> List[RawWeatherStationGroup]:
-    """ Maps raw weather station groups to WeatherStationGroupsByOwner"""
-    flat_weather_station_groups = []
-    async for raw_group in raw_station_groups_by_owner:
-        flat_weather_station_groups.append(RawWeatherStationGroup(
+        weather_station_groups.append(WeatherStationGroup(
             display_label=raw_group['displayLabel'],
             group_description=raw_group['groupDescription'],
             group_owner_user_guid=raw_group['groupOwnerUserGuid'],
             group_owner_user_id=raw_group['groupOwnerUserId'],
             id=raw_group['id']))
 
-    return flat_weather_station_groups
+    return weather_station_groups
 
 
 def weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:

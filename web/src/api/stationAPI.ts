@@ -61,11 +61,6 @@ export interface StationGroup {
   group_owner_user_id: string
   id: string
 }
-export interface OwnedStationGroups {
-  group_owner_guid: string
-  group_owner_id: string
-  groups: StationGroup[]
-}
 export interface StationGroupsResponse {
   groups: StationGroup[]
 }

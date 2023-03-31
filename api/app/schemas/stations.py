@@ -94,20 +94,6 @@ class StationCodeList(BaseModel):
     stations: List[int]
 
 
-class WeatherStationGroupInfo(BaseModel):
-    """ Info about a WFWX group """
-    id: str
-    display_label: str
-    group_description: str | None
-
-
-class WeatherStationGroupsByOwner(BaseModel):
-    """ WFWX groups belonging to a user ID and GUID pair """
-    group_owner_guid: str
-    group_owner_id: str
-    groups: List[WeatherStationGroupInfo]
-
-
 class WeatherStationGroupMember(BaseModel):
     """ Description of a station in a group"""
     id: str
@@ -123,8 +109,8 @@ class WeatherStationGroupMembersResponse(BaseModel):
     stations: List[WeatherStationGroupMember]
 
 
-class RawWeatherStationGroup(BaseModel):
-    """ Helper object for parsing group info from the WFWX API"""
+class WeatherStationGroup(BaseModel):
+    """ A weather station group from WF1"""
     display_label: str
     group_description: str | None
     group_owner_user_guid: str
@@ -134,7 +120,7 @@ class RawWeatherStationGroup(BaseModel):
 
 class WeatherStationGroupsResponse(BaseModel):
     """ Response to a request for all WFWX groups"""
-    groups: List[RawWeatherStationGroup]
+    groups: List[WeatherStationGroup]
 
 
 class WeatherStationGroupsMemberRequest(BaseModel):

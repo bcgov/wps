@@ -18,9 +18,8 @@ from app.schemas.stations import (WeatherStation,
 from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_mapper, parse_noon_forecast,
                                              parse_station,
                                              parse_hourly_actual,
-                                             station_list_mapper, unique_weather_stations_mapper, weather_station_flat_group_mapper,
-                                             wfwx_station_list_mapper, yesterday_dailies_list_mapper,
-                                             weather_stations_mapper)
+                                             station_list_mapper, unique_weather_stations_mapper, weather_station_group_mapper,
+                                             wfwx_station_list_mapper, yesterday_dailies_list_mapper)
 from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
                                              BuildQueryStations,
                                              BuildQueryAllHourliesByRange,
@@ -384,7 +383,7 @@ async def get_dailies_for_stations_and_date(session: ClientSession,
     return yesterday_dailies
 
 
-async def get_station_groups(mapper=weather_station_flat_group_mapper):
+async def get_station_groups(mapper=weather_station_group_mapper):
     """ Get the station groups created by all users from Wild Fire One internal API. """
     async with ClientSession() as session:
         header = await get_auth_header(session)
@@ -397,15 +396,6 @@ async def get_station_groups(mapper=weather_station_flat_group_mapper):
         mapped_station_groups = await mapper(all_station_groups)
         logger.debug('total station groups: %d', len(mapped_station_groups))
         return mapped_station_groups
-
-
-async def get_stations_by_group_id(group_id: str, mapper=weather_stations_mapper):
-    """ Get all the stations in the specified group from the Wild Fire One internal API. """
-    async with ClientSession() as session:
-        headers = await get_auth_header(session)
-        stations = await fetch_stations_by_group_id(session, headers, group_id)
-        stations_in_group = mapper(stations)
-        return stations_in_group
 
 
 async def get_stations_by_group_ids(group_ids: List[str], mapper=unique_weather_stations_mapper):
