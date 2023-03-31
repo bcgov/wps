@@ -42,6 +42,6 @@ async def test_get_station_groups_members_unauthorized(anyio_backend, async_clie
 @pytest.mark.usefixtures("mock_jwt_decode")
 @pytest.mark.anyio
 async def test_get_station_groups_members_authorized(anyio_backend, async_client: AsyncClient):
-    """ unauthenticated clients have no access """
+    """ authenticated clients can access """
     response = await async_client.post(station_groups_members_post_url, json={"group_ids": ["1"]})
     assert response.status_code == 200
