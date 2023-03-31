@@ -6,7 +6,8 @@ from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
 from app.schemas.morecast_v2 import YesterdayDaily
-from app.schemas.stations import WeatherStation
+from app.schemas.stations import (WeatherStationGroup, WeatherStation,
+                                  WeatherStationGroupMember, FireZone, StationFireCentre)
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
@@ -240,3 +241,49 @@ def parse_hourly_actual(station_code: int, hourly):
     # don't write the HourlyActual to our database if every value is invalid. If even one
     # weather variable observed is valid, write the HourlyActual to DB.
     return None if is_obs_invalid else hourly_actual
+
+
+async def weather_station_group_mapper(raw_station_groups_by_owner: Generator[dict, None, None]) -> List[WeatherStationGroup]:
+    """ Maps raw weather station groups to WeatherStationGroup"""
+    weather_station_groups = []
+    async for raw_group in raw_station_groups_by_owner:
+        weather_station_groups.append(WeatherStationGroup(
+            display_label=raw_group['displayLabel'],
+            group_description=raw_group['groupDescription'],
+            group_owner_user_guid=raw_group['groupOwnerUserGuid'],
+            group_owner_user_id=raw_group['groupOwnerUserId'],
+            id=raw_group['id']))
+
+    return weather_station_groups
+
+
+def weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
+    mapped_stations = []
+    for item in stations:
+        station = item['station']
+        weather_station = WeatherStationGroupMember(
+            id=station['id'],
+            display_label=station['displayLabel'],
+            fire_centre=StationFireCentre(id=station['fireCentre']['id'],
+                                          display_label=station['fireCentre']['displayLabel']),
+            fire_zone=FireZone(id=station['zone']['id'], display_label=station['zone']['displayLabel'],
+                               fire_centre=station['zone']['fireCentre']),
+            station_code=station['stationCode'],
+            station_status=station['stationStatus']['id']
+        )
+        mapped_stations.append(weather_station)
+
+    return mapped_stations
+
+
+def unique_weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
+    all_stations = weather_stations_mapper(stations)
+    unique_stations = []
+    stations_added = set()
+
+    for station in all_stations:
+        if station.station_code not in stations_added:
+            unique_stations.append(station)
+            stations_added.add(station.station_code)
+
+    return unique_stations

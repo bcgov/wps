@@ -4,6 +4,18 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
+class FireZone(BaseModel):
+    id: int
+    display_label: str
+    fire_centre: str
+
+
+class StationFireCentre(BaseModel):
+    """ The fire centre associated with a station """
+    id: int
+    display_label: str
+
+
 class Season(BaseModel):
     """ A fire season consists of a start date (month and day) and an end date (month and day). """
     start_month: int
@@ -80,3 +92,37 @@ class DetailedWeatherStationsResponse(BaseModel):
 class StationCodeList(BaseModel):
     """ List of station codes. """
     stations: List[int]
+
+
+class WeatherStationGroupMember(BaseModel):
+    """ Description of a station in a group"""
+    id: str
+    display_label: str
+    fire_centre: StationFireCentre
+    fire_zone: FireZone
+    station_code: int
+    station_status: str
+
+
+class WeatherStationGroupMembersResponse(BaseModel):
+    """ Response to a request for the stations in a group """
+    stations: List[WeatherStationGroupMember]
+
+
+class WeatherStationGroup(BaseModel):
+    """ A weather station group from WF1"""
+    display_label: str
+    group_description: str | None
+    group_owner_user_guid: str
+    group_owner_user_id: str
+    id: str
+
+
+class WeatherStationGroupsResponse(BaseModel):
+    """ Response to a request for all WFWX groups"""
+    groups: List[WeatherStationGroup]
+
+
+class WeatherStationGroupsMemberRequest(BaseModel):
+    """ Request for all station members of all groups by group ids"""
+    group_ids: List[str]

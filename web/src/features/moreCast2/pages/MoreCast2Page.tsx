@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AlertColor, FormControl, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { isNull, isUndefined } from 'lodash'
+import { isEmpty, isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
-import { FireCenter, FireCenterStation } from 'api/fbaAPI'
 import {
   DEFAULT_MODEL_TYPE,
   ForecastActionChoice,
@@ -19,13 +18,14 @@ import {
   selectAuthentication,
   selectColumnModelStationPredictions,
   selectColumnYesterdayDailies,
-  selectFireCenters,
   selectModelStationPredictions,
   selectMoreCast2Forecasts,
+  selectMorecast2TableLoading,
+  selectStationGroups,
+  selectStationGroupsMembers,
   selectYesterdayDailies
 } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
-import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
 import { GeneralHeader } from 'components'
 import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
 import MoreCast2DataGrid from 'features/moreCast2/components/MoreCast2DataGrid'
@@ -57,6 +57,9 @@ import { getColumnYesterdayDailies } from 'features/moreCast2/slices/columnYeste
 import { getMoreCast2Forecasts } from 'features/moreCast2/slices/moreCast2ForecastsSlice'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import ForecastActionDropdown from 'features/moreCast2/components/ForecastActionDropdown'
+import { fetchStationGroups } from 'commonSlices/stationGroupsSlice'
+import { StationGroup, StationGroupMember } from 'api/stationAPI'
+import { fetchStationGroupsMembers } from 'commonSlices/selectedStationGroupMembers'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -93,7 +96,6 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const DEFAULT_MODEL_TYPE_KEY = 'defaultModelType'
-const DEFAULT_FIRE_CENTER_KEY = 'preferredMoreCast2FireCenter'
 
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved.'
@@ -102,14 +104,19 @@ const FORECAST_WARN_MESSAGE = 'A forecast cannot contain N/A values.'
 const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
-  const { fireCenters } = useSelector(selectFireCenters)
+  const { groups, loading: groupsLoading } = useSelector(selectStationGroups)
+  const tableLoading = useSelector(selectMorecast2TableLoading)
+  const { members } = useSelector(selectStationGroupsMembers)
+
   const { stationPredictions } = useSelector(selectModelStationPredictions)
   const { yesterdayDailies } = useSelector(selectYesterdayDailies)
   const { moreCast2Forecasts } = useSelector(selectMoreCast2Forecasts)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
+  const { idir } = useSelector(selectAuthentication)
 
-  const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
-  const [selectedStations, setSelectedStations] = useState<FireCenterStation[]>([])
+  const [selectedStationGroup, setSelectedStationGroup] = useState<StationGroup>()
+
+  const [selectedStations, setSelectedStations] = useState<StationGroupMember[]>([])
   const [modelType, setModelType] = useState<ModelType>(
     (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE
   )
@@ -123,6 +130,7 @@ const MoreCast2Page = () => {
     startDate: startDateTime.toJSDate(),
     endDate: endDateTime.toJSDate()
   })
+  const [selectedGroupsMembers, setSelectedGroupsMembers] = useState([...members])
   const [forecastRows, setForecastRows] = useState<MoreCast2ForecastRow[]>([])
   const [stationPredictionsAsMoreCast2ForecastRows, setStationPredictionsAsMoreCast2ForecastRows] = useState<
     MoreCast2ForecastRow[]
@@ -163,7 +171,7 @@ const MoreCast2Page = () => {
 
   // Fecthes observed/predicted values while in Create Forecast mode
   const fetchStationPredictions = () => {
-    const stationCodes = fireCenter?.stations.map(station => station.code) || []
+    const stationCodes = members.map(member => member.station_code)
     if (isUndefined(fromTo.startDate) || isUndefined(fromTo.endDate)) {
       setForecastRows([])
       return
@@ -184,7 +192,7 @@ const MoreCast2Page = () => {
 
   // Fetches previously submitted forecasts from the API database while in View/Edit Forecast mode
   const fetchForecasts = () => {
-    const stationCodes = fireCenter?.stations.map(station => station.code) || []
+    const stationCodes = selectedGroupsMembers.map(member => member.station_code)
     if (isUndefined(fromTo.startDate) || isUndefined(fromTo.endDate)) {
       setForecastRows([])
       return
@@ -195,8 +203,8 @@ const MoreCast2Page = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchFireCenters())
     document.title = MORE_CAST_2_DOC_TITLE
+    dispatch(fetchStationGroups())
     fetchStationPredictions()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -225,26 +233,12 @@ const MoreCast2Page = () => {
   }, [colYesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const findCenter = (id: string | null): FireCenter | undefined => {
-      return fireCenters.find((center: FireCenter) => center.id.toString() == id)
+    if (!isEmpty(members)) {
+      setSelectedStations([members[0]])
+      setSelectedGroupsMembers(members)
+      fetchStationPredictions()
     }
-    if (fireCenters.length) {
-      setFireCenter(findCenter(localStorage.getItem(DEFAULT_FIRE_CENTER_KEY)))
-    }
-  }, [fireCenters])
-
-  useEffect(() => {
-    if (fireCenter?.stations && fireCenter.stations.length && (isNull(fireCenter) || isUndefined(fireCenter))) {
-      localStorage.removeItem(DEFAULT_FIRE_CENTER_KEY)
-      return
-    }
-    if (!isUndefined(fireCenter) && !isNull(fireCenter)) {
-      localStorage.setItem(DEFAULT_FIRE_CENTER_KEY, fireCenter.id.toString())
-    }
-
-    setSelectedStations(fireCenter?.stations ? fireCenter.stations.slice(0, 1) : [])
-    fetchStationPredictions()
-  }, [fireCenter]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [members]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isUndefined(modelType) && !isNull(modelType)) {
@@ -254,6 +248,15 @@ const MoreCast2Page = () => {
       setForecastRows([])
     }
   }, [modelType]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isEmpty(selectedStationGroup)) {
+      dispatch(fetchStationGroupsMembers([selectedStationGroup.id]))
+    } else {
+      setSelectedGroupsMembers([])
+      setForecastRows([])
+    }
+  }, [selectedStationGroup]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isUndefined(fromTo.startDate) && !isUndefined(fromTo.endDate)) {
@@ -280,20 +283,20 @@ const MoreCast2Page = () => {
         ? stationPredictionsAsMoreCast2ForecastRows
         : forecastsAsMoreCast2ForecastRows
     const visibleForecastRows = workingRows.filter(
-      row => selectedStations.filter(station => station.code === row.stationCode).length
+      row => selectedStations.filter(station => station.station_code === row.stationCode).length
     )
     visibleForecastRows.sort((a, b) => (a.forDate > b.forDate ? 1 : -1))
     setForecastRows(visibleForecastRows)
   }, [forecastsAsMoreCast2ForecastRows, stationPredictionsAsMoreCast2ForecastRows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const predictions = fillInTheModelBlanks(fireCenter?.stations || [], stationPredictions, dateInterval, modelType)
+    const predictions = fillInTheModelBlanks(selectedGroupsMembers, stationPredictions, dateInterval, modelType)
     const newRows = parseModelsForStationsHelper(predictions)
     setStationPredictionsAsMoreCast2ForecastRows(newRows)
   }, [stationPredictions]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const completeDailies = fillInTheYesterdayDailyBlanks(fireCenter?.stations || [], yesterdayDailies, dateInterval)
+    const completeDailies = fillInTheYesterdayDailyBlanks(selectedGroupsMembers, yesterdayDailies, dateInterval)
     const newRows = parseYesterdayDailiesForStationsHelper(completeDailies)
     setStationPredictionsAsMoreCast2ForecastRows(newRows)
   }, [yesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -304,7 +307,7 @@ const MoreCast2Page = () => {
   }, [forecastAction]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const newRows = parseForecastsHelper(moreCast2Forecasts, fireCenter?.stations || [])
+    const newRows = parseForecastsHelper(moreCast2Forecasts, selectedGroupsMembers)
     setForecastsAsMoreCast2ForecastRows(newRows)
   }, [moreCast2Forecasts]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -353,11 +356,14 @@ const MoreCast2Page = () => {
       <div className={classes.content}>
         <div className={classes.sidePanel}>
           <StationPanel
-            fireCenter={fireCenter}
-            fireCenters={fireCenters}
+            idir={idir}
+            loading={groupsLoading}
             selectedStations={selectedStations}
-            setFireCenter={setFireCenter}
             setSelectedStations={setSelectedStations}
+            stationGroups={groups}
+            selectedStationGroup={selectedStationGroup}
+            setSelectedStationGroup={setSelectedStationGroup}
+            stationGroupMembers={selectedGroupsMembers}
           />
         </div>
         <div className={classes.observations}>
@@ -405,6 +411,7 @@ const MoreCast2Page = () => {
             </Grid>
           </Grid>
           <MoreCast2DataGrid
+            loading={tableLoading}
             rows={forecastRows}
             clickedColDef={clickedColDef}
             onCellEditStop={setForecastIsDirty}
