@@ -1,13 +1,13 @@
 import { isNumber } from 'lodash'
 import { DateTime, Interval } from 'luxon'
-import { FireCenterStation } from 'api/fbaAPI'
 import { ModelChoice, ModelType, MoreCast2ForecastRecord, StationPrediction } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
+import { StationGroupMember } from 'api/stationAPI'
 
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
-  stations: FireCenterStation[]
+  stations: StationGroupMember[]
 ): MoreCast2ForecastRow[] => {
   const rows: MoreCast2ForecastRow[] = []
 
@@ -24,7 +24,7 @@ export const parseForecastsHelper = (
         value: forecast.rh
       },
       stationCode: forecast.station_code,
-      stationName: stations.find(station => station.code === forecast.station_code)?.name || '',
+      stationName: stations.find(station => station.station_code === forecast.station_code)?.display_label || '',
       temp: {
         choice: ModelChoice.FORECAST,
         value: forecast.temp
@@ -83,7 +83,7 @@ export const parseModelsForStationsHelper = (predictions: StationPrediction[]): 
 }
 
 export const fillInTheModelBlanks = (
-  stations: FireCenterStation[],
+  stations: StationGroupMember[],
   stationPredictions: StationPrediction[],
   dateInterval: string[],
   modelType: ModelType
@@ -93,9 +93,13 @@ export const fillInTheModelBlanks = (
   // item in the array for each unique combination
   stations.forEach(station => {
     dateInterval.forEach(date => {
-      const filteredPrediction = stationPredictions.filter(p => p.station.code === station.code && p.datetime === date)
+      const filteredPrediction = stationPredictions.filter(
+        p => p.station.code === station.station_code && p.datetime === date
+      )
       if (!filteredPrediction.length) {
-        missingPredictions.push(createEmptyStationPrediction(station.code, date, station.name, modelType))
+        missingPredictions.push(
+          createEmptyStationPrediction(station.station_code, date, station.display_label, modelType)
+        )
       }
     })
   })
@@ -106,7 +110,7 @@ export const fillInTheModelBlanks = (
 
 export const replaceColumnValuesFromPrediction = (
   existingRows: MoreCast2ForecastRow[],
-  fireCentreStations: FireCenterStation[],
+  fireCentreStations: StationGroupMember[],
   dateInterval: string[],
   colPrediction: ColPrediction
 ) => {

@@ -257,3 +257,13 @@ async def fetch_access_token(session: ClientSession) -> dict:
             except Exception as error:
                 logger.error(error, exc_info=error)
     return response_json
+
+
+async def fetch_stations_by_group_id(session: ClientSession, headers: dict, group_id: str):
+    logger.debug(f'Fetching stations for group {group_id}')
+    base_url = config.get('WFWX_BASE_URL')
+    url = f'{base_url}/v1/stationGroups/{group_id}/members'
+
+    async with session.get(url, headers=headers) as response:
+        raw_stations = await response.json()
+    return raw_stations
