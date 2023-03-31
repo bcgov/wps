@@ -98,7 +98,7 @@ const StationPanel = (props: StationPanelProps) => {
             </Grid>
           </Grid>
           <div className={classes.stationContainer}>
-            <List dense={true}>
+            <List data-testid={'station-items'} dense={true}>
               {stationGroupMembers.map(station => {
                 return (
                   <ListItem disablePadding key={station.station_code}>
