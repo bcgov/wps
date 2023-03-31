@@ -10,7 +10,7 @@ interface State {
   yesterdayDailies: YesterdayDaily[]
 }
 
-const initialState: State = {
+export const initialState: State = {
   loading: false,
   error: null,
   yesterdayDailies: []
@@ -22,7 +22,7 @@ const yesterdayDailiesSlice = createSlice({
   reducers: {
     getYesterdayDailiesStart(state: State) {
       state.error = null
-      state.loading = false
+      state.loading = true
     },
     getYesterdayDailiesFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload

@@ -18,7 +18,7 @@ interface State {
   colYesterdayDailies: ColYesterdayDailies | null
 }
 
-const initialState: State = {
+export const initialState: State = {
   loading: false,
   error: null,
   colYesterdayDailies: null
