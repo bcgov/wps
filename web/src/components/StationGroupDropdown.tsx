@@ -1,6 +1,6 @@
 import { TextField, Autocomplete, FilterOptionsState, Box, Checkbox, FormControlLabel } from '@mui/material'
 import { StationGroup } from 'api/stationAPI'
-import { isUndefined } from 'lodash'
+import { isUndefined, sortBy } from 'lodash'
 import { matchSorter, rankings } from 'match-sorter'
 import React, { useEffect, useState } from 'react'
 
@@ -59,7 +59,7 @@ const StationGroupDropdown = ({
         data-testid={`station-group-dropdown`}
         filterOptions={filterOptions}
         filterSelectedOptions
-        options={options}
+        options={sortBy(options, option => option.group_owner_user_id)}
         groupBy={option => option.group_owner_user_id}
         getOptionLabel={option => option?.display_label}
         isOptionEqualToValue={(option, value) => option.id === value.id}
