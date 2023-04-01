@@ -1,4 +1,4 @@
-import { GridColDef, GridRenderCellParams, GridValueFormatterParams } from '@mui/x-data-grid'
+import { GridColDef, GridValueFormatterParams } from '@mui/x-data-grid'
 import { DateTime } from 'luxon'
 import { GridNumberRenderer } from 'features/moreCast2/components/DataGridNumberRenderer'
 

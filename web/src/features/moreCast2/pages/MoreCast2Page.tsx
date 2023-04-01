@@ -275,6 +275,7 @@ const MoreCast2Page = () => {
       setSelectedStations([members[0]])
       setSelectedGroupsMembers(members)
       fetchStationPredictions()
+      fetchStationObservedDailies()
     }
   }, [members]) // eslint-disable-line react-hooks/exhaustive-deps
 
