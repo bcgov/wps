@@ -10,7 +10,7 @@ interface State {
   yesterdayDailies: ObservedDaily[]
 }
 
-const initialState: State = {
+export const initialState: State = {
   loading: false,
   error: null,
   yesterdayDailies: []
@@ -22,7 +22,6 @@ const yesterdayDailiesSlice = createSlice({
   reducers: {
     getYesterdayDailiesStart(state: State) {
       state.error = null
-      state.yesterdayDailies = []
       state.loading = true
     },
     getYesterdayDailiesFailed(state: State, action: PayloadAction<string>) {
@@ -37,11 +36,8 @@ const yesterdayDailiesSlice = createSlice({
   }
 })
 
-export const {
-  getYesterdayDailiesStart: getModelStationPredictionsStart,
-  getYesterdayDailiesFailed,
-  getYesterdayDailiesSuccess
-} = yesterdayDailiesSlice.actions
+export const { getYesterdayDailiesStart, getYesterdayDailiesFailed, getYesterdayDailiesSuccess } =
+  yesterdayDailiesSlice.actions
 
 export default yesterdayDailiesSlice.reducer
 
@@ -49,8 +45,8 @@ export const getYesterdayStationDailies =
   (stationCodes: number[], fromDate: string): AppThunk =>
   async dispatch => {
     try {
-      dispatch(getModelStationPredictionsStart())
       if (stationCodes.length) {
+        dispatch(getYesterdayDailiesStart())
         const yesterdayDailiesResponse = await getYesterdayDailies(stationCodes, fromDate)
         const yesterdayDailies: ObservedDaily[] = parseYesterdayDailiesFromResponse(yesterdayDailiesResponse)
         dispatch(getYesterdayDailiesSuccess(yesterdayDailies))

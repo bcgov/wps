@@ -8,18 +8,22 @@ import {
   ListItemButton,
   ListItemText,
   ListItemIcon,
-  Typography
+  Typography,
+  CircularProgress
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { FireCenter, FireCenterStation } from 'api/fbaAPI'
-import FireCenterDropdown from 'components/FireCenterDropdown'
+import StationGroupDropdown from 'features/moreCast2/components/StationGroupDropdown'
+import { StationGroup, StationGroupMember } from 'api/stationAPI'
 
 interface StationPanelProps {
-  fireCenter: FireCenter | undefined
-  fireCenters: FireCenter[]
-  selectedStations: FireCenterStation[]
-  setFireCenter: React.Dispatch<React.SetStateAction<FireCenter | undefined>>
-  setSelectedStations: React.Dispatch<React.SetStateAction<FireCenterStation[]>>
+  idir?: string
+  loading: boolean
+  stationGroups: StationGroup[]
+  selectedStationGroup?: StationGroup
+  selectedStations: StationGroupMember[]
+  stationGroupMembers: StationGroupMember[]
+  setSelectedStationGroup: React.Dispatch<React.SetStateAction<StationGroup | undefined>>
+  setSelectedStations: React.Dispatch<React.SetStateAction<StationGroupMember[]>>
 }
 
 const useStyles = makeStyles(theme => ({
@@ -49,9 +53,20 @@ const useStyles = makeStyles(theme => ({
 
 const StationPanel = (props: StationPanelProps) => {
   const classes = useStyles()
-  const { fireCenter, fireCenters, selectedStations, setFireCenter, setSelectedStations } = { ...props }
+  const {
+    idir,
+    loading,
+    selectedStations,
+    selectedStationGroup,
+    stationGroups,
+    stationGroupMembers,
+    setSelectedStationGroup,
+    setSelectedStations
+  } = {
+    ...props
+  }
 
-  const handleStationClick = (station: FireCenterStation) => {
+  const handleStationClick = (station: StationGroupMember) => {
     const newSelectedStations = selectedStations.map(station => station)
     const index = newSelectedStations.indexOf(station)
     if (index > -1) {
@@ -68,35 +83,40 @@ const StationPanel = (props: StationPanelProps) => {
       <div className={classes.header}>
         <Typography variant="h5">Stations</Typography>
       </div>
-      <Grid container spacing={1}>
-        <Grid item xs={2}>
-          <FormControl className={classes.formControl}>
-            <FireCenterDropdown
-              fireCenterOptions={fireCenters}
-              selectedFireCenter={fireCenter}
-              setSelectedFireCenter={setFireCenter}
-            />
-          </FormControl>
-        </Grid>
-      </Grid>
-      <div className={classes.stationContainer}>
-        <List dense={true}>
-          {fireCenter &&
-            fireCenter.stations &&
-            fireCenter.stations.map(station => {
-              return (
-                <ListItem disablePadding key={station.code}>
-                  <ListItemButton onClick={() => handleStationClick(station)}>
-                    <ListItemIcon>
-                      <Checkbox checked={selectedStations.indexOf(station) > -1}></Checkbox>
-                    </ListItemIcon>
-                    <ListItemText>{station.name}</ListItemText>
-                  </ListItemButton>
-                </ListItem>
-              )
-            })}
-        </List>
-      </div>
+      {!loading ? (
+        <>
+          <Grid container spacing={1} direction="column">
+            <Grid item xs={2}>
+              <FormControl className={classes.formControl}>
+                <StationGroupDropdown
+                  idir={idir}
+                  stationGroupOptions={stationGroups}
+                  selectedStationGroup={selectedStationGroup}
+                  setSelectedStationGroup={setSelectedStationGroup}
+                />
+              </FormControl>
+            </Grid>
+          </Grid>
+          <div className={classes.stationContainer}>
+            <List data-testid={'station-items'} dense={true}>
+              {stationGroupMembers.map(station => {
+                return (
+                  <ListItem disablePadding key={station.station_code}>
+                    <ListItemButton onClick={() => handleStationClick(station)}>
+                      <ListItemIcon>
+                        <Checkbox checked={selectedStations.indexOf(station) > -1}></Checkbox>
+                      </ListItemIcon>
+                      <ListItemText>{station.display_label}</ListItemText>
+                    </ListItemButton>
+                  </ListItem>
+                )
+              })}
+            </List>
+          </div>
+        </>
+      ) : (
+        <CircularProgress />
+      )}
     </div>
   )
 }

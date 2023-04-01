@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { FireCenterStation } from 'api/fbaAPI'
 import { ModelType, getYesterdayDailies, ObservedDaily } from 'api/moreCast2API'
+import { StationGroupMember } from 'api/stationAPI'
 import { AppThunk } from 'app/store'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { fillInTheYesterdayDailyBlanks, parseYesterdayDailiesFromResponse } from 'features/moreCast2/yesterdayDailies'
@@ -18,7 +18,7 @@ interface State {
   colYesterdayDailies: ColYesterdayDailies | null
 }
 
-const initialState: State = {
+export const initialState: State = {
   loading: false,
   error: null,
   colYesterdayDailies: null
@@ -52,7 +52,7 @@ export default columnYesterdaySlice.reducer
 export const getColumnYesterdayDailies =
   (
     stationCodes: number[],
-    fireCentreStations: FireCenterStation[],
+    fireCentreStations: StationGroupMember[],
     dateInterval: string[],
     model: ModelType,
     colField: keyof MoreCast2ForecastRow,

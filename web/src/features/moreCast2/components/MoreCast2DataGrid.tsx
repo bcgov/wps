@@ -4,13 +4,12 @@ import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
 import { ModelType } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { LinearProgress, Menu, MenuItem } from '@mui/material'
-import { useSelector } from 'react-redux'
-import { selectMorecast2TableLoading } from 'app/rootReducer'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { isEqual } from 'lodash'
 import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
 
 interface MoreCast2DataGridProps {
+  loading: boolean
   rows: MoreCast2ForecastRow[]
   clickedColDef: GridColDef | null
   onCellEditStop: (value: boolean) => void
@@ -26,6 +25,7 @@ const useStyles = makeStyles({
 })
 
 const MoreCast2DataGrid = ({
+  loading,
   rows,
   clickedColDef,
   onCellEditStop,
@@ -49,8 +49,6 @@ const MoreCast2DataGrid = ({
   const handleClose = () => {
     setContextMenu(null)
   }
-
-  const loading = useSelector(selectMorecast2TableLoading)
 
   const columns: GridColDef[] = MORECAST2_FIELDS.map(field => field.generateColDef())
 

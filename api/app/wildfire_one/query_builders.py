@@ -111,3 +111,18 @@ class BuildQueryDailiesByStationCode(BuildQuery):
         url = (f'{self.base_url}/v1/dailies/search/findDailiesByStationIdIsInAndWeather' +
                'TimestampBetweenOrderByStationIdAscWeatherTimestampAsc')
         return url, params
+
+
+class BuildQueryStationGroups(BuildQuery):
+    """ Builds a query for requesting all station groups """
+
+    def __init__(self):
+        """ Initilize object. """
+        super().__init__()
+        self.param_query = None
+
+    def query(self, page) -> Tuple[str, dict]:
+        """ Return query url and params with query for all weather stations groups. """
+        params = {'size': self.max_page_size, 'page': page, 'sort': 'groupOwnerUserId,asc'}
+        url = f'{self.base_url}/v1/stationGroups'
+        return url, params
