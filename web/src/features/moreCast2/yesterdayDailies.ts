@@ -31,19 +31,19 @@ export const parseYesterdayDailiesForStationsHelper = (yesterdayDailies: Observe
  * Each station that does not have a daily gets filled with default N/A dailies.
  *
  * @param stations stations for the fire centre we expect yesterday dailies for
- * @param yesterdayDailies the yesterday dailies we received from the API
+ * @param observedDailies the yesterday dailies we received from the API
  * @param dateInterval the dates we expect to have yesterday dailies for each station
  */
 export const fillInTheYesterdayDailyBlanks = (
   stations: StationGroupMember[],
-  yesterdayDailies: ObservedDaily[],
+  observedDailies: ObservedDaily[],
   dateInterval: string[]
 ): ObservedDaily[] => {
   const expectedDates = dateInterval.map(date => DateTime.fromISO(date))
 
-  const yesterdayDailiesExtendedToDateRange = extendDailiesForStations(yesterdayDailies, expectedDates)
+  const yesterdayDailiesExtendedToDateRange = extendDailiesForStations(observedDailies, expectedDates)
 
-  const missingYesterdayDailies: ObservedDaily[] = defaultsForMissingDailies(stations, yesterdayDailies, dateInterval)
+  const missingYesterdayDailies: ObservedDaily[] = defaultsForMissingDailies(stations, observedDailies, dateInterval)
 
   const completeYesterdayDailies = [...yesterdayDailiesExtendedToDateRange, ...missingYesterdayDailies]
   if (!isEmpty(dateInterval)) {

@@ -55,7 +55,7 @@ export const getObservedStationDailies =
     try {
       if (stationCodes.length) {
         dispatch(getModelStationPredictionsStart())
-        const observedDailiesResponse = await getObservedDailies(stationCodes, fromDate)
+        const observedDailiesResponse = await getObservedDailies(stationCodes, fromDate, toDate)
         const observedDailies: ObservedDaily[] = parseObservedDailiesFromResponse(observedDailiesResponse)
         const yesterdayDailies = buildYesterdayDailiesFromObserved(observedDailies, toDate)
         dispatch(getObservedDailiesSuccess({ observedDailies: observedDailies, yesterdayDailies: yesterdayDailies }))

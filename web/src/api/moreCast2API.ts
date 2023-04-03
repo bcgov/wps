@@ -190,11 +190,15 @@ export async function getYesterdayDailies(stationCodes: number[], startDate: str
   return data.dailies
 }
 
-export async function getObservedDailies(stationCodes: number[], startDate: string): Promise<ObservedDailyResponse[]> {
+export async function getObservedDailies(
+  stationCodes: number[],
+  startDate: string,
+  endDate: string
+): Promise<ObservedDailyResponse[]> {
   if (stationCodes.length === 0) {
     return []
   }
-  const url = `/morecast-v2/observed-dailies/${startDate}`
+  const url = `/morecast-v2/observed-dailies/${startDate}/${endDate}`
   const { data } = await axios.post<ObservedDailiesResponse>(url, {
     station_codes: stationCodes
   })

@@ -126,9 +126,9 @@ async def get_yesterdays_actual_dailies(today: date, request: ObservedDailiesFor
         return ObservedStationDailiesResponse(dailies=yeserday_dailies)
 
 
-@router.post('/observed-dailies/{start_date}',
+@router.post('/observed-dailies/{start_date}/{end_date}',
              response_model=ObservedStationDailiesResponse)
-async def get_observed_dailies(start_date: date, request: ObservedDailiesForStations):
+async def get_observed_dailies(start_date: date, end_date: date, request: ObservedDailiesForStations):
     """ Returns the daily observations for the requested station codes, from the given start_date to the
     most recent date where daily observation data is available.
     """
@@ -137,7 +137,7 @@ async def get_observed_dailies(start_date: date, request: ObservedDailiesForStat
     unique_station_codes = list(set(request.station_codes))
 
     start_date_of_interest = get_hour_20_from_date(start_date)
-    end_date_of_interest = get_hour_20_from_date(datetime.now())
+    end_date_of_interest = get_hour_20_from_date(end_date)
 
     async with ClientSession() as session:
         header = await get_auth_header(session)

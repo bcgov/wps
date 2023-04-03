@@ -163,7 +163,8 @@ const MoreCast2Page = () => {
           dateInterval,
           modelType,
           colDef.field as keyof MoreCast2ForecastRow,
-          DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate()
+          DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate(),
+          DateTime.fromJSDate(fromTo.endDate ? fromTo.endDate : new Date()).toISODate()
         )
       )
     } else {
