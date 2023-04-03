@@ -53,8 +53,8 @@ export const getObservedStationDailies =
   (stationCodes: number[], fromDate: string, toDate: string): AppThunk =>
   async dispatch => {
     try {
-      dispatch(getModelStationPredictionsStart())
       if (stationCodes.length) {
+        dispatch(getModelStationPredictionsStart())
         const observedDailiesResponse = await getObservedDailies(stationCodes, fromDate)
         const observedDailies: ObservedDaily[] = parseObservedDailiesFromResponse(observedDailiesResponse)
         const yesterdayDailies = buildYesterdayDailiesFromObserved(observedDailies, toDate)
