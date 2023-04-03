@@ -173,23 +173,6 @@ export async function getModelPredictions(
   return data.map(d => ({ ...d, id: rowIDHasher(d.station.code, DateTime.fromISO(d.datetime)) }))
 }
 
-/**
- * Get noon yesterday dailies for the specified date
- * @param stationCodes A list of station codes of interest
- * @param startDate The first date for which we ask for the day before
- */
-export async function getYesterdayDailies(stationCodes: number[], startDate: string): Promise<ObservedDailyResponse[]> {
-  if (stationCodes.length === 0) {
-    return []
-  }
-  const url = `/morecast-v2/yesterday-dailies/${startDate}`
-  const { data } = await axios.post<ObservedDailiesResponse>(url, {
-    station_codes: stationCodes
-  })
-
-  return data.dailies
-}
-
 export async function getObservedDailies(
   stationCodes: number[],
   startDate: string,
