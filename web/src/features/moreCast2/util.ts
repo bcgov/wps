@@ -90,7 +90,7 @@ export const buildListOfRowsToDisplay = (
         // possibly incomplete logic. Atm we want to prioritize Actuals over any other data source
         // Later on we will probably want additional logic for further prioritization of data sources
         // (e.g., HRDPS takes precedence over GDPS)
-        const actualsRow = forecastRows.filter(row => row.temp.choice === 'ACTUAL')[0]
+        const actualsRow = forecastRows.filter(row => row.temp.choice === ModelChoice.ACTUAL)[0]
         if (!isUndefined(actualsRow)) {
           rowsToDisplay.push(actualsRow)
         }
@@ -105,7 +105,7 @@ export const parseObservedDailiesFromResponse = (observedDailiesResponse: Observ
   observedDailiesResponse.map(daily => ({
     ...daily,
     id: rowIDHasher(daily.station_code, DateTime.fromISO(daily.utcTimestamp)),
-    data_type: 'ACTUAL'
+    data_type: ModelChoice.ACTUAL
   }))
 
 export const buildYesterdayDailiesFromObserved = (

@@ -1,7 +1,7 @@
 import React from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
-import { ModelType } from 'api/moreCast2API'
+import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { LinearProgress, Menu, MenuItem } from '@mui/material'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
@@ -68,6 +68,7 @@ const MoreCast2DataGrid = ({
         loading={loading}
         columns={columns}
         rows={rows}
+        isCellEditable={params => (params.row[params.field].choice === ModelChoice.ACTUAL ? false : true)}
       ></DataGrid>
       <Menu
         open={contextMenu !== null}

@@ -17,7 +17,7 @@ export class GridNumberRenderer {
   }
   renderCellWith = (params: GridRenderCellParams, field: Morecast2Field) => (
     <TextField
-      disabled={params.row[field].choice === 'ACTUAL' ? true : false}
+      disabled={params.row[field].choice === ModelChoice.ACTUAL ? true : false}
       size="small"
       label={params.row[field].choice}
       value={params.formattedValue}
