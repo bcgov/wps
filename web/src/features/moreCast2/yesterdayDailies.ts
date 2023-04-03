@@ -71,7 +71,7 @@ export const extendDailiesForStations = (yesterdayDailies: ObservedDaily[], expe
     const dailyDates = dailies.map(daily => DateTime.fromISO(daily.utcTimestamp))
     const missingDates = differenceWith(expectedDates, dailyDates, isEqual)
 
-    const yesterdayDaily = dailies[0]
+    const yesterdayDaily = dailies[dailies.length - 1]
     const missingDailies: ObservedDaily[] = missingDates.map(date => ({
       ...yesterdayDaily,
       id: rowIDHasher(yesterdayDaily.station_code, date),
