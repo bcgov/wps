@@ -53,7 +53,8 @@ export const fillInTheYesterdayDailyBlanks = (
 }
 
 /**
- * For stations that have dailies for yesterday, extend that daily to the rest of the range
+ * For stations that have dailies for yesterday, extend that daily to the rest of the range.
+ * Yesterday is defined as the latest actual observation for that station in the range.
  * @param yesterdayDailies the dailies for yesterday
  * @param expectedDates the date range
  * @returns existing dailies for yesterday and dailies for the rest of the range
