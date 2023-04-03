@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AlertColor, FormControl, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { isEmpty, isNull, isUndefined } from 'lodash'
+import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import {
   DEFAULT_MODEL_TYPE,
@@ -187,14 +187,16 @@ const MoreCast2Page = () => {
       setForecastRows([])
       return
     }
-    dispatch(
-      getModelStationPredictions(
-        stationCodes,
-        modelType,
-        DateTime.fromJSDate(fromTo.startDate).toISODate(),
-        DateTime.fromJSDate(fromTo.endDate).toISODate()
+    if (!isEqual(modelType, ModelChoice.YESTERDAY)) {
+      dispatch(
+        getModelStationPredictions(
+          stationCodes,
+          modelType,
+          DateTime.fromJSDate(fromTo.startDate).toISODate(),
+          DateTime.fromJSDate(fromTo.endDate).toISODate()
+        )
       )
-    )
+    }
   }
 
   const fetchStationObservedDailies = () => {
@@ -284,6 +286,7 @@ const MoreCast2Page = () => {
     if (!isUndefined(modelType) && !isNull(modelType)) {
       localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
       fetchStationPredictions()
+      fetchStationObservedDailies()
     } else {
       setForecastRows([])
     }
