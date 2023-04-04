@@ -1,17 +1,10 @@
 import { difference, differenceWith, groupBy, isEmpty, isEqual, sortBy } from 'lodash'
 import { DateTime } from 'luxon'
-import { ModelChoice, ObservedDaily, ObservedDailyResponse } from 'api/moreCast2API'
+import { ModelChoice, ObservedDaily } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { buildMoreCast2ForecastRow, rowIDHasher } from 'features/moreCast2/util'
 import { ColYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
 import { StationGroupMember } from 'api/stationAPI'
-
-export const parseYesterdayDailiesFromResponse = (yesterdayDailiesResponse: ObservedDailyResponse[]): ObservedDaily[] =>
-  yesterdayDailiesResponse.map(daily => ({
-    ...daily,
-    id: rowIDHasher(daily.station_code, DateTime.fromISO(daily.utcTimestamp)),
-    data_type: 'YESTERDAY'
-  }))
 
 export const parseYesterdayDailiesForStationsHelper = (yesterdayDailies: ObservedDaily[]): MoreCast2ForecastRow[] => {
   const rows: MoreCast2ForecastRow[] = []
