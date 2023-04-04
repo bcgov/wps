@@ -203,12 +203,14 @@ const MoreCast2Page = () => {
     const stationCodes = members.map(member => member.station_code) || []
     if (!isUndefined(fromTo.startDate) && !isUndefined(fromTo.endDate)) {
       if (isEqual(modelType, ModelChoice.YESTERDAY) && fromTo.startDate.toISOString() >= DateTime.now().toISODate()) {
+        // if using Yesterday model type but fromTo date interval doesn't include a date for which observations will be
+        // available, need to modify the requested for ObservedStationDailies to get the most recent observation, which
+        // will be applied as Yesterday values for the relevant dates.
+        const modifiedStartDate = currentTimeIsBeforeNoon
+          ? DateTime.now().minus({ days: 1 }).toISODate()
+          : DateTime.now().toISODate()
         dispatch(
-          getObservedStationDailies(
-            stationCodes,
-            DateTime.now().minus({ days: 1 }).toISODate(),
-            DateTime.fromJSDate(fromTo.endDate).toISODate()
-          )
+          getObservedStationDailies(stationCodes, modifiedStartDate, DateTime.fromJSDate(fromTo.endDate).toISODate())
         )
       } else {
         dispatch(
