@@ -143,6 +143,9 @@ const MoreCast2Page = () => {
   const [stationPredictionsAsMoreCast2ForecastRows, setStationPredictionsAsMoreCast2ForecastRows] = useState<
     MoreCast2ForecastRow[]
   >([])
+  const [yesterdayDailiesAsMoreCast2ForecastRows, setYesterdayDailiesAsMoreCast2ForecastRows] = useState<
+    MoreCast2ForecastRow[]
+  >([])
   const [observedRows, setObservedRows] = useState<MoreCast2ForecastRow[]>([])
   const [rowsToDisplay, setRowsToDisplay] = useState<MoreCast2ForecastRow[]>([])
   const [forecastAction, setForecastAction] = useState<ForecastActionType>(ForecastActionChoices[0])
@@ -238,10 +241,17 @@ const MoreCast2Page = () => {
       // for dates where an observation is available, want to only display the observation
       // only include stationPredictions for dates/stationCode combos when its
       // observation data isn't available
-      stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(
-        observedRows,
-        stationPredictionsAsMoreCast2ForecastRows
-      )
+      if (!isEqual(modelType, ModelChoice.YESTERDAY)) {
+        stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(
+          observedRows,
+          stationPredictionsAsMoreCast2ForecastRows
+        )
+      } else if (isEqual(modelType, ModelChoice.YESTERDAY)) {
+        stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(
+          observedRows,
+          yesterdayDailiesAsMoreCast2ForecastRows
+        )
+      }
     } else {
       stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(observedRows, forecastsAsMoreCast2ForecastRows)
     }
@@ -330,7 +340,7 @@ const MoreCast2Page = () => {
   useEffect(() => {
     const completeDailies = fillInTheYesterdayDailyBlanks(selectedGroupsMembers, yesterdayDailies, dateInterval)
     const newRows = parseYesterdayDailiesForStationsHelper(completeDailies)
-    setStationPredictionsAsMoreCast2ForecastRows(newRows)
+    setYesterdayDailiesAsMoreCast2ForecastRows(newRows)
   }, [yesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
