@@ -308,6 +308,11 @@ const MoreCast2Page = () => {
     } else {
       setSelectedGroupsMembers([])
       setForecastRows([])
+      setObservedRows([])
+      setRowsToDisplay([])
+      setForecastsAsMoreCast2ForecastRows([])
+      setStationPredictionsAsMoreCast2ForecastRows([])
+      setYesterdayDailiesAsMoreCast2ForecastRows([])
     }
   }, [selectedStationGroup]) // eslint-disable-line react-hooks/exhaustive-deps
 
