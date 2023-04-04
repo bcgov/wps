@@ -241,15 +241,15 @@ const MoreCast2Page = () => {
       // for dates where an observation is available, want to only display the observation
       // only include stationPredictions for dates/stationCode combos when its
       // observation data isn't available
-      if (!isEqual(modelType, ModelChoice.YESTERDAY)) {
-        stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(
-          observedRows,
-          stationPredictionsAsMoreCast2ForecastRows
-        )
-      } else if (isEqual(modelType, ModelChoice.YESTERDAY)) {
+      if (isEqual(modelType, ModelChoice.YESTERDAY)) {
         stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(
           observedRows,
           yesterdayDailiesAsMoreCast2ForecastRows
+        )
+      } else {
+        stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(
+          observedRows,
+          stationPredictionsAsMoreCast2ForecastRows
         )
       }
     } else {
