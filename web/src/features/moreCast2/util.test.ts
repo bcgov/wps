@@ -6,7 +6,9 @@ import {
   fillInTheModelBlanks,
   parseModelsForStationsHelper,
   replaceColumnValuesFromPrediction,
-  rowIDHasher
+  rowIDHasher,
+  buildListOfRowsToDisplay,
+  marshalAllMoreCast2ForecastRowsByStationAndDate
 } from 'features/moreCast2/util'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
@@ -16,6 +18,7 @@ const TEST_NUMBER = 7
 const TEST_MODEL = ModelChoice.HRDPS
 const TEST_DATE = '2023-02-16T20:00:00+00:00'
 const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
+const TEST_DATE3 = '2023-02-18T20:00:00+00:00'
 const TEST_CODE = 209
 const TEST_NAME = 'Victoria'
 
@@ -48,7 +51,7 @@ const createStationPredictionArray = (predictionValue: number | null) => {
   return [stationPrediction]
 }
 
-export const generateExistingRows = (): MoreCast2ForecastRow[] => [
+const generateRowsForTwoStations = (): MoreCast2ForecastRow[] => [
   {
     id: rowIDHasher(1, DateTime.fromISO(TEST_DATE)),
     stationCode: 1,
@@ -70,6 +73,67 @@ export const generateExistingRows = (): MoreCast2ForecastRow[] => [
     precip: { value: 1, choice: ModelChoice.GDPS },
     windSpeed: { value: 1, choice: ModelChoice.GDPS },
     windDirection: { value: 1, choice: ModelChoice.GDPS }
+  }
+]
+
+const generateRowsForStation = (stationCode: number, stationName: string): MoreCast2ForecastRow[] => [
+  {
+    id: rowIDHasher(stationCode, DateTime.fromISO(TEST_DATE)),
+    stationCode: stationCode,
+    stationName: stationName,
+    forDate: DateTime.fromISO(TEST_DATE),
+    temp: { value: 1, choice: ModelChoice.GDPS },
+    rh: { value: 1, choice: ModelChoice.GDPS },
+    precip: { value: 1, choice: ModelChoice.GDPS },
+    windSpeed: { value: 1, choice: ModelChoice.GDPS },
+    windDirection: { value: 1, choice: ModelChoice.GDPS }
+  },
+  {
+    id: rowIDHasher(stationCode, DateTime.fromISO(TEST_DATE2)),
+    stationCode: stationCode,
+    stationName: stationName,
+    forDate: DateTime.fromISO(TEST_DATE2),
+    temp: { value: 1, choice: ModelChoice.GDPS },
+    rh: { value: 1, choice: ModelChoice.GDPS },
+    precip: { value: 1, choice: ModelChoice.GDPS },
+    windSpeed: { value: 1, choice: ModelChoice.GDPS },
+    windDirection: { value: 1, choice: ModelChoice.GDPS }
+  },
+  {
+    id: rowIDHasher(stationCode, DateTime.fromISO(TEST_DATE3)),
+    stationCode: stationCode,
+    stationName: stationName,
+    forDate: DateTime.fromISO(TEST_DATE3),
+    temp: { value: 5, choice: ModelChoice.GDPS },
+    rh: { value: 10, choice: ModelChoice.GDPS },
+    precip: { value: 1, choice: ModelChoice.GDPS },
+    windSpeed: { value: 1, choice: ModelChoice.GDPS },
+    windDirection: { value: 1, choice: ModelChoice.GDPS }
+  }
+]
+
+const generateRowsWithActuals = (stationCode: number, stationName: string): MoreCast2ForecastRow[] => [
+  {
+    id: rowIDHasher(stationCode, DateTime.fromISO(TEST_DATE)),
+    stationCode: stationCode,
+    stationName: stationName,
+    forDate: DateTime.fromISO(TEST_DATE),
+    temp: { value: 1, choice: ModelChoice.ACTUAL },
+    rh: { value: 1, choice: ModelChoice.ACTUAL },
+    precip: { value: 1, choice: ModelChoice.ACTUAL },
+    windSpeed: { value: 1, choice: ModelChoice.ACTUAL },
+    windDirection: { value: 1, choice: ModelChoice.ACTUAL }
+  },
+  {
+    id: rowIDHasher(stationCode, DateTime.fromISO(TEST_DATE2)),
+    stationCode: stationCode,
+    stationName: stationName,
+    forDate: DateTime.fromISO(TEST_DATE2),
+    temp: { value: 1, choice: ModelChoice.ACTUAL },
+    rh: { value: 1, choice: ModelChoice.ACTUAL },
+    precip: { value: 1, choice: ModelChoice.ACTUAL },
+    windSpeed: { value: 1, choice: ModelChoice.ACTUAL },
+    windDirection: { value: 1, choice: ModelChoice.ACTUAL }
   }
 ]
 
@@ -204,7 +268,7 @@ describe('rowIDHasher', () => {
 
 describe('replaceColumnValuesFromPrediction', () => {
   it('should replace the correct row', () => {
-    const existingRows: MoreCast2ForecastRow[] = generateExistingRows()
+    const existingRows: MoreCast2ForecastRow[] = generateRowsForTwoStations()
 
     const colPrediction: ColPrediction = {
       colField: 'temp',
@@ -297,15 +361,85 @@ describe('replaceColumnValuesFromPrediction', () => {
 
 describe('filterRowsByModelType', () => {
   it('should return array of MoreCast2ForecastRows containing all rows that match the specified choice', () => {
-    const rows = generateExistingRows()
+    const rows = generateRowsForTwoStations()
     const result = filterRowsByModelType(rows, ModelChoice.GDPS)
     expect(result).toBeDefined()
     expect(result.length).toEqual(2)
   })
   it('should return an empty array if no rows match the specified choice', () => {
-    const rows = generateExistingRows()
+    const rows = generateRowsForTwoStations()
     const result = filterRowsByModelType(rows, ModelChoice.HRDPS)
     expect(result).toBeDefined()
     expect(result.length).toEqual(0)
+  })
+})
+
+describe('buildListOfRowsToDisplay', () => {
+  it('should prioritize Actuals higher than any other model type', () => {
+    const extraRow: MoreCast2ForecastRow = {
+      id: rowIDHasher(1, DateTime.fromISO(TEST_DATE3)),
+      stationCode: 1,
+      stationName: 'one',
+      forDate: DateTime.fromISO(TEST_DATE3),
+      temp: { value: 1, choice: ModelChoice.GDPS },
+      rh: { value: 1, choice: ModelChoice.GDPS },
+      precip: { value: 1, choice: ModelChoice.GDPS },
+      windSpeed: { value: 1, choice: ModelChoice.GDPS },
+      windDirection: { value: 1, choice: ModelChoice.GDPS }
+    }
+
+    let modelRows = generateRowsForTwoStations()
+    modelRows = [...modelRows, extraRow]
+    modelRows.forEach(row => (row.stationCode = 1))
+    const observedRows = generateRowsWithActuals(1, 'one')
+    const stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(observedRows, modelRows)
+    const stationGroupMember = generateStationGroupMember(1, 'one')
+    const displayRows = buildListOfRowsToDisplay(stationsDict, [stationGroupMember])
+
+    expect(displayRows.length).toEqual(3)
+    expect(displayRows[0].rh.choice).toEqual(ModelChoice.ACTUAL)
+    expect(displayRows[1].rh.choice).toEqual(ModelChoice.ACTUAL)
+    expect(displayRows[2].rh.choice).toEqual(ModelChoice.GDPS)
+  })
+  it('should display exactly 1 row per station/date combo', () => {
+    const observedRows1 = generateRowsWithActuals(1, 'one')
+    const observedRows2 = generateRowsWithActuals(2, 'two')
+    const modelRows1 = generateRowsForStation(1, 'one')
+    const modelRows2 = generateRowsForStation(2, 'two')
+
+    const stationDict = marshalAllMoreCast2ForecastRowsByStationAndDate(
+      [...observedRows1, ...observedRows2],
+      [...modelRows1, ...modelRows2]
+    )
+    const stationGroupMember1 = generateStationGroupMember(1, 'one')
+    const stationGroupMember2 = generateStationGroupMember(2, 'two')
+    const testStations = [stationGroupMember1, stationGroupMember2]
+    const displayRows = buildListOfRowsToDisplay(stationDict, testStations)
+
+    expect(displayRows.length).toEqual(6)
+
+    const testDates = [TEST_DATE, TEST_DATE2, TEST_DATE3]
+
+    testStations.forEach(station => {
+      const results = displayRows.filter(row => row.stationCode === station.station_code)
+      expect(results.length).toEqual(3)
+      testDates.forEach(date => {
+        // DateTime formatting is ugly but necessary to coalesce timezones consistently from TEST_DATE strings
+        const dateResults = results.filter(row => row.forDate.toISO() === DateTime.fromISO(date).toISO())
+        expect(dateResults.length).toEqual(1)
+      })
+    })
+  })
+  it('should sort rows in descending order by date', () => {
+    const stationGroupMember = generateStationGroupMember(1, 'one')
+    const observedRows = generateRowsWithActuals(stationGroupMember.station_code, stationGroupMember.display_label)
+    const modelRows = generateRowsForStation(stationGroupMember.station_code, stationGroupMember.display_label)
+    const stationDict = marshalAllMoreCast2ForecastRowsByStationAndDate(observedRows, modelRows)
+    const displayRows = buildListOfRowsToDisplay(stationDict, [stationGroupMember])
+
+    expect(displayRows.length).toEqual(3)
+    expect(displayRows[0].forDate.toISO()).toEqual(DateTime.fromISO(TEST_DATE).toISO())
+    expect(displayRows[1].forDate.toISO()).toEqual(DateTime.fromISO(TEST_DATE2).toISO())
+    expect(displayRows[2].forDate.toISO()).toEqual(DateTime.fromISO(TEST_DATE3).toISO())
   })
 })
