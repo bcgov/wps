@@ -98,6 +98,7 @@ export const buildListOfRowsToDisplay = (
     })
   })
 
+  rowsToDisplay.sort((a, b) => (a.forDate < b.forDate ? -1 : 1))
   return rowsToDisplay
 }
 
