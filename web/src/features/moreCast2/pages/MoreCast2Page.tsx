@@ -140,12 +140,9 @@ const MoreCast2Page = () => {
   })
   const [selectedGroupsMembers, setSelectedGroupsMembers] = useState([...members])
   const [forecastRows, setForecastRows] = useState<MoreCast2ForecastRow[]>([])
-  const [stationPredictionsAsMoreCast2ForecastRows, setStationPredictionsAsMoreCast2ForecastRows] = useState<
-    MoreCast2ForecastRow[]
-  >([])
-  const [yesterdayDailiesAsMoreCast2ForecastRows, setYesterdayDailiesAsMoreCast2ForecastRows] = useState<
-    MoreCast2ForecastRow[]
-  >([])
+  const [modelChoiceAsMoreCast2ForecastRows, setModelChoiceAsMoreCast2ForecastRows] = useState<MoreCast2ForecastRow[]>(
+    []
+  )
   const [observedRows, setObservedRows] = useState<MoreCast2ForecastRow[]>([])
   const [rowsToDisplay, setRowsToDisplay] = useState<MoreCast2ForecastRow[]>([])
   const [forecastAction, setForecastAction] = useState<ForecastActionType>(ForecastActionChoices[0])
@@ -161,7 +158,7 @@ const MoreCast2Page = () => {
     if (modelType == ModelChoice.YESTERDAY) {
       dispatch(
         getColumnYesterdayDailies(
-          stationPredictionsAsMoreCast2ForecastRows.map(s => s.stationCode),
+          modelChoiceAsMoreCast2ForecastRows.map(s => s.stationCode),
           selectedStations,
           dateInterval,
           modelType,
@@ -173,7 +170,7 @@ const MoreCast2Page = () => {
     } else {
       dispatch(
         getColumnModelStationPredictions(
-          stationPredictionsAsMoreCast2ForecastRows.map(s => s.stationCode),
+          modelChoiceAsMoreCast2ForecastRows.map(s => s.stationCode),
           modelType,
           colDef.field as keyof MoreCast2ForecastRow,
           DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate(),
@@ -242,44 +239,38 @@ const MoreCast2Page = () => {
       // only include stationPredictions for dates/stationCode combos when its
       // observation data isn't available
       if (isEqual(modelType, ModelChoice.YESTERDAY)) {
-        stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(
-          observedRows,
-          yesterdayDailiesAsMoreCast2ForecastRows
-        )
+        stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(observedRows, modelChoiceAsMoreCast2ForecastRows)
       } else {
-        stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(
-          observedRows,
-          stationPredictionsAsMoreCast2ForecastRows
-        )
+        stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(observedRows, modelChoiceAsMoreCast2ForecastRows)
       }
     } else {
       stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(observedRows, forecastsAsMoreCast2ForecastRows)
     }
     rows = buildListOfRowsToDisplay(stationsDict, selectedStations)
     setRowsToDisplay(rows)
-  }, [forecastRows, observedRows, stationPredictionsAsMoreCast2ForecastRows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [forecastRows, observedRows, modelChoiceAsMoreCast2ForecastRows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isNull(colPrediction)) {
       const newRows = replaceColumnValuesFromPrediction(
-        stationPredictionsAsMoreCast2ForecastRows,
+        modelChoiceAsMoreCast2ForecastRows,
         selectedStations,
         dateInterval,
         colPrediction
       )
-      setStationPredictionsAsMoreCast2ForecastRows(newRows)
+      setModelChoiceAsMoreCast2ForecastRows(newRows)
     }
   }, [colPrediction]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isNull(colYesterdayDailies)) {
       const newRows = replaceColumnValuesFromYesterdayDaily(
-        stationPredictionsAsMoreCast2ForecastRows,
+        modelChoiceAsMoreCast2ForecastRows,
         selectedStations,
         dateInterval,
         colYesterdayDailies
       )
-      setStationPredictionsAsMoreCast2ForecastRows(newRows)
+      setModelChoiceAsMoreCast2ForecastRows(newRows)
     }
   }, [colYesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -311,8 +302,7 @@ const MoreCast2Page = () => {
       setObservedRows([])
       setRowsToDisplay([])
       setForecastsAsMoreCast2ForecastRows([])
-      setStationPredictionsAsMoreCast2ForecastRows([])
-      setYesterdayDailiesAsMoreCast2ForecastRows([])
+      setModelChoiceAsMoreCast2ForecastRows([])
     }
   }, [selectedStationGroup]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -339,13 +329,15 @@ const MoreCast2Page = () => {
   useEffect(() => {
     const predictions = fillInTheModelBlanks(selectedGroupsMembers, stationPredictions, dateInterval, modelType)
     const newRows = parseModelsForStationsHelper(predictions)
-    setStationPredictionsAsMoreCast2ForecastRows(newRows)
+    setModelChoiceAsMoreCast2ForecastRows(newRows)
   }, [stationPredictions]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const completeDailies = fillInTheYesterdayDailyBlanks(selectedGroupsMembers, yesterdayDailies, dateInterval)
-    const newRows = parseYesterdayDailiesForStationsHelper(completeDailies)
-    setYesterdayDailiesAsMoreCast2ForecastRows(newRows)
+    if (modelType === ModelChoice.YESTERDAY) {
+      const completeDailies = fillInTheYesterdayDailyBlanks(selectedGroupsMembers, yesterdayDailies, dateInterval)
+      const newRows = parseYesterdayDailiesForStationsHelper(completeDailies)
+      setModelChoiceAsMoreCast2ForecastRows(newRows)
+    }
   }, [yesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
