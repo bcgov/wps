@@ -202,13 +202,23 @@ const MoreCast2Page = () => {
   const fetchStationObservedDailies = () => {
     const stationCodes = members.map(member => member.station_code) || []
     if (!isUndefined(fromTo.startDate) && !isUndefined(fromTo.endDate)) {
-      dispatch(
-        getObservedStationDailies(
-          stationCodes,
-          DateTime.fromJSDate(fromTo.startDate).toISODate(),
-          DateTime.fromJSDate(fromTo.endDate).toISODate()
+      if (isEqual(modelType, ModelChoice.YESTERDAY) && fromTo.startDate.toISOString() >= DateTime.now().toISODate()) {
+        dispatch(
+          getObservedStationDailies(
+            stationCodes,
+            DateTime.now().minus({ days: 1 }).toISODate(),
+            DateTime.fromJSDate(fromTo.endDate).toISODate()
+          )
         )
-      )
+      } else {
+        dispatch(
+          getObservedStationDailies(
+            stationCodes,
+            DateTime.fromJSDate(fromTo.startDate).toISODate(),
+            DateTime.fromJSDate(fromTo.endDate).toISODate()
+          )
+        )
+      }
     }
   }
 
@@ -227,8 +237,6 @@ const MoreCast2Page = () => {
   useEffect(() => {
     document.title = MORE_CAST_2_DOC_TITLE
     dispatch(fetchStationGroups())
-    fetchStationObservedDailies()
-    fetchStationPredictions()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
