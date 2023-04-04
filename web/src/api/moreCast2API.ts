@@ -48,7 +48,7 @@ export interface ObservedDailyResponse {
 
 export interface ObservedDaily extends ObservedDailyResponse {
   id: string
-  data_type: string
+  data_type: 'ACTUAL' | 'YESTERDAY'
 }
 
 export interface ObservedAndYesterdayDailiesResponse {

@@ -86,7 +86,7 @@ describe('yesterdayDailies', () => {
       const midDate = END_DATE
       const endDate = '2023-02-18T20:00:00+00:00'
 
-      const multipleObservations = [
+      const multipleObservations: ObservedDaily[] = [
         {
           id: '1',
           data_type: 'YESTERDAY',
