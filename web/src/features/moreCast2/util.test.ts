@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import { ModelChoice, ObservedDaily, StationPrediction } from 'api/moreCast2API'
 import {
   createDateInterval,
-  filterRowsByModelType,
+  includeRowsByModelType,
   fillInTheModelBlanks,
   parseModelsForStationsHelper,
   replaceColumnValuesFromPrediction,
@@ -360,16 +360,16 @@ describe('replaceColumnValuesFromPrediction', () => {
   })
 })
 
-describe('filterRowsByModelType', () => {
+describe('includeRowsByModelType', () => {
   it('should return array of MoreCast2ForecastRows containing all rows that match the specified choice', () => {
     const rows = generateRowsForTwoStations()
-    const result = filterRowsByModelType(rows, ModelChoice.GDPS)
+    const result = includeRowsByModelType(rows, ModelChoice.GDPS)
     expect(result).toBeDefined()
     expect(result.length).toEqual(2)
   })
   it('should return an empty array if no rows match the specified choice', () => {
     const rows = generateRowsForTwoStations()
-    const result = filterRowsByModelType(rows, ModelChoice.HRDPS)
+    const result = includeRowsByModelType(rows, ModelChoice.HRDPS)
     expect(result).toBeDefined()
     expect(result.length).toEqual(0)
   })
