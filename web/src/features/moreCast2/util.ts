@@ -345,7 +345,7 @@ export const createDateInterval = (fromDate: DateTime, toDate: DateTime) => {
  * @param choice The ModelType to filter by
  * @returns A filtered array of MoreCast2ForecastRows
  */
-export const filterRowsByModelType = (rows: MoreCast2ForecastRow[], choice: ModelType) => {
+export const includeRowsByModelType = (rows: MoreCast2ForecastRow[], choice: ModelType) => {
   const filteredRows = rows.filter(
     row =>
       row.precip.choice === choice ||
@@ -354,5 +354,27 @@ export const filterRowsByModelType = (rows: MoreCast2ForecastRow[], choice: Mode
       row.windDirection.choice === choice ||
       row.windSpeed.choice === choice
   )
+  return filteredRows
+}
+
+/**
+ * Filters an array of MoreCast2ForecastRows to the subset of elements that do not contain a property
+ * with a model choice that matches the specified model type.
+ * @param rows The array of MoreCast2ForecastRows to filter
+ * @param choice The ModelType to exclude from returned rows
+ * @returns A filtered array of MoreCast2ForecastRows
+ */
+export const excludeRowsByModelType = (rows: MoreCast2ForecastRow[], choice: ModelType) => {
+  const filteredRows: MoreCast2ForecastRow[] = []
+  rows.forEach(row => {
+    if (
+      row.precip.choice !== choice &&
+      row.rh.choice !== choice &&
+      row.temp.choice !== choice &&
+      row.windDirection.choice !== choice &&
+      row.windSpeed.choice !== choice
+    )
+      filteredRows.push(row)
+  })
   return filteredRows
 }

@@ -36,8 +36,9 @@ import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice
 import {
   buildListOfRowsToDisplay,
   createDateInterval,
+  excludeRowsByModelType,
   fillInTheModelBlanks,
-  filterRowsByModelType,
+  includeRowsByModelType,
   marshalAllMoreCast2ForecastRowsByStationAndDate,
   parseForecastsHelper,
   parseModelsForStationsHelper,
@@ -385,8 +386,8 @@ const MoreCast2Page = () => {
   const handleSaveClick = async () => {
     const rowsToSave: MoreCast2ForecastRow[] =
       forecastAction === ForecastActionChoice.CREATE
-        ? forecastRows
-        : filterRowsByModelType(forecastRows, ModelChoice.MANUAL)
+        ? excludeRowsByModelType(rowsToDisplay, ModelChoice.ACTUAL)
+        : includeRowsByModelType(forecastRows, ModelChoice.MANUAL)
 
     if (forecastIsValid()) {
       const result = await submitMoreCastForecastRecords(rowsToSave)
@@ -404,6 +405,16 @@ const MoreCast2Page = () => {
       setSnackbarSeverity('warning')
       setSnackbarOpen(true)
     }
+  }
+
+  // Checks if the displayed rows includes non-Actual rows
+  const hasForecastRow = () => {
+    for (const row of rowsToDisplay) {
+      if (row.precip.choice !== ModelChoice.ACTUAL) {
+        return true
+      }
+    }
+    return false
   }
 
   return (
@@ -457,7 +468,7 @@ const MoreCast2Page = () => {
                   enabled={
                     roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
                     isAuthenticated &&
-                    forecastRows.length > 0 &&
+                    hasForecastRow() &&
                     (forecastAction === ForecastActionChoice.CREATE || forecastIsDirty)
                   }
                   label={forecastAction === ForecastActionChoice.CREATE ? 'Save Forecast' : 'Update Forecast'}
