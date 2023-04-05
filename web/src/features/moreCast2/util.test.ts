@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { ModelChoice, StationPrediction } from 'api/moreCast2API'
+import { ModelChoice, ObservedDaily, StationPrediction } from 'api/moreCast2API'
 import {
   createDateInterval,
   filterRowsByModelType,
@@ -8,7 +8,9 @@ import {
   replaceColumnValuesFromPrediction,
   rowIDHasher,
   buildListOfRowsToDisplay,
-  marshalAllMoreCast2ForecastRowsByStationAndDate
+  marshalAllMoreCast2ForecastRowsByStationAndDate,
+  parseObservedDailiesForStationsHelper,
+  buildYesterdayDailiesFromObserved
 } from 'features/moreCast2/util'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
@@ -19,6 +21,7 @@ const TEST_MODEL = ModelChoice.HRDPS
 const TEST_DATE = '2023-02-16T20:00:00+00:00'
 const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
 const TEST_DATE3 = '2023-02-18T20:00:00+00:00'
+const TEST_DATE4 = '2023-02-19T20:00:00+00:00'
 const TEST_CODE = 209
 const TEST_NAME = 'Victoria'
 
@@ -441,5 +444,84 @@ describe('buildListOfRowsToDisplay', () => {
     expect(displayRows[0].forDate.toISO()).toEqual(DateTime.fromISO(TEST_DATE).toISO())
     expect(displayRows[1].forDate.toISO()).toEqual(DateTime.fromISO(TEST_DATE2).toISO())
     expect(displayRows[2].forDate.toISO()).toEqual(DateTime.fromISO(TEST_DATE3).toISO())
+  })
+})
+
+describe('parseObservedDailiesForStationsHelper', () => {
+  it('should sort alphabetically by station name', () => {
+    const multipleObservations: ObservedDaily[] = [
+      {
+        id: '1',
+        data_type: 'YESTERDAY',
+        station_code: 2,
+        station_name: 'alpha',
+        utcTimestamp: DateTime.fromISO(TEST_DATE).toUTC().toMillis().toString(),
+        temperature: 1,
+        relative_humidity: 1,
+        precipitation: 1,
+        wind_direction: 1,
+        wind_speed: 1
+      },
+      {
+        id: '2',
+        data_type: 'YESTERDAY',
+        station_code: 1,
+        station_name: 'omega',
+        utcTimestamp: DateTime.fromISO(TEST_DATE).toUTC().toMillis().toString(),
+        temperature: 2,
+        relative_humidity: 2,
+        precipitation: 2,
+        wind_direction: 2,
+        wind_speed: 2
+      }
+    ]
+
+    const rows = parseObservedDailiesForStationsHelper(multipleObservations)
+    expect(rows.length).toEqual(2)
+    expect(rows[0].stationName).toEqual('alpha')
+    expect(rows[1].stationName).toEqual('omega')
+  })
+})
+
+describe('buildYesterdayDailiesFromObserved', () => {
+  it('should correctly create yesterdays as ObservedDaily[] for future dates based on a prior observed date', () => {
+    const observations: ObservedDaily[] = [
+      {
+        id: '1',
+        data_type: 'ACTUAL',
+        station_code: 1,
+        station_name: 'alpha',
+        utcTimestamp: DateTime.fromISO(TEST_DATE).toMillis().toString(),
+        temperature: 1,
+        relative_humidity: 1,
+        precipitation: 1,
+        wind_direction: 1,
+        wind_speed: 1
+      },
+      {
+        id: '2',
+        data_type: 'ACTUAL',
+        station_code: 1,
+        station_name: 'alpha',
+        utcTimestamp: DateTime.fromISO(TEST_DATE2).toMillis().toString(),
+        temperature: 2,
+        relative_humidity: 2,
+        precipitation: 2,
+        wind_direction: 2,
+        wind_speed: 2
+      }
+    ]
+    const yesterdays = buildYesterdayDailiesFromObserved(observations, DateTime.fromISO(TEST_DATE4).toISODate())
+    console.log(yesterdays)
+
+    expect(yesterdays.length).toEqual(2)
+    // values should come from most recent ObservedDaily
+    expect(yesterdays[0].temperature).toEqual(2)
+    expect(yesterdays[0].relative_humidity).toEqual(2)
+    expect(yesterdays[0].utcTimestamp).toEqual(DateTime.fromISO(TEST_DATE3).toMillis().toString())
+
+    expect(yesterdays[1].temperature).toEqual(2)
+    expect(yesterdays[1].relative_humidity).toEqual(2)
+    expect(yesterdays[1].utcTimestamp).toEqual(DateTime.fromISO(TEST_DATE4).toMillis().toString())
   })
 })
