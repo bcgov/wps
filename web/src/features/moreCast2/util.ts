@@ -1,7 +1,14 @@
-import { isNumber } from 'lodash'
+import { isNumber, isUndefined } from 'lodash'
 import { DateTime, Interval } from 'luxon'
-import { ModelChoice, ModelType, MoreCast2ForecastRecord, StationPrediction } from 'api/moreCast2API'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import {
+  ModelChoice,
+  ModelType,
+  MoreCast2ForecastRecord,
+  ObservedDailyResponse,
+  ObservedDaily,
+  StationPrediction
+} from 'api/moreCast2API'
+import { MoreCast2ForecastRow, MoreCast2ForecastRowsByDate } from 'features/moreCast2/interfaces'
 import { ColPrediction } from 'features/moreCast2/slices/columnModelSlice'
 import { StationGroupMember } from 'api/stationAPI'
 
@@ -43,6 +50,112 @@ export const parseForecastsHelper = (
   return rows
 }
 
+export const marshalAllMoreCast2ForecastRowsByStationAndDate = (
+  observedRows: MoreCast2ForecastRow[],
+  predictionRows: MoreCast2ForecastRow[]
+): { [stationCode: number]: MoreCast2ForecastRowsByDate[] } => {
+  const allRows = [...observedRows, ...predictionRows]
+  const stationsDict: { [stationCode: number]: MoreCast2ForecastRowsByDate[] } = {}
+  allRows.forEach(row => {
+    const rowsForStation = stationsDict[row.stationCode]
+    if (isUndefined(rowsForStation)) {
+      stationsDict[row.stationCode] = [{ dateString: row.forDate.toString(), rows: [row] }]
+    } else {
+      const relevantDate = stationsDict[row.stationCode].filter(
+        rowsByDate => rowsByDate.dateString === row.forDate.toString()
+      )
+      if (relevantDate.length === 0) {
+        stationsDict[row.stationCode].push({ dateString: row.forDate.toString(), rows: [row] })
+      } else {
+        relevantDate[0].rows.push(row)
+      }
+    }
+  })
+
+  return stationsDict
+}
+
+export const buildListOfRowsToDisplay = (
+  stationCodesDict: { [stationCode: number]: MoreCast2ForecastRowsByDate[] },
+  selectedStations: StationGroupMember[]
+): MoreCast2ForecastRow[] => {
+  const rowsToDisplay: MoreCast2ForecastRow[] = []
+
+  selectedStations.forEach(station => {
+    stationCodesDict[station.station_code]?.forEach(rowsForDate => {
+      if (rowsForDate.rows.length === 1) {
+        rowsToDisplay.push(rowsForDate.rows[0])
+      } else {
+        const forecastRows = rowsForDate.rows
+        // possibly incomplete logic. Atm we want to prioritize Actuals over any other data source
+        // Later on we will probably want additional logic for further prioritization of data sources
+        // (e.g., HRDPS takes precedence over GDPS)
+        const actualsRow = forecastRows.filter(row => row.temp.choice === ModelChoice.ACTUAL)[0]
+        if (!isUndefined(actualsRow)) {
+          rowsToDisplay.push(actualsRow)
+        }
+      }
+    })
+  })
+
+  rowsToDisplay.sort((a, b) => (a.forDate < b.forDate ? -1 : 1))
+  return rowsToDisplay
+}
+
+export const parseObservedDailiesFromResponse = (observedDailiesResponse: ObservedDailyResponse[]): ObservedDaily[] =>
+  observedDailiesResponse.map(daily => ({
+    ...daily,
+    id: rowIDHasher(daily.station_code, DateTime.fromISO(daily.utcTimestamp)),
+    data_type: ModelChoice.ACTUAL
+  }))
+
+export const buildYesterdayDailiesFromObserved = (
+  observedDailies: ObservedDaily[],
+  toDate: string
+): ObservedDaily[] => {
+  const yesterdayDailies: ObservedDaily[] = []
+
+  const stationCodes = Array.from(new Set(observedDailies.map(daily => daily.station_code)))
+  stationCodes.forEach(stationCode => {
+    const observationsForStation = observedDailies.filter(daily => daily.station_code === stationCode)
+    const mostRecentObservation = observationsForStation.reduce((a, b) => {
+      return DateTime.fromISO(a.utcTimestamp) > DateTime.fromISO(b.utcTimestamp) ? a : b
+    })
+    if (!isUndefined(mostRecentObservation)) {
+      // build a list of dates to bridge the gap between mostRecentObservation.utcTimestamp and toDate
+      const dates: DateTime[] = []
+      let nextDay = DateTime.fromISO(mostRecentObservation.utcTimestamp).plus({ days: 1 })
+      while (nextDay <= DateTime.fromISO(toDate).set({ hour: 20 })) {
+        dates.push(nextDay)
+        nextDay = nextDay.plus({ days: 1 })
+      }
+      dates.forEach(date => {
+        // We want to make a deep copy of mostRecentObservation to modify the data_type and utcTimestamp.
+        // To make a deep copy, need to convert mostRecentObservation to a JSON string, then parse the
+        // JSON string to create a new object. Silly Javascript!
+        const yesterdayDaily = JSON.parse(JSON.stringify(mostRecentObservation))
+        yesterdayDaily.data_type = 'YESTERDAY'
+        yesterdayDaily.utcTimestamp = date.set({ hour: 13 }).toISO()
+        yesterdayDaily.id = rowIDHasher(yesterdayDaily.station_code, DateTime.fromISO(yesterdayDaily.utcTimestamp))
+        yesterdayDailies.push(yesterdayDaily)
+      })
+    }
+  })
+
+  return yesterdayDailies
+}
+
+export const parseObservedDailiesForStationsHelper = (observedDailies: ObservedDaily[]): MoreCast2ForecastRow[] => {
+  const rows: MoreCast2ForecastRow[] = []
+
+  observedDailies.forEach(daily => {
+    const model = ModelChoice.ACTUAL
+    const row = buildMoreCast2ForecastRow(daily, model)
+    rows.push(row)
+  })
+  return rows.sort((a, b) => a.stationName.localeCompare(b.stationName))
+}
+
 // Convert the model predictions from the API to a format that can be used by a MoreCast2DataGrid data grid
 export const parseModelsForStationsHelper = (predictions: StationPrediction[]): MoreCast2ForecastRow[] => {
   const rows: MoreCast2ForecastRow[] = []
@@ -80,6 +193,36 @@ export const parseModelsForStationsHelper = (predictions: StationPrediction[]): 
     rows.push(row)
   })
   return rows.sort((a, b) => a.stationName.localeCompare(b.stationName))
+}
+
+export const buildMoreCast2ForecastRow = (dailyWeather: ObservedDaily, model: ModelChoice): MoreCast2ForecastRow => {
+  const row: MoreCast2ForecastRow = {
+    id: dailyWeather.id,
+    forDate: DateTime.fromISO(dailyWeather.utcTimestamp),
+    precip: {
+      value: isNumber(dailyWeather.precipitation) ? dailyWeather.precipitation : NaN,
+      choice: model
+    },
+    temp: {
+      value: isNumber(dailyWeather.temperature) ? dailyWeather.temperature : NaN,
+      choice: model
+    },
+    rh: {
+      value: isNumber(dailyWeather.relative_humidity) ? dailyWeather.relative_humidity : NaN,
+      choice: model
+    },
+    windDirection: {
+      value: isNumber(dailyWeather.wind_direction) ? dailyWeather.wind_direction : NaN,
+      choice: model
+    },
+    windSpeed: {
+      value: isNumber(dailyWeather.wind_speed) ? dailyWeather.wind_speed : NaN,
+      choice: model
+    },
+    stationName: dailyWeather.station_name,
+    stationCode: dailyWeather.station_code
+  }
+  return row
 }
 
 export const fillInTheModelBlanks = (
@@ -202,7 +345,7 @@ export const createDateInterval = (fromDate: DateTime, toDate: DateTime) => {
  * @param choice The ModelType to filter by
  * @returns A filtered array of MoreCast2ForecastRows
  */
-export const filterRowsByModelType = (rows: MoreCast2ForecastRow[], choice: ModelType) => {
+export const includeRowsByModelType = (rows: MoreCast2ForecastRow[], choice: ModelType) => {
   const filteredRows = rows.filter(
     row =>
       row.precip.choice === choice ||
@@ -211,5 +354,27 @@ export const filterRowsByModelType = (rows: MoreCast2ForecastRow[], choice: Mode
       row.windDirection.choice === choice ||
       row.windSpeed.choice === choice
   )
+  return filteredRows
+}
+
+/**
+ * Filters an array of MoreCast2ForecastRows to the subset of elements that do not contain a property
+ * with a model choice that matches the specified model type.
+ * @param rows The array of MoreCast2ForecastRows to filter
+ * @param choice The ModelType to exclude from returned rows
+ * @returns A filtered array of MoreCast2ForecastRows
+ */
+export const excludeRowsByModelType = (rows: MoreCast2ForecastRow[], choice: ModelType) => {
+  const filteredRows: MoreCast2ForecastRow[] = []
+  rows.forEach(row => {
+    if (
+      row.precip.choice !== choice &&
+      row.rh.choice !== choice &&
+      row.temp.choice !== choice &&
+      row.windDirection.choice !== choice &&
+      row.windSpeed.choice !== choice
+    )
+      filteredRows.push(row)
+  })
   return filteredRows
 }

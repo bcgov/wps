@@ -21,6 +21,7 @@ describe('columnYesterdaySlice', () => {
       const colYesterdayDailies: ColYesterdayDailies = {
         yesterdayDailies: [
           {
+            data_type: 'YESTERDAY',
             id: '1',
             station_code: 2,
             station_name: '3',

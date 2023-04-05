@@ -341,12 +341,17 @@ async def get_dailies_generator(
         session: ClientSession,
         header: dict,
         wfwx_stations: List[WFWXWeatherStation],
-        time_of_interest: datetime) -> List[dict]:
+        time_of_interest: datetime,
+        end_time_of_interest: Optional[datetime]) -> List[dict]:
     """ Get the daily actuals/forecasts for the given station ids. """
     # build a list of wfwx station id's
     wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
 
-    timestamp_of_interset = math.floor(time_of_interest.timestamp() * 1000)
+    timestamp_of_interest = math.floor(time_of_interest.timestamp() * 1000)
+    if end_time_of_interest is not None:
+        end_timestamp_of_interest = math.floor(end_time_of_interest.timestamp() * 1000)
+    else:
+        end_timestamp_of_interest = timestamp_of_interest
 
     # for local dev, we can use redis to reduce load in prod, and generally just makes development faster.
     # for production, it's more tricky - we don't want to put too much load on the wf1 api, but we don't
@@ -355,7 +360,7 @@ async def get_dailies_generator(
     use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
 
     dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailiesByStationCode(
-        timestamp_of_interset, timestamp_of_interset, wfwx_station_ids), 'dailies',
+        timestamp_of_interest, end_timestamp_of_interest, wfwx_station_ids), 'dailies',
         use_cache=use_cache,
         cache_expiry_seconds=cache_expiry_seconds)
 
@@ -370,13 +375,14 @@ async def get_fire_centers(session: ClientSession, header: dict,) -> List[FireCe
 
 async def get_dailies_for_stations_and_date(session: ClientSession,
                                             header: dict,
-                                            time_of_interest: datetime,
+                                            start_time_of_interest: datetime,
+                                            end_time_of_interest: datetime,
                                             unique_station_codes: List[int],
                                             mapper=yesterday_dailies_list_mapper):
     # get station information from the wfwx api
     wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
     # get the dailies for all the stations
-    raw_dailies = await get_dailies_generator(session, header, wfwx_stations, time_of_interest)
+    raw_dailies = await get_dailies_generator(session, header, wfwx_stations, start_time_of_interest, end_time_of_interest)
 
     yesterday_dailies = await mapper(raw_dailies)
 

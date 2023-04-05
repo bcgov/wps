@@ -1,15 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { ModelType, getYesterdayDailies, YesterdayDaily } from 'api/moreCast2API'
+import { ModelType, ObservedDaily, getObservedDailies } from 'api/moreCast2API'
 import { StationGroupMember } from 'api/stationAPI'
 import { AppThunk } from 'app/store'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
-import { fillInTheYesterdayDailyBlanks, parseYesterdayDailiesFromResponse } from 'features/moreCast2/yesterdayDailies'
+import { parseObservedDailiesFromResponse } from 'features/moreCast2/util'
+import { fillInTheYesterdayDailyBlanks } from 'features/moreCast2/yesterdayDailies'
 import { logError } from 'utils/error'
 
 export interface ColYesterdayDailies {
   colField: keyof MoreCast2ForecastRow
   modelType: ModelType
-  yesterdayDailies: YesterdayDaily[]
+  yesterdayDailies: ObservedDaily[]
 }
 
 interface State {
@@ -56,22 +57,23 @@ export const getColumnYesterdayDailies =
     dateInterval: string[],
     model: ModelType,
     colField: keyof MoreCast2ForecastRow,
-    fromDate: string
+    fromDate: string,
+    toDate: string
   ): AppThunk =>
   async dispatch => {
     try {
       dispatch(getColumnYesterdayDailiesStart())
-      let yesterdayDailies: YesterdayDaily[] = []
+      let observedDailies: ObservedDaily[] = []
       if (stationCodes.length) {
-        const yesterdayDailiesResponse = await getYesterdayDailies(stationCodes, fromDate)
-        const dailies: YesterdayDaily[] = parseYesterdayDailiesFromResponse(yesterdayDailiesResponse)
-        yesterdayDailies = fillInTheYesterdayDailyBlanks(fireCentreStations, dailies, dateInterval)
+        const observedDailiesResponse = await getObservedDailies(stationCodes, fromDate, toDate)
+        const dailies: ObservedDaily[] = parseObservedDailiesFromResponse(observedDailiesResponse)
+        observedDailies = fillInTheYesterdayDailyBlanks(fireCentreStations, dailies, dateInterval)
       }
       dispatch(
         getColumnYesterdayDailiesSuccess({
           colField: colField,
           modelType: model,
-          yesterdayDailies
+          yesterdayDailies: observedDailies
         })
       )
     } catch (err) {

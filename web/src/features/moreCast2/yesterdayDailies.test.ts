@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { ModelChoice, YesterdayDaily } from 'api/moreCast2API'
+import { ModelChoice, ObservedDaily } from 'api/moreCast2API'
 import {
   defaultsForMissingDailies,
   extendDailiesForStations,
@@ -11,13 +11,15 @@ import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { rowIDHasher } from 'features/moreCast2/util'
 import { ColYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
 import { StationGroupMember } from 'api/stationAPI'
+import { omit } from 'lodash'
 
 const START_DATE = '2023-02-16T20:00:00+00:00'
 const END_DATE = '2023-02-17T20:00:00+00:00'
 
-const yesterdayDailies: YesterdayDaily[] = [
+const yesterdayDailies: ObservedDaily[] = [
   {
     id: '1',
+    data_type: 'YESTERDAY',
     station_code: 1,
     station_name: 'test',
     utcTimestamp: START_DATE,
@@ -78,6 +80,49 @@ describe('yesterdayDailies', () => {
 
       expect(DateTime.fromISO(result[0].utcTimestamp)).toEqual(DateTime.fromISO(START_DATE))
       expect(DateTime.fromISO(result[1].utcTimestamp)).toEqual(DateTime.fromISO(END_DATE))
+    })
+    it('extends the dailies for a date range using the latest daily for a given station', () => {
+      const startDate = START_DATE
+      const midDate = END_DATE
+      const endDate = '2023-02-18T20:00:00+00:00'
+
+      const multipleObservations: ObservedDaily[] = [
+        {
+          id: '1',
+          data_type: 'YESTERDAY',
+          station_code: 1,
+          station_name: 'test',
+          utcTimestamp: startDate,
+          temperature: 1,
+          relative_humidity: 1,
+          precipitation: 1,
+          wind_direction: 1,
+          wind_speed: 1
+        },
+        {
+          id: '2',
+          data_type: 'YESTERDAY',
+          station_code: 1,
+          station_name: 'test',
+          utcTimestamp: midDate,
+          temperature: 2,
+          relative_humidity: 2,
+          precipitation: 2,
+          wind_direction: 2,
+          wind_speed: 2
+        }
+      ]
+      const result = extendDailiesForStations(multipleObservations, [
+        DateTime.fromISO(startDate),
+        DateTime.fromISO(endDate)
+      ])
+
+      expect(result.length).toEqual(3)
+
+      expect(result[0]).toEqual(multipleObservations[0])
+      expect(result[1]).toEqual(multipleObservations[1])
+      expect(omit(result[2], ['id', 'utcTimestamp'])).toEqual(omit(multipleObservations[1], ['id', 'utcTimestamp']))
+      expect(DateTime.fromISO(result[2].utcTimestamp)).toEqual(DateTime.fromISO(endDate))
     })
   })
 
@@ -141,6 +186,7 @@ describe('yesterdayDailies', () => {
         yesterdayDailies: [
           {
             id: rowIDHasher(1, DateTime.fromISO(START_DATE)),
+            data_type: 'YESTERDAY',
             utcTimestamp: START_DATE,
             precipitation: 2,
             relative_humidity: 2,
@@ -152,6 +198,7 @@ describe('yesterdayDailies', () => {
           },
           {
             id: rowIDHasher(2, DateTime.fromISO(END_DATE)),
+            data_type: 'YESTERDAY',
             utcTimestamp: END_DATE,
             precipitation: 2,
             relative_humidity: 2,
