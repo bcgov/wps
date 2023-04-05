@@ -353,12 +353,18 @@ const MoreCast2Page = () => {
 
   useEffect(() => {
     // Handle the switch from create to edit mode and vice versa
-    forecastAction === ForecastActionChoice.CREATE ? fetchStationPredictions() : fetchForecasts()
+    if (forecastAction === ForecastActionChoice.CREATE) {
+      fetchStationPredictions()
+      fetchStationObservedDailies()
+    } else fetchForecasts()
   }, [forecastAction]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const newRows = parseForecastsHelper(moreCast2Forecasts, selectedGroupsMembers)
     setForecastsAsMoreCast2ForecastRows(newRows)
+    if (forecastAction === ForecastActionChoice.EDIT) {
+      setRowsToDisplay(forecastRows)
+    }
   }, [moreCast2Forecasts]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // A valid, submittable forecast can't contain NaN for any values
