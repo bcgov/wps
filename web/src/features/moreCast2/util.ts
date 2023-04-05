@@ -116,7 +116,6 @@ export const buildYesterdayDailiesFromObserved = (
   const yesterdayDailies: ObservedDaily[] = []
 
   const stationCodes = Array.from(new Set(observedDailies.map(daily => daily.station_code)))
-
   stationCodes.forEach(stationCode => {
     const observationsForStation = observedDailies.filter(daily => daily.station_code === stationCode)
     const mostRecentObservation = observationsForStation.reduce((a, b) => {
@@ -130,7 +129,6 @@ export const buildYesterdayDailiesFromObserved = (
         dates.push(nextDay)
         nextDay = nextDay.plus({ days: 1 })
       }
-
       dates.forEach(date => {
         // We want to make a deep copy of mostRecentObservation to modify the data_type and utcTimestamp.
         // To make a deep copy, need to convert mostRecentObservation to a JSON string, then parse the
