@@ -19,3 +19,13 @@ export interface MoreCast2ForecastRow {
   windDirection: PredictionItem
   windSpeed: PredictionItem
 }
+
+export interface MoreCast2ForecastRowsByDate {
+  dateString: string
+  rows: MoreCast2ForecastRow[]
+}
+
+export interface MoreCast2ForecastRowCollectionByStationCode {
+  stationCode: number
+  dates: MoreCast2ForecastRowsByDate[]
+}

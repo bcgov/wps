@@ -47,9 +47,9 @@ export const getMoreCast2Forecasts =
   (startDate: DateTime, endDate: DateTime, stationCodes: number[]): AppThunk =>
   async dispatch => {
     try {
-      dispatch(getMoreCast2ForecastsStart())
       let forecasts: MoreCast2ForecastRecord[] = []
       if (stationCodes.length) {
+        dispatch(getMoreCast2ForecastsStart())
         forecasts = (await getMoreCast2ForecastRecordsByDateRange(startDate, endDate, stationCodes)).map(forecast => ({
           ...forecast,
           id: rowIDHasher(forecast.station_code, DateTime.fromMillis(forecast.for_date))

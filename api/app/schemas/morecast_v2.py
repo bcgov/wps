@@ -71,13 +71,13 @@ class MorecastForecastResponse(BaseModel):
     forecasts: List[MoreCastForecastOutput]
 
 
-class YesterdayStationDailies(BaseModel):
-    """ Yesterday station dailies request """
+class ObservedDailiesForStations(BaseModel):
+    """ Request for observed dailies for stations """
     station_codes: List[int]
 
 
-class YesterdayDaily(BaseModel):
-    """ Yesterday station daily data """
+class ObservedDaily(BaseModel):
+    """ Observed (actual) daily weather data for a specific station and date """
     station_code: int
     station_name: str
     utcTimestamp: datetime
@@ -88,6 +88,6 @@ class YesterdayDaily(BaseModel):
     wind_speed: Optional[float] = None
 
 
-class YesterdayStationDailiesResponse(BaseModel):
+class ObservedStationDailiesResponse(BaseModel):
     """ Yesterday station dailies response """
-    dailies: List[YesterdayDaily]
+    dailies: List[ObservedDaily]

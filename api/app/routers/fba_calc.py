@@ -208,13 +208,13 @@ async def get_stations_data(
             # get station information from the wfwx api
             wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
             # get the dailies for all the stations
-            dailies = await get_dailies_generator(session, header, wfwx_stations, time_of_interest)
+            dailies = await get_dailies_generator(session, header, wfwx_stations, time_of_interest, time_of_interest)
             # turn it into a dictionary so we can easily get at data using a station id
             dailies_by_station_id = {raw_daily.get('stationId'): raw_daily async for raw_daily in dailies}
             # must retrieve the previous day's observed/forecasted FFMC value from WFWX
             prev_day = time_of_interest - timedelta(days=1)
             # get the "daily" data for the station for the previous day
-            yesterday_response = await get_dailies_generator(session, header, wfwx_stations, prev_day)
+            yesterday_response = await get_dailies_generator(session, header, wfwx_stations, prev_day, prev_day)
             # turn it into a dictionary so we can easily get at data
             yesterday_dailies_by_station_id = {raw_daily.get('stationId'):
                                                raw_daily async for raw_daily in yesterday_response}

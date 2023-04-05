@@ -13,12 +13,13 @@ export enum ModelChoice {
   NAM = 'NAM',
   RDPS = 'RDPS',
   MANUAL = 'MANUAL',
-  YESTERDAY = 'YESTERDAY'
+  YESTERDAY = 'YESTERDAY',
+  ACTUAL = 'ACTUAL'
 }
 
 export const DEFAULT_MODEL_TYPE: ModelType = ModelChoice.HRDPS
 
-export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'YESTERDAY' | 'NAM' | 'RDPS' | 'MANUAL' | 'FORECAST'
+export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'YESTERDAY' | 'NAM' | 'RDPS' | 'MANUAL' | 'FORECAST' | 'ACTUAL'
 
 export const ModelChoices: ModelType[] = [
   ModelChoice.GDPS,
@@ -30,11 +31,11 @@ export const ModelChoices: ModelType[] = [
   ModelChoice.RDPS
 ]
 
-export interface YesterdayDailiesResponse {
-  dailies: YesterdayDailyResponse[]
+export interface ObservedDailiesResponse {
+  dailies: ObservedDailyResponse[]
 }
 
-export interface YesterdayDailyResponse {
+export interface ObservedDailyResponse {
   station_code: number
   station_name: string
   utcTimestamp: string
@@ -45,8 +46,14 @@ export interface YesterdayDailyResponse {
   wind_speed: number | null
 }
 
-export interface YesterdayDaily extends YesterdayDailyResponse {
+export interface ObservedDaily extends ObservedDailyResponse {
   id: string
+  data_type: 'ACTUAL' | 'YESTERDAY'
+}
+
+export interface ObservedAndYesterdayDailiesResponse {
+  observedDailies: ObservedDaily[]
+  yesterdayDailies: ObservedDaily[]
 }
 
 export interface StationPrediction {
@@ -166,20 +173,16 @@ export async function getModelPredictions(
   return data.map(d => ({ ...d, id: rowIDHasher(d.station.code, DateTime.fromISO(d.datetime)) }))
 }
 
-/**
- * Get noon yesterday dailies for the specified date
- * @param stationCodes A list of station codes of interest
- * @param startDate The first date for which we ask for the day before
- */
-export async function getYesterdayDailies(
+export async function getObservedDailies(
   stationCodes: number[],
-  startDate: string
-): Promise<YesterdayDailyResponse[]> {
+  startDate: string,
+  endDate: string
+): Promise<ObservedDailyResponse[]> {
   if (stationCodes.length === 0) {
     return []
   }
-  const url = `/morecast-v2/yesterday-dailies/${startDate}`
-  const { data } = await axios.post<YesterdayDailiesResponse>(url, {
+  const url = `/morecast-v2/observed-dailies/${startDate}/${endDate}`
+  const { data } = await axios.post<ObservedDailiesResponse>(url, {
     station_codes: stationCodes
   })
 
