@@ -78,41 +78,29 @@ def mock_download(monkeypatch):
     monkeypatch.setattr(requests, 'get', mock_requests_get_gfs)
 
 
-@pytest.fixture()
-def mock_assert_folder_exists(monkeypatch):
-    """ fixture for NOAA download folder """
-    def mock_assert_gfs_folder_exists(*args, **kwargs):
-        """ MockResponse with status code 404 or 200 depending on date specified """
-        request_date = kwargs.get('request_date')
-        if request_date == '20230228':
-            return MockResponse(status_code=200)
-        return MockResponse(status_code=404)
-    monkeypatch.setattr(noaa, 'assert_gfs_folder_exists', mock_assert_gfs_folder_exists)
-
-
-def test_get_gfs_model_run_download_urls_for_0000_utc():
+def test_get_gfs_model_run_download_urls_for_00_utc():
     # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total)
     expected_num_of_urls = 2 * 11
-    actual_urls = list(noaa.get_gfs_model_run_download_urls(datetime(2023, 3, 2, 20), '0000'))
+    actual_urls = list(noaa.get_gfs_model_run_download_urls(datetime(2023, 3, 2, 20), '00'))
     assert len(actual_urls) == expected_num_of_urls
-    assert actual_urls[0] == noaa.GFS_BASE_URL + '202303/20230302/gfs_4_20230302_0000_018.grb2'
-    assert actual_urls[-1] == noaa.GFS_BASE_URL + '202303/20230302/gfs_4_20230302_0000_261.grb2'
+    assert actual_urls[0] == noaa.GFS_BASE_URL + 'gfs.20230302/00/atmos/gfs.t00z.pgrb2full.0p50.f018'
+    assert actual_urls[-1] == noaa.GFS_BASE_URL + 'gfs.20230302/00/atmos/gfs.t00z.pgrb2full.0p50.f261'
 
 
-def test_get_gfs_model_run_download_urls_for_0600_utc():
+def test_get_gfs_model_run_download_urls_for_06_utc():
     # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total incl. today)
     expected_num_of_urls = 2 * 11
-    actual_urls = list(noaa.get_gfs_model_run_download_urls(datetime(2023, 2, 15, 0), '0600'))
+    actual_urls = list(noaa.get_gfs_model_run_download_urls(datetime(2023, 2, 15, 0), '06'))
     assert len(actual_urls) == expected_num_of_urls
-    assert actual_urls[0] == noaa.GFS_BASE_URL + '202302/20230215/gfs_4_20230215_0600_012.grb2'
-    assert actual_urls[1] == noaa.GFS_BASE_URL + '202302/20230215/gfs_4_20230215_0600_015.grb2'
-    assert actual_urls[-1] == noaa.GFS_BASE_URL + '202302/20230215/gfs_4_20230215_0600_255.grb2'
+    assert actual_urls[0] == noaa.GFS_BASE_URL + 'gfs.20230215/06/atmos/gfs.t06z.pgrb2full.0p50.f012'
+    assert actual_urls[1] == noaa.GFS_BASE_URL + 'gfs.20230215/06/atmos/gfs.t06z.pgrb2full.0p50.f015'
+    assert actual_urls[-1] == noaa.GFS_BASE_URL + 'gfs.20230215/06/atmos/gfs.t06z.pgrb2full.0p50.f255'
 
 
 def test_parse_url_for_timestamps_simple():
     """ simple test case for noaa.parse_url_for_timestamps(): model_run_timestamp and prediction_timestamp
     are on the same day """
-    url = 'https://example.com/model/gfs_4_20230221_0600_012.grb2'
+    url = 'https://example.com/pub/data/nccf/com/gfs/prod/gfs.20230221/06/atmos/gfs.t06z.pgrb2full.0p50.f012'
     expected_model_run_timestamp = datetime(2023, 2, 21, 6, 0, tzinfo=timezone.utc)
     expected_prediction_timestamp = datetime(2023, 2, 21, 18, 0, tzinfo=timezone.utc)
     actual_model_run_timestamp, actual_prediction_timestamp = noaa.parse_url_for_timestamps(url)
@@ -123,7 +111,7 @@ def test_parse_url_for_timestamps_simple():
 def test_parse_url_for_timestamps_complex():
     """ more complex test case for noaa.parse_url_for_timestamps(): model_run_timestamp and
     prediction_timestamp are on different days """
-    url = 'https://example.com/model/gfs_4_20230221_0600_039.grb2'
+    url = 'https://example.com/pub/data/nccf/com/gfs/prod/gfs.20230221/06/atmos/gfs.t06z.pgrb2full.0p50.f039'
     expected_model_run_timestamp = datetime(2023, 2, 21, 6, 0, tzinfo=timezone.utc)
     expected_prediction_timestamp = datetime(2023, 2, 22, 21, 0, tzinfo=timezone.utc)
     actual_model_run_timestamp, actual_prediction_timestamp = noaa.parse_url_for_timestamps(url)
@@ -131,25 +119,21 @@ def test_parse_url_for_timestamps_complex():
     assert expected_prediction_timestamp == actual_prediction_timestamp
 
 
-def test_get_datestrings_from_datetime():
+def test_get_year_mo_date_string_from_datetime():
     test_cases = [
         {
             'date': datetime(2023, 2, 14, 0, tzinfo=timezone.utc),
-            'expected_year_mo': '202302',
             'expected_year_mo_date': '20230214'
         },
         {
             'date': datetime(2023, 6, 5, 0, tzinfo=timezone.utc),
-            'expected_year_mo': '202306',
             'expected_year_mo_date': '20230605'
         },
         {
             'date': datetime(2023, 10, 31, 20, tzinfo=timezone.utc),
-            'expected_year_mo': '202310',
             'expected_year_mo_date': '20231031'
         },
     ]
     for test in test_cases:
-        actual_strings = noaa.get_date_strings_from_datetime(test.get('date'))
-        assert test.get('expected_year_mo') == actual_strings[0]
-        assert test.get('expected_year_mo_date') == actual_strings[1]
+        actual_string = noaa.get_year_mo_date_string_from_datetime(test.get('date'))
+        assert test.get('expected_year_mo_date') == actual_string

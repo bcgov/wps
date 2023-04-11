@@ -38,19 +38,11 @@ def get_gfs_model_run_hours():
         yield hour_str
 
 
-def get_date_strings_from_datetime(datetime: datetime.datetime) -> str:
+def get_year_mo_date_string_from_datetime(datetime: datetime.datetime) -> str:
     """ Returns string for year_mo_date to be used when requesting
     grib files from NOAA"""
     year_mo_date = f"{datetime.year}" + format(datetime.month, '02d') + format(datetime.day, '02d')
     return year_mo_date
-
-
-def assert_gfs_folder_exists(year_mo: str, year_mo_date: str) -> bool:
-    """ Returns boolean value indicating whether the GFS data folder exists on the NOAA HTTPS server
-    for the given year_month_date string """
-    url = GFS_BASE_URL + f'{year_mo}/{year_mo_date}'
-    response = requests.get(url, timeout=60)
-    return response.status_code == 200
 
 
 def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
@@ -77,7 +69,7 @@ def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycl
     # sort list purely for human convenience when debugging. Functionally it doesn't matter
     all_hours.sort()
 
-    year_mo_date = get_date_strings_from_datetime(download_date)
+    year_mo_date = get_year_mo_date_string_from_datetime(download_date)
 
     for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')
@@ -87,10 +79,11 @@ def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycl
 
 def parse_url_for_timestamps(url: str):
     """ Interpret the model_run_timestamp and prediction_timestamp from a model's URL """
+    # sample URL: https://nomads.ncep.noaa.gov/pub/data/nccf/com/gfs/prod/gfs.20230411/00/atmos/gfs.t00z.pgrb2full.0p50.f018
     url_parts = url.split('/')
+    # extract date string only from gfs.20230411 in sample URL
     model_run_date = url_parts[9][4:]
     model_run_hour = url_parts[10]
-    # timestamp_info has format 'gfs_4_{model run date yyyymmdd}_{model run hour xxxx}_{forecast hour xxx}.grb2'
     forecast_hour = url[-3:]
     model_run_datetime_str = model_run_date + ' ' + model_run_hour
     model_run_timestamp = datetime.datetime.strptime(model_run_datetime_str, '%Y%m%d %H')
