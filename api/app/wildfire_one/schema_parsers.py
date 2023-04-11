@@ -51,17 +51,19 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
 
 async def yesterday_dailies_list_mapper(raw_dailies: Generator[dict, None, None]):
     """ Maps raw dailies to yesterday dailies list"""
-    yesterday_dailies = [
-        ObservedDaily(
-            station_code=raw_daily.get('stationData').get('stationCode'),
-            station_name=raw_daily.get('stationData').get('displayLabel'),
-            utcTimestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),
-            temperature=raw_daily.get('temperature'),
-            relative_humidity=raw_daily.get('relativeHumidity'),
-            precipitation=raw_daily.get('precipitation'),
-            wind_direction=raw_daily.get('windDirection'),
-            wind_speed=raw_daily.get('windSpeed')
-        ) async for raw_daily in raw_dailies]
+    yesterday_dailies = []
+    async for raw_daily in raw_dailies:
+        if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == "ACTUAL":
+            yesterday_dailies.append(ObservedDaily(
+                station_code=raw_daily.get('stationData').get('stationCode'),
+                station_name=raw_daily.get('stationData').get('displayLabel'),
+                utcTimestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),
+                temperature=raw_daily.get('temperature'),
+                relative_humidity=raw_daily.get('relativeHumidity'),
+                precipitation=raw_daily.get('precipitation'),
+                wind_direction=raw_daily.get('windDirection'),
+                wind_speed=raw_daily.get('windSpeed')
+            ))
     return yesterday_dailies
 
 
