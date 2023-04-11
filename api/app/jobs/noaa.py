@@ -28,38 +28,21 @@ if __name__ == "__main__":
 
 logger = logging.getLogger(__name__)
 
-GFS_BASE_URL = "https://www.ncei.noaa.gov/data/global-forecast-system/access/grid-004-0.5-degree/forecast/"
+GFS_BASE_URL = "https://nomads.ncep.noaa.gov/pub/data/nccf/com/gfs/prod/"
 
 
 def get_gfs_model_run_hours():
-    """ Yield GFS model run hours ("0000", "0600", "1200", "1800") """
+    """ Yield GFS model run hours ("00", "06", "12", "18") """
     for hour in range(0, 19, 6):
-        hour_str = format(hour, '02d') + "00"
+        hour_str = format(hour, '02d')
         yield hour_str
 
 
-def get_date_strings_from_datetime(datetime: datetime.datetime) -> tuple[str, str]:
-    """ Returns strings for year_mo and year_mo_date to be used when requesting
+def get_date_strings_from_datetime(datetime: datetime.datetime) -> str:
+    """ Returns string for year_mo_date to be used when requesting
     grib files from NOAA"""
-    year_mo = f"{datetime.year}" + format(datetime.month, '02d')
-    year_mo_date = year_mo + format(datetime.day, '02d')
-    return (year_mo, year_mo_date)
-
-
-def get_date_for_download(now: datetime.datetime) -> tuple[str, str]:
-    """ Returns tuple of formatted strings for year_month and year_month_date.
-    NOAA publishes GFS model data several days behind schedule, so we need to 
-    determine the most recent date for which GFS data is available to download.
-    """
-    year_mo, year_mo_date = get_date_strings_from_datetime(now)
-    days_backward = 0
-    while assert_gfs_folder_exists(year_mo, year_mo_date) is False:
-        logger.warning('GFS data folder for %s not found on NOAA server', year_mo_date)
-        days_backward += 1
-        previous_day = now - datetime.timedelta(days=days_backward)
-        year_mo, year_mo_date = get_date_strings_from_datetime(previous_day)
-
-    return previous_day
+    year_mo_date = f"{datetime.year}" + format(datetime.month, '02d') + format(datetime.day, '02d')
+    return year_mo_date
 
 
 def assert_gfs_folder_exists(year_mo: str, year_mo_date: str) -> bool:
@@ -77,16 +60,16 @@ def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycl
     # but GFS model run timestamps are in UTC. 12:00 PST = 20:00 UTC, so we need to pull
     # data for the 18:00 and 21:00 UTC model runs, then perform linear interpolation to
     # calculate noon values.
-    if model_cycle == '0000':
+    if model_cycle == '00':
         before_noon = list(range(18, 265, 24))
         after_noon = list(range(21, 265, 24))
-    elif model_cycle == '0600':
+    elif model_cycle == '06':
         before_noon = list(range(12, 253, 24))
         after_noon = list(range(15, 256, 24))
-    elif model_cycle == '1200':
+    elif model_cycle == '12':
         before_noon = list(range(6, 247, 24))
         after_noon = list(range(9, 250, 24))
-    elif model_cycle == '1800':
+    elif model_cycle == '18':
         before_noon = list(range(0, 241, 24))
         after_noon = list(range(3, 244, 24))
 
@@ -94,24 +77,23 @@ def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycl
     # sort list purely for human convenience when debugging. Functionally it doesn't matter
     all_hours.sort()
 
-    year_mo, year_mo_date = get_date_strings_from_datetime(download_date)
+    year_mo_date = get_date_strings_from_datetime(download_date)
 
     for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')
-        filename = f'{year_mo}/{year_mo_date}/gfs_4_{year_mo_date}_{model_cycle}_{hhh}.grb2'
+        filename = f'gfs.{year_mo_date}/{model_cycle}/atmos/gfs.t{model_cycle}z.pgrb2full.0p50.f{hhh}'
         yield GFS_BASE_URL + filename
 
 
 def parse_url_for_timestamps(url: str):
     """ Interpret the model_run_timestamp and prediction_timestamp from a model's URL """
-    # only need the substring after the final '/'
-    timestamp_info = url.split('/')[-1]
+    url_parts = url.split('/')
+    model_run_date = url_parts[9][4:]
+    model_run_hour = url_parts[10]
     # timestamp_info has format 'gfs_4_{model run date yyyymmdd}_{model run hour xxxx}_{forecast hour xxx}.grb2'
-    forecast_hour = timestamp_info[-8:-5]
-    model_run_hour = timestamp_info[-13:-9]
-    model_run_date = timestamp_info[6:14]
+    forecast_hour = url[-3:]
     model_run_datetime_str = model_run_date + ' ' + model_run_hour
-    model_run_timestamp = datetime.datetime.strptime(model_run_datetime_str, '%Y%m%d %H%M')
+    model_run_timestamp = datetime.datetime.strptime(model_run_datetime_str, '%Y%m%d %H')
     model_run_timestamp = model_run_timestamp.replace(tzinfo=datetime.timezone.utc)
     prediction_timestamp = model_run_timestamp + datetime.timedelta(hours=int(forecast_hour))
 
@@ -193,9 +175,8 @@ class GFS():
         logger.info('Processing {} model run cycle {}'.format(
             self.model_type, model_cycle))
 
-        download_date = get_date_for_download(self.now)
         # Get the urls for the current model run.
-        urls = list(get_gfs_model_run_download_urls(download_date, model_cycle))
+        urls = list(get_gfs_model_run_download_urls(self.now, model_cycle))
 
         # Process all the urls.
         self.process_model_run_urls(urls)
