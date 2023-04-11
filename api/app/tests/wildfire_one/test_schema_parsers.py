@@ -126,7 +126,7 @@ def test_station_mapper():
     assert result[1].id == '2'
 
 
-async def async_yesterday_dailies(recordType: str):
+async def async_yesterday_dailies(record_type: str):
     yield {
         "stationData": {
             "stationCode": 1,
@@ -138,7 +138,7 @@ async def async_yesterday_dailies(recordType: str):
             }
         },
         "recordType": {
-            "id": recordType
+            "id": record_type
         },
         "weatherTimestamp": 1680984000000,
         "temperature": 1,
