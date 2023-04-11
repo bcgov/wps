@@ -6,7 +6,6 @@ import datetime
 from typing import Generator
 import logging
 import tempfile
-import requests
 from sqlalchemy.orm import Session
 from app.db.crud.weather_models import (get_processed_file_record,
                                         get_prediction_model,
