@@ -15,6 +15,18 @@ class ModelChoice(str, Enum):
     MANUAL = 'MANUAL'
 
 
+class WeatherDeterminate(str, Enum):
+    """ Enumerator for all valid determinate weather sources"""
+    GDPS = 'GDPS'
+    GFS = 'GFS'
+    HRDPS = 'HRDPS'
+    RDPS = 'RDPS'
+
+    # non prediction models
+    FORECAST = 'FORECAST'
+    ACTUAL = 'ACTUAL'
+
+
 class ForecastedTemperature(BaseModel):
     """ Forecaster chosen temperature """
     temp: float
@@ -91,3 +103,22 @@ class ObservedDaily(BaseModel):
 class ObservedStationDailiesResponse(BaseModel):
     """ Yesterday station dailies response """
     dailies: List[ObservedDaily]
+
+
+class WeatherIndeterminate(BaseModel):
+    """ Used to represent a predicted or actual value """
+    station_code: int
+    station_name: str
+    determinate: WeatherDeterminate
+    utcTimestamp: datetime
+    temperature: Optional[float] = None
+    relative_humidity: Optional[float] = None
+    precipitation: Optional[float] = None
+    wind_direction: Optional[float] = None
+    wind_speed: Optional[float] = None
+
+
+class IndeterminateDailiesResponse(BaseModel):
+    actuals: List[WeatherIndeterminate]
+    predictions: List[WeatherIndeterminate]
+    forecasts: List[WeatherDeterminate]

@@ -17,7 +17,7 @@ define build-static
 endef
 
 define run-env-canada-model
-	POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.weather_models.env_canada ${1}
+	POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.jobs.env_canada ${1}
 endef
 
 define run-env-canada
