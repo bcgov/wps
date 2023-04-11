@@ -1,4 +1,10 @@
-from app.wildfire_one.schema_parsers import parse_noon_forecast, parse_hourly_actual, unique_weather_stations_mapper, weather_stations_mapper
+from typing import List
+from app.schemas.morecast_v2 import ObservedDaily
+from app.wildfire_one.schema_parsers import (parse_noon_forecast,
+                                             parse_hourly_actual,
+                                             unique_weather_stations_mapper,
+                                             weather_stations_mapper, yesterday_dailies_list_mapper)
+import pytest
 
 
 def build_mock_station_group_member(station_id: str, station_code: str):
@@ -118,3 +124,39 @@ def test_station_mapper():
     assert result[0].id == '1'
     assert result[1].station_code == 2
     assert result[1].id == '2'
+
+
+async def async_yesterday_dailies(record_type: str):
+    yield {
+        "stationData": {
+            "stationCode": 1,
+            "displayLabel": "Test",
+            "latitude": 1,
+            "longitude": 1,
+            "stationStatus": {
+                "id": "ACTIVE",
+            }
+        },
+        "recordType": {
+            "id": record_type
+        },
+        "weatherTimestamp": 1680984000000,
+        "temperature": 1,
+        "relativeHumidity": 1,
+        "precipitation": 1,
+        "windDirection": 1,
+        "windSpeed": 1
+    }
+
+
+@pytest.mark.anyio
+async def test_yesterday_dailies_mapper_actual(anyio_backend):
+    result: List[ObservedDaily] = await yesterday_dailies_list_mapper(async_yesterday_dailies("ACTUAL"))
+    assert len(result) == 1
+    assert result[0].station_code == 1
+
+
+@pytest.mark.anyio
+async def test_yesterday_dailies_mapper_forecast(anyio_backend):
+    result: List[ObservedDaily] = await yesterday_dailies_list_mapper(async_yesterday_dailies("FORECAST"))
+    assert len(result) == 0
