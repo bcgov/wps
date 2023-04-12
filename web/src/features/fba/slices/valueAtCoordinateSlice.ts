@@ -3,6 +3,7 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { getValueAtCoordinate } from 'api/fbaAPI'
 import { DateTime } from 'luxon'
+import { isNull } from 'lodash'
 
 export interface IValueAtCoordinate {
   value: string | undefined
@@ -105,78 +106,80 @@ const fbpValueEncoder = (value: number): string => {
 export const fetchValuesAtCoordinate =
   (latitude: number, longitude: number, date: DateTime): AppThunk =>
   async dispatch => {
-    const isoDate = date.toISODate().replaceAll('-', '')
-    try {
-      dispatch(getValueAtCoordinateStart())
-      const actions = [
-        getValueAtCoordinate(
-          `gpdqha/sfms/cog/cog_hfi${isoDate}.tif`,
-          latitude,
-          longitude,
-          `SFMS HFI ${date.toLocaleString()}`,
-          defaultValueEncoder
-        ),
-        getValueAtCoordinate(
-          `gpdqha/ftl/ftl_2018_cloudoptimized.tif`,
-          latitude,
-          longitude,
-          '2018 FTL',
-          fbpValueEncoder
-        ),
-        getValueAtCoordinate(
-          `gpdqha/sfms/cog/static/cog_fbp2021.tif`,
-          latitude,
-          longitude,
-          'SFMS 2021 FBP',
-          fbpValueEncoder
-        ),
-        getValueAtCoordinate(
-          `gpdqha/sfms/cog/static/cog_m12_2021.tif`,
-          latitude,
-          longitude,
-          'SFMS 2021 M12',
-          defaultValueEncoder
-        ),
-        getValueAtCoordinate(
-          `gpdqha/sfms/cog/static/cog_bc_elevation.tif`,
-          latitude,
-          longitude,
-          'SFMS elevation',
-          defaultValueEncoder
-        ),
-        getValueAtCoordinate(
-          `gpdqha/dem/cog/cog_BC_Area_CDEM.tif`,
-          latitude,
-          longitude,
-          '12 arc second elevation',
-          defaultValueEncoder
-        ),
-        getValueAtCoordinate(
-          `gpdqha/sfms/cog/static/cog_bc_aspect.tif`,
-          latitude,
-          longitude,
-          'SFMS aspect',
-          defaultValueEncoder
-        ),
-        getValueAtCoordinate(
-          `gpdqha/sfms/cog/static/cog_bc_slope.tif`,
-          latitude,
-          longitude,
-          'SFMS slope',
-          defaultValueEncoder
+    if (!isNull(date)) {
+      const isoDate = date.toISODate().replaceAll('-', '')
+      try {
+        dispatch(getValueAtCoordinateStart())
+        const actions = [
+          getValueAtCoordinate(
+            `gpdqha/sfms/cog/cog_hfi${isoDate}.tif`,
+            latitude,
+            longitude,
+            `SFMS HFI ${date.toLocaleString()}`,
+            defaultValueEncoder
+          ),
+          getValueAtCoordinate(
+            `gpdqha/ftl/ftl_2018_cloudoptimized.tif`,
+            latitude,
+            longitude,
+            '2018 FTL',
+            fbpValueEncoder
+          ),
+          getValueAtCoordinate(
+            `gpdqha/sfms/cog/static/cog_fbp2021.tif`,
+            latitude,
+            longitude,
+            'SFMS 2021 FBP',
+            fbpValueEncoder
+          ),
+          getValueAtCoordinate(
+            `gpdqha/sfms/cog/static/cog_m12_2021.tif`,
+            latitude,
+            longitude,
+            'SFMS 2021 M12',
+            defaultValueEncoder
+          ),
+          getValueAtCoordinate(
+            `gpdqha/sfms/cog/static/cog_bc_elevation.tif`,
+            latitude,
+            longitude,
+            'SFMS elevation',
+            defaultValueEncoder
+          ),
+          getValueAtCoordinate(
+            `gpdqha/dem/cog/cog_BC_Area_CDEM.tif`,
+            latitude,
+            longitude,
+            '12 arc second elevation',
+            defaultValueEncoder
+          ),
+          getValueAtCoordinate(
+            `gpdqha/sfms/cog/static/cog_bc_aspect.tif`,
+            latitude,
+            longitude,
+            'SFMS aspect',
+            defaultValueEncoder
+          ),
+          getValueAtCoordinate(
+            `gpdqha/sfms/cog/static/cog_bc_slope.tif`,
+            latitude,
+            longitude,
+            'SFMS slope',
+            defaultValueEncoder
+          )
+        ]
+        const results = await Promise.all(
+          actions.map(async promise => {
+            const result = await promise
+            return { value: result.value, description: result.description }
+          })
         )
-      ]
-      const results = await Promise.all(
-        actions.map(async promise => {
-          const result = await promise
-          return { value: result.value, description: result.description }
-        })
-      )
-      // Only fetching the one right now...
-      // const value = await getValueAtCoordinate(layer, latitude, longitude)
-      dispatch(getValueAtCoordinateSuccess(results))
-    } catch (err) {
-      dispatch(getValueAtCoordinateFailed((err as Error).toString()))
-      logError(err)
+        // Only fetching the one right now...
+        // const value = await getValueAtCoordinate(layer, latitude, longitude)
+        dispatch(getValueAtCoordinateSuccess(results))
+      } catch (err) {
+        dispatch(getValueAtCoordinateFailed((err as Error).toString()))
+        logError(err)
+      }
     }
   }
