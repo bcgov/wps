@@ -4,6 +4,7 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FireZoneThresholdFuelTypeArea, getHFIThresholdsFuelTypesForZone } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
+import { isNull } from 'lodash'
 
 interface State {
   loading: boolean
@@ -43,14 +44,16 @@ export const { getHFIFuelsStart, getHFIFuelsFailed, getHFIFuelsStartSuccess } = 
 export default hfiFuelTypesSlice.reducer
 
 export const fetchHighHFIFuels =
-  (runType: RunType, forDate: string, runDatetime: string, zoneID: number): AppThunk =>
+  (runType: RunType, forDate: string | null, runDatetime: string | null, zoneID: number): AppThunk =>
   async dispatch => {
-    try {
-      dispatch(getHFIFuelsStart())
-      const data = await getHFIThresholdsFuelTypesForZone(runType, forDate, runDatetime, zoneID)
-      dispatch(getHFIFuelsStartSuccess(data))
-    } catch (err) {
-      dispatch(getHFIFuelsFailed((err as Error).toString()))
-      logError(err)
+    if (!isNull(runDatetime) && !isNull(forDate)) {
+      try {
+        dispatch(getHFIFuelsStart())
+        const data = await getHFIThresholdsFuelTypesForZone(runType, forDate, runDatetime, zoneID)
+        dispatch(getHFIFuelsStartSuccess(data))
+      } catch (err) {
+        dispatch(getHFIFuelsFailed((err as Error).toString()))
+        logError(err)
+      }
     }
   }
