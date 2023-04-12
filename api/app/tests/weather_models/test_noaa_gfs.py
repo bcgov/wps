@@ -79,22 +79,46 @@ def mock_download(monkeypatch):
 
 
 def test_get_gfs_model_run_download_urls_for_00_utc():
+    # March 2 at 00:00 UTC is equivalent to March 1 in Eastern timezone - should return URL for previous day
     # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total)
     expected_num_of_urls = 2 * 11
-    actual_urls = list(noaa.get_gfs_model_run_download_urls(datetime(2023, 3, 2, 20), '00'))
+    actual_urls = list(noaa.get_gfs_model_run_download_urls(datetime(2023, 3, 2, 00, tzinfo=timezone.utc), '00'))
     assert len(actual_urls) == expected_num_of_urls
-    assert actual_urls[0] == noaa.GFS_BASE_URL + 'gfs.20230302/00/atmos/gfs.t00z.pgrb2full.0p50.f018'
-    assert actual_urls[-1] == noaa.GFS_BASE_URL + 'gfs.20230302/00/atmos/gfs.t00z.pgrb2full.0p50.f261'
+    assert actual_urls[0] == noaa.GFS_BASE_URL + 'gfs.20230301/00/atmos/gfs.t00z.pgrb2full.0p50.f018'
+    assert actual_urls[-1] == noaa.GFS_BASE_URL + 'gfs.20230301/00/atmos/gfs.t00z.pgrb2full.0p50.f261'
 
 
 def test_get_gfs_model_run_download_urls_for_06_utc():
+    # Feb 15 at 06:00 UTC is still Feb 15 (at 02:00) in Eastern timezone - should return URL for same day
     # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total incl. today)
     expected_num_of_urls = 2 * 11
-    actual_urls = list(noaa.get_gfs_model_run_download_urls(datetime(2023, 2, 15, 0), '06'))
+    actual_urls = list(noaa.get_gfs_model_run_download_urls(datetime(2023, 2, 15, 6, tzinfo=timezone.utc), '06'))
     assert len(actual_urls) == expected_num_of_urls
     assert actual_urls[0] == noaa.GFS_BASE_URL + 'gfs.20230215/06/atmos/gfs.t06z.pgrb2full.0p50.f012'
     assert actual_urls[1] == noaa.GFS_BASE_URL + 'gfs.20230215/06/atmos/gfs.t06z.pgrb2full.0p50.f015'
     assert actual_urls[-1] == noaa.GFS_BASE_URL + 'gfs.20230215/06/atmos/gfs.t06z.pgrb2full.0p50.f255'
+
+
+def test_get_gfs_model_run_download_urls_for_12_utc():
+    # March 9 at 12:00 UTC is still March 9 in Eastern timezone - should return URL for same day
+    # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total incl. today)
+    expected_num_of_urls = 2 * 11
+    actual_urls = list(noaa.get_gfs_model_run_download_urls(datetime(2023, 3, 9, 12, tzinfo=timezone.utc), '12'))
+    assert len(actual_urls) == expected_num_of_urls
+    assert actual_urls[0] == noaa.GFS_BASE_URL + 'gfs.20230309/12/atmos/gfs.t12z.pgrb2full.0p50.f006'
+    assert actual_urls[1] == noaa.GFS_BASE_URL + 'gfs.20230309/12/atmos/gfs.t12z.pgrb2full.0p50.f009'
+    assert actual_urls[-1] == noaa.GFS_BASE_URL + 'gfs.20230309/12/atmos/gfs.t12z.pgrb2full.0p50.f249'
+
+
+def test_get_gfs_model_run_download_urls_for_18_utc():
+    # Jan 27 at 18:00 UTC is still Jan 27 in Eastern timezone - should return URL for same day
+    # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total incl. today)
+    expected_num_of_urls = 2 * 11
+    actual_urls = list(noaa.get_gfs_model_run_download_urls(datetime(2023, 1, 27, 18, tzinfo=timezone.utc), '18'))
+    assert len(actual_urls) == expected_num_of_urls
+    assert actual_urls[0] == noaa.GFS_BASE_URL + 'gfs.20230127/18/atmos/gfs.t18z.pgrb2full.0p50.f000'
+    assert actual_urls[1] == noaa.GFS_BASE_URL + 'gfs.20230127/18/atmos/gfs.t18z.pgrb2full.0p50.f003'
+    assert actual_urls[-1] == noaa.GFS_BASE_URL + 'gfs.20230127/18/atmos/gfs.t18z.pgrb2full.0p50.f243'
 
 
 def test_parse_url_for_timestamps_simple():
