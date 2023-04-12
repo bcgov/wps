@@ -4,6 +4,7 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FireZoneArea, ZoneAreaListResponse, getFireZoneAreas } from 'api/fbaAPI'
 import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
+import { isNull } from 'lodash'
 
 interface State {
   loading: boolean
@@ -43,9 +44,9 @@ export const { getFireZoneAreasStart, getFireZoneAreasFailed, getFireZoneAreasSu
 export default fireZoneAreasSlice.reducer
 
 export const fetchFireZoneAreas =
-  (runType: RunType, run_datetime: string, for_date: string): AppThunk =>
+  (runType: RunType, run_datetime: string | null, for_date: string | null): AppThunk =>
   async dispatch => {
-    if (run_datetime != undefined && run_datetime !== ``) {
+    if (run_datetime != undefined && run_datetime !== `` && !isNull(for_date)) {
       try {
         dispatch(getFireZoneAreasStart())
         const fireZoneAreas = await getFireZoneAreas(runType, run_datetime, for_date)
@@ -56,7 +57,7 @@ export const fetchFireZoneAreas =
       }
     } else {
       try {
-        dispatch(getFireZoneAreasFailed('run_datetime cannot be undefined!'))
+        dispatch(getFireZoneAreasFailed('run_datetime and for_date cannot be undefined!'))
       } catch (err) {
         dispatch(getFireZoneAreasFailed((err as Error).toString()))
         logError(err)
