@@ -141,7 +141,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
 
         daily_result = get_latest_station_prediction_per_day(
             session, station_codes, day_start, day_end)
-        for id, timestamp, model_abbrev, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, precip_24hours, wind_dir, wind_speed, update_date in daily_result:
+        for timestamp, model_abbrev, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, precip_24hours, wind_dir, wind_speed, update_date in daily_result:
             day_results.append(
                 WeatherIndeterminate(
                     station_code=station_code,
