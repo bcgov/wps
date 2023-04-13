@@ -160,7 +160,7 @@ async def get_determinates_for_date_range(start_date: date,
     """ Returns the weather values for any actuals, predictions and forecasts for the 
     requested stations within the requested date range.
     """
-    logger.info('/morecast-2/determinates/%s/%s', start_date, end_date)
+    logger.info('/morecast-v2/determinates/%s/%s', start_date, end_date)
 
     unique_station_codes = list(set(request.stations))
 
