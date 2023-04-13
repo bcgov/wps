@@ -121,4 +121,4 @@ class WeatherIndeterminate(BaseModel):
 class IndeterminateDailiesResponse(BaseModel):
     actuals: List[WeatherIndeterminate]
     predictions: List[WeatherIndeterminate]
-    forecasts: List[WeatherDeterminate]
+    forecasts: List[MoreCastForecastOutput]

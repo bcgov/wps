@@ -11,7 +11,8 @@ from app.auth import (auth_with_forecaster_role_required,
 from app.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_for_date, save_all_forecasts
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.forecasts.morecast_v2 import get_forecasts
+from app.morecast_v2.determinates import get_all_disjoint_determinates
+from app.morecast_v2.forecasts import get_forecasts
 from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MoreCastForecastOutput,
                                      MoreCastForecastRequest,
@@ -170,7 +171,7 @@ async def get_determinates_for_date_range(start_date: date,
     end_time = vancouver_tz.localize(datetime.combine(end_date, time.max))
 
     with get_read_session_scope() as db_session:
-        forecasts: List[WeatherIndeterminate] = get_forecasts(db_session, start_time, end_time, request.stations)
+        forecasts: List[MoreCastForecastOutput] = get_forecasts(db_session, start_time, end_time, request.stations)
         predictions: List[WeatherIndeterminate] = await fetch_latest_model_run_predictions_by_station_code_and_date_range(db_session,
                                                                                                                           unique_station_codes,
                                                                                                                           start_time, end_time)
@@ -180,9 +181,12 @@ async def get_determinates_for_date_range(start_date: date,
 
     async with ClientSession() as session:
         header = await get_auth_header(session)
-        observed_dailies: List[WeatherIndeterminate] = await get_daily_determinates_for_stations_and_date(session, header,
-                                                                                                          start_date_of_interest,
-                                                                                                          end_date_of_interest,
-                                                                                                          unique_station_codes)
-
-    return IndeterminateDailiesResponse(actuals=observed_dailies, predictions=predictions, forecasts=forecasts)
+        actuals: List[WeatherIndeterminate] = await get_daily_determinates_for_stations_and_date(session, header,
+                                                                                                 start_date_of_interest,
+                                                                                                 end_date_of_interest,
+                                                                                                 unique_station_codes)
+    all_disjoint_determinates = get_all_disjoint_determinates(actuals, predictions)
+    return IndeterminateDailiesResponse(
+        actuals=all_disjoint_determinates.get_flat_actuals(),
+        predictions=all_disjoint_determinates.get_flat_predictions(),
+        forecasts=forecasts)
