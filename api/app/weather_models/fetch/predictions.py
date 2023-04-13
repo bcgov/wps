@@ -128,12 +128,11 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
                                                                             station_codes: List[int],
                                                                             start_time: datetime.datetime,
                                                                             end_time: datetime.datetime) -> List[WeatherIndeterminate]:
-    results = []
+    results: List[WeatherIndeterminate] = []
     days = get_days_from_range(start_time, end_time)
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
 
     for day in days:
-        day_results = []
         vancouver_tz = pytz.timezone("America/Vancouver")
 
         day_start = vancouver_tz.localize(datetime.datetime.combine(day, time.min))
@@ -142,7 +141,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
         daily_result = get_latest_station_prediction_per_day(
             session, station_codes, day_start, day_end)
         for timestamp, model_abbrev, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, precip_24hours, wind_dir, wind_speed, update_date in daily_result:
-            day_results.append(
+            results.append(
                 WeatherIndeterminate(
                     station_code=station_code,
                     station_name=stations[station_code].name,
@@ -154,15 +153,21 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
                     wind_direction=wind_dir,
                     wind_speed=wind_speed
                 ))
-        # sort the list by station_code
-        day_results.sort(key=lambda x: x.station_code)
+    return post_process_fetched_predictions(results)
 
-        # group the list by station_code
-        groups = groupby(day_results, key=lambda x: x.station_code)
-        for station_code, station_predictions in groups:
-            prediction_list = list(station_predictions)
-            latest_for_station = max(prediction_list, key=lambda x: x.utcTimestamp)
-            results.append(latest_for_station)
+
+def post_process_fetched_predictions(weather_indeterminates: List[WeatherIndeterminate]):
+    results: List[WeatherIndeterminate] = []
+    grouped_data = defaultdict(list)
+
+    for weather_indeterminate in weather_indeterminates:
+        key = f"${weather_indeterminate.station_code}-${str(weather_indeterminate.determinate)}-${weather_indeterminate.utcTimestamp.date()}"
+        grouped_data[key].append(weather_indeterminate)
+
+    for key, station_indeterminates in grouped_data.items():
+        latest_for_station = max(station_indeterminates, key=lambda x: x.utcTimestamp)
+        results.append(latest_for_station)
+
     return results
 
 
