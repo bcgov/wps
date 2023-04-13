@@ -321,8 +321,7 @@ def get_latest_station_prediction_per_day(session: Session,
         session.query(
             func.max(WeatherStationModelPrediction.prediction_timestamp).label('latest_prediction'),
             WeatherStationModelPrediction.station_code,
-            func.date(WeatherStationModelPrediction.prediction_timestamp).label('unique_day'),
-            PredictionModelRunTimestamp.prediction_model_id
+            func.date(WeatherStationModelPrediction.prediction_timestamp).label('unique_day')
         )
         .filter(
             WeatherStationModelPrediction.station_code.in_(station_codes),
@@ -330,11 +329,9 @@ def get_latest_station_prediction_per_day(session: Session,
             WeatherStationModelPrediction.prediction_timestamp <= day_end,
             func.date_part('hour', WeatherStationModelPrediction.prediction_timestamp) == 20
         )
-        .join(PredictionModelRunTimestamp, WeatherStationModelPrediction.prediction_model_run_timestamp_id == PredictionModelRunTimestamp.id)
         .group_by(
             WeatherStationModelPrediction.station_code,
-            func.date(WeatherStationModelPrediction.prediction_timestamp).label('unique_day'),
-            PredictionModelRunTimestamp.prediction_model_id
+            func.date(WeatherStationModelPrediction.prediction_timestamp).label('unique_day')
         )
         .subquery('latest')
     )
