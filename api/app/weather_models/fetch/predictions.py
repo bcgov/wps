@@ -146,7 +146,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
                     station_code=station_code,
                     station_name=stations[station_code].name,
                     determinate=model_abbrev,
-                    utcTimestamp=timestamp,
+                    utc_timestamp=timestamp,
                     temperature=temp,
                     relative_humidity=rh,
                     precipitation=precip_24hours,
@@ -161,11 +161,11 @@ def post_process_fetched_predictions(weather_indeterminates: List[WeatherIndeter
     grouped_data = defaultdict(list)
 
     for weather_indeterminate in weather_indeterminates:
-        key = f"${weather_indeterminate.station_code}-${str(weather_indeterminate.determinate)}-${weather_indeterminate.utcTimestamp.date()}"
+        key = f"${weather_indeterminate.station_code}-${str(weather_indeterminate.determinate)}-${weather_indeterminate.utc_timestamp.date()}"
         grouped_data[key].append(weather_indeterminate)
 
     for key, station_indeterminates in grouped_data.items():
-        latest_for_station = max(station_indeterminates, key=lambda x: x.utcTimestamp)
+        latest_for_station = max(station_indeterminates, key=lambda x: x.utc_timestamp)
         results.append(latest_for_station)
 
     return results

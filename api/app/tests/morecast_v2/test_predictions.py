@@ -11,7 +11,7 @@ def build_weather_indeterminate(station_code: int,
         station_code=station_code,
         station_name=station_name,
         determinate=determinate,
-        utcTimestamp=utc_timestamp
+        utc_timestamp=utc_timestamp
     )
 
 

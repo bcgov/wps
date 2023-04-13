@@ -110,7 +110,7 @@ class WeatherIndeterminate(BaseModel):
     station_code: int
     station_name: str
     determinate: WeatherDeterminate
-    utcTimestamp: datetime
+    utc_timestamp: datetime
     temperature: Optional[float] = None
     relative_humidity: Optional[float] = None
     precipitation: Optional[float] = None

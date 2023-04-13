@@ -76,7 +76,7 @@ async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, N
                 station_code=raw_daily.get('stationData').get('stationCode'),
                 station_name=raw_daily.get('stationData').get('displayLabel'),
                 determinate=WeatherDeterminate.ACTUAL,
-                utcTimestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),
+                utc_timestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),
                 temperature=raw_daily.get('temperature'),
                 relative_humidity=raw_daily.get('relativeHumidity'),
                 precipitation=raw_daily.get('precipitation'),
