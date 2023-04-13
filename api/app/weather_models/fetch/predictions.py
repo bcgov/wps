@@ -10,11 +10,12 @@ from collections import defaultdict
 import pytz
 from sqlalchemy.orm import Session
 import app.db.database
+from app.schemas.morecast_v2 import WeatherIndeterminate
 from app.schemas.weather_models import (WeatherStationModelPredictionValues, WeatherModelPredictionValues, WeatherModelRun,
                                         ModelRunPredictions,
                                         WeatherStationModelRunsPredictions)
 from app.db.models.weather_models import WeatherStationModelPrediction
-from app.db.crud.weather_models import (get_latest_station_model_prediction_per_day, get_station_model_predictions,
+from app.db.crud.weather_models import (get_latest_station_model_prediction_per_day, get_latest_station_prediction_per_day, get_station_model_predictions,
                                         get_station_model_prediction_from_previous_model_run)
 import app.stations
 from app.utils.time import get_days_from_range
@@ -121,6 +122,53 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
                 latest_for_station = max(prediction_list, key=lambda x: x.update_date)
                 results.append(latest_for_station)
         return results
+
+
+async def fetch_latest_model_run_predictions_by_station_code_and_date_range(session: Session,
+                                                                            station_codes: List[int],
+                                                                            start_time: datetime.datetime,
+                                                                            end_time: datetime.datetime) -> List[WeatherIndeterminate]:
+    results: List[WeatherIndeterminate] = []
+    days = get_days_from_range(start_time, end_time)
+    stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
+
+    for day in days:
+        vancouver_tz = pytz.timezone("America/Vancouver")
+
+        day_start = vancouver_tz.localize(datetime.datetime.combine(day, time.min))
+        day_end = vancouver_tz.localize(datetime.datetime.combine(day, time.max))
+
+        daily_result = get_latest_station_prediction_per_day(
+            session, station_codes, day_start, day_end)
+        for timestamp, model_abbrev, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, precip_24hours, wind_dir, wind_speed, update_date in daily_result:
+            results.append(
+                WeatherIndeterminate(
+                    station_code=station_code,
+                    station_name=stations[station_code].name,
+                    determinate=model_abbrev,
+                    utc_timestamp=timestamp,
+                    temperature=temp,
+                    relative_humidity=rh,
+                    precipitation=precip_24hours,
+                    wind_direction=wind_dir,
+                    wind_speed=wind_speed
+                ))
+    return post_process_fetched_predictions(results)
+
+
+def post_process_fetched_predictions(weather_indeterminates: List[WeatherIndeterminate]):
+    results: List[WeatherIndeterminate] = []
+    grouped_data = defaultdict(list)
+
+    for weather_indeterminate in weather_indeterminates:
+        key = f"${weather_indeterminate.station_code}-${str(weather_indeterminate.determinate)}-${weather_indeterminate.utc_timestamp.date()}"
+        grouped_data[key].append(weather_indeterminate)
+
+    for key, station_indeterminates in grouped_data.items():
+        latest_for_station = max(station_indeterminates, key=lambda x: x.utc_timestamp)
+        results.append(latest_for_station)
+
+    return results
 
 
 async def marshall_predictions(session: Session, model: ModelEnum, station_codes: List[int], query):
