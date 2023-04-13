@@ -4,11 +4,11 @@ from datetime import datetime
 from app.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
 
 
-def build_weather_indeterminate(station_code: int, station_name: str, determinate: WeatherDeterminate, utcTimestamp: datetime):
+def build_weather_indeterminate(station_code: int, station_name: str, determinate: WeatherDeterminate, utc_timestamp: datetime):
     return WeatherIndeterminate(station_code=station_code,
                                 station_name=station_name,
                                 determinate=determinate,
-                                utcTimestamp=utcTimestamp)
+                                utcTimestamp=utc_timestamp)
 
 
 def test_get_all_disjoint_determinates_empty_input():
