@@ -121,6 +121,9 @@
          },
          "{'size': '1000', 'page': 0, 'startingTimestamp': 1665086400000, 'endingTimestamp': 1665086400000, 'stationIds': ['bfe0a6e2-e269-0210-e053-259e228e58c7', 'bfe0a6e2-e26b-0210-e053-259e228e58c7', 'bfe0a6e2-e3bc-0210-e053-259e228e58c7']}": {
             "None": "wfwx/v1/dailies/search__findDailiesByStationIdIsInAndWeatherTimestampBetweenOrderByStationIdAscWeatherTimestampAsc__size_1000_page_0_startingTimestamp_1665086400000_endingTimestamp_1665086400000_statio.json"
+         },
+         "{'size': '1000', 'page': 0, 'startingTimestamp': 1678910400000, 'endingTimestamp': 1679256000000, 'stationIds': ['bfe0a6e2-e269-0210-e053-259e228e58c7', 'bfe0a6e2-e26b-0210-e053-259e228e58c7', 'bfe0a6e2-e3bc-0210-e053-259e228e58c7']}": {
+            "None": "wfwx/v1/dailies/search__findDailiesByStationIdIsInAndWeatherTimestampBetweenOrderByStationIdAscWeatherTimestampAsc__size_1000_page_0_startingTimestamp_1678910400000_endingTimestamp_1679256000000_statio.json"
          }
       }
    }

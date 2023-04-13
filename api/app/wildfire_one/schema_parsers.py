@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
-from app.schemas.morecast_v2 import ObservedDaily
+from app.schemas.morecast_v2 import ObservedDaily, WeatherDeterminate, WeatherIndeterminate
 from app.schemas.stations import (WeatherStationGroup, WeatherStation,
                                   WeatherStationGroupMember, FireZone, StationFireCentre)
 from app.utils.dewpoint import compute_dewpoint
@@ -65,6 +65,25 @@ async def yesterday_dailies_list_mapper(raw_dailies: Generator[dict, None, None]
                 wind_speed=raw_daily.get('windSpeed')
             ))
     return yesterday_dailies
+
+
+async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, None]):
+    """ Maps raw dailies to weather indeterminate list"""
+    observed_dailies = []
+    async for raw_daily in raw_dailies:
+        if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == "ACTUAL":
+            observed_dailies.append(WeatherIndeterminate(
+                station_code=raw_daily.get('stationData').get('stationCode'),
+                station_name=raw_daily.get('stationData').get('displayLabel'),
+                determinate=WeatherDeterminate.ACTUAL,
+                utc_timestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),
+                temperature=raw_daily.get('temperature'),
+                relative_humidity=raw_daily.get('relativeHumidity'),
+                precipitation=raw_daily.get('precipitation'),
+                wind_direction=raw_daily.get('windDirection'),
+                wind_speed=raw_daily.get('windSpeed')
+            ))
+    return observed_dailies
 
 
 async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) -> List[WFWXWeatherStation]:
