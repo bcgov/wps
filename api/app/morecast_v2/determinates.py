@@ -26,11 +26,11 @@ class AllDisjointDeterminates:
 
     def get_flat_actuals(self):
         all_actuals = [d.actuals for d in self.disjoint_determinates.values()]
-        return reduce(lambda actuals1, actuals2: actuals1 + actuals2, all_actuals)
+        return reduce(lambda actuals1, actuals2: actuals1 + actuals2, all_actuals, [])
 
     def get_flat_predictions(self):
         all_predictions = [d.predictions for d in self.disjoint_determinates.values()]
-        return reduce(lambda predictions1, predictions2: predictions1 + predictions2, all_predictions)
+        return reduce(lambda predictions1, predictions2: predictions1 + predictions2, all_predictions, [])
 
 
 def get_all_disjoint_determinates(actuals: List[WeatherIndeterminate],
