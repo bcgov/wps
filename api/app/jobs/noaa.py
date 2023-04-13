@@ -1,6 +1,7 @@
 """ A script that downloads weather models from NCEI NOAA HTTPS data server
 """
 import os
+import re
 import sys
 import datetime
 import pytz
@@ -28,7 +29,16 @@ if __name__ == "__main__":
 
 logger = logging.getLogger(__name__)
 
-GFS_BASE_URL = "https://nomads.ncep.noaa.gov/pub/data/nccf/com/gfs/prod/"
+GFS_GRID = '0p25'  # 0.25 degree grid
+GFS_BASE_URL = f"https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_{GFS_GRID}.pl?"
+# weather variables are APCP: total precip, TMP: temperature, UGRD: U-component of wind,
+# VGRD: V-component of wind
+GFS_VARS = ['APCP', 'RH', 'TMP', 'UGRD', 'VGRD']
+GFS_LEVELS = ['surface', '2_m_above_ground', '10_m_above_ground']
+GFS_TOP_LAT = 60
+GFS_BOTTOM_LAT = 48
+GFS_LEFT_LON = -139
+GFS_RIGHT_LON = -114
 
 
 def get_gfs_model_run_hours():
@@ -76,18 +86,29 @@ def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycl
 
     for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')
-        filename = f'gfs.{year_mo_date}/{model_cycle}/atmos/gfs.t{model_cycle}z.pgrb2full.0p50.f{hhh}'
-        yield GFS_BASE_URL + filename
+        filter = f'dir=%2Fgfs.{year_mo_date}%2F{model_cycle}%2Fatmos&file=gfs.t{model_cycle}z.pgrb2.{GFS_GRID}.'\
+            f'f{hhh}'
+        wx_vars_filter_str = ''
+        for var in GFS_VARS:
+            wx_vars_filter_str += f'var_{var}=on&'
+        levels_filter_str = ''
+        for level in GFS_LEVELS:
+            levels_filter_str += f'lev_{level}=on&'
+        subregion_filter_str = f'subregion=&toplat={GFS_TOP_LAT}&leftlon={GFS_LEFT_LON}&rightlon={GFS_RIGHT_LON}'\
+            f'&bottomlat={GFS_BOTTOM_LAT}'
+        filter += wx_vars_filter_str + levels_filter_str + subregion_filter_str
+        yield GFS_BASE_URL + filter
 
 
 def parse_url_for_timestamps(url: str):
     """ Interpret the model_run_timestamp and prediction_timestamp from a model's URL """
-    # sample URL: https://nomads.ncep.noaa.gov/pub/data/nccf/com/gfs/prod/gfs.20230411/00/atmos/gfs.t00z.pgrb2full.0p50.f018
-    url_parts = url.split('/')
+    # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230412%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f018var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
+    model_run_datetime_str = re.search("dir=\%2Fgfs.\d*\%2F\d*", url).group(0)
     # extract date string only from gfs.20230411 in sample URL
-    model_run_date = url_parts[9][4:]
-    model_run_hour = url_parts[10]
-    forecast_hour = url[-3:]
+    model_run_date = model_run_datetime_str[-13:-6]
+    model_run_hour = model_run_datetime_str[-2:]
+    forecast_hour_str = re.search("file=gfs.t\d*z.pgrb2.0p25.f\d*", url).group(0)
+    forecast_hour = forecast_hour_str[-2:]
     model_run_datetime_str = model_run_date + ' ' + model_run_hour
     model_run_timestamp = datetime.datetime.strptime(model_run_datetime_str, '%Y%m%d %H')
     model_run_timestamp = model_run_timestamp.replace(tzinfo=datetime.timezone.utc)
