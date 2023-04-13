@@ -11,7 +11,6 @@ from app.auth import (auth_with_forecaster_role_required,
 from app.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_for_date, save_all_forecasts
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.morecast_v2.determinates import get_all_disjoint_determinates
 from app.morecast_v2.forecasts import get_forecasts
 from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MoreCastForecastOutput,
@@ -185,8 +184,7 @@ async def get_determinates_for_date_range(start_date: date,
                                                                                                  start_date_of_interest,
                                                                                                  end_date_of_interest,
                                                                                                  unique_station_codes)
-    all_disjoint_determinates = get_all_disjoint_determinates(actuals, predictions)
     return IndeterminateDailiesResponse(
-        actuals=all_disjoint_determinates.get_flat_actuals(),
-        predictions=all_disjoint_determinates.get_flat_predictions(),
+        actuals=actuals,
+        predictions=predictions,
         forecasts=forecasts)
