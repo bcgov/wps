@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 import pytest
 from datetime import datetime
 from aiohttp import ClientSession
@@ -15,6 +16,7 @@ morecast_v2_get_url = f'/api/morecast-v2/forecasts/{1}'
 morecast_v2_post_by_date_range_url = "/api/morecast-v2/forecasts/2023-03-15/2023-03-19"
 today = '2022-10-7'
 morecast_v2_post_yesterday_dailies_url = f'/api/morecast-v2/yesterday-dailies/{today}'
+morecast_v2_post_determinates_url = '/api/morecast-v2/determinates/2023-03-15/2023-03-19'
 
 
 decode_fn = "jwt.decode"
@@ -30,6 +32,14 @@ def client():
     from app.main import app as test_app
 
     with TestClient(test_app) as test_client:
+        yield test_client
+
+
+@pytest.fixture()
+async def async_client():
+    from app.main import app as test_app
+
+    async with AsyncClient(app=test_app, base_url="https://test") as test_client:
         yield test_client
 
 
@@ -133,3 +143,20 @@ def test_get_yesterday_dailies_authorized(client: TestClient, monkeypatch: pytes
         assert response.utcTimestamp.month == today_date.month
         assert response.utcTimestamp.day == today_date.day - 1
         assert response.utcTimestamp.hour == 20
+
+
+def test_get_determinates_unauthorized(client: TestClient):
+    response = client.post(morecast_v2_post_determinates_url, json={"station_codes": [209, 211, 302]})
+    assert response.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_get_determinates_authorized(anyio_backend, async_client: AsyncClient, monkeypatch: pytest.MonkeyPatch):
+    def mock_admin_role_function(*_, **__):
+        return MockJWTDecodeWithRole('morecast2_write_forecast')
+
+    monkeypatch.setattr(decode_fn, mock_admin_role_function)
+    monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
+
+    response = await async_client.post(morecast_v2_post_determinates_url, json={"stations": [209, 211, 302]})
+    assert response.status_code == 200

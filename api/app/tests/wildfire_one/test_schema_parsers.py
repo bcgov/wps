@@ -1,8 +1,8 @@
 from typing import List
-from app.schemas.morecast_v2 import ObservedDaily
+from app.schemas.morecast_v2 import ObservedDaily, WeatherDeterminate, WeatherIndeterminate
 from app.wildfire_one.schema_parsers import (parse_noon_forecast,
                                              parse_hourly_actual,
-                                             unique_weather_stations_mapper,
+                                             unique_weather_stations_mapper, weather_indeterminate_list_mapper,
                                              weather_stations_mapper, yesterday_dailies_list_mapper)
 import pytest
 
@@ -126,7 +126,7 @@ def test_station_mapper():
     assert result[1].id == '2'
 
 
-async def async_yesterday_dailies(record_type: str):
+async def async_observed_dailies(record_type: str):
     yield {
         "stationData": {
             "stationCode": 1,
@@ -151,12 +151,26 @@ async def async_yesterday_dailies(record_type: str):
 
 @pytest.mark.anyio
 async def test_yesterday_dailies_mapper_actual(anyio_backend):
-    result: List[ObservedDaily] = await yesterday_dailies_list_mapper(async_yesterday_dailies("ACTUAL"))
+    result: List[ObservedDaily] = await yesterday_dailies_list_mapper(async_observed_dailies("ACTUAL"))
     assert len(result) == 1
     assert result[0].station_code == 1
 
 
 @pytest.mark.anyio
 async def test_yesterday_dailies_mapper_forecast(anyio_backend):
-    result: List[ObservedDaily] = await yesterday_dailies_list_mapper(async_yesterday_dailies("FORECAST"))
+    result: List[ObservedDaily] = await yesterday_dailies_list_mapper(async_observed_dailies("FORECAST"))
+    assert len(result) == 0
+
+
+@pytest.mark.anyio
+async def test_indeterminate_mapper_actual(anyio_backend):
+    result: List[WeatherIndeterminate] = await weather_indeterminate_list_mapper(async_observed_dailies("ACTUAL"))
+    assert len(result) == 1
+    assert result[0].determinate == WeatherDeterminate.ACTUAL
+    assert result[0].station_code == 1
+
+
+@pytest.mark.anyio
+async def test_indeterminate_mapper_forecast(anyio_backend):
+    result: List[WeatherIndeterminate] = await weather_indeterminate_list_mapper(async_observed_dailies("FORECAST"))
     assert len(result) == 0
