@@ -1,4 +1,5 @@
 import os
+import re
 import datetime
 from typing import List
 import logging
@@ -41,7 +42,7 @@ class CompletedWithSomeExceptions(Exception):
     """ Exception raised when processing completed, but there were some non critical exceptions """
 
 
-def download(url: str, path: str, config_cache_var: str, config_cache_expiry_var=None) -> str:
+def download(url: str, path: str, config_cache_var: str, model_name: str, config_cache_expiry_var=None) -> str:
     """
     Download a file from a url.
     NOTE: was using wget library initially, but has the drawback of not being able to control where the
@@ -49,8 +50,18 @@ def download(url: str, path: str, config_cache_var: str, config_cache_expiry_var
     is a security concern.
     TODO: Would be nice to make this an async
     """
-    # Infer filename from url.
-    filename = os.path.split(url)[-1]
+    if model_name == 'GFS':
+        original_filename = os.path.split(url)[-1]
+        # NOTE: This is a very not-ideal way to interpolate the filename.
+        # The original_filename that we get from the url is too long and must be condensed.
+        # It also has multiple '.' chars in the URL that must be removed for the filename to be valid.
+        # As long as NOAA's API remains unchanged, we'll have all the info we need (run datetimes,
+        # projections, etc.) in the first 81 characters of original_filename.
+        # An alternative would be to build out a regex to look for
+        filename = original_filename[:81].replace('.', '')
+    else:
+        # Infer filename from url.
+        filename = os.path.split(url)[-1]
     # Construct target location for downloaded file.
     target = os.path.join(os.getcwd(), path, filename)
     # Get the file.

@@ -284,7 +284,7 @@ class EnvCanada():
                         model_info = parse_env_canada_filename(url)
                         # download the file:
                         with tempfile.TemporaryDirectory() as temporary_path:
-                            downloaded = download(url, temporary_path, 'REDIS_CACHE_ENV_CANADA',
+                            downloaded = download(url, temporary_path, 'REDIS_CACHE_ENV_CANADA', model_info.model_enum.value,
                                                   'REDIS_ENV_CANADA_CACHE_EXPIRY')
                             if downloaded:
                                 self.files_downloaded += 1

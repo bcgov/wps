@@ -87,7 +87,7 @@ def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycl
     for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')
         filter = f'dir=%2Fgfs.{year_mo_date}%2F{model_cycle}%2Fatmos&file=gfs.t{model_cycle}z.pgrb2.{GFS_GRID}.'\
-            f'f{hhh}'
+            f'f{hhh}&'
         wx_vars_filter_str = ''
         for var in GFS_VARS:
             wx_vars_filter_str += f'var_{var}=on&'
@@ -166,7 +166,8 @@ class GFS():
                                                   model_run_timestamp, prediction_timestamp)
                         # download the file:
                         with tempfile.TemporaryDirectory() as temporary_path:
-                            downloaded = download(url, temporary_path, 'REDIS_CACHE_NOAA', 'REDIS_NOAA_CACHE_EXPIRY')
+                            downloaded = download(url, temporary_path,
+                                                  'REDIS_CACHE_NOAA', 'GFS', 'REDIS_NOAA_CACHE_EXPIRY')
                             if downloaded:
                                 self.files_downloaded += 1
                                 # If we've downloaded the file ok, we can now process it.

@@ -26,17 +26,17 @@ from app.weather_models import ModelEnum, ProjectionEnum
 logger = logging.getLogger(__name__)
 
 GFS_000_HOURS_RASTER_BANDS = {
-    'tmp_tgl_2': 580,
-    'rh_tgl_2': 583,
-    'u_comp_wind_10m': 585,
-    'v_comp_wind_10m': 586
+    'tmp_tgl_2': 2,
+    'rh_tgl_2': 3,
+    'u_comp_wind_10m': 4,
+    'v_comp_wind_10m': 5
 }
 GFS_003_HOURS_RASTER_BANDS = {
-    'tmp_tgl_2': 581,
-    'rh_tgl_2': 584,
-    'apcp_sfc_0': 596,  # or 597. Documentation doesn't specify difference
-    'u_comp_wind_10m': 588,
-    'v_comp_wind_10m': 589
+    'tmp_tgl_2': 2,
+    'rh_tgl_2': 3,
+    'apcp_sfc_0': 6,
+    'u_comp_wind_10m': 4,
+    'v_comp_wind_10m': 5
 }
 
 
