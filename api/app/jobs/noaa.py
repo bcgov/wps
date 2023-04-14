@@ -86,7 +86,7 @@ def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycl
 
     for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')
-        filter = f'dir=%2Fgfs.{year_mo_date}%2F{model_cycle}%2Fatmos&file=gfs.t{model_cycle}z.pgrb2.{GFS_GRID}.'\
+        filter_str = f'dir=%2Fgfs.{year_mo_date}%2F{model_cycle}%2Fatmos&file=gfs.t{model_cycle}z.pgrb2.{GFS_GRID}.'\
             f'f{hhh}&'
         wx_vars_filter_str = ''
         for var in GFS_VARS:
@@ -96,8 +96,8 @@ def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycl
             levels_filter_str += f'lev_{level}=on&'
         subregion_filter_str = f'subregion=&toplat={GFS_TOP_LAT}&leftlon={GFS_LEFT_LON}&rightlon={GFS_RIGHT_LON}'\
             f'&bottomlat={GFS_BOTTOM_LAT}'
-        filter += wx_vars_filter_str + levels_filter_str + subregion_filter_str
-        yield GFS_BASE_URL + filter
+        filter_str += wx_vars_filter_str + levels_filter_str + subregion_filter_str
+        yield GFS_BASE_URL + filter_str
 
 
 def parse_url_for_timestamps(url: str):
