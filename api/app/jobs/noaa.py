@@ -105,10 +105,10 @@ def parse_url_for_timestamps(url: str):
     # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230412%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f018var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
     model_run_datetime_str = re.search("dir=\%2Fgfs.\d*\%2F\d*", url).group(0)
     # extract date string only from gfs.20230411 in sample URL
-    model_run_date = model_run_datetime_str[-13:-6]
+    model_run_date = model_run_datetime_str[-13:-5]
     model_run_hour = model_run_datetime_str[-2:]
     forecast_hour_str = re.search("file=gfs.t\d*z.pgrb2.0p25.f\d*", url).group(0)
-    forecast_hour = forecast_hour_str[-2:]
+    forecast_hour = forecast_hour_str[-3:]
     model_run_datetime_str = model_run_date + ' ' + model_run_hour
     model_run_timestamp = datetime.datetime.strptime(model_run_datetime_str, '%Y%m%d %H')
     model_run_timestamp = model_run_timestamp.replace(tzinfo=datetime.timezone.utc)
