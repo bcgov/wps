@@ -29,3 +29,53 @@ export interface MoreCast2ForecastRowCollectionByStationCode {
   stationCode: number
   dates: MoreCast2ForecastRowsByDate[]
 }
+
+export interface MoreCast2Row {
+  // Idenity and date properties
+  id: string
+  stationCode: number
+  stationName: string
+  forDate: DateTime
+
+  // Forecast properties
+  precip?: PredictionItem
+  rh?: PredictionItem
+  temp?: PredictionItem
+  windDirection?: PredictionItem
+  windSpeed?: PredictionItem
+
+  // Observed/actual properties
+  precipActual: number
+  rhActual: number
+  tempActual: number
+  windDirectionActual: number
+  windSpeedActual: number
+
+  // GDPS model predictions
+  precipGDPS: number
+  rhGDPS: number
+  tempGDPS: number
+  windDirectionGDPS: number
+  windSpeedGDPS: number
+
+  // GFS model predictions
+  precipGFS: number
+  rhGFS: number
+  tempGFS: number
+  windDirectionGFS: number
+  windSpeedGFS: number
+
+  // HRDPS model predictions
+  precipHRDPS: number
+  rhHRDPS: number
+  tempHRDPS: number
+  windDirectionHRDPS: number
+  windSpeedHRDPS: number
+
+  // RDPS model predictions
+  precipRDPS: number
+  rhRDPS: number
+  tempRDPS: number
+  windDirectionRDPS: number
+  windSpeedRDPS: number
+}

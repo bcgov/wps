@@ -31,6 +31,7 @@ import moreCast2ForecastReducer from 'features/moreCast2/slices/moreCast2Forecas
 import observedDailiesSlice from 'features/moreCast2/slices/observedDailiesSlice'
 import stationGroupsSlice from 'commonSlices/stationGroupsSlice'
 import selectedStationGroupsMembersSlice from 'commonSlices/selectedStationGroupMembers'
+import dataSlice from 'features/moreCast2/slices/dataSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -64,7 +65,8 @@ const rootReducer = combineReducers({
   observedDailies: observedDailiesSlice,
   moreCast2Forecasts: moreCast2ForecastReducer,
   stationGroups: stationGroupsSlice,
-  stationGroupsMembers: selectedStationGroupsMembersSlice
+  stationGroupsMembers: selectedStationGroupsMembersSlice,
+  weatherIndeterminates: dataSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state

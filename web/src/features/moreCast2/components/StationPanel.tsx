@@ -39,12 +39,14 @@ const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
+    minWidth: '375px',
     width: '100%'
   },
   sidePanel: {
+    borderRight: '1px solid black',
     display: 'flex',
-    width: '375px',
-    borderRight: '1px solid black'
+    overflowX: 'hidden',
+    width: '375px'
   },
   stationContainer: {
     overflowY: 'auto'
