@@ -35,7 +35,7 @@ def mock_database(monkeypatch):
     gfs_processed_model_run = ProcessedModelRunUrl(url=gfs_url)
     gfs_prediction_model = PredictionModel(id=1,
                                            abbreviation='GFS',
-                                           projection='lonlat.0.5deg',
+                                           projection='lonlat.0.25deg',
                                            name='Global Forecast System')
     gfs_prediction_model_run = PredictionModelRunTimestamp(
         id=1, prediction_model_id=1, prediction_run_timestamp=time_utils.get_utc_now(),
@@ -127,7 +127,7 @@ def test_parse_url_for_timestamps_simple():
     url = 'https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230413%2F12%2Fatmos&file=gfs.t12z.pgrb2.0p25.f006&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
     expected_model_run_timestamp = datetime(2023, 4, 13, 12, 0, tzinfo=timezone.utc)
     expected_prediction_timestamp = datetime(2023, 4, 13, 18, 0, tzinfo=timezone.utc)
-    actual_model_run_timestamp, actual_prediction_timestamp = noaa.parse_url_for_timestamps(url)
+    actual_model_run_timestamp, actual_prediction_timestamp = noaa.parse_gfs_url_for_timestamps(url)
     assert expected_model_run_timestamp == actual_model_run_timestamp
     assert expected_prediction_timestamp == actual_prediction_timestamp
 
@@ -138,7 +138,7 @@ def test_parse_url_for_timestamps_complex():
     url = 'https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230413%2F18%2Fatmos&file=gfs.t18z.pgrb2.0p25.f243&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
     expected_model_run_timestamp = datetime(2023, 4, 13, 18, 0, tzinfo=timezone.utc)
     expected_prediction_timestamp = datetime(2023, 4, 23, 21, 0, tzinfo=timezone.utc)
-    actual_model_run_timestamp, actual_prediction_timestamp = noaa.parse_url_for_timestamps(url)
+    actual_model_run_timestamp, actual_prediction_timestamp = noaa.parse_gfs_url_for_timestamps(url)
     assert expected_model_run_timestamp == actual_model_run_timestamp
     assert expected_prediction_timestamp == actual_prediction_timestamp
 

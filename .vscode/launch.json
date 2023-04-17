@@ -69,7 +69,19 @@
             "name": "app.jobs.noaa GFS",
             "type": "python",
             "request": "launch",
-            "module": "app.jobs.noaa"
+            "module": "app.jobs.noaa",
+            "args": [
+                "GFS"
+            ]
+        },
+        {
+            "name": "app.jobs.noaa NAM",
+            "type": "python",
+            "request": "launch",
+            "module": "app.jobs.noaa",
+            "args": [
+                "NAM"
+            ]
         },
         {
             "name": "backup unit tests",
