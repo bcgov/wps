@@ -214,7 +214,7 @@ def adjust_model_day(now, model_run_hour) -> datetime:
     If now (e.g. 10h00) is less than model run (e.g. 12), it means we have to look for yesterdays
     model run.
     """
-    if now.hour < model_run_hour:
+    if now.hour < int(model_run_hour):
         return now - datetime.timedelta(days=1)
     return now
 
@@ -235,7 +235,7 @@ def mark_prediction_model_run_processed(session: Session,
     prediction_run_timestamp = adjust_model_day(
         prediction_run_timestamp, model_run_hour)
     prediction_run_timestamp = prediction_run_timestamp.replace(
-        hour=model_run_hour)
+        hour=int(model_run_hour))
     logger.info('prediction_model:%s, prediction_run_timestamp:%s',
                 prediction_model, prediction_run_timestamp)
     prediction_run = get_prediction_run(session,
@@ -313,9 +313,9 @@ class NOAA():
 
         # Get the urls for the current model run.
         if self.model_type == ModelEnum.GFS:
-            urls = get_gfs_model_run_download_urls(self.now, model_run_hour)
+            urls = list(get_gfs_model_run_download_urls(self.now, model_run_hour))
         elif self.model_type == ModelEnum.NAM:
-            urls = get_nam_model_run_download_urls(self.now, model_run_hour)
+            urls = list(get_nam_model_run_download_urls(self.now, model_run_hour))
 
         # Process all the urls.
         self.process_model_run_urls(urls)
@@ -324,7 +324,7 @@ class NOAA():
         with app.db.database.get_write_session_scope() as session:
             if check_if_model_run_complete(session, urls):
                 logger.info(
-                    '{} model run {:02d}:00 completed with SUCCESS'.format(self.model_type, model_run_hour))
+                    '{} model run {}:00 completed with SUCCESS'.format(self.model_type, model_run_hour))
 
                 mark_prediction_model_run_processed(
                     session, self.model_type, self.projection, self.now, model_run_hour)
