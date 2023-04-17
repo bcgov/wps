@@ -147,7 +147,13 @@ export class RHForecastField extends GridNumberRenderer implements ForecastField
     const gridColDefs: GridColDef[] = []
     for (const determinate of WEATHER_DETERMINATES) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, false, DEFAULT_COLUMN_WIDTH)
+      const gridColDef = this.generateColDefWith(
+        fieldName,
+        determinate,
+        this.precision,
+        determinate === WeatherDeterminate.FORECAST,
+        DEFAULT_COLUMN_WIDTH
+      )
       gridColDefs.push(gridColDef)
     }
     return gridColDefs
@@ -180,7 +186,13 @@ export class WindDirForecastField extends GridNumberRenderer implements Forecast
     const gridColDefs: GridColDef[] = []
     for (const determinate of WEATHER_DETERMINATES) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, false, DEFAULT_COLUMN_WIDTH)
+      const gridColDef = this.generateColDefWith(
+        fieldName,
+        determinate,
+        this.precision,
+        determinate === WeatherDeterminate.FORECAST,
+        DEFAULT_COLUMN_WIDTH
+      )
       gridColDefs.push(gridColDef)
     }
     return gridColDefs
@@ -213,7 +225,13 @@ export class WindSpeedForecastField extends GridNumberRenderer implements Foreca
     const gridColDefs: GridColDef[] = []
     for (const determinate of WEATHER_DETERMINATES) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, false, DEFAULT_COLUMN_WIDTH)
+      const gridColDef = this.generateColDefWith(
+        fieldName,
+        determinate,
+        this.precision,
+        determinate === WeatherDeterminate.FORECAST,
+        DEFAULT_COLUMN_WIDTH
+      )
       gridColDefs.push(gridColDef)
     }
     return gridColDefs
@@ -246,7 +264,13 @@ export class PrecipForecastField extends GridNumberRenderer implements ForecastF
     const gridColDefs: GridColDef[] = []
     for (const determinate of WEATHER_DETERMINATES) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, false, DEFAULT_COLUMN_WIDTH)
+      const gridColDef = this.generateColDefWith(
+        fieldName,
+        determinate,
+        this.precision,
+        determinate === WeatherDeterminate.FORECAST,
+        DEFAULT_COLUMN_WIDTH
+      )
       gridColDefs.push(gridColDef)
     }
     return gridColDefs

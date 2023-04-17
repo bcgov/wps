@@ -2,6 +2,7 @@ import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { RootState } from 'app/rootReducer'
 import {
   fetchWeatherIndeterminates,
+  ModelChoice,
   WeatherIndeterminate,
   WeatherIndeterminatePayload,
   WeatherDeterminate,
@@ -265,6 +266,28 @@ export const selectAllMoreCast2Rows = createSelector([selectWeatherIndeterminate
           row.tempActual = getNumberOrNaN(value.temperature)
           row.windDirectionActual = getNumberOrNaN(value.wind_direction)
           row.windSpeedActual = getNumberOrNaN(value.wind_speed)
+          break
+        case WeatherDeterminate.FORECAST:
+          row.precipForecast = {
+            choice: ModelChoice.FORECAST,
+            value: getNumberOrNaN(value.precipitation)
+          }
+          row.rhForecast = {
+            choice: ModelChoice.FORECAST,
+            value: getNumberOrNaN(value.relative_humidity)
+          }
+          row.tempForecast = {
+            choice: ModelChoice.FORECAST,
+            value: getNumberOrNaN(value.temperature)
+          }
+          row.windDirectionForecast = {
+            choice: ModelChoice.FORECAST,
+            value: getNumberOrNaN(value.wind_direction)
+          }
+          row.windSpeedForecast = {
+            choice: ModelChoice.FORECAST,
+            value: getNumberOrNaN(value.wind_speed)
+          }
           break
         case WeatherDeterminate.GDPS:
           row.precipGDPS = getNumberOrNaN(value.precipitation)
