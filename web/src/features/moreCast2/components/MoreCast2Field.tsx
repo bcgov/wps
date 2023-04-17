@@ -140,14 +140,14 @@ export class RHForecastField extends GridNumberRenderer implements ForecastField
     super()
   }
   public generateColDef = () => {
-    return this.generateColDefWith(this.field, this.headerName, this.precision)
+    return this.generateColDefWith(this.field, this.headerName, this.precision, false)
   }
 
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
     for (const determinate of WEATHER_DETERMINATES) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, false, DEFAULT_COLUMN_WIDTH)
       gridColDefs.push(gridColDef)
     }
     return gridColDefs
@@ -173,14 +173,14 @@ export class WindDirForecastField extends GridNumberRenderer implements Forecast
     super()
   }
   public generateColDef = () => {
-    return this.generateColDefWith(this.field, this.headerName, this.precision)
+    return this.generateColDefWith(this.field, this.headerName, this.precision, false)
   }
 
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
     for (const determinate of WEATHER_DETERMINATES) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, false, DEFAULT_COLUMN_WIDTH)
       gridColDefs.push(gridColDef)
     }
     return gridColDefs
@@ -206,14 +206,14 @@ export class WindSpeedForecastField extends GridNumberRenderer implements Foreca
     super()
   }
   public generateColDef = () => {
-    return this.generateColDefWith(this.field, this.headerName, this.precision)
+    return this.generateColDefWith(this.field, this.headerName, this.precision, false)
   }
 
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
     for (const determinate of WEATHER_DETERMINATES) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, false, DEFAULT_COLUMN_WIDTH)
       gridColDefs.push(gridColDef)
     }
     return gridColDefs
@@ -239,14 +239,14 @@ export class PrecipForecastField extends GridNumberRenderer implements ForecastF
     super()
   }
   public generateColDef = () => {
-    return this.generateColDefWith(this.field, this.headerName, this.precision)
+    return this.generateColDefWith(this.field, this.headerName, this.precision, false)
   }
 
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
     for (const determinate of WEATHER_DETERMINATES) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, false, DEFAULT_COLUMN_WIDTH)
       gridColDefs.push(gridColDef)
     }
     return gridColDefs
