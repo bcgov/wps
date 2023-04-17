@@ -32,14 +32,15 @@ export const ModelChoices: ModelType[] = [
 ]
 
 export enum WeatherDeterminate {
+  ACTUAL = 'Actual',
+  FORECAST = 'Forecast',
   GDPS = 'GDPS',
   GFS = 'GFS',
   HRDPS = 'HRDPS',
-  RDPS = 'RDPS',
-  ACTUAL = 'ACTUAL'
+  RDPS = 'RDPS'
 }
 
-export type WeatherDeterminateType = 'ACTUAL' | 'GDPS' | 'GFS' | 'HRDPS' | 'RDPS'
+export type WeatherDeterminateType = 'Actual' | 'Forecast' | 'GDPS' | 'GFS' | 'HRDPS' | 'RDPS'
 
 export const WeatherDeterminateChoices: WeatherDeterminateType[] = [
   WeatherDeterminate.ACTUAL,
@@ -49,7 +50,7 @@ export const WeatherDeterminateChoices: WeatherDeterminateType[] = [
   WeatherDeterminate.RDPS
 ]
 
-export interface StationWeatherIndeterminate {
+export interface WeatherIndeterminate {
   id: string
   station_code: number
   station_name: string
@@ -62,10 +63,16 @@ export interface StationWeatherIndeterminate {
   wind_speed: number | null
 }
 
-export interface StationWeatherIndeterminateResponse {
-  actuals: StationWeatherIndeterminate[]
-  forecasts: StationWeatherIndeterminate[]
-  predictions: StationWeatherIndeterminate[]
+export interface WeatherIndeterminatePayload {
+  actuals: WeatherIndeterminate[]
+  forecasts: WeatherIndeterminate[]
+  predictions: WeatherIndeterminate[]
+}
+
+export interface WeatherIndeterminateResponse {
+  actuals: WeatherIndeterminate[]
+  forecasts: MoreCast2ForecastRecord[]
+  predictions: WeatherIndeterminate[]
 }
 
 export interface ObservedDailiesResponse {
@@ -127,6 +134,7 @@ export interface MoreCast2ForecastRecord {
   wind_speed: number
   wind_direction: number
   update_timestamp?: number
+  station_name?: string
 }
 
 interface MoreCast2ForecastRecordResponse {
@@ -226,11 +234,11 @@ export async function getObservedDailies(
   return data.dailies
 }
 
-export async function getWeatherIndeterminates(
+export async function fetchWeatherIndeterminates(
   stationCodes: number[],
   startDate: DateTime,
   endDate: DateTime
-): Promise<StationWeatherIndeterminateResponse> {
+): Promise<WeatherIndeterminatePayload> {
   if (stationCodes.length === 0) {
     return {
       actuals: [],
@@ -238,745 +246,38 @@ export async function getWeatherIndeterminates(
       predictions: []
     }
   }
+  const url = `/morecast-v2/determinates/${startDate.toISODate()}/${endDate.toISODate()}`
+  const { data } = await axios.post<WeatherIndeterminateResponse>(url, {
+    stations: stationCodes
+  })
+  const payload: WeatherIndeterminatePayload = {
+    actuals: data.actuals,
+    forecasts: marshallForecastsToWeatherIndeterminates(data.forecasts),
+    predictions: data.predictions
+  }
 
-  // Convert DateTime objects to strings
-
-  return fakeData
+  return payload
 }
 
-const today = DateTime.now().startOf('day')
-const fakeData = {
-  actuals: [
-    {
+const marshallForecastsToWeatherIndeterminates = (forecasts: MoreCast2ForecastRecord[]) => {
+  if (!forecasts.length) {
+    return []
+  }
+  const forecastsAsWeatherIndeterminates: WeatherIndeterminate[] = []
+  for (const forecast of forecasts) {
+    const weatherIndeterminate: WeatherIndeterminate = {
       id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.minus({ days: 3 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.5,
-      relative_humidity: 65,
-      temperature: 3.7,
-      wind_direction: 45,
-      wind_speed: 15
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.minus({ days: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.9,
-      relative_humidity: 75,
-      temperature: 2.2,
-      wind_direction: 60,
-      wind_speed: 10
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.minus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 45,
-      temperature: 4.1,
-      wind_direction: 75,
-      wind_speed: 5
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.toISODate() + 'T20:00:00+00:00',
-      precipitation: null,
-      relative_humidity: null,
-      temperature: null,
-      wind_direction: null,
-      wind_speed: null
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.minus({ days: 3 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.5,
-      relative_humidity: 65,
-      temperature: 3.7,
-      wind_direction: 45,
-      wind_speed: 15
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.minus({ days: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.9,
-      relative_humidity: 75,
-      temperature: 2.2,
-      wind_direction: 60,
-      wind_speed: 10
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.minus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 45,
-      temperature: 4.1,
-      wind_direction: 75,
-      wind_speed: 5
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.toISODate() + 'T20:00:00+00:00',
-      precipitation: null,
-      relative_humidity: null,
-      temperature: null,
-      wind_direction: null,
-      wind_speed: null
+      station_code: forecast.station_code,
+      station_name: forecast.station_name || '',
+      determinate: WeatherDeterminate.FORECAST,
+      utc_timestamp: DateTime.fromMillis(forecast.for_date).toISODate(),
+      precipitation: forecast.precip,
+      relative_humidity: forecast.rh,
+      temperature: forecast.temp,
+      wind_direction: forecast.wind_direction,
+      wind_speed: forecast.wind_speed
     }
-  ],
-  forecasts: [],
-  predictions: [
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.minus({ days: 3 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 50,
-      temperature: 1.2,
-      wind_direction: 125,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.minus({ days: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 75,
-      temperature: 1.9,
-      wind_direction: 90,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.minus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 35,
-      temperature: 3.7,
-      wind_direction: 125,
-      wind_speed: 10
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 85,
-      temperature: 3.2,
-      wind_direction: 145,
-      wind_speed: 5
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.plus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.7,
-      relative_humidity: 55,
-      temperature: 1.2,
-      wind_direction: null,
-      wind_speed: 0
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.minus({ days: 3 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 50,
-      temperature: 1.2,
-      wind_direction: 125,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.minus({ days: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 75,
-      temperature: 1.9,
-      wind_direction: 90,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.minus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 35,
-      temperature: 3.7,
-      wind_direction: 125,
-      wind_speed: 10
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 85,
-      temperature: 3.2,
-      wind_direction: 145,
-      wind_speed: 5
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.plus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.7,
-      relative_humidity: 55,
-      temperature: 1.2,
-      wind_direction: null,
-      wind_speed: 0
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.minus({ days: 3 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 50,
-      temperature: 1.2,
-      wind_direction: 125,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.minus({ days: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 75,
-      temperature: 1.9,
-      wind_direction: 90,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.minus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 35,
-      temperature: 3.7,
-      wind_direction: 125,
-      wind_speed: 10
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 85,
-      temperature: 3.2,
-      wind_direction: 145,
-      wind_speed: 5
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.plus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.7,
-      relative_humidity: 55,
-      temperature: 1.2,
-      wind_direction: null,
-      wind_speed: 0
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.minus({ days: 3 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 50,
-      temperature: 1.2,
-      wind_direction: 125,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.minus({ days: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 75,
-      temperature: 1.9,
-      wind_direction: 90,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.minus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 35,
-      temperature: 3.7,
-      wind_direction: 125,
-      wind_speed: 10
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 85,
-      temperature: 3.2,
-      wind_direction: 145,
-      wind_speed: 5
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.plus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.7,
-      relative_humidity: 55,
-      temperature: 1.2,
-      wind_direction: null,
-      wind_speed: 0
-    }
-  ]
-}
-
-const fakeDataBackup = {
-  actuals: [
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.minus({ days: 3 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.5,
-      relative_humidity: 65,
-      temperature: 3.7,
-      wind_direction: 45,
-      wind_speed: 15
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.minus({ days: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.9,
-      relative_humidity: 75,
-      temperature: 2.2,
-      wind_direction: 60,
-      wind_speed: 10
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.minus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 45,
-      temperature: 4.1,
-      wind_direction: 75,
-      wind_speed: 5
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.toISODate() + 'T20:00:00+00:00',
-      precipitation: null,
-      relative_humidity: null,
-      temperature: null,
-      wind_direction: null,
-      wind_speed: null
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.minus({ days: 3 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.5,
-      relative_humidity: 65,
-      temperature: 3.7,
-      wind_direction: 45,
-      wind_speed: 15
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.minus({ days: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.9,
-      relative_humidity: 75,
-      temperature: 2.2,
-      wind_direction: 60,
-      wind_speed: 10
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.minus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 45,
-      temperature: 4.1,
-      wind_direction: 75,
-      wind_speed: 5
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.ACTUAL,
-      utc_timestamp: today.toISODate() + 'T20:00:00+00:00',
-      precipitation: null,
-      relative_humidity: null,
-      temperature: null,
-      wind_direction: null,
-      wind_speed: null
-    }
-  ],
-  forecasts: [],
-  predictions: [
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.minus({ days: 3 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 50,
-      temperature: 1.2,
-      wind_direction: 125,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.minus({ days: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 75,
-      temperature: 1.9,
-      wind_direction: 90,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.minus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 35,
-      temperature: 3.7,
-      wind_direction: 125,
-      wind_speed: 10
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 85,
-      temperature: 3.2,
-      wind_direction: 145,
-      wind_speed: 5
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.plus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.7,
-      relative_humidity: 55,
-      temperature: 1.2,
-      wind_direction: null,
-      wind_speed: 0
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.plus({ day: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0,
-      relative_humidity: 70,
-      temperature: 2.2,
-      wind_direction: null,
-      wind_speed: 0
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.minus({ days: 3 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 50,
-      temperature: 1.2,
-      wind_direction: 125,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.minus({ days: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 75,
-      temperature: 1.9,
-      wind_direction: 90,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.minus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 35,
-      temperature: 3.7,
-      wind_direction: 125,
-      wind_speed: 10
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 85,
-      temperature: 3.2,
-      wind_direction: 145,
-      wind_speed: 5
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.plus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.7,
-      relative_humidity: 55,
-      temperature: 1.2,
-      wind_direction: null,
-      wind_speed: 0
-    },
-    {
-      id: '',
-      station_code: 322,
-      station_name: 'Afton',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.plus({ day: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0,
-      relative_humidity: 70,
-      temperature: 2.2,
-      wind_direction: null,
-      wind_speed: 0
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.minus({ days: 3 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 50,
-      temperature: 1.2,
-      wind_direction: 125,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.minus({ days: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 75,
-      temperature: 1.9,
-      wind_direction: 90,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.minus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 35,
-      temperature: 3.7,
-      wind_direction: 125,
-      wind_speed: 10
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 85,
-      temperature: 3.2,
-      wind_direction: 145,
-      wind_speed: 5
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.plus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.7,
-      relative_humidity: 55,
-      temperature: 1.2,
-      wind_direction: null,
-      wind_speed: 0
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GDPS,
-      utc_timestamp: today.plus({ day: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0,
-      relative_humidity: 70,
-      temperature: 2.2,
-      wind_direction: null,
-      wind_speed: 0
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.minus({ days: 3 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 50,
-      temperature: 1.2,
-      wind_direction: 125,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.minus({ days: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 75,
-      temperature: 1.9,
-      wind_direction: 90,
-      wind_speed: 20
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.minus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.0,
-      relative_humidity: 35,
-      temperature: 3.7,
-      wind_direction: 125,
-      wind_speed: 10
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.1,
-      relative_humidity: 85,
-      temperature: 3.2,
-      wind_direction: 145,
-      wind_speed: 5
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.plus({ days: 1 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0.7,
-      relative_humidity: 55,
-      temperature: 1.2,
-      wind_direction: null,
-      wind_speed: 0
-    },
-    {
-      id: '',
-      station_code: 317,
-      station_name: 'Allison Pass',
-      determinate: WeatherDeterminate.GFS,
-      utc_timestamp: today.plus({ day: 2 }).toISODate() + 'T20:00:00+00:00',
-      precipitation: 0,
-      relative_humidity: 70,
-      temperature: 2.2,
-      wind_direction: null,
-      wind_speed: 0
-    }
-  ]
+    forecastsAsWeatherIndeterminates.push(weatherIndeterminate)
+  }
+  return forecastsAsWeatherIndeterminates
 }

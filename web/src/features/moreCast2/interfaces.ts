@@ -31,18 +31,18 @@ export interface MoreCast2ForecastRowCollectionByStationCode {
 }
 
 export interface MoreCast2Row {
-  // Idenity and date properties
+  // Identity and date properties
   id: string
   stationCode: number
   stationName: string
   forDate: DateTime
 
   // Forecast properties
-  precip?: PredictionItem
-  rh?: PredictionItem
-  temp?: PredictionItem
-  windDirection?: PredictionItem
-  windSpeed?: PredictionItem
+  precipForecast?: PredictionItem
+  rhForecast?: PredictionItem
+  tempForecast?: PredictionItem
+  windDirectionForecast?: PredictionItem
+  windSpeedForecast?: PredictionItem
 
   // Observed/actual properties
   precipActual: number

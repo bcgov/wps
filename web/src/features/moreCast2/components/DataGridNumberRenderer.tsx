@@ -8,23 +8,26 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { ModelChoice } from 'api/moreCast2API'
-import { Morecast2Field } from 'features/moreCast2/components/MoreCast2Field'
 
 const NOT_AVAILABLE = 'N/A'
 export class GridNumberRenderer {
   renderHeaderWith = (params: GridColumnHeaderParams) => {
     return <Button>{params.colDef.headerName}</Button>
   }
-  renderCellWith = (params: GridRenderCellParams, field: Morecast2Field) => (
+  renderCellWith = (params: GridRenderCellParams) => (
+    <TextField disabled={true} size="small" value={params.formattedValue}></TextField>
+  )
+
+  renderForecastCellWith = (params: GridRenderCellParams, field: string) => (
     <TextField
-      disabled={params.row[field].choice === ModelChoice.ACTUAL ? true : false}
+      disabled={false}
       size="small"
-      label={params.row[field].choice}
+      label={params.row[field] && params.row[field].choice}
       value={params.formattedValue}
     ></TextField>
   )
 
-  predictionItemValueSetter = (params: GridValueSetterParams, field: Morecast2Field, precision: number) => {
+  predictionItemValueSetter = (params: GridValueSetterParams, field: string, precision: number) => {
     const oldValue = params.row[field].value
     const newValue = Number(params.value)
 
@@ -46,6 +49,10 @@ export class GridNumberRenderer {
     return isNaN(value) ? NOT_AVAILABLE : value.toFixed(precision)
   }
 
+  cellValueGetter = (params: GridValueGetterParams, precision: number) => {
+    return isNaN(params?.value) ? 'NaN' : params.value.toFixed(precision)
+  }
+
   predictionItemValueGetter = (params: GridValueGetterParams, precision: number) => {
     const value = params?.value?.value
     if (isNaN(value)) {
@@ -54,7 +61,13 @@ export class GridNumberRenderer {
     return value.toFixed(precision)
   }
 
-  public generateColDefWith = (field: Morecast2Field, headerName: string, precision: number) => {
+  public generateColDefWith = (
+    field: string,
+    headerName: string,
+    precision: number,
+    isForecastColumn: boolean,
+    width?: number
+  ) => {
     return {
       field: field,
       disableColumnMenu: true,
@@ -63,17 +76,18 @@ export class GridNumberRenderer {
       headerName: headerName,
       sortable: false,
       type: 'number',
-      width: 120,
+      width: width || 120,
       renderHeader: (params: GridColumnHeaderParams) => {
         return this.renderHeaderWith(params)
       },
       renderCell: (params: GridRenderCellParams) => {
-        return this.renderCellWith(params, field)
+        return isForecastColumn ? this.renderForecastCellWith(params, field) : this.renderCellWith(params)
       },
       valueFormatter: (params: GridValueFormatterParams) => {
         return this.valueFormatterWith(params, precision)
       },
-      valueGetter: (params: GridValueGetterParams) => this.valueGetterWith(params, precision),
+      valueGetter: (params: GridValueGetterParams) =>
+        isForecastColumn ? this.predictionItemValueGetter(params, precision) : this.cellValueGetter(params, precision),
       valueSetter: (params: GridValueSetterParams) => this.valueSetterWith(params, field, precision)
     }
   }
@@ -81,7 +95,9 @@ export class GridNumberRenderer {
   protected valueFormatterWith = (params: GridValueFormatterParams, precision: number) =>
     this.predictionItemValueFormatter(params, precision)
   protected valueGetterWith = (params: GridValueGetterParams, precision: number) =>
+    this.cellValueGetter(params, precision)
+  protected predictionitemValueGetterWith = (params: GridValueGetterParams, precision: number) =>
     this.predictionItemValueGetter(params, precision)
-  protected valueSetterWith = (params: GridValueSetterParams, field: Morecast2Field, precision: number) =>
+  protected valueSetterWith = (params: GridValueSetterParams, field: string, precision: number) =>
     this.predictionItemValueSetter(params, field, precision)
 }

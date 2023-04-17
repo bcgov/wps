@@ -1,16 +1,27 @@
 import { GridColDef, GridValueFormatterParams } from '@mui/x-data-grid'
 import { DateTime } from 'luxon'
 import { GridNumberRenderer } from 'features/moreCast2/components/DataGridNumberRenderer'
-
-export type Morecast2Field = 'stationName' | 'forDate' | 'temp' | 'rh' | 'windDirection' | 'windSpeed' | 'precip'
+import { WeatherDeterminate, WeatherDeterminateType } from 'api/moreCast2API'
 
 export interface ForecastField {
-  field: Morecast2Field
+  field: string
   headerName: string
   type: 'number' | 'string'
   precision: 0 | 1
   generateColDef: () => GridColDef
+  generateColDefs: () => GridColDef[]
 }
+
+const DEFAULT_COLUMN_WIDTH = 80
+
+const WEATHER_DETERMINATES: WeatherDeterminateType[] = [
+  WeatherDeterminate.FORECAST,
+  WeatherDeterminate.ACTUAL,
+  WeatherDeterminate.HRDPS,
+  WeatherDeterminate.GDPS,
+  WeatherDeterminate.GFS,
+  WeatherDeterminate.RDPS
+]
 
 export class StationForecastField implements ForecastField {
   private static instance: StationForecastField
@@ -23,7 +34,11 @@ export class StationForecastField implements ForecastField {
     /* no op */
   }
   public generateColDef = () => {
-    return { field: this.field, flex: 1, headerName: this.headerName, maxWidth: 200 }
+    return { field: this.field, flex: 1, headerName: this.headerName, maxWidth: 200, width: 200 }
+  }
+
+  public generateColDefs = () => {
+    return [this.generateColDef()]
   }
 
   public static getInstance(): StationForecastField {
@@ -45,6 +60,7 @@ export class DateForecastField implements ForecastField {
   private constructor() {
     /* no op */
   }
+
   public generateColDef = () => {
     return {
       field: this.field,
@@ -52,13 +68,19 @@ export class DateForecastField implements ForecastField {
       disableReorder: true,
       flex: 1,
       headerName: this.headerName,
-      maxWidth: 250,
+      maxWidth: 150,
+      width: 150,
       sortable: false,
       valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
         return params.value.toLocaleString(DateTime.DATE_MED)
       }
     }
   }
+
+  public generateColDefs = () => {
+    return [this.generateColDef()]
+  }
+
   public static getInstance(): DateForecastField {
     if (!DateForecastField.instance) {
       DateForecastField.instance = new DateForecastField()
@@ -79,7 +101,23 @@ export class TempForecastField extends GridNumberRenderer implements ForecastFie
     super()
   }
   public generateColDef = () => {
-    return this.generateColDefWith(this.field, this.headerName, this.precision)
+    return this.generateColDefWith(this.field, this.headerName, this.precision, false)
+  }
+
+  public generateColDefs = () => {
+    const gridColDefs: GridColDef[] = []
+    for (const determinate of WEATHER_DETERMINATES) {
+      const fieldName = `${this.field}${determinate}`
+      const gridColDef = this.generateColDefWith(
+        fieldName,
+        determinate,
+        this.precision,
+        determinate === WeatherDeterminate.FORECAST,
+        DEFAULT_COLUMN_WIDTH
+      )
+      gridColDefs.push(gridColDef)
+    }
+    return gridColDefs
   }
 
   public static getInstance(): TempForecastField {
@@ -105,6 +143,16 @@ export class RHForecastField extends GridNumberRenderer implements ForecastField
     return this.generateColDefWith(this.field, this.headerName, this.precision)
   }
 
+  public generateColDefs = () => {
+    const gridColDefs: GridColDef[] = []
+    for (const determinate of WEATHER_DETERMINATES) {
+      const fieldName = `${this.field}${determinate}`
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
+      gridColDefs.push(gridColDef)
+    }
+    return gridColDefs
+  }
+
   public static getInstance(): RHForecastField {
     if (!RHForecastField.instance) {
       RHForecastField.instance = new RHForecastField()
@@ -126,6 +174,16 @@ export class WindDirForecastField extends GridNumberRenderer implements Forecast
   }
   public generateColDef = () => {
     return this.generateColDefWith(this.field, this.headerName, this.precision)
+  }
+
+  public generateColDefs = () => {
+    const gridColDefs: GridColDef[] = []
+    for (const determinate of WEATHER_DETERMINATES) {
+      const fieldName = `${this.field}${determinate}`
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
+      gridColDefs.push(gridColDef)
+    }
+    return gridColDefs
   }
 
   public static getInstance(): WindDirForecastField {
@@ -150,6 +208,17 @@ export class WindSpeedForecastField extends GridNumberRenderer implements Foreca
   public generateColDef = () => {
     return this.generateColDefWith(this.field, this.headerName, this.precision)
   }
+
+  public generateColDefs = () => {
+    const gridColDefs: GridColDef[] = []
+    for (const determinate of WEATHER_DETERMINATES) {
+      const fieldName = `${this.field}${determinate}`
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
+      gridColDefs.push(gridColDef)
+    }
+    return gridColDefs
+  }
+
   public static getInstance(): WindSpeedForecastField {
     if (!WindSpeedForecastField.instance) {
       WindSpeedForecastField.instance = new WindSpeedForecastField()
@@ -171,6 +240,16 @@ export class PrecipForecastField extends GridNumberRenderer implements ForecastF
   }
   public generateColDef = () => {
     return this.generateColDefWith(this.field, this.headerName, this.precision)
+  }
+
+  public generateColDefs = () => {
+    const gridColDefs: GridColDef[] = []
+    for (const determinate of WEATHER_DETERMINATES) {
+      const fieldName = `${this.field}${determinate}`
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
+      gridColDefs.push(gridColDef)
+    }
+    return gridColDefs
   }
 
   public static getInstance(): PrecipForecastField {
