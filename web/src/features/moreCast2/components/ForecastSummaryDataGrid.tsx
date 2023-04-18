@@ -1,50 +1,37 @@
-import makeStyles from '@mui/styles/makeStyles'
 import React from 'react'
-import {
-  DataGrid,
-  GridColDef,
-  GridColumnGroupingModel,
-  GridColumnVisibilityModel,
-  GridEventListener
-} from '@mui/x-data-grid'
-import { MoreCast2Row } from 'features/moreCast2/interfaces'
+import makeStyles from '@mui/styles/makeStyles'
+import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
+import { ModelChoice, ModelType } from 'api/moreCast2API'
+import { ForecastMorecast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress, Menu, MenuItem } from '@mui/material'
-import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { isEqual } from 'lodash'
-import { ModelType } from 'api/moreCast2API'
+import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
 
-export interface MoreCase2DateRangePickerProps {
+interface ForecastSummaryDataGridProps {
   loading: boolean
+  rows: ForecastMorecast2Row[]
   clickedColDef: GridColDef | null
-  columnVisibilityModel: GridColumnVisibilityModel
-  setColumnVisibilityModel: React.Dispatch<React.SetStateAction<GridColumnVisibilityModel>>
-  setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
   onCellEditStop: (value: boolean) => void
+  setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
   updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
-  columnGroupingModel: GridColumnGroupingModel
-  allMoreCast2Rows: MoreCast2Row[]
 }
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles({
   root: {
     display: 'flex',
-    flexGrow: 1,
-    flexDirection: 'column'
+    flexGrow: 1
   }
-}))
+})
 
-const ForecastDataGrid = ({
+const ForecastSummaryDataGrid = ({
   loading,
+  rows,
   clickedColDef,
-  columnVisibilityModel,
-  setColumnVisibilityModel,
-  setClickedColDef,
   onCellEditStop,
-  updateColumnWithModel,
-  columnGroupingModel,
-  allMoreCast2Rows
-}: MoreCase2DateRangePickerProps) => {
+  setClickedColDef,
+  updateColumnWithModel
+}: ForecastSummaryDataGridProps) => {
   const classes = useStyles()
 
   const [contextMenu, setContextMenu] = React.useState<{
@@ -62,21 +49,26 @@ const ForecastDataGrid = ({
   const handleClose = () => {
     setContextMenu(null)
   }
+
+  const columns: GridColDef[] = MORECAST2_FIELDS.map(field => field.generateColDef())
+
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
-        columnVisibilityModel={columnVisibilityModel}
-        onColumnVisibilityModelChange={newModel => setColumnVisibilityModel(newModel)}
-        columnGroupingModel={columnGroupingModel}
-        experimentalFeatures={{ columnGrouping: true }}
         components={{
           LoadingOverlay: LinearProgress
+        }}
+        initialState={{
+          sorting: {
+            sortModel: [{ field: 'stationName', sort: 'asc' }]
+          }
         }}
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellEditStop={() => onCellEditStop(true)}
         loading={loading}
-        columns={DataGridColumns.getColumns()}
-        rows={allMoreCast2Rows}
+        columns={columns}
+        rows={rows}
+        isCellEditable={params => (params.row[params.field].choice === ModelChoice.ACTUAL ? false : true)}
       ></DataGrid>
       <Menu
         open={contextMenu !== null}
@@ -117,4 +109,4 @@ const ForecastDataGrid = ({
   )
 }
 
-export default React.memo(ForecastDataGrid)
+export default ForecastSummaryDataGrid

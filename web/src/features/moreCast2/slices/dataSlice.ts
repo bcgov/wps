@@ -327,6 +327,20 @@ export const selectAllMoreCast2Rows = createSelector([selectWeatherIndeterminate
   return rows
 })
 
+export const selectForecastMoreCast2Rows = createSelector([selectAllMoreCast2Rows], allMorecast2Rows =>
+  allMorecast2Rows?.map(row => ({
+    id: row.id,
+    stationCode: row.stationCode,
+    stationName: row.stationName,
+    forDate: row.forDate,
+    precip: row.precipForecast,
+    rh: row.rhForecast,
+    temp: row.tempForecast,
+    windDirection: row.windDirectionForecast,
+    windSpeed: row.windSpeedForecast
+  }))
+)
+
 export const selectWeatherIndeterminatesLoading = (state: RootState) => state.weatherIndeterminates.loading
 
 // Commented out as selected stations are not actually set in the Redux store

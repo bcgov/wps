@@ -4,9 +4,14 @@ import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid'
 import { ModelType } from 'api/moreCast2API'
 import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
+import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
-import { selectAllMoreCast2Rows, selectWeatherIndeterminatesLoading } from 'features/moreCast2/slices/dataSlice'
+import {
+  selectAllMoreCast2Rows,
+  selectForecastMoreCast2Rows,
+  selectWeatherIndeterminatesLoading
+} from 'features/moreCast2/slices/dataSlice'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 
@@ -41,6 +46,7 @@ const TabbedDataGrid = ({
   const classes = useStyles()
 
   const allMoreCast2Rows = useSelector(selectAllMoreCast2Rows) || []
+  const forecastMorecast2Rows = useSelector(selectForecastMoreCast2Rows) || []
   const loading = useSelector(selectWeatherIndeterminatesLoading)
 
   const [columnVisibilityModel, setColumnVisibilityModel] = React.useState<GridColumnVisibilityModel>(
@@ -171,17 +177,28 @@ const TabbedDataGrid = ({
           Forecast Summary
         </SelectableButton>
       </List>
-      <ForecastDataGrid
-        loading={loading}
-        clickedColDef={clickedColDef}
-        columnVisibilityModel={columnVisibilityModel}
-        setColumnVisibilityModel={setColumnVisibilityModel}
-        setClickedColDef={setClickedColDef}
-        onCellEditStop={onCellEditStop}
-        updateColumnWithModel={updateColumnWithModel}
-        columnGroupingModel={columnGroupingModel}
-        allMoreCast2Rows={allMoreCast2Rows}
-      />
+      {forecastSummaryVisible ? (
+        <ForecastSummaryDataGrid
+          loading={loading}
+          rows={forecastMorecast2Rows}
+          clickedColDef={clickedColDef}
+          onCellEditStop={onCellEditStop}
+          setClickedColDef={setClickedColDef}
+          updateColumnWithModel={updateColumnWithModel}
+        />
+      ) : (
+        <ForecastDataGrid
+          loading={loading}
+          clickedColDef={clickedColDef}
+          columnVisibilityModel={columnVisibilityModel}
+          setColumnVisibilityModel={setColumnVisibilityModel}
+          setClickedColDef={setClickedColDef}
+          onCellEditStop={onCellEditStop}
+          updateColumnWithModel={updateColumnWithModel}
+          columnGroupingModel={columnGroupingModel}
+          allMoreCast2Rows={allMoreCast2Rows}
+        />
+      )}
     </div>
   )
 }
