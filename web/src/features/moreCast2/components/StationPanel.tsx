@@ -1,4 +1,5 @@
 import React from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import {
   Checkbox,
   FormControl,
@@ -14,16 +15,16 @@ import {
 import makeStyles from '@mui/styles/makeStyles'
 import StationGroupDropdown from 'features/moreCast2/components/StationGroupDropdown'
 import { StationGroup, StationGroupMember } from 'api/stationAPI'
+import { AppDispatch } from 'app/store'
+import { selectedStationsChanged, selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 
 interface StationPanelProps {
   idir?: string
   loading: boolean
   stationGroups: StationGroup[]
   selectedStationGroup?: StationGroup
-  selectedStations: StationGroupMember[]
   stationGroupMembers: StationGroupMember[]
   setSelectedStationGroup: React.Dispatch<React.SetStateAction<StationGroup | undefined>>
-  setSelectedStations: React.Dispatch<React.SetStateAction<StationGroupMember[]>>
 }
 
 const useStyles = makeStyles(theme => ({
@@ -55,18 +56,12 @@ const useStyles = makeStyles(theme => ({
 
 const StationPanel = (props: StationPanelProps) => {
   const classes = useStyles()
-  const {
-    idir,
-    loading,
-    selectedStations,
-    selectedStationGroup,
-    stationGroups,
-    stationGroupMembers,
-    setSelectedStationGroup,
-    setSelectedStations
-  } = {
+  const { idir, loading, selectedStationGroup, stationGroups, stationGroupMembers, setSelectedStationGroup } = {
     ...props
   }
+
+  const dispatch: AppDispatch = useDispatch()
+  const selectedStations = useSelector(selectSelectedStations)
 
   const handleStationClick = (station: StationGroupMember) => {
     const newSelectedStations = selectedStations.map(station => station)
@@ -76,10 +71,9 @@ const StationPanel = (props: StationPanelProps) => {
     } else {
       newSelectedStations.push(station)
     }
-    setSelectedStations(newSelectedStations)
+    dispatch(selectedStationsChanged(newSelectedStations))
   }
 
-  // TODO: Add an add/remove all button
   return (
     <div className={classes.root} data-testid={`morecast2-station-panel`}>
       <div className={classes.header}>

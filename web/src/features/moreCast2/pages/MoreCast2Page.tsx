@@ -29,15 +29,13 @@ import { GeneralHeader } from 'components'
 import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import StationPanel from 'features/moreCast2/components/StationPanel'
-import { MoreCast2ForecastRow, MoreCast2ForecastRowsByDate } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice'
 import {
-  buildListOfRowsToDisplay,
   createDateInterval,
   excludeRowsByModelType,
   fillInTheModelBlanks,
   includeRowsByModelType,
-  marshalAllMoreCast2ForecastRowsByStationAndDate,
   parseForecastsHelper,
   parseModelsForStationsHelper,
   parseObservedDailiesForStationsHelper,
@@ -60,10 +58,11 @@ import { getMoreCast2Forecasts } from 'features/moreCast2/slices/moreCast2Foreca
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import ForecastActionDropdown from 'features/moreCast2/components/ForecastActionDropdown'
 import { fetchStationGroups } from 'commonSlices/stationGroupsSlice'
-import { StationGroup, StationGroupMember } from 'api/stationAPI'
+import { StationGroup } from 'api/stationAPI'
 import { fetchStationGroupsMembers } from 'commonSlices/selectedStationGroupMembers'
 import { getWeatherIndeterminates } from 'features/moreCast2/slices/dataSlice'
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
+import { selectedStationsChanged, selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -121,7 +120,6 @@ const MoreCast2Page = () => {
 
   const [selectedStationGroup, setSelectedStationGroup] = useState<StationGroup>()
 
-  const [selectedStations, setSelectedStations] = useState<StationGroupMember[]>([])
   const [modelType, setModelType] = useState<ModelType>(
     (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE
   )
@@ -155,6 +153,7 @@ const MoreCast2Page = () => {
 
   const { colPrediction } = useSelector(selectColumnModelStationPredictions)
   const { colYesterdayDailies } = useSelector(selectColumnYesterdayDailies)
+  const selectedStations = useSelector(selectSelectedStations)
 
   const [clickedColDef, setClickedColDef] = React.useState<GridColDef | null>(null)
   const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
@@ -257,21 +256,6 @@ const MoreCast2Page = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    let rows: MoreCast2ForecastRow[] = []
-    let stationsDict: { [stationCode: number]: MoreCast2ForecastRowsByDate[] } = {}
-    if (forecastAction === ForecastActionChoice.CREATE) {
-      // for dates where an observation is available, want to only display the observation
-      // only include stationPredictions for dates/stationCode combos when its
-      // observation data isn't available
-      stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(observedRows, modelChoiceAsMoreCast2ForecastRows)
-    } else {
-      stationsDict = marshalAllMoreCast2ForecastRowsByStationAndDate(observedRows, forecastsAsMoreCast2ForecastRows)
-    }
-    rows = buildListOfRowsToDisplay(stationsDict, selectedStations)
-    setRowsToDisplay(rows)
-  }, [forecastRows, observedRows, modelChoiceAsMoreCast2ForecastRows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
     if (!isNull(colPrediction)) {
       const newRows = replaceColumnValuesFromPrediction(
         modelChoiceAsMoreCast2ForecastRows,
@@ -297,7 +281,7 @@ const MoreCast2Page = () => {
 
   useEffect(() => {
     if (!isEmpty(members)) {
-      setSelectedStations([members[0]])
+      dispatch(selectedStationsChanged([members[0]]))
       setSelectedGroupsMembers(members)
       fetchStationPredictions()
       fetchStationObservedDailies()
@@ -439,8 +423,6 @@ const MoreCast2Page = () => {
           <StationPanel
             idir={idir}
             loading={groupsLoading}
-            selectedStations={selectedStations}
-            setSelectedStations={setSelectedStations}
             stationGroups={groups}
             selectedStationGroup={selectedStationGroup}
             setSelectedStationGroup={setSelectedStationGroup}
@@ -494,7 +476,6 @@ const MoreCast2Page = () => {
           <TabbedDataGrid
             clickedColDef={clickedColDef}
             onCellEditStop={setForecastIsDirty}
-            selectedStations={selectedStations}
             setClickedColDef={setClickedColDef}
             updateColumnWithModel={updateColumnWithModel}
           />

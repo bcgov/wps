@@ -15,6 +15,7 @@ import { logError } from 'utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { createDateInterval } from 'features/moreCast2/util'
 import { isUndefined } from 'lodash'
+import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 
 interface State {
   loading: boolean
@@ -327,6 +328,19 @@ export const selectAllMoreCast2Rows = createSelector([selectWeatherIndeterminate
   return rows
 })
 
+export const selectVisibleMoreCast2Rows = createSelector(
+  [selectAllMoreCast2Rows, selectSelectedStations],
+  (rows, selectedStations) => {
+    let visibleRows: MoreCast2Row[] = []
+    for (const station of selectedStations) {
+      const filteredRows = rows?.filter(row => row.stationCode === station.station_code) || []
+      visibleRows = [...visibleRows, ...filteredRows]
+    }
+    const sortedRows = sortRowsForDisplay(visibleRows)
+    return sortedRows
+  }
+)
+
 export const selectForecastMoreCast2Rows = createSelector([selectAllMoreCast2Rows], allMorecast2Rows =>
   allMorecast2Rows?.map(row => ({
     id: row.id,
@@ -343,22 +357,27 @@ export const selectForecastMoreCast2Rows = createSelector([selectAllMoreCast2Row
 
 export const selectWeatherIndeterminatesLoading = (state: RootState) => state.weatherIndeterminates.loading
 
-// Commented out as selected stations are not actually set in the Redux store
-// export const selectMoreCast2RowsFilteredByStationGroupsMembers = createSelector(
-//   [selectMoreCast2Rows, selectSelectedStationGroupsMembers],
-//   (rows, members) => {
-//     if (isUndefined(rows) || isUndefined(members)) {
-//       return []
-//     }
-//     let filteredRows: MoreCast2Row[] = []
-//     const stationCodes = members.map(member => member.station_code)
-//     for (const stationCode of stationCodes) {
-//       const matchingRows = rows.filter(row => row.stationCode === stationCode)
-//       filteredRows = [...filteredRows, ...matchingRows]
-//     }
-//     return filteredRows
-//   }
-// )
+function sortRowsForDisplay(rows: MoreCast2Row[]) {
+  const groupedRows = groupRowsByStationName(rows)
+  const keys = Object.keys(groupedRows)
+  keys.sort()
+  let sortedRows: MoreCast2Row[] = []
+  for (const key of keys) {
+    const rowsForKey = groupedRows[key]
+    sortedRows = [...sortedRows, ...rowsForKey]
+  }
+  return sortedRows
+}
+
+function groupRowsByStationName(rows: MoreCast2Row[]) {
+  return rows.reduce((acc: { [key: string]: MoreCast2Row[] }, item: MoreCast2Row) => {
+    const group = item.stationName
+    acc[group] = acc[group] || []
+    acc[group].push(item)
+
+    return acc
+  }, {})
+}
 
 /**
  *
