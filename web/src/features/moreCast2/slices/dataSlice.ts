@@ -15,7 +15,6 @@ import { logError } from 'utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { createDateInterval } from 'features/moreCast2/util'
 import { isUndefined } from 'lodash'
-import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 
 interface State {
   loading: boolean
@@ -23,7 +22,6 @@ interface State {
   actuals: WeatherIndeterminate[]
   forecasts: WeatherIndeterminate[]
   predictions: WeatherIndeterminate[]
-  moreCast2Rows: MoreCast2Row[]
 }
 
 export const initialState: State = {
@@ -31,8 +29,7 @@ export const initialState: State = {
   error: null,
   actuals: [],
   forecasts: [],
-  predictions: [],
-  moreCast2Rows: []
+  predictions: []
 }
 
 const dataSlice = createSlice({
@@ -44,7 +41,6 @@ const dataSlice = createSlice({
       state.actuals = []
       state.forecasts = []
       state.predictions = []
-      state.moreCast2Rows = []
       state.loading = true
     },
     getWeatherIndeterminatesFailed(state: State, action: PayloadAction<string>) {
@@ -56,7 +52,6 @@ const dataSlice = createSlice({
       state.actuals = action.payload.actuals
       state.forecasts = action.payload.forecasts
       state.predictions = action.payload.predictions
-      state.moreCast2Rows = action.payload.moreCast2Rows
       state.loading = false
     }
   }
@@ -87,12 +82,10 @@ export const getWeatherIndeterminates =
       actuals = addUniqueIds(actuals)
       forecasts = addUniqueIds(forecasts)
       predictions = addUniqueIds(predictions)
-      const moreCast2Rows = createMoreCast2Rows(actuals, forecasts, predictions) || []
       const payload = {
         actuals,
         forecasts,
-        predictions,
-        moreCast2Rows: moreCast2Rows
+        predictions
       }
       dispatch(getWeatherIndeterminatesSuccess(payload))
     } catch (err) {
@@ -105,7 +98,7 @@ const createMoreCast2Rows = (
   actuals: WeatherIndeterminate[],
   forecasts: WeatherIndeterminate[],
   predictions: WeatherIndeterminate[]
-) => {
+): MoreCast2Row[] => {
   // Since ids are a composite of a station code and date, grouping by id ensures that each group represents
   // the weather indeterminates for a single station and date
   const groupedById = groupby([...actuals, ...forecasts, ...predictions], 'id')
@@ -114,7 +107,7 @@ const createMoreCast2Rows = (
 
   for (const values of Object.values(groupedById)) {
     if (!values.length) {
-      return
+      return []
     }
     const firstItem = values[0]
     const row = createEmptyMoreCast2Row(
@@ -338,20 +331,15 @@ const fillMissingPredictions = (items: WeatherIndeterminate[], fromDate: DateTim
  */
 const selectWeatherIndeterminates = (state: RootState) => state.weatherIndeterminates
 
-export const selectAllMoreCast2Rows = (state: RootState) => state.weatherIndeterminates.moreCast2Rows
-
-export const selectVisibleMoreCast2Rows = createSelector(
-  [selectAllMoreCast2Rows, selectSelectedStations],
-  (rows, selectedStations) => {
-    let visibleRows: MoreCast2Row[] = []
-    for (const station of selectedStations) {
-      const filteredRows = rows?.filter(row => row.stationCode === station.station_code) || []
-      visibleRows = [...visibleRows, ...filteredRows]
-    }
-    const sortedRows = sortRowsForDisplay(visibleRows)
-    return sortedRows
-  }
-)
+export const selectAllMoreCast2Rows = createSelector([selectWeatherIndeterminates], weatherIndeterminates => {
+  const rows = createMoreCast2Rows(
+    weatherIndeterminates.actuals,
+    weatherIndeterminates.forecasts,
+    weatherIndeterminates.predictions
+  )
+  const sortedRows = sortRowsByStationName(rows)
+  return sortedRows
+})
 
 export const selectForecastMoreCast2Rows = createSelector([selectAllMoreCast2Rows], allMorecast2Rows =>
   allMorecast2Rows?.map(row => ({
@@ -369,7 +357,7 @@ export const selectForecastMoreCast2Rows = createSelector([selectAllMoreCast2Row
 
 export const selectWeatherIndeterminatesLoading = (state: RootState) => state.weatherIndeterminates.loading
 
-function sortRowsForDisplay(rows: MoreCast2Row[]) {
+function sortRowsByStationName(rows: MoreCast2Row[]) {
   const groupedRows = groupRowsByStationName(rows)
   const keys = Object.keys(groupedRows)
   keys.sort()

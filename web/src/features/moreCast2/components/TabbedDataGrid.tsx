@@ -8,12 +8,14 @@ import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSumma
 import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
 import {
-  selectVisibleMoreCast2Rows,
   selectForecastMoreCast2Rows,
+  selectAllMoreCast2Rows,
   selectWeatherIndeterminatesLoading
 } from 'features/moreCast2/slices/dataSlice'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { MoreCast2Row } from 'features/moreCast2/interfaces'
+import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 
 interface TabbedDataGridProps {
   clickedColDef: GridColDef | null
@@ -44,12 +46,14 @@ const TabbedDataGrid = ({
   updateColumnWithModel
 }: TabbedDataGridProps) => {
   const classes = useStyles()
-  const visibleMoreCast2Rows = useSelector(selectVisibleMoreCast2Rows) || []
+  const sortedMoreCast2Rows = useSelector(selectAllMoreCast2Rows)
   const forecastMorecast2Rows = useSelector(selectForecastMoreCast2Rows) || []
-
+  const selectedStations = useSelector(selectSelectedStations)
   const loading = useSelector(selectWeatherIndeterminatesLoading)
 
-  const [columnVisibilityModel, setColumnVisibilityModel] = React.useState<GridColumnVisibilityModel>(
+  const [allRows, setAllRows] = useState<MoreCast2Row[]>([])
+  const [visibleRows, setVisibleRows] = useState<MoreCast2Row[]>([])
+  const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
     DataGridColumns.initGridColumnVisibilityModel()
   )
 
@@ -64,6 +68,21 @@ const TabbedDataGrid = ({
   const [windDirectionVisible, setWindDirectionVisible] = useState(false)
   const [windSpeedVisible, setWindSpeedVisible] = useState(false)
   const [forecastSummaryVisible, setForecastSummaryVisible] = useState(false)
+
+  useEffect(() => {
+    setAllRows([...sortedMoreCast2Rows])
+  }, [sortedMoreCast2Rows])
+
+  useEffect(() => {
+    const newVisibleRows: MoreCast2Row[] = []
+    const stationCodes = selectedStations.map(station => station.station_code)
+    for (const row of allRows) {
+      if (stationCodes.indexOf(row.stationCode) > -1) {
+        newVisibleRows.push(row)
+      }
+    }
+    setVisibleRows(newVisibleRows)
+  }, [allRows, selectedStations])
 
   /********** Start useEffects for managing visibility of column groups *************/
 
@@ -200,7 +219,7 @@ const TabbedDataGrid = ({
           onCellEditStop={onCellEditStop}
           updateColumnWithModel={updateColumnWithModel}
           columnGroupingModel={columnGroupingModel}
-          allMoreCast2Rows={visibleMoreCast2Rows}
+          allMoreCast2Rows={visibleRows}
         />
       )}
     </div>
