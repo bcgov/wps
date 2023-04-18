@@ -23,8 +23,8 @@ class WeatherDeterminate(str, Enum):
     RDPS = 'RDPS'
 
     # non prediction models
-    FORECAST = 'FORECAST'
-    ACTUAL = 'ACTUAL'
+    FORECAST = 'Forecast'
+    ACTUAL = 'Actual'
 
 
 class ForecastedTemperature(BaseModel):

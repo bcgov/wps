@@ -318,7 +318,7 @@ export const selectAllMoreCast2Rows = createSelector([selectWeatherIndeterminate
           row.windSpeedRDPS = getNumberOrNaN(value.wind_speed)
           break
         default:
-        // noop
+        // no-op
       }
     }
     rows.push(row as MoreCast2Row)

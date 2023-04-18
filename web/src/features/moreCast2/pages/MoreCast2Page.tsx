@@ -20,7 +20,6 @@ import {
   selectColumnYesterdayDailies,
   selectModelStationPredictions,
   selectMoreCast2Forecasts,
-  selectMorecast2TableLoading,
   selectStationGroups,
   selectStationGroupsMembers,
   selectObservedDailies
@@ -28,7 +27,6 @@ import {
 import { AppDispatch } from 'app/store'
 import { GeneralHeader } from 'components'
 import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
-import MoreCast2DataGrid from 'features/moreCast2/components/MoreCast2DataGrid'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import { MoreCast2ForecastRow, MoreCast2ForecastRowsByDate } from 'features/moreCast2/interfaces'
@@ -64,8 +62,8 @@ import ForecastActionDropdown from 'features/moreCast2/components/ForecastAction
 import { fetchStationGroups } from 'commonSlices/stationGroupsSlice'
 import { StationGroup, StationGroupMember } from 'api/stationAPI'
 import { fetchStationGroupsMembers } from 'commonSlices/selectedStationGroupMembers'
-import { getWeatherIndeterminates, selectAllMoreCast2Rows } from 'features/moreCast2/slices/dataSlice'
-import NewMoreCast2DataGrid from 'features/moreCast2/components/NewMoreCast2DataGrid'
+import { getWeatherIndeterminates } from 'features/moreCast2/slices/dataSlice'
+import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 
 const useStyles = makeStyles(theme => ({
   content: {
@@ -114,14 +112,12 @@ const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { groups, loading: groupsLoading } = useSelector(selectStationGroups)
-  const tableLoading = useSelector(selectMorecast2TableLoading)
   const { members } = useSelector(selectStationGroupsMembers)
   const { stationPredictions } = useSelector(selectModelStationPredictions)
   const { observedDailies, yesterdayDailies } = useSelector(selectObservedDailies)
   const { moreCast2Forecasts } = useSelector(selectMoreCast2Forecasts)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { idir } = useSelector(selectAuthentication)
-  const allMoreCast2rows = useSelector(selectAllMoreCast2Rows)
 
   const [selectedStationGroup, setSelectedStationGroup] = useState<StationGroup>()
 
@@ -182,6 +178,18 @@ const MoreCast2Page = () => {
           colDef.field as keyof MoreCast2ForecastRow,
           DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate(),
           DateTime.fromJSDate(fromTo.endDate ? fromTo.endDate : new Date()).toISODate()
+        )
+      )
+    }
+  }
+
+  const fetchWeatherIndeterminates = () => {
+    if (fromTo && fromTo.startDate && fromTo.endDate) {
+      dispatch(
+        getWeatherIndeterminates(
+          members.map(station => station.station_code),
+          DateTime.fromJSDate(fromTo.startDate),
+          DateTime.fromJSDate(fromTo.endDate)
         )
       )
     }
@@ -249,10 +257,6 @@ const MoreCast2Page = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    console.log('All rows')
-  }, [allMoreCast2rows])
-
-  useEffect(() => {
     let rows: MoreCast2ForecastRow[] = []
     let stationsDict: { [stationCode: number]: MoreCast2ForecastRowsByDate[] } = {}
     if (forecastAction === ForecastActionChoice.CREATE) {
@@ -265,15 +269,6 @@ const MoreCast2Page = () => {
     }
     rows = buildListOfRowsToDisplay(stationsDict, selectedStations)
     setRowsToDisplay(rows)
-    if (fromTo && fromTo.startDate && fromTo.endDate) {
-      dispatch(
-        getWeatherIndeterminates(
-          selectedStations.map(station => station.station_code),
-          DateTime.fromJSDate(fromTo.startDate),
-          DateTime.fromJSDate(fromTo.endDate)
-        )
-      )
-    }
   }, [forecastRows, observedRows, modelChoiceAsMoreCast2ForecastRows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -307,6 +302,7 @@ const MoreCast2Page = () => {
       fetchStationPredictions()
       fetchStationObservedDailies()
     }
+    fetchWeatherIndeterminates()
   }, [members]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -341,8 +337,7 @@ const MoreCast2Page = () => {
     if (forecastAction === ForecastActionChoice.CREATE) {
       if (!isUndefined(modelType) && !isNull(modelType)) {
         localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
-        fetchStationObservedDailies()
-        fetchStationPredictions()
+        fetchWeatherIndeterminates()
       } else {
         setForecastRows([])
       }
@@ -496,17 +491,10 @@ const MoreCast2Page = () => {
               </FormControl>
             </Grid>
           </Grid>
-          {/* <MoreCast2DataGrid
-            loading={tableLoading}
-            rows={rowsToDisplay}
+          <TabbedDataGrid
             clickedColDef={clickedColDef}
             onCellEditStop={setForecastIsDirty}
-            setClickedColDef={setClickedColDef}
-            updateColumnWithModel={updateColumnWithModel}
-          /> */}
-          <NewMoreCast2DataGrid
-            clickedColDef={clickedColDef}
-            onCellEditStop={setForecastIsDirty}
+            selectedStations={selectedStations}
             setClickedColDef={setClickedColDef}
             updateColumnWithModel={updateColumnWithModel}
           />
