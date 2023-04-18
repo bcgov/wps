@@ -371,5 +371,5 @@ class GribFileProcessor():
 
         if self.prediction_model.abbreviation in ['GDPS', 'RDPS', 'HRDPS']:
             self.process_env_can_grib_file(session, dataset, grib_info, prediction_run)
-        elif self.prediction_model.abbreviation == 'GFS':
+        elif self.prediction_model.abbreviation in ['GFS', 'NAM']:
             self.process_noaa_grib_file(session, dataset, grib_info, prediction_run)
