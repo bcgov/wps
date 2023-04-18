@@ -23,6 +23,7 @@ interface State {
   actuals: WeatherIndeterminate[]
   forecasts: WeatherIndeterminate[]
   predictions: WeatherIndeterminate[]
+  moreCast2Rows: MoreCast2Row[]
 }
 
 export const initialState: State = {
@@ -30,7 +31,8 @@ export const initialState: State = {
   error: null,
   actuals: [],
   forecasts: [],
-  predictions: []
+  predictions: [],
+  moreCast2Rows: []
 }
 
 const dataSlice = createSlice({
@@ -42,6 +44,7 @@ const dataSlice = createSlice({
       state.actuals = []
       state.forecasts = []
       state.predictions = []
+      state.moreCast2Rows = []
       state.loading = true
     },
     getWeatherIndeterminatesFailed(state: State, action: PayloadAction<string>) {
@@ -53,6 +56,7 @@ const dataSlice = createSlice({
       state.actuals = action.payload.actuals
       state.forecasts = action.payload.forecasts
       state.predictions = action.payload.predictions
+      state.moreCast2Rows = action.payload.moreCast2Rows
       state.loading = false
     }
   }
@@ -77,13 +81,18 @@ export const getWeatherIndeterminates =
     try {
       dispatch(getWeatherIndeterminatesStart())
       const data = await fetchWeatherIndeterminates(stationCodes, fromDate, toDate)
-      const actuals = fillMissingActuals(data.actuals, fromDate, toDate)
-      const forecasts = fillMissingForecasts(data.forecasts, fromDate, toDate, stationCodes)
-      const predictions = fillMissingPredictions(data.predictions, fromDate, toDate)
+      let actuals = fillMissingActuals(data.actuals, fromDate, toDate)
+      let forecasts = fillMissingForecasts(data.forecasts, fromDate, toDate, stationCodes)
+      let predictions = fillMissingPredictions(data.predictions, fromDate, toDate)
+      actuals = addUniqueIds(actuals)
+      forecasts = addUniqueIds(forecasts)
+      predictions = addUniqueIds(predictions)
+      const moreCast2Rows = createMoreCast2Rows(actuals, forecasts, predictions) || []
       const payload = {
-        actuals: addUniqueIds(actuals),
-        forecasts: addUniqueIds(forecasts),
-        predictions: addUniqueIds(predictions)
+        actuals,
+        forecasts,
+        predictions,
+        moreCast2Rows: moreCast2Rows
       }
       dispatch(getWeatherIndeterminatesSuccess(payload))
     } catch (err) {
@@ -91,6 +100,98 @@ export const getWeatherIndeterminates =
       logError(err)
     }
   }
+
+const createMoreCast2Rows = (
+  actuals: WeatherIndeterminate[],
+  forecasts: WeatherIndeterminate[],
+  predictions: WeatherIndeterminate[]
+) => {
+  // Since ids are a composite of a station code and date, grouping by id ensures that each group represents
+  // the weather indeterminates for a single station and date
+  const groupedById = groupby([...actuals, ...forecasts, ...predictions], 'id')
+
+  const rows: MoreCast2Row[] = []
+
+  for (const values of Object.values(groupedById)) {
+    if (!values.length) {
+      return
+    }
+    const firstItem = values[0]
+    const row = createEmptyMoreCast2Row(
+      firstItem.id,
+      firstItem.station_code,
+      firstItem.station_name,
+      DateTime.fromISO(firstItem.utc_timestamp)
+    )
+
+    for (const value of values) {
+      switch (value.determinate) {
+        case WeatherDeterminate.ACTUAL:
+          row.precipActual = getNumberOrNaN(value.precipitation)
+          row.rhActual = getNumberOrNaN(value.relative_humidity)
+          row.tempActual = getNumberOrNaN(value.temperature)
+          row.windDirectionActual = getNumberOrNaN(value.wind_direction)
+          row.windSpeedActual = getNumberOrNaN(value.wind_speed)
+          break
+        case WeatherDeterminate.FORECAST:
+          row.precipForecast = {
+            choice: ModelChoice.FORECAST,
+            value: getNumberOrNaN(value.precipitation)
+          }
+          row.rhForecast = {
+            choice: ModelChoice.FORECAST,
+            value: getNumberOrNaN(value.relative_humidity)
+          }
+          row.tempForecast = {
+            choice: ModelChoice.FORECAST,
+            value: getNumberOrNaN(value.temperature)
+          }
+          row.windDirectionForecast = {
+            choice: ModelChoice.FORECAST,
+            value: getNumberOrNaN(value.wind_direction)
+          }
+          row.windSpeedForecast = {
+            choice: ModelChoice.FORECAST,
+            value: getNumberOrNaN(value.wind_speed)
+          }
+          break
+        case WeatherDeterminate.GDPS:
+          row.precipGDPS = getNumberOrNaN(value.precipitation)
+          row.rhGDPS = getNumberOrNaN(value.relative_humidity)
+          row.tempGDPS = getNumberOrNaN(value.temperature)
+          row.windDirectionGDPS = getNumberOrNaN(value.wind_direction)
+          row.windSpeedGDPS = getNumberOrNaN(value.wind_speed)
+          break
+        case WeatherDeterminate.GFS:
+          row.precipGFS = getNumberOrNaN(value.precipitation)
+          row.rhGFS = getNumberOrNaN(value.relative_humidity)
+          row.tempGFS = getNumberOrNaN(value.temperature)
+          row.windDirectionGFS = getNumberOrNaN(value.wind_direction)
+          row.windSpeedGFS = getNumberOrNaN(value.wind_speed)
+          break
+        case WeatherDeterminate.HRDPS:
+          row.precipHRDPS = getNumberOrNaN(value.precipitation)
+          row.rhHRDPS = getNumberOrNaN(value.relative_humidity)
+          row.tempHRDPS = getNumberOrNaN(value.temperature)
+          row.windDirectionHRDPS = getNumberOrNaN(value.wind_direction)
+          row.windSpeedHRDPS = getNumberOrNaN(value.wind_speed)
+          break
+        case WeatherDeterminate.RDPS:
+          row.precipRDPS = getNumberOrNaN(value.precipitation)
+          row.rhRDPS = getNumberOrNaN(value.relative_humidity)
+          row.tempRDPS = getNumberOrNaN(value.temperature)
+          row.windDirectionRDPS = getNumberOrNaN(value.wind_direction)
+          row.windSpeedRDPS = getNumberOrNaN(value.wind_speed)
+          break
+        default:
+        // no-op
+      }
+    }
+    rows.push(row as MoreCast2Row)
+  }
+
+  return rows
+}
 
 /**
  * Replaces the existing ID, or adds a new ID to each item based on the item's
@@ -237,96 +338,7 @@ const fillMissingPredictions = (items: WeatherIndeterminate[], fromDate: DateTim
  */
 const selectWeatherIndeterminates = (state: RootState) => state.weatherIndeterminates
 
-export const selectAllMoreCast2Rows = createSelector([selectWeatherIndeterminates], weatherIndeterminates => {
-  // Since ids are a composite of a station code and date, grouping by id ensures that each group represents
-  // the weather indeterminates for a single station and date
-  const groupedById = groupby(
-    [...weatherIndeterminates.actuals, ...weatherIndeterminates.forecasts, ...weatherIndeterminates.predictions],
-    'id'
-  )
-
-  const rows: MoreCast2Row[] = []
-
-  for (const values of Object.values(groupedById)) {
-    if (!values.length) {
-      return
-    }
-    const firstItem = values[0]
-    const row = createEmptyMoreCast2Row(
-      firstItem.id,
-      firstItem.station_code,
-      firstItem.station_name,
-      DateTime.fromISO(firstItem.utc_timestamp)
-    )
-
-    for (const value of values) {
-      switch (value.determinate) {
-        case WeatherDeterminate.ACTUAL:
-          row.precipActual = getNumberOrNaN(value.precipitation)
-          row.rhActual = getNumberOrNaN(value.relative_humidity)
-          row.tempActual = getNumberOrNaN(value.temperature)
-          row.windDirectionActual = getNumberOrNaN(value.wind_direction)
-          row.windSpeedActual = getNumberOrNaN(value.wind_speed)
-          break
-        case WeatherDeterminate.FORECAST:
-          row.precipForecast = {
-            choice: ModelChoice.FORECAST,
-            value: getNumberOrNaN(value.precipitation)
-          }
-          row.rhForecast = {
-            choice: ModelChoice.FORECAST,
-            value: getNumberOrNaN(value.relative_humidity)
-          }
-          row.tempForecast = {
-            choice: ModelChoice.FORECAST,
-            value: getNumberOrNaN(value.temperature)
-          }
-          row.windDirectionForecast = {
-            choice: ModelChoice.FORECAST,
-            value: getNumberOrNaN(value.wind_direction)
-          }
-          row.windSpeedForecast = {
-            choice: ModelChoice.FORECAST,
-            value: getNumberOrNaN(value.wind_speed)
-          }
-          break
-        case WeatherDeterminate.GDPS:
-          row.precipGDPS = getNumberOrNaN(value.precipitation)
-          row.rhGDPS = getNumberOrNaN(value.relative_humidity)
-          row.tempGDPS = getNumberOrNaN(value.temperature)
-          row.windDirectionGDPS = getNumberOrNaN(value.wind_direction)
-          row.windSpeedGDPS = getNumberOrNaN(value.wind_speed)
-          break
-        case WeatherDeterminate.GFS:
-          row.precipGFS = getNumberOrNaN(value.precipitation)
-          row.rhGFS = getNumberOrNaN(value.relative_humidity)
-          row.tempGFS = getNumberOrNaN(value.temperature)
-          row.windDirectionGFS = getNumberOrNaN(value.wind_direction)
-          row.windSpeedGFS = getNumberOrNaN(value.wind_speed)
-          break
-        case WeatherDeterminate.HRDPS:
-          row.precipHRDPS = getNumberOrNaN(value.precipitation)
-          row.rhHRDPS = getNumberOrNaN(value.relative_humidity)
-          row.tempHRDPS = getNumberOrNaN(value.temperature)
-          row.windDirectionHRDPS = getNumberOrNaN(value.wind_direction)
-          row.windSpeedHRDPS = getNumberOrNaN(value.wind_speed)
-          break
-        case WeatherDeterminate.RDPS:
-          row.precipRDPS = getNumberOrNaN(value.precipitation)
-          row.rhRDPS = getNumberOrNaN(value.relative_humidity)
-          row.tempRDPS = getNumberOrNaN(value.temperature)
-          row.windDirectionRDPS = getNumberOrNaN(value.wind_direction)
-          row.windSpeedRDPS = getNumberOrNaN(value.wind_speed)
-          break
-        default:
-        // no-op
-      }
-    }
-    rows.push(row as MoreCast2Row)
-  }
-
-  return rows
-})
+export const selectAllMoreCast2Rows = (state: RootState) => state.weatherIndeterminates.moreCast2Rows
 
 export const selectVisibleMoreCast2Rows = createSelector(
   [selectAllMoreCast2Rows, selectSelectedStations],

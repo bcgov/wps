@@ -3,7 +3,7 @@ import { Station } from 'api/stationAPI'
 import { rowIDHasher } from 'features/moreCast2/util'
 import { isEqual } from 'lodash'
 import { DateTime } from 'luxon'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { MoreCast2Row, MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 
 export enum ModelChoice {
   FORECAST = 'FORECAST',
@@ -59,6 +59,7 @@ export interface WeatherIndeterminatePayload {
   actuals: WeatherIndeterminate[]
   forecasts: WeatherIndeterminate[]
   predictions: WeatherIndeterminate[]
+  moreCast2Rows: MoreCast2Row[]
 }
 
 export interface WeatherIndeterminateResponse {
