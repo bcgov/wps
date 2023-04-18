@@ -198,9 +198,9 @@ def parse_gfs_url_for_timestamps(url: str):
     # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230412%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f018var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
     query = urlsplit(url).query
     params = parse_qs(query)
-    model_run_date = params['dir'][0][5:13]
+    model_run_date = params['dir'][0].split('.')[1][:8]
     model_run_hour = params['dir'][0].split('/')[2]
-    forecast_hour = params['file'][0][-3:]
+    forecast_hour = params['file'][0].split('.')[4][-3:]
     model_run_datetime_str = model_run_date + ' ' + model_run_hour
     model_run_timestamp = datetime.datetime.strptime(model_run_datetime_str, '%Y%m%d %H')
     model_run_timestamp = model_run_timestamp.replace(tzinfo=datetime.timezone.utc)
@@ -214,9 +214,9 @@ def parse_nam_url_for_timestamps(url: str):
     # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_nam_na.pl?dir=%2Fnam.20230414&file=nam.t00z.awip3220.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
     query = urlsplit(url).query
     params = parse_qs(query)
-    model_run_date = params['dir'][0][-8:]
-    model_run_time = params['file'][0][5:7]
-    forecast_hour = params['file'][0][15:17]
+    model_run_date = params['dir'][0].split('.')[1]
+    model_run_time = params['file'][0].split('.')[1][1:3]
+    forecast_hour = params['file'][0].split('.')[2][-2:]
     model_run_datetime_str = model_run_date + ' ' + model_run_time
     model_run_timestamp = datetime.datetime.strptime(model_run_datetime_str, '%Y%m%d %H')
     model_run_timestamp = model_run_timestamp.replace(tzinfo=datetime.timezone.utc)
