@@ -236,7 +236,8 @@ export async function fetchWeatherIndeterminates(
     return {
       actuals: [],
       forecasts: [],
-      predictions: []
+      predictions: [],
+      moreCast2Rows: []
     }
   }
   const url = `/morecast-v2/determinates/${startDate.toISODate()}/${endDate.toISODate()}`
@@ -246,7 +247,8 @@ export async function fetchWeatherIndeterminates(
   const payload: WeatherIndeterminatePayload = {
     actuals: data.actuals,
     forecasts: marshallForecastsToWeatherIndeterminates(data.forecasts),
-    predictions: data.predictions
+    predictions: data.predictions,
+    moreCast2Rows: []
   }
 
   return payload
