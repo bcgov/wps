@@ -43,7 +43,7 @@ const SidebarToolList: React.FunctionComponent = () => {
         return (
           <div key={item.name}>
             <ListItem className={classes.listItem} disablePadding>
-              <ListItemButton component={'a'} href={item.route} target="_blank">
+              <ListItemButton component={'a'} href={item.route}>
                 <ListItemIcon className={classes.icon}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.name} secondary={isSmall && item.description} />
                 {item.isBeta && (
