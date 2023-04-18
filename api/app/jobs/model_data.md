@@ -14,7 +14,10 @@
       - [HRDPS](#hrdps)
     - [Relevant Weather Variables](#relevant-weather-variables)
   - [NOAA](#noaa)
+    - [GFS](#gfs)
       - [Model Run Cycles](#model-run-cycles)
+    - [NAM](#nam)
+      - [Model Run Cycles](#model-run-cycles-1)
     - [Relevant Weather Variables](#relevant-weather-variables-1)
 - [Downloading Data](#downloading-data)
 - [Linear Interpolation](#linear-interpolation)
@@ -67,9 +70,16 @@ The GDPS, RDPS, and HRDPS weather variables that we currently fetch for use in M
 
 ### NOAA
 
-We fetch [GFS model data from NCEP-NOAA](https://www.ncei.noaa.gov/products/weather-climate-models/global-forecast). NOAA outputs only one GRIB file for all weather variables for a specific timestamp, so each of their GRIB files contains hundreds of raster bands, with one raster band for each weather variable. We therefore must download the entire GRIB file, even though we only need data from a small number of the raster bands in the file.
+We fetch GFS and NAM model data from [NOMADS-NOAA](https://nomads.ncep.noaa.gov/). NOAA outputs only one GRIB file for all weather variables for a specific timestamp, so each of their GRIB files contains hundreds of raster bands, with one raster band for each weather variable. However, NOAA has created a Perl script that allows for filtering a GRIB file to only retrieve certain raster bands. We use this filtering as we only need a very small subset of the ~600 band layers available. We also use a geographic "subregion" filter to only retrieve GRIB data for BC. The values used are:
 
-Specifically, we fetch GFS model data on a 0.5&deg; scale, based on the request of staff forecasters. We fetch the data from [this server](https://www.ncei.noaa.gov/data/global-forecast-system/access/grid-004-0.5-degree/forecast/).
+Top latitude: 60
+Left longitude: -139
+Right longitude: -114
+Bottom latitude: 48
+
+#### GFS
+
+We fetch GFS model data on a 0.25&deg; scale (roughly equivalent to 24km at the centre of BC). 
 
 ##### Model Run Cycles
 
@@ -79,12 +89,6 @@ Since Morecast users have indicated that they make forecasts up to a maximum of 
 
 Additionally, GFS model data is only relevant to Morecast users for the 12:00 PST (13:00 PDT) timeframe - this is the time of day that a fire weather forecast is issued for. Noon PST corresponds to 20:00 UTC, but the GFS model has no output for this hour. We therefore fetch predicted weather values at the time intervals of each model run cycle that correspond to 18:00 and 21:00 UTC, and subsequently perform linear interpolation to calculate approximate weather values for 20:00 UTC. Note that we are fetching these predicted weather values for each of the 4 GFS model run cycles that happen each day, since the values may change slightly with each model run.
 
-The filename convention that NOAA uses when publishing GFS model data follows this pattern (as an example):
-
-> gfs_4_20230214_0600_003.grb2
-
-where '20230214' is the date that the model was run (in YYYYMMDD format), '0600' is the time at which the model was run (06:00 UTC), and '003' indicates that the weather prediction is for 003 hours after the model run time, which would be 09:00 UTC on Feb 14, 2023.
-
 Therefore, to predict weather for 12:00 PST, we must fetch the following model run cycles:
 
 - run time 0000: hours 018 and 021
@@ -92,7 +96,30 @@ Therefore, to predict weather for 12:00 PST, we must fetch the following model r
 - run time 1200: hours 006 and 009
 - run time 1800: hours 000 and 003
 
-NOAA has a delay of approximately 2.5 - 3 days when publishing GFS model data. (For example, on Feb 21 2023 at 18:30 UTC, the most recently available data is for 20230219, and only the 0000 and 0600 run times are available.) Due to this delay, `get_gfs_model_run_download_urls()` in `app.jobs.noaa` generates URLs for the dates 2.5 days (60 hours) and 3 days prior to the current date, and will then attempt to download data for both of these dates. Due to our use of our `prediction_model_run_urls` table, we don't duplicate data downloads, even though the same URLS will be generated multiple times when the NOAA cronjob runs.
+#### NAM
+
+NAM model data is published on a Polar Stereographic projection at a 32km resolution. We use the "North America" grid (referred to as "awip32" on the NOAA server), since it's the only one available that covers the entirety of BC.
+
+##### Model Run Cycles
+
+The NAM model makes predictions for every hour for the first 36 hours, and then on a 3-hourly schedule to 84 hours [https://mag.ncep.noaa.gov/model-guidance-model-parameter.php?group=Model%20Guidance&model=NAM&area=NAMER&ps=area#]. As with the GFS model, we sometimes need to fetch data for 2 different hour offsets and then perform linear interpolation in order to have a weather prediction for 12:00 PST. The file naming convention that NAM uses indicates the model runtime as hours in UTC, and indexes that hour as 00. All subsequent hours in the model run are referenced as offsets of the 00 hour index. This means that for the 00:00 UTC model cycle, 20:00 UTC (or 12:00 PST) is referenced as hour 20; but for the 12:00 UTC model cycle, 20:00 UTC is referenced as hour 8 (20:00 - 12:00). Therefore, to fetch the noon PST data we need, the NAM cronjob pulls the following model hours:
+
+- For the 00:00 UTC model run time:
+  - Day 0: hour 20 (20:00 UTC = 12:00 PST)
+  - Day 1: hours 42 and 45, to interpolate for hour 44 (20:00 UTC)
+  - Day 2: hours 66 and 69, to interpolate for hour 68 (20:00 UTC)
+- For the 06:00 UTC model run time:
+  - Day 0: hour 14 (6+14 = 20:00 UTC)
+  - Day 1: hours 36 and 39, to interpolate for hour 38 (38-24=14 hours, 14+06:00 = 20:00 UTC of the next day)
+  - Day 2: hours 60 and 63, to interpolate for hour 62 (20:00 UTC of 2 days later)
+- For the 12:00 UTC model run time:
+  - Day 0: hour 8 (12+8 = 20:00 UTC)
+  - Day 1: hour 32 (12+32-24 = 20:00 UTC of the next day)
+  - Day 2: hours 54 and 57, to interpolate for hour 56 (56-48 hours = 8 hours, 8+12:00 = 20:00 UTC of 2 days later)
+- For the 18:00 UTC model run time:
+  - Day 0: hour 2 (18+2 = 20:00 UTC)
+  - Day 1: hour 26 (18+26-24 = 20:00 UTC of the next day)
+  - Day 2: hours 48 and 51, to interpolate for hour 50 (50-48 hours = 2 hours, 2 + 18:00 = 20:00 UTC of 2 days later)
 
 #### Relevant Weather Variables
 
