@@ -1,7 +1,6 @@
 """ A script that downloads weather models from NCEI NOAA HTTPS data server
 """
 import os
-import re
 import sys
 import datetime
 import pytz
@@ -9,6 +8,7 @@ from typing import Generator
 import logging
 import tempfile
 from sqlalchemy.orm import Session
+from urllib.parse import parse_qs, urlsplit
 from app.db.crud.weather_models import (get_processed_file_record,
                                         get_prediction_model,
                                         get_prediction_run,
@@ -90,6 +90,25 @@ def get_noaa_subregion_filter_str() -> str:
 
 def get_nam_model_run_download_urls(download_date: datetime.datetime, model_cycle: str) -> Generator[str, None, None]:
     """ Yield URLs to download NAM North America model runs """
+    # for model_cycle 00:
+    # for first day, need hour 20:00 UTC (13:00 PST)
+    # Day 2: need hours 42 and 45 to interpolate for hour 44 (13:00 PST)
+    # Day 3: need hours 66 and 69 to interpolate for hour 68 (13:00 PST)
+    #
+    # for model_cycle 06:
+    # for first day, need hour 14 (14+6 = 20:00 UTC)
+    # Day 2: need hours 36 and 39 to interpolate for hour 38 (13:00 PST)
+    # Day 3: need hours 60 and 63 to interpolate for hour 62 (13:00 PST)
+    #
+    # for model_cycle 12:
+    # for first day, need hour 8 (12+8 = 20:00 UTC)
+    # for second day, need hour 32 (12 + (32-24) = 20:00 UTC)
+    # Day 3: need hours 54 and 57 to interpolate for hour 56 (13:00 PST)
+    #
+    # for model_cycle 18:
+    # for first day, need hour 2 (18 + 2 = 20:00 UTC)
+    # for second day, need hour 26 (18 + (26-24) = 20:00 UTC)
+    # Day 3: need hours 48 and 51 to interpolate for hour 50 (13:00 PST)
     if model_cycle == '00':
         noon = [20]
         before_noon = [42, 66]
@@ -177,12 +196,11 @@ def parse_url_for_timestamps(url: str, model_type: ModelEnum):
 def parse_gfs_url_for_timestamps(url: str):
     """ Interpret the model_run_timestamp and prediction_timestamp from a GFS model's URL """
     # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230412%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f018var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
-    model_run_datetime_str = re.search("dir=\%2Fgfs.\d*\%2F\d*", url).group(0)
-    # extract date string only from gfs.20230411 in sample URL
-    model_run_date = model_run_datetime_str[-13:-5]
-    model_run_hour = model_run_datetime_str[-2:]
-    forecast_hour_str = re.search("file=gfs.t\d*z.pgrb2.0p25.f\d*", url).group(0)
-    forecast_hour = forecast_hour_str[-3:]
+    query = urlsplit(url).query
+    params = parse_qs(query)
+    model_run_date = params['dir'][0][5:13]
+    model_run_hour = params['dir'][0].split('/')[2]
+    forecast_hour = params['file'][0][-3:]
     model_run_datetime_str = model_run_date + ' ' + model_run_hour
     model_run_timestamp = datetime.datetime.strptime(model_run_datetime_str, '%Y%m%d %H')
     model_run_timestamp = model_run_timestamp.replace(tzinfo=datetime.timezone.utc)
@@ -194,12 +212,11 @@ def parse_gfs_url_for_timestamps(url: str):
 def parse_nam_url_for_timestamps(url: str):
     """ Interpret the model_run_timestamp and prediction_timestamp from a NAM model's URL """
     # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_nam_na.pl?dir=%2Fnam.20230414&file=nam.t00z.awip3220.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
-    model_run_date_str = re.search("dir=\%2Fnam.\d*", url).group(0)
-    model_run_date = model_run_date_str[-8:]
-    model_run_time_str = re.search("file=nam.t\d*z", url).group(0)
-    model_run_time = model_run_time_str[-3:-1]
-    forecast_hour_str = re.search("awip32\d*", url).group(0)
-    forecast_hour = forecast_hour_str[-2:]
+    query = urlsplit(url).query
+    params = parse_qs(query)
+    model_run_date = params['dir'][0][-8:]
+    model_run_time = params['file'][0][5:7]
+    forecast_hour = params['file'][0][15:17]
     model_run_datetime_str = model_run_date + ' ' + model_run_time
     model_run_timestamp = datetime.datetime.strptime(model_run_datetime_str, '%Y%m%d %H')
     model_run_timestamp = model_run_timestamp.replace(tzinfo=datetime.timezone.utc)
