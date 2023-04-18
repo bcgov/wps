@@ -14,8 +14,7 @@ export interface ForecastField {
 
 const DEFAULT_COLUMN_WIDTH = 80
 
-const WEATHER_DETERMINATES: WeatherDeterminateType[] = [
-  WeatherDeterminate.FORECAST,
+const COLUMN_HEADERS: WeatherDeterminateType[] = [
   WeatherDeterminate.ACTUAL,
   WeatherDeterminate.HRDPS,
   WeatherDeterminate.GDPS,
@@ -101,20 +100,24 @@ export class TempForecastField extends GridNumberRenderer implements ForecastFie
     super()
   }
   public generateColDef = () => {
-    return this.generateColDefWith(this.field, this.headerName, this.precision, false)
+    return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
-    for (const determinate of WEATHER_DETERMINATES) {
+    // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
+    const forecastColDef = this.generateForecastColDefWith(
+      `${this.field}${WeatherDeterminate.FORECAST}`,
+      WeatherDeterminate.FORECAST,
+      this.precision,
+      DEFAULT_COLUMN_WIDTH
+    )
+    gridColDefs.push(forecastColDef)
+
+    // Actual and model prediction columns only show data, so require a simple column definition
+    for (const determinate of COLUMN_HEADERS) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(
-        fieldName,
-        determinate,
-        this.precision,
-        determinate === WeatherDeterminate.FORECAST,
-        DEFAULT_COLUMN_WIDTH
-      )
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
       gridColDefs.push(gridColDef)
     }
     return gridColDefs
@@ -140,20 +143,24 @@ export class RHForecastField extends GridNumberRenderer implements ForecastField
     super()
   }
   public generateColDef = () => {
-    return this.generateColDefWith(this.field, this.headerName, this.precision, false)
+    return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
-    for (const determinate of WEATHER_DETERMINATES) {
+    // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
+    const forecastColDef = this.generateForecastColDefWith(
+      `${this.field}${WeatherDeterminate.FORECAST}`,
+      WeatherDeterminate.FORECAST,
+      this.precision,
+      DEFAULT_COLUMN_WIDTH
+    )
+    gridColDefs.push(forecastColDef)
+
+    // Actual and model prediction columns only show data, so require a simple column definition
+    for (const determinate of COLUMN_HEADERS) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(
-        fieldName,
-        determinate,
-        this.precision,
-        determinate === WeatherDeterminate.FORECAST,
-        DEFAULT_COLUMN_WIDTH
-      )
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
       gridColDefs.push(gridColDef)
     }
     return gridColDefs
@@ -179,20 +186,24 @@ export class WindDirForecastField extends GridNumberRenderer implements Forecast
     super()
   }
   public generateColDef = () => {
-    return this.generateColDefWith(this.field, this.headerName, this.precision, false)
+    return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
-    for (const determinate of WEATHER_DETERMINATES) {
+    // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
+    const forecastColDef = this.generateForecastColDefWith(
+      `${this.field}${WeatherDeterminate.FORECAST}`,
+      WeatherDeterminate.FORECAST,
+      this.precision,
+      DEFAULT_COLUMN_WIDTH
+    )
+    gridColDefs.push(forecastColDef)
+
+    // Actual and model prediction columns only show data, so require a simple column definition
+    for (const determinate of COLUMN_HEADERS) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(
-        fieldName,
-        determinate,
-        this.precision,
-        determinate === WeatherDeterminate.FORECAST,
-        DEFAULT_COLUMN_WIDTH
-      )
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
       gridColDefs.push(gridColDef)
     }
     return gridColDefs
@@ -218,20 +229,24 @@ export class WindSpeedForecastField extends GridNumberRenderer implements Foreca
     super()
   }
   public generateColDef = () => {
-    return this.generateColDefWith(this.field, this.headerName, this.precision, false)
+    return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
-    for (const determinate of WEATHER_DETERMINATES) {
+    // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
+    const forecastColDef = this.generateForecastColDefWith(
+      `${this.field}${WeatherDeterminate.FORECAST}`,
+      WeatherDeterminate.FORECAST,
+      this.precision,
+      DEFAULT_COLUMN_WIDTH
+    )
+    gridColDefs.push(forecastColDef)
+
+    // Actual and model prediction columns only show data, so require a simple column definition
+    for (const determinate of COLUMN_HEADERS) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(
-        fieldName,
-        determinate,
-        this.precision,
-        determinate === WeatherDeterminate.FORECAST,
-        DEFAULT_COLUMN_WIDTH
-      )
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
       gridColDefs.push(gridColDef)
     }
     return gridColDefs
@@ -257,20 +272,24 @@ export class PrecipForecastField extends GridNumberRenderer implements ForecastF
     super()
   }
   public generateColDef = () => {
-    return this.generateColDefWith(this.field, this.headerName, this.precision, false)
+    return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
-    for (const determinate of WEATHER_DETERMINATES) {
+    // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
+    const forecastColDef = this.generateForecastColDefWith(
+      `${this.field}${WeatherDeterminate.FORECAST}`,
+      WeatherDeterminate.FORECAST,
+      this.precision,
+      DEFAULT_COLUMN_WIDTH
+    )
+    gridColDefs.push(forecastColDef)
+
+    // Actual and model prediction columns only show data, so require a simple column definition
+    for (const determinate of COLUMN_HEADERS) {
       const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(
-        fieldName,
-        determinate,
-        this.precision,
-        determinate === WeatherDeterminate.FORECAST,
-        DEFAULT_COLUMN_WIDTH
-      )
+      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
       gridColDefs.push(gridColDef)
     }
     return gridColDefs

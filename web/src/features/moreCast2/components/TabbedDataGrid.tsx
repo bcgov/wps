@@ -46,13 +46,19 @@ const TabbedDataGrid = ({
   updateColumnWithModel
 }: TabbedDataGridProps) => {
   const classes = useStyles()
-  const sortedMoreCast2Rows = useSelector(selectAllMoreCast2Rows)
+
   const forecastMorecast2Rows = useSelector(selectForecastMoreCast2Rows) || []
   const selectedStations = useSelector(selectSelectedStations)
   const loading = useSelector(selectWeatherIndeterminatesLoading)
 
+  // All MoreCast2Rows derived from WeatherIndeterminates in dataSlice.ts. Updates in response to
+  // a change of station group or date range.
+  const sortedMoreCast2Rows = useSelector(selectAllMoreCast2Rows)
+  // A copy of the sortedMoreCast2Rows as local state
   const [allRows, setAllRows] = useState<MoreCast2Row[]>([])
+  // A subset of allRows with visibility determined by the currently selected stations
   const [visibleRows, setVisibleRows] = useState<MoreCast2Row[]>([])
+
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
     DataGridColumns.initGridColumnVisibilityModel()
   )

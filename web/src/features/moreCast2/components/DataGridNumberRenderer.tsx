@@ -61,13 +61,22 @@ export class GridNumberRenderer {
     return value.toFixed(precision)
   }
 
-  public generateColDefWith = (
-    field: string,
-    headerName: string,
-    precision: number,
-    isForecastColumn: boolean,
-    width?: number
-  ) => {
+  public generateColDefWith = (field: string, headerName: string, precision: number, width: number) => {
+    return {
+      field,
+      disableColumnMenu: true,
+      disabledReorder: true,
+      headerName,
+      sortable: false,
+      type: 'number',
+      width,
+      renderCell: (params: GridRenderCellParams) => {
+        return this.renderCellWith(params)
+      }
+    }
+  }
+
+  public generateForecastColDefWith = (field: string, headerName: string, precision: number, width?: number) => {
     return {
       field: field,
       disableColumnMenu: true,
@@ -81,13 +90,12 @@ export class GridNumberRenderer {
         return this.renderHeaderWith(params)
       },
       renderCell: (params: GridRenderCellParams) => {
-        return isForecastColumn ? this.renderForecastCellWith(params, field) : this.renderCellWith(params)
+        return this.renderForecastCellWith(params, field)
       },
       valueFormatter: (params: GridValueFormatterParams) => {
         return this.valueFormatterWith(params, precision)
       },
-      valueGetter: (params: GridValueGetterParams) =>
-        isForecastColumn ? this.predictionItemValueGetter(params, precision) : this.cellValueGetter(params, precision),
+      valueGetter: (params: GridValueGetterParams) => this.predictionItemValueGetter(params, precision),
       valueSetter: (params: GridValueSetterParams) => this.valueSetterWith(params, field, precision)
     }
   }
