@@ -42,14 +42,6 @@ export enum WeatherDeterminate {
 
 export type WeatherDeterminateType = 'Actual' | 'Forecast' | 'GDPS' | 'GFS' | 'HRDPS' | 'RDPS'
 
-export const WeatherDeterminateChoices: WeatherDeterminateType[] = [
-  WeatherDeterminate.ACTUAL,
-  WeatherDeterminate.GDPS,
-  WeatherDeterminate.GFS,
-  WeatherDeterminate.HRDPS,
-  WeatherDeterminate.RDPS
-]
-
 export interface WeatherIndeterminate {
   id: string
   station_code: number

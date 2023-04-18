@@ -14,10 +14,13 @@ import {
 } from 'features/moreCast2/slices/dataSlice'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { StationGroupMember } from 'api/stationAPI'
+import { MoreCast2Row } from 'features/moreCast2/interfaces'
 
 interface TabbedDataGridProps {
   clickedColDef: GridColDef | null
   onCellEditStop: (value: boolean) => void
+  selectedStations: StationGroupMember[]
   setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
   updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
 }
@@ -40,13 +43,15 @@ const useStyles = makeStyles(theme => ({
 const TabbedDataGrid = ({
   clickedColDef,
   onCellEditStop,
+  selectedStations,
   setClickedColDef,
   updateColumnWithModel
 }: TabbedDataGridProps) => {
   const classes = useStyles()
-
+  const [visibleRows, setVisibleRows] = useState<MoreCast2Row[]>([])
   const allMoreCast2Rows = useSelector(selectAllMoreCast2Rows) || []
   const forecastMorecast2Rows = useSelector(selectForecastMoreCast2Rows) || []
+
   const loading = useSelector(selectWeatherIndeterminatesLoading)
 
   const [columnVisibilityModel, setColumnVisibilityModel] = React.useState<GridColumnVisibilityModel>(
@@ -64,6 +69,18 @@ const TabbedDataGrid = ({
   const [windDirectionVisible, setWindDirectionVisible] = useState(false)
   const [windSpeedVisible, setWindSpeedVisible] = useState(false)
   const [forecastSummaryVisible, setForecastSummaryVisible] = useState(false)
+
+  useEffect(() => {
+    let newVisibleRows: MoreCast2Row[] = []
+    for (const station of selectedStations) {
+      const filteredRows = allMoreCast2Rows?.filter(row => row.stationCode === station.station_code) || []
+      newVisibleRows = [...newVisibleRows, ...filteredRows]
+    }
+    const sortedRows = sortRowsForDisplay(newVisibleRows)
+    setVisibleRows(sortedRows)
+  }, [allMoreCast2Rows, selectedStations]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /********** Start useEffects for managing visibility of column groups *************/
 
   useEffect(() => {
     tempVisible && setForecastSummaryVisible(false)
@@ -134,6 +151,30 @@ const TabbedDataGrid = ({
       )
     }
   }, [forecastSummaryVisible]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /********** End useEffects for managing visibility of column groups *************/
+
+  function sortRowsForDisplay(rows: MoreCast2Row[]) {
+    const groupedRows = groupRowsByStationName(rows)
+    const keys = Object.keys(groupedRows)
+    keys.sort()
+    let sortedRows: MoreCast2Row[] = []
+    for (const key of keys) {
+      const rowsForKey = groupedRows[key]
+      sortedRows = [...sortedRows, ...rowsForKey]
+    }
+    return sortedRows
+  }
+
+  function groupRowsByStationName(rows: MoreCast2Row[]) {
+    return rows.reduce((acc: { [key: string]: MoreCast2Row[] }, item: MoreCast2Row) => {
+      const group = item.stationName
+      acc[group] = acc[group] || []
+      acc[group].push(item)
+
+      return acc
+    }, {})
+  }
 
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>
