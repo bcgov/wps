@@ -22,6 +22,9 @@ const useStyles = makeStyles(theme => ({
   icon: {
     minWidth: '3rem'
   },
+  text: {
+    textDecoration: 'underline'
+  },
   list: {
     [theme.breakpoints.down('sm')]: {
       padding: theme.spacing(2)
@@ -45,7 +48,7 @@ const SidebarToolList: React.FunctionComponent = () => {
             <ListItem className={classes.listItem} disablePadding>
               <ListItemButton component={'a'} href={item.route}>
                 <ListItemIcon className={classes.icon}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.name} secondary={isSmall && item.description} />
+                <ListItemText className={classes.text} primary={item.name} secondary={isSmall && item.description} />
                 {item.isBeta && (
                   <div className={classes.beta}>
                     <BetaTag />

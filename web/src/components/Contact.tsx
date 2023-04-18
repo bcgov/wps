@@ -6,12 +6,8 @@ const useStyles = makeStyles({
     color: 'white',
     fontStyle: 'bold',
     fontSize: '1.1em',
-    textDecoration: 'none',
-    cursor: 'pointer',
-
-    '&:hover': {
-      textDecoration: 'underline'
-    }
+    textDecoration: 'underline',
+    cursor: 'pointer'
   }
 })
 
@@ -30,7 +26,7 @@ const Contact = (props: Props) => {
       className={classes.contact}
       href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - ${productName}`}
     >
-      Contact Predictive Services Unit
+      Email: bcws.predictiveservices@gov.bc.ca
     </a>
   )
 }
