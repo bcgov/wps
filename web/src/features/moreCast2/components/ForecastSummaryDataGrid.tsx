@@ -2,15 +2,15 @@ import React from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
-import { ForecastMorecast2Row } from 'features/moreCast2/interfaces'
+import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress, Menu, MenuItem } from '@mui/material'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { isEqual } from 'lodash'
-import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
+import { MORECAST2_FORECAST_FIELDS, MORECAST2_STATION_DATE_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
 
 interface ForecastSummaryDataGridProps {
   loading: boolean
-  rows: ForecastMorecast2Row[]
+  rows: MoreCast2Row[]
   clickedColDef: GridColDef | null
   onCellEditStop: (value: boolean) => void
   setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
@@ -50,7 +50,9 @@ const ForecastSummaryDataGrid = ({
     setContextMenu(null)
   }
 
-  const columns: GridColDef[] = MORECAST2_FIELDS.map(field => field.generateColDef())
+  const columns: GridColDef[] = MORECAST2_STATION_DATE_FIELDS.map(field => field.generateColDef()).concat(
+    MORECAST2_FORECAST_FIELDS.map(forecastField => forecastField.generateForecastColDef())
+  )
 
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>

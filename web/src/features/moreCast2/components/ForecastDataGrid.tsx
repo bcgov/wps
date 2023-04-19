@@ -75,7 +75,7 @@ const ForecastDataGrid = ({
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellEditStop={() => onCellEditStop(true)}
         loading={loading}
-        columns={DataGridColumns.getColumns()}
+        columns={DataGridColumns.getTabColumns()}
         rows={allMoreCast2Rows}
       ></DataGrid>
       <Menu

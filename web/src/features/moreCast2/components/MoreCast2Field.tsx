@@ -3,13 +3,17 @@ import { DateTime } from 'luxon'
 import { GridNumberRenderer } from 'features/moreCast2/components/DataGridNumberRenderer'
 import { WeatherDeterminate, WeatherDeterminateType } from 'api/moreCast2API'
 
-export interface ForecastField {
+export interface Morecast2Field {
   field: string
   headerName: string
   type: 'number' | 'string'
   precision: 0 | 1
   generateColDef: () => GridColDef
   generateColDefs: () => GridColDef[]
+}
+
+export interface ForecastField {
+  generateForecastColDef: () => GridColDef
 }
 
 const DEFAULT_COLUMN_WIDTH = 80
@@ -22,7 +26,7 @@ const COLUMN_HEADERS: WeatherDeterminateType[] = [
   WeatherDeterminate.RDPS
 ]
 
-export class StationForecastField implements ForecastField {
+export class StationForecastField implements Morecast2Field {
   private static instance: StationForecastField
 
   readonly field = 'stationName'
@@ -49,7 +53,7 @@ export class StationForecastField implements ForecastField {
   }
 }
 
-export class DateForecastField implements ForecastField {
+export class DateForecastField implements Morecast2Field {
   private static instance: DateForecastField
 
   readonly field = 'forDate'
@@ -89,7 +93,7 @@ export class DateForecastField implements ForecastField {
   }
 }
 
-export class TempForecastField extends GridNumberRenderer implements ForecastField {
+export class TempForecastField extends GridNumberRenderer implements Morecast2Field, ForecastField {
   private static instance: TempForecastField
 
   readonly field = 'temp'
@@ -99,6 +103,14 @@ export class TempForecastField extends GridNumberRenderer implements ForecastFie
   private constructor() {
     super()
   }
+  public generateForecastColDef = () => {
+    return this.generateForecastColDefWith(
+      `${this.field}${WeatherDeterminate.FORECAST}`,
+      this.headerName,
+      this.precision,
+      DEFAULT_COLUMN_WIDTH
+    )
+  }
   public generateColDef = () => {
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
@@ -106,12 +118,7 @@ export class TempForecastField extends GridNumberRenderer implements ForecastFie
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDefWith(
-      `${this.field}${WeatherDeterminate.FORECAST}`,
-      WeatherDeterminate.FORECAST,
-      this.precision,
-      DEFAULT_COLUMN_WIDTH
-    )
+    const forecastColDef = this.generateForecastColDef()
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition
@@ -132,7 +139,7 @@ export class TempForecastField extends GridNumberRenderer implements ForecastFie
   }
 }
 
-export class RHForecastField extends GridNumberRenderer implements ForecastField {
+export class RHForecastField extends GridNumberRenderer implements Morecast2Field, ForecastField {
   private static instance: RHForecastField
 
   readonly field = 'rh'
@@ -142,6 +149,16 @@ export class RHForecastField extends GridNumberRenderer implements ForecastField
   private constructor() {
     super()
   }
+
+  public generateForecastColDef = () => {
+    return this.generateForecastColDefWith(
+      `${this.field}${WeatherDeterminate.FORECAST}`,
+      this.headerName,
+      this.precision,
+      DEFAULT_COLUMN_WIDTH
+    )
+  }
+
   public generateColDef = () => {
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
@@ -149,12 +166,7 @@ export class RHForecastField extends GridNumberRenderer implements ForecastField
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDefWith(
-      `${this.field}${WeatherDeterminate.FORECAST}`,
-      WeatherDeterminate.FORECAST,
-      this.precision,
-      DEFAULT_COLUMN_WIDTH
-    )
+    const forecastColDef = this.generateForecastColDef()
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition
@@ -175,7 +187,7 @@ export class RHForecastField extends GridNumberRenderer implements ForecastField
   }
 }
 
-export class WindDirForecastField extends GridNumberRenderer implements ForecastField {
+export class WindDirForecastField extends GridNumberRenderer implements Morecast2Field, ForecastField {
   private static instance: WindDirForecastField
 
   readonly field = 'windDirection'
@@ -185,6 +197,16 @@ export class WindDirForecastField extends GridNumberRenderer implements Forecast
   private constructor() {
     super()
   }
+
+  public generateForecastColDef = () => {
+    return this.generateForecastColDefWith(
+      `${this.field}${WeatherDeterminate.FORECAST}`,
+      this.headerName,
+      this.precision,
+      DEFAULT_COLUMN_WIDTH
+    )
+  }
+
   public generateColDef = () => {
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
@@ -192,12 +214,7 @@ export class WindDirForecastField extends GridNumberRenderer implements Forecast
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDefWith(
-      `${this.field}${WeatherDeterminate.FORECAST}`,
-      WeatherDeterminate.FORECAST,
-      this.precision,
-      DEFAULT_COLUMN_WIDTH
-    )
+    const forecastColDef = this.generateForecastColDef()
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition
@@ -218,7 +235,7 @@ export class WindDirForecastField extends GridNumberRenderer implements Forecast
   }
 }
 
-export class WindSpeedForecastField extends GridNumberRenderer implements ForecastField {
+export class WindSpeedForecastField extends GridNumberRenderer implements Morecast2Field, ForecastField {
   private static instance: WindSpeedForecastField
 
   readonly field = 'windSpeed'
@@ -228,6 +245,16 @@ export class WindSpeedForecastField extends GridNumberRenderer implements Foreca
   private constructor() {
     super()
   }
+
+  public generateForecastColDef = () => {
+    return this.generateForecastColDefWith(
+      `${this.field}${WeatherDeterminate.FORECAST}`,
+      this.headerName,
+      this.precision,
+      DEFAULT_COLUMN_WIDTH
+    )
+  }
+
   public generateColDef = () => {
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
@@ -235,12 +262,7 @@ export class WindSpeedForecastField extends GridNumberRenderer implements Foreca
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDefWith(
-      `${this.field}${WeatherDeterminate.FORECAST}`,
-      WeatherDeterminate.FORECAST,
-      this.precision,
-      DEFAULT_COLUMN_WIDTH
-    )
+    const forecastColDef = this.generateForecastColDef()
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition
@@ -261,7 +283,7 @@ export class WindSpeedForecastField extends GridNumberRenderer implements Foreca
   }
 }
 
-export class PrecipForecastField extends GridNumberRenderer implements ForecastField {
+export class PrecipForecastField extends GridNumberRenderer implements Morecast2Field, ForecastField {
   private static instance: PrecipForecastField
 
   readonly field = 'precip'
@@ -271,6 +293,16 @@ export class PrecipForecastField extends GridNumberRenderer implements ForecastF
   private constructor() {
     super()
   }
+
+  public generateForecastColDef = () => {
+    return this.generateForecastColDefWith(
+      `${this.field}${WeatherDeterminate.FORECAST}`,
+      this.headerName,
+      this.precision,
+      DEFAULT_COLUMN_WIDTH
+    )
+  }
+
   public generateColDef = () => {
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
@@ -278,12 +310,7 @@ export class PrecipForecastField extends GridNumberRenderer implements ForecastF
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDefWith(
-      `${this.field}${WeatherDeterminate.FORECAST}`,
-      WeatherDeterminate.FORECAST,
-      this.precision,
-      DEFAULT_COLUMN_WIDTH
-    )
+    const forecastColDef = this.generateForecastColDef()
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition
@@ -304,9 +331,22 @@ export class PrecipForecastField extends GridNumberRenderer implements ForecastF
   }
 }
 
-export const MORECAST2_FIELDS: ForecastField[] = [
+export const MORECAST2_STATION_DATE_FIELDS: Morecast2Field[] = [
+  StationForecastField.getInstance(),
+  DateForecastField.getInstance()
+]
+
+export const MORECAST2_FIELDS: Morecast2Field[] = [
   StationForecastField.getInstance(),
   DateForecastField.getInstance(),
+  TempForecastField.getInstance(),
+  RHForecastField.getInstance(),
+  WindDirForecastField.getInstance(),
+  WindSpeedForecastField.getInstance(),
+  PrecipForecastField.getInstance()
+]
+
+export const MORECAST2_FORECAST_FIELDS: ForecastField[] = [
   TempForecastField.getInstance(),
   RHForecastField.getInstance(),
   WindDirForecastField.getInstance(),

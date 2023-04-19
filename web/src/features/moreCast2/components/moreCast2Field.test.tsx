@@ -8,13 +8,13 @@ import {
   WindSpeedForecastField,
   PrecipForecastField,
   Morecast2Field,
-  ForecastField
+  Morecast2Field
 } from 'features/moreCast2/components/MoreCast2Field'
 import { DateTime } from 'luxon'
 
 describe('MoreCast2Field', () => {
   const expectFields = (
-    instance: ForecastField,
+    instance: Morecast2Field,
     field: Morecast2Field,
     headerName: string,
     precision: number,

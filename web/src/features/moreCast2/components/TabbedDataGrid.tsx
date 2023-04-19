@@ -47,7 +47,6 @@ const TabbedDataGrid = ({
 }: TabbedDataGridProps) => {
   const classes = useStyles()
 
-  const forecastMorecast2Rows = useSelector(selectForecastMoreCast2Rows) || []
   const selectedStations = useSelector(selectSelectedStations)
   const loading = useSelector(selectWeatherIndeterminatesLoading)
 
@@ -209,7 +208,7 @@ const TabbedDataGrid = ({
       {forecastSummaryVisible ? (
         <ForecastSummaryDataGrid
           loading={loading}
-          rows={forecastMorecast2Rows}
+          rows={visibleRows}
           clickedColDef={clickedColDef}
           onCellEditStop={onCellEditStop}
           setClickedColDef={setClickedColDef}

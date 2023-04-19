@@ -6,9 +6,9 @@ export interface ColumnVis {
   visible: boolean
 }
 
-let columns: GridColDef[] = []
+let tabColumns: GridColDef[] = []
 MORECAST2_FIELDS.forEach(field => {
-  columns = [...columns, ...field.generateColDefs()]
+  tabColumns = [...tabColumns, ...field.generateColDefs()]
 })
 
 export class DataGridColumns {
@@ -42,18 +42,22 @@ export class DataGridColumns {
     return newModel
   }
 
-  public static getColumns(): GridColDef[] {
-    return columns
+  public static getTabColumns(): GridColDef[] {
+    return tabColumns
+  }
+
+  public static getSummaryColumns(): GridColDef[] {
+    return MORECAST2_FIELDS.map(field => field.generateColDef())
   }
 
   public static getWeatherParameterColumns() {
-    const fields = columns.map(column => column.field)
+    const fields = tabColumns.map(column => column.field)
     return fields.filter(field => field !== 'stationName' && field !== 'forDate')
   }
 }
 
 export const getWeatherParameterColumns = (): string[] => {
-  const fields = columns.map(column => column.field)
+  const fields = tabColumns.map(column => column.field)
   return fields.filter(field => field !== 'stationName' && field !== 'forDate')
 }
 
