@@ -8,6 +8,11 @@ const useStyles = makeStyles({
     fontSize: '1.1em',
     textDecoration: 'underline',
     cursor: 'pointer'
+  },
+  plainText: {
+    color: 'white',
+    fontStyle: 'bold',
+    fontSize: '1.1em'
   }
 })
 
@@ -21,13 +26,16 @@ const Contact = (props: Props) => {
   const classes = useStyles()
 
   return (
-    <a
-      id="contact-link"
-      className={classes.contact}
-      href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - ${productName}`}
-    >
-      Email: bcws.predictiveservices@gov.bc.ca
-    </a>
+    <div>
+      <a className={classes.plainText}>Email: </a>
+      <a
+        id="contact-link"
+        className={classes.contact}
+        href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - ${productName}`}
+      >
+        bcws.predictiveservices@gov.bc.ca
+      </a>
+    </div>
   )
 }
 
