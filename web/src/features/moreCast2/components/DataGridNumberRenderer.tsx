@@ -72,6 +72,9 @@ export class GridNumberRenderer {
       width,
       renderCell: (params: GridRenderCellParams) => {
         return this.renderCellWith(params)
+      },
+      valueFormatter: (params: GridValueFormatterParams) => {
+        return this.valueFormatterWith(params, precision)
       }
     }
   }

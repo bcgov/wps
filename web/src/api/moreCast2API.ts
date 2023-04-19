@@ -14,12 +14,13 @@ export enum ModelChoice {
   RDPS = 'RDPS',
   MANUAL = 'MANUAL',
   YESTERDAY = 'YESTERDAY',
-  ACTUAL = 'ACTUAL'
+  ACTUAL = 'ACTUAL',
+  NULL = ''
 }
 
 export const DEFAULT_MODEL_TYPE: ModelType = ModelChoice.HRDPS
 
-export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'YESTERDAY' | 'NAM' | 'RDPS' | 'MANUAL' | 'FORECAST' | 'ACTUAL'
+export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'YESTERDAY' | 'NAM' | 'RDPS' | 'MANUAL' | 'FORECAST' | 'ACTUAL' | ''
 
 export const ModelChoices: ModelType[] = [
   ModelChoice.GDPS,
@@ -37,10 +38,11 @@ export enum WeatherDeterminate {
   GDPS = 'GDPS',
   GFS = 'GFS',
   HRDPS = 'HRDPS',
+  NULL = 'NULL',
   RDPS = 'RDPS'
 }
 
-export type WeatherDeterminateType = 'Actual' | 'Forecast' | 'GDPS' | 'GFS' | 'HRDPS' | 'RDPS'
+export type WeatherDeterminateType = 'Actual' | 'Forecast' | 'GDPS' | 'GFS' | 'HRDPS' | 'NULL' | 'RDPS'
 
 export interface WeatherIndeterminate {
   id: string

@@ -261,8 +261,13 @@ export class WindSpeedForecastField extends GridNumberRenderer implements Moreca
 
   public generateColDefs = () => {
     const gridColDefs: GridColDef[] = []
-    // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDef()
+    // Forecast columns have a unique requirement (eg. column header menu, editable, etc.)
+    const forecastColDef = this.generateForecastColDefWith(
+      `${this.field}${WeatherDeterminate.FORECAST}`,
+      WeatherDeterminate.FORECAST,
+      this.precision,
+      DEFAULT_COLUMN_WIDTH
+    )
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition

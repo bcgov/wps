@@ -18,10 +18,7 @@ import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 
 interface TabbedDataGridProps {
-  clickedColDef: GridColDef | null
   onCellEditStop: (value: boolean) => void
-  setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
-  updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
 }
 
 const useStyles = makeStyles(theme => ({
@@ -39,12 +36,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const TabbedDataGrid = ({
-  clickedColDef,
-  onCellEditStop,
-  setClickedColDef,
-  updateColumnWithModel
-}: TabbedDataGridProps) => {
+const TabbedDataGrid = ({ onCellEditStop }: TabbedDataGridProps) => {
   const classes = useStyles()
 
   const selectedStations = useSelector(selectSelectedStations)
@@ -162,6 +154,26 @@ const TabbedDataGrid = ({
   }, [forecastSummaryVisible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /********** End useEffects for managing visibility of column groups *************/
+
+  const [clickedColDef, setClickedColDef] = useState<GridColDef | null>(null)
+
+  // Updates forecast field for a given weather parameter based on the model/source
+  // selected in the column header menu
+  const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
+    const newRows = [...visibleRows]
+    // The value of field will be precipForecast, rhForecast, tempForecast, etc.
+    // We need the prefix to help us grab the correct weather model field (eg. tempHRDPS, precipGFS, etc.)
+    const field = colDef.field
+    const index = field.indexOf('Forecast')
+    const prefix = field.slice(0, index)
+    for (const row of newRows) {
+      // Ugly cast required to index into a row object using a string
+      const rowAsAny = row as any
+      rowAsAny[field].choice = modelType
+      rowAsAny[field].value = rowAsAny[`${prefix}${modelType}`]
+    }
+    setVisibleRows(newRows)
+  }
 
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>

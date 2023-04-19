@@ -6,7 +6,8 @@ import {
   WeatherIndeterminate,
   WeatherIndeterminatePayload,
   WeatherDeterminate,
-  WeatherDeterminateType
+  WeatherDeterminateType,
+  ModelType
 } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
 import { rowIDHasher } from 'features/moreCast2/util'
@@ -127,24 +128,25 @@ const createMoreCast2Rows = (
           row.windSpeedActual = getNumberOrNaN(value.wind_speed)
           break
         case WeatherDeterminate.FORECAST:
+        case WeatherDeterminate.NULL:
           row.precipForecast = {
-            choice: ModelChoice.FORECAST,
+            choice: forecastOrNull(value.determinate),
             value: getNumberOrNaN(value.precipitation)
           }
           row.rhForecast = {
-            choice: ModelChoice.FORECAST,
+            choice: forecastOrNull(value.determinate),
             value: getNumberOrNaN(value.relative_humidity)
           }
           row.tempForecast = {
-            choice: ModelChoice.FORECAST,
+            choice: forecastOrNull(value.determinate),
             value: getNumberOrNaN(value.temperature)
           }
           row.windDirectionForecast = {
-            choice: ModelChoice.FORECAST,
+            choice: forecastOrNull(value.determinate),
             value: getNumberOrNaN(value.wind_direction)
           }
           row.windSpeedForecast = {
-            choice: ModelChoice.FORECAST,
+            choice: forecastOrNull(value.determinate),
             value: getNumberOrNaN(value.wind_speed)
           }
           break
@@ -184,6 +186,10 @@ const createMoreCast2Rows = (
   }
 
   return rows
+}
+
+const forecastOrNull = (determinate: WeatherDeterminateType): ModelChoice.FORECAST | ModelChoice.NULL => {
+  return determinate === WeatherDeterminate.FORECAST ? ModelChoice.FORECAST : ModelChoice.NULL
 }
 
 /**
@@ -268,7 +274,7 @@ const fillMissingForecasts = (
             parseInt(stationCode),
             stationName,
             date,
-            WeatherDeterminate.FORECAST
+            WeatherDeterminate.NULL
           )
           allWeatherIndeterminates.push(missing)
         }
