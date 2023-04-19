@@ -75,13 +75,13 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
     const path = props.route
     if (path.startsWith('http')) {
       return (
-        <a className={classes.link} href={path} rel="noreferrer" target="_blank">
+        <a className={classes.link} href={path} rel="noreferrer">
           {props.name}
         </a>
       )
     } else {
       return (
-        <Link className={classes.link} to={{ pathname: props.route }} target="_blank">
+        <Link className={classes.link} to={{ pathname: props.route }}>
           {props.name}
         </Link>
       )
@@ -102,7 +102,6 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
           size="large"
           variant="contained"
           sx={{ fontSize: '1.125rem', fontWeight: 700 }}
-          target="_blank"
         >
           Get Started
         </Button>
