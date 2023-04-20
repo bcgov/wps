@@ -155,41 +155,10 @@ const MoreCast2Page = () => {
   const { colYesterdayDailies } = useSelector(selectColumnYesterdayDailies)
   const selectedStations = useSelector(selectSelectedStations)
 
-  // const [clickedColDef, setClickedColDef] = React.useState<GridColDef | null>(null)
-  // const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
-  //   if (modelType == ModelChoice.YESTERDAY) {
-  //     dispatch(
-  //       getColumnYesterdayDailies(
-  //         modelChoiceAsMoreCast2ForecastRows.map(s => s.stationCode),
-  //         selectedStations,
-  //         dateInterval,
-  //         modelType,
-  //         colDef.field as keyof MoreCast2ForecastRow,
-  //         DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate(),
-  //         DateTime.fromJSDate(fromTo.endDate ? fromTo.endDate : new Date()).toISODate()
-  //       )
-  //     )
-  //   } else {
-  //     dispatch(
-  //       getColumnModelStationPredictions(
-  //         modelChoiceAsMoreCast2ForecastRows.map(s => s.stationCode),
-  //         modelType,
-  //         colDef.field as keyof MoreCast2ForecastRow,
-  //         DateTime.fromJSDate(fromTo.startDate ? fromTo.startDate : new Date()).toISODate(),
-  //         DateTime.fromJSDate(fromTo.endDate ? fromTo.endDate : new Date()).toISODate()
-  //       )
-  //     )
-  //   }
-  // }
-
   const fetchWeatherIndeterminates = () => {
     if (fromTo && fromTo.startDate && fromTo.endDate) {
       dispatch(
-        getWeatherIndeterminates(
-          members.map(station => station.station_code),
-          DateTime.fromJSDate(fromTo.startDate),
-          DateTime.fromJSDate(fromTo.endDate)
-        )
+        getWeatherIndeterminates(members, DateTime.fromJSDate(fromTo.startDate), DateTime.fromJSDate(fromTo.endDate))
       )
     }
   }

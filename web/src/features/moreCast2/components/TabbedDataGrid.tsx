@@ -1,7 +1,7 @@
 import { List, Stack } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid'
-import { ModelType } from 'api/moreCast2API'
+import { ModelChoice, ModelType } from 'api/moreCast2API'
 import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
@@ -169,8 +169,10 @@ const TabbedDataGrid = ({ onCellEditStop }: TabbedDataGridProps) => {
     for (const row of newRows) {
       // Ugly cast required to index into a row object using a string
       const rowAsAny = row as any
-      rowAsAny[field].choice = modelType
-      rowAsAny[field].value = rowAsAny[`${prefix}${modelType}`]
+      if (rowAsAny[field].choice !== ModelChoice.FORECAST) {
+        rowAsAny[field].choice = modelType
+        rowAsAny[field].value = rowAsAny[`${prefix}${modelType}`]
+      }
     }
     setVisibleRows(newRows)
   }

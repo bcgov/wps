@@ -3,7 +3,7 @@ import { Station } from 'api/stationAPI'
 import { rowIDHasher } from 'features/moreCast2/util'
 import { isEqual } from 'lodash'
 import { DateTime } from 'luxon'
-import { MoreCast2Row, MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 
 export enum ModelChoice {
   FORECAST = 'FORECAST',
@@ -43,6 +43,16 @@ export enum WeatherDeterminate {
 }
 
 export type WeatherDeterminateType = 'Actual' | 'Forecast' | 'GDPS' | 'GFS' | 'HRDPS' | 'NULL' | 'RDPS'
+
+export const WeatherDeterminateChoices = [
+  WeatherDeterminate.ACTUAL,
+  WeatherDeterminate.FORECAST,
+  WeatherDeterminate.GDPS,
+  WeatherDeterminate.GFS,
+  WeatherDeterminate.HRDPS,
+  WeatherDeterminate.NULL,
+  WeatherDeterminate.RDPS
+]
 
 export interface WeatherIndeterminate {
   id: string
@@ -259,12 +269,14 @@ const marshallForecastsToWeatherIndeterminates = (forecasts: MoreCast2ForecastRe
   }
   const forecastsAsWeatherIndeterminates: WeatherIndeterminate[] = []
   for (const forecast of forecasts) {
+    let dateString = DateTime.fromMillis(forecast.for_date).toISODate()
+    dateString = `${dateString}T20:00:00+00:00`
     const weatherIndeterminate: WeatherIndeterminate = {
       id: '',
       station_code: forecast.station_code,
       station_name: forecast.station_name || '',
       determinate: WeatherDeterminate.FORECAST,
-      utc_timestamp: DateTime.fromMillis(forecast.for_date).toISODate(),
+      utc_timestamp: dateString,
       precipitation: forecast.precip,
       relative_humidity: forecast.rh,
       temperature: forecast.temp,

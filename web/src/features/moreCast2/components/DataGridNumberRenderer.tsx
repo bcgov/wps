@@ -20,7 +20,7 @@ export class GridNumberRenderer {
 
   renderForecastCellWith = (params: GridRenderCellParams, field: string) => (
     <TextField
-      disabled={false}
+      disabled={params.row[field] && params.row[field].choice === ModelChoice.FORECAST}
       size="small"
       label={params.row[field] && params.row[field].choice}
       value={params.formattedValue}
