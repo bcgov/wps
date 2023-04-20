@@ -7,15 +7,13 @@ import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
-import {
-  selectForecastMoreCast2Rows,
-  selectAllMoreCast2Rows,
-  selectWeatherIndeterminatesLoading
-} from 'features/moreCast2/slices/dataSlice'
+import { selectAllMoreCast2Rows, selectWeatherIndeterminatesLoading } from 'features/moreCast2/slices/dataSlice'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
+import { groupBy } from 'lodash'
+import MoreCast2Page from 'features/moreCast2/pages/MoreCast2Page'
 
 interface TabbedDataGridProps {
   onCellEditStop: (value: boolean) => void
@@ -162,14 +160,18 @@ const TabbedDataGrid = ({ onCellEditStop }: TabbedDataGridProps) => {
   const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
     const newRows = [...visibleRows]
     // The value of field will be precipForecast, rhForecast, tempForecast, etc.
-    // We need the prefix to help us grab the correct weather model field (eg. tempHRDPS, precipGFS, etc.)
+    // We need the prefix to help us grab the correct weather model field to update (eg. tempHRDPS,
+    // precipGFS, etc.)
     const field = colDef.field
     const index = field.indexOf('Forecast')
     const prefix = field.slice(0, index)
+    const actualField = `${prefix}Actual` as keyof MoreCast2Row
+
     for (const row of newRows) {
       // Ugly cast required to index into a row object using a string
       const rowAsAny = row as any
-      if (rowAsAny[field].choice !== ModelChoice.FORECAST) {
+      // If an actual exists, then there is no need to update the forecast field
+      if (isNaN(rowAsAny[actualField])) {
         rowAsAny[field].choice = modelType
         rowAsAny[field].value = rowAsAny[`${prefix}${modelType}`]
       }
