@@ -12,7 +12,7 @@ import { LinearProgress, Menu, MenuItem } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { isEqual } from 'lodash'
-import { ModelType } from 'api/moreCast2API'
+import { ModelChoice, ModelType } from 'api/moreCast2API'
 
 export interface MoreCase2DateRangePickerProps {
   loading: boolean
@@ -78,7 +78,9 @@ const ForecastDataGrid = ({
         onCellEditStop={() => onCellEditStop(true)}
         loading={loading}
         columns={DataGridColumns.getTabColumns(editMode)}
-        isCellEditable={params => params.row[params.field].choice === '' || editMode}
+        isCellEditable={params =>
+          (params.row[params.field] !== ModelChoice.ACTUAL && params.row[params.field].choice === '') || editMode
+        }
         rows={allMoreCast2Rows}
       ></DataGrid>
       <Menu
