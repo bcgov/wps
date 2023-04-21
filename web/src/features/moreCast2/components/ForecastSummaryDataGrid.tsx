@@ -1,12 +1,12 @@
 import React from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { DataGrid, GridColDef, GridEventListener } from '@mui/x-data-grid'
-import { ModelChoice, ModelType } from 'api/moreCast2API'
+import { ModelType } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress, Menu, MenuItem } from '@mui/material'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { isEqual } from 'lodash'
-import { MORECAST2_FORECAST_FIELDS, MORECAST2_STATION_DATE_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
+import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 
 interface ForecastSummaryDataGridProps {
   loading: boolean
@@ -52,10 +52,6 @@ const ForecastSummaryDataGrid = ({
     setContextMenu(null)
   }
 
-  const columns: GridColDef[] = MORECAST2_STATION_DATE_FIELDS.map(field => field.generateColDef(editMode)).concat(
-    MORECAST2_FORECAST_FIELDS.map(forecastField => forecastField.generateForecastColDef(editMode))
-  )
-
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
@@ -70,9 +66,9 @@ const ForecastSummaryDataGrid = ({
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellEditStop={() => onCellEditStop(true)}
         loading={loading}
-        columns={columns}
+        columns={DataGridColumns.getSummaryColumns(editMode)}
         rows={rows}
-        isCellEditable={params => (params.row[params.field].choice === ModelChoice.ACTUAL ? false : true)}
+        isCellEditable={params => params.row[params.field].choice === '' || editMode}
       ></DataGrid>
       <Menu
         open={contextMenu !== null}

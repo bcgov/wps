@@ -78,6 +78,7 @@ const ForecastDataGrid = ({
         onCellEditStop={() => onCellEditStop(true)}
         loading={loading}
         columns={DataGridColumns.getTabColumns(editMode)}
+        isCellEditable={params => params.row[params.field].choice === '' || editMode}
         rows={allMoreCast2Rows}
       ></DataGrid>
       <Menu
