@@ -11,6 +11,8 @@ import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
+import { groupBy } from 'lodash'
+import MoreCast2Page from 'features/moreCast2/pages/MoreCast2Page'
 
 interface TabbedDataGridProps {
   forecastAction: ForecastActionType
@@ -153,14 +155,18 @@ const TabbedDataGrid = ({ forecastAction, onCellEditStop }: TabbedDataGridProps)
   const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
     const newRows = [...visibleRows]
     // The value of field will be precipForecast, rhForecast, tempForecast, etc.
-    // We need the prefix to help us grab the correct weather model field (eg. tempHRDPS, precipGFS, etc.)
+    // We need the prefix to help us grab the correct weather model field to update (eg. tempHRDPS,
+    // precipGFS, etc.)
     const field = colDef.field
     const index = field.indexOf('Forecast')
     const prefix = field.slice(0, index)
+    const actualField = `${prefix}Actual` as keyof MoreCast2Row
+
     for (const row of newRows) {
       // Ugly cast required to index into a row object using a string
       const rowAsAny = row as any
-      if (rowAsAny[field].choice !== ModelChoice.FORECAST) {
+      // If an actual exists, then there is no need to update the forecast field
+      if (isNaN(rowAsAny[actualField])) {
         rowAsAny[field].choice = modelType
         rowAsAny[field].value = rowAsAny[`${prefix}${modelType}`]
       }

@@ -18,14 +18,24 @@ export class GridNumberRenderer {
     <TextField disabled={true} size="small" value={params.formattedValue}></TextField>
   )
 
-  renderForecastCellWith = (params: GridRenderCellParams, field: string, editMode: boolean) => (
-    <TextField
-      disabled={params.row[field] && params.row[field].choice === ModelChoice.FORECAST && !editMode}
-      size="small"
-      label={params.row[field] && params.row[field].choice}
-      value={params.formattedValue}
-    ></TextField>
-  )
+  renderForecastCellWith = (params: GridRenderCellParams, field: string, editMode: boolean) => {
+    // The value of field will be precipForecast, rhForecast, tempForecast, etc.
+    // We need the prefix to help us grab the correct 'actual' field (eg. tempACTUAL, precipACTUAL, etc.)
+    const index = field.indexOf('Forecast')
+    const prefix = field.slice(0, index)
+    const actualField = `${prefix}Actual`
+
+    const disabled = !isNaN(params.row[actualField]) || editMode
+
+    return (
+      <TextField
+        disabled={disabled}
+        size="small"
+        label={params.row[field] && params.row[field].choice}
+        value={params.formattedValue}
+      ></TextField>
+    )
+  }
 
   predictionItemValueSetter = (params: GridValueSetterParams, field: string, precision: number) => {
     const oldValue = params.row[field].value
