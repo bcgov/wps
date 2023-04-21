@@ -17,7 +17,6 @@ import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { createDateInterval } from 'features/moreCast2/util'
 import { isNumber, isUndefined } from 'lodash'
 import { StationGroupMember } from 'api/stationAPI'
-import { determinant } from 'ol/transform'
 
 interface State {
   loading: boolean

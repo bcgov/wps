@@ -7,7 +7,6 @@ import {
   WindDirForecastField,
   WindSpeedForecastField,
   PrecipForecastField,
-  Morecast2Field,
   Morecast2Field
 } from 'features/moreCast2/components/MoreCast2Field'
 import { DateTime } from 'luxon'
@@ -15,7 +14,7 @@ import { DateTime } from 'luxon'
 describe('MoreCast2Field', () => {
   const expectFields = (
     instance: Morecast2Field,
-    field: Morecast2Field,
+    field: string,
     headerName: string,
     precision: number,
     type: string,
@@ -25,7 +24,7 @@ describe('MoreCast2Field', () => {
     expect(instance.headerName).toEqual(headerName)
     expect(instance.precision).toEqual(precision)
     expect(instance.type).toBe(type)
-    expect(JSON.stringify(instance.generateColDef())).toEqual(colDefJsonString)
+    expect(JSON.stringify(instance.generateColDef(true))).toEqual(colDefJsonString)
   }
   describe('StationForecastField', () => {
     it('should have the desired configuration', () => {
@@ -36,7 +35,14 @@ describe('MoreCast2Field', () => {
         'Station',
         0,
         'string',
-        JSON.stringify({ field: 'stationName', flex: 1, headerName: 'Station', maxWidth: 200 })
+        JSON.stringify({
+          field: 'stationName',
+          flex: 1,
+          headerName: 'Station',
+          maxWidth: 200,
+          width: 200,
+          editable: true
+        })
       )
     })
   })
@@ -55,7 +61,8 @@ describe('MoreCast2Field', () => {
           disableReorder: true,
           flex: 1,
           headerName: 'Date',
-          maxWidth: 250,
+          maxWidth: 150,
+          width: 150,
           sortable: false,
           valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
             return params.value.toLocaleString(DateTime.DATE_MED)
@@ -75,12 +82,11 @@ describe('MoreCast2Field', () => {
         JSON.stringify({
           field: 'temp',
           disableColumnMenu: true,
-          disableReorder: true,
-          editable: true,
+          disabledReorder: true,
           headerName: 'Temp',
           sortable: false,
           type: 'number',
-          width: 120
+          width: 80
         })
       )
     })
@@ -97,12 +103,11 @@ describe('MoreCast2Field', () => {
         JSON.stringify({
           field: 'rh',
           disableColumnMenu: true,
-          disableReorder: true,
-          editable: true,
+          disabledReorder: true,
           headerName: 'RH',
           sortable: false,
           type: 'number',
-          width: 120
+          width: 80
         })
       )
     })
@@ -119,12 +124,11 @@ describe('MoreCast2Field', () => {
         JSON.stringify({
           field: 'windDirection',
           disableColumnMenu: true,
-          disableReorder: true,
-          editable: true,
+          disabledReorder: true,
           headerName: 'Wind Dir',
           sortable: false,
           type: 'number',
-          width: 120
+          width: 80
         })
       )
     })
@@ -141,12 +145,11 @@ describe('MoreCast2Field', () => {
         JSON.stringify({
           field: 'windSpeed',
           disableColumnMenu: true,
-          disableReorder: true,
-          editable: true,
+          disabledReorder: true,
           headerName: 'Wind Speed',
           sortable: false,
           type: 'number',
-          width: 120
+          width: 80
         })
       )
     })
@@ -163,12 +166,11 @@ describe('MoreCast2Field', () => {
         JSON.stringify({
           field: 'precip',
           disableColumnMenu: true,
-          disableReorder: true,
-          editable: true,
+          disabledReorder: true,
           headerName: 'Precip',
           sortable: false,
           type: 'number',
-          width: 120
+          width: 80
         })
       )
     })

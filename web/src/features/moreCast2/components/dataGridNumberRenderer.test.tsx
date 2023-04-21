@@ -45,18 +45,17 @@ describe('DataGridNumberRenderer', () => {
   it('should generate the col def correctly', () => {
     const numberRenderer = new GridNumberRenderer()
 
-    const updatedRow = numberRenderer.generateColDefWith('temp', 'Temp', 1)
+    const updatedRow = numberRenderer.generateColDefWith('temp', 'Temp', 1, 200)
 
     expect(JSON.stringify(updatedRow)).toEqual(
       JSON.stringify({
         field: 'temp',
         disableColumnMenu: true,
-        disableReorder: true,
-        editable: true,
+        disabledReorder: true,
         headerName: 'Temp',
         sortable: false,
         type: 'number',
-        width: 120
+        width: 200
       })
     )
   })

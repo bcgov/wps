@@ -162,6 +162,7 @@ const TabbedDataGrid = ({ forecastAction, onCellEditStop }: TabbedDataGridProps)
 
     for (const row of newRows) {
       // Ugly cast required to index into a row object using a string
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rowAsAny = row as any
       // If an actual exists, then there is no need to update the forecast field
       if (isNaN(rowAsAny[actualField])) {
