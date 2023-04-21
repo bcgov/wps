@@ -14,7 +14,7 @@ import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { isEqual } from 'lodash'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
 
-export interface MoreCase2DateRangePickerProps {
+export interface ForecastDataGridProps {
   loading: boolean
   editMode: boolean
   clickedColDef: GridColDef | null
@@ -46,7 +46,7 @@ const ForecastDataGrid = ({
   updateColumnWithModel,
   columnGroupingModel,
   allMoreCast2Rows
-}: MoreCase2DateRangePickerProps) => {
+}: ForecastDataGridProps) => {
   const classes = useStyles()
 
   const [contextMenu, setContextMenu] = React.useState<{
