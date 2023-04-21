@@ -18,9 +18,9 @@ export class GridNumberRenderer {
     <TextField disabled={true} size="small" value={params.formattedValue}></TextField>
   )
 
-  renderForecastCellWith = (params: GridRenderCellParams, field: string) => (
+  renderForecastCellWith = (params: GridRenderCellParams, field: string, editMode: boolean) => (
     <TextField
-      disabled={params.row[field] && params.row[field].choice === ModelChoice.FORECAST}
+      disabled={params.row[field] && params.row[field].choice === ModelChoice.FORECAST && !editMode}
       size="small"
       label={params.row[field] && params.row[field].choice}
       value={params.formattedValue}
@@ -79,7 +79,13 @@ export class GridNumberRenderer {
     }
   }
 
-  public generateForecastColDefWith = (field: string, headerName: string, precision: number, width?: number) => {
+  public generateForecastColDefWith = (
+    field: string,
+    headerName: string,
+    precision: number,
+    editMode: boolean,
+    width?: number
+  ) => {
     return {
       field: field,
       disableColumnMenu: true,
@@ -93,7 +99,7 @@ export class GridNumberRenderer {
         return this.renderHeaderWith(params)
       },
       renderCell: (params: GridRenderCellParams) => {
-        return this.renderForecastCellWith(params, field)
+        return this.renderForecastCellWith(params, field, editMode)
       },
       valueFormatter: (params: GridValueFormatterParams) => {
         return this.valueFormatterWith(params, precision)

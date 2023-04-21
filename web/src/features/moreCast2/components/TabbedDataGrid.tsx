@@ -1,23 +1,19 @@
 import { List, Stack } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid'
-import { ModelChoice, ModelType } from 'api/moreCast2API'
+import { ForecastActionChoice, ForecastActionType, ModelChoice, ModelType } from 'api/moreCast2API'
 import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
-import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
-import {
-  selectForecastMoreCast2Rows,
-  selectAllMoreCast2Rows,
-  selectWeatherIndeterminatesLoading
-} from 'features/moreCast2/slices/dataSlice'
+import { selectAllMoreCast2Rows, selectWeatherIndeterminatesLoading } from 'features/moreCast2/slices/dataSlice'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 
 interface TabbedDataGridProps {
+  forecastAction: ForecastActionType
   onCellEditStop: (value: boolean) => void
 }
 
@@ -36,7 +32,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const TabbedDataGrid = ({ onCellEditStop }: TabbedDataGridProps) => {
+const TabbedDataGrid = ({ forecastAction, onCellEditStop }: TabbedDataGridProps) => {
   const classes = useStyles()
 
   const selectedStations = useSelector(selectSelectedStations)
@@ -51,13 +47,8 @@ const TabbedDataGrid = ({ onCellEditStop }: TabbedDataGridProps) => {
   const [visibleRows, setVisibleRows] = useState<MoreCast2Row[]>([])
 
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
-    DataGridColumns.initGridColumnVisibilityModel()
+    DataGridColumns.initGridColumnVisibilityModel(forecastAction == ForecastActionChoice.EDIT)
   )
-
-  let columns: GridColDef[] = []
-  MORECAST2_FIELDS.forEach(field => {
-    columns = [...columns, ...field.generateColDefs()]
-  })
 
   const [tempVisible, setTempVisible] = useState(true)
   const [rhVisible, setRhVisible] = useState(false)
@@ -222,6 +213,7 @@ const TabbedDataGrid = ({ onCellEditStop }: TabbedDataGridProps) => {
       {forecastSummaryVisible ? (
         <ForecastSummaryDataGrid
           loading={loading}
+          editMode={forecastAction == ForecastActionChoice.EDIT}
           rows={visibleRows}
           clickedColDef={clickedColDef}
           onCellEditStop={onCellEditStop}
@@ -231,6 +223,7 @@ const TabbedDataGrid = ({ onCellEditStop }: TabbedDataGridProps) => {
       ) : (
         <ForecastDataGrid
           loading={loading}
+          editMode={forecastAction == ForecastActionChoice.EDIT}
           clickedColDef={clickedColDef}
           columnVisibilityModel={columnVisibilityModel}
           setColumnVisibilityModel={setColumnVisibilityModel}

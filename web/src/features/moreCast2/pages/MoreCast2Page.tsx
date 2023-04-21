@@ -51,9 +51,6 @@ import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton
 import MoreCase2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import { ROLES } from 'features/auth/roles'
 import { DateRange } from 'components/dateRangePicker/types'
-import { GridColDef } from '@mui/x-data-grid'
-import { getColumnModelStationPredictions } from 'features/moreCast2/slices/columnModelSlice'
-import { getColumnYesterdayDailies } from 'features/moreCast2/slices/columnYesterdaySlice'
 import { getMoreCast2Forecasts } from 'features/moreCast2/slices/moreCast2ForecastsSlice'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import ForecastActionDropdown from 'features/moreCast2/components/ForecastActionDropdown'
@@ -442,7 +439,7 @@ const MoreCast2Page = () => {
               </FormControl>
             </Grid>
           </Grid>
-          <TabbedDataGrid onCellEditStop={setForecastIsDirty} />
+          <TabbedDataGrid forecastAction={forecastAction} onCellEditStop={setForecastIsDirty} />
           <MoreCast2Snackbar
             autoHideDuration={6000}
             handleClose={() => setSnackbarOpen(!snackbarOpen)}

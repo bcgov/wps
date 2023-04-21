@@ -10,6 +10,7 @@ import { MORECAST2_FORECAST_FIELDS, MORECAST2_STATION_DATE_FIELDS } from 'featur
 
 interface ForecastSummaryDataGridProps {
   loading: boolean
+  editMode: boolean
   rows: MoreCast2Row[]
   clickedColDef: GridColDef | null
   onCellEditStop: (value: boolean) => void
@@ -26,6 +27,7 @@ const useStyles = makeStyles({
 
 const ForecastSummaryDataGrid = ({
   loading,
+  editMode,
   rows,
   clickedColDef,
   onCellEditStop,
@@ -50,8 +52,8 @@ const ForecastSummaryDataGrid = ({
     setContextMenu(null)
   }
 
-  const columns: GridColDef[] = MORECAST2_STATION_DATE_FIELDS.map(field => field.generateColDef()).concat(
-    MORECAST2_FORECAST_FIELDS.map(forecastField => forecastField.generateForecastColDef())
+  const columns: GridColDef[] = MORECAST2_STATION_DATE_FIELDS.map(field => field.generateColDef(editMode)).concat(
+    MORECAST2_FORECAST_FIELDS.map(forecastField => forecastField.generateForecastColDef(editMode))
   )
 
   return (

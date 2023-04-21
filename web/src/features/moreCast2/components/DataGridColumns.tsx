@@ -1,20 +1,19 @@
 import { GridColumnVisibilityModel, GridColDef, GridColumnGroupingModel } from '@mui/x-data-grid'
-import { MORECAST2_FIELDS } from 'features/moreCast2/components/MoreCast2Field'
+import {
+  MORECAST2_FIELDS,
+  MORECAST2_FORECAST_FIELDS,
+  MORECAST2_STATION_DATE_FIELDS
+} from 'features/moreCast2/components/MoreCast2Field'
 
 export interface ColumnVis {
   columnName: string
   visible: boolean
 }
 
-let tabColumns: GridColDef[] = []
-MORECAST2_FIELDS.forEach(field => {
-  tabColumns = [...tabColumns, ...field.generateColDefs()]
-})
-
 export class DataGridColumns {
-  public static initGridColumnVisibilityModel() {
+  public static initGridColumnVisibilityModel(editMode: boolean) {
     const model: GridColumnVisibilityModel = {}
-    const weatherParameterColumns = getWeatherParameterColumns()
+    const weatherParameterColumns = getWeatherParameterColumns(editMode)
     weatherParameterColumns.forEach(columnName => {
       if (columnName.startsWith('temp')) {
         model[columnName] = true
@@ -42,22 +41,28 @@ export class DataGridColumns {
     return newModel
   }
 
-  public static getTabColumns(): GridColDef[] {
+  public static getTabColumns(editMode: boolean): GridColDef[] {
+    let tabColumns: GridColDef[] = []
+    MORECAST2_FIELDS.forEach(field => {
+      tabColumns = [...tabColumns, ...field.generateColDefs(editMode)]
+    })
     return tabColumns
   }
 
-  public static getSummaryColumns(): GridColDef[] {
-    return MORECAST2_FIELDS.map(field => field.generateColDef())
+  public static getSummaryColumns(editMode: boolean): GridColDef[] {
+    return MORECAST2_STATION_DATE_FIELDS.map(field => field.generateColDef(false)).concat(
+      MORECAST2_FORECAST_FIELDS.map(forecastField => forecastField.generateForecastColDef(editMode))
+    )
   }
 
-  public static getWeatherParameterColumns() {
-    const fields = tabColumns.map(column => column.field)
+  public static getWeatherParameterColumns(editMode: boolean) {
+    const fields = DataGridColumns.getTabColumns(editMode).map(column => column.field)
     return fields.filter(field => field !== 'stationName' && field !== 'forDate')
   }
 }
 
-export const getWeatherParameterColumns = (): string[] => {
-  const fields = tabColumns.map(column => column.field)
+export const getWeatherParameterColumns = (editMode: boolean): string[] => {
+  const fields = DataGridColumns.getTabColumns(editMode).map(column => column.field)
   return fields.filter(field => field !== 'stationName' && field !== 'forDate')
 }
 

@@ -16,6 +16,7 @@ import { ModelType } from 'api/moreCast2API'
 
 export interface MoreCase2DateRangePickerProps {
   loading: boolean
+  editMode: boolean
   clickedColDef: GridColDef | null
   columnVisibilityModel: GridColumnVisibilityModel
   setColumnVisibilityModel: React.Dispatch<React.SetStateAction<GridColumnVisibilityModel>>
@@ -36,6 +37,7 @@ const useStyles = makeStyles(() => ({
 
 const ForecastDataGrid = ({
   loading,
+  editMode,
   clickedColDef,
   columnVisibilityModel,
   setColumnVisibilityModel,
@@ -75,7 +77,7 @@ const ForecastDataGrid = ({
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellEditStop={() => onCellEditStop(true)}
         loading={loading}
-        columns={DataGridColumns.getTabColumns()}
+        columns={DataGridColumns.getTabColumns(editMode)}
         rows={allMoreCast2Rows}
       ></DataGrid>
       <Menu
