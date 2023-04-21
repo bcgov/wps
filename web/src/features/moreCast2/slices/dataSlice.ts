@@ -10,11 +10,10 @@ import {
   WeatherDeterminateType
 } from 'api/moreCast2API'
 import { AppThunk } from 'app/store'
-import { rowIDHasher } from 'features/moreCast2/util'
+import { createDateInterval, rowIDHasher } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
-import { createDateInterval } from 'features/moreCast2/util'
 import { isNumber, isUndefined } from 'lodash'
 import { StationGroupMember } from 'api/stationAPI'
 
@@ -187,7 +186,7 @@ const createMoreCast2Rows = (
         // no-op
       }
     }
-    rows.push(row as MoreCast2Row)
+    rows.push(row)
   }
 
   return rows
