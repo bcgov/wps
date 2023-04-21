@@ -18,11 +18,8 @@ import {
   selectAuthentication,
   selectColumnModelStationPredictions,
   selectColumnYesterdayDailies,
-  selectModelStationPredictions,
-  selectMoreCast2Forecasts,
   selectStationGroups,
-  selectStationGroupsMembers,
-  selectObservedDailies
+  selectStationGroupsMembers
 } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
 import { GeneralHeader } from 'components'
@@ -34,18 +31,10 @@ import { getModelStationPredictions } from 'features/moreCast2/slices/modelSlice
 import {
   createDateInterval,
   excludeRowsByModelType,
-  fillInTheModelBlanks,
   includeRowsByModelType,
-  parseForecastsHelper,
-  parseModelsForStationsHelper,
-  parseObservedDailiesForStationsHelper,
   replaceColumnValuesFromPrediction
 } from 'features/moreCast2/util'
-import {
-  fillInTheYesterdayDailyBlanks,
-  parseYesterdayDailiesForStationsHelper,
-  replaceColumnValuesFromYesterdayDaily
-} from 'features/moreCast2/yesterdayDailies'
+import { replaceColumnValuesFromYesterdayDaily } from 'features/moreCast2/yesterdayDailies'
 import { getObservedStationDailies } from 'features/moreCast2/slices/observedDailiesSlice'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
 import MoreCase2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
@@ -109,9 +98,6 @@ const MoreCast2Page = () => {
   const dispatch: AppDispatch = useDispatch()
   const { groups, loading: groupsLoading } = useSelector(selectStationGroups)
   const { members } = useSelector(selectStationGroupsMembers)
-  const { stationPredictions } = useSelector(selectModelStationPredictions)
-  const { observedDailies, yesterdayDailies } = useSelector(selectObservedDailies)
-  const { moreCast2Forecasts } = useSelector(selectMoreCast2Forecasts)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { idir } = useSelector(selectAuthentication)
 
@@ -141,11 +127,9 @@ const MoreCast2Page = () => {
   const [modelChoiceAsMoreCast2ForecastRows, setModelChoiceAsMoreCast2ForecastRows] = useState<MoreCast2ForecastRow[]>(
     []
   )
-  const [observedRows, setObservedRows] = useState<MoreCast2ForecastRow[]>([])
   const [rowsToDisplay, setRowsToDisplay] = useState<MoreCast2ForecastRow[]>([])
   const [forecastAction, setForecastAction] = useState<ForecastActionType>(ForecastActionChoices[0])
   const [forecastIsDirty, setForecastIsDirty] = useState(false)
-  const [forecastsAsMoreCast2ForecastRows, setForecastsAsMoreCast2ForecastRows] = useState<MoreCast2ForecastRow[]>([])
   const [dateInterval, setDateInterval] = useState<string[]>([])
 
   const { colPrediction } = useSelector(selectColumnModelStationPredictions)
@@ -271,9 +255,7 @@ const MoreCast2Page = () => {
     } else {
       setSelectedGroupsMembers([])
       setForecastRows([])
-      setObservedRows([])
       setRowsToDisplay([])
-      setForecastsAsMoreCast2ForecastRows([])
       setModelChoiceAsMoreCast2ForecastRows([])
     }
   }, [selectedStationGroup]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -298,39 +280,12 @@ const MoreCast2Page = () => {
   }, [fromTo.startDate, fromTo.endDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const predictions = fillInTheModelBlanks(selectedGroupsMembers, stationPredictions, dateInterval, modelType)
-    const newRows = parseModelsForStationsHelper(predictions)
-    setModelChoiceAsMoreCast2ForecastRows(newRows)
-  }, [stationPredictions]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (modelType === ModelChoice.YESTERDAY) {
-      const completeDailies = fillInTheYesterdayDailyBlanks(selectedGroupsMembers, yesterdayDailies, dateInterval)
-      const newRows = parseYesterdayDailiesForStationsHelper(completeDailies)
-      setModelChoiceAsMoreCast2ForecastRows(newRows)
-    }
-  }, [yesterdayDailies]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const newRows = parseObservedDailiesForStationsHelper(observedDailies)
-    setObservedRows(newRows)
-  }, [observedDailies]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
     // Handle the switch from create to edit mode and vice versa
     if (forecastAction === ForecastActionChoice.CREATE) {
       fetchStationPredictions()
       fetchStationObservedDailies()
     } else fetchForecasts()
   }, [forecastAction]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const newRows = parseForecastsHelper(moreCast2Forecasts, selectedGroupsMembers)
-    setForecastsAsMoreCast2ForecastRows(newRows)
-    if (forecastAction === ForecastActionChoice.EDIT) {
-      setRowsToDisplay(newRows)
-    }
-  }, [moreCast2Forecasts]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // A valid, submittable forecast can't contain NaN for any values
   const forecastIsValid = () => {
