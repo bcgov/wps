@@ -29,7 +29,6 @@ describe('StationPanel', () => {
 
   it('should allow selecting of stations', async () => {
     const mockSetSelectedStationGroup = jest.fn()
-    const mockSetSelectedStations = jest.fn()
 
     const { getByTestId } = render(
       <Provider store={store}>
