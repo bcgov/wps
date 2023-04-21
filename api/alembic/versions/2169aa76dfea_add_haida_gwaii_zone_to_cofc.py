@@ -47,6 +47,8 @@ def get_fuel_type_id(conn, fuel_type_abbrev: str):
 
 
 def increase_value_order_of_appearance(conn, fire_centre_id: int, from_index: int):
+    # due to constraint on unique value of (fire_centre_id, order_of_appearance_in_list), have to
+    # modify values of order_of_appearance_in_list one at a time, otherwise error is thrown
     res = conn.execute(
         sa.text('SELECT MAX(order_of_appearance_in_list) FROM planning_areas WHERE fire_centre_id = {}'.format(fire_centre_id)))
     max_value_order = res.fetchall()[0][0]
@@ -57,6 +59,8 @@ def increase_value_order_of_appearance(conn, fire_centre_id: int, from_index: in
 
 
 def decrease_value_order_of_appearance(conn, fire_centre_id: int, to_index: int):
+    # due to constraint on unique value of (fire_centre_id, order_of_appearance_in_list), have to
+    # modify values of order_of_appearance_in_list one at a time, otherwise error is thrown
     res = conn.execute(
         sa.text('SELECT MAX(order_of_appearance_in_list) FROM planning_areas WHERE fire_centre_id = {}'.format(fire_centre_id)))
     max_value_order = res.fetchall()[0][0]
