@@ -7,7 +7,8 @@ import {
   WindDirForecastField,
   WindSpeedForecastField,
   PrecipForecastField,
-  Morecast2Field
+  Morecast2Field,
+  DEFAULT_COLUMN_WIDTH
 } from 'features/moreCast2/components/MoreCast2Field'
 import { DateTime } from 'luxon'
 
@@ -86,7 +87,7 @@ describe('MoreCast2Field', () => {
           headerName: 'Temp',
           sortable: false,
           type: 'number',
-          width: 80
+          width: DEFAULT_COLUMN_WIDTH
         })
       )
     })
@@ -107,7 +108,7 @@ describe('MoreCast2Field', () => {
           headerName: 'RH',
           sortable: false,
           type: 'number',
-          width: 80
+          width: DEFAULT_COLUMN_WIDTH
         })
       )
     })
@@ -128,7 +129,7 @@ describe('MoreCast2Field', () => {
           headerName: 'Wind Dir',
           sortable: false,
           type: 'number',
-          width: 80
+          width: DEFAULT_COLUMN_WIDTH
         })
       )
     })
@@ -149,7 +150,7 @@ describe('MoreCast2Field', () => {
           headerName: 'Wind Speed',
           sortable: false,
           type: 'number',
-          width: 80
+          width: DEFAULT_COLUMN_WIDTH
         })
       )
     })
@@ -170,7 +171,7 @@ describe('MoreCast2Field', () => {
           headerName: 'Precip',
           sortable: false,
           type: 'number',
-          width: 80
+          width: DEFAULT_COLUMN_WIDTH
         })
       )
     })

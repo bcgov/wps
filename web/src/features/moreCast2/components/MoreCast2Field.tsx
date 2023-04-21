@@ -16,7 +16,7 @@ export interface ForecastField {
   generateForecastColDef: (editMode: boolean) => GridColDef
 }
 
-const DEFAULT_COLUMN_WIDTH = 80
+export const DEFAULT_COLUMN_WIDTH = 80
 
 const COLUMN_HEADERS: WeatherDeterminateType[] = [
   WeatherDeterminate.ACTUAL,
