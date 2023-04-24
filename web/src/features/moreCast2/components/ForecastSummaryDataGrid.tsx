@@ -68,9 +68,7 @@ const ForecastSummaryDataGrid = ({
         loading={loading}
         columns={DataGridColumns.getSummaryColumns(editMode)}
         rows={rows}
-        isCellEditable={params =>
-          (params.row[params.field] !== ModelChoice.ACTUAL && params.row[params.field].choice === '') || editMode
-        }
+        isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
       ></DataGrid>
       <Menu
         open={contextMenu !== null}

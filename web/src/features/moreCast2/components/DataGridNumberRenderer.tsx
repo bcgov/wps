@@ -26,11 +26,14 @@ export class GridNumberRenderer {
     const actualField = `${prefix}Actual`
 
     const disabled = !isNaN(params.row[actualField]) || editMode
-    params.row[field] = isNaN(params.row[actualField]) ? params.row[field] : params.row[actualField]
-    const displayValue = isNaN(params.row[actualField]) ? params.formattedValue : params.row[actualField]
-    const label = isNaN(params.row[actualField]) ? params.row[field] && params.row[field].choice : 'ACTUAL'
-
-    return <TextField disabled={disabled} size="small" label={label} value={displayValue}></TextField>
+    return (
+      <TextField
+        disabled={disabled}
+        size="small"
+        label={params.row[field].choice}
+        value={params.formattedValue}
+      ></TextField>
+    )
   }
 
   predictionItemValueSetter = (params: GridValueSetterParams, field: string, precision: number) => {
