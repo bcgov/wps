@@ -18,6 +18,7 @@ import { ROLES } from 'features/auth/roles'
 import { selectAuthentication } from 'app/rootReducer'
 import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
+import { getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecast'
 
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved.'
@@ -205,30 +206,8 @@ const TabbedDataGrid = ({
   }
 
   const handleSaveClick = async () => {
-    const rowsToSave: MoreCast2ForecastRow[] = visibleRows.flatMap(row => {
-      if (
-        isUndefined(row.precipForecast) ||
-        isUndefined(row.rhForecast) ||
-        isUndefined(row.tempForecast) ||
-        isUndefined(row.windDirectionForecast) ||
-        isUndefined(row.windSpeedForecast)
-      ) {
-        return []
-      }
-      return {
-        id: row.id,
-        stationCode: row.stationCode,
-        stationName: row.stationName,
-        forDate: row.forDate,
-        precip: row.precipForecast,
-        rh: row.rhForecast,
-        temp: row.tempForecast,
-        windDirection: row.windDirectionForecast,
-        windSpeed: row.windSpeedForecast
-      }
-    })
-
-    if (forecastIsValid()) {
+    if (isForecastValid(visibleRows)) {
+      const rowsToSave: MoreCast2ForecastRow[] = getRowsToSave(visibleRows)
       const result = await submitMoreCastForecastRecords(rowsToSave)
       if (result) {
         setSnackbarMessage(FORECAST_SAVED_MESSAGE)
@@ -259,21 +238,6 @@ const TabbedDataGrid = ({
       }
     }
     return false
-  }
-
-  // A valid, submittable forecast can't contain NaN for any values
-  const forecastIsValid = () => {
-    for (const row of visibleRows) {
-      if (
-        (row.precipForecast && isNaN(row.precipForecast.value)) ||
-        (row.rhForecast && isNaN(row.rhForecast.value)) ||
-        (row.tempForecast && isNaN(row.tempForecast.value)) ||
-        (row.windSpeedForecast && isNaN(row.windSpeedForecast.value))
-      ) {
-        return false
-      }
-    }
-    return true
   }
 
   return (

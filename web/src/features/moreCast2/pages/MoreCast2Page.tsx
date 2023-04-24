@@ -1,24 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { AlertColor } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { isEmpty, isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
-import {
-  DEFAULT_MODEL_TYPE,
-  ForecastActionChoices,
-  ForecastActionType,
-  ModelType,
-  submitMoreCastForecastRecords
-} from 'api/moreCast2API'
+import { DEFAULT_MODEL_TYPE, ForecastActionChoices, ForecastActionType, ModelType } from 'api/moreCast2API'
 import { selectAuthentication, selectStationGroups, selectStationGroupsMembers } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
 import { GeneralHeader } from 'components'
 import { MORE_CAST_2_DOC_TITLE, MORE_CAST_2_NAME } from 'utils/constants'
 import StationPanel from 'features/moreCast2/components/StationPanel'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { DateRange } from 'components/dateRangePicker/types'
-import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import { fetchStationGroups } from 'commonSlices/stationGroupsSlice'
 import { StationGroup } from 'api/stationAPI'
 import { fetchStationGroupsMembers } from 'commonSlices/selectedStationGroupMembers'
@@ -65,10 +56,6 @@ const useStyles = makeStyles(theme => ({
 
 const DEFAULT_MODEL_TYPE_KEY = 'defaultModelType'
 
-const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
-const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved.'
-const FORECAST_WARN_MESSAGE = 'A forecast cannot contain N/A values.'
-
 const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
@@ -84,9 +71,6 @@ const MoreCast2Page = () => {
   const [modelType, setModelType] = useState<ModelType>(
     (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE
   )
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success')
 
   const currentTimeIsBeforeNoon = DateTime.now().hour < 13 ? true : false
   let startDateTime
@@ -139,78 +123,6 @@ const MoreCast2Page = () => {
     }
   }, [fromTo.startDate, fromTo.endDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSaveClick = async () => {
-    const rowsToSave: MoreCast2ForecastRow[] = sortedMoreCast2Rows.flatMap(row => {
-      if (
-        isUndefined(row.precipForecast) ||
-        isUndefined(row.rhForecast) ||
-        isUndefined(row.tempForecast) ||
-        isUndefined(row.windDirectionForecast) ||
-        isUndefined(row.windSpeedForecast)
-      ) {
-        return []
-      }
-      return {
-        id: row.id,
-        stationCode: row.stationCode,
-        stationName: row.stationName,
-        forDate: row.forDate,
-        precip: row.precipForecast,
-        rh: row.rhForecast,
-        temp: row.tempForecast,
-        windDirection: row.windDirectionForecast,
-        windSpeed: row.windSpeedForecast
-      }
-    })
-
-    if (forecastIsValid()) {
-      const result = await submitMoreCastForecastRecords(rowsToSave)
-      if (result) {
-        setSnackbarMessage(FORECAST_SAVED_MESSAGE)
-        setSnackbarSeverity('success')
-        setSnackbarOpen(true)
-      } else {
-        setSnackbarMessage(FORECAST_ERROR_MESSAGE)
-        setSnackbarSeverity('error')
-        setSnackbarOpen(true)
-      }
-    } else {
-      setSnackbarMessage(FORECAST_WARN_MESSAGE)
-      setSnackbarSeverity('warning')
-      setSnackbarOpen(true)
-    }
-  }
-
-  // Checks if the displayed rows includes non-Actual rows
-  const hasForecastRow = () => {
-    for (const row of sortedMoreCast2Rows) {
-      if (
-        !isUndefined(row.precipForecast) &&
-        !isUndefined(row.rhForecast) &&
-        !isUndefined(row.tempForecast) &&
-        !isUndefined(row.windSpeedForecast)
-      ) {
-        return true
-      }
-    }
-    return false
-  }
-
-  // A valid, submittable forecast can't contain NaN for any values
-  const forecastIsValid = () => {
-    // for (const row of sortedMoreCast2Rows) {
-    //   if (
-    //     (row.precipForecast && isNaN(row.precipForecast.value)) ||
-    //     (row.rhForecast && isNaN(row.rhForecast.value)) ||
-    //     (row.tempForecast && isNaN(row.tempForecast.value)) ||
-    //     (row.windSpeedForecast && isNaN(row.windSpeedForecast.value))
-    //   ) {
-    //     return false
-    //   }
-    // }
-    return true
-  }
-
   return (
     <div className={classes.root} data-testid="more-cast-2-page">
       <GeneralHeader padding="3em" spacing={0.985} title={MORE_CAST_2_NAME} productName={MORE_CAST_2_NAME} />
@@ -235,13 +147,6 @@ const MoreCast2Page = () => {
             setFromTo={setFromTo}
             modelType={modelType}
             setModelType={setModelType}
-          />
-          <MoreCast2Snackbar
-            autoHideDuration={6000}
-            handleClose={() => setSnackbarOpen(!snackbarOpen)}
-            open={snackbarOpen}
-            message={snackbarMessage}
-            severity={snackbarSeverity}
           />
         </div>
       </div>
