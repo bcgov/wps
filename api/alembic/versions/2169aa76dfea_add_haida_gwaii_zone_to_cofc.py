@@ -80,8 +80,6 @@ def upgrade():
     fraser_zone_id = fraser_zone[0]
     m2_25_id = get_fuel_type_id(conn, 'M2 25%')
 
-    print(cofc_id, fraser_zone_id, m2_25_id)
-
     # 1. Increase order_of_appearance_in_list by 1 for all planning areas in COFC with order value > 1
     increase_value_order_of_appearance(conn, cofc_id, 1)
 
@@ -97,8 +95,6 @@ def upgrade():
         'INSERT INTO planning_weather_stations (station_code, fuel_type_id, planning_area_id, order_of_appearance_in_planning_area_list, create_user, create_timestamp, update_user, update_timestamp, is_deleted) VALUES (93, {}, {}, 1, \'system\', \'{}\', \'system\', \'{}\', false)'.format(m2_25_id, haida_gwaii_zone_id, now, now)))
 
     # 4. Remove Honna station from Fraser zone in COFC
-    honna_fraser = get_planning_weather_station(conn, 93, fraser_zone_id)
-    print(honna_fraser)
     conn.execute(sa.text(
         'DELETE FROM planning_weather_stations WHERE station_code = 93 AND planning_area_id = {}'.format(fraser_zone_id)))
 
