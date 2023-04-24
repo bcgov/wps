@@ -18,7 +18,7 @@ import { ROLES } from 'features/auth/roles'
 import { selectAuthentication } from 'app/rootReducer'
 import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
-import { getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecast'
+import { getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
 
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved.'

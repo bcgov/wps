@@ -1,5 +1,5 @@
 import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
-import { isEmpty, isUndefined } from 'lodash'
+import { isUndefined } from 'lodash'
 
 export const validForecastPredicate = (row: MoreCast2Row) =>
   !isUndefined(row.precipForecast) &&
@@ -14,7 +14,7 @@ export const validForecastPredicate = (row: MoreCast2Row) =>
   row.windSpeedForecast.choice !== ''
 
 export const isForecastValid = (rows: MoreCast2Row[]) => {
-  return !isEmpty(getRowsToSave(rows))
+  return rows.length == getRowsToSave(rows).length
 }
 
 export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {
