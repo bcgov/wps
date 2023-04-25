@@ -1,6 +1,15 @@
 import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { isUndefined } from 'lodash'
 
+// Forecast rows contain all NaN values in their 'actual' fields
+export const isForecastRowPredicate = (row: MoreCast2Row) =>
+  isNaN(row.precipActual) &&
+  isNaN(row.rhActual) &&
+  isNaN(row.tempActual) &&
+  isNaN(row.windDirectionActual) &&
+  isNaN(row.windSpeedActual)
+
+// A valid forecast row has values for precipForecast, rhForecast, tempForecast and windSpeedForecast
 export const validForecastPredicate = (row: MoreCast2Row) =>
   !isUndefined(row.precipForecast) &&
   row.precipForecast.choice !== '' &&
@@ -8,17 +17,18 @@ export const validForecastPredicate = (row: MoreCast2Row) =>
   row.rhForecast.choice !== '' &&
   !isUndefined(row.tempForecast) &&
   row.tempForecast.choice !== '' &&
-  !isUndefined(row.windDirectionForecast) &&
-  row.windDirectionForecast.choice !== '' &&
   !isUndefined(row.windSpeedForecast) &&
   row.windSpeedForecast.choice !== ''
 
 export const isForecastValid = (rows: MoreCast2Row[]) => {
-  return rows.length == getRowsToSave(rows).length
+  const candidateRows = rows.filter(isForecastRowPredicate)
+  const validForecastRows = candidateRows.filter(validForecastPredicate)
+  return candidateRows.length === validForecastRows.length
 }
 
 export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {
-  return rows.filter(validForecastPredicate).map(r => ({
+  const rowsToSave = rows.filter(isForecastRowPredicate).filter(validForecastPredicate)
+  return rowsToSave.map(r => ({
     id: r.id,
     stationCode: r.stationCode,
     stationName: r.stationName,

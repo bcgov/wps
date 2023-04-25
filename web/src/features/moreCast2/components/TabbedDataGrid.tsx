@@ -25,7 +25,7 @@ import { ROLES } from 'features/auth/roles'
 import { selectAuthentication } from 'app/rootReducer'
 import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
-import { getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
+import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
 
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved.'
@@ -303,17 +303,7 @@ const TabbedDataGrid = ({
 
   // Checks if the displayed rows includes non-Actual rows
   const hasForecastRow = () => {
-    for (const row of visibleRows) {
-      if (
-        !isUndefined(row.precipForecast) &&
-        !isUndefined(row.rhForecast) &&
-        !isUndefined(row.tempForecast) &&
-        !isUndefined(row.windSpeedForecast)
-      ) {
-        return true
-      }
-    }
-    return false
+    return visibleRows.filter(isForecastRowPredicate).length > 0
   }
 
   return (
@@ -327,17 +317,30 @@ const TabbedDataGrid = ({
         setForecastAction={setForecastAction}
       >
         <FormControl className={classes.actionButtonContainer}>
-          <SaveForecastButton
-            enabled={
-              roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
-              forecastIsDirty &&
-              hasForecastRow() &&
-              isAuthenticated &&
-              forecastAction === ForecastActionChoice.CREATE
-            }
-            label={forecastAction === ForecastActionChoice.CREATE ? 'Save Forecast' : 'Update Forecast'}
-            onClick={handleSaveClick}
-          />
+          {forecastAction === ForecastActionChoice.CREATE && (
+            <SaveForecastButton
+              enabled={
+                isAuthenticated &&
+                roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
+                hasForecastRow() &&
+                forecastSummaryVisible
+              }
+              label={'Save Forecast'}
+              onClick={handleSaveClick}
+            />
+          )}
+          {forecastAction === ForecastActionChoice.EDIT && (
+            <SaveForecastButton
+              enabled={
+                isAuthenticated &&
+                roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
+                hasForecastRow() &&
+                forecastIsDirty
+              }
+              label={'Update Forecast'}
+              onClick={handleSaveClick}
+            />
+          )}
         </FormControl>
       </MoreCast2ActionBar>
       <List component={Stack} direction="row">

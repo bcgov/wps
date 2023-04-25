@@ -6,8 +6,6 @@ export interface PredictionItem {
   value: number
 }
 
-export type ColField = keyof MoreCast2ForecastRow
-
 export interface MoreCast2ForecastRow {
   id: string
   forDate: DateTime
