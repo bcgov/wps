@@ -1,9 +1,16 @@
-import { ColumnDefBuilder } from 'features/moreCast2/components/ColumnDefBuilder'
+import { ColumnDefBuilder, DEFAULT_COLUMN_WIDTH } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
+import { TempForecastField } from 'features/moreCast2/components/MoreCast2Column'
 
-xdescribe('ColDefBuilder', () => {
+describe('ColDefBuilder', () => {
   it('should generate the col def correctly', () => {
-    const colDefBuilder = new ColumnDefBuilder('temp', 'Temp', 'number', 1, new GridComponentRenderer())
+    const colDefBuilder = new ColumnDefBuilder(
+      TempForecastField.field,
+      TempForecastField.headerName,
+      TempForecastField.type,
+      TempForecastField.precision,
+      new GridComponentRenderer()
+    )
 
     const updatedRow = colDefBuilder.generateColDef()
 
@@ -15,7 +22,7 @@ xdescribe('ColDefBuilder', () => {
         headerName: 'Temp',
         sortable: false,
         type: 'number',
-        width: 200
+        width: DEFAULT_COLUMN_WIDTH
       })
     )
   })

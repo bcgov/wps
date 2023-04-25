@@ -4,7 +4,7 @@ import { render } from '@testing-library/react'
 import { ModelChoice } from 'api/moreCast2API'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 
-describe('ColDefBuilder', () => {
+describe('GridComponentRenderer', () => {
   it('should render the header as a button with the headerName', () => {
     const numberRenderer = new GridComponentRenderer()
     const colDef: GridStateColDef = {

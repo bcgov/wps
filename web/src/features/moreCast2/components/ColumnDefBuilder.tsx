@@ -8,7 +8,8 @@ import {
 } from '@mui/x-data-grid'
 import { WeatherDeterminate, WeatherDeterminateType } from 'api/moreCast2API'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
-import { DEFAULT_COLUMN_WIDTH } from 'features/moreCast2/components/MoreCast2Column'
+
+export const DEFAULT_COLUMN_WIDTH = 80
 
 export const COLUMN_HEADERS: WeatherDeterminateType[] = [
   WeatherDeterminate.ACTUAL,
@@ -64,7 +65,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     return gridColDefs
   }
 
-  public generateColDefWith = (field: string, headerName: string, precision: number, width: number) => {
+  public generateColDefWith = (field: string, headerName: string, precision: number, width?: number) => {
     return {
       field,
       disableColumnMenu: true,
@@ -72,7 +73,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       headerName,
       sortable: false,
       type: 'number',
-      width,
+      width: width ? width : DEFAULT_COLUMN_WIDTH,
       renderCell: (params: GridRenderCellParams) => {
         return this.gridComponentRenderer.renderCellWith(params)
       },

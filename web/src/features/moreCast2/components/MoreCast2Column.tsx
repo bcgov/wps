@@ -7,8 +7,6 @@ import {
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 
-export const DEFAULT_COLUMN_WIDTH = 80
-
 export class StationForecastField implements ColDefGenerator {
   private static instance: StationForecastField
 
@@ -91,8 +89,7 @@ export class TempForecastField implements ColDefGenerator, ForecastColDefGenerat
     return this.colDefBuilder.generateColDefWith(
       TempForecastField.field,
       TempForecastField.headerName,
-      TempForecastField.precision,
-      DEFAULT_COLUMN_WIDTH
+      TempForecastField.precision
     )
   }
 
@@ -133,8 +130,7 @@ export class RHForecastField implements ColDefGenerator, ForecastColDefGenerator
     return this.colDefBuilder.generateColDefWith(
       RHForecastField.field,
       RHForecastField.headerName,
-      RHForecastField.precision,
-      DEFAULT_COLUMN_WIDTH
+      RHForecastField.precision
     )
   }
 
@@ -175,8 +171,7 @@ export class WindDirForecastField implements ColDefGenerator, ForecastColDefGene
     return this.colDefBuilder.generateColDefWith(
       WindDirForecastField.field,
       WindDirForecastField.headerName,
-      WindDirForecastField.precision,
-      DEFAULT_COLUMN_WIDTH
+      WindDirForecastField.precision
     )
   }
 
@@ -217,8 +212,7 @@ export class WindSpeedForecastField implements ColDefGenerator, ForecastColDefGe
     return this.colDefBuilder.generateColDefWith(
       WindSpeedForecastField.field,
       WindSpeedForecastField.headerName,
-      WindSpeedForecastField.precision,
-      DEFAULT_COLUMN_WIDTH
+      WindSpeedForecastField.precision
     )
   }
 
@@ -259,8 +253,7 @@ export class PrecipForecastField implements ColDefGenerator, ForecastColDefGener
     return this.colDefBuilder.generateColDefWith(
       PrecipForecastField.field,
       PrecipForecastField.headerName,
-      PrecipForecastField.precision,
-      DEFAULT_COLUMN_WIDTH
+      PrecipForecastField.precision
     )
   }
 

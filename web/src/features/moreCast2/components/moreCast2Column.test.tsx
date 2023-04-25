@@ -1,5 +1,5 @@
 import { GridValueFormatterParams } from '@mui/x-data-grid'
-import { ColDefGenerator } from 'features/moreCast2/components/ColumnDefBuilder'
+import { ColDefGenerator, DEFAULT_COLUMN_WIDTH } from 'features/moreCast2/components/ColumnDefBuilder'
 import {
   StationForecastField,
   DateForecastField,
@@ -7,12 +7,11 @@ import {
   RHForecastField,
   WindDirForecastField,
   WindSpeedForecastField,
-  PrecipForecastField,
-  DEFAULT_COLUMN_WIDTH
+  PrecipForecastField
 } from 'features/moreCast2/components/MoreCast2Column'
 import { DateTime } from 'luxon'
 
-describe('MoreCast2Field', () => {
+describe('MoreCast2Column', () => {
   const expectFields = (
     instance: ColDefGenerator,
     field: string,
