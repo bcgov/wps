@@ -1,4 +1,5 @@
 import { GridColumnVisibilityModel, GridColDef, GridColumnGroupingModel } from '@mui/x-data-grid'
+import { WeatherDeterminate } from 'api/moreCast2API'
 import {
   MORECAST2_FIELDS,
   MORECAST2_FORECAST_FIELDS,
@@ -44,7 +45,7 @@ export class DataGridColumns {
   public static getTabColumns(editMode: boolean): GridColDef[] {
     let tabColumns: GridColDef[] = []
     MORECAST2_FIELDS.forEach(field => {
-      tabColumns = [...tabColumns, ...field.generateColDefs(editMode)]
+      tabColumns = [...tabColumns, ...field.generateColDefs(editMode, WeatherDeterminate.FORECAST)]
     })
     return tabColumns
   }

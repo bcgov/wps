@@ -8,12 +8,12 @@ export interface Morecast2Field {
   headerName: string
   type: 'number' | 'string'
   precision: 0 | 1
-  generateColDef: (editMode: boolean) => GridColDef
-  generateColDefs: (editMode: boolean) => GridColDef[]
+  generateColDef: (editMode: boolean, headerName?: string) => GridColDef
+  generateColDefs: (editMode: boolean, headerName?: string) => GridColDef[]
 }
 
 export interface ForecastField {
-  generateForecastColDef: (editMode: boolean) => GridColDef
+  generateForecastColDef: (editMode: boolean, headerName?: string) => GridColDef
 }
 
 export const DEFAULT_COLUMN_WIDTH = 80
@@ -103,10 +103,10 @@ export class TempForecastField extends GridNumberRenderer implements Morecast2Fi
   private constructor() {
     super()
   }
-  public generateForecastColDef = (editMode: boolean) => {
+  public generateForecastColDef = (editMode: boolean, headerName?: string) => {
     return this.generateForecastColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
-      this.headerName,
+      headerName ? headerName : this.headerName,
       this.precision,
       editMode,
       DEFAULT_COLUMN_WIDTH
@@ -116,10 +116,10 @@ export class TempForecastField extends GridNumberRenderer implements Morecast2Fi
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
-  public generateColDefs = (editMode: boolean) => {
+  public generateColDefs = (editMode: boolean, headerName?: string) => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDef(editMode)
+    const forecastColDef = this.generateForecastColDef(editMode, headerName)
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition
@@ -151,10 +151,10 @@ export class RHForecastField extends GridNumberRenderer implements Morecast2Fiel
     super()
   }
 
-  public generateForecastColDef = (editMode: boolean) => {
+  public generateForecastColDef = (editMode: boolean, headerName?: string) => {
     return this.generateForecastColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
-      this.headerName,
+      headerName ? headerName : this.headerName,
       this.precision,
       editMode,
       DEFAULT_COLUMN_WIDTH
@@ -165,10 +165,10 @@ export class RHForecastField extends GridNumberRenderer implements Morecast2Fiel
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
-  public generateColDefs = (editMode: boolean) => {
+  public generateColDefs = (editMode: boolean, headerName?: string) => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDef(editMode)
+    const forecastColDef = this.generateForecastColDef(editMode, headerName)
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition
@@ -200,10 +200,10 @@ export class WindDirForecastField extends GridNumberRenderer implements Morecast
     super()
   }
 
-  public generateForecastColDef = (editMode: boolean) => {
+  public generateForecastColDef = (editMode: boolean, headerName?: string) => {
     return this.generateForecastColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
-      this.headerName,
+      headerName ? headerName : this.headerName,
       this.precision,
       editMode,
       DEFAULT_COLUMN_WIDTH
@@ -214,10 +214,10 @@ export class WindDirForecastField extends GridNumberRenderer implements Morecast
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
-  public generateColDefs = (editMode: boolean) => {
+  public generateColDefs = (editMode: boolean, headerName?: string) => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDef(editMode)
+    const forecastColDef = this.generateForecastColDef(editMode, headerName)
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition
@@ -249,10 +249,10 @@ export class WindSpeedForecastField extends GridNumberRenderer implements Moreca
     super()
   }
 
-  public generateForecastColDef = (editMode: boolean) => {
+  public generateForecastColDef = (editMode: boolean, headerName?: string) => {
     return this.generateForecastColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
-      this.headerName,
+      headerName ? headerName : this.headerName,
       this.precision,
       editMode,
       DEFAULT_COLUMN_WIDTH
@@ -263,16 +263,10 @@ export class WindSpeedForecastField extends GridNumberRenderer implements Moreca
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
-  public generateColDefs = (editMode: boolean) => {
+  public generateColDefs = (editMode: boolean, headerName?: string) => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have a unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDefWith(
-      `${this.field}${WeatherDeterminate.FORECAST}`,
-      WeatherDeterminate.FORECAST,
-      this.precision,
-      editMode,
-      DEFAULT_COLUMN_WIDTH
-    )
+    const forecastColDef = this.generateForecastColDef(editMode, headerName)
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition
@@ -304,10 +298,10 @@ export class PrecipForecastField extends GridNumberRenderer implements Morecast2
     super()
   }
 
-  public generateForecastColDef = (editMode: boolean) => {
+  public generateForecastColDef = (editMode: boolean, headerName?: string) => {
     return this.generateForecastColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
-      this.headerName,
+      headerName ? headerName : this.headerName,
       this.precision,
       editMode,
       DEFAULT_COLUMN_WIDTH
@@ -318,10 +312,10 @@ export class PrecipForecastField extends GridNumberRenderer implements Morecast2
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
-  public generateColDefs = (editMode: boolean) => {
+  public generateColDefs = (editMode: boolean, header?: string) => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDef(editMode)
+    const forecastColDef = this.generateForecastColDef(editMode, header)
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition
