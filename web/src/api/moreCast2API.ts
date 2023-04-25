@@ -13,14 +13,24 @@ export enum ModelChoice {
   NAM = 'NAM',
   RDPS = 'RDPS',
   MANUAL = 'MANUAL',
-  YESTERDAY = 'YESTERDAY',
+  YESTERDAY = 'PERSISTENCE',
   ACTUAL = 'ACTUAL',
   NULL = ''
 }
 
 export const DEFAULT_MODEL_TYPE: ModelType = ModelChoice.HRDPS
 
-export type ModelType = 'HRDPS' | 'GDPS' | 'GFS' | 'YESTERDAY' | 'NAM' | 'RDPS' | 'MANUAL' | 'FORECAST' | 'ACTUAL' | ''
+export type ModelType =
+  | 'HRDPS'
+  | 'GDPS'
+  | 'GFS'
+  | 'PERSISTENCE'
+  | 'NAM'
+  | 'RDPS'
+  | 'MANUAL'
+  | 'FORECAST'
+  | 'ACTUAL'
+  | ''
 
 export const ModelChoices: ModelType[] = [
   ModelChoice.GDPS,
