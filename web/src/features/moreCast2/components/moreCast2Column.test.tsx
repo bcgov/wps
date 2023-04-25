@@ -1,5 +1,5 @@
 import { GridValueFormatterParams } from '@mui/x-data-grid'
-import { ColDefGenerator, DEFAULT_COLUMN_WIDTH } from 'features/moreCast2/components/ColumnDefBuilder'
+import { DEFAULT_COLUMN_WIDTH } from 'features/moreCast2/components/ColumnDefBuilder'
 import {
   StationForecastField,
   DateForecastField,
@@ -12,32 +12,20 @@ import {
 import { DateTime } from 'luxon'
 
 describe('MoreCast2Column', () => {
-  const expectFields = (
-    instance: ColDefGenerator,
-    field: string,
-    headerName: string,
-    precision: number,
-    type: string,
-    colDefJsonString: string
-  ) => {
-    expect(JSON.stringify(instance.generateColDef(true))).toEqual(colDefJsonString)
-  }
   describe('StationForecastField', () => {
     it('should have the desired configuration', () => {
       const instance = StationForecastField.getInstance()
-      expectFields(
-        instance,
-        'stationName',
-        'Station',
-        0,
-        'string',
+      expect(JSON.stringify(instance.generateColDef(false))).toEqual(
         JSON.stringify({
           field: 'stationName',
           flex: 1,
           headerName: 'Station',
           maxWidth: 200,
           width: 200,
-          editable: true
+          editable: false,
+          valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
+            return params.value.toLocaleString(DateTime.DATE_MED)
+          }
         })
       )
     })
@@ -45,12 +33,7 @@ describe('MoreCast2Column', () => {
   describe('DateForecastField', () => {
     it('should have the desired configuration', () => {
       const instance = DateForecastField.getInstance()
-      expectFields(
-        instance,
-        'forDate',
-        'Date',
-        0,
-        'string',
+      expect(JSON.stringify(instance.generateColDef())).toEqual(
         JSON.stringify({
           field: 'forDate',
           disableColumnMenu: true,
