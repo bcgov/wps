@@ -1,12 +1,6 @@
 import { DateTime } from 'luxon'
 import { ModelChoice, StationPrediction } from 'api/moreCast2API'
-import {
-  createDateInterval,
-  parseModelsForStationsHelper,
-  rowIDHasher,
-  buildListOfRowsToDisplay,
-  marshalAllMoreCast2ForecastRowsByStationAndDate
-} from 'features/moreCast2/util'
+import { createDateInterval, parseModelsForStationsHelper, rowIDHasher } from 'features/moreCast2/util'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 
 const TEST_NUMBER = 7

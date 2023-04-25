@@ -2,11 +2,11 @@ import { GridColumnHeaderParams, GridValueSetterParams } from '@mui/x-data-grid'
 import { GridStateColDef } from '@mui/x-data-grid/internals'
 import { render } from '@testing-library/react'
 import { ModelChoice } from 'api/moreCast2API'
-import { GridNumberRenderer } from 'features/moreCast2/components/DataGridNumberRenderer'
+import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 
-describe('DataGridNumberRenderer', () => {
+describe('ColDefBuilder', () => {
   it('should render the header as a button with the headerName', () => {
-    const numberRenderer = new GridNumberRenderer()
+    const numberRenderer = new GridComponentRenderer()
     const colDef: GridStateColDef = {
       field: 'testID',
       headerName: 'Test ID',
@@ -27,7 +27,7 @@ describe('DataGridNumberRenderer', () => {
   })
 
   it('should set the row correctly', () => {
-    const numberRenderer = new GridNumberRenderer()
+    const numberRenderer = new GridComponentRenderer()
     const mockValueSetterParams: GridValueSetterParams = {
       value: 2,
       row: {
@@ -41,22 +41,5 @@ describe('DataGridNumberRenderer', () => {
     const updatedRow = numberRenderer.predictionItemValueSetter(mockValueSetterParams, 'temp', 1)
 
     expect(updatedRow).toEqual({ temp: { choice: ModelChoice.GDPS, value: 2 } })
-  })
-  it('should generate the col def correctly', () => {
-    const numberRenderer = new GridNumberRenderer()
-
-    const updatedRow = numberRenderer.generateColDefWith('temp', 'Temp', 1, 200)
-
-    expect(JSON.stringify(updatedRow)).toEqual(
-      JSON.stringify({
-        field: 'temp',
-        disableColumnMenu: true,
-        disabledReorder: true,
-        headerName: 'Temp',
-        sortable: false,
-        type: 'number',
-        width: 200
-      })
-    )
   })
 })

@@ -4,7 +4,7 @@ import {
   MORECAST2_FIELDS,
   MORECAST2_FORECAST_FIELDS,
   MORECAST2_STATION_DATE_FIELDS
-} from 'features/moreCast2/components/MoreCast2Field'
+} from 'features/moreCast2/components/MoreCast2Column'
 
 export interface ColumnVis {
   columnName: string
