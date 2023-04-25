@@ -182,7 +182,7 @@ describe('yesterdayDailies', () => {
 
       const colPrediction: ColYesterdayDailies = {
         colField: 'temp',
-        modelType: 'YESTERDAY',
+        modelType: 'PERSISTENCE',
         yesterdayDailies: [
           {
             id: rowIDHasher(1, DateTime.fromISO(START_DATE)),
