@@ -15,11 +15,15 @@ export class GridComponentRenderer {
   public renderHeaderWith = (params: GridColumnHeaderParams) => {
     return <Button>{params.colDef.headerName}</Button>
   }
-  public renderCellWith = (params: GridRenderCellParams) => (
+  public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue'>) => (
     <TextField disabled={true} size="small" value={params.formattedValue}></TextField>
   )
 
-  public renderForecastCellWith = (params: GridRenderCellParams, field: string, editMode: boolean) => {
+  public renderForecastCellWith = (
+    params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>,
+    field: string,
+    editMode: boolean
+  ) => {
     // The value of field will be precipForecast, rhForecast, tempForecast, etc.
     // We need the prefix to help us grab the correct 'actual' field (eg. tempACTUAL, precipACTUAL, etc.)
     const index = field.indexOf('Forecast')
@@ -53,17 +57,17 @@ export class GridComponentRenderer {
     return { ...params.row }
   }
 
-  public predictionItemValueFormatter = (params: GridValueFormatterParams, precision: number) => {
+  public predictionItemValueFormatter = (params: Pick<GridValueFormatterParams, 'value'>, precision: number) => {
     const value = Number.parseFloat(params?.value)
 
     return isNaN(value) ? NOT_AVAILABLE : value.toFixed(precision)
   }
 
-  public cellValueGetter = (params: GridValueGetterParams, precision: number) => {
+  public cellValueGetter = (params: Pick<GridValueGetterParams, 'value'>, precision: number) => {
     return isNaN(params?.value) ? 'NaN' : params.value.toFixed(precision)
   }
 
-  public predictionItemValueGetter = (params: GridValueGetterParams, precision: number) => {
+  public predictionItemValueGetter = (params: Pick<GridValueGetterParams, 'value'>, precision: number) => {
     const value = params?.value?.value
     if (isNaN(value)) {
       return 'NaN'
