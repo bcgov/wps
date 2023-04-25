@@ -32,6 +32,14 @@ export const ModelChoices: ModelType[] = [
   ModelChoice.RDPS
 ]
 
+export const WeatherModelChoices: ModelType[] = [
+  ModelChoice.GDPS,
+  ModelChoice.GFS,
+  ModelChoice.HRDPS,
+  ModelChoice.NAM,
+  ModelChoice.RDPS
+]
+
 export enum WeatherDeterminate {
   ACTUAL = 'Actual',
   FORECAST = 'Forecast',

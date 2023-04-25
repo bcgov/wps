@@ -2,10 +2,13 @@ import makeStyles from '@mui/styles/makeStyles'
 import React from 'react'
 import {
   DataGrid,
+  GridCallbackDetails,
+  GridCellParams,
   GridColDef,
   GridColumnGroupingModel,
   GridColumnVisibilityModel,
-  GridEventListener
+  GridEventListener,
+  MuiEvent
 } from '@mui/x-data-grid'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress, Menu, MenuItem } from '@mui/material'
@@ -22,6 +25,11 @@ export interface ForecastDataGridProps {
   setColumnVisibilityModel: React.Dispatch<React.SetStateAction<GridColumnVisibilityModel>>
   setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
   onCellEditStop: (value: boolean) => void
+  onCellDoubleClickHandler: (
+    params: GridCellParams,
+    event: MuiEvent<React.MouseEvent>,
+    details: GridCallbackDetails
+  ) => void
   updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
   columnGroupingModel: GridColumnGroupingModel
   allMoreCast2Rows: MoreCast2Row[]
@@ -43,6 +51,7 @@ const ForecastDataGrid = ({
   setColumnVisibilityModel,
   setClickedColDef,
   onCellEditStop,
+  onCellDoubleClickHandler,
   updateColumnWithModel,
   columnGroupingModel,
   allMoreCast2Rows
@@ -76,6 +85,7 @@ const ForecastDataGrid = ({
         }}
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellEditStop={() => onCellEditStop(true)}
+        onCellDoubleClick={onCellDoubleClickHandler}
         loading={loading}
         columns={DataGridColumns.getTabColumns(editMode)}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}

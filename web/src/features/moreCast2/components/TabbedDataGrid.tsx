@@ -1,7 +1,14 @@
 import { AlertColor, FormControl, List, Stack } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid'
-import { ForecastActionChoice, ForecastActionType, ModelType, submitMoreCastForecastRecords } from 'api/moreCast2API'
+import { GridCallbackDetails, GridCellParams, GridColDef, GridColumnVisibilityModel, MuiEvent } from '@mui/x-data-grid'
+import {
+  ForecastActionChoice,
+  ForecastActionType,
+  ModelChoice,
+  ModelType,
+  submitMoreCastForecastRecords,
+  WeatherModelChoices
+} from 'api/moreCast2API'
 import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
@@ -9,9 +16,9 @@ import SelectableButton from 'features/moreCast2/components/SelectableButton'
 import { selectWeatherIndeterminatesLoading } from 'features/moreCast2/slices/dataSlice'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
+import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
-import { isUndefined } from 'lodash'
+import { groupBy, isUndefined } from 'lodash'
 import MoreCast2ActionBar from 'features/moreCast2/components/MoreCast2ActionBar'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
 import { ROLES } from 'features/auth/roles'
@@ -180,29 +187,98 @@ const TabbedDataGrid = ({
 
   const [clickedColDef, setClickedColDef] = useState<GridColDef | null>(null)
 
-  // Updates forecast field for a given weather parameter based on the model/source
-  // selected in the column header menu
+  // Updates forecast field for a given weather parameter (temp, rh, precip, etc...) based on the
+  // model/source selected in the column header menu
   const updateColumnWithModel = (modelType: ModelType, colDef: GridColDef) => {
-    const newRows = [...visibleRows]
-    // The value of field will be precipForecast, rhForecast, tempForecast, etc.
+    // The value of coldDef.field will be precipForecast, rhForecast, tempForecast, etc.
     // We need the prefix to help us grab the correct weather model field to update (eg. tempHRDPS,
     // precipGFS, etc.)
-    const field = colDef.field
-    const index = field.indexOf('Forecast')
-    const prefix = field.slice(0, index)
+    const forecastField = colDef.field as keyof MoreCast2Row
+    const index = forecastField.indexOf('Forecast')
+    const prefix = forecastField.slice(0, index)
     const actualField = `${prefix}Actual` as keyof MoreCast2Row
+    modelType === ModelChoice.YESTERDAY
+      ? updateColumnFromLastActual(forecastField, actualField)
+      : updateColumnFromModel(modelType, forecastField, actualField, prefix)
+  }
 
+  // Persistence forecasting. Get the most recent actual and persist it through the rest of the
+  // days in this forecast period.
+  const updateColumnFromLastActual = (forecastField: keyof MoreCast2Row, actualField: keyof MoreCast2Row) => {
+    const newRows = [...visibleRows]
+    // Group our visible rows by station code and work on each group sepearately
+    const groupedByStationCode = groupBy(newRows, 'stationCode')
+    for (const values of Object.values(groupedByStationCode)) {
+      // Get rows with actuals that have non-NaN values
+      const rowsWithActuals: MoreCast2Row[] = values.filter(value => !isNaN(value[actualField] as number))
+      // Filter for the row with the most recent forDate as this contains our most recent actual
+      const mostRecentRow = rowsWithActuals.reduce((a, b) => {
+        return a.forDate > b.forDate ? a : b
+      })
+      // The most recent value from the weather station for the weather parameter of interest
+      // (eg. tempActual) which will be applied as the forecast value
+      const mostRecentValue = mostRecentRow[actualField]
+      // Finally, get an array of rows that don't have an actual for the weather parameter of interest
+      // and iterate through them to apply the most recent actual as the new forecast value
+      const rowsWithoutActuals: MoreCast2Row[] = values.filter(value => isNaN(value[actualField] as number))
+      rowsWithoutActuals.forEach(row => {
+        const predictionItem = row[forecastField] as PredictionItem
+        predictionItem.choice = ModelChoice.YESTERDAY
+        predictionItem.value = mostRecentValue as number
+      })
+    }
+    setVisibleRows(newRows)
+  }
+
+  const updateColumnFromModel = (
+    modelType: ModelType,
+    forecastField: keyof MoreCast2Row,
+    actualField: keyof MoreCast2Row,
+    prefix: string
+  ) => {
+    const newRows = [...visibleRows]
+    // Iterate through all the currently visible rows. If a row has an actual value for the weather parameter of
+    // interest we can skip it as we are only concerned with creating new forecasts.
     for (const row of newRows) {
-      // Ugly cast required to index into a row object using a string
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rowAsAny = row as any
-      // If an actual exists, then there is no need to update the forecast field
-      if (isNaN(rowAsAny[actualField])) {
-        rowAsAny[field].choice = modelType
-        rowAsAny[field].value = rowAsAny[`${prefix}${modelType}`]
+      // If an actual has a value of NaN, then the forecast field needs to be updated.
+      if (isNaN(row[actualField] as number)) {
+        const predictionItem = row[forecastField] as PredictionItem
+        const sourceKey = `${prefix}${modelType}` as keyof MoreCast2Row
+        predictionItem.choice = modelType
+        predictionItem.value = row[sourceKey] as number
       }
     }
     setVisibleRows(newRows)
+  }
+
+  // Handle a double-click on a cell in the datagrid. We only handle a double-click when the clicking
+  // occurs on a cell in a weather model field/column and row where a forecast is being created (ie. the
+  // row has no actual value for the weather parameter of interest)
+  const handleCellDoubleClick = (
+    params: GridCellParams,
+    event: MuiEvent<React.MouseEvent>,
+    details: GridCallbackDetails
+  ) => {
+    const headerName = params.colDef.headerName as ModelType
+    if (!headerName || WeatherModelChoices.indexOf(headerName) < 0) {
+      // A forecast or actual column was clicked, or there is no value for headerName, nothing to do
+      return
+    }
+    // Make sure we're in a row where a forecast is being created (ie. no actual for this weather parameter)
+    const doubleClickedField = params.field as keyof MoreCast2Row
+    const index = doubleClickedField.indexOf(headerName)
+    const prefix = doubleClickedField.slice(0, index)
+    const actualField = `${prefix}Actual`
+    const forecastField = `${prefix}Forecast`
+    const row = params.row
+    if (isNaN(row[actualField])) {
+      // There is no actual value, so we are in a forecast row and can proceed with updating the
+      // forecast field value with the value of the cell that was double-clicked
+      row[forecastField].choice = headerName
+      row[forecastField].value = params.value
+      // We've updated local state directly, so now we have to re-render by callign setVisibleRows
+      setVisibleRows([...visibleRows])
+    }
   }
 
   const handleSaveClick = async () => {
@@ -323,6 +399,7 @@ const TabbedDataGrid = ({
           setColumnVisibilityModel={setColumnVisibilityModel}
           setClickedColDef={setClickedColDef}
           onCellEditStop={setForecastIsDirty}
+          onCellDoubleClickHandler={handleCellDoubleClick}
           updateColumnWithModel={updateColumnWithModel}
           columnGroupingModel={columnGroupingModel}
           allMoreCast2Rows={visibleRows}
