@@ -55,7 +55,6 @@ const DEFAULT_MODEL_TYPE_KEY = 'defaultModelType'
 
 const MoreCast2ActionBar = ({ children, fromTo, setFromTo }: MoreCast2ActionBarProps) => {
   const classes = useStyles()
-  console.log(JSON.stringify(fromTo))
 
   const [modelType, setModelType] = useState<ModelType>(
     (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE

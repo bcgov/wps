@@ -14,7 +14,7 @@ import { createDateInterval, rowIDHasher } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import { logError } from 'utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
-import { isNumber, isUndefined } from 'lodash'
+import { groupBy, isNumber, isUndefined } from 'lodash'
 import { StationGroupMember } from 'api/stationAPI'
 
 interface State {
@@ -326,17 +326,14 @@ const fillMissingPredictions = (
       determinate !== WeatherDeterminate.NULL
   )
   const dateInterval = createDateInterval(fromDate, toDate)
-  const groupedByStationCode = groupby(items, 'station_code')
-  for (const key of stationMap.keys()) {
-    if (isUndefined(groupedByStationCode[key])) {
-      groupedByStationCode[key] = []
-    }
-  }
+  const groupedByStationCode = createStationCodeToWeatherIndeterminateGroups(items, stationMap)
+
   const allPredictions = [...items]
   for (const [key, values] of Object.entries(groupedByStationCode)) {
     const stationCode = parseInt(key)
     const stationName = stationMap.get(stationCode) || ''
-    const groupedByUtcTimestamp = groupby(values, 'utc_timestamp')
+    const groupedByUtcTimestamp = createUtcTimeStampToWeatherIndeterminateGroups(values, dateInterval)
+
     for (const [key2, values2] of Object.entries(groupedByUtcTimestamp)) {
       for (const determinate of modelDeterminates) {
         const hasDeterminate = values2.filter(value => value.determinate === determinate)
@@ -346,17 +343,31 @@ const fillMissingPredictions = (
         }
       }
     }
-    const utcTimestampKeys = Object.keys(groupedByUtcTimestamp)
-    for (const date of dateInterval) {
-      if (utcTimestampKeys.indexOf(date) === -1) {
-        for (const determinate of modelDeterminates) {
-          const missingDeterminate = createEmptyWeatherIndeterminate(stationCode, stationName, date, determinate)
-          allPredictions.push(missingDeterminate)
-        }
-      }
-    }
   }
   return allPredictions
+}
+
+const createStationCodeToWeatherIndeterminateGroups = (
+  items: WeatherIndeterminate[],
+  stationMap: Map<number, string>
+) => {
+  const grouped = groupBy(items, 'station_code')
+  for (const key of stationMap.keys()) {
+    if (isUndefined(grouped[key])) {
+      grouped[key] = []
+    }
+  }
+  return grouped
+}
+
+const createUtcTimeStampToWeatherIndeterminateGroups = (items: WeatherIndeterminate[], dateInterval: string[]) => {
+  const grouped = groupBy(items, 'utc_timestamp')
+  for (const date of dateInterval) {
+    if (isUndefined(grouped[date])) {
+      grouped[date] = []
+    }
+  }
+  return grouped
 }
 
 /**

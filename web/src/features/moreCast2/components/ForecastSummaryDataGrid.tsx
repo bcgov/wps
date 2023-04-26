@@ -12,7 +12,6 @@ interface ForecastSummaryDataGridProps {
   loading: boolean
   rows: MoreCast2Row[]
   clickedColDef: GridColDef | null
-  onCellEditStop: (value: boolean) => void
   setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
   updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
 }
@@ -28,7 +27,6 @@ const ForecastSummaryDataGrid = ({
   loading,
   rows,
   clickedColDef,
-  onCellEditStop,
   setClickedColDef,
   updateColumnWithModel
 }: ForecastSummaryDataGridProps) => {
@@ -62,7 +60,6 @@ const ForecastSummaryDataGrid = ({
           }
         }}
         onColumnHeaderClick={handleColumnHeaderClick}
-        onCellEditStop={() => onCellEditStop(true)}
         loading={loading}
         columns={DataGridColumns.getSummaryColumns()}
         rows={rows}

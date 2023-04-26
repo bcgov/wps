@@ -73,7 +73,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
   const [windDirectionVisible, setWindDirectionVisible] = useState(false)
   const [windSpeedVisible, setWindSpeedVisible] = useState(false)
   const [forecastSummaryVisible, setForecastSummaryVisible] = useState(false)
-  const [forecastIsDirty, setForecastIsDirty] = useState(false)
 
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
@@ -350,7 +349,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
           loading={loading}
           rows={visibleRows}
           clickedColDef={clickedColDef}
-          onCellEditStop={setForecastIsDirty}
           setClickedColDef={setClickedColDef}
           updateColumnWithModel={updateColumnWithModel}
         />
@@ -361,7 +359,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
           columnVisibilityModel={columnVisibilityModel}
           setColumnVisibilityModel={setColumnVisibilityModel}
           setClickedColDef={setClickedColDef}
-          onCellEditStop={setForecastIsDirty}
           onCellDoubleClickHandler={handleCellDoubleClick}
           updateColumnWithModel={updateColumnWithModel}
           columnGroupingModel={columnGroupingModel}
