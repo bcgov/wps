@@ -11,7 +11,7 @@ import {
   MuiEvent
 } from '@mui/x-data-grid'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
-import { LinearProgress, Menu, MenuItem } from '@mui/material'
+import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
@@ -80,42 +80,13 @@ const ForecastDataGrid = ({
         columns={DataGridColumns.getTabColumns()}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
         rows={allMoreCast2Rows}
-      ></DataGrid>
-      <Menu
-        open={contextMenu !== null}
-        onClose={handleClose}
-        anchorReference="anchorPosition"
-        anchorPosition={contextMenu !== null ? { top: contextMenu.mouseY, left: contextMenu.mouseX } : undefined}
-        slotProps={{
-          root: {
-            onContextMenu: e => {
-              e.preventDefault()
-              handleClose()
-            }
-          }
-        }}
-      >
-        <MenuItem
-          disableRipple
-          sx={{
-            '&:hover': {
-              backgroundColor: 'transparent' // remove the background color on hover
-            },
-            '&.Mui-selected': {
-              backgroundColor: 'transparent' // remove the background color when selected
-            },
-            '&.Mui-focusVisible': {
-              backgroundColor: 'transparent' // remove the background color when fovused
-            }
-          }}
-        >
-          <ApplyToColumnMenu
-            colDef={clickedColDef}
-            handleClose={handleClose}
-            updateColumnWithModel={updateColumnWithModel}
-          />
-        </MenuItem>
-      </Menu>
+      />
+      <ApplyToColumnMenu
+        colDef={clickedColDef}
+        contextMenu={contextMenu}
+        handleClose={handleClose}
+        updateColumnWithModel={updateColumnWithModel}
+      />
     </div>
   )
 }
