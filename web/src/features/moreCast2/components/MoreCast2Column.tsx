@@ -17,12 +17,12 @@ export class StationForecastField implements ColDefGenerator {
   private constructor() {
     /* no op */
   }
-  public generateColDef = (editMode: boolean) => {
-    return { field: this.field, flex: 1, headerName: this.headerName, maxWidth: 200, width: 200, editable: editMode }
+  public generateColDef = () => {
+    return { field: this.field, flex: 1, headerName: this.headerName, maxWidth: 200, width: 200 }
   }
 
-  public generateColDefs = (editMode: boolean) => {
-    return [this.generateColDef(editMode)]
+  public generateColDefs = () => {
+    return [this.generateColDef()]
   }
 
   public static getInstance(): StationForecastField {
@@ -82,8 +82,8 @@ export class TempForecastField implements ColDefGenerator, ForecastColDefGenerat
   static readonly type = 'number'
   static readonly precision = 1
   private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
-  public generateForecastColDef = (editMode: boolean, headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(editMode, headerName)
+  public generateForecastColDef = (headerName?: string) => {
+    return this.colDefBuilder.generateForecastColDef(headerName)
   }
   public generateColDef = () => {
     return this.colDefBuilder.generateColDefWith(
@@ -93,8 +93,8 @@ export class TempForecastField implements ColDefGenerator, ForecastColDefGenerat
     )
   }
 
-  public generateColDefs = (editMode: boolean, headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(editMode, headerName)
+  public generateColDefs = (headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(headerName)
   }
 
   public static getInstance(): TempForecastField {
@@ -123,8 +123,8 @@ export class RHForecastField implements ColDefGenerator, ForecastColDefGenerator
   static readonly precision = 0
   private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
 
-  public generateForecastColDef = (editMode: boolean, headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(editMode, headerName)
+  public generateForecastColDef = (headerName?: string) => {
+    return this.colDefBuilder.generateForecastColDef(headerName)
   }
   public generateColDef = () => {
     return this.colDefBuilder.generateColDefWith(
@@ -134,8 +134,8 @@ export class RHForecastField implements ColDefGenerator, ForecastColDefGenerator
     )
   }
 
-  public generateColDefs = (editMode: boolean, headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(editMode, headerName)
+  public generateColDefs = (headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(headerName)
   }
 
   public static getInstance(): RHForecastField {
@@ -164,8 +164,8 @@ export class WindDirForecastField implements ColDefGenerator, ForecastColDefGene
   static readonly precision = 0
   private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
 
-  public generateForecastColDef = (editMode: boolean, headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(editMode, headerName)
+  public generateForecastColDef = (headerName?: string) => {
+    return this.colDefBuilder.generateForecastColDef(headerName)
   }
   public generateColDef = () => {
     return this.colDefBuilder.generateColDefWith(
@@ -175,8 +175,8 @@ export class WindDirForecastField implements ColDefGenerator, ForecastColDefGene
     )
   }
 
-  public generateColDefs = (editMode: boolean, headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(editMode, headerName)
+  public generateColDefs = (headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(headerName)
   }
 
   public static getInstance(): WindDirForecastField {
@@ -205,8 +205,8 @@ export class WindSpeedForecastField implements ColDefGenerator, ForecastColDefGe
   static readonly precision = 1
   private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
 
-  public generateForecastColDef = (editMode: boolean, headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(editMode, headerName)
+  public generateForecastColDef = (headerName?: string) => {
+    return this.colDefBuilder.generateForecastColDef(headerName)
   }
   public generateColDef = () => {
     return this.colDefBuilder.generateColDefWith(
@@ -216,8 +216,8 @@ export class WindSpeedForecastField implements ColDefGenerator, ForecastColDefGe
     )
   }
 
-  public generateColDefs = (editMode: boolean, headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(editMode, headerName)
+  public generateColDefs = (headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(headerName)
   }
 
   public static getInstance(): WindSpeedForecastField {
@@ -246,8 +246,8 @@ export class PrecipForecastField implements ColDefGenerator, ForecastColDefGener
   static readonly precision = 1
   private constructor(readonly colDefBuilder: ColumnDefBuilder) {}
 
-  public generateForecastColDef = (editMode: boolean, headerName?: string) => {
-    return this.colDefBuilder.generateForecastColDef(editMode, headerName)
+  public generateForecastColDef = (headerName?: string) => {
+    return this.colDefBuilder.generateForecastColDef(headerName)
   }
   public generateColDef = () => {
     return this.colDefBuilder.generateColDefWith(
@@ -257,8 +257,8 @@ export class PrecipForecastField implements ColDefGenerator, ForecastColDefGener
     )
   }
 
-  public generateColDefs = (editMode: boolean, headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(editMode, headerName)
+  public generateColDefs = (headerName?: string) => {
+    return this.colDefBuilder.generateColDefs(headerName)
   }
 
   public static getInstance(): PrecipForecastField {

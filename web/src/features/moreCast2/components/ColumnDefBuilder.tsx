@@ -21,12 +21,12 @@ export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
 ]
 
 export interface ForecastColDefGenerator {
-  generateForecastColDef: (editMode: boolean, headerName?: string) => GridColDef
+  generateForecastColDef: (headerName?: string) => GridColDef
 }
 
 export interface ColDefGenerator {
-  generateColDef: (editMode: boolean, headerName?: string) => GridColDef
-  generateColDefs: (editMode: boolean, headerName?: string) => GridColDef[]
+  generateColDef: (headerName?: string) => GridColDef
+  generateColDefs: (headerName?: string) => GridColDef[]
 }
 
 export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerator {
@@ -37,12 +37,11 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     readonly precision: number,
     readonly gridComponentRenderer: GridComponentRenderer
   ) {}
-  public generateForecastColDef = (editMode: boolean, headerName?: string) => {
+  public generateForecastColDef = (headerName?: string) => {
     return this.generateForecastColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
       headerName ? headerName : this.headerName,
       this.precision,
-      editMode,
       DEFAULT_COLUMN_WIDTH
     )
   }
@@ -51,10 +50,10 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
-  public generateColDefs = (editMode: boolean, headerName?: string) => {
+  public generateColDefs = (headerName?: string) => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
-    const forecastColDef = this.generateForecastColDef(editMode, headerName)
+    const forecastColDef = this.generateForecastColDef(headerName)
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition
@@ -84,13 +83,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     }
   }
 
-  public generateForecastColDefWith = (
-    field: string,
-    headerName: string,
-    precision: number,
-    editMode: boolean,
-    width?: number
-  ) => {
+  public generateForecastColDefWith = (field: string, headerName: string, precision: number, width?: number) => {
     return {
       field: field,
       disableColumnMenu: true,
@@ -104,7 +97,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
         return this.gridComponentRenderer.renderHeaderWith(params)
       },
       renderCell: (params: GridRenderCellParams) => {
-        return this.gridComponentRenderer.renderForecastCellWith(params, field, editMode)
+        return this.gridComponentRenderer.renderForecastCellWith(params, field)
       },
       valueFormatter: (params: GridValueFormatterParams) => {
         return this.valueFormatterWith(params, precision)

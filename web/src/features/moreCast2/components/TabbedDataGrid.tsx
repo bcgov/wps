@@ -1,14 +1,7 @@
 import { AlertColor, FormControl, List, Stack } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GridCallbackDetails, GridCellParams, GridColDef, GridColumnVisibilityModel, MuiEvent } from '@mui/x-data-grid'
-import {
-  ForecastActionChoice,
-  ForecastActionType,
-  ModelChoice,
-  ModelType,
-  submitMoreCastForecastRecords,
-  WeatherModelChoices
-} from 'api/moreCast2API'
+import { ModelChoice, ModelType, submitMoreCastForecastRecords, WeatherModelChoices } from 'api/moreCast2API'
 import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
@@ -33,8 +26,6 @@ const FORECAST_WARN_MESSAGE = 'A forecast cannot contain N/A values.'
 
 interface TabbedDataGridProps {
   morecast2Rows: MoreCast2Row[]
-  forecastAction: ForecastActionType
-  setForecastAction: React.Dispatch<React.SetStateAction<ForecastActionType>>
   fetchWeatherIndeterminates: () => void
   fromTo: DateRange
   setFromTo: React.Dispatch<React.SetStateAction<DateRange>>
@@ -60,15 +51,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const TabbedDataGrid = ({
-  morecast2Rows,
-  forecastAction,
-  setForecastAction,
-  fromTo,
-  setFromTo,
-  modelType,
-  setModelType
-}: TabbedDataGridProps) => {
+const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelType }: TabbedDataGridProps) => {
   const classes = useStyles()
 
   const selectedStations = useSelector(selectSelectedStations)
@@ -81,7 +64,7 @@ const TabbedDataGrid = ({
   const [visibleRows, setVisibleRows] = useState<MoreCast2Row[]>([])
 
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
-    DataGridColumns.initGridColumnVisibilityModel(forecastAction == ForecastActionChoice.EDIT)
+    DataGridColumns.initGridColumnVisibilityModel()
   )
 
   const [tempVisible, setTempVisible] = useState(true)
@@ -308,39 +291,18 @@ const TabbedDataGrid = ({
 
   return (
     <>
-      <MoreCast2ActionBar
-        fromTo={fromTo}
-        setFromTo={setFromTo}
-        modelType={modelType}
-        setModelType={setModelType}
-        forecastAction={forecastAction}
-        setForecastAction={setForecastAction}
-      >
+      <MoreCast2ActionBar fromTo={fromTo} setFromTo={setFromTo} modelType={modelType} setModelType={setModelType}>
         <FormControl className={classes.actionButtonContainer}>
-          {forecastAction === ForecastActionChoice.CREATE && (
-            <SaveForecastButton
-              enabled={
-                isAuthenticated &&
-                roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
-                hasForecastRow() &&
-                forecastSummaryVisible
-              }
-              label={'Save Forecast'}
-              onClick={handleSaveClick}
-            />
-          )}
-          {forecastAction === ForecastActionChoice.EDIT && (
-            <SaveForecastButton
-              enabled={
-                isAuthenticated &&
-                roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
-                hasForecastRow() &&
-                forecastIsDirty
-              }
-              label={'Update Forecast'}
-              onClick={handleSaveClick}
-            />
-          )}
+          <SaveForecastButton
+            enabled={
+              isAuthenticated &&
+              roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
+              hasForecastRow() &&
+              forecastSummaryVisible
+            }
+            label={'Save Forecast'}
+            onClick={handleSaveClick}
+          />
         </FormControl>
       </MoreCast2ActionBar>
       <List component={Stack} direction="row">
@@ -386,7 +348,6 @@ const TabbedDataGrid = ({
       {forecastSummaryVisible ? (
         <ForecastSummaryDataGrid
           loading={loading}
-          editMode={forecastAction == ForecastActionChoice.EDIT}
           rows={visibleRows}
           clickedColDef={clickedColDef}
           onCellEditStop={setForecastIsDirty}
@@ -396,7 +357,6 @@ const TabbedDataGrid = ({
       ) : (
         <ForecastDataGrid
           loading={loading}
-          editMode={forecastAction == ForecastActionChoice.EDIT}
           clickedColDef={clickedColDef}
           columnVisibilityModel={columnVisibilityModel}
           setColumnVisibilityModel={setColumnVisibilityModel}

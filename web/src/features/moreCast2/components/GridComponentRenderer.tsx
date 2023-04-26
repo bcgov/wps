@@ -19,18 +19,14 @@ export class GridComponentRenderer {
     <TextField disabled={true} size="small" value={params.formattedValue}></TextField>
   )
 
-  public renderForecastCellWith = (
-    params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>,
-    field: string,
-    editMode: boolean
-  ) => {
+  public renderForecastCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>, field: string) => {
     // The value of field will be precipForecast, rhForecast, tempForecast, etc.
     // We need the prefix to help us grab the correct 'actual' field (eg. tempACTUAL, precipACTUAL, etc.)
     const index = field.indexOf('Forecast')
     const prefix = field.slice(0, index)
     const actualField = `${prefix}Actual`
 
-    const disabled = !isNaN(params.row[actualField]) || editMode
+    const disabled = !isNaN(params.row[actualField])
     return (
       <TextField
         disabled={disabled}

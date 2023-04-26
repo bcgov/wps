@@ -19,7 +19,6 @@ import { ModelChoice, ModelType } from 'api/moreCast2API'
 
 export interface ForecastDataGridProps {
   loading: boolean
-  editMode: boolean
   clickedColDef: GridColDef | null
   columnVisibilityModel: GridColumnVisibilityModel
   setColumnVisibilityModel: React.Dispatch<React.SetStateAction<GridColumnVisibilityModel>>
@@ -45,7 +44,6 @@ const useStyles = makeStyles(() => ({
 
 const ForecastDataGrid = ({
   loading,
-  editMode,
   clickedColDef,
   columnVisibilityModel,
   setColumnVisibilityModel,
@@ -87,7 +85,7 @@ const ForecastDataGrid = ({
         onCellEditStop={() => onCellEditStop(true)}
         onCellDoubleClick={onCellDoubleClickHandler}
         loading={loading}
-        columns={DataGridColumns.getTabColumns(editMode)}
+        columns={DataGridColumns.getTabColumns()}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
         rows={allMoreCast2Rows}
       ></DataGrid>

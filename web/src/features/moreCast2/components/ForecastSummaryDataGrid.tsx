@@ -10,7 +10,6 @@ import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 
 interface ForecastSummaryDataGridProps {
   loading: boolean
-  editMode: boolean
   rows: MoreCast2Row[]
   clickedColDef: GridColDef | null
   onCellEditStop: (value: boolean) => void
@@ -27,7 +26,6 @@ const useStyles = makeStyles({
 
 const ForecastSummaryDataGrid = ({
   loading,
-  editMode,
   rows,
   clickedColDef,
   onCellEditStop,
@@ -66,7 +64,7 @@ const ForecastSummaryDataGrid = ({
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellEditStop={() => onCellEditStop(true)}
         loading={loading}
-        columns={DataGridColumns.getSummaryColumns(editMode)}
+        columns={DataGridColumns.getSummaryColumns()}
         rows={rows}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
       ></DataGrid>

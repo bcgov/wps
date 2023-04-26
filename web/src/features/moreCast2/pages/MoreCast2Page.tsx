@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import makeStyles from '@mui/styles/makeStyles'
 import { isEmpty, isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
-import { DEFAULT_MODEL_TYPE, ForecastActionChoices, ForecastActionType, ModelType } from 'api/moreCast2API'
+import { DEFAULT_MODEL_TYPE, ModelType } from 'api/moreCast2API'
 import { selectAuthentication, selectStationGroups, selectStationGroupsMembers } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
 import { GeneralHeader } from 'components'
@@ -85,7 +85,6 @@ const MoreCast2Page = () => {
     endDate: endDateTime.toJSDate()
   })
   const [selectedGroupsMembers, setSelectedGroupsMembers] = useState([...members])
-  const [forecastAction, setForecastAction] = useState<ForecastActionType>(ForecastActionChoices[0])
 
   const fetchWeatherIndeterminates = () => {
     if (fromTo && fromTo.startDate && fromTo.endDate) {
@@ -139,8 +138,6 @@ const MoreCast2Page = () => {
         </div>
         <div className={classes.observations}>
           <TabbedDataGrid
-            forecastAction={forecastAction}
-            setForecastAction={setForecastAction}
             morecast2Rows={sortedMoreCast2Rows}
             fetchWeatherIndeterminates={fetchWeatherIndeterminates}
             fromTo={fromTo}
