@@ -1,6 +1,13 @@
 import { AlertColor, FormControl, List, Stack } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { GridCallbackDetails, GridCellParams, GridColDef, GridColumnVisibilityModel, MuiEvent } from '@mui/x-data-grid'
+import {
+  GridCallbackDetails,
+  GridCellParams,
+  GridColDef,
+  GridColumnVisibilityModel,
+  GridEventListener,
+  MuiEvent
+} from '@mui/x-data-grid'
 import { ModelChoice, ModelType, submitMoreCastForecastRecords, WeatherModelChoices } from 'api/moreCast2API'
 import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
@@ -11,7 +18,7 @@ import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
-import { groupBy, isUndefined } from 'lodash'
+import { groupBy, isEqual, isUndefined } from 'lodash'
 import MoreCast2ActionBar from 'features/moreCast2/components/MoreCast2ActionBar'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
 import { ROLES } from 'features/auth/roles'
@@ -77,6 +84,22 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success')
+
+  const [contextMenu, setContextMenu] = React.useState<{
+    mouseX: number
+    mouseY: number
+  } | null>(null)
+
+  const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
+    if (!isEqual(params.colDef.field, 'stationName') && !isEqual(params.colDef.field, 'forDate')) {
+      setClickedColDef(params.colDef)
+      setContextMenu(contextMenu === null ? { mouseX: event.clientX, mouseY: event.clientY } : null)
+    }
+  }
+
+  const handleClose = () => {
+    setContextMenu(null)
+  }
 
   useEffect(() => {
     setAllRows([...morecast2Rows])
@@ -349,18 +372,24 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
           loading={loading}
           rows={visibleRows}
           clickedColDef={clickedColDef}
+          contextMenu={contextMenu}
           setClickedColDef={setClickedColDef}
           updateColumnWithModel={updateColumnWithModel}
+          handleColumnHeaderClick={handleColumnHeaderClick}
+          handleClose={handleClose}
         />
       ) : (
         <ForecastDataGrid
           loading={loading}
           clickedColDef={clickedColDef}
+          contextMenu={contextMenu}
           columnVisibilityModel={columnVisibilityModel}
           setColumnVisibilityModel={setColumnVisibilityModel}
           setClickedColDef={setClickedColDef}
           onCellDoubleClickHandler={handleCellDoubleClick}
           updateColumnWithModel={updateColumnWithModel}
+          handleColumnHeaderClick={handleColumnHeaderClick}
+          handleClose={handleClose}
           columnGroupingModel={columnGroupingModel}
           allMoreCast2Rows={visibleRows}
         />

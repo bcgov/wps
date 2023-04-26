@@ -15,39 +15,9 @@ export interface MoreCast2ActionBarProps {
 }
 
 const useStyles = makeStyles(theme => ({
-  content: {
-    display: 'flex',
-    flexGrow: 1,
-    maxHeight: 'calc(100vh - 71.5px)',
-    borderTop: '1px solid black',
-    overflow: 'hidden'
-  },
   formControl: {
     minWidth: 280,
     margin: theme.spacing(1)
-  },
-  observations: {
-    display: 'flex',
-    flexDirection: 'column',
-    flexGrow: 1,
-    overflowX: 'auto'
-  },
-  root: {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-    overflow: 'hidden'
-  },
-  sidePanel: {
-    borderRight: '1px solid black',
-    display: 'flex',
-    minWidth: '375px',
-    overflowX: 'hidden',
-    overflowY: 'auto',
-    width: '375px'
-  },
-  actionButtonContainer: {
-    marginTop: 15
   }
 }))
 

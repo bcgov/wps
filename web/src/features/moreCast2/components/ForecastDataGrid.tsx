@@ -11,15 +11,18 @@ import {
   MuiEvent
 } from '@mui/x-data-grid'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
-import { LinearProgress, Menu, MenuItem } from '@mui/material'
+import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
-import { isEqual } from 'lodash'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
 
 export interface ForecastDataGridProps {
   loading: boolean
   clickedColDef: GridColDef | null
+  contextMenu: {
+    mouseX: number
+    mouseY: number
+  } | null
   columnVisibilityModel: GridColumnVisibilityModel
   setColumnVisibilityModel: React.Dispatch<React.SetStateAction<GridColumnVisibilityModel>>
   setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
@@ -29,6 +32,8 @@ export interface ForecastDataGridProps {
     details: GridCallbackDetails
   ) => void
   updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
+  handleColumnHeaderClick: GridEventListener<'columnHeaderClick'>
+  handleClose: () => void
   columnGroupingModel: GridColumnGroupingModel
   allMoreCast2Rows: MoreCast2Row[]
 }
@@ -44,31 +49,19 @@ const useStyles = makeStyles(() => ({
 const ForecastDataGrid = ({
   loading,
   clickedColDef,
+  contextMenu,
   columnVisibilityModel,
   setColumnVisibilityModel,
   setClickedColDef,
   onCellDoubleClickHandler,
   updateColumnWithModel,
+  handleColumnHeaderClick,
+  handleClose,
   columnGroupingModel,
   allMoreCast2Rows
 }: ForecastDataGridProps) => {
   const classes = useStyles()
 
-  const [contextMenu, setContextMenu] = React.useState<{
-    mouseX: number
-    mouseY: number
-  } | null>(null)
-
-  const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
-    if (!isEqual(params.colDef.field, 'stationName') && !isEqual(params.colDef.field, 'forDate')) {
-      setClickedColDef(params.colDef)
-      setContextMenu(contextMenu === null ? { mouseX: event.clientX, mouseY: event.clientY } : null)
-    }
-  }
-
-  const handleClose = () => {
-    setContextMenu(null)
-  }
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
@@ -85,42 +78,13 @@ const ForecastDataGrid = ({
         columns={DataGridColumns.getTabColumns()}
         isCellEditable={params => params.row[params.field] !== ModelChoice.ACTUAL}
         rows={allMoreCast2Rows}
-      ></DataGrid>
-      <Menu
-        open={contextMenu !== null}
-        onClose={handleClose}
-        anchorReference="anchorPosition"
-        anchorPosition={contextMenu !== null ? { top: contextMenu.mouseY, left: contextMenu.mouseX } : undefined}
-        slotProps={{
-          root: {
-            onContextMenu: e => {
-              e.preventDefault()
-              handleClose()
-            }
-          }
-        }}
-      >
-        <MenuItem
-          disableRipple
-          sx={{
-            '&:hover': {
-              backgroundColor: 'transparent' // remove the background color on hover
-            },
-            '&.Mui-selected': {
-              backgroundColor: 'transparent' // remove the background color when selected
-            },
-            '&.Mui-focusVisible': {
-              backgroundColor: 'transparent' // remove the background color when fovused
-            }
-          }}
-        >
-          <ApplyToColumnMenu
-            colDef={clickedColDef}
-            handleClose={handleClose}
-            updateColumnWithModel={updateColumnWithModel}
-          />
-        </MenuItem>
-      </Menu>
+      />
+      <ApplyToColumnMenu
+        colDef={clickedColDef}
+        contextMenu={contextMenu}
+        handleClose={handleClose}
+        updateColumnWithModel={updateColumnWithModel}
+      />
     </div>
   )
 }

@@ -17,17 +17,13 @@ import { getWeatherIndeterminates, selectAllMoreCast2Rows } from 'features/moreC
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 import { selectedStationsChanged } from 'features/moreCast2/slices/selectedStationsSlice'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   content: {
     display: 'flex',
     flexGrow: 1,
     maxHeight: 'calc(100vh - 71.5px)',
     borderTop: '1px solid black',
     overflow: 'hidden'
-  },
-  formControl: {
-    minWidth: 280,
-    margin: theme.spacing(1)
   },
   observations: {
     display: 'flex',
@@ -48,9 +44,6 @@ const useStyles = makeStyles(theme => ({
     overflowX: 'hidden',
     overflowY: 'auto',
     width: '375px'
-  },
-  actionButtonContainer: {
-    marginTop: 15
   }
 }))
 

@@ -37,6 +37,11 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     readonly precision: number,
     readonly gridComponentRenderer: GridComponentRenderer
   ) {}
+
+  public generateColDef = () => {
+    return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
+  }
+
   public generateForecastColDef = (headerName?: string) => {
     return this.generateForecastColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
@@ -44,10 +49,6 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       this.precision,
       DEFAULT_COLUMN_WIDTH
     )
-  }
-
-  public generateColDef = () => {
-    return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
   public generateColDefs = (headerName?: string) => {
