@@ -111,7 +111,7 @@ describe('rowIDHasher', () => {
   })
 })
 
-describe.only('parseForecastsHelper', () => {
+describe('parseForecastsHelper', () => {
   const buildForecastRecord = (station_code: number) => ({
     station_code,
     for_date: Date.parse('2022-01-01T00:00:00.000Z'),
