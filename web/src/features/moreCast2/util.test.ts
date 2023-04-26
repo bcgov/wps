@@ -1,13 +1,16 @@
 import { DateTime } from 'luxon'
 import { ModelChoice, StationPrediction } from 'api/moreCast2API'
-import { createDateInterval, parseModelsForStationsHelper, rowIDHasher } from 'features/moreCast2/util'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
+import {
+  createDateInterval,
+  parseForecastsHelper,
+  parseModelsForStationsHelper,
+  rowIDHasher
+} from 'features/moreCast2/util'
 
 const TEST_NUMBER = 7
 const TEST_MODEL = ModelChoice.HRDPS
 const TEST_DATE = '2023-02-16T20:00:00+00:00'
 const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
-const TEST_DATE3 = '2023-02-18T20:00:00+00:00'
 const TEST_CODE = 209
 const TEST_NAME = 'Victoria'
 
@@ -39,101 +42,6 @@ const createStationPredictionArray = (predictionValue: number | null) => {
   }
   return [stationPrediction]
 }
-
-const generateRowsForTwoStations = (): MoreCast2ForecastRow[] => [
-  {
-    id: rowIDHasher(1, DateTime.fromISO(TEST_DATE)),
-    stationCode: 1,
-    stationName: 'one',
-    forDate: DateTime.fromISO(TEST_DATE),
-    temp: { value: 1, choice: ModelChoice.GDPS },
-    rh: { value: 1, choice: ModelChoice.GDPS },
-    precip: { value: 1, choice: ModelChoice.GDPS },
-    windSpeed: { value: 1, choice: ModelChoice.GDPS },
-    windDirection: { value: 1, choice: ModelChoice.GDPS }
-  },
-  {
-    id: rowIDHasher(2, DateTime.fromISO(TEST_DATE2)),
-    stationCode: 2,
-    stationName: 'two',
-    forDate: DateTime.fromISO(TEST_DATE2),
-    temp: { value: 1, choice: ModelChoice.GDPS },
-    rh: { value: 1, choice: ModelChoice.GDPS },
-    precip: { value: 1, choice: ModelChoice.GDPS },
-    windSpeed: { value: 1, choice: ModelChoice.GDPS },
-    windDirection: { value: 1, choice: ModelChoice.GDPS }
-  }
-]
-
-const generateRowsForStation = (stationCode: number, stationName: string): MoreCast2ForecastRow[] => [
-  {
-    id: rowIDHasher(stationCode, DateTime.fromISO(TEST_DATE)),
-    stationCode: stationCode,
-    stationName: stationName,
-    forDate: DateTime.fromISO(TEST_DATE),
-    temp: { value: 1, choice: ModelChoice.GDPS },
-    rh: { value: 1, choice: ModelChoice.GDPS },
-    precip: { value: 1, choice: ModelChoice.GDPS },
-    windSpeed: { value: 1, choice: ModelChoice.GDPS },
-    windDirection: { value: 1, choice: ModelChoice.GDPS }
-  },
-  {
-    id: rowIDHasher(stationCode, DateTime.fromISO(TEST_DATE2)),
-    stationCode: stationCode,
-    stationName: stationName,
-    forDate: DateTime.fromISO(TEST_DATE2),
-    temp: { value: 1, choice: ModelChoice.GDPS },
-    rh: { value: 1, choice: ModelChoice.GDPS },
-    precip: { value: 1, choice: ModelChoice.GDPS },
-    windSpeed: { value: 1, choice: ModelChoice.GDPS },
-    windDirection: { value: 1, choice: ModelChoice.GDPS }
-  },
-  {
-    id: rowIDHasher(stationCode, DateTime.fromISO(TEST_DATE3)),
-    stationCode: stationCode,
-    stationName: stationName,
-    forDate: DateTime.fromISO(TEST_DATE3),
-    temp: { value: 5, choice: ModelChoice.GDPS },
-    rh: { value: 10, choice: ModelChoice.GDPS },
-    precip: { value: 1, choice: ModelChoice.GDPS },
-    windSpeed: { value: 1, choice: ModelChoice.GDPS },
-    windDirection: { value: 1, choice: ModelChoice.GDPS }
-  }
-]
-
-const generateRowsWithActuals = (stationCode: number, stationName: string): MoreCast2ForecastRow[] => [
-  {
-    id: rowIDHasher(stationCode, DateTime.fromISO(TEST_DATE)),
-    stationCode: stationCode,
-    stationName: stationName,
-    forDate: DateTime.fromISO(TEST_DATE),
-    temp: { value: 1, choice: ModelChoice.ACTUAL },
-    rh: { value: 1, choice: ModelChoice.ACTUAL },
-    precip: { value: 1, choice: ModelChoice.ACTUAL },
-    windSpeed: { value: 1, choice: ModelChoice.ACTUAL },
-    windDirection: { value: 1, choice: ModelChoice.ACTUAL }
-  },
-  {
-    id: rowIDHasher(stationCode, DateTime.fromISO(TEST_DATE2)),
-    stationCode: stationCode,
-    stationName: stationName,
-    forDate: DateTime.fromISO(TEST_DATE2),
-    temp: { value: 1, choice: ModelChoice.ACTUAL },
-    rh: { value: 1, choice: ModelChoice.ACTUAL },
-    precip: { value: 1, choice: ModelChoice.ACTUAL },
-    windSpeed: { value: 1, choice: ModelChoice.ACTUAL },
-    windDirection: { value: 1, choice: ModelChoice.ACTUAL }
-  }
-]
-
-const generateStationGroupMember = (code: number, name: string) => ({
-  id: '1',
-  fire_centre: { id: '1', display_label: 'test' },
-  fire_zone: { id: '1', display_label: 'test', fire_centre: 'test' },
-  station_status: 'ACTIVE',
-  station_code: code,
-  display_label: name
-})
 
 describe('parseModelsForStationHelper', () => {
   it('should return an empty array when length of stationPredictions array is zero', () => {
@@ -200,5 +108,116 @@ describe('rowIDHasher', () => {
   it('should station code and timestamp as ID', () => {
     const result = rowIDHasher(TEST_CODE, DateTime.fromISO(TEST_DATE))
     expect(result).toEqual(`${TEST_CODE}${DateTime.fromISO(TEST_DATE).toISODate()}`)
+  })
+})
+
+describe.only('parseForecastsHelper', () => {
+  const buildForecastRecord = (station_code: number) => ({
+    station_code,
+    for_date: Date.parse('2022-01-01T00:00:00.000Z'),
+    precip: 1,
+    rh: 1,
+    temp: 1,
+    wind_direction: 1,
+    wind_speed: 1
+  })
+
+  const buildStationGroupMember = (
+    id: string,
+    station_code: number,
+    display_label: string,
+    fcID: string,
+    fzID: string
+  ) => ({
+    id,
+    station_status: 'active',
+    station_code,
+    display_label,
+    fire_centre: {
+      id: fcID,
+      display_label: 'fc1'
+    },
+    fire_zone: {
+      id: fzID,
+      display_label: 'z1',
+      fire_centre: 'fc1'
+    }
+  })
+
+  it('should parse empty set of forecasts/stations', () => {
+    const result = parseForecastsHelper([], [])
+    expect(result).toEqual([])
+  })
+  it('should parse empty set of forecasts', () => {
+    const result = parseForecastsHelper(
+      [],
+      [buildStationGroupMember('1', 1, 'one', '1', '1'), buildStationGroupMember('2', 2, 'two', '2', '2')]
+    )
+    expect(result).toEqual([])
+  })
+  it('should parse forecasts', () => {
+    const result = parseForecastsHelper(
+      [buildForecastRecord(1), buildForecastRecord(2)],
+      [buildStationGroupMember('1', 1, 'one', '1', '1'), buildStationGroupMember('2', 2, 'two', '2', '2')]
+    )
+    expect(result).toEqual([
+      {
+        id: '12021-12-31',
+        forDate: DateTime.fromMillis(Date.parse('2022-01-01T00:00:00.000Z')),
+        precip: { choice: ModelChoice.FORECAST, value: 1 },
+        rh: { choice: ModelChoice.FORECAST, value: 1 },
+        stationCode: 1,
+        stationName: 'one',
+        temp: { choice: ModelChoice.FORECAST, value: 1 },
+        windDirection: { choice: ModelChoice.FORECAST, value: 1 },
+        windSpeed: { choice: ModelChoice.FORECAST, value: 1 }
+      },
+      {
+        id: '22021-12-31',
+        forDate: DateTime.fromMillis(Date.parse('2022-01-01T00:00:00.000Z')),
+        precip: { choice: ModelChoice.FORECAST, value: 1 },
+        rh: { choice: ModelChoice.FORECAST, value: 1 },
+        stationCode: 2,
+        stationName: 'two',
+        temp: { choice: ModelChoice.FORECAST, value: 1 },
+        windDirection: { choice: ModelChoice.FORECAST, value: 1 },
+        windSpeed: { choice: ModelChoice.FORECAST, value: 1 }
+      }
+    ])
+  })
+  it('should handle case where station is not found in station member list', () => {
+    const result = parseForecastsHelper([buildForecastRecord(1)], [])
+    expect(result).toEqual([
+      {
+        id: '12021-12-31',
+        forDate: DateTime.fromMillis(Date.parse('2022-01-01T00:00:00.000Z')),
+        precip: { choice: ModelChoice.FORECAST, value: 1 },
+        rh: { choice: ModelChoice.FORECAST, value: 1 },
+        stationCode: 1,
+        stationName: '',
+        temp: { choice: ModelChoice.FORECAST, value: 1 },
+        windDirection: { choice: ModelChoice.FORECAST, value: 1 },
+        windSpeed: { choice: ModelChoice.FORECAST, value: 1 }
+      }
+    ])
+  })
+  it('should handle case where forecast parameters are missing', () => {
+    const result = parseForecastsHelper(
+      [{ ...buildForecastRecord(1), precip: NaN, rh: NaN, temp: NaN, wind_speed: NaN, wind_direction: NaN }],
+      [buildStationGroupMember('1', 1, 'one', '1', '1')]
+    )
+    expect(result).toEqual([
+      {
+        id: '12021-12-31',
+        forDate: DateTime.fromMillis(Date.parse('2022-01-01T00:00:00.000Z')),
+        precip: { choice: ModelChoice.FORECAST, value: NaN },
+        rh: { choice: ModelChoice.FORECAST, value: NaN },
+        stationCode: 1,
+        stationName: 'one',
+        temp: { choice: ModelChoice.FORECAST, value: NaN },
+        windDirection: { choice: ModelChoice.FORECAST, value: NaN },
+        windSpeed: { choice: ModelChoice.FORECAST, value: NaN }
+      }
+    ])
   })
 })
