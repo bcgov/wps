@@ -16,6 +16,8 @@ from app.schemas.hfi_calc import (DateRange,
                                   FireStartRange,
                                   InvalidDateRangeError,
                                   PlanningArea,
+                                  PlanningAreaResult,
+                                  DailyResult,
                                   StationDaily, StationInfo,
                                   WeatherStation,
                                   WeatherStationProperties,
@@ -75,17 +77,27 @@ def test_no_dailies_handled():
                                    raw_dailies=[],
                                    num_prep_days=5,
                                    planning_area_station_info=planning_area_station_info,
-                                   area_station_map={},
                                    start_date=datetime.now())
 
-    assert result == []
+    assert result == [PlanningAreaResult(planning_area_id=1, all_dailies_valid=True,
+                                         highest_daily_intensity_group=None, mean_prep_level=None, daily_results=[
+                                             DailyResult(date=datetime.now(), dailies=[],
+                                                         fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
+                                             DailyResult(date=datetime.now() + timedelta(days=1), dailies=[],
+                                                         fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
+                                             DailyResult(date=datetime.now() + timedelta(days=2), dailies=[],
+                                                         fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
+                                             DailyResult(date=datetime.now() + timedelta(days=3), dailies=[],
+                                                         fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
+                                             DailyResult(date=datetime.now() + timedelta(days=4), dailies=[],
+                                                         fire_starts=fire_start_ranges[0], mean_intensity_group=None, prep_level=None),
+                                         ])]
 
 
 def test_requested_fire_starts_unaltered(mocker: MockerFixture):
     """ Fire starts from user request remain unchanged """
 
     start_date = datetime.now()
-    station = hfi_calc_models.PlanningWeatherStation(id=1, planning_area_id=1, station_code=1)
     fuel_type_lookup = {
         1: hfi_calc_models.FuelType(
             id=1, abbrev='C1', description='C1', fuel_type_code='C1',
@@ -110,7 +122,6 @@ def test_requested_fire_starts_unaltered(mocker: MockerFixture):
                                        raw_daily],
                                    num_prep_days=5,
                                    planning_area_station_info=planning_area_station_info,
-                                   area_station_map={kamloops_fc.planning_areas[0].id: [station]},
                                    start_date=start_date)
     assert result[0].daily_results[0].fire_starts == fire_start_ranges[-1]
 

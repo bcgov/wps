@@ -263,7 +263,6 @@ async def calculate_latest_hfi_results(
                                         raw_dailies,
                                         valid_date_range.days_in_range(),
                                         request.planning_area_station_info,
-                                        area_station_map,
                                         valid_date_range.start_date)
         return results, valid_date_range
 
@@ -375,14 +374,13 @@ def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
                           raw_dailies: List[dict],
                           num_prep_days: int,
                           planning_area_station_info: Dict[int, List[StationInfo]],
-                          area_station_map: Dict[int, List[PlanningWeatherStation]],
                           start_date: date) -> List[PlanningAreaResult]:
     """ Computes HFI results based on parameter inputs """
     planning_area_to_dailies: List[PlanningAreaResult] = []
 
     station_lookup: Dict[str, WFWXWeatherStation] = {station.wfwx_id: station for station in wfwx_stations}
 
-    for area_id in area_station_map.keys():
+    for area_id in planning_area_station_info.keys():
 
         area_dailies = calculate_station_dailies(raw_dailies,
                                                  planning_area_station_info[area_id],
