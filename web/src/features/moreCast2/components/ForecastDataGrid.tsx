@@ -14,12 +14,15 @@ import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress, Menu, MenuItem } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
-import { isEqual } from 'lodash'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
 
 export interface ForecastDataGridProps {
   loading: boolean
   clickedColDef: GridColDef | null
+  contextMenu: {
+    mouseX: number
+    mouseY: number
+  } | null
   columnVisibilityModel: GridColumnVisibilityModel
   setColumnVisibilityModel: React.Dispatch<React.SetStateAction<GridColumnVisibilityModel>>
   setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
@@ -30,6 +33,8 @@ export interface ForecastDataGridProps {
     details: GridCallbackDetails
   ) => void
   updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
+  handleColumnHeaderClick: GridEventListener<'columnHeaderClick'>
+  handleClose: () => void
   columnGroupingModel: GridColumnGroupingModel
   allMoreCast2Rows: MoreCast2Row[]
 }
@@ -45,32 +50,19 @@ const useStyles = makeStyles(() => ({
 const ForecastDataGrid = ({
   loading,
   clickedColDef,
+  contextMenu,
   columnVisibilityModel,
   setColumnVisibilityModel,
-  setClickedColDef,
   onCellEditStop,
   onCellDoubleClickHandler,
   updateColumnWithModel,
+  handleColumnHeaderClick,
+  handleClose,
   columnGroupingModel,
   allMoreCast2Rows
 }: ForecastDataGridProps) => {
   const classes = useStyles()
 
-  const [contextMenu, setContextMenu] = React.useState<{
-    mouseX: number
-    mouseY: number
-  } | null>(null)
-
-  const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
-    if (!isEqual(params.colDef.field, 'stationName') && !isEqual(params.colDef.field, 'forDate')) {
-      setClickedColDef(params.colDef)
-      setContextMenu(contextMenu === null ? { mouseX: event.clientX, mouseY: event.clientY } : null)
-    }
-  }
-
-  const handleClose = () => {
-    setContextMenu(null)
-  }
   return (
     <div className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
