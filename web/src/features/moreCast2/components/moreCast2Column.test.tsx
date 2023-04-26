@@ -15,14 +15,13 @@ describe('MoreCast2Column', () => {
   describe('StationForecastField', () => {
     it('should have the desired configuration', () => {
       const instance = StationForecastField.getInstance()
-      expect(JSON.stringify(instance.generateColDef(false))).toEqual(
+      expect(JSON.stringify(instance.generateColDef())).toEqual(
         JSON.stringify({
           field: 'stationName',
           flex: 1,
           headerName: 'Station',
           maxWidth: 200,
           width: 200,
-          editable: false,
           valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
             return params.value.toLocaleString(DateTime.DATE_MED)
           }
