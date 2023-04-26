@@ -175,6 +175,13 @@ const createMoreCast2Rows = (
           row.windDirectionHRDPS = getNumberOrNaN(value.wind_direction)
           row.windSpeedHRDPS = getNumberOrNaN(value.wind_speed)
           break
+        case WeatherDeterminate.NAM:
+          row.precipNAM = getNumberOrNaN(value.precipitation)
+          row.rhNAM = getNumberOrNaN(value.relative_humidity)
+          row.tempNAM = getNumberOrNaN(value.temperature)
+          row.windDirectionNAM = getNumberOrNaN(value.wind_direction)
+          row.windSpeedNAM = getNumberOrNaN(value.wind_speed)
+          break
         case WeatherDeterminate.RDPS:
           row.precipRDPS = getNumberOrNaN(value.precipitation)
           row.rhRDPS = getNumberOrNaN(value.relative_humidity)
@@ -462,6 +469,13 @@ const createEmptyMoreCast2Row = (
     tempHRDPS: NaN,
     windDirectionHRDPS: NaN,
     windSpeedHRDPS: NaN,
+
+    // NAM model predictions
+    precipNAM: NaN,
+    rhNAM: NaN,
+    tempNAM: NaN,
+    windDirectionNAM: NaN,
+    windSpeedNAM: NaN,
 
     // RDPS model predictions
     precipRDPS: NaN,

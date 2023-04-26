@@ -56,11 +56,12 @@ export enum WeatherDeterminate {
   GDPS = 'GDPS',
   GFS = 'GFS',
   HRDPS = 'HRDPS',
+  NAM = 'NAM',
   NULL = 'NULL',
   RDPS = 'RDPS'
 }
 
-export type WeatherDeterminateType = 'Actual' | 'Forecast' | 'GDPS' | 'GFS' | 'HRDPS' | 'NULL' | 'RDPS'
+export type WeatherDeterminateType = 'Actual' | 'Forecast' | 'GDPS' | 'GFS' | 'HRDPS' | 'NAM' | 'NULL' | 'RDPS'
 
 export const WeatherDeterminateChoices = [
   WeatherDeterminate.ACTUAL,
@@ -68,6 +69,7 @@ export const WeatherDeterminateChoices = [
   WeatherDeterminate.GDPS,
   WeatherDeterminate.GFS,
   WeatherDeterminate.HRDPS,
+  WeatherDeterminate.NAM,
   WeatherDeterminate.NULL,
   WeatherDeterminate.RDPS
 ]

@@ -72,6 +72,13 @@ export interface MoreCast2Row extends BaseRow {
   windDirectionHRDPS: number
   windSpeedHRDPS: number
 
+  // NAM model predictions
+  precipNAM: number
+  rhNAM: number
+  tempNAM: number
+  windDirectionNAM: number
+  windSpeedNAM: number
+
   // RDPS model predictions
   precipRDPS: number
   rhRDPS: number

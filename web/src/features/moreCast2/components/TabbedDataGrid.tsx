@@ -276,7 +276,7 @@ const TabbedDataGrid = ({
       // forecast field value with the value of the cell that was double-clicked
       row[forecastField].choice = headerName
       row[forecastField].value = params.value
-      // We've updated local state directly, so now we have to re-render by callign setVisibleRows
+      // We've updated local state directly, so now we have to re-render by calling setVisibleRows
       setVisibleRows([...visibleRows])
     }
   }

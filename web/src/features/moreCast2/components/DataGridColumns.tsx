@@ -80,6 +80,7 @@ export const columnGroupingModel: GridColumnGroupingModel = [
       { field: 'tempHRDPS' },
       { field: 'tempRDPS' },
       { field: 'tempGDPS' },
+      { field: 'tempNAM' },
       { field: 'tempGFS' }
     ]
   },
@@ -91,6 +92,7 @@ export const columnGroupingModel: GridColumnGroupingModel = [
       { field: 'rhHRDPS' },
       { field: 'rhRDPS' },
       { field: 'rhGDPS' },
+      { field: 'rhNAM' },
       { field: 'rhGFS' }
     ]
   },
@@ -102,6 +104,7 @@ export const columnGroupingModel: GridColumnGroupingModel = [
       { field: 'precipHRDPS' },
       { field: 'precipRDPS' },
       { field: 'precipGDPS' },
+      { field: 'precipNAM' },
       { field: 'precipGFS' }
     ]
   },
@@ -113,6 +116,7 @@ export const columnGroupingModel: GridColumnGroupingModel = [
       { field: 'windDirectionHRDPS' },
       { field: 'windDirectionRDPS' },
       { field: 'windDirectionGDPS' },
+      { field: 'windDirectionNAM' },
       { field: 'windDirectionGFS' }
     ]
   },
@@ -124,6 +128,7 @@ export const columnGroupingModel: GridColumnGroupingModel = [
       { field: 'windSpeedHRDPS' },
       { field: 'windSpeedRDPS' },
       { field: 'windSpeedGDPS' },
+      { field: 'windSpeedNAM' },
       { field: 'windSpeedGFS' }
     ]
   }

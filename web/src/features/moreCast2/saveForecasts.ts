@@ -20,14 +20,19 @@ export const validForecastPredicate = (row: MoreCast2Row) =>
   !isUndefined(row.windSpeedForecast) &&
   row.windSpeedForecast.choice !== ''
 
+export const getForecastRows = (rows: MoreCast2Row[]): MoreCast2Row[] => {
+  return rows ? rows.filter(isForecastRowPredicate) : []
+}
+
 export const isForecastValid = (rows: MoreCast2Row[]) => {
-  const candidateRows = rows.filter(isForecastRowPredicate)
-  const validForecastRows = candidateRows.filter(validForecastPredicate)
-  return candidateRows.length === validForecastRows.length
+  const forecastRows = getForecastRows(rows)
+  const validForecastRows = forecastRows.filter(validForecastPredicate)
+  return forecastRows.length === validForecastRows.length
 }
 
 export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {
-  const rowsToSave = rows.filter(isForecastRowPredicate).filter(validForecastPredicate)
+  const forecastRows = getForecastRows(rows)
+  const rowsToSave = forecastRows.filter(validForecastPredicate)
   return rowsToSave.map(r => ({
     id: r.id,
     stationCode: r.stationCode,

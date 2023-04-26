@@ -11,12 +11,13 @@ import { GridComponentRenderer } from 'features/moreCast2/components/GridCompone
 
 export const DEFAULT_COLUMN_WIDTH = 80
 
-export const COLUMN_HEADERS: WeatherDeterminateType[] = [
+export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
   WeatherDeterminate.ACTUAL,
   WeatherDeterminate.HRDPS,
+  WeatherDeterminate.RDPS,
   WeatherDeterminate.GDPS,
-  WeatherDeterminate.GFS,
-  WeatherDeterminate.RDPS
+  WeatherDeterminate.NAM,
+  WeatherDeterminate.GFS
 ]
 
 export interface ForecastColDefGenerator {
@@ -57,7 +58,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     gridColDefs.push(forecastColDef)
 
     // Actual and model prediction columns only show data, so require a simple column definition
-    for (const determinate of COLUMN_HEADERS) {
+    for (const determinate of ORDERED_COLUMN_HEADERS) {
       const fieldName = `${this.field}${determinate}`
       const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
       gridColDefs.push(gridColDef)
