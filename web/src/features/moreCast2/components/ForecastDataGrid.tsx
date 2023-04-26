@@ -26,7 +26,6 @@ export interface ForecastDataGridProps {
   columnVisibilityModel: GridColumnVisibilityModel
   setColumnVisibilityModel: React.Dispatch<React.SetStateAction<GridColumnVisibilityModel>>
   setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
-  onCellEditStop: (value: boolean) => void
   onCellDoubleClickHandler: (
     params: GridCellParams,
     event: MuiEvent<React.MouseEvent>,
@@ -53,7 +52,7 @@ const ForecastDataGrid = ({
   contextMenu,
   columnVisibilityModel,
   setColumnVisibilityModel,
-  onCellEditStop,
+  setClickedColDef,
   onCellDoubleClickHandler,
   updateColumnWithModel,
   handleColumnHeaderClick,
@@ -74,7 +73,6 @@ const ForecastDataGrid = ({
           LoadingOverlay: LinearProgress
         }}
         onColumnHeaderClick={handleColumnHeaderClick}
-        onCellEditStop={() => onCellEditStop(true)}
         onCellDoubleClick={onCellDoubleClickHandler}
         loading={loading}
         columns={DataGridColumns.getTabColumns()}

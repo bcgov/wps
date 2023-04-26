@@ -15,7 +15,6 @@ interface ForecastSummaryDataGridProps {
     mouseX: number
     mouseY: number
   } | null
-  onCellEditStop: (value: boolean) => void
   setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
   updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
   handleColumnHeaderClick: GridEventListener<'columnHeaderClick'>
@@ -33,8 +32,8 @@ const ForecastSummaryDataGrid = ({
   loading,
   rows,
   clickedColDef,
+  setClickedColDef,
   contextMenu,
-  onCellEditStop,
   updateColumnWithModel,
   handleColumnHeaderClick,
   handleClose
@@ -53,7 +52,6 @@ const ForecastSummaryDataGrid = ({
           }
         }}
         onColumnHeaderClick={handleColumnHeaderClick}
-        onCellEditStop={() => onCellEditStop(true)}
         loading={loading}
         columns={DataGridColumns.getSummaryColumns()}
         rows={rows}
