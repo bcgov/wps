@@ -39,7 +39,7 @@ describe('GridComponentRenderer', () => {
   it('should render the forecast cell as editable with no actual', () => {
     const field = 'tempForecast'
     const { getByRole } = render(
-      gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1 }, formattedValue: 1 }, field, false)
+      gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1 }, formattedValue: 1 }, field)
     )
     const renderedCell = getByRole('textbox')
     expect(renderedCell).toBeInTheDocument()
@@ -52,11 +52,7 @@ describe('GridComponentRenderer', () => {
     const actualField = `tempActual`
 
     const { getByRole } = render(
-      gridComponentRenderer.renderForecastCellWith(
-        { row: { [field]: 1, [actualField]: 2 }, formattedValue: 1 },
-        field,
-        false
-      )
+      gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1, [actualField]: 2 }, formattedValue: 1 }, field)
     )
     const renderedCell = getByRole('textbox')
     expect(renderedCell).toBeInTheDocument()
