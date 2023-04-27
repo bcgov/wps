@@ -81,8 +81,20 @@ export const getWeatherIndeterminates =
         stationMap.set(station.station_code, station.display_label)
       }
       const data = await fetchWeatherIndeterminates([...stationMap.keys()], fromDate, toDate)
-      let actuals = fillMissingActuals(data.actuals, fromDate, toDate, stationMap)
-      let forecasts = fillMissingForecasts(data.forecasts, fromDate, toDate, stationMap)
+      let actuals = fillMissingWeatherIndeterminates(
+        data.actuals,
+        fromDate,
+        toDate,
+        stationMap,
+        WeatherDeterminate.ACTUAL
+      )
+      let forecasts = fillMissingWeatherIndeterminates(
+        data.forecasts,
+        fromDate,
+        toDate,
+        stationMap,
+        WeatherDeterminate.NULL
+      )
       let predictions = fillMissingPredictions(data.predictions, fromDate, toDate, stationMap)
       actuals = addUniqueIds(actuals)
       forecasts = addUniqueIds(forecasts)
@@ -106,7 +118,7 @@ const createMoreCast2Rows = (
 ): MoreCast2Row[] => {
   // Since ids are a composite of a station code and date, grouping by id ensures that each group represents
   // the weather indeterminates for a single station and date
-  const groupedById = groupby([...actuals, ...forecasts, ...predictions], 'id')
+  const groupedById = groupBy([...actuals, ...forecasts, ...predictions], 'id')
 
   const rows: MoreCast2Row[] = []
 
@@ -218,29 +230,31 @@ const addUniqueIds = (items: WeatherIndeterminate[]) => {
 }
 
 /**
- * Given an array of WeatherIndeterminates and a date range, ensure an actual is present for each
- * day for each station.
+ * Given an array of WeatherIndeterminates, a date range, a map of station codes to stations names and
+ * a WeatherDeterminate, ensure a WeatherIndetermiante is present for each day for each station.
  * @param items An array of WeatherIndeterminates that may need additional empty actuals added.
  * @param fromDate The start date for which actuals are required (inclusive).
  * @param toDate The end date for which actuals are required (inclusive).
  * @param stationMap A mapping of station codes to station names.
+ * @param determinate The type of WeatherDetermiante.
  * @returns An array of WeatherIndeterminates with all required actuals are present. Actuals may
  * contain NaN values for dates in the future or dates where the backend does not provide data.
  */
-const fillMissingActuals = (
+export const fillMissingWeatherIndeterminates = (
   items: WeatherIndeterminate[],
   fromDate: DateTime,
   toDate: DateTime,
-  stationMap: Map<number, string>
+  stationMap: Map<number, string>,
+  determinate: WeatherDeterminateType
 ) => {
   const dateInterval = createDateInterval(fromDate, toDate)
-  const groupedByStationCode = groupby(items, 'station_code')
+  const groupedByStationCode = groupBy(items, 'station_code')
   for (const key of stationMap.keys()) {
     if (isUndefined(groupedByStationCode[key])) {
       groupedByStationCode[key] = []
     }
   }
-  const allActuals: WeatherIndeterminate[] = [...items]
+  const weatherIndeterminates: WeatherIndeterminate[] = [...items]
   for (const [key, values] of Object.entries(groupedByStationCode)) {
     const stationCode = parseInt(key)
     const stationName = stationMap.get(stationCode) || ''
@@ -248,58 +262,13 @@ const fillMissingActuals = (
     if (values.length < dateInterval.length) {
       for (const date of dateInterval) {
         if (!values.some(value => value.utc_timestamp === date)) {
-          const missingActual = createEmptyWeatherIndeterminate(
-            stationCode,
-            stationName,
-            date,
-            WeatherDeterminate.ACTUAL
-          )
-          allActuals.push(missingActual)
+          const missing = createEmptyWeatherIndeterminate(stationCode, stationName, date, determinate)
+          weatherIndeterminates.push(missing)
         }
       }
     }
   }
-  return allActuals
-}
-
-/**
- * Given an array of WeatherIndeterminates and a date range, ensure a forecast is present for each
- * day for each station.
- * @param items An array of WeatherIndeterminates that may need additional empty values added.
- * @param fromDate The start date for which values are required (inclusive).
- * @param toDate The end date for which values are required (inclusive).
- * @param stationMap A mapping of station codes to station names.
- * @returns An array of WeatherIndeterminates with all required values present. Values may
- * contain NaN for dates in the future or dates where the backend does not provide data.
- */
-const fillMissingForecasts = (
-  items: WeatherIndeterminate[],
-  fromDate: DateTime,
-  toDate: DateTime,
-  stationMap: Map<number, string>
-) => {
-  const dateInterval = createDateInterval(fromDate, toDate)
-  const groupedByStationCode = groupby(items, 'station_code')
-  for (const key of stationMap.keys()) {
-    if (isUndefined(groupedByStationCode[key])) {
-      groupedByStationCode[key] = []
-    }
-  }
-  const allWeatherIndeterminates: WeatherIndeterminate[] = [...items]
-  for (const [key, values] of Object.entries(groupedByStationCode)) {
-    const stationCode = parseInt(key)
-    const stationName = stationMap.get(stationCode) || ''
-    // We expect one WeatherIndeterminate per date in our date interval
-    if (values.length < dateInterval.length) {
-      for (const date of dateInterval) {
-        if (!values.some(value => value.utc_timestamp === date)) {
-          const missing = createEmptyWeatherIndeterminate(stationCode, stationName, date, WeatherDeterminate.NULL)
-          allWeatherIndeterminates.push(missing)
-        }
-      }
-    }
-  }
-  return allWeatherIndeterminates
+  return weatherIndeterminates
 }
 
 /**
@@ -312,7 +281,7 @@ const fillMissingForecasts = (
  * @returns An array of WeatherIndeterminates with all required predictions are present. Predictions
  * may contain NaN values for dates in the future or dates where the backend does not provide data.
  */
-const fillMissingPredictions = (
+export const fillMissingPredictions = (
   items: WeatherIndeterminate[],
   fromDate: DateTime,
   toDate: DateTime,
@@ -523,21 +492,4 @@ const createEmptyWeatherIndeterminate = (
     wind_direction: null,
     wind_speed: null
   }
-}
-
-/**
- * Groups the given WeatherIndeterminate array by the provided property.
- * @param items THe array to be grouped.
- * @param property The property to group on.
- * @returns An object with keys equivalent to the unqiue values of the provided property and arrays
- * of WeatherIndeterminates.
- */
-const groupby = (items: WeatherIndeterminate[], property: keyof WeatherIndeterminate) => {
-  return items.reduce((acc: { [key: string]: WeatherIndeterminate[] }, item: WeatherIndeterminate) => {
-    const group = item[property] as string
-    acc[group] = acc[group] || []
-    acc[group].push(item)
-
-    return acc
-  }, {})
 }
