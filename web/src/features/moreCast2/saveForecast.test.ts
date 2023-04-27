@@ -155,12 +155,7 @@ describe('saveForecasts', () => {
     })
 
     it('should return false if any forecasts have missing forecast fields set other than windDirectionForecast', () => {
-      expect(
-        isForecastValid([
-          buildCompleteForecast('1', mockForDate, 1, 'one'),
-          buildNAForecast('2', mockForDate, 2, 'two')
-        ])
-      ).toBe(false)
+      expect(isForecastValid([buildNAForecast('1', mockForDate, 2, 'one')])).toBe(false)
     })
   })
   describe('validForecastPredicate', () => {

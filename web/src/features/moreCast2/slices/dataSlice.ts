@@ -298,16 +298,24 @@ export const fillMissingPredictions = (
   const groupedByStationCode = createStationCodeToWeatherIndeterminateGroups(items, stationMap)
 
   const allPredictions = [...items]
-  for (const [key, values] of Object.entries(groupedByStationCode)) {
-    const stationCode = parseInt(key)
+  for (const [stationCodeAsString, weatherIndeterminatesByStationCode] of Object.entries(groupedByStationCode)) {
+    const stationCode = parseInt(stationCodeAsString)
     const stationName = stationMap.get(stationCode) || ''
-    const groupedByUtcTimestamp = createUtcTimeStampToWeatherIndeterminateGroups(values, dateInterval)
+    const groupedByUtcTimestamp = createUtcTimeStampToWeatherIndeterminateGroups(
+      weatherIndeterminatesByStationCode,
+      dateInterval
+    )
 
-    for (const [key2, values2] of Object.entries(groupedByUtcTimestamp)) {
+    for (const [utcTimestamp, weatherIndeterminatesByUtcTimestamp] of Object.entries(groupedByUtcTimestamp)) {
       for (const determinate of modelDeterminates) {
-        const hasDeterminate = values2.filter(value => value.determinate === determinate)
+        const hasDeterminate = weatherIndeterminatesByUtcTimestamp.filter(value => value.determinate === determinate)
         if (hasDeterminate.length === 0) {
-          const missingDeterminate = createEmptyWeatherIndeterminate(stationCode, stationName, key2, determinate)
+          const missingDeterminate = createEmptyWeatherIndeterminate(
+            stationCode,
+            stationName,
+            utcTimestamp,
+            determinate
+          )
           allPredictions.push(missingDeterminate)
         }
       }
