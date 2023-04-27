@@ -16,6 +16,7 @@ export class DataGridColumns {
     const model: GridColumnVisibilityModel = {}
     const weatherParameterColumns = getWeatherParameterColumns()
     weatherParameterColumns.forEach(columnName => {
+      // temperature columns are visible by default
       if (columnName.startsWith('temp')) {
         model[columnName] = true
       } else {

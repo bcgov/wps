@@ -11,6 +11,7 @@ import { GridComponentRenderer } from 'features/moreCast2/components/GridCompone
 
 export const DEFAULT_COLUMN_WIDTH = 80
 
+// Defines the order in which weather models display in the datagrid.
 export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
   WeatherDeterminate.ACTUAL,
   WeatherDeterminate.HRDPS,
