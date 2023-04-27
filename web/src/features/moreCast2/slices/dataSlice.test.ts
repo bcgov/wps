@@ -1,10 +1,59 @@
-import { WeatherDeterminate, WeatherIndeterminate, WeatherIndeterminatePayload } from 'api/moreCast2API'
+import {
+  WeatherDeterminate,
+  WeatherDeterminateChoices,
+  WeatherIndeterminate,
+  WeatherIndeterminatePayload
+} from 'api/moreCast2API'
 import dataSliceReducer, {
+  fillMissingPredictions,
+  fillMissingWeatherIndeterminates,
   initialState,
   getWeatherIndeterminatesFailed,
   getWeatherIndeterminatesStart,
   getWeatherIndeterminatesSuccess
 } from 'features/moreCast2/slices/dataSlice'
+import { DateTime } from 'luxon'
+
+const FROM_DATE_STRING = '2023-04-27T20:00:00+00:00'
+const TO_DATE_STRING = '2023-04-28T20:00:00+00:00'
+const FROM_DATE_TIME = DateTime.fromISO(FROM_DATE_STRING)
+const TO_DATE_TIME = DateTime.fromISO(TO_DATE_STRING)
+
+const modelDeterminates = WeatherDeterminateChoices.filter(
+  determinate =>
+    determinate !== WeatherDeterminate.ACTUAL &&
+    determinate !== WeatherDeterminate.FORECAST &&
+    determinate !== WeatherDeterminate.NULL
+)
+
+const weatherIndeterminateGenerator = (
+  station_code: number,
+  station_name: string,
+  determinate: WeatherDeterminate,
+  utc_timestamp: string
+) => {
+  return {
+    id: `${station_code}${utc_timestamp}`,
+    station_code,
+    station_name,
+    determinate,
+    utc_timestamp,
+    precipitation: 1,
+    relative_humidity: 95,
+    temperature: 5,
+    wind_direction: 180,
+    wind_speed: 10
+  }
+}
+
+const predictionGenerator = (station_code: number, station_name: string, date: string) => {
+  const predictions: WeatherIndeterminate[] = []
+  for (const model of modelDeterminates) {
+    const prediction = weatherIndeterminateGenerator(station_code, station_name, model, date)
+    predictions.push(prediction)
+  }
+  return predictions
+}
 
 describe('dataSlice', () => {
   describe('reducer', () => {
@@ -70,6 +119,78 @@ describe('dataSlice', () => {
     })
     it('should set a value for error state when getWeatherIndeterminatesFailed is called', () => {
       expect(dataSliceReducer(initialState, getWeatherIndeterminatesFailed(dummyError)).error).not.toBeNull()
+    })
+  })
+  describe('fillMissingWeatherIndeterminates', () => {
+    const fromDate = DateTime.fromISO('2023-04-27T20:00:00+00:00')
+    const toDate = DateTime.fromISO('2023-04-28T20:00:00+00:00')
+    it('should populate a missing actual per station per day when no weather indeterminates exist', () => {
+      const items: WeatherIndeterminate[] = []
+      const stationMap = new Map<number, string>()
+      stationMap.set(1, 'test')
+      const result = fillMissingWeatherIndeterminates(items, fromDate, toDate, stationMap, WeatherDeterminate.ACTUAL)
+      expect(result.length).toBe(2)
+    })
+    it('should populate missing actuals per station per day when a weather indeterminate already exists', () => {
+      const weatherIndeterminate = weatherIndeterminateGenerator(1, 'test', WeatherDeterminate.ACTUAL, FROM_DATE_STRING)
+      const items: WeatherIndeterminate[] = [weatherIndeterminate]
+      const stationMap = new Map<number, string>()
+      stationMap.set(1, 'test')
+      const result = fillMissingWeatherIndeterminates(
+        items,
+        FROM_DATE_TIME,
+        TO_DATE_TIME,
+        stationMap,
+        WeatherDeterminate.ACTUAL
+      )
+      expect(result.length).toBe(2)
+      expect(result[0]).toEqual(weatherIndeterminate)
+    })
+    it('should not add actuals if expected actuals already exist', () => {
+      const weatherIndeterminate = weatherIndeterminateGenerator(1, 'test', WeatherDeterminate.ACTUAL, FROM_DATE_STRING)
+      const weatherIndeterminate2 = weatherIndeterminateGenerator(1, 'test', WeatherDeterminate.ACTUAL, TO_DATE_STRING)
+      const items: WeatherIndeterminate[] = [weatherIndeterminate, weatherIndeterminate2]
+      const stationMap = new Map<number, string>()
+      stationMap.set(1, 'test')
+      const result = fillMissingWeatherIndeterminates(
+        items,
+        FROM_DATE_TIME,
+        TO_DATE_TIME,
+        stationMap,
+        WeatherDeterminate.ACTUAL
+      )
+      expect(result.length).toBe(2)
+      expect(result[0]).toEqual(weatherIndeterminate)
+      expect(result[1]).toEqual(weatherIndeterminate2)
+    })
+  })
+  describe('fillMissingPredictions', () => {
+    const fromDate = DateTime.fromISO('2023-04-27T20:00:00+00:00')
+    const toDate = DateTime.fromISO('2023-04-28T20:00:00+00:00')
+    it('should populate a missing prediction per station per day per weather model when no predictions exist', () => {
+      const items: WeatherIndeterminate[] = []
+      const stationMap = new Map<number, string>()
+      stationMap.set(1, 'test')
+      const result = fillMissingPredictions(items, fromDate, toDate, stationMap)
+      // Expect 2 predictions per weather model
+      expect(result.length).toBe(2 * modelDeterminates.length)
+    })
+    it('should populate missing predictions per station per day per weather model when a prediction already exists', () => {
+      const weatherPrediction = weatherIndeterminateGenerator(1, 'test', WeatherDeterminate.HRDPS, FROM_DATE_STRING)
+      const items: WeatherIndeterminate[] = [weatherPrediction]
+      const stationMap = new Map<number, string>()
+      stationMap.set(1, 'test')
+      const result = fillMissingPredictions(items, FROM_DATE_TIME, TO_DATE_TIME, stationMap)
+      // Expect 2 predictions per weather model
+      expect(result.length).toBe(2 * modelDeterminates.length)
+      expect(result[0]).toEqual(weatherPrediction)
+    })
+    it('should not add predictions if expected predictions already exist', () => {
+      const weatherIndeterminates = predictionGenerator(1, 'test', FROM_DATE_STRING)
+      const stationMap = new Map<number, string>()
+      stationMap.set(1, 'test')
+      const result = fillMissingPredictions(weatherIndeterminates, FROM_DATE_TIME, FROM_DATE_TIME, stationMap)
+      expect(result.length).toBe(weatherIndeterminates.length)
     })
   })
 })
