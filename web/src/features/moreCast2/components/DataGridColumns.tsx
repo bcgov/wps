@@ -87,7 +87,7 @@ export const columnGroupingModel: GridColumnGroupingModel = [
   },
   {
     groupId: 'Wind Dir',
-    children: columnGroupingModelChildGenerator('winDirection')
+    children: columnGroupingModelChildGenerator('windDirection')
   },
   {
     groupId: 'Wind Speed',
