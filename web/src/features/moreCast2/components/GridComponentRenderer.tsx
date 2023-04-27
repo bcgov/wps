@@ -37,7 +37,11 @@ export class GridComponentRenderer {
     )
   }
 
-  public predictionItemValueSetter = (params: GridValueSetterParams, field: string, precision: number) => {
+  public predictionItemValueSetter = (
+    params: Pick<GridValueSetterParams, 'row' | 'value'>,
+    field: string,
+    precision: number
+  ) => {
     const oldValue = params.row[field].value
     const newValue = Number(params.value)
 
