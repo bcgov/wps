@@ -111,7 +111,7 @@ export const getWeatherIndeterminates =
     }
   }
 
-const createMoreCast2Rows = (
+export const createMoreCast2Rows = (
   actuals: WeatherIndeterminate[],
   forecasts: WeatherIndeterminate[],
   predictions: WeatherIndeterminate[]

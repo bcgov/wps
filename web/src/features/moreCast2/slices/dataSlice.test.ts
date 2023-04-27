@@ -5,6 +5,7 @@ import {
   WeatherIndeterminatePayload
 } from 'api/moreCast2API'
 import dataSliceReducer, {
+  createMoreCast2Rows,
   fillMissingPredictions,
   fillMissingWeatherIndeterminates,
   initialState,
@@ -18,6 +19,11 @@ const FROM_DATE_STRING = '2023-04-27T20:00:00+00:00'
 const TO_DATE_STRING = '2023-04-28T20:00:00+00:00'
 const FROM_DATE_TIME = DateTime.fromISO(FROM_DATE_STRING)
 const TO_DATE_TIME = DateTime.fromISO(TO_DATE_STRING)
+const PRECIP = 1
+const RH = 75
+const TEMP = 10
+const WIND_DIRECTION = 180
+const WIND_SPEED = 5
 
 const modelDeterminates = WeatherDeterminateChoices.filter(
   determinate =>
@@ -38,11 +44,11 @@ const weatherIndeterminateGenerator = (
     station_name,
     determinate,
     utc_timestamp,
-    precipitation: 1,
-    relative_humidity: 95,
-    temperature: 5,
-    wind_direction: 180,
-    wind_speed: 10
+    precipitation: PRECIP,
+    relative_humidity: RH,
+    temperature: TEMP,
+    wind_direction: WIND_DIRECTION,
+    wind_speed: WIND_SPEED
   }
 }
 
@@ -191,6 +197,29 @@ describe('dataSlice', () => {
       stationMap.set(1, 'test')
       const result = fillMissingPredictions(weatherIndeterminates, FROM_DATE_TIME, FROM_DATE_TIME, stationMap)
       expect(result.length).toBe(weatherIndeterminates.length)
+    })
+  })
+  describe('createMoreCast2Rows', () => {
+    it('should create one row per station per date', () => {
+      const stationCode = 1
+      const stationName = 'test'
+      const actuals = [
+        weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.ACTUAL, FROM_DATE_STRING)
+      ]
+      const forecasts = [
+        weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.NULL, FROM_DATE_STRING)
+      ]
+      const predictions = predictionGenerator(stationCode, stationName, FROM_DATE_STRING)
+      const rows = createMoreCast2Rows(actuals, forecasts, predictions)
+      expect(rows.length).toBe(1)
+      const row = rows[0]
+      expect(row.stationCode).toBe(stationCode)
+      expect(row.stationName).toBe(stationName)
+      expect(row.precipActual).toBe(PRECIP)
+      expect(row.rhActual).toBe(RH)
+      expect(row.tempActual).toBe(TEMP)
+      expect(row.windDirectionActual).toBe(WIND_DIRECTION)
+      expect(row.windSpeedActual).toBe(WIND_SPEED)
     })
   })
 })
