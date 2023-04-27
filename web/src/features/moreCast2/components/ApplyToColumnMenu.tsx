@@ -4,7 +4,7 @@ import { Button, FormControl, Grid, Menu, MenuItem } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import { ModelChoices, DEFAULT_MODEL_TYPE, ModelType, ModelChoice } from 'api/moreCast2API'
-import { isNull, isUndefined } from 'lodash'
+import { isNull } from 'lodash'
 
 export interface ApplyFunctionMenuItemProps {
   testId?: string
@@ -21,9 +21,8 @@ const ApplyToColumnMenu = ({ colDef, contextMenu, handleClose, updateColumnWithM
   const [selectedColumnModel, setSelectedColumnModel] = React.useState<ModelType>(DEFAULT_MODEL_TYPE)
 
   const isAForecastColumn = (): boolean => {
-    if (!isNull(colDef?.field) && !isUndefined(colDef?.field)) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return colDef!.field.includes('Forecast')
+    if (!isNull(colDef)) {
+      return colDef.field.includes('Forecast')
     }
     return false
   }
