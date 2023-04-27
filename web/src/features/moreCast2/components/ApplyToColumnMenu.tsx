@@ -21,6 +21,7 @@ const ApplyToColumnMenu = ({ colDef, contextMenu, handleClose, updateColumnWithM
   const [selectedColumnModel, setSelectedColumnModel] = React.useState<ModelType>(DEFAULT_MODEL_TYPE)
   return (
     <Menu
+      data-testid="apply-to-column-menu"
       open={contextMenu !== null}
       onClose={handleClose}
       anchorReference="anchorPosition"
@@ -60,8 +61,8 @@ const ApplyToColumnMenu = ({ colDef, contextMenu, handleClose, updateColumnWithM
             </Grid>
             <Grid item>
               <Button
+                data-testid="apply-model-to-column-button"
                 variant="contained"
-                data-testid={'apply-model-to-column-button'}
                 startIcon={<SaveIcon />}
                 onClick={() => {
                   if (!isNull(colDef)) {

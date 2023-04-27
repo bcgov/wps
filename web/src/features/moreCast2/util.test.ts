@@ -114,7 +114,7 @@ describe('rowIDHasher', () => {
 describe('parseForecastsHelper', () => {
   const buildForecastRecord = (station_code: number) => ({
     station_code,
-    for_date: Date.parse('2022-01-01T00:00:00.000Z'),
+    for_date: Date.parse('2022-01-01T05:00:00.000Z'),
     precip: 1,
     rh: 1,
     temp: 1,
@@ -163,7 +163,7 @@ describe('parseForecastsHelper', () => {
     expect(result).toEqual([
       {
         id: '12021-12-31',
-        forDate: DateTime.fromMillis(Date.parse('2022-01-01T00:00:00.000Z')),
+        forDate: DateTime.fromMillis(Date.parse('2022-01-01T05:00:00.000Z')),
         precip: { choice: ModelChoice.FORECAST, value: 1 },
         rh: { choice: ModelChoice.FORECAST, value: 1 },
         stationCode: 1,
@@ -174,7 +174,7 @@ describe('parseForecastsHelper', () => {
       },
       {
         id: '22021-12-31',
-        forDate: DateTime.fromMillis(Date.parse('2022-01-01T00:00:00.000Z')),
+        forDate: DateTime.fromMillis(Date.parse('2022-01-01T05:00:00.000Z')),
         precip: { choice: ModelChoice.FORECAST, value: 1 },
         rh: { choice: ModelChoice.FORECAST, value: 1 },
         stationCode: 2,
@@ -190,7 +190,7 @@ describe('parseForecastsHelper', () => {
     expect(result).toEqual([
       {
         id: '12021-12-31',
-        forDate: DateTime.fromMillis(Date.parse('2022-01-01T00:00:00.000Z')),
+        forDate: DateTime.fromMillis(Date.parse('2022-01-01T05:00:00.000Z')),
         precip: { choice: ModelChoice.FORECAST, value: 1 },
         rh: { choice: ModelChoice.FORECAST, value: 1 },
         stationCode: 1,
@@ -209,7 +209,7 @@ describe('parseForecastsHelper', () => {
     expect(result).toEqual([
       {
         id: '12021-12-31',
-        forDate: DateTime.fromMillis(Date.parse('2022-01-01T00:00:00.000Z')),
+        forDate: DateTime.fromMillis(Date.parse('2022-01-01T05:00:00.000Z')),
         precip: { choice: ModelChoice.FORECAST, value: NaN },
         rh: { choice: ModelChoice.FORECAST, value: NaN },
         stationCode: 1,
