@@ -98,31 +98,6 @@ export interface WeatherIndeterminateResponse {
   predictions: WeatherIndeterminate[]
 }
 
-export interface ObservedDailiesResponse {
-  dailies: ObservedDailyResponse[]
-}
-
-export interface ObservedDailyResponse {
-  station_code: number
-  station_name: string
-  utcTimestamp: string
-  temperature: number | null
-  relative_humidity: number | null
-  precipitation: number | null
-  wind_direction: number | null
-  wind_speed: number | null
-}
-
-export interface ObservedDaily extends ObservedDailyResponse {
-  id: string
-  data_type: 'ACTUAL' | 'YESTERDAY'
-}
-
-export interface ObservedAndYesterdayDailiesResponse {
-  observedDailies: ObservedDaily[]
-  yesterdayDailies: ObservedDaily[]
-}
-
 export interface StationPrediction {
   abbreviation: ModelType
   bias_adjusted_relative_humidity: number | null
@@ -136,15 +111,6 @@ export interface StationPrediction {
   wind_direction: number | null
   wind_speed: number | null
 }
-
-export enum ForecastActionChoice {
-  CREATE = 'Create Forecast',
-  EDIT = 'View/Edit Forecast'
-}
-
-export type ForecastActionType = 'Create Forecast' | 'View/Edit Forecast'
-
-export const ForecastActionChoices: ForecastActionType[] = [ForecastActionChoice.CREATE, ForecastActionChoice.EDIT]
 
 export const ModelOptions: ModelType[] = ModelChoices.filter(choice => !isEqual(choice, ModelChoice.MANUAL))
 
