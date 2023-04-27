@@ -24,7 +24,6 @@ import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
 import hfiFuelTypesSlice from 'features/fba/slices/hfiFuelTypesSlice'
 import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
-import moreCast2ForecastReducer from 'features/moreCast2/slices/moreCast2ForecastsSlice'
 import stationGroupsSlice from 'commonSlices/stationGroupsSlice'
 import selectedStationGroupsMembersSlice from 'commonSlices/selectedStationGroupMembers'
 import dataSlice from 'features/moreCast2/slices/dataSlice'
@@ -56,7 +55,6 @@ const rootReducer = combineReducers({
   valueAtCoordinate: valueAtCoordinateSlice,
   hfiFuelTypes: hfiFuelTypesSlice,
   fireZoneElevationInfo: fireZoneElevationInfoSlice,
-  moreCast2Forecasts: moreCast2ForecastReducer,
   stationGroups: stationGroupsSlice,
   stationGroupsMembers: selectedStationGroupsMembersSlice,
   weatherIndeterminates: dataSlice,
@@ -94,7 +92,6 @@ export const selectRunDates = (state: RootState) => state.runDates
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
 export const selectHFIFuelTypes = (state: RootState) => state.hfiFuelTypes
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
-export const selectMoreCast2Forecasts = (state: RootState) => state.moreCast2Forecasts
 
 export const selectWxDataLoading = (state: RootState): boolean =>
   state.observations.loading ||
@@ -113,7 +110,6 @@ export const selectHFIStationsLoading = (state: RootState): boolean => state.hfi
 export const selectHFIReadyState = (state: RootState): HFIReadyState => state.hfiReady
 export const selectFireBehaviourStationsLoading = (state: RootState): boolean => state.fbaCalculatorResults.loading
 export const selectFireCentersLoading = (state: RootState): boolean => state.fireCenters.loading
-export const selectMoreCast2ForecastsLoading = (state: RootState): boolean => state.moreCast2Forecasts.loading
 export const selectStationGroupsLoading = (state: RootState): boolean => state.stationGroups.loading
 export const selectStationGroups = (state: RootState) => state.stationGroups
 export const selectStationGroupsMembers = (state: RootState) => state.stationGroupsMembers
