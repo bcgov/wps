@@ -126,7 +126,7 @@ const buildForecastWithActuals = (
   windSpeedForecast: { choice: 'GDPS', value: 0 }
 })
 
-describe.only('saveForecasts', () => {
+describe('saveForecasts', () => {
   describe('isForecastValid', () => {
     it('should return true if all forecasts fields are set', () => {
       expect(

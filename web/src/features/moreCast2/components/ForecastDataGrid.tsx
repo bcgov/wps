@@ -25,7 +25,6 @@ export interface ForecastDataGridProps {
   } | null
   columnVisibilityModel: GridColumnVisibilityModel
   setColumnVisibilityModel: React.Dispatch<React.SetStateAction<GridColumnVisibilityModel>>
-  setClickedColDef: React.Dispatch<React.SetStateAction<GridColDef | null>>
   onCellDoubleClickHandler: (
     params: GridCellParams,
     event: MuiEvent<React.MouseEvent>,
@@ -52,7 +51,6 @@ const ForecastDataGrid = ({
   contextMenu,
   columnVisibilityModel,
   setColumnVisibilityModel,
-  setClickedColDef,
   onCellDoubleClickHandler,
   updateColumnWithModel,
   handleColumnHeaderClick,
