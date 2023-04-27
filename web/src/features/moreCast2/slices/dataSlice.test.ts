@@ -1,5 +1,4 @@
 import { WeatherDeterminate, WeatherIndeterminate, WeatherIndeterminatePayload } from 'api/moreCast2API'
-import dataSlice from 'features/moreCast2/slices/dataSlice'
 import dataSliceReducer, {
   initialState,
   getWeatherIndeterminatesFailed,
@@ -11,17 +10,17 @@ describe('dataSlice', () => {
   describe('reducer', () => {
     const dummyError = 'an error'
     it('should be initialized with correct state flags', () => {
-      expect(dataSlice(undefined, { type: undefined })).toEqual(initialState)
+      expect(dataSliceReducer(undefined, { type: undefined })).toEqual(initialState)
     })
     it('should set loading = true when getWeatherIndeterminatesStart is called', () => {
-      expect(dataSlice(initialState, getWeatherIndeterminatesStart())).toEqual({
+      expect(dataSliceReducer(initialState, getWeatherIndeterminatesStart())).toEqual({
         ...initialState,
         loading: true
       })
     })
     it('should set loading = false when getWeatherIndeterminatesSuccess is called', () => {
       expect(
-        dataSlice(initialState, getWeatherIndeterminatesSuccess({ actuals: [], forecasts: [], predictions: [] }))
+        dataSliceReducer(initialState, getWeatherIndeterminatesSuccess({ actuals: [], forecasts: [], predictions: [] }))
       ).toEqual({
         ...initialState,
         loading: false
