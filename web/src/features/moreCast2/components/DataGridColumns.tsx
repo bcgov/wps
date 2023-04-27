@@ -1,5 +1,5 @@
 import { GridColumnVisibilityModel, GridColDef, GridColumnGroupingModel } from '@mui/x-data-grid'
-import { WeatherDeterminate } from 'api/moreCast2API'
+import { WeatherDeterminate, WeatherDeterminateChoices } from 'api/moreCast2API'
 import {
   MORECAST2_FIELDS,
   MORECAST2_FORECAST_FIELDS,
@@ -14,7 +14,7 @@ export interface ColumnVis {
 export class DataGridColumns {
   public static initGridColumnVisibilityModel() {
     const model: GridColumnVisibilityModel = {}
-    const weatherParameterColumns = getWeatherParameterColumns()
+    const weatherParameterColumns = this.getWeatherParameterColumns()
     weatherParameterColumns.forEach(columnName => {
       // temperature columns are visible by default
       if (columnName.startsWith('temp')) {
@@ -75,62 +75,37 @@ export const columnGroupingModel: GridColumnGroupingModel = [
   },
   {
     groupId: 'Temp',
-    children: [
-      { field: 'tempForecast' },
-      { field: 'tempActual' },
-      { field: 'tempHRDPS' },
-      { field: 'tempRDPS' },
-      { field: 'tempGDPS' },
-      { field: 'tempNAM' },
-      { field: 'tempGFS' }
-    ]
+    children: columnGroupingModelChildGenerator('temp')
   },
   {
     groupId: 'RH',
-    children: [
-      { field: 'rhForecast' },
-      { field: 'rhActual' },
-      { field: 'rhHRDPS' },
-      { field: 'rhRDPS' },
-      { field: 'rhGDPS' },
-      { field: 'rhNAM' },
-      { field: 'rhGFS' }
-    ]
+    children: columnGroupingModelChildGenerator('rh')
   },
   {
     groupId: 'Precip',
-    children: [
-      { field: 'precipForecast' },
-      { field: 'precipActual' },
-      { field: 'precipHRDPS' },
-      { field: 'precipRDPS' },
-      { field: 'precipGDPS' },
-      { field: 'precipNAM' },
-      { field: 'precipGFS' }
-    ]
+    children: columnGroupingModelChildGenerator('precip')
   },
   {
     groupId: 'Wind Dir',
-    children: [
-      { field: 'windDirectionForecast' },
-      { field: 'windDirectionActual' },
-      { field: 'windDirectionHRDPS' },
-      { field: 'windDirectionRDPS' },
-      { field: 'windDirectionGDPS' },
-      { field: 'windDirectionNAM' },
-      { field: 'windDirectionGFS' }
-    ]
+    children: columnGroupingModelChildGenerator('winDirection')
   },
   {
     groupId: 'Wind Speed',
-    children: [
-      { field: 'windSpeedForecast' },
-      { field: 'windSpeedActual' },
-      { field: 'windSpeedHRDPS' },
-      { field: 'windSpeedRDPS' },
-      { field: 'windSpeedGDPS' },
-      { field: 'windSpeedNAM' },
-      { field: 'windSpeedGFS' }
-    ]
+    children: columnGroupingModelChildGenerator('windSpeed')
   }
 ]
+
+// Returns an array of objects of the shape { field: weather parameter + weather determiante }. For example,
+// eg. { field: 'tempACTUAL' }  This objects are used in the column grouping model to help manage grouping
+// and visibility of our weather paramter tabs
+function columnGroupingModelChildGenerator(weatherParam: string) {
+  // For a given weather model, there are tabs present in the datagrid for each WeatherDetermiante except
+  // WeatherDeterminate.NULL
+  const determinates = WeatherDeterminateChoices.filter(choice => choice !== WeatherDeterminate.NULL)
+  const children = determinates.map(determinate => {
+    return {
+      field: `${weatherParam}${determinate}`
+    }
+  })
+  return children
+}
