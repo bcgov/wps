@@ -160,6 +160,23 @@ describe('ColDefBuilder', () => {
       ).toEqual({ testField: { choice: ModelChoice.MANUAL, value: 2 } })
     })
 
+    it('should generate col def with parameters correctly with a default width', () => {
+      const forecastColDef = colDefBuilder.generateForecastColDefWith(testField, testHeader, testPrecision)
+
+      expect(JSON.stringify(forecastColDef)).toEqual(
+        JSON.stringify({
+          field: testField,
+          disableColumnMenu: true,
+          disableReorder: true,
+          editable: true,
+          headerName: testHeader,
+          sortable: false,
+          type: 'number',
+          width: 120
+        })
+      )
+    })
+
     it('should delegate to GridComponentRenderer', () => {
       expect(colDefBuilder.valueFormatterWith({ value: 1.11 }, 1)).toEqual('1.1')
       expect(colDefBuilder.valueGetterWith({ value: 1.11 }, 1)).toEqual('1.1')
