@@ -58,13 +58,17 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     const forecastColDef = this.generateForecastColDef(headerName)
     gridColDefs.push(forecastColDef)
 
-    // Actual and model prediction columns only show data, so require a simple column definition
-    for (const determinate of ORDERED_COLUMN_HEADERS) {
-      const fieldName = `${this.field}${determinate}`
-      const gridColDef = this.generateColDefWith(fieldName, determinate, this.precision, DEFAULT_COLUMN_WIDTH)
-      gridColDefs.push(gridColDef)
+    for (const colDef of this.generateNonForecastColDefs()) {
+      gridColDefs.push(colDef)
     }
+
     return gridColDefs
+  }
+
+  public generateNonForecastColDefs = () => {
+    return ORDERED_COLUMN_HEADERS.map(header =>
+      this.generateColDefWith(`${this.field}${header}`, header, this.precision, DEFAULT_COLUMN_WIDTH)
+    )
   }
 
   public generateColDefWith = (field: string, headerName: string, precision: number, width?: number) => {
