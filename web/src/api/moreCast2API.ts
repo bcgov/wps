@@ -1,6 +1,5 @@
 import axios from 'api/axios'
 import { Station } from 'api/stationAPI'
-import { rowIDHasher } from 'features/moreCast2/util'
 import { isEqual } from 'lodash'
 import { DateTime } from 'luxon'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
@@ -161,11 +160,7 @@ export interface MoreCast2ForecastRecord {
   station_name?: string
 }
 
-interface MoreCast2ForecastRecordResponse {
-  forecasts: MoreCast2ForecastRecord[]
-}
-
-const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[]) => {
+export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[]) => {
   const forecastRecords: MoreCast2ForecastRecord[] = forecasts.map(forecast => {
     return {
       station_code: forecast.stationCode,
@@ -198,64 +193,6 @@ export async function submitMoreCastForecastRecords(forecasts: MoreCast2Forecast
     console.error(error.message || error)
     return false
   }
-}
-
-/**
- * Retrieve a batch of forecasts for a specified date range and array of stations
- * @param startDate The start of the date range
- * @param endDate The end of the date range (inclusive)
- * @param stations The stations of interest
- */
-export async function getMoreCast2ForecastRecordsByDateRange(
-  startDate: DateTime,
-  endDate: DateTime,
-  stations: number[]
-): Promise<MoreCast2ForecastRecord[]> {
-  const url = `/morecast-v2/forecasts/${startDate.toISODate()}/${endDate.toISODate()}`
-  const { data } = await axios.post<MoreCast2ForecastRecordResponse>(url, {
-    stations
-  })
-  return data.forecasts
-}
-
-/**
- * Get noon model predictions for the specified date range
- * @param stationCodes A list of station codes of interest
- * @param model The weather model abbreviation
- * @param startDate The first date for which predictions will be returned
- * @param endDate The last date for which predictions will be returned
- */
-export async function getModelPredictions(
-  stationCodes: number[],
-  model: ModelType,
-  startDate: string,
-  endDate: string
-): Promise<StationPrediction[]> {
-  if (stationCodes.length === 0) {
-    return []
-  }
-  const url = `/weather_models/${model}/predictions/most_recent/${startDate}/${endDate}`
-  const { data } = await axios.post<StationPrediction[]>(url, {
-    stations: stationCodes
-  })
-
-  return data.map(d => ({ ...d, id: rowIDHasher(d.station.code, DateTime.fromISO(d.datetime)) }))
-}
-
-export async function getObservedDailies(
-  stationCodes: number[],
-  startDate: string,
-  endDate: string
-): Promise<ObservedDailyResponse[]> {
-  if (stationCodes.length === 0) {
-    return []
-  }
-  const url = `/morecast-v2/observed-dailies/${startDate}/${endDate}`
-  const { data } = await axios.post<ObservedDailiesResponse>(url, {
-    station_codes: stationCodes
-  })
-
-  return data.dailies
 }
 
 export async function fetchWeatherIndeterminates(
