@@ -37,7 +37,6 @@ from app.schemas.shared import (FuelType)
 from app.db.crud.hfi_calc import (get_fuel_type_by_id,
                                   get_most_recent_updated_hfi_request,
                                   get_most_recent_updated_hfi_request_for_current_date,
-                                  get_planning_weather_stations,
                                   get_latest_hfi_ready_records, get_stations_for_affected_planning_areas,
                                   get_stations_for_removal,
                                   store_hfi_request,
