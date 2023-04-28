@@ -11,8 +11,9 @@ class ModelChoice(str, Enum):
     GDPS = 'GDPS'
     GFS = 'GFS'
     HRDPS = 'HRDPS'
-    RDPS = 'RDPS'
+    NAM = 'NAM'
     MANUAL = 'MANUAL'
+    RDPS = 'RDPS'
 
 
 class WeatherDeterminate(str, Enum):
@@ -20,11 +21,12 @@ class WeatherDeterminate(str, Enum):
     GDPS = 'GDPS'
     GFS = 'GFS'
     HRDPS = 'HRDPS'
+    NAM = 'NAM'
     RDPS = 'RDPS'
 
     # non prediction models
-    FORECAST = 'FORECAST'
-    ACTUAL = 'ACTUAL'
+    FORECAST = 'Forecast'
+    ACTUAL = 'Actual'
 
 
 class ForecastedTemperature(BaseModel):
