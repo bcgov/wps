@@ -232,17 +232,12 @@ async def calculate_latest_hfi_results(
         # in the front end, we'd prefer to not change the call that's going to wfwx so that we can
         # use cached values. So we don't actually filter out the "selected" stations, but rather go
         # get all the stations for this fire centre.
-        fire_centre_stations = get_fire_centre_stations(
-            orm_session, request.selected_fire_center_id)
+
+        fire_centre_stations = [
+            station for area_stations in request.planning_area_station_info.values() for station in area_stations]
         fire_centre_station_code_ids = set()
-        area_station_map: Dict[int, List[PlanningWeatherStation]] = {}
-        station_fuel_type_map = {}
-        for station, fuel_type in fire_centre_stations:
+        for station in fire_centre_stations:
             fire_centre_station_code_ids.add(station.station_code)
-            if station.planning_area_id not in area_station_map:
-                area_station_map[station.planning_area_id] = []
-            area_station_map[station.planning_area_id].append(station)
-            station_fuel_type_map[station.station_code] = fuel_type
 
         fire_start_lookup = build_fire_start_prep_level_lookup(orm_session)
 
@@ -263,7 +258,6 @@ async def calculate_latest_hfi_results(
                                         raw_dailies,
                                         valid_date_range.days_in_range(),
                                         request.planning_area_station_info,
-                                        area_station_map,
                                         valid_date_range.start_date)
         return results, valid_date_range
 
