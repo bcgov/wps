@@ -24,13 +24,10 @@ import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
 import hfiFuelTypesSlice from 'features/fba/slices/hfiFuelTypesSlice'
 import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
-import modelSlice from 'features/moreCast2/slices/modelSlice'
-import columnModelSlice from 'features/moreCast2/slices/columnModelSlice'
-import columnYesterdaySlice from 'features/moreCast2/slices/columnYesterdaySlice'
-import moreCast2ForecastReducer from 'features/moreCast2/slices/moreCast2ForecastsSlice'
-import observedDailiesSlice from 'features/moreCast2/slices/observedDailiesSlice'
 import stationGroupsSlice from 'commonSlices/stationGroupsSlice'
 import selectedStationGroupsMembersSlice from 'commonSlices/selectedStationGroupMembers'
+import dataSlice from 'features/moreCast2/slices/dataSlice'
+import selectedStationsSlice from 'features/moreCast2/slices/selectedStationsSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -58,13 +55,10 @@ const rootReducer = combineReducers({
   valueAtCoordinate: valueAtCoordinateSlice,
   hfiFuelTypes: hfiFuelTypesSlice,
   fireZoneElevationInfo: fireZoneElevationInfoSlice,
-  stationPredictions: modelSlice,
-  columnStationPredictions: columnModelSlice,
-  columnYesterdayDailies: columnYesterdaySlice,
-  observedDailies: observedDailiesSlice,
-  moreCast2Forecasts: moreCast2ForecastReducer,
   stationGroups: stationGroupsSlice,
-  stationGroupsMembers: selectedStationGroupsMembersSlice
+  stationGroupsMembers: selectedStationGroupsMembersSlice,
+  weatherIndeterminates: dataSlice,
+  selectedStations: selectedStationsSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -98,16 +92,6 @@ export const selectRunDates = (state: RootState) => state.runDates
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
 export const selectHFIFuelTypes = (state: RootState) => state.hfiFuelTypes
 export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
-export const selectModelStationPredictions = (state: RootState) => state.stationPredictions
-export const selectObservedDailies = (state: RootState) => state.observedDailies
-export const selectColumnModelStationPredictions = (state: RootState) => state.columnStationPredictions
-export const selectColumnYesterdayDailies = (state: RootState) => state.columnYesterdayDailies
-export const selectMoreCast2Forecasts = (state: RootState) => state.moreCast2Forecasts
-export const selectMorecast2TableLoading = (state: RootState) =>
-  state.observedDailies.loading ||
-  state.stationPredictions.loading ||
-  state.columnStationPredictions.loading ||
-  state.columnYesterdayDailies.loading
 
 export const selectWxDataLoading = (state: RootState): boolean =>
   state.observations.loading ||
@@ -126,7 +110,6 @@ export const selectHFIStationsLoading = (state: RootState): boolean => state.hfi
 export const selectHFIReadyState = (state: RootState): HFIReadyState => state.hfiReady
 export const selectFireBehaviourStationsLoading = (state: RootState): boolean => state.fbaCalculatorResults.loading
 export const selectFireCentersLoading = (state: RootState): boolean => state.fireCenters.loading
-export const selectMoreCast2ForecastsLoading = (state: RootState): boolean => state.moreCast2Forecasts.loading
 export const selectStationGroupsLoading = (state: RootState): boolean => state.stationGroups.loading
 export const selectStationGroups = (state: RootState) => state.stationGroups
 export const selectStationGroupsMembers = (state: RootState) => state.stationGroupsMembers
