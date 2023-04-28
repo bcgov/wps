@@ -12,7 +12,7 @@ export enum ModelChoice {
   NAM = 'NAM',
   RDPS = 'RDPS',
   MANUAL = 'MANUAL',
-  YESTERDAY = 'PERSISTENCE',
+  PERSISTENCE = 'PERSISTENCE',
   ACTUAL = 'ACTUAL',
   NULL = ''
 }
@@ -35,7 +35,7 @@ export const ModelChoices: ModelType[] = [
   ModelChoice.GDPS,
   ModelChoice.GFS,
   ModelChoice.HRDPS,
-  ModelChoice.YESTERDAY,
+  ModelChoice.PERSISTENCE,
   ModelChoice.MANUAL,
   ModelChoice.NAM,
   ModelChoice.RDPS

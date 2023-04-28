@@ -63,11 +63,6 @@ export class DataGridColumns {
   }
 }
 
-export const getWeatherParameterColumns = (): string[] => {
-  const fields = DataGridColumns.getTabColumns().map(column => column.field)
-  return fields.filter(field => field !== 'stationName' && field !== 'forDate')
-}
-
 export const columnGroupingModel: GridColumnGroupingModel = [
   {
     groupId: 'ID',

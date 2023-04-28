@@ -202,7 +202,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
     const index = forecastField.indexOf('Forecast')
     const prefix = forecastField.slice(0, index)
     const actualField = `${prefix}Actual` as keyof MoreCast2Row
-    modelType === ModelChoice.YESTERDAY
+    modelType === ModelChoice.PERSISTENCE
       ? updateColumnFromLastActual(forecastField, actualField)
       : updateColumnFromModel(modelType, forecastField, actualField, prefix)
   }
@@ -228,7 +228,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
       const rowsWithoutActuals: MoreCast2Row[] = values.filter(value => isNaN(value[actualField] as number))
       rowsWithoutActuals.forEach(row => {
         const predictionItem = row[forecastField] as PredictionItem
-        predictionItem.choice = ModelChoice.YESTERDAY
+        predictionItem.choice = ModelChoice.PERSISTENCE
         predictionItem.value = mostRecentValue as number
       })
     }
