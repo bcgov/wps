@@ -3,7 +3,7 @@ import SaveIcon from '@mui/icons-material/Save'
 import { Button, FormControl, Grid, Menu, MenuItem } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
-import { ModelChoices, DEFAULT_MODEL_TYPE, ModelType, ModelChoice } from 'api/moreCast2API'
+import { DEFAULT_MODEL_TYPE, ModelOptions, ModelType } from 'api/moreCast2API'
 import { isNull } from 'lodash'
 
 export interface ApplyFunctionMenuItemProps {
@@ -62,7 +62,7 @@ const ApplyToColumnMenu = ({ colDef, contextMenu, handleClose, updateColumnWithM
             <Grid item>
               <WeatherModelDropdown
                 label="Select model to apply to column"
-                weatherModelOptions={ModelChoices.filter(model => model !== ModelChoice.MANUAL)}
+                weatherModelOptions={ModelOptions}
                 selectedModelType={selectedColumnModel}
                 setSelectedModelType={setSelectedColumnModel}
               />
