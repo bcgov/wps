@@ -10,7 +10,7 @@ interface State {
   members: StationGroupMember[]
 }
 
-const initialState: State = {
+export const initialState: State = {
   loading: false,
   error: null,
   members: []
