@@ -29,7 +29,7 @@ import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features
 
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved.'
-const FORECAST_WARN_MESSAGE = 'A forecast cannot contain N/A values.'
+const FORECAST_WARN_MESSAGE = 'Forecast not submitted. A forecast can only contain N/A values for the Wind Direction.'
 
 interface TabbedDataGridProps {
   morecast2Rows: MoreCast2Row[]
@@ -250,7 +250,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
         const predictionItem = row[forecastField] as PredictionItem
         const sourceKey = `${prefix}${modelType}` as keyof MoreCast2Row
         predictionItem.choice = modelType
-        predictionItem.value = row[sourceKey] as number
+        predictionItem.value = (row[sourceKey] as number) || NaN
       }
     }
     setVisibleRows(newRows)
