@@ -78,7 +78,7 @@ const buildForecastMissingWindDirection = (
   precipForecast: { choice: 'GDPS', value: 0 },
   rhForecast: { choice: 'GDPS', value: 0 },
   tempForecast: { choice: 'GDPS', value: 0 },
-  windDirectionForecast: { choice: '', value: NaN },
+  windDirectionForecast: { choice: 'NULL', value: NaN },
   windSpeedForecast: { choice: 'GDPS', value: 0 }
 })
 
@@ -101,11 +101,11 @@ const buildNAForecast = (id: string, forDate: DateTime, stationCode: number, sta
   stationCode,
   stationName,
   ...baseRow,
-  precipForecast: { choice: '', value: NaN },
-  rhForecast: { choice: '', value: NaN },
-  tempForecast: { choice: '', value: NaN },
-  windDirectionForecast: { choice: '', value: NaN },
-  windSpeedForecast: { choice: '', value: NaN }
+  precipForecast: { choice: 'NULL', value: NaN },
+  rhForecast: { choice: 'NULL', value: NaN },
+  tempForecast: { choice: 'NULL', value: NaN },
+  windDirectionForecast: { choice: 'NULL', value: NaN },
+  windSpeedForecast: { choice: 'NULL', value: NaN }
 })
 
 const buildForecastWithActuals = (
