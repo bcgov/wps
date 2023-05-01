@@ -1,3 +1,4 @@
+import os
 from typing import Tuple
 from datetime import date
 from app.utils import strtobool
@@ -107,7 +108,9 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
         return fuel_types
 
     def mock_get_most_recent_updated_hfi_request(*arg):
-        with open('api/app/tests/hfi/test_hfi_endpoint_request.json') as f:
+        dirname = os.path.dirname(os.path.realpath(__file__))
+        filename = os.path.join(dirname, 'test_hfi_endpoint_request.json')
+        with open(filename) as f:
             request = json.dumps(json.load(f))
             return HFIRequest(fire_centre_id=1, prep_start_day=date(2020, 5, 21), prep_end_day=date(2020, 5, 25), request=request)
 
