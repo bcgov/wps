@@ -125,8 +125,6 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_weather_stations', mock_get_fire_weather_stations)
     monkeypatch.setattr(app.db.crud.hfi_calc, 'get_all_stations', mock_get_all_stations)
-    # TODO: this is problematic, why are we calling get_fire_centre_stations twice?
-    monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_centre_fire_start_ranges',
                         mock_get_fire_centre_fire_start_ranges)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fuel_types', mock_get_fuel_types)
