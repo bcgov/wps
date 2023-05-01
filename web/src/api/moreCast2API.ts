@@ -14,7 +14,7 @@ export enum ModelChoice {
   MANUAL = 'MANUAL',
   PERSISTENCE = 'PERSISTENCE',
   ACTUAL = 'ACTUAL',
-  NULL = ''
+  NULL = 'NULL'
 }
 
 export const DEFAULT_MODEL_TYPE: ModelType = ModelChoice.HRDPS
@@ -29,7 +29,7 @@ export type ModelType =
   | 'MANUAL'
   | 'FORECAST'
   | 'ACTUAL'
-  | ''
+  | 'NULL'
 
 export const ModelChoices: ModelType[] = [
   ModelChoice.GDPS,
@@ -38,6 +38,7 @@ export const ModelChoices: ModelType[] = [
   ModelChoice.PERSISTENCE,
   ModelChoice.MANUAL,
   ModelChoice.NAM,
+  ModelChoice.NULL,
   ModelChoice.RDPS
 ]
 
