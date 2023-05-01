@@ -1,13 +1,6 @@
 import { AlertColor, FormControl, List, Stack } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import {
-  GridCallbackDetails,
-  GridCellParams,
-  GridColDef,
-  GridColumnVisibilityModel,
-  GridEventListener,
-  MuiEvent
-} from '@mui/x-data-grid'
+import { GridCellParams, GridColDef, GridColumnVisibilityModel, GridEventListener } from '@mui/x-data-grid'
 import { ModelChoice, ModelType, submitMoreCastForecastRecords, WeatherModelChoices } from 'api/moreCast2API'
 import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
@@ -259,11 +252,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
   // Handle a double-click on a cell in the datagrid. We only handle a double-click when the clicking
   // occurs on a cell in a weather model field/column and row where a forecast is being created (ie. the
   // row has no actual value for the weather parameter of interest)
-  const handleCellDoubleClick = (
-    params: GridCellParams,
-    event: MuiEvent<React.MouseEvent>,
-    details: GridCallbackDetails
-  ) => {
+  const handleCellDoubleClick = (params: GridCellParams) => {
     const headerName = params.colDef.headerName as ModelType
     if (!headerName || WeatherModelChoices.indexOf(headerName) < 0) {
       // A forecast or actual column was clicked, or there is no value for headerName, nothing to do
