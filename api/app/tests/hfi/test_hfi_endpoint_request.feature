@@ -13,7 +13,7 @@ Feature: /hfi/
             | url                                               | status_code | response_json                            | request_saved | stored_request_json                   |
             | /api/hfi-calc/fire_centre/1                       | 200         | hfi/test_hfi_endpoint_load_response.json | False         | None                                  |
             | /api/hfi-calc/fire_centre/1                       | 200         | hfi/test_hfi_endpoint_load_response.json | False         | test_hfi_endpoint_stored_request.json |
-            | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25 | 200         | hfi/test_hfi_endpoint_load_response.json | False         | None
+            | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25 | 200         | hfi/test_hfi_endpoint_load_response.json | False         | None                                  |
             | /api/hfi-calc/fire_centre/1/2020-05-21/2020-05-25 | 200         | hfi/test_hfi_endpoint_load_response.json | False         | test_hfi_endpoint_stored_request.json |
 
 
