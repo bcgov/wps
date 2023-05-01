@@ -345,7 +345,7 @@ async def get_hfi_result_with_date(fire_centre_id: int,
                 date_range = DateRange(start_date=start_date, end_date=end_date)
             else:
                 date_range = None
-            request, request_loaded, fire_centre_fire_start_ranges = get_prepared_request(session,
+            request, _, fire_centre_fire_start_ranges = get_prepared_request(session,
                                                                                           fire_centre_id,
                                                                                           date_range)
 
