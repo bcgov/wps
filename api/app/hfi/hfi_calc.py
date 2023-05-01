@@ -8,7 +8,7 @@ from aiohttp.client import ClientSession
 from sqlalchemy.orm import Session
 import app
 from app.db.database import get_read_session_scope
-from app.db.models.hfi_calc import PlanningWeatherStation, FuelType as FuelTypeModel
+from app.db.models.hfi_calc import FuelType as FuelTypeModel
 from app.fire_behaviour.cffdrs import CFFDRSException
 from app.fire_behaviour.prediction import (
     FireBehaviourPredictionInputError, calculate_fire_behaviour_prediction, FireBehaviourPrediction)
@@ -26,8 +26,7 @@ from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import (get_auth_header, get_stations_by_codes,
                                        get_wfwx_stations_from_station_codes,
                                        get_raw_dailies_in_range_generator)
-from app.db.crud.hfi_calc import (get_fire_centre_stations,
-                                  get_fire_weather_stations,
+from app.db.crud.hfi_calc import (get_fire_weather_stations,
                                   get_fire_centre_fire_start_ranges,
                                   get_fire_start_lookup,
                                   get_fuel_types)
@@ -232,17 +231,12 @@ async def calculate_latest_hfi_results(
         # in the front end, we'd prefer to not change the call that's going to wfwx so that we can
         # use cached values. So we don't actually filter out the "selected" stations, but rather go
         # get all the stations for this fire centre.
-        fire_centre_stations = get_fire_centre_stations(
-            orm_session, request.selected_fire_center_id)
+
+        fire_centre_stations = [
+            station for area_stations in request.planning_area_station_info.values() for station in area_stations]
         fire_centre_station_code_ids = set()
-        area_station_map: Dict[int, List[PlanningWeatherStation]] = {}
-        station_fuel_type_map = {}
-        for station, fuel_type in fire_centre_stations:
+        for station in fire_centre_stations:
             fire_centre_station_code_ids.add(station.station_code)
-            if station.planning_area_id not in area_station_map:
-                area_station_map[station.planning_area_id] = []
-            area_station_map[station.planning_area_id].append(station)
-            station_fuel_type_map[station.station_code] = fuel_type
 
         fire_start_lookup = build_fire_start_prep_level_lookup(orm_session)
 
@@ -263,7 +257,6 @@ async def calculate_latest_hfi_results(
                                         raw_dailies,
                                         valid_date_range.days_in_range(),
                                         request.planning_area_station_info,
-                                        area_station_map,
                                         valid_date_range.start_date)
         return results, valid_date_range
 
@@ -375,14 +368,13 @@ def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
                           raw_dailies: List[dict],
                           num_prep_days: int,
                           planning_area_station_info: Dict[int, List[StationInfo]],
-                          area_station_map: Dict[int, List[PlanningWeatherStation]],
                           start_date: date) -> List[PlanningAreaResult]:
     """ Computes HFI results based on parameter inputs """
     planning_area_to_dailies: List[PlanningAreaResult] = []
 
     station_lookup: Dict[str, WFWXWeatherStation] = {station.wfwx_id: station for station in wfwx_stations}
 
-    for area_id in area_station_map.keys():
+    for area_id in planning_area_station_info.keys():
 
         area_dailies = calculate_station_dailies(raw_dailies,
                                                  planning_area_station_info[area_id],

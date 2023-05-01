@@ -1,9 +1,7 @@
 {
   "selected_fire_center_id": 1,
-  "date_range": {
-    "start_date": "2020-05-21",
-    "end_date": "2020-05-25"
-  },
+  "prep_start_day": "2020-05-21",
+  "prep_end_day": "2020-05-25",
   "planning_area_station_info": {
     "1": [
       {

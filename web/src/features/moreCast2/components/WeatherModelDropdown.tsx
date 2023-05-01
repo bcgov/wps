@@ -29,7 +29,7 @@ const WeatherModelDropdown = (props: WeatherModelDropdownProps) => {
       )}
       onChange={changeHandler}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
-      value={props.selectedModelType || null}
+      value={props.selectedModelType}
     />
   )
 }
