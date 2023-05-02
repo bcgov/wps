@@ -63,7 +63,7 @@ export const createDateInterval = (fromDate: DateTime, toDate: DateTime) => {
 }
 
 export const createWeatherModelLabel = (label: string) => {
-  if (label && label.endsWith('_BIAS')) {
+  if (label?.endsWith('_BIAS')) {
     const index = label.indexOf('_BIAS')
     const prefix = label.slice(0, index)
     return `${prefix} bias`
