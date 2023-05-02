@@ -606,7 +606,6 @@ const FBATable = (props: FBATableProps) => {
           ariaLabel="Fire Behaviour Analysis table"
           maxHeight={props.maxHeight ? props.maxHeight : 600}
           minHeight={props.minHeight ? props.minHeight : 300}
-          maxWidth={props.maxWidth}
           data-testId={props.testId}
         >
           <FBATableHead
