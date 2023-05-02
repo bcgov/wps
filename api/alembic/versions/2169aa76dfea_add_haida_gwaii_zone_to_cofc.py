@@ -94,9 +94,9 @@ def upgrade():
     conn.execute(sa.text(
         'INSERT INTO planning_weather_stations (station_code, fuel_type_id, planning_area_id, order_of_appearance_in_planning_area_list, create_user, create_timestamp, update_user, update_timestamp, is_deleted) VALUES (93, {}, {}, 1, \'system\', \'{}\', \'system\', \'{}\', false)'.format(m2_25_id, haida_gwaii_zone_id, now, now)))
 
-    # 4. Remove Honna station from Fraser zone in COFC
+    # 4. Mark Honna station as is_deleted = true in Fraser zone in COFC
     conn.execute(sa.text(
-        'DELETE FROM planning_weather_stations WHERE station_code = 93 AND planning_area_id = {}'.format(fraser_zone_id)))
+        'UPDATE planning_weather_stations SET is_deleted = true WHERE station_code = 93 AND planning_area_id = {}'.format(fraser_zone_id)))
 
 
 def downgrade():
@@ -109,11 +109,15 @@ def downgrade():
     haida_gwaii_zone_id = haida_gwaii_zone[0]
     m2_25_id = get_fuel_type_id(conn, 'M2 25%')
 
-    # 1. Add Honna station to Fraser zone in COFC
-    now = get_utc_now()
-    conn.execute(sa.text('INSERT INTO planning_weather_stations (station_code, fuel_type_id, planning_area_id, order_of_appearance_in_planning_area_list, create_user, create_timestamp, update_user, update_timestamp, is_deleted) VALUES (93, {}, {}, 5, \'system\', \'{}\', \'system\', \'{}\', false)'.format(m2_25_id, fraser_zone_id, now, now)))
+    # 1. Mark Honna station as is_deleted = false in Fraser zone in COFC
+    conn.execute(sa.text(
+        'UPDATE planning_weather_stations SET is_deleted = false WHERE station_code = 93 and planning_area_id = {}'.format(fraser_zone_id)))
 
     # 2. Delete Honna station from Haida Gwaii planning area
+    # NOTE: Marking Honna station in Haida Gwaii with is_deleted = true flag isn't a viable option in this case because Honna is the
+    # only station in Haida Gwaii area. We need to delete the Haida Gwaii area because it will be an empty planning area, but if we
+    # don't hard-delete Honna and its FK reference to Haida Gwaii, then we can't delete the Haida Gwaii area at all, and we don't
+    # currently have the logic to soft-delete or hide planning areas when they have no stations in them.
     honna_haida_gwaii = get_planning_weather_station(conn, 93, haida_gwaii_zone_id)
     conn.execute(sa.text('DELETE FROM planning_weather_stations WHERE station_code = {} AND planning_area_id = {}'.format(
         honna_haida_gwaii[1], haida_gwaii_zone_id)))
