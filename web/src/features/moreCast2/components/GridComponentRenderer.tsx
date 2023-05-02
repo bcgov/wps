@@ -8,6 +8,7 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { ModelChoice } from 'api/moreCast2API'
+import { createWeatherModelLabel } from 'features/moreCast2/util'
 
 const NOT_AVAILABLE = 'N/A'
 
@@ -45,7 +46,7 @@ export class GridComponentRenderer {
       <TextField
         disabled={disabled}
         size="small"
-        label={params.row[field].choice}
+        label={createWeatherModelLabel(params.row[field].choice)}
         value={params.formattedValue}
       ></TextField>
     )

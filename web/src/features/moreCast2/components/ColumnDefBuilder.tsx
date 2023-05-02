@@ -10,6 +10,7 @@ import { WeatherDeterminate, WeatherDeterminateType } from 'api/moreCast2API'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
 
 export const DEFAULT_COLUMN_WIDTH = 80
+export const DEFAULT_FORECAST_COLUMN_WIDTH = 120
 
 // Defines the order in which weather models display in the datagrid.
 export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
@@ -32,7 +33,7 @@ export interface ForecastColDefGenerator {
 
 export interface ColDefGenerator {
   generateColDef: (headerName?: string) => GridColDef
-  generateColDefs: (headerName?: string) => GridColDef[]
+  generateColDefs: (headerName?: string, includeBiasFields?: boolean) => GridColDef[]
 }
 
 export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerator {
@@ -53,25 +54,28 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       `${this.field}${WeatherDeterminate.FORECAST}`,
       headerName ? headerName : this.headerName,
       this.precision,
-      120
+      DEFAULT_FORECAST_COLUMN_WIDTH
     )
   }
 
-  public generateColDefs = (headerName?: string) => {
+  public generateColDefs = (headerName?: string, includeBiasFields = true) => {
     const gridColDefs: GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
     const forecastColDef = this.generateForecastColDef(headerName)
     gridColDefs.push(forecastColDef)
 
-    for (const colDef of this.generateNonForecastColDefs()) {
+    for (const colDef of this.generateNonForecastColDefs(includeBiasFields)) {
       gridColDefs.push(colDef)
     }
 
     return gridColDefs
   }
 
-  public generateNonForecastColDefs = () => {
-    return ORDERED_COLUMN_HEADERS.map(header =>
+  public generateNonForecastColDefs = (includeBiasFields: boolean) => {
+    const fields = includeBiasFields
+      ? ORDERED_COLUMN_HEADERS
+      : ORDERED_COLUMN_HEADERS.filter(header => !header.endsWith('_BIAS'))
+    return fields.map(header =>
       this.generateColDefWith(`${this.field}${header}`, header, this.precision, DEFAULT_COLUMN_WIDTH)
     )
   }

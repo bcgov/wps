@@ -90,13 +90,20 @@ export const columnGroupingModel: GridColumnGroupingModel = [
   }
 ]
 
-// Returns an array of objects of the shape { field: weather parameter + weather determiante }. For example,
-// eg. { field: 'tempACTUAL' }  This objects are used in the column grouping model to help manage grouping
-// and visibility of our weather paramter tabs
+// Returns an array of objects of the shape { field: weather parameter + weather determinate }. For example,
+// eg. { field: 'tempACTUAL' }  These objects are used in the column grouping model to help manage grouping
+// and visibility of our weather parameter tabs
 function columnGroupingModelChildGenerator(weatherParam: string) {
   // For a given weather model, there are tabs present in the datagrid for each WeatherDetermiante except
-  // WeatherDeterminate.NULL
-  const determinates = WeatherDeterminateChoices.filter(choice => choice !== WeatherDeterminate.NULL)
+  // WeatherDeterminate.NULL. Additioanlly, bias adjusted predictions only exist for temp and rh.
+  let determinates: WeatherDeterminate[] = []
+  if (weatherParam === 'temp' || weatherParam === 'rh') {
+    determinates = WeatherDeterminateChoices.filter(choice => choice !== WeatherDeterminate.NULL)
+  } else {
+    determinates = WeatherDeterminateChoices.filter(
+      choice => choice !== WeatherDeterminate.NULL && !choice.endsWith('BIAS')
+    )
+  }
   const children = determinates.map(determinate => {
     return {
       field: `${weatherParam}${determinate}`
