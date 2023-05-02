@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { ModelChoice } from 'api/moreCast2API'
-import { createDateInterval, parseForecastsHelper, rowIDHasher } from 'features/moreCast2/util'
+import { createDateInterval, createWeatherModelLabel, parseForecastsHelper, rowIDHasher } from 'features/moreCast2/util'
 
 const TEST_DATE = '2023-02-16T20:00:00+00:00'
 const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
@@ -140,5 +140,15 @@ describe('parseForecastsHelper', () => {
         windSpeed: { choice: ModelChoice.FORECAST, value: NaN }
       }
     ])
+  })
+})
+describe('createWeatherModelLabel', () => {
+  it('should not alter non-bias adjusted model label', () => {
+    const result = createWeatherModelLabel(ModelChoice.GDPS)
+    expect(result).toBe(ModelChoice.GDPS)
+  })
+  it('should format bias adjusted model label', () => {
+    const result = createWeatherModelLabel(ModelChoice.GDPS_BIAS)
+    expect(result).toBe('GDPS bias')
   })
 })

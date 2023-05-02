@@ -113,7 +113,6 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       disableColumnMenu: true,
       disableReorder: true,
       editable: true,
-      headerAlign: 'left',
       headerName: headerName,
       sortable: false,
       type: 'number',

@@ -21,6 +21,7 @@ describe('MoreCast2Column', () => {
           flex: 1,
           headerName: 'Station',
           maxWidth: 200,
+          minWidth: 200,
           width: 200,
           valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
             return params.value.toLocaleString(DateTime.DATE_MED)
@@ -40,6 +41,7 @@ describe('MoreCast2Column', () => {
           flex: 1,
           headerName: 'Date',
           maxWidth: 150,
+          minWidth: 150,
           width: 150,
           sortable: false,
           valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
@@ -57,7 +59,8 @@ describe('MoreCast2Column', () => {
         JSON.stringify({
           field: TempForecastField.field,
           disableColumnMenu: true,
-          disabledReorder: true,
+          disableReorder: true,
+          headerAlign: 'left',
           headerName: TempForecastField.headerName,
           sortable: false,
           type: TempForecastField.type,
@@ -74,7 +77,8 @@ describe('MoreCast2Column', () => {
         JSON.stringify({
           field: RHForecastField.field,
           disableColumnMenu: true,
-          disabledReorder: true,
+          disableReorder: true,
+          headerAlign: 'left',
           headerName: RHForecastField.headerName,
           sortable: false,
           type: RHForecastField.type,
@@ -91,7 +95,8 @@ describe('MoreCast2Column', () => {
         JSON.stringify({
           field: WindDirForecastField.field,
           disableColumnMenu: true,
-          disabledReorder: true,
+          disableReorder: true,
+          headerAlign: 'left',
           headerName: WindDirForecastField.headerName,
           sortable: false,
           type: WindDirForecastField.type,
@@ -108,7 +113,8 @@ describe('MoreCast2Column', () => {
         JSON.stringify({
           field: WindSpeedForecastField.field,
           disableColumnMenu: true,
-          disabledReorder: true,
+          disableReorder: true,
+          headerAlign: 'left',
           headerName: WindSpeedForecastField.headerName,
           sortable: false,
           type: WindSpeedForecastField.type,
@@ -125,7 +131,8 @@ describe('MoreCast2Column', () => {
         JSON.stringify({
           field: PrecipForecastField.field,
           disableColumnMenu: true,
-          disabledReorder: true,
+          disableReorder: true,
+          headerAlign: 'left',
           headerName: PrecipForecastField.headerName,
           sortable: false,
           type: PrecipForecastField.type,
