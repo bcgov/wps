@@ -1,3 +1,4 @@
+import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { isUndefined } from 'lodash'
 
@@ -12,13 +13,13 @@ export const isForecastRowPredicate = (row: MoreCast2Row) =>
 // A valid forecast row has values for precipForecast, rhForecast, tempForecast and windSpeedForecast
 export const validForecastPredicate = (row: MoreCast2Row) =>
   !isUndefined(row.precipForecast) &&
-  row.precipForecast.choice !== '' &&
+  row.precipForecast.choice !== ModelChoice.NULL &&
   !isUndefined(row.rhForecast) &&
-  row.rhForecast.choice !== '' &&
+  row.rhForecast.choice !== ModelChoice.NULL &&
   !isUndefined(row.tempForecast) &&
-  row.tempForecast.choice !== '' &&
+  row.tempForecast.choice !== ModelChoice.NULL &&
   !isUndefined(row.windSpeedForecast) &&
-  row.windSpeedForecast.choice !== ''
+  row.windSpeedForecast.choice !== ModelChoice.NULL
 
 export const getForecastRows = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   return rows ? rows.filter(isForecastRowPredicate) : []
@@ -38,10 +39,10 @@ export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {
     stationCode: r.stationCode,
     stationName: r.stationName,
     forDate: r.forDate,
-    precip: r.precipForecast || { choice: '', value: NaN },
-    rh: r.rhForecast || { choice: '', value: NaN },
-    temp: r.tempForecast || { choice: '', value: NaN },
-    windDirection: r.windDirectionForecast || { choice: '', value: NaN },
-    windSpeed: r.windSpeedForecast || { choice: '', value: NaN }
+    precip: r.precipForecast || { choice: ModelChoice.NULL, value: NaN },
+    rh: r.rhForecast || { choice: ModelChoice.NULL, value: NaN },
+    temp: r.tempForecast || { choice: ModelChoice.NULL, value: NaN },
+    windDirection: r.windDirectionForecast || { choice: ModelChoice.NULL, value: NaN },
+    windSpeed: r.windSpeedForecast || { choice: ModelChoice.NULL, value: NaN }
   }))
 }

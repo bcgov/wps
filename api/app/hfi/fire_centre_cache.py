@@ -23,10 +23,11 @@ async def get_cached_hydrated_fire_centres() -> Optional[HFIWeatherStationsRespo
         cached_json = None
         logger.error(error, exc_info=error)
     if cached_json:
-        logger.info('redis cache hit %s', key)
         cache_string = json.loads(cached_json.decode())
-        cached_response: HFIWeatherStationsResponse = HFIWeatherStationsResponse(**cache_string)
-        return cached_response
+        if len(cache_string.get(key)) > 0:
+            logger.info('redis cache hit %s', key)
+            cached_response: HFIWeatherStationsResponse = HFIWeatherStationsResponse(**cache_string)
+            return cached_response
 
     logger.info('redis cache miss %s', key)
     return None

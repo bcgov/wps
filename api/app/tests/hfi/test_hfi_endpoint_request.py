@@ -1,4 +1,6 @@
+import os
 from typing import Tuple
+from datetime import date
 from app.utils import strtobool
 from unittest.mock import MagicMock
 import pytest
@@ -50,20 +52,6 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
     def mock_get_all_stations(__):
         """ Returns mocked WFWXWeatherStations codes. """
         return all_station_codes
-
-    def mock_get_fire_centre_stations(_, __: int):
-        """ Returns mocked WFWXWeatherStation with fuel types. """
-        def get_fuel_type_by_station_code(code: int):
-            if code == code1:
-                return fuel_type_3
-            return fuel_type_2
-        result = []
-        for station_code, planning_area_id in [(code1, 1), (code2, 1), (code1, 2)]:
-            planning_station = PlanningWeatherStation(
-                station_code=station_code, planning_area_id=planning_area_id)
-            fuel_type = get_fuel_type_by_station_code(station_code)
-            result.append((planning_station, fuel_type))
-        return result
 
     def mock_get_fire_centre_fire_start_ranges(_, __: int):
         """ Returns mocked FireStartRange """
@@ -119,23 +107,25 @@ def _setup_mock(monkeypatch: pytest.MonkeyPatch):
     def mock_get_fuel_types(_):
         return fuel_types
 
-    def mock_get_most_recent_updated_hfi_request_for_current_date(session,
-                                                                  fire_centre_id: int):
-        return None
+    def mock_get_most_recent_updated_hfi_request(*arg):
+        dirname = os.path.dirname(os.path.realpath(__file__))
+        filename = os.path.join(dirname, 'test_hfi_endpoint_request.json')
+        with open(filename) as f:
+            request = json.dumps(json.load(f))
+            return HFIRequest(fire_centre_id=1, prep_start_day=date(2020, 5, 21), prep_end_day=date(2020, 5, 25), request=request)
 
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_weather_stations', mock_get_fire_weather_stations)
     monkeypatch.setattr(app.db.crud.hfi_calc, 'get_all_stations', mock_get_all_stations)
-    # TODO: this is problematic, why are we calling get_fire_centre_stations twice?
-    monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_centre_fire_start_ranges',
                         mock_get_fire_centre_fire_start_ranges)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fuel_types', mock_get_fuel_types)
     monkeypatch.setattr(app.hfi.hfi_calc, 'get_fire_start_lookup', mock_get_fire_start_lookup)
-    monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_stations', mock_get_fire_centre_stations)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_fuel_type_by_id', mock_get_fuel_type_by_id)
     monkeypatch.setattr(app.routers.hfi_calc, 'crud_get_fuel_types', mock_get_fuel_types)
     monkeypatch.setattr(app.routers.hfi_calc, 'get_most_recent_updated_hfi_request_for_current_date',
-                        mock_get_most_recent_updated_hfi_request_for_current_date)
+                        mock_get_most_recent_updated_hfi_request)
+    monkeypatch.setattr(app.routers.hfi_calc, 'get_most_recent_updated_hfi_request',
+                        mock_get_most_recent_updated_hfi_request)
 
 
 def _setup_mock_with_role(monkeypatch: pytest.MonkeyPatch, role: str):
