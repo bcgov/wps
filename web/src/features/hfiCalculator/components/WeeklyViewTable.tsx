@@ -76,7 +76,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
   }
 
   return (
-    <FireTable maxHeight={700} ariaLabel="weekly table view of HFI by planning area" testId="hfi-calc-weekly-table">
+    <FireTable ariaLabel="weekly table view of HFI by planning area" testId="hfi-calc-weekly-table">
       <TableHead>
         <TableRow>
           <DayHeaders dateRange={props.dateRange} />

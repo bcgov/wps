@@ -10,8 +10,7 @@ declare module '@mui/styles/defaultTheme' {
 
 interface FireTableProps {
   ariaLabel: string
-  maxHeight: number
-  maxWidth?: number
+  maxHeight?: number
   minHeight?: number
   children?: React.ReactNode
   testId?: string
@@ -20,8 +19,10 @@ interface FireTableProps {
 const FireTable = (props: FireTableProps) => {
   const useStyles = makeStyles(() => ({
     tableContainer: {
-      maxHeight: props.maxHeight,
-      maxWidth: props.maxWidth ? props.maxWidth : 1900,
+      flexGrow: 1,
+      overflow: 'scroll',
+      width: 'max-content',
+      maxHeight: props.maxHeight ? props.maxHeight : undefined,
       minHeight: props.minHeight ? props.minHeight : undefined
     }
   }))

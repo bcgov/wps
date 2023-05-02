@@ -44,7 +44,8 @@ const useStyles = makeStyles(theme => ({
   ...formControlStyles,
   container: {
     display: 'flex',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    flexDirection: 'column'
   },
   controlContainer: {
     display: 'flex',
@@ -288,7 +289,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         selectNewFireCentre={selectNewFireCentre}
         padding="1rem"
       />
-      <Container maxWidth={'xl'}>
+      <Container maxWidth={'xl'} className={classes.container}>
         <HFILoadingDataContainer
           pdfLoading={pdfLoading}
           fuelTypesLoading={fuelTypesLoading}
