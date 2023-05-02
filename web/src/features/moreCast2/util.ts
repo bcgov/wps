@@ -1,6 +1,5 @@
-import { isNumber } from 'lodash'
 import { DateTime, Interval } from 'luxon'
-import { ModelChoice, MoreCast2ForecastRecord, StationPrediction } from 'api/moreCast2API'
+import { ModelChoice, MoreCast2ForecastRecord } from 'api/moreCast2API'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { StationGroupMember } from 'api/stationAPI'
 
@@ -40,45 +39,6 @@ export const parseForecastsHelper = (
     rows.push(row)
   })
   return rows
-}
-
-// Convert the model predictions from the API to a format that can be used by a MoreCast2DataGrid data grid
-export const parseModelsForStationsHelper = (predictions: StationPrediction[]): MoreCast2ForecastRow[] => {
-  const rows: MoreCast2ForecastRow[] = []
-
-  predictions.forEach(prediction => {
-    const station_code = prediction.station.code
-    const station_name = prediction.station.name
-    const model = prediction.abbreviation
-    const row: MoreCast2ForecastRow = {
-      id: rowIDHasher(prediction.station.code, DateTime.fromISO(prediction.datetime)),
-      forDate: DateTime.fromISO(prediction.datetime),
-      precip: {
-        choice: model,
-        value: isNumber(prediction.precip_24hours) ? prediction.precip_24hours : NaN
-      },
-      rh: {
-        choice: model,
-        value: isNumber(prediction.relative_humidity) ? prediction.relative_humidity : NaN
-      },
-      stationCode: station_code,
-      stationName: station_name,
-      temp: {
-        choice: model,
-        value: isNumber(prediction.temperature) ? prediction.temperature : NaN
-      },
-      windDirection: {
-        choice: model,
-        value: isNumber(prediction.wind_direction) ? prediction.wind_direction : NaN
-      },
-      windSpeed: {
-        choice: model,
-        value: isNumber(prediction.wind_speed) ? prediction.wind_speed : NaN
-      }
-    }
-    rows.push(row)
-  })
-  return rows.sort((a, b) => a.stationName.localeCompare(b.stationName))
 }
 
 /**

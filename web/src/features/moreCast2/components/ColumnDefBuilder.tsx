@@ -15,10 +15,15 @@ export const DEFAULT_COLUMN_WIDTH = 80
 export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
   WeatherDeterminate.ACTUAL,
   WeatherDeterminate.HRDPS,
+  WeatherDeterminate.HRDPS_BIAS,
   WeatherDeterminate.RDPS,
+  WeatherDeterminate.RDPS_BIAS,
   WeatherDeterminate.GDPS,
+  WeatherDeterminate.GDPS_BIAS,
   WeatherDeterminate.NAM,
-  WeatherDeterminate.GFS
+  WeatherDeterminate.NAM_BIAS,
+  WeatherDeterminate.GFS,
+  WeatherDeterminate.GFS_BIAS
 ]
 
 export interface ForecastColDefGenerator {
@@ -48,7 +53,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       `${this.field}${WeatherDeterminate.FORECAST}`,
       headerName ? headerName : this.headerName,
       this.precision,
-      DEFAULT_COLUMN_WIDTH
+      120
     )
   }
 
@@ -71,11 +76,12 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     )
   }
 
-  public generateColDefWith = (field: string, headerName: string, precision: number, width?: number) => {
+  public generateColDefWith = (field: string, headerName: string, precision: number, width?: number): GridColDef => {
     return {
       field,
       disableColumnMenu: true,
-      disabledReorder: true,
+      disableReorder: true,
+      headerAlign: 'left',
       headerName,
       sortable: false,
       type: 'number',
@@ -83,24 +89,33 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       renderCell: (params: Pick<GridRenderCellParams, 'formattedValue'>) => {
         return this.gridComponentRenderer.renderCellWith(params)
       },
+      renderHeader: (params: GridColumnHeaderParams) => {
+        return this.gridComponentRenderer.renderHeaderWith(params)
+      },
       valueFormatter: (params: Pick<GridValueFormatterParams, 'value'>) => {
         return this.valueFormatterWith(params, precision)
       }
     }
   }
 
-  public generateForecastColDefWith = (field: string, headerName: string, precision: number, width?: number) => {
+  public generateForecastColDefWith = (
+    field: string,
+    headerName: string,
+    precision: number,
+    width?: number
+  ): GridColDef => {
     return {
       field: field,
       disableColumnMenu: true,
       disableReorder: true,
       editable: true,
+      headerAlign: 'left',
       headerName: headerName,
       sortable: false,
       type: 'number',
       width: width || 120,
       renderHeader: (params: GridColumnHeaderParams) => {
-        return this.gridComponentRenderer.renderHeaderWith(params)
+        return this.gridComponentRenderer.renderForecastHeaderWith(params)
       },
       renderCell: (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>) => {
         return this.gridComponentRenderer.renderForecastCellWith(params, field)

@@ -1,76 +1,118 @@
 import axios from 'api/axios'
-import { Station } from 'api/stationAPI'
 import { isEqual } from 'lodash'
 import { DateTime } from 'luxon'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 
 export enum ModelChoice {
+  ACTUAL = 'ACTUAL',
   FORECAST = 'FORECAST',
   GDPS = 'GDPS',
+  GDPS_BIAS = 'GDPS_BIAS',
   GFS = 'GFS',
+  GFS_BIAS = 'GFS_BIAS',
   HRDPS = 'HRDPS',
-  NAM = 'NAM',
-  RDPS = 'RDPS',
+  HRDPS_BIAS = 'HRDPS_BIAS',
   MANUAL = 'MANUAL',
+  NAM = 'NAM',
+  NAM_BIAS = 'NAM_BIAS',
+  NULL = '',
   PERSISTENCE = 'PERSISTENCE',
-  ACTUAL = 'ACTUAL',
-  NULL = ''
+  RDPS = 'RDPS',
+  RDPS_BIAS = 'RDPS_BIAS'
 }
 
 export const DEFAULT_MODEL_TYPE: ModelType = ModelChoice.HRDPS
 
 export type ModelType =
-  | 'HRDPS'
-  | 'GDPS'
-  | 'GFS'
-  | 'PERSISTENCE'
-  | 'NAM'
-  | 'RDPS'
-  | 'MANUAL'
-  | 'FORECAST'
-  | 'ACTUAL'
   | ''
+  | 'ACTUAL'
+  | 'FORECAST'
+  | 'GDPS'
+  | 'GDPS_BIAS'
+  | 'GFS'
+  | 'GFS_BIAS'
+  | 'HRDPS'
+  | 'HRDPS_BIAS'
+  | 'MANUAL'
+  | 'NAM'
+  | 'NAM_BIAS'
+  | 'PERSISTENCE'
+  | 'RDPS'
+  | 'RDPS_BIAS'
 
 export const ModelChoices: ModelType[] = [
   ModelChoice.GDPS,
+  ModelChoice.GDPS_BIAS,
   ModelChoice.GFS,
+  ModelChoice.GFS_BIAS,
   ModelChoice.HRDPS,
+  ModelChoice.HRDPS_BIAS,
   ModelChoice.PERSISTENCE,
   ModelChoice.MANUAL,
   ModelChoice.NAM,
-  ModelChoice.RDPS
+  ModelChoice.NAM_BIAS,
+  ModelChoice.RDPS,
+  ModelChoice.RDPS_BIAS
 ]
 
 export const WeatherModelChoices: ModelType[] = [
   ModelChoice.GDPS,
+  ModelChoice.GDPS_BIAS,
   ModelChoice.GFS,
+  ModelChoice.GFS_BIAS,
   ModelChoice.HRDPS,
+  ModelChoice.HRDPS_BIAS,
   ModelChoice.NAM,
-  ModelChoice.RDPS
+  ModelChoice.NAM_BIAS,
+  ModelChoice.RDPS,
+  ModelChoice.RDPS_BIAS
 ]
 
 export enum WeatherDeterminate {
   ACTUAL = 'Actual',
   FORECAST = 'Forecast',
   GDPS = 'GDPS',
+  GDPS_BIAS = 'GDPS_BIAS',
   GFS = 'GFS',
+  GFS_BIAS = 'GFS_BIAS',
   HRDPS = 'HRDPS',
+  HRDPS_BIAS = 'HRDPS_BIAS',
   NAM = 'NAM',
+  NAM_BIAS = 'NAM_BIAS',
   NULL = 'NULL',
-  RDPS = 'RDPS'
+  RDPS = 'RDPS',
+  RDPS_BIAS = 'RDPS_BIAS'
 }
 
-export type WeatherDeterminateType = 'Actual' | 'Forecast' | 'GDPS' | 'GFS' | 'HRDPS' | 'NAM' | 'NULL' | 'RDPS'
+export type WeatherDeterminateType =
+  | 'Actual'
+  | 'Forecast'
+  | 'GDPS'
+  | 'GDPS_BIAS'
+  | 'GFS'
+  | 'GFS_BIAS'
+  | 'HRDPS'
+  | 'HRDPS_BIAS'
+  | 'NAM'
+  | 'NAM_BIAS'
+  | 'NULL'
+  | 'RDPS'
+  | 'RDPS_BIAS'
 
 export const WeatherDeterminateChoices = [
   WeatherDeterminate.ACTUAL,
   WeatherDeterminate.FORECAST,
   WeatherDeterminate.GDPS,
+  WeatherDeterminate.GDPS_BIAS,
   WeatherDeterminate.GFS,
+  WeatherDeterminate.GFS_BIAS,
   WeatherDeterminate.HRDPS,
+  WeatherDeterminate.HRDPS_BIAS,
   WeatherDeterminate.NAM,
+  WeatherDeterminate.NAM_BIAS,
   WeatherDeterminate.NULL,
-  WeatherDeterminate.RDPS
+  WeatherDeterminate.RDPS,
+  WeatherDeterminate.RDPS_BIAS
 ]
 
 export interface WeatherIndeterminate {
@@ -98,20 +140,6 @@ export interface WeatherIndeterminateResponse {
   predictions: WeatherIndeterminate[]
 }
 
-export interface StationPrediction {
-  abbreviation: ModelType
-  bias_adjusted_relative_humidity: number | null
-  bias_adjusted_temperature: number | null
-  datetime: string
-  precip_24hours: number | null
-  id: string
-  relative_humidity: number | null
-  station: Station
-  temperature: number | null
-  wind_direction: number | null
-  wind_speed: number | null
-}
-
 export const ModelOptions: ModelType[] = ModelChoices.filter(choice => !isEqual(choice, ModelChoice.MANUAL))
 
 export interface MoreCast2ForecastRecord {
@@ -126,7 +154,7 @@ export interface MoreCast2ForecastRecord {
   station_name?: string
 }
 
-export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[]) => {
+export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[]): MoreCast2ForecastRecord[] => {
   const forecastRecords: MoreCast2ForecastRecord[] = forecasts.map(forecast => {
     return {
       station_code: forecast.stationCode,
@@ -186,7 +214,7 @@ export async function fetchWeatherIndeterminates(
   return payload
 }
 
-const marshallForecastsToWeatherIndeterminates = (forecasts: MoreCast2ForecastRecord[]) => {
+const marshallForecastsToWeatherIndeterminates = (forecasts: MoreCast2ForecastRecord[]): WeatherIndeterminate[] => {
   if (!forecasts.length) {
     return []
   }
