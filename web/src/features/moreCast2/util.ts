@@ -68,5 +68,6 @@ export const createWeatherModelLabel = (label: string) => {
     const prefix = label.slice(0, index)
     return `${prefix} bias`
   }
-  return label
+
+  return label === ModelChoice.NULL ? '' : label
 }

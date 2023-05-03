@@ -40,7 +40,6 @@ export class GridComponentRenderer {
     const index = field.indexOf('Forecast')
     const prefix = field.slice(0, index)
     const actualField = `${prefix}Actual`
-    const label = params.row[field].choice === ModelChoice.NULL ? '' : params.row[field].choice
 
     const disabled = !isNaN(params.row[actualField])
     return (

@@ -15,7 +15,7 @@ export enum ModelChoice {
   MANUAL = 'MANUAL',
   NAM = 'NAM',
   NAM_BIAS = 'NAM_BIAS',
-  NULL = '',
+  NULL = 'NULL',
   PERSISTENCE = 'PERSISTENCE',
   RDPS = 'RDPS',
   RDPS_BIAS = 'RDPS_BIAS'
@@ -36,6 +36,7 @@ export type ModelType =
   | 'MANUAL'
   | 'NAM'
   | 'NAM_BIAS'
+  | 'NULL'
   | 'PERSISTENCE'
   | 'RDPS'
   | 'RDPS_BIAS'
@@ -51,6 +52,7 @@ export const ModelChoices: ModelType[] = [
   ModelChoice.MANUAL,
   ModelChoice.NAM,
   ModelChoice.NAM_BIAS,
+  ModelChoice.NULL,
   ModelChoice.RDPS,
   ModelChoice.RDPS_BIAS
 ]
