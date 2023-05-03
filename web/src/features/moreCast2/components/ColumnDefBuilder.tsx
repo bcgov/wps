@@ -80,12 +80,11 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     )
   }
 
-  public generateColDefWith = (field: string, headerName: string, precision: number, width?: number): GridColDef => {
+  public generateColDefWith = (field: string, headerName: string, precision: number, width?: number) => {
     return {
       field,
       disableColumnMenu: true,
       disableReorder: true,
-      headerAlign: 'left',
       headerName,
       sortable: false,
       type: 'number',
@@ -102,12 +101,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     }
   }
 
-  public generateForecastColDefWith = (
-    field: string,
-    headerName: string,
-    precision: number,
-    width?: number
-  ): GridColDef => {
+  public generateForecastColDefWith = (field: string, headerName: string, precision: number, width?: number) => {
     return {
       field: field,
       disableColumnMenu: true,
