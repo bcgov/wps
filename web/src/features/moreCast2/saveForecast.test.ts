@@ -1,3 +1,4 @@
+import { ModelChoice } from 'api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { getRowsToSave, isForecastValid, validForecastPredicate } from 'features/moreCast2/saveForecasts'
 import { DateTime } from 'luxon'
@@ -82,11 +83,11 @@ const buildCompleteForecast = (
   stationCode,
   stationName,
   ...baseRow,
-  precipForecast: { choice: 'GDPS', value: 0 },
-  rhForecast: { choice: 'GDPS', value: 0 },
-  tempForecast: { choice: 'GDPS', value: 0 },
-  windDirectionForecast: { choice: 'GDPS', value: 0 },
-  windSpeedForecast: { choice: 'GDPS', value: 0 }
+  precipForecast: { choice: ModelChoice.GDPS, value: 0 },
+  rhForecast: { choice: ModelChoice.GDPS, value: 0 },
+  tempForecast: { choice: ModelChoice.GDPS, value: 0 },
+  windDirectionForecast: { choice: ModelChoice.GDPS, value: 0 },
+  windSpeedForecast: { choice: ModelChoice.GDPS, value: 0 }
 })
 
 const buildForecastMissingWindDirection = (
@@ -100,11 +101,11 @@ const buildForecastMissingWindDirection = (
   stationCode,
   stationName,
   ...baseRow,
-  precipForecast: { choice: 'GDPS', value: 0 },
-  rhForecast: { choice: 'GDPS', value: 0 },
-  tempForecast: { choice: 'GDPS', value: 0 },
-  windDirectionForecast: { choice: 'NULL', value: NaN },
-  windSpeedForecast: { choice: 'GDPS', value: 0 }
+  precipForecast: { choice: ModelChoice.GDPS, value: 0 },
+  rhForecast: { choice: ModelChoice.GDPS, value: 0 },
+  tempForecast: { choice: ModelChoice.GDPS, value: 0 },
+  windDirectionForecast: { choice: ModelChoice.NULL, value: NaN },
+  windSpeedForecast: { choice: ModelChoice.GDPS, value: 0 }
 })
 
 const buildInvalidForecast = (
@@ -126,11 +127,11 @@ const buildNAForecast = (id: string, forDate: DateTime, stationCode: number, sta
   stationCode,
   stationName,
   ...baseRow,
-  precipForecast: { choice: 'NULL', value: NaN },
-  rhForecast: { choice: 'NULL', value: NaN },
-  tempForecast: { choice: 'NULL', value: NaN },
-  windDirectionForecast: { choice: 'NULL', value: NaN },
-  windSpeedForecast: { choice: 'NULL', value: NaN }
+  precipForecast: { choice: ModelChoice.NULL, value: NaN },
+  rhForecast: { choice: ModelChoice.NULL, value: NaN },
+  tempForecast: { choice: ModelChoice.NULL, value: NaN },
+  windDirectionForecast: { choice: ModelChoice.NULL, value: NaN },
+  windSpeedForecast: { choice: ModelChoice.NULL, value: NaN }
 })
 
 const buildForecastWithActuals = (
@@ -144,11 +145,11 @@ const buildForecastWithActuals = (
   stationCode,
   stationName,
   ...baseRowWithActuals,
-  precipForecast: { choice: 'GDPS', value: 0 },
-  rhForecast: { choice: 'GDPS', value: 0 },
-  tempForecast: { choice: 'GDPS', value: 0 },
-  windDirectionForecast: { choice: 'GDPS', value: 0 },
-  windSpeedForecast: { choice: 'GDPS', value: 0 }
+  precipForecast: { choice: ModelChoice.GDPS, value: 0 },
+  rhForecast: { choice: ModelChoice.GDPS, value: 0 },
+  tempForecast: { choice: ModelChoice.GDPS, value: 0 },
+  windDirectionForecast: { choice: ModelChoice.GDPS, value: 0 },
+  windSpeedForecast: { choice: ModelChoice.GDPS, value: 0 }
 })
 
 describe('saveForecasts', () => {
