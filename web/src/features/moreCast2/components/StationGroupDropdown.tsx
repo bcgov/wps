@@ -17,7 +17,7 @@ const StationGroupDropdown = ({
   selectedStationGroup,
   setSelectedStationGroup
 }: StationGroupDropdownProps) => {
-  const [onlyMine, toggleOnlyMine] = useState<boolean>(false)
+  const [onlyMine, toggleOnlyMine] = useState<boolean>(true)
   const [options, setOptions] = useState<StationGroup[]>([...stationGroupOptions])
   const [localSelectedGroup, setLocalSelectedGroup] = useState<StationGroup | null>(
     selectedStationGroup ? selectedStationGroup : null

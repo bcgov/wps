@@ -141,6 +141,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
         daily_result = get_latest_station_prediction_per_day(
             session, station_codes, day_start, day_end)
         for timestamp, model_abbrev, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, precip_24hours, wind_dir, wind_speed, update_date in daily_result:
+            # Create two WeatherIndeterminates, one for model predictions and one for bias corrected predictions
             results.append(
                 WeatherIndeterminate(
                     station_code=station_code,
@@ -152,6 +153,15 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
                     precipitation=precip_24hours,
                     wind_direction=wind_dir,
                     wind_speed=wind_speed
+                ))
+            results.append(
+                WeatherIndeterminate(
+                    station_code=station_code,
+                    station_name=stations[station_code].name,
+                    determinate=f'{model_abbrev}_BIAS',
+                    utc_timestamp=timestamp,
+                    temperature=bias_adjusted_temp,
+                    relative_humidity=bias_adjusted_rh
                 ))
     return post_process_fetched_predictions(results)
 

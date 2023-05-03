@@ -1,7 +1,7 @@
 import { AlertColor, FormControl, List, Stack } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GridCellParams, GridColDef, GridColumnVisibilityModel, GridEventListener } from '@mui/x-data-grid'
-import { ModelChoice, ModelType, submitMoreCastForecastRecords, WeatherModelChoices } from 'api/moreCast2API'
+import { ModelChoice, ModelType, submitMoreCastForecastRecords } from 'api/moreCast2API'
 import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
@@ -254,7 +254,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
   // row has no actual value for the weather parameter of interest)
   const handleCellDoubleClick = (params: GridCellParams) => {
     const headerName = params.colDef.headerName as ModelType
-    if (!headerName || WeatherModelChoices.indexOf(headerName) < 0) {
+    if (!headerName || headerName === ModelChoice.ACTUAL || headerName === ModelChoice.FORECAST) {
       // A forecast or actual column was clicked, or there is no value for headerName, nothing to do
       return
     }
@@ -383,7 +383,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
       )}
       <MoreCast2Snackbar
         autoHideDuration={6000}
-        handleClose={() => setSnackbarOpen(!snackbarOpen)}
+        handleClose={() => setSnackbarOpen(false)}
         open={snackbarOpen}
         message={snackbarMessage}
         severity={snackbarSeverity}

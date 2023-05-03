@@ -19,7 +19,7 @@ describe('GridComponentRenderer', () => {
       field: 'test',
       colDef
     }
-    const { getByRole } = render(gridComponentRenderer.renderHeaderWith(columnHeaderParams))
+    const { getByRole } = render(gridComponentRenderer.renderForecastHeaderWith(columnHeaderParams))
 
     const headerButton = getByRole('button')
     expect(headerButton).toBeInTheDocument()
