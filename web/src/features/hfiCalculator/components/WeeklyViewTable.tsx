@@ -110,7 +110,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           </TableCell>
         </TableRow>
       </TableHead>
-      <TableBody>
+      <TableBody sx={{ overflowX: 'auto', width: '100%' }}>
         {isUndefined(props.fireCentre) ? (
           <EmptyFireCentreRow colSpan={15} />
         ) : (
