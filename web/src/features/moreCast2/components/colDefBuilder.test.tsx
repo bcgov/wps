@@ -187,8 +187,7 @@ describe('ColDefBuilder', () => {
       expect(
         colDefBuilder.valueSetterWith(
           { row: { testField: { choice: ModelChoice.GDPS, value: 1 } }, value: 2 },
-          testField,
-          testPrecision
+          testField
         )
       ).toEqual({ testField: { choice: ModelChoice.MANUAL, value: 2 } })
     })
