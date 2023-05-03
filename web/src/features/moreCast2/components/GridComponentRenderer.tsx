@@ -64,9 +64,9 @@ export class GridComponentRenderer {
       return { ...params.row }
     }
     // Check if the user has edited the value. If so, update the value and choice to reflect the Manual edit.
-    if (newValue.toFixed(precision) !== params.row[field].value.toFixed(precision)) {
+    if (newValue !== params.row[field].value) {
       params.row[field].choice = ModelChoice.MANUAL
-      params.row[field].value = newValue
+      params.row[field].value = Number(newValue).toFixed(precision)
     }
 
     return { ...params.row }
@@ -75,7 +75,7 @@ export class GridComponentRenderer {
   public predictionItemValueFormatter = (params: Pick<GridValueFormatterParams, 'value'>, precision: number) => {
     const value = Number.parseFloat(params?.value)
 
-    return isNaN(value) ? NOT_AVAILABLE : value.toFixed(precision)
+    return isNaN(value) ? NOT_AVAILABLE : Number(value).toFixed(precision)
   }
 
   public cellValueGetter = (params: Pick<GridValueGetterParams, 'value'>, precision: number) => {
@@ -84,9 +84,10 @@ export class GridComponentRenderer {
 
   public predictionItemValueGetter = (params: Pick<GridValueGetterParams, 'value'>, precision: number) => {
     const value = params?.value?.value
-    if (isNaN(value)) {
+    if (isNaN(value) || value === 'NaN') {
       return 'NaN'
     }
-    return value.toFixed(precision)
+    console.log(value)
+    return Number(value).toFixed(precision)
   }
 }
