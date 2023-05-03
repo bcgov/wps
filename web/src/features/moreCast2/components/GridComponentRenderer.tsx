@@ -52,11 +52,7 @@ export class GridComponentRenderer {
     )
   }
 
-  public predictionItemValueSetter = (
-    params: Pick<GridValueSetterParams, 'row' | 'value'>,
-    field: string,
-    precision: number
-  ) => {
+  public predictionItemValueSetter = (params: Pick<GridValueSetterParams, 'row' | 'value'>, field: string) => {
     const oldValue = params.row[field].value
     const newValue = Number(params.value)
 
@@ -66,7 +62,7 @@ export class GridComponentRenderer {
     // Check if the user has edited the value. If so, update the value and choice to reflect the Manual edit.
     if (newValue !== params.row[field].value) {
       params.row[field].choice = ModelChoice.MANUAL
-      params.row[field].value = Number(newValue).toFixed(precision)
+      params.row[field].value = newValue
     }
 
     return { ...params.row }

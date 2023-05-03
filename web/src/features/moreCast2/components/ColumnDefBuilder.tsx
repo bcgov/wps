@@ -122,8 +122,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       },
       valueGetter: (params: Pick<GridValueGetterParams, 'value'>) =>
         this.gridComponentRenderer.predictionItemValueGetter(params, precision),
-      valueSetter: (params: Pick<GridValueSetterParams, 'row' | 'value'>) =>
-        this.valueSetterWith(params, field, precision)
+      valueSetter: (params: Pick<GridValueSetterParams, 'row' | 'value'>) => this.valueSetterWith(params, field)
     }
   }
 
@@ -133,6 +132,6 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     this.gridComponentRenderer.cellValueGetter(params, precision)
   public predictionitemValueGetterWith = (params: Pick<GridValueGetterParams, 'value'>, precision: number) =>
     this.gridComponentRenderer.predictionItemValueGetter(params, precision)
-  public valueSetterWith = (params: Pick<GridValueSetterParams, 'row' | 'value'>, field: string, precision: number) =>
-    this.gridComponentRenderer.predictionItemValueSetter(params, field, precision)
+  public valueSetterWith = (params: Pick<GridValueSetterParams, 'row' | 'value'>, field: string) =>
+    this.gridComponentRenderer.predictionItemValueSetter(params, field)
 }
