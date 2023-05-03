@@ -254,7 +254,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
   // row has no actual value for the weather parameter of interest)
   const handleCellDoubleClick = (params: GridCellParams) => {
     const headerName = params.colDef.headerName as ModelType
-    if (!headerName || WeatherModelChoices.indexOf(headerName) < 0) {
+    if (!headerName || headerName === ModelChoice.ACTUAL || headerName === ModelChoice.FORECAST) {
       // A forecast or actual column was clicked, or there is no value for headerName, nothing to do
       return
     }

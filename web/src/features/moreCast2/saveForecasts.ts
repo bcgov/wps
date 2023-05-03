@@ -13,13 +13,13 @@ export const isForecastRowPredicate = (row: MoreCast2Row) =>
 // A valid forecast row has values for precipForecast, rhForecast, tempForecast and windSpeedForecast
 export const validForecastPredicate = (row: MoreCast2Row) =>
   !isUndefined(row.precipForecast) &&
-  row.precipForecast.choice !== ModelChoice.NULL &&
+  !isNaN(row.precipForecast.value) &&
   !isUndefined(row.rhForecast) &&
-  row.rhForecast.choice !== ModelChoice.NULL &&
+  !isNaN(row.rhForecast.value) &&
   !isUndefined(row.tempForecast) &&
-  row.tempForecast.choice !== ModelChoice.NULL &&
+  !isNaN(row.tempForecast.value) &&
   !isUndefined(row.windSpeedForecast) &&
-  row.windSpeedForecast.choice !== ModelChoice.NULL
+  !isNaN(row.windSpeedForecast.value)
 
 export const getForecastRows = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   return rows ? rows.filter(isForecastRowPredicate) : []
