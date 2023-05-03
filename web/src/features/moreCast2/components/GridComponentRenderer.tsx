@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, TextField } from '@mui/material'
+import { Box, Button, TextField } from '@mui/material'
 import {
   GridColumnHeaderParams,
   GridRenderCellParams,
@@ -8,12 +8,27 @@ import {
   GridValueSetterParams
 } from '@mui/x-data-grid'
 import { ModelChoice } from 'api/moreCast2API'
+import { createWeatherModelLabel } from 'features/moreCast2/util'
 
 const NOT_AVAILABLE = 'N/A'
 
 export class GridComponentRenderer {
-  public renderHeaderWith = (params: GridColumnHeaderParams) => {
+  public renderForecastHeaderWith = (params: GridColumnHeaderParams) => {
     return <Button>{params.colDef.headerName}</Button>
+  }
+  public renderHeaderWith = (params: GridColumnHeaderParams) => {
+    if (params.field.endsWith('_BIAS')) {
+      const headerName = params.colDef.headerName || ''
+      const index = headerName.indexOf('_BIAS')
+      const prefix = headerName.slice(0, index)
+      return (
+        <div>
+          <Box sx={{ height: '1rem' }}>{prefix}</Box>
+          <Box>bias</Box>
+        </div>
+      )
+    }
+    return <>{params.colDef.headerName}</>
   }
   public renderCellWith = (params: Pick<GridRenderCellParams, 'formattedValue'>) => (
     <TextField disabled={true} size="small" value={params.formattedValue}></TextField>
@@ -25,10 +40,16 @@ export class GridComponentRenderer {
     const index = field.indexOf('Forecast')
     const prefix = field.slice(0, index)
     const actualField = `${prefix}Actual`
-    const label = params.row[field].choice === ModelChoice.NULL ? '' : params.row[field].choice
 
     const disabled = !isNaN(params.row[actualField])
-    return <TextField disabled={disabled} size="small" label={label} value={params.formattedValue}></TextField>
+    return (
+      <TextField
+        disabled={disabled}
+        size="small"
+        label={createWeatherModelLabel(params.row[field].choice)}
+        value={params.formattedValue}
+      ></TextField>
+    )
   }
 
   public predictionItemValueSetter = (

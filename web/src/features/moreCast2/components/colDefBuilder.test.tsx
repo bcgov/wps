@@ -4,6 +4,7 @@ import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
 import {
   ColumnDefBuilder,
   DEFAULT_COLUMN_WIDTH,
+  DEFAULT_FORECAST_COLUMN_WIDTH,
   ORDERED_COLUMN_HEADERS
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
@@ -30,7 +31,7 @@ describe('ColDefBuilder', () => {
         JSON.stringify({
           field: 'temp',
           disableColumnMenu: true,
-          disabledReorder: true,
+          disableReorder: true,
           headerName: 'Temp',
           sortable: false,
           type: 'number',
@@ -50,14 +51,14 @@ describe('ColDefBuilder', () => {
           headerName: TempForecastField.headerName,
           sortable: false,
           type: 'number',
-          width: DEFAULT_COLUMN_WIDTH
+          width: DEFAULT_FORECAST_COLUMN_WIDTH
         })
       ].concat(
         ORDERED_COLUMN_HEADERS.map(determinate =>
           JSON.stringify({
             field: `${TempForecastField.field}${determinate}`,
             disableColumnMenu: true,
-            disabledReorder: true,
+            disableReorder: true,
             headerName: determinate,
             sortable: false,
             type: 'number',
@@ -76,7 +77,7 @@ describe('ColDefBuilder', () => {
         JSON.stringify({
           field: testField,
           disableColumnMenu: true,
-          disabledReorder: true,
+          disableReorder: true,
           headerName: testHeader,
           sortable: false,
           type: 'number',
@@ -104,7 +105,7 @@ describe('ColDefBuilder', () => {
           headerName: TempForecastField.headerName,
           sortable: false,
           type: TempForecastField.type,
-          width: DEFAULT_COLUMN_WIDTH
+          width: DEFAULT_FORECAST_COLUMN_WIDTH
         })
       )
     })
@@ -123,7 +124,7 @@ describe('ColDefBuilder', () => {
           headerName: header,
           sortable: false,
           type: TempForecastField.type,
-          width: DEFAULT_COLUMN_WIDTH
+          width: DEFAULT_FORECAST_COLUMN_WIDTH
         })
       )
     })
