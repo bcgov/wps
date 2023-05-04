@@ -41,6 +41,7 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     flexDirection: 'column',
     minWidth: '375px',
+    marginTop: theme.spacing(2),
     width: '100%'
   },
   sidePanel: {

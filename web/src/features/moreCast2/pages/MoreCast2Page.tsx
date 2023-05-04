@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import makeStyles from '@mui/styles/makeStyles'
-import { isEmpty, isNull, isUndefined } from 'lodash'
+import { isEmpty } from 'lodash'
 import { DateTime } from 'luxon'
-import { DEFAULT_MODEL_TYPE, ModelType } from 'api/moreCast2API'
 import { selectAuthentication, selectStationGroups, selectStationGroupsMembers } from 'app/rootReducer'
 import { AppDispatch } from 'app/store'
 import { GeneralHeader } from 'components'
@@ -17,18 +16,19 @@ import { getWeatherIndeterminates, selectAllMoreCast2Rows } from 'features/moreC
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 import { selectedStationsChanged } from 'features/moreCast2/slices/selectedStationsSlice'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   content: {
+    borderTop: '1px solid black',
     display: 'flex',
     flexGrow: 1,
     maxHeight: 'calc(100vh - 71.5px)',
-    borderTop: '1px solid black',
     overflow: 'hidden'
   },
   observations: {
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
+    marginTop: theme.spacing(2),
     overflowX: 'auto'
   },
   root: {
@@ -47,8 +47,6 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-const DEFAULT_MODEL_TYPE_KEY = 'defaultModelType'
-
 const MoreCast2Page = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
@@ -58,12 +56,7 @@ const MoreCast2Page = () => {
   // All MoreCast2Rows derived from WeatherIndeterminates in dataSlice.ts. Updates in response to
   // a change of station group or date range.
   const sortedMoreCast2Rows = useSelector(selectAllMoreCast2Rows)
-
   const [selectedStationGroup, setSelectedStationGroup] = useState<StationGroup>()
-
-  const [modelType, setModelType] = useState<ModelType>(
-    (localStorage.getItem(DEFAULT_MODEL_TYPE_KEY) as ModelType) || DEFAULT_MODEL_TYPE
-  )
 
   const currentTimeIsBeforeNoon = DateTime.now().hour < 13 ? true : false
   let startDateTime
@@ -109,10 +102,7 @@ const MoreCast2Page = () => {
   }, [selectedStationGroup]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!isUndefined(modelType) && !isNull(modelType)) {
-      localStorage.setItem(DEFAULT_MODEL_TYPE_KEY, modelType)
-      fetchWeatherIndeterminates()
-    }
+    fetchWeatherIndeterminates()
   }, [fromTo.startDate, fromTo.endDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -135,8 +125,6 @@ const MoreCast2Page = () => {
             fetchWeatherIndeterminates={fetchWeatherIndeterminates}
             fromTo={fromTo}
             setFromTo={setFromTo}
-            modelType={modelType}
-            setModelType={setModelType}
           />
         </div>
       </div>
