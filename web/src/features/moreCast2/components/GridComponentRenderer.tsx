@@ -64,7 +64,7 @@ export class GridComponentRenderer {
       return { ...params.row }
     }
     // Check if the user has edited the value. If so, update the value and choice to reflect the Manual edit.
-    if (newValue.toFixed(precision) !== params.row[field].value.toFixed(precision)) {
+    if (newValue.toFixed(precision) !== Number(params.row[field].value).toFixed(precision)) {
       params.row[field].choice = ModelChoice.MANUAL
       params.row[field].value = newValue
     }
@@ -87,6 +87,6 @@ export class GridComponentRenderer {
     if (isNaN(value)) {
       return 'NaN'
     }
-    return value.toFixed(precision)
+    return Number(value).toFixed(precision)
   }
 }
