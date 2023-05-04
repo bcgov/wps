@@ -71,7 +71,7 @@ describe('GridComponentRenderer', () => {
       }
     }
 
-    const updatedRow = gridComponentRenderer.predictionItemValueSetter(mockValueSetterParams, 'temp')
+    const updatedRow = gridComponentRenderer.predictionItemValueSetter(mockValueSetterParams, 'temp', 1)
 
     expect(updatedRow).toEqual({ temp: { choice: ModelChoice.GDPS, value: 2 } })
   })
