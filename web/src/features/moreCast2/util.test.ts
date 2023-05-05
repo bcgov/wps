@@ -1,89 +1,10 @@
 import { DateTime } from 'luxon'
-import { ModelChoice, StationPrediction } from 'api/moreCast2API'
-import {
-  createDateInterval,
-  parseForecastsHelper,
-  parseModelsForStationsHelper,
-  rowIDHasher
-} from 'features/moreCast2/util'
+import { ModelChoice } from 'api/moreCast2API'
+import { createDateInterval, createWeatherModelLabel, parseForecastsHelper, rowIDHasher } from 'features/moreCast2/util'
 
-const TEST_NUMBER = 7
-const TEST_MODEL = ModelChoice.HRDPS
 const TEST_DATE = '2023-02-16T20:00:00+00:00'
 const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
 const TEST_CODE = 209
-const TEST_NAME = 'Victoria'
-
-const createStationPredictionArray = (predictionValue: number | null) => {
-  const stationPrediction = {
-    abbreviation: TEST_MODEL,
-    bias_adjusted_relative_humidity: predictionValue,
-    bias_adjusted_temperature: predictionValue,
-    datetime: TEST_DATE,
-    precip_24hours: predictionValue,
-    id: rowIDHasher(TEST_CODE, DateTime.fromISO(TEST_DATE)),
-    relative_humidity: predictionValue,
-    station: {
-      code: TEST_CODE,
-      name: TEST_NAME,
-      lat: TEST_NUMBER,
-      long: TEST_NUMBER,
-      ecodivision_name: null,
-      core_season: {
-        start_month: TEST_NUMBER,
-        start_day: TEST_NUMBER,
-        end_month: TEST_NUMBER,
-        end_day: TEST_NUMBER
-      }
-    },
-    temperature: predictionValue,
-    wind_direction: predictionValue,
-    wind_speed: predictionValue
-  }
-  return [stationPrediction]
-}
-
-describe('parseModelsForStationHelper', () => {
-  it('should return an empty array when length of stationPredictions array is zero', () => {
-    const stationPredictions: StationPrediction[] = []
-    const result = parseModelsForStationsHelper(stationPredictions)
-    expect(result).toBeDefined()
-    expect(result.length).toEqual(0)
-  })
-  it('should properly create a Morecast2ForecastRow array from valid station prediction', () => {
-    const array = createStationPredictionArray(TEST_NUMBER)
-    const result = parseModelsForStationsHelper(array)
-    expect(result).toBeDefined()
-    expect(result.length).toEqual(1)
-    expect(result[0].forDate).toEqual(DateTime.fromISO(TEST_DATE))
-    expect(result[0].precip.value).toEqual(TEST_NUMBER)
-    expect(result[0].precip.choice).toEqual(TEST_MODEL)
-    expect(result[0].rh.value).toEqual(TEST_NUMBER)
-    expect(result[0].rh.choice).toEqual(TEST_MODEL)
-    expect(result[0].temp.value).toEqual(TEST_NUMBER)
-    expect(result[0].temp.choice).toEqual(TEST_MODEL)
-    expect(result[0].windDirection.value).toEqual(TEST_NUMBER)
-    expect(result[0].windDirection.choice).toEqual(TEST_MODEL)
-    expect(result[0].windSpeed.value).toEqual(TEST_NUMBER)
-    expect(result[0].windSpeed.choice).toEqual(TEST_MODEL)
-    expect(result[0].stationCode).toEqual(TEST_CODE)
-    expect(result[0].stationName).toEqual(TEST_NAME)
-  })
-  it('should set NaN values when numbers are missing in a station prediction', () => {
-    const array = createStationPredictionArray(null)
-    const result = parseModelsForStationsHelper(array)
-    expect(result).toBeDefined()
-    expect(result.length).toEqual(1)
-    expect(result[0].forDate).toEqual(DateTime.fromISO(TEST_DATE))
-    expect(result[0].precip.value).toEqual(NaN)
-    expect(result[0].rh.value).toEqual(NaN)
-    expect(result[0].temp.value).toEqual(NaN)
-    expect(result[0].windDirection.value).toEqual(NaN)
-    expect(result[0].windSpeed.value).toEqual(NaN)
-    expect(result[0].stationCode).toEqual(TEST_CODE)
-    expect(result[0].stationName).toEqual(TEST_NAME)
-  })
-})
 
 describe('createDateInterval', () => {
   it('should return array with single date when fromDate and toDate are the same', () => {
@@ -219,5 +140,15 @@ describe('parseForecastsHelper', () => {
         windSpeed: { choice: ModelChoice.FORECAST, value: NaN }
       }
     ])
+  })
+})
+describe('createWeatherModelLabel', () => {
+  it('should not alter non-bias adjusted model label', () => {
+    const result = createWeatherModelLabel(ModelChoice.GDPS)
+    expect(result).toBe(ModelChoice.GDPS)
+  })
+  it('should format bias adjusted model label', () => {
+    const result = createWeatherModelLabel(ModelChoice.GDPS_BIAS)
+    expect(result).toBe('GDPS bias')
   })
 })

@@ -10,7 +10,7 @@ describe('WeatherModelDropdown', () => {
 
     const { getByTestId } = render(
       <WeatherModelDropdown
-        selectedModelType={ModelChoice.HRDPS}
+        selectedModelType={ModelChoice.HRDPS_BIAS}
         weatherModelOptions={ModelChoices}
         setSelectedModelType={handleSelectedModelTypeMock}
       />
@@ -18,7 +18,6 @@ describe('WeatherModelDropdown', () => {
 
     const autocomplete = getByTestId('weather-model-dropdown')
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
-
     autocomplete.focus()
     userEvent.type(autocomplete, ModelChoice.PERSISTENCE)
     userEvent.type(autocomplete, '{arrowdown}')

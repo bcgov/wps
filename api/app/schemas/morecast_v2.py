@@ -19,10 +19,15 @@ class ModelChoice(str, Enum):
 class WeatherDeterminate(str, Enum):
     """ Enumerator for all valid determinate weather sources"""
     GDPS = 'GDPS'
+    GDPS_BIAS = 'GDPS_BIAS'
     GFS = 'GFS'
+    GFS_BIAS = 'GFS_BIAS'
     HRDPS = 'HRDPS'
+    HRDPS_BIAS = 'HRDPS_BIAS'
     NAM = 'NAM'
+    NAM_BIAS = 'NAM_BIAS'
     RDPS = 'RDPS'
+    RDPS_BIAS = 'RDPS_BIAS'
 
     # non prediction models
     FORECAST = 'Forecast'
