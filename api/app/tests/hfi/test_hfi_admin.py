@@ -1,6 +1,6 @@
 from datetime import datetime
 from app.db.models.hfi_calc import PlanningWeatherStation
-from app.hfi.hfi_admin import add_stations, get_next_order_by_planning_area, get_unique_planning_area_ids, remove_stations, update_station_ordering
+from app.hfi.hfi_admin import add_stations, get_next_order, get_next_order_by_planning_area, get_unique_planning_area_ids, remove_stations, update_station_ordering
 from app.schemas.hfi_calc import HFIAdminAddedStation
 
 timestamp = datetime.fromisoformat("2019-06-10T18:42:49")
@@ -269,3 +269,22 @@ def test_remove_stations():
     assert stations_with_order_updates[0].planning_area_id == all_planning_area_stations[2].planning_area_id
     assert stations_with_order_updates[0].station_code == all_planning_area_stations[2].station_code
     assert stations_with_order_updates[0].order_of_appearance_in_planning_area_list == 1  # last one left
+
+
+def test_get_next_order_no_updated_or_existing():
+    """ If there are no updated or existing stations, the next order should be 1 """
+    assert get_next_order([], []) == 1
+
+
+def test_get_next_order_no_updated():
+    """ If there are no updated or existing stations, the next order should be 1 """
+    assert get_next_order([], [PlanningWeatherStation(planning_area_id=1,
+                                                      station_code=3,
+                                                      order_of_appearance_in_planning_area_list=1)]) == 2
+
+
+def test_get_next_order_no_existing():
+    """ If there are no updated or existing stations, the next order should be 1 """
+    assert get_next_order([], [PlanningWeatherStation(planning_area_id=1,
+                                                      station_code=3,
+                                                      order_of_appearance_in_planning_area_list=1)]) == 2
