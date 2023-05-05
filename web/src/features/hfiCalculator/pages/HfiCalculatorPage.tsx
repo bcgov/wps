@@ -45,7 +45,8 @@ const useStyles = makeStyles(theme => ({
   container: {
     display: 'flex',
     justifyContent: 'center',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    marginBottom: theme.spacing(3)
   },
   controlContainer: {
     display: 'flex',

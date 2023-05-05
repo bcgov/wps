@@ -1,4 +1,5 @@
 import { Paper, Table, TableContainer, ThemeProvider, Theme, StyledEngineProvider } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { fireTableTheme } from 'app/theme'
 import React from 'react'
 
@@ -13,12 +14,22 @@ interface FireTableProps {
   testId?: string
 }
 
+const useStyles = makeStyles(() => ({
+  tableContainer: {
+    minWidth: '100%',
+    overflowX: 'scroll',
+    maxHeight: '72vh'
+  }
+}))
+
 const FireTable = (props: FireTableProps) => {
+  const classes = useStyles()
+
   return (
     <Paper elevation={1}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={fireTableTheme}>
-          <TableContainer data-testid={'fire-table'}>
+          <TableContainer data-testid={'fire-table'} className={classes.tableContainer}>
             <Table data-testid={props.testId} stickyHeader>
               {props.children}
             </Table>
