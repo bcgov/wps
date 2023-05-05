@@ -290,7 +290,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         selectNewFireCentre={selectNewFireCentre}
         padding="1rem"
       />
-      <Container maxWidth={'xl'} className={classes.container}>
+      <Container maxWidth={false} className={classes.container}>
         <HFILoadingDataContainer
           pdfLoading={pdfLoading}
           fuelTypesLoading={fuelTypesLoading}
