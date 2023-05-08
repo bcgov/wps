@@ -302,6 +302,17 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   return (
     <>
       <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
+      <SaveForecastButton
+        className={classes.saveButton}
+        enabled={
+          isAuthenticated &&
+          roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
+          hasForecastRow() &&
+          forecastSummaryVisible
+        }
+        label={'Save Forecast'}
+        onClick={handleSaveClick}
+      />
       <List component={Stack} direction="row">
         <SelectableButton
           className={classes.button}
@@ -341,17 +352,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         >
           Forecast Summary
         </SelectableButton>
-        <SaveForecastButton
-          className={classes.saveButton}
-          enabled={
-            isAuthenticated &&
-            roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
-            hasForecastRow() &&
-            forecastSummaryVisible
-          }
-          label={'Save Forecast'}
-          onClick={handleSaveClick}
-        />
       </List>
       {forecastSummaryVisible ? (
         <ForecastSummaryDataGrid
