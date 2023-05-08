@@ -99,7 +99,7 @@ class WeatherStationGroupMember(BaseModel):
     id: str
     display_label: str
     fire_centre: StationFireCentre
-    fire_zone: FireZone
+    fire_zone: Optional[FireZone] = None
     station_code: int
     station_status: str
 
