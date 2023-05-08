@@ -1,4 +1,4 @@
-import { AlertColor, FormControl, List, Stack } from '@mui/material'
+import { AlertColor, List, Stack } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GridCellParams, GridColDef, GridColumnVisibilityModel, GridEventListener } from '@mui/x-data-grid'
 import { ModelChoice, ModelType, submitMoreCastForecastRecords } from 'api/moreCast2API'
@@ -12,13 +12,13 @@ import { useSelector } from 'react-redux'
 import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 import { groupBy, isEqual, isUndefined } from 'lodash'
-import MoreCast2ActionBar from 'features/moreCast2/components/MoreCast2ActionBar'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
 import { ROLES } from 'features/auth/roles'
 import { selectAuthentication } from 'app/rootReducer'
 import { DateRange } from 'components/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
+import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved.'
@@ -29,8 +29,6 @@ interface TabbedDataGridProps {
   fetchWeatherIndeterminates: () => void
   fromTo: DateRange
   setFromTo: React.Dispatch<React.SetStateAction<DateRange>>
-  modelType: ModelType
-  setModelType: React.Dispatch<React.SetStateAction<ModelType>>
 }
 
 const useStyles = makeStyles(theme => ({
@@ -41,17 +39,18 @@ const useStyles = makeStyles(theme => ({
     minWidth: 280,
     margin: theme.spacing(1)
   },
-  actionButtonContainer: {
-    marginTop: 15
-  },
   root: {
     display: 'flex',
     flexGrow: 1,
     flexDirection: 'column'
+  },
+  saveButton: {
+    position: 'absolute',
+    right: theme.spacing(2)
   }
 }))
 
-const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelType }: TabbedDataGridProps) => {
+const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProps) => {
   const classes = useStyles()
 
   const selectedStations = useSelector(selectSelectedStations)
@@ -302,20 +301,18 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo, modelType, setModelT
 
   return (
     <>
-      <MoreCast2ActionBar fromTo={fromTo} setFromTo={setFromTo} modelType={modelType} setModelType={setModelType}>
-        <FormControl className={classes.actionButtonContainer}>
-          <SaveForecastButton
-            enabled={
-              isAuthenticated &&
-              roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
-              hasForecastRow() &&
-              forecastSummaryVisible
-            }
-            label={'Save Forecast'}
-            onClick={handleSaveClick}
-          />
-        </FormControl>
-      </MoreCast2ActionBar>
+      <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
+      <SaveForecastButton
+        className={classes.saveButton}
+        enabled={
+          isAuthenticated &&
+          roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
+          hasForecastRow() &&
+          forecastSummaryVisible
+        }
+        label={'Save Forecast'}
+        onClick={handleSaveClick}
+      />
       <List component={Stack} direction="row">
         <SelectableButton
           className={classes.button}
