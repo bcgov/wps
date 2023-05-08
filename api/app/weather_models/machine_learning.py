@@ -19,7 +19,7 @@ from app.db.crud.observations import get_actuals_left_outer_join_with_prediction
 logger = getLogger(__name__)
 
 # Corresponding key values on HourlyActual and SampleCollection
-SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity')
+SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity', 'wind_speed', 'precipitation', 'wind_direction')
 
 
 class LinearRegressionWrapper:
@@ -37,11 +37,15 @@ class RegressionModels:
     For each different reading, we have a seperate LinearRegression model.
     """
 
-    keys = ('temperature_wrapper', 'relative_humidity_wrapper')
+    keys = ('temperature_wrapper', 'relative_humidity_wrapper',
+            'wind_speed_wrapper', 'precipitation_wrapper', 'wind_direction_wrapper')
 
     def __init__(self):
         self.temperature_wrapper = LinearRegressionWrapper()
         self.relative_humidity_wrapper = LinearRegressionWrapper()
+        self.wind_speed_wrapper = LinearRegressionWrapper()
+        self.precipitation_wrapper = LinearRegressionWrapper()
+        self.wind_direction_wrapper = LinearRegressionWrapper()
 
 
 class Samples:
@@ -104,6 +108,9 @@ class SampleCollection:
     def __init__(self):
         self.temperature = Samples()
         self.relative_humidity = Samples()
+        self.wind_speed = Samples()
+        self.wind_direction = Samples()
+        self.precipitation = Samples()
 
 
 class StationMachineLearning:
@@ -215,7 +222,7 @@ class StationMachineLearning:
                 # how much sample data we actually had etc., and then not mark the model as being "good".
                 regression_model.good_model = True
 
-    def predict_temperature(self, model_temperature, timestamp):
+    def predict_temperature(self, model_temperature: float, timestamp: datetime):
         """ Predict the bias adjusted temperature for a given point in time, given a corresponding model
         temperature.
         : param model_temperature: Temperature as provided by the model
@@ -239,4 +246,37 @@ class StationMachineLearning:
         hour = timestamp.hour
         if self.regression_models[hour].relative_humidity_wrapper.good_model and model_rh is not None:
             return self.regression_models[hour].relative_humidity_wrapper.model.predict([[model_rh]])[0]
+        return None
+
+    def predict_wind_speed(self, model_wind_speed: float, timestamp: datetime):
+        """ Predict the bias-adjusted wind speed for a given point in time, given a corresponding model wind speed.
+        : param model_wind_speed: Wind speed as provided by the model
+        : param timestamp: Datetime value for the predicted value
+        : return: The bias adjusted wind speed as predicted by the linear regression model.
+        """
+        hour = timestamp.hour
+        if self.regression_models[hour].wind_speed_wrapper.good_model and model_wind_speed is not None:
+            return self.regression_models[hour].wind_speed_wrapper.model.predict([[model_wind_speed]])[0]
+        return None
+
+    def predict_wind_direction(self, model_wind_dir: int, timestamp: datetime):
+        """ Predict the bias-adjusted wind direction for a given point in time, given a corresponding model wind direction.
+        : param model_wind_dir: Wind direction as provided by the model
+        : param timestamp: Datetime value for the predicted value
+        : return: The bias-adjusted wind direction as predicted by the linear regression model.
+        """
+        hour = timestamp.hour
+        if self.regression_models[hour].wind_direction_wrapper.good_model and model_wind_dir is not None:
+            return self.regression_models[hour].wind_direction_wrapper.model.predict([[model_wind_dir]])[0]
+        return None
+
+    def predict_precipitation(self, model_precip: float, timestamp: datetime):
+        """ Predict the bias-adjusted precipitation for a given point in time, given a corresponding model precipitation.
+        : param model_precip: Precipitation as provided by the model
+        : param timestamp: Datetime value for the predicted value
+        : return: The bias-adjusted precipitation as predicted by the linear regression model.
+        """
+        hour = timestamp.hour
+        if self.regression_models[hour].precipitation_wrapper.good_model and model_precip is not None:
+            return self.regression_models[hour].precipitation_wrapper.model.predict([[model_precip]])[0]
         return None
