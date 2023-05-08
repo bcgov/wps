@@ -12,6 +12,5 @@ describe('More Cast 2 Page', () => {
     cy.getByTestId('station-group-dropdown').should('be.visible')
     cy.getByTestId('morecast2-data-grid').should('be.visible')
     cy.getByTestId('morecast2-station-panel').should('be.visible')
-    cy.getByTestId('weather-model-dropdown').should('be.visible')
   })
 })
