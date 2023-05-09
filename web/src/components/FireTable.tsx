@@ -10,26 +10,26 @@ declare module '@mui/styles/defaultTheme' {
 
 interface FireTableProps {
   ariaLabel: string
-  maxHeight: number
-  maxWidth?: number
-  minHeight?: number
   children?: React.ReactNode
   testId?: string
 }
 
+const useStyles = makeStyles(() => ({
+  tableContainer: {
+    minWidth: '100%',
+    overflowX: 'scroll',
+    maxHeight: '72vh'
+  }
+}))
+
 const FireTable = (props: FireTableProps) => {
-  const useStyles = makeStyles(() => ({
-    tableContainer: {
-      maxHeight: props.maxHeight,
-      maxWidth: props.maxWidth ? props.maxWidth : 1900,
-      minHeight: props.minHeight ? props.minHeight : undefined
-    }
-  }))
+  const classes = useStyles()
+
   return (
     <Paper elevation={1}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={fireTableTheme}>
-          <TableContainer data-testid={'fire-table'} className={useStyles().tableContainer}>
+          <TableContainer data-testid={'fire-table'} className={classes.tableContainer}>
             <Table data-testid={props.testId} stickyHeader>
               {props.children}
             </Table>
