@@ -127,7 +127,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   )
 
   return (
-    <FireTable maxHeight={700} ariaLabel="daily table view of HFI by planning area" testId="hfi-calc-daily-table">
+    <FireTable ariaLabel="daily table view of HFI by planning area" testId="hfi-calc-daily-table">
       <TableHead>
         <TableRow>
           <StickyCell left={0} zIndexOffset={12}>
@@ -222,7 +222,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           </TableCell>
         </TableRow>
       </TableHead>
-      <TableBody>
+      <TableBody sx={{ overflowX: 'auto', width: '100%' }}>
         {isUndefined(props.fireCentre) ? (
           <EmptyFireCentreRow colSpan={6} />
         ) : (
