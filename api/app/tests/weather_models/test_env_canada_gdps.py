@@ -15,6 +15,7 @@ from app.jobs import common_model_fetchers
 import app.utils.time as time_utils
 from app.weather_models import machine_learning
 import app.db.crud.weather_models
+from app.stations import StationSourceEnum
 from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
                                           ModelRunGridSubsetPrediction, PredictionModelGridSubset)
 from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
@@ -169,7 +170,7 @@ def test_process_gdps(mock_download,
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
     sys.argv = ["argv", "GDPS"]
-    assert env_canada.process_models() == 1
+    assert env_canada.process_models(StationSourceEnum.LOCAL_STORAGE) == 1
 
 
 def test_for_zero_day_bug(monkeypatch):

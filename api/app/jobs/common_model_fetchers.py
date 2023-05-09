@@ -21,7 +21,7 @@ from app.schemas.stations import WeatherStation
 from app import config, configure_logging
 import app.utils.time as time_utils
 from app.utils.redis import create_redis
-from app.stations import get_stations_synchronously
+from app.stations import get_stations_synchronously, StationSourceEnum
 from app.db.models.weather_models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
                                           WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
@@ -169,10 +169,10 @@ class ModelValueProcessor:
     """ Iterate through model runs that have completed, and calculate the interpolated weather predictions.
     """
 
-    def __init__(self, session):
+    def __init__(self, session, station_source: StationSourceEnum = None):
         """ Prepare variables we're going to use throughout """
         self.session = session
-        self.stations = get_stations_synchronously()
+        self.stations = get_stations_synchronously(station_source)
         self.station_count = len(self.stations)
 
     def _process_model_run(self, model_run: PredictionModelRunTimestamp):
