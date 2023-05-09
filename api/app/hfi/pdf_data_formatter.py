@@ -140,16 +140,21 @@ def get_merged_station_data(
     Returns all the weather station and daily data we have for a station
     """
     all_station_pdf_data: List[StationPDFData] = []
+    # We do a bunch of null checks here because station_dict is built from
+    # stations we retrieve from WF1, while the dailies come from the HFI request
+    # which can have an different set of stations
     for daily in dailies:
-        station_data = station_dict[daily.code]
+        station_data = station_dict.get(daily.code, None)
         daily_dict = daily.dict()
-        daily_dict.update(station_data)
+        if station_data is not None:
+            daily_dict.update(station_data)
         station_info: StationInfo = next(
             station_info for
             station_info in planning_area_station_info if station_info.station_code == daily.code)
         daily_dict['fuel_type'] = fuel_types[station_info.fuel_type_id]
-        station_pdf_data = StationPDFData(**daily_dict)
-        all_station_pdf_data.append(station_pdf_data)
+        if station_data is not None:
+            station_pdf_data = StationPDFData(**daily_dict)
+            all_station_pdf_data.append(station_pdf_data)
     return all_station_pdf_data
 
 
