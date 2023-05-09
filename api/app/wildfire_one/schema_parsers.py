@@ -282,13 +282,14 @@ def weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
     mapped_stations = []
     for item in stations:
         station = item['station']
+        fire_zone = FireZone(id=station['zone']['id'], display_label=station['zone']['displayLabel'],
+                             fire_centre=station['zone']['fireCentre']) if station['zone'] is not None else None
         weather_station = WeatherStationGroupMember(
             id=station['id'],
             display_label=station['displayLabel'],
             fire_centre=StationFireCentre(id=station['fireCentre']['id'],
                                           display_label=station['fireCentre']['displayLabel']),
-            fire_zone=FireZone(id=station['zone']['id'], display_label=station['zone']['displayLabel'],
-                               fire_centre=station['zone']['fireCentre']),
+            fire_zone=fire_zone,
             station_code=station['stationCode'],
             station_status=station['stationStatus']['id']
         )
