@@ -268,7 +268,7 @@ class NOAA():
     """ Class that orchestrates downloading and processing of GFS weather model grib files from NOAA.
     """
 
-    def __init__(self, model_type: ModelEnum, station_source: StationSourceEnum = None):
+    def __init__(self, model_type: ModelEnum, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
         """ Prep variables """
         self.files_downloaded = 0
         self.files_processed = 0
@@ -361,7 +361,7 @@ class NOAA():
                     self.model_type, hour, exc_info=exception)
 
 
-def process_models(station_source: StationSourceEnum = None):
+def process_models(station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
     """ downloading and processing models """
     # set the model type requested based on arg passed via command line
     model_type = ModelEnum(sys.argv[1])
