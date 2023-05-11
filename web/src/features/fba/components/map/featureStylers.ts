@@ -7,10 +7,6 @@ import Style from 'ol/style/Style'
 import { range, startCase, lowerCase, isUndefined } from 'lodash'
 import { FireZone, FireZoneArea } from 'api/fbaAPI'
 
-const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
-const ADVISORY_ORANGE_FILL = 'rgba(255, 147, 38, 0.4)'
-const ADVISORY_RED_FILL = 'rgba(128, 0, 0, 0.4)'
-
 const fireCentreTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
   const text = feature.get('mof_fire_centre_name').replace(' Fire Centre', '\nFire Centre')
   return new Text({
@@ -64,24 +60,21 @@ export const fireZoneStyler = (
 }
 
 export const getAdvisoryColors = (advisoryThreshold: number, fireZoneArea?: FireZoneArea[]) => {
-  let fill = new Fill({ color: EMPTY_FILL })
-  if (isUndefined(fireZoneArea) || fireZoneArea.length === 0) {
-    return fill
+  if (isUndefined(fireZoneArea)) {
+    return new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
   }
 
+  let fill = new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
   const advisoryThresholdArea = fireZoneArea.find(area => area.threshold == 1)
-  const warningThresholdArea = fireZoneArea.find(area => area.threshold == 2)
-  const advisoryPercentage = advisoryThresholdArea?.elevated_hfi_percentage ?? 0
-  const warningPercentage = warningThresholdArea?.elevated_hfi_percentage ?? 0
-
-  if (advisoryPercentage + warningPercentage > advisoryThreshold) {
+  if (advisoryThresholdArea && advisoryThresholdArea.elevated_hfi_percentage > advisoryThreshold) {
     // advisory color orange
-    fill = new Fill({ color: ADVISORY_ORANGE_FILL })
+    fill = new Fill({ color: 'rgba(255, 147, 38, 0.4)' })
   }
 
-  if (warningPercentage > advisoryThreshold) {
+  const warningThresholdArea = fireZoneArea.find(area => area.threshold == 2)
+  if (warningThresholdArea && warningThresholdArea.elevated_hfi_percentage > advisoryThreshold) {
     // advisory color red
-    fill = new Fill({ color: ADVISORY_RED_FILL })
+    fill = new Fill({ color: 'rgba(128, 0, 0, 0.4)' })
   }
 
   return fill
