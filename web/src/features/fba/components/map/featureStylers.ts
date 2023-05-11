@@ -64,11 +64,11 @@ export const fireZoneStyler = (
 }
 
 export const getAdvisoryColors = (advisoryThreshold: number, fireZoneArea?: FireZoneArea[]) => {
+  let fill = new Fill({ color: EMPTY_FILL })
   if (isUndefined(fireZoneArea) || fireZoneArea.length === 0) {
-    return new Fill({ color: EMPTY_FILL })
+    return fill
   }
 
-  let fill = new Fill({ color: EMPTY_FILL })
   const advisoryThresholdArea = fireZoneArea.find(area => area.threshold == 1)
   const warningThresholdArea = fireZoneArea.find(area => area.threshold == 2)
   const advisoryPercentage = (advisoryThresholdArea && advisoryThresholdArea.elevated_hfi_percentage) || 0
