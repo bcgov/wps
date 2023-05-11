@@ -71,8 +71,8 @@ export const getAdvisoryColors = (advisoryThreshold: number, fireZoneArea?: Fire
 
   const advisoryThresholdArea = fireZoneArea.find(area => area.threshold == 1)
   const warningThresholdArea = fireZoneArea.find(area => area.threshold == 2)
-  const advisoryPercentage = (advisoryThresholdArea && advisoryThresholdArea.elevated_hfi_percentage) || 0
-  const warningPercentage = (warningThresholdArea && warningThresholdArea.elevated_hfi_percentage) || 0
+  const advisoryPercentage = advisoryThresholdArea?.elevated_hfi_percentage || 0
+  const warningPercentage = warningThresholdArea?.elevated_hfi_percentage || 0
 
   if (advisoryPercentage + warningPercentage > advisoryThreshold) {
     // advisory color orange
