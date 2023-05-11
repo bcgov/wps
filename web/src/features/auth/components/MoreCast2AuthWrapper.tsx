@@ -11,7 +11,6 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
       if (!window.location.href.includes('access_token')) {
         window.location.href = WF1_AUTH_URL
       }
-      console.log('We in')
     }
 
     fetchData()

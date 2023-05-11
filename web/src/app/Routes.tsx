@@ -28,8 +28,6 @@ import MoreCast2AuthWrapper from 'features/auth/components/MoreCast2AuthWrapper'
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
 const WPSRoutes: React.FunctionComponent = () => {
-  console.log(`Router: ${window.location.href}`)
-
   return (
     <Router>
       <Routes>

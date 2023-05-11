@@ -23,7 +23,6 @@ const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
 }
 
 const AuthWrapper = ({ children }: Props) => {
-  console.log(`AuthWrapper: ${window.location.href}`)
   const dispatch: AppDispatch = useDispatch()
   const { isAuthenticated, authenticating, error } = useSelector(selectAuthentication)
 
