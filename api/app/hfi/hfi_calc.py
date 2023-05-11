@@ -373,6 +373,7 @@ def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
     planning_area_to_dailies: List[PlanningAreaResult] = []
 
     station_lookup: Dict[str, WFWXWeatherStation] = {station.wfwx_id: station for station in wfwx_stations}
+    wfwx_station_codes: List[int] = set([station.code for station in wfwx_stations])
 
     for area_id in planning_area_station_info.keys():
 
@@ -391,10 +392,10 @@ def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
             num_prep_days,
             lowest_fire_starts)
 
+        selected_stations = [station.station_code for station in planning_area_station_info[area_id]
+                             if station.selected is True and station.station_code in wfwx_station_codes]
         all_dailies_valid: bool = True
-        num_unique_station_codes = len([
-            station.station_code for station in filter(
-                lambda station: (station.selected), planning_area_station_info[area_id])])
+        num_unique_station_codes = len(set(selected_stations))
 
         (daily_results,
          all_dailies_valid) = calculate_daily_results(num_prep_days,
