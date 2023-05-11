@@ -177,7 +177,7 @@ export class WindDirForecastField implements ColDefGenerator, ForecastColDefGene
   }
 
   public generateColDefs = (headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(headerName, false)
+    return this.colDefBuilder.generateColDefs(headerName, true)
   }
 
   public static getInstance(): WindDirForecastField {
@@ -218,7 +218,7 @@ export class WindSpeedForecastField implements ColDefGenerator, ForecastColDefGe
   }
 
   public generateColDefs = (headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(headerName, false)
+    return this.colDefBuilder.generateColDefs(headerName, true)
   }
 
   public static getInstance(): WindSpeedForecastField {
@@ -259,7 +259,7 @@ export class PrecipForecastField implements ColDefGenerator, ForecastColDefGener
   }
 
   public generateColDefs = (headerName?: string) => {
-    return this.colDefBuilder.generateColDefs(headerName, false)
+    return this.colDefBuilder.generateColDefs(headerName, true)
   }
 
   public static getInstance(): PrecipForecastField {
