@@ -1,7 +1,7 @@
 """ HFI calculation logic """
 import math
 import logging
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict, Set, Tuple
 from datetime import date, datetime, timedelta, timezone
 from statistics import mean
 from aiohttp.client import ClientSession
@@ -373,7 +373,7 @@ def calculate_hfi_results(fuel_type_lookup: Dict[int, FuelTypeModel],
     planning_area_to_dailies: List[PlanningAreaResult] = []
 
     station_lookup: Dict[str, WFWXWeatherStation] = {station.wfwx_id: station for station in wfwx_stations}
-    wfwx_station_codes: List[int] = set([station.code for station in wfwx_stations])
+    wfwx_station_codes: Set[int] = set([station.code for station in wfwx_stations])
 
     for area_id in planning_area_station_info.keys():
 
