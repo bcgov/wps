@@ -7,6 +7,10 @@ import Style from 'ol/style/Style'
 import { range, startCase, lowerCase, isUndefined } from 'lodash'
 import { FireZone, FireZoneArea } from 'api/fbaAPI'
 
+const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
+const ADVISORY_ORANGE_FILL = 'rgba(255, 147, 38, 0.4)'
+const ADVISORY_RED_FILL = 'rgba(128, 0, 0, 0.4)'
+
 const fireCentreTextStyler = (feature: RenderFeature | ol.Feature<Geometry>): Text => {
   const text = feature.get('mof_fire_centre_name').replace(' Fire Centre', '\nFire Centre')
   return new Text({
@@ -60,21 +64,24 @@ export const fireZoneStyler = (
 }
 
 export const getAdvisoryColors = (advisoryThreshold: number, fireZoneArea?: FireZoneArea[]) => {
-  if (isUndefined(fireZoneArea)) {
-    return new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
+  if (isUndefined(fireZoneArea) || fireZoneArea.length === 0) {
+    return new Fill({ color: EMPTY_FILL })
   }
 
-  let fill = new Fill({ color: 'rgba(0, 0, 0, 0.0)' })
+  let fill = new Fill({ color: EMPTY_FILL })
   const advisoryThresholdArea = fireZoneArea.find(area => area.threshold == 1)
-  if (advisoryThresholdArea && advisoryThresholdArea.elevated_hfi_percentage > advisoryThreshold) {
+  const warningThresholdArea = fireZoneArea.find(area => area.threshold == 2)
+  const advisoryPercentage = (advisoryThresholdArea && advisoryThresholdArea.elevated_hfi_percentage) || 0
+  const warningPercentage = (warningThresholdArea && warningThresholdArea.elevated_hfi_percentage) || 0
+
+  if (advisoryPercentage + warningPercentage > advisoryThreshold) {
     // advisory color orange
-    fill = new Fill({ color: 'rgba(255, 147, 38, 0.4)' })
+    fill = new Fill({ color: ADVISORY_ORANGE_FILL })
   }
 
-  const warningThresholdArea = fireZoneArea.find(area => area.threshold == 2)
-  if (warningThresholdArea && warningThresholdArea.elevated_hfi_percentage > advisoryThreshold) {
+  if (warningPercentage > advisoryThreshold) {
     // advisory color red
-    fill = new Fill({ color: 'rgba(128, 0, 0, 0.4)' })
+    fill = new Fill({ color: ADVISORY_RED_FILL })
   }
 
   return fill
