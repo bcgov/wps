@@ -346,8 +346,8 @@ async def get_hfi_result_with_date(fire_centre_id: int,
             else:
                 date_range = None
             request, _, fire_centre_fire_start_ranges = get_prepared_request(session,
-                                                                                          fire_centre_id,
-                                                                                          date_range)
+                                                                             fire_centre_id,
+                                                                             date_range)
 
             # Get the response.
             request_response = await calculate_and_create_response(
@@ -480,12 +480,14 @@ async def get_pdf(
     logger.info('/hfi-calc/fire_centre/%s/%s/%s/pdf', fire_centre_id, start_date, end_date)
 
     with get_read_session_scope() as session:
-        (request,
-         _,
-         fire_centre_fire_start_ranges) = get_prepared_request(session,
-                                                               fire_centre_id,
-                                                               DateRange(start_date=start_date,
-                                                                         end_date=end_date))
+        if start_date and end_date:
+            date_range = DateRange(start_date=start_date, end_date=end_date)
+        else:
+            date_range = None
+
+        request, _, fire_centre_fire_start_ranges = get_prepared_request(session,
+                                                                         fire_centre_id,
+                                                                         date_range)
 
         # Get the response.
         request_response = await calculate_and_create_response(
