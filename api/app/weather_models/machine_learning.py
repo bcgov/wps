@@ -245,7 +245,9 @@ class StationMachineLearning:
         """
         hour = timestamp.hour
         if self.regression_models[hour].relative_humidity_wrapper.good_model and model_rh is not None:
-            return self.regression_models[hour].relative_humidity_wrapper.model.predict([[model_rh]])[0]
+            predicted_rh = self.regression_models[hour].relative_humidity_wrapper.model.predict([[model_rh]])[0]
+            # in the real world the RH value can't be negative. Sometimes linear regression returns negative value, so assume 0
+            return max(0, predicted_rh)
         return None
 
     def predict_wind_speed(self, model_wind_speed: float, timestamp: datetime):
@@ -256,7 +258,10 @@ class StationMachineLearning:
         """
         hour = timestamp.hour
         if self.regression_models[hour].wind_speed_wrapper.good_model and model_wind_speed is not None:
-            return self.regression_models[hour].wind_speed_wrapper.model.predict([[model_wind_speed]])[0]
+            predicted_wind_speed = self.regression_models[hour].wind_speed_wrapper.model.predict([[model_wind_speed]])[
+                0]
+            # in the real world the wind speed can't be negative. Sometimes linear regression returns negative value, so assume 0
+            return max(0, predicted_wind_speed)
         return None
 
     def predict_wind_direction(self, model_wind_dir: int, timestamp: datetime):
@@ -267,7 +272,10 @@ class StationMachineLearning:
         """
         hour = timestamp.hour
         if self.regression_models[hour].wind_direction_wrapper.good_model and model_wind_dir is not None:
-            return self.regression_models[hour].wind_direction_wrapper.model.predict([[model_wind_dir]])[0]
+            predicted_wind_dir = self.regression_models[hour].wind_direction_wrapper.model.predict([[model_wind_dir]])[
+                0]
+            # a valid wind direction value is between 0 and 360. If the returned value is outside these bounds, correct it
+            return predicted_wind_dir % 360
         return None
 
     def predict_precipitation(self, model_precip: float, timestamp: datetime):
@@ -278,5 +286,7 @@ class StationMachineLearning:
         """
         hour = timestamp.hour
         if self.regression_models[hour].precipitation_wrapper.good_model and model_precip is not None:
-            return self.regression_models[hour].precipitation_wrapper.model.predict([[model_precip]])[0]
+            predicted_precip = self.regression_models[hour].precipitation_wrapper.model.predict([[model_precip]])[0]
+            # in the real world precip can't be negative. Sometimes linear regression returns negative value, so assume 0
+            return max(0, predicted_precip)
         return None
