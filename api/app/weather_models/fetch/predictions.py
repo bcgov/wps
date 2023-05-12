@@ -130,11 +130,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
                                                                             end_time: datetime.datetime) -> List[WeatherIndeterminate]:
     results: List[WeatherIndeterminate] = []
     days = get_days_from_range(start_time, end_time)
-
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
-    logger.info(f'Station length {len(stations)}')
-    for key in stations.keys():
-        logger.info(f'Station Id: {key}')
 
     for day in days:
         vancouver_tz = pytz.timezone("America/Vancouver")
@@ -146,10 +142,6 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
             session, station_codes, day_start, day_end)
         for timestamp, model_abbrev, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, precip_24hours, wind_dir, wind_speed, update_date in daily_result:
             # Create two WeatherIndeterminates, one for model predictions and one for bias corrected predictions
-            logger.info(f'Station code: {station_code}')
-            test = stations.get(station_code, None)
-            if test is None:
-                logger.info(f'Missing station code: {station_code}')
             results.append(
                 WeatherIndeterminate(
                     station_code=station_code,
