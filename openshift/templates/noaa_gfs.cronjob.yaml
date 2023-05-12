@@ -40,8 +40,6 @@ parameters:
     required: true
   - name: APP_LABEL
     required: true
-  - name: USE_WFWX
-    value: true
 objects:
   - kind: CronJob
     apiVersion: batch/v1
@@ -148,11 +146,6 @@ objects:
                         configMapKeyRef:
                           name: ${GLOBAL_NAME}
                           key: env.redis-cache-noaa
-                    - name: USE_WFWX
-                      valueFrom:
-                        configMapKeyRef:
-                          name: ${GLOBAL_NAME}
-                          key: env.use-wfwx
                   resources:
                     limits:
                       cpu: "1"
