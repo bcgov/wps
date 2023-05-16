@@ -6,6 +6,8 @@ import io
 import argparse
 from typing import List
 
+from ..app.weather_models.machine_learning import MAX_DAYS_TO_LEARN
+
 
 class CopyException(Exception):
     """ Custom exception for errors """
@@ -15,6 +17,7 @@ class Mode(str, Enum):
     """ Different copy modes """
     partial = 'partial'
     complete = 'complete'
+    machine_learning = 'ml'
 
 
 def oc_n_project(project: str) -> List:
@@ -32,7 +35,7 @@ def get_first_project() -> str:
     result = subprocess.run(['oc', 'get', 'projects', '-o', 'name'],
                             stdout=subprocess.PIPE, check=True, text=True)
     project = io.StringIO(result.stdout).readline()
-    return project[project.rindex('/')+1:-1]
+    return project[project.rindex('/') + 1:-1]
 
 
 def list_pods(project: str) -> None:
@@ -107,7 +110,7 @@ def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str
                                  '--exclude-table-data=model_run_grid_subset_predictions',
                                  '--exclude-table-data=weather_station_model_predictions'],
                                 stdout=subprocess.PIPE, check=True, text=True)
-    else:
+    elif mode == Mode.complete:
         print('(complete dump)')
         result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp/dump_db.tar',
                                  '--clean', '-Ft', database],
@@ -124,6 +127,21 @@ def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str
             sql_command = ('psql {database} -c "\\copy (SELECT * FROM {table} WHERE '
                            'prediction_timestamp > current_date -5) to \'{csv_file}\' with csv"\n').format(
                 database=database, table=table, csv_file=csv_file)
+            print('run: {}'.format(sql_command))
+            process.stdin.write(sql_command)
+            process.stdin.flush()
+    elif mode == Mode.machine_learning:
+        print('(dump weather model data for linear regression ML)')
+        tables_dict = {'prediction_model_run_timestamps': 'prediction_run_timestamp',
+                       'model_run_grid_subset_predictions': 'prediction_timestamp',
+                       'weather_station_model_predictions': 'prediction_timestamp'}
+        for table_name, date_key in tables_dict.items():
+            csv_file = '/tmp/{}.csv'.format(table_name)
+            files.append(csv_file)
+            sql_command = ('psql {database} -c "\\copy (SELECT * FROM {table} WHERE '
+                           '{col_name} > current_date - {max_days_to_learn}) to '
+                           '\'{csv_file}\' with CSV"\n').format(database=database, table=table_name, csv_file=csv_file,
+                                                                max_days_to_learn=MAX_DAYS_TO_LEARN, col_name=date_key)
             print('run: {}'.format(sql_command))
             process.stdin.write(sql_command)
             process.stdin.flush()
