@@ -41,8 +41,8 @@ class StationSourceEnum(enum.Enum):
     UNSPECIFIED = 'unspecified'
     # Use wildfire one as source, filtering on active stations:
     WILDFIRE_ONE = 'wildfire_one'
-    # Use local storage as source
-    LOCAL_STORAGE = 'local_storage'
+    # Use static file as source for testing purposes:
+    TEST = 'test'
 
 
 def _get_stations_local() -> List[WeatherStation]:

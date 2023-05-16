@@ -113,7 +113,7 @@ def test_process_hrdps(mock_download, mock_database):
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
     sys.argv = ["argv", "HRDPS"]
-    assert app.jobs.env_canada.process_models(StationSourceEnum.LOCAL_STORAGE) == 1
+    assert app.jobs.env_canada.process_models(StationSourceEnum.TEST) == 1
 
 
 def test_main_fail(mocker: MockerFixture, monkeypatch):

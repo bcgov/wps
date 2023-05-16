@@ -120,4 +120,4 @@ def test_process_rdps(mock_download,
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
     sys.argv = ["argv", "RDPS"]
-    assert app.jobs.env_canada.process_models(StationSourceEnum.LOCAL_STORAGE) == 1
+    assert app.jobs.env_canada.process_models(StationSourceEnum.TEST) == 1

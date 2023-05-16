@@ -170,7 +170,7 @@ def test_process_gdps(mock_download,
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
     sys.argv = ["argv", "GDPS"]
-    assert env_canada.process_models(StationSourceEnum.LOCAL_STORAGE) == 1
+    assert env_canada.process_models(StationSourceEnum.TEST) == 1
 
 
 def test_for_zero_day_bug(monkeypatch):
