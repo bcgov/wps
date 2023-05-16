@@ -2,7 +2,7 @@ import * as jwtDecode from 'jwt-decode'
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from 'app/store'
-import { WF1_AUTH_URL } from 'utils/env'
+import { TEST_AUTH, WF1_AUTH_URL } from 'utils/env'
 import { wf1Authenticate, wf1AuthenticateError } from 'features/auth/slices/wf1AuthenticationSlice'
 import { selectWf1Authentication } from 'app/rootReducer'
 
@@ -17,6 +17,10 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
 
   useEffect(() => {
     async function fetchData() {
+      if (TEST_AUTH || window.Cypress) {
+        dispatch(wf1Authenticate('test token'))
+        return
+      }
       if (!window.location.href.includes('access_token')) {
         window.location.href = WF1_AUTH_URL
       } else {
