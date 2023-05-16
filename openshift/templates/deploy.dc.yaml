@@ -70,8 +70,6 @@ parameters:
   - name: ENVIRONMENT
     description: Can be used to modify route (e.g. when deploying to test)
     value: ""
-  - name: USE_WFWX
-    value: "False"
   - name: VANITY_DOMAIN
     requests: True
   - name: GUNICORN_WORKERS
@@ -159,7 +157,10 @@ objects:
                       name: ${GLOBAL_NAME}
                       key: env.gunicorn.timeout
                 - name: USE_WFWX
-                  value: ${USE_WFWX}
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.use-wfwx
                 - name: WFWX_MAX_PAGE_SIZE
                   value: ${WFWX_MAX_PAGE_SIZE}
                 - name: WFWX_AUTH_URL
