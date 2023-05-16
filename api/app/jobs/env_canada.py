@@ -21,6 +21,7 @@ from app import configure_logging
 import app.utils.time as time_utils
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
 import app.db.database
+from app.stations import StationSourceEnum
 from app.rocketchat_notifications import send_rocketchat_notification
 
 # If running as its own process, configure logging appropriately.
@@ -248,14 +249,14 @@ class EnvCanada():
     Canada.
     """
 
-    def __init__(self, model_type: ModelEnum):
+    def __init__(self, model_type: ModelEnum, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
         """ Prep variables """
         self.files_downloaded = 0
         self.files_processed = 0
         self.exception_count = 0
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
-        self.grib_processor = GribFileProcessor()
+        self.grib_processor = GribFileProcessor(station_source)
         self.model_type: ModelEnum = model_type
         # set projection based on model_type
         if self.model_type == ModelEnum.GDPS:
@@ -340,7 +341,7 @@ class EnvCanada():
                     self.model_type, hour, exc_info=exception)
 
 
-def process_models():
+def process_models(station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
     """ downloading and processing models """
 
     # set the model type requested based on arg passed via command line
@@ -350,12 +351,12 @@ def process_models():
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    env_canada = EnvCanada(model_type)
+    env_canada = EnvCanada(model_type, station_source)
     env_canada.process()
 
     with app.db.database.get_write_session_scope() as session:
         # interpolate and machine learn everything that needs interpolating.
-        model_value_processor = ModelValueProcessor(session)
+        model_value_processor = ModelValueProcessor(session, station_source)
         model_value_processor.process(model_type)
 
     # calculate the execution time.

@@ -106,6 +106,33 @@ objects:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
                           key: rocket.chat-auth-token-secret
+                    - name: USE_WFWX
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: env.use-wfwx
+                    - name: WFWX_MAX_PAGE_SIZE
+                      value: ${WFWX_MAX_PAGE_SIZE}
+                    - name: WFWX_AUTH_URL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: env.wfwx-auth-url
+                    - name: WFWX_BASE_URL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: env.wfwx-base-url
+                    - name: WFWX_USER
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: env.wfwx-user
+                    - name: WFWX_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: wfwx-secret
                     - name: REDIS_HOST
                       valueFrom:
                         configMapKeyRef:
