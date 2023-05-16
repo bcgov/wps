@@ -20,6 +20,8 @@ logger = getLogger(__name__)
 
 # Corresponding key values on HourlyActual and SampleCollection
 SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity', 'wind_speed', 'precipitation', 'wind_direction')
+# Number of days of historical actual data to learn from when training model
+MAX_DAYS_TO_LEARN = 19
 
 
 class LinearRegressionWrapper:
@@ -144,14 +146,13 @@ class StationMachineLearning:
         # Maximum number of days to try to learn from. Experimentation has shown that
         # about two weeks worth of data starts giving fairly good results compared to human forecasters.
         # NOTE: This could be an environment variable.
-        self.max_days_to_learn = 19
+        self.max_days_to_learn = MAX_DAYS_TO_LEARN
 
     def _add_sample_to_collection(self,
                                   prediction: ModelRunGridSubsetPrediction,
                                   actual: HourlyActual,
                                   sample_collection: SampleCollection):
         """ Take the provided prediction and observed value, adding them to the collection of samples """
-        # TODO: add precip and wind speed/direction to SAMPLE_VALUE_KEYS
         for model_key, sample_key in zip(SCALAR_MODEL_VALUE_KEYS, SAMPLE_VALUE_KEYS):
             model_value = getattr(prediction, model_key)
             if model_value is not None:
