@@ -169,7 +169,7 @@ class ModelValueProcessor:
     """ Iterate through model runs that have completed, and calculate the interpolated weather predictions.
     """
 
-    def __init__(self, session, station_source: StationSourceEnum = None):
+    def __init__(self, session, station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
         """ Prepare variables we're going to use throughout """
         self.session = session
         self.stations = get_stations_synchronously(station_source)
