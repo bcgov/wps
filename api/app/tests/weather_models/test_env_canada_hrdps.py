@@ -18,6 +18,7 @@ import app.jobs.env_canada
 import app.jobs.common_model_fetchers
 import app.weather_models.process_grib
 from app.weather_models import ProjectionEnum
+from app.stations import StationSourceEnum
 from app.db.models.weather_models import (PredictionModel, ProcessedModelRunUrl,
                                           PredictionModelRunTimestamp, PredictionModelGridSubset)
 from app.tests.weather_models.test_env_canada_gdps import MockResponse
@@ -112,7 +113,7 @@ def test_process_hrdps(mock_download, mock_database):
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
     sys.argv = ["argv", "HRDPS"]
-    assert app.jobs.env_canada.process_models() == 1
+    assert app.jobs.env_canada.process_models(StationSourceEnum.TEST) == 1
 
 
 def test_main_fail(mocker: MockerFixture, monkeypatch):
