@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
 import { AppThunk } from 'app/store'
 
 interface State {
@@ -16,25 +15,15 @@ const wf1AuthSlice = createSlice({
   name: 'wf1Authentication',
   initialState,
   reducers: {
-    authenticated(
-      state: State,
-      action: PayloadAction<{
-        wf1Token: string | undefined
-      }>
-    ) {
-      state.wf1Token = action.payload.wf1Token
+    authenticated(state: State, action: PayloadAction<string>) {
+      state.wf1Token = action.payload
     },
     unAuthenticated(state: State) {
       state.wf1Token = undefined
     },
-    authenticateError(
-      state: State,
-      action: PayloadAction<{
-        error: string
-      }>
-    ) {
+    authenticateError(state: State, action: PayloadAction<string>) {
       state.wf1Token = undefined
-      state.error = action.payload.error
+      state.error = action.payload
     }
   }
 })
@@ -46,7 +35,7 @@ export default wf1AuthSlice.reducer
 export const wf1Authenticate =
   (wf1Token: string): AppThunk =>
   dispatch => {
-    dispatch(authenticated({ wf1Token }))
+    dispatch(authenticated(wf1Token))
   }
 
 export const wf1Signout = (): AppThunk => async dispatch => {
@@ -56,5 +45,5 @@ export const wf1Signout = (): AppThunk => async dispatch => {
 export const wf1AuthenticateError =
   (error: string): AppThunk =>
   dispatch => {
-    dispatch(authenticateError({ error }))
+    dispatch(authenticateError(error))
   }
