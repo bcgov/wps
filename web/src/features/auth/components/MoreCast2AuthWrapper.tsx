@@ -31,11 +31,11 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
         setRenderChildren(true)
       }
 
-      if (!window.location.href.includes('access_token') && isAuthenticatedForecaster) {
+      if (!window.location.href?.includes('access_token') && isAuthenticatedForecaster) {
         window.location.href = WF1_AUTH_URL
       }
 
-      if (window.location.href.includes('access_token')) {
+      if (window.location.href?.includes('access_token')) {
         const wf1Token = window.location.href.split('#access_token=')[1].split('&')[0]
         try {
           jwtDecode.default(wf1Token)
