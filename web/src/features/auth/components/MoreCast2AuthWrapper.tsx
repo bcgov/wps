@@ -24,7 +24,7 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
     async function fetchData() {
       if (TEST_AUTH || window.Cypress) {
         dispatch(wf1Authenticate('test token'))
-        return
+        setRenderChildren(true)
       }
 
       if (!isAuthenticatedForecaster) {
