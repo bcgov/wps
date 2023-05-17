@@ -131,7 +131,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
     results: List[WeatherIndeterminate] = []
     days = get_days_from_range(start_time, end_time)
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
-
+    active_station_codes = stations.keys()
     for day in days:
         vancouver_tz = pytz.timezone("America/Vancouver")
 
@@ -139,8 +139,9 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
         day_end = vancouver_tz.localize(datetime.datetime.combine(day, time.max))
 
         daily_result = get_latest_station_prediction_per_day(
-            session, station_codes, day_start, day_end)
+            session, active_station_codes, day_start, day_end)
         for timestamp, model_abbrev, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, precip_24hours, wind_dir, wind_speed, update_date in daily_result:
+
             # Create two WeatherIndeterminates, one for model predictions and one for bias corrected predictions
             results.append(
                 WeatherIndeterminate(
