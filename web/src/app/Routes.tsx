@@ -23,6 +23,7 @@ import { FireBehaviourCalculator } from 'features/fbaCalculator/pages/FireBehavi
 import { FireBehaviourAdvisoryPage } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import LandingPage from 'features/landingPage/pages/LandingPage'
 import MoreCast2Page from 'features/moreCast2/pages/MoreCast2Page'
+import MoreCast2AuthWrapper from 'features/auth/components/MoreCast2AuthWrapper'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
@@ -74,7 +75,9 @@ const WPSRoutes: React.FunctionComponent = () => {
           path={MORE_CAST_2_ROUTE}
           element={
             <AuthWrapper>
-              <MoreCast2Page />
+              <MoreCast2AuthWrapper>
+                <MoreCast2Page />
+              </MoreCast2AuthWrapper>
             </AuthWrapper>
           }
         />
