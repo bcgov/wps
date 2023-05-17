@@ -6,8 +6,6 @@ import io
 import argparse
 from typing import List
 
-from ..app.weather_models.machine_learning import MAX_DAYS_TO_LEARN
-
 
 class CopyException(Exception):
     """ Custom exception for errors """
@@ -99,10 +97,10 @@ def delete_lock_file(project: str, pod: str, database: str) -> None:
     print(result.stdout)
 
 
-def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str]:
+def dump_database(project: str, pod: str, database: str, mode: Mode, num_days: int) -> List[str]:
     """ Dump database to file """
     print('running pg_dump...')
-    files = ['/tmp/dump_db.tar', ]
+    files = ['/tmp/dump_db.tar', ] if mode != Mode.machine_learning else []
     if mode == Mode.partial:
         print('(partial dump)')
         result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp/dump_db.tar',
@@ -110,12 +108,15 @@ def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str
                                  '--exclude-table-data=model_run_grid_subset_predictions',
                                  '--exclude-table-data=weather_station_model_predictions'],
                                 stdout=subprocess.PIPE, check=True, text=True)
+        print(result.stdout)
+
     elif mode == Mode.complete:
         print('(complete dump)')
         result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp/dump_db.tar',
                                  '--clean', '-Ft', database],
                                 stdout=subprocess.PIPE, check=True, text=True)
-    print(result.stdout)
+        print(result.stdout)
+
     process = subprocess.Popen([*oc_rsh(project, pod)], stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if mode == Mode.partial:
@@ -132,16 +133,16 @@ def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str
             process.stdin.flush()
     elif mode == Mode.machine_learning:
         print('(dump weather model data for linear regression ML)')
-        tables_dict = {'prediction_model_run_timestamps': 'prediction_run_timestamp',
-                       'model_run_grid_subset_predictions': 'prediction_timestamp',
-                       'weather_station_model_predictions': 'prediction_timestamp'}
-        for table_name, date_key in tables_dict.items():
+        tables_dict = {'prediction_model_run_timestamps': {'col_name': 'prediction_run_timestamp', 'date_offset': num_days + 11},
+                       'model_run_grid_subset_predictions': {'col_name': 'prediction_timestamp', 'date_offset': num_days},
+                       'weather_station_model_predictions': {'col_name': 'prediction_timestamp', 'date_offset': num_days}}
+        for table_name, values in tables_dict.items():
             csv_file = '/tmp/{}.csv'.format(table_name)
             files.append(csv_file)
             sql_command = ('psql {database} -c "\\copy (SELECT * FROM {table} WHERE '
                            '{col_name} > current_date - {max_days_to_learn}) to '
                            '\'{csv_file}\' with CSV"\n').format(database=database, table=table_name, csv_file=csv_file,
-                                                                max_days_to_learn=MAX_DAYS_TO_LEARN, col_name=date_key)
+                                                                max_days_to_learn=values['date_offset'], col_name=values['col_name'])
             print('run: {}'.format(sql_command))
             process.stdin.write(sql_command)
             process.stdin.flush()
@@ -227,18 +228,21 @@ def main():
     Entry points - assumes you have openshift command line tools installed and are logged in .
     """
     parser = argparse.ArgumentParser(
-        description='Download complete or partial database dump from a pod in an openshift cluster')
+        description='Download complete or partial database dump from a pod in an openshift cluster, or download weather model data only')
     parser.add_argument('-m', '--mode', default='partial',
-                        help='Download complete or partial (default: partial)')
+                        help='Download complete, partial, or ml (machine learning) (default: partial)')
+    parser.add_argument('-d', '--days', default='19', type=int,
+                        help='Number of days in past to fetch weather model data for (default: 19')
     args = parser.parse_args()
     mode = Mode(args.mode)
+    num_days = args.days
 
     project = get_project()
     pod = get_pod(project)
     database = get_database(project, pod)
     create_lock_file(project, pod, database)
     try:
-        files = dump_database(project, pod, database, mode)
+        files = dump_database(project, pod, database, mode, num_days)
         copy_files_to_local(project, pod, files)
         delete_remote_files(project, pod, files)
     finally:
