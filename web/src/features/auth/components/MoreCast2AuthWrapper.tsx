@@ -15,10 +15,10 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
   const dispatch: AppDispatch = useDispatch()
 
   const [renderChildren, setRenderChildren] = useState(false)
-  const { isAuthenticated, roles } = useSelector(selectAuthentication)
+  const { roles } = useSelector(selectAuthentication)
   const { error } = useSelector(selectWf1Authentication)
 
-  const isAuthenticatedForecaster = isAuthenticated && roles.includes(ROLES.MORECAST_2.WRITE_FORECAST)
+  const isAuthenticatedForecaster = roles.includes(ROLES.MORECAST_2.WRITE_FORECAST)
 
   useEffect(() => {
     async function fetchData() {

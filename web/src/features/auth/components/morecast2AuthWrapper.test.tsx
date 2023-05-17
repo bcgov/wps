@@ -8,7 +8,7 @@ import { WF1_AUTH_URL } from 'utils/env'
 import { ROLES } from 'features/auth/roles'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
 
-describe.only('MoreCast2AuthWrapper', () => {
+describe('MoreCast2AuthWrapper', () => {
   const { location } = window
 
   beforeEach((): void => {
@@ -40,7 +40,6 @@ describe.only('MoreCast2AuthWrapper', () => {
   it('should make auth request to wf1 if forecaster when not authd', () => {
     const testStore = buildTestStore({
       ...initialState,
-      isAuthenticated: true,
       roles: [ROLES.MORECAST_2.WRITE_FORECAST]
     })
 
@@ -59,7 +58,6 @@ describe.only('MoreCast2AuthWrapper', () => {
   it('should not make auth request to wf1 if forecaster when already authd', () => {
     const testStore = buildTestStore({
       ...initialState,
-      isAuthenticated: true,
       roles: [ROLES.MORECAST_2.WRITE_FORECAST]
     })
     const authedUrl = 'test.com/#access_token=t&'
@@ -86,7 +84,6 @@ describe.only('MoreCast2AuthWrapper', () => {
   it('should not make auth request to wf1 if not a forecaster', () => {
     const testStore = buildTestStore({
       ...initialState,
-      isAuthenticated: true,
       roles: []
     })
     expect(window.location.href).toBe('')
