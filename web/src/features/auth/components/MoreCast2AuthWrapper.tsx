@@ -1,5 +1,5 @@
 import * as jwtDecode from 'jwt-decode'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from 'app/store'
 import { TEST_AUTH, WF1_AUTH_URL } from 'utils/env'
@@ -14,6 +14,7 @@ interface Props {
 const MoreCast2AuthWrapper = ({ children }: Props) => {
   const dispatch: AppDispatch = useDispatch()
 
+  const [renderChildren, setRenderChildren] = useState(false)
   const { isAuthenticated, roles } = useSelector(selectAuthentication)
   const { error } = useSelector(selectWf1Authentication)
 
@@ -27,7 +28,7 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
       }
 
       if (!isAuthenticatedForecaster) {
-        return children
+        setRenderChildren(true)
       }
 
       if (!window.location.href.includes('access_token') && isAuthenticatedForecaster) {
@@ -39,6 +40,7 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
         try {
           jwtDecode.default(wf1Token)
           dispatch(wf1Authenticate(wf1Token))
+          setRenderChildren(true)
         } catch (e) {
           dispatch(wf1AuthenticateError('Failed to authenticate with WF1'))
         }
@@ -52,7 +54,7 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
     return <div>{error}</div>
   }
 
-  return children
+  return renderChildren ? children : null
 }
 
 export default React.memo(MoreCast2AuthWrapper)
