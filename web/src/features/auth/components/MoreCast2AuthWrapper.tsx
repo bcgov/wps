@@ -32,7 +32,7 @@ const MoreCast2AuthWrapper = ({ children }: Props) => {
       }
 
       if (!window.location.href?.includes('access_token') && isAuthenticatedForecaster) {
-        window.location.href = WF1_AUTH_URL
+        window.location.href = `${WF1_AUTH_URL}&redirect_uri=${window.location.href}`
       }
 
       if (window.location.href?.includes('access_token')) {
