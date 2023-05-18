@@ -11,14 +11,14 @@ from app.auth import (auth_with_forecaster_role_required,
 from app.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_for_date, save_all_forecasts
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.morecast_v2.forecasts import get_forecasts
+from app.morecast_v2.forecasts import get_forecasts, post_forecasts_to_wf1
 from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MoreCastForecastOutput,
                                      MoreCastForecastRequest,
                                      MorecastForecastResponse,
                                      ObservedDailiesForStations,
                                      ObservedStationDailiesResponse,
-                                     WeatherIndeterminate, WildfireOneForecastRequest)
+                                     WeatherIndeterminate)
 from app.schemas.shared import StationsRequest
 from app.utils.time import get_hour_20_from_date, get_utc_now
 from app.weather_models.fetch.predictions import fetch_latest_model_run_predictions_by_station_code_and_date_range
@@ -108,24 +108,7 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
                                                         wind_speed=forecast.wind_speed,
                                                         wind_direction=forecast.wind_direction,
                                                         update_timestamp=int(now.timestamp() * 1000)) for forecast in forecasts_list]
-
-    # send forecasts to WF1 API
-    wildfire_one_forecast_requests = []
-    for forecast in forecasts_to_save:
-        wildfire_one_forecast_requests.append(WildfireOneForecastRequest(
-            # TODO: need to get station UUID from ... ?
-            stationId='1',
-            weatherTimestamp=forecast.for_date,
-            updateDate=get_utc_now().replace(tzinfo=timezone.utc).timestamp() * 1000,
-            # TODO: insert user id strings
-            createdBy='',
-            lastModifiedBy='',
-            temperature=forecast.temp,
-            relativeHumidity=forecast.rh,
-            windSpeed=forecast.wind_speed,
-            windDirection=forecast.wind_direction
-        ))
-
+    post_forecasts_to_wf1(morecast_forecast_outputs)
     return MorecastForecastResponse(forecasts=morecast_forecast_outputs)
 
 
@@ -143,10 +126,10 @@ async def get_yesterdays_actual_dailies(today: date, request: ObservedDailiesFor
     async with ClientSession() as session:
         header = await get_auth_header(session)
 
-        yeserday_dailies = await get_dailies_for_stations_and_date(session, header, time_of_interest,
-                                                                   time_of_interest, unique_station_codes)
+        yesterday_dailies = await get_dailies_for_stations_and_date(session, header, time_of_interest,
+                                                                    time_of_interest, unique_station_codes)
 
-        return ObservedStationDailiesResponse(dailies=yeserday_dailies)
+        return ObservedStationDailiesResponse(dailies=yesterday_dailies)
 
 
 @router.post('/observed-dailies/{start_date}/{end_date}',
