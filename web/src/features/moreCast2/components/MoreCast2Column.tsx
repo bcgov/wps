@@ -57,7 +57,7 @@ export class DateForecastField implements ColDefGenerator {
       width: 150,
       sortable: false,
       valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
-        return params.value.toLocaleString(DateTime.DATE_MED)
+        return params.value.toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY)
       }
     }
   }
