@@ -85,6 +85,21 @@ class MoreCastForecastOutput(MoreCastForecastInput):
     update_timestamp: int
 
 
+class WildfireOneForecastRequest(BaseModel):
+    """ Request for a daily forecast to be posted to the Wildfire One API """
+    stationId: str
+    weatherTimestamp: int
+    updateDate: int     # format: utc-millisec
+    createdBy: str
+    lastModifiedBy: str
+    temperature: float
+    relativeHumidity: int
+    windSpeed: float
+    precipitation: float
+    windDirection: Optional[int]
+    grasslandCuring: Optional[int]
+
+
 class MorecastForecastResponse(BaseModel):
     """ Outgoing forecast daily response """
     forecasts: List[MoreCastForecastOutput]

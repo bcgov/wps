@@ -18,7 +18,7 @@ from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MorecastForecastResponse,
                                      ObservedDailiesForStations,
                                      ObservedStationDailiesResponse,
-                                     WeatherIndeterminate)
+                                     WeatherIndeterminate, WildfireOneForecastRequest)
 from app.schemas.shared import StationsRequest
 from app.utils.time import get_hour_20_from_date, get_utc_now
 from app.weather_models.fetch.predictions import fetch_latest_model_run_predictions_by_station_code_and_date_range
@@ -97,6 +97,7 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
                                                 create_timestamp=now,
                                                 update_user=username,
                                                 update_timestamp=now) for forecast in forecasts_list]
+    # write forecasts to our database
     with get_write_session_scope() as db_session:
         save_all_forecasts(db_session, forecasts_to_save)
     morecast_forecast_outputs = [MoreCastForecastOutput(station_code=forecast.station_code,
@@ -107,6 +108,24 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
                                                         wind_speed=forecast.wind_speed,
                                                         wind_direction=forecast.wind_direction,
                                                         update_timestamp=int(now.timestamp() * 1000)) for forecast in forecasts_list]
+
+    # send forecasts to WF1 API
+    wildfire_one_forecast_requests = []
+    for forecast in forecasts_to_save:
+        wildfire_one_forecast_requests.append(WildfireOneForecastRequest(
+            # TODO: need to get station UUID from ... ?
+            stationId='1',
+            weatherTimestamp=forecast.for_date,
+            updateDate=get_utc_now().replace(tzinfo=timezone.utc).timestamp() * 1000,
+            # TODO: insert user id strings
+            createdBy='',
+            lastModifiedBy='',
+            temperature=forecast.temp,
+            relativeHumidity=forecast.rh,
+            windSpeed=forecast.wind_speed,
+            windDirection=forecast.wind_direction
+        ))
+
     return MorecastForecastResponse(forecasts=morecast_forecast_outputs)
 
 
