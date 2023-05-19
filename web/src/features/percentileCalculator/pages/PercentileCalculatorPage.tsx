@@ -32,7 +32,7 @@ const PercentileCalculatorPage = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchWxStations(getStations, StationSource.local_storage))
+    dispatch(fetchWxStations(getStations, StationSource.unspecified))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
