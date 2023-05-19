@@ -92,7 +92,6 @@ export interface StationGroupMembersResponse {
 
 export enum StationSource {
   unspecified = 'unspecified',
-  local_storage = 'local_storage',
   wildfire_one = 'wildfire_one'
 }
 
