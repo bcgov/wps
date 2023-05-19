@@ -9,4 +9,12 @@ export const raster = axios.create({
   baseURL: RASTER_SERVER_BASE_URL
 })
 
+export const createAuthdInstance = (baseURL: string, token: string) =>
+  axios.create({
+    baseURL,
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+
 export default instance

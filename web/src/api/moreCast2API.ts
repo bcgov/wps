@@ -1,4 +1,5 @@
-import axios from 'api/axios'
+import { WF1_BASE_URL } from 'utils/env'
+import axios, { createAuthdInstance } from 'api/axios'
 import { isEqual } from 'lodash'
 import { DateTime } from 'luxon'
 import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
@@ -169,6 +170,30 @@ export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[
     }
   })
   return forecastRecords
+}
+
+/**
+ * POSTs a batch of forecasts to WF1.
+ * @param forecasts The raw forecast model data.
+ * @returns True if the response is a 201, otherwise false.
+ */
+export async function submitMoreCastForecastRecordsToWF1(
+  forecasts: MoreCast2ForecastRow[],
+  wf1Token: string
+): Promise<boolean> {
+  const forecastRecords = marshalMoreCast2ForecastRecords(forecasts)
+  const url = `${WF1_BASE_URL}/dailies`
+  try {
+    const wf1Axios = createAuthdInstance(WF1_BASE_URL, wf1Token)
+    const { status } = await wf1Axios.post<MoreCast2ForecastRecord[]>(url, {
+      forecasts: forecastRecords
+    })
+    return status === 201
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error(error.message || error)
+    return false
+  }
 }
 
 /**
