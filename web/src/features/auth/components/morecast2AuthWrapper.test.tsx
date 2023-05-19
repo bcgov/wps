@@ -50,9 +50,10 @@ describe('MoreCast2AuthWrapper', () => {
         <MoreCast2AuthWrapper>
           <div></div>
         </MoreCast2AuthWrapper>
+        <a href=""></a>
       </Provider>
     )
-    expect(window.location.href).toBe(WF1_AUTH_URL)
+    expect(window.location.href).toBe(`${WF1_AUTH_URL}&redirect_uri=`)
   })
 
   it('should not make auth request to wf1 if forecaster when already authd', () => {
