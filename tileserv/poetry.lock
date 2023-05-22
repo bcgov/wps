@@ -160,14 +160,14 @@ frozenlist = ">=1.1.0"
 
 [[package]]
 name = "alembic"
-version = "1.10.4"
+version = "1.11.1"
 description = "A database migration tool for SQLAlchemy."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "alembic-1.10.4-py3-none-any.whl", hash = "sha256:43942c3d4bf2620c466b91c0f4fca136fe51ae972394a0cc8b90810d664e4f5c"},
-    {file = "alembic-1.10.4.tar.gz", hash = "sha256:295b54bbb92c4008ab6a7dcd1e227e668416d6f84b98b3c4446a2bc6214a556b"},
+    {file = "alembic-1.11.1-py3-none-any.whl", hash = "sha256:dc871798a601fab38332e38d6ddb38d5e734f60034baeb8e2db5b642fccd8ab8"},
+    {file = "alembic-1.11.1.tar.gz", hash = "sha256:6a810a6b012c88b33458fceb869aef09ac75d6ace5291915ba7fae44de372c01"},
 ]
 
 [package.dependencies]
@@ -454,14 +454,14 @@ files = [
 
 [[package]]
 name = "geoalchemy2"
-version = "0.13.2"
+version = "0.13.3"
 description = "Using SQLAlchemy with Spatial Databases"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "GeoAlchemy2-0.13.2-py3-none-any.whl", hash = "sha256:5723f302c54a22ae9b2fd37eed4d26bb7f0be96b2d4d3dd8ec488ecd5d7dfa6e"},
-    {file = "GeoAlchemy2-0.13.2.tar.gz", hash = "sha256:164c17ec4e566e4751ec1e8906e1c10316203a0535e6c5f80f7d7252791fd1f5"},
+    {file = "GeoAlchemy2-0.13.3-py3-none-any.whl", hash = "sha256:a29f98cbe2527284d2374a0aa6f7bf31fb7babb61bc56b7e557afdb21610827a"},
+    {file = "GeoAlchemy2-0.13.3.tar.gz", hash = "sha256:d85a7deaa9a230901733f7419d6bff5674b8730651de1a07f2b6423aa4925d09"},
 ]
 
 [package.dependencies]
