@@ -157,6 +157,29 @@ export interface MoreCast2ForecastRecord {
   station_name?: string
 }
 
+//
+interface WfwxRecordType {
+  id: string
+  displayLabel: string
+}
+
+interface WfwxForecastRecord {
+  archive: boolean
+  // URL for the station
+  station: string
+  // WFWX station uuid
+  stationId: string
+  // Millis since epoch, 20:00 UTC on date of forecast
+  weatherTimestamp: number
+  temperature: number
+  relativeHumidity: number
+  windSpeed: number
+  precipitation: number
+  recordType: WfwxRecordType
+  windDirection?: number
+  grasslandCuring?: number
+}
+
 export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[]): MoreCast2ForecastRecord[] => {
   const forecastRecords: MoreCast2ForecastRecord[] = forecasts.map(forecast => {
     return {
