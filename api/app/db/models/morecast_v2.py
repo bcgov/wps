@@ -9,6 +9,7 @@ class MorecastForecastRecord(Base):
 
     id = Column(Integer, Sequence('morecast_forecast_id_seq'),
                 primary_key=True, nullable=False, index=True)
+    wf1_daily_id = Column(String, nullable=True)
     station_code = Column(Integer, nullable=False, index=True)
     for_date = Column(TZTimeStamp, nullable=False, index=True)
     temp = Column(Float, nullable=False, index=True)
