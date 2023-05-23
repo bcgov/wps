@@ -5,20 +5,21 @@ import pytz
 from typing import List
 from datetime import date, datetime, time, timedelta, timezone
 from fastapi import APIRouter, Response, Depends, status
+from app import config
 from app.auth import (auth_with_forecaster_role_required,
-                      audit,
+                      audit, authenticate,
                       authentication_required)
 from app.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_for_date, save_all_forecasts
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.morecast_v2.forecasts import get_forecasts, post_forecasts_to_wf1
+from app.morecast_v2.forecasts import get_forecasts
 from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MoreCastForecastOutput,
                                      MoreCastForecastRequest,
                                      MorecastForecastResponse,
                                      ObservedDailiesForStations,
                                      ObservedStationDailiesResponse,
-                                     WeatherIndeterminate)
+                                     WeatherIndeterminate, WildfireOneForecastRequest)
 from app.schemas.shared import StationsRequest
 from app.utils.time import get_hour_20_from_date, get_utc_now
 from app.weather_models.fetch.predictions import fetch_latest_model_run_predictions_by_station_code_and_date_range
@@ -190,3 +191,30 @@ async def get_determinates_for_date_range(start_date: date,
         actuals=actuals,
         predictions=predictions,
         forecasts=forecasts)
+
+
+async def post_forecasts_to_wf1(forecast_data: List[MoreCastForecastOutput], token=Depends(authenticate)):
+    # format POST body in accordance with WF1 API schema
+    wildfire_one_forecast_requests = []
+    for forecast in forecast_data:
+        wildfire_one_forecast_requests.append(WildfireOneForecastRequest(
+            # TODO: need to get station UUID from ... ?
+            stationId='1',
+            weatherTimestamp=forecast.for_date,
+            updateDate=get_utc_now().replace(tzinfo=timezone.utc).timestamp() * 1000,
+            # TODO: insert user id strings
+            createdBy='',
+            lastModifiedBy='',
+            temperature=forecast.temp,
+            relativeHumidity=forecast.rh,
+            windSpeed=forecast.wind_speed,
+            windDirection=forecast.wind_direction
+        ))
+
+    try:
+        async with ClientSession() as session:
+            url = config.get()
+            headers = ''
+            session.post(url, headers=headers, data=wildfire_one_forecast_requests)
+    except Exception as exc:
+        logger.error('Encountered error posting forecasts to Wildfire One API', exc_info=exc)
