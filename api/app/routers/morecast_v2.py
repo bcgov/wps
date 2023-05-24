@@ -29,6 +29,8 @@ logger = logging.getLogger(__name__)
 
 no_cache = "max-age=0"  # don't let the browser cache this
 
+vancouver_tz = pytz.timezone("America/Vancouver")
+
 router = APIRouter(
     prefix="/morecast-v2",
     dependencies=[Depends(authentication_required), Depends(audit)]
@@ -54,8 +56,6 @@ async def get_forecasts_by_date_range(start_date: date, end_date: date, request:
     """ Return forecasts for the specified date range and stations """
     logger.info(f"/forecast/{start_date}/{end_date}")
     response.headers["Cache-Control"] = no_cache
-
-    vancouver_tz = pytz.timezone("America/Vancouver")
 
     start_time = vancouver_tz.localize(datetime.combine(start_date, time.min))
     end_time = vancouver_tz.localize(datetime.combine(end_date, time.max))
@@ -97,6 +97,17 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
                                                 create_timestamp=now,
                                                 update_user=username,
                                                 update_timestamp=now) for forecast in forecasts_list]
+    async with ClientSession() as session:
+        header = await get_auth_header(session)
+        forecast_dates = [f.for_date for f in forecasts_to_save]
+        min_forecast_date = min(forecast_dates)
+        max_forecast_date = max(forecast_dates)
+        start_time = vancouver_tz.localize(datetime.combine(min_forecast_date, time.min))
+        end_time = vancouver_tz.localize(datetime.combine(max_forecast_date, time.max))
+        unique_station_codes = list(set([f.station_code for f in forecasts_to_save]))
+        dailies = await get_dailies_for_stations_and_date(session, header, start_time,
+                                                          end_time, unique_station_codes)
+        logger.info(dailies)
     with get_write_session_scope() as db_session:
         save_all_forecasts(db_session, forecasts_to_save)
     morecast_forecast_outputs = [MoreCastForecastOutput(station_code=forecast.station_code,
