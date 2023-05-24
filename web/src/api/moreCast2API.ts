@@ -178,18 +178,19 @@ export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[
 
 /**
  * POSTs a batch of forecasts.
+ * @param token The WF1 token.
  * @param forecasts The raw forecast model data.
  * @returns True if the response is a 201, otherwise false.
  */
 export async function submitMoreCastForecastRecords(
-  wf1Token: string,
+  token: string,
   forecasts: MoreCast2ForecastRow[]
 ): Promise<boolean> {
   const forecastRecords = marshalMoreCast2ForecastRecords(forecasts)
   const url = `/morecast-v2/forecast`
   try {
     const { status } = await axios.post<MoreCastForecastRequest>(url, {
-      wf1Token,
+      token,
       forecasts: forecastRecords
     })
     return status === 201

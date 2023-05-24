@@ -21,7 +21,7 @@ morecast_v2_post_determinates_url = '/api/morecast-v2/determinates/2023-03-15/20
 
 decode_fn = "jwt.decode"
 
-forecast = MoreCastForecastRequest(wf1Token="testToken", forecasts=[MoreCastForecastInput(
+forecast = MoreCastForecastRequest(token="testToken", forecasts=[MoreCastForecastInput(
     station_code=1, for_date=1, temp=10.0, rh=40, precip=70.2, wind_speed=20.3, wind_direction=40)])
 
 stations = StationsRequest(stations=[1, 2])
