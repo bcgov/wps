@@ -18,6 +18,8 @@ async def post_forecasts(session: ClientSession,
     logger.info('Using WFWX to post/put forecasts')
     headers = {'Authorization': f"Bearer {wf1_token}"}
 
-    async with session.post(WF1_FORECAST_POST_URL, data={forecasts}, headers=headers) as response:
+    forecasts_json = [forecast.dict() for forecast in forecasts]
+
+    async with session.post(WF1_FORECAST_POST_URL, json={forecasts_json}, headers=headers) as response:
         response_json = await response.json()
         logger.info('submitted forecasts to wf1 %s.', response_json)
