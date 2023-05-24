@@ -129,3 +129,22 @@ class IndeterminateDailiesResponse(BaseModel):
     actuals: List[WeatherIndeterminate]
     predictions: List[WeatherIndeterminate]
     forecasts: List[MoreCastForecastOutput]
+
+
+class WF1ForecastRecordType(BaseModel):
+    id: str = "FORECAST"
+    displayLabel: str = "Forecast"
+
+
+class WF1PostForecast(BaseModel):
+    """ Used to represent a forecast to be POSTed to WF1 """
+    archive: bool = False,
+    station: str  # station URL
+    stationId: str  # station UUID
+    weatherTimestamp: int  # UTC timestamp in millis
+    temperature: float
+    relativeHumidity: float
+    precipitation: float
+    windSpeed: float
+    windDirection: Optional[float]
+    recordType: WF1ForecastRecordType
