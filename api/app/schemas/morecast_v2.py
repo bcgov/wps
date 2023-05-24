@@ -77,6 +77,7 @@ class MoreCastForecastInput(BaseModel):
 
 class MoreCastForecastRequest(BaseModel):
     """ Incoming daily forecasts to be saved """
+    wf1Token: str
     forecasts: List[MoreCastForecastInput]
 
 
