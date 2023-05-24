@@ -188,7 +188,7 @@ export async function submitMoreCastForecastRecords(
   const forecastRecords = marshalMoreCast2ForecastRecords(forecasts)
   const url = `/morecast-v2/forecast`
   try {
-    const { status } = await axios.post<MoreCast2ForecastRecord[]>(url, {
+    const { status } = await axios.post<MoreCastForecastRequest>(url, {
       wf1Token,
       forecasts: forecastRecords
     })
