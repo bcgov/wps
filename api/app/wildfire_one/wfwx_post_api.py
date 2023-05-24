@@ -12,11 +12,11 @@ WF1_FORECAST_POST_URL = f"{config.get('WFWX_BASE_URL')}/v1/dailies/daily-bulk"
 
 
 async def post_forecasts(session: ClientSession,
-                         wf1Token: str,
+                         wf1_token: str,
                          forecasts: List[WF1PostForecast]):
 
     logger.info('Using WFWX to post/put forecasts')
-    headers = {'Authorization': f"Bearer {wf1Token}"}
+    headers = {'Authorization': f"Bearer {wf1_token}"}
 
     async with session.post(WF1_FORECAST_POST_URL, data={forecasts}, headers=headers) as response:
         response_json = await response.json()

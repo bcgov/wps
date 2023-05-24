@@ -138,7 +138,7 @@ class WF1ForecastRecordType(BaseModel):
 
 class WF1PostForecast(BaseModel):
     """ Used to represent a forecast to be POSTed to WF1 """
-    archive: bool = False,
+    archive = False,
     station: str  # station URL
     stationId: str  # station UUID
     weatherTimestamp: int  # UTC timestamp in millis
