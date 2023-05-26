@@ -20,6 +20,6 @@ async def post_forecasts(session: ClientSession,
 
     forecasts_json = [forecast.dict() for forecast in forecasts]
 
-    async with session.post(WF1_FORECAST_POST_URL, json={forecasts_json}, headers=headers) as response:
+    async with session.post(WF1_FORECAST_POST_URL, json=forecasts_json, headers=headers) as response:
         response_json = await response.json()
         logger.info('submitted forecasts to wf1 %s.', response_json)

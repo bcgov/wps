@@ -1,10 +1,12 @@
 """ Routes for Morecast v2 """
 import logging
+from urllib.parse import urljoin
 from aiohttp.client import ClientSession
 import pytz
 from typing import List
 from datetime import date, datetime, time, timedelta, timezone
 from fastapi import APIRouter, Response, Depends, status
+from app import config
 from app.auth import (auth_with_forecaster_role_required,
                       audit,
                       authentication_required)
@@ -18,11 +20,14 @@ from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MorecastForecastResponse,
                                      ObservedDailiesForStations,
                                      ObservedStationDailiesResponse,
-                                     WeatherIndeterminate)
+                                     WeatherIndeterminate,
+                                     WF1PostForecast,
+                                     WF1ForecastRecordType)
 from app.schemas.shared import StationsRequest
 from app.utils.time import get_hour_20_from_date, get_utc_now
 from app.weather_models.fetch.predictions import fetch_latest_model_run_predictions_by_station_code_and_date_range
-from app.wildfire_one.wfwx_api import get_auth_header, get_dailies_for_stations_and_date, get_daily_determinates_for_stations_and_date
+from app.wildfire_one.wfwx_api import get_auth_header, get_dailies_for_stations_and_date, get_daily_determinates_for_stations_and_date, get_wfwx_stations_from_station_codes
+from app.wildfire_one.wfwx_post_api import post_forecasts
 
 
 logger = logging.getLogger(__name__)
@@ -33,6 +38,25 @@ router = APIRouter(
     prefix="/morecast-v2",
     dependencies=[Depends(authentication_required), Depends(audit)]
 )
+
+
+async def format_as_WF1PostForecast(forecast_records: List[MorecastForecastRecord]) -> List[WF1PostForecast]:
+    """ Returns list of forecast records re-formatted in the data structure WF1 API expects """
+    wf1_post_forecasts = []
+    async with ClientSession() as session:
+        header = await get_auth_header(session)
+        station_codes = [record.station_code for record in forecast_records]
+        stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
+        for record in forecast_records:
+            station = next(filter(lambda obj: obj.code == record.station_code, stations))
+            station_id = station.wfwx_id
+            station_url = urljoin(config.get('WFWX_BASE_URL'), f'wfwx-fireweather-api/v1/stations/{station_id}')
+            wf1_post_forecasts.append(WF1PostForecast(station=station_url, stationId=station_id,
+                                                      temperature=record.temp, relativeHumidity=record.rh,
+                                                      precipitation=record.precip, windSpeed=record.wind_speed,
+                                                      windDirection=record.wind_direction,
+                                                      weatherTimestamp=datetime.timestamp(record.for_date) * 1000, recordType=WF1ForecastRecordType()))
+    return wf1_post_forecasts
 
 
 @router.get("/forecasts/{for_date}")
@@ -97,6 +121,14 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
                                                 create_timestamp=now,
                                                 update_user=username,
                                                 update_timestamp=now) for forecast in forecasts_list]
+
+    wf1_forecast_records = await format_as_WF1PostForecast(forecasts_to_save)
+    async with ClientSession() as client_session:
+        try:
+            await post_forecasts(client_session, token=forecasts.token, forecasts=wf1_forecast_records)
+        except Exception as exc:
+            logger.error('Encountered error posting forecast data to WF1 API', exc_info=exc)
+
     with get_write_session_scope() as db_session:
         save_all_forecasts(db_session, forecasts_to_save)
     morecast_forecast_outputs = [MoreCastForecastOutput(station_code=forecast.station_code,
