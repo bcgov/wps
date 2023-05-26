@@ -98,6 +98,8 @@ class ObservedDailiesForStations(BaseModel):
 
 class ObservedDaily(BaseModel):
     """ Observed (actual) daily weather data for a specific station and date """
+    created_by: str
+    forecast_id: str
     station_code: int
     station_name: str
     utcTimestamp: datetime
@@ -140,6 +142,8 @@ class WF1ForecastRecordType(BaseModel):
 class WF1PostForecast(BaseModel):
     """ Used to represent a forecast to be POSTed to WF1 """
     archive: str = 'false'
+    createdBy: Optional[str]
+    id: Optional[str]
     station: str  # station URL
     stationId: str  # station UUID
     weatherTimestamp: int  # UTC timestamp in millis
