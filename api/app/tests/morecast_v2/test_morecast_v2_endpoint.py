@@ -6,7 +6,7 @@ from aiohttp import ClientSession
 from app.schemas.shared import StationsRequest
 from app.tests.common import default_mock_client_get
 from app.schemas.morecast_v2 import (MoreCastForecastInput,
-                                     MoreCastForecastRequest, ObservedDaily)
+                                     MoreCastForecastRequest, StationDailyFromWF1)
 import app.routers.morecast_v2
 from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 
@@ -132,7 +132,7 @@ def test_get_yesterday_dailies_authorized(client: TestClient, monkeypatch: pytes
     response = client.post(morecast_v2_post_yesterday_dailies_url, json={"station_codes": requested_station_codes})
     assert response.status_code == 200
 
-    parsed_dailies = [ObservedDaily.parse_obj(raw_daily) for raw_daily in response.json().get('dailies')]
+    parsed_dailies = [StationDailyFromWF1.parse_obj(raw_daily) for raw_daily in response.json().get('dailies')]
     assert len(parsed_dailies) == 3
 
     today_date = datetime.strptime(today, '%Y-%m-%d').date()

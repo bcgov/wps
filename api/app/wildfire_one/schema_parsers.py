@@ -1,11 +1,12 @@
 """ Parsers that extract fields from WFWX API responses and build ours"""
 
 import math
+import enum
 import logging
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
-from app.schemas.morecast_v2 import ObservedDaily, WeatherDeterminate, WeatherIndeterminate
+from app.schemas.morecast_v2 import StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate
 from app.schemas.stations import (WeatherStationGroup, WeatherStation,
                                   WeatherStationGroupMember, FireZone, StationFireCentre)
 from app.utils.dewpoint import compute_dewpoint
@@ -18,6 +19,11 @@ from app.wildfire_one.validation import get_valid_flags
 from app.schemas.fba import FireCentre, FireCenterStation
 
 logger = logging.getLogger(__name__)
+
+
+class WF1RecordTypeEnum(enum.Enum):
+    ACTUAL = 'ACTUAL'
+    FORECAST = 'FORECAST'
 
 
 class WFWXWeatherStation():
@@ -49,12 +55,12 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
     return stations
 
 
-async def yesterday_dailies_list_mapper(raw_dailies: Generator[dict, None, None]):
-    """ Maps raw dailies to yesterday dailies list"""
-    yesterday_dailies = []
+async def dailies_list_mapper(raw_dailies: Generator[dict, None, None], record_type: WF1RecordTypeEnum):
+    """ Maps raw dailies for list of StationDailyFromWF1 objects """
+    wf1_dailies: List[StationDailyFromWF1] = []
     async for raw_daily in raw_dailies:
-        if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == "ACTUAL":
-            yesterday_dailies.append(ObservedDaily(
+        if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == record_type.value:
+            wf1_dailies.append(StationDailyFromWF1(
                 created_by=raw_daily.get('createdBy'),
                 forecast_id=raw_daily.get('id'),
                 station_code=raw_daily.get('stationData').get('stationCode'),
@@ -66,27 +72,7 @@ async def yesterday_dailies_list_mapper(raw_dailies: Generator[dict, None, None]
                 wind_direction=raw_daily.get('windDirection'),
                 wind_speed=raw_daily.get('windSpeed')
             ))
-    return yesterday_dailies
-
-
-async def forecast_dailies_list_mapper(raw_dailies: Generator[dict, None, None]):
-    """ Maps raw dailies to forecast dailies list"""
-    forecast_dailies = []
-    async for raw_daily in raw_dailies:
-        if is_station_valid(raw_daily.get('stationData')) and raw_daily.get('recordType').get('id') == "FORECAST":
-            forecast_dailies.append(ObservedDaily(
-                created_by=raw_daily.get('createdBy'),
-                forecast_id=raw_daily.get('id'),
-                station_code=raw_daily.get('stationData').get('stationCode'),
-                station_name=raw_daily.get('stationData').get('displayLabel'),
-                utcTimestamp=datetime.fromtimestamp(raw_daily.get('weatherTimestamp') / 1000, tz=timezone.utc),
-                temperature=raw_daily.get('temperature'),
-                relative_humidity=raw_daily.get('relativeHumidity'),
-                precipitation=raw_daily.get('precipitation'),
-                wind_direction=raw_daily.get('windDirection'),
-                wind_speed=raw_daily.get('windSpeed')
-            ))
-    return forecast_dailies
+    return wf1_dailies
 
 
 async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, None]):

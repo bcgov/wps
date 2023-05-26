@@ -1,9 +1,9 @@
 from typing import List
-from app.schemas.morecast_v2 import ObservedDaily, WeatherDeterminate, WeatherIndeterminate
-from app.wildfire_one.schema_parsers import (parse_noon_forecast,
+from app.schemas.morecast_v2 import StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate
+from app.wildfire_one.schema_parsers import (WF1RecordTypeEnum, parse_noon_forecast,
                                              parse_hourly_actual,
                                              unique_weather_stations_mapper, weather_indeterminate_list_mapper,
-                                             weather_stations_mapper, yesterday_dailies_list_mapper)
+                                             weather_stations_mapper, dailies_list_mapper)
 import pytest
 
 
@@ -151,14 +151,14 @@ async def async_observed_dailies(record_type: str):
 
 @pytest.mark.anyio
 async def test_yesterday_dailies_mapper_actual(anyio_backend):
-    result: List[ObservedDaily] = await yesterday_dailies_list_mapper(async_observed_dailies("ACTUAL"))
+    result: List[StationDailyFromWF1] = await dailies_list_mapper(async_observed_dailies("ACTUAL"), WF1RecordTypeEnum.ACTUAL)
     assert len(result) == 1
     assert result[0].station_code == 1
 
 
 @pytest.mark.anyio
 async def test_yesterday_dailies_mapper_forecast(anyio_backend):
-    result: List[ObservedDaily] = await yesterday_dailies_list_mapper(async_observed_dailies("FORECAST"))
+    result: List[StationDailyFromWF1] = await dailies_list_mapper(async_observed_dailies("FORECAST"), WF1RecordTypeEnum.FORECAST)
     assert len(result) == 0
 
 

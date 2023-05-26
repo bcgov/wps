@@ -96,8 +96,8 @@ class ObservedDailiesForStations(BaseModel):
     station_codes: List[int]
 
 
-class ObservedDaily(BaseModel):
-    """ Observed (actual) daily weather data for a specific station and date """
+class StationDailyFromWF1(BaseModel):
+    """ Daily weather data (forecast or observed) for a specific station and date retrieved from WF1 API """
     created_by: str
     forecast_id: str
     station_code: int
@@ -110,9 +110,9 @@ class ObservedDaily(BaseModel):
     wind_speed: Optional[float] = None
 
 
-class ObservedStationDailiesResponse(BaseModel):
-    """ Yesterday station dailies response """
-    dailies: List[ObservedDaily]
+class StationDailiesResponse(BaseModel):
+    """ List of StationDailyFromWF1 records as response """
+    dailies: List[StationDailyFromWF1]
 
 
 class WeatherIndeterminate(BaseModel):

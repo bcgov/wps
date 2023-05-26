@@ -19,8 +19,8 @@ from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MoreCastForecastRequest,
                                      MorecastForecastResponse,
                                      ObservedDailiesForStations,
-                                     ObservedDaily,
-                                     ObservedStationDailiesResponse,
+                                     StationDailyFromWF1,
+                                     StationDailiesResponse,
                                      WeatherIndeterminate,
                                      WF1PostForecast,
                                      WF1ForecastRecordType)
@@ -80,7 +80,7 @@ async def construct_wf1_forecasts(forecast_records: List[MorecastForecastRecord]
                                                                  end_time, unique_station_codes)
 
         # Shape the WF1 dailies into a dictionary keyed by station codes for easier consumption
-        grouped_dailies = defaultdict(list[ObservedDaily])
+        grouped_dailies = defaultdict(list[StationDailyFromWF1])
         for daily in dailies:
             grouped_dailies[daily.station_code].append(daily)
 
@@ -189,7 +189,7 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
 
 
 @router.post('/yesterday-dailies/{today}',
-             response_model=ObservedStationDailiesResponse)
+             response_model=StationDailiesResponse)
 async def get_yesterdays_actual_dailies(today: date, request: ObservedDailiesForStations):
     """ Returns the daily actuals for the day before the requested day.
     """
@@ -205,11 +205,11 @@ async def get_yesterdays_actual_dailies(today: date, request: ObservedDailiesFor
         yeserday_dailies = await get_dailies_for_stations_and_date(session, header, time_of_interest,
                                                                    time_of_interest, unique_station_codes)
 
-        return ObservedStationDailiesResponse(dailies=yeserday_dailies)
+        return StationDailiesResponse(dailies=yeserday_dailies)
 
 
 @router.post('/observed-dailies/{start_date}/{end_date}',
-             response_model=ObservedStationDailiesResponse)
+             response_model=StationDailiesResponse)
 async def get_observed_dailies(start_date: date, end_date: date, request: ObservedDailiesForStations):
     """ Returns the daily observations for the requested station codes, from the given start_date to the
     most recent date where daily observation data is available.
@@ -227,7 +227,7 @@ async def get_observed_dailies(start_date: date, end_date: date, request: Observ
                                                                    start_date_of_interest, end_date_of_interest,
                                                                    unique_station_codes)
 
-        return ObservedStationDailiesResponse(dailies=observed_dailies)
+        return StationDailiesResponse(dailies=observed_dailies)
 
 
 @router.post('/determinates/{start_date}/{end_date}',
