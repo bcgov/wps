@@ -138,7 +138,7 @@ export interface WeatherIndeterminatePayload {
 
 export interface WeatherIndeterminateResponse {
   actuals: WeatherIndeterminate[]
-  forecasts: MoreCast2ForecastRecord[]
+  forecasts: WeatherIndeterminate[]
   predictions: WeatherIndeterminate[]
 }
 
@@ -219,34 +219,9 @@ export async function fetchWeatherIndeterminates(
   })
   const payload: WeatherIndeterminatePayload = {
     actuals: data.actuals,
-    forecasts: marshallForecastsToWeatherIndeterminates(data.forecasts),
+    forecasts: data.forecasts,
     predictions: data.predictions
   }
 
   return payload
-}
-
-const marshallForecastsToWeatherIndeterminates = (forecasts: MoreCast2ForecastRecord[]): WeatherIndeterminate[] => {
-  if (!forecasts.length) {
-    return []
-  }
-  const forecastsAsWeatherIndeterminates: WeatherIndeterminate[] = []
-  for (const forecast of forecasts) {
-    let dateString = DateTime.fromMillis(forecast.for_date).toISODate()
-    dateString = `${dateString}T20:00:00+00:00`
-    const weatherIndeterminate: WeatherIndeterminate = {
-      id: '',
-      station_code: forecast.station_code,
-      station_name: forecast.station_name || '',
-      determinate: WeatherDeterminate.FORECAST,
-      utc_timestamp: dateString,
-      precipitation: forecast.precip,
-      relative_humidity: forecast.rh,
-      temperature: forecast.temp,
-      wind_direction: forecast.wind_direction,
-      wind_speed: forecast.wind_speed
-    }
-    forecastsAsWeatherIndeterminates.push(weatherIndeterminate)
-  }
-  return forecastsAsWeatherIndeterminates
 }

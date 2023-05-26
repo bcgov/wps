@@ -400,9 +400,9 @@ async def get_daily_determinates_for_stations_and_date(session: ClientSession,
     # get the dailies for all the stations
     raw_dailies = await get_dailies_generator(session, header, wfwx_stations, start_time_of_interest, end_time_of_interest)
 
-    weather_determinates = await mapper(raw_dailies)
+    weather_determinates_actuals, weather_determinates_forecasts = await mapper(raw_dailies)
 
-    return weather_determinates
+    return weather_determinates_actuals, weather_determinates_forecasts
 
 
 async def get_station_groups(mapper=weather_station_group_mapper):
