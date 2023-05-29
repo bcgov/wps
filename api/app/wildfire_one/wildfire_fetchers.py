@@ -245,7 +245,7 @@ async def fetch_access_token(session: ClientSession) -> dict:
     else:
         logger.info('redis cache miss %s', auth_url)
         async with session.get(auth_url, auth=BasicAuth(login=user, password=password)) as response:
-            response_json = await response.json(content_type=response.content_type)
+            response_json = await response.json()
             try:
                 if response.status == 200:
                     # We expire when the token expires, or 10 minutes, whichever is less.
