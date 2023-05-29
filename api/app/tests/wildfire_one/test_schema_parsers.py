@@ -128,6 +128,8 @@ def test_station_mapper():
 
 async def async_observed_dailies(record_type: str):
     yield {
+        "createdBy": "test_user",
+        "id": "test_guid_id",
         "stationData": {
             "stationCode": 1,
             "displayLabel": "Test",
@@ -150,27 +152,44 @@ async def async_observed_dailies(record_type: str):
 
 
 @pytest.mark.anyio
-async def test_yesterday_dailies_mapper_actual(anyio_backend):
+async def test_dailies_list_mapper_actual_daily_and_actual_filter(anyio_backend):
     result: List[StationDailyFromWF1] = await dailies_list_mapper(async_observed_dailies("ACTUAL"), WF1RecordTypeEnum.ACTUAL)
     assert len(result) == 1
     assert result[0].station_code == 1
 
 
 @pytest.mark.anyio
-async def test_yesterday_dailies_mapper_forecast(anyio_backend):
+async def test_dailies_list_mapper_actual_daily_and_forecast_filter(anyio_backend):
+    result: List[StationDailyFromWF1] = await dailies_list_mapper(async_observed_dailies("ACTUAL"), WF1RecordTypeEnum.FORECAST)
+    assert len(result) == 0
+
+
+@pytest.mark.anyio
+async def test_dailies_list_mapper_forecast_daily_and_forecast_filter(anyio_backend):
     result: List[StationDailyFromWF1] = await dailies_list_mapper(async_observed_dailies("FORECAST"), WF1RecordTypeEnum.FORECAST)
+    assert len(result) == 1
+    assert result[0].station_code == 1
+
+
+@pytest.mark.anyio
+async def test_dailies_list_mapper_forecast_daily_and_actual_filter(anyio_backend):
+    result: List[StationDailyFromWF1] = await dailies_list_mapper(async_observed_dailies("FORECAST"), WF1RecordTypeEnum.ACTUAL)
     assert len(result) == 0
 
 
 @pytest.mark.anyio
 async def test_indeterminate_mapper_actual(anyio_backend):
-    result: List[WeatherIndeterminate] = await weather_indeterminate_list_mapper(async_observed_dailies("ACTUAL"))
-    assert len(result) == 1
-    assert result[0].determinate == WeatherDeterminate.ACTUAL
-    assert result[0].station_code == 1
+    observed, forecast = await weather_indeterminate_list_mapper(async_observed_dailies("ACTUAL"))
+    assert len(forecast) == 0
+    assert len(observed) == 1
+    assert observed[0].determinate == WeatherDeterminate.ACTUAL
+    assert observed[0].station_code == 1
 
 
 @pytest.mark.anyio
 async def test_indeterminate_mapper_forecast(anyio_backend):
-    result: List[WeatherIndeterminate] = await weather_indeterminate_list_mapper(async_observed_dailies("FORECAST"))
-    assert len(result) == 0
+    observed, forecast = await weather_indeterminate_list_mapper(async_observed_dailies("FORECAST"))
+    assert len(observed) == 0
+    assert len(forecast) == 1
+    assert forecast[0].determinate == WeatherDeterminate.FORECAST
+    assert forecast[0].station_code == 1
