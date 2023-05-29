@@ -126,7 +126,7 @@ describe('moreCast2API', () => {
           station_code: 2,
           station_name: 'two',
           determinate: WeatherDeterminate.FORECAST,
-          for_date: 28800000,
+          for_date: 0,
           temp: 2,
           rh: 2,
           precip: 2,
