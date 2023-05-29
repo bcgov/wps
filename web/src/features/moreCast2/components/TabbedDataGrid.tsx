@@ -21,7 +21,7 @@ import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
-const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved.'
+const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved and sent to Wildfire One.'
 const FORECAST_WARN_MESSAGE = 'Forecast not submitted. A forecast can only contain N/A values for the Wind Direction.'
 
 interface TabbedDataGridProps {
