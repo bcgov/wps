@@ -26,12 +26,14 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const classes = useStyles()
   return (
     <main>
-      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="Predictive Services Unit" />
+      <GeneralHeader
+        isBeta={false}
+        padding="3em"
+        spacing={1}
+        title="Fire Behaviour Advisory Tool"
+        productName="Fire Behaviour Advisory Tool"
+      />
       <Container maxWidth={'xl'}>
-        <h1>
-          {/* (🔥🦇) */}
-          Fire Behaviour Advisory Tool
-        </h1>
         <FBATable />
         <Paper className={classes.disclaimer}>
           <div>

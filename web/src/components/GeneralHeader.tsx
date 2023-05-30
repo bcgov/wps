@@ -7,11 +7,20 @@ import Contact from './Contact'
 import { OptionalContainer } from 'components/Container'
 
 const useStyles = makeStyles(theme => ({
+  beta: {
+    alignSelf: 'flex-start',
+    color: theme.palette.secondary.main,
+    fontSize: '1.25em',
+    fontWeight: 'bold',
+    paddingLeft: theme.spacing(1),
+    paddingTop: theme.spacing(2)
+  },
   root: {
     background: theme.palette.primary.main,
     borderBottomWidth: 2,
     borderBottomStyle: 'solid',
-    borderBottomColor: theme.palette.secondary.main
+    borderBottomColor: theme.palette.secondary.main,
+    marginBottom: theme.spacing(1)
   },
   container: (props: Props) => ({
     display: 'flex',
@@ -30,10 +39,11 @@ const useStyles = makeStyles(theme => ({
 }))
 
 interface Props {
-  title: string
-  productName: string
+  isBeta: boolean
   padding?: string
+  productName: string
   spacing: number
+  title: string
 }
 
 export const GeneralHeader: React.FunctionComponent<Props> = (props: Props) => {
@@ -46,6 +56,7 @@ export const GeneralHeader: React.FunctionComponent<Props> = (props: Props) => {
         <div className={classes.titleWrapper}>
           <HeaderImage />
           <div className={classes.title}>{title}</div>
+          {props.isBeta && <div className={classes.beta}>BETA</div>}
         </div>
         <div style={{ flexGrow: spacing }}></div>
         <Contact productName={productName}></Contact>

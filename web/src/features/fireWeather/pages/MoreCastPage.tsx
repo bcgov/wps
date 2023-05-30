@@ -23,7 +23,7 @@ import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMe
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
-import { MORECAST_DOC_TITLE, PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
+import { MORECAST_DOC_TITLE, MORE_CAST_NAME, PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
 import StationAccuracyForDate from 'features/fireWeather/components/StationAccuracyForDate'
 import AccuracyVariablePicker, {
@@ -157,7 +157,7 @@ const MoreCastPage = () => {
 
   return (
     <main className={classes.main}>
-      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="MoreCast" />
+      <GeneralHeader isBeta={false} padding="3em" spacing={1} title={MORE_CAST_NAME} productName={MORE_CAST_NAME} />
       <div className={classes.nav}>
         <WxDataForm
           stationCodesQuery={codesFromQuery}
