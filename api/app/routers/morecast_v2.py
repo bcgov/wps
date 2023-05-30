@@ -1,13 +1,11 @@
 """ Routes for Morecast v2 """
 import logging
-from urllib.parse import urljoin
 from aiohttp.client import ClientSession
-from collections import defaultdict
-import pytz
+from app.morecast_v2.forecasts import format_as_wf1_post_forecasts
+from app.utils.time import vancouver_tz
 from typing import List
 from datetime import date, datetime, time, timedelta, timezone
 from fastapi import APIRouter, Response, Depends, status
-from app import config
 from app.auth import (auth_with_forecaster_role_required,
                       audit,
                       authentication_required)
@@ -19,20 +17,14 @@ from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MoreCastForecastRequest,
                                      MorecastForecastResponse,
                                      ObservedDailiesForStations,
-                                     StationDailyFromWF1,
                                      StationDailiesResponse,
-                                     WeatherIndeterminate,
-                                     WF1PostForecast,
-                                     WF1ForecastRecordType)
+                                     WeatherIndeterminate)
 from app.schemas.shared import StationsRequest
-from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.utils.time import get_hour_20_from_date, get_utc_now
 from app.weather_models.fetch.predictions import fetch_latest_model_run_predictions_by_station_code_and_date_range
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_for_stations_and_date,
-                                       get_daily_determinates_for_stations_and_date,
-                                       get_wfwx_stations_from_station_codes,
-                                       get_forecasts_for_stations_by_date_range)
+                                       get_daily_determinates_for_stations_and_date)
 from app.wildfire_one.wfwx_post_api import post_forecasts
 
 
@@ -40,70 +32,10 @@ logger = logging.getLogger(__name__)
 
 no_cache = "max-age=0"  # don't let the browser cache this
 
-vancouver_tz = pytz.timezone("America/Vancouver")
-
 router = APIRouter(
     prefix="/morecast-v2",
     dependencies=[Depends(authentication_required), Depends(audit)]
 )
-
-
-def construct_wf1_forecast(forecast: MorecastForecastRecord, stations: List[WFWXWeatherStation], forecast_id: str, created_by: str) -> WF1PostForecast:
-    station = next(filter(lambda obj: obj.code == forecast.station_code, stations))
-    station_id = station.wfwx_id
-    station_url = urljoin(config.get('WFWX_BASE_URL'), f'wfwx-fireweather-api/v1/stations/{station_id}')
-    wf1_post_forecast = WF1PostForecast(createdBy=created_by,
-                                        id=forecast_id,
-                                        stationId=station_id,
-                                        station=station_url,
-                                        temperature=forecast.temp,
-                                        relativeHumidity=forecast.rh,
-                                        precipitation=forecast.precip,
-                                        windSpeed=forecast.wind_speed,
-                                        windDirection=forecast.wind_direction,
-                                        weatherTimestamp=datetime.timestamp(forecast.for_date) * 1000,
-                                        recordType=WF1ForecastRecordType())
-    return wf1_post_forecast
-
-
-async def construct_wf1_forecasts(forecast_records: List[MorecastForecastRecord], stations: List[WFWXWeatherStation]) -> List[WF1PostForecast]:
-    async with ClientSession() as session:
-        # Fetch existing forecasts from WF1 for the stations and date range in the forecast records
-        header = await get_auth_header(session)
-        forecast_dates = [f.for_date for f in forecast_records]
-        min_forecast_date = min(forecast_dates)
-        max_forecast_date = max(forecast_dates)
-        start_time = vancouver_tz.localize(datetime.combine(min_forecast_date, time.min))
-        end_time = vancouver_tz.localize(datetime.combine(max_forecast_date, time.max))
-        unique_station_codes = list(set([f.station_code for f in forecast_records]))
-        dailies = await get_forecasts_for_stations_by_date_range(session, header, start_time,
-                                                                 end_time, unique_station_codes)
-
-        # Shape the WF1 dailies into a dictionary keyed by station codes for easier consumption
-        grouped_dailies = defaultdict(list[StationDailyFromWF1])
-        for daily in dailies:
-            grouped_dailies[daily.station_code].append(daily)
-
-        # iterate through the MoreCast2 forecast records and create WF1PostForecast objects
-        wf1_forecasts = []
-        for forecast in forecast_records:
-            # Check if an existing daily was retrieved from WF1 and use id and createdBy attributes if present
-            observed_daily = next(
-                (daily for daily in grouped_dailies[forecast.station_code] if daily.utcTimestamp == forecast.for_date), None)
-            forecast_id = observed_daily.forecast_id if observed_daily is not None else None
-            created_by = observed_daily.created_by if observed_daily is not None else None
-            wf1_forecasts.append(construct_wf1_forecast(forecast, stations, forecast_id, created_by))
-        return wf1_forecasts
-
-
-async def format_as_wf1_post_forecasts(session: ClientSession, forecast_records: List[MorecastForecastRecord]) -> List[WF1PostForecast]:
-    """ Returns list of forecast records re-formatted in the data structure WF1 API expects """
-    header = await get_auth_header(session)
-    station_codes = [record.station_code for record in forecast_records]
-    stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
-    unique_stations = list(set(stations))
-    wf1_post_forecasts = await construct_wf1_forecasts(forecast_records, unique_stations)
-    return wf1_post_forecasts
 
 
 @router.get("/forecasts/{for_date}")
