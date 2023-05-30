@@ -19,8 +19,7 @@ const useStyles = makeStyles(theme => ({
     background: theme.palette.primary.main,
     borderBottomWidth: 2,
     borderBottomStyle: 'solid',
-    borderBottomColor: theme.palette.secondary.main,
-    marginBottom: theme.spacing(1)
+    borderBottomColor: theme.palette.secondary.main
   },
   container: (props: Props) => ({
     display: 'flex',
