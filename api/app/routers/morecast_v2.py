@@ -96,15 +96,14 @@ async def construct_wf1_forecasts(forecast_records: List[MorecastForecastRecord]
         return wf1_forecasts
 
 
-async def format_as_wf1_post_forecasts(forecast_records: List[MorecastForecastRecord]) -> List[WF1PostForecast]:
+async def format_as_wf1_post_forecasts(session: ClientSession, forecast_records: List[MorecastForecastRecord]) -> List[WF1PostForecast]:
     """ Returns list of forecast records re-formatted in the data structure WF1 API expects """
-    async with ClientSession() as session:
-        header = await get_auth_header(session)
-        station_codes = [record.station_code for record in forecast_records]
-        stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
-        unique_stations = list(set(stations))
-        wf1_post_forecasts = await construct_wf1_forecasts(forecast_records, unique_stations)
-        return wf1_post_forecasts
+    header = await get_auth_header(session)
+    station_codes = [record.station_code for record in forecast_records]
+    stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
+    unique_stations = list(set(stations))
+    wf1_post_forecasts = await construct_wf1_forecasts(forecast_records, unique_stations)
+    return wf1_post_forecasts
 
 
 @router.get("/forecasts/{for_date}")
@@ -168,9 +167,9 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
                                                 update_user=username,
                                                 update_timestamp=now) for forecast in forecasts_list]
 
-    wf1_forecast_records = await format_as_wf1_post_forecasts(forecasts_to_save)
     async with ClientSession() as client_session:
         try:
+            wf1_forecast_records = await format_as_wf1_post_forecasts(client_session, forecasts_to_save)
             await post_forecasts(client_session, token=forecasts.token, forecasts=wf1_forecast_records)
         except Exception as exc:
             logger.error('Encountered error posting forecast data to WF1 API', exc_info=exc)

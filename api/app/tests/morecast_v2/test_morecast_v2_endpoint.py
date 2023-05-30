@@ -77,18 +77,10 @@ def test_post_forecast_authorized(client: TestClient,
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
 
-    response = client.post(morecast_v2_post_url, json=forecast.dict())
-    assert response.status_code == 201
+    # Create a mock function
+    def mock_function(): return None
 
-
-def test_post_forecast_authorized_with_body(client: TestClient,
-                                            monkeypatch: pytest.MonkeyPatch):
-    """ Allowed to post station changes with correct role"""
-
-    def mock_admin_role_function(*_, **__):
-        return MockJWTDecodeWithRole('morecast2_write_forecast')
-
-    monkeypatch.setattr(decode_fn, mock_admin_role_function)
+    monkeypatch.setattr(app.routers.morecast_v2, 'post_forecasts', mock_function)
 
     response = client.post(morecast_v2_post_url, json=forecast.dict())
     assert response.status_code == 201
