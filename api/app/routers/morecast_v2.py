@@ -12,8 +12,9 @@ from app.auth import (auth_with_forecaster_role_required,
                       audit,
                       authentication_required)
 from app.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_for_date, save_all_forecasts
-from app.db.database import get_read_session_scope, get_write_session_scope
+from app.db.database import get_async_read_session_scope, get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
+from app.morecast_v2.forecasts import get_forecasts
 from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MoreCastForecastOutput,
                                      MoreCastForecastRequest,
@@ -25,8 +26,8 @@ from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      WF1PostForecast,
                                      WF1ForecastRecordType)
 from app.schemas.shared import StationsRequest
-from app.wildfire_one.schema_parsers import WFWXWeatherStation
-from app.utils.time import get_hour_20_from_date, get_utc_now
+from app.wildfire_one.schema_parsers import WFWXWeatherStation, transform_MoreCastForecastOutput_to_WeatherIndeterminate
+from app.utils.time import get_days_from_range, get_hour_20_from_date, get_utc_now
 from app.weather_models.fetch.predictions import fetch_latest_model_run_predictions_by_station_code_and_date_range
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies_for_stations_and_date,
@@ -243,12 +244,6 @@ async def get_determinates_for_date_range(start_date: date,
 
     start_time = vancouver_tz.localize(datetime.combine(start_date, time.min))
     end_time = vancouver_tz.localize(datetime.combine(end_date, time.max))
-
-    with get_read_session_scope() as db_session:
-        predictions: List[WeatherIndeterminate] = await fetch_latest_model_run_predictions_by_station_code_and_date_range(db_session,
-                                                                                                                          unique_station_codes,
-                                                                                                                          start_time, end_time)
-
     start_date_of_interest = get_hour_20_from_date(start_date)
     end_date_of_interest = get_hour_20_from_date(end_date)
 
@@ -256,10 +251,35 @@ async def get_determinates_for_date_range(start_date: date,
         header = await get_auth_header(session)
         actuals: List[WeatherIndeterminate] = []
         forecasts: List[WeatherIndeterminate] = []
+        # get station information from the wfwx api
+        wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
         actuals, forecasts = await get_daily_determinates_for_stations_and_date(session, header,
                                                                                 start_date_of_interest,
                                                                                 end_date_of_interest,
                                                                                 unique_station_codes)
+
+    # WFWX will only return forecasts for dates in the future. To display historic forecasts, will need to pull
+    # forecast data from our own DB.
+    # compare start_date - end_date range to the dates we have forecasts from WFWX for. Pull forecasts for
+    # the missing dates from our database
+    all_dates_in_range = get_days_from_range(start_date_of_interest, end_date_of_interest)
+    missing_dates: List[datetime] = []
+    for forecast_date in all_dates_in_range:
+        results = list(filter(lambda x: x.utc_timestamp == forecast_date, forecasts))
+        if len(results) == 0:
+            missing_dates.append(forecast_date)
+
+    with get_read_session_scope() as db_session:
+        predictions: List[WeatherIndeterminate] = await fetch_latest_model_run_predictions_by_station_code_and_date_range(db_session,
+                                                                                                                          unique_station_codes,
+                                                                                                                          start_time, end_time)
+        forecasts_from_db: List[MoreCastForecastOutput] = get_forecasts(
+            db_session, missing_dates[0], missing_dates[1], request.stations)
+
+    transformed_forecasts = transform_MoreCastForecastOutput_to_WeatherIndeterminate(
+        forecasts_from_db, wfwx_stations)
+    forecasts.extend(transformed_forecasts)
+
     return IndeterminateDailiesResponse(
         actuals=actuals,
         predictions=predictions,

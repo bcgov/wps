@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
-from app.schemas.morecast_v2 import StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate
+from app.schemas.morecast_v2 import MoreCastForecastOutput, StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate
 from app.schemas.stations import (WeatherStationGroup, WeatherStation,
                                   WeatherStationGroupMember, FireZone, StationFireCentre)
 from app.utils.dewpoint import compute_dewpoint
@@ -330,3 +330,28 @@ def unique_weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
             stations_added.add(station.station_code)
 
     return unique_stations
+
+
+def transform_MoreCastForecastOutput_to_WeatherIndeterminate(forecast_outputs: List[MoreCastForecastOutput],
+                                                             wfwx_stations: List[WFWXWeatherStation]
+                                                             ) -> List[WeatherIndeterminate]:
+    """ Helper function to convert list of MoreCastForecastOutput objects (taken from our database)
+    into list of WeatherIndeterminate objects to match the structure of the forecasts pulled from WFWX.
+    wfwx_stations list (station data from WFWX) is used to populate station_name data.
+    """
+    weather_indeterminates: List[WeatherIndeterminate] = []
+    for output in forecast_outputs:
+        station = next(s for s in wfwx_stations if s.code == output.station_code)
+
+        weather_indeterminates.append(WeatherIndeterminate(
+            station_code=output.station_code,
+            station_name=station.name if station else '',
+            utc_timestamp=output.for_date,
+            determinate=WeatherDeterminate.FORECAST,
+            temperature=output.temp,
+            relative_humidity=output.rh,
+            precipitation=output.precip,
+            wind_direction=output.wind_direction,
+            wind_speed=output.wind_speed
+        ))
+    return weather_indeterminates
