@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 from app.db.models.morecast_v2 import MorecastForecastRecord
 from app.morecast_v2.forecasts import construct_wf1_forecast, construct_wf1_forecasts, get_forecasts
-from app.schemas.morecast_v2 import WF1ForecastRecordType, WF1PostForecast
+from app.schemas.morecast_v2 import StationDailyFromWF1, WF1ForecastRecordType, WF1PostForecast
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 
 start_time = datetime(2022, 1, 1)
@@ -60,6 +60,12 @@ wfwx_weather_stations = [
     )
 ]
 
+station_1_daily_from_wf1 = StationDailyFromWF1(created_by='test',
+                                               forecast_id='f1',
+                                               station_code=1,
+                                               station_name='station1',
+                                               utcTimestamp=start_time)
+
 
 def assert_wf1_forecast(result: WF1PostForecast,
                         morecast_record_1: MorecastForecastRecord,
@@ -112,12 +118,20 @@ def test_construct_wf1_forecast_update():
 
 @pytest.mark.anyio
 @patch('aiohttp.ClientSession.get')
-async def test_construct_wf1_forecasts_new(mock_get):
+@patch('app.morecast_v2.forecasts.get_forecasts_for_stations_by_date_range', return_value=[station_1_daily_from_wf1])
+async def test_construct_wf1_forecasts_new(_, mock_get):
     result = await construct_wf1_forecasts(mock_get,
                                            [morecast_record_1, morecast_record_2],
                                            wfwx_weather_stations)
     assert len(result) == 2
-    assert_wf1_forecast(result[0], morecast_record_1, None, None,
+    # existing forecast
+    assert_wf1_forecast(result[0], morecast_record_1,
+                        station_1_daily_from_wf1.forecast_id,
+                        station_1_daily_from_wf1.created_by,
                         station_1_url, '1')
-    assert_wf1_forecast(result[1], morecast_record_2, None, None,
+    # no existing forecast
+    assert_wf1_forecast(result[1],
+                        morecast_record_2,
+                        None,
+                        None,
                         station_2_url, '2')
