@@ -190,14 +190,14 @@ async def get_determinates_for_date_range(start_date: date,
                                                                                         unique_station_codes)
 
     missing_start, missing_end = wf1_forecast_diff(start_date_of_interest, end_date_of_interest, wf1_forecasts)
-
+    with get_read_session_scope() as db_session:
+        predictions: List[WeatherIndeterminate] = await fetch_latest_model_run_predictions_by_station_code_and_date_range(db_session,
+                                                                                                                          unique_station_codes,
+                                                                                                                          start_time, end_time)
     if missing_start is None or missing_end is None:
-        with get_read_session_scope() as db_session:
-            predictions: List[WeatherIndeterminate] = await fetch_latest_model_run_predictions_by_station_code_and_date_range(db_session,
-                                                                                                                              unique_station_codes,
-                                                                                                                              start_time, end_time)
-            forecasts_from_db: List[MoreCastForecastOutput] = get_forecasts(
-                db_session, missing_start, missing_end, request.stations)
+
+        forecasts_from_db: List[MoreCastForecastOutput] = get_forecasts(
+            db_session, missing_start, missing_end, request.stations)
 
         transformed_forecasts = transform_MoreCastForecastOutput_to_WeatherIndeterminate(
             forecasts_from_db, wfwx_stations)
