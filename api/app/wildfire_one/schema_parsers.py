@@ -332,7 +332,7 @@ def unique_weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
     return unique_stations
 
 
-def transform_MoreCastForecastOutput_to_WeatherIndeterminate(forecast_outputs: List[MoreCastForecastOutput],
+def transform_morecastforecastoutput_to_weatherindeterminate(forecast_outputs: List[MoreCastForecastOutput],
                                                              wfwx_stations: List[WFWXWeatherStation]
                                                              ) -> List[WeatherIndeterminate]:
     """ Helper function to convert list of MoreCastForecastOutput objects (taken from our database)

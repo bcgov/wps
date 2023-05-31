@@ -21,7 +21,7 @@ from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      StationDailiesResponse,
                                      WeatherIndeterminate)
 from app.schemas.shared import StationsRequest
-from app.wildfire_one.schema_parsers import transform_MoreCastForecastOutput_to_WeatherIndeterminate
+from app.wildfire_one.schema_parsers import transform_morecastforecastoutput_to_weatherindeterminate
 from app.utils.time import get_hour_20_from_date, get_utc_now
 from app.weather_models.fetch.predictions import fetch_latest_model_run_predictions_by_station_code_and_date_range
 from app.wildfire_one.wfwx_api import (get_auth_header,
@@ -199,7 +199,7 @@ async def get_determinates_for_date_range(start_date: date,
         forecasts_from_db: List[MoreCastForecastOutput] = get_forecasts(
             db_session, missing_start, missing_end, request.stations)
 
-        transformed_forecasts = transform_MoreCastForecastOutput_to_WeatherIndeterminate(
+        transformed_forecasts = transform_morecastforecastoutput_to_weatherindeterminate(
             forecasts_from_db, wfwx_stations)
         wf1_forecasts.extend(transformed_forecasts)
 
