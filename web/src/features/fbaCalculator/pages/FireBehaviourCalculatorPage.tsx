@@ -33,7 +33,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
         title="Fire Behaviour Advisory Tool"
         productName="Fire Behaviour Advisory Tool"
       />
-      <Container maxWidth={'xl'}>
+      <Container sx={{ paddingTop: '0.5em' }} maxWidth={'xl'}>
         <FBATable />
         <Paper className={classes.disclaimer}>
           <div>

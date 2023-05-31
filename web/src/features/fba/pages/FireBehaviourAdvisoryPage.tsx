@@ -161,7 +161,7 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         title={FIRE_BEHAVIOUR_ADVISORY_NAME}
         productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
       />
-      <Container disableGutters maxWidth={'xl'}>
+      <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
           <Grid container spacing={1}>
             <Grid item>

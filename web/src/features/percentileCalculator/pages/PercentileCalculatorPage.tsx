@@ -71,7 +71,7 @@ const PercentileCalculatorPage = () => {
         title={PERCENTILE_CALC_NAME}
         productName={PERCENTILE_CALC_NAME}
       />
-      <Container>
+      <Container sx={{ paddingTop: '0.5em' }}>
         <WxStationDropdown stationCodes={stationCodes} onChange={setStationCodes} />
 
         <TimeRangeSlider timeRange={timeRange} onYearRangeChange={setTimeRange} />
