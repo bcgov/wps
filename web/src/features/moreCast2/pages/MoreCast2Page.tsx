@@ -107,13 +107,7 @@ const MoreCast2Page = () => {
 
   return (
     <div className={classes.root} data-testid="more-cast-2-page">
-      <GeneralHeader
-        isBeta={true}
-        padding="3em"
-        spacing={0.985}
-        title={MORE_CAST_2_NAME}
-        productName={MORE_CAST_2_NAME}
-      />
+      <GeneralHeader isBeta={true} spacing={0.985} title={MORE_CAST_2_NAME} productName={MORE_CAST_2_NAME} />
       <div className={classes.content}>
         <div className={classes.sidePanel}>
           <StationPanel

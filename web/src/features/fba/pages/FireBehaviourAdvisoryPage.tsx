@@ -156,7 +156,6 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     <div className={classes.root}>
       <GeneralHeader
         isBeta={true}
-        padding="3em"
         spacing={1}
         title={FIRE_BEHAVIOUR_ADVISORY_NAME}
         productName={FIRE_BEHAVIOUR_ADVISORY_NAME}

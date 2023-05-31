@@ -64,13 +64,7 @@ const PercentileCalculatorPage = () => {
 
   return (
     <main data-testid="percentile-calculator-page">
-      <GeneralHeader
-        isBeta={false}
-        padding="3em"
-        spacing={1}
-        title={PERCENTILE_CALC_NAME}
-        productName={PERCENTILE_CALC_NAME}
-      />
+      <GeneralHeader isBeta={false} spacing={1} title={PERCENTILE_CALC_NAME} productName={PERCENTILE_CALC_NAME} />
       <Container sx={{ paddingTop: '0.5em' }}>
         <WxStationDropdown stationCodes={stationCodes} onChange={setStationCodes} />
 

@@ -28,7 +28,6 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     <main>
       <GeneralHeader
         isBeta={false}
-        padding="3em"
         spacing={1}
         title="Fire Behaviour Advisory Tool"
         productName="Fire Behaviour Advisory Tool"

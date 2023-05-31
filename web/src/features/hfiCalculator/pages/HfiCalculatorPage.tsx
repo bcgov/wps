@@ -281,7 +281,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   return (
     <main data-testid="hfi-calculator-page">
-      <GeneralHeader isBeta={false} padding="3em" spacing={1} title={HFI_CALC_NAME} productName={HFI_CALC_NAME} />
+      <GeneralHeader isBeta={false} spacing={1} title={HFI_CALC_NAME} productName={HFI_CALC_NAME} />
       <HFIPageSubHeader
         fireCentres={fireCentres}
         setDateRange={updatePrepDateRange}

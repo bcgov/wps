@@ -516,7 +516,7 @@ const CHainesPage = () => {
 
   return (
     <main>
-      <GeneralHeader padding="3em" isBeta={false} spacing={1} title={C_HAINES_NAME} productName={C_HAINES_NAME} />
+      <GeneralHeader isBeta={false} spacing={1} title={C_HAINES_NAME} productName={C_HAINES_NAME} />
       <Container sx={{ paddingTop: '1em' }} maxWidth="xl">
         <div id="map-with-selectable-wx-stations" className={classes.map} />
         <div className={classes.controls}>
