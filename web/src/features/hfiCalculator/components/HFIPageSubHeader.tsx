@@ -27,6 +27,7 @@ const useStyles = makeStyles(() => ({
     alignItems: 'center',
     paddingLeft: 25,
     paddingRight: 25,
+    paddingTop: '0.5em',
     gap: 10
   },
   helpIcon: {
