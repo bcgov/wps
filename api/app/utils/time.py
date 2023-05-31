@@ -17,6 +17,7 @@ import pytz
 
 PST_UTC_OFFSET: Final[int] = -8
 PDT_UTC_OFFSET: Final[int] = -7
+vancouver_tz = pytz.timezone("America/Vancouver")
 
 
 def _get_pst_tz() -> timezone:
