@@ -13,7 +13,7 @@ const ImageHeader = () => {
   const classes = useStyles()
 
   return (
-    <a href="https://gov.bc.ca">
+    <a href="https://psu.nrs.gov.bc.ca/">
       <img className={classes.logo} src={'/images/BCID_H_rgb_rev.svg'} alt="B.C. Government logo" />
     </a>
   )
