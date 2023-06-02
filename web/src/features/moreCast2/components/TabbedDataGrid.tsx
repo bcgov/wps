@@ -243,7 +243,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         const predictionItem = row[forecastField] as PredictionItem
         const sourceKey = `${prefix}${modelType}` as keyof MoreCast2Row
         predictionItem.choice = modelType
-        predictionItem.value = (row[sourceKey] as number) || NaN
+        predictionItem.value = (row[sourceKey] as number) ?? NaN
       }
     }
     setVisibleRows(newRows)
