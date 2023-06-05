@@ -240,6 +240,8 @@ def back_rate_of_spread(fuel_type: FuelTypeEnum,
         pdf = NULL
     if cbh is None:
         cbh = NULL
+    if wsv is None:
+        wsv = NULL
     result = CFFDRS.instance().cffdrs._BROScalc(FUELTYPE=fuel_type.value,
                                                 FFMC=ffmc,
                                                 BUI=bui,
