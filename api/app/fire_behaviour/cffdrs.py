@@ -226,8 +226,9 @@ def back_rate_of_spread(fuel_type: FuelTypeEnum,
     #   BROS:     Back Fire Spread Rate
     #
     """
+    logger.info(f"_BROScalc fuel type is: {fuel_type.value}")
 
-    if fuel_type is None or ffmc is None or bui is None or fmc is None or sfc is None:
+    if fuel_type is None or fuel_type.value is None or ffmc is None or bui is None or fmc is None or sfc is None:
         message = PARAMS_ERROR_MESSAGE + \
             f"_BROScalc ; fuel_type: {fuel_type.value}, ffmc: {ffmc}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
         raise CFFDRSException(message)
