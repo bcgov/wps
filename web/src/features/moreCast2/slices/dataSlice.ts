@@ -243,6 +243,18 @@ export const createMoreCast2Rows = (
     rows.push(row)
   }
 
+  // Set the forecasted precip value to 0 for rows which have no actual or forecasted precip value.
+  for (const row of rows) {
+    if (
+      isNaN(row.precipActual) &&
+      row.precipForecast &&
+      row.precipForecast.choice === ModelChoice.NULL &&
+      isNaN(row.precipForecast.value)
+    ) {
+      row.precipForecast.value = 0
+    }
+  }
+
   return rows
 }
 
