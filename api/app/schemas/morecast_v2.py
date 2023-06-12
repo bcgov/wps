@@ -96,8 +96,10 @@ class ObservedDailiesForStations(BaseModel):
     station_codes: List[int]
 
 
-class ObservedDaily(BaseModel):
-    """ Observed (actual) daily weather data for a specific station and date """
+class StationDailyFromWF1(BaseModel):
+    """ Daily weather data (forecast or observed) for a specific station and date retrieved from WF1 API """
+    created_by: str
+    forecast_id: str
     station_code: int
     station_name: str
     utcTimestamp: datetime
@@ -108,9 +110,9 @@ class ObservedDaily(BaseModel):
     wind_speed: Optional[float] = None
 
 
-class ObservedStationDailiesResponse(BaseModel):
-    """ Yesterday station dailies response """
-    dailies: List[ObservedDaily]
+class StationDailiesResponse(BaseModel):
+    """ List of StationDailyFromWF1 records as response """
+    dailies: List[StationDailyFromWF1]
 
 
 class WeatherIndeterminate(BaseModel):
@@ -129,4 +131,25 @@ class WeatherIndeterminate(BaseModel):
 class IndeterminateDailiesResponse(BaseModel):
     actuals: List[WeatherIndeterminate]
     predictions: List[WeatherIndeterminate]
-    forecasts: List[MoreCastForecastOutput]
+    forecasts: List[WeatherIndeterminate]
+
+
+class WF1ForecastRecordType(BaseModel):
+    id: str = "FORECAST"
+    displayLabel: str = "Forecast"
+
+
+class WF1PostForecast(BaseModel):
+    """ Used to represent a forecast to be POSTed to WF1 """
+    archive: str = 'false'
+    createdBy: Optional[str]
+    id: Optional[str]
+    station: str  # station URL
+    stationId: str  # station UUID
+    weatherTimestamp: int  # UTC timestamp in millis
+    temperature: float
+    relativeHumidity: float
+    precipitation: float
+    windSpeed: float
+    windDirection: Optional[float]
+    recordType: WF1ForecastRecordType

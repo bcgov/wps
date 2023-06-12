@@ -1,7 +1,8 @@
 """ Routes for Morecast v2 """
 import logging
 from aiohttp.client import ClientSession
-import pytz
+from app.morecast_v2.forecasts import format_as_wf1_post_forecasts, wf1_forecast_diff
+from app.utils.time import vancouver_tz
 from typing import List
 from datetime import date, datetime, time, timedelta, timezone
 from fastapi import APIRouter, Response, Depends, status
@@ -17,12 +18,16 @@ from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MoreCastForecastRequest,
                                      MorecastForecastResponse,
                                      ObservedDailiesForStations,
-                                     ObservedStationDailiesResponse,
+                                     StationDailiesResponse,
                                      WeatherIndeterminate)
 from app.schemas.shared import StationsRequest
+from app.wildfire_one.schema_parsers import transform_morecastforecastoutput_to_weatherindeterminate
 from app.utils.time import get_hour_20_from_date, get_utc_now
 from app.weather_models.fetch.predictions import fetch_latest_model_run_predictions_by_station_code_and_date_range
-from app.wildfire_one.wfwx_api import get_auth_header, get_dailies_for_stations_and_date, get_daily_determinates_for_stations_and_date
+from app.wildfire_one.wfwx_api import (get_auth_header,
+                                       get_dailies_for_stations_and_date,
+                                       get_daily_determinates_for_stations_and_date, get_wfwx_stations_from_station_codes)
+from app.wildfire_one.wfwx_post_api import post_forecasts
 
 
 logger = logging.getLogger(__name__)
@@ -52,10 +57,8 @@ async def get_forecasts_for_date_and_user(for_date: date,
 @router.post("/forecasts/{start_date}/{end_date}")
 async def get_forecasts_by_date_range(start_date: date, end_date: date, request: StationsRequest, response: Response):
     """ Return forecasts for the specified date range and stations """
-    logger.info(f"/forecast/{start_date}/{end_date}")
+    logger.info(f"/forecasts/{start_date}/{end_date}")
     response.headers["Cache-Control"] = no_cache
-
-    vancouver_tz = pytz.timezone("America/Vancouver")
 
     start_time = vancouver_tz.localize(datetime.combine(start_date, time.min))
     end_time = vancouver_tz.localize(datetime.combine(end_date, time.max))
@@ -97,6 +100,14 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
                                                 create_timestamp=now,
                                                 update_user=username,
                                                 update_timestamp=now) for forecast in forecasts_list]
+
+    async with ClientSession() as client_session:
+        try:
+            wf1_forecast_records = await format_as_wf1_post_forecasts(client_session, forecasts_to_save)
+            await post_forecasts(client_session, token=forecasts.token, forecasts=wf1_forecast_records)
+        except Exception as exc:
+            logger.error('Encountered error posting forecast data to WF1 API', exc_info=exc)
+
     with get_write_session_scope() as db_session:
         save_all_forecasts(db_session, forecasts_to_save)
     morecast_forecast_outputs = [MoreCastForecastOutput(station_code=forecast.station_code,
@@ -111,7 +122,7 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
 
 
 @router.post('/yesterday-dailies/{today}',
-             response_model=ObservedStationDailiesResponse)
+             response_model=StationDailiesResponse)
 async def get_yesterdays_actual_dailies(today: date, request: ObservedDailiesForStations):
     """ Returns the daily actuals for the day before the requested day.
     """
@@ -127,11 +138,11 @@ async def get_yesterdays_actual_dailies(today: date, request: ObservedDailiesFor
         yeserday_dailies = await get_dailies_for_stations_and_date(session, header, time_of_interest,
                                                                    time_of_interest, unique_station_codes)
 
-        return ObservedStationDailiesResponse(dailies=yeserday_dailies)
+        return StationDailiesResponse(dailies=yeserday_dailies)
 
 
 @router.post('/observed-dailies/{start_date}/{end_date}',
-             response_model=ObservedStationDailiesResponse)
+             response_model=StationDailiesResponse)
 async def get_observed_dailies(start_date: date, end_date: date, request: ObservedDailiesForStations):
     """ Returns the daily observations for the requested station codes, from the given start_date to the
     most recent date where daily observation data is available.
@@ -149,7 +160,7 @@ async def get_observed_dailies(start_date: date, end_date: date, request: Observ
                                                                    start_date_of_interest, end_date_of_interest,
                                                                    unique_station_codes)
 
-        return ObservedStationDailiesResponse(dailies=observed_dailies)
+        return StationDailiesResponse(dailies=observed_dailies)
 
 
 @router.post('/determinates/{start_date}/{end_date}',
@@ -157,34 +168,42 @@ async def get_observed_dailies(start_date: date, end_date: date, request: Observ
 async def get_determinates_for_date_range(start_date: date,
                                           end_date: date,
                                           request: StationsRequest):
-    """ Returns the weather values for any actuals, predictions and forecasts for the 
+    """ Returns the weather values for any actuals, predictions and forecasts for the
     requested stations within the requested date range.
     """
     logger.info('/morecast-v2/determinates/%s/%s', start_date, end_date)
 
     unique_station_codes = list(set(request.stations))
 
-    vancouver_tz = pytz.timezone("America/Vancouver")
-
     start_time = vancouver_tz.localize(datetime.combine(start_date, time.min))
     end_time = vancouver_tz.localize(datetime.combine(end_date, time.max))
-
-    with get_read_session_scope() as db_session:
-        forecasts: List[MoreCastForecastOutput] = get_forecasts(db_session, start_time, end_time, request.stations)
-        predictions: List[WeatherIndeterminate] = await fetch_latest_model_run_predictions_by_station_code_and_date_range(db_session,
-                                                                                                                          unique_station_codes,
-                                                                                                                          start_time, end_time)
-
     start_date_of_interest = get_hour_20_from_date(start_date)
     end_date_of_interest = get_hour_20_from_date(end_date)
 
     async with ClientSession() as session:
         header = await get_auth_header(session)
-        actuals: List[WeatherIndeterminate] = await get_daily_determinates_for_stations_and_date(session, header,
-                                                                                                 start_date_of_interest,
-                                                                                                 end_date_of_interest,
-                                                                                                 unique_station_codes)
+        # get station information from the wfwx api
+        wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
+        wf1_actuals, wf1_forecasts = await get_daily_determinates_for_stations_and_date(session, header,
+                                                                                        start_date_of_interest,
+                                                                                        end_date_of_interest,
+                                                                                        unique_station_codes)
+
+    missing_start, missing_end = wf1_forecast_diff(start_date_of_interest, end_date_of_interest, wf1_forecasts)
+    with get_read_session_scope() as db_session:
+        predictions: List[WeatherIndeterminate] = await fetch_latest_model_run_predictions_by_station_code_and_date_range(db_session,
+                                                                                                                          unique_station_codes,
+                                                                                                                          start_time, end_time)
+    if missing_start is None or missing_end is None:
+
+        forecasts_from_db: List[MoreCastForecastOutput] = get_forecasts(
+            db_session, missing_start, missing_end, request.stations)
+
+        transformed_forecasts = transform_morecastforecastoutput_to_weatherindeterminate(
+            forecasts_from_db, wfwx_stations)
+        wf1_forecasts.extend(transformed_forecasts)
+
     return IndeterminateDailiesResponse(
-        actuals=actuals,
+        actuals=wf1_actuals,
         predictions=predictions,
-        forecasts=forecasts)
+        forecasts=wf1_forecasts)

@@ -122,14 +122,14 @@ describe('moreCast2API', () => {
       actuals: response.data.actuals,
       forecasts: [
         {
-          id: '',
+          id: '2',
           station_code: 2,
           station_name: 'two',
           determinate: WeatherDeterminate.FORECAST,
-          utc_timestamp: '1970-01-01T20:00:00+00:00',
-          precipitation: 2,
-          relative_humidity: 2,
-          temperature: 2,
+          for_date: 0,
+          temp: 2,
+          rh: 2,
+          precip: 2,
           wind_direction: 2,
           wind_speed: 2
         }
