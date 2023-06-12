@@ -36,7 +36,8 @@ const weatherIndeterminateGenerator = (
   station_code: number,
   station_name: string,
   determinate: WeatherDeterminate,
-  utc_timestamp: string
+  utc_timestamp: string,
+  precipValue?: number
 ) => {
   return {
     id: `${station_code}${utc_timestamp}`,
@@ -44,7 +45,7 @@ const weatherIndeterminateGenerator = (
     station_name,
     determinate,
     utc_timestamp,
-    precipitation: PRECIP,
+    precipitation: precipValue ?? PRECIP,
     relative_humidity: RH,
     temperature: TEMP,
     wind_direction: WIND_DIRECTION,
@@ -220,6 +221,102 @@ describe('dataSlice', () => {
       expect(row.tempActual).toBe(TEMP)
       expect(row.windDirectionActual).toBe(WIND_DIRECTION)
       expect(row.windSpeedActual).toBe(WIND_SPEED)
+    })
+    it('should set precip to 0 when row has no precipActual', () => {
+      const stationCode = 1
+      const stationName = 'test'
+      const actualPrecipValue = NaN
+      const forecastedPrecipValue = NaN
+      const actuals = [
+        weatherIndeterminateGenerator(
+          stationCode,
+          stationName,
+          WeatherDeterminate.ACTUAL,
+          FROM_DATE_STRING,
+          actualPrecipValue
+        )
+      ]
+      const forecasts = [
+        weatherIndeterminateGenerator(
+          stationCode,
+          stationName,
+          WeatherDeterminate.NULL,
+          FROM_DATE_STRING,
+          forecastedPrecipValue
+        )
+      ]
+      const predictions = predictionGenerator(stationCode, stationName, FROM_DATE_STRING)
+      const rows = createMoreCast2Rows(actuals, forecasts, predictions)
+      expect(rows.length).toBe(1)
+      const row = rows[0]
+      expect(row.precipForecast).not.toBeNull()
+      expect(row.precipForecast).not.toBeUndefined()
+      expect(row.precipForecast?.choice).toBe(WeatherDeterminate.NULL)
+      expect(row.precipForecast?.value).toBe(0)
+    })
+    it('should not set precip to 0 when row has a value for precipActual', () => {
+      const stationCode = 1
+      const stationName = 'test'
+      const actualPrecipValue = 1
+      const forecastedPrecipValue = NaN
+      const actuals = [
+        weatherIndeterminateGenerator(
+          stationCode,
+          stationName,
+          WeatherDeterminate.ACTUAL,
+          FROM_DATE_STRING,
+          actualPrecipValue
+        )
+      ]
+      const forecasts = [
+        weatherIndeterminateGenerator(
+          stationCode,
+          stationName,
+          WeatherDeterminate.NULL,
+          FROM_DATE_STRING,
+          forecastedPrecipValue
+        )
+      ]
+      const predictions = predictionGenerator(stationCode, stationName, FROM_DATE_STRING)
+      const rows = createMoreCast2Rows(actuals, forecasts, predictions)
+      expect(rows.length).toBe(1)
+      const row = rows[0]
+      expect(row.precipForecast).not.toBeNull()
+      expect(row.precipForecast).not.toBeUndefined()
+      expect(row.precipForecast?.choice).toBe(WeatherDeterminate.NULL)
+      expect(row.precipForecast?.value).toBe(NaN)
+    })
+    it('should not overwrite forecasted precip value', () => {
+      const stationCode = 1
+      const stationName = 'test'
+      const actualPrecipValue = 1
+      const forecastedPrecipValue = 1
+      const actuals = [
+        weatherIndeterminateGenerator(
+          stationCode,
+          stationName,
+          WeatherDeterminate.ACTUAL,
+          FROM_DATE_STRING,
+          actualPrecipValue
+        )
+      ]
+      const forecasts = [
+        weatherIndeterminateGenerator(
+          stationCode,
+          stationName,
+          WeatherDeterminate.NULL,
+          FROM_DATE_STRING,
+          forecastedPrecipValue
+        )
+      ]
+      const predictions = predictionGenerator(stationCode, stationName, FROM_DATE_STRING)
+      const rows = createMoreCast2Rows(actuals, forecasts, predictions)
+      expect(rows.length).toBe(1)
+      const row = rows[0]
+      expect(row.precipForecast).not.toBeNull()
+      expect(row.precipForecast).not.toBeUndefined()
+      expect(row.precipForecast?.choice).toBe(WeatherDeterminate.NULL)
+      expect(row.precipForecast?.value).toBe(1)
     })
   })
 })
