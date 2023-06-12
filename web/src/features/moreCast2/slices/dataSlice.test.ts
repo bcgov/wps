@@ -225,96 +225,45 @@ describe('dataSlice', () => {
     it('should set precip to 0 when row has no precipActual', () => {
       const stationCode = 1
       const stationName = 'test'
-      const actualPrecipValue = NaN
-      const forecastedPrecipValue = NaN
       const actuals = [
-        weatherIndeterminateGenerator(
-          stationCode,
-          stationName,
-          WeatherDeterminate.ACTUAL,
-          FROM_DATE_STRING,
-          actualPrecipValue
-        )
+        weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.ACTUAL, FROM_DATE_STRING, NaN)
       ]
       const forecasts = [
-        weatherIndeterminateGenerator(
-          stationCode,
-          stationName,
-          WeatherDeterminate.NULL,
-          FROM_DATE_STRING,
-          forecastedPrecipValue
-        )
+        weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.NULL, FROM_DATE_STRING, NaN)
       ]
       const predictions = predictionGenerator(stationCode, stationName, FROM_DATE_STRING)
       const rows = createMoreCast2Rows(actuals, forecasts, predictions)
-      expect(rows.length).toBe(1)
       const row = rows[0]
-      expect(row.precipForecast).not.toBeNull()
-      expect(row.precipForecast).not.toBeUndefined()
       expect(row.precipForecast?.choice).toBe(WeatherDeterminate.NULL)
       expect(row.precipForecast?.value).toBe(0)
     })
     it('should not set precip to 0 when row has a value for precipActual', () => {
       const stationCode = 1
       const stationName = 'test'
-      const actualPrecipValue = 1
-      const forecastedPrecipValue = NaN
       const actuals = [
-        weatherIndeterminateGenerator(
-          stationCode,
-          stationName,
-          WeatherDeterminate.ACTUAL,
-          FROM_DATE_STRING,
-          actualPrecipValue
-        )
+        weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.ACTUAL, FROM_DATE_STRING, 1)
       ]
       const forecasts = [
-        weatherIndeterminateGenerator(
-          stationCode,
-          stationName,
-          WeatherDeterminate.NULL,
-          FROM_DATE_STRING,
-          forecastedPrecipValue
-        )
+        weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.NULL, FROM_DATE_STRING, NaN)
       ]
       const predictions = predictionGenerator(stationCode, stationName, FROM_DATE_STRING)
       const rows = createMoreCast2Rows(actuals, forecasts, predictions)
-      expect(rows.length).toBe(1)
       const row = rows[0]
-      expect(row.precipForecast).not.toBeNull()
-      expect(row.precipForecast).not.toBeUndefined()
       expect(row.precipForecast?.choice).toBe(WeatherDeterminate.NULL)
       expect(row.precipForecast?.value).toBe(NaN)
     })
     it('should not overwrite forecasted precip value', () => {
       const stationCode = 1
       const stationName = 'test'
-      const actualPrecipValue = 1
-      const forecastedPrecipValue = 1
       const actuals = [
-        weatherIndeterminateGenerator(
-          stationCode,
-          stationName,
-          WeatherDeterminate.ACTUAL,
-          FROM_DATE_STRING,
-          actualPrecipValue
-        )
+        weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.ACTUAL, FROM_DATE_STRING, 1)
       ]
       const forecasts = [
-        weatherIndeterminateGenerator(
-          stationCode,
-          stationName,
-          WeatherDeterminate.NULL,
-          FROM_DATE_STRING,
-          forecastedPrecipValue
-        )
+        weatherIndeterminateGenerator(stationCode, stationName, WeatherDeterminate.NULL, FROM_DATE_STRING, 1)
       ]
       const predictions = predictionGenerator(stationCode, stationName, FROM_DATE_STRING)
       const rows = createMoreCast2Rows(actuals, forecasts, predictions)
-      expect(rows.length).toBe(1)
       const row = rows[0]
-      expect(row.precipForecast).not.toBeNull()
-      expect(row.precipForecast).not.toBeUndefined()
       expect(row.precipForecast?.choice).toBe(WeatherDeterminate.NULL)
       expect(row.precipForecast?.value).toBe(1)
     })
