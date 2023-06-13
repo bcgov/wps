@@ -16,7 +16,6 @@
     "@emotion/react": "^11.8.2",
     "@emotion/styled": "^11.8.1",
     "@mui/icons-material": "^5.5.1",
-    "@mui/lab": "^5.0.0-alpha.75",
     "@mui/material": "^5.5.3",
     "@mui/styles": "^5.5.3",
     "@mui/x-data-grid": "^6.0.0",
@@ -26,7 +25,6 @@
     "@types/leaflet": "^1.7.0",
     "@types/lodash": "^4.14.173",
     "@types/luxon": "^3.0.2",
-    "@types/ol": "^6.4.2",
     "@types/react": "18.0.29",
     "@types/react-dom": "^17.0.3",
     "@types/react-plotly.js": "^2.2.4",
@@ -57,7 +55,7 @@
     "react-redux": "^8.0.0",
     "react-router-dom": "^6.0.0",
     "recharts": "^2.1.8",
-    "typescript": "^5.0.0"
+    "typescript": "^5.1.3"
   },
   "scripts": {
     "start": "CI=true react-scripts start",
@@ -92,7 +90,6 @@
   "devDependencies": {
     "@cypress/code-coverage": "^3.10.0",
     "@cypress/instrument-cra": "^1.4.0",
-    "@testing-library/dom": "^9.0.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.0",
     "@testing-library/user-event": "^14.1.1",
