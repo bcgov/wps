@@ -38,7 +38,7 @@ import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadin
 import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin/ManageStationsButton'
 import { ROLES } from 'features/auth/roles'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
-import { HFI_CALC_DOC_TITLE } from 'utils/constants'
+import { HFI_CALC_DOC_TITLE, HFI_CALC_NAME } from 'utils/constants'
 
 const useStyles = makeStyles(theme => ({
   ...formControlStyles,
@@ -281,7 +281,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   return (
     <main data-testid="hfi-calculator-page">
-      <GeneralHeader padding="3em" spacing={0.985} title="HFI Calculator" productName="HFI Calculator" />
+      <GeneralHeader isBeta={false} spacing={1} title={HFI_CALC_NAME} productName={HFI_CALC_NAME} />
       <HFIPageSubHeader
         fireCentres={fireCentres}
         setDateRange={updatePrepDateRange}

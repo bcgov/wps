@@ -49,7 +49,7 @@ describe('moreCast2API', () => {
   })
   it('should call submit endpoint for forecast submission', async () => {
     axios.post = jest.fn().mockResolvedValue({ status: 201 })
-    const res = await submitMoreCastForecastRecords([
+    const res = await submitMoreCastForecastRecords('testToken', [
       buildMorecast2Forecast('1', 1, 'one', DateTime.fromObject({ year: 2021, month: 1, day: 1 })),
       buildMorecast2Forecast('2', 2, 'two', DateTime.fromObject({ year: 2021, month: 1, day: 1 }))
     ])
@@ -122,14 +122,14 @@ describe('moreCast2API', () => {
       actuals: response.data.actuals,
       forecasts: [
         {
-          id: '',
+          id: '2',
           station_code: 2,
           station_name: 'two',
           determinate: WeatherDeterminate.FORECAST,
-          utc_timestamp: '1970-01-01T20:00:00+00:00',
-          precipitation: 2,
-          relative_humidity: 2,
-          temperature: 2,
+          for_date: 0,
+          temp: 2,
+          rh: 2,
+          precip: 2,
           wind_direction: 2,
           wind_speed: 2
         }

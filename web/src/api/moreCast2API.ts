@@ -138,7 +138,7 @@ export interface WeatherIndeterminatePayload {
 
 export interface WeatherIndeterminateResponse {
   actuals: WeatherIndeterminate[]
-  forecasts: MoreCast2ForecastRecord[]
+  forecasts: WeatherIndeterminate[]
   predictions: WeatherIndeterminate[]
 }
 
@@ -154,6 +154,11 @@ export interface MoreCast2ForecastRecord {
   wind_direction: number
   update_timestamp?: number
   station_name?: string
+}
+
+export interface MoreCastForecastRequest {
+  wf1Token: string
+  forecasts: MoreCast2ForecastRecord[]
 }
 
 export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[]): MoreCast2ForecastRecord[] => {
@@ -173,14 +178,19 @@ export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[
 
 /**
  * POSTs a batch of forecasts.
+ * @param token The WF1 token.
  * @param forecasts The raw forecast model data.
  * @returns True if the response is a 201, otherwise false.
  */
-export async function submitMoreCastForecastRecords(forecasts: MoreCast2ForecastRow[]): Promise<boolean> {
+export async function submitMoreCastForecastRecords(
+  token: string,
+  forecasts: MoreCast2ForecastRow[]
+): Promise<boolean> {
   const forecastRecords = marshalMoreCast2ForecastRecords(forecasts)
   const url = `/morecast-v2/forecast`
   try {
-    const { status } = await axios.post<MoreCast2ForecastRecord[]>(url, {
+    const { status } = await axios.post<MoreCastForecastRequest>(url, {
+      token,
       forecasts: forecastRecords
     })
     return status === 201
@@ -209,34 +219,9 @@ export async function fetchWeatherIndeterminates(
   })
   const payload: WeatherIndeterminatePayload = {
     actuals: data.actuals,
-    forecasts: marshallForecastsToWeatherIndeterminates(data.forecasts),
+    forecasts: data.forecasts,
     predictions: data.predictions
   }
 
   return payload
-}
-
-const marshallForecastsToWeatherIndeterminates = (forecasts: MoreCast2ForecastRecord[]): WeatherIndeterminate[] => {
-  if (!forecasts.length) {
-    return []
-  }
-  const forecastsAsWeatherIndeterminates: WeatherIndeterminate[] = []
-  for (const forecast of forecasts) {
-    let dateString = DateTime.fromMillis(forecast.for_date).toISODate()
-    dateString = `${dateString}T20:00:00+00:00`
-    const weatherIndeterminate: WeatherIndeterminate = {
-      id: '',
-      station_code: forecast.station_code,
-      station_name: forecast.station_name || '',
-      determinate: WeatherDeterminate.FORECAST,
-      utc_timestamp: dateString,
-      precipitation: forecast.precip,
-      relative_humidity: forecast.rh,
-      temperature: forecast.temp,
-      wind_direction: forecast.wind_direction,
-      wind_speed: forecast.wind_speed
-    }
-    forecastsAsWeatherIndeterminates.push(weatherIndeterminate)
-  }
-  return forecastsAsWeatherIndeterminates
 }

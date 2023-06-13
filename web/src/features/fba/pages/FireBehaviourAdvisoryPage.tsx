@@ -18,7 +18,7 @@ import { formControlStyles, theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { FireCenter, FireZone } from 'api/fbaAPI'
-import { ASA_DOC_TITLE, PST_UTC_OFFSET } from 'utils/constants'
+import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME, PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import AdvisoryThresholdSlider from 'features/fba/components/map/AdvisoryThresholdSlider'
@@ -154,8 +154,13 @@ export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   return (
     <div className={classes.root}>
-      <GeneralHeader spacing={1} title="Predictive Services Unit" productName="Fire Behaviour Advisory Tool" />
-      <Container disableGutters maxWidth={'xl'}>
+      <GeneralHeader
+        isBeta={true}
+        spacing={1}
+        title={FIRE_BEHAVIOUR_ADVISORY_NAME}
+        productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
+      />
+      <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
           <Grid container spacing={1}>
             <Grid item>
