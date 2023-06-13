@@ -1,20 +1,20 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
-
 import 'index.css'
 import store from 'app/store'
 import * as serviceWorker from 'serviceWorker'
+import { createRoot } from 'react-dom/client'
+
+import App from './app/App'
 
 const render = () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const App = require('app/App').default
-
-  ReactDOM.render(
+  const container = document.getElementById('root')
+  if (!container) return
+  const root = createRoot(container)
+  root.render(
     <Provider store={store}>
       <App />
-    </Provider>,
-    document.getElementById('root')
+    </Provider>
   )
 }
 
