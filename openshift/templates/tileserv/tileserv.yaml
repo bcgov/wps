@@ -25,7 +25,7 @@ objects:
     metadata:
       name: ${APP_NAME}-${SUFFIX}
     spec:
-      image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres-gis:ubi8-14.5-3.2-1
+      image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres-gis:ubi8-14.7-3.2-0
       metadata:
         name: ${APP_NAME}-${SUFFIX}
         labels:
@@ -60,7 +60,7 @@ objects:
             storageClassName: netapp-block-standard
       backups:
         pgbackrest:
-          image: registry.developers.crunchydata.com/crunchydata/crunchy-pgbackrest:ubi8-2.40-1
+          image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbackrest:ubi8-2.41-4
           repos:
             - name: repo1
               volume:

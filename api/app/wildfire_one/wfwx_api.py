@@ -11,15 +11,16 @@ from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.db.crud.hfi_calc import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
 from app.db.models.forecasts import NoonForecast
+from app.schemas.morecast_v2 import StationDailyFromWF1
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.fba import FireCentre
 from app.schemas.stations import (WeatherStation,
                                   WeatherVariables)
-from app.wildfire_one.schema_parsers import (WFWXWeatherStation, fire_center_mapper, parse_noon_forecast,
-                                             parse_station,
-                                             parse_hourly_actual,
-                                             station_list_mapper, unique_weather_stations_mapper, weather_indeterminate_list_mapper, weather_station_group_mapper,
-                                             wfwx_station_list_mapper, yesterday_dailies_list_mapper)
+from app.wildfire_one.schema_parsers import (WF1RecordTypeEnum, WFWXWeatherStation, fire_center_mapper, parse_noon_forecast,
+                                             parse_station, parse_hourly_actual, station_list_mapper,
+                                             unique_weather_stations_mapper, weather_indeterminate_list_mapper,
+                                             weather_station_group_mapper, wfwx_station_list_mapper,
+                                             dailies_list_mapper)
 from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
                                              BuildQueryStations,
                                              BuildQueryAllHourliesByRange,
@@ -378,15 +379,31 @@ async def get_dailies_for_stations_and_date(session: ClientSession,
                                             start_time_of_interest: datetime,
                                             end_time_of_interest: datetime,
                                             unique_station_codes: List[int],
-                                            mapper=yesterday_dailies_list_mapper):
+                                            mapper=dailies_list_mapper):
     # get station information from the wfwx api
     wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
     # get the dailies for all the stations
     raw_dailies = await get_dailies_generator(session, header, wfwx_stations, start_time_of_interest, end_time_of_interest)
 
-    yesterday_dailies = await mapper(raw_dailies)
+    yesterday_dailies = await mapper(raw_dailies, WF1RecordTypeEnum.ACTUAL)
 
     return yesterday_dailies
+
+
+async def get_forecasts_for_stations_by_date_range(session: ClientSession,
+                                                   header: dict,
+                                                   start_time_of_interest: datetime,
+                                                   end_time_of_interest: datetime,
+                                                   unique_station_codes: List[int],
+                                                   mapper=dailies_list_mapper) -> List[StationDailyFromWF1]:
+    # get station information from the wfwx api
+    wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, unique_station_codes)
+    # get the daily forecasts for all the stations in the date range
+    raw_dailies = await get_dailies_generator(session, header, wfwx_stations, start_time_of_interest, end_time_of_interest)
+
+    forecast_dailies = await mapper(raw_dailies, WF1RecordTypeEnum.FORECAST)
+
+    return forecast_dailies
 
 
 async def get_daily_determinates_for_stations_and_date(session: ClientSession,
@@ -400,9 +417,9 @@ async def get_daily_determinates_for_stations_and_date(session: ClientSession,
     # get the dailies for all the stations
     raw_dailies = await get_dailies_generator(session, header, wfwx_stations, start_time_of_interest, end_time_of_interest)
 
-    weather_determinates = await mapper(raw_dailies)
+    weather_determinates_actuals, weather_determinates_forecasts = await mapper(raw_dailies)
 
-    return weather_determinates
+    return weather_determinates_actuals, weather_determinates_forecasts
 
 
 async def get_station_groups(mapper=weather_station_group_mapper):

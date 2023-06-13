@@ -5,6 +5,7 @@ import percentilesReducer from 'features/percentileCalculator/slices/percentiles
 import cHainesModelRunReducer from 'features/cHaines/slices/cHainesModelRunsSlice'
 import cHainesPredictionReducer from 'features/cHaines/slices/cHainesPredictionsSlice'
 import authReducer from 'features/auth/slices/authenticationSlice'
+import wf1AuthReducer from 'features/auth/slices/wf1AuthenticationSlice'
 import modelsReducer from 'features/fireWeather/slices/modelsSlice'
 import observationsReducer from 'features/fireWeather/slices/observationsSlice'
 import forecastsReducer from 'features/fireWeather/slices/forecastsSlice'
@@ -36,6 +37,7 @@ const rootReducer = combineReducers({
   cHainesModelRuns: cHainesModelRunReducer,
   cHainesPredictions: cHainesPredictionReducer,
   authentication: authReducer,
+  wf1Authentication: wf1AuthReducer,
   observations: observationsReducer,
   models: modelsReducer,
   modelSummaries: modelSummariesReducer,
@@ -74,6 +76,7 @@ export const selectPercentiles = (state: RootState) => state.percentiles
 export const selectCHainesModelRuns = (state: RootState) => state.cHainesModelRuns
 export const selectChainesPredictions = (state: RootState) => state.cHainesPredictions
 export const selectAuthentication = (state: RootState) => state.authentication
+export const selectWf1Authentication = (state: RootState) => state.wf1Authentication
 export const selectToken = (state: RootState) => state.authentication.token
 export const selectModels = (state: RootState) => state.models
 export const selectObservations = (state: RootState) => state.observations

@@ -9,6 +9,7 @@ import tempfile
 import numpy as np
 from osgeo import gdal
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import text
 from app import config
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from app.auto_spatial_advisory.run_type import RunType
@@ -184,7 +185,7 @@ async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, ru
     :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
     """
     async with get_async_write_session_scope() as session:
-        stmt = 'SELECT id, source_identifier FROM advisory_shapes;'
+        stmt = text('SELECT id, source_identifier FROM advisory_shapes;')
         result = await session.execute(stmt)
         rows = result.all()
         for row in rows:

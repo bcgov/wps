@@ -12,7 +12,7 @@ aiodns = "^3"
 aiohttp = "^3"
 pandas = "^1"
 pyjwt = "^2"
-cryptography = "^40.0.0"
+cryptography = "^41.0.0"
 sqlalchemy = "^2"
 psycopg2 = "^2"
 postgres = "^4"
@@ -57,7 +57,7 @@ rope = "^1"
 jsonpickle = "^3.0.0"
 pytest-watch = "^4.2.0"
 pytest-testmon = "^2.0.0"
-ruff = "^0.0.265"
+ruff = "^0.0.270"
 
 [build-system]
 requires = ["poetry>=1.1.11"]
