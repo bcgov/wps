@@ -11,7 +11,7 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 #### [Node.js](https://nodejs.org/en/)
 
 - You’ll need to have Node >= 10.x and yarn on your machine. You can use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between different projects.
-- Note: We are using Node 14 as a base image on our pipeline.
+- Note: We are using Node 19 as a base image on our pipeline.
 - On ubuntu: `sudo apt install nodejs`
 
 #### [yarn](https://yarnpkg.com/)
