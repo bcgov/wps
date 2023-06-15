@@ -428,13 +428,24 @@ export const selectForecastMoreCast2Rows = createSelector([selectAllMoreCast2Row
 
 export const selectWeatherIndeterminatesLoading = (state: RootState) => state.weatherIndeterminates.loading
 
+// Comparator function for use in sorting Luxon DateTime objects with JavaScript Array.prototype.sort
+function compareDateTime(a: DateTime, b: DateTime) {
+  if (a < b) {
+    return -1
+  } else if (a > b) {
+    return 1
+  } else {
+    return 0
+  }
+}
+
 function sortRowsByStationNameAndDate(rows: MoreCast2Row[]) {
   // Group the rows by station name to start
   const groupedRows = groupBy(rows, 'stationName')
   // Now sort the rows by 'forDate' within each group
   const groupedSorted: { [key: string]: MoreCast2Row[] } = {}
   for (const [key, value] of Object.entries(groupedRows)) {
-    groupedSorted[key] = value.sort((a, b) => (a.forDate < b.forDate ? -1 : a.forDate > b.forDate ? 1 : 0))
+    groupedSorted[key] = value.sort((a, b) => compareDateTime(a.forDate, b.forDate))
   }
 
   // Finally, sort the keys of the groups alphabetically and then build up a new
