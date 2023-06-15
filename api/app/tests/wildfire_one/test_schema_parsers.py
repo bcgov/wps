@@ -187,6 +187,15 @@ async def test_indeterminate_mapper_actual(anyio_backend):
 
 
 @pytest.mark.anyio
+async def test_indeterminate_mapper_manual(anyio_backend):
+    observed, forecast = await weather_indeterminate_list_mapper(async_observed_dailies("MANUAL"))
+    assert len(forecast) == 0
+    assert len(observed) == 1
+    assert observed[0].determinate == WeatherDeterminate.ACTUAL
+    assert observed[0].station_code == 1
+
+
+@pytest.mark.anyio
 async def test_indeterminate_mapper_forecast(anyio_backend):
     observed, forecast = await weather_indeterminate_list_mapper(async_observed_dailies("FORECAST"))
     assert len(observed) == 0
