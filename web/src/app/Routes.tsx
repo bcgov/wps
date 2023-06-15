@@ -45,14 +45,7 @@ const WPSRoutes: React.FunctionComponent = () => {
             </AuthWrapper>
           }
         />
-        <Route
-          path={HFI_CALC_ROUTE}
-          element={
-            <AuthWrapper>
-              <HfiCalculatorPage />
-            </AuthWrapper>
-          }
-        />
+        <Route path={HFI_CALC_ROUTE} element={<HfiCalculatorPage />} />
         <Route path={C_HAINES_ROUTE} element={<CHainesPage />} />
 
         <Route

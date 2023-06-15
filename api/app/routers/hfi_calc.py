@@ -53,8 +53,7 @@ logger = logging.getLogger(__name__)
 no_cache = "max-age=0"  # don't let the browser cache this
 
 router = APIRouter(
-    prefix="/hfi-calc",
-    dependencies=[Depends(authentication_required), Depends(audit)]
+    prefix="/hfi-calc"
 )
 
 
@@ -317,22 +316,20 @@ async def set_fire_start_range(fire_centre_id: int,
 
 @router.get("/fire_centre/{fire_centre_id}", response_model=HFIResultResponse)
 async def get_hfi_result(fire_centre_id: int,
-                         response: Response,
-                         token=Depends(authentication_required)):
+                         response: Response):
     """ Given a fire centre id, load the most recent HFIResultRequest.
     If there isn't a stored request, one will be created.
     """
     logger.info('/hfi-calc/load/%s', fire_centre_id)
     response.headers["Cache-Control"] = no_cache
-    return await get_hfi_result_with_date(fire_centre_id, None, None, response, token)
+    return await get_hfi_result_with_date(fire_centre_id, None, None, response)
 
 
 @router.get("/fire_centre/{fire_centre_id}/{start_date}/{end_date}", response_model=HFIResultResponse)
 async def get_hfi_result_with_date(fire_centre_id: int,
                                    start_date: Optional[date],
                                    end_date: Optional[date],
-                                   response: Response,
-                                   _=Depends(authentication_required)):
+                                   response: Response):
     """ Given a fire centre id (and optionally a start date), load the most recent HFIResultRequest.
     If there isn't a stored request, one will be created.
     """
