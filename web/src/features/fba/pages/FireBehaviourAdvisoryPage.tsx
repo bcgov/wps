@@ -64,7 +64,7 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
+const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
