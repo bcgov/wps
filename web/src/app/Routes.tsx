@@ -26,13 +26,14 @@ const FireBehaviourAdvisoryPage = lazy(() => import('features/fba/pages/FireBeha
 const LandingPage = lazy(() => import('features/landingPage/pages/LandingPage'))
 const MoreCast2Page = lazy(() => import('features/moreCast2/pages/MoreCast2Page'))
 import MoreCast2AuthWrapper from 'features/auth/components/MoreCast2AuthWrapper'
+import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
 const WPSRoutes: React.FunctionComponent = () => {
   return (
     <Router>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<LoadingBackdrop isLoadingWithoutError={true} />}>
         <Routes>
           <Route path={LANDING_PAGE_ROUTE} element={<LandingPage />} />
           <Route
