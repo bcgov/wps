@@ -408,7 +408,7 @@ export const selectAllMoreCast2Rows = createSelector([selectWeatherIndeterminate
     weatherIndeterminates.forecasts,
     weatherIndeterminates.predictions
   )
-  const sortedRows = sortRowsByStationName(rows)
+  const sortedRows = sortRowsByStationNameAndDate(rows)
   return sortedRows
 })
 
@@ -428,26 +428,36 @@ export const selectForecastMoreCast2Rows = createSelector([selectAllMoreCast2Row
 
 export const selectWeatherIndeterminatesLoading = (state: RootState) => state.weatherIndeterminates.loading
 
-function sortRowsByStationName(rows: MoreCast2Row[]) {
-  const groupedRows = groupRowsByStationName(rows)
-  const keys = Object.keys(groupedRows)
+// Comparator function for use in sorting Luxon DateTime objects with JavaScript Array.prototype.sort
+function compareDateTime(a: DateTime, b: DateTime) {
+  if (a < b) {
+    return -1
+  } else if (a > b) {
+    return 1
+  } else {
+    return 0
+  }
+}
+
+function sortRowsByStationNameAndDate(rows: MoreCast2Row[]) {
+  // Group the rows by station name to start
+  const groupedRows = groupBy(rows, 'stationName')
+  // Now sort the rows by 'forDate' within each group
+  const groupedSorted: { [key: string]: MoreCast2Row[] } = {}
+  for (const [key, value] of Object.entries(groupedRows)) {
+    groupedSorted[key] = value.sort((a, b) => compareDateTime(a.forDate, b.forDate))
+  }
+
+  // Finally, sort the keys of the groups alphabetically and then build up a new
+  // array of rows which will be sorted first by station name and then by the forDate
+  const keys = Object.keys(groupedSorted)
   keys.sort()
   let sortedRows: MoreCast2Row[] = []
   for (const key of keys) {
-    const rowsForKey = groupedRows[key]
+    const rowsForKey = groupedSorted[key]
     sortedRows = [...sortedRows, ...rowsForKey]
   }
   return sortedRows
-}
-
-function groupRowsByStationName(rows: MoreCast2Row[]) {
-  return rows.reduce((acc: { [key: string]: MoreCast2Row[] }, item: MoreCast2Row) => {
-    const group = item.stationName
-    acc[group] = acc[group] || []
-    acc[group].push(item)
-
-    return acc
-  }, {})
 }
 
 /**
