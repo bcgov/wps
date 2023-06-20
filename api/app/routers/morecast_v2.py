@@ -12,7 +12,7 @@ from app.auth import (auth_with_forecaster_role_required,
 from app.db.crud.morecast_v2 import get_forecasts_in_range, get_user_forecasts_for_date, save_all_forecasts
 from app.db.database import get_read_session_scope, get_write_session_scope
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.morecast_v2.forecasts import get_forecasts
+from app.morecast_v2.forecasts import filter_for_api_forecasts, get_forecasts
 from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      MoreCastForecastOutput,
                                      MoreCastForecastRequest,
@@ -20,7 +20,6 @@ from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      ObservedDailiesForStations,
                                      StationDailiesResponse,
                                      WeatherIndeterminate)
-from app.morecast_v2.util import actual_exists
 from app.schemas.shared import StationsRequest
 from app.wildfire_one.schema_parsers import transform_morecastforecastoutput_to_weatherindeterminate
 from app.utils.time import get_hour_20_from_date, get_utc_now
@@ -210,12 +209,9 @@ async def get_determinates_for_date_range(start_date: date,
         # for a given date, we need to show the forecast from the wf1 API for one station, and the forecast
         # from our API database for another station. We can check this by testing for the presence of an
         # actual for the given date and station; if an actual exists we use the forecast from our API database.
-        transformed_forcasts_to_add = []
-        for transformed_forecast in transformed_forecasts:
-            if actual_exists(transformed_forecast, wf1_actuals):
-                transformed_forcasts_to_add.append(transformed_forecast)
+        transformed_forceasts_to_add = filter_for_api_forecasts(transformed_forecasts, wf1_actuals)
 
-        wf1_forecasts.extend(transformed_forcasts_to_add)
+        wf1_forecasts.extend(transformed_forceasts_to_add)
 
     return IndeterminateDailiesResponse(
         actuals=wf1_actuals,

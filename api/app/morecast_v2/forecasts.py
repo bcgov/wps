@@ -85,3 +85,23 @@ async def format_as_wf1_post_forecasts(session: ClientSession, forecast_records:
     unique_stations = list(set(stations))
     wf1_post_forecasts = await construct_wf1_forecasts(session, forecast_records, unique_stations)
     return wf1_post_forecasts
+
+
+def actual_exists(forecast: WeatherIndeterminate, actuals: List[WeatherIndeterminate]):
+    """ Returns True if the actuals contain a WeatherIndeterminate with station_code and utc_timestamp that
+    matches those of the forecast; otherwise, returns False."""
+    station_code_matches = [actual for actual in actuals if actual.station_code ==
+                            forecast.station_code]
+    utc_timestamp_matches = [station_code_match for station_code_match in station_code_matches
+                             if station_code_match.utc_timestamp == forecast.utc_timestamp]
+    return len(utc_timestamp_matches) > 0
+
+
+def filter_for_api_forecasts(forecasts: List[WeatherIndeterminate], actuals: List[WeatherIndeterminate]):
+    """ Returns a list of forecasts where each forecast has a corresponding WeatherIndeterminate in the
+    actuals with a matching station_code and utc_timestamp."""
+    filtered_forecasts = []
+    for forecast in forecasts:
+        if actual_exists(forecast, actuals):
+            filtered_forecasts.append(forecast)
+    return filtered_forecasts
