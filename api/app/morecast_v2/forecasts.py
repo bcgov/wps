@@ -6,8 +6,8 @@ from app import config
 from aiohttp import ClientSession
 from collections import defaultdict
 
-from app.utils.time import get_days_from_range, vancouver_tz
-from typing import List, Optional, Tuple
+from app.utils.time import vancouver_tz
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.db.crud.morecast_v2 import get_forecasts_in_range
 from app.db.models.morecast_v2 import MorecastForecastRecord
