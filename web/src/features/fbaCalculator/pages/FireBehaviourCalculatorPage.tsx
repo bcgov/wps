@@ -5,7 +5,7 @@ import { Container, GeneralHeader } from 'components'
 import FBATable from 'features/fbaCalculator/components/FBATable'
 import { FIREBAT_DOC_TITLE } from 'utils/constants'
 
-export const FireBehaviourCalculator: React.FunctionComponent = () => {
+const FireBehaviourCalculator: React.FunctionComponent = () => {
   const useStyles = makeStyles(theme => ({
     disclaimer: {
       borderLeft: '6px solid #FCBA19',
@@ -65,3 +65,4 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     </main>
   )
 }
+export default FireBehaviourCalculator
