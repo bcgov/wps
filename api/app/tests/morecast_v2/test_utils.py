@@ -43,3 +43,9 @@ def test_returns_false_if_no_station_code_match_and_no_timestamp_match():
     actuals = create_list_of_actuals()
     api_forecast = build_weather_indeterminate(3, "test1", WeatherDeterminate.FORECAST, datetime(2023, 1, 2))
     assert actual_exists(api_forecast, actuals) == False
+
+
+def test_returns_false_if_no_actuals():
+    actuals = []
+    api_forecast = build_weather_indeterminate(3, "test1", WeatherDeterminate.FORECAST, datetime(2023, 1, 2))
+    assert actual_exists(api_forecast, actuals) == False
