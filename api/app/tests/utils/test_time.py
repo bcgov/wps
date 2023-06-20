@@ -69,10 +69,10 @@ def test_model_prune_range_end_empty_if_past_max_end():
 def test_model_prune_range_end_clamped_to_max_end():
     "If start is before max end but end is after max end, clamp end to max end"
     now_nov_30_2022 = datetime(year=2022, month=11, day=30, hour=8, minute=30, second=30)
-    start_nov_10_2022 = datetime(year=2022, month=11, day=10, hour=8, minute=30, second=30)
-    end_nov_24_2022 = datetime(year=2022, month=11, day=24, hour=8, minute=30, second=30)
+    start_nov_10_2022 = datetime(year=2022, month=11, day=8, hour=8, minute=30, second=30)
+    end_nov_24_2022 = datetime(year=2022, month=11, day=22, hour=8, minute=30, second=30)
 
-    expected_clamped_end = datetime(year=2022, month=11, day=11, hour=8, minute=30, second=30)
+    expected_clamped_end = datetime(year=2022, month=11, day=9, hour=8, minute=30, second=30)
 
     range_start, range_end = get_model_prune_range(now_nov_30_2022, start_nov_10_2022, end_nov_24_2022)
     assert range_start == start_nov_10_2022

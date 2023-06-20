@@ -18,6 +18,7 @@ import pytz
 PST_UTC_OFFSET: Final[int] = -8
 PDT_UTC_OFFSET: Final[int] = -7
 vancouver_tz = pytz.timezone("America/Vancouver")
+data_retention_threshold = timedelta(days=21)
 
 
 def _get_pst_tz() -> timezone:
@@ -124,7 +125,7 @@ def get_days_from_range(start_time: datetime, end_time: datetime) -> List[dateti
 
 def get_model_prune_range(now: datetime, start: datetime, end: datetime):
     # only allow pruning up until 19 days before today
-    max_end = now - timedelta(days=19)
+    max_end = now - data_retention_threshold
 
     prune_range = start, start + (max_end - start)
     if start.date() >= prune_range[1].date():
