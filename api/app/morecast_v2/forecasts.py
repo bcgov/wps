@@ -85,25 +85,3 @@ async def format_as_wf1_post_forecasts(session: ClientSession, forecast_records:
     unique_stations = list(set(stations))
     wf1_post_forecasts = await construct_wf1_forecasts(session, forecast_records, unique_stations)
     return wf1_post_forecasts
-
-
-def wf1_forecast_diff(start_date_of_interest: datetime, end_date_of_interest: datetime, wf1_forecasts: List[WeatherIndeterminate]) -> Tuple[datetime, datetime] | None:
-    # WFWX will only return forecasts for dates in the future. To display historic forecasts, will need to pull
-    # forecast data from our own DB.
-    # compare start_date - end_date range to the dates we have forecasts from WFWX for. Pull forecasts for
-    # the missing dates from our database
-    all_dates_in_range = get_days_from_range(start_date_of_interest, end_date_of_interest)
-    wf1_forecast_dates = [forecast.utc_timestamp for forecast in wf1_forecasts]
-    missing_dates: List[datetime] = []
-    for forecast_date in all_dates_in_range:
-        if forecast_date not in wf1_forecast_dates:
-            missing_dates.append(forecast_date)
-
-    if len(missing_dates) == 0:
-        return None, None
-
-    if len(missing_dates) == 1:
-        return missing_dates[0], missing_dates[0]
-
-    missing_dates.sort()
-    return missing_dates[0], missing_dates[-1]

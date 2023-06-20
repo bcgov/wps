@@ -1,7 +1,7 @@
 """ Routes for Morecast v2 """
 import logging
 from aiohttp.client import ClientSession
-from app.morecast_v2.forecasts import format_as_wf1_post_forecasts, wf1_forecast_diff
+from app.morecast_v2.forecasts import format_as_wf1_post_forecasts
 from app.utils.time import vancouver_tz
 from typing import List
 from datetime import date, datetime, time, timedelta, timezone
@@ -20,6 +20,7 @@ from app.schemas.morecast_v2 import (IndeterminateDailiesResponse,
                                      ObservedDailiesForStations,
                                      StationDailiesResponse,
                                      WeatherIndeterminate)
+from app.morecast_v2.util import actual_exists
 from app.schemas.shared import StationsRequest
 from app.wildfire_one.schema_parsers import transform_morecastforecastoutput_to_weatherindeterminate
 from app.utils.time import get_hour_20_from_date, get_utc_now
@@ -188,20 +189,33 @@ async def get_determinates_for_date_range(start_date: date,
                                                                                         start_date_of_interest,
                                                                                         end_date_of_interest,
                                                                                         unique_station_codes)
+        # Find the min and max dates for actuals from wf1. These define the range of dates for which
+        # we need to retrieve forecasts from our API database. Note that not all stations report actuals
+        # at the same time, so every station won't necessarily have an actual for each date in the range.
+        wf1_actuals_dates = [actual.utc_timestamp for actual in wf1_actuals]
+        min_wf1_actuals_date = min(wf1_actuals_dates)
+        max_wf1_actuals_date = max(wf1_actuals_dates)
 
-    missing_start, missing_end = wf1_forecast_diff(start_date_of_interest, end_date_of_interest, wf1_forecasts)
     with get_read_session_scope() as db_session:
+        forecasts_from_db: List[MoreCastForecastOutput] = get_forecasts(
+            db_session, min_wf1_actuals_date, max_wf1_actuals_date, request.stations)
         predictions: List[WeatherIndeterminate] = await fetch_latest_model_run_predictions_by_station_code_and_date_range(db_session,
                                                                                                                           unique_station_codes,
                                                                                                                           start_time, end_time)
-    if missing_start is None or missing_end is None:
-
-        forecasts_from_db: List[MoreCastForecastOutput] = get_forecasts(
-            db_session, missing_start, missing_end, request.stations)
 
         transformed_forecasts = transform_morecastforecastoutput_to_weatherindeterminate(
             forecasts_from_db, wfwx_stations)
-        wf1_forecasts.extend(transformed_forecasts)
+
+        # Not all weather stations report actuals at the same time, so we can end up in a situation where
+        # for a given date, we need to show the forecast from the wf1 API for one station, and the forecast
+        # from our API database for another station. We can check this by testing for the presence of an
+        # actual for the given date and station; if an actual exists we use the forecast from our API database.
+        transformed_forcasts_to_add = []
+        for transformed_forecast in transformed_forecasts:
+            if actual_exists(transformed_forecast, wf1_actuals):
+                transformed_forcasts_to_add.append(transformed_forecast)
+
+        wf1_forecasts.extend(transformed_forcasts_to_add)
 
     return IndeterminateDailiesResponse(
         actuals=wf1_actuals,
