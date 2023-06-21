@@ -1,4 +1,5 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import List from '@mui/material/List'
@@ -12,7 +13,6 @@ import { useTheme } from '@mui/material/styles'
 import SvgIcon from '@mui/material/SvgIcon'
 import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import makeStyles from '@mui/styles/makeStyles'
 import { LANDING_BACKGROUND_COLOUR } from 'app/theme'
 import SidebarToolList from 'features/landingPage/components/SidebarToolList'
 import Subheading from 'features/landingPage/components/Subheading'
@@ -20,36 +20,62 @@ import { ReactComponent as MsTeamsIcon } from 'features/landingPage/images/msTea
 import { ReactComponent as MiroIcon } from 'features/landingPage/images/miro.svg'
 import { MIRO_SPRINT_REVIEW_BOARD_URL, MS_TEAMS_SPRINT_REVIEW_URL } from 'utils/env'
 
-const useStyles = makeStyles(theme => ({
-  box: {
+const PREFIX = 'Sidebar'
+
+const classes = {
+  box: `${PREFIX}-box`,
+  collab: `${PREFIX}-collab`,
+  collabItem: `${PREFIX}-collabItem`,
+  collabItemContent: `${PREFIX}-collabItemContent`,
+  collabItemTitle: `${PREFIX}-collabItemTitle`,
+  content: `${PREFIX}-content`,
+  email: `${PREFIX}-email`,
+  header: `${PREFIX}-header`,
+  headerText: `${PREFIX}-headerText`,
+  icon: `${PREFIX}-icon`,
+  logo: `${PREFIX}-logo`,
+  root: `${PREFIX}-root`,
+  supportBox: `${PREFIX}-supportBox`,
+  supportBoxText: `${PREFIX}-supportBoxText`
+}
+
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')(({ theme }) => ({
+  [`& .${classes.box}`]: {
     backgroundColor: LANDING_BACKGROUND_COLOUR,
     flex: 1
   },
-  collab: {
+
+  [`& .${classes.collab}`]: {
     backgroundCOlor: '#FFFFFF',
     display: 'flex',
     flexGrow: 1,
     padding: theme.spacing(2)
   },
-  collabItem: {
+
+  [`& .${classes.collabItem}`]: {
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1
   },
-  collabItemContent: {
+
+  [`& .${classes.collabItemContent}`]: {
     fontSize: '0.75rem'
   },
-  collabItemTitle: {
+
+  [`& .${classes.collabItemTitle}`]: {
     fontSize: '1rem',
     fontWeight: 700,
     textDecoration: 'underline'
   },
-  content: {
+
+  [`& .${classes.content}`]: {
     paddingLeft: theme.spacing(2),
     paddingRight: theme.spacing(2),
     paddingTop: theme.spacing(2)
   },
-  email: {
+
+  [`& .${classes.email}`]: {
     fontSize: '0.8rem',
     fontWeight: 700,
     [theme.breakpoints.down('sm')]: {
@@ -57,7 +83,8 @@ const useStyles = makeStyles(theme => ({
       paddingLeft: theme.spacing(1)
     }
   },
-  header: {
+
+  [`& .${classes.header}`]: {
     display: 'flex',
     flexDirection: 'column',
     minHeight: '85px',
@@ -67,7 +94,8 @@ const useStyles = makeStyles(theme => ({
       maxHeight: '56px'
     }
   },
-  headerText: {
+
+  [`& .${classes.headerText}`]: {
     display: 'flex',
     flexGrow: 1,
     fontSize: '1.125rem',
@@ -78,27 +106,32 @@ const useStyles = makeStyles(theme => ({
       marginTop: '-10px'
     }
   },
-  icon: {
+
+  [`& .${classes.icon}`]: {
     minWidth: '36px'
   },
-  logo: {
+
+  [`& .${classes.logo}`]: {
     width: '66%',
     [theme.breakpoints.down('sm')]: {
       height: '56px',
       width: 'auto'
     }
   },
-  root: {
+
+  [`& .${classes.root}`]: {
     color: theme.palette.primary.main,
     display: 'flex',
     flexGrow: 1,
     overflowY: 'auto'
   },
-  supportBox: {
+
+  [`& .${classes.supportBox}`]: {
     backgroundColor: theme.palette.primary.main,
     color: theme.palette.primary.contrastText
   },
-  supportBoxText: {
+
+  [`& .${classes.supportBoxText}`]: {
     fontSize: '0.75rem',
     paddingLeft: theme.spacing(1)
   }
@@ -106,7 +139,7 @@ const useStyles = makeStyles(theme => ({
 
 export const Sidebar: React.FunctionComponent = () => {
   const theme = useTheme()
-  const classes = useStyles()
+
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
   const homeUrl = 'https://www2.gov.bc.ca/gov/content/safety/wildfire-status'
 
@@ -220,7 +253,7 @@ export const Sidebar: React.FunctionComponent = () => {
     )
   }
 
-  return <React.Fragment>{isSmall ? renderSmall() : renderLarge()}</React.Fragment>
+  return <Root>{isSmall ? renderSmall() : renderLarge()}</Root>
 }
 
 export default React.memo(Sidebar)

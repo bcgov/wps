@@ -1,34 +1,37 @@
 import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import React from 'react'
 import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
 import { isNull, isUndefined } from 'lodash'
 
-interface HFICellProps {
-  value?: number | null
-  testId?: string
-  className?: string
+const PREFIX = 'HFICell'
+
+const classes = {
+  dataRow: `${PREFIX}-dataRow`,
+  orangeBorder: `${PREFIX}-orangeBorder`,
+  orangeFill: `${PREFIX}-orangeFill`,
+  redFill: `${PREFIX}-redFill`
 }
 
-const useStyles = makeStyles({
-  dataRow: {
+const StyledFixedDecimalNumberCell = styled(FixedDecimalNumberCell)({
+  [`& .${classes.dataRow}`]: {
     height: '40px',
     paddingLeft: '8px',
     paddingRight: '8px'
   },
-  orangeBorder: {
+  [`& .${classes.orangeBorder}`]: {
     border: 'solid 3px #FFC464',
     height: '40px',
     paddingLeft: '8px',
     paddingRight: '8px'
   },
-  orangeFill: {
+  [`& .${classes.orangeFill}`]: {
     backgroundColor: '#FFC464',
     height: '40px',
     paddingLeft: '8px',
     paddingRight: '8px'
   },
-  redFill: {
+  [`& .${classes.redFill}`]: {
     backgroundColor: '#FF6259',
     height: '40px',
     paddingLeft: '8px',
@@ -36,9 +39,13 @@ const useStyles = makeStyles({
   }
 })
 
-const HFICell = (props: HFICellProps) => {
-  const classes = useStyles()
+interface HFICellProps {
+  value?: number | null
+  testId?: string
+  className?: string
+}
 
+const HFICell = (props: HFICellProps) => {
   const getHFIStyle = (value: number | undefined | null): string => {
     if (!isUndefined(value) && !isNull(value)) {
       if (value >= 3000 && value <= 3999) {
@@ -60,7 +67,7 @@ const HFICell = (props: HFICellProps) => {
     )
   }
 
-  return <FixedDecimalNumberCell testId={props.testId} className={hfiStyle} value={props.value} />
+  return <StyledFixedDecimalNumberCell testId={props.testId} className={hfiStyle} value={props.value} />
 }
 
 export default React.memo(HFICell)

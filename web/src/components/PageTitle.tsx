@@ -1,10 +1,16 @@
 import React from 'react'
-import { makeStyles } from '@mui/styles'
+import { styled } from '@mui/material/styles'
 import { theme } from 'app/theme'
 import { Container } from 'components/Container'
 
-const useStyles = makeStyles(() => ({
-  root: (props: Props) => ({
+const PREFIX = 'PageTitle'
+
+const classes = {
+  root: `${PREFIX}-root`
+}
+
+const Root = styled('div')(() => ({
+  [`&.${classes.root}`]: (props: Props) => ({
     maxHeight: 60,
     marginBottom: '1rem',
     paddingBottom: '1rem',
@@ -23,12 +29,11 @@ interface Props {
 }
 
 export const PageTitle: React.FunctionComponent<Props> = (props: Props) => {
-  const classes = useStyles(props)
   const { title, maxWidth } = props
 
   return (
-    <div className={classes.root}>
+    <Root className={classes.root}>
       {maxWidth !== undefined ? <Container maxWidth={maxWidth}>{title}</Container> : <Container>{title}</Container>}
-    </div>
+    </Root>
   )
 }

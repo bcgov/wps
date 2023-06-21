@@ -1,6 +1,6 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles'
 import FormGroup from '@mui/material/FormGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import FormControl from '@mui/material/FormControl'
@@ -10,17 +10,26 @@ import Switch from '@mui/material/Switch'
 
 import { ToggleValues, SetToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 
-const useStyles = makeStyles({
-  root: {
+const PREFIX = 'WxDataGraphToggles'
+
+const classes = {
+  root: `${PREFIX}-root`,
+  switchControl: `${PREFIX}-switchControl`,
+  switchLabel: `${PREFIX}-switchLabel`,
+  selectControl: `${PREFIX}-selectControl`
+}
+
+const StyledFormGroup = styled(FormGroup)({
+  [`&.${classes.root}`]: {
     marginBottom: 5
   },
-  switchControl: {
+  [`& .${classes.switchControl}`]: {
     marginLeft: -5
   },
-  switchLabel: {
+  [`& .${classes.switchLabel}`]: {
     marginLeft: 2
   },
-  selectControl: {
+  [`& .${classes.selectControl}`]: {
     minWidth: 85,
     marginRight: 15
   }
@@ -51,13 +60,12 @@ const WxDataToggles = ({
   handleHoverModeChange,
   hoverMode
 }: Props) => {
-  const classes = useStyles()
   const handleSwitch = (e: React.ChangeEvent<{ name: string }>, checked: boolean) => {
     setToggleValues(e.target.name as keyof ToggleValues, checked)
   }
 
   return (
-    <FormGroup className={classes.root} row>
+    <StyledFormGroup className={classes.root} row>
       <FormControlLabel
         className={classes.switchControl}
         control={
@@ -190,7 +198,7 @@ const WxDataToggles = ({
           </FormControl>
         </Typography>
       </div>
-    </FormGroup>
+    </StyledFormGroup>
   )
 }
 

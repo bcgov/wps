@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
+import { styled } from '@mui/material/styles'
 import { useDispatch } from 'react-redux'
 import { useLocation } from 'react-router-dom'
-import makeStyles from '@mui/styles/makeStyles'
 
 import { GeneralHeader } from 'components'
 import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
@@ -31,13 +31,24 @@ import AccuracyVariablePicker, {
 } from 'features/fireWeather/components/AccuracyVariablePicker'
 import { AppDispatch } from 'app/store'
 
-const useStyles = makeStyles(theme => ({
-  main: {
+const PREFIX = 'MoreCastPage'
+
+const classes = {
+  main: `${PREFIX}-main`,
+  nav: `${PREFIX}-nav`,
+  content: `${PREFIX}-content`,
+  map: `${PREFIX}-map`,
+  legend: `${PREFIX}-legend`
+}
+
+const Root = styled('main')(({ theme }) => ({
+  [`&.${classes.main}`]: {
     display: 'flex',
     flexDirection: 'column',
     height: '100vh'
   },
-  nav: {
+
+  [`& .${classes.nav}`]: {
     background: theme.palette.primary.light,
     color: theme.palette.primary.contrastText,
     minHeight: 60,
@@ -47,19 +58,22 @@ const useStyles = makeStyles(theme => ({
     paddingLeft: 25,
     paddingRight: 25
   },
-  content: {
+
+  [`& .${classes.content}`]: {
     flexGrow: 1,
     display: 'flex',
     overflowY: 'auto'
   },
-  map: {
+
+  [`& .${classes.map}`]: {
     order: 1,
     flexGrow: 1,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center'
   },
-  legend: {
+
+  [`& .${classes.legend}`]: {
     display: 'flex',
     alignItems: 'flex-end',
     backgroundColor: theme.palette.primary.light
@@ -71,7 +85,6 @@ const calculateSidePanelWidth = (codesFromQuery: number[]) => {
 }
 
 const MoreCastPage = () => {
-  const classes = useStyles()
   const location = useLocation()
 
   // We base our station & toi list entirely from the URL.
@@ -156,7 +169,7 @@ const MoreCastPage = () => {
   }, [])
 
   return (
-    <main className={classes.main}>
+    <Root className={classes.main}>
       <GeneralHeader isBeta={true} spacing={1} title={MORE_CAST_NAME} productName={MORE_CAST_NAME} />
       <div className={classes.nav}>
         <WxDataForm
@@ -204,7 +217,7 @@ const MoreCastPage = () => {
           <StationAccuracyForDate toiFromQuery={toiFromQuery} />
         </div>
       )}
-    </main>
+    </Root>
   )
 }
 

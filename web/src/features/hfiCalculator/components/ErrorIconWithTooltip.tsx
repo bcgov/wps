@@ -1,9 +1,28 @@
 import { createTheme, ThemeProvider, Theme, StyledEngineProvider, Tooltip } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { fireTableStyles } from 'app/theme'
 import { isUndefined } from 'lodash'
 import React from 'react'
+
+const PREFIX = 'ErrorIconWithTooltip'
+
+const classes = {
+  planningAreaIcon: `${PREFIX}-planningAreaIcon`,
+  dataCellIcon: `${PREFIX}-dataCellIcon`
+}
+
+const StyledStyledEngineProvider = styled(StyledEngineProvider)({
+  [`& .${classes.planningAreaIcon}`]: {
+    ...fireTableStyles.planningArea,
+    paddingTop: '10px',
+    textAlign: 'center'
+  },
+  [`& .${classes.dataCellIcon}`]: {
+    paddingTop: '10px',
+    textAlign: 'center'
+  }
+})
 
 declare module '@mui/styles/defaultTheme' {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -16,18 +35,6 @@ export interface ErrorIconWithTooltipProps {
   tooltipAriaText: string[]
   isDataCell?: boolean
 }
-
-const useStyles = makeStyles({
-  planningAreaIcon: {
-    ...fireTableStyles.planningArea,
-    paddingTop: '10px',
-    textAlign: 'center'
-  },
-  dataCellIcon: {
-    paddingTop: '10px',
-    textAlign: 'center'
-  }
-})
 
 const errorIconTheme = createTheme({
   components: {
@@ -49,9 +56,8 @@ const errorIconTheme = createTheme({
 })
 
 const ErrorIconWithTooltip = (props: ErrorIconWithTooltipProps) => {
-  const classes = useStyles()
   return (
-    <StyledEngineProvider injectFirst>
+    <StyledStyledEngineProvider injectFirst>
       <ThemeProvider theme={errorIconTheme}>
         <Tooltip title={props.tooltipElement} aria-label={`${props.tooltipAriaText.join('\n')}`}>
           <div
@@ -63,7 +69,7 @@ const ErrorIconWithTooltip = (props: ErrorIconWithTooltipProps) => {
           </div>
         </Tooltip>
       </ThemeProvider>
-    </StyledEngineProvider>
+    </StyledStyledEngineProvider>
   )
 }
 

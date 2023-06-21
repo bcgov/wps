@@ -1,9 +1,19 @@
 import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import React from 'react'
 import { isNull } from 'lodash'
 import { fireTableStyles } from 'app/theme'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
+
+const PREFIX = 'GrassCureCell'
+
+const classes = {
+  unselectedStation: `${PREFIX}-unselectedStation`
+}
+
+const StyledTableCell = styled(TableCell)({
+  [`& .${classes.unselectedStation}`]: { ...fireTableStyles.unselectedStation }
+})
 
 export interface GrassCureCellProps {
   value: number | null | undefined
@@ -11,10 +21,6 @@ export interface GrassCureCellProps {
   className: string | undefined
   selected: boolean
 }
-
-const useStyles = makeStyles({
-  unselectedStation: { ...fireTableStyles.unselectedStation }
-})
 
 const toolTipFirstLine = 'Grass Cure % not defined in WFWX.'
 const toolTipSecondLine = 'Cannot calculate ROS, Fire Size/Type, HFI, FIG.'
@@ -26,16 +32,15 @@ const toolTipElement = (
 )
 
 const GrassCureProps = (props: GrassCureCellProps) => {
-  const classes = useStyles()
   return isNull(props.value) && props.isGrassFuelType ? (
-    <TableCell className={props.className}>
+    <StyledTableCell className={props.className}>
       <ErrorIconWithTooltip
         testId={`grass-cure-error`}
         isDataCell={true}
         tooltipElement={toolTipElement}
         tooltipAriaText={[toolTipFirstLine, toolTipSecondLine]}
       />
-    </TableCell>
+    </StyledTableCell>
   ) : (
     <TableCell
       className={`${!props.selected ? classes.unselectedStation : undefined} ${props.className} `}

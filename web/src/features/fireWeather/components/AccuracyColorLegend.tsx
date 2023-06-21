@@ -1,5 +1,5 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 import {
   darkGreenColor,
@@ -17,42 +17,67 @@ import {
   darkBlueColor
 } from 'features/fireWeather/components/maps/stationAccuracy'
 
-const useStyles = makeStyles({
-  root: {
+const PREFIX = 'AccuracyColorLegend'
+
+const classes = {
+  root: `${PREFIX}-root`,
+  title: `${PREFIX}-title`,
+  leftLabel: `${PREFIX}-leftLabel`,
+  label: `${PREFIX}-label`,
+  rightLabel: `${PREFIX}-rightLabel`,
+  rowContainer: `${PREFIX}-rowContainer`,
+  labelContainer: `${PREFIX}-labelContainer`,
+  darkGreen: `${PREFIX}-darkGreen`,
+  middleGreen: `${PREFIX}-middleGreen`,
+  lightGreen: `${PREFIX}-lightGreen`,
+  neutral: `${PREFIX}-neutral`,
+  lightestOrange: `${PREFIX}-lightestOrange`,
+  middleOrange: `${PREFIX}-middleOrange`,
+  darkOrange: `${PREFIX}-darkOrange`,
+  darkestRed: `${PREFIX}-darkestRed`,
+  mediumRed: `${PREFIX}-mediumRed`,
+  lightRed: `${PREFIX}-lightRed`,
+  lightBlue: `${PREFIX}-lightBlue`,
+  mediumBlue: `${PREFIX}-mediumBlue`,
+  darkBlue: `${PREFIX}-darkBlue`
+}
+
+const Root = styled('div')({
+  [`&.${classes.root}`]: {
     display: 'flex',
     height: '70px',
     flexDirection: 'column',
     padding: '5px'
   },
-  title: {
+  [`& .${classes.title}`]: {
     height: '20px',
     fontSize: '0.875rem',
     width: '260px',
     color: 'white',
     textAlign: 'center'
   },
-  leftLabel: {
+  [`& .${classes.leftLabel}`]: {
     height: '15px',
     width: '80px',
     fontSize: '10px',
     color: 'white',
     justifyContent: 'flex-start'
   },
-  label: {
+  [`& .${classes.label}`]: {
     height: '15px',
     width: '105px',
     fontSize: '10px',
     color: 'white',
     justifyContent: 'center'
   },
-  rightLabel: {
+  [`& .${classes.rightLabel}`]: {
     height: '15px',
     width: '20px',
     fontSize: '10px',
     color: 'white',
     justifyContent: 'flex-end'
   },
-  rowContainer: {
+  [`& .${classes.rowContainer}`]: {
     display: 'flex',
     flexDirection: 'row',
     width: '300px',
@@ -60,7 +85,7 @@ const useStyles = makeStyles({
       marginRight: 0
     }
   },
-  labelContainer: {
+  [`& .${classes.labelContainer}`]: {
     display: 'flex',
     flexDirection: 'row',
     width: '260px',
@@ -69,7 +94,7 @@ const useStyles = makeStyles({
     },
     justifyContent: 'space-evenly'
   },
-  darkGreen: {
+  [`& .${classes.darkGreen}`]: {
     backgroundColor: darkGreenColor,
     borderTop: '2px solid white',
     borderLeft: '2px solid white',
@@ -78,42 +103,42 @@ const useStyles = makeStyles({
     height: 27,
     width: 32
   },
-  middleGreen: {
+  [`& .${classes.middleGreen}`]: {
     backgroundColor: middleGreenColor,
     borderTop: '2px solid white',
     borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
-  lightGreen: {
+  [`& .${classes.lightGreen}`]: {
     backgroundColor: lightGreenColor,
     borderTop: '2px solid white',
     borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
-  neutral: {
+  [`& .${classes.neutral}`]: {
     backgroundColor: neutralColor,
     borderTop: '2px solid white',
     borderBottom: '2px solid white',
     height: 27,
     width: 64
   },
-  lightestOrange: {
+  [`& .${classes.lightestOrange}`]: {
     backgroundColor: yellowColor,
     borderTop: '2px solid white',
     borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
-  middleOrange: {
+  [`& .${classes.middleOrange}`]: {
     backgroundColor: middleOrangeColor,
     borderTop: '2px solid white',
     borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
-  darkOrange: {
+  [`& .${classes.darkOrange}`]: {
     backgroundColor: darkOrangeColor,
     borderTop: '2px solid white',
     borderRight: '2px solid white',
@@ -122,7 +147,7 @@ const useStyles = makeStyles({
     height: 27,
     width: 32
   },
-  darkestRed: {
+  [`& .${classes.darkestRed}`]: {
     backgroundColor: darkRedColor,
     borderTop: '2px solid white',
     borderLeft: '2px solid white',
@@ -131,35 +156,35 @@ const useStyles = makeStyles({
     height: 27,
     width: 32
   },
-  mediumRed: {
+  [`& .${classes.mediumRed}`]: {
     backgroundColor: mediumRedColor,
     borderTop: '2px solid white',
     borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
-  lightRed: {
+  [`& .${classes.lightRed}`]: {
     backgroundColor: pinkColor,
     borderTop: '2px solid white',
     borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
-  lightBlue: {
+  [`& .${classes.lightBlue}`]: {
     backgroundColor: lightBlueColor,
     borderTop: '2px solid white',
     borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
-  mediumBlue: {
+  [`& .${classes.mediumBlue}`]: {
     backgroundColor: mediumBlueColor,
     borderTop: '2px solid white',
     borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
-  darkBlue: {
+  [`& .${classes.darkBlue}`]: {
     backgroundColor: darkBlueColor,
     borderTop: '2px solid white',
     borderRight: '2px solid white',
@@ -175,10 +200,9 @@ interface Props {
 }
 
 const AccuracyColorLegend = (props: Props) => {
-  const classes = useStyles()
   if (props.selectedWxVariable === AccuracyWeatherVariableEnum['Relative Humidity']) {
     return (
-      <div className={classes.root}>
+      <Root className={classes.root}>
         <div className={classes.title}>Observed RH</div>
         <div className={classes.rowContainer}>
           <div className={classes.darkGreen}></div>
@@ -194,7 +218,7 @@ const AccuracyColorLegend = (props: Props) => {
           <div className={classes.label}>+/-3%</div>
           <div className={classes.rightLabel}>-12%</div>
         </div>
-      </div>
+      </Root>
     )
   } else {
     // assume Temperature has been selected

@@ -1,12 +1,18 @@
 import { TextField, Autocomplete } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { FuelType } from 'api/hfiCalculatorAPI'
 import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { isEqual, isNull, isUndefined } from 'lodash'
 import React from 'react'
 
-const useStyles = makeStyles({
-  autocomplete: {
+const PREFIX = 'AdminFuelTypesDropdown'
+
+const classes = {
+  autocomplete: `${PREFIX}-autocomplete`
+}
+
+const StyledTextField = styled(TextField)({
+  [`& .${classes.autocomplete}`]: {
     minWidth: 300
   }
 })
@@ -27,7 +33,6 @@ export const AdminFuelTypesDropdown = ({
   disabled,
   handleEditStation
 }: AdminFuelTypesDropdownProps) => {
-  const classes = useStyles()
   return (
     <Autocomplete
       className={classes.autocomplete}
@@ -39,7 +44,7 @@ export const AdminFuelTypesDropdown = ({
       getOptionLabel={option => option?.abbrev}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
       renderInput={params => (
-        <TextField {...params} label="Fuel Type" variant="outlined" error={isUndefined(adminRow.fuelType)} />
+        <StyledTextField {...params} label="Fuel Type" variant="outlined" error={isUndefined(adminRow.fuelType)} />
       )}
       onChange={(_, value) => {
         if (!isNull(value) && !isUndefined(handleEditStation)) {

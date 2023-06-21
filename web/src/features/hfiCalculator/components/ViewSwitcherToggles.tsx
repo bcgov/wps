@@ -1,4 +1,4 @@
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { ToggleButtonGroup, ToggleButton } from '@mui/material'
 import { isNull, isUndefined, range } from 'lodash'
 import { theme } from 'app/theme'
@@ -8,14 +8,15 @@ import { useDispatch } from 'react-redux'
 import { PrepDateRange, setSelectedPrepDate } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
 
-export interface ViewSwitcherTogglesProps {
-  dateRange?: PrepDateRange
-  selectedPrepDate: string
-  testId?: string
+const PREFIX = 'ViewSwitcherToggles'
+
+const classes = {
+  toggleGroup: `${PREFIX}-toggleGroup`
 }
 
-const useStyles = makeStyles(() => ({
-  toggleGroup: {
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')(() => ({
+  [`& .${classes.toggleGroup}`]: {
     '& .MuiToggleButton-root': {
       height: 56,
       lineHeight: '16px',
@@ -29,8 +30,13 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
+export interface ViewSwitcherTogglesProps {
+  dateRange?: PrepDateRange
+  selectedPrepDate: string
+  testId?: string
+}
+
 const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
-  const classes = useStyles()
   const dispatch = useDispatch()
 
   const handleToggle = (_: React.MouseEvent<HTMLElement, MouseEvent>, prepDate: string) => {
@@ -64,7 +70,7 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
   }
 
   return (
-    <React.Fragment>
+    <Root>
       <div data-testid={props.testId}>
         <ToggleButtonGroup
           exclusive
@@ -101,7 +107,7 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
           })}
         </ToggleButtonGroup>
       </div>
-    </React.Fragment>
+    </Root>
   )
 }
 

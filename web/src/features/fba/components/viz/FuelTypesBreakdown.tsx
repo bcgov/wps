@@ -1,23 +1,33 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { isUndefined } from 'lodash'
 import { FireZone, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import { PieChart, Pie, ResponsiveContainer, Cell } from 'recharts'
 
-const useStyles = makeStyles({
-  wrapper: {
+const PREFIX = 'FuelTypesBreakdown'
+
+const classes = {
+  wrapper: `${PREFIX}-wrapper`,
+  fuelTypesPaper: `${PREFIX}-fuelTypesPaper`,
+  fuelTypesHeader: `${PREFIX}-fuelTypesHeader`,
+  pieChartHeader: `${PREFIX}-pieChartHeader`
+}
+
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')({
+  [`& .${classes.wrapper}`]: {
     minWidth: 400
   },
-  fuelTypesPaper: {
+  [`& .${classes.fuelTypesPaper}`]: {
     padding: '20px 10px'
   },
-  fuelTypesHeader: {
+  [`& .${classes.fuelTypesHeader}`]: {
     fontSize: '1.3rem',
     textAlign: 'center',
     variant: 'h3'
   },
-  pieChartHeader: {
+  [`& .${classes.pieChartHeader}`]: {
     fontSize: '1rem',
     textAlign: 'center',
     variant: 'h4'
@@ -53,8 +63,6 @@ const COLOURS = [
 ]
 
 const FuelTypesBreakdown = (props: Props) => {
-  const classes = useStyles()
-
   const renderCustomizedLabel = ({
     cx,
     cy,
@@ -106,7 +114,7 @@ const FuelTypesBreakdown = (props: Props) => {
       }
     })
     return (
-      <>
+      <Root>
         <Typography className={classes.fuelTypesHeader}>HFI by Fuel Type</Typography>
         <Typography className={classes.pieChartHeader}>Advisories (HFI: 4,000-10,000 kW/m)</Typography>
         <ResponsiveContainer width={400} height={250}>
@@ -147,7 +155,7 @@ const FuelTypesBreakdown = (props: Props) => {
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-      </>
+      </Root>
     )
   }
 }

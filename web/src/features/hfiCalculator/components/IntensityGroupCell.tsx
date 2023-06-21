@@ -1,7 +1,26 @@
 import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { fireTableStyles } from 'app/theme'
 import React from 'react'
+
+const PREFIX = 'IntensityGroupCell'
+
+const classes = {
+  intensityGroupCell: `${PREFIX}-intensityGroupCell`,
+  unselectedStation: `${PREFIX}-unselectedStation`
+}
+
+const StyledTableCell = styled(TableCell)({
+  [`& .${classes.intensityGroupCell}`]: {
+    width: 30,
+    textAlign: 'center'
+  },
+  [`& .${classes.unselectedStation}`]: {
+    ...fireTableStyles.unselectedStation,
+    width: 30,
+    textAlign: 'center'
+  }
+})
 
 export interface IntensityGroupCellProps {
   testid: string | undefined
@@ -10,30 +29,16 @@ export interface IntensityGroupCellProps {
   selected: boolean
 }
 
-const useStyles = makeStyles({
-  intensityGroupCell: {
-    width: 30,
-    textAlign: 'center'
-  },
-  unselectedStation: {
-    ...fireTableStyles.unselectedStation,
-    width: 30,
-    textAlign: 'center'
-  }
-})
-
 const IntensityGroupCell = (props: IntensityGroupCellProps) => {
-  const classes = useStyles()
-
   return (
-    <TableCell
+    <StyledTableCell
       className={`${
         !props.selected && !props.error && props.value ? classes.unselectedStation : classes.intensityGroupCell
       }`}
       data-testid={props.testid}
     >
       {props.error ? '' : props.value}
-    </TableCell>
+    </StyledTableCell>
   )
 }
 

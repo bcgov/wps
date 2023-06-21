@@ -1,6 +1,20 @@
 import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import React from 'react'
+
+const PREFIX = 'FixedDecimalNumberCell'
+
+const classes = {
+  dataRow: `${PREFIX}-dataRow`
+}
+
+const StyledTableCell = styled(TableCell)({
+  [`& .${classes.dataRow}`]: {
+    height: '40px',
+    paddingLeft: '8px',
+    paddingRight: '8px'
+  }
+})
 
 interface FixedDecimalNumberCellProps {
   value: number | undefined
@@ -8,23 +22,13 @@ interface FixedDecimalNumberCellProps {
   className?: string
 }
 
-const useStyles = makeStyles({
-  dataRow: {
-    height: '40px',
-    paddingLeft: '8px',
-    paddingRight: '8px'
-  }
-})
-
 const DECIMAL_PLACES = 1
 
 const FixedDecimalNumberCell = (props: FixedDecimalNumberCellProps) => {
-  const classes = useStyles()
-
   return (
-    <TableCell data-testid={props.testId} className={props.className ? props.className : classes.dataRow}>
+    <StyledTableCell data-testid={props.testId} className={props.className ? props.className : classes.dataRow}>
       {props.value?.toFixed(DECIMAL_PLACES)}
-    </TableCell>
+    </StyledTableCell>
   )
 }
 

@@ -1,7 +1,26 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { Dialog, DialogContent, DialogTitle, IconButton, Paper } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { Clear } from '@mui/icons-material'
+
+const PREFIX = 'AboutDataModal'
+
+const classes = {
+  modalWindow: `${PREFIX}-modalWindow`,
+  closeIcon: `${PREFIX}-closeIcon`
+}
+
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')(() => ({
+  [`& .${classes.modalWindow}`]: {
+    maxWidth: 'md'
+  },
+
+  [`& .${classes.closeIcon}`]: {
+    position: 'absolute',
+    right: '0px'
+  }
+}))
 
 export interface ColumnSelectionState {
   label: string
@@ -14,25 +33,13 @@ export interface ModalProps {
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const useStyles = makeStyles(() => ({
-  modalWindow: {
-    maxWidth: 'md'
-  },
-  closeIcon: {
-    position: 'absolute',
-    right: '0px'
-  }
-}))
-
 export const AboutDataModal = (props: ModalProps): JSX.Element => {
-  const classes = useStyles()
-
   const handleClose = () => {
     props.setModalOpen(false)
   }
 
   return (
-    <React.Fragment>
+    <Root>
       <Dialog fullWidth className={classes.modalWindow} open={props.modalOpen} onClose={handleClose}>
         <Paper>
           <DialogTitle>
@@ -64,7 +71,7 @@ export const AboutDataModal = (props: ModalProps): JSX.Element => {
           </DialogContent>
         </Paper>
       </Dialog>
-    </React.Fragment>
+    </Root>
   )
 }
 

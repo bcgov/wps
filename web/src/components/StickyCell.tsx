@@ -1,7 +1,22 @@
 import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { theme } from 'app/theme'
 import React from 'react'
+
+const PREFIX = 'StickyCell'
+
+const classes = {
+  sticky: `${PREFIX}-sticky`
+}
+
+const StyledTableCell = styled(TableCell)((props: StickyCellProps) => ({
+  [`& .${classes.sticky}`]: {
+    left: props.left,
+    position: 'sticky',
+    zIndex: theme.zIndex.appBar + props.zIndexOffset,
+    backgroundColor: props.backgroundColor ? props.backgroundColor : undefined
+  }
+}))
 
 interface StickyCellProps {
   left: number
@@ -14,24 +29,16 @@ interface StickyCellProps {
 }
 
 const StickyCell = (props: StickyCellProps) => {
-  const useStyles = makeStyles(() => ({
-    sticky: {
-      left: props.left,
-      position: 'sticky',
-      zIndex: theme.zIndex.appBar + props.zIndexOffset,
-      backgroundColor: props.backgroundColor ? props.backgroundColor : undefined
-    }
-  }))
-  const classes = useStyles()
-
   return (
-    <TableCell
+    <StyledTableCell
       data-testid={`stickyCell-fba`}
       className={`${classes.sticky} ${props.className}`}
       colSpan={props.colSpan}
+      left={0}
+      zIndexOffset={0}
     >
       {props.children}
-    </TableCell>
+    </StyledTableCell>
   )
 }
 

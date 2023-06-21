@@ -1,5 +1,5 @@
 import { AlertColor, List, Stack } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { GridCellParams, GridColDef, GridColumnVisibilityModel, GridEventListener } from '@mui/x-data-grid'
 import { ModelChoice, ModelType, submitMoreCastForecastRecords } from 'api/moreCast2API'
 import { DataGridColumns, columnGroupingModel } from 'features/moreCast2/components/DataGridColumns'
@@ -20,6 +20,38 @@ import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 
+const PREFIX = 'TabbedDataGrid'
+
+const classes = {
+  button: `${PREFIX}-button`,
+  formControl: `${PREFIX}-formControl`,
+  root: `${PREFIX}-root`,
+  saveButton: `${PREFIX}-saveButton`
+}
+
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')(({ theme }) => ({
+  [`& .${classes.button}`]: {
+    marginLeft: theme.spacing(1)
+  },
+
+  [`& .${classes.formControl}`]: {
+    minWidth: 280,
+    margin: theme.spacing(1)
+  },
+
+  [`& .${classes.root}`]: {
+    display: 'flex',
+    flexGrow: 1,
+    flexDirection: 'column'
+  },
+
+  [`& .${classes.saveButton}`]: {
+    position: 'absolute',
+    right: theme.spacing(2)
+  }
+}))
+
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved and sent to Wildfire One.'
 const FORECAST_WARN_MESSAGE = 'Forecast not submitted. A forecast can only contain N/A values for the Wind Direction.'
@@ -31,28 +63,7 @@ interface TabbedDataGridProps {
   setFromTo: React.Dispatch<React.SetStateAction<DateRange>>
 }
 
-const useStyles = makeStyles(theme => ({
-  button: {
-    marginLeft: theme.spacing(1)
-  },
-  formControl: {
-    minWidth: 280,
-    margin: theme.spacing(1)
-  },
-  root: {
-    display: 'flex',
-    flexGrow: 1,
-    flexDirection: 'column'
-  },
-  saveButton: {
-    position: 'absolute',
-    right: theme.spacing(2)
-  }
-}))
-
 const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProps) => {
-  const classes = useStyles()
-
   const selectedStations = useSelector(selectSelectedStations)
   const loading = useSelector(selectWeatherIndeterminatesLoading)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
@@ -301,7 +312,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   }
 
   return (
-    <>
+    <Root>
       <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
       <SaveForecastButton
         className={classes.saveButton}
@@ -386,7 +397,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         message={snackbarMessage}
         severity={snackbarSeverity}
       />
-    </>
+    </Root>
   )
 }
 

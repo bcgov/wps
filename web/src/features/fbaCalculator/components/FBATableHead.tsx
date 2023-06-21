@@ -1,5 +1,5 @@
 import { Checkbox, TableCell, TableRow, TableSortLabel, Tooltip, TableHead } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import FBAProgressRow from 'features/fbaCalculator/components/FBAProgressRow'
 import TableHeader from 'features/fbaCalculator/components/TableHeader'
@@ -9,6 +9,33 @@ import { isUndefined } from 'lodash'
 import React from 'react'
 import { Order } from 'utils/table'
 import { ColumnLabel } from 'features/fbaCalculator/components/FBATable'
+
+const PREFIX = 'FBATableHead'
+
+const classes = {
+  windSpeed: `${PREFIX}-windSpeed`,
+  progressBar: `${PREFIX}-progressBar`,
+  infoIcon: `${PREFIX}-infoIcon`,
+  headerCell: `${PREFIX}-headerCell`
+}
+
+const StyledTableHead = styled(TableHead)({
+  [`& .${classes.windSpeed}`]: {
+    width: 80
+  },
+  [`& .${classes.progressBar}`]: {
+    minWidth: 1900
+  },
+  [`& .${classes.infoIcon}`]: {
+    style: {
+      fill: '#1A5A96',
+      textAlign: 'center'
+    }
+  },
+  [`& .${classes.headerCell}`]: {
+    zIndex: 1103
+  }
+})
 
 interface FBATableHeadProps {
   toggleSorting: (selectedColumn: SortByColumn) => void
@@ -20,24 +47,6 @@ interface FBATableHeadProps {
   loading: boolean
   visibleColumns: ColumnLabel[]
 }
-
-const useStyles = makeStyles({
-  windSpeed: {
-    width: 80
-  },
-  progressBar: {
-    minWidth: 1900
-  },
-  infoIcon: {
-    style: {
-      fill: '#1A5A96',
-      textAlign: 'center'
-    }
-  },
-  headerCell: {
-    zIndex: 1103
-  }
-})
 
 const Z_INDEX_OFFSET = 2
 
@@ -51,8 +60,6 @@ const FBATableHead = ({
   loading,
   visibleColumns
 }: FBATableHeadProps) => {
-  const classes = useStyles()
-
   const typeToolTipFirstLine = 'SUR = Surface Type'
   const typeToolTipSecondLine = 'IC = Intermittent Crown Type'
   const typeToolTipThirdLine = 'CC = Continuous Crown Type'
@@ -378,7 +385,7 @@ const FBATableHead = ({
   }
 
   return (
-    <TableHead>
+    <StyledTableHead>
       <TableRow>
         <StickyCell left={0} zIndexOffset={Z_INDEX_OFFSET + 100}>
           <Checkbox
@@ -402,7 +409,7 @@ const FBATableHead = ({
         })}
       </TableRow>
       <FBAProgressRow loading={loading} zIndexOffset={Z_INDEX_OFFSET} />
-    </TableHead>
+    </StyledTableHead>
   )
 }
 

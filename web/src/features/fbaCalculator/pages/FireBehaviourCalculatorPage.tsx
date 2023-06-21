@@ -1,31 +1,38 @@
 import React, { useEffect } from 'react'
+import { styled } from '@mui/material/styles'
 import { Paper } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { Container, GeneralHeader } from 'components'
 import FBATable from 'features/fbaCalculator/components/FBATable'
 import { FIREBAT_DOC_TITLE } from 'utils/constants'
 
-const FireBehaviourCalculator: React.FunctionComponent = () => {
-  const useStyles = makeStyles(theme => ({
-    disclaimer: {
-      borderLeft: '6px solid #FCBA19',
-      padding: '10px',
-      marginBottom: theme.spacing(8),
-      marginTop: '24px'
-    },
-    content: {
-      display: 'flex',
-      flexDirection: 'row'
-    }
-  }))
+const PREFIX = 'FireBehaviourCalculator'
 
+const classes = {
+  disclaimer: `${PREFIX}-disclaimer`,
+  content: `${PREFIX}-content`
+}
+
+const Root = styled('main')(({ theme }) => ({
+  [`& .${classes.disclaimer}`]: {
+    borderLeft: '6px solid #FCBA19',
+    padding: '10px',
+    marginBottom: theme.spacing(8),
+    marginTop: '24px'
+  },
+
+  [`& .${classes.content}`]: {
+    display: 'flex',
+    flexDirection: 'row'
+  }
+}))
+
+const FireBehaviourCalculator: React.FunctionComponent = () => {
   useEffect(() => {
     document.title = FIREBAT_DOC_TITLE
   }, [])
 
-  const classes = useStyles()
   return (
-    <main>
+    <Root>
       <GeneralHeader
         isBeta={false}
         spacing={1}
@@ -62,7 +69,7 @@ const FireBehaviourCalculator: React.FunctionComponent = () => {
           </div>
         </Paper>
       </Container>
-    </main>
+    </Root>
   )
 }
 export default FireBehaviourCalculator

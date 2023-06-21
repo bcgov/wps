@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
+import { styled } from '@mui/material/styles'
 import { useDispatch, useSelector } from 'react-redux'
-import makeStyles from '@mui/styles/makeStyles'
 import { isEmpty } from 'lodash'
 import { DateTime } from 'luxon'
 import { selectAuthentication, selectStationGroups, selectStationGroupsMembers } from 'app/rootReducer'
@@ -16,28 +16,40 @@ import { getWeatherIndeterminates, selectAllMoreCast2Rows } from 'features/moreC
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 import { selectedStationsChanged } from 'features/moreCast2/slices/selectedStationsSlice'
 
-const useStyles = makeStyles(theme => ({
-  content: {
+const PREFIX = 'MoreCast2Page'
+
+const classes = {
+  content: `${PREFIX}-content`,
+  observations: `${PREFIX}-observations`,
+  root: `${PREFIX}-root`,
+  sidePanel: `${PREFIX}-sidePanel`
+}
+
+const Root = styled('div')(({ theme }) => ({
+  [`& .${classes.content}`]: {
     borderTop: '1px solid black',
     display: 'flex',
     flexGrow: 1,
     maxHeight: 'calc(100vh - 71.5px)',
     overflow: 'hidden'
   },
-  observations: {
+
+  [`& .${classes.observations}`]: {
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
     marginTop: theme.spacing(2),
     overflowX: 'auto'
   },
-  root: {
+
+  [`&.${classes.root}`]: {
     display: 'flex',
     flexDirection: 'column',
     minHeight: '100vh',
     overflow: 'hidden'
   },
-  sidePanel: {
+
+  [`& .${classes.sidePanel}`]: {
     borderRight: '1px solid black',
     display: 'flex',
     minWidth: '375px',
@@ -48,7 +60,6 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const MoreCast2Page = () => {
-  const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { groups, loading: groupsLoading } = useSelector(selectStationGroups)
   const { members } = useSelector(selectStationGroupsMembers)
@@ -106,7 +117,7 @@ const MoreCast2Page = () => {
   }, [fromTo.startDate, fromTo.endDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className={classes.root} data-testid="more-cast-2-page">
+    <Root className={classes.root} data-testid="more-cast-2-page">
       <GeneralHeader isBeta={true} spacing={0.985} title={MORE_CAST_2_NAME} productName={MORE_CAST_2_NAME} />
       <div className={classes.content}>
         <div className={classes.sidePanel}>
@@ -128,7 +139,7 @@ const MoreCast2Page = () => {
           />
         </div>
       </div>
-    </div>
+    </Root>
   )
 }
 

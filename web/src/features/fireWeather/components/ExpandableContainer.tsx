@@ -1,5 +1,5 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 
 import IconButton from '@mui/material/IconButton'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
@@ -7,34 +7,43 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 import CloseIcon from '@mui/icons-material/Close'
 import { PARTIAL_WIDTH } from 'utils/constants'
 
+const PREFIX = 'ExpandableContainer'
+
+const classes = {
+  root: `${PREFIX}-root`,
+  ordering: `${PREFIX}-ordering`,
+  expandCollapse: `${PREFIX}-expandCollapse`,
+  content: `${PREFIX}-content`
+}
+
+const Root = styled('div')({
+  [`&.${classes.root}`]: (props: Props) => ({
+    order: 2,
+    width: getRootWidth(props),
+    overflowX: 'hidden',
+    boxShadow: '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
+  }),
+  [`& .${classes.ordering}`]: {
+    display: 'flex',
+    flexDirection: 'row'
+  },
+  [`& .${classes.expandCollapse}`]: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center'
+  },
+  [`& .${classes.content}`]: (props: Props) => ({
+    width: getRootWidth(props),
+    position: 'relative'
+  })
+})
+
 const getRootWidth = (props: Props) => {
   if (props.open) {
     return props.currentWidth > PARTIAL_WIDTH ? '100%' : props.currentWidth
   }
   return 0
 }
-
-const useStyles = makeStyles({
-  root: (props: Props) => ({
-    order: 2,
-    width: getRootWidth(props),
-    overflowX: 'hidden',
-    boxShadow: '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
-  }),
-  ordering: {
-    display: 'flex',
-    flexDirection: 'row'
-  },
-  expandCollapse: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center'
-  },
-  content: (props: Props) => ({
-    width: getRootWidth(props),
-    position: 'relative'
-  })
-})
 
 interface Props {
   expand: () => void
@@ -46,10 +55,9 @@ interface Props {
 }
 
 const ExpandableContainer = (props: Props) => {
-  const classes = useStyles(props)
   const collapsed = props.currentWidth === PARTIAL_WIDTH
   return (
-    <div className={classes.root}>
+    <Root className={classes.root}>
       <IconButton value="close" color="primary" aria-label="Close side view" onClick={props.close} size="large">
         <CloseIcon />
       </IconButton>
@@ -70,7 +78,7 @@ const ExpandableContainer = (props: Props) => {
           {props.children}
         </div>
       </div>
-    </div>
+    </Root>
   )
 }
 

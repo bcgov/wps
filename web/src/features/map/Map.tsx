@@ -1,7 +1,8 @@
 import 'ol/ol.css'
 
+import { styled } from '@mui/material/styles'
+
 import React, { useRef, useState, useEffect, useCallback } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
 import * as ol from 'ol'
 import { toLonLat } from 'ol/proj'
 import { FeatureLike } from 'ol/Feature'
@@ -16,15 +17,14 @@ import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/Acc
 import { selectStation } from 'features/stations/slices/stationsSlice'
 import FireIndicesVectorLayer from 'features/fireWeather/components/maps/FireIndicesVectorLayer'
 
-const zoom = 6
+const PREFIX = 'MapContext'
 
-export const MapContext = React.createContext<ol.Map | null>(null)
-export interface RedrawCommand {
-  redraw: boolean
+const classes = {
+  map: `${PREFIX}-map`
 }
 
-const useStyles = makeStyles({
-  map: {
+const StyledErrorBoundary = styled(ErrorBoundary)({
+  [`& .${classes.map}`]: {
     position: 'relative',
     width: '100%',
     height: '100%',
@@ -53,6 +53,13 @@ const useStyles = makeStyles({
   }
 })
 
+const zoom = 6
+
+export const MapContext = React.createContext<ol.Map | null>(null)
+export interface RedrawCommand {
+  redraw: boolean
+}
+
 interface Props {
   children: React.ReactNode
   center: number[]
@@ -64,7 +71,6 @@ interface Props {
 }
 
 const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, toiFromQuery, setMapCenter }: Props) => {
-  const classes = useStyles()
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const [map, setMap] = useState<ol.Map | null>(null)
@@ -187,7 +193,7 @@ const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, to
   )
 
   return (
-    <ErrorBoundary>
+    <StyledErrorBoundary>
       <MapContext.Provider value={map}>
         <div ref={mapRef} className={classes.map} data-testid="map">
           {children}
@@ -199,7 +205,7 @@ const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, to
           </div>
         )}
       </MapContext.Provider>
-    </ErrorBoundary>
+    </StyledErrorBoundary>
   )
 }
 

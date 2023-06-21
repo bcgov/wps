@@ -1,25 +1,29 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { FireZoneArea } from 'api/fbaAPI'
 import { BarChart, CartesianGrid, XAxis, YAxis, Bar, Tooltip, ResponsiveContainer } from 'recharts'
 import { Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+const PREFIX = 'CombustibleAreaViz'
 
-export interface AdvisoryMetadataProps {
-  testId?: string
-  fireZoneAreas: FireZoneArea[]
+const classes = {
+  combustibleLandHeader: `${PREFIX}-combustibleLandHeader`
 }
 
-const useStyles = makeStyles({
-  combustibleLandHeader: {
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')({
+  [`& .${classes.combustibleLandHeader}`]: {
     fontSize: '1.3rem',
     textAlign: 'center',
     variant: 'h3'
   }
 })
 
-const CombustibleAreaViz = ({ fireZoneAreas }: AdvisoryMetadataProps) => {
-  const classes = useStyles()
+export interface AdvisoryMetadataProps {
+  testId?: string
+  fireZoneAreas: FireZoneArea[]
+}
 
+const CombustibleAreaViz = ({ fireZoneAreas }: AdvisoryMetadataProps) => {
   const labelledFireZones = fireZoneAreas.map(area => ({
     ...area,
     threshold_label: area.threshold == 1 ? 'Advisory' : 'Warning',
@@ -27,7 +31,7 @@ const CombustibleAreaViz = ({ fireZoneAreas }: AdvisoryMetadataProps) => {
     warning_hfi_percentage: area.threshold == 2 ? area.elevated_hfi_percentage : undefined
   }))
   return (
-    <>
+    <Root>
       <Typography className={classes.combustibleLandHeader}>Combustible Land Under Advisory or Warning</Typography>
       <ResponsiveContainer width={400} height={250}>
         <BarChart data={labelledFireZones}>
@@ -38,7 +42,7 @@ const CombustibleAreaViz = ({ fireZoneAreas }: AdvisoryMetadataProps) => {
           <Bar dataKey="elevated_hfi_percentage" fill="#1E90FF" />
         </BarChart>
       </ResponsiveContainer>
-    </>
+    </Root>
   )
 }
 

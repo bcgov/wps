@@ -1,13 +1,23 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 
 import HeaderImage from './HeaderImage'
 import Contact from './Contact'
 
 import { OptionalContainer } from 'components/Container'
 
-const useStyles = makeStyles(theme => ({
-  beta: {
+const PREFIX = 'GeneralHeader'
+
+const classes = {
+  beta: `${PREFIX}-beta`,
+  root: `${PREFIX}-root`,
+  container: `${PREFIX}-container`,
+  title: `${PREFIX}-title`,
+  titleWrapper: `${PREFIX}-titleWrapper`
+}
+
+const Root = styled('nav')(({ theme }) => ({
+  [`& .${classes.beta}`]: {
     alignSelf: 'flex-start',
     color: theme.palette.secondary.main,
     fontSize: '1.25em',
@@ -15,23 +25,27 @@ const useStyles = makeStyles(theme => ({
     paddingLeft: theme.spacing(1),
     paddingTop: theme.spacing(2)
   },
-  root: {
+
+  [`&.${classes.root}`]: {
     background: theme.palette.primary.main,
     borderBottomWidth: 2,
     borderBottomStyle: 'solid',
     borderBottomColor: theme.palette.secondary.main
   },
-  container: (props: Props) => ({
+
+  [`& .${classes.container}`]: (props: Props) => ({
     display: 'flex',
     alignItems: 'center',
     maxWidth: '100%',
     paddingLeft: props.padding
   }),
-  title: {
+
+  [`& .${classes.title}`]: {
     color: theme.palette.primary.contrastText,
     fontSize: '1.7rem'
   },
-  titleWrapper: {
+
+  [`& .${classes.titleWrapper}`]: {
     display: 'flex',
     alignItems: 'center'
   }
@@ -47,10 +61,9 @@ interface Props {
 
 export const GeneralHeader: React.FunctionComponent<Props> = (props: Props) => {
   const { title, productName, spacing } = props
-  const classes = useStyles(props)
 
   return (
-    <nav className={classes.root}>
+    <Root className={classes.root}>
       <OptionalContainer className={classes.container}>
         <div className={classes.titleWrapper}>
           <HeaderImage />
@@ -60,6 +73,6 @@ export const GeneralHeader: React.FunctionComponent<Props> = (props: Props) => {
         <div style={{ flexGrow: spacing }}></div>
         <Contact productName={productName}></Contact>
       </OptionalContainer>
-    </nav>
+    </Root>
   )
 }

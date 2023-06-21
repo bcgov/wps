@@ -1,5 +1,5 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { ClassNameMap } from '@mui/styles/withStyles'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
@@ -17,8 +17,17 @@ import { formatDateInUTC00Suffix, formatDatetimeInPST } from 'utils/date'
 import { calculateAccumulatedPrecip } from 'utils/table'
 import ComparisonTableRow, { DataSource, WeatherVariable } from './ComparisonTableRow'
 
-const useStyles = makeStyles({
-  paper: {
+const PREFIX = 'StationComparisonTable'
+
+const classes = {
+  paper: `${PREFIX}-paper`,
+  typography: `${PREFIX}-typography`,
+  lightColumnHeader: `${PREFIX}-lightColumnHeader`,
+  darkColumnHeader: `${PREFIX}-darkColumnHeader`
+}
+
+const StyledPaper = styled(Paper)({
+  [`&.${classes.paper}`]: {
     padding: '5px',
     // There's a formating issues that causes the last cell in the table to be cut off
     // when in 100%, on a small screen. Setting the width to 95% is a workaround, as the
@@ -26,19 +35,20 @@ const useStyles = makeStyles({
     // flex boxes, and having a table that needs to scroll.)
     width: '95%'
   },
-  typography: {},
-  lightColumnHeader: {
+  [`& .${classes.typography}`]: {},
+  [`& .${classes.lightColumnHeader}`]: {
     textAlign: 'center',
     padding: '2px',
     minWidth: '60px'
   },
-  darkColumnHeader: {
+  [`& .${classes.darkColumnHeader}`]: {
     backgroundColor: 'rgb(240, 240, 240)',
     textAlign: 'center',
     padding: '2px',
     minWidth: '60px'
   }
 })
+
 interface Props {
   timeOfInterest: string
   stationCodes: number[]
@@ -76,11 +86,10 @@ const SubHeadings = (value: string, index: number, classes: ClassNameMap<'darkCo
 }
 
 const StationComparisonTable = (props: Props) => {
-  const classes = useStyles()
   // format the date to match the ISO format in the API for easy comparison.
   const noonDate = formatDateInUTC00Suffix(props.timeOfInterest)
   return (
-    <Paper className={classes.paper}>
+    <StyledPaper className={classes.paper}>
       <Typography component="div" variant="subtitle2">
         Station comparison for {formatDatetimeInPST(noonDate)} PDT
       </Typography>
@@ -186,7 +195,7 @@ const StationComparisonTable = (props: Props) => {
           </Table>
         </TableContainer>
       </Paper>
-    </Paper>
+    </StyledPaper>
   )
 }
 

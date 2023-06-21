@@ -1,6 +1,6 @@
 import * as React from 'react'
+import { styled } from '@mui/material/styles'
 import { Paper, Grid, Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { getDate, isSameMonth, isToday, format, isWithinInterval } from 'date-fns'
 import {
   chunks,
@@ -14,24 +14,34 @@ import { NavigationAction, DateRange } from 'components/dateRangePicker/types'
 import Header from 'components/dateRangePicker/Header'
 import Day from 'components/dateRangePicker/Day'
 
-const WEEK_DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+const PREFIX = 'Month'
 
-const useStyles = makeStyles(() => ({
-  root: {
+const classes = {
+  root: `${PREFIX}-root`,
+  weekDaysContainer: `${PREFIX}-weekDaysContainer`,
+  daysContainer: `${PREFIX}-daysContainer`
+}
+
+const Root = styled('div')(() => ({
+  [`& .${classes.root}`]: {
     width: 290
   },
-  weekDaysContainer: {
+
+  [`& .${classes.weekDaysContainer}`]: {
     marginTop: 10,
     paddingLeft: 30,
     paddingRight: 30
   },
-  daysContainer: {
+
+  [`& .${classes.daysContainer}`]: {
     paddingLeft: 15,
     paddingRight: 15,
     marginTop: 15,
     marginBottom: 20
   }
 }))
+
+const WEEK_DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 interface MonthProps {
   testId?: string
@@ -53,14 +63,12 @@ interface MonthProps {
 }
 
 const Month: React.FunctionComponent<MonthProps> = (props: MonthProps) => {
-  const classes = useStyles()
-
   const { testId, helpers, handlers, value: date, dateRange, marker, setValue: setDate, minDate, maxDate } = props
 
   const [back, forward] = props.navState
 
   return (
-    <div data-testid={testId}>
+    <Root data-testid={testId}>
       <Paper square elevation={0} className={classes.root}>
         <Grid container>
           <Header
@@ -110,7 +118,7 @@ const Month: React.FunctionComponent<MonthProps> = (props: MonthProps) => {
           </Grid>
         </Grid>
       </Paper>
-    </div>
+    </Root>
   )
 }
 

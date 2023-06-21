@@ -1,5 +1,5 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { useSelector } from 'react-redux'
 
 import { selectPercentiles } from 'app/rootReducer'
@@ -10,22 +10,18 @@ import { GridItem, GridContainer } from 'components/Grid'
 import { PercentileCalcDocumentation } from 'features/percentileCalculator/components/PercentileCalcDocumentation'
 import { PercentilesResponse } from 'api/percentileAPI'
 
-const useStyles = makeStyles({
-  root: {
-    marginTop: 15
-  },
-  gridContainer: {
-    marginBottom: 15
-  }
-})
+const PREFIX = 'PercentileResultsWrapper'
+
+const classes = {
+  root: `${PREFIX}-root`,
+  gridContainer: `${PREFIX}-gridContainer`
+}
 
 interface PercentileResultsProps {
   result: PercentilesResponse
 }
 
 export const PercentileResults = React.memo(function _(props: PercentileResultsProps) {
-  const classes = useStyles()
-
   // Object.entries(result.stations) is an array of station code & station response key value pairs
   const stationResults = Object.entries(props.result.stations).map(([stationCode, stationResponse]) => {
     return (
@@ -55,6 +51,15 @@ export const PercentileResults = React.memo(function _(props: PercentileResultsP
   )
 })
 
+const StyledPercentileResults = styled(PercentileResults)({
+  [`& .${classes.root}`]: {
+    marginTop: 15
+  },
+  [`& .${classes.gridContainer}`]: {
+    marginBottom: 15
+  }
+})
+
 const PercentileResultsWrapper: React.FC = () => {
   const { result, error } = useSelector(selectPercentiles)
 
@@ -64,7 +69,7 @@ const PercentileResultsWrapper: React.FC = () => {
 
   if (!result) return null
 
-  return <PercentileResults result={result} />
+  return <StyledPercentileResults result={result} />
 }
 
 export default PercentileResultsWrapper

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { styled } from '@mui/material/styles'
 import {
   Dialog,
   DialogContent,
@@ -10,9 +11,33 @@ import {
   Checkbox,
   Button
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { Clear } from '@mui/icons-material'
 import { ColumnLabel } from 'features/fbaCalculator/components/FBATable'
+
+const PREFIX = 'FilterColumnsModal'
+
+const classes = {
+  modalWindow: `${PREFIX}-modalWindow`,
+  closeIcon: `${PREFIX}-closeIcon`,
+  selectionBox: `${PREFIX}-selectionBox`
+}
+
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')(() => ({
+  [`& .${classes.modalWindow}`]: {
+    maxWidth: 'md'
+  },
+
+  [`& .${classes.closeIcon}`]: {
+    position: 'absolute',
+    right: '0px'
+  },
+
+  [`& .${classes.selectionBox}`]: {
+    height: '20px',
+    boxSizing: 'border-box'
+  }
+}))
 
 export interface ColumnSelectionState {
   label: string
@@ -27,23 +52,7 @@ export interface ModalProps {
   parentCallback: (selectedColumnsLabels: ColumnLabel[]) => void
 }
 
-const useStyles = makeStyles(() => ({
-  modalWindow: {
-    maxWidth: 'md'
-  },
-  closeIcon: {
-    position: 'absolute',
-    right: '0px'
-  },
-  selectionBox: {
-    height: '20px',
-    boxSizing: 'border-box'
-  }
-}))
-
 export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
-  const classes = useStyles()
-
   // set all columns as selected by default
   const [selected, setSelected] = useState<Set<number>>(new Set(Array(props.columns.length).keys()))
 
@@ -73,7 +82,7 @@ export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
   }
 
   return (
-    <React.Fragment>
+    <Root>
       <Dialog fullWidth className={classes.modalWindow} open={props.modalOpen} onClose={handleClose}>
         <Paper>
           <DialogTitle>
@@ -119,7 +128,7 @@ export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
           </DialogActions>
         </Paper>
       </Dialog>
-    </React.Fragment>
+    </Root>
   )
 }
 

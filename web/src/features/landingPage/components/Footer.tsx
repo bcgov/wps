@@ -1,11 +1,17 @@
 import React from 'react'
 import { styled, useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import makeStyles from '@mui/styles/makeStyles'
 import { Link } from 'react-router-dom'
 
-const useStyles = makeStyles(theme => ({
-  links: {
+const PREFIX = 'Footer'
+
+const classes = {
+  links: `${PREFIX}-links`,
+  root: `${PREFIX}-root`
+}
+
+const Root = styled('div')(({ theme }) => ({
+  [`& .${classes.links}`]: {
     display: 'flex',
     fontSize: '0.75rem',
     paddingBottom: theme.spacing(2),
@@ -15,14 +21,15 @@ const useStyles = makeStyles(theme => ({
       flexDirection: 'column'
     }
   },
-  root: {
+
+  [`& .${classes.root}`]: {
     backgroundColor: theme.palette.primary.main,
     minHeight: '80px'
   }
 }))
 
 const VerticalDivider: React.FunctionComponent = () => {
-  return <div style={{ color: '#FFFFFF' }}>|</div>
+  return <Root style={{ color: '#FFFFFF' }}>|</Root>
 }
 
 const StyledLink = styled(Link)(({ theme }) => ({
@@ -40,7 +47,6 @@ const StyledA = styled('a')(({ theme }) => ({
 }))
 
 const Footer: React.FunctionComponent = () => {
-  const classes = useStyles()
   const theme = useTheme()
   const isLarge = useMediaQuery(theme.breakpoints.up('sm'))
 

@@ -1,4 +1,5 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import Divider from '@mui/material/Divider'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
@@ -7,41 +8,53 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import makeStyles from '@mui/styles/makeStyles'
 import BetaTag from 'features/landingPage/components/BetaTag'
 import { toolInfos } from 'features/landingPage/toolInfo'
 
-const useStyles = makeStyles(theme => ({
-  beta: {
+const PREFIX = 'SidebarToolList'
+
+const classes = {
+  beta: `${PREFIX}-beta`,
+  icon: `${PREFIX}-icon`,
+  text: `${PREFIX}-text`,
+  list: `${PREFIX}-list`,
+  listItem: `${PREFIX}-listItem`
+}
+
+const StyledList = styled(List)(({ theme }) => ({
+  [`& .${classes.beta}`]: {
     [theme.breakpoints.down('sm')]: {
       position: 'absolute',
       top: theme.spacing(1),
       right: theme.spacing(1)
     }
   },
-  icon: {
+
+  [`& .${classes.icon}`]: {
     minWidth: '3rem'
   },
-  text: {
+
+  [`& .${classes.text}`]: {
     textDecoration: 'underline'
   },
-  list: {
+
+  [`&.${classes.list}`]: {
     [theme.breakpoints.down('sm')]: {
       padding: theme.spacing(2)
     }
   },
-  listItem: {
+
+  [`& .${classes.listItem}`]: {
     backgroundColor: '#FFFFFF'
   }
 }))
 
 const SidebarToolList: React.FunctionComponent = () => {
-  const classes = useStyles()
   const theme = useTheme()
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
 
   return (
-    <List className={classes.list}>
+    <StyledList className={classes.list}>
       {toolInfos.map(item => {
         return (
           <div key={item.name}>
@@ -60,7 +73,7 @@ const SidebarToolList: React.FunctionComponent = () => {
           </div>
         )
       })}
-    </List>
+    </StyledList>
   )
 }
 

@@ -1,11 +1,17 @@
 import { TextField, Autocomplete } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { BasicWFWXStation, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { isEqual, isNull, isUndefined } from 'lodash'
 import React from 'react'
 
-const useStyles = makeStyles({
-  autocomplete: {
+const PREFIX = 'AdminStationDropdown'
+
+const classes = {
+  autocomplete: `${PREFIX}-autocomplete`
+}
+
+const StyledTextField = styled(TextField)({
+  [`& .${classes.autocomplete}`]: {
     minWidth: 300
   }
 })
@@ -26,8 +32,6 @@ export const AdminStationDropdown = ({
   disabled,
   handleEditStation
 }: AdminStationDropdownProps) => {
-  const classes = useStyles()
-
   const label = disabled ? 'Station' : 'Select Station'
   return (
     <Autocomplete
@@ -40,7 +44,7 @@ export const AdminStationDropdown = ({
       getOptionLabel={option => option?.name}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
       renderInput={params => (
-        <TextField {...params} label={label} variant="outlined" error={isUndefined(adminRow.station)} />
+        <StyledTextField {...params} label={label} variant="outlined" error={isUndefined(adminRow.station)} />
       )}
       onChange={(_, value) => {
         if (!isNull(value) && !isUndefined(handleEditStation)) {

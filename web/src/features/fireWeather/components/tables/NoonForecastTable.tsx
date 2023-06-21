@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 
 import { NoonForecastValue } from 'api/forecastAPI'
 import { formatDatetimeInPST, formatDateInUTC00Suffix } from 'utils/date'
@@ -22,14 +22,23 @@ import { getDatetimeComparator, Order, calculateAccumulatedPrecip } from 'utils/
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ComparisonTableRow, { DataSource, WeatherVariable } from './ComparisonTableRow'
 
-interface NoonForecastTableProps {
-  testId?: string
-  noonForecasts: NoonForecastValue[] | undefined
-  noonObservations: ObservedValue[] | undefined
+const PREFIX = 'NoonForecastTable'
+
+const classes = {
+  paper: `${PREFIX}-paper`,
+  typography: `${PREFIX}-typography`,
+  lightColumnHeader: `${PREFIX}-lightColumnHeader`,
+  lightColumn: `${PREFIX}-lightColumn`,
+  windSpeedValue: `${PREFIX}-windSpeedValue`,
+  relativeHumidityValue: `${PREFIX}-relativeHumidityValue`,
+  windDirectionValue: `${PREFIX}-windDirectionValue`,
+  precipitationValue: `${PREFIX}-precipitationValue`,
+  darkColumn: `${PREFIX}-darkColumn`,
+  darkColumnHeader: `${PREFIX}-darkColumnHeader`
 }
 
-const useStyles = makeStyles({
-  paper: {
+const StyledAccordion = styled(Accordion)({
+  [`& .${classes.paper}`]: {
     padding: '5px',
     // There's a formating issues that causes the last cell in the table to be cut off
     // when in 100%, on a small screen. Setting the width to 95% is a workaround, as the
@@ -37,34 +46,34 @@ const useStyles = makeStyles({
     // flex boxes, and having a table that needs to scroll.)
     width: '95%'
   },
-  typography: {},
-  lightColumnHeader: {
+  [`& .${classes.typography}`]: {},
+  [`& .${classes.lightColumnHeader}`]: {
     textAlign: 'center',
     padding: '2px',
     minWidth: '60px'
   },
-  lightColumn: {
+  [`& .${classes.lightColumn}`]: {
     textAlign: 'right',
     padding: '2px'
   },
-  windSpeedValue: {
+  [`& .${classes.windSpeedValue}`]: {
     whiteSpace: 'nowrap'
   },
-  relativeHumidityValue: {
+  [`& .${classes.relativeHumidityValue}`]: {
     whiteSpace: 'nowrap'
   },
-  windDirectionValue: {
+  [`& .${classes.windDirectionValue}`]: {
     whiteSpace: 'nowrap'
   },
-  precipitationValue: {
+  [`& .${classes.precipitationValue}`]: {
     whiteSpace: 'nowrap'
   },
-  darkColumn: {
+  [`& .${classes.darkColumn}`]: {
     backgroundColor: '#fafafa',
     padding: '2px',
     textAlign: 'right'
   },
-  darkColumnHeader: {
+  [`& .${classes.darkColumnHeader}`]: {
     backgroundColor: 'rgb(240, 240, 240)',
     textAlign: 'center',
     padding: '2px',
@@ -72,8 +81,13 @@ const useStyles = makeStyles({
   }
 })
 
+interface NoonForecastTableProps {
+  testId?: string
+  noonForecasts: NoonForecastValue[] | undefined
+  noonObservations: ObservedValue[] | undefined
+}
+
 const NoonForecastTable = (props: NoonForecastTableProps) => {
-  const classes = useStyles()
   const [order, setOrder] = useState<Order>('desc')
 
   if (props.noonForecasts === undefined || props.noonObservations === undefined) {
@@ -105,7 +119,7 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
   ]
 
   return (
-    <Accordion defaultExpanded>
+    <StyledAccordion defaultExpanded>
       <AccordionSummary data-testid={`${props.testId}-accordion`} expandIcon={<ExpandMoreIcon />}>
         <Typography component="div" variant="subtitle2">
           Forecast and Observed noon weather:
@@ -185,7 +199,7 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
           </TableContainer>
         </Paper>
       </AccordionDetails>
-    </Accordion>
+    </StyledAccordion>
   )
 }
 

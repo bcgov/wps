@@ -8,6 +8,7 @@ import {
   Theme,
   StyledEngineProvider
 } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import * as materialIcons from '@mui/icons-material'
 import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
 import { DateRange } from 'components/dateRangePicker/types'
@@ -15,29 +16,27 @@ import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
-import { makeStyles } from '@mui/styles'
+const PREFIX = 'PrepDateRangeSelector'
 
-declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends Theme {}
+const classes = {
+  autocomplete: `${PREFIX}-autocomplete`,
+  wrapper: `${PREFIX}-wrapper`,
+  fireCentreTextField: `${PREFIX}-fireCentreTextField`,
+  textFieldInput: `${PREFIX}-textFieldInput`
 }
 
-export interface PrepDateRangeSelectorProps {
-  dateRange?: PrepDateRange
-  setDateRange: (newDateRange: DateRange) => void
-}
-
-const useStyles = makeStyles({
-  autocomplete: {
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')({
+  [`& .${classes.autocomplete}`]: {
     width: '100%',
     hasPopupIcon: 'true',
     hasClearIcon: 'true',
     color: 'white'
   },
-  wrapper: {
+  [`& .${classes.wrapper}`]: {
     minWidth: 300
   },
-  fireCentreTextField: {
+  [`& .${classes.fireCentreTextField}`]: {
     color: 'white',
     '& .MuiAutocomplete-clearIndicator': {
       color: 'white'
@@ -60,10 +59,20 @@ const useStyles = makeStyles({
       }
     }
   },
-  textFieldInput: {
+  [`& .${classes.textFieldInput}`]: {
     color: 'white'
   }
 })
+
+declare module '@mui/styles/defaultTheme' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface DefaultTheme extends Theme {}
+}
+
+export interface PrepDateRangeSelectorProps {
+  dateRange?: PrepDateRange
+  setDateRange: (newDateRange: DateRange) => void
+}
 
 export const dateRangePickerTheme = createTheme({
   components: {
@@ -118,7 +127,6 @@ export const dateRangePickerTheme = createTheme({
 })
 
 const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelectorProps) => {
-  const classes = useStyles()
   const dateDisplayFormat = 'MMMM dd'
   const startDate = dateRange && dateRange.start_date ? DateTime.fromISO(dateRange.start_date).toJSDate() : undefined
   const endDate = dateRange && dateRange.end_date ? DateTime.fromISO(dateRange.end_date).toJSDate() : undefined
@@ -127,7 +135,7 @@ const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelecto
   const toggleDateRangePicker = () => setDateRangePickerOpen(!dateRangePickerOpen)
 
   return (
-    <React.Fragment>
+    <Root>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={dateRangePickerTheme}>
           <TextField
@@ -169,7 +177,7 @@ const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelecto
           onChange={range => setDateRange(range)}
         />
       </Dialog>
-    </React.Fragment>
+    </Root>
   )
 }
 
