@@ -1,9 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { getAllReadyStates, ReadyPlanningAreaDetails, toggleReadyState } from 'api/hfiCalculatorAPI'
 import { AppThunk } from 'app/store'
-import { AxiosError } from 'axios'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { logError } from 'utils/error'
+import { getErrorMessage } from 'utils/getError'
 
 export interface HFIReadyState {
   loading: boolean
@@ -69,8 +69,8 @@ export const fetchToggleReadyState =
       )
       dispatch(setHFIToggleReadyState(readyState))
     } catch (err) {
-      const { response } = err as AxiosError
-      dispatch(setHFIReadyFailed(response?.data.detail))
+      const msg = getErrorMessage(err)
+      dispatch(setHFIReadyFailed(msg))
       logError(err)
     }
   }
@@ -83,8 +83,8 @@ export const fetchAllReadyStates =
       const readyStates = await getAllReadyStates(fire_centre_id, date_range.start_date, date_range.end_date)
       dispatch(setAllReadyStates(readyStates))
     } catch (err) {
-      const { response } = err as AxiosError
-      dispatch(setHFIReadyFailed(response?.data.detail))
+      const msg = getErrorMessage(err)
+      dispatch(setHFIReadyFailed(msg))
       logError(err)
     }
   }

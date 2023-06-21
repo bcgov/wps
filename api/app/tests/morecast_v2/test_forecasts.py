@@ -3,8 +3,9 @@ from typing import Optional
 from unittest.mock import Mock, patch
 import pytest
 from app.db.models.morecast_v2 import MorecastForecastRecord
-from app.morecast_v2.forecasts import construct_wf1_forecast, construct_wf1_forecasts, get_forecasts
-from app.schemas.morecast_v2 import StationDailyFromWF1, WF1ForecastRecordType, WF1PostForecast
+from app.morecast_v2.forecasts import actual_exists, construct_wf1_forecast, construct_wf1_forecasts, filter_for_api_forecasts, get_forecasts
+from app.schemas.morecast_v2 import (StationDailyFromWF1, WeatherDeterminate, WeatherIndeterminate,
+                                     WF1ForecastRecordType, WF1PostForecast)
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 
 start_time = datetime(2022, 1, 1)
@@ -135,3 +136,83 @@ async def test_construct_wf1_forecasts_new(_, mock_get):
                         None,
                         None,
                         station_2_url, '2')
+
+
+def build_weather_indeterminate(station_code: int,
+                                station_name: str,
+                                determinate: WeatherDeterminate,
+                                utc_timestamp: datetime):
+    return WeatherIndeterminate(
+        station_code=station_code,
+        station_name=station_name,
+        determinate=determinate,
+        utc_timestamp=utc_timestamp
+    )
+
+
+def create_list_of_actuals():
+    actual_1 = build_weather_indeterminate(1, "test1", WeatherDeterminate.ACTUAL, datetime(2023, 1, 1))
+    actual_2 = build_weather_indeterminate(2, "test2", WeatherDeterminate.ACTUAL, datetime(2023, 1, 1))
+    return [actual_1, actual_2]
+
+
+def test_actual_exists_returns_true_if_station_code_and_timestamp_match():
+    actuals = create_list_of_actuals()
+    api_forecast = build_weather_indeterminate(1, "test1", WeatherDeterminate.FORECAST, datetime(2023, 1, 1))
+    assert actual_exists(api_forecast, actuals) == True
+
+
+def test_actual_exists_returns_false_if_no_station_codes_matches():
+    actuals = create_list_of_actuals()
+    api_forecast = build_weather_indeterminate(3, "test3", WeatherDeterminate.FORECAST, datetime(2023, 1, 1))
+    assert actual_exists(api_forecast, actuals) == False
+
+
+def test_actual_exists_returns_false_if_station_matches_but_no_timestamp_match():
+    actuals = create_list_of_actuals()
+    api_forecast = build_weather_indeterminate(1, "test1", WeatherDeterminate.FORECAST, datetime(2023, 1, 2))
+    assert actual_exists(api_forecast, actuals) == False
+
+
+def test_actual_exists_returns_false_if_no_station_code_match_and_no_timestamp_match():
+    actuals = create_list_of_actuals()
+    api_forecast = build_weather_indeterminate(3, "test1", WeatherDeterminate.FORECAST, datetime(2023, 1, 2))
+    assert actual_exists(api_forecast, actuals) == False
+
+
+def test_actual_exists_returns_false_if_no_actuals():
+    actuals = []
+    api_forecast = build_weather_indeterminate(3, "test1", WeatherDeterminate.FORECAST, datetime(2023, 1, 2))
+    assert actual_exists(api_forecast, actuals) == False
+
+
+def test_filter_for_api_forecasts_returns_empty_list_for_empty_input_params():
+    filtered_forecasts = filter_for_api_forecasts([], [])
+    assert len(filtered_forecasts) == 0
+
+
+def test_filter_for_api_forecasts_returns_empty_list_when_actuals_empty():
+    forecast = build_weather_indeterminate(3, "test1", WeatherDeterminate.FORECAST, datetime(2023, 1, 2))
+    filtered_forecasts = filter_for_api_forecasts([forecast], [])
+    assert len(filtered_forecasts) == 0
+
+
+def test_filter_for_api_forecasts_returns_empty_list_when_forecasts_empty():
+    actuals = create_list_of_actuals()
+    filtered_forecasts = filter_for_api_forecasts([], [actuals])
+    assert len(filtered_forecasts) == 0
+
+
+def test_filter_for_api_forecasts_returns_empty_list_when_no_forecasts_match_actuals():
+    actuals = create_list_of_actuals()
+    forecast = build_weather_indeterminate(3, "test1", WeatherDeterminate.FORECAST, datetime(2023, 1, 2))
+    filtered_forecasts = filter_for_api_forecasts([forecast], actuals)
+    assert len(filtered_forecasts) == 0
+
+
+def test_filter_for_api_forecasts_returns_matching_forecast_when_match_actuals():
+    actuals = create_list_of_actuals()
+    forecast = build_weather_indeterminate(1, "test1", WeatherDeterminate.FORECAST, datetime(2023, 1, 1))
+    filtered_forecasts = filter_for_api_forecasts([forecast], actuals)
+    assert len(filtered_forecasts) == 1
+    assert filtered_forecasts[0] == forecast
