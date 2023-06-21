@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { authenticate, testAuthenticate } from 'features/auth/slices/authenticationSlice'
 import axios from 'api/axios'
@@ -25,11 +25,13 @@ const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
 const AuthWrapper = ({ children }: Props) => {
   const dispatch: AppDispatch = useDispatch()
   const { isAuthenticated, authenticating, error } = useSelector(selectAuthentication)
+  const didInit = useRef(false)
 
   useEffect(() => {
     if (TEST_AUTH || window.Cypress) {
       dispatch(testAuthenticate(true, 'test token', 'test id token'))
-    } else {
+    } else if (!didInit.current) {
+      didInit.current = true
       dispatch(authenticate())
       dispatch(setAxiosRequestInterceptors())
     }
