@@ -213,7 +213,7 @@ class WeatherStationModelPrediction(Base):
                          default=time_utils.get_utc_now())
     # Date this record was updated.
     update_date = Column(TZTimeStamp, nullable=False,
-                         default=time_utils.get_utc_now())
+                         default=time_utils.get_utc_now(), index=True)
 
     def __str__(self):
         return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2} {self.apcp_sfc_0} '
