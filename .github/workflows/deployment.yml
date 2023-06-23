@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+          EPHEMERAL_STORAGE=False bash openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
   prepare-dev-database-backups:
     name: Prepare Dev Database Backups

@@ -188,7 +188,7 @@ parameters:
   - name: PVC_SIZE
     description: The size of the persistent volume to create.
     displayName: Persistent Volume Size
-    value: 5Gi
+    value: 15Gi
   - name: STORAGE_CLASS
     value: netapp-file-standard
   - name: IMAGE_REGISTRY
