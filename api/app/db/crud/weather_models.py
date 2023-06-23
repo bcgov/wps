@@ -10,6 +10,7 @@ from app.db.models.weather_models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
     ModelRunGridSubsetPrediction, WeatherStationModelPrediction)
 import app.utils.time as time_utils
+from sqlalchemy.dialects import postgresql
 
 logger = logging.getLogger(__name__)
 
@@ -270,8 +271,8 @@ def get_latest_station_model_prediction_per_day(session: Session,
      - each station in the given list
     ordered by update_timestamp
 
-    This is done by joining the predictions on their runs, 
-    that are filtered by the day and the 20:00UTC predictions. 
+    This is done by joining the predictions on their runs,
+    that are filtered by the day and the 20:00UTC predictions.
 
     In turn prediction runs are filtered via a join
     on runs that are for the selected model.
@@ -328,8 +329,8 @@ def get_latest_station_prediction_per_day(session: Session,
      - each station in the given list
     ordered by update_timestamp
 
-    This is done by joining the predictions on their runs, 
-    that are filtered by the day and the 20:00UTC predictions. 
+    This is done by joining the predictions on their runs,
+    that are filtered by the day and the 20:00UTC predictions.
 
     In turn prediction runs are filtered via a join
     on runs that are for the selected model.
@@ -369,8 +370,10 @@ def get_latest_station_prediction_per_day(session: Session,
         .join(PredictionModel, PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id)\
         .join(subquery, and_(
             WeatherStationModelPrediction.prediction_timestamp == subquery.c.latest_prediction,
-            WeatherStationModelPrediction.station_code == subquery.c.station_code))\
-        .order_by(WeatherStationModelPrediction.update_date.desc())
+            WeatherStationModelPrediction.station_code == subquery.c.station_code))
+    # explain = "EXPLAIN" + \
+    #     str(result.statement.compile(compile_kwargs={"literal_binds": True}, dialect=postgresql.dialect()))
+    # print(explain)
     return result
 
 

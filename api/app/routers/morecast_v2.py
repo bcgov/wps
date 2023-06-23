@@ -198,9 +198,11 @@ async def get_determinates_for_date_range(start_date: date,
     with get_read_session_scope() as db_session:
         forecasts_from_db: List[MoreCastForecastOutput] = get_forecasts(
             db_session, min_wf1_actuals_date, max_wf1_actuals_date, request.stations)
+        start = datetime.now()
         predictions: List[WeatherIndeterminate] = await fetch_latest_model_run_predictions_by_station_code_and_date_range(db_session,
                                                                                                                           unique_station_codes,
                                                                                                                           start_time, end_time)
+        print(f"Time to run database query: {datetime.now() - start}")
 
         transformed_forecasts = transform_morecastforecastoutput_to_weatherindeterminate(
             forecasts_from_db, wfwx_stations)
