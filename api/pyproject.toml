@@ -57,7 +57,7 @@ rope = "^1"
 jsonpickle = "^3.0.0"
 pytest-watch = "^4.2.0"
 pytest-testmon = "^2.0.0"
-ruff = "^0.0.270"
+ruff = "^0.0.275"
 
 [build-system]
 requires = ["poetry>=1.1.11"]
