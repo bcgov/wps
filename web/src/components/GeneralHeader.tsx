@@ -33,12 +33,11 @@ const Root = styled('nav')(({ theme }) => ({
     borderBottomColor: theme.palette.secondary.main
   },
 
-  [`& .${classes.container}`]: (props: Props) => ({
+  [`& .${classes.container}`]: {
     display: 'flex',
     alignItems: 'center',
-    maxWidth: '100%',
-    paddingLeft: props.padding
-  }),
+    maxWidth: '100%'
+  },
 
   [`& .${classes.title}`]: {
     color: theme.palette.primary.contrastText,
