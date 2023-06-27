@@ -218,3 +218,23 @@ class WeatherStationModelPrediction(Base):
     def __str__(self):
         return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2} {self.apcp_sfc_0} '
                 '{self.delta_precip}').format(self=self)
+
+
+class MoreCast2MaterializedView(Base):
+    """ A materialized view to support effecient retrieval of weather model prediction data by
+        stations and dates."""
+    # __tablename__ = 'morecast_2_materialized_view'
+    __tablename__ = 'mat_view'
+    id = Column(Integer, Sequence('morecast_forecast_id_seq'),
+                primary_key=True, nullable=False, index=True)
+    abbreviation = Column(String, nullable=False)
+    apcp_sfc_0 = Column(Float, nullable=False)
+    bias_adjusted_rh = Column(Float, nullable=False)
+    bias_adjusted_temperature = Column(Float, nullable=False)
+    prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    station_code = Column(Integer, nullable=True, index=True)
+    rh_tgl_2 = Column(Float, nullable=False)
+    tmp_tgl_2 = Column(Float, nullable=False)
+    update_date = Column(TZTimeStamp, nullable=False, index=True)
+    wdir_tgl_10 = Column(Float, nullable=False)
+    wind_tgl_10 = Column(Float, nullable=False)

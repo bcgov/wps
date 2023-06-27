@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models.weather_models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction, WeatherStationModelPrediction)
+    ModelRunGridSubsetPrediction, WeatherStationModelPrediction, MoreCast2MaterializedView)
 import app.utils.time as time_utils
 from sqlalchemy.dialects import postgresql
 
@@ -316,6 +316,29 @@ def get_latest_station_model_prediction_per_day(session: Session,
             WeatherStationModelPrediction.station_code == subquery.c.station_code))\
         .filter(PredictionModel.abbreviation == model)\
         .order_by(WeatherStationModelPrediction.update_date.desc())
+    return result
+
+
+def get_latest_station_prediction_mat_view(session: Session,
+                                           station_codes: List[int],
+                                           day_start: datetime.datetime,
+                                           day_end: datetime.datetime):
+
+    result = session.query(MoreCast2MaterializedView.prediction_timestamp,
+                           MoreCast2MaterializedView.abbreviation,
+                           MoreCast2MaterializedView.station_code,
+                           MoreCast2MaterializedView.rh_tgl_2,
+                           MoreCast2MaterializedView.tmp_tgl_2,
+                           MoreCast2MaterializedView.bias_adjusted_temperature,
+                           MoreCast2MaterializedView.bias_adjusted_rh,
+                           MoreCast2MaterializedView.apcp_sfc_0,
+                           MoreCast2MaterializedView.wdir_tgl_10,
+                           MoreCast2MaterializedView.wind_tgl_10,
+                           MoreCast2MaterializedView.update_date).\
+        filter(MoreCast2MaterializedView.station_code.in_(station_codes),
+               MoreCast2MaterializedView.prediction_timestamp >= day_start,
+               MoreCast2MaterializedView.prediction_timestamp <= day_end,
+               func.date_part('hour', MoreCast2MaterializedView.prediction_timestamp) == 20)
     return result
 
 
