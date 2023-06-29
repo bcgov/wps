@@ -17,7 +17,7 @@ describe('HFICell', () => {
       </TableContainer>
     )
     const cell = getByTestId('hfi-cell')
-    expect(cell.className).toMatch(/makeStyles-dataRow-/)
+    expect(cell.className).toMatch(/HFICell-dataRow/)
   })
   describe('HFICell - 3000 to 3999 inclusive', () => {
     it('should render with an orange border when HFI is 3000', () => {
@@ -33,7 +33,7 @@ describe('HFICell', () => {
         </TableContainer>
       )
       const cell = getByTestId('hfi-cell')
-      expect(cell.className).toMatch(/makeStyles-orangeBorder-/)
+      expect(cell.className).toMatch(/HFICell-orangeBorder/)
     })
     it('should render with an orange border when HFI is 3999', () => {
       const { getByTestId } = render(
@@ -48,7 +48,7 @@ describe('HFICell', () => {
         </TableContainer>
       )
       const cell = getByTestId('hfi-cell')
-      expect(cell.className).toMatch(/makeStyles-orangeBorder-/)
+      expect(cell.className).toMatch(/HFICell-orangeBorder/)
     })
   })
   describe('HFICell - 4000 to 9999 inclusive', () => {
@@ -65,7 +65,7 @@ describe('HFICell', () => {
         </TableContainer>
       )
       const cell = getByTestId('hfi-cell')
-      expect(cell.className).toMatch(/makeStyles-orangeFill-/)
+      expect(cell.className).toMatch(/HFICell-orangeFill/)
     })
     it('should render with an orange fill when HFI is 9999', () => {
       const { getByTestId } = render(
@@ -80,7 +80,7 @@ describe('HFICell', () => {
         </TableContainer>
       )
       const cell = getByTestId('hfi-cell')
-      expect(cell.className).toMatch(/makeStyles-orangeFill-/)
+      expect(cell.className).toMatch(/HFICell-orangeFill/)
     })
   })
   describe('HFICell - over 9999', () => {
@@ -97,7 +97,7 @@ describe('HFICell', () => {
         </TableContainer>
       )
       const cell = getByTestId('hfi-cell')
-      expect(cell.className).toMatch(/makeStyles-redFill-/)
+      expect(cell.className).toMatch(/HFICell-redFill/)
     })
   })
 })

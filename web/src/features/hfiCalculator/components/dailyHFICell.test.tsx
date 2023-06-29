@@ -37,6 +37,6 @@ describe('DailyHFICell', () => {
 
     const cell = getByTestId('hfi-cell')
     expect(cell).toBeDefined()
-    expect(cell.className).toMatch(/makeStyles-dataRow-/)
+    expect(cell.className).toMatch(/HFICell-dataRow/)
   })
 })
