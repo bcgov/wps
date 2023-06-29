@@ -17,7 +17,6 @@ interface StickyCellProps {
   zIndexOffset: number
   children?: React.ReactNode
   backgroundColor?: string
-  testId?: string
   colSpan?: number
   className?: string
 }
@@ -26,6 +25,7 @@ const StickyCell = (props: StickyCellProps) => {
   return (
     <StyledTableCell
       data-testid={`stickyCell-fba`}
+      className={props.className}
       colSpan={props.colSpan}
       left={props.left}
       zIndexOffset={props.zIndexOffset}
