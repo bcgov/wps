@@ -4,7 +4,7 @@ import { theme } from 'app/theme'
 import React from 'react'
 
 const StyledTableCell = styled(TableCell, {
-  shouldForwardProp: prop => prop !== 'zIndexOffset'
+  shouldForwardProp: prop => prop !== 'zIndexOffset' && prop !== 'backgroundColor'
 })((props: Pick<StickyCellProps, 'left' | 'zIndexOffset' | 'backgroundColor'>) => ({
   left: props.left,
   position: 'sticky',
