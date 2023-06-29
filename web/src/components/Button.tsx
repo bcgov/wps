@@ -11,21 +11,6 @@ const classes = {
   spinner: `${PREFIX}-spinner`
 }
 
-const StyledB = styled(B)(() => ({
-  [`& .${classes.root}`]: {
-    position: 'relative'
-  },
-
-  [`& .${classes.spinner}`]: (props: Props) => ({
-    color: props.spinnercolor || theme.palette.primary.light,
-    position: 'absolute',
-    left: '50%',
-    marginLeft: -10,
-    top: '50%',
-    marginTop: -10
-  })
-}))
-
 interface CustomProps {
   loading?: boolean
   hasSpinner?: boolean
@@ -39,6 +24,21 @@ type Props = CustomProps & ButtonProps
 // https://medium.com/@martin_hotell/react-refs-with-typescript-a32d56c4d315
 export const Button = forwardRef<HTMLButtonElement, Props>((props, ref) => {
   const { loading, className, disabled, hasSpinner = true, ...buttonProps } = props
+
+  const StyledB = styled(B)(() => ({
+    [`& .${classes.root}`]: {
+      position: 'relative'
+    },
+
+    [`& .${classes.spinner}`]: {
+      color: props.spinnercolor || theme.palette.primary.light,
+      position: 'absolute',
+      left: '50%',
+      marginLeft: -10,
+      top: '50%',
+      marginTop: -10
+    }
+  }))
 
   const buttonClassName = clsx(classes.root, className)
 

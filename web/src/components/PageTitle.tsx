@@ -9,19 +9,6 @@ const classes = {
   root: `${PREFIX}-root`
 }
 
-const Root = styled('div')(() => ({
-  [`&.${classes.root}`]: (props: Props) => ({
-    maxHeight: 60,
-    marginBottom: '1rem',
-    paddingBottom: '1rem',
-    paddingTop: '1rem',
-    paddingLeft: props.padding,
-    fontSize: '1.3rem',
-    background: theme.palette.primary.light,
-    color: theme.palette.primary.contrastText
-  })
-}))
-
 interface Props {
   title: string
   padding?: string
@@ -30,6 +17,19 @@ interface Props {
 
 export const PageTitle: React.FunctionComponent<Props> = (props: Props) => {
   const { title, maxWidth } = props
+
+  const Root = styled('div')(() => ({
+    [`&.${classes.root}`]: {
+      maxHeight: 60,
+      marginBottom: '1rem',
+      paddingBottom: '1rem',
+      paddingTop: '1rem',
+      paddingLeft: props.padding,
+      fontSize: '1.3rem',
+      background: theme.palette.primary.light,
+      color: theme.palette.primary.contrastText
+    }
+  }))
 
   return (
     <Root className={classes.root}>

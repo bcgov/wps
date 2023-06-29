@@ -1,7 +1,5 @@
 import 'ol/ol.css'
 
-import { styled } from '@mui/material/styles'
-
 import React, { useRef, useState, useEffect, useCallback } from 'react'
 import * as ol from 'ol'
 import { toLonLat } from 'ol/proj'
@@ -16,42 +14,6 @@ import { useDispatch } from 'react-redux'
 import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 import { selectStation } from 'features/stations/slices/stationsSlice'
 import FireIndicesVectorLayer from 'features/fireWeather/components/maps/FireIndicesVectorLayer'
-
-const PREFIX = 'MapContext'
-
-const classes = {
-  map: `${PREFIX}-map`
-}
-
-const StyledErrorBoundary = styled(ErrorBoundary)({
-  [`& .${classes.map}`]: {
-    position: 'relative',
-    width: '100%',
-    height: '100%',
-
-    '& .ol-control': {
-      position: 'absolute',
-      backgroundColor: 'rgba(255,255,255,0.7)',
-      borderRadius: 4,
-      padding: 2
-    },
-    '& .ol-popup': {
-      position: 'absolute',
-      backgroundColor: 'white',
-      boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-      padding: 15,
-      borderRadius: 10,
-      border: '1px solid #cccccc',
-      bottom: 12,
-      whiteSpace: 'nowrap',
-      // Center absolutely positioned content of unknown width
-      // https://stackoverflow.com/a/9367930/11903963
-      left: '50%',
-      width: 'auto',
-      transform: 'translateX(-50%)'
-    }
-  }
-})
 
 const zoom = 6
 
@@ -192,20 +154,39 @@ const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, to
     [dispatch]
   )
 
+  const width = isCollapsed ? '30%' : '100%'
+  const height = isCollapsed ? '30%' : '100%'
   return (
-    <StyledErrorBoundary>
+    <ErrorBoundary>
       <MapContext.Provider value={map}>
-        <div ref={mapRef} className={classes.map} data-testid="map">
+        <div ref={mapRef} style={{ width, height }} data-testid="map">
           {children}
           <FireIndicesVectorLayer toiFromQuery={toiFromQuery} selectedWxVariable={selectedWxVariable} />
         </div>
         {renderTooltip && (
-          <div ref={overlayRef} className="ol-popup">
+          <div
+            ref={overlayRef}
+            style={{
+              position: 'absolute',
+              backgroundColor: 'white',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+              padding: 15,
+              borderRadius: 10,
+              border: '1px solid #cccccc',
+              bottom: 12,
+              whiteSpace: 'nowrap',
+              // Center absolutely positioned content of unknown width
+              // https://stackoverflow.com/a/9367930/11903963
+              width: 'auto',
+              left: '50%',
+              transform: 'translate(-50%, 50%)'
+            }}
+          >
             {renderTooltip(feature)}
           </div>
         )}
       </MapContext.Provider>
-    </StyledErrorBoundary>
+    </ErrorBoundary>
   )
 }
 

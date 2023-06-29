@@ -16,7 +16,7 @@ const StyledTextField = styled(TextField)({
 
 export const PercentileTextfield: React.FunctionComponent = () => {
   return (
-    <TextField
+    <StyledTextField
       id="percentile-textfield"
       className={classes.root}
       data-testid="percentile-textfield"

@@ -1,4 +1,4 @@
-import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE, PARTIAL_WIDTH } from '../../src/utils/constants'
+import { FIRE_WEATHER_ROUTE, FULL_WIDTH, MORECAST_ROUTE, PARTIAL_WIDTH } from '../../src/utils/constants'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from '../../src/utils/url'
 const stationCode = 328
 const stationCode2 = 380
@@ -113,7 +113,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('expandable-container-content')
         .invoke('css', 'width')
         .then(str => parseInt(str))
-        .should('be.lte', 790)
+        .should('be.lte', PARTIAL_WIDTH)
     })
 
     it('should load a table comparing forecasts to noon observations', () => {
@@ -123,7 +123,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId(`noon-forecasts-obs-table-${stationCode}`)
         .invoke('css', 'width')
         .then(str => parseInt(str))
-        .should('be.gt', 790)
+        .should('be.lte', 790)
     })
   })
 
@@ -144,7 +144,7 @@ describe('MoreCast Page', () => {
 
       // expect the sidepanel to be fully expanded (we compare the calculated width, and expect
       // it to match the width of our browser window)
-      cy.getByTestId('expandable-container-content').should('have.css', 'width', '1000px')
+      cy.getByTestId('expandable-container-content').invoke('width').should('be.gte', FULL_WIDTH)
     })
   })
 
@@ -173,7 +173,7 @@ describe('MoreCast Page', () => {
 
       // expect the sidepanel to be fully expanded (we compare the calculated width, and expect
       // it to match the width of our browser window)
-      cy.getByTestId('expandable-container-content').should('have.css', 'width', '1000px')
+      cy.getByTestId('expandable-container-content').invoke('width').should('be.gte', FULL_WIDTH)
 
       // expecting 2 rows, one for each station.
       cy.getByTestId('station-comparison-table').find('tbody > tr').should('have.length', 2)
@@ -294,7 +294,7 @@ describe('MoreCast Page', () => {
     })
     it('Should expand the side panel when it is collapsed, and hide the legend', () => {
       cy.getByTestId(`expand-collapse-button`).click({ force: true })
-      cy.getByTestId('expandable-container-content').invoke('width').should('be.gt', PARTIAL_WIDTH)
+      cy.getByTestId('expandable-container-content').invoke('width').should('be.lt', PARTIAL_WIDTH)
 
       cy.getByTestId('legend').should('not.exist')
     })

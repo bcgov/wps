@@ -270,7 +270,7 @@ const WxDataDisplaysWrapper: React.FunctionComponent<WxDataDisplaysWrapperProps>
   const wxDataLoading = useSelector(selectWxDataLoading)
 
   return (
-    <WxDataDisplays
+    <StyledWxDataDisplays
       {...props}
       wxDataLoading={wxDataLoading}
       stationsByCode={stationsByCode}

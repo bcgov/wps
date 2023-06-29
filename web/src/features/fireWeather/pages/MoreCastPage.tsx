@@ -66,7 +66,7 @@ const Root = styled('main')(({ theme }) => ({
   },
 
   [`& .${classes.map}`]: {
-    order: 1,
+    order: 0,
     flexGrow: 1,
     display: 'flex',
     justifyContent: 'center',
@@ -179,16 +179,18 @@ const MoreCastPage = () => {
         />
       </div>
       <div className={classes.content}>
-        <div className={classes.map}>
-          <WeatherMap
-            redrawFlag={getRedrawCommand()}
-            isCollapsed={sidePanelWidth === FULL_WIDTH}
-            toiFromQuery={toiFromQuery}
-            center={mapCenter}
-            setMapCenter={setNewMapCenter}
-            selectedWxVariable={selectedAccuracyWxVariable}
-          />
-        </div>
+        {sidePanelWidth < FULL_WIDTH && (
+          <div className={classes.map}>
+            <WeatherMap
+              redrawFlag={getRedrawCommand()}
+              isCollapsed={sidePanelWidth === FULL_WIDTH}
+              toiFromQuery={toiFromQuery}
+              center={mapCenter}
+              setMapCenter={setNewMapCenter}
+              selectedWxVariable={selectedAccuracyWxVariable}
+            />
+          </div>
+        )}
         <ExpandableContainer
           open={showSidePanel}
           close={closeSidePanel}
