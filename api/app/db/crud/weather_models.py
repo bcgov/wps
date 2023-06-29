@@ -323,7 +323,7 @@ def get_latest_station_prediction_mat_view(session: Session,
                                            station_codes: List[int],
                                            day_start: datetime.datetime,
                                            day_end: datetime.datetime):
-
+    logger.info("Getting data from materialized view.")
     result = session.query(MoreCast2MaterializedView.prediction_timestamp,
                            MoreCast2MaterializedView.abbreviation,
                            MoreCast2MaterializedView.station_code,

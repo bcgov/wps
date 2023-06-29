@@ -15,7 +15,7 @@ from app.schemas.weather_models import (WeatherStationModelPredictionValues, Wea
                                         ModelRunPredictions,
                                         WeatherStationModelRunsPredictions)
 from app.db.models.weather_models import WeatherStationModelPrediction
-from app.db.crud.weather_models import (get_latest_station_model_prediction_per_day, get_station_model_predictions,
+from app.db.crud.weather_models import (get_latest_station_model_prediction_per_day, get_latest_station_prediction_per_day, get_station_model_predictions,
                                         get_station_model_prediction_from_previous_model_run, get_latest_station_prediction_mat_view)
 import app.stations
 from app.utils.time import get_days_from_range
@@ -133,6 +133,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
     active_station_codes = stations.keys()
     for day in days:
+        start = datetime.datetime.now()
         vancouver_tz = pytz.timezone("America/Vancouver")
 
         day_start = vancouver_tz.localize(datetime.datetime.combine(day, time.min))
@@ -148,7 +149,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
                     station_code=station_code,
                     station_name=stations[station_code].name,
                     determinate=model_abbrev,
-                    utc_timestamp=timestamp,
+                    utc_timestamp=timestamp - datetime.timedelta(hours=7),
                     temperature=temp,
                     relative_humidity=rh,
                     precipitation=precip_24hours,
@@ -160,10 +161,11 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
                     station_code=station_code,
                     station_name=stations[station_code].name,
                     determinate=f'{model_abbrev}_BIAS',
-                    utc_timestamp=timestamp,
+                    utc_timestamp=timestamp - datetime.timedelta(hours=7),
                     temperature=bias_adjusted_temp,
                     relative_humidity=bias_adjusted_rh
                 ))
+        logger.info(f"Time to get data for one day: {datetime.datetime.now() - start}")
     return post_process_fetched_predictions(results)
 
 

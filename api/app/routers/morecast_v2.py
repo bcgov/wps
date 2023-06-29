@@ -172,6 +172,7 @@ async def get_determinates_for_date_range(start_date: date,
     requested stations within the requested date range.
     """
     logger.info('/morecast-v2/determinates/%s/%s', start_date, end_date)
+    start = datetime.now()
 
     unique_station_codes = list(set(request.stations))
 
@@ -213,6 +214,7 @@ async def get_determinates_for_date_range(start_date: date,
 
         wf1_forecasts.extend(transformed_forceasts_to_add)
 
+    logger.info(f"Total time to get determinates: {datetime.now() - start}")
     return IndeterminateDailiesResponse(
         actuals=wf1_actuals,
         predictions=predictions,
