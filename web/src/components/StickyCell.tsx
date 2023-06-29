@@ -9,16 +9,16 @@ const classes = {
   sticky: `${PREFIX}-sticky`
 }
 
-const StyledTableCell = styled(TableCell)(
-  (props: Pick<StickyCellProps, 'left' | 'zIndexOffset' | 'backgroundColor'>) => ({
-    [`& .${classes.sticky}`]: {
-      left: props.left,
-      position: 'sticky',
-      zIndex: theme.zIndex.appBar + props.zIndexOffset,
-      backgroundColor: props.backgroundColor ? props.backgroundColor : undefined
-    }
-  })
-)
+const StyledTableCell = styled(TableCell, {
+  shouldForwardProp: prop => prop !== 'zIndexOffset'
+})((props: Pick<StickyCellProps, 'left' | 'zIndexOffset' | 'backgroundColor'>) => ({
+  [`& .${classes.sticky}`]: {
+    left: props.left,
+    position: 'sticky',
+    zIndex: theme.zIndex.appBar + props.zIndexOffset,
+    backgroundColor: props.backgroundColor ? props.backgroundColor : undefined
+  }
+}))
 
 interface StickyCellProps {
   left: number
