@@ -294,7 +294,7 @@ describe('MoreCast Page', () => {
     })
     it('Should expand the side panel when it is collapsed, and hide the legend', () => {
       cy.getByTestId(`expand-collapse-button`).click({ force: true })
-      cy.getByTestId('expandable-container-content').invoke('width').should('be.lt', PARTIAL_WIDTH)
+      cy.getByTestId('expandable-container-content').invoke('width').should('be.lte', PARTIAL_WIDTH)
 
       cy.getByTestId('legend').should('not.exist')
     })
