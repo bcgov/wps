@@ -18,27 +18,19 @@ const baseStyles = {
 
 const DataCell = styled(FixedDecimalNumberCell, {
   name: `${PREFIX}-dataRow`
-})(() => {
-  return { ...baseStyles }
-})
+})({ ...baseStyles })
 
 const OrangeBorderCell = styled(FixedDecimalNumberCell, {
   name: `${PREFIX}-orangeBorder`
-})(() => {
-  return { ...baseStyles, border: 'solid 3px #FFC464' }
-})
+})({ ...baseStyles, border: 'solid 3px #FFC464' })
 
 const OrangeFillCell = styled(FixedDecimalNumberCell, {
   name: `${PREFIX}-orangeFill`
-})(() => {
-  return { ...baseStyles, backgroundColor: '#FFC464' }
-})
+})({ ...baseStyles, backgroundColor: '#FFC464' })
 
 const RedFillCell = styled(FixedDecimalNumberCell, {
   name: `${PREFIX}-redFill`
-})(() => {
-  return { ...baseStyles, backgroundColor: '#FF6259' }
-})
+})({ ...baseStyles, backgroundColor: '#FF6259' })
 
 interface HFICellProps {
   value?: number | null
