@@ -5,22 +5,18 @@ import { Clear } from '@mui/icons-material'
 
 const PREFIX = 'AboutDataModal'
 
-const classes = {
-  modalWindow: `${PREFIX}-modalWindow`,
-  closeIcon: `${PREFIX}-closeIcon`
-}
+const ModalWindow = styled(Dialog, {
+  name: `${PREFIX}-modalWindow`
+})({
+  maxWidth: 'md'
+})
 
-// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
-const Root = styled('div')(() => ({
-  [`& .${classes.modalWindow}`]: {
-    maxWidth: 'md'
-  },
-
-  [`& .${classes.closeIcon}`]: {
-    position: 'absolute',
-    right: '0px'
-  }
-}))
+const CloseIconButton = styled(IconButton, {
+  name: `${PREFIX}-closeIconButton`
+})({
+  position: 'absolute',
+  right: '0px'
+})
 
 export interface ColumnSelectionState {
   label: string
@@ -39,13 +35,13 @@ export const AboutDataModal = (props: ModalProps): JSX.Element => {
   }
 
   return (
-    <Root>
-      <Dialog fullWidth className={classes.modalWindow} open={props.modalOpen} onClose={handleClose}>
+    <div>
+      <ModalWindow fullWidth open={props.modalOpen} onClose={handleClose}>
         <Paper>
           <DialogTitle>
-            <IconButton className={classes.closeIcon} onClick={handleClose} size="large">
+            <CloseIconButton onClick={handleClose} size="large">
               <Clear />
-            </IconButton>
+            </CloseIconButton>
           </DialogTitle>
           <DialogContent>
             <h1>About This Data</h1>
@@ -70,8 +66,8 @@ export const AboutDataModal = (props: ModalProps): JSX.Element => {
             </p>
           </DialogContent>
         </Paper>
-      </Dialog>
-    </Root>
+      </ModalWindow>
+    </div>
   )
 }
 
