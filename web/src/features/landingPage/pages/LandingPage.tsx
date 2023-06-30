@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { styled } from '@mui/material/styles'
 import { useTheme } from '@mui/material/styles'
+import { theme } from 'app/theme'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import ContentContainer from 'app/ContentContainer'
 import Footer from 'features/landingPage/components/Footer'
@@ -10,42 +11,41 @@ import { LANDING_PAGE_DOC_TITLE } from 'utils/constants'
 
 const PREFIX = 'LandingPage'
 
-const classes = {
-  content: `${PREFIX}-content`,
-  root: `${PREFIX}-root`,
-  subcontainer: `${PREFIX}-subcontainer`,
-  sidebar: `${PREFIX}-sidebar`
-}
+const Root = styled('div', {
+  name: `${PREFIX}-root`
+})({
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: '100vh'
+})
 
-const Root = styled('div')(({ theme }) => ({
-  [`& .${classes.content}`]: {
-    display: 'flex',
-    flexGrow: 1
-  },
+const Content = styled('div', {
+  name: `${PREFIX}-content`
+})({
+  display: 'flex',
+  flexGrow: 1
+})
 
-  [`&.${classes.root}`]: {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh'
-  },
+const SubContainer = styled('div', {
+  name: `${PREFIX}-subContainer`
+})({
+  display: 'flex',
+  flexDirection: 'column',
+  flexGrow: 1
+})
 
-  [`& .${classes.subcontainer}`]: {
-    display: 'flex',
-    flexDirection: 'column',
-    flexGrow: 1
-  },
-
-  [`& .${classes.sidebar}`]: {
-    display: 'flex',
-    flexGrow: 1,
-    overflowY: 'auto',
-    [theme.breakpoints.up('sm')]: {
-      minWidth: '251px',
-      maxWidth: '251px',
-      width: '251px'
-    }
+const SidebarContainer = styled('div', {
+  name: `${PREFIX}-sidebarContainer`
+})({
+  display: 'flex',
+  flexGrow: 1,
+  overflowY: 'auto',
+  [theme.breakpoints.up('sm')]: {
+    minWidth: '260px',
+    maxWidth: '264px',
+    width: '251px'
   }
-}))
+})
 
 const LandingPage: React.FunctionComponent = () => {
   const theme = useTheme()
@@ -57,22 +57,22 @@ const LandingPage: React.FunctionComponent = () => {
   }, [])
 
   return (
-    <Root className={classes.root}>
-      <div className={classes.content}>
-        <div className={classes.sidebar}>
+    <Root>
+      <Content>
+        <SidebarContainer>
           <Sidebar />
-        </div>
+        </SidebarContainer>
         {!isSmall && (
-          <div className={classes.subcontainer}>
+          <SubContainer>
             <ContentContainer>
               {/* Future home of a routing component once we integrate apps into the landing page
                *For now the landing page just displays the side bar and tool cards
                */}
               <ToolCards />
             </ContentContainer>
-          </div>
+          </SubContainer>
         )}
-      </div>
+      </Content>
       <Footer />
     </Root>
   )
