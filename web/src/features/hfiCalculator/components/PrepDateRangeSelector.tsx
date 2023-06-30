@@ -18,50 +18,10 @@ import { DateTime } from 'luxon'
 import React, { useState } from 'react'
 const PREFIX = 'PrepDateRangeSelector'
 
-const classes = {
-  autocomplete: `${PREFIX}-autocomplete`,
-  wrapper: `${PREFIX}-wrapper`,
-  fireCentreTextField: `${PREFIX}-fireCentreTextField`,
-  textFieldInput: `${PREFIX}-textFieldInput`
-}
-
-// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
-const Root = styled('div')({
-  [`& .${classes.autocomplete}`]: {
-    width: '100%',
-    hasPopupIcon: 'true',
-    hasClearIcon: 'true',
-    color: 'white'
-  },
-  [`& .${classes.wrapper}`]: {
-    minWidth: 300
-  },
-  [`& .${classes.fireCentreTextField}`]: {
-    color: 'white',
-    '& .MuiAutocomplete-clearIndicator': {
-      color: 'white'
-    },
-    '& .MuiAutocomplete-popupIndicator': {
-      color: 'white'
-    },
-    '& .MuiInputLabel-root': {
-      color: 'white'
-    },
-    '& .MuiOutlinedInput-root': {
-      '& fieldset': {
-        borderColor: 'white'
-      },
-      '&:hover fieldset': {
-        borderColor: 'white'
-      },
-      '&.Mui-focused fieldset': {
-        borderColor: 'white'
-      }
-    }
-  },
-  [`& .${classes.textFieldInput}`]: {
-    color: 'white'
-  }
+const DateRangePickerTextField = styled(TextField, {
+  name: `${PREFIX}-dateRangePickerTextField`
+})({
+  color: 'white'
 })
 
 declare module '@mui/styles/defaultTheme' {
@@ -135,16 +95,15 @@ const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelecto
   const toggleDateRangePicker = () => setDateRangePickerOpen(!dateRangePickerOpen)
 
   return (
-    <Root>
+    <div>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={dateRangePickerTheme}>
-          <TextField
+          <DateRangePickerTextField
             data-testid="date-range-picker-text-field"
             size="small"
             id="outlined-basic"
             variant="outlined"
             disabled={true}
-            className={classes.textFieldInput}
             label={'Set prep period'}
             onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
             value={
@@ -177,7 +136,7 @@ const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelecto
           onChange={range => setDateRange(range)}
         />
       </Dialog>
-    </Root>
+    </div>
   )
 }
 
