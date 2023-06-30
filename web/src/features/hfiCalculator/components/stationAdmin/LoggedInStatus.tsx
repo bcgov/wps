@@ -5,17 +5,11 @@ import { LockOutlined, LockOpenOutlined } from '@mui/icons-material'
 
 const PREFIX = 'LoggedInStatus'
 
-const classes = {
-  root: `${PREFIX}-root`
-}
-
 const Root = styled('div', {
   name: `${PREFIX}-root`
-})(() => {
-  return {
-    display: 'flex',
-    alignItems: 'center'
-  }
+})({
+  display: 'flex',
+  alignItems: 'center'
 })
 
 export interface LoggedInStatusProps {
@@ -39,10 +33,10 @@ const LoggedInStatus = ({ isAuthenticated, roles, idir }: LoggedInStatusProps) =
   }
 
   return (
-    <div data-testid="logged-in-status" className={classes.root}>
+    <Root data-testid="logged-in-status">
       <LockOpenOutlined />
       Editing: {idir}
-    </div>
+    </Root>
   )
 }
 

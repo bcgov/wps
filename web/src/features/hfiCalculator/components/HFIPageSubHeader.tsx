@@ -18,55 +18,45 @@ const PREFIX = 'HFIPageSubHeader'
 
 const Root = styled('div', {
   name: `${PREFIX}-root`
-})(() => {
-  return {
-    background: theme.palette.primary.light,
-    color: theme.palette.primary.contrastText,
-    minHeight: 60,
-    display: 'flex',
-    flexWrap: 'nowrap',
-    alignItems: 'center',
-    paddingLeft: 25,
-    paddingRight: 25,
-    paddingTop: '0.5em',
-    gap: 10
-  }
+})({
+  background: theme.palette.primary.light,
+  color: theme.palette.primary.contrastText,
+  minHeight: 60,
+  display: 'flex',
+  flexWrap: 'nowrap',
+  alignItems: 'center',
+  paddingLeft: 25,
+  paddingRight: 25,
+  paddingTop: '0.5em',
+  gap: 10
 })
 
 const WhiteHelpOutlineOutlined = styled(HelpOutlineOutlined, {
   name: `${PREFIX}-whiteHelpIcon`
-})(() => {
-  return {
-    fill: 'white'
-  }
+})({
+  fill: 'white'
 })
 
 const AboutButtonText = styled('p', {
   name: `${PREFIX}-aboutButtonText`
-})(() => {
-  return {
-    color: 'white',
-    textDecoration: 'underline',
-    fontWeight: 'bold',
-    justifyContent: 'flex-end'
-  }
+})({
+  color: 'white',
+  textDecoration: 'underline',
+  fontWeight: 'bold',
+  justifyContent: 'flex-end'
 })
 
 const AboutButtonGridItem = styled('div', {
   name: `${PREFIX}-aboutButtonGridItem`
-})(() => {
-  return {
-    marginLeft: 'auto',
-    maxHeight: 56
-  }
+})({
+  marginLeft: 'auto',
+  maxHeight: 56
 })
 
 const MinWidthFormControl = styled(FormControl, {
   name: `${PREFIX}-minWidthFormControl`
-})(() => {
-  return {
-    minWidth: 210
-  }
+})({
+  minWidth: 210
 })
 
 interface Props {
