@@ -16,28 +16,25 @@ import { ColumnLabel } from 'features/fbaCalculator/components/FBATable'
 
 const PREFIX = 'FilterColumnsModal'
 
-const classes = {
-  modalWindow: `${PREFIX}-modalWindow`,
-  closeIcon: `${PREFIX}-closeIcon`,
-  selectionBox: `${PREFIX}-selectionBox`
-}
+const ModalWindow = styled(Dialog, {
+  name: `${PREFIX}-ModalWindow`
+})({
+  maxWidth: 'md'
+})
 
-// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
-const Root = styled('div')(() => ({
-  [`& .${classes.modalWindow}`]: {
-    maxWidth: 'md'
-  },
+const ModalCloseIcon = styled(IconButton, {
+  name: `${PREFIX}-ModalCloseIcon`
+})({
+  position: 'absolute',
+  right: '0px'
+})
 
-  [`& .${classes.closeIcon}`]: {
-    position: 'absolute',
-    right: '0px'
-  },
-
-  [`& .${classes.selectionBox}`]: {
-    height: '20px',
-    boxSizing: 'border-box'
-  }
-}))
+const SelectionBox = styled(Checkbox, {
+  name: `${PREFIX}-SelectionBox`
+})({
+  height: '20px',
+  boxSizing: 'border-box'
+})
 
 export interface ColumnSelectionState {
   label: string
@@ -82,20 +79,20 @@ export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
   }
 
   return (
-    <Root>
-      <Dialog fullWidth className={classes.modalWindow} open={props.modalOpen} onClose={handleClose}>
+    <div>
+      <ModalWindow fullWidth open={props.modalOpen} onClose={handleClose}>
         <Paper>
           <DialogTitle>
             Show Columns
-            <IconButton className={classes.closeIcon} onClick={handleClose} size="large">
+            <ModalCloseIcon onClick={handleClose} size="large">
               <Clear />
-            </IconButton>
+            </ModalCloseIcon>
           </DialogTitle>
           <DialogContent>
             {props.columns.map((column, index) => {
               return (
                 <div key={column}>
-                  <Checkbox
+                  <SelectionBox
                     checked={selected.has(index)}
                     color="primary"
                     onClick={() => {
@@ -105,7 +102,6 @@ export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
                     data-testid={`filter-${column.replaceAll(' ', '-')}`}
                     // below is some jiggery-pokery to get checkboxes to squish closer together vertically
                     // https://stackoverflow.com/questions/64261614/how-to-decrease-vetical-distance-between-two-checkboxes-with-label
-                    classes={{ root: classes.selectionBox }}
                   />
                   <a>{column}</a>
                 </div>
@@ -127,8 +123,8 @@ export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
             </Button>
           </DialogActions>
         </Paper>
-      </Dialog>
-    </Root>
+      </ModalWindow>
+    </div>
   )
 }
 
