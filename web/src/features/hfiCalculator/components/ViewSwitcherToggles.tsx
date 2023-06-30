@@ -10,25 +10,20 @@ import { DateTime } from 'luxon'
 
 const PREFIX = 'ViewSwitcherToggles'
 
-const classes = {
-  toggleGroup: `${PREFIX}-toggleGroup`
-}
-
-// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
-const Root = styled('div')(() => ({
-  [`& .${classes.toggleGroup}`]: {
-    '& .MuiToggleButton-root': {
-      height: 56,
-      lineHeight: '16px',
-      color: theme.palette.primary.main
-    },
-    '& .MuiToggleButton-root.Mui-selected': {
-      backgroundColor: theme.palette.primary.main,
-      color: 'white',
-      fontWeight: 'bold'
-    }
+const ViewSwitcherToggleGroup = styled(ToggleButtonGroup, {
+  name: `${PREFIX}-toggleGroup`
+})({
+  '& .MuiToggleButton-root': {
+    height: 56,
+    lineHeight: '16px',
+    color: theme.palette.primary.main
+  },
+  '& .MuiToggleButton-root.Mui-selected': {
+    backgroundColor: theme.palette.primary.main,
+    color: 'white',
+    fontWeight: 'bold'
   }
-}))
+})
 
 export interface ViewSwitcherTogglesProps {
   dateRange?: PrepDateRange
@@ -70,14 +65,13 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
   }
 
   return (
-    <Root>
+    <div>
       <div data-testid={props.testId}>
-        <ToggleButtonGroup
+        <ViewSwitcherToggleGroup
           exclusive
           onChange={handleToggle}
           aria-label="view toggles"
           value={formatDateString(props.selectedPrepDate)}
-          className={classes.toggleGroup}
         >
           <ToggleButton data-testid="prep-period-toggle" value={''} aria-label="prep toggle">
             Prep Period
@@ -105,9 +99,9 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
               </ToggleButton>
             )
           })}
-        </ToggleButtonGroup>
+        </ViewSwitcherToggleGroup>
       </div>
-    </Root>
+    </div>
   )
 }
 
