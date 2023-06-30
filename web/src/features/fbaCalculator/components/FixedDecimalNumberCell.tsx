@@ -9,11 +9,9 @@ const classes = {
 }
 
 const StyledTableCell = styled(TableCell)({
-  [`& .${classes.dataRow}`]: {
-    height: '40px',
-    paddingLeft: '8px',
-    paddingRight: '8px'
-  }
+  height: '40px',
+  paddingLeft: '8px',
+  paddingRight: '8px'
 })
 
 interface FixedDecimalNumberCellProps {
