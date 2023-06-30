@@ -6,14 +6,10 @@ import React from 'react'
 
 const PREFIX = 'AdminStationDropdown'
 
-const classes = {
-  autocomplete: `${PREFIX}-autocomplete`
-}
-
-const StyledTextField = styled(TextField)({
-  [`& .${classes.autocomplete}`]: {
-    minWidth: 300
-  }
+const AdminStationTextField = styled(TextField, {
+  name: `${PREFIX}-adminStationTextField`
+})({
+  minWidth: 300
 })
 
 export interface AdminStationDropdownProps {
@@ -35,7 +31,6 @@ export const AdminStationDropdown = ({
   const label = disabled ? 'Station' : 'Select Station'
   return (
     <Autocomplete
-      className={classes.autocomplete}
       data-testid={testId}
       disableClearable
       disabled={disabled}
@@ -44,7 +39,7 @@ export const AdminStationDropdown = ({
       getOptionLabel={option => option?.name}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
       renderInput={params => (
-        <StyledTextField {...params} label={label} variant="outlined" error={isUndefined(adminRow.station)} />
+        <AdminStationTextField {...params} label={label} variant="outlined" error={isUndefined(adminRow.station)} />
       )}
       onChange={(_, value) => {
         if (!isNull(value) && !isUndefined(handleEditStation)) {

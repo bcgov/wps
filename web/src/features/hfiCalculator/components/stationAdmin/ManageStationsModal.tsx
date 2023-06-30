@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
 import { styled } from '@mui/material/styles'
 import { Dialog, DialogContent, IconButton, Paper, Typography } from '@mui/material'
-import { theme } from 'app/theme'
 import ClearIcon from '@mui/icons-material/Clear'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
@@ -16,35 +15,13 @@ import { getSelectedFuelType } from 'features/hfiCalculator/util'
 
 const PREFIX = 'ManageStationsModal'
 
-const classes = {
-  modalWindow: `${PREFIX}-modalWindow`,
-  closeIcon: `${PREFIX}-closeIcon`,
-  title: `${PREFIX}-title`,
-  actionButton: `${PREFIX}-actionButton`
-}
-
-// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
-const Root = styled('div')(() => ({
-  [`& .${classes.modalWindow}`]: {
-    maxWidth: 'xl'
-  },
-
-  [`& .${classes.closeIcon}`]: {
-    padding: 5,
-    position: 'absolute',
-    right: '0px'
-  },
-
-  [`& .${classes.title}`]: {
-    textAlign: 'center'
-  },
-
-  [`& .${classes.actionButton}`]: {
-    minWidth: 100,
-    margin: theme.spacing(1),
-    float: 'right'
-  }
-}))
+const CloseIconButton = styled(IconButton, {
+  name: `${PREFIX}-closeIconButton`
+})({
+  padding: 5,
+  position: 'absolute',
+  right: '0px'
+})
 
 export interface BasicPlanningArea {
   id: number
@@ -128,12 +105,12 @@ export const ManageStationsModal = ({
   }
 
   return (
-    <Root>
+    <div>
       <Dialog fullWidth maxWidth="md" open={modalOpen} onClose={handleClose} data-testid="manage-stations-modal">
         <Paper>
-          <IconButton className={classes.closeIcon} onClick={handleClose}>
+          <CloseIconButton onClick={handleClose}>
             <ClearIcon />
-          </IconButton>
+          </CloseIconButton>
           <DialogContent>
             <Typography variant="h5" align="center">
               Manage Default Weather Stations
@@ -158,7 +135,7 @@ export const ManageStationsModal = ({
           )}
         </Paper>
       </Dialog>
-    </Root>
+    </div>
   )
 }
 

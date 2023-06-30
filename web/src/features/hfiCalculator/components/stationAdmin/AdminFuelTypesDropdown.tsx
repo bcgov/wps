@@ -7,14 +7,10 @@ import React from 'react'
 
 const PREFIX = 'AdminFuelTypesDropdown'
 
-const classes = {
-  autocomplete: `${PREFIX}-autocomplete`
-}
-
-const StyledTextField = styled(TextField)({
-  [`& .${classes.autocomplete}`]: {
-    minWidth: 300
-  }
+const AdminFuelTypeTextField = styled(TextField, {
+  name: `${PREFIX}-adminFuelTypeTextField`
+})({
+  minWidth: 300
 })
 
 export interface AdminFuelTypesDropdownProps {
@@ -35,7 +31,6 @@ export const AdminFuelTypesDropdown = ({
 }: AdminFuelTypesDropdownProps) => {
   return (
     <Autocomplete
-      className={classes.autocomplete}
       data-testid={testId}
       disableClearable
       disabled={disabled}
@@ -44,7 +39,12 @@ export const AdminFuelTypesDropdown = ({
       getOptionLabel={option => option?.abbrev}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
       renderInput={params => (
-        <StyledTextField {...params} label="Fuel Type" variant="outlined" error={isUndefined(adminRow.fuelType)} />
+        <AdminFuelTypeTextField
+          {...params}
+          label="Fuel Type"
+          variant="outlined"
+          error={isUndefined(adminRow.fuelType)}
+        />
       )}
       onChange={(_, value) => {
         if (!isNull(value) && !isUndefined(handleEditStation)) {
