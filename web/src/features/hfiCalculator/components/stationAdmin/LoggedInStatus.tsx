@@ -9,12 +9,14 @@ const classes = {
   root: `${PREFIX}-root`
 }
 
-const Root = styled('div')(() => ({
-  [`&.${classes.root}`]: {
+const Root = styled('div', {
+  name: `${PREFIX}-root`
+})(() => {
+  return {
     display: 'flex',
     alignItems: 'center'
   }
-}))
+})
 
 export interface LoggedInStatusProps {
   isAuthenticated: boolean
@@ -29,7 +31,7 @@ const LoggedInStatus = ({ isAuthenticated, roles, idir }: LoggedInStatusProps) =
 
   if (isAuthenticated && isEmpty(roles)) {
     return (
-      <Root data-testid="logged-in-status" className={classes.root}>
+      <Root data-testid="logged-in-status">
         <LockOutlined />
         Read only: {idir}
       </Root>
