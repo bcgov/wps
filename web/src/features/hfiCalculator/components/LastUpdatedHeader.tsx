@@ -10,22 +10,15 @@ import { createTheme, StyledEngineProvider, ThemeProvider } from '@mui/material'
 
 const PREFIX = 'LastUpdatedHeader'
 
-const classes = {
-  container: `${PREFIX}-container`,
-  headerText: `${PREFIX}-headerText`
-}
+const Container = styled('span', { name: `${PREFIX}-container` })({
+  display: 'flex',
+  alignItems: 'center',
+  margin: theme.spacing(1)
+})
 
-// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
-const Root = styled('div')({
-  [`& .${classes.container}`]: {
-    display: 'flex',
-    alignItems: 'center',
-    margin: theme.spacing(1)
-  },
-  [`& .${classes.headerText}`]: {
-    fontSize: '14px',
-    color: theme.palette.primary.main
-  }
+const HeaderText = styled('p', { name: `${PREFIX}-headerText` })({
+  fontSize: '14px',
+  color: theme.palette.primary.main
 })
 
 export interface LastUpdatedHeaderProps {
@@ -69,15 +62,15 @@ const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
     return (
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={lastUpdatedTheme}>
-          <span className={classes.container}>
+          <Container>
             <UpdateIcon></UpdateIcon>
-            <p className={classes.headerText}>Forecast last updated {dateString}</p>
-          </span>
+            <HeaderText>Forecast last updated {dateString}</HeaderText>
+          </Container>
         </ThemeProvider>
       </StyledEngineProvider>
     )
   } else {
-    return <Root></Root>
+    return <></>
   }
 }
 
