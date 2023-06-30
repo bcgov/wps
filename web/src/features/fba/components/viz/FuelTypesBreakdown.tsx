@@ -7,31 +7,20 @@ import { PieChart, Pie, ResponsiveContainer, Cell } from 'recharts'
 
 const PREFIX = 'FuelTypesBreakdown'
 
-const classes = {
-  wrapper: `${PREFIX}-wrapper`,
-  fuelTypesPaper: `${PREFIX}-fuelTypesPaper`,
-  fuelTypesHeader: `${PREFIX}-fuelTypesHeader`,
-  pieChartHeader: `${PREFIX}-pieChartHeader`
-}
+const FuelTypesHeader = styled(Typography, {
+  name: `${PREFIX}-fuelTypesHeader`
+})({
+  fontSize: '1.3rem',
+  textAlign: 'center',
+  variant: 'h3'
+})
 
-// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
-const Root = styled('div')({
-  [`& .${classes.wrapper}`]: {
-    minWidth: 400
-  },
-  [`& .${classes.fuelTypesPaper}`]: {
-    padding: '20px 10px'
-  },
-  [`& .${classes.fuelTypesHeader}`]: {
-    fontSize: '1.3rem',
-    textAlign: 'center',
-    variant: 'h3'
-  },
-  [`& .${classes.pieChartHeader}`]: {
-    fontSize: '1rem',
-    textAlign: 'center',
-    variant: 'h4'
-  }
+const PieChartHeader = styled(Typography, {
+  name: `${PREFIX}-pieChartHeader`
+})({
+  fontSize: '1rem',
+  textAlign: 'center',
+  variant: 'h4'
 })
 
 interface Props {
@@ -114,9 +103,9 @@ const FuelTypesBreakdown = (props: Props) => {
       }
     })
     return (
-      <Root>
-        <Typography className={classes.fuelTypesHeader}>HFI by Fuel Type</Typography>
-        <Typography className={classes.pieChartHeader}>Advisories (HFI: 4,000-10,000 kW/m)</Typography>
+      <div>
+        <FuelTypesHeader>HFI by Fuel Type</FuelTypesHeader>
+        <PieChartHeader>Advisories (HFI: 4,000-10,000 kW/m)</PieChartHeader>
         <ResponsiveContainer width={400} height={250}>
           <PieChart>
             <Pie
@@ -136,7 +125,7 @@ const FuelTypesBreakdown = (props: Props) => {
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-        <Typography className={classes.pieChartHeader}>Warnings (HFI: +10,000 kW/m)</Typography>
+        <PieChartHeader>Warnings (HFI: +10,000 kW/m)</PieChartHeader>
         <ResponsiveContainer width={400} height={250}>
           <PieChart>
             <Pie
@@ -155,7 +144,7 @@ const FuelTypesBreakdown = (props: Props) => {
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-      </Root>
+      </div>
     )
   }
 }

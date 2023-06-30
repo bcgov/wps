@@ -5,17 +5,12 @@ import { BarChart, CartesianGrid, XAxis, YAxis, Bar, Tooltip, ResponsiveContaine
 import { Typography } from '@mui/material'
 const PREFIX = 'CombustibleAreaViz'
 
-const classes = {
-  combustibleLandHeader: `${PREFIX}-combustibleLandHeader`
-}
-
-// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
-const Root = styled('div')({
-  [`& .${classes.combustibleLandHeader}`]: {
-    fontSize: '1.3rem',
-    textAlign: 'center',
-    variant: 'h3'
-  }
+const StyledTypography = styled(Typography, {
+  name: `${PREFIX}-Typography`
+})({
+  fontSize: '1.3rem',
+  textAlign: 'center',
+  variant: 'h3'
 })
 
 export interface AdvisoryMetadataProps {
@@ -31,8 +26,8 @@ const CombustibleAreaViz = ({ fireZoneAreas }: AdvisoryMetadataProps) => {
     warning_hfi_percentage: area.threshold == 2 ? area.elevated_hfi_percentage : undefined
   }))
   return (
-    <Root>
-      <Typography className={classes.combustibleLandHeader}>Combustible Land Under Advisory or Warning</Typography>
+    <div>
+      <StyledTypography>Combustible Land Under Advisory or Warning</StyledTypography>
       <ResponsiveContainer width={400} height={250}>
         <BarChart data={labelledFireZones}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -42,7 +37,7 @@ const CombustibleAreaViz = ({ fireZoneAreas }: AdvisoryMetadataProps) => {
           <Bar dataKey="elevated_hfi_percentage" fill="#1E90FF" />
         </BarChart>
       </ResponsiveContainer>
-    </Root>
+    </div>
   )
 }
 
