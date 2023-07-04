@@ -7,6 +7,7 @@ You will need an environment file. See: `.env.example`. Contact current maintain
 - Automated (mac only):
   - Run `setup/mac.sh` in parent folder
   - Follow [lima setup steps](../setup/LIMA.md)
+  - then add run `eval "$(pyenv init -)"` in your current shell and add it to your `rc` file
   - then run `poetry_setup.sh`
 - Manual (linux): See [manual setup](../docs/MANUAL_SETUP.md).
   Note: you may want to alias `python3` as `python` in your profile
