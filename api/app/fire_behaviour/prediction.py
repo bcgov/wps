@@ -470,6 +470,8 @@ def calculate_fire_behaviour_prediction(latitude: float,
                                         pc: float,
                                         isi: float, pdf: float, cbh: float, cfl: float):
     """ Calculate the fire behaviour prediction. """
+    if wind_speed is None:
+        raise FireBehaviourPredictionInputError('Wind speed must be specified')
     if bui is None:
         raise FireBehaviourPredictionInputError('BUI is required')
     if ffmc is None:
