@@ -244,7 +244,7 @@ jobs:
     needs: [deploy-dev]
     runs-on: ubuntu-22.04
     permissions:
-      issues: write
+      issues: write-all
 
     steps:
       # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
