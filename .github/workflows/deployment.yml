@@ -243,6 +243,8 @@ jobs:
     name: ZAP Baseline Scan Dev
     needs: [deploy-dev]
     runs-on: ubuntu-22.04
+    permissions:
+      issues: write
 
     steps:
       # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
