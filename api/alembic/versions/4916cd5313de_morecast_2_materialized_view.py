@@ -6,8 +6,6 @@ Create Date: 2023-06-27 14:00:13.794973
 
 """
 from alembic import op
-import sqlalchemy as sa
-
 
 # revision identifiers, used by Alembic.
 revision = '4916cd5313de'
@@ -17,7 +15,7 @@ depends_on = None
 
 
 def upgrade():
-    op.execute(f"""CREATE MATERIALIZED VIEW morecast_2_materialized_view AS 
+    op.execute("""CREATE MATERIALIZED VIEW morecast_2_materialized_view AS 
                SELECT weather_station_model_predictions.prediction_timestamp, prediction_models.abbreviation, weather_station_model_predictions.station_code, weather_station_model_predictions.rh_tgl_2, weather_station_model_predictions.tmp_tgl_2, weather_station_model_predictions.bias_adjusted_temperature, weather_station_model_predictions.bias_adjusted_rh, weather_station_model_predictions.apcp_sfc_0, weather_station_model_predictions.wdir_tgl_10, weather_station_model_predictions.wind_tgl_10, weather_station_model_predictions.update_date 
                FROM weather_station_model_predictions 
                JOIN prediction_model_run_timestamps 
