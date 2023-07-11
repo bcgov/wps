@@ -193,7 +193,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               <FormControl className={classes.formControl}>
                 <FormControlLabel
                   label="
-                Advisory HFI Threshold of combustible area"
+                  Percentage of combustible land threshold"
                   labelPlacement="top"
                   control={
                     <AdvisoryThresholdSlider
