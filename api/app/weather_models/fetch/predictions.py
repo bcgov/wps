@@ -149,7 +149,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
                     station_code=station_code,
                     station_name=stations[station_code].name,
                     determinate=model_abbrev,
-                    utc_timestamp=timestamp - datetime.timedelta(hours=7),
+                    utc_timestamp=timestamp,
                     temperature=temp,
                     relative_humidity=rh,
                     precipitation=precip_24hours,
@@ -161,7 +161,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
                     station_code=station_code,
                     station_name=stations[station_code].name,
                     determinate=f'{model_abbrev}_BIAS',
-                    utc_timestamp=timestamp - datetime.timedelta(hours=7),
+                    utc_timestamp=timestamp,
                     temperature=bias_adjusted_temp,
                     relative_humidity=bias_adjusted_rh
                 ))
