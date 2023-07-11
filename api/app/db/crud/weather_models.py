@@ -5,12 +5,12 @@ import datetime
 from typing import List, Union
 from sqlalchemy import or_, and_, func
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import text
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models.weather_models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
     ModelRunGridSubsetPrediction, WeatherStationModelPrediction, MoreCast2MaterializedView)
 import app.utils.time as time_utils
-from sqlalchemy.dialects import postgresql
 
 logger = logging.getLogger(__name__)
 
@@ -337,8 +337,7 @@ def get_latest_station_prediction_mat_view(session: Session,
                            MoreCast2MaterializedView.update_date).\
         filter(MoreCast2MaterializedView.station_code.in_(station_codes),
                MoreCast2MaterializedView.prediction_timestamp >= day_start,
-               MoreCast2MaterializedView.prediction_timestamp <= day_end,
-               func.date_part('hour', MoreCast2MaterializedView.prediction_timestamp) == 20)
+               MoreCast2MaterializedView.prediction_timestamp <= day_end)
     return result
 
 
@@ -394,9 +393,6 @@ def get_latest_station_prediction_per_day(session: Session,
         .join(subquery, and_(
             WeatherStationModelPrediction.prediction_timestamp == subquery.c.latest_prediction,
             WeatherStationModelPrediction.station_code == subquery.c.station_code))
-    # explain = "EXPLAIN" + \
-    #     str(result.statement.compile(compile_kwargs={"literal_binds": True}, dialect=postgresql.dialect()))
-    # print(explain)
     return result
 
 
@@ -478,3 +474,10 @@ def get_weather_station_model_prediction(session: Session,
                prediction_model_run_timestamp_id).\
         filter(WeatherStationModelPrediction.prediction_timestamp ==
                prediction_timestamp).first()
+
+
+def refresh_morecast2_materialized_view(session: Session):
+    start = datetime.datetime.now()
+    logger.info("Refreshing morecast_2_materialized_view")
+    session.execute(text("REFRESH MATERIALIZED VIEW morecast_2_materialized_view"))
+    logger.info(f"Finished mat view refresh with elapsed time: {datetime.datetime.now() - start}")
