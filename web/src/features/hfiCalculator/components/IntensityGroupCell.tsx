@@ -3,7 +3,7 @@ import { styled } from '@mui/material/styles'
 import { UNSELECTED_STATION_COLOR } from 'app/theme'
 import React from 'react'
 
-export const SelectedIntensityGroupCell = styled(TableCell)({
+export const SelectedIntensityGroupCell = styled(TableCell, { name: 'intensityGroupCell' })({
   width: 30,
   textAlign: 'center'
 })

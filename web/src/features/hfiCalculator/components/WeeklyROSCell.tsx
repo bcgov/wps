@@ -12,11 +12,11 @@ export interface WeeklyROSCellProps {
   isFirstDayOfPrepPeriod: boolean
 }
 
-export const SectionSeparatorWeeklyROSCell = styled(TableCell)({
+export const SectionSeparatorWeeklyROSCell = styled(TableCell, { name: 'sectionSeparatorBorder' })({
   borderLeft: '1px solid #C4C4C4'
 })
 
-export const UnSelectedWeeklyROSCell = styled(TableCell)({
+export const UnSelectedWeeklyROSCell = styled(TableCell, { name: 'unselected' })({
   color: UNSELECTED_STATION_COLOR
 })
 
@@ -31,10 +31,12 @@ const WeeklyROSCell = ({ daily, testId, isRowSelected, error, isFirstDayOfPrepPe
 
   return (
     <>
-      {isFirstDayOfPrepPeriod && <TableCell data-testid={testId}>{dataValue}</TableCell>}
-      {unselectedCell && (
-        <SectionSeparatorWeeklyROSCell data-testid={testId}>{dataValue}</SectionSeparatorWeeklyROSCell>
+      {isFirstDayOfPrepPeriod && isRowSelected && <TableCell data-testid={testId}>{dataValue}</TableCell>}
+      {isFirstDayOfPrepPeriod && !isRowSelected && (
+        <UnSelectedWeeklyROSCell data-testid={testId}>{dataValue}</UnSelectedWeeklyROSCell>
       )}
+
+      {unselectedCell && <UnSelectedSeparatorCell data-testid={testId}>{dataValue}</UnSelectedSeparatorCell>}
       {selectedCell && <SectionSeparatorWeeklyROSCell data-testid={testId}>{dataValue}</SectionSeparatorWeeklyROSCell>}
     </>
   )
