@@ -33,7 +33,7 @@ export const PercentileResults = React.memo(function _(props: PercentileResultsP
   const isMoreThanOneResult = stationResults.length > 1
 
   return (
-    <div data-testid="percentile-result-tables" className={classes.root}>
+    <StyledResultTableContainer data-testid="percentile-result-tables" className={classes.root}>
       <GridContainer className={classes.gridContainer}>
         {isMoreThanOneResult && (
           <GridItem lg={12} md={12}>
@@ -42,22 +42,21 @@ export const PercentileResults = React.memo(function _(props: PercentileResultsP
         )}
         {stationResults}
       </GridContainer>
-      <GridContainer className={classes.gridContainer}>
+      <StyledGridContainer className={classes.gridContainer}>
         <GridItem lg={12} md={12}>
           <PercentileCalcDocumentation />
         </GridItem>
-      </GridContainer>
-    </div>
+      </StyledGridContainer>
+    </StyledResultTableContainer>
   )
 })
 
-const StyledPercentileResults = styled(PercentileResults)({
-  [`& .${classes.root}`]: {
-    marginTop: 15
-  },
-  [`& .${classes.gridContainer}`]: {
-    marginBottom: 15
-  }
+const StyledGridContainer = styled(GridContainer)({
+  marginBottom: 15
+})
+
+const StyledResultTableContainer = styled('div')({
+  marginTop: 15
 })
 
 const PercentileResultsWrapper: React.FC = () => {
@@ -69,7 +68,7 @@ const PercentileResultsWrapper: React.FC = () => {
 
   if (!result) return null
 
-  return <StyledPercentileResults result={result} />
+  return <PercentileResults result={result} />
 }
 
 export default PercentileResultsWrapper
