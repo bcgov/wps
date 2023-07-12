@@ -9,7 +9,7 @@ describe('HFI - GrassCureCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <GrassCureCell value={null} isGrassFuelType={true} selected={true} className={undefined} />
+              <GrassCureCell value={null} isGrassFuelType={true} selected={true} />
             </TableRow>
           </TableBody>
         </Table>
@@ -24,7 +24,7 @@ describe('HFI - GrassCureCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <GrassCureCell value={1} isGrassFuelType={true} selected={true} className={undefined} />
+              <GrassCureCell value={1} isGrassFuelType={true} selected={true} />
             </TableRow>
           </TableBody>
         </Table>
@@ -39,7 +39,7 @@ describe('HFI - GrassCureCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <GrassCureCell value={undefined} isGrassFuelType={false} className={undefined} selected={true} />
+              <GrassCureCell value={undefined} isGrassFuelType={false} selected={true} />
             </TableRow>
           </TableBody>
         </Table>
@@ -55,7 +55,7 @@ describe('HFI - GrassCureCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <GrassCureCell value={10} isGrassFuelType={true} selected={false} className={undefined} />
+              <GrassCureCell value={10} isGrassFuelType={true} selected={false} />
             </TableRow>
           </TableBody>
         </Table>

@@ -300,7 +300,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             <BaseStationAttributeCells
                               station={station}
                               planningAreaId={area.id}
-                              className={classNameForRow}
                               selectStationEnabled={roles.includes(ROLES.HFI.SELECT_STATION) && isAuthenticated}
                               isSetFuelTypeEnabled={roles.includes(ROLES.HFI.SET_FUEL_TYPE) && isAuthenticated}
                               stationCodeInSelected={stationCodeInSelected}

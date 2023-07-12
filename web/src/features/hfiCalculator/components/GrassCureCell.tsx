@@ -16,7 +16,6 @@ const UnselectedGrassFuelCell = styled(TableCell)({
 export interface GrassCureCellProps {
   value: number | null | undefined
   isGrassFuelType: boolean
-  className: string | undefined
   selected: boolean
 }
 
