@@ -23,7 +23,7 @@ import { selectAuthentication, selectHFICalculatorState, selectHFIReadyState } f
 import { useDispatch, useSelector } from 'react-redux'
 import { FireStartRange, PlanningAreaResult, PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
-import HeaderRowCell, {
+import {
   FireCentrePlanningAreaHeaderRowCell,
   PlanningAreaHeaderRowCell
 } from 'features/hfiCalculator/components/HeaderRowCell'
