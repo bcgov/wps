@@ -27,6 +27,11 @@ import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentr
 import { DailyHFICell } from 'features/hfiCalculator/components/DailyHFICell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
 import { ROLES } from 'features/auth/roles'
+import {
+  PlanningAreaBorderTableCell,
+  PlanningAreaTableCell,
+  PlanningAreaTableRow
+} from 'features/hfiCalculator/components/StyledPlanningArea'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -240,13 +245,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                 return (
                   <React.Fragment key={`zone-${area.name}`}>
                     <TableRow>
-                      <TableCell colSpan={42} className={classes.planningAreaBorder}></TableCell>
+                      <PlanningAreaBorderTableCell colSpan={42}></PlanningAreaBorderTableCell>
                     </TableRow>
-                    <TableRow
-                      className={classes.planningArea}
-                      key={`zone-${area.name}`}
-                      data-testid={`zone-${area.name}`}
-                    >
+                    <PlanningAreaTableRow key={`zone-${area.name}`} data-testid={`zone-${area.name}`}>
                       <StickyCell
                         left={0}
                         zIndexOffset={10}
@@ -261,7 +262,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           </TableBody>
                         </Table>
                       </StickyCell>
-                      <TableCell colSpan={19} className={classes.planningArea}></TableCell>
+                      <PlanningAreaTableCell colSpan={19}></PlanningAreaTableCell>
                       <MeanIntensityGroupRollup
                         area={area}
                         dailies={dailyResult ? dailyResult.dailies.map(validatedDaily => validatedDaily.daily) : []}
@@ -275,7 +276,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         toolTipText=" Incomplete data from WFWX for one or more stations. Please exclude station(s) displaying errors."
                         prepLevel={dailyResult?.prep_level}
                       />
-                    </TableRow>
+                    </PlanningAreaTableRow>
                     {sortBy(area.stations, station => station.order_of_appearance_in_planning_area_list).map(
                       station => {
                         if (isUndefined(result)) {

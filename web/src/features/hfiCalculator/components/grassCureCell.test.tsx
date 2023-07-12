@@ -63,6 +63,6 @@ describe('HFI - GrassCureCell', () => {
     )
     expect(getByTestId('grass-cure')).toBeDefined()
     expect(queryAllByTestId('grass-cure-error').length === 0)
-    expect(getByTestId('grass-cure')).toHaveStyle(`color: rgba(0, 0, 0, 0.87)`)
+    expect(getByTestId('grass-cure')).toHaveStyle(`color: rgba(0, 0, 0, 0.54)`)
   })
 })

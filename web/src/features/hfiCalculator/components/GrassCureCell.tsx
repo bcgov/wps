@@ -2,17 +2,15 @@ import { TableCell } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import React from 'react'
 import { isNull } from 'lodash'
-import { fireTableStyles } from 'app/theme'
+import { UNSELECTED_STATION_COLOR } from 'app/theme'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 
-const PREFIX = 'GrassCureCell'
+const DefaultGrassFuelCell = styled(TableCell)({
+  borderBottom: 'none'
+})
 
-const classes = {
-  unselectedStation: `${PREFIX}-unselectedStation`
-}
-
-const StyledTableCell = styled(TableCell)({
-  [`& .${classes.unselectedStation}`]: { ...fireTableStyles.unselectedStation }
+const UnselectedGrassFuelCell = styled(TableCell)({
+  color: UNSELECTED_STATION_COLOR
 })
 
 export interface GrassCureCellProps {
@@ -31,24 +29,24 @@ const toolTipElement = (
   </div>
 )
 
-const GrassCureProps = (props: GrassCureCellProps) => {
+const GrassCureCell = (props: GrassCureCellProps) => {
+  const variablySelectedGrassFuelCell = !props.selected ? (
+    <UnselectedGrassFuelCell data-testid={`grass-cure`}>{props.value}</UnselectedGrassFuelCell>
+  ) : (
+    <DefaultGrassFuelCell data-testid={`grass-cure`}>{props.value}</DefaultGrassFuelCell>
+  )
   return isNull(props.value) && props.isGrassFuelType ? (
-    <StyledTableCell className={props.className}>
+    <DefaultGrassFuelCell>
       <ErrorIconWithTooltip
         testId={`grass-cure-error`}
         isDataCell={true}
         tooltipElement={toolTipElement}
         tooltipAriaText={[toolTipFirstLine, toolTipSecondLine]}
       />
-    </StyledTableCell>
+    </DefaultGrassFuelCell>
   ) : (
-    <TableCell
-      className={`${!props.selected ? classes.unselectedStation : undefined} ${props.className} `}
-      data-testid={`grass-cure`}
-    >
-      {props.value}
-    </TableCell>
+    variablySelectedGrassFuelCell
   )
 }
 
-export default React.memo(GrassCureProps)
+export default React.memo(GrassCureCell)

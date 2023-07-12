@@ -23,12 +23,20 @@ import { selectAuthentication, selectHFICalculatorState, selectHFIReadyState } f
 import { useDispatch, useSelector } from 'react-redux'
 import { FireStartRange, PlanningAreaResult, PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
-import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
+import HeaderRowCell, {
+  FireCentrePlanningAreaHeaderRowCell,
+  PlanningAreaHeaderRowCell
+} from 'features/hfiCalculator/components/HeaderRowCell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
 import { ROLES } from 'features/auth/roles'
 import PlanningAreaReadyToggle from 'features/hfiCalculator/components/PlanningAreaReadyToggle'
 import { AppDispatch } from 'app/store'
 import { fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
+import {
+  PlanningAreaTableCellNoBottomBorder,
+  PlanningAreaTableCellNonSticky,
+  PlanningAreaTableRow
+} from 'features/hfiCalculator/components/StyledPlanningArea'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -117,7 +125,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           <React.Fragment key={`fire-centre-${props.fireCentre.name}`}>
             <TableRow key={`fire-centre-${props.fireCentre.name}`}>
               <FireCentreCell centre={props.fireCentre}></FireCentreCell>
-              <HeaderRowCell className={classes.fireCentre} />
+              <FireCentrePlanningAreaHeaderRowCell />
             </TableRow>
             {sortBy(props.fireCentre.planning_areas, planningArea => planningArea.order_of_appearance_in_list).map(
               area => {
@@ -129,13 +137,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                   areaHFIResult && (
                     <React.Fragment key={`zone-${area.name}`}>
                       <TableRow>
-                        <HeaderRowCell className={classes.planningAreaBorder} />
+                        <PlanningAreaHeaderRowCell />
                       </TableRow>
-                      <TableRow
-                        className={classes.planningArea}
-                        key={`zone-${area.name}`}
-                        data-testid={`zone-${area.name}`}
-                      >
+                      <PlanningAreaTableRow key={`zone-${area.name}`} data-testid={`zone-${area.name}`}>
                         <StickyCell
                           left={0}
                           zIndexOffset={10}
@@ -158,7 +162,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             </TableBody>
                           </Table>
                         </StickyCell>
-                        <TableCell className={`${classes.planningArea} ${classes.nonstickyHeaderCell}`}></TableCell>
+                        <PlanningAreaTableCellNonSticky></PlanningAreaTableCellNonSticky>
                         <StickyCell
                           left={227}
                           zIndexOffset={10}
@@ -168,7 +172,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           <Table>
                             <TableBody>
                               <TableRow>
-                                <TableCell className={`${classes.planningArea} ${classes.noBottomBorder}`}></TableCell>
+                                <PlanningAreaTableCellNoBottomBorder></PlanningAreaTableCellNoBottomBorder>
                               </TableRow>
                             </TableBody>
                           </Table>
@@ -178,14 +182,13 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           areaName={area.name}
                           planningAreaResult={areaHFIResult}
                           setNewFireStarts={props.setNewFireStarts}
-                          planningAreaClass={classes.planningArea}
                           numPrepDays={numPrepDays}
                           fireStartsEnabled={roles.includes(ROLES.HFI.SET_FIRE_STARTS) && isAuthenticated}
                           fireStartRanges={result.fire_start_ranges}
                           fuelTypes={props.fuelTypes}
                           planningAreaStationInfo={result.planning_area_station_info}
                         />
-                      </TableRow>
+                      </PlanningAreaTableRow>
                       {sortBy(area.stations, station => station.order_of_appearance_in_planning_area_list).map(
                         station => {
                           const dailiesForStation = getDailiesByStationCode(result, station.code)
