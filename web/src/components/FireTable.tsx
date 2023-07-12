@@ -1,4 +1,4 @@
-import { Paper, Table, TableContainer, ThemeProvider, Theme, StyledEngineProvider } from '@mui/material'
+import { Paper, Table, TableContainer, ThemeProvider, StyledEngineProvider } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { fireTableTheme } from 'app/theme'
 import React from 'react'
@@ -16,11 +16,6 @@ const StyledPaper = styled(Paper)(() => ({
     maxHeight: '72vh'
   }
 }))
-
-declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends Theme {}
-}
 
 interface FireTableProps {
   ariaLabel: string
