@@ -133,7 +133,6 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
     active_station_codes = stations.keys()
     for day in days:
-        start = datetime.datetime.now()
         vancouver_tz = pytz.timezone("America/Vancouver")
 
         day_start = vancouver_tz.localize(datetime.datetime.combine(day, time.min))
@@ -165,7 +164,6 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
                     temperature=bias_adjusted_temp,
                     relative_humidity=bias_adjusted_rh
                 ))
-        logger.info(f"Time to get data for one day: {datetime.datetime.now() - start}")
     return post_process_fetched_predictions(results)
 
 

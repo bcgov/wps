@@ -392,7 +392,8 @@ def get_latest_station_prediction_per_day(session: Session,
         .join(PredictionModel, PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id)\
         .join(subquery, and_(
             WeatherStationModelPrediction.prediction_timestamp == subquery.c.latest_prediction,
-            WeatherStationModelPrediction.station_code == subquery.c.station_code))
+            WeatherStationModelPrediction.station_code == subquery.c.station_code))\
+        .order_by(WeatherStationModelPrediction.update_date.desc())
     return result
 
 
