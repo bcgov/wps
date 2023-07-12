@@ -37,10 +37,6 @@ export enum RunType {
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
-  listContainer: {
-    width: 700,
-    height: 700
-  },
   fireCenter: {
     minWidth: 280,
     margin: theme.spacing(1)
@@ -48,6 +44,18 @@ const useStyles = makeStyles(() => ({
   flex: {
     display: 'flex',
     flex: 1
+  },
+  map: {
+    height: 500,
+    width: '100%'
+  },
+  scrollablePanel: {
+    overflowY: 'auto',
+    // overflowX: 'hidden',
+    maxHeight: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    maxWidth: 400
   },
   forecastActualDropdown: {
     minWidth: 280,
@@ -61,6 +69,7 @@ const useStyles = makeStyles(() => ({
     height: '100vh',
     display: 'flex',
     flexDirection: 'column'
+    // overflow: 'hidden'
   }
 }))
 
@@ -208,13 +217,14 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         </Grid>
       </Container>
       <Container className={classes.flex} disableGutters maxWidth={'xl'}>
-        <Grid className={classes.flex} container direction={'row'}>
+        <Grid container direction={'row'}>
           <Grid item>
             <ZoneSummaryPanel
               selectedFireZone={selectedFireZone}
               fuelTypeInfo={hfiThresholdsFuelTypes}
               hfiElevationInfo={fireZoneElevationInfo}
               fireZoneAreas={fireZoneAreas}
+              // className={classes.scrollablePanel}
             />
           </Grid>
           <Grid className={classes.flex} item>
@@ -225,7 +235,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               selectedFireZone={selectedFireZone}
               selectedFireCenter={fireCenter}
               advisoryThreshold={advisoryThreshold}
-              className={classes.flex}
+              className={classes.map}
               setIssueDate={setIssueDate}
               setSelectedFireZone={setSelectedFireZone}
               fireZoneAreas={fireZoneAreas}
