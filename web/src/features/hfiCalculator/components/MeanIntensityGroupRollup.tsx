@@ -1,25 +1,12 @@
 import { TableCell } from '@mui/material'
-import { styled } from '@mui/material/styles'
 import { isUndefined, isNull } from 'lodash'
 import React from 'react'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
-import { fireTableStyles } from 'app/theme'
 import { StationDaily, PlanningArea, FuelType } from 'api/hfiCalculatorAPI'
 import { getSelectedFuelType } from 'features/hfiCalculator/util'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-
-const PREFIX = 'MeanIntensityGroupRollup'
-
-const classes = {
-  intensityGroup: `${PREFIX}-intensityGroup`
-}
-
-const StyledTableCell = styled(TableCell)({
-  [`& .${classes.intensityGroup}`]: {
-    ...fireTableStyles.calculatedPlanningCell
-  }
-})
+import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningArea'
 
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
@@ -64,13 +51,13 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
 
   if (grassCureError) {
     return (
-      <StyledTableCell>
+      <TableCell>
         <ErrorIconWithTooltip
           testId={`zone-${props.area.id}-mig-error`}
           tooltipElement={grassCureErrorToolTipElement}
           tooltipAriaText={[grassCureToolTipFirstLine, toolTipSecondLine]}
         />
-      </StyledTableCell>
+      </TableCell>
     )
   }
   const validatedMig =
@@ -93,9 +80,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
     )
   }
   return (
-    <TableCell className={classes.intensityGroup} data-testid={`zone-${props.area.id}-mean-intensity`}>
-      {validatedMig}
-    </TableCell>
+    <CalculatedPlanningCell data-testid={`zone-${props.area.id}-mean-intensity`}>{validatedMig}</CalculatedPlanningCell>
   )
 }
 

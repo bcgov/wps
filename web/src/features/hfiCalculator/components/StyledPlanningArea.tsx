@@ -43,3 +43,9 @@ export const StationPlainStylingCell = styled(TableCell)({
 export const SectionSeparatorBorderTableCell = styled(TableCell)({
   borderLeft: '1px solid #C4C4C4'
 })
+
+export const CalculatedPlanningCell = styled(TableCell)({
+  ...PLANNING_AREA,
+  fontWeight: 'bold',
+  textAlign: 'center'
+})

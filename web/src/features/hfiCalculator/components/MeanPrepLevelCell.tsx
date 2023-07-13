@@ -1,7 +1,7 @@
-import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { fireTableStyles } from 'app/theme'
+import { styled } from '@mui/material'
+import { BACKGROUND_COLOR } from 'app/theme'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
+import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningArea'
 import { isUndefined, isNull } from 'lodash'
 import React from 'react'
 
@@ -21,55 +21,53 @@ const prepLevelColours: { [description: string]: string } = {
   bloodRed: '#B02318'
 }
 
-const useStyles = makeStyles({
-  ...fireTableStyles,
-  meanPrepLevel1: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.green
-  },
-  meanPrepLevel2: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.blue
-  },
-  meanPrepLevel3: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.yellow
-  },
-  meanPrepLevel4: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.orange
-  },
-  meanPrepLevel5: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.brightRed,
-    color: 'white'
-  },
-  meanPrepLevel6: {
-    ...fireTableStyles.calculatedPlanningCell,
-    background: prepLevelColours.bloodRed,
-    color: 'white'
-  }
+const MeanPrepLevelDefault = styled(CalculatedPlanningCell, { name: 'meanPrepLevelDefault' })({
+  ...BACKGROUND_COLOR
+})
+
+const MeanPrepLevel1Cell = styled(CalculatedPlanningCell, { name: 'meanPrepLevel1' })({
+  background: prepLevelColours.green
+})
+
+const MeanPrepLevel2Cell = styled(CalculatedPlanningCell, { name: 'meanPrepLevel2' })({
+  background: prepLevelColours.blue
+})
+
+const MeanPrepLevel3Cell = styled(CalculatedPlanningCell, { name: 'meanPrepLevel3' })({
+  background: prepLevelColours.yellow
+})
+
+const MeanPrepLevel4Cell = styled(CalculatedPlanningCell, { name: 'meanPrepLevel4' })({
+  background: prepLevelColours.orange
+})
+
+const MeanPrepLevel5Cell = styled(CalculatedPlanningCell, { name: 'meanPrepLevel5' })({
+  background: prepLevelColours.brightRed,
+  color: 'white'
+})
+
+const MeanPrepLevel6Cell = styled(CalculatedPlanningCell, { name: 'meanPrepLevel6' })({
+  background: prepLevelColours.bloodRed,
+  color: 'white'
 })
 
 const MeanPrepLevelCell = (props: MeanPrepLevelCellProps) => {
-  const classes = useStyles()
-
   const formatPrepLevelByValue = () => {
     switch (props.meanPrepLevel) {
       case 1:
-        return classes.meanPrepLevel1
+        return MeanPrepLevel1Cell
       case 2:
-        return classes.meanPrepLevel2
+        return MeanPrepLevel2Cell
       case 3:
-        return classes.meanPrepLevel3
+        return MeanPrepLevel3Cell
       case 4:
-        return classes.meanPrepLevel4
+        return MeanPrepLevel4Cell
       case 5:
-        return classes.meanPrepLevel5
+        return MeanPrepLevel5Cell
       case 6:
-        return classes.meanPrepLevel6
+        return MeanPrepLevel6Cell
       default:
-        return classes.defaultBackground
+        return MeanPrepLevelDefault
     }
   }
 
@@ -86,11 +84,10 @@ const MeanPrepLevelCell = (props: MeanPrepLevelCellProps) => {
 
   const prepLevelErrorTooltipElement = <div>{prepLevelTooltipText}</div>
 
+  const MeanPrepCellComponent = formatPrepLevelByValue()
+
   return (
-    <TableCell
-      className={prepLevelError() ? classes.defaultBackground : formatPrepLevelByValue()}
-      data-testid={props.testid}
-    >
+    <MeanPrepCellComponent data-testid={props.testid}>
       {prepLevelError() ? (
         <ErrorIconWithTooltip
           testId="prep-level-error"
@@ -100,7 +97,7 @@ const MeanPrepLevelCell = (props: MeanPrepLevelCellProps) => {
       ) : (
         props.meanPrepLevel
       )}
-    </TableCell>
+    </MeanPrepCellComponent>
   )
 }
 
