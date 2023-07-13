@@ -39,3 +39,7 @@ export const UnSelectedTableRow = styled(TableRow)({
 export const StationPlainStylingCell = styled(TableCell)({
   backgroundColor: '#ffffff'
 })
+
+export const SectionSeparatorBorderTableCell = styled(TableCell)({
+  borderLeft: '1px solid #C4C4C4'
+})

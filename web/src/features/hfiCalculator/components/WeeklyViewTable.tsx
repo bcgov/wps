@@ -36,6 +36,7 @@ import {
   PlanningAreaTableCellNoBottomBorder,
   PlanningAreaTableCellNonSticky,
   PlanningAreaTableRow,
+  SectionSeparatorBorderTableCell,
   StationPlainStylingRow,
   UnSelectedTableRow
 } from 'features/hfiCalculator/components/StyledPlanningArea'
@@ -106,13 +107,13 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           </StickyCell>
           <StationDataHeaderCells />
           <DayIndexHeaders numPrepDays={numPrepDays} />
-          <TableCell className={classes.sectionSeparatorBorder}>
+          <SectionSeparatorBorderTableCell>
             Highest
             <br />
             Daily
             <br />
             FIG
-          </TableCell>
+          </SectionSeparatorBorderTableCell>
           <TableCell>
             Calc.
             <br />

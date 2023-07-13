@@ -100,18 +100,6 @@ export const fireTableStyles = createStyles({
     flexDirection: 'row',
     alignItems: 'baseline'
   },
-  fireCentre: {
-    height: 45,
-    fontSize: 16,
-    fontWeight: 'bold',
-    backgroundColor: '#dbd9d9'
-  },
-  stationLocation: {
-    minWidth: 180
-  },
-  stationCellPlainStyling: {
-    backgroundColor: '#ffffff'
-  },
   sectionSeparatorBorder: {
     borderLeft: '1px solid #C4C4C4'
   },
