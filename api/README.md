@@ -13,6 +13,7 @@ You will need an environment file. See: `.env.example`. Contact current maintain
   - then run:
     - python -m pip install gdal==$(gdal-config --version)
     - pip install greenlet
+  - Follow [vsc setup steps](../setup/VSC.md)
 - Manual (linux): See [manual setup](../docs/MANUAL_SETUP.md).
   Note: you may want to alias `python3` as `python` in your profile
 
