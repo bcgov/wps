@@ -35,7 +35,7 @@ interface Props {
   fireZoneAreas: FireZoneArea[]
 }
 
-const ZoneSummaryPanel = React.forwardRef((props: Props, ref: any) => {
+const ZoneSummaryPanel = React.forwardRef((props: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
   const classes = useStyles()
   ZoneSummaryPanel.displayName = 'ZoneSummaryPanel'
 

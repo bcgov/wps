@@ -45,7 +45,7 @@ interface Props {
   title: string
 }
 
-export const GeneralHeader = React.forwardRef((props: Props, ref: any) => {
+export const GeneralHeader = React.forwardRef((props: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
   const { title, productName, spacing } = props
   const classes = useStyles(props)
   GeneralHeader.displayName = 'GeneralHeader'
