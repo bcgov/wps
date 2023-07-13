@@ -1,7 +1,5 @@
-import { Table, TableBody, TableRow, TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { Table, TableBody, TableRow, TableCell, styled } from '@mui/material'
 import { FireCentre } from 'api/hfiCalculatorAPI'
-import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
 import React from 'react'
 
@@ -10,17 +8,21 @@ interface FireCentreCellProps {
   testId?: string
 }
 
-const useStyles = makeStyles({ ...fireTableStyles })
+export const StyledFireCentreCell = styled(TableCell)({
+  height: 45,
+  fontSize: 16,
+  fontWeight: 'bold',
+  backgroundColor: '#dbd9d9',
+  borderBottom: 'none'
+})
 
 const FireCentreCell = (props: FireCentreCellProps) => {
-  const classes = useStyles()
-
   return (
     <StickyCell left={0} zIndexOffset={10} backgroundColor={'#dbd9d9'} colSpan={4} data-testid={props.testId}>
       <Table>
         <TableBody>
           <TableRow>
-            <TableCell className={`${classes.fireCentre} ${classes.noBottomBorder}`}>{props.centre.name}</TableCell>
+            <StyledFireCentreCell>{props.centre.name}</StyledFireCentreCell>
           </TableRow>
         </TableBody>
       </Table>
