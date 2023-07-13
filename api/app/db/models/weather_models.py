@@ -221,7 +221,7 @@ class WeatherStationModelPrediction(Base):
 
 
 class MoreCast2MaterializedView(Base):
-    """ A materialized view to support effecient retrieval of weather model prediction data by
+    """ A materialized view to support efficient retrieval of weather model prediction data by
         stations and dates."""
     __tablename__ = 'morecast_2_materialized_view'
     id = Column(Integer, Sequence('morecast_forecast_id_seq'),
