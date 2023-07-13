@@ -1,7 +1,7 @@
 import React from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import CombustibleAreaViz from 'features/fba/components/viz/CombustibleAreaViz'
-import { Container, Typography } from '@mui/material'
+import { Container, Grid, Typography } from '@mui/material'
 import { isUndefined } from 'lodash'
 import { ElevationInfoByThreshold, FireZone, FireZoneArea, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import ElevationInfoViz from 'features/fba/components/viz/ElevationInfoViz'
@@ -22,7 +22,8 @@ const useStyles = makeStyles({
   centreName: {
     fontSize: '1rem',
     textAlign: 'center',
-    variant: 'h6'
+    variant: 'h6',
+    paddingBottom: '2rem'
   }
 })
 
@@ -43,23 +44,25 @@ const ZoneSummaryPanel = React.forwardRef((props: Props, ref: any) => {
   } else {
     return (
       <Container ref={ref} className={`${props.className} ${classes.wrapper}`}>
-        <div>
-          <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
-          <Typography className={classes.centreName}>{props.selectedFireZone.mof_fire_centre_name}</Typography>
-        </div>
-        <div>
-          <CombustibleAreaViz
-            fireZoneAreas={props.fireZoneAreas.filter(
-              area => area.mof_fire_zone_id == props.selectedFireZone?.mof_fire_zone_id
-            )}
-          />
-        </div>
-        <div>
-          <FuelTypesBreakdown selectedFireZone={props.selectedFireZone} fuelTypeInfo={props.fuelTypeInfo} />
-        </div>
-        <div>
-          <ElevationInfoViz selectedFireZone={props.selectedFireZone} hfiElevationInfo={props.hfiElevationInfo} />
-        </div>
+        <Grid container alignItems={'center'} direction={'column'}>
+          <div>
+            <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
+            <Typography className={classes.centreName}>{props.selectedFireZone.mof_fire_centre_name}</Typography>
+          </div>
+          <div>
+            <CombustibleAreaViz
+              fireZoneAreas={props.fireZoneAreas.filter(
+                area => area.mof_fire_zone_id == props.selectedFireZone?.mof_fire_zone_id
+              )}
+            />
+          </div>
+          <div>
+            <FuelTypesBreakdown selectedFireZone={props.selectedFireZone} fuelTypeInfo={props.fuelTypeInfo} />
+          </div>
+          <div>
+            <ElevationInfoViz selectedFireZone={props.selectedFireZone} hfiElevationInfo={props.hfiElevationInfo} />
+          </div>
+        </Grid>
       </Container>
     )
   }

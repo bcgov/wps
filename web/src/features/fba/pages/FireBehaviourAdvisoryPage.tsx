@@ -29,7 +29,6 @@ import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
-import SidePanel from 'features/fireWeather/components/SidePanel'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -48,7 +47,8 @@ const useStyles = makeStyles(() => ({
   },
   scrollablePanel: {
     overflowY: 'auto',
-    maxHeight: '100vh'
+    maxHeight: '100vh',
+    padding: 0
   },
   forecastActualDropdown: {
     minWidth: 280,
@@ -165,24 +165,21 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (navRef.current) {
       const height = navRef.current.clientHeight
       setNavRefHeight(height)
-      console.log('navRefHeight:', height)
-    }
+    } // eslint-disable-line react-hooks/exhaustive-deps
   })
 
   useEffect(() => {
     if (formControlRef.current) {
       const height = formControlRef.current.clientHeight
       setFormControlHeight(height)
-      console.log('formControlHeight:', height)
-    }
+    } // eslint-disable-line react-hooks/exhaustive-deps
   })
 
   useEffect(() => {
     if (mapRef.current && formControlHeight && navRefHeight) {
       const mapElement = mapRef.current
       mapElement.style.height = `calc(100vh - ${formControlHeight + navRefHeight}px)`
-      console.log('mapref height', mapElement.style.height)
-    }
+    } // eslint-disable-line react-hooks/exhaustive-deps
   })
 
   useEffect(() => {
