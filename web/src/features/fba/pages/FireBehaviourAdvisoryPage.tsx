@@ -198,7 +198,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           spacing={1}
           title={FIRE_BEHAVIOUR_ADVISORY_NAME}
           productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
-          displayName="GeneralHeader"
         />
       </Container>
       <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={'xl'}>

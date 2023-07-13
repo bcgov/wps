@@ -43,7 +43,6 @@ interface Props {
   productName: string
   spacing: number
   title: string
-  displayName: string
 }
 
 export const GeneralHeader = React.forwardRef((props: Props, ref: any) => {
