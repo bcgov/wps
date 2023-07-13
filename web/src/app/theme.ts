@@ -100,9 +100,6 @@ export const fireTableStyles = createStyles({
     flexDirection: 'row',
     alignItems: 'baseline'
   },
-  sectionSeparatorBorder: {
-    borderLeft: '1px solid #C4C4C4'
-  },
   calculatedPlanningCell: {
     ...PLANNING_AREA,
     fontWeight: 'bold',
