@@ -1,7 +1,7 @@
 import { FormControl, FormControlLabel, Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GeneralHeader, Container, ErrorBoundary } from 'components'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
@@ -45,17 +45,12 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flex: 1
   },
-  map: {
-    height: 500,
-    width: '100%'
-  },
   scrollablePanel: {
     overflowY: 'auto',
     // overflowX: 'hidden',
     maxHeight: '100%',
     display: 'flex',
-    flexDirection: 'column',
-    maxWidth: 400
+    flexDirection: 'column'
   },
   forecastActualDropdown: {
     minWidth: 280,
@@ -161,17 +156,49 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     document.title = ASA_DOC_TITLE
   }, [])
 
+  const formControlRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<HTMLDivElement>(null)
+  const navRef = useRef<HTMLDivElement>(null)
+  const [formControlHeight, setFormControlHeight] = useState<number>(0)
+  const [navRefHeight, setNavRefHeight] = useState<number>(0)
+
+  useEffect(() => {
+    if (navRef.current) {
+      const height = navRef.current.clientHeight
+      setNavRefHeight(height)
+      console.log('navRefHeight:', height)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (formControlRef.current) {
+      const height = formControlRef.current.clientHeight
+      setFormControlHeight(height)
+      console.log('formControlHeight:', height)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (mapRef.current && formControlHeight) {
+      const mapElement = mapRef.current
+      mapElement.style.height = `calc(100vh - ${formControlHeight}px)`
+      console.log('mapref height', mapElement.style.height)
+    }
+  }, [formControlHeight])
+
   return (
     <div className={classes.root}>
-      <GeneralHeader
-        isBeta={true}
-        spacing={1}
-        title={FIRE_BEHAVIOUR_ADVISORY_NAME}
-        productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
-      />
+      <Container ref={navRef} disableGutters maxWidth={'xl'}>
+        <GeneralHeader
+          isBeta={true}
+          spacing={1}
+          title={FIRE_BEHAVIOUR_ADVISORY_NAME}
+          productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
+        />
+      </Container>
       <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
-          <Grid container spacing={1}>
+          <Grid container spacing={1} ref={formControlRef}>
             <Grid item>
               <FormControl className={classes.formControl}>
                 <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
@@ -217,7 +244,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         </Grid>
       </Container>
       <Container className={classes.flex} disableGutters maxWidth={'xl'}>
-        <Grid container direction={'row'}>
+        <Grid className={classes.flex} container direction={'row'}>
           <Grid item>
             <ZoneSummaryPanel
               selectedFireZone={selectedFireZone}
@@ -227,7 +254,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               // className={classes.scrollablePanel}
             />
           </Grid>
-          <Grid className={classes.flex} item>
+          <Grid className={classes.flex} ref={mapRef} item>
             <FBAMap
               forDate={dateOfInterest}
               runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
@@ -235,7 +262,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               selectedFireZone={selectedFireZone}
               selectedFireCenter={fireCenter}
               advisoryThreshold={advisoryThreshold}
-              className={classes.map}
+              className={classes.flex}
               setIssueDate={setIssueDate}
               setSelectedFireZone={setSelectedFireZone}
               fireZoneAreas={fireZoneAreas}
