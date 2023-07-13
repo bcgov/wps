@@ -42,13 +42,7 @@ const ZoneSummaryPanel = React.forwardRef((props: Props, ref: any) => {
     return <div></div>
   } else {
     return (
-      <Container
-        ref={ref}
-        alignItems={'center'}
-        direction={'column'}
-        spacing={2}
-        className={`${props.className} ${classes.wrapper}`}
-      >
+      <Container ref={ref} className={`${props.className} ${classes.wrapper}`}>
         <div>
           <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
           <Typography className={classes.centreName}>{props.selectedFireZone.mof_fire_centre_name}</Typography>
