@@ -35,12 +35,11 @@ const RedFillCell = styled(FixedDecimalNumberCell, {
 interface HFICellProps {
   value?: number | null
   testId?: string
-  className?: string
 }
 
-const HFICell = ({ value, testId, className }: HFICellProps) => {
+const HFICell = ({ value, testId }: HFICellProps) => {
   if (isUndefined(value) || isNull(value) || isNaN(value)) {
-    return <TableCell data-testid={testId} className={className ? className : classes.dataRow}></TableCell>
+    return <TableCell data-testid={testId} className={classes.dataRow}></TableCell>
   }
   if (value >= 3000 && value <= 3999) {
     return <OrangeBorderCell testId={testId} value={value} />

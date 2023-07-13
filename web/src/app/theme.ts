@@ -95,7 +95,6 @@ export const UNSELECTED_STATION_COLOR = 'rgba(0,0,0,0.54)'
 
 export const fireTableStyles = createStyles({
   defaultBackground: BACKGROUND_COLOR,
-  unselectedStation: { color: UNSELECTED_STATION_COLOR },
   controls: {
     display: 'flex',
     flexDirection: 'row',

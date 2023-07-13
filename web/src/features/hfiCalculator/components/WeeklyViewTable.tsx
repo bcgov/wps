@@ -35,7 +35,9 @@ import { fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySli
 import {
   PlanningAreaTableCellNoBottomBorder,
   PlanningAreaTableCellNonSticky,
-  PlanningAreaTableRow
+  PlanningAreaTableRow,
+  StationPlainStylingRow,
+  UnSelectedTableRow
 } from 'features/hfiCalculator/components/StyledPlanningArea'
 
 export interface Props {
@@ -193,9 +195,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                         station => {
                           const dailiesForStation = getDailiesByStationCode(result, station.code)
                           const isRowSelected = stationCodeInSelected(area.id, station.code)
-                          const classNameForRow = !isRowSelected
-                            ? classes.unselectedStation
-                            : classes.stationCellPlainStyling
                           const stationCode = station.code
                           const selectedFuelType = getSelectedFuelType(
                             result.planning_area_station_info,
@@ -206,8 +205,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           if (isUndefined(selectedFuelType)) {
                             return <React.Fragment key={`weekly-undefined-fuel-type-${station.code}`}></React.Fragment>
                           }
+                          const TableRowComponent = !isRowSelected ? UnSelectedTableRow : StationPlainStylingRow
                           return (
-                            <TableRow className={classNameForRow} key={`station-${stationCode}`}>
+                            <TableRowComponent key={`station-${stationCode}`}>
                               <BaseStationAttributeCells
                                 station={station}
                                 planningAreaId={area.id}
@@ -227,11 +227,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 numPrepDays={numPrepDays}
                                 dailies={dailiesForStation}
                                 station={station}
-                                classNameForRow={classNameForRow}
                                 isRowSelected={isRowSelected}
                                 selectedFuelType={selectedFuelType}
                               />
-                            </TableRow>
+                            </TableRowComponent>
                           )
                         }
                       )}

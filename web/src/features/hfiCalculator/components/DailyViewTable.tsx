@@ -1,6 +1,5 @@
 import React from 'react'
 import { Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { useSelector } from 'react-redux'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { FireCentre, FuelType, StationDaily } from 'api/hfiCalculatorAPI'
@@ -11,7 +10,7 @@ import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
-import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
+import { BACKGROUND_COLOR } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { getDailiesByStationCode, getSelectedFuelType, stationCodeSelected } from 'features/hfiCalculator/util'
 import StickyCell from 'components/StickyCell'
@@ -28,10 +27,16 @@ import { DailyHFICell } from 'features/hfiCalculator/components/DailyHFICell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
 import { ROLES } from 'features/auth/roles'
 import {
+  NoBottomBorderCell,
   PlanningAreaBorderTableCell,
   PlanningAreaTableCell,
+  PlanningAreaTableCellNoBottomBorder,
   PlanningAreaTableRow
 } from 'features/hfiCalculator/components/StyledPlanningArea'
+import { UnSelectedTableRow } from 'features/hfiCalculator/components/StyledTableComponents'
+import { DangerClassCell } from 'features/hfiCalculator/components/DangerClassCell'
+import { WindDirectionCell } from 'features/hfiCalculator/components/WindDirectionCell'
+import { FireCentreHeaderCell } from 'features/hfiCalculator/components/FireCentreHeaderCell'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -71,13 +76,7 @@ export const dailyTableColumnLabels = [
   'Prep Level'
 ]
 
-const useStyles = makeStyles({
-  ...fireTableStyles
-})
-
 export const DailyViewTable = (props: Props): JSX.Element => {
-  const classes = useStyles()
-
   const { selectedPrepDate, result } = useSelector(selectHFICalculatorState)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
 
@@ -139,9 +138,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             <Table>
               <TableBody>
                 <TableRow>
-                  <TableCell className={classes.noBottomBorder}>
+                  <PlanningAreaTableCellNoBottomBorder>
                     {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
-                  </TableCell>
+                  </PlanningAreaTableCellNoBottomBorder>
                 </TableRow>
               </TableBody>
             </Table>
@@ -234,7 +233,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           <React.Fragment key={`fire-centre-${props.fireCentre.name}`}>
             <TableRow key={`fire-centre-${props.fireCentre.name}`}>
               <FireCentreCell centre={props.fireCentre}></FireCentreCell>
-              <TableCell className={classes.fireCentre} colSpan={25}></TableCell>
+              <FireCentreHeaderCell colSpan={25}></FireCentreHeaderCell>
             </TableRow>
             {sortBy(props.fireCentre.planning_areas, planningArea => planningArea.order_of_appearance_in_list).map(
               area => {
@@ -257,7 +256,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         <Table>
                           <TableBody>
                             <TableRow>
-                              <TableCell className={classes.noBottomBorder}>{area.name}</TableCell>
+                              <NoBottomBorderCell>{area.name}</NoBottomBorderCell>
                             </TableRow>
                           </TableBody>
                         </Table>
@@ -294,9 +293,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         }
                         const grassCureError = !isValidGrassCure(daily, selectedFuelType)
                         const isRowSelected = !isUndefined(area) && stationCodeInSelected(area.id, station.code)
-                        const classNameForRow = !isRowSelected ? classes.unselectedStation : undefined
+                        const RowComponent = !isRowSelected ? UnSelectedTableRow : TableRow
                         return (
-                          <TableRow className={classNameForRow} key={`station-${station.code}`}>
+                          <RowComponent key={`station-${station.code}`}>
                             <BaseStationAttributeCells
                               station={station}
                               planningAreaId={area.id}
@@ -312,7 +311,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               isRowSelected={isRowSelected}
                             />
 
-                            <StatusCell daily={daily} className={classNameForRow} isRowSelected={isRowSelected} />
+                            <StatusCell daily={daily} isRowSelected={isRowSelected} />
                             {[
                               [
                                 'temperature' as keyof StationDaily,
@@ -326,18 +325,16 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               return (
                                 <RequiredDataCell
                                   key={key.toString()}
-                                  classNameForRow={classNameForRow}
                                   dailyKey={key}
                                   daily={daily}
                                   errorToolTipText={tooltip}
                                   decimalPlaces={_decimalPlaces}
+                                  isRowSelected={isRowSelected}
                                 />
                               )
                             })}
 
-                            <TableCell className={classNameForRow}>
-                              {daily?.wind_direction?.toFixed(0).padStart(3, '0')}
-                            </TableCell>
+                            <WindDirectionCell isRowSelected={isRowSelected} value={daily?.wind_direction} />
 
                             {[
                               [
@@ -376,39 +373,39 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               return (
                                 <RequiredDataCell
                                   key={key.toString()}
-                                  classNameForRow={classNameForRow}
                                   dailyKey={key}
                                   daily={daily}
                                   errorToolTipText={tooltip}
                                   decimalPlaces={_decimalPlaces}
+                                  isRowSelected={isRowSelected}
                                 />
                               )
                             })}
 
-                            <TableCell className={classNameForRow}>{daily?.danger_class}</TableCell>
+                            <DangerClassCell isRowSelected={isRowSelected} value={daily?.danger_class} />
                             <CalculatedCell
                               testid={`${daily?.code}-ros`}
                               value={daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
                               error={grassCureError}
-                              className={classNameForRow}
+                              isRowSelected={isRowSelected}
                             ></CalculatedCell>
                             <DailyHFICell
                               testid={`${daily?.code}-hfi`}
                               value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
                               error={grassCureError}
-                              className={classNameForRow}
+                              isRowSelected={isRowSelected}
                             ></DailyHFICell>
                             <CalculatedCell
                               testid={`${daily?.code}-1-hr-size`}
                               value={daily?.sixty_minute_fire_size?.toFixed(DECIMAL_PLACES)}
                               error={grassCureError}
-                              className={classNameForRow}
+                              isRowSelected={isRowSelected}
                             ></CalculatedCell>
                             <CalculatedCell
                               testid={`${daily?.code}-fire-type`}
                               value={daily?.fire_type}
                               error={grassCureError}
-                              className={classNameForRow}
+                              isRowSelected={isRowSelected}
                             ></CalculatedCell>
                             <IntensityGroupCell
                               testid={`${daily?.code}-intensity-group`}
@@ -419,7 +416,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             <TableCell colSpan={2}>
                               {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
                             </TableCell>
-                          </TableRow>
+                          </RowComponent>
                         )
                       }
                     )}

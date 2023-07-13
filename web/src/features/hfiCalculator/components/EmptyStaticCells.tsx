@@ -1,14 +1,15 @@
 import { TableCell } from '@mui/material'
+import { StationPlainStylingCell } from 'features/hfiCalculator/components/StyledPlanningArea'
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import React, { ReactElement } from 'react'
 
 export interface EmptyStaticCellsProps {
   rowId: number
   isRowSelected: boolean
-  classNameForRow: string | undefined
 }
 
-export const EmptyStaticCells = ({ rowId, isRowSelected, classNameForRow }: EmptyStaticCellsProps): ReactElement => {
+export const EmptyStaticCells = ({ rowId, isRowSelected }: EmptyStaticCellsProps): ReactElement => {
+  const TableCellComponent = isRowSelected ? TableCell : StationPlainStylingCell
   return (
     <React.Fragment key={`empty-row-${rowId}`}>
       <WeeklyROSCell
@@ -17,10 +18,10 @@ export const EmptyStaticCells = ({ rowId, isRowSelected, classNameForRow }: Empt
         error={true}
         isFirstDayOfPrepPeriod={true}
       />
-      <TableCell data-testid={`empty-hfi-${rowId}`} className={classNameForRow} />
-      <TableCell data-testid={`empty-intensity-group-${rowId}`} className={classNameForRow} />
-      <TableCell data-testid={`empty-fire-starts-${rowId}`} className={classNameForRow} />
-      <TableCell data-testid={`empty-prep-level-${rowId}`} className={classNameForRow} />
+      <TableCellComponent data-testid={`empty-hfi-${rowId}`} />
+      <TableCellComponent data-testid={`empty-intensity-group-${rowId}`} />
+      <TableCellComponent data-testid={`empty-fire-starts-${rowId}`} />
+      <TableCellComponent data-testid={`empty-prep-level-${rowId}`} />
     </React.Fragment>
   )
 }
