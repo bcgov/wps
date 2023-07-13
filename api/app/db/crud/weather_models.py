@@ -5,10 +5,11 @@ import datetime
 from typing import List, Union
 from sqlalchemy import or_, and_, func
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import text
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models.weather_models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction, WeatherStationModelPrediction)
+    ModelRunGridSubsetPrediction, WeatherStationModelPrediction, MoreCast2MaterializedView)
 import app.utils.time as time_utils
 
 logger = logging.getLogger(__name__)
@@ -270,8 +271,8 @@ def get_latest_station_model_prediction_per_day(session: Session,
      - each station in the given list
     ordered by update_timestamp
 
-    This is done by joining the predictions on their runs, 
-    that are filtered by the day and the 20:00UTC predictions. 
+    This is done by joining the predictions on their runs,
+    that are filtered by the day and the 20:00UTC predictions.
 
     In turn prediction runs are filtered via a join
     on runs that are for the selected model.
@@ -318,6 +319,28 @@ def get_latest_station_model_prediction_per_day(session: Session,
     return result
 
 
+def get_latest_station_prediction_mat_view(session: Session,
+                                           station_codes: List[int],
+                                           day_start: datetime.datetime,
+                                           day_end: datetime.datetime):
+    logger.info("Getting data from materialized view.")
+    result = session.query(MoreCast2MaterializedView.prediction_timestamp,
+                           MoreCast2MaterializedView.abbreviation,
+                           MoreCast2MaterializedView.station_code,
+                           MoreCast2MaterializedView.rh_tgl_2,
+                           MoreCast2MaterializedView.tmp_tgl_2,
+                           MoreCast2MaterializedView.bias_adjusted_temperature,
+                           MoreCast2MaterializedView.bias_adjusted_rh,
+                           MoreCast2MaterializedView.apcp_sfc_0,
+                           MoreCast2MaterializedView.wdir_tgl_10,
+                           MoreCast2MaterializedView.wind_tgl_10,
+                           MoreCast2MaterializedView.update_date).\
+        filter(MoreCast2MaterializedView.station_code.in_(station_codes),
+               MoreCast2MaterializedView.prediction_timestamp >= day_start,
+               MoreCast2MaterializedView.prediction_timestamp <= day_end)
+    return result
+
+
 def get_latest_station_prediction_per_day(session: Session,
                                           station_codes: List[int],
                                           day_start: datetime.datetime,
@@ -328,8 +351,8 @@ def get_latest_station_prediction_per_day(session: Session,
      - each station in the given list
     ordered by update_timestamp
 
-    This is done by joining the predictions on their runs, 
-    that are filtered by the day and the 20:00UTC predictions. 
+    This is done by joining the predictions on their runs,
+    that are filtered by the day and the 20:00UTC predictions.
 
     In turn prediction runs are filtered via a join
     on runs that are for the selected model.
@@ -452,3 +475,10 @@ def get_weather_station_model_prediction(session: Session,
                prediction_model_run_timestamp_id).\
         filter(WeatherStationModelPrediction.prediction_timestamp ==
                prediction_timestamp).first()
+
+
+def refresh_morecast2_materialized_view(session: Session):
+    start = datetime.datetime.now()
+    logger.info("Refreshing morecast_2_materialized_view")
+    session.execute(text("REFRESH MATERIALIZED VIEW morecast_2_materialized_view"))
+    logger.info(f"Finished mat view refresh with elapsed time: {datetime.datetime.now() - start}")
