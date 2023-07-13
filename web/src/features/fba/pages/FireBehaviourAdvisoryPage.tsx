@@ -179,21 +179,23 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [])
 
   useEffect(() => {
-    if (mapRef.current && formControlHeight) {
+    if (mapRef.current && formControlHeight && navRefHeight) {
       const mapElement = mapRef.current
-      mapElement.style.height = `calc(100vh - ${formControlHeight}px)`
+      mapElement.style.height = `calc(100vh - ${formControlHeight + navRefHeight}px)`
       console.log('mapref height', mapElement.style.height)
     }
-  }, [formControlHeight])
+  }, [formControlHeight, navRefHeight])
 
   return (
     <div className={classes.root}>
-      <Container ref={navRef} disableGutters maxWidth={'xl'}>
+      <Container disableGutters maxWidth={'xl'}>
         <GeneralHeader
+          ref={navRef}
           isBeta={true}
           spacing={1}
           title={FIRE_BEHAVIOUR_ADVISORY_NAME}
           productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
+          displayName="GeneralHeader"
         />
       </Container>
       <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={'xl'}>
