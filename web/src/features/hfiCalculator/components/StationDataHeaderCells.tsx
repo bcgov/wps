@@ -2,6 +2,7 @@ import { Table, TableBody, TableCell, TableRow } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
+import { NonStickyHeaderCell } from 'features/hfiCalculator/components/StyledPlanningArea'
 import React, { ReactElement } from 'react'
 
 const useStyles = makeStyles({
@@ -24,11 +25,11 @@ export const StationDataHeaderCells = (): ReactElement => {
           </TableBody>
         </Table>
       </StickyCell>
-      <TableCell key="header-elevation" className={classes.nonstickyHeaderCell}>
+      <NonStickyHeaderCell key="header-elevation">
         Elev.
         <br />
         (m)
-      </TableCell>
+      </NonStickyHeaderCell>
       <StickyCell left={230} zIndexOffset={12}>
         <Table>
           <TableBody>

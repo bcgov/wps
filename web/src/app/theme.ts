@@ -100,9 +100,6 @@ export const fireTableStyles = createStyles({
     flexDirection: 'row',
     alignItems: 'baseline'
   },
-  nonstickyHeaderCell: {
-    zIndex: 11 + theme.zIndex.appBar
-  },
   rightBorder: {
     borderRight: '1px solid #c4c4c4'
   },

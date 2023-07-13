@@ -1,5 +1,5 @@
 import { TableRow, TableCell, styled } from '@mui/material'
-import { BACKGROUND_COLOR, PLANNING_AREA, UNSELECTED_STATION_COLOR } from 'app/theme'
+import { BACKGROUND_COLOR, PLANNING_AREA, UNSELECTED_STATION_COLOR, theme } from 'app/theme'
 
 export const PlanningAreaTableRow = styled(TableRow)({
   ...BACKGROUND_COLOR,
@@ -52,4 +52,8 @@ export const CalculatedPlanningCell = styled(TableCell)({
 
 export const SpaceHeaderTableCell = styled(TableCell)({
   border: 'none'
+})
+
+export const NonStickyHeaderCell = styled(TableCell)({
+  zIndex: 11 + theme.zIndex.appBar
 })
