@@ -8,6 +8,7 @@ You will need an environment file. See: `.env.example`. Contact current maintain
   - Run `setup/mac.sh` in parent folder
   - Follow [lima setup steps](../setup/LIMA.md)
   - then run `poetry_setup.sh`
+  - Follow [vsc setup steps](../setup/VSC.md)
 - Manual (linux): See [manual setup](../docs/MANUAL_SETUP.md).
   Note: you may want to alias `python3` as `python` in your profile
 
