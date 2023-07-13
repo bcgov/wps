@@ -49,3 +49,7 @@ export const CalculatedPlanningCell = styled(TableCell)({
   fontWeight: 'bold',
   textAlign: 'center'
 })
+
+export const SpaceHeaderTableCell = styled(TableCell)({
+  border: 'none'
+})

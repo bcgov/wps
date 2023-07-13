@@ -100,14 +100,6 @@ export const fireTableStyles = createStyles({
     flexDirection: 'row',
     alignItems: 'baseline'
   },
-  calculatedPlanningCell: {
-    ...PLANNING_AREA,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  spaceHeader: {
-    border: 'none'
-  },
   nonstickyHeaderCell: {
     zIndex: 11 + theme.zIndex.appBar
   },
