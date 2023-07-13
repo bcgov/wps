@@ -1,7 +1,7 @@
-import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { fireTableStyles } from 'app/theme'
+import { styled } from '@mui/material'
+import { BACKGROUND_COLOR } from 'app/theme'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
+import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningArea'
 import { isNull, isUndefined } from 'lodash'
 import React from 'react'
 
@@ -22,66 +22,66 @@ const prepLevelColours: { [description: string]: string } = {
 
 const DAILY_BACKGROUND_COLOR = 'white'
 
-const useStyles = makeStyles({
-  ...fireTableStyles,
-  prepLevel1: {
-    ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.green,
-    background: DAILY_BACKGROUND_COLOR
-  },
-  prepLevel2: {
-    ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.blue,
-    background: DAILY_BACKGROUND_COLOR
-  },
-  prepLevel3: {
-    ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.yellow,
-    background: DAILY_BACKGROUND_COLOR
-  },
-  prepLevel4: {
-    ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.orange,
-    background: DAILY_BACKGROUND_COLOR
-  },
-  prepLevel5: {
-    ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.brightRed,
-    background: DAILY_BACKGROUND_COLOR
-  },
-  prepLevel6: {
-    ...fireTableStyles.calculatedPlanningCell,
-    border: '2px solid ' + prepLevelColours.bloodRed,
-    background: DAILY_BACKGROUND_COLOR
-  }
+const PrepLevelDefault = styled(CalculatedPlanningCell, { name: 'prepLevelDefault' })({
+  ...BACKGROUND_COLOR
+})
+
+const PrepLevel1Cell = styled(CalculatedPlanningCell, { name: 'prepLevel1' })({
+  border: '2px solid ' + prepLevelColours.green,
+  background: DAILY_BACKGROUND_COLOR
+})
+
+const PrepLevel2Cell = styled(CalculatedPlanningCell, { name: 'prepLevel2' })({
+  border: '2px solid ' + prepLevelColours.blue,
+  background: DAILY_BACKGROUND_COLOR
+})
+
+const PrepLevel3Cell = styled(CalculatedPlanningCell, { name: 'prepLevel3' })({
+  border: '2px solid ' + prepLevelColours.yellow,
+  background: DAILY_BACKGROUND_COLOR
+})
+
+const PrepLevel4Cell = styled(CalculatedPlanningCell, { name: 'prepLevel4' })({
+  border: '2px solid ' + prepLevelColours.orange,
+  background: DAILY_BACKGROUND_COLOR
+})
+
+const PrepLevel5Cell = styled(CalculatedPlanningCell, { name: 'prepLevel5' })({
+  border: '2px solid ' + prepLevelColours.brightRed,
+  background: DAILY_BACKGROUND_COLOR
+})
+
+const PrepLevel6Cell = styled(CalculatedPlanningCell, { name: 'prepLevel6' })({
+  border: '2px solid ' + prepLevelColours.bloodRed,
+  background: DAILY_BACKGROUND_COLOR
 })
 
 const PrepLevelCell = (props: PrepLevelCellProps) => {
-  const classes = useStyles()
-
   const formatPrepLevelByValue = () => {
     switch (props.prepLevel) {
       case 1:
-        return classes.prepLevel1
+        return PrepLevel1Cell
       case 2:
-        return classes.prepLevel2
+        return PrepLevel2Cell
       case 3:
-        return classes.prepLevel3
+        return PrepLevel3Cell
       case 4:
-        return classes.prepLevel4
+        return PrepLevel4Cell
       case 5:
-        return classes.prepLevel5
+        return PrepLevel5Cell
       case 6:
-        return classes.prepLevel6
+        return PrepLevel6Cell
       default:
-        return classes.defaultBackground
+        return PrepLevelDefault
     }
   }
 
   const prepLevelErrorTooltipElement = (toolTipText: string) => <div>{toolTipText}</div>
 
+  const PrepLevelCellComponent = formatPrepLevelByValue()
+
   return (
-    <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
+    <PrepLevelCellComponent data-testid={props.testid}>
       {isNull(props.prepLevel) || isUndefined(props.prepLevel) ? (
         <ErrorIconWithTooltip
           testId="prep-level-error"
@@ -91,7 +91,7 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
       ) : (
         props.prepLevel
       )}
-    </TableCell>
+    </PrepLevelCellComponent>
   )
 }
 
