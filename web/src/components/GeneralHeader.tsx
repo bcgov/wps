@@ -49,7 +49,6 @@ interface Props {
 export const GeneralHeader = React.forwardRef((props: Props, ref: any) => {
   const { title, productName, spacing } = props
   const classes = useStyles(props)
-
   GeneralHeader.displayName = 'GeneralHeader'
 
   return (

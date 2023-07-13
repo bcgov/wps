@@ -1,7 +1,7 @@
 import React from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import CombustibleAreaViz from 'features/fba/components/viz/CombustibleAreaViz'
-import { Grid, Typography } from '@mui/material'
+import { Container, Typography } from '@mui/material'
 import { isUndefined } from 'lodash'
 import { ElevationInfoByThreshold, FireZone, FireZoneArea, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import ElevationInfoViz from 'features/fba/components/viz/ElevationInfoViz'
@@ -34,40 +34,41 @@ interface Props {
   fireZoneAreas: FireZoneArea[]
 }
 
-const ZoneSummaryPanel = (props: Props) => {
+const ZoneSummaryPanel = React.forwardRef((props: Props, ref: any) => {
   const classes = useStyles()
+  ZoneSummaryPanel.displayName = 'ZoneSummaryPanel'
 
   if (isUndefined(props.selectedFireZone)) {
     return <div></div>
   } else {
     return (
-      <Grid
-        container
+      <Container
+        ref={ref}
         alignItems={'center'}
         direction={'column'}
         spacing={2}
         className={`${props.className} ${classes.wrapper}`}
       >
-        <Grid item>
+        <div>
           <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
           <Typography className={classes.centreName}>{props.selectedFireZone.mof_fire_centre_name}</Typography>
-        </Grid>
-        <Grid item>
+        </div>
+        <div>
           <CombustibleAreaViz
             fireZoneAreas={props.fireZoneAreas.filter(
               area => area.mof_fire_zone_id == props.selectedFireZone?.mof_fire_zone_id
             )}
           />
-        </Grid>
-        <Grid item>
+        </div>
+        <div>
           <FuelTypesBreakdown selectedFireZone={props.selectedFireZone} fuelTypeInfo={props.fuelTypeInfo} />
-        </Grid>
-        <Grid item>
+        </div>
+        <div>
           <ElevationInfoViz selectedFireZone={props.selectedFireZone} hfiElevationInfo={props.hfiElevationInfo} />
-        </Grid>
-      </Grid>
+        </div>
+      </Container>
     )
   }
-}
+})
 
 export default React.memo(ZoneSummaryPanel)

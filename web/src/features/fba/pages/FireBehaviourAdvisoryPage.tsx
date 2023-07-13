@@ -29,6 +29,7 @@ import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
+import SidePanel from 'features/fireWeather/components/SidePanel'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -47,10 +48,7 @@ const useStyles = makeStyles(() => ({
   },
   scrollablePanel: {
     overflowY: 'auto',
-    // overflowX: 'hidden',
-    maxHeight: '100%',
-    display: 'flex',
-    flexDirection: 'column'
+    maxHeight: '100vh'
   },
   forecastActualDropdown: {
     minWidth: 280,
@@ -63,8 +61,8 @@ const useStyles = makeStyles(() => ({
   root: {
     height: '100vh',
     display: 'flex',
-    flexDirection: 'column'
-    // overflow: 'hidden'
+    flexDirection: 'column',
+    overflow: 'hidden'
   }
 }))
 
@@ -159,6 +157,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const formControlRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<HTMLDivElement>(null)
   const navRef = useRef<HTMLDivElement>(null)
+  const sidePanelRef = useRef<HTMLDivElement>(null)
   const [formControlHeight, setFormControlHeight] = useState<number>(0)
   const [navRefHeight, setNavRefHeight] = useState<number>(0)
 
@@ -168,7 +167,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       setNavRefHeight(height)
       console.log('navRefHeight:', height)
     }
-  }, [])
+  })
 
   useEffect(() => {
     if (formControlRef.current) {
@@ -176,7 +175,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       setFormControlHeight(height)
       console.log('formControlHeight:', height)
     }
-  }, [])
+  })
 
   useEffect(() => {
     if (mapRef.current && formControlHeight && navRefHeight) {
@@ -184,7 +183,14 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       mapElement.style.height = `calc(100vh - ${formControlHeight + navRefHeight}px)`
       console.log('mapref height', mapElement.style.height)
     }
-  }, [formControlHeight, navRefHeight])
+  })
+
+  useEffect(() => {
+    if (sidePanelRef.current && formControlHeight && navRefHeight) {
+      const sidePanelElement = sidePanelRef.current
+      sidePanelElement.style.height = `calc(100vh - ${formControlHeight + navRefHeight}px)`
+    }
+  })
 
   return (
     <div className={classes.root}>
@@ -249,11 +255,12 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         <Grid className={classes.flex} container direction={'row'}>
           <Grid item>
             <ZoneSummaryPanel
+              ref={sidePanelRef}
               selectedFireZone={selectedFireZone}
               fuelTypeInfo={hfiThresholdsFuelTypes}
               hfiElevationInfo={fireZoneElevationInfo}
               fireZoneAreas={fireZoneAreas}
-              // className={classes.scrollablePanel}
+              className={classes.scrollablePanel}
             />
           </Grid>
           <Grid className={classes.flex} ref={mapRef} item>
