@@ -39,6 +39,7 @@ import {
   SectionSeparatorBorderTableCell,
   SpaceHeaderTableCell,
   StationPlainStylingRow,
+  StickyCellRightBorderDefaultBackground,
   UnSelectedTableRow
 } from 'features/hfiCalculator/components/StyledPlanningArea'
 
@@ -167,12 +168,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           </Table>
                         </StickyCell>
                         <PlanningAreaTableCellNonSticky></PlanningAreaTableCellNonSticky>
-                        <StickyCell
-                          left={227}
-                          zIndexOffset={10}
-                          className={`${classes.rightBorder} ${classes.defaultBackground}`}
-                          colSpan={2}
-                        >
+                        <StickyCellRightBorderDefaultBackground left={227} zIndexOffset={10} colSpan={2}>
                           <Table>
                             <TableBody>
                               <TableRow>
@@ -180,7 +176,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                               </TableRow>
                             </TableBody>
                           </Table>
-                        </StickyCell>
+                        </StickyCellRightBorderDefaultBackground>
                         <CalculatedPlanningAreaCells
                           area={area}
                           areaName={area.name}

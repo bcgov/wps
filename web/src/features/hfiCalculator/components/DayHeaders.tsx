@@ -2,7 +2,7 @@ import { Table, TableBody, TableCell, TableRow } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { fireTableStyles } from 'app/theme'
 import StickyCell from 'components/StickyCell'
-import { SpaceHeaderTableCell } from 'features/hfiCalculator/components/StyledPlanningArea'
+import { SpaceHeaderTableCell, StickyCellRightBorderOnly } from 'features/hfiCalculator/components/StyledPlanningArea'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { calculateNumPrepDays } from 'features/hfiCalculator/util'
 import { isUndefined, range } from 'lodash'
@@ -45,12 +45,7 @@ const DayHeaders = (props: DayHeadersProps) => {
         </Table>
       </StickyCell>
       <SpaceHeaderTableCell></SpaceHeaderTableCell>
-      <StickyCell
-        left={227}
-        colSpan={2}
-        zIndexOffset={11}
-        className={`${classes.rightBorder} ${classes.noBottomBorder}`}
-      >
+      <StickyCellRightBorderOnly left={227} colSpan={2} zIndexOffset={11}>
         <Table>
           <TableBody>
             <TableRow>
@@ -58,7 +53,7 @@ const DayHeaders = (props: DayHeadersProps) => {
             </TableRow>
           </TableBody>
         </Table>
-      </StickyCell>
+      </StickyCellRightBorderOnly>
       {range(numPrepDays).map(i => (
         <TableCell
           data-testid={`day-${i}`}

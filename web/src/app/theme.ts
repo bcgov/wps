@@ -100,9 +100,6 @@ export const fireTableStyles = createStyles({
     flexDirection: 'row',
     alignItems: 'baseline'
   },
-  rightBorder: {
-    borderRight: '1px solid #c4c4c4'
-  },
   noBottomBorder: {
     borderBottom: 'none'
   },

@@ -1,5 +1,6 @@
 import { TableRow, TableCell, styled } from '@mui/material'
 import { BACKGROUND_COLOR, PLANNING_AREA, UNSELECTED_STATION_COLOR, theme } from 'app/theme'
+import StickyCell from 'components/StickyCell'
 
 export const PlanningAreaTableRow = styled(TableRow)({
   ...BACKGROUND_COLOR,
@@ -56,4 +57,14 @@ export const SpaceHeaderTableCell = styled(TableCell)({
 
 export const NonStickyHeaderCell = styled(TableCell)({
   zIndex: 11 + theme.zIndex.appBar
+})
+
+export const StickyCellRightBorderOnly = styled(StickyCell)({
+  borderRight: '1px solid #c4c4c4',
+  borderBottom: 'none'
+})
+
+export const StickyCellRightBorderDefaultBackground = styled(StickyCell)({
+  borderRight: '1px solid #c4c4c4',
+  ...BACKGROUND_COLOR
 })
