@@ -163,29 +163,23 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     if (navRef.current) {
-      const height = navRef.current.clientHeight
-      setNavRefHeight(height)
-    } // eslint-disable-line react-hooks/exhaustive-deps
+      setNavRefHeight(navRef.current.clientHeight)
+    }
   }, [navRef.current?.clientHeight])
 
   useEffect(() => {
     if (formControlRef.current) {
-      const height = formControlRef.current.clientHeight
-      setFormControlHeight(height)
-    } // eslint-disable-line react-hooks/exhaustive-deps
+      setFormControlHeight(formControlRef.current.clientHeight)
+    }
   }, [formControlRef.current?.clientHeight])
 
   useEffect(() => {
-    if (mapRef.current && formControlHeight && navRefHeight) {
-      const mapElement = mapRef.current
-      mapElement.style.height = `calc(100vh - ${formControlHeight + navRefHeight}px)`
-    } // eslint-disable-line react-hooks/exhaustive-deps
-  })
-
-  useEffect(() => {
-    if (sidePanelRef.current && formControlHeight && navRefHeight) {
-      const sidePanelElement = sidePanelRef.current
-      sidePanelElement.style.height = `calc(100vh - ${formControlHeight + navRefHeight}px)`
+    const sidePanelElement = sidePanelRef.current
+    const mapElement = mapRef.current
+    if (sidePanelElement && mapElement && formControlHeight && navRefHeight) {
+      const height = `calc(100vh - ${formControlHeight + navRefHeight}px)`
+      sidePanelElement.style.height = height
+      mapElement.style.height = height
     }
   })
 
