@@ -1,6 +1,6 @@
 import { TextField, Tooltip } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { createTheme, ThemeProvider, Theme, StyledEngineProvider } from '@mui/material/styles'
+import { createTheme, ThemeProvider, StyledEngineProvider } from '@mui/material/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
@@ -18,11 +18,6 @@ const StyledStyledEngineProvider = styled(StyledEngineProvider)({
     width: 80
   }
 })
-
-declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends Theme {}
-}
 
 export interface WindSpeedCellProps {
   inputRows: FBATableRow[]

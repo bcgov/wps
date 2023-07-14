@@ -5,7 +5,6 @@ import {
   InputAdornment,
   TextField,
   ThemeProvider,
-  Theme,
   StyledEngineProvider
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
@@ -23,11 +22,6 @@ const DateRangePickerTextField = styled(TextField, {
 })({
   color: 'white'
 })
-
-declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends Theme {}
-}
 
 export interface PrepDateRangeSelectorProps {
   dateRange?: PrepDateRange

@@ -1,6 +1,5 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { ClassNameMap } from '@mui/styles/withStyles'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
 import Table from '@mui/material/Table'
@@ -64,24 +63,33 @@ const findNoonMatch = (noonDate: string, collection: ModelValue[] | undefined): 
   return collection?.find((item: ModelValue) => item.datetime === noonDate)
 }
 
-const SubHeadings = (value: string, index: number, classes: ClassNameMap<'darkColumnHeader' | 'lightColumnHeader'>) => {
-  const className = index % 2 === 0 ? classes.darkColumnHeader : classes.lightColumnHeader
+const DataColumnHeading = styled(TableCell, {
+  shouldForwardProp: prop => prop !== 'isEven'
+})<{ isEven: boolean }>(({ isEven }) => ({
+  textAlign: 'center',
+  padding: '2px',
+  minWidth: '60px',
+  borderLeft: !isEven ? 'rgb(240, 240, 240)' : undefined
+}))
+
+const SubHeadings = (value: string, index: number) => {
+  const isEven = index % 2 === 0
   return [
-    <TableCell key={`${value}-observered-${index}`} className={className}>
+    <DataColumnHeading key={`${value}-observered-${index}`} isEven={isEven}>
       Observed
-    </TableCell>,
-    <TableCell key={`${value}-forecast-${index}`} className={className}>
+    </DataColumnHeading>,
+    <DataColumnHeading key={`${value}-forecast-${index}`} isEven={isEven}>
       Forecast
-    </TableCell>,
-    <TableCell key={`${value}-HRDPS-${index}`} className={className}>
+    </DataColumnHeading>,
+    <DataColumnHeading key={`${value}-HRDPS-${index}`} isEven={isEven}>
       HRDPS
-    </TableCell>,
-    <TableCell key={`${value}-RDPS-${index}`} className={className}>
+    </DataColumnHeading>,
+    <DataColumnHeading key={`${value}-RDPS-${index}`} isEven={isEven}>
       RDPS
-    </TableCell>,
-    <TableCell key={`${value}-GDPS-${index}`} className={className}>
+    </DataColumnHeading>,
+    <DataColumnHeading key={`${value}-GDPS-${index}`} isEven={isEven}>
       GDPS
-    </TableCell>
+    </DataColumnHeading>
   ]
 }
 
@@ -119,7 +127,7 @@ const StationComparisonTable = (props: Props) => {
               <TableRow>
                 <TableCell>Weather Stations</TableCell>
                 {['temp', 'rh', 'wind speed', 'wind direction', 'precip'].map((value, index) => {
-                  return SubHeadings(value, index, classes)
+                  return SubHeadings(value, index)
                 })}
                 {/* Dew Point */}
                 <TableCell className={classes.lightColumnHeader}>Observed</TableCell>

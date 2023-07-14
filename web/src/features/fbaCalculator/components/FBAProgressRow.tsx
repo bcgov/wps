@@ -1,20 +1,7 @@
-import {
-  createTheme,
-  LinearProgress,
-  TableCell,
-  TableRow,
-  ThemeProvider,
-  Theme,
-  StyledEngineProvider
-} from '@mui/material'
+import { createTheme, LinearProgress, TableCell, TableRow, ThemeProvider, StyledEngineProvider } from '@mui/material'
 import { theme } from 'app/theme'
 
 import React from 'react'
-
-declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends Theme {}
-}
 
 interface FBAProgressRowProps {
   loading: boolean
