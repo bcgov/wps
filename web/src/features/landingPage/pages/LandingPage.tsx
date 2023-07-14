@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react'
-import { styled } from '@mui/material/styles'
-import { useTheme } from '@mui/material/styles'
+import { useTheme, styled } from '@mui/material/styles'
 import { theme } from 'app/theme'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import ContentContainer from 'app/ContentContainer'

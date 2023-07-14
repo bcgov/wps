@@ -1,6 +1,5 @@
 import { TextField, Tooltip } from '@mui/material'
-import { styled } from '@mui/material/styles'
-import { createTheme, ThemeProvider, StyledEngineProvider } from '@mui/material/styles'
+import { createTheme, ThemeProvider, StyledEngineProvider, styled } from '@mui/material/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
