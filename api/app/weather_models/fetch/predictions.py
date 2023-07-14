@@ -16,7 +16,7 @@ from app.schemas.weather_models import (WeatherStationModelPredictionValues, Wea
                                         WeatherStationModelRunsPredictions)
 from app.db.models.weather_models import WeatherStationModelPrediction
 from app.db.crud.weather_models import (get_latest_station_model_prediction_per_day, get_latest_station_prediction_per_day, get_station_model_predictions,
-                                        get_station_model_prediction_from_previous_model_run)
+                                        get_station_model_prediction_from_previous_model_run, get_latest_station_prediction_mat_view)
 import app.stations
 from app.utils.time import get_days_from_range
 from app.weather_models import ModelEnum
@@ -138,7 +138,7 @@ async def fetch_latest_model_run_predictions_by_station_code_and_date_range(sess
         day_start = vancouver_tz.localize(datetime.datetime.combine(day, time.min))
         day_end = vancouver_tz.localize(datetime.datetime.combine(day, time.max))
 
-        daily_result = get_latest_station_prediction_per_day(
+        daily_result = get_latest_station_prediction_mat_view(
             session, active_station_codes, day_start, day_end)
         for timestamp, model_abbrev, station_code, rh, temp, bias_adjusted_temp, bias_adjusted_rh, precip_24hours, wind_dir, wind_speed, update_date in daily_result:
 
