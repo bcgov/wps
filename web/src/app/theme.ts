@@ -93,24 +93,6 @@ export const PLANNING_AREA = {
 }
 export const UNSELECTED_STATION_COLOR = 'rgba(0,0,0,0.54)'
 
-export const fireTableStyles = createStyles({
-  defaultBackground: BACKGROUND_COLOR,
-  controls: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'baseline'
-  },
-  noBottomBorder: {
-    borderBottom: 'none'
-  },
-  leftBorder: {
-    borderLeft: '1px solid #C4C4C4'
-  },
-  tableColumnHeader: {
-    fontWeight: 'bold'
-  }
-})
-
 export const formControlStyles = createStyles({
   formControl: {
     margin: theme.spacing(1),

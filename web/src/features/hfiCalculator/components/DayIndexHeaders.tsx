@@ -9,7 +9,7 @@ export interface DayIndexHeadersProps {
 const ROSDayIndexHeaderCell = styled(TableCell, {
   shouldForwardProp: prop => prop !== 'showBorder'
 })<{ showBorder: boolean }>(({ showBorder }) => ({
-  borderLeft: showBorder ? '1px solid #C4C4C4' : undefined
+  borderLeft: showBorder ? '1px solid #c4c4c4' : undefined
 }))
 
 const DayIndexHeaders = (props: DayIndexHeadersProps) => {
