@@ -22,8 +22,7 @@ import {
   selectAuthentication,
   selectHFIReadyState
 } from 'app/rootReducer'
-import { FormControl } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { FormControl, styled } from '@mui/material'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { FireCentre } from 'api/hfiCalculatorAPI'
@@ -38,54 +37,30 @@ import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin
 import { ROLES } from 'features/auth/roles'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
 import { HFI_CALC_DOC_TITLE, HFI_CALC_NAME } from 'utils/constants'
+import { theme } from 'app/theme'
+import { StyledFormControl } from 'components/StyledFormControl'
 
-const useStyles = makeStyles(theme => ({
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    flexDirection: 'column',
-    marginBottom: theme.spacing(3)
-  },
-  controlContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    flexDirection: 'row',
-    margin: theme.spacing(1),
-    minWidth: 210
-  },
-  actionButtonContainer: {
-    marginLeft: 'auto',
-    display: 'flex',
-    alignItems: 'center',
-    flexDirection: 'row'
-  },
-  helpIcon: {
-    fill: theme.palette.primary.main
-  },
-  copyToClipboardInfoIcon: {
-    marginLeft: '3px'
-  },
-  clipboardIcon: {
-    marginRight: '3px'
-  },
-  aboutButtonText: {
-    color: theme.palette.primary.main,
-    textDecoration: 'underline',
-    fontWeight: 'bold'
-  },
-  positionStyler: {
-    position: 'absolute',
-    right: '20px'
-  },
-  prepDays: {
-    margin: theme.spacing(1),
-    minWidth: 100
-  }
-}))
+export const HFIPageContainer = styled(Container)({
+  display: 'flex',
+  justifyContent: 'center',
+  flexDirection: 'column',
+  marginBottom: theme.spacing(3)
+})
+
+export const HFIFormControlContainer = styled(StyledFormControl)({
+  display: 'flex',
+  alignItems: 'center',
+  flexDirection: 'row'
+})
+
+export const ActionButtonControlContainer = styled(FormControl)({
+  marginLeft: 'auto',
+  display: 'flex',
+  alignItems: 'center',
+  flexDirection: 'row'
+})
 
 const HfiCalculatorPage: React.FunctionComponent = () => {
-  const classes = useStyles()
-
   const dispatch: AppDispatch = useDispatch()
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
   const { fireCentres, error: fireCentresError } = useSelector(selectHFIStations)
@@ -288,7 +263,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         selectNewFireCentre={selectNewFireCentre}
         padding="1rem"
       />
-      <Container maxWidth={false} className={classes.container}>
+      <HFIPageContainer maxWidth={false}>
         <HFILoadingDataContainer
           pdfLoading={pdfLoading}
           fuelTypesLoading={fuelTypesLoading}
@@ -302,7 +277,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         >
           <React.Fragment>
             <HFISuccessAlert />
-            <FormControl className={classes.controlContainer}>
+            <HFIFormControlContainer>
               <ViewSwitcherToggles dateRange={dateRange} selectedPrepDate={selectedPrepDate} />
               <LastUpdatedHeader
                 dailies={result?.planning_area_hfi_results.flatMap(areaResult =>
@@ -311,7 +286,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                   )
                 )}
               />
-              <FormControl className={classes.actionButtonContainer}>
+              <ActionButtonControlContainer>
                 {!isUndefined(result) && roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && (
                   <ManageStationsButton
                     planningAreas={
@@ -321,8 +296,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
                   />
                 )}
                 <DownloadPDFButton onClick={handleDownloadClicked} />
-              </FormControl>
-            </FormControl>
+              </ActionButtonControlContainer>
+            </HFIFormControlContainer>
 
             <ErrorBoundary>
               {isUndefined(result) ? (
@@ -342,7 +317,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             </ErrorBoundary>
           </React.Fragment>
         </HFILoadingDataContainer>
-      </Container>
+      </HFIPageContainer>
     </main>
   )
 }
