@@ -59,6 +59,12 @@ export const TableCellLeftBorder = styled(TableCell)({
   borderLeft: '1px solid #c4c4c4'
 })
 
+export const DataTableCell = styled(TableCell)({
+  height: '40px',
+  paddingLeft: '8px',
+  paddingRight: '8px'
+})
+
 export const NonStickyHeaderCell = styled(TableCell)({
   zIndex: 11 + theme.zIndex.appBar
 })

@@ -41,6 +41,7 @@ import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import { StyledFormControl } from 'components/StyledFormControl'
+import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningArea'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -401,7 +402,7 @@ const FBATable = (props: FBATableProps) => {
 
   const getGrassCureCell = (row: FBATableRow) => {
     return (
-      <TableCell className={classes.dataRow}>
+      <DataTableCell>
         <GrassCureCell
           inputRows={rows}
           updateRow={updateRow}
@@ -410,7 +411,7 @@ const FBATable = (props: FBATableProps) => {
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
           rowId={row.id}
         />
-      </TableCell>
+      </DataTableCell>
     )
   }
 
@@ -424,7 +425,7 @@ const FBATable = (props: FBATableProps) => {
 
   const getWindSpeedCell = (row: FBATableRow) => {
     return (
-      <TableCell className={classes.dataRow}>
+      <DataTableCell>
         <WindSpeedCell
           inputRows={rows}
           updateRow={updateRow}
@@ -433,7 +434,7 @@ const FBATable = (props: FBATableProps) => {
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row) && !isWindSpeedInvalid(row.windSpeed)}
           rowId={row.id}
         />
-      </TableCell>
+      </DataTableCell>
     )
   }
 
