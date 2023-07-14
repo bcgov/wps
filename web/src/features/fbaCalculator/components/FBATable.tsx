@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { difference, filter, findIndex, isEmpty, isEqual, isUndefined } from 'lodash'
-import { FormControl, TableBody, TableCell, TableRow } from '@mui/material'
+import { TableBody, TableCell, TableRow } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import GetAppIcon from '@mui/icons-material/GetApp'
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
@@ -37,10 +37,10 @@ import FBATableHead from 'features/fbaCalculator/components/FBATableHead'
 import FireTable from 'components/FireTable'
 import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
 import FilterColumnsModal from 'components/FilterColumnsModal'
-import { formControlStyles } from 'app/theme'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
+import { StyledFormControl } from 'components/StyledFormControl'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -61,7 +61,6 @@ export interface FBAInputRow {
 }
 
 const useStyles = makeStyles(() => ({
-  ...formControlStyles,
   weatherStation: {
     minWidth: 220
   },
@@ -558,15 +557,15 @@ const FBATable = (props: FBATableProps) => {
       {stationsError ||
         (fbaResultsError && <ErrorAlert stationsError={stationsError} fbaResultsError={fbaResultsError} />)}
       <ErrorBoundary>
-        <FormControl className={classes.formControl}>
+        <StyledFormControl>
           <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
-        </FormControl>
-        <FormControl className={classes.formControl}>
+        </StyledFormControl>
+        <StyledFormControl>
           <Button data-testid="add-row" variant="contained" color="primary" spinnercolor="white" onClick={addStation}>
             Add Row
           </Button>
-        </FormControl>
-        <FormControl className={classes.formControl}>
+        </StyledFormControl>
+        <StyledFormControl>
           <Button
             data-testid="remove-rows"
             disabled={rows.length === 0}
@@ -577,14 +576,14 @@ const FBATable = (props: FBATableProps) => {
           >
             Remove Row(s)
           </Button>
-        </FormControl>
-        <FormControl className={classes.formControl}>
+        </StyledFormControl>
+        <StyledFormControl>
           <Button data-testid="export" disabled={selected.length === 0} onClick={exportSelectedRows}>
             <GetAppIcon />
             Export Selection
           </Button>
-        </FormControl>
-        <FormControl className={classes.formControl}>
+        </StyledFormControl>
+        <StyledFormControl>
           <Button
             data-testid="filter-columns-btn"
             disabled={fireBehaviourResultStations.length === 0}
@@ -593,7 +592,7 @@ const FBATable = (props: FBATableProps) => {
             <ViewColumnOutlinedIcon />
             Columns
           </Button>
-        </FormControl>
+        </StyledFormControl>
 
         <FilterColumnsModal
           modalOpen={modalOpen}

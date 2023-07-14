@@ -1,5 +1,4 @@
 import { createTheme } from '@mui/material/styles'
-import createStyles from '@mui/styles/createStyles'
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
@@ -92,10 +91,3 @@ export const PLANNING_AREA = {
   height: 45
 }
 export const UNSELECTED_STATION_COLOR = 'rgba(0,0,0,0.54)'
-
-export const formControlStyles = createStyles({
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 210
-  }
-})

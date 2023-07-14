@@ -26,7 +26,6 @@ import { FormControl } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
-import { formControlStyles } from 'app/theme'
 import { FireCentre } from 'api/hfiCalculatorAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
 import { isNull, isUndefined } from 'lodash'
@@ -41,7 +40,6 @@ import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHead
 import { HFI_CALC_DOC_TITLE, HFI_CALC_NAME } from 'utils/constants'
 
 const useStyles = makeStyles(theme => ({
-  ...formControlStyles,
   container: {
     display: 'flex',
     justifyContent: 'center',

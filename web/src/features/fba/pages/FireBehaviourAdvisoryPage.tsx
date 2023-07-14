@@ -14,7 +14,7 @@ import {
 } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
-import { formControlStyles, theme } from 'app/theme'
+import { theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { FireCenter, FireZone } from 'api/fbaAPI'
@@ -29,6 +29,7 @@ import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
+import { StyledFormControl } from 'components/StyledFormControl'
 
 export enum RunType {
   FORECAST = 'FORECAST',
@@ -36,7 +37,6 @@ export enum RunType {
 }
 
 const useStyles = makeStyles(() => ({
-  ...formControlStyles,
   listContainer: {
     width: 700,
     height: 700
@@ -164,9 +164,9 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         <Grid container direction={'row'}>
           <Grid container spacing={1}>
             <Grid item>
-              <FormControl className={classes.formControl}>
+              <StyledFormControl>
                 <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
-              </FormControl>
+              </StyledFormControl>
             </Grid>
             <Grid item xs={2}>
               <FormControl className={classes.fireCenter}>
@@ -190,7 +190,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               </Grid>
             </ErrorBoundary>
             <Grid item>
-              <FormControl className={classes.formControl}>
+              <StyledFormControl>
                 <FormControlLabel
                   label="
                   Percentage of combustible land threshold"
@@ -202,7 +202,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                     />
                   }
                 />
-              </FormControl>
+              </StyledFormControl>
             </Grid>
           </Grid>
         </Grid>
