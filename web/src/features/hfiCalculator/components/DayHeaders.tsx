@@ -1,8 +1,13 @@
 import { Table, TableBody, TableCell, TableRow } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { fireTableStyles } from 'app/theme'
-import StickyCell from 'components/StickyCell'
-import { SpaceHeaderTableCell, StickyCellRightBorderOnly } from 'features/hfiCalculator/components/StyledPlanningArea'
+import {
+  NoBottomBorderCell,
+  SpaceHeaderTableCell,
+  StickyCellNoBottomBorder,
+  StickyCellRightBorderOnly,
+  TableCellLeftBorder
+} from 'features/hfiCalculator/components/StyledPlanningArea'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { calculateNumPrepDays } from 'features/hfiCalculator/util'
 import { isUndefined, range } from 'lodash'
@@ -35,7 +40,7 @@ const DayHeaders = (props: DayHeadersProps) => {
   return (
     <React.Fragment>
       {/* Non-day specific headers */}
-      <StickyCell left={0} zIndexOffset={11} colSpan={2} className={classes.noBottomBorder}>
+      <StickyCellNoBottomBorder left={0} zIndexOffset={11} colSpan={2}>
         <Table>
           <TableBody>
             <TableRow>
@@ -43,13 +48,13 @@ const DayHeaders = (props: DayHeadersProps) => {
             </TableRow>
           </TableBody>
         </Table>
-      </StickyCell>
+      </StickyCellNoBottomBorder>
       <SpaceHeaderTableCell></SpaceHeaderTableCell>
       <StickyCellRightBorderOnly left={227} colSpan={2} zIndexOffset={11}>
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell className={classes.noBottomBorder}></TableCell>
+              <NoBottomBorderCell></NoBottomBorderCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -64,7 +69,7 @@ const DayHeaders = (props: DayHeadersProps) => {
           {start.plus({ days: i }).toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })}
         </TableCell>
       ))}
-      <TableCell className={`${classes.leftBorder} ${classes.noBottomBorder}`}></TableCell>
+      <TableCellLeftBorder />
     </React.Fragment>
   )
 }

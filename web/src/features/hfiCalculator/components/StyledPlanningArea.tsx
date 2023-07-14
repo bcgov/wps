@@ -55,13 +55,20 @@ export const SpaceHeaderTableCell = styled(TableCell)({
   border: 'none'
 })
 
+export const TableCellLeftBorder = styled(TableCell)({
+  borderLeft: '1px solid #c4c4c4'
+})
+
 export const NonStickyHeaderCell = styled(TableCell)({
   zIndex: 11 + theme.zIndex.appBar
 })
 
-export const StickyCellRightBorderOnly = styled(StickyCell)({
-  borderRight: '1px solid #c4c4c4',
+export const StickyCellNoBottomBorder = styled(StickyCell)({
   borderBottom: 'none'
+})
+
+export const StickyCellRightBorderOnly = styled(StickyCellNoBottomBorder)({
+  borderRight: '1px solid #c4c4c4'
 })
 
 export const StickyCellRightBorderDefaultBackground = styled(StickyCell)({

@@ -1,26 +1,24 @@
-import { Table, TableBody, TableCell, TableRow } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { fireTableStyles } from 'app/theme'
+import { Table, TableBody, TableRow, styled } from '@mui/material'
 import StickyCell from 'components/StickyCell'
-import { NonStickyHeaderCell, StickyCellRightBorderOnly } from 'features/hfiCalculator/components/StyledPlanningArea'
+import {
+  NoBottomBorderCell,
+  NonStickyHeaderCell,
+  StickyCellRightBorderOnly
+} from 'features/hfiCalculator/components/StyledPlanningArea'
 import React, { ReactElement } from 'react'
 
-const useStyles = makeStyles({
-  ...fireTableStyles
+export const TableColumnHeaderCell = styled(NoBottomBorderCell)({
+  fontWeight: 'bold'
 })
 
 export const StationDataHeaderCells = (): ReactElement => {
-  const classes = useStyles()
-
   return (
     <React.Fragment>
       <StickyCell left={50} zIndexOffset={12}>
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell key="header-location" className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}>
-                Location
-              </TableCell>
+              <TableColumnHeaderCell>Location</TableColumnHeaderCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -34,9 +32,7 @@ export const StationDataHeaderCells = (): ReactElement => {
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell key="header-fuel-type" className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}>
-                FBP Fuel Type
-              </TableCell>
+              <TableColumnHeaderCell key="header-fuel-type">FBP Fuel Type</TableColumnHeaderCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -45,13 +41,13 @@ export const StationDataHeaderCells = (): ReactElement => {
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell className={`${classes.noBottomBorder} ${classes.tableColumnHeader}`}>
+              <TableColumnHeaderCell>
                 Grass
                 <br />
                 Cure
                 <br />
                 (%)
-              </TableCell>
+              </TableColumnHeaderCell>
             </TableRow>
           </TableBody>
         </Table>

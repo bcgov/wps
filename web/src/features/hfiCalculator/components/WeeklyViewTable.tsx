@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { FireCentre, FuelType } from 'api/hfiCalculatorAPI'
 import FireTable from 'components/FireTable'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
@@ -9,7 +8,7 @@ import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
 import CalculatedPlanningAreaCells from 'features/hfiCalculator/components/CalculatedPlanningAreaCells'
 import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
-import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
+import { BACKGROUND_COLOR } from 'app/theme'
 import { isEmpty, isUndefined, sortBy } from 'lodash'
 import {
   calculateNumPrepDays,
@@ -33,12 +32,14 @@ import PlanningAreaReadyToggle from 'features/hfiCalculator/components/PlanningA
 import { AppDispatch } from 'app/store'
 import { fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 import {
+  NoBottomBorderCell,
   PlanningAreaTableCellNoBottomBorder,
   PlanningAreaTableCellNonSticky,
   PlanningAreaTableRow,
   SectionSeparatorBorderTableCell,
   SpaceHeaderTableCell,
   StationPlainStylingRow,
+  StickyCellNoBottomBorder,
   StickyCellRightBorderDefaultBackground,
   UnSelectedTableRow
 } from 'features/hfiCalculator/components/StyledPlanningArea'
@@ -53,12 +54,7 @@ export interface Props {
   fuelTypes: FuelType[]
 }
 
-const useStyles = makeStyles({
-  ...fireTableStyles
-})
-
 export const WeeklyViewTable = (props: Props): JSX.Element => {
-  const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
 
   const { result } = useSelector(selectHFICalculatorState)
@@ -96,17 +92,17 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           <SpaceHeaderTableCell colSpan={2}></SpaceHeaderTableCell>
         </TableRow>
         <TableRow>
-          <StickyCell left={0} zIndexOffset={12} className={classes.noBottomBorder}>
+          <StickyCellNoBottomBorder left={0} zIndexOffset={12}>
             <Table>
               <TableBody>
                 <TableRow>
-                  <TableCell className={classes.noBottomBorder}>
+                  <NoBottomBorderCell>
                     {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
-                  </TableCell>
+                  </NoBottomBorderCell>
                 </TableRow>
               </TableBody>
             </Table>
-          </StickyCell>
+          </StickyCellNoBottomBorder>
           <StationDataHeaderCells />
           <DayIndexHeaders numPrepDays={numPrepDays} />
           <SectionSeparatorBorderTableCell>
@@ -154,7 +150,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           <Table>
                             <TableBody>
                               <TableRow>
-                                <TableCell className={classes.noBottomBorder}>
+                                <NoBottomBorderCell>
                                   {area.name}
                                   <PlanningAreaReadyToggle
                                     enabled={roles.includes(ROLES.HFI.SET_READY_STATE) && isAuthenticated}
@@ -162,7 +158,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                     readyDetails={planningAreaReadyDetails[area.id]}
                                     toggleReady={toggleReady}
                                   />
-                                </TableCell>
+                                </NoBottomBorderCell>
                               </TableRow>
                             </TableBody>
                           </Table>
