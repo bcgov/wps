@@ -166,14 +166,14 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       const height = navRef.current.clientHeight
       setNavRefHeight(height)
     } // eslint-disable-line react-hooks/exhaustive-deps
-  })
+  }, [navRef.current?.clientHeight])
 
   useEffect(() => {
     if (formControlRef.current) {
       const height = formControlRef.current.clientHeight
       setFormControlHeight(height)
     } // eslint-disable-line react-hooks/exhaustive-deps
-  })
+  }, [formControlRef.current?.clientHeight])
 
   useEffect(() => {
     if (mapRef.current && formControlHeight && navRefHeight) {
