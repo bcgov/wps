@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { difference, filter, findIndex, isEmpty, isEqual, isUndefined } from 'lodash'
 import { TableBody, TableCell, TableRow } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import GetAppIcon from '@mui/icons-material/GetApp'
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
 import { CsvBuilder } from 'filefy'
@@ -61,27 +60,6 @@ export interface FBAInputRow {
   windSpeed: number | undefined
 }
 
-const useStyles = makeStyles(() => ({
-  weatherStation: {
-    minWidth: 220
-  },
-  fuelType: {
-    minWidth: 220
-  },
-  grassCure: {
-    width: 80
-  },
-  adjustedValueCell: {
-    fontWeight: 'bold',
-    color: '#460270'
-  },
-  dataRow: {
-    height: '40px',
-    paddingLeft: '8px',
-    paddingRight: '8px'
-  }
-}))
-
 export type ColumnLabel =
   | 'Zone'
   | 'Weather Station'
@@ -140,7 +118,6 @@ const tableColumnLabels: ColumnLabel[] = [
 ]
 
 const FBATable = (props: FBATableProps) => {
-  const classes = useStyles()
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch: AppDispatch = useDispatch()
@@ -375,7 +352,6 @@ const FBATable = (props: FBATableProps) => {
           stationOptions={stationMenuOptions}
           inputRows={rows}
           updateRow={updateRow}
-          classNameMap={classes}
           value={row.weatherStation}
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
           rowId={row.id}
@@ -391,7 +367,6 @@ const FBATable = (props: FBATableProps) => {
           fuelTypeOptions={fuelTypeMenuOptions}
           inputRows={rows}
           updateRow={updateRow}
-          classNameMap={classes}
           value={row.fuelType}
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
           rowId={row.id}
@@ -406,7 +381,6 @@ const FBATable = (props: FBATableProps) => {
         <GrassCureCell
           inputRows={rows}
           updateRow={updateRow}
-          classNameMap={classes}
           value={row.grassCure}
           disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
           rowId={row.id}
