@@ -45,23 +45,23 @@ const ZoneSummaryPanel = React.forwardRef((props: Props, ref: React.ForwardedRef
     return (
       <Container ref={ref} className={`${props.className} ${classes.wrapper}`}>
         <Grid container alignItems={'center'} direction={'column'}>
-          <div>
+          <Grid item>
             <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
             <Typography className={classes.centreName}>{props.selectedFireZone.mof_fire_centre_name}</Typography>
-          </div>
-          <div>
+          </Grid>
+          <Grid item>
             <CombustibleAreaViz
               fireZoneAreas={props.fireZoneAreas.filter(
                 area => area.mof_fire_zone_id == props.selectedFireZone?.mof_fire_zone_id
               )}
             />
-          </div>
-          <div>
+          </Grid>
+          <Grid item>
             <FuelTypesBreakdown selectedFireZone={props.selectedFireZone} fuelTypeInfo={props.fuelTypeInfo} />
-          </div>
-          <div>
+          </Grid>
+          <Grid item>
             <ElevationInfoViz selectedFireZone={props.selectedFireZone} hfiElevationInfo={props.hfiElevationInfo} />
-          </div>
+          </Grid>
         </Grid>
       </Container>
     )
