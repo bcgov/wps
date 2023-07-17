@@ -20,7 +20,7 @@ export interface LoggedInStatusProps {
 
 const LoggedInStatus = ({ isAuthenticated, roles, idir }: LoggedInStatusProps) => {
   if (!isAuthenticated) {
-    return <React.Fragment></React.Fragment>
+    return <div></div>
   }
 
   if (isAuthenticated && isEmpty(roles)) {
