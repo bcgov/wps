@@ -20,36 +20,29 @@ import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import { isForecastRowPredicate, getRowsToSave, isForecastValid } from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 
-const PREFIX = 'TabbedDataGrid'
+export const Root = styled('div')({
+  display: 'flex',
+  flexGrow: 1,
+  flexDirection: 'column'
+})
 
-const classes = {
-  button: `${PREFIX}-button`,
-  formControl: `${PREFIX}-formControl`,
-  root: `${PREFIX}-root`,
-  saveButton: `${PREFIX}-saveButton`
-}
-
-const Root = styled('div')(({ theme }) => ({
-  [`& .${classes.button}`]: {
-    marginLeft: theme.spacing(1)
-  },
-
-  [`& .${classes.formControl}`]: {
-    minWidth: 280,
-    margin: theme.spacing(1)
-  },
-
-  [`& .${classes.root}`]: {
-    display: 'flex',
-    flexGrow: 1,
-    flexDirection: 'column'
-  },
-
-  [`& .${classes.saveButton}`]: {
-    position: 'absolute',
-    right: theme.spacing(2)
-  }
+export const SaveButton = styled(SaveForecastButton)(({ theme }) => ({
+  position: 'absolute',
+  right: theme.spacing(2)
 }))
+
+// const Root = styled('div')(({ theme }) => ({
+//   [`& .${classes.root}`]: {
+//     display: 'flex',
+//     flexGrow: 1,
+//     flexDirection: 'column'
+//   },
+
+//   [`& .${classes.saveButton}`]: {
+//     position: 'absolute',
+//     right: theme.spacing(2)
+//   }
+// }))
 
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved and sent to Wildfire One.'
@@ -313,8 +306,7 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
   return (
     <Root>
       <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
-      <SaveForecastButton
-        className={classes.saveButton}
+      <SaveButton
         enabled={
           isAuthenticated &&
           roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
@@ -325,39 +317,25 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         onClick={handleSaveClick}
       />
       <List component={Stack} direction="row">
-        <SelectableButton
-          className={classes.button}
-          onClick={() => setTempVisible(!tempVisible)}
-          selected={tempVisible}
-        >
+        <SelectableButton onClick={() => setTempVisible(!tempVisible)} selected={tempVisible}>
           Temp
         </SelectableButton>
-        <SelectableButton className={classes.button} onClick={() => setRhVisible(!rhVisible)} selected={rhVisible}>
+        <SelectableButton onClick={() => setRhVisible(!rhVisible)} selected={rhVisible}>
           RH
         </SelectableButton>
-        <SelectableButton
-          className={classes.button}
-          onClick={() => setPrecipVisible(!precipVisible)}
-          selected={precipVisible}
-        >
+        <SelectableButton onClick={() => setPrecipVisible(!precipVisible)} selected={precipVisible}>
           Precip
         </SelectableButton>
         <SelectableButton
-          className={classes.button}
           onClick={() => setWindDirectionVisible(!windDirectionVisible)}
           selected={windDirectionVisible}
         >
           Wind Direction
         </SelectableButton>
-        <SelectableButton
-          className={classes.button}
-          onClick={() => setWindSpeedVisible(!windSpeedVisible)}
-          selected={windSpeedVisible}
-        >
+        <SelectableButton onClick={() => setWindSpeedVisible(!windSpeedVisible)} selected={windSpeedVisible}>
           Wind Speed
         </SelectableButton>
         <SelectableButton
-          className={classes.button}
           onClick={() => setForecastSummaryVisible(!forecastSummaryVisible)}
           selected={forecastSummaryVisible}
         >

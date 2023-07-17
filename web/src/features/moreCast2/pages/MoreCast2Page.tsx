@@ -16,47 +16,36 @@ import { getWeatherIndeterminates, selectAllMoreCast2Rows } from 'features/moreC
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 import { selectedStationsChanged } from 'features/moreCast2/slices/selectedStationsSlice'
 
-const PREFIX = 'MoreCast2Page'
+export const Root = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: '100vh',
+  overflow: 'hidden'
+})
 
-const classes = {
-  content: `${PREFIX}-content`,
-  observations: `${PREFIX}-observations`,
-  root: `${PREFIX}-root`,
-  sidePanel: `${PREFIX}-sidePanel`
-}
+export const SidePanel = styled('div')({
+  borderRight: '1px solid black',
+  display: 'flex',
+  minWidth: '375px',
+  overflowX: 'hidden',
+  overflowY: 'auto',
+  width: '375px'
+})
 
-const Root = styled('div')(({ theme }) => ({
-  [`& .${classes.content}`]: {
-    borderTop: '1px solid black',
-    display: 'flex',
-    flexGrow: 1,
-    maxHeight: 'calc(100vh - 71.5px)',
-    overflow: 'hidden'
-  },
+export const Content = styled('div')({
+  borderTop: '1px solid black',
+  display: 'flex',
+  flexGrow: 1,
+  maxHeight: 'calc(100vh - 71.5px)',
+  overflow: 'hidden'
+})
 
-  [`& .${classes.observations}`]: {
-    display: 'flex',
-    flexDirection: 'column',
-    flexGrow: 1,
-    marginTop: theme.spacing(2),
-    overflowX: 'auto'
-  },
-
-  [`&.${classes.root}`]: {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-    overflow: 'hidden'
-  },
-
-  [`& .${classes.sidePanel}`]: {
-    borderRight: '1px solid black',
-    display: 'flex',
-    minWidth: '375px',
-    overflowX: 'hidden',
-    overflowY: 'auto',
-    width: '375px'
-  }
+export const Observations = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  flexGrow: 1,
+  marginTop: theme.spacing(2),
+  overflowX: 'auto'
 }))
 
 const MoreCast2Page = () => {
@@ -117,10 +106,10 @@ const MoreCast2Page = () => {
   }, [fromTo.startDate, fromTo.endDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Root className={classes.root} data-testid="more-cast-2-page">
+    <Root data-testid="more-cast-2-page">
       <GeneralHeader isBeta={true} spacing={0.985} title={MORE_CAST_2_NAME} productName={MORE_CAST_2_NAME} />
-      <div className={classes.content}>
-        <div className={classes.sidePanel}>
+      <Content>
+        <SidePanel>
           <StationPanel
             idir={idir}
             loading={groupsLoading}
@@ -129,16 +118,16 @@ const MoreCast2Page = () => {
             setSelectedStationGroup={setSelectedStationGroup}
             stationGroupMembers={selectedGroupsMembers}
           />
-        </div>
-        <div className={classes.observations}>
+        </SidePanel>
+        <Observations>
           <TabbedDataGrid
             morecast2Rows={sortedMoreCast2Rows}
             fetchWeatherIndeterminates={fetchWeatherIndeterminates}
             fromTo={fromTo}
             setFromTo={setFromTo}
           />
-        </div>
-      </div>
+        </Observations>
+      </Content>
     </Root>
   )
 }
