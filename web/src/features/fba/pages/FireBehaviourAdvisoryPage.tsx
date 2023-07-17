@@ -1,7 +1,7 @@
 import { FormControl, FormControlLabel, Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GeneralHeader, Container, ErrorBoundary } from 'components'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
@@ -37,10 +37,6 @@ export enum RunType {
 
 const useStyles = makeStyles(() => ({
   ...formControlStyles,
-  listContainer: {
-    width: 700,
-    height: 700
-  },
   fireCenter: {
     minWidth: 280,
     margin: theme.spacing(1)
@@ -48,6 +44,11 @@ const useStyles = makeStyles(() => ({
   flex: {
     display: 'flex',
     flex: 1
+  },
+  scrollablePanel: {
+    overflowY: 'auto',
+    maxHeight: '100vh',
+    padding: 0
   },
   forecastActualDropdown: {
     minWidth: 280,
@@ -60,7 +61,8 @@ const useStyles = makeStyles(() => ({
   root: {
     height: '100vh',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    overflow: 'hidden'
   }
 }))
 
@@ -152,17 +154,49 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     document.title = ASA_DOC_TITLE
   }, [])
 
+  const formControlRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<HTMLDivElement>(null)
+  const navRef = useRef<HTMLDivElement>(null)
+  const sidePanelRef = useRef<HTMLDivElement>(null)
+  const [formControlHeight, setFormControlHeight] = useState<number>(0)
+  const [navRefHeight, setNavRefHeight] = useState<number>(0)
+
+  useEffect(() => {
+    if (navRef.current) {
+      setNavRefHeight(navRef.current.clientHeight)
+    }
+  }, [navRef.current?.clientHeight])
+
+  useEffect(() => {
+    if (formControlRef.current) {
+      setFormControlHeight(formControlRef.current.clientHeight)
+    }
+  }, [formControlRef.current?.clientHeight])
+
+  useEffect(() => {
+    const sidePanelElement = sidePanelRef.current
+    const mapElement = mapRef.current
+    if (sidePanelElement && mapElement && formControlHeight && navRefHeight) {
+      const height = `calc(100vh - ${formControlHeight + navRefHeight}px)`
+      sidePanelElement.style.height = height
+      mapElement.style.height = height
+    }
+  })
+
   return (
     <div className={classes.root}>
-      <GeneralHeader
-        isBeta={true}
-        spacing={1}
-        title={FIRE_BEHAVIOUR_ADVISORY_NAME}
-        productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
-      />
+      <Container disableGutters maxWidth={'xl'}>
+        <GeneralHeader
+          ref={navRef}
+          isBeta={true}
+          spacing={1}
+          title={FIRE_BEHAVIOUR_ADVISORY_NAME}
+          productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
+        />
+      </Container>
       <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
-          <Grid container spacing={1}>
+          <Grid container spacing={1} ref={formControlRef}>
             <Grid item>
               <FormControl className={classes.formControl}>
                 <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
@@ -211,13 +245,15 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         <Grid className={classes.flex} container direction={'row'}>
           <Grid item>
             <ZoneSummaryPanel
+              ref={sidePanelRef}
               selectedFireZone={selectedFireZone}
               fuelTypeInfo={hfiThresholdsFuelTypes}
               hfiElevationInfo={fireZoneElevationInfo}
               fireZoneAreas={fireZoneAreas}
+              className={classes.scrollablePanel}
             />
           </Grid>
-          <Grid className={classes.flex} item>
+          <Grid className={classes.flex} ref={mapRef} item>
             <FBAMap
               forDate={dateOfInterest}
               runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
