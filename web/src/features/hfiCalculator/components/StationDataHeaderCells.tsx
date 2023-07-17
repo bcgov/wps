@@ -37,7 +37,7 @@ export const StationDataHeaderCells = (): ReactElement => {
           </TableBody>
         </Table>
       </StickyCell>
-      <StickyCellRightBorderOnly left={355} zIndexOffset={12}>
+      <StickyCellRightBorderOnly left={351} zIndexOffset={12}>
         <Table>
           <TableBody>
             <TableRow>

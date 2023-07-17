@@ -17,7 +17,9 @@ export const PlanningAreaTableCellNonSticky = styled(PlanningAreaTableCell)(({ t
   zIndex: 11 + theme.zIndex.appBar
 }))
 
-export const PlanningAreaTableCellNoBottomBorder = styled(PlanningAreaTableCell)({
+export const PlanningAreaTableCellNoBottomBorder = styled(TableCell, {
+  name: 'PlanningAreaCellNoBottomBorder'
+})({
   borderBottom: 'none'
 })
 
@@ -78,8 +80,7 @@ export const StickyCellRightBorderOnly = styled(StickyCellNoBottomBorder)({
   borderRight: '1px solid #c4c4c4'
 })
 
-export const StickyCellRightBorderDefaultBackground = styled(StickyCell)({
-  borderRight: '1px solid #c4c4c4',
+export const StickyCellRightBorderDefaultBackground = styled(StickyCellRightBorderOnly)({
   ...BACKGROUND_COLOR
 })
 

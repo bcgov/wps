@@ -9,16 +9,20 @@ interface FireCentreCellProps {
   testId?: string
 }
 
-export const StyledFireCentreCell = styled(FireCell)({
+export const StyledFireCentreCell = styled(FireCell, { name: 'FireCentreCell' })({
   height: 45,
   fontSize: 16,
   fontWeight: 'bold',
   borderBottom: 'none'
 })
 
+const FireCentreStickyCell = styled(StickyCell, { name: 'FireCentreStickyCell' })({
+  padding: 0
+})
+
 const FireCentreCell = (props: FireCentreCellProps) => {
   return (
-    <StickyCell left={0} zIndexOffset={10} colSpan={4} data-testid={props.testId}>
+    <FireCentreStickyCell left={0} zIndexOffset={10} colSpan={4} data-testid={props.testId}>
       <Table>
         <TableBody>
           <TableRow>
@@ -26,7 +30,7 @@ const FireCentreCell = (props: FireCentreCellProps) => {
           </TableRow>
         </TableBody>
       </Table>
-    </StickyCell>
+    </FireCentreStickyCell>
   )
 }
 
