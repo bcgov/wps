@@ -24,19 +24,23 @@ export interface BaseStationAttributeCellsProps {
   isSetFuelTypeEnabled: boolean
 }
 
-const NoBottomBorderTableCell = styled(TableCell)((props: Pick<BaseStationAttributeCellsProps, 'isRowSelected'>) => ({
-  minWidth: 120,
-  borderBottom: 'none',
-  color: !props.isRowSelected ? UNSELECTED_STATION_COLOR : undefined
-}))
+const NoBottomBorderTableCell = styled(TableCell, { shouldForwardProp: prop => prop !== 'isRowSelected' })(
+  (props: Pick<BaseStationAttributeCellsProps, 'isRowSelected'>) => ({
+    minWidth: 120,
+    borderBottom: 'none',
+    color: !props.isRowSelected ? UNSELECTED_STATION_COLOR : undefined
+  })
+)
 
 const StationNameTableCell = styled(NoBottomBorderTableCell)({
   minWidth: 180
 })
 
-const SelectedTableCell = styled(TableCell)((props: Pick<BaseStationAttributeCellsProps, 'isRowSelected'>) => ({
-  color: !props.isRowSelected ? UNSELECTED_STATION_COLOR : undefined
-}))
+const SelectedTableCell = styled(TableCell, { shouldForwardProp: prop => prop !== 'isRowSelected' })(
+  (props: Pick<BaseStationAttributeCellsProps, 'isRowSelected'>) => ({
+    color: !props.isRowSelected ? UNSELECTED_STATION_COLOR : undefined
+  })
+)
 
 export const RightBorderStickyCell = styled(StickyCell)({
   borderRight: '1px solid #c4c4c4'
