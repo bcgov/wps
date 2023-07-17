@@ -40,8 +40,8 @@ const SidebarContainer = styled('div', {
   flexGrow: 1,
   overflowY: 'auto',
   [theme.breakpoints.up('sm')]: {
-    minWidth: '260px',
-    maxWidth: '264px',
+    minWidth: '251px',
+    maxWidth: '251px',
     width: '251px'
   }
 })
