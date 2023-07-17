@@ -58,11 +58,12 @@ interface Props {
   title: string
 }
 
-export const GeneralHeader: React.FunctionComponent<Props> = (props: Props) => {
+export const GeneralHeader = React.forwardRef((props: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
   const { title, productName, spacing } = props
+  GeneralHeader.displayName = 'GeneralHeader'
 
   return (
-    <Root className={classes.root}>
+    <Root ref={ref} className={classes.root}>
       <OptionalContainer className={classes.container}>
         <div className={classes.titleWrapper}>
           <HeaderImage />
@@ -74,4 +75,4 @@ export const GeneralHeader: React.FunctionComponent<Props> = (props: Props) => {
       </OptionalContainer>
     </Root>
   )
-}
+})

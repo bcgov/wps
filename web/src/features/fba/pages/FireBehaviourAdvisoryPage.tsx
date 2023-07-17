@@ -1,6 +1,6 @@
 import { Box, FormControl, FormControlLabel, Grid, styled } from '@mui/material'
 import { GeneralHeader, Container, ErrorBoundary } from 'components'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from 'components/FireCenterDropdown'
 import { DateTime } from 'luxon'
@@ -131,6 +131,35 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     document.title = ASA_DOC_TITLE
   }, [])
 
+  const formControlRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<HTMLDivElement>(null)
+  const navRef = useRef<HTMLDivElement>(null)
+  const sidePanelRef = useRef<HTMLDivElement>(null)
+  const [formControlHeight, setFormControlHeight] = useState<number>(0)
+  const [navRefHeight, setNavRefHeight] = useState<number>(0)
+
+  useEffect(() => {
+    if (navRef.current) {
+      setNavRefHeight(navRef.current.clientHeight)
+    }
+  }, [navRef.current?.clientHeight])
+
+  useEffect(() => {
+    if (formControlRef.current) {
+      setFormControlHeight(formControlRef.current.clientHeight)
+    }
+  }, [formControlRef.current?.clientHeight])
+
+  useEffect(() => {
+    const sidePanelElement = sidePanelRef.current
+    const mapElement = mapRef.current
+    if (sidePanelElement && mapElement && formControlHeight && navRefHeight) {
+      const height = `calc(100vh - ${formControlHeight + navRefHeight}px)`
+      sidePanelElement.style.height = height
+      mapElement.style.height = height
+    }
+  })
+
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <GeneralHeader
@@ -141,7 +170,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       />
       <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
-          <Grid container spacing={1}>
+          <Grid container spacing={1} ref={formControlRef}>
             <Grid item>
               <StyledFormControl>
                 <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
@@ -190,6 +219,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         <Grid container direction={'row'}>
           <Grid item>
             <ZoneSummaryPanel
+              ref={sidePanelRef}
               selectedFireZone={selectedFireZone}
               fuelTypeInfo={hfiThresholdsFuelTypes}
               hfiElevationInfo={fireZoneElevationInfo}

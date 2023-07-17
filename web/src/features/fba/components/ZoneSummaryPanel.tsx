@@ -18,7 +18,10 @@ const classes = {
 
 const StyledGrid = styled(Grid)({
   [`& .${classes.wrapper}`]: {
-    minWidth: 400
+    minWidth: 400,
+    overflowY: 'auto',
+    maxHeight: '100vh',
+    padding: 0
   },
   [`& .${classes.header}`]: {
     margin: 10
@@ -31,50 +34,48 @@ const StyledGrid = styled(Grid)({
   [`& .${classes.centreName}`]: {
     fontSize: '1rem',
     textAlign: 'center',
-    variant: 'h6'
+    variant: 'h6',
+    paddingBottom: '2rem'
   }
 })
 
 interface Props {
-  className?: string
   selectedFireZone: FireZone | undefined
   fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
   hfiElevationInfo: ElevationInfoByThreshold[]
   fireZoneAreas: FireZoneArea[]
 }
 
-const ZoneSummaryPanel = (props: Props) => {
+const ZoneSummaryPanel = React.forwardRef((props: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
+  ZoneSummaryPanel.displayName = 'ZoneSummaryPanel'
+
   if (isUndefined(props.selectedFireZone)) {
     return <div></div>
   } else {
     return (
-      <StyledGrid
-        container
-        alignItems={'center'}
-        direction={'column'}
-        spacing={2}
-        className={`${props.className} ${classes.wrapper}`}
-      >
-        <Grid item>
-          <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
-          <Typography className={classes.centreName}>{props.selectedFireZone.mof_fire_centre_name}</Typography>
-        </Grid>
-        <Grid item>
-          <CombustibleAreaViz
-            fireZoneAreas={props.fireZoneAreas.filter(
-              area => area.mof_fire_zone_id == props.selectedFireZone?.mof_fire_zone_id
-            )}
-          />
-        </Grid>
-        <Grid item>
-          <FuelTypesBreakdown selectedFireZone={props.selectedFireZone} fuelTypeInfo={props.fuelTypeInfo} />
-        </Grid>
-        <Grid item>
-          <ElevationInfoViz selectedFireZone={props.selectedFireZone} hfiElevationInfo={props.hfiElevationInfo} />
+      <StyledGrid ref={ref} className={`${classes.wrapper}`}>
+        <Grid container alignItems={'center'} direction={'column'}>
+          <Grid item>
+            <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
+            <Typography className={classes.centreName}>{props.selectedFireZone.mof_fire_centre_name}</Typography>
+          </Grid>
+          <Grid item>
+            <CombustibleAreaViz
+              fireZoneAreas={props.fireZoneAreas.filter(
+                area => area.mof_fire_zone_id == props.selectedFireZone?.mof_fire_zone_id
+              )}
+            />
+          </Grid>
+          <Grid item>
+            <FuelTypesBreakdown selectedFireZone={props.selectedFireZone} fuelTypeInfo={props.fuelTypeInfo} />
+          </Grid>
+          <Grid item>
+            <ElevationInfoViz selectedFireZone={props.selectedFireZone} hfiElevationInfo={props.hfiElevationInfo} />
+          </Grid>
         </Grid>
       </StyledGrid>
     )
   }
-}
+})
 
 export default React.memo(ZoneSummaryPanel)
