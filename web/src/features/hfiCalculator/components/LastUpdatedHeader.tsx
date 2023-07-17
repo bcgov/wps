@@ -70,7 +70,7 @@ const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
       </StyledEngineProvider>
     )
   } else {
-    return <></>
+    return <div></div>
   }
 }
 
