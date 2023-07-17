@@ -1,5 +1,5 @@
 import { CriticalHoursHFI } from 'api/fbaCalcAPI'
-import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningArea'
+import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import React from 'react'
 
 const PREFIX = 'CriticalHoursCell'

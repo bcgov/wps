@@ -1,5 +1,5 @@
 import { TableCell } from '@mui/material'
-import { StationPlainStylingCell } from 'features/hfiCalculator/components/StyledPlanningArea'
+import { StationPlainStylingCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import React, { ReactElement } from 'react'
 

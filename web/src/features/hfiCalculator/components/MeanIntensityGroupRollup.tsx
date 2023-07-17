@@ -6,7 +6,7 @@ import { StationDaily, PlanningArea, FuelType } from 'api/hfiCalculatorAPI'
 import { getSelectedFuelType } from 'features/hfiCalculator/util'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningArea'
+import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea

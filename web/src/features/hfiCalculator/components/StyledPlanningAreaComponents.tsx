@@ -1,6 +1,7 @@
 import { TableRow, TableCell, styled } from '@mui/material'
 import { BACKGROUND_COLOR, PLANNING_AREA, UNSELECTED_STATION_COLOR, theme } from 'app/theme'
 import StickyCell from 'components/StickyCell'
+import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
 
 export const PlanningAreaTableRow = styled(TableRow)({
   ...BACKGROUND_COLOR,
@@ -80,4 +81,9 @@ export const StickyCellRightBorderOnly = styled(StickyCellNoBottomBorder)({
 export const StickyCellRightBorderDefaultBackground = styled(StickyCell)({
   borderRight: '1px solid #c4c4c4',
   ...BACKGROUND_COLOR
+})
+
+export const PlanningAreaHeaderRowCell = styled(HeaderRowCell)({
+  borderTop: '2px solid #003366',
+  padding: 0
 })

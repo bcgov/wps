@@ -7,7 +7,7 @@ import React from 'react'
 import MeanPrepLevelCell from './MeanPrepLevelCell'
 import { FireStartRange, PlanningAreaResult, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
-import { PlanningAreaTableCell } from 'features/hfiCalculator/components/StyledPlanningArea'
+import { PlanningAreaTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 
 export interface CalculatedCellsProps {
   testId?: string

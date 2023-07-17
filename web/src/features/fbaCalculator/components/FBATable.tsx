@@ -40,7 +40,7 @@ import { PST_UTC_OFFSET } from 'utils/constants'
 import WPSDatePicker from 'components/WPSDatePicker'
 import { AppDispatch } from 'app/store'
 import { StyledFormControl } from 'components/StyledFormControl'
-import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningArea'
+import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number

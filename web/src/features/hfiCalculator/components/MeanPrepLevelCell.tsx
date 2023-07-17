@@ -1,7 +1,7 @@
 import { styled } from '@mui/material'
 import { BACKGROUND_COLOR } from 'app/theme'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
-import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningArea'
+import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import { isUndefined, isNull } from 'lodash'
 import React from 'react'
 

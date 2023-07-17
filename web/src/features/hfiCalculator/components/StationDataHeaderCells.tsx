@@ -4,7 +4,7 @@ import {
   NoBottomBorderCell,
   NonStickyHeaderCell,
   StickyCellRightBorderOnly
-} from 'features/hfiCalculator/components/StyledPlanningArea'
+} from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import React, { ReactElement } from 'react'
 
 export const TableColumnHeaderCell = styled(NoBottomBorderCell)({

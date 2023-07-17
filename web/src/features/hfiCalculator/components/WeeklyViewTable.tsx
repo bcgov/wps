@@ -22,10 +22,7 @@ import { selectAuthentication, selectHFICalculatorState, selectHFIReadyState } f
 import { useDispatch, useSelector } from 'react-redux'
 import { FireStartRange, PlanningAreaResult, PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
-import {
-  FireCentrePlanningAreaHeaderRowCell,
-  PlanningAreaHeaderRowCell
-} from 'features/hfiCalculator/components/HeaderRowCell'
+import { FireCentrePlanningAreaHeaderRowCell } from 'features/hfiCalculator/components/HeaderRowCell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
 import { ROLES } from 'features/auth/roles'
 import PlanningAreaReadyToggle from 'features/hfiCalculator/components/PlanningAreaReadyToggle'
@@ -33,6 +30,7 @@ import { AppDispatch } from 'app/store'
 import { fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 import {
   NoBottomBorderCell,
+  PlanningAreaHeaderRowCell,
   PlanningAreaTableCellNoBottomBorder,
   PlanningAreaTableCellNonSticky,
   PlanningAreaTableRow,
@@ -42,7 +40,7 @@ import {
   StickyCellNoBottomBorder,
   StickyCellRightBorderDefaultBackground,
   UnSelectedTableRow
-} from 'features/hfiCalculator/components/StyledPlanningArea'
+} from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 
 export interface Props {
   fireCentre: FireCentre | undefined

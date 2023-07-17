@@ -20,7 +20,7 @@ export interface LoggedInStatusProps {
 
 const LoggedInStatus = ({ isAuthenticated, roles, idir }: LoggedInStatusProps) => {
   if (!isAuthenticated) {
-    return <div></div>
+    return <></>
   }
 
   if (isAuthenticated && isEmpty(roles)) {

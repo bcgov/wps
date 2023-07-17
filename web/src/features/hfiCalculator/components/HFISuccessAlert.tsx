@@ -7,6 +7,7 @@ import { setChangeSaved } from 'features/hfiCalculator/slices/hfiCalculatorSlice
 import { AppDispatch } from 'app/store'
 import { setToggleSuccess } from 'features/hfiCalculator/slices/hfiReadySlice'
 import { isEqual } from 'lodash'
+import { theme } from 'app/theme'
 
 const PREFIX = 'HFISuccessAlert'
 
@@ -16,7 +17,7 @@ const classes = {
 
 const StyledSnackbar = styled(Snackbar)({
   [`& .${classes.alert}`]: {
-    backgroundColor: '#2E8540',
+    backgroundColor: theme.palette.success.main,
     color: 'white',
     '& .MuiAlert-icon': {
       color: 'white'

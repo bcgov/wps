@@ -1,6 +1,6 @@
 import { styled } from '@mui/material'
 import { BACKGROUND_COLOR } from 'app/theme'
-import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningArea'
+import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import { FireStartRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import React from 'react'
 

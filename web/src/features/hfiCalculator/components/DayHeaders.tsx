@@ -5,7 +5,7 @@ import {
   StickyCellNoBottomBorder,
   StickyCellRightBorderOnly,
   TableCellLeftBorder
-} from 'features/hfiCalculator/components/StyledPlanningArea'
+} from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { calculateNumPrepDays } from 'features/hfiCalculator/util'
 import { isUndefined, range } from 'lodash'

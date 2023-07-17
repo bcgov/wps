@@ -32,11 +32,11 @@ import {
   PlanningAreaTableCell,
   PlanningAreaTableCellNoBottomBorder,
   PlanningAreaTableRow
-} from 'features/hfiCalculator/components/StyledPlanningArea'
+} from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import { UnSelectedTableRow } from 'features/hfiCalculator/components/StyledTableComponents'
 import { DangerClassCell } from 'features/hfiCalculator/components/DangerClassCell'
 import { WindDirectionCell } from 'features/hfiCalculator/components/WindDirectionCell'
-import { FireCentreHeaderCell } from 'features/hfiCalculator/components/FireCentreHeaderCell'
+import { FireCentreHeaderCell } from 'features/hfiCalculator/components/StyledFireComponents'
 
 export interface Props {
   fireCentre: FireCentre | undefined

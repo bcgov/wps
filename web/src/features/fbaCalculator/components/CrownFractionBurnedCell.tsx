@@ -1,4 +1,4 @@
-import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningArea'
+import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import { isNull, isUndefined } from 'lodash'
 import React from 'react'
 
