@@ -1,6 +1,5 @@
 import React, { forwardRef } from 'react'
 import { styled } from '@mui/material/styles'
-import clsx from 'clsx'
 import { Button as B, ButtonProps, CircularProgress } from '@mui/material'
 import { theme } from 'app/theme'
 
@@ -23,7 +22,7 @@ type Props = CustomProps & ButtonProps
 // Use forwardRef to obtain the ref passed to it, and then forward it to the DOM button that it renders.
 // https://medium.com/@martin_hotell/react-refs-with-typescript-a32d56c4d315
 export const Button = forwardRef<HTMLButtonElement, Props>((props, ref) => {
-  const { loading, className, disabled, hasSpinner = true, ...buttonProps } = props
+  const { loading, disabled, hasSpinner = true, ...buttonProps } = props
 
   const StyledB = styled(B)(() => ({
     [`& .${classes.root}`]: {
@@ -40,10 +39,8 @@ export const Button = forwardRef<HTMLButtonElement, Props>((props, ref) => {
     }
   }))
 
-  const buttonClassName = clsx(classes.root, className)
-
   return (
-    <StyledB {...buttonProps} className={buttonClassName} disabled={disabled || loading} ref={ref}>
+    <StyledB {...buttonProps} className={classes.root} disabled={disabled || loading} ref={ref}>
       {buttonProps.children}
       {loading && hasSpinner && <CircularProgress size={20} className={classes.spinner} />}
     </StyledB>
