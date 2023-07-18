@@ -1,17 +1,25 @@
 /* eslint-disable radix */
 
 import { Grid, IconButton, Select, MenuItem } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import React from 'react'
 import ChevronLeft from '@mui/icons-material/ChevronLeft'
 import ChevronRight from '@mui/icons-material/ChevronRight'
 import { setMonth, getMonth, setYear, getYear } from 'date-fns'
 
-const useStyles = makeStyles(() => ({
-  iconContainer: {
+const PREFIX = 'Header'
+
+const classes = {
+  iconContainer: `${PREFIX}-iconContainer`,
+  icon: `${PREFIX}-icon`
+}
+
+const StyledGrid = styled(Grid)(() => ({
+  [`& .${classes.iconContainer}`]: {
     padding: 5
   },
-  icon: {
+
+  [`& .${classes.icon}`]: {
     padding: 10,
     '&:hover': {
       background: 'none'
@@ -45,8 +53,6 @@ const Header: React.FunctionComponent<HeaderProps> = ({
   onClickNext,
   onClickPrevious
 }: HeaderProps) => {
-  const classes = useStyles()
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleMonthChange = (event: any) => {
     setDate(setMonth(date, parseInt(event.target.value)))
@@ -58,7 +64,7 @@ const Header: React.FunctionComponent<HeaderProps> = ({
   }
 
   return (
-    <Grid container justifyContent="space-between" alignItems="center">
+    <StyledGrid container justifyContent="space-between" alignItems="center">
       <Grid item className={classes.iconContainer}>
         <IconButton className={classes.icon} disabled={prevDisabled} onClick={onClickPrevious} size="large">
           <ChevronLeft color={prevDisabled ? 'disabled' : 'action'} />
@@ -98,7 +104,7 @@ const Header: React.FunctionComponent<HeaderProps> = ({
           <ChevronRight color={nextDisabled ? 'disabled' : 'action'} />
         </IconButton>
       </Grid>
-    </Grid>
+    </StyledGrid>
   )
 }
 

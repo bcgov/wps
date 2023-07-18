@@ -10,7 +10,6 @@ describe('GrassCureCell', () => {
     updateRow: () => {
       /** no op */
     },
-    classNameMap: { grassCure: '' },
     value,
     disabled: false,
     rowId: rowId

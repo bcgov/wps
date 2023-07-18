@@ -28,8 +28,8 @@ const renderWeeklyRos = (daily: StationDaily, testId: string, error: boolean, is
 describe('WeeklyROSCell', () => {
   const stationCode = 1
   const testId = `${stationCode}-ros`
-  const separatorClassRegExp = /makeStyles-sectionSeparatorBorder-/
-  const unselectedClassRegExp = /makeStyles-unselectedStation/
+  const separatorClassRegExp = /sectionSeparatorBorder/
+  const unselectedClassRegExp = /unselected/
   it('should return a WeeklyROSCell with left border seperator class and formatted value of 1.0', () => {
     const { getByTestId } = renderWeeklyRos(buildStationDaily(stationCode), testId, false, true)
 

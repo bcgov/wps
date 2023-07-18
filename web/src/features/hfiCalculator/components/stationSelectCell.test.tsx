@@ -21,7 +21,7 @@ describe('StationSelectCell', () => {
         <TableBody>
           <TableRow>
             <StationSelectCell
-              className={undefined}
+              isRowSelected={true}
               station={station}
               planningAreaId={1}
               selectStationEnabled={true}
@@ -43,14 +43,14 @@ describe('StationSelectCell', () => {
     await waitFor(() => expect(toggleSelectedStationMock).toBeCalledTimes(1))
   })
 
-  it('should be disabled when station selection and not change checked value when clicked', async () => {
+  it('should be disabled when station is selected and not change checked value when clicked', async () => {
     const toggleSelectedStationMock = jest.fn()
     render(
       <Table>
         <TableBody>
           <TableRow>
             <StationSelectCell
-              className={undefined}
+              isRowSelected={true}
               station={station}
               planningAreaId={1}
               selectStationEnabled={false}

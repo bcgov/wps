@@ -38,26 +38,14 @@ declare namespace Cypress {
   }
 }
 
-Cypress.Commands.add(
-  'selectFBAStationInDropdown',
-  (code: number | string, rowId: number) => {
-    if (typeof code === 'number') {
-      return cy
-        .getByTestId(`weather-station-dropdown-fba-${rowId}`)
-        .click()
-        .get('li')
-        .contains(code)
-        .click()
-    }
-
-    return cy
-      .getByTestId(`weather-station-dropdown-fba-${rowId}`)
-      .find('input')
-      .type(code)
-      .type('{downarrow}')
-      .type('{enter}')
-  }
-)
+Cypress.Commands.add('selectFBAStationInDropdown', (code: number | string, rowId: number) => {
+  return cy
+    .getByTestId(`weather-station-dropdown-fba-${rowId}`)
+    .find('input')
+    .type(String(code))
+    .type('{downarrow}')
+    .type('{enter}')
+})
 
 Cypress.Commands.add('selectFBAFuelTypeInDropdown', (fuelType: string, rowId: number) => {
   return cy
@@ -69,11 +57,7 @@ Cypress.Commands.add('selectFBAFuelTypeInDropdown', (fuelType: string, rowId: nu
 })
 
 Cypress.Commands.add('setFBAGrassCurePercentage', (grassCure: string, rowId: number) => {
-  return cy
-    .getByTestId(`grassCureInput-fba-${rowId}`)
-    .find('input')
-    .type(grassCure)
-    .type('{enter}')
+  return cy.getByTestId(`grassCureInput-fba-${rowId}`).find('input').type(grassCure).type('{enter}')
 })
 
 Cypress.Commands.add('setFBAWindSpeed', (windSpeed: string, rowId: number) => {

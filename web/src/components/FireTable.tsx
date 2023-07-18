@@ -1,12 +1,21 @@
-import { Paper, Table, TableContainer, ThemeProvider, Theme, StyledEngineProvider } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { Paper, Table, TableContainer, ThemeProvider, StyledEngineProvider } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import { fireTableTheme } from 'app/theme'
 import React from 'react'
 
-declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends Theme {}
+const PREFIX = 'FireTable'
+
+const classes = {
+  tableContainer: `${PREFIX}-tableContainer`
 }
+
+const StyledPaper = styled(Paper)(() => ({
+  [`& .${classes.tableContainer}`]: {
+    minWidth: '100%',
+    overflowX: 'scroll',
+    maxHeight: '72vh'
+  }
+}))
 
 interface FireTableProps {
   ariaLabel: string
@@ -14,19 +23,9 @@ interface FireTableProps {
   testId?: string
 }
 
-const useStyles = makeStyles(() => ({
-  tableContainer: {
-    minWidth: '100%',
-    overflowX: 'scroll',
-    maxHeight: '72vh'
-  }
-}))
-
 const FireTable = (props: FireTableProps) => {
-  const classes = useStyles()
-
   return (
-    <Paper elevation={1}>
+    <StyledPaper elevation={1}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={fireTableTheme}>
           <TableContainer data-testid={'fire-table'} className={classes.tableContainer}>
@@ -36,7 +35,7 @@ const FireTable = (props: FireTableProps) => {
           </TableContainer>
         </ThemeProvider>
       </StyledEngineProvider>
-    </Paper>
+    </StyledPaper>
   )
 }
 

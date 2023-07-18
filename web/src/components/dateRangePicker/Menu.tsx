@@ -1,6 +1,6 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { Paper, Grid, Typography, Divider, Button } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { format, differenceInCalendarMonths } from 'date-fns'
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt'
 import { MARKERS } from 'components/dateRangePicker/DateRangePicker'
@@ -8,18 +8,30 @@ import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/
 import Month from 'components/dateRangePicker/Month'
 import { theme } from 'app/theme'
 
-const useStyles = makeStyles(() => ({
-  header: {
+const PREFIX = 'Menu'
+
+const classes = {
+  header: `${PREFIX}-header`,
+  footer: `${PREFIX}-footer`,
+  headerItem: `${PREFIX}-headerItem`,
+  divider: `${PREFIX}-divider`
+}
+
+const StyledPaper = styled(Paper)(() => ({
+  [`& .${classes.header}`]: {
     padding: '20px 70px'
   },
-  footer: {
+
+  [`& .${classes.footer}`]: {
     padding: '10px 10px'
   },
-  headerItem: {
+
+  [`& .${classes.headerItem}`]: {
     flex: 1,
     textAlign: 'center'
   },
-  divider: {
+
+  [`& .${classes.divider}`]: {
     borderLeft: `1px solid ${theme.palette.action.hover}`,
     marginBottom: 20
   }
@@ -46,8 +58,6 @@ interface MenuProps {
 }
 
 const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
-  const classes = useStyles()
-
   const { dateRange, minDate, maxDate, firstMonth, setFirstMonth, secondMonth, setSecondMonth, helpers, handlers } =
     props
 
@@ -61,7 +71,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
     handlers
   }
   return (
-    <Paper elevation={5} square data-testid="date-range-picker-menu">
+    <StyledPaper elevation={5} square data-testid="date-range-picker-menu">
       <Grid container direction="row" wrap="nowrap">
         <Grid>
           <Grid container className={classes.header} alignItems="center">
@@ -112,7 +122,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
           </Button>
         </Grid>
       </Grid>
-    </Paper>
+    </StyledPaper>
   )
 }
 

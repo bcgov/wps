@@ -1,5 +1,4 @@
-import { FormControl, FormControlLabel, Grid } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { Box, FormControl, FormControlLabel, Grid, styled } from '@mui/material'
 import { GeneralHeader, Container, ErrorBoundary } from 'components'
 import React, { useEffect, useState, useRef } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
@@ -14,7 +13,7 @@ import {
 } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
-import { formControlStyles, theme } from 'app/theme'
+import { theme } from 'app/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from 'api/stationAPI'
 import { FireCenter, FireZone } from 'api/fbaAPI'
@@ -29,45 +28,23 @@ import { fetchHighHFIFuels } from 'features/fba/slices/hfiFuelTypesSlice'
 import { fetchFireZoneAreas } from 'features/fba/slices/fireZoneAreasSlice'
 import { fetchfireZoneElevationInfo } from 'features/fba/slices/fireZoneElevationInfoSlice'
 import ZoneSummaryPanel from 'features/fba/components/ZoneSummaryPanel'
+import { StyledFormControl } from 'components/StyledFormControl'
 
 export enum RunType {
   FORECAST = 'FORECAST',
   ACTUAL = 'ACTUAL'
 }
 
-const useStyles = makeStyles(() => ({
-  ...formControlStyles,
-  fireCenter: {
-    minWidth: 280,
-    margin: theme.spacing(1)
-  },
-  flex: {
-    display: 'flex',
-    flex: 1
-  },
-  scrollablePanel: {
-    overflowY: 'auto',
-    maxHeight: '100vh',
-    padding: 0
-  },
-  forecastActualDropdown: {
-    minWidth: 280,
-    margin: theme.spacing(1),
-    marginLeft: 50
-  },
-  instructions: {
-    textAlign: 'left'
-  },
-  root: {
-    height: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden'
-  }
-}))
+export const FireCentreFormControl = styled(FormControl)({
+  margin: theme.spacing(1),
+  minWidth: 280
+})
+
+export const ForecastActualDropdownFormControl = styled(FireCentreFormControl)({
+  marginLeft: 50
+})
 
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
-  const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { fireCenters } = useSelector(selectFireCenters)
   const { hfiThresholdsFuelTypes } = useSelector(selectHFIFuelTypes)
@@ -184,47 +161,44 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   })
 
   return (
-    <div className={classes.root}>
-      <Container disableGutters maxWidth={'xl'}>
-        <GeneralHeader
-          ref={navRef}
-          isBeta={true}
-          spacing={1}
-          title={FIRE_BEHAVIOUR_ADVISORY_NAME}
-          productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
-        />
-      </Container>
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <GeneralHeader
+        isBeta={true}
+        spacing={1}
+        title={FIRE_BEHAVIOUR_ADVISORY_NAME}
+        productName={FIRE_BEHAVIOUR_ADVISORY_NAME}
+      />
       <Container sx={{ paddingTop: '0.5em' }} disableGutters maxWidth={'xl'}>
         <Grid container direction={'row'}>
           <Grid container spacing={1} ref={formControlRef}>
             <Grid item>
-              <FormControl className={classes.formControl}>
+              <StyledFormControl>
                 <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
-              </FormControl>
+              </StyledFormControl>
             </Grid>
             <Grid item xs={2}>
-              <FormControl className={classes.fireCenter}>
+              <FireCentreFormControl>
                 <FireCenterDropdown
                   fireCenterOptions={fireCenters}
                   selectedFireCenter={fireCenter}
                   setSelectedFireCenter={setFireCenter}
                 />
-              </FormControl>
+              </FireCentreFormControl>
             </Grid>
             <ErrorBoundary>
               <Grid item>
-                <FormControl className={classes.forecastActualDropdown}>
+                <ForecastActualDropdownFormControl>
                   <AdvisoryMetadata
                     forDate={dateOfInterest}
                     issueDate={issueDate}
                     runType={runType.toString()}
                     setRunType={setRunType}
                   />
-                </FormControl>
+                </ForecastActualDropdownFormControl>
               </Grid>
             </ErrorBoundary>
             <Grid item>
-              <FormControl className={classes.formControl}>
+              <StyledFormControl>
                 <FormControlLabel
                   label="
                   Percentage of combustible land threshold"
@@ -236,13 +210,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
                     />
                   }
                 />
-              </FormControl>
+              </StyledFormControl>
             </Grid>
           </Grid>
         </Grid>
       </Container>
-      <Container className={classes.flex} disableGutters maxWidth={'xl'}>
-        <Grid className={classes.flex} container direction={'row'}>
+      <Container sx={{ display: 'flex', flex: 1 }} disableGutters maxWidth={'xl'}>
+        <Grid container direction={'row'}>
           <Grid item>
             <ZoneSummaryPanel
               ref={sidePanelRef}
@@ -250,10 +224,9 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               fuelTypeInfo={hfiThresholdsFuelTypes}
               hfiElevationInfo={fireZoneElevationInfo}
               fireZoneAreas={fireZoneAreas}
-              className={classes.scrollablePanel}
             />
           </Grid>
-          <Grid className={classes.flex} ref={mapRef} item>
+          <Grid sx={{ display: 'flex', flex: 1 }} item>
             <FBAMap
               forDate={dateOfInterest}
               runDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : dateOfInterest}
@@ -261,7 +234,6 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               selectedFireZone={selectedFireZone}
               selectedFireCenter={fireCenter}
               advisoryThreshold={advisoryThreshold}
-              className={classes.flex}
               setIssueDate={setIssueDate}
               setSelectedFireZone={setSelectedFireZone}
               fireZoneAreas={fireZoneAreas}
@@ -269,7 +241,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           </Grid>
         </Grid>
       </Container>
-    </div>
+    </Box>
   )
 }
 
