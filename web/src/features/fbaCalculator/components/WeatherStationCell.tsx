@@ -1,5 +1,4 @@
 import { TextField, Autocomplete } from '@mui/material'
-import { ClassNameMap } from '@mui/styles'
 import { isEqual } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
@@ -10,7 +9,6 @@ interface WeatherStationCellProps {
   stationOptions: GridMenuOption[]
   inputRows: FBATableRow[]
   updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
-  classNameMap: ClassNameMap<'weatherStation'>
   value: GridMenuOption | null
   disabled: boolean
   rowId: number
@@ -31,11 +29,11 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
 
   return (
     <Autocomplete
+      sx={{ minWidth: 220 }}
       data-testid={`weather-station-dropdown-fba-${props.rowId}`}
       autoHighlight={true}
       autoSelect={true}
       options={props.stationOptions}
-      className={props.classNameMap.weatherStation}
       isOptionEqualToValue={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
       renderInput={params => (

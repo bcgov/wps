@@ -1,20 +1,17 @@
-import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import { isNull, isUndefined } from 'lodash'
 import React from 'react'
+
+const PREFIX = 'CrownFractionBurnedCell'
+
+const classes = {
+  dataRow: `${PREFIX}-dataRow`
+}
 
 interface CrownFractionBurnedCellProps {
   value: number | undefined
   className?: string
 }
-
-const useStyles = makeStyles({
-  dataRow: {
-    height: '40px',
-    paddingLeft: '8px',
-    paddingRight: '8px'
-  }
-})
 
 const DECIMAL_PLACES = 1
 
@@ -27,12 +24,10 @@ export const formatCrownFractionBurned = (value: number | undefined | null): str
 
 /* CFB comes in as a number 0 to 1, so we multiple by 100 to get the percentage */
 const CrownFractionBurnedCell = (props: CrownFractionBurnedCellProps) => {
-  const classes = useStyles()
-
   return (
-    <TableCell className={props.className ? props.className : classes.dataRow}>
+    <DataTableCell className={props.className ? props.className : classes.dataRow}>
       {formatCrownFractionBurned(props.value)}
-    </TableCell>
+    </DataTableCell>
   )
 }
 

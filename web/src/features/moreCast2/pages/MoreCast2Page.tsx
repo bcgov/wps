@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
+import { styled } from '@mui/material/styles'
 import { useDispatch, useSelector } from 'react-redux'
-import makeStyles from '@mui/styles/makeStyles'
 import { isEmpty } from 'lodash'
 import { DateTime } from 'luxon'
 import { selectAuthentication, selectStationGroups, selectStationGroupsMembers } from 'app/rootReducer'
@@ -16,39 +16,39 @@ import { getWeatherIndeterminates, selectAllMoreCast2Rows } from 'features/moreC
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 import { selectedStationsChanged } from 'features/moreCast2/slices/selectedStationsSlice'
 
-const useStyles = makeStyles(theme => ({
-  content: {
-    borderTop: '1px solid black',
-    display: 'flex',
-    flexGrow: 1,
-    maxHeight: 'calc(100vh - 71.5px)',
-    overflow: 'hidden'
-  },
-  observations: {
-    display: 'flex',
-    flexDirection: 'column',
-    flexGrow: 1,
-    marginTop: theme.spacing(2),
-    overflowX: 'auto'
-  },
-  root: {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-    overflow: 'hidden'
-  },
-  sidePanel: {
-    borderRight: '1px solid black',
-    display: 'flex',
-    minWidth: '375px',
-    overflowX: 'hidden',
-    overflowY: 'auto',
-    width: '375px'
-  }
+export const Root = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: '100vh',
+  overflow: 'hidden'
+})
+
+export const SidePanel = styled('div')({
+  borderRight: '1px solid black',
+  display: 'flex',
+  minWidth: '375px',
+  overflowX: 'hidden',
+  overflowY: 'auto',
+  width: '375px'
+})
+
+export const Content = styled('div')({
+  borderTop: '1px solid black',
+  display: 'flex',
+  flexGrow: 1,
+  maxHeight: 'calc(100vh - 71.5px)',
+  overflow: 'hidden'
+})
+
+export const Observations = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  flexGrow: 1,
+  marginTop: theme.spacing(2),
+  overflowX: 'auto'
 }))
 
 const MoreCast2Page = () => {
-  const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
   const { groups, loading: groupsLoading } = useSelector(selectStationGroups)
   const { members } = useSelector(selectStationGroupsMembers)
@@ -106,10 +106,10 @@ const MoreCast2Page = () => {
   }, [fromTo.startDate, fromTo.endDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className={classes.root} data-testid="more-cast-2-page">
+    <Root data-testid="more-cast-2-page">
       <GeneralHeader isBeta={true} spacing={0.985} title={MORE_CAST_2_NAME} productName={MORE_CAST_2_NAME} />
-      <div className={classes.content}>
-        <div className={classes.sidePanel}>
+      <Content>
+        <SidePanel>
           <StationPanel
             idir={idir}
             loading={groupsLoading}
@@ -118,17 +118,17 @@ const MoreCast2Page = () => {
             setSelectedStationGroup={setSelectedStationGroup}
             stationGroupMembers={selectedGroupsMembers}
           />
-        </div>
-        <div className={classes.observations}>
+        </SidePanel>
+        <Observations>
           <TabbedDataGrid
             morecast2Rows={sortedMoreCast2Rows}
             fetchWeatherIndeterminates={fetchWeatherIndeterminates}
             fromTo={fromTo}
             setFromTo={setFromTo}
           />
-        </div>
-      </div>
-    </div>
+        </Observations>
+      </Content>
+    </Root>
   )
 }
 

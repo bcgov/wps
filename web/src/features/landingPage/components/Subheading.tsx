@@ -1,13 +1,15 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles'
+const PREFIX = 'Subheading'
 
-interface SubheadingProps {
-  title: string
+const classes = {
+  root: `${PREFIX}-root`,
+  text: `${PREFIX}-text`
 }
 
-const useStyles = makeStyles(theme => ({
-  root: {
+const Root = styled('div')(({ theme }) => ({
+  [`&.${classes.root}`]: {
     backgroundColor: theme.palette.primary.main,
     color: theme.palette.primary.contrastText,
     display: 'flex',
@@ -18,7 +20,8 @@ const useStyles = makeStyles(theme => ({
     borderTopStyle: 'solid',
     height: '56px'
   },
-  text: {
+
+  [`& .${classes.text}`]: {
     fontSize: '1.25rem',
     fontWeight: 700,
     paddingLeft: theme.spacing(1.25),
@@ -28,13 +31,15 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const Subheading: React.FunctionComponent<SubheadingProps> = (props: SubheadingProps) => {
-  const classes = useStyles()
+interface SubheadingProps {
+  title: string
+}
 
+const Subheading: React.FunctionComponent<SubheadingProps> = (props: SubheadingProps) => {
   return (
-    <div id="sidebar-header" className={classes.root}>
+    <Root id="sidebar-header" className={classes.root}>
       <Typography className={classes.text}>{props.title}</Typography>
-    </div>
+    </Root>
   )
 }
 

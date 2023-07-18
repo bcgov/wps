@@ -1,27 +1,26 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { isUndefined } from 'lodash'
 import { FireZone, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import { PieChart, Pie, ResponsiveContainer, Cell } from 'recharts'
 
-const useStyles = makeStyles({
-  wrapper: {
-    minWidth: 400
-  },
-  fuelTypesPaper: {
-    padding: '20px 10px'
-  },
-  fuelTypesHeader: {
-    fontSize: '1.3rem',
-    textAlign: 'center',
-    variant: 'h3'
-  },
-  pieChartHeader: {
-    fontSize: '1rem',
-    textAlign: 'center',
-    variant: 'h4'
-  }
+const PREFIX = 'FuelTypesBreakdown'
+
+const FuelTypesHeader = styled(Typography, {
+  name: `${PREFIX}-fuelTypesHeader`
+})({
+  fontSize: '1.3rem',
+  textAlign: 'center',
+  variant: 'h3'
+})
+
+const PieChartHeader = styled(Typography, {
+  name: `${PREFIX}-pieChartHeader`
+})({
+  fontSize: '1rem',
+  textAlign: 'center',
+  variant: 'h4'
 })
 
 interface Props {
@@ -53,8 +52,6 @@ const COLOURS = [
 ]
 
 const FuelTypesBreakdown = (props: Props) => {
-  const classes = useStyles()
-
   const renderCustomizedLabel = ({
     cx,
     cy,
@@ -106,9 +103,9 @@ const FuelTypesBreakdown = (props: Props) => {
       }
     })
     return (
-      <>
-        <Typography className={classes.fuelTypesHeader}>HFI by Fuel Type</Typography>
-        <Typography className={classes.pieChartHeader}>Advisories (HFI: 4,000-10,000 kW/m)</Typography>
+      <div>
+        <FuelTypesHeader>HFI by Fuel Type</FuelTypesHeader>
+        <PieChartHeader>Advisories (HFI: 4,000-10,000 kW/m)</PieChartHeader>
         <ResponsiveContainer width={400} height={250}>
           <PieChart>
             <Pie
@@ -128,7 +125,7 @@ const FuelTypesBreakdown = (props: Props) => {
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-        <Typography className={classes.pieChartHeader}>Warnings (HFI: +10,000 kW/m)</Typography>
+        <PieChartHeader>Warnings (HFI: +10,000 kW/m)</PieChartHeader>
         <ResponsiveContainer width={400} height={250}>
           <PieChart>
             <Pie
@@ -147,7 +144,7 @@ const FuelTypesBreakdown = (props: Props) => {
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-      </>
+      </div>
     )
   }
 }

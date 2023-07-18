@@ -1,30 +1,37 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { Card, CardContent, Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 
 import PDF from 'documents/90th_percentile_calculator_rationale.pdf'
 
-const useStyles = makeStyles({
-  cardContent: {
+const PREFIX = 'PercentileCalcDocumentation'
+
+const classes = {
+  cardContent: `${PREFIX}-cardContent`,
+  body2: `${PREFIX}-body2`,
+  pdfLink: `${PREFIX}-pdfLink`,
+  pdfIcon: `${PREFIX}-pdfIcon`
+}
+
+const StyledCard = styled(Card)({
+  [`& .${classes.cardContent}`]: {
     maxWidth: 800
   },
-  body2: {
+  [`& .${classes.body2}`]: {
     marginBottom: 8
   },
-  pdfLink: {
+  [`& .${classes.pdfLink}`]: {
     display: 'flex'
   },
-  pdfIcon: {
+  [`& .${classes.pdfIcon}`]: {
     marginLeft: 2
   }
 })
 
 export const PercentileCalcDocumentation: React.FunctionComponent = () => {
-  const classes = useStyles()
-
   return (
-    <Card data-testid="percentile-documentation-card">
+    <StyledCard data-testid="percentile-documentation-card">
       <CardContent className={classes.cardContent}>
         <Typography variant="h6">How Are These Values Calculated?</Typography>
         <Typography className={classes.body2} variant="body2">
@@ -49,6 +56,6 @@ export const PercentileCalcDocumentation: React.FunctionComponent = () => {
           </a>
         </Typography>
       </CardContent>
-    </Card>
+    </StyledCard>
   )
 }

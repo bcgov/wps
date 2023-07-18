@@ -1,7 +1,7 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { useSelector } from 'react-redux'
 import { Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 
 import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
 import { NoonModelTable } from 'features/fireWeather/components/tables/NoonWxValueTables'
@@ -29,21 +29,14 @@ import { ForecastSummary, NoonForecastValue } from 'api/forecastAPI'
 import { SidePanelEnum } from 'features/fireWeather/components/SidePanel'
 import { RedrawCommand } from 'features/map/Map'
 
-const useStyles = makeStyles({
-  displays: {
-    marginTop: 4
-  },
-  display: {
-    marginBottom: 16
-  },
-  title: {
-    fontSize: '1.2rem',
-    paddingBottom: 8
-  },
-  noDataAvailable: {
-    paddingBottom: 8
-  }
-})
+const PREFIX = 'WxDataDisplaysWrapper'
+
+const classes = {
+  displays: `${PREFIX}-displays`,
+  display: `${PREFIX}-display`,
+  title: `${PREFIX}-title`,
+  noDataAvailable: `${PREFIX}-noDataAvailable`
+}
 
 interface WxDataDisplaysProps {
   showTableView: string
@@ -171,8 +164,6 @@ const SingleStationFragment = (props: FragmentProps) => {
 }
 
 export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) {
-  const classes = useStyles()
-
   return (
     <div className={classes.displays}>
       {props.wxDataLoading && 'Loading...'}
@@ -242,6 +233,22 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
   )
 })
 
+const StyledWxDataDisplays = styled(WxDataDisplays)({
+  [`& .${classes.displays}`]: {
+    marginTop: 4
+  },
+  [`& .${classes.display}`]: {
+    marginBottom: 16
+  },
+  [`& .${classes.title}`]: {
+    fontSize: '1.2rem',
+    paddingBottom: 8
+  },
+  [`& .${classes.noDataAvailable}`]: {
+    paddingBottom: 8
+  }
+})
+
 interface WxDataDisplaysWrapperProps {
   showTableView: string
   timeOfInterest: string
@@ -263,7 +270,7 @@ const WxDataDisplaysWrapper: React.FunctionComponent<WxDataDisplaysWrapperProps>
   const wxDataLoading = useSelector(selectWxDataLoading)
 
   return (
-    <WxDataDisplays
+    <StyledWxDataDisplays
       {...props}
       wxDataLoading={wxDataLoading}
       stationsByCode={stationsByCode}

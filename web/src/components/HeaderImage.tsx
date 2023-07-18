@@ -1,8 +1,13 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
+const PREFIX = 'HeaderImage'
 
-const useStyles = makeStyles({
-  logo: {
+const classes = {
+  logo: `${PREFIX}-logo`
+}
+
+const Root = styled('a')({
+  [`& .${classes.logo}`]: {
     width: 175,
     marginTop: '10px',
     marginBottom: '10px'
@@ -10,12 +15,10 @@ const useStyles = makeStyles({
 })
 
 const ImageHeader = () => {
-  const classes = useStyles()
-
   return (
-    <a href="https://psu.nrs.gov.bc.ca/">
+    <Root href="https://psu.nrs.gov.bc.ca/">
       <img className={classes.logo} src={'/images/BCID_H_rgb_rev.svg'} alt="B.C. Government logo" />
-    </a>
+    </Root>
   )
 }
 

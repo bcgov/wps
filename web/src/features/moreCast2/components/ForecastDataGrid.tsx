@@ -1,4 +1,4 @@
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import React from 'react'
 import {
   DataGrid,
@@ -15,6 +15,20 @@ import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ApplyToColumnMenu from 'features/moreCast2/components/ApplyToColumnMenu'
 import { ModelChoice, ModelType } from 'api/moreCast2API'
+
+const PREFIX = 'ForecastDataGrid'
+
+const classes = {
+  root: `${PREFIX}-root`
+}
+
+const Root = styled('div')(() => ({
+  [`&.${classes.root}`]: {
+    display: 'flex',
+    flexGrow: 1,
+    flexDirection: 'column'
+  }
+}))
 
 export interface ForecastDataGridProps {
   loading: boolean
@@ -37,14 +51,6 @@ export interface ForecastDataGridProps {
   allMoreCast2Rows: MoreCast2Row[]
 }
 
-const useStyles = makeStyles(() => ({
-  root: {
-    display: 'flex',
-    flexGrow: 1,
-    flexDirection: 'column'
-  }
-}))
-
 const ForecastDataGrid = ({
   loading,
   clickedColDef,
@@ -58,10 +64,8 @@ const ForecastDataGrid = ({
   columnGroupingModel,
   allMoreCast2Rows
 }: ForecastDataGridProps) => {
-  const classes = useStyles()
-
   return (
-    <div className={classes.root} data-testid={`morecast2-data-grid`}>
+    <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGrid
         columnVisibilityModel={columnVisibilityModel}
         onColumnVisibilityModelChange={newModel => setColumnVisibilityModel(newModel)}
@@ -83,7 +87,7 @@ const ForecastDataGrid = ({
         handleClose={handleClose}
         updateColumnWithModel={updateColumnWithModel}
       />
-    </div>
+    </Root>
   )
 }
 
