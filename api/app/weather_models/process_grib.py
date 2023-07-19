@@ -133,16 +133,13 @@ def get_transformer(crs_from, crs_to):
 
 
 def calculate_wind_speed_from_u_v(u: float, v: float):
-    """ Return calculated wind speed from u and v components using formula
+    """ Return calculated wind speed in metres per second from u and v components using formula
     wind_speed = sqrt(u^2 + v^2)
 
     What the heck is going on here?! See
     http://colaweb.gmu.edu/dev/clim301/lectures/wind/wind-uv
     """
-    # The wind speed in the grib files is in units of metres per second.
-    # We need to convert to kilometres per hour.
-    metres_per_second_speed = math.sqrt(math.pow(u, 2) + math.pow(v, 2))
-    return convert_mps_to_kph(metres_per_second_speed)
+    return math.sqrt(math.pow(u, 2) + math.pow(v, 2))
 
 
 def calculate_wind_dir_from_u_v(u: float, v: float):
@@ -233,10 +230,13 @@ class GribFileProcessor():
         return (u_points, wind_dir_values)
 
     def get_wind_speed_values(self, u_points: List[int], zipped_uv_values):
-        """ Get calculated wind speed values for list of points and zipped u,v values """
+        """ Get calculated wind speed values in kilometres per hour for a list of points
+        and zipped u,v values """
         wind_speed_values = []
         for u, v in zipped_uv_values:
-            wind_speed_values.append(calculate_wind_speed_from_u_v(u, v))
+            metres_per_second_speed = calculate_wind_speed_from_u_v(u, v)
+            kilometres_per_hour_speed = convert_mps_to_kph(metres_per_second_speed)
+            wind_speed_values.append(kilometres_per_hour_speed)
         return (u_points, wind_speed_values)
 
     def get_variable_name(self, grib_info: ModelRunInfo) -> str:
@@ -305,7 +305,7 @@ class GribFileProcessor():
         # Iterate through stations:
         for (points, values) in self.yield_data_for_stations(raster_band):
             # Convert precipitation from metres per second to kilometres per hour
-            if grib_info.variable_name.lower() == "apcp_sfc_0":
+            if grib_info.variable_name.lower().startswith("apcp_sfc"):
                 values = [convert_mps_to_kph(value) for value in values]
             self.store_bounding_values(
                 points, values, prediction_run, grib_info, session)
