@@ -142,8 +142,7 @@ def calculate_wind_speed_from_u_v(u: float, v: float):
     # The wind speed in the grib files is in units of metres per second.
     # We need to convert to kilometres per hour.
     metres_per_second_speed = math.sqrt(math.pow(u, 2) + math.pow(v, 2))
-    kilometres_per_hour_speed = metres_per_second_speed / 1000 * 3600
-    return kilometres_per_hour_speed
+    return convert_mps_to_kph(metres_per_second_speed)
 
 
 def calculate_wind_dir_from_u_v(u: float, v: float):
@@ -160,6 +159,12 @@ def calculate_wind_dir_from_u_v(u: float, v: float):
     # must convert from trig coordinates to cardinal coordinates
     calc = 90 - calc
     return calc if calc > 0 else 360 + calc
+
+
+def convert_mps_to_kph(value: float):
+    """ Convert each value in a list from metres per second to kilometres per hour. 
+    """
+    return value / 1000 * 3600
 
 
 class GribFileProcessor():
@@ -299,6 +304,9 @@ class GribFileProcessor():
         raster_band = dataset.GetRasterBand(1)
         # Iterate through stations:
         for (points, values) in self.yield_data_for_stations(raster_band):
+            # Convert precipitation from metres per second to kilometres per hour
+            if grib_info.variable_name.lower() == "apcp_sfc_0":
+                values = [convert_mps_to_kph(value) for value in values]
             self.store_bounding_values(
                 points, values, prediction_run, grib_info, session)
 
