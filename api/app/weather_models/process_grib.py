@@ -139,7 +139,11 @@ def calculate_wind_speed_from_u_v(u: float, v: float):
     What the heck is going on here?! See
     http://colaweb.gmu.edu/dev/clim301/lectures/wind/wind-uv
     """
-    return math.sqrt(math.pow(u, 2) + math.pow(v, 2))
+    # The wind speed in the grib files is in units of metres per second.
+    # We need to convert to kilometres per hour.
+    metres_per_second_speed = math.sqrt(math.pow(u, 2) + math.pow(v, 2))
+    kilometres_per_hour_speed = metres_per_second_speed / 1000 * 3600
+    return kilometres_per_hour_speed
 
 
 def calculate_wind_dir_from_u_v(u: float, v: float):
