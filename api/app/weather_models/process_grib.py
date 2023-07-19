@@ -159,7 +159,7 @@ def calculate_wind_dir_from_u_v(u: float, v: float):
 
 
 def convert_mps_to_kph(value: float):
-    """ Convert each value in a list from metres per second to kilometres per hour. 
+    """ Convert a value from metres per second to kilometres per hour. 
     """
     return value / 1000 * 3600
 
