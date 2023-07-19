@@ -7,6 +7,7 @@ import React from 'react'
 import MeanPrepLevelCell from './MeanPrepLevelCell'
 import { FireStartRange, PlanningAreaResult, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
+import { PlanningAreaTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 
 export interface CalculatedCellsProps {
   testId?: string
@@ -15,7 +16,6 @@ export interface CalculatedCellsProps {
   planningAreaResult: PlanningAreaResult
   fireStartsEnabled: boolean
   setNewFireStarts: (areaId: number, dayOffset: number, newFireStarts: FireStartRange) => void
-  planningAreaClass: string
   numPrepDays: number
   fireStartRanges: FireStartRange[]
   fuelTypes: FuelType[]
@@ -35,7 +35,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
 
         return (
           <React.Fragment key={`calc-cells-${day}`}>
-            <TableCell colSpan={2} className={props.planningAreaClass}></TableCell>
+            <PlanningAreaTableCell colSpan={2}></PlanningAreaTableCell>
             <MeanIntensityGroupRollup
               area={props.area}
               dailies={allPlanningAreaDailies ? allPlanningAreaDailies : []}

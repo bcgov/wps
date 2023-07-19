@@ -1,20 +1,17 @@
-import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { CriticalHoursHFI } from 'api/fbaCalcAPI'
+import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import React from 'react'
+
+const PREFIX = 'CriticalHoursCell'
+
+const classes = {
+  dataRow: `${PREFIX}-dataRow`
+}
 
 interface CriticalHoursCellProps {
   value: CriticalHoursHFI | undefined
   className?: string
 }
-
-const useStyles = makeStyles({
-  dataRow: {
-    height: '40px',
-    paddingLeft: '8px',
-    paddingRight: '8px'
-  }
-})
 
 export const formatCriticalHoursAsString = (criticalHours: CriticalHoursHFI | undefined | null): string | undefined => {
   if (criticalHours === undefined || criticalHours === null) {
@@ -23,12 +20,10 @@ export const formatCriticalHoursAsString = (criticalHours: CriticalHoursHFI | un
   return `${criticalHours.start}:00 - ${criticalHours.end}:00`
 }
 const CriticalHoursCell = (props: CriticalHoursCellProps) => {
-  const classes = useStyles()
-
   return (
-    <TableCell className={props.className ? props.className : classes.dataRow}>
+    <DataTableCell className={props.className ? props.className : classes.dataRow}>
       {formatCriticalHoursAsString(props.value)}
-    </TableCell>
+    </DataTableCell>
   )
 }
 

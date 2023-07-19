@@ -1,8 +1,7 @@
-import { Table, TableBody, TableRow, TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { Table, TableBody, TableRow, TableCell, styled } from '@mui/material'
 import { FuelType, WeatherStation } from 'api/hfiCalculatorAPI'
 import StickyCell from 'components/StickyCell'
-import { fireTableStyles } from 'app/theme'
+import { UNSELECTED_STATION_COLOR } from 'app/theme'
 import React from 'react'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
@@ -13,7 +12,6 @@ export interface BaseStationAttributeCellsProps {
   testid?: string
   station: WeatherStation
   planningAreaId: number
-  className: string | undefined
   grassCurePercentage: number | undefined
   selectStationEnabled: boolean
   stationCodeInSelected: (planningAreaId: number, code: number) => boolean
@@ -26,14 +24,31 @@ export interface BaseStationAttributeCellsProps {
   isSetFuelTypeEnabled: boolean
 }
 
-const useStyles = makeStyles({
-  ...fireTableStyles
+const NoBottomBorderTableCell = styled(TableCell, { shouldForwardProp: prop => prop !== 'isRowSelected' })(
+  (props: Pick<BaseStationAttributeCellsProps, 'isRowSelected'>) => ({
+    minWidth: 120,
+    borderBottom: 'none',
+    color: !props.isRowSelected ? UNSELECTED_STATION_COLOR : undefined
+  })
+)
+
+const StationNameTableCell = styled(NoBottomBorderTableCell)({
+  minWidth: 180
+})
+
+const SelectedTableCell = styled(TableCell, { shouldForwardProp: prop => prop !== 'isRowSelected' })(
+  (props: Pick<BaseStationAttributeCellsProps, 'isRowSelected'>) => ({
+    color: !props.isRowSelected ? UNSELECTED_STATION_COLOR : undefined
+  })
+)
+
+export const RightBorderStickyCell = styled(StickyCell)({
+  borderRight: '1px solid #c4c4c4'
 })
 
 const BaseStationAttributeCells = ({
   station,
   planningAreaId,
-  className,
   grassCurePercentage,
   selectStationEnabled,
   stationCodeInSelected,
@@ -44,8 +59,6 @@ const BaseStationAttributeCells = ({
   isRowSelected,
   isSetFuelTypeEnabled
 }: BaseStationAttributeCellsProps) => {
-  const classes = useStyles()
-
   return (
     <React.Fragment>
       <StickyCell left={0} zIndexOffset={11} backgroundColor={'#ffffff'}>
@@ -53,7 +66,7 @@ const BaseStationAttributeCells = ({
           <TableBody>
             <TableRow>
               <StationSelectCell
-                className={className}
+                isRowSelected={isRowSelected}
                 station={station}
                 planningAreaId={planningAreaId}
                 selectStationEnabled={selectStationEnabled}
@@ -68,24 +81,21 @@ const BaseStationAttributeCells = ({
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell
-                key={`station-${station.code}-name`}
-                className={`${className} ${classes.stationLocation} ${classes.noBottomBorder}`}
-              >
+              <StationNameTableCell key={`station-${station.code}-name`} isRowSelected={isRowSelected}>
                 {station.station_props.name}
-              </TableCell>
+              </StationNameTableCell>
             </TableRow>
           </TableBody>
         </Table>
       </StickyCell>
-      <TableCell key={`station-${station.code}-elevation`} className={className}>
+      <SelectedTableCell key={`station-${station.code}-elevation`} isRowSelected={isRowSelected}>
         {station.station_props.elevation}
-      </TableCell>
+      </SelectedTableCell>
       <StickyCell left={230} zIndexOffset={11} backgroundColor={'#ffffff'}>
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell key={`station-${station.code}-fuel-type`} className={`${className} ${classes.noBottomBorder}`}>
+              <NoBottomBorderTableCell key={`station-${station.code}-fuel-type`} isRowSelected={isRowSelected}>
                 <FuelTypeDropdown
                   setFuelType={(code: number, fuelTypeId: number) => {
                     setFuelType(planningAreaId, code, fuelTypeId)
@@ -96,12 +106,12 @@ const BaseStationAttributeCells = ({
                   isRowSelected={isRowSelected}
                   isSetFuelTypeEnabled={isSetFuelTypeEnabled}
                 ></FuelTypeDropdown>
-              </TableCell>
+              </NoBottomBorderTableCell>
             </TableRow>
           </TableBody>
         </Table>
       </StickyCell>
-      <StickyCell left={355} zIndexOffset={11} backgroundColor={'#ffffff'} className={classes.rightBorder}>
+      <RightBorderStickyCell left={355} zIndexOffset={11} backgroundColor={'#ffffff'}>
         <Table>
           <TableBody>
             <TableRow>
@@ -109,12 +119,11 @@ const BaseStationAttributeCells = ({
                 value={grassCurePercentage}
                 isGrassFuelType={isGrassFuelType(selectedFuelType)}
                 selected={stationCodeInSelected(planningAreaId, station.code)}
-                className={classes.noBottomBorder}
               ></GrassCureCell>
             </TableRow>
           </TableBody>
         </Table>
-      </StickyCell>
+      </RightBorderStickyCell>
     </React.Fragment>
   )
 }

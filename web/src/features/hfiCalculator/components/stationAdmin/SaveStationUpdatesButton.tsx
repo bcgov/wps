@@ -1,9 +1,23 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { Button } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { theme } from 'app/theme'
 import { isEmpty, isUndefined, some } from 'lodash'
+
+const PREFIX = 'SaveStationUpdatesButton'
+
+const classes = {
+  actionButton: `${PREFIX}-actionButton`
+}
+
+const StyledButton = styled(Button)(() => ({
+  [`&.${classes.actionButton}`]: {
+    minWidth: 100,
+    margin: theme.spacing(1),
+    float: 'right'
+  }
+}))
 
 export interface SaveStationUpdatesButtonProps {
   testId?: string
@@ -12,19 +26,9 @@ export interface SaveStationUpdatesButtonProps {
   handleSave: () => void
 }
 
-const useStyles = makeStyles(() => ({
-  actionButton: {
-    minWidth: 100,
-    margin: theme.spacing(1),
-    float: 'right'
-  }
-}))
-
 const SaveStationUpdatesButton = ({ addedStations, removedStations, handleSave }: SaveStationUpdatesButtonProps) => {
-  const classes = useStyles()
-
   return (
-    <Button
+    <StyledButton
       variant="contained"
       color="primary"
       disabled={
@@ -36,7 +40,7 @@ const SaveStationUpdatesButton = ({ addedStations, removedStations, handleSave }
       data-testid={'save-new-station-button'}
     >
       Save
-    </Button>
+    </StyledButton>
   )
 }
 

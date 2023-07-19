@@ -1,15 +1,22 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { InputLabel, Slider } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+const PREFIX = 'TimeRangeSlider'
 
-const useStyles = makeStyles({
-  root: {
+const classes = {
+  root: `${PREFIX}-root`,
+  inputLabel: `${PREFIX}-inputLabel`,
+  slider: `${PREFIX}-slider`
+}
+
+const Root = styled('div')({
+  [`&.${classes.root}`]: {
     marginTop: 20
   },
-  inputLabel: {
+  [`& .${classes.inputLabel}`]: {
     marginBottom: 5
   },
-  slider: {
+  [`& .${classes.slider}`]: {
     width: 300
   }
 })
@@ -45,10 +52,8 @@ const TIME_RANGE_OPTIONS = [
 ]
 
 export const TimeRangeSlider: React.FunctionComponent<Props> = (props: Props) => {
-  const classes = useStyles()
-
   return (
-    <div className={classes.root} data-testid="time-range-slider">
+    <Root className={classes.root} data-testid="time-range-slider">
       <InputLabel className={classes.inputLabel}>Time Range (years)</InputLabel>
       <Slider
         className={classes.slider}
@@ -65,6 +70,6 @@ export const TimeRangeSlider: React.FunctionComponent<Props> = (props: Props) =>
         step={null}
         value={props.timeRange}
       />
-    </div>
+    </Root>
   )
 }

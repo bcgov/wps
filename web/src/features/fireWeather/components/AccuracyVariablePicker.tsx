@@ -1,14 +1,16 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
-export enum AccuracyWeatherVariableEnum {
-  'Relative Humidity' = 1,
-  'Temperature'
+const PREFIX = 'AccuracyVariablePicker'
+
+const classes = {
+  variableDropdown: `${PREFIX}-variableDropdown`,
+  select: `${PREFIX}-select`
 }
 
-const useStyles = makeStyles({
-  variableDropdown: {
+const Root = styled('div')({
+  [`& .${classes.variableDropdown}`]: {
     minWidth: 250,
     margin: '8px',
     marginLeft: '20px',
@@ -16,10 +18,15 @@ const useStyles = makeStyles({
       color: 'white !important'
     }
   },
-  select: {
+  [`& .${classes.select}`]: {
     color: 'white'
   }
 })
+
+export enum AccuracyWeatherVariableEnum {
+  'Relative Humidity' = 1,
+  'Temperature'
+}
 
 interface Props {
   selectedWxVariable: AccuracyWeatherVariableEnum
@@ -27,10 +34,8 @@ interface Props {
 }
 
 const AccuracyVariablePicker = (props: Props) => {
-  const classes = useStyles()
-
   return (
-    <div>
+    <Root>
       <FormControl variant="standard" className={classes.variableDropdown}>
         <InputLabel id="variable-dropdown-label" className={classes.select}>
           View accuracy map for
@@ -46,7 +51,7 @@ const AccuracyVariablePicker = (props: Props) => {
           <MenuItem value={AccuracyWeatherVariableEnum['Temperature']}>Temperature</MenuItem>
         </Select>
       </FormControl>
-    </div>
+    </Root>
   )
 }
 

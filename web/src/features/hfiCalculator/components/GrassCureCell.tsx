@@ -1,20 +1,23 @@
 import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import React from 'react'
 import { isNull } from 'lodash'
-import { fireTableStyles } from 'app/theme'
+import { UNSELECTED_STATION_COLOR } from 'app/theme'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
+
+const DefaultGrassFuelCell = styled(TableCell)({
+  borderBottom: 'none'
+})
+
+const UnselectedGrassFuelCell = styled(TableCell)({
+  color: UNSELECTED_STATION_COLOR
+})
 
 export interface GrassCureCellProps {
   value: number | null | undefined
   isGrassFuelType: boolean
-  className: string | undefined
   selected: boolean
 }
-
-const useStyles = makeStyles({
-  unselectedStation: { ...fireTableStyles.unselectedStation }
-})
 
 const toolTipFirstLine = 'Grass Cure % not defined in WFWX.'
 const toolTipSecondLine = 'Cannot calculate ROS, Fire Size/Type, HFI, FIG.'
@@ -25,25 +28,24 @@ const toolTipElement = (
   </div>
 )
 
-const GrassCureProps = (props: GrassCureCellProps) => {
-  const classes = useStyles()
+const GrassCureCell = (props: GrassCureCellProps) => {
+  const variablySelectedGrassFuelCell = !props.selected ? (
+    <UnselectedGrassFuelCell data-testid={`grass-cure`}>{props.value}</UnselectedGrassFuelCell>
+  ) : (
+    <DefaultGrassFuelCell data-testid={`grass-cure`}>{props.value}</DefaultGrassFuelCell>
+  )
   return isNull(props.value) && props.isGrassFuelType ? (
-    <TableCell className={props.className}>
+    <DefaultGrassFuelCell>
       <ErrorIconWithTooltip
         testId={`grass-cure-error`}
         isDataCell={true}
         tooltipElement={toolTipElement}
         tooltipAriaText={[toolTipFirstLine, toolTipSecondLine]}
       />
-    </TableCell>
+    </DefaultGrassFuelCell>
   ) : (
-    <TableCell
-      className={`${!props.selected ? classes.unselectedStation : undefined} ${props.className} `}
-      data-testid={`grass-cure`}
-    >
-      {props.value}
-    </TableCell>
+    variablySelectedGrassFuelCell
   )
 }
 
-export default React.memo(GrassCureProps)
+export default React.memo(GrassCureCell)

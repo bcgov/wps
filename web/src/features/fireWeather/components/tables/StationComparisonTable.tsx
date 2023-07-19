@@ -1,6 +1,5 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
-import { ClassNameMap } from '@mui/styles/withStyles'
+import { styled } from '@mui/material/styles'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
 import Table from '@mui/material/Table'
@@ -17,8 +16,17 @@ import { formatDateInUTC00Suffix, formatDatetimeInPST } from 'utils/date'
 import { calculateAccumulatedPrecip } from 'utils/table'
 import ComparisonTableRow, { DataSource, WeatherVariable } from './ComparisonTableRow'
 
-const useStyles = makeStyles({
-  paper: {
+const PREFIX = 'StationComparisonTable'
+
+const classes = {
+  paper: `${PREFIX}-paper`,
+  typography: `${PREFIX}-typography`,
+  lightColumnHeader: `${PREFIX}-lightColumnHeader`,
+  darkColumnHeader: `${PREFIX}-darkColumnHeader`
+}
+
+const StyledPaper = styled(Paper)({
+  [`&.${classes.paper}`]: {
     padding: '5px',
     // There's a formating issues that causes the last cell in the table to be cut off
     // when in 100%, on a small screen. Setting the width to 95% is a workaround, as the
@@ -26,19 +34,20 @@ const useStyles = makeStyles({
     // flex boxes, and having a table that needs to scroll.)
     width: '95%'
   },
-  typography: {},
-  lightColumnHeader: {
+  [`& .${classes.typography}`]: {},
+  [`& .${classes.lightColumnHeader}`]: {
     textAlign: 'center',
     padding: '2px',
     minWidth: '60px'
   },
-  darkColumnHeader: {
+  [`& .${classes.darkColumnHeader}`]: {
     backgroundColor: 'rgb(240, 240, 240)',
     textAlign: 'center',
     padding: '2px',
     minWidth: '60px'
   }
 })
+
 interface Props {
   timeOfInterest: string
   stationCodes: number[]
@@ -54,33 +63,41 @@ const findNoonMatch = (noonDate: string, collection: ModelValue[] | undefined): 
   return collection?.find((item: ModelValue) => item.datetime === noonDate)
 }
 
-const SubHeadings = (value: string, index: number, classes: ClassNameMap<'darkColumnHeader' | 'lightColumnHeader'>) => {
-  const className = index % 2 === 0 ? classes.darkColumnHeader : classes.lightColumnHeader
+const DataColumnHeading = styled(TableCell, {
+  shouldForwardProp: prop => prop !== 'isEven'
+})<{ isEven: boolean }>(({ isEven }) => ({
+  textAlign: 'center',
+  padding: '2px',
+  minWidth: '60px',
+  borderLeft: !isEven ? 'rgb(240, 240, 240)' : undefined
+}))
+
+const SubHeadings = (value: string, index: number) => {
+  const isEven = index % 2 === 0
   return [
-    <TableCell key={`${value}-observered-${index}`} className={className}>
+    <DataColumnHeading key={`${value}-observered-${index}`} isEven={isEven}>
       Observed
-    </TableCell>,
-    <TableCell key={`${value}-forecast-${index}`} className={className}>
+    </DataColumnHeading>,
+    <DataColumnHeading key={`${value}-forecast-${index}`} isEven={isEven}>
       Forecast
-    </TableCell>,
-    <TableCell key={`${value}-HRDPS-${index}`} className={className}>
+    </DataColumnHeading>,
+    <DataColumnHeading key={`${value}-HRDPS-${index}`} isEven={isEven}>
       HRDPS
-    </TableCell>,
-    <TableCell key={`${value}-RDPS-${index}`} className={className}>
+    </DataColumnHeading>,
+    <DataColumnHeading key={`${value}-RDPS-${index}`} isEven={isEven}>
       RDPS
-    </TableCell>,
-    <TableCell key={`${value}-GDPS-${index}`} className={className}>
+    </DataColumnHeading>,
+    <DataColumnHeading key={`${value}-GDPS-${index}`} isEven={isEven}>
       GDPS
-    </TableCell>
+    </DataColumnHeading>
   ]
 }
 
 const StationComparisonTable = (props: Props) => {
-  const classes = useStyles()
   // format the date to match the ISO format in the API for easy comparison.
   const noonDate = formatDateInUTC00Suffix(props.timeOfInterest)
   return (
-    <Paper className={classes.paper}>
+    <StyledPaper className={classes.paper}>
       <Typography component="div" variant="subtitle2">
         Station comparison for {formatDatetimeInPST(noonDate)} PDT
       </Typography>
@@ -110,7 +127,7 @@ const StationComparisonTable = (props: Props) => {
               <TableRow>
                 <TableCell>Weather Stations</TableCell>
                 {['temp', 'rh', 'wind speed', 'wind direction', 'precip'].map((value, index) => {
-                  return SubHeadings(value, index, classes)
+                  return SubHeadings(value, index)
                 })}
                 {/* Dew Point */}
                 <TableCell className={classes.lightColumnHeader}>Observed</TableCell>
@@ -186,7 +203,7 @@ const StationComparisonTable = (props: Props) => {
           </Table>
         </TableContainer>
       </Paper>
-    </Paper>
+    </StyledPaper>
   )
 }
 

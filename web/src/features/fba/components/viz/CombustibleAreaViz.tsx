@@ -1,25 +1,24 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { FireZoneArea } from 'api/fbaAPI'
 import { BarChart, CartesianGrid, XAxis, YAxis, Bar, Tooltip, ResponsiveContainer } from 'recharts'
 import { Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+const PREFIX = 'CombustibleAreaViz'
+
+const StyledTypography = styled(Typography, {
+  name: `${PREFIX}-Typography`
+})({
+  fontSize: '1.3rem',
+  textAlign: 'center',
+  variant: 'h3'
+})
 
 export interface AdvisoryMetadataProps {
   testId?: string
   fireZoneAreas: FireZoneArea[]
 }
 
-const useStyles = makeStyles({
-  combustibleLandHeader: {
-    fontSize: '1.3rem',
-    textAlign: 'center',
-    variant: 'h3'
-  }
-})
-
 const CombustibleAreaViz = ({ fireZoneAreas }: AdvisoryMetadataProps) => {
-  const classes = useStyles()
-
   const labelledFireZones = fireZoneAreas.map(area => ({
     ...area,
     threshold_label: area.threshold == 1 ? 'Advisory' : 'Warning',
@@ -27,8 +26,8 @@ const CombustibleAreaViz = ({ fireZoneAreas }: AdvisoryMetadataProps) => {
     warning_hfi_percentage: area.threshold == 2 ? area.elevated_hfi_percentage : undefined
   }))
   return (
-    <>
-      <Typography className={classes.combustibleLandHeader}>Combustible Land Under Advisory or Warning</Typography>
+    <div>
+      <StyledTypography>Combustible Land Under Advisory or Warning</StyledTypography>
       <ResponsiveContainer width={400} height={250}>
         <BarChart data={labelledFireZones}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -38,7 +37,7 @@ const CombustibleAreaViz = ({ fireZoneAreas }: AdvisoryMetadataProps) => {
           <Bar dataKey="elevated_hfi_percentage" fill="#1E90FF" />
         </BarChart>
       </ResponsiveContainer>
-    </>
+    </div>
   )
 }
 

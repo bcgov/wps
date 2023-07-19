@@ -28,7 +28,6 @@ describe('FBAMap', () => {
           advisoryThreshold={0}
           selectedFireCenter={undefined}
           selectedFireZone={undefined}
-          className={''}
           fireZoneAreas={[]}
           runType={RunType.FORECAST}
           setIssueDate={function (): void {
