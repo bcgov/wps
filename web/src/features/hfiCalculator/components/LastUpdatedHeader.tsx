@@ -1,6 +1,6 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import UpdateIcon from '@mui/icons-material/Update'
-import makeStyles from '@mui/styles/makeStyles'
 import { maxBy } from 'lodash'
 import { DateTime } from 'luxon'
 import { PST_UTC_OFFSET } from 'utils/constants'
@@ -8,21 +8,22 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import { theme } from 'app/theme'
 import { createTheme, StyledEngineProvider, ThemeProvider } from '@mui/material'
 
+const PREFIX = 'LastUpdatedHeader'
+
+const Container = styled('span', { name: `${PREFIX}-container` })({
+  display: 'flex',
+  alignItems: 'center',
+  margin: theme.spacing(1)
+})
+
+const HeaderText = styled('p', { name: `${PREFIX}-headerText` })({
+  fontSize: '14px',
+  color: theme.palette.primary.main
+})
+
 export interface LastUpdatedHeaderProps {
   dailies?: StationDaily[]
 }
-
-const useStyles = makeStyles({
-  container: {
-    display: 'flex',
-    alignItems: 'center',
-    margin: theme.spacing(1)
-  },
-  headerText: {
-    fontSize: '14px',
-    color: theme.palette.primary.main
-  }
-})
 
 const lastUpdatedTheme = createTheme({
   components: {
@@ -54,7 +55,6 @@ const findLastUpdate = (dailies?: StationDaily[]) => {
 }
 
 const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
-  const classes = useStyles()
   const lastUpdate = findLastUpdate(props.dailies)
   if (lastUpdate) {
     const dateString = lastUpdate.toFormat('MMMM d, HH:mm') + ' PST'
@@ -62,15 +62,15 @@ const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
     return (
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={lastUpdatedTheme}>
-          <span className={classes.container}>
+          <Container>
             <UpdateIcon></UpdateIcon>
-            <p className={classes.headerText}>Forecast last updated {dateString}</p>
-          </span>
+            <HeaderText>Forecast last updated {dateString}</HeaderText>
+          </Container>
         </ThemeProvider>
       </StyledEngineProvider>
     )
   } else {
-    return <React.Fragment></React.Fragment>
+    return <div></div>
   }
 }
 

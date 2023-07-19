@@ -1,21 +1,30 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { ToggleButton, ToggleButtonGroup } from '@mui/material'
 
-const useStyles = makeStyles({
-  root: {
+const PREFIX = 'SidePanel'
+
+const classes = {
+  root: `${PREFIX}-root`,
+  content: `${PREFIX}-content`,
+  actions: `${PREFIX}-actions`,
+  closeBtn: `${PREFIX}-closeBtn`
+}
+
+const Root = styled('div')({
+  [`&.${classes.root}`]: {
     order: 2,
     overflowX: 'hidden'
   },
-  content: {
+  [`& .${classes.content}`]: {
     position: 'relative'
   },
-  actions: {
+  [`& .${classes.actions}`]: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'flex-start'
   },
-  closeBtn: {
+  [`& .${classes.closeBtn}`]: {
     marginRight: 10,
     fontSize: 28,
     cursor: 'pointer',
@@ -37,10 +46,8 @@ interface Props {
 }
 
 const SidePanel = (props: Props) => {
-  const classes = useStyles(props)
-
   return (
-    <div className={classes.root} data-testid="sidepanel">
+    <Root className={classes.root} data-testid="sidepanel">
       <div className={classes.content}>
         <div className={classes.actions}>
           <ToggleButtonGroup
@@ -62,7 +69,7 @@ const SidePanel = (props: Props) => {
         </div>
         {props.children}
       </div>
-    </div>
+    </Root>
   )
 }
 

@@ -1,25 +1,37 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import CombustibleAreaViz from 'features/fba/components/viz/CombustibleAreaViz'
-import { Container, Grid, Typography } from '@mui/material'
+import { Grid, Typography } from '@mui/material'
 import { isUndefined } from 'lodash'
 import { ElevationInfoByThreshold, FireZone, FireZoneArea, FireZoneThresholdFuelTypeArea } from 'api/fbaAPI'
 import ElevationInfoViz from 'features/fba/components/viz/ElevationInfoViz'
 import FuelTypesBreakdown from 'features/fba/components/viz/FuelTypesBreakdown'
 
-const useStyles = makeStyles({
-  wrapper: {
-    minWidth: 400
+const PREFIX = 'ZoneSummaryPanel'
+
+const classes = {
+  wrapper: `${PREFIX}-wrapper`,
+  header: `${PREFIX}-header`,
+  zoneName: `${PREFIX}-zoneName`,
+  centreName: `${PREFIX}-centreName`
+}
+
+const StyledGrid = styled(Grid)({
+  [`& .${classes.wrapper}`]: {
+    minWidth: 400,
+    overflowY: 'auto',
+    maxHeight: '100vh',
+    padding: 0
   },
-  header: {
+  [`& .${classes.header}`]: {
     margin: 10
   },
-  zoneName: {
+  [`& .${classes.zoneName}`]: {
     fontSize: '2rem',
     textAlign: 'center',
     variant: 'h2'
   },
-  centreName: {
+  [`& .${classes.centreName}`]: {
     fontSize: '1rem',
     textAlign: 'center',
     variant: 'h6',
@@ -28,7 +40,6 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  className?: string
   selectedFireZone: FireZone | undefined
   fuelTypeInfo: Record<number, FireZoneThresholdFuelTypeArea[]>
   hfiElevationInfo: ElevationInfoByThreshold[]
@@ -36,14 +47,13 @@ interface Props {
 }
 
 const ZoneSummaryPanel = React.forwardRef((props: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
-  const classes = useStyles()
   ZoneSummaryPanel.displayName = 'ZoneSummaryPanel'
 
   if (isUndefined(props.selectedFireZone)) {
     return <div></div>
   } else {
     return (
-      <Container ref={ref} className={`${props.className} ${classes.wrapper}`}>
+      <StyledGrid ref={ref} className={`${classes.wrapper}`}>
         <Grid container alignItems={'center'} direction={'column'}>
           <Grid item>
             <Typography className={classes.zoneName}>{props.selectedFireZone.mof_fire_zone_name}</Typography>
@@ -63,7 +73,7 @@ const ZoneSummaryPanel = React.forwardRef((props: Props, ref: React.ForwardedRef
             <ElevationInfoViz selectedFireZone={props.selectedFireZone} hfiElevationInfo={props.hfiElevationInfo} />
           </Grid>
         </Grid>
-      </Container>
+      </StyledGrid>
     )
   }
 })

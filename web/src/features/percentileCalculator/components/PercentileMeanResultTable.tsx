@@ -1,29 +1,34 @@
 import React from 'react'
-import { Paper, TableContainer, Table, TableRow, TableCell, TableBody } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
+import { TableContainer, Table, TableRow, TableCell, TableBody } from '@mui/material'
 
 import { MeanValues } from 'api/percentileAPI'
 import { FWI_VALUES_DECIMAL } from 'utils/constants'
 import { NOT_AVAILABLE } from 'utils/strings'
 import { theme } from 'app/theme'
 
-interface Props {
-  meanValues: MeanValues
+const PREFIX = 'PercentileMeanResultTable'
+
+const classes = {
+  tableHeader: `${PREFIX}-tableHeader`
 }
 
-const useStyles = makeStyles(() => ({
-  tableHeader: {
+const StyledTableContainer = styled(TableContainer)(() => ({
+  [`& .${classes.tableHeader}`]: {
     backgroundColor: theme.palette.primary.light,
     color: theme.palette.primary.contrastText
   }
 }))
 
+interface Props {
+  meanValues: MeanValues
+}
+
 export const PercentileMeanResultTable: React.FunctionComponent<Props> = ({ meanValues }: Props) => {
-  const classes = useStyles()
   const { ffmc, bui, isi } = meanValues
 
   return (
-    <TableContainer data-testid="percentile-mean-result-table" component={Paper}>
+    <StyledTableContainer data-testid="percentile-mean-result-table">
       <Table aria-label="simple table">
         <TableBody>
           <TableRow>
@@ -51,6 +56,6 @@ export const PercentileMeanResultTable: React.FunctionComponent<Props> = ({ mean
           </TableRow>
         </TableBody>
       </Table>
-    </TableContainer>
+    </StyledTableContainer>
   )
 }

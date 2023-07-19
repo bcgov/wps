@@ -1,7 +1,16 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { isEmpty } from 'lodash'
 import { LockOutlined, LockOpenOutlined } from '@mui/icons-material'
+
+const PREFIX = 'LoggedInStatus'
+
+const Root = styled('div', {
+  name: `${PREFIX}-root`
+})({
+  display: 'flex',
+  alignItems: 'center'
+})
 
 export interface LoggedInStatusProps {
   isAuthenticated: boolean
@@ -9,33 +18,25 @@ export interface LoggedInStatusProps {
   idir: string | undefined
 }
 
-const useStyles = makeStyles(() => ({
-  root: {
-    display: 'flex',
-    alignItems: 'center'
-  }
-}))
-
 const LoggedInStatus = ({ isAuthenticated, roles, idir }: LoggedInStatusProps) => {
-  const classes = useStyles()
   if (!isAuthenticated) {
-    return <React.Fragment></React.Fragment>
+    return <></>
   }
 
   if (isAuthenticated && isEmpty(roles)) {
     return (
-      <div data-testid="logged-in-status" className={classes.root}>
+      <Root data-testid="logged-in-status">
         <LockOutlined />
         Read only: {idir}
-      </div>
+      </Root>
     )
   }
 
   return (
-    <div data-testid="logged-in-status" className={classes.root}>
+    <Root data-testid="logged-in-status">
       <LockOpenOutlined />
       Editing: {idir}
-    </div>
+    </Root>
   )
 }
 

@@ -1,35 +1,45 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import { Modal, Card, Button } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 
 import PercentileCalculatorPage from 'features/percentileCalculator/pages/PercentileCalculatorPage'
 
-const useStyles = makeStyles({
-  cardWrapper: {
+const PREFIX = 'PercentileCalculatorPageWithDisclaimer'
+
+const classes = {
+  cardWrapper: `${PREFIX}-cardWrapper`,
+  card: `${PREFIX}-card`,
+  title: `${PREFIX}-title`,
+  iconWrapper: `${PREFIX}-iconWrapper`,
+  acceptBtnWrapper: `${PREFIX}-acceptBtnWrapper`
+}
+
+const StyledModal = styled(Modal)({
+  [`& .${classes.cardWrapper}`]: {
     height: '100%',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center'
   },
-  card: {
+  [`& .${classes.card}`]: {
     maxWidth: 800,
     maxHeight: 'calc(100% - 32px)',
     margin: 16,
     overflowY: 'auto',
     padding: 16
   },
-  title: {
+  [`& .${classes.title}`]: {
     fontSize: '1.5rem',
     fontWeight: 'bold',
     textAlign: 'center'
   },
-  iconWrapper: {
+  [`& .${classes.iconWrapper}`]: {
     display: 'flex',
     justifyContent: 'center',
     marginBottom: 10
   },
-  acceptBtnWrapper: {
+  [`& .${classes.acceptBtnWrapper}`]: {
     display: 'flex',
     justifyContent: 'center'
   }
@@ -40,7 +50,6 @@ interface Props {
 }
 
 const PercentileCalculatorPageWithDisclaimer: React.FunctionComponent<Props> = (props: Props) => {
-  const classes = useStyles()
   const [show, setShow] = React.useState(props.showDisclaimer)
 
   const handleClose = () => {
@@ -52,7 +61,7 @@ const PercentileCalculatorPageWithDisclaimer: React.FunctionComponent<Props> = (
   }
 
   return (
-    <Modal open={show} aria-labelledby="disclaimer-modal" onClose={handleClose}>
+    <StyledModal open={show} aria-labelledby="disclaimer-modal" onClose={handleClose}>
       <div className={classes.cardWrapper}>
         <Card className={classes.card}>
           <div className={classes.iconWrapper}>
@@ -99,7 +108,7 @@ const PercentileCalculatorPageWithDisclaimer: React.FunctionComponent<Props> = (
           </div>
         </Card>
       </div>
-    </Modal>
+    </StyledModal>
   )
 }
 

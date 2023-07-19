@@ -1,15 +1,21 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
+const PREFIX = 'Contact'
 
-const useStyles = makeStyles({
-  contact: {
+const classes = {
+  contact: `${PREFIX}-contact`,
+  plainText: `${PREFIX}-plainText`
+}
+
+const Root = styled('div')({
+  [`& .${classes.contact}`]: {
     color: 'white',
     fontStyle: 'bold',
     fontSize: '1.1em',
     textDecoration: 'underline',
     cursor: 'pointer'
   },
-  plainText: {
+  [`& .${classes.plainText}`]: {
     color: 'white',
     fontStyle: 'bold',
     fontSize: '1.1em'
@@ -23,10 +29,8 @@ interface Props {
 const Contact = (props: Props) => {
   const productName = props.productName
 
-  const classes = useStyles()
-
   return (
-    <div>
+    <Root>
       <a className={classes.plainText}>Email: </a>
       <a
         id="contact-link"
@@ -35,7 +39,7 @@ const Contact = (props: Props) => {
       >
         bcws.predictiveservices@gov.bc.ca
       </a>
-    </div>
+    </Root>
   )
 }
 

@@ -1,24 +1,30 @@
 import { TableCell } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
 import React from 'react'
 
-interface TextDisplayCellProps {
-  value: string | number | undefined
-  className?: string
+const PREFIX = 'TextDisplayCell'
+
+const classes = {
+  dataRow: `${PREFIX}-dataRow`
 }
 
-const useStyles = makeStyles({
-  dataRow: {
+const StyledTableCell = styled(TableCell)({
+  [`& .${classes.dataRow}`]: {
     height: '40px',
     paddingLeft: '8px',
     paddingRight: '8px'
   }
 })
 
-const TextDisplayCell = (props: TextDisplayCellProps) => {
-  const classes = useStyles()
+interface TextDisplayCellProps {
+  value: string | number | undefined
+  className?: string
+}
 
-  return <TableCell className={props.className ? props.className : classes.dataRow}>{props.value}</TableCell>
+const TextDisplayCell = (props: TextDisplayCellProps) => {
+  return (
+    <StyledTableCell className={props.className ? props.className : classes.dataRow}>{props.value}</StyledTableCell>
+  )
 }
 
 export default React.memo(TextDisplayCell)

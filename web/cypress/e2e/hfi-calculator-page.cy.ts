@@ -279,11 +279,11 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('daily-prep-level-70').contains(1)
       cy.getByTestId('daily-prep-level-70').should($td => {
         const className = $td[0].className
-        expect(className).to.match(/makeStyles-prepLevel1-/)
+        expect(className).to.match(/prepLevel1/)
       })
       cy.getByTestId('daily-prep-level-71').contains(3)
       cy.getByTestId('daily-prep-level-71').should($td => {
-        expect($td[0].className).to.match(/makeStyles-prepLevel3-/)
+        expect($td[0].className).to.match(/prepLevel3/)
       })
     })
 

@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { FireCentre, FuelType } from 'api/hfiCalculatorAPI'
 import FireTable from 'components/FireTable'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
@@ -9,7 +8,7 @@ import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
 import CalculatedPlanningAreaCells from 'features/hfiCalculator/components/CalculatedPlanningAreaCells'
 import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
-import { BACKGROUND_COLOR, fireTableStyles } from 'app/theme'
+import { BACKGROUND_COLOR } from 'app/theme'
 import { isEmpty, isUndefined, sortBy } from 'lodash'
 import {
   calculateNumPrepDays,
@@ -23,12 +22,25 @@ import { selectAuthentication, selectHFICalculatorState, selectHFIReadyState } f
 import { useDispatch, useSelector } from 'react-redux'
 import { FireStartRange, PlanningAreaResult, PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
-import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
+import { FireCentrePlanningAreaHeaderRowCell } from 'features/hfiCalculator/components/HeaderRowCell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
 import { ROLES } from 'features/auth/roles'
 import PlanningAreaReadyToggle from 'features/hfiCalculator/components/PlanningAreaReadyToggle'
 import { AppDispatch } from 'app/store'
 import { fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
+import {
+  NoBottomBorderCell,
+  PlanningAreaHeaderRowCell,
+  PlanningAreaTableCellNoBottomBorder,
+  PlanningAreaTableCellNonSticky,
+  PlanningAreaTableRow,
+  SectionSeparatorBorderTableCell,
+  SpaceHeaderTableCell,
+  StationPlainStylingRow,
+  StickyCellNoBottomBorder,
+  StickyCellRightBorderDefaultBackground,
+  UnSelectedTableRow
+} from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -40,12 +52,7 @@ export interface Props {
   fuelTypes: FuelType[]
 }
 
-const useStyles = makeStyles({
-  ...fireTableStyles
-})
-
 export const WeeklyViewTable = (props: Props): JSX.Element => {
-  const classes = useStyles()
   const dispatch: AppDispatch = useDispatch()
 
   const { result } = useSelector(selectHFICalculatorState)
@@ -80,29 +87,29 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
       <TableHead>
         <TableRow>
           <DayHeaders dateRange={props.dateRange} />
-          <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
+          <SpaceHeaderTableCell colSpan={2}></SpaceHeaderTableCell>
         </TableRow>
         <TableRow>
-          <StickyCell left={0} zIndexOffset={12} className={classes.noBottomBorder}>
+          <StickyCellNoBottomBorder left={0} zIndexOffset={12}>
             <Table>
               <TableBody>
                 <TableRow>
-                  <TableCell className={classes.noBottomBorder}>
+                  <NoBottomBorderCell>
                     {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
-                  </TableCell>
+                  </NoBottomBorderCell>
                 </TableRow>
               </TableBody>
             </Table>
-          </StickyCell>
+          </StickyCellNoBottomBorder>
           <StationDataHeaderCells />
           <DayIndexHeaders numPrepDays={numPrepDays} />
-          <TableCell className={classes.sectionSeparatorBorder}>
+          <SectionSeparatorBorderTableCell>
             Highest
             <br />
             Daily
             <br />
             FIG
-          </TableCell>
+          </SectionSeparatorBorderTableCell>
           <TableCell>
             Calc.
             <br />
@@ -117,7 +124,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           <React.Fragment key={`fire-centre-${props.fireCentre.name}`}>
             <TableRow key={`fire-centre-${props.fireCentre.name}`}>
               <FireCentreCell centre={props.fireCentre}></FireCentreCell>
-              <HeaderRowCell className={classes.fireCentre} />
+              <FireCentrePlanningAreaHeaderRowCell />
             </TableRow>
             {sortBy(props.fireCentre.planning_areas, planningArea => planningArea.order_of_appearance_in_list).map(
               area => {
@@ -129,13 +136,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                   areaHFIResult && (
                     <React.Fragment key={`zone-${area.name}`}>
                       <TableRow>
-                        <HeaderRowCell className={classes.planningAreaBorder} />
+                        <PlanningAreaHeaderRowCell />
                       </TableRow>
-                      <TableRow
-                        className={classes.planningArea}
-                        key={`zone-${area.name}`}
-                        data-testid={`zone-${area.name}`}
-                      >
+                      <PlanningAreaTableRow key={`zone-${area.name}`} data-testid={`zone-${area.name}`}>
                         <StickyCell
                           left={0}
                           zIndexOffset={10}
@@ -145,7 +148,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           <Table>
                             <TableBody>
                               <TableRow>
-                                <TableCell className={classes.noBottomBorder}>
+                                <NoBottomBorderCell>
                                   {area.name}
                                   <PlanningAreaReadyToggle
                                     enabled={roles.includes(ROLES.HFI.SET_READY_STATE) && isAuthenticated}
@@ -153,46 +156,37 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                     readyDetails={planningAreaReadyDetails[area.id]}
                                     toggleReady={toggleReady}
                                   />
-                                </TableCell>
+                                </NoBottomBorderCell>
                               </TableRow>
                             </TableBody>
                           </Table>
                         </StickyCell>
-                        <TableCell className={`${classes.planningArea} ${classes.nonstickyHeaderCell}`}></TableCell>
-                        <StickyCell
-                          left={227}
-                          zIndexOffset={10}
-                          className={`${classes.rightBorder} ${classes.defaultBackground}`}
-                          colSpan={2}
-                        >
+                        <PlanningAreaTableCellNonSticky></PlanningAreaTableCellNonSticky>
+                        <StickyCellRightBorderDefaultBackground left={227} zIndexOffset={10} colSpan={2}>
                           <Table>
                             <TableBody>
                               <TableRow>
-                                <TableCell className={`${classes.planningArea} ${classes.noBottomBorder}`}></TableCell>
+                                <PlanningAreaTableCellNoBottomBorder></PlanningAreaTableCellNoBottomBorder>
                               </TableRow>
                             </TableBody>
                           </Table>
-                        </StickyCell>
+                        </StickyCellRightBorderDefaultBackground>
                         <CalculatedPlanningAreaCells
                           area={area}
                           areaName={area.name}
                           planningAreaResult={areaHFIResult}
                           setNewFireStarts={props.setNewFireStarts}
-                          planningAreaClass={classes.planningArea}
                           numPrepDays={numPrepDays}
                           fireStartsEnabled={roles.includes(ROLES.HFI.SET_FIRE_STARTS) && isAuthenticated}
                           fireStartRanges={result.fire_start_ranges}
                           fuelTypes={props.fuelTypes}
                           planningAreaStationInfo={result.planning_area_station_info}
                         />
-                      </TableRow>
+                      </PlanningAreaTableRow>
                       {sortBy(area.stations, station => station.order_of_appearance_in_planning_area_list).map(
                         station => {
                           const dailiesForStation = getDailiesByStationCode(result, station.code)
                           const isRowSelected = stationCodeInSelected(area.id, station.code)
-                          const classNameForRow = !isRowSelected
-                            ? classes.unselectedStation
-                            : classes.stationCellPlainStyling
                           const stationCode = station.code
                           const selectedFuelType = getSelectedFuelType(
                             result.planning_area_station_info,
@@ -203,12 +197,12 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           if (isUndefined(selectedFuelType)) {
                             return <React.Fragment key={`weekly-undefined-fuel-type-${station.code}`}></React.Fragment>
                           }
+                          const TableRowComponent = !isRowSelected ? UnSelectedTableRow : StationPlainStylingRow
                           return (
-                            <TableRow className={classNameForRow} key={`station-${stationCode}`}>
+                            <TableRowComponent key={`station-${stationCode}`}>
                               <BaseStationAttributeCells
                                 station={station}
                                 planningAreaId={area.id}
-                                className={classNameForRow}
                                 selectStationEnabled={roles.includes(ROLES.HFI.SELECT_STATION) && isAuthenticated}
                                 isSetFuelTypeEnabled={roles.includes(ROLES.HFI.SET_FUEL_TYPE) && isAuthenticated}
                                 stationCodeInSelected={stationCodeInSelected}
@@ -225,11 +219,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 numPrepDays={numPrepDays}
                                 dailies={dailiesForStation}
                                 station={station}
-                                classNameForRow={classNameForRow}
                                 isRowSelected={isRowSelected}
                                 selectedFuelType={selectedFuelType}
                               />
-                            </TableRow>
+                            </TableRowComponent>
                           )
                         }
                       )}

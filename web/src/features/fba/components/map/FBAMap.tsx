@@ -32,6 +32,7 @@ import { RunType } from 'features/fba/pages/FireBehaviourAdvisoryPage'
 import { buildHFICql } from 'features/fba/cqlBuilder'
 import { isUndefined, cloneDeep } from 'lodash'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
+import { Box } from '@mui/material'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -40,7 +41,6 @@ const TILE_SERVER_URL = 'https://wps-prod-tileserv.apps.silver.devops.gov.bc.ca'
 
 export interface FBAMapProps {
   testId?: string
-  className: string
   selectedFireCenter: FireCenter | undefined
   selectedFireZone: FireZone | undefined
   forDate: DateTime
@@ -311,7 +311,7 @@ const FBAMap = (props: FBAMapProps) => {
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
-        <div ref={mapRef} data-testid="fba-map" className={props.className}></div>
+        <Box ref={mapRef} data-testid="fba-map" sx={{ display: 'flex', flex: 1 }}></Box>
         <LoadingBackdrop isLoadingWithoutError={hfiTilesLoading} />
       </MapContext.Provider>
     </ErrorBoundary>

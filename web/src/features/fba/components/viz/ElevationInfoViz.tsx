@@ -1,4 +1,5 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { Paper, Typography } from '@mui/material'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -6,17 +7,23 @@ import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
-import makeStyles from '@mui/styles/makeStyles'
 import { isUndefined } from 'lodash'
 import { ElevationInfoByThreshold, FireZone } from 'api/fbaAPI'
 
-const useStyles = makeStyles({
-  header: {
+const PREFIX = 'ElevationInfoViz'
+
+const classes = {
+  header: `${PREFIX}-header`,
+  wrapper: `${PREFIX}-wrapper`
+}
+
+const Root = styled('div')({
+  [`& .${classes.header}`]: {
     fontSize: '1.3rem',
     textAlign: 'center',
     variant: 'h3'
   },
-  wrapper: {
+  [`& .${classes.wrapper}`]: {
     padding: '20px 10px'
   }
 })
@@ -28,9 +35,8 @@ interface Props {
 }
 
 const ElevationInfoViz = (props: Props) => {
-  const classes = useStyles()
   if (isUndefined(props.hfiElevationInfo) || props.hfiElevationInfo.length === 0) {
-    return <div></div>
+    return <Root></Root>
   }
   const advisoryElevationInfoByThreshold = props.hfiElevationInfo.filter(info => info.threshold === 1)
   const warnElevationInfoByThreshold = props.hfiElevationInfo.filter(info => info.threshold === 2)

@@ -47,7 +47,7 @@ describe('StatusCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <StatusCell daily={validatedDaily?.daily} className={''} isRowSelected={isRowSelected} />
+              <StatusCell daily={validatedDaily?.daily} isRowSelected={isRowSelected} />
             </TableRow>
           </TableBody>
         </Table>

@@ -1,12 +1,14 @@
 import { TableCell } from '@mui/material'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
+import { UnSelectedTableCell } from 'features/hfiCalculator/components/StyledTableComponents'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { isNull, isUndefined } from 'lodash'
 import React, { ReactElement } from 'react'
 
 export interface RequiredDataCellProps {
   testId?: string
+  isRowSelected: boolean
   classNameForRow?: string
   daily: StationDaily | undefined
   dailyKey: keyof StationDaily
@@ -16,12 +18,14 @@ export interface RequiredDataCellProps {
 
 export const RequiredDataCell = ({
   testId,
-  classNameForRow,
+  isRowSelected,
   daily,
   dailyKey,
   errorToolTipText,
   decimalPlaces = DECIMAL_PLACES
 }: RequiredDataCellProps): ReactElement => {
+  const TableCellComponent = isRowSelected ? TableCell : UnSelectedTableCell
+
   const dataValue = daily ? Number(daily[dailyKey])?.toFixed(decimalPlaces) : ''
 
   return (
@@ -35,7 +39,7 @@ export const RequiredDataCell = ({
           />
         </TableCell>
       ) : (
-        <TableCell className={classNameForRow}>{dataValue}</TableCell>
+        <TableCellComponent>{dataValue}</TableCellComponent>
       )}
     </React.Fragment>
   )

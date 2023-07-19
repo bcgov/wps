@@ -1,8 +1,13 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import { styled } from '@mui/material/styles'
+const PREFIX = 'BetaTag'
 
-const useStyles = makeStyles(theme => ({
-  root: {
+const classes = {
+  root: `${PREFIX}-root`
+}
+
+const Root = styled('span')(({ theme }) => ({
+  [`&.${classes.root}`]: {
     backgroundColor: theme.palette.primary.main,
     borderRadius: '25px',
     color: theme.palette.primary.contrastText,
@@ -16,8 +21,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const BetaTag: React.FunctionComponent = () => {
-  const classes = useStyles()
-  return <span className={classes.root}>Beta</span>
+  return <Root className={classes.root}>Beta</Root>
 }
 
 export default React.memo(BetaTag)

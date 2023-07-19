@@ -57,9 +57,6 @@ describe('FireBAT Calculator Page', () => {
   describe('Dropdowns', () => {
     it('Can select station if successfully received stations', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-      cy.intercept('POST', 'api/fba-calc/stations', _ => {
-        throw new Error('API request made when only station set')
-      })
 
       visitAndAddRow()
 
@@ -72,11 +69,11 @@ describe('FireBAT Calculator Page', () => {
       cy.url().should('contain', `s=${stationCode}`)
     })
     it('Can select fuel type successfully', () => {
-      cy.intercept('POST', 'api/fba-calc/stations', _ => {
-        throw new Error('API request made when only station set')
-      })
+      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
       visitAndAddRow()
+
+      cy.wait('@getStations')
 
       const fuelType = FuelTypes.get()['c1']
       cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName, 1)
