@@ -2,7 +2,7 @@
 """
 import logging
 from typing import List
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientConnectionError
 from app import config
 from app.schemas.morecast_v2 import WF1PostForecast
 
@@ -22,4 +22,7 @@ async def post_forecasts(session: ClientSession,
 
     async with session.post(WF1_FORECAST_POST_URL, json=forecasts_json, headers=headers) as response:
         response_json = await response.json()
+        if response.status >= 400:
+            logger.error(f'error submitting forecasts to wf1 {response_json}')
+            raise ClientConnectionError
         logger.info('submitted forecasts to wf1 %s.', response_json)
