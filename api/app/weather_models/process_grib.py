@@ -133,7 +133,7 @@ def get_transformer(crs_from, crs_to):
 
 
 def calculate_wind_speed_from_u_v(u: float, v: float):
-    """ Return calculated wind speed from u and v components using formula
+    """ Return calculated wind speed in metres per second from u and v components using formula
     wind_speed = sqrt(u^2 + v^2)
 
     What the heck is going on here?! See
@@ -156,6 +156,12 @@ def calculate_wind_dir_from_u_v(u: float, v: float):
     # must convert from trig coordinates to cardinal coordinates
     calc = 90 - calc
     return calc if calc > 0 else 360 + calc
+
+
+def convert_mps_to_kph(value: float):
+    """ Convert a value from metres per second to kilometres per hour. 
+    """
+    return value / 1000 * 3600
 
 
 class GribFileProcessor():
@@ -224,10 +230,13 @@ class GribFileProcessor():
         return (u_points, wind_dir_values)
 
     def get_wind_speed_values(self, u_points: List[int], zipped_uv_values):
-        """ Get calculated wind speed values for list of points and zipped u,v values """
+        """ Get calculated wind speed values in kilometres per hour for a list of points
+        and zipped u,v values """
         wind_speed_values = []
         for u, v in zipped_uv_values:
-            wind_speed_values.append(calculate_wind_speed_from_u_v(u, v))
+            metres_per_second_speed = calculate_wind_speed_from_u_v(u, v)
+            kilometres_per_hour_speed = convert_mps_to_kph(metres_per_second_speed)
+            wind_speed_values.append(kilometres_per_hour_speed)
         return (u_points, wind_speed_values)
 
     def get_variable_name(self, grib_info: ModelRunInfo) -> str:
@@ -295,6 +304,9 @@ class GribFileProcessor():
         raster_band = dataset.GetRasterBand(1)
         # Iterate through stations:
         for (points, values) in self.yield_data_for_stations(raster_band):
+            # Convert wind speed from metres per second to kilometres per hour
+            if grib_info.variable_name.lower().startswith("apcp_sfc"):
+                values = [convert_mps_to_kph(value) for value in values]
             self.store_bounding_values(
                 points, values, prediction_run, grib_info, session)
 
