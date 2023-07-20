@@ -158,11 +158,11 @@ jobs:
       #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
       #     bash openshift/scripts/oc_provision_wfwx_noon_forecasts_cronjob.sh ${SUFFIX} apply
 
-      - name: Environment Canada GDPS cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
+      # - name: Environment Canada GDPS cronjob
+      #   shell: bash
+      #   run: |
+      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+      #     PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
 
       # - name: Environment Canada HRDPS cronjob
       #   shell: bash
