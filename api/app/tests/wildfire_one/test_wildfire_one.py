@@ -1,13 +1,13 @@
 """ Unit testing for WFWX API code """
 import asyncio
+from unittest.mock import MagicMock, patch
 import pytest
+from aiohttp import ClientConnectionError
 from pytest_mock import MockFixture
-from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
-                                             BuildQueryAllHourliesByRange,
-                                             BuildQueryDailiesByStationCode,
-                                             BuildQueryStationGroups)
-from app.wildfire_one.wfwx_api import (WFWXWeatherStation,
-                                       get_wfwx_stations_from_station_codes)
+
+from app.wildfire_one.query_builders import BuildQueryAllForecastsByAfterStart, BuildQueryAllHourliesByRange, BuildQueryDailiesByStationCode, BuildQueryStationGroups
+from app.wildfire_one.wfwx_api import WFWXWeatherStation, get_wfwx_stations_from_station_codes
+from app.wildfire_one.wfwx_post_api import post_forecasts
 
 
 def test_build_all_hourlies_query():
@@ -110,3 +110,19 @@ def test_get_ids_from_station_codes(mock_responses):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(run_test())
+
+
+class PostResponse():
+    def __init__(self, status):
+        self.status = status
+
+    async def json(self):
+        return {}
+
+
+@pytest.mark.anyio
+@patch('app.wildfire_one.wfwx_post_api.ClientSession')
+async def test_wf1_post_failure(mock_client):
+    mock_client.post.return_value.__aenter__.return_value = PostResponse(status=401)
+    with pytest.raises(ClientConnectionError):
+        await post_forecasts(mock_client, 'token', [])
