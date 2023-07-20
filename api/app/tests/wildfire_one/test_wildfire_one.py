@@ -1,12 +1,16 @@
 """ Unit testing for WFWX API code """
 import asyncio
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 import pytest
 from aiohttp import ClientConnectionError
 from pytest_mock import MockFixture
 
-from app.wildfire_one.query_builders import BuildQueryAllForecastsByAfterStart, BuildQueryAllHourliesByRange, BuildQueryDailiesByStationCode, BuildQueryStationGroups
-from app.wildfire_one.wfwx_api import WFWXWeatherStation, get_wfwx_stations_from_station_codes
+from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
+                                             BuildQueryAllHourliesByRange,
+                                             BuildQueryDailiesByStationCode,
+                                             BuildQueryStationGroups)
+from app.wildfire_one.wfwx_api import (WFWXWeatherStation,
+                                       get_wfwx_stations_from_station_codes)
 from app.wildfire_one.wfwx_post_api import post_forecasts
 
 
