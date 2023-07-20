@@ -304,7 +304,7 @@ class GribFileProcessor():
         raster_band = dataset.GetRasterBand(1)
         # Iterate through stations:
         for (points, values) in self.yield_data_for_stations(raster_band):
-            # Convert precipitation from metres per second to kilometres per hour
+            # Convert wind speed from metres per second to kilometres per hour
             if grib_info.variable_name.lower().startswith("apcp_sfc"):
                 values = [convert_mps_to_kph(value) for value in values]
             self.store_bounding_values(
