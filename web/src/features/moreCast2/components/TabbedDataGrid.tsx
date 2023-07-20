@@ -47,7 +47,6 @@ export const SaveButton = styled(SaveForecastButton)(({ theme }) => ({
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
 const FORECAST_SAVED_MESSAGE = 'Forecast was successfully saved and sent to Wildfire One.'
 const FORECAST_WARN_MESSAGE = 'Forecast not submitted. A forecast can only contain N/A values for the Wind Direction.'
-const WF1_ERROR_MESSAGE = 'Forecast not submitted. Wildfire One authentication error.'
 
 interface TabbedDataGridProps {
   morecast2Rows: MoreCast2Row[]
@@ -292,12 +291,6 @@ const TabbedDataGrid = ({ morecast2Rows, fromTo, setFromTo }: TabbedDataGridProp
         setSnackbarSeverity('error')
         setSnackbarOpen(true)
       }
-    } else if (isUndefined(wf1Token)) {
-      // Should we do something like this?
-      // Is it as simple as this re: wf1Token expiry? My guess is not...
-      setSnackbarMessage(WF1_ERROR_MESSAGE)
-      setSnackbarSeverity('error')
-      setSnackbarOpen(true)
     } else {
       setSnackbarMessage(FORECAST_WARN_MESSAGE)
       setSnackbarSeverity('warning')
