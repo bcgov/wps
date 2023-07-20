@@ -117,6 +117,8 @@ def test_get_ids_from_station_codes(mock_responses):
 
 
 class PostResponse():
+    """ A class to mimic an async ClientSession.post response"""
+
     def __init__(self, status):
         self.status = status
 
@@ -127,6 +129,7 @@ class PostResponse():
 @pytest.mark.anyio
 @patch('app.wildfire_one.wfwx_post_api.ClientSession')
 async def test_wf1_post_failure(mock_client):
+    """ Verifies that posting to WF1 raises an exception upon failure """
     mock_client.post.return_value.__aenter__.return_value = PostResponse(status=401)
     with pytest.raises(ClientConnectionError):
         await post_forecasts(mock_client, 'token', [])
