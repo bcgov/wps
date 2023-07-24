@@ -5,7 +5,7 @@ from app.morecast_v2.forecasts import format_as_wf1_post_forecasts
 from app.utils.time import vancouver_tz
 from typing import List
 from datetime import date, datetime, time, timedelta, timezone
-from fastapi import APIRouter, Response, Depends, status
+from fastapi import APIRouter, Response, Depends, status, HTTPException
 from app.auth import (auth_with_forecaster_role_required,
                       audit,
                       authentication_required)
@@ -107,6 +107,7 @@ async def save_forecasts(forecasts: MoreCastForecastRequest,
             await post_forecasts(client_session, token=forecasts.token, forecasts=wf1_forecast_records)
         except Exception as exc:
             logger.error('Encountered error posting forecast data to WF1 API', exc_info=exc)
+            raise exc
 
     with get_write_session_scope() as db_session:
         save_all_forecasts(db_session, forecasts_to_save)
