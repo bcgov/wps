@@ -5,7 +5,7 @@ from app.morecast_v2.forecasts import format_as_wf1_post_forecasts
 from app.utils.time import vancouver_tz
 from typing import List
 from datetime import date, datetime, time, timedelta, timezone
-from fastapi import APIRouter, Response, Depends, status, HTTPException
+from fastapi import APIRouter, Response, Depends, status
 from app.auth import (auth_with_forecaster_role_required,
                       audit,
                       authentication_required)
