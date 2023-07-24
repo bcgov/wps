@@ -2,7 +2,7 @@
 import asyncio
 from unittest.mock import patch
 import pytest
-from aiohttp import ClientConnectionError
+from fastapi import status, HTTPException
 from pytest_mock import MockFixture
 
 from app.wildfire_one.query_builders import (BuildQueryAllForecastsByAfterStart,
@@ -131,5 +131,5 @@ class PostResponse():
 async def test_wf1_post_failure(mock_client):
     """ Verifies that posting to WF1 raises an exception upon failure """
     mock_client.post.return_value.__aenter__.return_value = PostResponse(status=401)
-    with pytest.raises(ClientConnectionError):
+    with pytest.raises(HTTPException):
         await post_forecasts(mock_client, 'token', [])
