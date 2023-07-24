@@ -84,43 +84,47 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
+    const doiISODate = dateOfInterest.toISODate()
+    if (!isNull(doiISODate)) {
+      dispatch(fetchSFMSRunDates(runType, doiISODate))
+    }
   }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatch(fetchFireCenters())
-    dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
+    const doiISODate = dateOfInterest.toISODate()
+    if (!isNull(doiISODate)) {
+      dispatch(fetchSFMSRunDates(runType, doiISODate))
+    }
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    dispatch(fetchSFMSRunDates(runType, dateOfInterest.toISODate()))
+    const doiISODate = dateOfInterest.toISODate()
+    if (!isNull(doiISODate)) {
+      dispatch(fetchSFMSRunDates(runType, doiISODate))
+    }
   }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate) && !isUndefined(selectedFireZone)) {
+    const doiISODate = dateOfInterest.toISODate()
+    if (
+      !isNull(mostRecentRunDate) &&
+      !isNull(doiISODate) &&
+      !isUndefined(mostRecentRunDate) &&
+      !isUndefined(selectedFireZone)
+    ) {
+      dispatch(fetchHighHFIFuels(runType, doiISODate, mostRecentRunDate.toString(), selectedFireZone.mof_fire_zone_id))
       dispatch(
-        fetchHighHFIFuels(
-          runType,
-          dateOfInterest.toISODate(),
-          mostRecentRunDate.toString(),
-          selectedFireZone.mof_fire_zone_id
-        )
-      )
-      dispatch(
-        fetchfireZoneElevationInfo(
-          selectedFireZone.mof_fire_zone_id,
-          runType,
-          dateOfInterest.toISODate(),
-          mostRecentRunDate.toString()
-        )
+        fetchfireZoneElevationInfo(selectedFireZone.mof_fire_zone_id, runType, doiISODate, mostRecentRunDate.toString())
       )
     }
   }, [mostRecentRunDate, selectedFireZone]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!isNull(mostRecentRunDate) && !isUndefined(mostRecentRunDate)) {
-      dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), dateOfInterest.toISODate()))
+    const doiISODate = dateOfInterest.toISODate()
+    if (!isNull(mostRecentRunDate) && !isNull(doiISODate) && !isUndefined(mostRecentRunDate)) {
+      dispatch(fetchFireZoneAreas(runType, mostRecentRunDate.toString(), doiISODate))
       setIssueDate(DateTime.fromISO(mostRecentRunDate))
     } else {
       setIssueDate(null)
