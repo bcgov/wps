@@ -114,21 +114,24 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const setNewFireStarts = (planningAreaId: number, dayOffset: number, newFireStarts: FireStartRange) => {
     if (!isUndefined(result) && !isUndefined(result.date_range)) {
-      dispatch(
-        fetchSetNewFireStarts(
-          result.selected_fire_center_id,
-          result.date_range.start_date,
-          result.date_range.end_date,
-          planningAreaId,
-          DateTime.fromISO(result.date_range.start_date + 'T00:00+00:00', {
-            setZone: true
-          })
-            .plus({ days: dayOffset })
-            .toISODate(),
-          newFireStarts.id,
-          { planning_area_id: planningAreaId }
+      const prepDayDate = DateTime.fromISO(result.date_range.start_date + 'T00:00+00:00', {
+        setZone: true
+      })
+        .plus({ days: dayOffset })
+        .toISODate()
+      if (!isNull(prepDayDate)) {
+        dispatch(
+          fetchSetNewFireStarts(
+            result.selected_fire_center_id,
+            result.date_range.start_date,
+            result.date_range.end_date,
+            planningAreaId,
+            prepDayDate,
+            newFireStarts.id,
+            { planning_area_id: planningAreaId }
+          )
         )
-      )
+      }
     }
   }
 
